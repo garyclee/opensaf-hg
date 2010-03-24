@@ -2,8 +2,8 @@
 #
 ### BEGIN INIT INFO
 # Provides: osafsmfd
-# Required-Start: $local_fs $network $syslog
-# Required-Stop: $local_fs $network $syslog
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
 # Should-Start: 
 # Should-Stop: 
 # Default-Start: 
@@ -23,7 +23,6 @@ if [ ! -r $osafdirfile ]; then
 	exit 6
 else
 	. $osafdirfile
-	. $pkgsysconfdir/script.conf
 	. $pkgsysconfdir/smfd.conf
 fi	
 

@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2009-2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,7 +19,7 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/infrastructure/fm/config/fms.conf
+	$(top_srcdir)/osaf/services/infrastructure/fm/config/fmd.conf
 
 dist_pkgimmxml_svc_DATA = \
 	fm_sc_template.xml \

@@ -18,9 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
 dist_pkgimmxml_svc_DATA = \
 	mqsv_sc_template.xml \
 	mqsv_pl_template.xml \
 	mqsv_classes.xml \
 	mqsv_objects.xml
+
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/saf/mqsv/config/msgd.conf \
+	$(top_srcdir)/osaf/services/saf/mqsv/config/msgnd.conf

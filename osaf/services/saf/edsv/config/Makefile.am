@@ -18,8 +18,10 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
 dist_pkgimmxml_svc_DATA = \
 	edsv_sc_template.xml \
 	edsv_classes.xml \
 	edsv_objects.xml
+
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/saf/edsv/config/evtd.conf

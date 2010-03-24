@@ -30,6 +30,7 @@
 #include <configmake.h>
 
 #include <rda_papi.h>
+#include <nid_api.h>
 #include <daemon.h>
 #include <saPlm.h>
 

@@ -49,7 +49,7 @@ const char *rde_msg_name[] = {
 	"RDE_MSG_PEER_INFO_RESP(4)",
 };
 
-/* note: default value mentioned in script.conf, change in both places */
+/* note: default value mentioned in $pkgsysconfdir/rde.conf, change in both places */
 static int discover_peer_timeout = 2000;
 static RDE_CONTROL_BLOCK _rde_cb;
 static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;

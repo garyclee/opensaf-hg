@@ -29,6 +29,7 @@
 #include <sys/types.h>
 
 #include <configmake.h>
+#include <nid_api.h>
 
 #include "immnd.h"
 #include "immsv_api.h"

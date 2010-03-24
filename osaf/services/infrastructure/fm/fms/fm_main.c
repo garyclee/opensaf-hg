@@ -22,6 +22,7 @@
 
 ******************************************************************************/
 
+#include <configmake.h>
 #include <daemon.h>
 #include <logtrace.h>
 
@@ -52,7 +53,6 @@ static uns32 fm_tmr_start(FM_TMR *, SaTimeT);
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
 static void fm_tmr_stop(FM_TMR *);
 static void fm_tmr_exp(void *);
-static char *fms_skip_white(char *);
 
 uns32 gl_fm_hdl;
 
@@ -380,85 +380,54 @@ static uns32 fm_hpl_finalize(void)
  *****************************************************************************/
 static uns32 fm_get_args(FM_CB *fm_cb)
 {
-	FILE *fp;
-	char readline[101];
-	char *token = NULL;
-	char *substr = NULL;
-	char *fms_conf_path = NULL;
+	char *value;
 	uns32 temp_slot_1 = 0, temp_slot_2 = 0;
 	uns32 temp_sub_slot_1 = 0, temp_sub_slot_2 = 0;
 	NCS_NODE_ID node_id;
 
-	fms_conf_path = getenv("FMS_CONF_PATH");
-
-	if (NULL == fms_conf_path)
-		return NCSCC_RC_FAILURE;
-
-	fp = fopen(fms_conf_path, "r");
-	if (NULL == fp)
-		return NCSCC_RC_FAILURE;
-
-	memset(readline, 0, 101);
-	while (NULL != (fgets(readline, 100, fp))) {
-		token = fms_skip_white(readline);
-		if (NULL == token)	/* skip this line */
-			continue;
-
-		/* tokenize */
-		substr = strtok(token, " ");
-
-		if (strcmp(substr, "controller_1") == 0) {
-			substr = strtok(NULL, " /");
-			temp_slot_1 = atoi(substr);
-			if (!temp_slot_1) {
-				syslog(LOG_ERR, "Invalid slot_ids given \n");
-				fclose(fp);
-				return NCSCC_RC_FAILURE;
-			}
-			substr = strtok(NULL, " /");
-			temp_sub_slot_1 = atoi(substr);
-			if (!temp_sub_slot_1) {
-				syslog(LOG_ERR, "Invalid sub_slot_ids given \n");
-				fclose(fp);
-				return NCSCC_RC_FAILURE;
-			}
-		} else if (strcmp(substr, "controller_2") == 0) {
-			substr = strtok(NULL, " /");
-			temp_slot_2 = atoi(substr);
-			if (!temp_slot_2) {
-				syslog(LOG_ERR, "Invalid slot_ids given \n");
-				fclose(fp);
-				return NCSCC_RC_FAILURE;
-			}
-
-			substr = strtok(NULL, " /");
-			temp_sub_slot_2 = atoi(substr);
-			if (!temp_sub_slot_2) {
-				syslog(LOG_ERR, "Invalid sub_slot_ids given \n");
-				fclose(fp);
-				return NCSCC_RC_FAILURE;
-			}
-		} else {
-			syslog(LOG_ERR, "Invalid token mentioned in the configuration file: %s\n", substr);
-			fclose(fp);
+	value = getenv("FM_CONTROLLER1_SLOT");
+	if (value != NULL) {
+		temp_slot_1 = atoi(value);
+		if (!temp_slot_1) {
+			syslog(LOG_ERR, "Invalid FM_CONTROLLER1_SLOT set in " PKGSYSCONFDIR "/fmd.conf");
 			return NCSCC_RC_FAILURE;
 		}
-		token = NULL;
 	}
 
-	fclose(fp);
+	value = getenv("FM_CONTROLLER1_SUBSLOT");
+	if (value != NULL) {
+		temp_sub_slot_1 = atoi(value);
+		if (!temp_sub_slot_1) {
+			syslog(LOG_ERR, "Invalid FM_CONTROLLER1_SUBSLOT set in " PKGSYSCONFDIR "/fmd.conf");
+			return NCSCC_RC_FAILURE;
+		}
+	}
+
+	value = getenv("FM_CONTROLLER2_SLOT");
+	if (value != NULL) {
+		temp_slot_2 = atoi(value);
+		if (!temp_slot_2) {
+			syslog(LOG_ERR, "Invalid FM_CONTROLLER2_SLOT set in " PKGSYSCONFDIR "/fmd.conf");
+			return NCSCC_RC_FAILURE;
+		}
+	}
+
+	value = getenv("FM_CONTROLLER2_SUBSLOT");
+	if (value != NULL) {
+		temp_sub_slot_2 = atoi(value);
+		if (!temp_sub_slot_2) {
+			syslog(LOG_ERR, "Invalid FM_CONTROLLER2_SUBSLOT set in " PKGSYSCONFDIR "/fmd.conf");
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
 	/* Update fm_cb configuration fields */
 	node_id = m_NCS_GET_NODE_ID;
-
 	m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, &fm_cb->shelf, &fm_cb->slot, &fm_cb->sub_slot);
 
 	fm_cb->peer_shelf = fm_cb->shelf;
-
 	fm_cb->peer_slot = (fm_cb->slot == temp_slot_1) ? temp_slot_2 : temp_slot_1;
-
 	fm_cb->peer_sub_slot = (fm_cb->sub_slot == temp_sub_slot_1) ? temp_sub_slot_2 : temp_sub_slot_1;
-
 	fm_cb->active_promote_tmr_val = 500;
 	fm_cb->reset_retry_tmr_val = 300;
 
@@ -773,7 +742,7 @@ static uns32 fm_can_smh_sw_process(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *o_ent_path, uns8 shelf, uns8 slot, uns8 sub_slot)
 {
 	char *arch_type = NULL;
-	arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+	arch_type = getenv("FM_TARGET_SYSTEM_ARCH");
 
 	if (NULL == arch_type)
 		return NCSCC_RC_FAILURE;
@@ -865,31 +834,6 @@ static uns32 fms_reset_peer(FM_CB *fm_cb)
 	}
 
 	return NCSCC_RC_FAILURE;
-}
-
-/****************************************************************************
- * Name          : fms_skip_white
- *
- * Description   : To skip white space
- *
- * Arguments     : Pointer to Data Str
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
- *****************************************************************************/
-char *fms_skip_white(char *ptr)
-{
-	if (ptr == NULL)
-		return (NULL);
-
-	while (*ptr != 0 && isspace(*ptr))
-		ptr++;
-
-	if (*ptr == 0 || *ptr == '#')
-		return (NULL);
-
-	return (ptr);
 }
 
 /****************************************************************************

@@ -28,7 +28,7 @@
 *                                                                            *
 *****************************************************************************/
 
-#include "nid_api.h"
+#include <nid_api.h>
 
 /****************************************************************************
  * Name          : nid_notify                                               *
@@ -72,13 +72,10 @@ uns32 nid_notify(char *service, uns32 status, uns32 *error)
 		return NCSCC_RC_FAILURE;
 	}
 
-   /************************************************************
-   *    Prepare the message to be sent                         *
-   ************************************************************/
+	/* Prepare the message to be sent */
 	sprintf(msg, "%x:%s:%d", NID_MAGIC, service, scode);
-   /************************************************************
-   *    Send the message                                       *
-   ************************************************************/
+
+	/* Send the message */
 	retry = 3;
 	while (retry) {
 		if (write(fd, msg, strlen(msg)) == strlen(msg))
@@ -134,9 +131,7 @@ uns32 nis_notify(char *status, uns32 *error)
 		return NCSCC_RC_FAILURE;
 	}
 
-   /************************************************************
-   *    Send the message                                       *
-   ************************************************************/
+	/* Send the message */
 	retry = 3;
 	while (retry) {
 		if (write(fd, status, strlen(status)) == strlen(status))

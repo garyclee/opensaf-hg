@@ -771,11 +771,11 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/subslot_id
 %config(noreplace) %{_pkgsysconfdir}/node_type
 %config %{_pkgsysconfdir}/node_name
-%config %{_pkgsysconfdir}/script.conf
 %config %{_pkgsysconfdir}/osafdir.conf
+%config %{_pkgsysconfdir}/nid.conf
 %config %{_initddir}/opensafd
 %{_pkgsysconfdir}/nodeinit.conf
-%{_pkglibdir}/ncs_nid
+%{_pkglibdir}/opensafd
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc
 
@@ -819,6 +819,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ckpt-director
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/ckptd.conf
 %{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/osafckptd
 %{_pkglibdir}/osaf-ckptd
@@ -829,6 +830,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ckpt-nodedirector
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/ckptnd.conf
 %{_pkglibdir}/osafckptnd
 %{_pkglibdir}/osaf-ckptnd
 
@@ -870,6 +872,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files evt-server
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/evtd.conf
 %{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/osafevtd
 %{_pkglibdir}/osaf-evtd
@@ -957,6 +960,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files lck-director
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/lckd.conf
 %{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/osaflckd
 %{_pkglibdir}/osaf-lckd
@@ -967,6 +971,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files lck-nodedirector
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/lcknd.conf
 %{_pkglibdir}/osaflcknd
 %{_pkglibdir}/osaf-lcknd
 
@@ -997,6 +1002,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files msg-director
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/msgd.conf
 %{_pkglibdir}/libmqsv_logstr.so.*
 %{_pkglibdir}/osafmsgd
 %{_pkglibdir}/osaf-msgd
@@ -1007,6 +1013,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files msg-nodedirector
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/msgnd.conf
 %{_pkglibdir}/osafmsgnd
 %{_pkglibdir}/osaf-msgnd
 
@@ -1062,7 +1069,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files controller
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/dtsv.conf
-%config(noreplace) %{_pkgsysconfdir}/fms.conf
+%config(noreplace) %{_pkgsysconfdir}/fmd.conf
 %config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
 %{_pkglibdir}/osafdtd

@@ -16,7 +16,13 @@
 # Author(s): Emerson Network Power
 #
 
-source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+. @sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+. $pkgsysconfdir/nid.conf
+
+TIPC_MODULE=/lib/modules/$(uname -r)/kernel/net/tipc.ko
+CHASSIS_ID_FILE=$pkgsysconfdir/chassis_id
+SLOT_ID_FILE=$pkgsysconfdir/slot_id
+SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
 
 # Configure TIPC in network mode. If the variable TIPC_MODULE points to a file,
 # 'insmod' is used else 'modprobe'. 'tipc-config' needs to be in the path.
@@ -33,10 +39,6 @@ SHIFT4=4
 NID_SVC_NAME=TIPC
 
 NAME=clmna
-BIN=${LIBPATH}/opensaf_${NAME}
-
-# IMPORTANT : This script receives command in the form :
-#xxBINDIRxx/ncs_tipc start intf_name[eth0] core_id[1234] TIPC
 
 # Make sure tipc-config is available, either in path or in default location
 tipc_config=$(which tipc-config 2> /dev/null)
@@ -105,7 +107,7 @@ if [ $# -gt 1 ] ; then
     fi
 fi    
 
-printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $PKGLOCALSTATEDIR/node_id
+printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
 
 if [ "$USE_SUBSLOT_ID" = "YES" ]; then
     TIPC_NODEID=$(($SLOT_ID << $SHIFT4))
@@ -212,7 +214,7 @@ echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
 echo "Running Permanent loop to clean MDS Logs..."
 while true
 do
-    MDS_LOG_FILE="${NCS_STDOUTS_PATH}/ncs_mds.log"
+    MDS_LOG_FILE=$pkglogdir/mds.log
     FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
     if [ 5000 -lt 0$FILESIZE ]; then
         rm -f "$MDS_LOG_FILE.old"
@@ -220,4 +222,3 @@ do
     fi
     sleep 15
 done
-

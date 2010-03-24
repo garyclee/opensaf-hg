@@ -18,9 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
 dist_pkgimmxml_svc_DATA = \
 	glsv_sc_template.xml \
 	glsv_pl_template.xml \
 	glsv_classes.xml \
 	glsv_objects.xml
+
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/saf/glsv/config/lckd.conf \
+	$(top_srcdir)/osaf/services/saf/glsv/config/lcknd.conf

@@ -170,7 +170,6 @@ endif
 endif
 
 nodist_pkgsysconf_DATA = \
-	$(top_builddir)/config/script.conf \
 	$(top_builddir)/osafdir.conf
 
 dist_pkgimmxml_DATA = \
@@ -222,9 +221,11 @@ rpm: prep-rpm-dir
 endif
 
 update-ldconfig:
-	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+	$(INSTALL_DATA) $(top_builddir)/osaf/libs/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+
+all-local:
+	echo "$(pkglibdir)" > $(top_builddir)/osaf/libs/$(PACKAGE_NAME)-$(host_cpu).conf
 
 install-data-local: update-ldconfig
 	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
@@ -263,5 +264,5 @@ if ENABLE_RPM_TARGET
 endif
 
 distclean-local:
-	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
+	-rm -f $(top_builddir)/osaf/libs/$(PACKAGE_NAME)-$(host_cpu).conf
 	-rm -rf docs/

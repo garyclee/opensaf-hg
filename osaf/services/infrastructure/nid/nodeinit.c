@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2008-2010 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -12,16 +12,15 @@
  * licensing terms.
  *
  * Author(s): Emerson Network Power
+ *            Wind River Systems
  *
  */
-
-#include <configmake.h>
 
 /************************************************************************
 *                                                                       *
 *       Module Name:    nodeinit (Node Initialization Daemon)           *
 *                                                                       *
-*       Purpose:        Nodeinitd reads following info from             *
+*       Purpose:        opensafd reads following info from              *
 *                       PKGSYSCONFDIR/nodeinit.conf file:               *
 *                       * Application file name,with absolute path name.*
 *                       * Application Name.                             *
@@ -35,108 +34,82 @@
 *                       * [OPTIONAL]: Input parameters for application. *
 *                       * [OPTIONAL]: Input parameters for cleanup app. *
 *                                                                       *
-*                                                                       *
-*                                                                       *
 *            Spawns the services in the sequence listed in              *
 *            this file,uses time-out against each service               *
 *            spawned and spawn the next service only once               *
-*            nodeinitd receives a successful initialization             *
+*            opensafd receives a successful initialization              *
 *            notification from spawned servrice.                        *
 *                                                                       *
-*                       Nodeinitd invokes cleanup followed by recovery  *
-*            if it receives initializ ation error from                  *
+*            opensafd invokes cleanup followed by recovery              *
+*            if it receives initialize action error from                *
 *            spawned service or time-out before it receives             *
 *            any notification.                                          *
 ************************************************************************/
 
-#include "node_init.h"
-#include "rda_papi.h"		/* for RDF interfacing */
+#include <syslog.h>
+#include <libgen.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <limits.h>
 
-#define  SETSIG(sa,sig,fun,flags)\
-        do{\
-            sa.sa_handler = fun;\
-            sa.sa_flags = flags;\
-            sigemptyset(&sa.sa_mask);\
-            sigaction(sig,&sa,NULL);\
-        }while(0)
+#include <configmake.h>
+#include <rda_papi.h>
+#include <logtrace.h>
 
-/***********************************
-*     NID FIFO file descriptor      *
-************************************/
+#include "nodeinit.h"
+
+#define SETSIG(sa, sig, fun, flags) \
+	do { \
+		sa.sa_handler = fun; \
+		sa.sa_flags = flags; \
+		sigemptyset(&sa.sa_mask); \
+		sigaction(sig,&sa,NULL); \
+	} while(0)
+
+#define NIDLOG PKGLOGDIR "/nid.log"
+
+/* NID FIFO file descriptor */
 int32 select_fd = -1;
 
-/**********************************
-*  To track NID current priority  *
-**********************************/
+/* To track NID current priority */
 int32 nid_current_prio;
 
-/************************************
-*    NIS FIFO handler, created      *
-*    by NIS. NIS is waiting for     *
-*    us to write DONE.              *
-************************************/
+/* NIS FIFO handler, created by NIS. NIS is waiting for us to write DONE */
 int32 nis_fifofd = -1;
 
-/************************************************************
-*     List to store the info of application to be spawned   *
-************************************************************/
+/* List to store the info of application to be spawned */
 NID_CHILD_LIST spawn_list = { NULL, NULL, 0 };
 
-/************************************************************
-*     Console needed for shell scripts to be spawned        *
-************************************************************/
-char *cons_dev;
-int32 cons_fd = -1;
-/***************************************
-*     just to track dead childs pid    *
-***************************************/
-uns32 dead_child = 0;
-
-/********************************************
-*    Used to depict if we are ACTIVE/STDBY. *
-********************************************/
+/* Used to depict if we are ACTIVE/STDBY */
 uns32 role = 0;
 char rolebuff[20];
 char svc_name[NID_MAXSNAME];
 
 static uns32 spawn_wait(NID_SPAWN_INFO *servicie, char *strbuff);
-int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *, char *strbuff);
-static int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *, char *strbuff);
-static int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *, char *strbuff);
+int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+static int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+static int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
 static void collect_param(char *, char *, char *args[]);
-void logme(uns32, char *, ...);
 static char *gettoken(char **, uns32);
 static void add2spawnlist(NID_SPAWN_INFO *);
 static NID_APP_TYPE get_apptype(char *);
 static uns32 get_spawn_info(char *, NID_SPAWN_INFO *, char *);
-static uns32 parse_nodeinitconf(char *strbuf);
+static uns32 parse_nodeinit_conf(char *strbuf);
 static uns32 check_process(NID_SPAWN_INFO *service);
 static void cleanup(NID_SPAWN_INFO *service);
 static uns32 recovery_action(NID_SPAWN_INFO *, char *);
-static void insert_role_svc_name(NID_SPAWN_INFO *);
 static uns32 spawn_services(char *);
-static void sigchld_handlr(int);
-static void daemonize_me(void);
-static void cons_init(void);
-static uns32 cons_open(uns32);
-static void notify_bis(char *message);
-static char *strtolower(char *);
 static uns32 getrole(void);
 static uns32 get_role_from_rdf(void);
 static void nid_sleep(uns32);
 
-/******************************************************************
-*       List of recovery strategies                               *
-******************************************************************/
-NID_FUNC recovery_funcs[] = { spawn_wait /*,bladereset */  };
+/* List of recovery strategies */
+NID_FUNC recovery_funcs[] = { spawn_wait  };
 NID_FORK_FUNC fork_funcs[] = { fork_process, fork_script, fork_daemon };
 
-char *nid_log_path;
-
-char *nid_recerr[NID_MAXREC][4] = { {"Trying To RESPAWN", "Could Not RESPAWN",
-				     "Succeeded To RESPAWN", "FAILED TO RESPAWN"},
-{"Trying To RESET", "Faild to RESET",
- "suceeded To RESET", "FAILED AFTER RESTART"}
+char *nid_recerr[NID_MAXREC][4] = {
+	{"Trying To RESPAWN", "Could Not RESPAWN", "Succeeded To RESPAWN", "FAILED TO RESPAWN"},
+	{"Trying To RESET", "Faild to RESET", "suceeded To RESET", "FAILED AFTER RESTART"}
 };
 
 /****************************************************************************
@@ -146,13 +119,12 @@ char *nid_recerr[NID_MAXREC][4] = { {"Trying To RESPAWN", "Could Not RESPAWN",
  *                                                                          *
  * Arguments     : time_in _msec- time to sleep for milli secs              *
  *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 void nid_sleep(uns32 time_in_msec)
 {
 	struct timeval tv;
+
+	TRACE_ENTER();
 
 	tv.tv_sec = time_in_msec / 1000;
 	tv.tv_usec = ((time_in_msec) % 1000) * 1000;
@@ -160,85 +132,26 @@ void nid_sleep(uns32 time_in_msec)
 	while (m_NCSSOCK_SELECT(0, 0, 0, 0, &tv) != 0)
 		if (errno == EINTR)
 			continue;
-}
 
-/****************************************************************************
- * Name          : notify_bis                                               *
- *                                                                          *
- * Description   : Writes the bid status to NIS pipe                        *
- *                                                                          *
- * Arguments     : messgae - Message to be sent    to bis                   *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ****************************************************************************/
-void notify_bis(char *message)
-{
-	uns32 size;
-	size = strlen(message);
-	if (write(nis_fifofd, message, size) != size)
-		logme(NID_LOG2FILE, "Error writing to nis FIFO! Error:%s\n", strerror(errno));
-	close(nis_fifofd);
-}
-
-/****************************************************************************
- * Name          : logme                                                    *
- *                                                                          *
- * Description   : Abstraction to log the error messages to file and console*
- *           optionally                                                     *
- *                                                                          *
- *                                                                          *
- * Arguments     : level - Input arg, to specify whether to log to console  *
- *               or file or both.                                           *
- *                 s     - Test to be loged.                                *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ****************************************************************************/
-void logme(uns32 level, char *s, ...)
-{
-	va_list arg_list;
-	char buf[256];
-
-	va_start(arg_list, s);
-	vsnprintf(buf, sizeof(buf), s, arg_list);
-	va_end(arg_list);
-
-	openlog("NID", LOG_CONS, LOG_LOCAL3);
-	switch (level) {
-
-	case NID_LOG2CONS:
-		write(cons_fd, buf, strlen(buf));
-		break;
-	case NID_LOG2FILE:
-		syslog(LOG_LOCAL3 | LOG_INFO, "%s", buf);
-		break;
-
-	case NID_LOG2FILE_CONS:
-		syslog(LOG_LOCAL3 | LOG_INFO, "%s", buf);
-		write(cons_fd, buf, strlen(buf));
-		break;
-	}
-
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
  * Name          : gettoken                                                 *
  *                                                                          *
- * Description   :  Parse and return the string speperated by tok           *
+ * Description   : Parse and return the string speperated by tok            *
  *                                                                          *
  * Arguments     : str - input string to be parsed                          *
- *           tok - tokenizing charecter, in our case ':'                    *
+ *                 tok - tokenizing charecter, in our case ':'              *
  *                                                                          *
  * Return Values : token string seperated by "tok" or NULL if nothing       *
  *                                                                          *
- * Notes         : None.                                                    *
  ****************************************************************************/
 char *gettoken(char **str, uns32 tok)
 {
 	char *p, *q;
+
+	TRACE_ENTER();
 
 	if ((str == NULL) || (*str == 0) || (**str == '\n') || (**str == '\0'))
 		return (NULL);
@@ -258,6 +171,8 @@ char *gettoken(char **str, uns32 tok)
 		*str = p;
 	}
 
+	TRACE_LEAVE();
+
 	return q;
 }
 
@@ -265,17 +180,15 @@ char *gettoken(char **str, uns32 tok)
  * Name          : add2spawnlist                                            *
  *                                                                          *
  * Description   : Insert the childinfo into global list "spawn_list"       *
- *           in FIFO order.                                                 *
+ *                 in FIFO order.                                           *
  *                                                                          *
  * Arguments     : childinfo - contains child info to be inserted into      *
- *                            spawn_list                                    *
+ *                             spawn_list                                   *
  *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 void add2spawnlist(NID_SPAWN_INFO *childinfo)
 {
+	TRACE_ENTER();
 
 	if (spawn_list.head == NULL) {
 		spawn_list.head = spawn_list.tail = childinfo;
@@ -289,6 +202,7 @@ void add2spawnlist(NID_SPAWN_INFO *childinfo)
 	childinfo->next = NULL;
 	spawn_list.count++;
 
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -296,17 +210,16 @@ void add2spawnlist(NID_SPAWN_INFO *childinfo)
  *                                                                          *
  * Description   : Given application type returns application internal code *
  *                                                                          *
- *                                                                          *
  * Arguments     : p  - input parameter application type.                   *
- *                                                                          *
  *                                                                          *
  * Return Values : Application type code/APPERR                             *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 NID_APP_TYPE get_apptype(char *p)
 {
 	NID_APP_TYPE type = NID_APPERR;
+
+	TRACE_ENTER();
 
 	if (p == NULL)
 		return type;
@@ -316,7 +229,9 @@ NID_APP_TYPE get_apptype(char *p)
 	else if (*p == 'S')
 		type = NID_SCRIPT;
 	else if (*p == 'D')
-		type = NID_DAEMN;
+		type = NID_DAEMON;
+
+	TRACE_LEAVE();
 
 	return type;
 }
@@ -325,25 +240,24 @@ NID_APP_TYPE get_apptype(char *p)
  * Name          : get_spawn_info                                           *
  *                                                                          *
  * Description   : Parse one entry in PKGSYSCONFDIR/nodeinit.conf file and  *
- *           extract the fields into "spawninfo".                           *
- *                                                                          *
+ *                 extract the fields into "spawninfo".                     *
  *                                                                          *
  * Arguments     : srcstr - One entry in PKGSYSCONFDIR/nodeinit.conf to be  *
- *           parsed.                                                        *
- *           spawninfo - output buffer to fill with NID_SPAWN_INFO          *
+ *                 parsed.                                                  *
+ *                 spawninfo - output buffer to fill with NID_SPAWN_INFO    *
  *                 sbuf - Buffer for returning error messages               *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 {
 	char *p, *q;
 	NID_PLATCONF_PARS parse_state = NID_PLATCONF_SFILE;
 
-	p = srcstr;
+	TRACE_ENTER();
 
+	p = srcstr;
 	while (parse_state != NID_PLATCONF_END) {
 
 		switch (parse_state) {
@@ -391,10 +305,10 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 				sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
 				break;
 			}
-			parse_state = NID_PLATCONF_APPTYP;
+			parse_state = NID_PLATCONF_APPTYPE;
 			continue;
 
-		case NID_PLATCONF_APPTYP:
+		case NID_PLATCONF_APPTYPE:
 			if ((p[0] == ':') || (p[0] == '\n')) {
 				sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
 				break;
@@ -413,20 +327,20 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 			if ((p == NULL) || (*p == '\0')) {
 				if ((spawninfo->app_type == NID_SCRIPT))
 					sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
-				else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN))
+				else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMON))
 					sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
 				break;
 			}
 
-			parse_state = NID_PLATCONF_CLNUP;
+			parse_state = NID_PLATCONF_CLEANUP;
 			continue;
 
-		case NID_PLATCONF_CLNUP:
+		case NID_PLATCONF_CLEANUP:
 			if ((p[0] == ':') || (p[0] == '\n')) {
 				if ((spawninfo->app_type == NID_SCRIPT)) {
 					sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
 					break;
-				} else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN)) {
+				} else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMON)) {
 					spawninfo->cleanup_file[0] = '\0';
 					gettoken(&p, ':');
 					if ((p == NULL) || (*p == '\0')) {
@@ -532,6 +446,7 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 				parse_state = NID_PLATCONF_SPARM;
 				continue;
 			}
+
 		case NID_PLATCONF_SPARM:
 			q = gettoken(&p, ':');
 			if (q == NULL) {
@@ -581,54 +496,45 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 			return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
+
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
- * Name          : parse_nodeinitconf                                       *
+ * Name          : parse_nodeinit_conf                                       *
  *                                                                          *
  * Description   : Parse all the entries in PKGSYSCONFDIR/nodeinit.conf     *
- *           file and return intermittently with lineno where parsing       *
- *           error was found.                                               *
+ *                 file and return intermittently with lineno where parsing *
+ *                 error was found.                                         *
  *                                                                          *
  * Arguments     : strbuf- To return the error message string               *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 parse_nodeinitconf(char *strbuf)
+uns32 parse_nodeinit_conf(char *strbuf)
 {
-
 	NID_SPAWN_INFO *childinfo;
-	char buff[256], sbuf[200], nid_plat_conf_file[255], *nid_plat_conf_path, *ch, *ch1;
+	char buff[256], sbuf[200], *ch, *ch1;
 	uns32 lineno = 0, retry = 0;
 	struct nid_resetinfo info = { {""}, -1 };
 	NCS_OS_FILE plat_conf, plat_conf_close;
 
-   /*******************************************
-   *    Check if we have config file       *
-   *******************************************/
-	if ((nid_plat_conf_path = getenv("NID_CONFIG_PATH")) == NULL) {
-		logme(NID_LOG2FILE, "NID_CONFIG_PATH not set. Default:%s", NID_PLAT_CONF_PATH);
-		nid_plat_conf_path = NID_PLAT_CONF_PATH;
-	}
-	sprintf(nid_plat_conf_file, "/%s/" NID_PLAT_CONF, nid_plat_conf_path);
-	plat_conf.info.open.i_file_name = (uns8 *)nid_plat_conf_file;
+	TRACE_ENTER();
+
+	plat_conf.info.open.i_file_name = (uns8 *)NID_PLAT_CONF;
 	plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
+
 	if (m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
-		sprintf(strbuf, "FAILURE: No " NID_PLAT_CONF " file found\n");
+		sprintf(strbuf, NID_PLAT_CONF " file not found\n");
 		return NCSCC_RC_FAILURE;
 	}
 
 	while (fgets(buff, sizeof(buff), (FILE *)plat_conf.info.open.o_file_handle)) {
-
 		lineno++;
 
-      /************************************************
-       *       Skip Comments and tab spaces in the     *
-       *       beginning                               *
-       ************************************************/
+		/* Skip Comments and tab spaces in the beginning */
 		ch = buff;
 
 		while (*ch == ' ' || *ch == '\t')
@@ -637,19 +543,13 @@ uns32 parse_nodeinitconf(char *strbuf)
 		if (*ch == '#' || *ch == '\n')
 			continue;
 
-      /**************************************************
-       *   In case if we have # somewhere in this line  *
-       *   lets truncate the string from there          *
-       *************************************************/
+		/* In case if we have # somewhere in this line lets truncate the string from there */
 		if ((ch1 = strchr(ch, '#')) != NULL) {
 			*ch1++ = '\n';
 			*ch1 = '\0';
 		}
 
-      /****************************************************
-       *       Allocate mem for new child info             *
-       ****************************************************/
-
+		/* Allocate mem for new child info */
 		while ((childinfo = (NID_SPAWN_INFO *)m_NCS_OS_MEMALLOC(sizeof(NID_SPAWN_INFO), NULL)) == NULL) {
 			if (retry++ == 5) {
 				sprintf(strbuf, "FAILURE: Out of memory\n");
@@ -657,14 +557,11 @@ uns32 parse_nodeinitconf(char *strbuf)
 			}
 			nid_sleep(1000);
 		}
-       /****************************************************
-        *       Clear the new child info struct             *
-        ****************************************************/
+
+		/* Clear the new child info struct */
 		memset(childinfo, 0, sizeof(NID_SPAWN_INFO));
 
-       /****************************************************
-        *       Parse each entry in the nodeinit.conf file  *
-        ****************************************************/
+		/* Parse each entry in the nodeinit.conf file */
 		if (get_spawn_info(ch, childinfo, sbuf) != NCSCC_RC_SUCCESS) {
 			sprintf(strbuf, "%s, At: %d\n", sbuf, lineno);
 			return NCSCC_RC_FAILURE;
@@ -673,9 +570,7 @@ uns32 parse_nodeinitconf(char *strbuf)
 		if (strcmp(childinfo->serv_name, info.faild_serv_name) == 0)
 			childinfo->recovery_matrix[NID_RESET].retry_count = info.count;
 
-       /****************************************************
-        *      Add the new child info to spawn_list        *
-        ****************************************************/
+		/* Add the new child info to spawn_list */
 		add2spawnlist(childinfo);
 	}
 
@@ -688,93 +583,9 @@ uns32 parse_nodeinitconf(char *strbuf)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Lets get the log files path */
-	if ((nid_log_path = getenv("NCS_STDOUTS_PATH")) == NULL) {
-		logme(NID_LOG2FILE, "No NCS_STDOUTS_PATH env set. Default:%s", NID_NCSLOGPATH);
-		nid_log_path = NID_NCSLOGPATH;
-	}
+	TRACE_LEAVE();
 
 	return NCSCC_RC_SUCCESS;
-
-}
-
-/****************************************************************************
- * Name          : cons_init                                                *
- *                                                                          *
- * Description   : Set console_dev to a working console.                    *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : None                                                     *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-void cons_init(void)
-{
-	int32 fd;
-	uns32 tried_devcons = 0;
-	uns32 tried_vtmaster = 0;
-	char *s;
-
-	if ((s = getenv("CONSOLE")) != NULL)
-		cons_dev = s;
-	else {
-		cons_dev = NID_CNSL;
-		tried_devcons++;
-	}
-
-	while ((fd = open(cons_dev, O_RDONLY | O_NONBLOCK)) < 0) {
-		if (!tried_devcons) {
-			tried_devcons++;
-			cons_dev = NID_CNSL;
-			continue;
-		}
-		if (!tried_vtmaster) {
-			tried_vtmaster++;
-			cons_dev = NID_VT_MASTER;
-			continue;
-		}
-		break;
-	}
-	if (fd < 0)
-		cons_dev = "/dev/null";
-	else
-		close(fd);
-}
-
-/****************************************************************************
- * Name          : cons_open                                                *
- *                                                                          *
- * Description   : Open the console device.                                 *
- *                                                                          *
- * Arguments     : mode - input parameter specifies open for readonly/read  *
- *           write etc...                                                   *
- *                                                                          *
- * Return Values : file descriptor.                                         *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uns32 cons_open(uns32 mode)
-{
-	int32 f, fd = -1;
-	uns32 m;
-
-	cons_init();
-
-	/*Open device in non blocking mode */
-	m = mode | O_NONBLOCK;
-
-	for (f = 0; f < 5; f++)
-		if ((fd = open(cons_dev, m)) >= 0)
-			break;
-
-	if (fd < 0)
-		return fd;
-
-	if (m != mode)
-		fcntl(fd, F_SETFL, mode);
-
-	return fd;
 }
 
 /****************************************************************************
@@ -783,30 +594,27 @@ uns32 cons_open(uns32 mode)
  * Description   : Creates a daemon out of noraml process                   *
  *                                                                          *
  * Arguments     : app - Application file name to be spawned                *
- *           args - Application arguments                                   *
- *           strbuff - Return error message string, not used for now        *
+ *                 args - Application arguments                             *
+ *                 strbuff - Return error message string, not used for now  *
  *                                                                          *
  * Return Values : Process ID of the daemon forked.                         *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
-int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_log_filename, char *strbuff)
+int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {
-
 	int32 pid = -1;
-	uns32 f;
 	int tmp_pid = -1;
 	int32 prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
-	int filedes[2];
+	int i = 0, filedes[2];
 	int32 n;
 	fd_set set;
 	struct timeval tv;
 
-   /********************************************************
-   *       Block sigchild while forking.                   *
-   *******************************************************/
+	TRACE_ENTER();
+
+	/* Block sigchild while forking */
 	sigemptyset(&nmask);
 	sigaddset(&nmask, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nmask, &omask);
@@ -814,9 +622,9 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_lo
 	pipe(filedes);
 
 	if ((pid = fork()) == 0) {
-
 		if (nis_fifofd > 0)
 			close(nis_fifofd);
+
 		if ((tmp_pid = fork()) > 0) {
 			exit(0);
 		}
@@ -827,60 +635,51 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_lo
 		SETSIG(sa, SIGPIPE, SIG_IGN, 0);
 
 		tmp_pid = getpid();
-		/*write tmp_pid to filedes[1] */
-		while (write(filedes[1], &tmp_pid, sizeof(int)) < 0)
+		while (write(filedes[1], &tmp_pid, sizeof(int)) < 0) {
 			if (errno == EINTR)
 				continue;
 			else if (errno == EPIPE) {
-				logme(NID_LOG2FILE, "Reader not available to return my PID\n");
+				LOG_ER("Reader not available to return my PID");
 				exit(2);
-			} else
-				logme(NID_LOG2FILE, "Problem writing to pipe! Error:%s", strerror(errno));
+			} else {
+				LOG_ER("Problem writing to pipe, err=%s", strerror(errno));
+			}
+		}
 
 		setsid();
-
-		close(0);
-		close(1);
-		close(2);
+		freopen("/dev/null", "r", stdin);
+		freopen(NIDLOG, "a", stdout);
+		freopen(NIDLOG, "a", stderr);
 
 		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
 		if (prio_stat < 0)
-			logme(NID_LOG2FILE, "Failed setting priority for %s", service->serv_name);
+			LOG_ER("Failed setting priority for %s", service->serv_name);
 
-		if (nid_log_filename) {
-			if ((f = open(nid_log_filename, O_CREAT | O_RDWR | O_APPEND, S_IRWXU)) >= 0) {
-				dup(f);
-				dup(f);
-			} else
-				logme(NID_LOG2FILE, "Failed opening file: %s", nid_log_filename);
-		}
-
-		umask(027);
+		umask(022);
 
 		/* Reset all the signals */
-		for (f = 1; f < NSIG; f++)
-			SETSIG(sa, f, SIG_DFL, SA_RESTART);
+		for (i = 1; i < NSIG; i++)
+			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+
 		execvp(app, args);
 
-     /***********************************************************
-      *    Hope we never come here, incase if we are here       *
-      *    Lets rest in peace.                                  *
-      ***********************************************************/
-		logme(NID_LOG2FILE_CONS, "Failed to exec while creating daemon:%s\n", strerror(errno));
-		_exit(2);
+		/* Hope we never come here, incase if we are here, Lets rest in peace */
+		LOG_ER("Failed to exec while creating daemon, err=%s", strerror(errno));
+		exit(2);
 	}
 
 	/* We dont need writer open here */
 	close(filedes[1]);
 
-	/*Lets not block indefinitely for reading pid */
+	/* Lets not block indefinitely for reading pid */
 	FD_ZERO(&set);
 	FD_SET(filedes[0], &set);
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
+
 	while ((n = m_NCSSOCK_SELECT(filedes[0] + 1, &set, NULL, NULL, &tv)) <= 0) {
 		if (n == 0) {
-			logme(NID_LOG2FILE, "Writer couldn't return PID\n");
+			LOG_ER("Writer couldn't return PID");
 			close(filedes[0]);
 			return tmp_pid;
 		}
@@ -895,10 +694,11 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_lo
 			break;
 
 	close(filedes[0]);
-
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return tmp_pid;
 
+	TRACE_LEAVE();
+
+	return tmp_pid;
 }
 
 /****************************************************************************
@@ -907,70 +707,60 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_lo
  * Description   : Spawns shell scripts with console on                     *
  *                                                                          *
  * Arguments     : app - Application file name to be spawned                *
- *           args - Application arguments                                   *
- *           strbuff - Return error message string, not used for now        *
+ *                 args - Application arguments                             *
+ *                 strbuff - Return error message string, not used for now  *
  *                                                                          *
  * Return Values : Process ID of the script forked.(not usedful).           *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
-int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_log_filename, char *strbuff)
+int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {
-
 	int32 pid = -1;
-	int32 f;
+	int i = 0;
 	int32 prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
 
-   /********************************************************
-   *       Block sigchild while forking.                   *
-   *******************************************************/
+	TRACE_ENTER();
+
+	/* Block sigchild while forking */
 	sigemptyset(&nmask);
 	sigaddset(&nmask, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nmask, &omask);
 
 	if ((pid = fork()) == 0) {
-
 		if (nid_is_ipcopen() == NCSCC_RC_SUCCESS)
 			nid_close_ipc();
+
 		if (nis_fifofd > 0)
 			close(nis_fifofd);
-		sigprocmask(SIG_SETMASK, &omask, NULL);
 
+		sigprocmask(SIG_SETMASK, &omask, NULL);
 		setsid();
-		close(0);
-		close(1);
-		close(2);
+		freopen("/dev/null", "r", stdin);
+		freopen(NIDLOG, "a", stdout);
+		freopen(NIDLOG, "a", stderr);
 
 		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
 		if (prio_stat < 0)
-			logme(NID_LOG2FILE, "Failed setting priority for %s", service->serv_name);
-
-		if (nid_log_filename) {
-			if ((f = open(nid_log_filename, O_CREAT | O_RDWR | O_APPEND,
-				      S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0) {
-				dup(f);
-				dup(f);
-			} else
-				logme(NID_LOG2FILE, "Failed opening file : %s", nid_log_filename);
-		}
+			LOG_ER("Failed to set priority for %s", service->serv_name);
 
 		/* Reset all the signals */
-		for (f = 1; f < NSIG; f++)
-			SETSIG(sa, f, SIG_DFL, SA_RESTART);
+		for (i = 1; i < NSIG; i++)
+			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+
 		execvp(app, args);
-      /***********************************************************
-       *    Hope we never come here, incase if we are here          *
-       *    Lets rest in peace.                      *
-       ***********************************************************/
-		logme(NID_LOG2FILE_CONS, "Failed to exec while forking script:%s\n", strerror(errno));
-		_exit(2);
+
+		/* Hope we never come here, incase if we are here, Lets rest in peace */
+		LOG_ER("Failed to exec while forking script, err=%s", strerror(errno));
+		exit(2);
 	}
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return pid;
 
+	TRACE_LEAVE();
+
+	return pid;
 }
 
 /****************************************************************************
@@ -979,91 +769,82 @@ int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_lo
  * Description   : Spawns shell normal unix                                 *
  *                                                                          *
  * Arguments     : app - Application file name to be spawned                *
- *           args - Application arguments                                   *
- *           strbuff - Return error message string, not used for now        *
+ *                 args - Application arguments                             *
+ *                 strbuff - Return error message string, not used for now  *
  *                                                                          *
  * Return Values : Process ID of the process forked.                        *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
-int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *nid_log_filename, char *strbuff)
+int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
 {				/* DEL */
 	int32 pid = -1;
-	int32 f;
+	int i;
 	int32 prio_stat = -1;
 	sigset_t nmask, omask;
 	struct sigaction sa;
 
-   /********************************************************
-   *       Block sigchild while forking.                   *
-   *******************************************************/
+	TRACE_ENTER();
+
+	/* Block sigchild while forking. */
 	sigemptyset(&nmask);
 	sigaddset(&nmask, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nmask, &omask);
-	if ((pid = fork()) == 0) {
 
+	if ((pid = fork()) == 0) {
 		if (nid_is_ipcopen() == NCSCC_RC_SUCCESS)
 			nid_close_ipc();
+
 		if (nis_fifofd > 0)
 			close(nis_fifofd);
 
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-
-		close(0);
-		close(1);
-		close(2);
-
-		if (nid_log_filename) {
-			if ((f = open(nid_log_filename, O_CREAT | O_RDWR | O_APPEND,
-				      S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0) {
-				dup(f);
-				dup(f);
-			} else
-				logme(NID_LOG2FILE, "Failed opening file : %s", nid_log_filename);
-		}
+		freopen("/dev/null", "r", stdin);
+		freopen(NIDLOG, "a", stdout);
+		freopen(NIDLOG, "a", stderr);
 
 		if (service) {
 			prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
 			if (prio_stat < 0)
-				logme(NID_LOG2FILE, "Failed setting priority for %s", service->serv_name);
+				LOG_ER("Failed to set priority for %s", service->serv_name);
 		}
+
 		/* Reset all the signals */
-		for (f = 1; f < NSIG; f++)
-			SETSIG(sa, f, SIG_DFL, SA_RESTART);
+		for (i = 1; i < NSIG; i++)
+			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+
 		execvp(app, args);
 
-      /***********************************************************
-       *    Hope we never come here, incase if we are here          *
-       *    Lets rest in peace.                      *
-       ***********************************************************/
-		logme(NID_LOG2FILE_CONS, "Failed to exec: %s\n", strerror(errno));
-		_exit(2);
+		/* Hope we never come here, incase if we are here, Lets rest in peace */
+		LOG_ER("Failed to exec, err=%s", strerror(errno));
+		exit(2);
 	}
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return pid;
 
+	TRACE_LEAVE();
+
+	return pid;
 }
 
 /****************************************************************************
  * Name          : collect_param                                            *
  *                                                                          *
  * Description   : Given a string of parameters, it seperates the parameters*
- *            into array of strings.                                        *
+ *                 into array of strings.                                   *
  *                                                                          *
  * Arguments     : params - string of parameters                            *
- *           s_name _ Application name.                                     *
- *           args   - To return an array of seperated parameter             *
- *                    strings                                               *
+ *                 s_name _ Application name.                               *
+ *                 args   - To return an array of seperated parameter       *
+ *                          strings                                         *
  *                                                                          *
  * Return Values : None.                                                    *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 void collect_param(char *params, char *s_name, char *args[])
 {
-
 	uns32 f;
 	char *ptr;
+
+	TRACE_ENTER();
 
 	ptr = params;
 	for (f = 1; f < NID_MAXARGS; f++) {
@@ -1089,91 +870,63 @@ void collect_param(char *params, char *s_name, char *args[])
 		/* End word with \0 and continue */
 		*ptr++ = 0;
 	}
+
 	args[f] = NULL;
 	args[0] = s_name;
 
-}
-
-/****************************************************************************
- * Name          : strtolower                                               *
- *                                                                          *
- * Description   : Converts a given string to lower case.                   *
- *                                                                          *
- * Arguments     : p - Pointer to input string.                             *
- *                                                                          *
- * Return Values : NULL/pointer to converted string.                        *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-char *strtolower(char *p)
-{
-	char *str = p;
-
-	if (str == NULL)
-		return NULL;
-
-	while (*str != '\0') {
-		if (*str >= 'A' && *str <= 'Z')
-			*str = *str + 'a' - 'A';
-		str++;
-	}
-	return p;
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
  * Name          : spawn_wait                                               *
  *                                                                          *
  * Description   : Spawns given service and waits for given time for        *
- *            service to respond. Error processing is done based on         *
- *            services response. Returns a failure if service doesent       *
- *            respond before timeout.                                       *
+ *                 service to respond. Error processing is done based on    *
+ *                 services response. Returns a failure if service doesent  *
+ *                 respond before timeout.                                  *
  *                                                                          *
  * Arguments     : service - service details for spawning.                  *
- *           strbuff - Buffer to return error message if any.               *
+ *                 strbuff - Buffer to return error message if any.         *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 {
 	int32 pid = -1, retry = 5;
-	int32 n = 0;
+	int32 i = 0, n = 0;
 	fd_set set;
 	NCS_OS_FILE fd1;
 	struct timeval tv;
 	NID_FIFO_MSG reqmsg;
 	char *magicno, *serv, *stat, *p;
 	char buff1[100], magic_str[15];
-	char nid_log_filename[100];
 
-   /*******************************************************
-   *    Clean previous messages in strbuff           *
-   *******************************************************/
+	TRACE_ENTER();
+
+	/* Clean previous messages in strbuff */
 	strbuff[0] = '\0';
 
-   /******************************************************
-   *    Check if the service file exists only for the    *
-   *    first time per service, as we may fail opening   *
-   *    when we are here during recovery. because the    *
-   *    process killed during cleanup might be still     *
-   *    holding this file and we are trying to open here *
-   *    for read and write which usually will not be     *
-   *    allowed by OS reporting "file bussy" error.      *
-   *        And Testing this opening for the first       *
-   *    Time would serve following purposes:             *
-   *    1. If the executable exists.                     *
-   ******************************************************/
+	/******************************************************
+	*    Check if the service file exists only for the    *
+	*    first time per service, as we may fail opening   *
+	*    when we are here during recovery. because the    *
+	*    process killed during cleanup might be still     *
+	*    holding this file and we are trying to open here *
+	*    for read and write which usually will not be     *
+	*    allowed by OS reporting "file bussy" error.      *
+	*    And Testing this opening for the first           *
+	*    Time would serve following purposes:             *
+	*    1. If the executable exists.                     *
+	******************************************************/
 	if (service->pid == 0) {
 		fd1.info.open.i_file_name = (uns8 *)service->s_name;
 		fd1.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 		if (m_NCS_OS_FILE(&fd1, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
 			if (errno != ETXTBSY) {
-				logme(NID_LOG2FILE_CONS, "Opening: %s Error: %s\n", service->s_name, strerror(errno));
-				logme(NID_LOG2FILE_CONS, "Not spawning any services\n");
-				logme(NID_LOG2FILE_CONS, "Please rectify" NID_PLAT_CONF " and restart the system\n");
-				notify_bis("FAILED\n");
-				_exit(1);
+				LOG_ER("Error while loading configuration, file=%s, serv=%s",
+					NID_PLAT_CONF, service->serv_name);
+				exit(EXIT_FAILURE);
 			}
 		} else {
 			NCS_OS_FILE close_fd;
@@ -1182,10 +935,7 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 		}
 	}
 
-   /******************************************************
-   *    By now fifo should be open, try once in case      *
-   *    if its not.                                       *
-   ******************************************************/
+	/* By now fifo should be open, try once in case, if its not */
 	if (nid_is_ipcopen() != NCSCC_RC_SUCCESS) {
 		if (nid_create_ipc(strbuff) != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_FAILURE;
@@ -1193,48 +943,34 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 			return NCSCC_RC_FAILURE;
 	}
 
-   /************************************************************
-   *    Fork based on the application type, executable,        *
-   *    script or daemon.                                      *
-   ************************************************************/
+	/* Fork based on the application type, executable, script or daemon */
 	while (retry) {
-		logme(NID_LOG2CONS, "Starting %s service... ", service->serv_name);
-		sprintf(nid_log_filename, "%s/NID_%s.log", nid_log_path, service->serv_name);
-		pid =
-		    (fork_funcs[service->app_type]) (service, service->s_name, service->serv_args, nid_log_filename,
-						     strbuff);
+		LOG_NO("Starting the %s service", service->serv_name);
+		pid = (fork_funcs[service->app_type])
+			(service, service->s_name, service->serv_args, strbuff);
 
 		if (pid <= 0) {
-			logme(NID_LOG2FILE_CONS, "Failed \nError forking: %s, Error: %s, PID: %d Retrying fork\n",
-			      service->s_name, strerror(errno), pid);
+			LOG_ER("Error forking %s, err=%s, pid=%d, retrying", service->s_name, strerror(errno), pid);
 			retry--;
 			nid_sleep(1000);
 			continue;
-		} else
+		} else {
 			break;
-
+		}
 	}
 
 	if (retry == 0) {
-		logme(NID_LOG2FILE_CONS, "Unable to bring up: %s Error:%s\n", service->s_name, strerror(errno));
-		logme(NID_LOG2FILE_CONS, "Exiting! Dropping to shell for trouble-shooting\n");
-		notify_bis("FAILED\n");
-		_exit(1);
+		LOG_ER("Unable to bring up %s, err=:%s", service->s_name, strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	service->pid = pid;
 
-   /*******************************************************
-   *    IF Everything is fine till now, wait till         *
-   *    service notifies its initializtion status         *
-   *******************************************************/
-
+	/* IF Everything is fine till now, wait till service notifies its initializtion status */
 	FD_ZERO(&set);
 	FD_SET(select_fd, &set);
 
-   /**************************************
-   *    its in centi sec                 *
-   **************************************/
+	/* it's in centi sec */
 	tv.tv_sec = (service->time_out) / 100;
 	tv.tv_usec = ((service->time_out) % 100) * 10000;
 
@@ -1245,15 +981,13 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 			continue;
 		}
 		if (n == 0) {
-			logme(NID_LOG2FILE_CONS, "Failed \n Timed-out for response from:%s\n", service->serv_name);
+			LOG_ER("Timed-out for response from %s", service->serv_name);
 			return NCSCC_RC_FAILURE;
 		}
 
 	}
 
-   /******************************************************************
-   *  Read the message from FIFO and fill in structure.              *
-   ******************************************************************/
+	/* Read the message from FIFO and fill in structure. */
 	while ((n = read(select_fd, buff1, sizeof(buff1))) <= 0) {
 		if (errno == EINTR) {
 			continue;
@@ -1266,20 +1000,22 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	buff1[n] = '\0';
 	p = buff1;
 	if ((magicno = gettoken(&p, ':')) == NULL) {
-		logme(NID_LOG2FILE, "Failed \nMissing magic no!!!\n");
+		LOG_ER("Failed missing magicno");
 		return NCSCC_RC_FAILURE;
 	}
 	if ((serv = gettoken(&p, ':')) == NULL) {
-		logme(NID_LOG2FILE, "Failed \nMissing service name!!!\n");
+		LOG_ER("Failed missing service name");
 		return NCSCC_RC_FAILURE;
 	}
 	if ((stat = p) == NULL) {
-		logme(NID_LOG2FILE, "Failed \nMissing status code!!!\n");
+		LOG_ER("Failed missing status code");
 		return NCSCC_RC_FAILURE;
 	}
 
 	sprintf(magic_str, "%x", NID_MAGIC);
-	strtolower(magicno);
+	for (i = 0; magicno[i] != '\0'; i++)
+		magicno[i] = (char)tolower(magicno[i]);
+
 	if (strcmp(magic_str, magicno) == 0)
 		reqmsg.nid_magic_no = NID_MAGIC;
 	else
@@ -1294,33 +1030,28 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	}
 
 	reqmsg.nid_stat_code = atoi(stat);
-
 	if (reqmsg.nid_magic_no != NID_MAGIC) {
 		sprintf(strbuff, "Failed \nReceived invalid message: %x", reqmsg.nid_magic_no);
 		return NCSCC_RC_FAILURE;
 	}
 
-   /***********************************************************
-   *    LOOKS LIKE CORRECT RESPONSE LETS PROCESS              *
-   ***********************************************************/
-
+	/* LOOKS LIKE CORRECT RESPONSE LETS PROCESS */
 	if (strcmp(reqmsg.nid_serv_name, service->serv_name) != 0) {
 		sprintf(strbuff, "Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
 			service->serv_name, reqmsg.nid_serv_name);
 		return NCSCC_RC_FAILURE;
 	} else if (reqmsg.nid_stat_code == NCSCC_RC_SUCCESS) {
-		sprintf(strbuff, "Done.");
 		return NCSCC_RC_SUCCESS;
 	}
 
 	if ((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS)) {
 		sprintf(strbuff, "Failed \n DESC:%s", service->serv_name);
-
 		return NCSCC_RC_FAILURE;
 	}
 
-	return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
 
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1331,94 +1062,96 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
  * Arguments     : service - service details.                               *
  *                                                                          *
  * Return Values : 0 - process not running.                                 *
- *            1 - process running.                                          *
+ *                 1 - process running.                                     *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 uns32 check_process(NID_SPAWN_INFO *service)
 {
 	struct stat sb;
 	char buf[32];
 
+	TRACE_ENTER();
+
 	sprintf(buf, "/proc/%d", service->pid);
 	if (stat(buf, &sb) != 0)
 		return 0;
 	else
 		return 1;
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
  * Name          : cleanup                                                  *
  *                                                                          *
- * Description   : Does cleanup of the process spawned as a previous        *
- *            retry.                                                        *
- *            * cleanup of unix daemons and noraml process is through       *
- *            kill.                                                         *
- *            * cleanup of services invoked by scripts is done through      *
- *            corresponding cleanup scripts.                                *
+ * Description   : - Does cleanup of the process spawned as a previous retry*
+ *                 - cleanup of unix daemons and noraml process is through  *
+ *                 - cleanup of services invoked by scripts is done through *
+ *                   corresponding cleanup scripts.                         *
  *                                                                          *
  * Arguments     : service - service details of the service to be cleaned.  *
- *           strbuff - Buffer to return error message if any.               *
+ *                 strbuff - Buffer to return error message if any.         *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 void cleanup(NID_SPAWN_INFO *service)
 {
 	char strbuff[256];
 
-   /*****************************************************
-   *    Dont Allow anyone to write to this pipe till we *
-   *    start recovery action.                          *
-   *****************************************************/
+	TRACE_ENTER();
+
+	/* Dont Allow anyone to write to this pipe till we start recovery action */
 	nid_close_ipc();
 	select_fd = -1;
 
 	if (check_process(service)) {
-		logme(NID_LOG2FILE, "Sending SIGKILL to %s, PID: %d\n", service->serv_name, service->pid);
+		LOG_ER("Sending SIGKILL to %s, pid=%d", service->serv_name, service->pid);
 		kill(service->pid, SIGKILL);
 	}
 
 	if (service->cleanup_file[0] != '\0') {
-		(fork_funcs[service->app_type]) (service, service->cleanup_file, service->clnup_args, NULL, strbuff);
+		(fork_funcs[service->app_type]) (service, service->cleanup_file, service->clnup_args, strbuff);
 		nid_sleep(15000);
 	}
 
-   /*******************************************************
-   *    YEPPP!!!! we need to slowdown before spawning,    *
-   *    cleanup task may take time before its done with   *
-   *    cleaning. Spawning before cleanup may really lead *
-   *    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!                   *
-   *******************************************************/
+	/*******************************************************
+	*    YEPPP!!!! we need to slowdown before spawning,    *
+	*    cleanup task may take time before its done with   *
+	*    cleaning. Spawning before cleanup may really lead *
+	*    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!                   *
+	*******************************************************/
 	nid_sleep(100);
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
  * Name          : recovery_action                                          *
  *                                                                          *
  * Description   : Invokes all the recovery actions in sequence according   *
- *            to the recovery options specified in PKGSYSCONFDIR/-          *
- *           nodeinit.conf file                                             *
- *           It invokes recovery action for the count specified in          *
- *           PKGSYSCONFDIR/nodeinit.conf if the recovery failes.            *
+ *                 to the recovery options specified in PKGSYSCONFDIR/-     *
+ *                 nodeinit.conf file                                       *
+ *                 It invokes recovery action for the count specified in    *
+ *                 PKGSYSCONFDIR/nodeinit.conf if the recovery failes.      *
  *                                                                          *
  * Arguments     : service - service details for spawning.                  *
  *           strbuff - Buffer to return error message if any.               *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 {
 	uns32 count = 0;
 	NID_RECOVERY_OPT opt = NID_RESPAWN;
 
+	TRACE_ENTER();
+
 	while (opt != NID_RESET) {
 		count = service->recovery_matrix[opt].retry_count;
 		while (service->recovery_matrix[opt].retry_count > 0) {
-			logme(NID_LOG2FILE, "%s %s for: %d time...\n", nid_recerr[opt][0],
+			LOG_ER("%s %s attempt #%d", nid_recerr[opt][0],
 			      service->s_name, (count - service->recovery_matrix[opt].retry_count) + 1);
 
            		/* Just clean the stuff we created during prev retry */
@@ -1428,13 +1161,10 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
            		/* Done with cleanup so goahead with recovery */
 			if ((service->recovery_matrix[opt].action) (service, strbuff) != NCSCC_RC_SUCCESS) {
 				service->recovery_matrix[opt].retry_count--;
-				logme(NID_LOG2FILE, "%s %s\n", nid_recerr[opt][1], service->serv_name);
-				logme(NID_LOG2FILE_CONS, "%s\n", strbuff);
+				LOG_ER("%s %s", nid_recerr[opt][1], service->serv_name);
+				LOG_ER("%s", strbuff);
 				continue;
 			} else {
-             			/* Ahhhhhhh  lot of juggling, we wonn!!!!
-             			   lets go back home */
-				logme(NID_LOG2CONS, "Done.\n");
 				return NCSCC_RC_SUCCESS;
 			}
 
@@ -1442,15 +1172,15 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 
 		if (service->recovery_matrix[opt].retry_count == 0) {
 			if (count != 0)
-				logme(NID_LOG2FILE_CONS, "%s\n", nid_recerr[opt][3]);
+				LOG_ER("%s", nid_recerr[opt][3]);
 			opt++;
 			continue;
 		}
-
 	}
 
-	return NCSCC_RC_FAILURE;
+	TRACE_LEAVE();
 
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -1467,27 +1197,28 @@ uns32 getrole(void)
 {
 	char *nid_role;
 
+	TRACE_ENTER();
+
 	/* obtain role from RDF */
 	if (get_role_from_rdf() == NCSCC_RC_FAILURE) {
-		logme(NID_LOG2FILE, "ERROR: couldn't get role from RDF!");
+		LOG_ER("Couldn't get role from RDE");
 
 		/* if role can't be obtained from RDF, then get/set environment variables */
 		if ((nid_role = getenv("NID_ROLE_CONFIG")) != NULL) {
-			logme(NID_LOG2FILE_CONS, "Assuming default role %s\n", nid_role);
+			LOG_NO("Assuming default role %s", nid_role);
 			if (!strcmp(nid_role, "ACTIVE"))
 				role = SA_AMF_HA_ACTIVE;
 			else
 				role = SA_AMF_HA_STANDBY;
-		}
-
-		else {
-			logme(NID_LOG2FILE, "NID_ROLE_CONFIG not set. Default:%s", "ACTIVE");
+		} else {
+			LOG_NO("NID_ROLE_CONFIG env not set. Defaulting to %s", "ACTIVE");
 			role = SA_AMF_HA_ACTIVE;
 		}
 	}
 
-	return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
 
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1499,14 +1230,14 @@ uns32 getrole(void)
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         :                                                          *
- *                                                                          *
  ***************************************************************************/
 uns32 get_role_from_rdf(void)
 {
 	int rc;
 	PCS_RDA_REQ pcs_rda_req;
 	uns32 ret_val;
+
+	TRACE_ENTER();
 
 	/* initialise the RDA library */
 	pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
@@ -1522,21 +1253,21 @@ uns32 get_role_from_rdf(void)
 	if ((rc = pcs_rda_request(&pcs_rda_req)) != PCSRDA_RC_SUCCESS) {
 		/* if there's any error getting the role,
 		   then don't return right away; destroy the library first */
-		logme(NID_LOG2FILE_CONS, "Failed to get role from RDF\n");
+		LOG_ER("Failed to get role from RDE");
 		ret_val = NCSCC_RC_FAILURE;
 	} else {
 		switch (pcs_rda_req.info.io_role) {
 		case PCS_RDA_ACTIVE:
 			role = SA_AMF_HA_ACTIVE;
 			ret_val = NCSCC_RC_SUCCESS;
-			logme(NID_LOG2FILE_CONS, "RDF-ROLE for this System Controller is: %d, %s\n",
+			LOG_NO("RDE-ROLE for this System Controller is: %d, %s",
 			      pcs_rda_req.info.io_role, "ACTIVE");
 			break;
 
 		case PCS_RDA_STANDBY:
 			role = SA_AMF_HA_STANDBY;
 			ret_val = NCSCC_RC_SUCCESS;
-			logme(NID_LOG2FILE_CONS, "RDF-ROLE for this System Controller is: %d, %s\n",
+			LOG_NO("RDE-ROLE for this System Controller is: %d, %s",
 			      pcs_rda_req.info.io_role, "STANDBY");
 			break;
 
@@ -1552,93 +1283,22 @@ uns32 get_role_from_rdf(void)
 		ret_val = NCSCC_RC_FAILURE;
 	}
 
- go_back:
+go_back:
+	TRACE_LEAVE();
 	return ret_val;
-}
-
-/****************************************************************************
- * Name          : insert_role_svcid                                        *
- *                                                                          *
- * Description   : Just to insert the role  and service id as the last      *
- *                 arguments for the service being spawned.                 *
- *                                                                          *
- * Arguments     : service - Service to which role argument needs to be     *
- *                 appended.                                                *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-void insert_role_svc_name(NID_SPAWN_INFO *service)
-{
-	uns32 f;
-
-	for (f = 1; f < NID_MAXARGS; f++)
-		if (service->serv_args[f] == NULL)
-			break;
-
-	if (f >= (NID_MAXARGS - 4)) {
-		logme(NID_LOG2FILE_CONS, "Exceeding parameters for %s\n", service->serv_name);
-		logme(NID_LOG2FILE_CONS, "NID Exiting\n");
-		_exit(1);
-	}
-
-   /*************************************************************
-    *      Insert the role only if its available                *
-    ************************************************************/
-	if (role) {
-		sprintf(rolebuff, "ROLE=%d", role);
-		service->serv_args[f++] = rolebuff;
-	}
-	/* Set the service-id to be passed */
-	sprintf(svc_name, "NID_SVC_NAME=%s", service->serv_name);
-	service->serv_args[f++] = svc_name;
-
-	service->serv_args[f] = NULL;
-
-	if (service->cleanup_file[0] != '\0') {
-		for (f = 1; f < NID_MAXARGS; f++)
-			if (service->clnup_args[f] == NULL)
-				break;
-
-		if (f >= (NID_MAXARGS - 4)) {
-			logme(NID_LOG2FILE_CONS, "Exceeding parameters for %s\n", service->serv_name);
-			logme(NID_LOG2FILE_CONS, "NID Exiting\n");
-			_exit(1);
-		}
-
-		if (role) {
-			if (service->app_type == NID_SCRIPT) {
-				if (role == SA_AMF_HA_ACTIVE)
-					service->clnup_args[f++] = "ACTIVE";
-				else if (role == SA_AMF_HA_STANDBY)
-					service->clnup_args[f++] = "STDBY";
-			} else {
-				service->clnup_args[f++] = rolebuff;
-			}
-		}
-
-		if (service->app_type == NID_SCRIPT) {
-			service->clnup_args[f++] = service->serv_name;
-		} else {
-			service->clnup_args[f++] = svc_name;
-		}
-		service->clnup_args[f] = NULL;
-	}
 }
 
 /****************************************************************************
  * Name          : spawn_services                                           *
  *                                                                          *
- * Description   : Takes the global spawn list and calls spawn_wait for each*
- *            service in the list, spawn wait retrns only after the         *
- *            service is spawned successfully.                              *
+ * Description   : Takes the global spawn list and calls spawn_wait for     *
+ *                 each service in the list, spawn wait retrns only after   *
+ *                 the service is spawned successfully.                     *
  *                                                                          *
  * Arguments     : strbuff - Buffer to return error message if any.         *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
 uns32 spawn_services(char *strbuf)
 {
@@ -1647,238 +1307,85 @@ uns32 spawn_services(char *strbuf)
 	char sbuff[100];
 	uns32 rc = NCSCC_RC_FAILURE;
 
+	TRACE_ENTER();
+
 	if (sp_list.head == NULL) {
 		sprintf(strbuf, "No services to spawn\n");
 		return NCSCC_RC_FAILURE;
 	}
 
-   /******************************************************
-   *     Create bid fifo                                 *
-   ******************************************************/
+	/* Create nid fifo */
 	if (nid_create_ipc(strbuf) != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
 
-   /******************************************************
-   *    Try to open FIFO                                 *
-   ******************************************************/
+	/* Try to open FIFO */
 	if (nid_open_ipc(&select_fd, strbuf) != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
 
 	while (sp_list.head != NULL) {
 		service = sp_list.head;
-
-       /**************************************************
-        *    Passing role as an argument for DRBD and    *
-        *    SCAP.                                       *
-        *************************************************/
-		insert_role_svc_name(service);
 		rc = spawn_wait(service, sbuff);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			logme(NID_LOG2FILE_CONS, "%s\n", sbuff);
-			logme(NID_LOG2FILE_CONS, "Going for recovery\n", sbuff);
-			if ((strcmp(service->serv_name, "BIOSUP") == 0) || (strcmp(service->serv_name, "IPMCUP") == 0)) {
-				notify_bis("FAILED\n");
-				_exit(1);
-			} else {
-				if (recovery_action(service, sbuff) != NCSCC_RC_SUCCESS) {
-					notify_bis("FAILED\n");
-					_exit(1);
-				}
+			LOG_ER("%s", sbuff);
+			LOG_ER("Going for recovery", sbuff);
+			if (recovery_action(service, sbuff) != NCSCC_RC_SUCCESS) {
+				exit(EXIT_FAILURE);
 			}
 		}
 
-		logme(NID_LOG2CONS, "%s\n", sbuff);
-       /*********************************************************
-        *    We need to save the SCAP or PCAP PID in files,     *
-        *    which will be used during shutdown.                *
-        ********************************************************/
-		if ((strcmp(service->serv_name, "SCAP") == 0) || (strcmp(service->serv_name, "PCAP") == 0)) {
-			/* If type is script, init.d/opensafd start script
-			   will write the pid accordingly
-			 */
-			if (service->app_type == NID_DAEMN) {
-				int32 lfd;
-				char filename[30], str[15];
-				sprintf(filename, PKGPIDDIR "/%s.pid", "ncsspcap");
-				unlink(filename);
-				lfd = open(filename, O_CREAT | O_WRONLY, S_IRWXU);
-				sprintf(str, "%d\n", service->pid);
-				write(lfd, str, strlen(str));
-				close(lfd);
-			}
-		}
-
-       /***********************************************************
-        *    Determine the role from LHCPD If we are ACTIVE/STDBY.*
-        *    Needed while initializing DRBD and SCAP/PCAP.        *
-        ***********************************************************/
-
-		if (strcmp(service->serv_name, "RDF") == 0) {
-			if (getrole() != NCSCC_RC_SUCCESS) {
-				logme(NID_LOG2FILE_CONS, "FAILED to determine role, stopped spawning\n");
-				logme(NID_LOG2FILE_CONS, "NID Exiting\n");
-				notify_bis("FAILED\n");
-				_exit(1);
-			}
-		}
+		if (strlen(sbuff) > 0)
+			LOG_NO("%s", sbuff);
 
 		sp_list.head = sp_list.head->next;
-
 	}
 
+	TRACE_LEAVE();
+	
 	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
- * Name          : sigchld_handlr                                           *
+ * Name          : main                                                     *
  *                                                                          *
- * Description   : Handler for SIGCHLD signal, to free zoombie process.     *
- *            stores pid of dead child in dead_child. Which ofcourse        *
- *            now is not in use.                                            *
- *                                                                          *
- * Arguments     : i - signal number received.                              *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-void sigchld_handlr(int i)
-{
-	int j;
-	dead_child = wait(&j);
-}
-
-/****************************************************************************
- * Name          : daemonize_me                                             *
- *                                                                          *
- * Description   : This routine daemonizes nodeinitd.Sets the sessio        *
- *            group leader and does some signal settings.                   *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-void daemonize_me(void)
-{
-	int32 pid, lfd;
-	struct sigaction sa;
-	char str[10];
-
-   /*****************************************************************
-   *    Check if we are already daemon?                             *
-   ******************************************************************/
-	if (getppid() == 1)
-		return;
-
-   /******************************************************************
-   *    exit if we fail to fork or if we are parent                  *
-   *******************************************************************/
-	if ((pid = fork()) < 0) {
-		logme(NID_LOG2FILE_CONS, "fork failed: %s\n", strerror(errno));
-		exit(1);
-	} else if (pid > 0)
-		exit(0);
-
-   /*******************************************************************
-   *    We are shure to be child from here on Be process group leader *
-   *    Be a session leader DOnt need a controllong terminal          *
-   ********************************************************************/
-#ifndef NID_LINUX_PC
-	setsid();
-#endif
-
-   /********************************************************************
-   *    Shell would have duplicated NIS fifo to our O/P descriptor "1".*
-   *    Lets duplicate it before closing. I cant trust LEAP if it      *
-   *    tries writing something to O/P desc I mean if it were only our *
-   *    code things would have been in control but we have leaps       *
-   *    library comming in so it may write something to O/P desc.      *
-   *********************************************************************/
-	if ((nis_fifofd = dup(1)) < 0)
-		logme(NID_LOG2FILE, "Failed To duplicate NIS FIFO\n");
-
-	close(0);
-	close(1);
-	close(2);
-	if ((cons_fd = cons_open(O_RDWR | O_NOCTTY)) >= 0) {
-		/*  (void)ioctl(cons_fd, TIOCSCTTY, 1); */
-		dup(cons_fd);
-		dup(cons_fd);
-	} else
-		logme(NID_LOG2FILE, "Failed to open console: %s\n", strerror(errno));
-
-	umask(022);
-
-	chdir(NID_RUNNING_DIR);
-	lfd = open(NID_PID_FILE, O_CREAT | O_WRONLY, S_IRWXU);
-	sprintf(str, "%d\n", getpid());
-	write(lfd, str, strlen(str));
-	close(lfd);
-
-	SETSIG(sa, SIGALRM, SIG_IGN, 0);
-	SETSIG(sa, SIGHUP, SIG_IGN, 0);
-	SETSIG(sa, SIGINT, SIG_IGN, 0);
-	SETSIG(sa, SIGCHLD, sigchld_handlr, SA_RESTART);
-	SETSIG(sa, SIGSTOP, SIG_IGN, SA_RESTART);
-	SETSIG(sa, SIGTSTP, SIG_IGN, SA_RESTART);
-	SETSIG(sa, SIGTERM, SIG_IGN, 0);
-	SETSIG(sa, SIGTTOU, SIG_IGN, SA_RESTART);
-	SETSIG(sa, SIGTTIN, SIG_IGN, SA_RESTART);
-
-	/*setpriority(PRIO_PROCESS,0,-7); */
-}
-
-/****************************************************************************
- * Name          : main                                                      *
- *                                                                          *
- * Description   : daemonizes the nodeinitd.                                *
- *            parses the nodeinit.conf file.                                *
- *            invokes the services in the order mentioned in conf file      *
+ * Description   : daemonizes the opensafd.                                 *
+ *                 parses the nodeinit.conf file.                           *
+ *                 invokes the services in the order mentioned in conf file *
  *                                                                          *
  * Arguments     : argc - no of command line args                           *
- *           argv- List of arguments.                                       *
+ *                 argv- List of arguments.                                 *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
- * Notes         : None.                                                    *
  ***************************************************************************/
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	char sbuf[256];
+	char tracefile[NAME_MAX];
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
-   /****************************************************************
-   *    Daemonize because we dont want to be controlled by         *
-   *    a terminal                                                 *
-   ****************************************************************/
-	daemonize_me();
+	TRACE_ENTER();
 
-   /****************************************************************
-   *    TBD: Once we have LHC working, we are supposed to get role *
-   *    after LHC comes up. For now we get it here/anywhere        *
-   ****************************************************************/
-	/*getrole(); */
+	openlog(basename(argv[0]), LOG_PID, LOG_LOCAL0);
+	snprintf(tracefile, sizeof(tracefile), PKGLOGDIR "/%s.log", basename(argv[0]));
 
-	if (parse_nodeinitconf(sbuf) != NCSCC_RC_SUCCESS) {
-		logme(NID_LOG2FILE_CONS, "Failed parsing " NID_PLAT_CONF " file\n%s", sbuf);
-		logme(NID_LOG2FILE_CONS, "Not spawning any services\n");
-		logme(NID_LOG2FILE_CONS, "Please rectify" NID_PLAT_CONF " and restart the system\n");
-		notify_bis("FAILED\n");
-		_exit(1);
+	if (logtrace_init(basename(argv[0]), tracefile, 0) != 0) {
+		LOG_ER("Failed to init logtrace, exiting");
+		exit(EXIT_FAILURE);
+	}
+
+	if (parse_nodeinit_conf(sbuf) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to parse " NID_PLAT_CONF " file %s, , exiting", sbuf);
+		exit(EXIT_FAILURE);
 	}
 
 	if (spawn_services(sbuf) != NCSCC_RC_SUCCESS) {
-		logme(NID_LOG2FILE_CONS, "FAILURE: Failed spawning service, %s\n", sbuf);
-		notify_bis("FAILED\n");
-		_exit(1);
+		LOG_ER("Failed while spawning service, %s, exiting", sbuf);
+		exit(EXIT_FAILURE);
 	}
 
-	logme(NID_LOG2FILE_CONS, "Node Initialization Successful. \n");
-	logme(NID_LOG2CONS, "SUCCESSFULLY SPAWNED ALL SERVICES!!!\n");
-
-	notify_bis("SUCCESS\n");
+	TRACE_LEAVE();
 
 	return 0;
 }

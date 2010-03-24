@@ -259,7 +259,7 @@ cmd_mkcpio() {
 ##     Backward compatible default command.
 ##
 cmd_default() {
-    if find rootfs -name ncs_nid >& /dev/null; then
+    if find rootfs -name opensafd >& /dev/null; then
 	echo "OpenSAF seems to be installed already, cowardly refusing..."
 	echo "   Remove directory 'rootfs' if a fresh install is needed"
 	exit 0
