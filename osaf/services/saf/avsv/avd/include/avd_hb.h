@@ -40,13 +40,13 @@
 EXTERN_C uns32 avd_init_heartbeat(AVD_CL_CB *cb);
 EXTERN_C void avd_rcv_heartbeat(void);
 EXTERN_C void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb);
-EXTERN_C void avd_tmr_snd_hb_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_mds_avd_up_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_mds_avd_down_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_standby_avd_down_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_tmr_rcv_hb_init_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_mds_avd_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_mds_avd_down_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_standby_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_standby_avd_down_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg);
 
 #endif

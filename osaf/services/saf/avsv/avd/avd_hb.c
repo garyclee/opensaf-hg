@@ -89,7 +89,7 @@ uns32 avd_init_heartbeat(AVD_CL_CB *cb)
 }
 
 /*****************************************************************************
- * Function: avd_d2d_heartbeat_msg_func
+ * Function: avd_d2d_heartbeat_msg
  *
  * Purpose:  This function is the handler for other director heartbeat event
  * indicating the arrival of the heartbeat message from the other director. 
@@ -105,10 +105,8 @@ uns32 avd_init_heartbeat(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
+static void avd_d2d_heartbeat_msg(AVD_CL_CB *cb)
 {
-	TRACE_ENTER();
-
 	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 	avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
 
@@ -127,12 +125,10 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
 	}
 
 	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
-	return;
 }
 
 /*****************************************************************************
- * Function: avd_tmr_snd_hb_func
+ * Function: avd_tmr_snd_hb_evh
  *
  * Purpose:  This function is the handler for send heartbeat timer event
  * indicating the expiry of the send heartbeat timer on the active AVD. This 
@@ -148,7 +144,7 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	TRACE_ENTER();
 
@@ -178,7 +174,7 @@ void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_tmr_rcv_hb_d_func
+ * Function: avd_tmr_rcv_hb_d_evh
  *
  * Purpose:  This function is the handler for receive directors heartbeat 
  * timer event on active director indicating the expiry of the receive 
@@ -186,7 +182,7 @@ void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * issue restart request to HPI to restart the system controller card on
  * which the standby is running. It then marks the node director on that
  * card as down and migrates all the Service instances to other inservice SUs.
- * this is similar to avd_mds_avd_down_func.
+ * this is similar to avd_mds_avd_down_evh.
  *
  * Input: 
  *
@@ -197,7 +193,7 @@ void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 
@@ -235,7 +231,7 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_tmr_rcv_hb_init_func
+ * Function: avd_tmr_rcv_hb_init_evh
  *
  * Purpose:  This function is the handler for receive directors heartbeat 
  * init timer event indicating the expiry of the receive heartbeat timer timer 
@@ -252,13 +248,13 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_tmr_rcv_hb_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	return;
 }
 
 /*****************************************************************************
- * Function: avd_mds_avd_up_func
+ * Function: avd_mds_avd_up_evh
  *
  * Purpose:  This function is the handler for the other AvD up event from
  * mds. The function right now is just a place holder.
@@ -272,19 +268,19 @@ void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_mds_avd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_mds_avd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	return;
+	TRACE_ENTER();
 }
 
 /*****************************************************************************
- * Function: avd_mds_avd_down_func
+ * Function: avd_mds_avd_down_evh
  *
  * Purpose:  This function is the handler for the standby AvD down event from
  * mds. This function will issue restart request to HPI to restart the 
  * system controller card on which the standby is running. It then marks the 
  * node director on that card as down and migrates all the Service instances 
- * to other inservice SUs. It works similar to avd_tmr_rcv_hb_d_func.
+ * to other inservice SUs. It works similar to avd_tmr_rcv_hb_d_evh.
  *
  * Input: 
  *
@@ -295,13 +291,13 @@ void avd_mds_avd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_mds_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_mds_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	return;
+	TRACE_ENTER();
 }
 
 /*****************************************************************************
- * Function: avd_standby_tmr_rcv_hb_d_func
+ * Function: avd_standby_tmr_rcv_hb_d_evh
  *
  * Purpose:  This function is the handler for receive directors heartbeat 
  * timer event on standby director indicating the expiry of the receive 
@@ -311,7 +307,7 @@ void avd_mds_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * active and informs the same to CPSV. It does all the functionality
  * to become active from standby. It then marks the node director on that
  * card as down and migrates all the Service instances to other inservice SUs.
- * this is similar to avd_standby_avd_down_func.
+ * this is similar to avd_standby_avd_down_evh.
  *
  * Input: 
  *
@@ -322,7 +318,7 @@ void avd_mds_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_standby_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	TRACE_ENTER();
 	LOG_WA("Heart Beat missed with active director on %x", cb->node_id_avd_other);
@@ -335,13 +331,13 @@ void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
- * Function: avd_standby_avd_down_func
+ * Function: avd_standby_avd_down_evh
  *
  * Purpose:  This function is the handler for the active AvD down event from
  * mds. This function will issue restart request to HPI to restart the 
  * system controller card on which the active is running. It then marks the 
  * node director on that card as down and migrates all the Service instances 
- * to other inservice SUs. It works similar to avd_standby_tmr_rcv_hb_d_func.
+ * to other inservice SUs. It works similar to avd_standby_tmr_rcv_hb_d_evh.
  *
  * Input: 
  *
@@ -352,7 +348,7 @@ void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_standby_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	return;
 }
@@ -372,7 +368,7 @@ void avd_standby_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_D2D_MSG *d2d_msg = evt->info.avd_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -402,10 +398,10 @@ void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->avail_state_avd_other = d2d_msg->msg_info.d2d_hrt_bt.avail_state;
 
 	/* So we have received HB message. Time to process it */
-	avd_d2d_heartbeat_msg_func(cb);
+	avd_d2d_heartbeat_msg(cb);
 
 	/* free this msg */
 	avsv_d2d_msg_free(d2d_msg);
 
-	return;
+	TRACE_LEAVE();
 }

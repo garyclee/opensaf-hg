@@ -16,21 +16,10 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This module contains the array of function pointers, indexed by
   the events for both active and standby AvD. It also has the processing
   function that calls into one of these function pointers based on the event.
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  avd_invalid_func - invalid events handler.
-  avd_standby_invalid_func - invalid events handler on standby AvD.
-  avd_main_proc - main loop for both the active and standby AvDs.
-
   
 ******************************************************************************
 */
@@ -59,93 +48,55 @@ static nfds_t nfds = FD_IMM + 1;
 static struct pollfd fds[FD_IMM + 1];
 
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt);
-static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_standby_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_qsd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt);
-
-static char* avd_evt_name[] = {
-	"AVD_EVT_INVALID",
-	"AVD_EVT_NODE_UP_MSG",
-	"AVD_EVT_REG_SU_MSG",
-	"AVD_EVT_REG_COMP_MSG",
-	"AVD_EVT_OPERATION_STATE_MSG",
-	"AVD_EVT_INFO_SU_SI_ASSIGN_MSG",
-	"AVD_EVT_PG_TRACK_ACT_MSG",
-	"AVD_EVT_OPERATION_REQUEST_MSG",
-	"AVD_EVT_DATA_REQUEST_MSG",
-	"AVD_EVT_SHUTDOWN_APP_SU_MSG",
-	"AVD_EVT_VERIFY_ACK_NACK_MSG",
-	"AVD_EVT_COMP_VALIDATION_MSG",
-	"AVD_EVT_TMR_SND_HB",
-	"AVD_EVT_TMR_RCV_HB_D",
-	"AVD_EVT_TMR_RCV_HB_INIT",
-	"AVD_EVT_TMR_CL_INIT",
-	"AVD_EVT_TMR_SI_DEP_TOL",
-	"AVD_EVT_MDS_AVD_UP",
-	"AVD_EVT_MDS_AVD_DOWN",
-	"AVD_EVT_MDS_AVND_UP",
-	"AVD_EVT_MDS_AVND_DOWN",
-	"AVD_EVT_MDS_QSD_ACK",
-	"AVD_EVT_INIT_CFG_DONE_MSG",
-	"AVD_EVT_RESTART",
-	"AVD_EVT_ND_SHUTDOWN",
-	"AVD_EVT_ND_FAILOVER",
-	"AVD_EVT_FAULT_DMN_RSP",
-	"AVD_EVT_ND_RESET_RSP",
-	"AVD_EVT_ND_OPER_ST",
-	"AVD_EVT_ROLE_CHANGE",
-	"AVD_EVT_SWITCH_NCS_SU",
-	"AVD_EVT_D_HB",
-	"AVD_EVT_SI_DEP_STATE"
-};
+static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void avd_standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 
 /* list of all the function pointers related to handling the events
  * for active AvD.
  */
-
 static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
-	avd_invalid_func,	/* AVD_EVT_INVALID */
+	avd_invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
-	avd_node_up_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
-	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_su_oper_state_func,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_su_si_assign_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_pg_trk_act_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_oper_req_func,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_data_update_req_func,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_shutdown_app_su_resp_func,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_ack_nack_event,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_comp_validation_func,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_node_up_evh,	/* AVD_EVT_NODE_UP_MSG */
+	avd_reg_su_evh,	        /* AVD_EVT_REG_SU_MSG */
+	avd_reg_comp_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
+	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	avd_pg_trk_act_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	avd_oper_req_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
+	avd_data_update_req_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
+	avd_shutdown_app_su_resp_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_ack_nack_evh,	        /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
-	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
-	avd_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_cluster_tmr_init_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_tmr_si_dep_tol_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_tmr_snd_hb_evh,	  /* AVD_EVT_TMR_SND_HB */
+	avd_tmr_rcv_hb_d_evh,	  /* AVD_EVT_TMR_RCV_HB_D */
+	avd_tmr_rcv_hb_init_evh,  /* AVD_EVT_TMR_RCV_HB_INIT */
+	avd_cluster_tmr_init_evh, /* AVD_EVT_TMR_CL_INIT */
+	avd_tmr_si_dep_tol_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* active AvD MDS events processing */
-	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
-	avd_mds_avd_down_func,	/* AVD_EVT_MDS_AVD_DOWN */
-	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
-	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
-	avd_mds_qsd_role_func,	/* AVD_EVT_MDS_QSD_ACK */
+	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
+	avd_mds_avd_down_evh,	/* AVD_EVT_MDS_AVD_DOWN */
+	avd_mds_avnd_up_evh,	/* AVD_EVT_MDS_AVND_UP */
+	avd_mds_avnd_down_evh,	/* AVD_EVT_MDS_AVND_DOWN */
+	avd_mds_qsd_role_evh,	/* AVD_EVT_MDS_QSD_ACK */
 
-	avd_avm_nd_shutdown_func,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_avm_nd_failover_func,	/* AVD_EVT_ND_FAILOVER */
-	avd_avm_fault_domain_rsp,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_avm_nd_reset_rsp_func,	/* AVD_EVT_ND_RESET_RSP */
-	avd_avm_nd_oper_st_func,	/* AVD_EVT_ND_OPER_ST */
+	avd_avm_nd_shutdown_evh,	/* AVD_EVT_ND_SHUTDOWN */
+	avd_avm_nd_failover_evh,	/* AVD_EVT_ND_FAILOVER */
+	avd_avm_fault_domain_rsp_evh,	/* AVD_EVT_FAULT_DMN_RSP */
+	avd_avm_nd_reset_rsp_evh,	/* AVD_EVT_ND_RESET_RSP */
+	avd_avm_nd_oper_st_evh,	        /* AVD_EVT_ND_OPER_ST */
 
 	/* Role change Event processing */
-	avd_role_change,	/* AVD_EVT_ROLE_CHANGE */
-
-	avd_role_switch_ncs_su,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_msg,	/*  AVD_EVT_D_HB */
-	avd_process_si_dep_state_evt
+	avd_role_change_evh,	     /* AVD_EVT_ROLE_CHANGE */
+	avd_role_switch_ncs_su_evh,  /* AVD_EVT_SWITCH_NCS_SU */
+	avd_rcv_hb_d_evh,	     /* AVD_EVT_D_HB */
+	avd_process_si_dep_state_evh /* AVD_EVT_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
@@ -153,94 +104,92 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
  */
 
 static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
-	avd_invalid_func,	/* AVD_EVT_INVALID */
+	avd_invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* standby AvD message events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_SU_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_NODE_UP_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_REG_SU_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* standby AvD timer events processing */
-	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
-	avd_standby_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_tmr_snd_hb_evh,           /* AVD_EVT_TMR_SND_HB */
+	avd_standby_tmr_rcv_hb_d_evh, /* AVD_EVT_TMR_RCV_HB_D */
+	avd_tmr_rcv_hb_init_evh,      /* AVD_EVT_TMR_RCV_HB_INIT */
+	avd_standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
+	avd_standby_invalid_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* standby AvD MDS events processing */
-	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
-	avd_standby_avd_down_func,	/* AVD_EVT_MDS_AVD_DOWN */
-	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
-	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_QSD_ACK */
+	avd_mds_avd_up_evh,       /* AVD_EVT_MDS_AVD_UP */
+	avd_standby_avd_down_evh, /* AVD_EVT_MDS_AVD_DOWN */
+	avd_mds_avnd_up_evh,      /* AVD_EVT_MDS_AVND_UP */
+	avd_mds_avnd_down_evh,    /* AVD_EVT_MDS_AVND_DOWN */
+	avd_standby_invalid_evh,  /* AVD_EVT_MDS_QSD_ACK */
 
-	avd_standby_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_FAILOVER */
-	avd_standby_invalid_func,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_RESET_RSP */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_OPER_ST */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
+	avd_standby_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
 
 	/* Role change Event processing */
-	avd_role_change,	/* AVD_EVT_ROLE_CHANGE */
-
-	avd_standby_invalid_func,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_msg,	/*  AVD_EVT_D_HB */
-	avd_standby_invalid_func	/* AVD_EVT_SI_DEP_STATE */
+	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
+	avd_standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
+	avd_rcv_hb_d_evh,	/*  AVD_EVT_D_HB */
+	avd_standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
  * for No role AvD.
  */
 static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
-	avd_invalid_func,	/* AVD_EVT_INVALID */
+	avd_invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* standby AvD message events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_SU_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_NODE_UP_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_REG_SU_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* standby AvD timer events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_SND_HB */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_standby_invalid_evh,	/* AVD_EVT_TMR_SND_HB */
+	avd_standby_invalid_evh,	/* AVD_EVT_TMR_RCV_HB_D */
+	avd_standby_invalid_evh,	/* AVD_EVT_TMR_RCV_HB_INIT */
+	avd_standby_invalid_evh,	/* AVD_EVT_TMR_CL_INIT */
+	avd_standby_invalid_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* standby AvD MDS events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVD_UP */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVD_DOWN */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVND_UP */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVND_DOWN */
-	avd_standby_invalid_func,	/* AVD_EVT_MDS_QSD_ACK */
+	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVD_UP */
+	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVD_DOWN */
+	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVND_UP */
+	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVND_DOWN */
+	avd_standby_invalid_evh,	/* AVD_EVT_MDS_QSD_ACK */
 
-	avd_standby_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_FAILOVER */
-	avd_standby_invalid_func,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_RESET_RSP */
-	avd_standby_invalid_func,	/* AVD_EVT_ND_OPER_ST */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
+	avd_standby_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
+	avd_standby_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
 
 	/* Role change Event processing */
-	avd_role_change,	/* AVD_EVT_ROLE_CHANGE */
-
-	avd_standby_invalid_func,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_standby_invalid_func,	/* AVD_EVT_D_HB */
-	avd_standby_invalid_func	/* AVD_EVT_SI_DEP_STATE */
+	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
+	avd_standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
+	avd_standby_invalid_evh,	/* AVD_EVT_D_HB */
+	avd_standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
@@ -249,50 +198,50 @@ static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
 
 static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	/* invalid event */
-	avd_invalid_func,	/* AVD_EVT_INVALID */
+	avd_invalid_evh,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
-	avd_qsd_ignore_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
-	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_su_oper_state_func,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_su_si_assign_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_qsd_ignore_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_oper_req_func,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_data_update_req_func,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_shutdown_app_su_resp_func,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_qsd_invalid_func,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_comp_validation_func,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_qsd_ignore_evh,	/* AVD_EVT_NODE_UP_MSG */
+	avd_reg_su_evh,	/* AVD_EVT_REG_SU_MSG */
+	avd_reg_comp_evh,	/* AVD_EVT_REG_COMP_MSG */
+	avd_su_oper_state_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
+	avd_su_si_assign_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
+	avd_qsd_ignore_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
+	avd_oper_req_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
+	avd_data_update_req_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
+	avd_shutdown_app_su_resp_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
+	avd_qsd_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
+	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
-	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
-	avd_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_qsd_ignore_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_qsd_ignore_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_qsd_ignore_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_tmr_snd_hb_evh,	/* AVD_EVT_TMR_SND_HB */
+	avd_tmr_rcv_hb_d_evh,	/* AVD_EVT_TMR_RCV_HB_D */
+	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_RCV_HB_INIT */
+	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
+	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
 
 	/* active AvD MDS events processing */
-	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
-	avd_mds_avd_down_func,	/* AVD_EVT_MDS_AVD_DOWN */
-	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
-	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
-	avd_mds_qsd_role_func,	/* AVD_EVT_MDS_QSD_ACK */
+	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
+	avd_mds_avd_down_evh,	/* AVD_EVT_MDS_AVD_DOWN */
+	avd_mds_avnd_up_evh,	/* AVD_EVT_MDS_AVND_UP */
+	avd_mds_avnd_down_evh,	/* AVD_EVT_MDS_AVND_DOWN */
+	avd_mds_qsd_role_evh,	/* AVD_EVT_MDS_QSD_ACK */
 
-	avd_qsd_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_qsd_invalid_func,	/* AVD_EVT_ND_FAILOVER */
-	avd_qsd_invalid_func,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_qsd_invalid_func,	/* AVD_EVT_ND_RESET_RSP */
-	avd_qsd_invalid_func,	/* AVD_EVT_ND_OPER_ST */
+	avd_qsd_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
+	avd_qsd_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
+	avd_qsd_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
+	avd_qsd_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
+	avd_qsd_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
 
 	/* Role change Event processing */
-	avd_role_change,	/* AVD_EVT_ROLE_CHANGE */
-	avd_qsd_invalid_func,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_msg,	/*  AVD_EVT_D_HB */
-	avd_qsd_invalid_func	/* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
+	avd_qsd_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
+	avd_rcv_hb_d_evh,	/*  AVD_EVT_D_HB */
+	avd_qsd_invalid_evh	/* AVD_EVT_TMR_SI_DEP_TOL */
 };
 
 /*****************************************************************************
- * Function: avd_invalid_func
+ * Function: avd_invalid_evh
  *
  * Purpose:  This function is the handler for invalid events. It just
  * dumps the event to the debug log and returns.
@@ -308,7 +257,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
  * 
  **************************************************************************/
 
-static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
+static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* This function should never be called
 	 * log the event to the debug log and return
@@ -317,11 +266,11 @@ static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* we need not send sync update to stanby */
 	cb->sync_required = FALSE;
 
-	LOG_NO("avd_invalid_func: %u", evt->rcv_evt);
+	LOG_NO("avd_invalid_evh: %u", evt->rcv_evt);
 }
 
 /*****************************************************************************
- * Function: avd_standby_invalid_func
+ * Function: avd_standby_invalid_evh
  *
  * Purpose:  This function is the handler for invalid events in standby state.
  * This function might be called during system trauma. It just dumps the
@@ -338,34 +287,29 @@ static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-static void avd_standby_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
+static void avd_standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
 	 */
 	AVD_DND_MSG *n2d_msg;
 
-	TRACE_ENTER();
-	m_AVD_LOG_INVALID_VAL_ERROR(0);
+	LOG_IN("avd_standby_invalid_evh: %u", evt->rcv_evt);
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 		if (evt->info.avnd_msg == NULL) {
-			/* log error that a message contents is missing */
-			m_AVD_LOG_INVALID_VAL_ERROR(0);
+			LOG_ER("avd_standby_invalid_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 	}
-
 }
 
 /*****************************************************************************
- * Function: avd_quiesced_invalid_func
+ * Function: avd_quiesced_invalid_evh
  *
  * Purpose:  This function is the handler for invalid events in quiesced state.
  * This function might be called during system trauma. It just dumps the
@@ -382,37 +326,32 @@ static void avd_standby_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-static void avd_qsd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
+static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
 	 */
 	AVD_DND_MSG *n2d_msg;
 
-	TRACE_ENTER();
-	m_AVD_LOG_INVALID_VAL_ERROR(0);
+	LOG_IN("avd_qsd_invalid_evh: %u", evt->rcv_evt);
 
 	/* we need not send sync update to stanby */
 	cb->sync_required = FALSE;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 		if (evt->info.avnd_msg == NULL) {
-			/* log error that a message contents is missing */
-			m_AVD_LOG_INVALID_VAL_ERROR(0);
+			LOG_ER("avd_qsd_invalid_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 	}
-
 }
 
 /*****************************************************************************
- * Function: avd_qsd_ignore_func 
+ * Function: avd_qsd_ignore_evh 
  *
  * Purpose:  This function is the handler for events in quiesced state which
  * which are to be ignored.
@@ -428,31 +367,26 @@ static void avd_qsd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt)
+static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* Ignore this Event. Free this msg */
 	AVD_DND_MSG *n2d_msg;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)evt));
-	m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
+	LOG_IN("avd_qsd_ignore_evh: %u", evt->rcv_evt);
 
 	/* we need not send sync update to stanby */
 	cb->sync_required = FALSE;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 		if (evt->info.avnd_msg == NULL) {
-			/* log error that a message contents is missing */
-			m_AVD_LOG_INVALID_VAL_ERROR(0);
+			LOG_ER("avd_qsd_ignore_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 	}
-
 }
 
 /*****************************************************************************
@@ -720,8 +654,6 @@ void avd_main_proc(void)
 
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
-	TRACE_ENTER2("%s", avd_evt_name[evt->rcv_evt]);
-
 	/* check the HA state */
 	if (cb_now->role_set == FALSE)
 		g_avd_init_list[evt->rcv_evt] (cb_now, evt);
@@ -762,7 +694,6 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	/* reset the sync falg */
 	cb_now->sync_required = TRUE;
 
-	TRACE_LEAVE2("%s", avd_evt_name[evt->rcv_evt]);
 	free(evt);
 }
 
@@ -784,10 +715,6 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 
 void avd_process_hb_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
-	m_AVD_LOG_RCVD_VAL(((long)evt));
-	m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
-	m_AVD_LOG_EVT_INFO(AVD_RCVD_EVENT, evt->rcv_evt);
-
 	/* check the HA state */
 	if (cb_now->role_set == FALSE)
 		g_avd_init_list[evt->rcv_evt] (cb_now, evt);

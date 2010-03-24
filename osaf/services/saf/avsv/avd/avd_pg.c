@@ -59,23 +59,21 @@
  *        maintains a list of all the CSIs that it tracks. The corresponding 
  *        updation is also done.
  **************************************************************************/
-void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVSV_N2D_PG_TRACK_ACT_MSG_INFO *info = &evt->info.avnd_msg->msg_info.n2d_pg_trk_act;
 	AVD_AVND *node = 0;
 	AVD_CSI *csi = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%s", info->csi_name.value);
 
 	/* run sanity check on the msg */
-	if ((node = avd_msg_sanity_chk(cb, evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG))
-	    == NULL)
+	if ((node = avd_msg_sanity_chk(evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG,
+		info->msg_id)) == NULL)
 		goto done;
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		/* log information error that the node is in invalid state */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_state);
-		m_AVD_LOG_INVALID_VAL_ERROR(node->rcv_msg_id);
+		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		goto done;
 	}
 
@@ -104,10 +102,10 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (NCSCC_RC_SUCCESS != avd_snd_pg_resp_msg(cb, node, csi, info))
 		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
 
- done:
+done:
 	avsv_dnd_msg_free(evt->info.avnd_msg);
 	evt->info.avnd_msg = NULL;
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

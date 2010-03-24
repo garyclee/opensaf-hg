@@ -45,7 +45,7 @@
  * 
  **************************************************************************/
 
-void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
@@ -391,10 +391,9 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-void avd_mds_avnd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_mds_avnd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	TRACE_ENTER();
-	return;
 }
 
 /*****************************************************************************
@@ -412,10 +411,9 @@ void avd_mds_avnd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_mds_avnd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	TRACE_ENTER();
-	return;
 }
 
 /*****************************************************************************
@@ -519,7 +517,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
  *
  * 
  **************************************************************************/
-void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd;
 	AVD_SU *su_ptr;
@@ -527,6 +525,8 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 	NCS_BOOL comp_sent;
 	AVD_FAIL_OVER_NODE *node_fovr;
 	AVD_DND_MSG *n2d_msg;
+
+	TRACE_ENTER();
 
 	n2d_msg = evt->info.avnd_msg;
 	/* Find if node is there in the f-over node list. If yes then remove entry
@@ -542,7 +542,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* do i need to log an error */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/*
@@ -552,21 +552,21 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Not an error? Log information will be helpful */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	if (AVD_AVND_STATE_PRESENT != avnd->node_state) {
 		/* Not an error? Log information will be helpful */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	if (TRUE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
 		/* Wow great!! We are in sync with this node...Log inforamtion */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/*
@@ -586,7 +586,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 			avd_node_down_func(cb, avnd);
 			avsv_dnd_msg_free(n2d_msg);
 			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 		}
 
 		/*
@@ -648,6 +648,8 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
+done:
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

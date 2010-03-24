@@ -442,7 +442,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				AVD_EVT evt;
 				memset(&evt, 0, sizeof(evt));
 				evt.info.tmr.type = AVD_TMR_SND_HB;
-				avd_tmr_snd_hb_func(cb, &evt);
+				avd_tmr_snd_hb_evh(cb, &evt);
 			}
 
 		}
@@ -731,7 +731,7 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
 	mbcsv_arg.info.chg_role.i_ha_state = role;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE %u failed", role);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -871,7 +871,7 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
 	mbcsv_arg.info.dispatch.i_disp_flags = flag;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_DISPATCH %u failed", flag);
 		return NCSCC_RC_FAILURE;
 	}
 

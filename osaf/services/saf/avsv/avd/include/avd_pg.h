@@ -49,7 +49,7 @@ typedef struct avd_pg_node_csi {
 	struct avd_csi_tag *csi;		/* ptr to the csi */
 } AVD_PG_NODE_CSI;
 
-EXTERN_C void avd_pg_trk_act_func(AVD_CL_CB *, struct avd_evt_tag *);
+EXTERN_C void avd_pg_trk_act_evh(AVD_CL_CB *, struct avd_evt_tag *);
 
 EXTERN_C uns32 avd_pg_susi_chg_prc(AVD_CL_CB *, AVD_SU_SI_REL *);
 EXTERN_C uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *, struct avd_comp_csi_rel_tag *, NCS_BOOL);

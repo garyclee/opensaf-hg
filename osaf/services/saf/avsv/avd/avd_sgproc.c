@@ -16,36 +16,8 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file contains the SG processing routines for the AVD.
-
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  avd_new_assgn_susi - creates and assigns the role to
-                       the SUSI relationship and sends the message.
-  avd_su_oper_state_func - processes SU operational state change message.
-  avd_su_si_assign_func - Processes SUSI message response.
-  avd_sg_app_node_su_inst_func - processes the request to instantiate all the
-                                 application SUs on a node.
-  avd_sg_app_su_inst_func - processes the request to evaluate the SG for
-                           Instantiations and terminations of SUs in the SG.
-  avd_sg_app_sg_admin_func -  processes the request to do UNLOCK or LOCK or shutdown
-                              of the AMF application SUs on the SG.
-  avd_node_susi_fail_func -  un assign all the SUSIs on the faulted node.
-  avd_sg_su_oper_list_add - Util Add SU to the list of SUs undergoing operation.
-  avd_sg_su_oper_list_del - Util Del SU to the list of SUs undergoing operation.
-  avd_sg_su_asgn_del_util -  utility routine that changes the assigning or
-                             modifing FSM to assigned for all the SUSIs for
-                             the SU. If delete it removes all the SUSIs 
-                             assigned to the SU.  
-  avd_sg_su_si_mod_snd - utility function that assigns the state specified
-                            to all the SUSIs of the SU.
-  avd_sg_su_si_del_snd - utility functions that deletes all the SUSIs to a SU.  
   
 ******************************************************************************
 */
@@ -97,11 +69,10 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
 
 	if ((susi = avd_susi_create(cb, si, su, ha_state)) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Could not create SUSI '%s' '%s'", su->name.value, si->name.value);
+		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
+			su->name.value, si->name.value);
 		goto done;
 	}
-
-	m_AVD_LOG_RCVD_VAL(((long)susi));
 
 	susi->fsm = AVD_SU_SI_STATE_ASGN;
 	susi->state = ha_state;
@@ -137,25 +108,18 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 		if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
 			/* free all the CSI assignments and end this loop */
-			avd_log(NCSFL_SEV_ERROR, "Could not create CompCSI '%s' '%s'",
-				l_comp->comp_info.name.value, l_csi->name.value);
 			avd_compcsi_delete(cb, susi, TRUE);
 			l_flag = FALSE;
 			continue;
 		}
-
-		m_AVD_LOG_RCVD_VAL(((long)compcsi));
 
 		l_comp->assign_flag = TRUE;
 		l_csi = l_csi->si_list_of_csi_next;
 	}			/* while((l_csi != AVD_CSI_NULL) && (l_flag == TRUE)) */
 
 	if (l_flag == FALSE) {
-		/* log an error that a component type for which the CSI has to be
-		 * assigned is missing.
-		 */
-		avd_log(NCSFL_SEV_ERROR, "Component type missing for SU '%s'", su->name.value);
-		avd_log(NCSFL_SEV_ERROR, "Component type missing for CSI '%s'", l_csi->name.value);
+		LOG_ER("%s: Component type missing for SU '%s'", __FUNCTION__, su->name.value);
+		LOG_ER("%s: Component type missing for CSI '%s'", __FUNCTION__, l_csi->name.value);
 
 		/* free all the CSI assignments and end this loop */
 		avd_compcsi_delete(cb, susi, TRUE);
@@ -171,10 +135,6 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	if (FALSE == ckpt) {
 		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN) != NCSCC_RC_SUCCESS) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((uns32)ha_state));
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 			/* free all the CSI assignments and end this loop */
 			avd_compcsi_delete(cb, susi, TRUE);
 			/* Unassign the SUSI */
@@ -224,29 +184,26 @@ done:
  * 
  **************************************************************************/
 
-void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	AVD_AVND *avnd;
+	AVD_AVND *node;
 	AVD_SU *su, *i_su;
 	SaAmfReadinessStateT old_state;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("from %x, '%s' state=%u", n2d_msg->msg_info.n2d_opr_state.node_id,
-		     n2d_msg->msg_info.n2d_opr_state.su_name.value, n2d_msg->msg_info.n2d_opr_state.su_oper_state);
+	     n2d_msg->msg_info.n2d_opr_state.su_name.value,
+		n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
-	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG))
-	    == NULL) {
+	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG,
+		n2d_msg->msg_info.n2d_opr_state.msg_id)) == NULL) {
 		/* sanity failed return */
 		goto done;
 	}
 
-	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
-	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
-	    ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_opr_state.msg_id)) {
-		/* log information error that the node is in invalid state */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+	if ((node->node_state == AVD_AVND_STATE_ABSENT) ||(node->node_state == AVD_AVND_STATE_GO_DOWN)) {
+		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		goto done;
 	}
 
@@ -254,11 +211,10 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * Send the Ack message to the node, indicationg that the message with this
 	 * message ID is received successfully.
 	 */
-	m_AVD_SET_AVND_RCV_ID(cb, avnd, (n2d_msg->msg_info.n2d_opr_state.msg_id));
+	m_AVD_SET_AVND_RCV_ID(cb, node, (n2d_msg->msg_info.n2d_opr_state.msg_id));
 
-	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: avd_snd_node_ack_msg failed", __FUNCTION__);
 	}
 
 	/* Find and validate the SU. */
@@ -266,13 +222,13 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* get the SU from the tree */
 
 	if ((su = avd_su_get(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_CRITICAL, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+		LOG_ER("%s: %s not found", __FUNCTION__, n2d_msg->msg_info.n2d_opr_state.su_name.value);
 		goto done;
 	}
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-	if (su_node_ptr != avnd) {
+	if (su_node_ptr != node) {
 		/* log fatal error that the SU is in invalid state */
 		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
 		goto done;
@@ -284,11 +240,11 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (n2d_msg->msg_info.n2d_opr_state.rec_rcvr == SA_AMF_NODE_FAILFAST)) {
 		/* as of now do the same opearation as ncs su failure */
 		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
-		if ((avnd->type == AVSV_AVND_CARD_SYS_CON) && (avnd->node_info.nodeId == cb->node_id_avd)) {
+		if ((node->type == AVSV_AVND_CARD_SYS_CON) && (node->node_info.nodeId == cb->node_id_avd)) {
 			TRACE("Component in %s requested FAILFAST", su->name.value);
 		}
 
-		avd_nd_ncs_su_failed(cb, avnd);
+		avd_nd_ncs_su_failed(cb, node);
 		goto done;
 	}
 
@@ -298,7 +254,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
 			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
-			avd_nd_ncs_su_failed(cb, avnd);
+			avd_nd_ncs_su_failed(cb, node);
 			goto done;
 		}
 
@@ -313,8 +269,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				/* Mark the node operational state as disable and make all the
 				 * application SUs in the node as O.O.S.
 				 */
-				avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_DISABLED);
-				i_su = avnd->list_of_su;
+				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+				i_su = node->list_of_su;
 				while (i_su != NULL) {
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 					i_su = i_su->avnd_list_su_next;
@@ -329,8 +285,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				 * application SUs in the node as O.O.S. Also call the SG FSM
 				 * to do the reallignment of SIs for assigned SUs.
 				 */
-				avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_DISABLED);
-				i_su = avnd->list_of_su;
+				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+				i_su = node->list_of_su;
 				while (i_su != NULL) {
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 					if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
@@ -861,46 +817,39 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
  * 
  **************************************************************************/
 
-void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	AVD_AVND *avnd, *su_node_ptr = NULL;
+	AVD_AVND *node, *su_node_ptr = NULL;
 	AVD_SU *su = NULL;
 	AVD_SU_SI_REL *susi;
 	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE;
 
 	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_su_si_assign.node_id);
 
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
-
-	if ((avnd =
-	     avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG))
-	    == NULL) {
+	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG,
+	     n2d_msg->msg_info.n2d_su_si_assign.msg_id)) == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 		goto done;
 	}
 
-	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
-	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
-	    ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_su_si_assign.msg_id)) {
-		/* log information error that the node is in invalid state */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
+		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		goto done;
 	}
 
 	/* update the receive id count */
-	m_AVD_SET_AVND_RCV_ID(cb, avnd, (n2d_msg->msg_info.n2d_su_si_assign.msg_id));
+	m_AVD_SET_AVND_RCV_ID(cb, node, (n2d_msg->msg_info.n2d_su_si_assign.msg_id));
 
 	/* 
 	 * Send the Ack message to the node, indicationg that the message with this
 	 * message ID is received successfully.
 	 */
-	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
 
 	}
 

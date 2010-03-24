@@ -40,7 +40,7 @@ typedef struct avd_cluster_tag {
 extern AVD_CLUSTER *avd_cluster;
 
 extern SaAisErrorT avd_cluster_config_get(void);
-extern void avd_cluster_tmr_init_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+extern void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 extern void avd_cluster_remove_ng(AVD_AMF_NG *node_gr);
 extern void avd_cluster_constructor(void);
 
