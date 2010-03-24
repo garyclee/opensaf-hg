@@ -703,10 +703,8 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 		avnd_instfail_su_failover(cb, comp->su, comp);
 	}
 
-	/* Console Print to help debugging */
 	if ((SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)
 	    && (comp->su->is_ncs == TRUE)) {
-		m_NCS_DBG_PRINTF("\nAvSv: %s got Inst failed\n", comp->name.value);
 		syslog(LOG_ERR, "NCS_AvSv: %s got Inst failed", comp->name.value);
 	}
 

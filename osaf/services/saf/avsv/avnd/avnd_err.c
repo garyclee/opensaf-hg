@@ -326,10 +326,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	/* log the failure details (placeholder for sending EDSv events) */
 	m_AVND_LOG_ERR(err_info->src, esc_rcvr, &comp->name, NCSFL_SEV_NOTICE);
 
-	/* Console Print to help debugging */
 	if (((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
-		m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -%s faulted due to %d -rcvr=%d\n",
-				 comp->name.value, comp->err_info.src, esc_rcvr);
 		syslog(LOG_ERR, "NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 	}

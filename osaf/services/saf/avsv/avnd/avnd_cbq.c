@@ -372,9 +372,7 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
 
 		if (SA_AIS_OK != resp->err) {
 			if (SA_AMF_HA_QUIESCED == cbk_rec->cbk_info->param.csi_set.ha) {
-				/* Console Print to help debugging */
 				if (comp->su->is_ncs == TRUE) {
-					m_NCS_DBG_PRINTF("\nAvSv: %s got failure for qsd cbk\n", comp->name.value);
 					syslog(LOG_ERR, "NCS_AvSv: %s got failure for qsd cbk", comp->name.value);
 				}
 
@@ -505,9 +503,7 @@ uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
 		/* => quiesced assignment failed.. process it */
 		csi = m_AVND_COMPDB_REC_CSI_GET(*(rec->comp), rec->cbk_info->param.csi_set.csi_desc.csiName);
 
-		/* Console Print to help debugging */
 		if (rec->comp->su->is_ncs == TRUE) {
-			m_NCS_DBG_PRINTF("\nAvSv: %s got qsd cbk timeout\n", rec->comp->name.value);
 			syslog(LOG_ERR, "NCS_AvSv: %s got qsd cbk timeout", rec->comp->name.value);
 		}
 

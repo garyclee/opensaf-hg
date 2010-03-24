@@ -972,11 +972,9 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 	m_AVND_COMP_REG_PARAM_RESET(cb, comp);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 
-	/*Console prints to help debug */
 	if ((comp->su->is_ncs == TRUE) &&
 	    (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) &&
 	    (!m_AVND_COMP_IS_FAILED(comp)) && (!m_AVND_COMP_TYPE_IS_PROXIED(comp))) {
-		m_NCS_DBG_PRINTF("\nAvSv: %s unregistered\n", comp->name.value);
 		syslog(LOG_ERR, "NCS_AvSv: %s unregistered", comp->name.value);
 	}
 
@@ -1552,7 +1550,7 @@ uns32 avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	 * recovery. Ignore such indications.
 	 */
 	if (csi && m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(csi->si)) {
-		m_NCS_DBG_PRINTF("\nWe have already send response\n");
+		TRACE("We have already send response");
 		goto done;
 	}
 

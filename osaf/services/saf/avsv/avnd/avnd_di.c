@@ -424,9 +424,8 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 			msg.info.avd->msg_info.n2d_opr_state.su_name = su->name;
 			msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
 
-			/* Console Print to help debugging */
 			if ((su->is_ncs == TRUE) && (su->oper == SA_AMF_OPERATIONAL_DISABLED))
-				m_NCS_DBG_PRINTF("\nAvSv: -%s SU Oper state got disabled\n", su->name.value);
+				TRACE("%s SU Oper state got disabled", su->name.value);
 		}
 
 		msg.info.avd->msg_info.n2d_opr_state.rec_rcvr = rcvr;

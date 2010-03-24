@@ -38,6 +38,7 @@
 #include "avsv.h"
 #include "ncs_log.h"
 #include "dta_papi.h"
+#include "logtrace.h"
 
 /* Porting Include Files */
 #include "avnd_defs.h"
