@@ -713,7 +713,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 	SaBoolT ncs_done = SA_TRUE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_ncs_su_mod_rsp");
+	TRACE_ENTER();
 
 	/* Active -> Quiesced && resp = Success */
 	if ((cb->avail_state_avd == SA_AMF_HA_QUIESCED) &&
@@ -1702,7 +1702,7 @@ uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su;
 	AVD_AVND *i_su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_app_sg_admin_func");
+	TRACE_ENTER();
 
 	/* Based on the admin operation that is been done call the corresponding.
 	 * Redundancy model specific functionality for the SG.
@@ -1886,7 +1886,7 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	AVD_SU *i_su;
 	AVD_COMP *i_comp;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_node_susi_fail_func");
+	TRACE_ENTER();
 
 	/* run through all the MW SUs, make all of them O.O.S. Set
 	 * assignments for the MW SGs of which the SUs are members. Also
@@ -2215,7 +2215,7 @@ uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 {
 	AVD_SG_OPER **i_su_opr, *temp_su_opr;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_su_oper_list_del");
+	TRACE_ENTER();
 
 	if (su->sg_of_su->su_oper_list.su == NULL) {
 		/* Log an error message that this shouldnt happen. */
@@ -2285,7 +2285,7 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 {
 	AVD_SU_SI_REL *i_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_su_asgn_del_util");
+	TRACE_ENTER();
 
 	i_susi = su->list_of_susi;
 	if (del_flag == TRUE) {

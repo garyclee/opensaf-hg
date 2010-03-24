@@ -211,7 +211,7 @@ static uns32 avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC 
 
 	cb = cb_ptr;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_cb_config");
+	TRACE_ENTER();
 	/* 
 	 * For updating CB, action is always to do update. We don't have add and remove
 	 * action on CB. So call EDU to decode CB data.
@@ -252,7 +252,7 @@ static uns32 avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	AVD_CLUSTER dec_cluster;
 	AVD_CLUSTER *cluster = &dec_cluster;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cluster_config");
+	TRACE_ENTER();
 
 	assert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
 
@@ -287,7 +287,7 @@ static uns32 avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVD_AVND dec_avnd;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_avnd_config");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -354,7 +354,7 @@ static uns32 avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVD_APP *app = &_app;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_app_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -414,7 +414,7 @@ static uns32 avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVD_SG dec_sg;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_sg_config");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -477,7 +477,7 @@ static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_su_config");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -603,7 +603,7 @@ static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_sg_admin_si");
+	TRACE_ENTER();
 
 	status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
 
@@ -635,7 +635,7 @@ static uns32 avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVSV_SU_SI_REL_CKPT_MSG dec_su_si_ckpt;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_su_si_rel");
+	TRACE_ENTER();
 
 	su_si_ckpt = &dec_su_si_ckpt;
 	/* 
@@ -699,7 +699,7 @@ static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVD_COMP dec_comp;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_comp_config");
+	TRACE_ENTER();
 	comp_ptr = &dec_comp;
 
 	/* 
@@ -765,7 +765,7 @@ static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_oper_su");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -822,7 +822,7 @@ static uns32 avsv_decode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_cb_cl_view_num");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -865,7 +865,7 @@ static uns32 avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_node_up_info");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -920,7 +920,7 @@ static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_su_admin_state");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -968,7 +968,7 @@ static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_oper_state");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -1016,7 +1016,7 @@ static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_node_state");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -1063,7 +1063,7 @@ static uns32 avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_rcv_msg_id");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -1111,7 +1111,7 @@ static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_snd_msg_id");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -1159,7 +1159,7 @@ static uns32 avsv_decode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	EDU_ERR ederror = 0;
 	AVD_AVND *avnd_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avnd_avm_oper_state");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -1211,7 +1211,7 @@ static uns32 avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_admin_state");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1255,7 +1255,7 @@ static uns32 avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_su_assigned_num");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1300,7 +1300,7 @@ static uns32 avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_su_spare_num");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1345,7 +1345,7 @@ static uns32 avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_su_uninst_num");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1390,7 +1390,7 @@ static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_adjust_state");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1435,7 +1435,7 @@ static uns32 avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_SG *sg_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_fsm_state");
+	TRACE_ENTER();
 
 	sg_ptr = &dec_sg;
 
@@ -1480,7 +1480,7 @@ static uns32 avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_preinstan");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1525,7 +1525,7 @@ static uns32 avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_oper_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1570,7 +1570,7 @@ static uns32 avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_admin_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1615,7 +1615,7 @@ static uns32 avsv_decode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_rediness_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1660,7 +1660,7 @@ static uns32 avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_pres_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1705,7 +1705,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_active");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1749,7 +1749,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_stby");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1794,7 +1794,7 @@ static uns32 avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_term_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1838,7 +1838,7 @@ static uns32 avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_switch");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1883,7 +1883,7 @@ static uns32 avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_act_state");
+	TRACE_ENTER();
 
 	su_ptr = &dec_su;
 
@@ -1928,7 +1928,7 @@ static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	EDU_ERR ederror = 0;
 	AVD_SI *si_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_admin_state");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -1973,7 +1973,7 @@ static uns32 avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	EDU_ERR ederror = 0;
 	AVD_SI *si_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_admin_state");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2110,7 +2110,7 @@ static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	AVD_SI *si_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_switch");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2155,7 +2155,7 @@ static uns32 avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_proxy_comp_name");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2201,7 +2201,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_curr_num_csi_actv");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2250,7 +2250,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_curr_num_csi_stby");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2302,7 +2302,7 @@ static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_oper_state");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2354,7 +2354,7 @@ static uns32 avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_readiness_state");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2406,7 +2406,7 @@ static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_pres_state");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2458,7 +2458,7 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_restart_count");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 
@@ -2508,7 +2508,7 @@ uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uns8 *ptr;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp");
+	TRACE_ENTER();
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -2525,7 +2525,7 @@ uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1, "\n\nReceived reotype = %d num obj = %d --------------------\n",
 		 dec->i_reo_type, num_of_obj);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 
 	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
@@ -2550,7 +2550,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	EDU_ERR ederror = 0;
 	AVD_CL_CB *cb_ptr;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cb_config");
+	TRACE_ENTER();
 
 	cb_ptr = cb;
 	/* 
@@ -2585,7 +2585,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
 	AVD_CLUSTER dec_cluster;
 	AVD_CLUSTER *cluster = &dec_cluster;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cluster_config");
+	TRACE_ENTER();
 
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
@@ -2618,7 +2618,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_
 	AVD_AVND *avnd_ptr;
 	AVD_AVND dec_avnd;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_node_config");
+	TRACE_ENTER();
 
 	avnd_ptr = &dec_avnd;
 
@@ -2659,7 +2659,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	AVD_APP _app;
 	AVD_APP *app = &_app;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_app_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2700,7 +2700,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 
 	sg_ptr = &dec_sg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_sg_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2741,7 +2741,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 
 	su_ptr = &dec_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_su_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2780,7 +2780,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_si_config");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2819,7 +2819,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MB
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 cs_count = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_sg_su_oper_list");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2851,7 +2851,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 count = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_sg_admin_si");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2890,7 +2890,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	EDU_ERR ederror = 0;
 	uns32 count = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_su_si_rel");
+	TRACE_ENTER();
 
 	su_si_ckpt = &dec_su_si_ckpt;
 
@@ -2941,7 +2941,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_
 	EDU_ERR ederror = 0;
 	uns32 count = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_comp_config");
+	TRACE_ENTER();
 
 	comp_ptr = &dec_comp;
 	/* 
@@ -2990,7 +2990,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBC
 	AVSV_ASYNC_UPDT_CNT *updt_cnt;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_async_updt_cnt");
+	TRACE_ENTER();
 
 	updt_cnt = &cb->async_updt_cnt;
 	/* 
@@ -3029,7 +3029,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_warm_sync_rsp");
+	TRACE_ENTER();
 
 	updt_cnt = &dec_updt_cnt;
 
@@ -3052,7 +3052,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 updt_cnt->cb_updt, updt_cnt->node_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt,
 		 updt_cnt->sg_su_oprlist_updt, updt_cnt->sg_admin_si_updt, updt_cnt->siass_updt,
 		 updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->compcstype_updt);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
@@ -3062,7 +3062,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 cb->async_updt_cnt.su_updt, cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt,
 		 cb->async_updt_cnt.sg_admin_si_updt, cb->async_updt_cnt.siass_updt, cb->async_updt_cnt.comp_updt,
 		 cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.compcstype_updt);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 
 	/*
 	 * Compare the update counts of the Standby with Active.
@@ -3116,7 +3116,7 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uns8 *ptr;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_data_sync_rsp");
+	TRACE_ENTER();
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -3130,7 +3130,7 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
 		 "\n\nReceived reotype  data sync = %d num obj = %d --------------------\n", dec->i_reo_type,
 		 num_of_obj);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 	/* 
 	 * Decode data received in the message.
 	 */
@@ -3155,7 +3155,7 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 uns32 avsv_decode_data_req(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_data_req");
+	TRACE_ENTER();
 
 	/*
 	 * Don't decode anything...just return success.
@@ -3186,7 +3186,7 @@ static uns32 avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_oper_su");
+	TRACE_ENTER();
 
 	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_oper_su, sizeof(uns32));
 	num_of_oper_su = ncs_decode_32bit(&ptr);
@@ -3241,7 +3241,7 @@ static uns32 avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	AVD_COMPCS_TYPE *comp_cs;
 	AVD_COMPCS_TYPE comp_cs_type;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_comp_cs_type_config");
+	TRACE_ENTER();
 
 	comp_cs = &comp_cs_type;
 
@@ -3300,7 +3300,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NC
 	AVD_COMPCS_TYPE *comp_cs_ptr = &dec_comp_cs;
 	uns32 count;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_comp_cs_type_config");
+	TRACE_ENTER();
 
 	for (count = 0; count < num_of_obj; count++) {
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,

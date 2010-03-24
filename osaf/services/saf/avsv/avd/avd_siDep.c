@@ -114,7 +114,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	AVD_SPONS_SI_NODE *spons_si_node = NULL;
 	AVD_SPONS_SI_NODE *del_spons_si_node = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_del");
+	TRACE_ENTER();
 
 	/* Dependent SI row Status should be active, if not return error */
 	if ((dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec))
@@ -173,7 +173,7 @@ uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons
 {
 	AVD_SPONS_SI_NODE *spons_si_node;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_add");
+	TRACE_ENTER();
 
 	spons_si_node = calloc(1, sizeof(AVD_SPONS_SI_NODE));
 	if (spons_si_node == NULL) {
@@ -209,7 +209,7 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SI_SI_DEP *rec = NULL;
 	AVD_SPONS_SI_NODE *spons_si_node = si->spons_si_list;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_stop_tol_timer");
+	TRACE_ENTER();
 
 	memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 	indx.si_name_sec.length = si->name.length;
@@ -379,7 +379,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SI_SI_DEP_INDX spons_indx;
 	AVD_SI_SI_DEP_INDX dep_indx;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_delete");
+	TRACE_ENTER();
 
 	/* Get the sponsor index */
 	memset((char *)&spons_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
@@ -455,7 +455,7 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 {
 	AVD_EVT *evt = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_state_evt");
+	TRACE_ENTER();
 
 	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
@@ -512,7 +512,7 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SI *si = NULL;
 	AVD_SI *spons_si = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_tmr_si_dep_tol_func");
+	TRACE_ENTER();
 
 	if (evt->info.tmr.type != AVD_TMR_SI_DEP_TOL) {
 		/* log error that a wrong timer type value */
@@ -684,7 +684,7 @@ void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg)
  **************************************************************************/
 void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL start_assignment)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_screen_sponsor_si_state");
+	TRACE_ENTER();
 
 	/* Change the SI dependency state only when all of its sponsor SIs are 
 	 * in assigned state.
@@ -746,7 +746,7 @@ void avd_process_si_dep_state_evt(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_process_si_dep_state_evt");
+	TRACE_ENTER();
 
 	if (evt == NULL) {
 		/* Log the message */
@@ -794,7 +794,7 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SI *si = NULL;
 	AVD_SI *spons_si = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_start_unassign");
+	TRACE_ENTER();
 
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
@@ -858,7 +858,7 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
  **************************************************************************/
 void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_update_si_dep_state_for_spons_unassign");
+	TRACE_ENTER();
 
 	switch (dep_si->si_dep_state) {
 	case AVD_SI_ASSIGNED:
@@ -940,7 +940,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 	AVD_SI_SI_DEP_INDX si_indx;
 	AVD_SI_SI_DEP *si_dep_rec = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_state_modif");
+	TRACE_ENTER();
 
 	memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 	si_indx.si_name_prim.length = si->name.length;
@@ -1020,7 +1020,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	uns32 si_prim_len = indx->si_name_prim.length;
 	uns32 si_sec_len = indx->si_name_sec.length;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_struc_crt");
+	TRACE_ENTER();
 
 	/* Allocate a new block structure for imm rec now */
 	if ((rec = calloc(1, sizeof(AVD_SI_SI_DEP))) == NULL) {
@@ -1090,7 +1090,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_B
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_find");
+	TRACE_ENTER();
 
 	if (isImmIdx) {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&cb->si_dep.spons_anchor, (uns8 *)indx);
@@ -1127,7 +1127,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_find_next");
+	TRACE_ENTER();
 
 	if (isImmIdx) {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&cb->si_dep.spons_anchor, (uns8 *)indx);
@@ -1162,7 +1162,7 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 {
 	AVD_SI_SI_DEP *si_dep_rec = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_del_row");
+	TRACE_ENTER();
 
 	if (rec == NULL)
 		return NCSCC_RC_FAILURE;
@@ -1215,7 +1215,7 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SI_SI_DEP_INDX idx;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_cyclic_dep_find");
+	TRACE_ENTER();
 
 	if (m_CMP_HORDER_SANAMET(indx->si_name_prim, indx->si_name_sec) == 0) {
 		/* dependent SI and Sponsor SI can not be same 

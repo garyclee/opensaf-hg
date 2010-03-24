@@ -64,7 +64,7 @@ uns32 avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_enc");
+	TRACE_ENTER();
 
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, enc_info->io_uba,
 				EDP_OP_TYPE_ENC, enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
@@ -112,7 +112,7 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 {
 	AVD_DND_MSG *dst_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_cpy");
+	TRACE_ENTER();
 
 	if (cpy_info->i_msg == NULL) {
 		/* log the problem */
@@ -158,7 +158,7 @@ uns32 avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_dec");
+	TRACE_ENTER();
 
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, dec_info->io_uba,
 				EDP_OP_TYPE_DEC, &dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
@@ -298,7 +298,7 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	NCSMDS_INFO snd_mds;
 	uns32 rc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
+	TRACE_ENTER();
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
 
 	if(nd_node->adest == 0) {
@@ -342,7 +342,7 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
 	NCSMDS_INFO snd_mds;
 	uns32 rc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_bcast");
+	TRACE_ENTER();
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, bcast_msg, sizeof(AVD_DND_MSG), bcast_msg);
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
@@ -384,7 +384,7 @@ uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_n2d_msg_rcv");
+	TRACE_ENTER();
 
 	/* check that the message ptr is not NULL */
 	if (rcv_msg == NULL) {

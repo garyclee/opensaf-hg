@@ -246,7 +246,7 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 uns32 avd_sg_nacvred_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_si_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -298,7 +298,7 @@ uns32 avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_su_fault_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -627,7 +627,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 	AVD_SU_SI_STATE old_fsm_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_susi_sucss_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1047,7 +1047,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_susi_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1344,7 +1344,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_node_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1563,7 +1563,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 uns32 avd_sg_nacvred_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_su_admin_fail");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)avnd));
 
@@ -1662,7 +1662,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU_SI_REL *i_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_si_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -1794,7 +1794,7 @@ uns32 avd_sg_nacvred_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su;
 	AVD_SG_OPER *l_suopr;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_sg_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)sg));
 
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);

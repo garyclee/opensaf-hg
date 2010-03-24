@@ -63,7 +63,7 @@ uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 {
 	uns32 tmr_period;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_start_tmr");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(tmr->type);
 
 	tmr_period = (uns32)(period / AVSV_NANOSEC_TO_LEAPTM);
@@ -106,7 +106,7 @@ uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_stop_tmr");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(tmr->type);
 
 	/* If timer type is invalid just return */
@@ -148,7 +148,7 @@ void avd_tmr_exp(void *uarg)
 	AVD_TMR *tmr = (AVD_TMR *)uarg;
 	AVD_EVT *evt = AVD_EVT_NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_tmr_exp");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(tmr->type);
 
 	/* 

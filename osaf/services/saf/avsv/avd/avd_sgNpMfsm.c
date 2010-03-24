@@ -79,7 +79,7 @@
 static AVD_SU *avd_sg_npm_su_next_asgn(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU *su, SaAmfHAStateT state)
 {
 	AVD_SU *i_su;
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_next_asgn");
+	TRACE_ENTER();
 
 	if (su == NULL) {
 		i_su = sg->list_of_su;
@@ -118,7 +118,7 @@ static AVD_SU *avd_sg_npm_su_next_asgn(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU *su, Sa
 static AVD_SU_SI_REL *avd_sg_npm_su_othr(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_othr");
+	TRACE_ENTER();
 
 	i_susi = su->list_of_susi;
 	o_susi = AVD_SU_SI_REL_NULL;
@@ -163,7 +163,7 @@ static AVD_SU_SI_REL *avd_sg_npm_su_othr(AVD_CL_CB *cb, AVD_SU *su)
 static void avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 {
 	AVD_SU_SI_REL *i_susi;
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_chk_snd");
+	TRACE_ENTER();
 
 	for (i_susi = s_su->list_of_susi; i_susi != AVD_SU_SI_REL_NULL; i_susi = i_susi->su_next) {
 		if ((i_susi->si->list_of_sisu != i_susi) && (i_susi->si->list_of_sisu->su == q_su))
@@ -220,7 +220,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	NCS_BOOL actv_su_found = FALSE;
 	AVD_SU_SI_REL *o_susi, *tmp_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_chose_asgn");
+	TRACE_ENTER();
 
 	/* Identifying and assigning active assignments. */
 	i_si = sg->list_of_si;
@@ -668,7 +668,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 uns32 avd_sg_npm_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_si_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -718,7 +718,7 @@ uns32 avd_sg_npm_si_func(AVD_CL_CB *cb, AVD_SI *si)
 
 uns32 avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_siswitch_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -1174,7 +1174,7 @@ uns32 avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *a_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_fault_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -2228,7 +2228,7 @@ uns32 avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 	AVD_SU_SI_REL *o_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_susi_sucss_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -2363,7 +2363,7 @@ uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_susi_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -3445,7 +3445,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU *o_su;
 	AVD_SU_SI_REL *o_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_node_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -3599,7 +3599,7 @@ uns32 avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 
 	uns32 rc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_admin_fail");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)avnd));
 
@@ -3710,7 +3710,7 @@ uns32 avd_sg_npm_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_si_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -3861,7 +3861,7 @@ uns32 avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *i_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_sg_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)sg));
 
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);

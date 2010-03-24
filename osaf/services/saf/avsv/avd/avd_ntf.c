@@ -25,6 +25,7 @@
 
 ******************************************************************************/
 
+#include <logtrace.h>
 #include <avd_ntf.h>
 #include <avd_dblog.h>
 
@@ -47,7 +48,7 @@ uns32 avd_amf_alarm_service_impaired_ntf(AVD_CL_CB *avd_cb, SaAisErrorT err)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH] = "AMF service";
 
-	m_AVD_LOG_FUNC_ENTRY("avd_amf_alarm_service_impaired_ntf");
+	TRACE_ENTER();
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = strlen((SaInt8T*)add_text);
@@ -86,7 +87,7 @@ uns32 avd_gen_cluster_reset_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_cluster_reset_ntf");
+	TRACE_ENTER();
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = comp->comp_info.name.length;
@@ -124,7 +125,7 @@ uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_node_admin_state_changed_ntf");
+	TRACE_ENTER();
 	avd_log_admin_state_ntfs(node->saAmfNodeAdminState, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -164,7 +165,7 @@ uns32 avd_gen_sg_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SG *sg)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_sg_admin_state_changed_ntf");
+	TRACE_ENTER();
 	avd_log_admin_state_ntfs(sg->saAmfSGAdminState, &(sg->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -204,7 +205,7 @@ uns32 avd_gen_su_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_admin_state_changed_ntf");
+	TRACE_ENTER();
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = su->name.length;
@@ -243,7 +244,7 @@ uns32 avd_gen_si_unassigned_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_unassigned_ntf");
+	TRACE_ENTER();
 	avd_log_si_unassigned_ntfs(AVD_NTFS_UNASSIGNED, &(si->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -282,7 +283,7 @@ uns32 avd_gen_si_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_oper_state_chg_ntf");
+	TRACE_ENTER();
 	if (si->list_of_sisu != AVD_SU_SI_REL_NULL) 
 	avd_log_oper_state_ntfs(NCS_OPER_STATE_ENABLE, &(si->name), NCSFL_SEV_NOTICE);
 	else 
@@ -324,7 +325,7 @@ uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_admin_state_chg_ntf");
+	TRACE_ENTER();
 	avd_log_admin_state_ntfs(si->saAmfSIAdminState, &(si->name), NCSFL_SEV_NOTICE);	
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -364,7 +365,7 @@ uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 	SaNameT comp_name_su, comp_name_si;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_ha_state_changed_ntf");
+	TRACE_ENTER();
 	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name), &(susi->si->name), NCSFL_SEV_NOTICE, FALSE);
 
 	memset(comp_name_su.value, '\0', SA_MAX_NAME_LENGTH);
@@ -409,7 +410,7 @@ uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 	SaNameT comp_name_su, comp_name_si;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_si_assigned_ntf");
+	TRACE_ENTER();
 	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name), &(susi->si->name), NCSFL_SEV_NOTICE, TRUE);
 
 	memset(comp_name_su.value, '\0', SA_MAX_NAME_LENGTH);
@@ -453,7 +454,7 @@ uns32 avd_clm_alarm_service_impaired_ntf(AVD_CL_CB *avd_cb, SaAisErrorT err)
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH] = "CLM service";
-	m_AVD_LOG_FUNC_ENTRY("avd_clm_alarm_service_impaired_ntf");
+	TRACE_ENTER();
 
 	comp_name.length = strlen((SaInt8T*)add_text);
 	(void)memcpy(comp_name.value, add_text, strlen((SaInt8T*)add_text));
@@ -489,7 +490,7 @@ uns32 avd_clm_node_join_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_join_ntf");
+	TRACE_ENTER();
 	avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_JOINED, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -529,7 +530,7 @@ uns32 avd_clm_node_exit_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_exit_ntf");
+	TRACE_ENTER();
         avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_EXITED, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
@@ -569,7 +570,7 @@ uns32 avd_clm_node_reconfiured_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_reconfiured_ntf");
+	TRACE_ENTER();
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = node->name.length;
@@ -608,7 +609,7 @@ uns32 avd_gen_ncs_init_success_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaNameT comp_name;
 	SaUint8T add_text[ADDITION_TEXT_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_gen_ncs_init_success_ntf");
+	TRACE_ENTER();
         ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_NTFS_NCS_SUCC, AVD_FC_NTF, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, "TIL",
            	   AVD_NTFS_NCS_INIT_SUCCESS,
            	   node->node_info.nodeId);
@@ -655,7 +656,7 @@ uns32 avd_node_shutdown_failure_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 err
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	m_AVD_LOG_FUNC_ENTRY("avd_node_shutdown_failure_ntf");
+	TRACE_ENTER();
 	avd_log_shutdown_failure(&(node->name), NCSFL_SEV_NOTICE, errcode);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);

@@ -553,7 +553,7 @@ static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_qsd_ack_evt");
+	TRACE_ENTER();
 
 	/* create the message event */
 	evt = calloc(1, sizeof(AVD_EVT));
@@ -601,7 +601,7 @@ uns32 avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	NCSMDS_INFO snd_mds;
 	uns32 rc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
+	TRACE_ENTER();
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));

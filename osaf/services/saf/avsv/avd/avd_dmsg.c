@@ -61,7 +61,7 @@ void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 	uns8 *data;
 	AVD_D2D_MSG *msg = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_d_enc");
+	TRACE_ENTER();
 
 	msg = (AVD_D2D_MSG *)enc_info->i_msg;
 	uba = enc_info->io_uba;
@@ -107,7 +107,7 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	AVD_D2D_MSG *d2d_msg = 0;
 	NCS_UBAID *uba = dec_info->io_uba;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_d_dec");
+	TRACE_ENTER();
 
 	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
 	if (d2d_msg == AVD_D2D_MSG_NULL) {
@@ -154,7 +154,7 @@ uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
 	NCSMDS_INFO snd_mds;
 	uns32 rc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_d2d_msg_snd");
+	TRACE_ENTER();
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_D2D_MSG), snd_msg);
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
@@ -199,7 +199,7 @@ uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_d2d_msg_rcv");
+	TRACE_ENTER();
 
 	/* check that the message ptr is not NULL */
 	if (rcv_msg == NULL) {

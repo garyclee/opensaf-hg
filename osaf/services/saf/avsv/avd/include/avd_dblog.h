@@ -248,8 +248,6 @@ typedef enum avd_log_ids {
 
 #define avd_log(severity, format, args...) _avd_log((severity), __FUNCTION__, (format), ##args)
 
-#define m_AVD_LOG_FUNC_ENTRY(func_name) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN, AVD_FC_HDLN, NCSFL_LC_FUNC_ENTRY, NCSFL_SEV_DEBUG, NCSFL_TYPE_TIC,AVD_ENTERED_FUNC,func_name)
-
 #define m_AVD_LOG_INVALID_VAL_ERROR(data) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL,AVD_INVALID_VAL,__FILE__, __LINE__,data)
 
 #define m_AVD_LOG_INVALID_VAL_FATAL(data) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_EMERGENCY, NCSFL_TYPE_TICLL,AVD_INVALID_VAL,__FILE__, __LINE__,data)

@@ -65,7 +65,7 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *node = 0;
 	AVD_CSI *csi = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_pg_trk_act_func");
+	TRACE_ENTER();
 
 	/* run sanity check on the msg */
 	if ((node = avd_msg_sanity_chk(cb, evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG))
@@ -191,7 +191,7 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	AVD_PG_CSI_NODE *pg_csi_node = 0;
 	AVD_PG_NODE_CSI *pg_node_csi = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_add");
+	TRACE_ENTER();
 
 	/* alloc the pg-csi-node & pg-node-csi recs */
 	pg_csi_node = calloc(1, sizeof(AVD_PG_CSI_NODE));
@@ -236,7 +236,7 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	AVD_PG_CSI_NODE *pg_csi_node = 0;
 	AVD_PG_NODE_CSI *pg_node_csi = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del");
+	TRACE_ENTER();
 
 	/* free from pg list maintained on csi */
 	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uns8 *)&node);
@@ -269,7 +269,7 @@ void avd_pg_csi_node_del_all(AVD_CL_CB *cb, AVD_CSI *csi)
 {
 	AVD_PG_CSI_NODE *curr = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del_all");
+	TRACE_ENTER();
 
 	while (0 != (curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&csi->pg_node_list)))
 		avd_pg_csi_node_del(cb, csi, curr->node);
@@ -295,7 +295,7 @@ void avd_pg_node_csi_del_all(AVD_CL_CB *cb, AVD_AVND *node)
 {
 	AVD_PG_NODE_CSI *curr = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_pg_node_csi_del_all");
+	TRACE_ENTER();
 
 	while (0 != (curr = (AVD_PG_NODE_CSI *)m_NCS_DBLIST_FIND_FIRST(&node->pg_csi_list)))
 		avd_pg_csi_node_del(cb, curr->csi, node);

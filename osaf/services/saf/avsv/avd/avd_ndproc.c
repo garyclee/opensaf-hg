@@ -203,7 +203,7 @@ void avd_reg_comp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_DND_MSG *n2d_msg;
 	AVD_AVND *avnd;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_reg_comp_func");
+	TRACE_ENTER();
 
 	if (evt->info.avnd_msg == NULL) {
 		/* log error that a message contents is missing */
@@ -301,7 +301,7 @@ void avd_reg_comp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_node_down_func");
+	TRACE_ENTER();
 
 	/*TODO*/
 //	opensaf_reboot(avnd->node_info.nodeId,
@@ -786,7 +786,7 @@ void avd_comp_validation_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd = NULL;
 	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_comp_validation_func");
+	TRACE_ENTER();
 
 	if (evt->info.avnd_msg == NULL) {
 		/* log error that a message contents is missing */

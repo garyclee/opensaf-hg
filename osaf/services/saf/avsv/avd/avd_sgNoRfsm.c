@@ -82,7 +82,7 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	NCS_BOOL l_flag;
 	AVD_SU_SI_REL *tmp;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_su_chose_asgn");
+	TRACE_ENTER();
 
 	i_si = sg->list_of_si;
 	i_su = sg->list_of_su;
@@ -161,7 +161,7 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 uns32 avd_sg_nored_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_si_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -215,7 +215,7 @@ uns32 avd_sg_nored_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_su_fault_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -638,7 +638,7 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 	AVD_SU_SI_STATE old_fsm_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_susi_sucss_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1014,7 +1014,7 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_susi_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1290,7 +1290,7 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	SaAmfHAStateT old_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_node_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1508,7 +1508,7 @@ uns32 avd_sg_nored_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_su_admin_fail");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)avnd));
 
@@ -1644,7 +1644,7 @@ uns32 avd_sg_nored_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_si_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -1786,7 +1786,7 @@ uns32 avd_sg_nored_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su;
 	AVD_SG_OPER *l_suopr;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_sg_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)sg));
 
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
