@@ -63,7 +63,7 @@ static uns32 avd_rde_set_role(SaAmfHAStateT role);
  *
  * 
 \**************************************************************************/
-void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_D2D_MSG *msg = evt->info.avd_msg;
@@ -503,7 +503,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 			/* set cb state to active */
 			cb->avail_state_avd = role;
-			avd_role_switch_ncs_su(cb, &evt);
+			avd_role_switch_ncs_su_evh(cb, &evt);
 
 			if (NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				/* We are successfully changed role to Active.
@@ -611,7 +611,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
  *
  * 
 \**************************************************************************/
-void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL, *other_avnd = NULL;
 	AVD_SU *i_su = NULL;
@@ -651,8 +651,6 @@ void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 	
 	TRACE_LEAVE();
-
-	return;
 }
 
 /****************************************************************************\
@@ -672,7 +670,7 @@ void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
 \**************************************************************************/
 static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	LOG_NO("AMFD ROLE SWITCH Quiesced --> Active");
+	LOG_NO("ROLE SWITCH Quiesced --> Active");
 	return amfd_switch_stdby_actv(cb);
 }
 
@@ -693,12 +691,13 @@ static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
  * 
  **************************************************************************/
 
-void avd_mds_qsd_role_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
+
 	/* Now set the MBCSv role to quiesced, */
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_QUIESCED))) {
 		/* Log error */
@@ -722,7 +721,6 @@ void avd_mds_qsd_role_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	TRACE_LEAVE();
-	return;
 }
 
 /*****************************************************************************
@@ -766,6 +764,7 @@ void amfd_switch(AVD_CL_CB *cb)
 		cb->swap_switch= SA_FALSE;
 		return ;
 	}
+
 	TRACE_LEAVE();
 }
 
@@ -861,8 +860,6 @@ uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role)
 	AVD_D2D_MSG d2d_msg;
 
 	TRACE_ENTER();
-	LOG_NO("amfd sending response to change role req status=%d role=%d",status,role);
-
 
 	if((cb->node_id_avd_other == 0) || (cb->other_avd_adest == 0)) {
 		return NCSCC_RC_FAILURE;
@@ -883,7 +880,6 @@ uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************\
  * Function: amfd_switch_actv_qsd
@@ -908,24 +904,24 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	LOG_NO("AMFD ROLE SWITCH Active --> Quiesced");
+	LOG_NO("ROLE SWITCH Active --> Quiesced");
 
 	if (cb->init_state != AVD_APP_STATE) {
-		LOG_ER("AMFD ROLE SWITCH Active --> Quiesced, AMFD not in APP State");
+		LOG_ER("ROLE SWITCH Active --> Quiesced, AMFD not in APP State");
 		cb->swap_switch = SA_FALSE;
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the avnd from node_id */
 	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
-		LOG_ER("AMFD ROLE SWITCH Active --> Quiesced, Local Node not found");
+		LOG_ER("ROLE SWITCH Active --> Quiesced, Local Node not found");
 		cb->swap_switch = SA_FALSE;
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the avnd from node_id */
 	if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
-		LOG_ER("AMFD ROLE SWITCH Active --> Quiesced, remote Node not found");
+		LOG_ER("ROLE SWITCH Active --> Quiesced, remote Node not found");
 		cb->swap_switch = SA_FALSE;
 		return NCSCC_RC_FAILURE;
 	}
@@ -949,7 +945,7 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 
 	/* Go ahead and set mds role as already the NCS SU has been switched */
 	if (NCSCC_RC_SUCCESS != (rc = avd_mds_set_vdest_role(cb, SA_AMF_HA_QUIESCED))) {
-		LOG_ER("AMFD ROLE SWITCH Active --> Quiesced, vdest role set failed");
+		LOG_ER("ROLE SWITCH Active --> Quiesced, vdest role set failed");
 		cb->swap_switch = SA_FALSE;
 		return NCSCC_RC_FAILURE;
 	}
@@ -1002,24 +998,24 @@ uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 	uns32 status = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	LOG_NO("AMFD Switching Quiesced --> StandBy");
+	LOG_NO("Switching Quiesced --> StandBy");
 
 	cb->swap_switch = SA_FALSE;
 
 	if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, SA_AMF_HA_STANDBY))) {
-		LOG_ER("AMFD Switch Quiesced --> StandBy, Vdest set role failed");
+		LOG_ER("Switch Quiesced --> StandBy, Vdest set role failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Change MBCSv role to Standby */
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_STANDBY))) {
-		LOG_ER("AMFD Switch Quiesced --> StandBy, MBCSv set role failed");
+		LOG_ER("Switch Quiesced --> StandBy, MBCSv set role failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Now Dispatch all the messages from the MBCSv mail-box */
 	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
-		LOG_ER("AMFD Switch Quiesced --> StandBy, MBCSv dispatch failed");
+		LOG_ER("Switch Quiesced --> StandBy, MBCSv dispatch failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1063,7 +1059,7 @@ uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	
 	TRACE_ENTER();
 
-	LOG_NO("AMFD Switching StandBy --> Active State");
+	LOG_NO("Switching StandBy --> Active State");
 
 	/*
 	 * Check whether Standby is in sync with Active. If yes then

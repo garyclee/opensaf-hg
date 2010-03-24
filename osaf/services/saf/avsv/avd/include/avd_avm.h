@@ -43,13 +43,13 @@ EXTERN_C uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *, SaNameT *);
 EXTERN_C uns32 avd_avm_send_reset_req(AVD_CL_CB *, SaNameT *);
 
 EXTERN_C void avd_avm_mark_nd_absent(AVD_CL_CB *, AVD_AVND *);
-EXTERN_C void avd_avm_nd_shutdown_func(AVD_CL_CB *, AVD_EVT *);
+EXTERN_C void avd_avm_nd_shutdown_evh(AVD_CL_CB *, AVD_EVT *);
 EXTERN_C void avd_handle_nd_failover_shutdown(AVD_CL_CB *, AVD_AVND *, SaBoolT);
 EXTERN_C void avd_chk_failover_shutdown_cxt(AVD_CL_CB *, AVD_AVND *, SaBoolT);
-EXTERN_C void avd_avm_nd_failover_func(AVD_CL_CB *, AVD_EVT *);
-EXTERN_C void avd_avm_fault_domain_rsp(AVD_CL_CB *, AVD_EVT *);
-EXTERN_C void avd_avm_nd_reset_rsp_func(AVD_CL_CB *, AVD_EVT *);
-EXTERN_C void avd_avm_nd_oper_st_func(AVD_CL_CB *, AVD_EVT *);
+EXTERN_C void avd_avm_nd_failover_evh(AVD_CL_CB *, AVD_EVT *);
+EXTERN_C void avd_avm_fault_domain_rsp_evh(AVD_CL_CB *, AVD_EVT *);
+EXTERN_C void avd_avm_nd_reset_rsp_evh(AVD_CL_CB *, AVD_EVT *);
+EXTERN_C void avd_avm_nd_oper_st_evh(AVD_CL_CB *, AVD_EVT *);
 EXTERN_C uns32 avd_avm_role_rsp(AVD_CL_CB *cb, NCS_BOOL status, SaAmfHAStateT role);
 EXTERN_C uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node);
 EXTERN_C uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node);

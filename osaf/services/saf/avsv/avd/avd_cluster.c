@@ -49,7 +49,7 @@ AVD_CLUSTER *avd_cluster = &_avd_cluster;
  *  Notes         : None.
  ***************************************************************************/
 
-void avd_cluster_tmr_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	SaNameT lsg_name;
 	AVD_SG *i_sg;

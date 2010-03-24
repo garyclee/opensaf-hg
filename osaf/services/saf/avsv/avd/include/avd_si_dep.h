@@ -105,9 +105,9 @@ EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_IND
 EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
 EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
 EXTERN_C uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec);
-EXTERN_C void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_si_dep_spons_unassign(AVD_CL_CB *cb, struct avd_si_tag *si, struct avd_si_tag *si_dep);
-EXTERN_C void avd_process_si_dep_state_evt(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+EXTERN_C void avd_process_si_dep_state_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_screen_sponsor_si_state(AVD_CL_CB *cb, struct avd_si_tag *si, NCS_BOOL start_assignment);
 EXTERN_C void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, struct avd_sg_tag *sg);
 EXTERN_C void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, struct avd_si_tag *si);

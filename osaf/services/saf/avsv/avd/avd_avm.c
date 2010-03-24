@@ -226,7 +226,7 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
  *                  response to AvM.
  ***************************************************************************/
 
-void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_avm_nd_shutdown_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
@@ -565,7 +565,7 @@ void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs
  *
  ***************************************************************************/
 
-void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_avm_nd_failover_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
@@ -676,7 +676,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
  *
  ***************************************************************************/
 
-void avd_avm_fault_domain_rsp(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_avm_fault_domain_rsp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	return;
 }
@@ -695,7 +695,7 @@ void avd_avm_fault_domain_rsp(AVD_CL_CB *cb, AVD_EVT *evt)
  *
  ***************************************************************************/
 
-void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_avm_nd_reset_rsp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVD_AVND *avnd = NULL;
@@ -761,7 +761,7 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
  *
  ***************************************************************************/
 
-void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_avm_nd_oper_st_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
@@ -913,22 +913,12 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_DND_MSG *n2d_msg;
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *avnd;
 
-	TRACE_ENTER();
-
-	if (evt->info.avnd_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		return;
-	}
-
-	n2d_msg = evt->info.avnd_msg;
-
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
 
 	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == NULL) {
 		/* log error that the node id is invalid */
@@ -955,7 +945,7 @@ void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
-	return;
+	TRACE_LEAVE();
 }
 
 uns32 avd_fm_inform_hb_evt(AVD_CL_CB *cb, uns32 nodeid, fmHeartbeatIndType type)

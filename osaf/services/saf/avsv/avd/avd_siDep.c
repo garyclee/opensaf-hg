@@ -507,25 +507,21 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
  * NOTES:
  * 
  **************************************************************************/
-void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
 	AVD_SI *spons_si = NULL;
 
 	TRACE_ENTER();
 
-	if (evt->info.tmr.type != AVD_TMR_SI_DEP_TOL) {
-		/* log error that a wrong timer type value */
-		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-		return;
-	}
+	assert(evt->info.tmr.type == AVD_TMR_SI_DEP_TOL);
 
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
 	if ((si == NULL) || (spons_si == NULL)) {
 		/* Nothing to do here as SI/spons-SI itself lost their existence */
-		return;
+		goto done;
 	}
 
 	avd_log(NCSFL_SEV_NOTICE, "'%s'", si->name.value);
@@ -544,7 +540,7 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* LOG the ERROR message. Before moving to this state, need to ensure 
 		 * all the tolerance timers of this SI are in stopped state.
 		 */
-		return;
+		goto done;
 
 	default:
 		break;
@@ -556,7 +552,7 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	avd_screen_sponsor_si_state(cb, si, FALSE);
 	if (si->si_dep_state == AVD_SI_ASSIGNED) {
 		/* Nothing to do further */
-		return;
+		goto done;
 	}
 
 	/* If the SI is already been unassigned, nothing to proceed for 
@@ -564,7 +560,7 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
 		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_SPONSOR_UNASSIGNED);
-		return;
+		goto done;
 	}
 
 	/* Check if spons_si SI-Dep state is not in ASSIGNED state, then 
@@ -578,8 +574,8 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			/* Log the error */
 		}
 	}
-
-	return;
+done:
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -742,7 +738,7 @@ void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL start_assig
  * NOTES:
  * 
  **************************************************************************/
-void avd_process_si_dep_state_evt(AVD_CL_CB *cb, AVD_EVT *evt)
+void avd_process_si_dep_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_SI *si = NULL;
 
@@ -772,7 +768,7 @@ void avd_process_si_dep_state_evt(AVD_CL_CB *cb, AVD_EVT *evt)
 		avd_si_dep_start_unassign(cb, evt);
 	}
 
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
