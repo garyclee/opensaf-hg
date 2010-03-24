@@ -971,15 +971,9 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	cb->is_implementer = FALSE;
 
-
 	/* Walk through all the nodes and stop AvND rcv HeartBeat. */
 	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
 		node_id = avnd->node_info.nodeId;
-
-		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-		/* stop the timer if it exists */
-		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 	}
 	TRACE_LEAVE();
 

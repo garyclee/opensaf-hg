@@ -78,14 +78,12 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	switch (type) {
 		/* AvD event types */
 	case AVND_EVT_AVD_NODE_UP_MSG:
-	case AVND_EVT_AVD_REG_HLT_MSG:
 	case AVND_EVT_AVD_REG_SU_MSG:
 	case AVND_EVT_AVD_REG_COMP_MSG:
 	case AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG:
 	case AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG:
 	case AVND_EVT_AVD_PG_UPD_MSG:
 	case AVND_EVT_AVD_OPERATION_REQUEST_MSG:
-	case AVND_EVT_AVD_HB_INFO_MSG:
 	case AVND_EVT_AVD_SU_PRES_MSG:
 	case AVND_EVT_AVD_VERIFY_MSG:
 	case AVND_EVT_AVD_ACK_MSG:
@@ -120,7 +118,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		/* timer event types */
 	case AVND_EVT_TMR_HC:
 	case AVND_EVT_TMR_CBK_RESP:
-	case AVND_EVT_TMR_SND_HB:
 	case AVND_EVT_TMR_RCV_MSG_RSP:
 	case AVND_EVT_TMR_CLC_COMP_REG:
 	case AVND_EVT_TMR_SU_ERR_ESC:
@@ -209,14 +206,12 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	switch (type) {
 		/* AvD event types */
 	case AVND_EVT_AVD_NODE_UP_MSG:
-	case AVND_EVT_AVD_REG_HLT_MSG:
 	case AVND_EVT_AVD_REG_SU_MSG:
 	case AVND_EVT_AVD_REG_COMP_MSG:
 	case AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG:
 	case AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG:
 	case AVND_EVT_AVD_PG_UPD_MSG:
 	case AVND_EVT_AVD_OPERATION_REQUEST_MSG:
-	case AVND_EVT_AVD_HB_INFO_MSG:
 	case AVND_EVT_AVD_SU_PRES_MSG:
 	case AVND_EVT_AVD_VERIFY_MSG:
 	case AVND_EVT_AVD_ACK_MSG:
@@ -256,7 +251,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 		/* timer event types */
 	case AVND_EVT_TMR_HC:
 	case AVND_EVT_TMR_CBK_RESP:
-	case AVND_EVT_TMR_SND_HB:
 	case AVND_EVT_TMR_RCV_MSG_RSP:
 	case AVND_EVT_TMR_CLC_COMP_REG:
 	case AVND_EVT_TMR_SU_ERR_ESC:

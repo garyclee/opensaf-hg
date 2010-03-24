@@ -16,34 +16,12 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file contains the node state machine related functional
   routines. It is part of the Node submodule.
 
-..............................................................................
-
-  FUNCTIONS INCLUDED in this file:
-
-  avd_node_up_func - node up message handler.
-  avd_nd_heartbeat_msg_func - heartbeat message handler.  
-  avd_tmr_rcv_hb_nd_func - heartbeat timer expiry handler.
-  avd_nd_reg_comp_evt_hdl - Component database update on AvND success 
-                            event handler.
-  avd_nd_ncs_su_assigned - NCS SU getting successfully assigned with SI event
-                           handler.
-  avd_nd_ncs_su_failed - NCS SU failure event handler.
-  avd_mds_avnd_up_func - MDS node up call back.
-  avd_mds_avnd_down_func - MDS node down call back.
-  
 ******************************************************************************
 */
-
-/*
- * Module Inclusion Control...
- */
 
 #include <logtrace.h>
 
@@ -82,15 +60,6 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-
-	if (cb->init_state < AVD_CFG_DONE) {
-		/* Don't initialise the AvND when the AVD is not
-		 * completely initialised with the saved information
-		 */
-		TRACE("invalid init state (%u)", cb->init_state);
-		goto done;
-	}
-
 	/* Check the AvD FSM state process node up only if AvD is in init done or
 	 * APP init state for all nodes except the primary system controller
 	 * whose node up is accepted in config done state.
@@ -121,11 +90,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		avnd->type = AVSV_AVND_CARD_SYS_CON;
 	}
 
-	/*Intialize the heart beat receive indication value  */
-	avnd->hrt_beat_rcvd = FALSE;
-
-	/* send the node up message to the node.
-	 */
+	/* send the node up message to the node. */
 	if (avd_snd_node_up_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
@@ -151,16 +116,6 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 		avd_node_down_func(cb, avnd);
 		goto done;
-	}
-
-	avd_log(NCSFL_SEV_NOTICE, "Snd_node_ack msg success");
-	/* start the heartbeat timer for node director of non sys
-	 * controller.
-	 */
-	if (avnd->type != AVSV_AVND_CARD_SYS_CON) {
-		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-		m_AVD_HB_TMR_START(cb, avnd);
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 	}
 
 	/* Send role change to this controller AvND */
@@ -218,169 +173,6 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 done:
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
-	TRACE_LEAVE();
-}
-
-/*****************************************************************************
- * Function: avd_nd_heartbeat_msg_func
- *
- * Purpose:  This function is the handler for node director heartbeat event
- * indicating the arrival of the heartbeat message from node director. Based
- * on the state machine it will process the message accordingly.
- *
- * Input: cb - the AVD control block
- *        evt - The event information.
- *
- * Returns: None.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, AVD_EVT *evt)
-{
-	AVD_DND_MSG *n2d_msg;
-	AVD_AVND *avnd;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_nd_heartbeat_msg_func");
-
-	if (evt->info.avnd_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		return;
-	}
-
-	n2d_msg = evt->info.avnd_msg;
-
-	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-
-	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_hrt_bt.node_id, AVSV_N2D_HEARTBEAT_MSG))
-	    == NULL) {
-		/* sanity failed return */
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-		return;
-	}
-
-	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) || (avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		/* log information error that the node is in invalid state */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-		return;
-	}
-
-	/* stop the timer if it exists */
-	avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-
-	/* restart the heart beat timer for payload card only */
-	if ((avnd->type != AVSV_AVND_CARD_SYS_CON) && (cb->avail_state_avd == SA_AMF_HA_ACTIVE)) {
-		m_AVD_HB_TMR_START(cb, avnd);
-	}
-
-	/* check that this is the first heart Beat message after
-	   system start or after a heart beat timer expiry .If 
-	   yes than inform AVM 
-	 */
-	if (FALSE == avnd->hrt_beat_rcvd) {
-		if (NCSCC_RC_SUCCESS != avd_fm_inform_hb_evt(cb, avnd->node_info.nodeId, fmHeartbeatRestore)) {
-			/* log error that the node id is invalid */
-			m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-			m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
-		}
-		/*Message Successfully sent: RDE informed */
-		/*Set the avnd heart beat received value to True  */
-		avnd->hrt_beat_rcvd = TRUE;
-	}
-
-	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
-	/* free the received message */
-	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
-
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_tmr_rcv_hb_nd_func
- *
- * Purpose:  This function is the handler for node director receive heartbeat 
- * timeout event indicating the timer expiry of receive heartbeat timer for
- *  node director. Based on the state machine it will process the 
- * timeout accordingly.
- *
- * Input: cb - the AVD control block
- *        evt - The event information.
- *
- * Returns: None.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
-{
-	AVD_AVND *avnd = NULL;
-
-	TRACE_ENTER();
-
-	assert(evt->info.tmr.type == AVD_TMR_RCV_HB_ND);
-
-	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		/* log error that a cluster is admin down */
-		m_AVD_LOG_INVALID_VAL_ERROR(avd_cluster->saAmfClusterAdminState);
-		return;
-	}
-
-	if (cb->init_state < AVD_CFG_DONE) {
-		/* This is a error situation. Without completing
-		 * initialization the AVD will not respond to
-		 * AVND.
-		 */
-
-		/* log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb->init_state);
-		return;
-	}
-
-	LOG_WA("Heart Beat missed with node director on %x", evt->info.tmr.node_id);
-
-	/* get avnd ptr to call avd_avm_mark_nd_absent */
-	if ((avnd = avd_node_find_nodeid(evt->info.tmr.node_id)) == NULL) {
-		/* we can't do anything without getting avnd ptr. just return */
-		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
-		return;
-	}
-
-	/*Reset the first heart beat receive boolean variable
-	   present in avnd structure */
-
-	avnd->hrt_beat_rcvd = FALSE;
-
-	/* Inform LFM about the heartbeat loss. All the other processing
-	 * is delayed until a response is received from LFM
-	 *
-	 * Mark the node status as ???
-	 */
-	if (NCSCC_RC_SUCCESS != avd_fm_inform_hb_evt(cb, evt->info.tmr.node_id, fmHeartbeatLost)) {
-		/* log error that the node id is invalid */
-		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
-		return;
-	}
-
-	// opensaf_reboot(avnd->node_info.nodeID, 
-	//	avnd->node_info.executionEnvironment.value, 
-	//	"Heart beat missed");
 	TRACE_LEAVE();
 }
 
@@ -679,17 +471,6 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 
 			/* remove the PG record */
 			avd_pg_node_csi_del_all(cb, avnd);
-
-			/* 
-			 * Start the heartbeat timer for node director of non sys
-			 * controller.
-			 */
-			if (avnd->type != AVSV_AVND_CARD_SYS_CON) {
-				m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-				avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-				m_AVD_HB_TMR_START(cb, avnd);
-				m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-			}
 
 			/* Add this node in our fail-over node list */
 			if (NULL == (node_to_add = calloc(1, sizeof(AVD_FAIL_OVER_NODE)))) {

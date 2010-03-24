@@ -131,8 +131,6 @@ EXTERN_C void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 EXTERN_C void avd_node_up_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_reg_su_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_reg_comp_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_oper_req_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_mds_avnd_up_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt);

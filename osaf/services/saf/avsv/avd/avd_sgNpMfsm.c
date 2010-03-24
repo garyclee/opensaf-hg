@@ -722,8 +722,9 @@ uns32 avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
-
-	return avd_sg_2n_siswitch_func(cb, si);
+	assert(0);
+//	return avd_sg_2n_siswitch_func(cb, si);
+	return 0;
 }
 
  /*****************************************************************************

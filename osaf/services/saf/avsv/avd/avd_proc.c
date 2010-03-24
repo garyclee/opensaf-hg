@@ -63,18 +63,12 @@ static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
 static void avd_standby_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
 static void avd_qsd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
 static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt);
-static void avd_restart(AVD_CL_CB *cb, AVD_EVT *evt)
-{
-	/* This function will be defined once we finalise on the shutdown seq */
-}
 
 static char* avd_evt_name[] = {
 	"AVD_EVT_INVALID",
 	"AVD_EVT_NODE_UP_MSG",
-	"AVD_EVT_REG_HLT_MSG",
 	"AVD_EVT_REG_SU_MSG",
 	"AVD_EVT_REG_COMP_MSG",
-	"AVD_EVT_HEARTBEAT_MSG",
 	"AVD_EVT_OPERATION_STATE_MSG",
 	"AVD_EVT_INFO_SU_SI_ASSIGN_MSG",
 	"AVD_EVT_PG_TRACK_ACT_MSG",
@@ -85,7 +79,6 @@ static char* avd_evt_name[] = {
 	"AVD_EVT_COMP_VALIDATION_MSG",
 	"AVD_EVT_TMR_SND_HB",
 	"AVD_EVT_TMR_RCV_HB_D",
-	"AVD_EVT_TMR_RCV_HB_ND",
 	"AVD_EVT_TMR_RCV_HB_INIT",
 	"AVD_EVT_TMR_CL_INIT",
 	"AVD_EVT_TMR_SI_DEP_TOL",
@@ -112,15 +105,12 @@ static char* avd_evt_name[] = {
  */
 
 static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
-	/* invalid event */
 	avd_invalid_func,	/* AVD_EVT_INVALID */
 
 	/* active AvD message events processing */
 	avd_node_up_func,	/* AVD_EVT_NODE_UP_MSG */
-	NULL,	/* AVD_EVT_REG_HLT_MSG */
 	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_nd_heartbeat_msg_func,	/* AVD_EVT_HEARTBEAT_MSG */
 	avd_su_oper_state_func,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_pg_trk_act_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
@@ -133,7 +123,6 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
 	avd_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_tmr_rcv_hb_nd_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_cluster_tmr_init_func,	/* AVD_EVT_TMR_CL_INIT */
 	avd_tmr_si_dep_tol_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
@@ -144,10 +133,6 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
 	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_mds_qsd_role_func,	/* AVD_EVT_MDS_QSD_ACK */
-
-	/* active AvD BAM events processing */
-	avd_invalid_func,	/* TODO */
-	avd_restart,		/* AVD_EVT_RESTART */
 
 	avd_avm_nd_shutdown_func,	/* AVD_EVT_ND_SHUTDOWN */
 	avd_avm_nd_failover_func,	/* AVD_EVT_ND_FAILOVER */
@@ -168,15 +153,12 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
  */
 
 static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
-	/* invalid event */
 	avd_invalid_func,	/* AVD_EVT_INVALID */
 
 	/* standby AvD message events processing */
 	avd_standby_invalid_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_HLT_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_HEARTBEAT_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
@@ -189,7 +171,6 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	/* standby AvD timer events processing */
 	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
 	avd_standby_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
@@ -200,9 +181,6 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
 	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_standby_invalid_func,	/* AVD_EVT_MDS_QSD_ACK */
-
-	avd_standby_invalid_func,	/* AVD_EVT_INIT_CFG_DONE_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_RESTART */
 
 	avd_standby_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
 	avd_standby_invalid_func,	/* AVD_EVT_ND_FAILOVER */
@@ -222,15 +200,12 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
  * for No role AvD.
  */
 static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
-	/* invalid event */
 	avd_invalid_func,	/* AVD_EVT_INVALID */
 
 	/* standby AvD message events processing */
 	avd_standby_invalid_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_REG_HLT_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_HEARTBEAT_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_standby_invalid_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
@@ -243,7 +218,6 @@ static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
 	/* standby AvD timer events processing */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_SND_HB */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
@@ -254,8 +228,6 @@ static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
 	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVND_UP */
 	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_standby_invalid_func,	/* AVD_EVT_MDS_QSD_ACK */
-	avd_standby_invalid_func,	/* AVD_EVT_INIT_CFG_DONE_MSG */
-	avd_standby_invalid_func,	/* AVD_EVT_RESTART */
 
 	avd_standby_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
 	avd_standby_invalid_func,	/* AVD_EVT_ND_FAILOVER */
@@ -281,10 +253,8 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 
 	/* active AvD message events processing */
 	avd_qsd_ignore_func,	/* AVD_EVT_NODE_UP_MSG */
-	NULL,	/* AVD_EVT_REG_HLT_MSG */
 	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
-	avd_nd_heartbeat_msg_func,	/* AVD_EVT_HEARTBEAT_MSG */
 	avd_su_oper_state_func,	/* AVD_EVT_OPERATION_STATE_MSG */
 	avd_su_si_assign_func,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
 	avd_qsd_ignore_func,	/* AVD_EVT_PG_TRACK_ACT_MSG */
@@ -297,7 +267,6 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_func,	/* AVD_EVT_TMR_SND_HB */
 	avd_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_qsd_ignore_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_CL_INIT */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
@@ -308,10 +277,6 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_up_func,	/* AVD_EVT_MDS_AVND_UP */
 	avd_mds_avnd_down_func,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_mds_qsd_role_func,	/* AVD_EVT_MDS_QSD_ACK */
-
-	/* active AvD BAM events processing */
-	avd_qsd_invalid_func,	/* AVD_EVT_INIT_CFG_DONE_MSG */
-	avd_restart,		/* AVD_EVT_RESTART */
 
 	avd_qsd_invalid_func,	/* AVD_EVT_ND_SHUTDOWN */
 	avd_qsd_invalid_func,	/* AVD_EVT_ND_FAILOVER */
@@ -345,7 +310,6 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 
 static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-
 	/* This function should never be called
 	 * log the event to the debug log and return
 	 */
@@ -353,8 +317,7 @@ static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* we need not send sync update to stanby */
 	cb->sync_required = FALSE;
 
-	m_AVD_LOG_INVALID_VAL_FATAL(0);
-	return;
+	LOG_NO("avd_invalid_func: %u", evt->rcv_evt);
 }
 
 /*****************************************************************************
@@ -624,9 +587,7 @@ void avd_main_proc(void)
 				 * all other events.
 				 */
 				if ((evt->rcv_evt == AVD_EVT_TMR_SND_HB) ||
-				    (evt->rcv_evt == AVD_EVT_HEARTBEAT_MSG) ||
 				    (evt->rcv_evt == AVD_EVT_VERIFY_ACK_NACK_MSG)) {
-					/* Process the event */
 					avd_process_event(cb, evt);
 				} else {
 					AVD_EVT_QUEUE *queue_evt;
@@ -640,8 +601,7 @@ void avd_main_proc(void)
 
 					/* If it is Receive HB timer event then remove the node
 					 * from the node list */
-					if ((evt->rcv_evt == AVD_EVT_TMR_RCV_HB_ND)
-					    || (evt->rcv_evt == AVD_EVT_TMR_RCV_HB_D)) {
+					if (evt->rcv_evt == AVD_EVT_TMR_RCV_HB_D) {
 						AVD_FAIL_OVER_NODE *node_fovr;
 
 						if (NULL != (node_fovr =

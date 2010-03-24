@@ -16,29 +16,12 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file contains the node related events processing.
   Some of these node realted events might effect the AvNDs state machine. Some
   messages might trigger the configuration module processing. It is part of
   the node submodule.
 
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  avd_msg_sanity_chk -  sanity check w.r.t the message.
-  avd_reg_hlth_func - health check data message response handler.
-  avd_reg_su_func - SU message response handler.
-  avd_reg_comp_func - component message response handler.
-  avd_node_down_func - utility to shut down the node.
-  avd_tmr_rcv_hb_nd_func - heartbeat failure event handler.
-  avd_oper_req_func - operation request message response handler.
-  avd_data_update_req_func - data update message handler.
-
-  
 ******************************************************************************
 */
 
@@ -81,14 +64,6 @@ AVD_AVND *avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt, SaClmNodeIdT node_id, 
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		LOG_ER("cluster admin state down");
-		return avnd;
-	}
-
-	if (cb->init_state < AVD_CFG_DONE) {
-		/* Don't initialise the AvND when the AVD is not
-		 * completely initialised with the saved information
-		 */
-		LOG_ER("invalid init state (%u)", cb->init_state);
 		return avnd;
 	}
 
@@ -328,8 +303,6 @@ void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_node_down_func");
 
-	/* clean up the heartbeat timer for this node. */
-	avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
 	/*TODO*/
 //	opensaf_reboot(avnd->node_info.nodeId,
 //		avnd->node_info.executionEnvironment.value,

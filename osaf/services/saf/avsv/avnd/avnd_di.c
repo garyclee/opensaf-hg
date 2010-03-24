@@ -62,176 +62,6 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt);
    } else (o_rec) = 0; \
 }
 
-/****************************************************************************
-  Name          : avnd_evt_avd_hlt_updt_on_fover
- 
-  Description   : This routine processes the hlt updates sent by AVD on
-                  fail over.
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  evt - ptr to the AvND event
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt)
-{
-	AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
-	AVSV_HLT_INFO_MSG *hc_info = 0;
-	AVND_HC *hc = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	AVSV_HLT_KEY hc_key;
-
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, AVND_LOG_FOVR_HLT_UPDT, NCSCC_RC_SUCCESS);
-
-	info = &evt->info.avd->msg_info.d2n_reg_hlt;
-
-	/* scan the hc list & add each hc to hc-db */
-	for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next) {
-		/* Check whether this health check record exists. If no then create it */
-		if (NULL == (hc = avnd_hcdb_rec_get(cb, &hc_info->name))) {
-			hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
-
-			if (NULL != hc) {
-				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
-			}
-
-			m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_HLT_UPDT_FAIL, rc);
-
-			return rc;
-		} else {
-			/* Since entry is present just update the fields */
-			hc->max_dur = hc_info->max_duration;
-			hc->period = hc_info->period;
-		}
-
-		hc->rcvd_on_fover = TRUE;
-	}
-
-	/* Now walk through all the HC entries and delete those for which update
-	 * has not been received */
-	memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
-
-	while (NULL != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key))) {
-		hc_key = hc->key;
-
-		/* If it was received on f-over message then continue */
-		if (hc->rcvd_on_fover) {
-			hc->rcvd_on_fover = FALSE;
-			continue;
-		}
-
-		if (NULL != (hc = avnd_hcdb_rec_get(cb, &hc_key))) {
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-			/* We have not received this entry on f-over, so delete it */
-			avnd_hcdb_rec_del(cb, &hc_key);
-		}
-	}
-
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_evt_avd_reg_hlt_msg
- 
-  Description   : This routine processes the health check update message from
-                  AvD. The entire healthcheck database is sent when the node 
-                  comes up. Incremental additions are also sent through this
-                  message.
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  evt - ptr to the AvND event
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_evt_avd_reg_hlt_msg(AVND_CB *cb, AVND_EVT *evt)
-{
-	AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
-	AVSV_HLT_INFO_MSG *hc_info = 0;
-	AVND_HC *hc = 0;
-	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb))
-		goto done;
-
-	info = &evt->info.avd->msg_info.d2n_reg_hlt;
-
-	/* Message ID 0 check should be removed in future */
-	if ((info->msg_id != 0) && (info->msg_id != (cb->rcv_msg_id + 1))) {
-		/* Log Error */
-		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
-
-		goto done;
-	}
-
-	cb->rcv_msg_id = info->msg_id;
-
-	/* 
-	 * Check whether message is sent on fail-over. If yes then it is
-	 * a time to process it specially.
-	 */
-	if (info->msg_on_fover) {
-		rc = avnd_evt_avd_hlt_updt_on_fover(cb, evt);
-		goto done;
-	}
-
-	/* scan the hc list & add each hc to hc-db */
-	for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next) {
-		hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
-		if (!hc)
-			break;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
-	}
-
-	/* 
-	 * if all the records aren't added, delete those 
-	 * records that were successfully added
-	 */
-	if (hc_info) {		/* => add operation stopped in the middle */
-		for (hc_info = info->hlt_list; hc_info; hc_info = hc_info->next) {
-			if (NULL != (hc = avnd_hcdb_rec_get(cb, &hc_info->name))) {
-				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-				avnd_hcdb_rec_del(cb, &hc_info->name);
-			}
-		}
-	}
-
-   /*** send the response to AvD (if it's sent to me) ***/
-	if (info->nodeid == cb->node_info.nodeId) {
-		memset(&msg, 0, sizeof(AVND_MSG));
-		msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
-		if (!msg.info.avd) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
-		msg.type = AVND_MSG_AVD;
-		msg.info.avd->msg_type = AVSV_N2D_REG_HLT_MSG;
-		msg.info.avd->msg_info.n2d_reg_hlt.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_reg_hlt.node_id = cb->node_info.nodeId;
-		if (info->hlt_list)
-			msg.info.avd->msg_info.n2d_reg_hlt.hltchk_name = info->hlt_list->name;
-		msg.info.avd->msg_info.n2d_reg_hlt.error =
-		    (NCSCC_RC_SUCCESS == rc) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
-
-		rc = avnd_di_msg_send(cb, &msg);
-		if (NCSCC_RC_SUCCESS == rc)
-			msg.info.avd = 0;
-
-		/* free the contents of avnd message */
-		avnd_msg_content_free(cb, &msg);
-	}
-
- done:
-	return rc;
-}
-
 static uns32 avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
@@ -407,42 +237,6 @@ uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 }
 
 /****************************************************************************
-  Name          : avnd_evt_avd_hb_info_msg
- 
-  Description   : This routine processes the heartbeat info message from AvD.
-                  After processing this message, AvND starts heartbeating with
-                  new rate as indicated by AvD.
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  evt - ptr to the AvND event
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_evt_avd_hb_info_msg(AVND_CB *cb, AVND_EVT *evt)
-{
-	AVSV_D2N_INFO_HEARTBEAT_MSG_INFO *info = &evt->info.avd->msg_info.d2n_info_hrt_bt;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb))
-		goto done;
-
-	/* update the heartbeat rate */
-	cb->hb_intv = info->snd_hb_intvl;
-
-	/* stop the current hb-tmr */
-	m_AVND_TMR_HB_STOP(cb);
-
-	/* send the heartbeat */
-	rc = avnd_di_hb_send(cb);
-
- done:
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_evt_avd_ack_message
  
   Description   : This routine processes Ack message 
@@ -467,28 +261,6 @@ uns32 avnd_evt_avd_ack_message(AVND_CB *cb, AVND_EVT *evt)
 	avnd_di_msg_ack_process(cb, evt->info.avd->msg_info.d2n_ack_info.msg_id_ack);
 
  done:
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_evt_tmr_snd_hb
- 
-  Description   : This routine sends the periodic heartbeat to AVD.
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  evt - ptr to the AvND event
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_evt_tmr_snd_hb(AVND_CB *cb, AVND_EVT *evt)
-{
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* send the heartbeat to AvD */
-	rc = avnd_di_hb_send(cb);
-
 	return rc;
 }
 
@@ -615,51 +387,6 @@ uns32 avnd_evt_mds_avd_dn(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	ncs_reboot("MDS down received for AVD");
-
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_di_hb_send
- 
-  Description   : This routine sends the heartbeat to AvD.
- 
-  Arguments     : cb - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_di_hb_send(AVND_CB *cb)
-{
-	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* determine if avd heartbeating is on */
-	if (!m_AVND_IS_AVD_HB_ON(cb))
-		return rc;
-
-	memset(&msg, 0, sizeof(AVND_MSG));
-
-	/* populate the heartbeat msg */
-	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
-		msg.type = AVND_MSG_AVD;
-		msg.info.avd->msg_type = AVSV_N2D_HEARTBEAT_MSG;
-		msg.info.avd->msg_info.n2d_hrt_bt.node_id = cb->node_info.nodeId;
-
-		/* send the heartbeat to AvD */
-		rc = avnd_di_msg_send(cb, &msg);
-
-		/* restart the heartbeat timer */
-		if (NCSCC_RC_SUCCESS == rc) {
-			m_AVND_TMR_HB_START(cb, rc);
-			msg.info.avd = 0;
-		}
-	} else
-		rc = NCSCC_RC_FAILURE;
-
-	/* free the contents of avnd message */
-	avnd_msg_content_free(cb, &msg);
 
 	return rc;
 }
@@ -885,8 +612,8 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 	if (!msg)
 		goto done;
 
-	/* Heartbeat and Verify Ack nack and PG track action msgs are not buffered */
-	if (m_AVSV_N2D_MSG_IS_HB(msg->info.avd) || m_AVSV_N2D_MSG_IS_PG_TRACK_ACT(msg->info.avd)) {
+	/* Verify Ack nack and PG track action msgs are not buffered */
+	if (m_AVSV_N2D_MSG_IS_PG_TRACK_ACT(msg->info.avd)) {
 		/*send the response to AvD */
 		rc = avnd_mds_send(cb, msg, &cb->avd_dest, 0);
 		goto done;

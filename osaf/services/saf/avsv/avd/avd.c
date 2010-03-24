@@ -52,6 +52,7 @@
 #include <avd.h>
 #include <avd_hlt.h>
 #include <avd_imm.h>
+#include <avd_clm.h>
 #include <avd_cluster.h>
 #include <avd_sutype.h>
 
@@ -110,10 +111,8 @@ static void avd_hb_proc(uns32 *null)
 			evt = (AVD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->avd_hb_mbx, msg);
 
 			if ((evt != AVD_EVT_NULL) && (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
-				/* We will get only timer expiry and MDS msg  
-				 */
-				if ((evt->rcv_evt == AVD_EVT_TMR_SND_HB) ||
-				    (evt->rcv_evt == AVD_EVT_HEARTBEAT_MSG) || (evt->rcv_evt == AVD_EVT_D_HB)) {
+				/* We will get only timer expiry and MDS msg  */
+				if ((evt->rcv_evt == AVD_EVT_TMR_SND_HB) || (evt->rcv_evt == AVD_EVT_D_HB)) {
 					/* Process the event */
 					avd_process_hb_event(cb, evt);
 				} else
@@ -131,7 +130,7 @@ static void avd_hb_proc(uns32 *null)
  * Function: avd_hb_task_create 
  *
  * Purpose: This routine will create another thread which has another mailbox
- *          and will process only AVD-AVD & AVD-AVND heart beat msg.
+ *          and will process only AVD-AVD heart beat msg.
  *
  * Returns: None. 
  *

@@ -32,8 +32,6 @@
   avsv_cpy_d2n_node_up_msg - copies the d2n node up message.
   avsv_free_d2n_clm_node_fover_info - frees the d2n clm info message contents.
   avsv_cpy_d2n_clm_node_fover_info - copies the d2n clm info message contents.
-  avsv_free_d2n_hlth_msg_info - frees the d2n health check message contents.
-  avsv_cpy_d2n_hlth_msg - copies the d2n health check message.
   avsv_free_d2n_su_msg_info - frees the d2n SU message contents.
   avsv_cpy_d2n_su_msg - copies the d2n SU message.
   avsv_free_d2n_comp_msg_info - frees the d2n component message contents.
@@ -131,86 +129,9 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG
 
 uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
 {
-        AVSV_CLM_INFO_MSG *s_node_info, *d_node_info, **prev_node_info;
-
         memset(d_node_up_msg, '\0', sizeof(AVSV_DND_MSG));
-
         memcpy(d_node_up_msg, s_node_up_msg, sizeof(AVSV_DND_MSG));
 	return NCSCC_RC_SUCCESS;
-
-}
-
-/*****************************************************************************
- * Function: avsv_free_d2n_hlth_msg_info
- *
- * Purpose:  This function frees the d2n health check message contents.
- *
- * Input: hlth_msg - Pointer to the health check message contents to be freed.
- *
- * Returns: None.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-void avsv_free_d2n_hlth_msg_info(AVSV_DND_MSG *hlth_msg)
-{
-	AVSV_HLT_INFO_MSG *hlth_info;
-
-	while (hlth_msg->msg_info.d2n_reg_hlt.hlt_list != NULL) {
-		hlth_info = hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
-		hlth_msg->msg_info.d2n_reg_hlt.hlt_list = hlth_info->next;
-		free(hlth_info);
-	}
-
-	return;
-
-}
-
-/*****************************************************************************
- * Function: avsv_cpy_d2n_hlth_msg
- *
- * Purpose:  This function makes a copy of the d2n health check message.
- *
- * Input: d_hlth_msg - Pointer to the health check message to be copied to.
- *        s_hlth_msg - Pointer to the health check message to be copied.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg, AVSV_DND_MSG *s_hlth_msg)
-{
-	AVSV_HLT_INFO_MSG *s_hlth_info, *d_hlth_info;
-
-	memset(d_hlth_msg, '\0', sizeof(AVSV_DND_MSG));
-
-	memcpy(d_hlth_msg, s_hlth_msg, sizeof(AVSV_DND_MSG));
-	d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list = NULL;
-
-	s_hlth_info = s_hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
-
-	while (s_hlth_info != NULL) {
-		d_hlth_info = malloc(sizeof(AVSV_HLT_INFO_MSG));
-		if (d_hlth_info == NULL) {
-			avsv_free_d2n_hlth_msg_info(d_hlth_msg);
-			return NCSCC_RC_FAILURE;
-		}
-
-		memcpy(d_hlth_info, s_hlth_info, sizeof(AVSV_HLT_INFO_MSG));
-		d_hlth_info->next = d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
-		d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list = d_hlth_info;
-
-		/* now go to the next su info in source */
-		s_hlth_info = s_hlth_info->next;
-	}
-
-	return NCSCC_RC_SUCCESS;
-
 }
 
 /*****************************************************************************
@@ -539,15 +460,12 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 	AVSV_FREE_DND_MSG_INFO avsv_dnd_msg_free_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_CLM_NODE_UP_MSG) + 1] = {
 		/* AVSV_D2N_CLM_NODE_UP_MSG */
 		avsv_free_d2n_node_up_msg_info,
-		/* AVSV_D2N_REG_HLT_MSG */
-		avsv_free_d2n_hlth_msg_info,
 		/* AVSV_D2N_REG_SU_MSG */
 		avsv_free_d2n_su_msg_info,
 		/* AVSV_D2N_REG_COMP_MSG */
 		avsv_free_d2n_comp_msg_info,
 		/* AVSV_D2N_INFO_SU_SI_ASSIGN_MSG */
 		avsv_free_d2n_susi_msg_info,
-
 		/* AVSV_D2N_PG_TRACK_ACT_RSP_MSG */
 		avsv_free_d2n_pg_msg_info
 	};
@@ -579,7 +497,7 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  
-  Notes         : For : AVSV_D2N_CLM_NODE_UP_MSG, AVSV_D2N_REG_HLT_MSG,
+  Notes         : For : AVSV_D2N_CLM_NODE_UP_MSG, 
                   AVSV_D2N_REG_SU_MSG, AVSV_D2N_REG_COMP_MSG and
                   AVSV_D2N_INFO_SU_SI_ASSIGN_MSG, this procedure calls the
                   corresponding copy function which copies the list information
@@ -591,15 +509,12 @@ uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 	AVSV_COPY_DND_MSG avsv_dnd_msg_cpy_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_CLM_NODE_UP_MSG) + 1] = {
 		/* AVSV_D2N_CLM_NODE_UP_MSG */
 		avsv_cpy_d2n_node_up_msg,
-		/* AVSV_D2N_REG_HLT_MSG */
-		avsv_cpy_d2n_hlth_msg,
 		/* AVSV_D2N_REG_SU_MSG */
 		avsv_cpy_d2n_su_msg,
 		/* AVSV_D2N_REG_COMP_MSG */
 		avsv_cpy_d2n_comp_msg,
 		/* AVSV_D2N_INFO_SU_SI_ASSIGN_MSG */
 		avsv_cpy_d2n_susi_msg,
-
 		/* AVSV_D2N_PG_TRACK_ACT_RSP_MSG */
 		avsv_cpy_d2n_pg_msg
 	};

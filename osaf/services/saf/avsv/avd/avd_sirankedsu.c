@@ -567,7 +567,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
                 if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx) == NULL)) {
+		if ((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx)) == NULL) {
 			if ((avd_sirankedsu = avd_sirankedsu_ccb_apply_create_hdlr(&dn, attributes)) == NULL)
 				goto done2;
 

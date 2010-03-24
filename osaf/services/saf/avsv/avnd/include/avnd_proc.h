@@ -53,7 +53,6 @@ EXTERN_C uns32 avnd_evt_avd_info_su_si_assign_msg(struct avnd_cb_tag *, struct a
 EXTERN_C uns32 avnd_evt_avd_pg_track_act_rsp_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_pg_upd_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_operation_request_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
-EXTERN_C uns32 avnd_evt_avd_hb_info_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_su_pres_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_oper_state_resp_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_comp_validation_resp_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
@@ -83,7 +82,6 @@ EXTERN_C uns32 avnd_evt_cla_node_async_get(struct avnd_cb_tag *, struct avnd_evt
 
 EXTERN_C uns32 avnd_evt_tmr_hc(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_tmr_cbk_resp(struct avnd_cb_tag *, struct avnd_evt_tag *);
-EXTERN_C uns32 avnd_evt_tmr_snd_hb(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_tmr_rcv_msg_rsp(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_tmr_clc_comp_reg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_tmr_su_err_esc(struct avnd_cb_tag *, struct avnd_evt_tag *);

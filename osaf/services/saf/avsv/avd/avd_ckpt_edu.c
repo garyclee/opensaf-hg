@@ -131,8 +131,6 @@ uns32 avsv_edp_ckpt_msg_cb(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVD_CL_CB *)0)->cluster_init_time, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
 		 (long)&((AVD_CL_CB *)0)->rcv_hb_intvl, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((AVD_CL_CB *)0)->snd_hb_intvl, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
 		 (long)&((AVD_CL_CB *)0)->nodes_exit_cnt, 0, NULL},
 

@@ -674,9 +674,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 		break;
 
-	case SA_AMF_ADMIN_SI_SWAP:
-		{
-			AVD_SU *local_su,*i_su;
+	case SA_AMF_ADMIN_SI_SWAP: {
+			AVD_SU *local_su = NULL, *i_su;
 
 			/* Check if the si swap is already in progress */
 			if (avd_si->si_swap_in_progress == SA_TRUE) {
@@ -699,38 +698,38 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			}
 
 			switch (avd_si->sg_of_si->sg_redundancy_model) {
-
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					{
-						avd_si->si_swap_in_progress = SA_TRUE;
-						avd_si->invocation = invocation;
-						m_AVD_SET_SU_SWITCH(avd_cb,local_su,AVSV_SI_TOGGLE_SWITCH);
-						if (avd_sg_2n_siswitch_func(avd_cb, local_su) != NCSCC_RC_SUCCESS) {
-							LOG_ER("avd_sg_2n_suswitch_func failed in SI SWAP");
-							rc = SA_AIS_ERR_BAD_OPERATION;
-							avd_si->si_swap_in_progress = SA_FALSE;		
-							goto done;
-						} else {
-							/* Response will be sent when the response comes for the si switch */
-							return;
-						}
+			
+			case SA_AMF_2N_REDUNDANCY_MODEL:
+				{
+					avd_si->si_swap_in_progress = SA_TRUE;
+					avd_si->invocation = invocation;
+					m_AVD_SET_SU_SWITCH(avd_cb,local_su,AVSV_SI_TOGGLE_SWITCH);
+					if (avd_sg_2n_siswitch_func(avd_cb, local_su) != NCSCC_RC_SUCCESS) {
+						LOG_ER("avd_sg_2n_suswitch_func failed in SI SWAP");
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						avd_si->si_swap_in_progress = SA_FALSE;         
+						goto done;
+					} else {
+						/* Response will be sent when the response comes for the si switch */
+						return;
 					}
-					break;
+				}
+				break;
 
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					/* TODO , Will be done when the SI SWAP is implemented */
-					rc = SA_AIS_ERR_NOT_SUPPORTED;
-					goto done;
-					break;
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
+				/* TODO , Will be done when the SI SWAP is implemented */
+				rc = SA_AIS_ERR_NOT_SUPPORTED;
+				goto done;
+				break;
 
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				default:
-					LOG_ER("Si SWAP not Supported on redundancy model=%d",avd_si->sg_of_si->sg_redundancy_model);
-					rc = SA_AIS_ERR_NOT_SUPPORTED;
-					goto done;
-					break;
+			case SA_AMF_NO_REDUNDANCY_MODEL:
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+			default:
+				LOG_ER("Si SWAP not Supported on redundancy model=%d",avd_si->sg_of_si->sg_redundancy_model);
+				rc = SA_AIS_ERR_NOT_SUPPORTED;
+				goto done;
+				break;
 			}
 		}
 		break;

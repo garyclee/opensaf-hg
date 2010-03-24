@@ -66,11 +66,7 @@ typedef struct avnd_cb_tag {
 	SaAmfOperationalStateT oper_state;	/* node oper state  */
 	uns32 flag;		/* cb flag */
 
-	/* avnd timers */
-	AVND_TMR hb_tmr;	/* AvD heartbeat timer */
-
 	/* timeout interval values */
-	SaTimeT hb_intv;	/* AvD heartbeat interval */
 	SaTimeT cbk_resp_intv;	/* callback response interval */
 	SaTimeT msg_resp_intv;	/* AvD message response interval */
 
@@ -145,12 +141,6 @@ typedef struct avnd_cb_tag {
 #define m_AVND_CB_IS_AVD_UP(x)    (((x)->flag) & AVND_CB_FLAG_AVD_UP)
 #define m_AVND_CB_AVD_UP_SET(x)   (((x)->flag) |= AVND_CB_FLAG_AVD_UP)
 #define m_AVND_CB_AVD_UP_RESET(x) (((x)->flag) &= ~AVND_CB_FLAG_AVD_UP)
-
-/* 
- * macro to determine if AvND should heartbeat with AvD. 
- * Note that on scxb, avd & avnd reside in the same process.
- */
-#define m_AVND_IS_AVD_HB_ON(cb)  (cb->type != AVSV_AVND_CARD_SYS_CON)
 
 /* 
  * Macros for managing the error escalation levels 

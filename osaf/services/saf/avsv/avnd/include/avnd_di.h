@@ -68,7 +68,6 @@
 
 struct avnd_cb_tag;
 
-EXTERN_C uns32 avnd_di_hb_send(struct avnd_cb_tag *);
 EXTERN_C uns32 avnd_di_oper_send(struct avnd_cb_tag *, AVND_SU *, uns32);
 EXTERN_C uns32 avnd_di_susi_resp_send(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
 EXTERN_C uns32 avnd_di_object_upd_send(struct avnd_cb_tag *, AVSV_PARAM_INFO *);
