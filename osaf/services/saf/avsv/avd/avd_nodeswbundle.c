@@ -19,31 +19,9 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
-
 #include <avd.h>
 #include <avd_cluster.h>
 #include <avd_imm.h>
-
-static NCS_PATRICIA_TREE nodeswbundle_db;
-
-AVD_NODE_SW_BUNDLE *avd_nodeswbdl_get(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_NODE_SW_BUNDLE *)ncs_patricia_tree_get(&nodeswbundle_db, (uns8 *)&tmp);
-}
-
-static void nodeswbdl_delete(AVD_NODE_SW_BUNDLE *sw_bdl)
-{
-	uns32 rc = ncs_patricia_tree_del(&nodeswbundle_db, &sw_bdl->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	avd_node_remove_swbdl(sw_bdl);
-	free(sw_bdl->saAmfNodeSwBundlePathPrefix);
-	free(sw_bdl);
-}
 
 /**
  * Validate configuration attributes for an AMF node Sw bundle object.
@@ -83,106 +61,68 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 }
 
 /**
- * Create a new Node Sw Bundle object
- * @param dn
- * @param attributes
- * 
- * @return AVD_AVND*
- */
-static AVD_NODE_SW_BUNDLE *nodeswbdl_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
-{
-	SaNameT node_name;
-	AVD_AVND *node;
-	AVD_NODE_SW_BUNDLE *sw_bdl;
-	const char *prefix;
-
-	TRACE_ENTER2("'%s'", dn->value);
-
-	avsv_sanamet_init(dn, &node_name, "safAmfNode");
-	node = avd_node_get(&node_name);
-
-	if ((sw_bdl = calloc(1, sizeof(AVD_NODE_SW_BUNDLE))) == NULL) {
-		LOG_ER("calloc failed");
-		return NULL;
-	}
-
-	memcpy(sw_bdl->sw_bdl_name.value, dn->value, dn->length);
-	sw_bdl->sw_bdl_name.length = dn->length;
-	sw_bdl->tree_node.key_info = (uns8 *)&(sw_bdl->sw_bdl_name);
-
-	prefix = immutil_getStringAttr(attributes, "saAmfNodeSwBundlePathPrefix", 0);
-	assert(prefix != NULL);
-
-	sw_bdl->saAmfNodeSwBundlePathPrefix = strdup(prefix);
-	sw_bdl->node_sw_bdl_on_node = node;
-
-	return sw_bdl;
-}
-
-static void nodeswbdl_add_to_model(AVD_NODE_SW_BUNDLE *sw_bdl)
-{
-	unsigned int rc = ncs_patricia_tree_add(&nodeswbundle_db, &sw_bdl->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	avd_node_add_swbdl(sw_bdl);
-}
-
-/**
- * Get configuration for all SaAmfNodeSwBundle objects from IMM and
- * create AVD internal objects.
+ * Check the SU list for components that reference the bundle
+ * @param bundle_dn_to_delete
+ * @param node_dn
+ * @param su_list
  * 
  * @return int
  */
-SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
+static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
+	const SaNameT *node_dn, const AVD_SU *su_list)
 {
-	SaAisErrorT error, rc = SA_AIS_ERR_FAILED_OPERATION;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfNodeSwBundle";
-	AVD_NODE_SW_BUNDLE *sw_bdl;
+	const AVD_SU *su;
+	const AVD_COMP *comp;
+	SaNameT bundle_dn;
 
-	TRACE_ENTER();
+	su = su_list;
+	while (su != NULL) {
+		comp = su->list_of_comp;
+		while (comp != NULL) {
+			avsv_create_association_class_dn(&comp->comp_type->saAmfCtSwBundle, 
+				node_dn, "safInstalledSwBundle", &bundle_dn);
 
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
+			if (memcmp(bundle_dn_to_delete, &bundle_dn, sizeof(SaNameT)) == 0) {
+				LOG_ER("Deletion of '%s' not allowed", bundle_dn_to_delete->value);
+				LOG_ER("Referenced by (at least) '%s'", comp->comp_info.name.value);
+				return 0;
+			}
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, &node->name, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
-
-	if (SA_AIS_OK != error) {
-		LOG_ER("No objects found");
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL)) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
+			comp = comp->su_comp_next;
 		}
 
-		if((sw_bdl = avd_nodeswbdl_get(&dn)) == NULL) {
-			if ((sw_bdl = nodeswbdl_create(&dn, attributes)) == NULL)
-				goto done2;
-
-			nodeswbdl_add_to_model(sw_bdl);
-		}
+		su = su->avnd_list_su_next;
 	}
 
-	rc = SA_AIS_OK;
+	return 1;
+}
 
-done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-done1:
-	TRACE_LEAVE2("%u", rc);
-	return rc;
+/**
+ * Check all SUs on this node for bundle references
+ * @param dn
+ * 
+ * @return int
+ */
+static int is_swbdl_delete_ok(const SaNameT *bundle_dn)
+{
+	const AVD_AVND *node;
+	SaNameT node_dn;
+
+	/* Check if any comps are referencing this bundle */
+	avsv_sanamet_init(bundle_dn, &node_dn, "safAmfNode=");
+	node = avd_node_get(&node_dn);
+
+	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_ncs_su))
+		return 0;
+
+	if (!is_swbdl_delete_ok_for_node(bundle_dn, &node_dn, node->list_of_su))
+		return 0;
+
+	return 1;
 }
 
 static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_NODE_SW_BUNDLE *sw_bdl;
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -196,11 +136,8 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfNodeSwBundle not supported");
 		break;
 	case CCBUTIL_DELETE:
-		sw_bdl = avd_nodeswbdl_get(&opdata->objectName);
-		if (sw_bdl->node_sw_bdl_on_node->node_state == AVD_AVND_STATE_ABSENT)
+		if (is_swbdl_delete_ok(&opdata->objectName))
 			rc = SA_AIS_OK;
-		else
-			LOG_ER("Node state is not ABSENT required for deletion of %s", opdata->objectName.value);
 		break;
 	default:
 		assert(0);
@@ -213,19 +150,12 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_NODE_SW_BUNDLE *sw_bdl;
-
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sw_bdl = nodeswbdl_create(&opdata->objectName, opdata->param.create.attrValues);
-		assert(sw_bdl);
-		nodeswbdl_add_to_model(sw_bdl);
 		break;
 	case CCBUTIL_DELETE:
-		sw_bdl = avd_nodeswbdl_get(&opdata->objectName);
-		nodeswbdl_delete(sw_bdl);
 		break;
 	default:
 		assert(0);
@@ -236,10 +166,6 @@ static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_nodeswbundle_constructor(void)
 {
-	NCS_PATRICIA_PARAMS patricia_params;
-
-	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&nodeswbundle_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfNodeSwBundle", NULL, NULL, nodeswbdl_ccb_completed_cb, nodeswbdl_ccb_apply_cb);
 }
 
