@@ -75,7 +75,7 @@ uns32 avsv_mbcsv_register(AVD_CL_CB *cb)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_register");
+	TRACE_ENTER();
 
 	/*
 	 * Send Async Update count to zero.
@@ -142,7 +142,7 @@ uns32 avsv_mbcsv_deregister(AVD_CL_CB *cb)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_deregister");
+	TRACE_ENTER();
 
 	/*
 	 * First close and then finalize.
@@ -227,7 +227,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_enc_cb");
+	TRACE_ENTER();
 
 	switch (arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -327,7 +327,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_dec_cb");
+	TRACE_ENTER();
 
 	switch (arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -546,7 +546,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_peer_info_cb");
+	TRACE_ENTER();
 
 	/* Used to refer while sending checkpoint msg to its peer AVD */
 	cb->avd_peer_ver = arg->info.peer.i_peer_version;
@@ -588,7 +588,7 @@ static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_err_ind");
+	TRACE_ENTER();
 
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
@@ -648,7 +648,7 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_initialize");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -684,7 +684,7 @@ static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_open_ckpt");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -721,7 +721,7 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
 	NCS_MBCSV_ARG mbcsv_arg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_set_ckpt_role");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -827,7 +827,7 @@ static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_get_mbcsv_sel_obj");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -862,7 +862,7 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_dispatch");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -907,7 +907,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	if (SA_AMF_HA_STANDBY == cb->avail_state_avd)
 		return NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_send_ckpt_data");
+	TRACE_ENTER();
 	/*
 	 * Get mbcsv_handle and checkpoint handle from CB.
 	 */
@@ -1038,7 +1038,7 @@ static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_close_ckpt");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -1071,7 +1071,7 @@ static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_finalize");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -1103,7 +1103,7 @@ uns32 avsv_mbcsv_obj_set(AVD_CL_CB *cb, uns32 obj, uns32 val)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_obj_set");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -1139,7 +1139,7 @@ static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 {
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_enqueue_async_update_msgs");
+	TRACE_ENTER();
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
@@ -1182,7 +1182,7 @@ uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_dequeue_async_update_msgs");
+	TRACE_ENTER();
 
 	/*
 	 * This is a FIFO queue. Remove first message first entered in the 
@@ -1224,7 +1224,7 @@ uns32 avsv_send_data_req(AVD_CL_CB *cb)
 	NCS_MBCSV_ARG mbcsv_arg;
 	NCS_UBAID *uba = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_send_data_req");
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -1265,7 +1265,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_validate_reo_type_in_csync");
+	TRACE_ENTER();
 
 	switch (reo_type) {
 	case AVSV_CKPT_AVD_CB_CONFIG:

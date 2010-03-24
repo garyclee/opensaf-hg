@@ -64,7 +64,7 @@
 
 uns32 avd_init_heartbeat(AVD_CL_CB *cb)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_init_heartbeat");
+	TRACE_ENTER();
 
 	/* 
 	 * Send the heartbeat message to the other AvD, start the send heartbeat timer and  
@@ -107,7 +107,7 @@ uns32 avd_init_heartbeat(AVD_CL_CB *cb)
 
 void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_d2d_heartbeat_msg_func");
+	TRACE_ENTER();
 
 	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 	avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
@@ -150,7 +150,7 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
 
 void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_tmr_snd_hb_func");
+	TRACE_ENTER();
 
 	if ((cb->node_id_avd_other == 0) || (cb->other_avd_adest == 0))
 		return;
@@ -377,7 +377,7 @@ void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_D2D_MSG *d2d_msg = evt->info.avd_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_rcv_hb_msg");
+	TRACE_ENTER();
 
 	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avd) &&
 	    (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state)) {

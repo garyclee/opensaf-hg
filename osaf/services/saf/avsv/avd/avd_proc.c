@@ -346,7 +346,7 @@ static void avd_standby_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	AVD_DND_MSG *n2d_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_standby_invalid_func");
+	TRACE_ENTER();
 	m_AVD_LOG_INVALID_VAL_ERROR(0);
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
@@ -390,7 +390,7 @@ static void avd_qsd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	AVD_DND_MSG *n2d_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_qsd_invalid_func");
+	TRACE_ENTER();
 	m_AVD_LOG_INVALID_VAL_ERROR(0);
 
 	/* we need not send sync update to stanby */
@@ -433,7 +433,7 @@ static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Ignore this Event. Free this msg */
 	AVD_DND_MSG *n2d_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_qsd_ignore_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 	m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
 

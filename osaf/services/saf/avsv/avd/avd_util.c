@@ -76,7 +76,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_ack_msg");
+	TRACE_ENTER();
 
 	/* Verify if the AvND structure pointer is valid. */
 	if (avnd == NULL) {
@@ -140,7 +140,7 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_data_verify_msg");
+	TRACE_ENTER();
 
 	/* Verify if the AvND structure pointer is valid. */
 	if (avnd == NULL) {
@@ -211,7 +211,7 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_up_msg");
+	TRACE_ENTER();
 
 	/* Verify if the AvND structure pointer is valid. */
 	if (avnd == NULL) {
@@ -279,7 +279,7 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_oper_state_msg");
+	TRACE_ENTER();
 
 	/* Verify if the node structure pointer is valid. */
 	if (avnd == NULL) {
@@ -407,7 +407,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 	AVD_DND_MSG *op_req_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_op_req_msg");
+	TRACE_ENTER();
 
 	if (param_info == NULL) {
 		/* This is a invalid situation as the parameter information
@@ -504,7 +504,7 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 {
 	AVSV_SU_INFO_MSG *su_info;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_su_info");
+	TRACE_ENTER();
 
 	su_info = calloc(1, sizeof(AVSV_SU_INFO_MSG));
 	if (su_info == NULL) {
@@ -555,7 +555,7 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp
 
 	AVSV_COMP_INFO_MSG *comp_info;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_comp_info");
+	TRACE_ENTER();
 
 	comp_info = calloc(1, sizeof(AVSV_COMP_INFO_MSG));
 	if (comp_info == NULL) {
@@ -602,7 +602,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 	uns32 i, count = 0;
 	SaNameT temp_su_name = {0};
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_su_comp_msg");
+	TRACE_ENTER();
 
 	*comp_sent = FALSE;
 
@@ -779,7 +779,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_DND_MSG *su_msg;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_su_msg");
+	TRACE_ENTER();
 
 	if (su == NULL) {
 		/* This is a invalid situation as the SU
@@ -859,7 +859,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 	AVD_DND_MSG *comp_msg;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_msg");
+	TRACE_ENTER();
 
 	if (comp == NULL) {
 		/* This is a invalid situation as the comp
@@ -940,7 +940,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
 	NCS_AVSV_ATTR_NAME_VAL *i_ptr;
 	AVD_CSI_ATTR *attr_ptr;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_csi_attr_info");
+	TRACE_ENTER();
 
 	/* Allocate the memory for the array of structures for the attributes. */
 	if (compcsi->csi->num_attributes == 0) {
@@ -1004,7 +1004,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	AVSV_SUSI_ASGN *compcsi_info;
 	SaAmfCSITransitionDescriptorT trans_dsc;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_susi_msg");
+	TRACE_ENTER();
 
 	if (su == NULL) {
 		/* This is a invalid situation as the SU
@@ -1284,7 +1284,7 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_shutdown_app_su_msg");
+	TRACE_ENTER();
 
 	/* Verify if the node structure pointer is valid. */
 	if (avnd == NULL) {
@@ -1350,7 +1350,7 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGr
 	AVD_COMP_CSI_REL *curr = 0;
 	uns32 i = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_pg_mem_list");
+	TRACE_ENTER();
 
 	memset(mem_list, 0, sizeof(SaAmfProtectionGroupNotificationBufferT));
 
@@ -1396,7 +1396,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *pg_msg_info = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_pg_resp_msg");
+	TRACE_ENTER();
 
 	/* alloc the response msg */
 	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
@@ -1479,7 +1479,7 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_PG_UPD_MSG_INFO *pg_msg_info = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_pg_upd_msg");
+	TRACE_ENTER();
 
 	/* alloc the update msg */
 	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
@@ -1539,7 +1539,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_set_leds_msg");
+	TRACE_ENTER();
 
 	/* Verify if the node structure pointer is valid. */
 	if (avnd == NULL) {
@@ -1613,7 +1613,7 @@ uns32 avd_snd_hb_msg(AVD_CL_CB *cb)
 {
 	AVD_D2D_MSG *d2d_msg;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_hb_msg");
+	TRACE_ENTER();
 
 	if ((cb->node_id_avd_other == 0) || (cb->other_avd_adest == 0)) {
 		m_AVD_LOG_INVALID_VAL_ERROR(cb->node_id_avd_other);
@@ -1672,7 +1672,7 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 	AVD_DND_MSG *d2n_msg = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_validation_resp");
+	TRACE_ENTER();
 
 	/* prepare the component validation message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));

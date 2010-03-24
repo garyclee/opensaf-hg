@@ -122,7 +122,7 @@ uns32 avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_si_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -167,7 +167,7 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_STATE old_fsm_state;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_siswitch_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -248,7 +248,7 @@ uns32 avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_su_fault_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -360,7 +360,7 @@ uns32 avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_susi_sucss_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 
@@ -432,7 +432,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	NCS_BOOL is_eng = FALSE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_susi_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 
@@ -648,7 +648,7 @@ uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
  **************************************************************************/
 void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_node_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -718,7 +718,7 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 	NCS_BOOL is_all_stdby = TRUE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_su_admin_fail");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)avnd));
 
@@ -863,7 +863,7 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 	SaAmfHAStateT old_state;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_si_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -990,7 +990,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	NCS_BOOL is_act_asgn;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_sg_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)sg));
 
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
@@ -1136,7 +1136,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SU_SI_REL *tmp_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_si_assign");
+	TRACE_ENTER();
 
 	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 

@@ -208,7 +208,7 @@ static uns32 avsv_encode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_cb_config");
+	TRACE_ENTER();
 
 	/* 
 	 * For updating CB, action is always to do update. We don't have add and remove
@@ -245,7 +245,7 @@ static uns32 avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_cluster_config");
+	TRACE_ENTER();
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_UPDATE:
@@ -285,7 +285,7 @@ static uns32 avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_node_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -338,7 +338,7 @@ static uns32 avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_app_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -391,7 +391,7 @@ static uns32 avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_sg_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -443,7 +443,7 @@ static uns32 avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_su_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -495,7 +495,7 @@ static uns32 avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_si_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -551,7 +551,7 @@ static uns32 avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_sg_admin_si");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -605,7 +605,7 @@ static uns32 avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_su_si_rel");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -664,7 +664,7 @@ static uns32 avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_comp_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -720,7 +720,7 @@ static uns32 avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_oper_su");
+	TRACE_ENTER();
 
 	/* 
 	 * In case of both Add and remove request send the operation SU name. 
@@ -768,7 +768,7 @@ static uns32 avsv_encode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_cb_cl_view_num");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -810,7 +810,7 @@ static uns32 avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_node_up_info");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -853,7 +853,7 @@ static uns32 avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_su_admin_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -897,7 +897,7 @@ static uns32 avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_oper_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -940,7 +940,7 @@ static uns32 avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_node_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -983,7 +983,7 @@ static uns32 avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_rcv_msg_id");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1026,7 +1026,7 @@ static uns32 avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_snd_msg_id");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1069,7 +1069,7 @@ static uns32 avsv_encode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avnd_avm_oper_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1112,7 +1112,7 @@ static uns32 avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_admin_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1142,7 +1142,7 @@ static uns32 avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_su_assigned_num");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
@@ -1173,7 +1173,7 @@ static uns32 avsv_encode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_su_spare_num");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1203,7 +1203,7 @@ static uns32 avsv_encode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_su_uninst_num");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1233,7 +1233,7 @@ static uns32 avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_adjust_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1263,7 +1263,7 @@ static uns32 avsv_encode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_sg_fsm_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1293,7 +1293,7 @@ static uns32 avsv_encode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_preinstan");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1323,7 +1323,7 @@ static uns32 avsv_encode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_oper_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1353,7 +1353,7 @@ static uns32 avsv_encode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_admin_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1383,7 +1383,7 @@ static uns32 avsv_encode_ckpt_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_rediness_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1413,7 +1413,7 @@ static uns32 avsv_encode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_pres_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1443,7 +1443,7 @@ static uns32 avsv_encode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_si_curr_active");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1473,7 +1473,7 @@ static uns32 avsv_encode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_si_curr_stby");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1503,7 +1503,7 @@ static uns32 avsv_encode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_term_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1533,7 +1533,7 @@ static uns32 avsv_encode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_switch");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1563,7 +1563,7 @@ static uns32 avsv_encode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_su_act_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1593,7 +1593,7 @@ static uns32 avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_si_admin_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1623,7 +1623,7 @@ static uns32 avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_EN
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_si_admin_state");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1653,7 +1653,7 @@ static uns32 avsv_encode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_si_su_curr_active");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1683,7 +1683,7 @@ static uns32 avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_si_su_curr_stby");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1713,7 +1713,7 @@ static uns32 avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_si_switch");
+	TRACE_ENTER();
 	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
@@ -1743,7 +1743,7 @@ static uns32 avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_proxy_comp_name");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1787,7 +1787,7 @@ static uns32 avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB
 	EDU_ERR ederror = 0;
 
 	assert(0);
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_curr_num_csi_actv");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1831,7 +1831,7 @@ static uns32 avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB
 	EDU_ERR ederror = 0;
 
 	assert(0);
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_curr_num_csi_stby");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1874,7 +1874,7 @@ static uns32 avsv_encode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_oper_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1917,7 +1917,7 @@ static uns32 avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_E
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_readiness_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1960,7 +1960,7 @@ static uns32 avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_pres_state");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2003,7 +2003,7 @@ static uns32 avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_comp_restart_count");
+	TRACE_ENTER();
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2043,7 +2043,7 @@ static uns32 avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 \**************************************************************************/
 uns32 avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp");
+	TRACE_ENTER();
 
 	return avd_entire_data_update(cb, enc, TRUE);
 }
@@ -2093,7 +2093,7 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BO
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
 		 "avd_entire_data_update\n\nSent reotype = %d num_obj = %d -------------\n", enc->io_reo_type,
 		 num_of_obj);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 
 	/* Now encode the number of objects actually in the UBA. */
 
@@ -2140,7 +2140,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_cb_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Send the CB data.
@@ -2178,7 +2178,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_MBC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_cluster_config");
+	TRACE_ENTER();
 
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster, &enc->io_uba,
 		EDP_OP_TYPE_ENC, avd_cluster, &ederror, enc->i_peer_version);
@@ -2215,7 +2215,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_
 	AVD_AVND *avnd;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_avnd_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2258,7 +2258,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	AVD_APP *app;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_app_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2302,7 +2302,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	AVD_SG *sg;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_sg_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2346,7 +2346,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	SaNameT su_name = {0};
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_su_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2390,7 +2390,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	SaNameT si_name;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_si_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2434,7 +2434,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MB
 	SaNameT sg_name;
 	AVD_SG *sg;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_sg_su_oper_list");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire SG list and send the SU operation list
@@ -2479,7 +2479,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
 	AVD_SG *sg;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_sg_admin_si");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2530,7 +2530,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	AVD_SU_SI_REL *rel;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_su_si_rel");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2586,7 +2586,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_
 	SaNameT comp_name = {0};
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_comp_config");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2629,7 +2629,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_async_updt_cnt");
+	TRACE_ENTER();
 
 	/* 
 	 * Encode and send async update counts for all the data structures.
@@ -2673,7 +2673,7 @@ uns32 avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		 cb->async_updt_cnt.su_updt, cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt,
 		 cb->async_updt_cnt.sg_admin_si_updt, cb->async_updt_cnt.siass_updt, cb->async_updt_cnt.comp_updt,
 		 cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.compcstype_updt);
-	m_AVD_LOG_FUNC_ENTRY(logbuff);
+	TRACE_ENTER();
 
 	/* 
 	 * Encode and send latest async update counts. (In the same manner we sent
@@ -2706,7 +2706,7 @@ uns32 avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 uns32 avsv_encode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_data_sync_rsp");
+	TRACE_ENTER();
 
 	return avd_entire_data_update(cb, enc, FALSE);
 }
@@ -2733,7 +2733,7 @@ static uns32 avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_EN
 	AVD_SG_OPER *oper_list_ptr = NULL;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_su_oper_list");
+	TRACE_ENTER();
 
 	/* Reserve space for the number of operation SU to be encoded */
 	encoded_cnt_loc = ncs_enc_reserve_space(&enc->io_uba, sizeof(uns32));
@@ -2788,7 +2788,7 @@ static uns32 avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_ckpt_avd_comp_cs_type_config");
+	TRACE_ENTER();
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -2842,7 +2842,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NC
 	EDU_ERR ederror = 0;
 	SaNameT dn = {0};
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_comp_cs_type_config");
+	TRACE_ENTER();
 
 	/*
 	 * Walk through the entire list and send the entire list data.

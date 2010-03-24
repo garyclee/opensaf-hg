@@ -918,7 +918,7 @@ void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_DND_MSG *n2d_msg;
 	AVD_AVND *avnd;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_shutdown_app_su_resp_func");
+	TRACE_ENTER();
 
 	if (evt->info.avnd_msg == NULL) {
 		/* log error that a message contents is missing */

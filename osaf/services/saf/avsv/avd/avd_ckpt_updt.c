@@ -674,7 +674,7 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
 	AVD_CS_TYPE_PARAM *cs_param = NULL;
 	AVD_CS_TYPE_PARAM_INDX cs_param_indx;
 #endif
-	m_AVD_LOG_FUNC_ENTRY("avd_data_clean_up");
+	TRACE_ENTER();
 
 	/* 
 	 * Walk through the entire HLT list.

@@ -203,7 +203,7 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 		uns32 millisecs;
 	} boot_timestamp;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_nd_reg_comp_evt_hdl");
+	TRACE_ENTER();
 
 	/* Check the AvND structure to see if any NCS SUs exist on the node.
 	 * If none exist change the FSM state present*/
@@ -286,7 +286,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		uns32 millisecs;
 	} boot_timestamp;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_nd_ncs_su_assigned");
+	TRACE_ENTER();
 
 	ncs_su = avnd->list_of_ncs_su;
 
@@ -359,7 +359,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_nd_ncs_su_failed");
+	TRACE_ENTER();
 
 	/* call the function to down this node */
 	avd_node_down_func(cb, avnd);
@@ -393,7 +393,7 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 void avd_mds_avnd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_avnd_up_func");
+	TRACE_ENTER();
 	return;
 }
 
@@ -414,7 +414,7 @@ void avd_mds_avnd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_mds_avnd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_mds_avnd_down_func");
+	TRACE_ENTER();
 	return;
 }
 
@@ -669,7 +669,7 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 
 	AVD_AVND *avnd;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_node_down");
+	TRACE_ENTER();
 
 	if ((avnd = avd_node_find_nodeid(node_id)
 	    ) == NULL) {

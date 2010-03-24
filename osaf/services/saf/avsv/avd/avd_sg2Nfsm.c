@@ -84,7 +84,7 @@ static AVD_SU_SI_REL *avd_sg_2n_act_susi(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU_SI_RE
 	AVD_SU_SI_REL *s_susi = AVD_SU_SI_REL_NULL;
 	AVD_SI *l_si;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_act_susi");
+	TRACE_ENTER();
 
 	l_si = sg->list_of_si;
 
@@ -344,7 +344,7 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	AVD_SU *l_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_si_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -462,7 +462,7 @@ static uns32 avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	 * to LOCK and send D2N-INFO_SU_SI_ASSIGN modify quiesced all. If this
 	 * SU switch state is TRUE change to FALSE.
 	 */
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_fault_su_oper");
+	TRACE_ENTER();
 
 	if (su->sg_of_su->su_oper_list.su == su) {
 		if (su->list_of_susi->state == SA_AMF_HA_QUIESCED) {
@@ -594,7 +594,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_fault_si_oper");
+	TRACE_ENTER();
 
 	if (su->sg_of_su->admin_si->list_of_sisu->su == su) {
 		l_susi = su->sg_of_su->admin_si->list_of_sisu;
@@ -893,7 +893,7 @@ uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU *a_su;
 	AVD_SU_SI_REL *l_susi, *o_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_fault_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -2062,7 +2062,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 	AVD_SU_SI_REL *s_susi;
 	AVD_SU *i_su, *a_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_susi_sucss_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -2230,7 +2230,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_susi_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 	m_AVD_LOG_RCVD_VAL(((long)susi));
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -2636,7 +2636,7 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_node_fail_su_oper");
+	TRACE_ENTER();
 
 	if (su->sg_of_su->su_oper_list.su == su) {
 		/* the SU is same as the SU in the list */
@@ -2833,7 +2833,7 @@ static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU_SI_REL *a_susi, *s_susi;
 	AVD_SU *o_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_node_fail_si_oper");
+	TRACE_ENTER();
 
 	if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
 		/* the SI switch operation is TRUE */
@@ -3083,7 +3083,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU *o_su, *i_su;
 	NCS_BOOL flag;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_node_fail_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -3478,7 +3478,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_state;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_si_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)si));
 
 	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
@@ -3652,7 +3652,7 @@ uns32 avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU_SI_REL *a_susi, *s_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_sg_admin_down");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)sg));
 
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
