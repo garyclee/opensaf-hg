@@ -321,8 +321,6 @@ SaAisErrorT avd_node_config_get(void)
 		}
 
 		node_add_to_model(node);
-
-		avd_nodeswbdl_config_get(node);
 	}
 
 	rc = SA_AIS_OK;
@@ -414,11 +412,6 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdat
 	/* Check to see that no SUs exists on this node */
 	if (node->list_of_su != NULL) {
 		LOG_ER("Node '%s' still has SUs", opdata->objectName.value);
-		return SA_AIS_ERR_BAD_OPERATION;
-	}
-
-	if (node->list_of_avd_sw_bdl != NULL) {
-		LOG_ER("Node '%s' still has SW Bundles", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -1169,41 +1162,6 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 
 	TRACE_LEAVE2("%u", rc);
-}
-
-void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
-{
-	sw_bdl->node_list_sw_bdl_next = sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl;
-	sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl;
-}
-
-void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
-{
-	AVD_NODE_SW_BUNDLE *i_sw_bdl = NULL;
-	AVD_NODE_SW_BUNDLE *prev_sw_bdl = NULL;
-
-	if (sw_bdl->node_sw_bdl_on_node != NULL) {
-		/* remove Sw Bdl from Node */
-		i_sw_bdl = sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl;
-
-		while ((i_sw_bdl != NULL) && (i_sw_bdl != sw_bdl)) {
-			prev_sw_bdl = i_sw_bdl;
-			i_sw_bdl = i_sw_bdl->node_list_sw_bdl_next;
-		}
-
-		if (i_sw_bdl != sw_bdl) {
-			assert(0);
-		} else {
-			if (prev_sw_bdl == NULL) {
-				sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl->node_list_sw_bdl_next;
-			} else {
-				prev_sw_bdl->node_list_sw_bdl_next = sw_bdl->node_list_sw_bdl_next;
-			}
-		}
-
-		sw_bdl->node_list_sw_bdl_next = NULL;
-		sw_bdl->node_sw_bdl_on_node = NULL;
-	}
 }
 
 void avd_node_add_su(AVD_SU *su)
