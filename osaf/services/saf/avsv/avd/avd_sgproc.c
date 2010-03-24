@@ -228,12 +228,6 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-	if (su_node_ptr != node) {
-		/* log fatal error that the SU is in invalid state */
-		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
-		goto done;
-	}
-
 	/* Verify that the SU and node oper state is diabled and rcvr is failfast */
 	if ((n2d_msg->msg_info.n2d_opr_state.su_oper_state == SA_AMF_OPERATIONAL_DISABLED) &&
 	    (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) &&
@@ -299,10 +293,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 * receive id was not processed the event will again
 								 * comeback which we can then process.
 								 */
-
-								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
-												 i_su->name.length);
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 								goto done;
 							}
 							break;
@@ -313,10 +304,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 * receive id was not processed the event will again
 								 * comeback which we can then process.
 								 */
-
-								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
-												 i_su->name.length);
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 								goto done;
 							}
 							break;
@@ -327,10 +315,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 * receive id was not processed the event will again
 								 * comeback which we can then process.
 								 */
-
-								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
-												 i_su->name.length);
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 								goto done;
 							}
 							break;
@@ -341,10 +326,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 * receive id was not processed the event will again
 								 * comeback which we can then process.
 								 */
-
-								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
-												 i_su->name.length);
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 								goto done;
 							}
 							break;
@@ -356,15 +338,11 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								 * receive id was not processed the event will again
 								 * comeback which we can then process.
 								 */
-
-								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
-												 i_su->name.length);
+								LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 								goto done;
 							}
 							break;
 						}
-
 					}
 
 					/* Verify the SG to check if any instantiations need
@@ -375,10 +353,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-
-						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->sg_of_su->name.value,
-										 i_su->sg_of_su->name.length);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, i_su->name.value);
 						goto done;
 					}
 
@@ -397,10 +372,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -411,10 +383,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -425,10 +394,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -439,10 +405,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -453,15 +416,11 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
 					}
-
 				}
 
 				/* Verify the SG to check if any instantiations need
@@ -472,10 +431,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 * receive id was not processed the event will again
 					 * comeback which we can then process.
 					 */
-
-					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->sg_of_su->name.value,
-									 su->sg_of_su->name.length);
+					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->sg_of_su->name.value);
 					goto done;
 				}
 
@@ -500,9 +456,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-
-						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -514,9 +468,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-
-						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -528,9 +480,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-
-						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -543,9 +493,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-
-						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -569,10 +517,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -583,10 +528,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -597,10 +539,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -611,10 +550,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -625,10 +561,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							 * receive id was not processed the event will again
 							 * comeback which we can then process.
 							 */
-
-							/* log error about the failure */
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
 							goto done;
 						}
 						break;
@@ -700,7 +633,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 					avd_d2n_msg_dequeue(cb);
 				}
 
-				return;
+				goto done;
 			}
 
 			/*  We failed to switch, Send Active to all NCS Su's having 2N redun model &
@@ -717,7 +650,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 			}
 		}
 		/* ncs_done == SA_TRUE */
-		return;
+		goto done;
 	}
 
 	/* Active -> Quiesed && resp = Failure */
@@ -734,7 +667,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 			}
 		}		/* for */
 
-		return;
+		goto done;
 	}
 
 	/* Standby -> Active && Success */
@@ -756,8 +689,8 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 
 			/* get the avnd on other SCXB from node_id of other AvD */
 			if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
-				m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-				return;
+				LOG_ER("%s: cannot find other avd", __FUNCTION__);
+				goto done;
 			}
 
 			/* Now change All the NCS SU's of the other SCXB which should be
@@ -790,13 +723,23 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 			}
 		}
 
-		return;
+		goto done;
 	}
 
 	/* Standby -> Active && resp = Failure */
 	/* We are expecting a su faiolver for this ncs su */
 
-	return;
+done:
+	TRACE_LEAVE();
+}
+
+static void susi_assign_msg_dump(const char *func, unsigned int line,
+	AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO *info)
+{
+	LOG_ER("%s:%d %u %u %u %u %x", func, line, info->error,
+		info->ha_state, info->msg_act, info->msg_id, info->node_id);
+	LOG_ER("%s:%d %s", func, line, info->si_name.value);
+	LOG_ER("%s:%d %s", func, line, info->su_name.value);
 }
 
 /*****************************************************************************
@@ -848,9 +791,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * message ID is received successfully.
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
-
+		LOG_ER("%s: avd_snd_node_ack_msg failed", __FUNCTION__);
 	}
 
 	if (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) {
@@ -860,15 +801,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 
 		if ((su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
-			m_AVD_LOG_INVALID_NAME_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
-							 n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
+			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
 			goto done;
 		}
 
 		if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
-			/* log Info error that the SU mentioned is not in proper state. */
-			m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
-			m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
+			LOG_ER("%s: no susis", __FUNCTION__);
 			goto done;
 		}
 
@@ -926,8 +864,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 			break;
 		default:
-			/* log fatal error that the message is not proper. */
-			m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.msg_act);
+			LOG_ER("%s: invalid act %u", __FUNCTION__, n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 			goto done;
 			break;
 		}		/* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
@@ -1004,7 +941,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 					}
 				} else {
-					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+					susi_assign_msg_dump(__FUNCTION__, __LINE__,
+						&n2d_msg->msg_info.n2d_su_si_assign);
 					avd_sg_2n_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
 								 n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 								 n2d_msg->msg_info.n2d_su_si_assign.ha_state);
@@ -1023,7 +961,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									    n2d_su_si_assign.ha_state);
 					}
 				} else {
-					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+					susi_assign_msg_dump(__FUNCTION__, __LINE__,
+						&n2d_msg->msg_info.n2d_su_si_assign);
 					avd_sg_nway_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
 								   n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 								   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
@@ -1043,7 +982,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									       n2d_su_si_assign.ha_state);
 					}
 				} else {
-					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+					susi_assign_msg_dump(__FUNCTION__, __LINE__,
+						&n2d_msg->msg_info.n2d_su_si_assign);
 					avd_sg_nacvred_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
 								      n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 								      n2d_msg->msg_info.n2d_su_si_assign.ha_state);
@@ -1061,7 +1001,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									   n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 					}
 				} else {
-					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+					susi_assign_msg_dump(__FUNCTION__, __LINE__,
+						&n2d_msg->msg_info.n2d_su_si_assign);
 					avd_sg_npm_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
 								  n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 								  n2d_msg->msg_info.n2d_su_si_assign.ha_state);
@@ -1081,7 +1022,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 									     n2d_su_si_assign.ha_state);
 					}
 				} else {
-					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+					susi_assign_msg_dump(__FUNCTION__, __LINE__,
+						&n2d_msg->msg_info.n2d_su_si_assign);
 					avd_sg_nored_susi_fail_func(cb, su, AVD_SU_SI_REL_NULL,
 								    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 								    n2d_msg->msg_info.n2d_su_si_assign.ha_state);
@@ -1094,16 +1036,13 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		/* Single SU SI assignment find the SU SI structure */
 
-		if ((susi =
-		     avd_susi_find(cb, &n2d_msg->msg_info.n2d_su_si_assign.su_name,
-				   &n2d_msg->msg_info.n2d_su_si_assign.si_name)) == AVD_SU_SI_REL_NULL) {
-			/* Acknowledgement for a deleted SU SI ignore the message */
+		if ((susi = avd_susi_find(cb, &n2d_msg->msg_info.n2d_su_si_assign.su_name,
+			&n2d_msg->msg_info.n2d_su_si_assign.si_name)) == AVD_SU_SI_REL_NULL) {
 
-			/* log information error */
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
-							 n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(n2d_msg->msg_info.n2d_su_si_assign.si_name.value,
-							 n2d_msg->msg_info.n2d_su_si_assign.si_name.length);
+			/* Acknowledgement for a deleted SU SI ignore the message */
+			LOG_IN("%s: avd_susi_find failed for %s %s", __FUNCTION__,
+				n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
+				n2d_msg->msg_info.n2d_su_si_assign.si_name.value);
 			goto done;
 		}
 
@@ -1127,11 +1066,10 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 * this message, by accepting the receive id and
 				 * droping the message.
 				 */
-
-				/* log Info error that the susi mentioned is not in proper state. */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+				LOG_IN("%s: assign susi not in proper state %u %u %u", __FUNCTION__,
+					susi->fsm, susi->state, n2d_msg->msg_info.n2d_su_si_assign.ha_state);
+				LOG_IN("%s: %s %s", __FUNCTION__,
+					susi->su->name.value, susi->si->name.value);
 				goto done;
 			}
 
@@ -1159,9 +1097,10 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 */
 
 				/* log Info error that the susi mentioned is not in proper state. */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+				LOG_IN("%s: mod susi not in proper state %u %u %u", __FUNCTION__,
+					susi->fsm, susi->state, n2d_msg->msg_info.n2d_su_si_assign.ha_state);
+				LOG_IN("%s: %s %s", __FUNCTION__,
+					susi->su->name.value, susi->si->name.value);
 				goto done;
 			}
 
@@ -1207,9 +1146,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			break;
 
 		default:
-			/* log fatal error that the message is not proper. */
-			m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.msg_act);
-			m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+			LOG_ER("%s: invalid action %u", __FUNCTION__, n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 			goto done;
 			break;
 		}		/* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
@@ -1648,6 +1585,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 
 uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SU *i_su;
 	AVD_AVND *i_su_node_ptr = NULL;
 
@@ -1803,12 +1741,15 @@ uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 		break;		/* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
 	default:
-		/* log fatal error */
-		return NCSCC_RC_FAILURE;
+		LOG_ER("%s: invalid adm state %u", __FUNCTION__, sg->saAmfSGAdminState);
+		goto done;
 		break;
 	}
 
-	return NCSCC_RC_SUCCESS;
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*****************************************************************************
@@ -2060,8 +2001,7 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	}
 
-	/* if(cb->init_state == AVD_APP_STATE) */
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -2101,16 +2041,14 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 	}
 
 	if (su->sg_of_su->su_oper_list.su == su) {
-		/* Log that it is already added return success. */
-		m_AVD_LOG_RCVD_VAL(((long)su));
+		TRACE("already added");
 		goto done;
 	}
 
 	i_su_opr = &su->sg_of_su->su_oper_list.next;
 	while (*i_su_opr != NULL) {
 		if ((*i_su_opr)->su == su) {
-			/* Log that it is already added return success. */
-			m_AVD_LOG_RCVD_VAL(((long)su));
+			TRACE("already added");
 			goto done;
 		}
 		i_su_opr = &((*i_su_opr)->next);
@@ -2118,18 +2056,11 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 
 	/* Allocate the holder structure for having the pointer to the SU */
 	*i_su_opr = malloc(sizeof(AVD_SG_OPER));
-
 	if (*i_su_opr == NULL) {
-		/* log error about failure */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_SG_OPER_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
-		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
+		LOG_ER("%s: malloc failed", __FUNCTION__);
+		assert(0);
 	}
 
-	m_AVD_LOG_RCVD_VAL(((long)(*i_su_opr)));
-	m_AVD_LOG_RCVD_NAME_VAL(su->name.value, su->name.length);
 	/* Fill the content */
 	(*i_su_opr)->su = su;
 	(*i_su_opr)->next = NULL;
@@ -2137,8 +2068,8 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 	if (!ckpt)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
 
- done:
-	TRACE_LEAVE2("%u", rc);
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2167,8 +2098,7 @@ uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 	TRACE_ENTER();
 
 	if (su->sg_of_su->su_oper_list.su == NULL) {
-		/* Log an error message that this shouldnt happen. */
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
+		LOG_ER("%s: su_oper_list empty", __FUNCTION__);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -2207,6 +2137,7 @@ uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 		i_su_opr = &((*i_su_opr)->next);
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
 
@@ -2291,6 +2222,7 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 		}
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2315,6 +2247,7 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 
 uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *i_susi;
 	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
@@ -2347,11 +2280,8 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	/* Now send a single message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD)
-	    != NCSCC_RC_SUCCESS) {
-		/* log a fatal error that a message couldn't be sent */
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
 
@@ -2368,11 +2298,13 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 			i_susi = i_susi->su_next;
 		}
 
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
-	/* if (avd_snd_susi_msg(cb,su,AVD_SU_SI_REL_NULL,AVSV_SUSI_ACT_MOD)
-	   != NCSCC_RC_SUCCESS)  */
-	return NCSCC_RC_SUCCESS;
+
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*****************************************************************************
@@ -2395,6 +2327,7 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 
 uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
@@ -2412,11 +2345,8 @@ uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	/* Now send a single delete message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL)
-	    != NCSCC_RC_SUCCESS) {
-		/* log a fatal error that a message couldn't be sent */
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
 			i_susi->fsm = old_state;
@@ -2424,9 +2354,11 @@ uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 			i_susi = i_susi->su_next;
 		}
 
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
-	/* if (avd_snd_susi_msg(cb,su,AVD_SU_SI_REL_NULL,AVSV_SUSI_ACT_DEL)
-	   != NCSCC_RC_SUCCESS)  */
-	return NCSCC_RC_SUCCESS;
+
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE();
+	return rc;
 }

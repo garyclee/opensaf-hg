@@ -210,7 +210,7 @@ uns32 avd_mds_dec_flat(MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
+static void avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 {
 	AVSV_ND_MSG_QUEUE *nd_msg;
 	/*
@@ -218,16 +218,13 @@ uns32 avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 	 * We will have to send it at later point of time.
 	 */
 	if (NULL == (nd_msg = calloc(1, sizeof(AVSV_ND_MSG_QUEUE)))) {
-		/* Log error */
-		return NCSCC_RC_FAILURE;
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		assert(0);
 	}
 
 	memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
 	m_AVD_DTOND_MSG_PUSH(cb, nd_msg);
-
-	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -296,13 +293,9 @@ uns32 avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 {
 	NCSMDS_INFO snd_mds;
-	uns32 rc;
-
-	TRACE_ENTER();
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
 
 	if(nd_node->adest == 0) {
-		avd_log(NCSFL_SEV_WARNING, "Invalid adest for %x, msg type %u",
+		LOG_WA("Invalid adest for %x, msg type %u",
 			nd_node->node_info.nodeId, snd_msg->msg_type);
 		return NCSCC_RC_FAILURE;
 	}
@@ -318,9 +311,9 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
 	snd_mds.info.svc_send.info.snd.i_to_dest = nd_node->adest;
 
-	rc = avd_d2n_msg_enqueue(cb, &snd_mds);
+	avd_d2n_msg_enqueue(cb, &snd_mds);
 
-	return rc;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************

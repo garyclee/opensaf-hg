@@ -405,13 +405,7 @@ static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 static void *avd_imm_reinit_thread(void *_cb)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
-#if 0
-	SaAisErrorT error;
-	if ((error = avd_imm_init(cb)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, " FAILED: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-#endif
+
 	/* If this is the active server, become implementer again. */
 	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE)
 		avd_imm_impl_set_task_create();
@@ -658,7 +652,6 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	if (cb_now->role_set == FALSE)
 		g_avd_init_list[evt->rcv_evt] (cb_now, evt);
 	else if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		avd_log(NCSFL_SEV_NOTICE, "Event process");
 		/* if active call g_avd_actv_list functions */
 		g_avd_actv_list[evt->rcv_evt] (cb_now, evt);
 

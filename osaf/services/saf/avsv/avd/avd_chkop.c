@@ -592,39 +592,39 @@ static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
-		avd_log(NCSFL_SEV_WARNING, "cold sync tmr exp");
+		LOG_WA("mbcsv cold sync tmr exp");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_TMR_EXP:
-		avd_log(NCSFL_SEV_WARNING, "warm sync tmr exp");
+		LOG_WA("mbcsv warm sync tmr exp");
 		break;
 
 	case NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP:
-		avd_log(NCSFL_SEV_WARNING, "data rsp cmplt tmr exp");
+		LOG_WA("mbcsv data rsp cmplt tmr exp");
 		break;
 
 	case NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP:
-		avd_log(NCSFL_SEV_WARNING, "cold sync cmpl tmr exp");
+		LOG_WA("mbcsv cold sync cmpl tmr exp");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP:
-		avd_log(NCSFL_SEV_WARNING, "warm sync cmpl tmr exp");
+		LOG_WA("mbcsv warm sync cmpl tmr exp");
 		break;
 
 	case NCS_MBCSV_DATA_RESP_TERMINATED:
-		avd_log(NCSFL_SEV_WARNING, "data rsp term");
+		LOG_WA("mbcsv data rsp term");
 		break;
 
 	case NCS_MBCSV_COLD_SYNC_RESP_TERMINATED:
-		avd_log(NCSFL_SEV_WARNING, "cold sync rsp term");
+		LOG_WA("mbcsv cold sync rsp term");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_RESP_TERMINATED:
-		avd_log(NCSFL_SEV_WARNING, "warm sync rsp term");
+		LOG_WA("mbcsv warm sync rsp term");
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(arg->info.error.i_code);
+		LOG_IN("mbcsv unknown ecode %u", arg->info.error.i_code);
 		break;
 	}
 
@@ -802,11 +802,9 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 
-	avd_log(NCSFL_SEV_NOTICE, "Role sent SUCC. node_id=%x, role=%u", node_id, role);
+	TRACE("Role sent SUCC. node_id=%x, role=%u", node_id, role);
 
-	/*avsv_dnd_msg_free(d2n_msg); */
-
- done:
+done:
 	return NCSCC_RC_SUCCESS;
 }
 

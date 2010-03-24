@@ -246,8 +246,6 @@ typedef enum avd_log_ids {
 	AVD_LID_GENLOG,
 } AVD_LOG_IDS;
 
-#define avd_log(severity, format, args...) _avd_log((severity), __FUNCTION__, (format), ##args)
-
 #define m_AVD_LOG_INVALID_VAL_ERROR(data) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL,AVD_INVALID_VAL,__FILE__, __LINE__,data)
 
 #define m_AVD_LOG_INVALID_VAL_FATAL(data) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_EMERGENCY, NCSFL_TYPE_TICLL,AVD_INVALID_VAL,__FILE__, __LINE__,data)
@@ -356,7 +354,5 @@ EXTERN_C void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state, SaNameT *su_name,
 				   SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
 void avd_pxy_pxd_log(uns32 sev, uns32 index, char *info, SaNameT *comp_name,
 		     uns32 info1, uns32 info2, uns32 info3, uns32 info4);
-
-extern void _avd_log(uns8 severity, const char *function, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
 #endif   /* AVD_DBLOG_H */

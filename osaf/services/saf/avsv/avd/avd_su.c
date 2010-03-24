@@ -595,12 +595,20 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 
 void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 {
-	assert(su != NULL);
+	if (su->saAmfSUPresenceState == pres_state)
+		return;
 	assert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		su->name.value, avd_pres_state_name[su->saAmfSUPresenceState], avd_pres_state_name[pres_state]);
-	LOG_NO("'%s' %s => %s",
-		su->name.value, avd_pres_state_name[su->saAmfSUPresenceState], avd_pres_state_name[pres_state]);
+
+	/* only log for certain changes, see notifications in spec */
+	if (pres_state == SA_AMF_PRESENCE_UNINSTANTIATED ||
+	    pres_state == SA_AMF_PRESENCE_INSTANTIATED ||
+	    pres_state == SA_AMF_PRESENCE_RESTARTING)
+		LOG_NO("'%s' %s => %s",	su->name.value, avd_pres_state_name[su->saAmfSUPresenceState],
+			avd_pres_state_name[pres_state]);
+	else
+		TRACE("'%s' %s => %s",	su->name.value, avd_pres_state_name[su->saAmfSUPresenceState],
+			avd_pres_state_name[pres_state]);
+
 	su->saAmfSUPresenceState = pres_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 				 "saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
@@ -609,10 +617,11 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 
 void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 {
-	assert(su != NULL);
+	if (su->saAmfSUOperState == oper_state)
+		return;
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		su->name.value, avd_oper_state_name[su->saAmfSUOperState], avd_oper_state_name[oper_state]);
+	LOG_NO("'%s' %s => %s",	su->name.value, avd_oper_state_name[su->saAmfSUOperState],
+		avd_oper_state_name[oper_state]);
 	su->saAmfSUOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
@@ -622,10 +631,10 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state)
 {
         AVD_COMP *comp = NULL;
-	assert(su != NULL);
+	if (su->saAmfSuReadinessState == readiness_state)
+		return;
 	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		su->name.value,
+	LOG_NO("'%s' %s => %s",	su->name.value,
 		avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
 	su->saAmfSuReadinessState = readiness_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
@@ -662,10 +671,8 @@ void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 {
 	assert(su != NULL);
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		su->name.value, admin_state_name[su->saAmfSUAdminState], admin_state_name[admin_state]);
-	LOG_NO("'%s' %s => %s",
-		su->name.value, admin_state_name[su->saAmfSUAdminState], admin_state_name[admin_state]);
+	LOG_NO("'%s' %s => %s",	su->name.value, admin_state_name[su->saAmfSUAdminState],
+		admin_state_name[admin_state]);
 	su->saAmfSUAdminState = admin_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUAdminState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);

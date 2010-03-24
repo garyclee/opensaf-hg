@@ -591,7 +591,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	case AVSV_SA_AMF_COMP:{
 			/* Find the component record in the database, specified in the message. */
 			if ((comp = avd_comp_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
-				avd_log(NCSFL_SEV_ERROR, "Invalid Comp '%s' (%u)",
+				LOG_ER("%s: Invalid Comp '%s' (%u)", __FUNCTION__,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.length);
 				goto done;
@@ -684,7 +684,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	case AVSV_SA_AMF_SU:{
 			/* Find the component record in the database, specified in the message. */
 			if ((su = avd_su_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
-				avd_log(NCSFL_SEV_ERROR, "Invalid SU '%s' (%u)",
+				LOG_ER("%s: Invalid SU '%s' (%u)", __FUNCTION__,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.length);
 				goto done;

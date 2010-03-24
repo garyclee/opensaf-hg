@@ -88,7 +88,6 @@ struct avd_comp_tag;
 struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
-EXTERN_C uns32 avd_d2n_msg_enqueue(struct cl_cb_tag *cb, NCSMDS_INFO *snd_mds);
 EXTERN_C uns32 avd_d2n_msg_dequeue(struct cl_cb_tag *cb);
 EXTERN_C uns32 avd_d2n_msg_snd(struct cl_cb_tag *cb, struct avd_avnd_tag *nd_node, AVD_DND_MSG *snd_msg);
 EXTERN_C uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver);

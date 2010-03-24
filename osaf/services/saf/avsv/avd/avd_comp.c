@@ -81,7 +81,7 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 {
 	assert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
+	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_pres_state_name[comp->saAmfCompPresenceState],
 		avd_pres_state_name[pres_state]);
 	comp->saAmfCompPresenceState = pres_state;
@@ -93,7 +93,7 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 {
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
+	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
 	comp->saAmfCompOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
@@ -104,7 +104,7 @@ void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state)
 {
 	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
+	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value,
 		avd_readiness_state_name[comp->saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
 	comp->saAmfCompReadinessState = readiness_state;

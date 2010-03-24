@@ -104,9 +104,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	avd_log(NCSFL_SEV_NOTICE, "Snd_node_up msg success");
-	/* send the Ack message to the node.
-	 */
+	/* send the Ack message to the node. */
 	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
@@ -152,7 +150,6 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	avd_log(NCSFL_SEV_NOTICE, "Snd_node_su_comp msg success");
 	/* If component message is sent change state to no config or else skip
 	 * all the comming up states and jump to present state. This is because
 	 * the node doesnt have any components meaning that even the NCS component
@@ -162,7 +159,6 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 	} else {
-		avd_log(NCSFL_SEV_NOTICE, "Snd_nd_reg_comp_evt msg");
 		avd_nd_reg_comp_evt_hdl(cb, avnd);
 	}
 

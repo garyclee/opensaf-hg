@@ -524,7 +524,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", si->name.value);
+	TRACE("expiry of tolerance timer '%s'", si->name.value);
 
 	/* Since the tol-timer is been expired, can decrement tol_timer_count of 
 	 * the SI. 
@@ -1332,17 +1332,18 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	AVD_SI_SI_DEP *sidep;
 	AVD_SI_SI_DEP_INDX indx;
 
+	TRACE_ENTER2("%s", sidep_name->value);
 	avd_sidep_indx_init(sidep_name, &indx);
 
 	/* Sponsor SI need to exist */
 	if (avd_si_get(&indx.si_name_prim) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "avd_si_struc_find failed for '%s'", indx.si_name_prim.value);
+		LOG_ER("%s: lookup '%s' failed", __FUNCTION__, indx.si_name_prim.value);
 		goto done;
 	}
 
 	if (avd_si_si_dep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
 		/* Return value that record cannot be added due to cyclic dependency */
-		avd_log(NCSFL_SEV_ERROR, "cyclic dependency for '%s'", sidep_name->value);
+		LOG_ER("%s: cyclic dependency for '%s'", __FUNCTION__, sidep_name->value);
 		goto done;
 	}
 
@@ -1388,13 +1389,11 @@ SaAisErrorT avd_sidep_config_get(void)
 		NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize failed: %u", error);
+		LOG_ER("%s: saImmOmSearchInitialize failed: %u", __FUNCTION__, error);
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &sidep_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", sidep_name.value);
-
 		if (sidep_new(&sidep_name, attributes) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
