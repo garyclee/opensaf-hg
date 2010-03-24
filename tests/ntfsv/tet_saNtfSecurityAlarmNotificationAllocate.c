@@ -80,7 +80,6 @@ void saNtfSecurityAlarmNotificationAllocate_02(void) {
 					myNotificationAllocationParams.variableDataSize);
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-	    TRACE("Test: FAILED");
 	}
 
 	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion), SA_AIS_OK);
@@ -98,7 +97,6 @@ void saNtfSecurityAlarmNotificationAllocate_02(void) {
 					myNotificationAllocationParams.variableDataSize);
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-	    TRACE("Test: FAILED");
 	}
 
 	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_BAD_HANDLE;
