@@ -1,276 +1,232 @@
-#!/bin/bash 
-# Node Initialization Daemon startup/shutdown Script
+#!/bin/sh
 #
-
 ### BEGIN INIT INFO
-# Provides: opensaf
-# Required-Start:    $local_fs $network $syslog
-# Required-Stop:     $local_fs $network $syslog
-# Should-Start:
-# Should-Stop:
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Start OpenSAF services
-# Description: Start OpenSAF System Controller services 
-#         with HA role ACTIVE or STANDBY in the cluster. 
+# Provides: opensafd
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start and stop the OpenSAF node
+# Description: Start and stop the OpenSAF node
 ### END INIT INFO
 
-# Source the configuration file if it is present
-[ -r "/etc/opensaf/script.conf" ] && . "/etc/opensaf/script.conf"
-[ -r "/etc/opensaf/osafdir.conf" ] && . "/etc/opensaf/osafdir.conf"
+osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+prog="opensafd"
 
-# Log to syslog with tag and log to console with date
-# Cannot use -s to 'logger' since it will not give us date & time
-log()
-{
-    logger -t $SYSLOG_TAG $1
-    now=$(date)
-    echo "$now - $1"
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+if [ ! -r $osafdirfile ]; then
+	logger -t $prog "can't read $osafdirfile, exiting."
+	exit 6
+else
+	. $osafdirfile
+	. $pkgsysconfdir/nid.conf
+fi	
+
+binary=$pkglibdir/$prog
+lockfile=$pkglockdir/$prog
+amfnd_bin=$pkglibdir/osafamfnd
+amfnd_pid=$pkgpiddir/osafamfnd.pid
+
+OPENSAF_MANAGE_TIPC="yes"
+RETVAL=0
+
+unload_tipc() {
+	# FIXME: Once tipc scripts are cleaned
+	pkill -9 nid_tipc*
+
+  	# Unload TIPC if already loaded
+	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
+		modprobe -r tipc
+		if [ $? -eq 1 ]; then
+			logger -t $prog "TIPC module unloading failed"
+			exit 1
+		fi
+	fi
 }
 
-export LEAP_TMR_THREAD_RT=1
-export LEAP_THREADS_NON_RT=1
-export MDS_QUIESCED_TMR_VAL_IN_10MS=40
-
-AMF=osafamfnd
-DAEMON=ncs_nid
-DESC="Node Initialization Daemon"
-NIDPIDFILE="$PKGPIDDIR/nodeinit.pid"
-NISSTATUS="NONE"
-STATUS=0
-
-####################################################
-# NID_ROLE_CONFIG is for flexibility to configure
-# role for NID via environment variables in the
-# event RDE fails to provide a Role
-# For Active:  export NID_ROLE_CONFIG=ACTIVE
-# For standby: export NID_ROLE_CONFIG=STDBY
-####################################################
-export NID_ROLE_CONFIG="ACTIVE"
-
-if [ ! -x "$LIBPATH/$DAEMON" ]; then
-   log "NID Daemon Not Found. Did OpenSAF installation succeed?"
-   exit 1
-fi
-
-# Make sure this (Linux) system has POSIX shared memory configured
-if ! test -d /dev/shm; then
-    log "POSIX shared memory not enabled, exiting."
-    exit 1
-fi
-
-# Exit if tipc-config is not installed
-if [ ! -x "/sbin/tipc-config" ]; then
-  if ! which tipc-config >/dev/null 2>&1 ; then
-    log "Cannot find tipc-config, is TIPC properly installed?"
-    exit 2
-  fi
-fi
-
-# Function to start the services
-start()
-{
-  	### Remove TIPC if already installed.
-	if [ "$TIPC_MANAGE" == "YES" ] && grep tipc /proc/modules >& /dev/null;
-	then
-	  modprobe -r tipc
-	  if [ $? -eq 1 ]; then
-	    log "TIPC is already installed, Please
-	    remove TIPC module first..."
-	    exit 1
-	  fi
+check_tipc() {
+	# Exit if tipc-config is not installed
+	if [ ! -x /sbin/tipc-config ]; then
+		if [ which tipc-config >/dev/null 2>&1 ]; then
+			logger -t $prog "Can't find tipc-config in the PATH, exiting."
+			exit 5
+		fi
 	fi
 
-        ### Remove shared memory files created by OpenSAF services.
+	unload_tipc
+}
+
+check_env() {
+	# Make sure this kernel has POSIX shared memory configured
+	if [ ! -d /dev/shm ]; then
+		logger -t $prog "POSIX shared memory (/dev/shm) not enabled, exiting."
+		exit 6
+	fi
+	if [ ! -d /dev/shm/opensaf ]; then
+		mkdir -p /dev/shm/opensaf
+	fi
+
+	# Some distros store /var/lock, /var/run on tmpfs mounts and content gets cleaned
+	if [ ! -d $pkglockdir ]; then
+		mkdir -p $pkglockdir
+	fi
+	if [ ! -d $pkgpiddir ]; then
+		mkdir -p $pkgpiddir
+	fi
+
+	rm -f $pkglogdir/nid.log
+}
+
+clean_shm() {
+	# Remove shared memory files created by OpenSAF
 	if [ -d /dev/shm/opensaf ]; then
-	  rm -rf /dev/shm/opensaf
+		rm -rf /dev/shm/opensaf
 	fi
-	  
-	mkdir -p /dev/shm/opensaf
-
-	if [ -f "$NIDPIDFILE" ]; then
-	  log  "$LIBPATH/$DAEMON already running.."
-	  exit 1
-	fi
-
-	  log "Starting $DESC: $LIBPATH/$DAEMON" 
-
-        ####################################################
-        # NID_CONFIG_PATH is to configure the path for
-        # NID to pickup nodeinit.conf file
-        ####################################################
-	export NID_CONFIG_PATH="$PKGSYSCONFDIR"
-        export CONSOLE=/dev/tty
-
-        ####################################################
-        #  OpenSAF settings
-        ####################################################
-        if [ `ulimit -c` = 0 ]; then
-            ulimit -Sc $CORE_FILE_SIZE
-        fi
-
-        if [ $CORE_PATTERN_CURRENT = "core" ]; then
-            echo $CORE_PATTERN > /proc/sys/kernel/core_pattern
-        fi
-       
-        ####################################################################################                                 
-        # NCS_SIMULATION_CONFIG_ROOTDIR = This the directory from where node-configuration
-        # files are read. It is recognized only in SIM builds, where multiple-nodes need
-        # to be simulated on a single linux-desktop for testing purposes.
-        ####################################################################################
-	if [ ":$2" == ":" ]; then
-            NODE_NAME=""
-	    export NCS_SIMULATION_CONFIG_ROOTDIR="$PKGSYSCONFDIR"
-        else
-            NODE_NAME=$2
-            if [ -r "$PKGSYSCONFDIR"/"$2"]; then
-                export NCS_SIMULATION_CONFIG_ROOTDIR="$PKGSYSCONFDIR/$2"
-            else
-                log "ERROR: $PKGSYSCONFDIR/$2 not found"
-                exit 1
-            fi
-        fi
- 
-        ###  NCS_LOG_PATH = This the directory where OPENSAF logs are stored.
-        ###  It is recommended that this variable not be
-        ###  modified other than for SIMULATION mode.
-        if [ ":$3" == ":" ]; then
-            ### No explicit NCS_LOG_PATH argument.
-            ### Create it using NODE_NAME
-            export NCS_LOG_PATH="$pkglogdir/dtlog$NODE_NAME"
-            NCS_OLD_LOG_PATH="$pkglogdir/old_dtlog$NODE_NAME"
-        else
-            export NCS_LOG_PATH=$3
-        fi
-
-	if [ -e "$NCS_STDOUTS_PATH" ]; then
-            if [ -e "$OLD_STDOUTSPATH" ]; then
-               rm -rf "$OLD_STDOUTSPATH"
-            fi
-            mv "$NCS_STDOUTS_PATH" "$OLD_STDOUTSPATH"
-        fi
-
-        mkdir -p "$NCS_STDOUTS_PATH"
-	[ "$NODE_TYPE" == "controller" ] && mkdir -p "$NCS_LOG_PATH"
-
-        ######################################################
-        #  OpenSAF Settings END
-        #####################################################
-
-    rm -f "$NISPIPE"
-    touch $NISPIPE
-
-    "$LIBPATH/$DAEMON" > "$NISPIPE" &
-
-    # Wait a while for response
-    timeout=$INITTIMEOUT
-    while test $timeout -gt 0; do
-        sleep 1
-        if test -s $NISPIPE; then
-            NISSTATUS=`cat $NISPIPE`
-            timeout=0
-        else
-            timeout=$((timeout-1))
-        fi
-    done
-
-	rm -f "$NISPIPE"
-	if [ "${NISSTATUS}" != "SUCCESS" ]; then
-	  log "SERVICE Initialization Failed: $NISSTATUS"
-	  pkill -KILL -f "$LIBPATH/$DAEMON"
-	  rm -rf "$NISPIPE" "$NIDPIDFILE"
-	  exit 1
-	fi;
-	STATUS=0
-	log "OpenSAF Service Initialization Success";
-
-} #End of start()
-
-clean_the_rest()
-{
-  	pkill -9 nid >& /dev/null
-	pkill -9 osaf >& /dev/null
-	if [ "$TIPC_MANAGE" == "YES" ] && grep tipc /proc/modules >& /dev/null;
-	then
-	  sleep 2 # Give time for tipc to release.
-	  modprobe -r tipc
-	fi
-        rm -f "$NIDPIDFILE" "$SPCAPFIFO"
-        rm -rf /dev/shm/opensaf
 }
 
-# Function to stop the servcies
-stop()
-{
-    log "Stopping OpenSAF Services..."
+enable_coredump() {
+	core_size="unlimited"
+	core_pattern="/var/crash/opensaf/%e.%p"
 
-    STATUS="TIMEOUT"
+	if [ ! -d /var/crash/opensaf ]; then
+		mkdir -p /var/crash/opensaf
+	fi
 
-    # First Check if AMF is alive.
-    AMFPID=`pgrep -f "$LIBPATH"/"$AMF"`
+	if [ `ulimit -c` = 0 ]; then
+		ulimit -c $core_size
+	fi
+	echo $core_pattern > /proc/sys/kernel/core_pattern
+}
 
-    if [ -n "$AMFPID" ]; then
-        # AMF is alive
+final_clean() {
+	# Loop throught all the OpenSAF Services LSB init scripts to clean pid/lock
+	for cmd in $(ls $pkglibdir/osaf-*); do
+		$($cmd stop >/dev/null 2>&1);
+	done
 
-        # Create regular file for termination response from AMF
-        rm -f "$SPCAPFIFO"
-        touch "$SPCAPFIFO"
+	unload_tipc
+	clean_shm
 
-        # Request AMF to stop services gracefully by sending a signal to it.
-        kill -s SIGUSR1 $AMFPID 2>/dev/null
+	rm -f $lockfile
+	rm -f $NIDFIFO
+}
 
-        # Wait a while for response
-        timeout=$TERMTIMEOUT
-        while test $timeout -gt 0; do
-            sleep 1
-            if test -s "$SPCAPFIFO"; then
-                STATUS=`cat "$SPCAPFIFO"`
-                timeout=0
-            else
-                timeout=$((timeout-1))
-            fi
-        done
+start() {
+	logger -t $prog "Starting the OpenSAF HA Framework"
 
-        log "Hand Shake With AMF: $STATUS."
-    fi
+        [ -x $daemon ] || exit 5
 
-    if [ "${STATUS}" != "DONE" ]; then
-        # AMF is not alive, failed to responds on time or responded with an error
-        # If any remaining OpenSAF processes, kill them hard
-        log "Forced termination of OpenSAF processes."
-        clean_the_rest
-        STATUS=1
-    else
-        # Kill the miscellaneous & non-amf.
-        clean_the_rest
-        log "OpenSAF Services Termination Success."
-        STATUS=0
-    fi
+	check_tipc
+	check_env
 
-} # End of function stop()
+	# Uncomment if you want them enabled
+	#enable_coredump
+
+        echo -n "Starting $prog: "
+        start_daemon $binary $args
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		touch $lockfile
+		log_success_msg
+	else
+		final_clean
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+stop() {
+	logger -t $prog "Stopping the OpenSAF HA Framework"
+
+	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
+	echo -n "Stopping $prog: "
+	if [ -n "$amfpid" ]; then
+		killproc -p $amfnd_pid $amfnd_bin -USR1
+		RETVAL=$?
+	fi
+
+	final_clean
+
+       	if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+tryrestart() {
+	[ -e $lockfile ] && restart
+	return 0
+}
+
+reload() {
+        echo -n "Reloading $prog: "
+	log_warning_msg
+	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
+	return 3
+}
+
+forcereload() {
+	reload
+	restart
+	return 0
+}
+
+status() {
+	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
+	if [ -n "$amfpid" ]; then
+		amf-state siass ha
+		RETVAL=$?
+	else
+		echo "The OpenSAF HA Framework is not running"
+		RETVAL=3
+	fi
+
+	return $RETVAL
+}
 
 case "$1" in
   start)
-        start
-        ;;
-  stop)
-	  stop
+	start
+	RETVAL=$?
 	;;
-  restart|try-restart)
+  stop)
 	stop
-        sleep 2
-        start
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
         ;;
-  reload|force-reload)
-	echo "This option is currently not supported."
-        echo "."
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+        ;;
+  force-reload)
+	forcereload
+	RETVAL=$?
         ;;
   status)
+        status
+	RETVAL=$?
         ;;
   *)
-        echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}" >&2
-        exit 1
-        ;;
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
 esac
 
-exit $STATUS
+exit $RETVAL

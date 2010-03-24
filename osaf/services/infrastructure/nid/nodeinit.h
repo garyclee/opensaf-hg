@@ -15,16 +15,14 @@
  *
  */
 
-#include <configmake.h>
-
 /*****************************************************************************
 ..............................................................................
 
   ..............................................................................
 
   DESCRIPTION:
-  This file contains the definitaions and declarations local to nodeinitd.
-  This file is intended to be used only by nodeinitd.
+  This file contains the definitaions and declarations local to opensafd.
+  This file is intended to be used only by opensafd.
   
 ******************************************************************************
 */
@@ -32,16 +30,11 @@
 #ifndef NODEINIT_H
 #define NODEINIT_H
 
-#include "nid_api.h"
-#include "ncs_log.h"
-#include "saAmf.h"
+#include <configmake.h>
+#include <nid_api.h>
+#include <ncs_log.h>
 
-/****************************************************************
-*      Log levels for nodeinitd                                 *
-****************************************************************/
-#define NID_LOG2CONS        3
-#define NID_LOG2FILE        2
-#define NID_LOG2FILE_CONS   1
+#include <saAmf.h>
 
 /****************************************************************
 *      MAX limits used for fields in nodeinit.conf entries      *
@@ -56,13 +49,7 @@
 #define NID_MAX_RESP_LEN             1
 #define NID_MAX_REST_LEN             1
 
-#define NID_PLAT_CONF_PATH          PKGSYSCONFDIR
-#define NID_PLAT_CONF               "nodeinit.conf"
-#define NID_NCSLOGPATH              PKGLOCALSTATEDIR "/stdouts"
-#define NID_PID_FILE                PKGPIDDIR "/nodeinit.pid"
-#define NID_RUNNING_DIR             "/"
-#define NID_CNSL                    "/dev/console"
-#define NID_VT_MASTER               "/dev/tty0"
+#define NID_PLAT_CONF	PKGSYSCONFDIR "/nodeinit.conf"
 
 /*******************************************************************
 *       States Used While Parsing nodeinit.conf                    *
@@ -70,8 +57,8 @@
 typedef enum nid_platconf_pars {
 	NID_PLATCONF_SFILE,
 	NID_PLATCONF_SNAME,
-	NID_PLATCONF_CLNUP,
-	NID_PLATCONF_APPTYP,
+	NID_PLATCONF_CLEANUP,
+	NID_PLATCONF_APPTYPE,
 	NID_PLATCONF_TOUT,
 	NID_PLATCONF_PRIO,
 	NID_PLATCONF_RSP,
@@ -97,7 +84,7 @@ typedef enum nid_app_type {
 	NID_APPERR = -1,
 	NID_EXEC = 0,
 	NID_SCRIPT,
-	NID_DAEMN,
+	NID_DAEMON,
 	NID_MAXEXECTYP
 } NID_APP_TYPE;
 
@@ -113,12 +100,12 @@ typedef enum nid_recovery_opt {
 typedef struct nid_spawn_info NID_SPAWN_INFO;
 
 typedef uns32 (*NID_FUNC) (NID_SPAWN_INFO *, char *);
-typedef int32 (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *, char *);
+typedef int32 (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *);
 
-/*****************************************************************
- *       Structures Used by nodeinitd to store the parsed info   *
- *       from PKGSYSCONFDIR/nodeinit.conf, and used while    *
- *       spawning                                                *
+/******************************************************************
+ *       Structures Used by opensafd to store the parsed info     *
+ *       from PKGSYSCONFDIR/nodeinit.conf, and used while         *
+ *       spawning                                                 *
  *****************************************************************/
 typedef struct nid_recovery_list {
 	uns32 retry_count;	/* Retry count against each action */

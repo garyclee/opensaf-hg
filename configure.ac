@@ -659,7 +659,6 @@ AC_CONFIG_FILES([
         Makefile
         opensaf.spec
         Doxyfile
-        config/script.conf
         java/Makefile
         java/ais_api/Makefile
         java/ais_api_impl/Makefile

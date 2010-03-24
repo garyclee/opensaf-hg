@@ -25,8 +25,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          plmc_d
-# Required-Start:    $local_fs $network $syslog
-# Required-Stop:     $local_fs $network $syslog
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
 ### END INIT INFO
 # chkconfig: 2345 99 01
 # description: plmc_main starts/stops the plmc_d daemon to enable PLMc operations on an OpenSAF node.

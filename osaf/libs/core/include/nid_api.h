@@ -15,8 +15,6 @@
  *
  */
 
-#include <configmake.h>
-
 /*****************************************************************************
 ..............................................................................
 
@@ -32,6 +30,8 @@
 
 #ifndef NID_API_H
 #define NID_API_H
+
+#include <configmake.h>
 
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"

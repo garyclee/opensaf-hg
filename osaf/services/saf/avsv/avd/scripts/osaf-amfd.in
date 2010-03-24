@@ -2,8 +2,8 @@
 #
 ### BEGIN INIT INFO
 # Provides: osafamfd
-# Required-Start: $local_fs $network $syslog
-# Required-Stop: $local_fs $network $syslog
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
 # Should-Start: 
 # Should-Stop: 
 # Default-Start: 
@@ -23,7 +23,7 @@ if [ ! -r $osafdirfile ]; then
 	exit 6
 else
 	. $osafdirfile
-	. $pkgsysconfdir/script.conf
+	. $pkgsysconfdir/nid.conf
 	. $pkgsysconfdir/amfd.conf
 fi	
 
@@ -38,12 +38,12 @@ RETVAL=0
 NIDSERV="AMFD"
 
 start() {
+	[ -p $NIDFIFO ] || exit 1
         if [ ! -x $binary ]; then
 		echo "$NID_MAGIC:$NIDSERV:$DAEMON_NOT_FND" > $NIDFIFO
 		exit 5
 	fi
         echo -n "Starting $prog: "
-	rm -f $pidfile
         start_daemon -p $pidfile $binary $args
         RETVAL=$?
         if [ $RETVAL -eq 0 ]; then

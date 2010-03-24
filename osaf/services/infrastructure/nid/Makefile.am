@@ -21,17 +21,17 @@ MAINTAINERCLEANFILES = Makefile.in
 SUBDIRS = config scripts
 
 noinst_HEADERS = \
-	node_init.h
+	nodeinit.h
 
-pkglib_PROGRAMS = ncs_nid
+pkglib_PROGRAMS = opensafd
 
-ncs_nid_CPPFLAGS = \
-	-DNID_LINUX_PC -DNCS_SAF=1 \
+opensafd_CPPFLAGS = \
+	-DNCS_SAF=1 \
 	$(AM_CPPFLAGS)
 
-ncs_nid_SOURCES = \
+opensafd_SOURCES = \
 	nodeinit.c
 
-ncs_nid_LDADD = \
+opensafd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

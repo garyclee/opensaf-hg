@@ -18,9 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
 dist_pkgimmxml_svc_DATA = \
 	cpsv_sc_template.xml \
 	cpsv_pl_template.xml \
 	cpsv_classes.xml \
 	cpsv_objects.xml
+
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/saf/cpsv/config/ckptd.conf \
+	$(top_srcdir)/osaf/services/saf/cpsv/config/ckptnd.conf

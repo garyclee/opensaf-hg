@@ -26,12 +26,14 @@
 * library.                                                              *
 ************************************************************************/
 
-#include "nid_api.h"
+#include <configmake.h>
+
+#include <nid_api.h>
 
 /****************************************************************
 *       FIFO Used To communicate to nodeinitd                  *
 ****************************************************************/
-#define NID_FIFO                "/tmp/nodeinit.fifo"
+#define NID_FIFO	PKGLOCALSTATEDIR "/nodeinit.fifo"
 
 int32 fifo_fd = -1;
 
@@ -49,15 +51,10 @@ int32 fifo_fd = -1;
  ***************************************************************************/
 uns32 nid_create_ipc(char *strbuf)
 {
-
-   /******************************************************
-   *    Lets Remove any such file if it already exists*
-   ******************************************************/
+	/* Lets Remove any such file if it already exists */
 	unlink(NID_FIFO);
 
-   /******************************************************
-   *    Create nid fifo                               *
-   ******************************************************/
+	/* Create nid fifo */
 	if (mkfifo(NID_FIFO, 0600) < 0) {
 		sprintf(strbuf, " FAILURE: Unable To Create FIFO Error:%s\n", strerror(errno));
 		return NCSCC_RC_FAILURE;
@@ -80,15 +77,14 @@ uns32 nid_create_ipc(char *strbuf)
  ***************************************************************************/
 uns32 nid_open_ipc(int32 *fd, char *strbuf)
 {
-
-   /******************************************************
-   *    Try to open FIFO if its not already open         *
-   ******************************************************/
-	if (fifo_fd < 0)
+	/* Try to open FIFO if its not already open */
+	if (fifo_fd < 0) {
 		if ((fifo_fd = open(NID_FIFO, O_RDWR | O_NONBLOCK)) < 0) {
 			sprintf(strbuf, "NID FAILURE: Unable To Open FIFO Error:%s\n", strerror(errno));
 			return NCSCC_RC_FAILURE;
 		}
+	}
+
 	*fd = fifo_fd;
 	return NCSCC_RC_SUCCESS;
 }
@@ -106,7 +102,6 @@ uns32 nid_open_ipc(int32 *fd, char *strbuf)
  ***************************************************************************/
 void nid_close_ipc(void)
 {
-
 	close(fifo_fd);
 	fifo_fd = -1;
 }
@@ -126,5 +121,6 @@ uns32 nid_is_ipcopen(void)
 {
 	if (fifo_fd < 0)
 		return NCSCC_RC_FAILURE;
+
 	return NCSCC_RC_SUCCESS;
 }

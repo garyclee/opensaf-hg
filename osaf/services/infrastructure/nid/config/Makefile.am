@@ -20,7 +20,8 @@ MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
 	$(top_srcdir)/osaf/services/infrastructure/nid/config/nodeinit.conf.controller \
-	$(top_srcdir)/osaf/services/infrastructure/nid/config/nodeinit.conf.payload
+	$(top_srcdir)/osaf/services/infrastructure/nid/config/nodeinit.conf.payload \
+	$(top_srcdir)/osaf/services/infrastructure/nid/config/nid.conf
 
 set-default-node-config:
 	@echo "*** Setting default controller node configuration ***"
