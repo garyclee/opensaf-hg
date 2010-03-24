@@ -104,7 +104,7 @@ uns32 avd_compcstype_find_match(const AVD_CSI *csi, const AVD_COMP *comp)
 	SaNameT dn;
 
 	avsv_create_association_class_dn(&csi->saAmfCSType, &comp->comp_info.name, "safSupportedCsType", &dn);
-	avd_trace("'%s'", dn.value);
+	TRACE("'%s'", dn.value);
 	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uns8 *)&dn);
 
 	if (cst != NULL)
@@ -393,7 +393,7 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
-	avd_trace("%s", objectName->value);
+	TRACE("%s", objectName->value);
 	assert(cst != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {

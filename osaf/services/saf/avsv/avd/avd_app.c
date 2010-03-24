@@ -417,7 +417,7 @@ static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	assert(app != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
-		avd_trace("Attribute %s", attributeName);
+		TRACE("Attribute %s", attributeName);
 		if (!strcmp(attributeName, "saAmfApplicationCurrNumSGs")) {
 			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &app->saAmfApplicationCurrNumSGs);

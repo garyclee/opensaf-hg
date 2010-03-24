@@ -338,18 +338,3 @@ void _avd_log(uns8 severity, const char *function, const char *format, ...)
 	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_GENLOG, AVD_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
 }
 
-void _avd_trace(const char *file, unsigned int line, const char *format, ...)
-{
-	char preamble[64];
-	char str[128];
-	va_list ap;
-
-	va_start(ap, format);
-	snprintf(preamble, sizeof(preamble), "%s:%04u %s", file, line, format);
-	vsnprintf(str, sizeof(str), preamble, ap);
-	va_end(ap);
-
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_GENLOG, AVD_FC_GENLOG,
-		   NCSFL_LC_HEADLINE, trace_severity, NCSFL_TYPE_TC, str);
-}
-

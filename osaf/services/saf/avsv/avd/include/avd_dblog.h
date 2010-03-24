@@ -247,7 +247,6 @@ typedef enum avd_log_ids {
 } AVD_LOG_IDS;
 
 #define avd_log(severity, format, args...) _avd_log((severity), __FUNCTION__, (format), ##args)
-#define avd_trace(format, args...) _avd_trace(__FILE__, __LINE__, (format), ##args)
 
 #define m_AVD_LOG_FUNC_ENTRY(func_name) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN, AVD_FC_HDLN, NCSFL_LC_FUNC_ENTRY, NCSFL_SEV_DEBUG, NCSFL_TYPE_TIC,AVD_ENTERED_FUNC,func_name)
 
@@ -361,6 +360,5 @@ void avd_pxy_pxd_log(uns32 sev, uns32 index, char *info, SaNameT *comp_name,
 		     uns32 info1, uns32 info2, uns32 info3, uns32 info4);
 
 extern void _avd_log(uns8 severity, const char *function, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
-extern void _avd_trace(const char *file, unsigned int line, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
 #endif   /* AVD_DBLOG_H */
