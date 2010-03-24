@@ -127,7 +127,6 @@ typedef struct avd_avnd_tag {
 					 */
 	NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
 					 * from this node */
-	AVD_TMR heartbeat_rcv_avnd;	/* The timer for receiving the heartbeat from AvND */
 
 	AVSV_AVND_CARD type;	/* field that describes if this node is sytem
 				 * controller or not.
@@ -142,7 +141,6 @@ typedef struct avd_avnd_tag {
 				 * Checkpointing - Sent independent update 
 				 */
 
-	NCS_BOOL hrt_beat_rcvd;	/* Boolean Showing First heart beat recevied from AvND */
 	struct avd_avnd_tag *cluster_list_node_next;
 	struct avd_cluster_tag *node_on_cluster;
 	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */

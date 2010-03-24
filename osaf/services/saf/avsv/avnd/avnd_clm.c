@@ -52,7 +52,6 @@ static void clm_node_left(SaClmNodeIdT node_id)
 	   terminate all the non_ncs components; ncs components :-TBD */
 	   
 		LOG_NO("This node has exited the cluster");
-		avnd_stop_tmr(avnd_cb, &(avnd_cb->hb_tmr));
 		avnd_cb->node_info.member = SA_FALSE;
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)0);
 		while( comp != NULL ) {
@@ -131,7 +130,7 @@ static void clm_to_amf_node()
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &amfdn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if ((immutil_getAttr("saAmfNodeClmNode", attributes, 0, &clmdn) == SA_AIS_OK) && 
-		   (strncmp(avnd_cb->node_info.nodeName.value, clmdn.value, clmdn.length) == 0)) {
+		   (strncmp((char*)avnd_cb->node_info.nodeName.value, (char*)clmdn.value, clmdn.length) == 0)) {
 			memcpy(&(avnd_cb->amf_nodeName), &(amfdn), sizeof(SaNameT));
 			break;
 		} 
@@ -162,18 +161,11 @@ uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 
 	info = &evt->info.avd->msg_info.d2n_clm_node_up;
 
-   /*** update this node with the supplied parameters ***/
+	/*** update this node with the supplied parameters ***/
 	cb->type = info->node_type;
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;
-	cb->hb_intv = info->snd_hb_intvl;
 
-	/* initiate heartbeat process */
-	rc = avnd_di_hb_send(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
- done:
 	return rc;
 }
 
@@ -229,10 +221,6 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					clm_to_amf_node();
 					avnd_send_node_up_msg();
 					avnd_cb->first_time_up = SA_FALSE;
-				} else {
-					/* start hb send again */
-					avnd_di_hb_send(avnd_cb);
-					LOG_NO("The node is already up");
 				}
 			}
 		}
@@ -251,7 +239,7 @@ static const SaClmCallbacksT_4 callbacks = {
         .saClmClusterTrackCallback = clm_track_cb
 };
 
-SaAisErrorT avnd_clm_init()
+SaAisErrorT avnd_clm_init(void)
 {
         SaAisErrorT error = SA_AIS_OK;
         SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY;
@@ -279,7 +267,7 @@ done:
         return error;
 }
 
-SaAisErrorT avnd_clm_stop()
+SaAisErrorT avnd_clm_stop(void)
 {
         SaAisErrorT error = SA_AIS_OK;
 	TRACE_ENTER();

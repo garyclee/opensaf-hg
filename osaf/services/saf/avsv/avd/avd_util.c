@@ -16,26 +16,10 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file contains the utility functions for creating
   messages provided by communication interface module and used by both
   itself and the other modules in the AVD.
-
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  avd_snd_op_req_msg - Prepares and sends operation request message.
-  avd_prep_hlth_info - Prepares health info part of the health check message.
-  avd_snd_hlt_msg - Prepares and sends health check data message.
-  avd_prep_su_comp_info - Prepares SU info and comp info which are part of
-                          the SU message and component message respectively.
-  avd_snd_su_comp_msg - Prepares and sends SU and comp messages.
-  avd_snd_susi_msg - Prepares and sends SUSI message.
-
   
 ******************************************************************************
 */
@@ -226,8 +210,6 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *i_avnd = NULL;
-	SaClmNodeIdT i_nodeid = 0;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_up_msg");
 
@@ -254,7 +236,6 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UP_MSG;
 	d2n_msg->msg_info.d2n_clm_node_up.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_clm_node_up.node_type = avnd->type;
-	d2n_msg->msg_info.d2n_clm_node_up.snd_hb_intvl = cb->snd_hb_intvl;
 	d2n_msg->msg_info.d2n_clm_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 	d2n_msg->msg_info.d2n_clm_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 
@@ -274,55 +255,6 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 
 	return NCSCC_RC_SUCCESS;
 
-}
-
-/*****************************************************************************
- * Function: avd_snd_hbt_info_msg
- *
- * Purpose:  This function prepares the heartbeat information message.
- * It then broadcasts the message to all the node directors.
- *
- * Input: cb - Pointer to the AVD control block
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_snd_hbt_info_msg(AVD_CL_CB *cb)
-{
-	AVD_DND_MSG *d2n_msg;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_hbt_info_msg");
-
-	/* prepare the heartbeat info message. */
-	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the heartbeat info message */
-	d2n_msg->msg_type = AVSV_D2N_INFO_HEARTBEAT_MSG;
-	d2n_msg->msg_info.d2n_info_hrt_bt.snd_hb_intvl = cb->snd_hb_intvl;
-
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_INFO_HEARTBEAT_MSG, 0);
-
-	if (avd_d2n_msg_bcast(cb, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to broad cast */
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		free(d2n_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-	free(d2n_msg);
-
-	/* done sending the message return success */
-	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************

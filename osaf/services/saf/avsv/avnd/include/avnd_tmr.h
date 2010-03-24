@@ -38,7 +38,6 @@ struct avnd_cb_tag;
 typedef enum avnd_tmr_type {
 	AVND_TMR_HC = 1,	/* health check timer */
 	AVND_TMR_CBK_RESP,	/* callback response timer */
-	AVND_TMR_HB,		/* heart beat timer */
 	AVND_TMR_MSG_RSP,	/* message response timer */
 	AVND_TMR_CLC_COMP_REG,	/* CLC comp register timer */
 	AVND_TMR_SU_ERR_ESC,	/* su error escalation timer */
@@ -97,15 +96,6 @@ typedef struct avnd_tmr {
 /* Macro to stop the comp-reg timer */
 #define m_AVND_TMR_COMP_REG_STOP(cb, comp) \
             avnd_stop_tmr ((cb), &(comp).clc_info.clc_reg_tmr);
-
-/* Macro to start the heartbeat timer */
-#define m_AVND_TMR_HB_START(cb, rc) \
-            (rc) = avnd_start_tmr((cb), &(cb)->hb_tmr, AVND_TMR_HB, \
-                                  (cb)->hb_intv, 0);
-
-/* Macro to stop the heartbeat timer */
-#define m_AVND_TMR_HB_STOP(cb) \
-            avnd_stop_tmr((cb), &(cb)->hb_tmr);
 
 /* Macro to start the msg response timer */
 #define m_AVND_TMR_MSG_RESP_START(cb, rec, rc) \

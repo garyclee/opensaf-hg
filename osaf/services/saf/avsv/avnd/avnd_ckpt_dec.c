@@ -35,6 +35,7 @@
  * Module Inclusion Control...
  */
 
+#include <ncsencdec_pub.h>
 #include "avnd.h"
 #include "avnd_ckpt_edu.h"
 

@@ -54,14 +54,12 @@
 char *avnd_evt_type_name[] = {
 	"AVND_EVT_INVALID",
 	"AVND_EVT_AVD_NODE_UP_MSG",
-	"AVND_EVT_AVD_REG_HLT_MSG",
 	"AVND_EVT_AVD_REG_SU_MSG",
 	"AVND_EVT_AVD_REG_COMP_MSG",
 	"AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG",
 	"AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG",
 	"AVND_EVT_AVD_PG_UPD_MSG",
 	"AVND_EVT_AVD_OPERATION_REQUEST_MSG",
-	"AVND_EVT_AVD_HB_INFO_MSG",
 	"AVND_EVT_AVD_SU_PRES_MSG",
 	"AVND_EVT_AVD_VERIFY_MSG",
 	"AVND_EVT_AVD_ACK_MSG",
@@ -87,7 +85,6 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_AVA_RESP",
 	"AVND_EVT_TMR_HC",
 	"AVND_EVT_TMR_CBK_RESP",
-	"AVND_EVT_TMR_SND_HB",
 	"AVND_EVT_TMR_RCV_MSG_RSP",
 	"AVND_EVT_TMR_CLC_COMP_REG",
 	"AVND_EVT_TMR_SU_ERR_ESC",
@@ -117,19 +114,16 @@ static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt);
 /* list of all the function pointers related to handling the events
 */
 const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
-	/* invalid event */
 	avnd_evt_invalid_func,	/* AVND_EVT_INVALID */
 
 	/* AvD message event types */
 	avnd_evt_avd_node_up_msg,	/* AVND_EVT_AVD_NODE_UP_MSG */
-	NULL,				/* AVND_EVT_AVD_REG_HLT_MSG */
 	avnd_evt_avd_reg_su_msg,	/* AVND_EVT_AVD_REG_SU_MSG */
 	avnd_evt_avd_reg_comp_msg,	/* AVND_EVT_AVD_REG_COMP_MSG */
 	avnd_evt_avd_info_su_si_assign_msg,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
 	avnd_evt_avd_pg_track_act_rsp_msg,	/* AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG */
 	avnd_evt_avd_pg_upd_msg,	/* AVND_EVT_AVD_PG_UPD_MSG */
 	avnd_evt_avd_operation_request_msg,	/* AVND_EVT_AVD_OPERATION_REQUEST_MSG */
-	avnd_evt_avd_hb_info_msg,	/* AVND_EVT_AVD_HB_INFO_MSG */
 	avnd_evt_avd_su_pres_msg,	/* AVND_EVT_AVD_SU_PRES_MSG */
 	avnd_evt_avd_verify_message,	/* AVND_EVT_AVD_VERIFY_MSG */
 	avnd_evt_avd_ack_message,	/* AVND_EVT_AVD_ACK_MSG */
@@ -159,7 +153,6 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	/* timer event types */
 	avnd_evt_tmr_hc,	/* AVND_EVT_TMR_HC */
 	avnd_evt_tmr_cbk_resp,	/* AVND_EVT_TMR_CBK_RESP */
-	avnd_evt_tmr_snd_hb,	/* AVND_EVT_TMR_SND_HB */
 	avnd_evt_tmr_rcv_msg_rsp,	/* AVND_EVT_TMR_RCV_MSG_RSP */
 	avnd_evt_tmr_clc_comp_reg,	/* AVND_EVT_TMR_CLC_COMP_REG */
 	avnd_evt_tmr_su_err_esc,	/* AVND_EVT_TMR_SU_ERR_ESC */
@@ -432,11 +425,6 @@ done:
 
 static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt)
 {
-
-	/* This function should never be called
-	 * log the event to the debug log and return
-	 */
-	assert(0);
-
+	LOG_NO("avnd_evt_invalid_func: %u", evt->type);
 	return NCSCC_RC_SUCCESS;
 }

@@ -127,17 +127,10 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 	if (avnd->node_info.nodeId == cb->node_id_avd) {
 		ncs_reboot("A reset has been trigerred for this node");
 	} else if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
-
-		/* clean up the heartbeat timer for this node. */
-		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
 		avd_avm_mark_nd_absent(cb, avnd);
 	}
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -294,12 +287,6 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		    (avnd->node_state == AVD_AVND_STATE_NO_CONFIG) || (avnd->node_state == AVD_AVND_STATE_NCS_INIT)) {
 			tmpNode = tmpNode->next;
 
-			if (avnd->type != AVSV_AVND_CARD_SYS_CON) {
-				m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-				/* clean up the heartbeat timer for this node. */
-				avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-				m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-			}
 			/* Mark the Node as Shutting Down */
 			avd_node_state_set(avnd, AVD_AVND_STATE_SHUTTING_DOWN);
 
@@ -557,18 +544,8 @@ void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs
 			i_su = i_su->avnd_list_su_next;
 		}
 		/* If we are here we walked thru the entire list and found it empty 
-		 ** All the ncs_sus are now unassigned. now stop heartbeating with AvND
-		 ** If the AvND is SYSCON stop AvD-AvD HeartBeat and send
-		 ** response to AvM
+		 ** All the ncs_sus are now unassigned.
 		 */
-
-		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-
-		/* stop the timer if it exists */
-		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
 		avd_avm_mark_nd_absent(cb, avnd);
 	}			/* End is_ncs == TRUE */
 
@@ -763,14 +740,6 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (avnd->node_info.nodeId == cb->node_id_avd) {
 		ncs_reboot("A reset has been trigerred for this node");
 	} else if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
-
-		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-
-		/* clean up the heartbeat timer for this node. */
-		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-
-		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
 		avd_avm_mark_nd_absent(cb, avnd);
 	}
 
@@ -855,13 +824,6 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				/* If this was not when the node_state is shutting down
 				 ** do necessary clean-up
 				 */
-				m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-
-				/* clean up the heartbeat timer for this node. */
-				avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
-
-				m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-
 				avd_avm_mark_nd_absent(cb, avnd);
 			}
 

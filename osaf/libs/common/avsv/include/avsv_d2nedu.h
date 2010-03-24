@@ -45,12 +45,6 @@ EXTERN_C uns32 avsv_edp_clm_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 EXTERN_C uns32 avsv_edp_clm_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				     NCSCONTEXT ptr, uns32 *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_hlt_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
-				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_hlt_key_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
-					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 EXTERN_C uns32 avsv_edp_su_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uns32 *ptr_data_len,

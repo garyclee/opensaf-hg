@@ -40,8 +40,6 @@ typedef enum avd_tmr_type {
 	AVD_TMR_SND_HB,		/* heart beat send timer */
 	AVD_TMR_RCV_HB_D,	/* heart beat receive from other
 				 * director timer */
-	AVD_TMR_RCV_HB_ND,	/* heart beat receive from Node
-				 * director timer */
 	AVD_TMR_RCV_HB_INIT,	/* heart beat received from other
 				 * director during init phase timer */
 	AVD_TMR_CL_INIT,	/* This is the AvD initialisation 
@@ -61,17 +59,6 @@ typedef struct avd_tmr_tag {
 	SaNameT dep_si_name;
 	NCS_BOOL is_active;
 } AVD_TMR;
-
-/* macro to start the heart beat timer. The cb and avnd structures
- * are the inputs.
- */
-#define m_AVD_HB_TMR_START(cb,avnd) \
-{\
-   avnd->heartbeat_rcv_avnd.is_active = FALSE; \
-   avnd->heartbeat_rcv_avnd.node_id = avnd->node_info.nodeId; \
-   avnd->heartbeat_rcv_avnd.type = AVD_TMR_RCV_HB_ND; \
-   avd_start_tmr(cb,&(avnd->heartbeat_rcv_avnd),cb->rcv_hb_intvl); \
-}
 
 /* macro to start the cluster init timer. The cb structure
  * is the input.

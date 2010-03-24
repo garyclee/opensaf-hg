@@ -102,7 +102,6 @@ EXTERN_C uns32 avd_snd_node_up_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *av
 EXTERN_C uns32 avd_snd_presence_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, NCS_BOOL term_state);
 EXTERN_C uns32 avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uns32 msg_id_ack);
 EXTERN_C uns32 avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
-EXTERN_C uns32 avd_snd_hbt_info_msg(struct cl_cb_tag *cb);
 EXTERN_C uns32 avd_snd_su_comp_msg(struct cl_cb_tag *cb,
 				   struct avd_avnd_tag *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over);
 EXTERN_C uns32 avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);

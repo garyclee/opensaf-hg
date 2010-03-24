@@ -93,11 +93,8 @@ uns32 avnd_evt_avd_verify_message(AVND_CB *cb, AVND_EVT *evt)
 	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, AVND_LOG_FOVR_VERIFY_MSG_RCVD, NCSCC_RC_SUCCESS);
 
 	rcv_id = info->rcv_id_cnt;
-	/*
-	 * Update some of the fields sent along with the verify message.
-	 */
-	cb->hb_intv = info->snd_hb_intvl;
 
+	/* Update some of the fields sent along with the verify message. */
 	/* Send operation response for these two..TBD - Parag */
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;

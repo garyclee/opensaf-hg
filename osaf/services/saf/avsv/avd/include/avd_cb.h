@@ -49,14 +49,10 @@
 struct avd_avnd_tag;
 
 typedef enum {
-	AVD_INIT_BGN,
-	AVD_CFG_READY,
-	AVD_CFG_DONE,
-	AVD_ROLE_CHG_RDY,
-	AVD_RESTART,
-	AVD_INIT_DONE,
-	AVD_APP_STATE,
-	AVD_INIT_STATE_MAX
+	AVD_INIT_BGN = 1,
+	AVD_CFG_DONE,  /* Configuration successfully read from IMM */
+	AVD_INIT_DONE, /* OpenSAF SUs assigned on active controller */
+	AVD_APP_STATE  /* Cluster startup timer has expired */
 } AVD_INIT_STATE;
 
 /*

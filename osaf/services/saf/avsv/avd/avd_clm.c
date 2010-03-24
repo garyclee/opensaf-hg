@@ -154,8 +154,6 @@ static void clm_node_exit_complete(AVD_AVND *node)
 	/*Currently since middleware components are considered to be up
 	 you cannot mark the node as absent :- TBD*/
 	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
-	/* stop the heart beat timer */
-	avd_stop_tmr(avd_cb, &(node->heartbeat_rcv_avnd));
 }
 
 static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBuffer,
@@ -246,11 +244,10 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				   SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 				   in saClmClusterTrack call so update the local database */
 				/* get the first node */
-				SaClmClusterNodeT_4 *clmNode = &(notifItem->clusterNode);
 				node = avd_node_getnext(NULL);
 				while (node != NULL && 
-					0 != strncmp(node->saAmfNodeClmNode.value,
-						notifItem->clusterNode.nodeName.value,
+					0 != strncmp((char*)node->saAmfNodeClmNode.value,
+						(char*)notifItem->clusterNode.nodeName.value,
 						notifItem->clusterNode.nodeName.length))
 				{
 					node = avd_node_getnext(&node->name);

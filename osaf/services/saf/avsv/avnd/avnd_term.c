@@ -87,11 +87,6 @@ static void avnd_last_step_clean(AVND_CB *cb)
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}			/* end while SU */
 
-	if (m_AVND_IS_AVD_HB_ON(cb)) {
-		/* stop the current hb-tmr */
-		m_AVND_TMR_HB_STOP(cb);
-	}
-
 	/* Mark the destroy flag */
 	cb->destroy = TRUE;
 }
@@ -172,15 +167,9 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 			 ** we are DONE. Inform NIS the same. 
 			 */
 
-			if (m_AVND_IS_AVD_HB_ON(cb)) {
-				/* stop the current hb-tmr */
-				m_AVND_TMR_HB_STOP(cb);
-			}
-
 			/* Mark the destroy flag */
 			cb->destroy = TRUE;
 		}
-
 	}
 
 	return rc;

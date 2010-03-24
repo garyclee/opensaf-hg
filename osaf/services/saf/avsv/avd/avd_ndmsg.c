@@ -427,23 +427,7 @@ uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 
 	m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT, evt->rcv_evt);
 
-	if (evt->rcv_evt == AVD_EVT_HEARTBEAT_MSG) {
-		if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
-		    != NCSCC_RC_SUCCESS) {
-			m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-			/* log error */
-			/* free the message */
-			avsv_dnd_msg_free(rcv_msg);
-			evt->info.avnd_msg = NULL;
-			/* free the event and return */
-			free(evt);
-
-			return NCSCC_RC_FAILURE;
-		}
-
-	} /* evt->rcv_evt == AVD_EVT_HEARTBEAT_MS */
-	else if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
-		 != NCSCC_RC_SUCCESS) {
+	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
 		/* log error */
 		/* free the message */

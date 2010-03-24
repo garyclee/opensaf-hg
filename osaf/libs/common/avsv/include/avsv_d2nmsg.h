@@ -57,11 +57,8 @@ typedef enum {
 
 typedef enum {
 	AVSV_N2D_CLM_NODE_UP_MSG = 1,
-	AVSV_N2D_REG_HLT_MSG,	/* This message is sent if the d2n was a unicast message
-				   and not a broadcast message. */
 	AVSV_N2D_REG_SU_MSG,
 	AVSV_N2D_REG_COMP_MSG,
-	AVSV_N2D_HEARTBEAT_MSG,
 	AVSV_N2D_OPERATION_STATE_MSG,
 	AVSV_N2D_INFO_SU_SI_ASSIGN_MSG,
 	AVSV_N2D_PG_TRACK_ACT_MSG,
@@ -70,14 +67,12 @@ typedef enum {
 	AVSV_N2D_SHUTDOWN_APP_SU_MSG,
 	AVSV_N2D_VERIFY_ACK_NACK_MSG,
 	AVSV_D2N_CLM_NODE_UP_MSG,
-	AVSV_D2N_REG_HLT_MSG,	/* This message needs ack if addressed to only one node */
 	AVSV_D2N_REG_SU_MSG,
 	AVSV_D2N_REG_COMP_MSG,
 	AVSV_D2N_INFO_SU_SI_ASSIGN_MSG,
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG,
 	AVSV_D2N_PG_UPD_MSG,
 	AVSV_D2N_OPERATION_REQUEST_MSG,
-	AVSV_D2N_INFO_HEARTBEAT_MSG,
 	AVSV_D2N_PRESENCE_SU_MSG,
 	AVSV_D2N_DATA_VERIFY_MSG,
 	AVSV_D2N_DATA_ACK_MSG,
@@ -352,13 +347,6 @@ typedef struct avsv_n2d_clm_node_up_msg_info_tag {
 	MDS_DEST adest_address;
 } AVSV_N2D_CLM_NODE_UP_MSG_INFO;
 
-typedef struct avsv_n2d_reg_hlt_msg_info_tag {
-	uns32 msg_id;
-	SaClmNodeIdT node_id;
-	struct avsv_hlt_key_tag hltchk_name;
-	uns32 error;
-} AVSV_N2D_REG_HLT_MSG_INFO;
-
 typedef struct avsv_n2d_comp_validation_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
@@ -391,10 +379,6 @@ typedef struct avsv_n2d_reg_comp_msg_info_tag {
 	SaNameT comp_name;
 	uns32 error;
 } AVSV_N2D_REG_COMP_MSG_INFO;
-
-typedef struct avsv_n2d_heartbeat_msg_info_tag {
-	SaClmNodeIdT node_id;
-} AVSV_N2D_HEARTBEAT_MSG_INFO;
 
 typedef struct avsv_n2d_operation_state_msg_info_tag {
 	uns32 msg_id;
@@ -447,24 +431,9 @@ typedef struct avsv_n2d_verify_ack_nack_msg_info {
 typedef struct avsv_d2n_clm_node_up_msg_info_tag {
 	SaClmNodeIdT node_id;
 	AVSV_AVND_CARD node_type;
-	SaTimeT snd_hb_intvl;
 	SaTimeT su_failover_prob;
 	uns32 su_failover_max;
 } AVSV_D2N_CLM_NODE_UP_MSG_INFO;
-
-typedef struct avsv_d2n_reg_hlt_msg_info_tag {
-	uns32 msg_id;		/* This field is non zero only when the message
-				 * is sent to a specific node. 
-				 */
-	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
-				 * fail-over. So AVND should process it in
-				 * a special manner */
-	SaClmNodeIdT nodeid;	/* This field is non zero only when the message
-				 * is sent to a specific node. 
-				 */
-	uns32 num_hltchk;
-	AVSV_HLT_INFO_MSG *hlt_list;
-} AVSV_D2N_REG_HLT_MSG_INFO;
 
 typedef struct avsv_d2n_reg_su_msg_info_tag {
 	uns32 msg_id;
@@ -527,10 +496,6 @@ typedef struct avsv_d2n_operation_request_msg_info_tag {
 	AVSV_PARAM_INFO param_info;
 } AVSV_D2N_OPERATION_REQUEST_MSG_INFO;
 
-typedef struct avsv_d2n_info_heartbeat_msg_info_tag {
-	SaTimeT snd_hb_intvl;
-} AVSV_D2N_INFO_HEARTBEAT_MSG_INFO;
-
 typedef struct avsv_d2n_presence_su_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
@@ -591,10 +556,8 @@ typedef struct avsv_dnd_msg {
 	AVSV_DND_MSG_TYPE msg_type;
 	union {
 		AVSV_N2D_CLM_NODE_UP_MSG_INFO n2d_clm_node_up;
-		AVSV_N2D_REG_HLT_MSG_INFO n2d_reg_hlt;
 		AVSV_N2D_REG_SU_MSG_INFO n2d_reg_su;
 		AVSV_N2D_REG_COMP_MSG_INFO n2d_reg_comp;
-		AVSV_N2D_HEARTBEAT_MSG_INFO n2d_hrt_bt;
 		AVSV_N2D_OPERATION_STATE_MSG_INFO n2d_opr_state;
 		AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO n2d_su_si_assign;
 		AVSV_N2D_PG_TRACK_ACT_MSG_INFO n2d_pg_trk_act;
@@ -603,14 +566,12 @@ typedef struct avsv_dnd_msg {
 		AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
 		AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
 		AVSV_D2N_CLM_NODE_UP_MSG_INFO d2n_clm_node_up;
-		AVSV_D2N_REG_HLT_MSG_INFO d2n_reg_hlt;
 		AVSV_D2N_REG_SU_MSG_INFO d2n_reg_su;
 		AVSV_D2N_REG_COMP_MSG_INFO d2n_reg_comp;
 		AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO d2n_su_si_assign;
 		AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO d2n_pg_track_act_rsp;
 		AVSV_D2N_PG_UPD_MSG_INFO d2n_pg_upd;
 		AVSV_D2N_OPERATION_REQUEST_MSG_INFO d2n_op_req;
-		AVSV_D2N_INFO_HEARTBEAT_MSG_INFO d2n_info_hrt_bt;
 		AVSV_D2N_PRESENCE_SU_MSG_INFO d2n_prsc_su;
 		AVSV_D2N_DATA_VERIFY_MSG_INFO d2n_data_verify;
 		AVSV_D2N_ACK_MSG d2n_ack_info;
@@ -625,17 +586,11 @@ typedef struct avsv_dnd_msg {
 
 /* macro to determine if the n2d msg is a response to some d2n msg */
 #define m_AVSV_N2D_MSG_IS_RSP(avd) \
-           ( AVSV_N2D_REG_HLT_MSG == (avd)->msg_type || \
-             AVSV_N2D_REG_SU_MSG == (avd)->msg_type || \
+           ( AVSV_N2D_REG_SU_MSG == (avd)->msg_type || \
              AVSV_N2D_REG_COMP_MSG == (avd)->msg_type || \
              AVSV_N2D_INFO_SU_SI_ASSIGN_MSG == (avd)->msg_type || \
-             AVSV_N2D_HEARTBEAT_MSG == (avd)->msg_type || \
              AVSV_N2D_OPERATION_REQUEST_MSG == (avd)->msg_type || \
              AVSV_N2D_OPERATION_REQUEST_MSG == (avd)->msg_type )
-
-/* macro to determine if the n2d msg is a heartbeat msg */
-#define m_AVSV_N2D_MSG_IS_HB(avd) \
-           ( AVSV_N2D_HEARTBEAT_MSG == (avd)->msg_type)
 
 /* macro to determine if the n2d msg is a Verify Ack Nack message */
 #define m_AVSV_N2D_MSG_IS_VER_ACK_NACK(avd) \
@@ -658,8 +613,6 @@ EXTERN_C void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg);
 EXTERN_C uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
 EXTERN_C void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg);
 EXTERN_C uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
-EXTERN_C void avsv_free_d2n_hlth_msg_info(AVSV_DND_MSG *hlth_msg);
-EXTERN_C uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg, AVSV_DND_MSG *s_hlth_msg);
 EXTERN_C void avsv_free_d2n_su_msg_info(AVSV_DND_MSG *su_msg);
 EXTERN_C uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg);
 EXTERN_C void avsv_free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg);
