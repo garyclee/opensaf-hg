@@ -31,7 +31,6 @@ This contains the EDS_CB functions.
 #include "poll.h"
 #include "signal.h"
 
-#define FD_USR1 0
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
@@ -40,22 +39,7 @@ This contains the EDS_CB functions.
 
 static struct pollfd fds[5];
 static nfds_t nfds = 5;
-static NCS_SEL_OBJ usr1_sel_obj;
 
-/**
- * USR1 signal is used when AMF wants instantiate us as a
- * component. Wake up the main thread so it can register with
- * AMF.
- * 
- * @param i_sig_num
- */
-static void sigusr1_handler(int sig)
-{
-	(void)sig;
-	signal(SIGUSR1, SIG_IGN);
-	ncs_sel_obj_ind(usr1_sel_obj);
-	m_EDSV_DEBUG_CONS_PRINTF("Received USR1 signal");
-}
 
 /****************************************************************************
  * Name          : eds_cb_init
@@ -195,24 +179,11 @@ void eds_main_process(SYSF_MBX *mbx)
 	} else
 		m_EDSV_DEBUG_CONS_PRINTF("Imm Init Failed \n");
 
-	/* Create a selection object */
-	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
-		m_EDSV_DEBUG_CONS_PRINTF("ncs_sel_obj_create failed");
-		exit(1);
-	}
-
-	/*
-	 ** Initialize a signal handler that will use the selection object.
-	 ** The signal is sent from our script when AMF does instantiate.
-	 */
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
-		m_EDSV_DEBUG_CONS_PRINTF("signal USR1 failed: %s", strerror(errno));
-		exit(1);
-	}
-
 	/* Set up all file descriptors to listen to */
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_AMF].fd = eds_cb->amfSelectionObject;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_CLM].fd = eds_cb->clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
 	fds[FD_MBCSV].fd = eds_cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
@@ -232,43 +203,15 @@ void eds_main_process(SYSF_MBX *mbx)
 		}
 		/* process all the AMF messages */
 		if (fds[FD_AMF].revents & POLLIN) {
-
 			m_EDSV_DEBUG_CONS_PRINTF("AMF EVENT HAS OCCURRED....\n");
-			if (eds_cb->amf_hdl != 0) {
-				/* dispatch all the AMF pending callbacks */
-				error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
-				if (error != SA_AIS_OK) {
-					m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
+			/* dispatch all the AMF pending callbacks */
+			error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
+			if (error != SA_AIS_OK) {
+				m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
 						     error, __FILE__, __LINE__, 0);
-				}
-			} else {
-				error = eds_amf_register(eds_cb);
-				if (error != NCSCC_RC_SUCCESS) {
-					m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error,
-						     __FILE__, __LINE__, 0);
-					m_EDSV_DEBUG_CONS_PRINTF("AMF Init failed: Exiting.\n");
-					exit(1);
-				} else {
-					m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, error,
-						     __FILE__, __LINE__, 0);
-					fds[FD_AMF].fd = eds_cb->amfSelectionObject;
-				}
-				error = eds_clm_init(eds_cb);
-				if (error != SA_AIS_OK) {
-					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
-						     error, __FILE__, __LINE__, 0);
-					m_EDSV_DEBUG_CONS_PRINTF("CLM Init failed: Exiting.\n");
-					exit(1);
-				} else {
-					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
-						     error, __FILE__, __LINE__, 0);
-				}
-				fds[FD_CLM].fd = eds_cb->clm_sel_obj;
-				fds[FD_CLM].events = POLLIN;
-			}	/* Else Amf-Clm register */
+			}
 		}
 
-		/* End-if FD_AMF events */
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
 			m_EDSV_DEBUG_CONS_PRINTF("MBCSV EVENT HAS OCCURRED....\n");

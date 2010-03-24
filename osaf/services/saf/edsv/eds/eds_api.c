@@ -58,7 +58,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	memset(eds_cb, '\0', sizeof(EDS_CB));
 
 	/* Obtain the hdl for EDS_CB from hdl-mgr */
-
 	gl_eds_hdl = eds_cb->my_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDS, (NCSCONTEXT)eds_cb);
 
 	if (0 == eds_cb->my_hdl) {
@@ -89,22 +88,12 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	m_LOG_EDSV_S(EDS_CB_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 	printf("eds_se_lib_init: eds_cb_init()- EDS_CB INIT SUCCESS\n");
 
-	if (NCSCC_RC_SUCCESS != (rc = pcs_rda_get_init_role(eds_cb))) {
-		/* Destroy the hdl for this CB */
-		m_LOG_EDSV_S(EDS_CB_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		/* clean up the CB */
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		return NCSCC_RC_FAILURE;
-	}
-
 	m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
 	/* Create the mbx to communicate with the EDS thread */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&eds_cb->mbx))) {
 		m_LOG_EDSV_S(EDS_IPC_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-+		printf("eds_se_lib_init : mailbox create FAILED......\n");
+		printf("eds_se_lib_init : mailbox create FAILED......\n");
 		/* Release EDU handle */
 		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
 		/* Destroy the hdl for this CB */
@@ -133,6 +122,31 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 	m_LOG_EDSV_S(EDS_MDS_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 	printf("eds_se_lib_init: eds_mds_init() EDS MDS INIT SUCCESS\n");
+
+	/* Initialize and Register with CLM */
+	rc = eds_clm_init(eds_cb);
+	if (rc != SA_AIS_OK) {
+		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
+						     rc, __FILE__, __LINE__, 0);
+		m_EDSV_DEBUG_CONS_PRINTF("CLM Init failed: Exiting.\n");
+		exit(1);
+	} else {
+		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
+						     rc, __FILE__, __LINE__, 0);
+	}
+
+	/* Initialize and Register with AMF */
+	rc = eds_amf_register(eds_cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+						     __FILE__, __LINE__, 0);
+		m_EDSV_DEBUG_CONS_PRINTF("AMF Init failed: Exiting.\n");
+		exit(1);
+	} else {
+	m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
+						     __FILE__, __LINE__, 0);
+	}
+
 	/* Initialize mbcsv interface */
 	if (NCSCC_RC_SUCCESS != (rc = eds_mbcsv_init(eds_cb))) {
 		m_LOG_EDSV_S(EDS_MBCSV_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
@@ -319,76 +333,3 @@ uns32 ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *req_info)
 	return (rc);
 }
 
-/****************************************************************************
- * Name          : pcs_rda_get_init_role
- *
- * Description   : This is the module which gets the init role by using pcs rda
-                   lib requests and get init role methods
- *                 
- *
- * Arguments     : eds_cb  - pinter to control block 
- *                               
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
- *
- * Notes         : None.
- *****************************************************************************/
-uns32 pcs_rda_get_init_role(EDS_CB *eds_cb)
-{
-	PCS_RDA_REQ pcs_rda_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* RDA init */
-	memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
-	pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
-	rc = pcs_rda_request(&pcs_rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_PCS_RDA_LIB_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
-		printf("eds_se_lib_init : pcs_rda_request() for PCS_RDA_LIB_INIT FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Get initial role from RDA */
-	memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
-	pcs_rda_req.req_type = PCS_RDA_GET_ROLE;
-	rc = pcs_rda_request(&pcs_rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_PCS_RDA_GET_ROLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
-		printf("eds_se_lib_init : pcs_rda_request() for PCS_RDA_GET_ROLE FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Set initial role now */
-	switch (pcs_rda_req.info.io_role) {
-	case PCS_RDA_ACTIVE:
-		eds_cb->ha_state = SA_AMF_HA_ACTIVE;
-		m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_ACTIVE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, pcs_rda_req.info.io_role,
-			     __FILE__, __LINE__, 0);
-		printf("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA ACTIVE\n");
-		break;
-	case PCS_RDA_STANDBY:
-		m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_STANDBY, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, pcs_rda_req.info.io_role,
-			     __FILE__, __LINE__, 0);
-		eds_cb->ha_state = SA_AMF_HA_STANDBY;
-		printf("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA STANDBY\n");
-		break;
-	default:
-		m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_NULL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, pcs_rda_req.info.io_role,
-			     __FILE__, __LINE__, 0);
-		printf("eds_se_lib_init :GOT INIT ROLE FROM RDA , ROLE = NULL FAILED \n");
-		return NCSCC_RC_FAILURE;
-	}
-	/* RDA finalize */
-	memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
-	pcs_rda_req.req_type = PCS_RDA_LIB_DESTROY;
-	rc = pcs_rda_request(&pcs_rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_PCS_RDA_LIB_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
-			     0);
-		printf("eds_se_lib_init :PCS RDA LIB DESTROY FAILED \n");
-	}
-
-	return NCSCC_RC_SUCCESS;
-}

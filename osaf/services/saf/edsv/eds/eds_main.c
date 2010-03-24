@@ -16,8 +16,6 @@
  */
 
 #include <ncssysf_tsk.h>
-#include <nid_api.h>
-
 #include <logtrace.h>
 #include <daemon.h>
 
@@ -60,11 +58,6 @@ int main(int argc, char *argv[])
 
 	if (__init_eds() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "__init_dts() failed");
-		exit(EXIT_FAILURE);
-	}
-
-	if (nid_notify("EDSV", NCSCC_RC_SUCCESS, NULL) != NCSCC_RC_SUCCESS) {
-		LOG_ER("nid_notify failed");
 		exit(EXIT_FAILURE);
 	}
 

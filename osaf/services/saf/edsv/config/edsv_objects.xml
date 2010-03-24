@@ -34,7 +34,7 @@
 		</attr>
                 <attr>
                         <name>saAmfCtDefInstantiateCmdArgv</name>
-                        <value>instantiate</value>
+                        <value>start</value>
                 </attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>

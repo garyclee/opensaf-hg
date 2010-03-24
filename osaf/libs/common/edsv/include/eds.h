@@ -35,9 +35,6 @@
 #include "ncs_mda_pvt.h"
 #include "mds_papi.h"
 
-/* PCS RDA header file */
-#include "rda_papi.h"
-
 /* DTS header file */
 #if (NCS_DTS == 1)
 #include "dts_papi.h"
