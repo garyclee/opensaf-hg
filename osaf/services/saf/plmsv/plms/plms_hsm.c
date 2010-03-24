@@ -398,6 +398,7 @@ static SaUint32T hsm_discover_and_dispatch()
 	SaUint32T	  retriev_idr_info = FALSE;
 	SaUint32T	  prev_domain_op_status = NCSCC_RC_SUCCESS;
 	SaUint32T	  rc = NCSCC_RC_SUCCESS;
+	static SaUint32T	rpt_retry_count = 0;
 
 	TRACE_ENTER();
 			
@@ -432,22 +433,36 @@ static SaUint32T hsm_discover_and_dispatch()
 						&next, &rpt_entry);
 		if (SA_OK != rc){
 			 /* error getting RPT entry */
-			 if (current != SAHPI_FIRST_ENTRY){
+			 if (SA_ERR_HPI_NOT_PRESENT == rc) {
+				if(current == SAHPI_FIRST_ENTRY)
+				 	LOG_ER("RPT table is eempty ret val is:%d",rc);
+				else
+					  LOG_ER("saHpiRptEntryGet retruned SA_ERR_HPI_NOT_PRESENT \
+					  	breaking from the loop");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			 }
+			 if(SA_ERR_HPI_INVALID_PARAMS == rc){
+				LOG_ER("Invalid params for saHpiRptEntryGet,breaking from the loop");
+				rc = NCSCC_RC_FAILURE;
+				break;
+			 }else {
+				/* Reopen the session once to handle session issues if any */
+				if(rpt_retry_count){
+					LOG_ER("saHpiRptEntryGet failed after reopening the sess retval:%u exiting",rc);
+					assert(0);
+				}
 				hsm_session_reopen();
 				rc = saHpiDiscover(cb->session_id);
 				if( SA_OK != rc ){
-					LOG_ER("saHpiDiscover failed retval:%u",									rc);
+					LOG_ER("saHpiDiscover failed, exiting fom the thread, retval:%u",rc);
 					assert(0);
 				}
 				next = SAHPI_FIRST_ENTRY;
+				rpt_retry_count++;
 				continue;
 			 }
-			 else{
-				 LOG_ER("HSM:saHpiRptEntryGet failed, \
-						ret val is:%d",rc);
-				 rc = NCSCC_RC_FAILURE;
-				 break;
-			 }
+
 		}
 		TRACE("Retrieved RPT entry for res_id:%u ",
 			rpt_entry.ResourceId);
@@ -534,6 +549,8 @@ static SaUint32T hsm_discover_and_dispatch()
 			}
 		}
 	} while (next != SAHPI_LAST_ENTRY); 
+	/* Reset the retry count */
+	rpt_retry_count = 0;
 
 	TRACE_LEAVE();
 	return rc;
