@@ -34,38 +34,14 @@ lockfile=$pkglockdir/$prog
 #args="-T $prog.log"
 
 RETVAL=0
-NIDSERV="EDSV"
-COMPNAMEFILE=$pkglocalstatedir/evtd_comp_name
 
 start() {
-        if [ ! -x $binary ]; then
-		echo "$NID_MAGIC:$NIDSERV:$DAEMON_NOT_FND" > $NIDFIFO
-		exit 5
-	fi
-	export EDSV_COMP_NAME_FILE=$COMPNAMEFILE
+        [ -x $binary ] || exit 5
         echo -n "Starting $prog: "
         start_daemon -p $pidfile $binary $args
         RETVAL=$?
         if [ $RETVAL -eq 0 ]; then
 		touch $lockfile
-		log_success_msg
-	else
-		log_failure_msg
-		echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
-	fi
-        return $RETVAL
-}
-
-instantiate() {
-	echo -n "AMF Instantiating $prog: "
-	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
-	if [ -e $lockfile ]; then
-		killproc -p $pidfile $binary -USR1
-	else
-		start_daemon -p $pidfile $binary $args
-	fi
-	RETVAL=$?
-        if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
 		log_failure_msg
@@ -79,7 +55,6 @@ stop() {
         RETVAL=$?
         if [ $RETVAL -eq 0 ]; then
 		rm -f $lockfile
-		rm -f $COMPNAMEFILE
 		log_success_msg
 	else
 		log_failure_msg
@@ -119,10 +94,6 @@ status() {
 case "$1" in
   start)
 	start
-	RETVAL=$?
-	;;
-  instantiate)
-	instantiate
 	RETVAL=$?
 	;;
   stop)
