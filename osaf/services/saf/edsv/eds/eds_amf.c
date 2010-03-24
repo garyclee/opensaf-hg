@@ -465,36 +465,6 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char comp_name[256] = { 0 };
-	char compfilename[EDS_COMP_FILE_NAME_LEN] = { 0 };
-	FILE *fp;
-
-	/* Read the component name file now, AMF should have populated it by now */
-	snprintf(compfilename, EDS_COMP_FILE_NAME_LEN - 1, "%s", m_EDS_COMP_NAME_FILE);
-
-	fp = fopen(compfilename, "r");
-	if (fp == NULL) {
-		m_LOG_EDSV_S(EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
-			     __LINE__, 0);
-		printf("  eds_amf_init: eds_amf_init: Unable to open compname file FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-	if (fscanf(fp, "%s", comp_name) != 1) {
-		fclose(fp);
-		m_LOG_EDSV_S(EDS_AMF_COMP_FILE_READ_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
-			     0);
-		printf("  eds_amf_init: Unable to retrieve component name FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1) {
-		fclose(fp);
-		m_LOG_EDSV_S(EDS_AMF_ENV_NAME_SET_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
-		printf("  eds_amf_init: Unable to set SA_AMF_COMPONENT_NAME enviroment variable\n");
-		return NCSCC_RC_FAILURE;
-	}
-	fclose(fp);
-	fp = NULL;
 
 	/* Initialize amf callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
