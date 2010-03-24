@@ -2189,10 +2189,6 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
 			syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
 
-		if (-1 == nice(10)) {
-			perror("nice failed");
-		}
-
 		/* set the environment variables */
 		for (; count > 0; count--) {
 			setenv(node->name, node->value, node->overwrite);
