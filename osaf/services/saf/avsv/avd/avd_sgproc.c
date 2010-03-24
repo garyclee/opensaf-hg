@@ -285,9 +285,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* as of now do the same opearation as ncs su failure */
 		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
 		if ((avnd->type == AVSV_AVND_CARD_SYS_CON) && (avnd->node_info.nodeId == cb->node_id_avd)) {
-			m_NCS_DBG_PRINTF("\n---------------------------------------------------------------\n");
-			m_NCS_DBG_PRINTF("\n Component in %s requested FAILFAST\n", su->name.value);
-			m_NCS_DBG_PRINTF("\n---------------------------------------------------------------\n");
+			TRACE("Component in %s requested FAILFAST", su->name.value);
 		}
 
 		avd_nd_ncs_su_failed(cb, avnd);
