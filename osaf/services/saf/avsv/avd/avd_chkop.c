@@ -86,34 +86,24 @@ uns32 avsv_mbcsv_register(AVD_CL_CB *cb)
 	 * Compile Ckpt EDP's
 	 */
 	if (NCSCC_RC_SUCCESS != (status = avd_compile_ckpt_edp(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: avd_compile_ckpt_edp failed", __FUNCTION__);
 		goto done;
 	}
 
 	/*
 	 * First initialize and then call open.
 	 */
-	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_initialize(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_initialize(cb)))
 		goto done;
-	}
 
-	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_open_ckpt(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_open_ckpt(cb)))
 		goto done_final;
-	}
 
 	/*
 	 * Get MBCSv selection object.
 	 */
-	if (NCSCC_RC_SUCCESS != (status = avsv_get_mbcsv_sel_obj(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != (status = avsv_get_mbcsv_sel_obj(cb)))
 		goto done_close;
-	}
 
 	return status;
 
@@ -142,24 +132,16 @@ uns32 avsv_mbcsv_deregister(AVD_CL_CB *cb)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
 	/*
 	 * First close and then finalize.
 	 */
-	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_close_ckpt(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_close_ckpt(cb)))
 		goto done;
-	}
 
-	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_finalize(cb))) {
-		/* Log error */ ;
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_finalize(cb)))
 		goto done;
-	}
 
- done:
+done:
 	return status;
 }
 
@@ -227,8 +209,6 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
 	switch (arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		{
@@ -241,13 +221,12 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			/* Encode Async update message */
 			if (arg->info.encode.io_reo_type >= AVSV_CKPT_MSG_MAX) {
-				m_AVD_LOG_INVALID_VAL_FATAL(arg->info.encode.io_reo_type);
+				LOG_ER("%s: invalid type %u", __FUNCTION__, arg->info.encode.io_reo_type);
 				return NCSCC_RC_FAILURE;
 			}
 
+			TRACE("Async update");
 			status = avsv_enc_ckpt_data_func_list[arg->info.encode.io_reo_type] (cb, &arg->info.encode);
-
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_ASYNC_UPDATE, NCSFL_SEV_INFO, arg->info.encode.io_reo_type);
 		}
 		break;
 
@@ -259,7 +238,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * cold sync in on.
 			 */
 			cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
-			m_AVD_LOG_CKPT_EVT(AVD_COLD_SYNC_REQ_RCVD, NCSFL_SEV_INFO, 1);
+			TRACE("Cold sync req");
 		}
 		break;
 
@@ -267,7 +246,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		{
 			/* Encode Cold Sync Response message */
 			status = avsv_encode_cold_sync_rsp(cb, &arg->info.encode);
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_COLD_SYNC_RESP, NCSFL_SEV_INFO, arg->info.encode.io_reo_type);
+			TRACE("Cold sync resp");
 		}
 		break;
 
@@ -276,7 +255,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			/* Encode Warm Sync Request message 
 			 * Nothing is there to send at this point of time.
 			 */
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_WARM_SYNC_REQ, NCSFL_SEV_INFO, 1);
+			TRACE("Warm sync req");
 		}
 		break;
 
@@ -284,7 +263,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		{
 			/* Encode Warm Sync Response message */
 			status = avsv_encode_warm_sync_rsp(cb, &arg->info.encode);
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_WARM_SYNC_RESP, NCSFL_SEV_INFO, arg->info.encode.io_reo_type);
+			TRACE("Warm sync resp");
 			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 		}
 		break;
@@ -293,7 +272,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		{
 			/* Encode Data Response message */
 			status = avsv_encode_data_sync_rsp(cb, &arg->info.encode);
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DATA_RESP, NCSFL_SEV_INFO, arg->info.encode.io_reo_type);
+			TRACE("Data resp");
 		}
 		break;
 
@@ -302,8 +281,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_REQ:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(arg->info.encode.io_msg_type);
+		LOG_ER("%s: invalid msg type %u", __FUNCTION__, arg->info.encode.io_msg_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -327,12 +305,9 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
 	switch (arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		{
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_ASYNC_UPDATE, NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
 			/* Decode Async update message */
 			if (AVD_STBY_IN_SYNC == cb->stby_sync_state) {
 				if (AVSV_SYNC_COMMIT != arg->info.decode.i_reo_type) {
@@ -375,7 +350,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 												       &arg->info.
 												       decode);
 				} else {
-					m_AVD_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+					LOG_ER("%s: invalid type %u", __FUNCTION__, arg->info.encode.io_reo_type);
 					status = NCSCC_RC_FAILURE;
 				}
 			}
@@ -400,18 +375,12 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		{
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_COLD_SYNC_RESP, NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
-
 			/* Decode Cold Sync Response message */
 			status = avsv_decode_cold_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
-				if (NCSCC_RC_SUCCESS != avd_data_clean_up(cb)) {
-					/* Log Error ; FATAL; It should never happen unless there is a bug. */
-					m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-				}
-
-				m_AVD_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+				LOG_ER("%s: cold sync decode failed %u", __FUNCTION__, status);
+				(void) avd_data_clean_up(cb);
 				status = NCSCC_RC_FAILURE;
 				break;
 			}
@@ -422,12 +391,8 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 */
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
 			    (NCSCC_RC_SUCCESS == status)) {
-				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
-						   NCSFL_SEV_NOTICE, arg->info.decode.i_reo_type);
-
+				LOG_NO("cold sync complete");
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
-
-				/* Start Heart Beating with the peer */
 				avd_init_heartbeat(cb);
 			}
 
@@ -454,7 +419,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * Decode Warm Sync Request message 
 			 * Nothing is there to decode.
 			 */
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_WARM_SYNC_REQ, NCSFL_SEV_INFO, 1);
+			TRACE("warm sync req");
 		}
 		break;
 
@@ -466,12 +431,9 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			/* If we find mismatch in data or warm sync fails set in_sync to FALSE */
 			if (NCSCC_RC_FAILURE == status) {
-				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_WARM_SYNC_RESP_FAILURE,
-						   NCSFL_SEV_ALERT, arg->info.decode.i_reo_type);
+				LOG_ER("%s: warm sync decode failed %u", __FUNCTION__, status);
 				cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
 			}
-
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_WARM_SYNC_RESP, NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
 		}
 		break;
 
@@ -479,50 +441,37 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		{
 			/* Decode Data request message */
 			status = avsv_decode_data_req(cb, &arg->info.decode);
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DATA_REQ, NCSFL_SEV_INFO, 1);
 		}
 		break;
 
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		{
-			m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DATA_RESP, NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
-
 			/* Decode Data response and data response complete message */
 			status = avsv_decode_data_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
-				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DATA_RSP_DECODE_FAILURE,
-						   NCSFL_SEV_EMERGENCY, arg->info.decode.i_reo_type);
-
-				if (NCSCC_RC_SUCCESS != avd_data_clean_up(cb)) {
-					/* Log Error ; FATAL; It should never happen unless there is a bug. */
-					m_AVD_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
-					break;
-				}
+				LOG_ER("%s: data resp decode failed %u", __FUNCTION__, status);
+				avd_data_clean_up(cb);
 
 				/*
 				 * Now send data request, which will sync Standby with Active.
 				 */
-				if (NCSCC_RC_SUCCESS != avsv_send_data_req(cb)) {
-					/* Log error */
-					m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+				if (NCSCC_RC_SUCCESS != avsv_send_data_req(cb))
 					break;
-				}
 
 				break;
 			}
 
 			if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type) {
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
-				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DATA_RESP_COMPLETE,
-						   NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
+				LOG_IN("Standby in sync");
 			}
 		}
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(arg->info.decode.i_msg_type);
+		LOG_ER("%s: invalid msg type %u", __FUNCTION__, arg->info.decode.i_msg_type);
 		status = NCSCC_RC_FAILURE;
 		break;
 
@@ -546,8 +495,6 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	TRACE_ENTER();
-
 	/* Used to refer while sending checkpoint msg to its peer AVD */
 	cb->avd_peer_ver = arg->info.peer.i_peer_version;
 
@@ -569,7 +516,7 @@ static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *ar
 \**************************************************************************/
 static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	m_AVD_LOG_INVALID_VAL_FATAL(0);
+	LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -588,8 +535,6 @@ static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	TRACE_ENTER();
-
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
 		LOG_WA("mbcsv cold sync tmr exp");
@@ -646,11 +591,7 @@ static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
 	mbcsv_arg.info.initialize.i_service = NCS_SERVICE_ID_AVD;
@@ -658,7 +599,7 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
 	mbcsv_arg.info.initialize.i_version = AVD_MBCSV_SUB_PART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_INITIALIZE failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -682,18 +623,14 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
 \**************************************************************************/
 static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = cb->vaddr_pwe_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_OPEN failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -756,9 +693,9 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
 uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 {
 	AVD_DND_MSG *d2n_msg = NULL;
-	AVD_AVND *avnd = NULL;
+	AVD_AVND *node = NULL;
 
-	m_AVD_PXY_PXD_ENTRY_LOG("avd_avnd_send_role_change: Comp, node_id and role are", NULL, node_id, role, 0, 0);
+	TRACE_ENTER2("node_id %x role %u", node_id, role);
 
 	/* Check wether we are sending to peer controller AvND, which is of older
 	   version. Don't send role change to older version Controler AvND. */
@@ -768,41 +705,31 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 
 	/* It may happen that this function has been called before AvND has come
 	   up, so just return SUCCESS. Send the role change when AvND comes up. */
-	if ((avnd = avd_node_find_nodeid(node_id)
-	    ) == NULL) {
-		m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change: avnd is NULL. Comp,node_id and role are",
-				      NULL, node_id, role, 0, 0);
+	if ((node = avd_node_find_nodeid(node_id)) == NULL) {
+		LOG_ER("%s: node not found", __FUNCTION__);
 		goto done;
 	}
 
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
+	if (d2n_msg == NULL) {
+		LOG_ER("calloc failed");
+		assert(0);
 	}
 
 	d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
-	d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(avnd->snd_msg_id);
-	d2n_msg->msg_info.d2n_role_change_info.node_id = avnd->node_info.nodeId;
+	d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(node->snd_msg_id);
+	d2n_msg->msg_info.d2n_role_change_info.node_id = node->node_info.nodeId;
 	d2n_msg->msg_info.d2n_role_change_info.role = role;
 
 	/* send the message */
-	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the message */
-
+	if (avd_d2n_msg_snd(cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
+		--(node->snd_msg_id);
+		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
-
-	TRACE("Role sent SUCC. node_id=%x, role=%u", node_id, role);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_SND_MSG_ID);
 
 done:
 	return NCSCC_RC_SUCCESS;
@@ -823,17 +750,13 @@ done:
 \**************************************************************************/
 static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_SEL_OBJ_GET failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -905,7 +828,6 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	if (SA_AMF_HA_STANDBY == cb->avail_state_avd)
 		return NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
 	/*
 	 * Get mbcsv_handle and checkpoint handle from CB.
 	 */
@@ -1012,7 +934,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	 * Now send this update.
 	 */
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_SEND_CKPT failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1034,18 +956,14 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 \**************************************************************************/
 static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.close.i_ckpt_hdl = cb->ckpt_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_CLOSE failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1067,17 +985,13 @@ static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
 \**************************************************************************/
 static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_FINALIZE failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1099,11 +1013,7 @@ static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb)
 \**************************************************************************/
 uns32 avsv_mbcsv_obj_set(AVD_CL_CB *cb, uns32 obj, uns32 val)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1112,7 +1022,7 @@ uns32 avsv_mbcsv_obj_set(AVD_CL_CB *cb, uns32 obj, uns32 val)
 	mbcsv_arg.info.obj_set.i_val = val;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_OBJ_SET failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1142,8 +1052,8 @@ static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
 	if (NULL == (updt_msg = calloc(1, sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE)))) {
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("calloc failed");
+		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1219,12 +1129,8 @@ uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
 \**************************************************************************/
 uns32 avsv_send_data_req(AVD_CL_CB *cb)
 {
-	NCS_MBCSV_ARG mbcsv_arg;
+	NCS_MBCSV_ARG mbcsv_arg = {0};
 	NCS_UBAID *uba = NULL;
-
-	TRACE_ENTER();
-
-	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1236,7 +1142,7 @@ uns32 avsv_send_data_req(AVD_CL_CB *cb)
 	mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->ckpt_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_SEND_DATA_REQ failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1262,8 +1168,6 @@ uns32 avsv_send_data_req(AVD_CL_CB *cb)
 static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 {
 	uns32 status = NCSCC_RC_FAILURE;
-
-	TRACE_ENTER();
 
 	switch (reo_type) {
 	case AVSV_CKPT_AVD_CB_CONFIG:
@@ -1358,6 +1262,8 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
+	default:
+		LOG_WA("%s: unknown type %u", __FUNCTION__, reo_type);
 
 	}
 	return status;

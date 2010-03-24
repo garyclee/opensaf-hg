@@ -220,8 +220,7 @@ static uns32 avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC 
 				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb, &ederror, dec->i_peer_version);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -313,14 +312,11 @@ static uns32 avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		break;
 
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -380,8 +376,7 @@ static uns32 avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -442,8 +437,7 @@ static uns32 avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -504,8 +498,7 @@ static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -565,14 +558,11 @@ static uns32 avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 		break;
 
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -659,14 +649,12 @@ static uns32 avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		break;
 
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
+		return status;
 	}
 
 	avd_ckpt_siass(cb, su_si_ckpt, dec->i_action);
@@ -724,14 +712,11 @@ static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		break;
 
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -783,14 +768,11 @@ static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -832,8 +814,7 @@ static uns32 avsv_decode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 			      EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb, &ederror, 1, 3);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
@@ -876,14 +857,12 @@ static uns32 avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 6, 1, 2, 4, 5, 6, 7);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -933,8 +912,7 @@ static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	assert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -981,8 +959,7 @@ static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	assert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1029,8 +1006,7 @@ static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	assert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1076,8 +1052,7 @@ static uns32 avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	assert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1124,8 +1099,7 @@ static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	assert(status == NCSCC_RC_SUCCESS);
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1170,14 +1144,12 @@ static uns32 avsv_decode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 14);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2215,8 +2187,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB
 		assert(0);
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2261,14 +2232,12 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 33);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2313,14 +2282,12 @@ static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 2);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2365,14 +2332,12 @@ static uns32 avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 3);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2417,14 +2382,12 @@ static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 4);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2469,14 +2432,12 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 5);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return status;
 	}
 
 	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2905,8 +2866,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
 					    &ederror, dec->i_peer_version);
 		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		}
 
 		status = avd_ckpt_siass(cb, su_si_ckpt, dec->i_action);
@@ -2953,8 +2913,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_
 					    dec->i_peer_version);
 
 		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 			return status;
 		}
 
@@ -3000,8 +2959,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBC
 				    &dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 	}
 
 	return status;
@@ -3027,7 +2985,6 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVSV_ASYNC_UPDT_CNT *updt_cnt;
 	AVSV_ASYNC_UPDT_CNT dec_updt_cnt;
 	EDU_ERR ederror = 0;
-	char logbuff[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER();
 
@@ -3040,29 +2997,8 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				    &dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-	}
-
-	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
-	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
-		 "\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, "
-		 "rel=%d, co=%d, cs=%d, sus=%d\n",
-		 updt_cnt->cb_updt, updt_cnt->node_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt,
-		 updt_cnt->sg_su_oprlist_updt, updt_cnt->sg_admin_si_updt, updt_cnt->siass_updt,
-		 updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->compcstype_updt);
-	TRACE_ENTER();
-
-	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
-	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
-		 "\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, "
-		 "csi=%d, ccstype=%d\n",
-		 cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.node_updt, cb->async_updt_cnt.sg_updt,
-		 cb->async_updt_cnt.su_updt, cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt,
-		 cb->async_updt_cnt.sg_admin_si_updt, cb->async_updt_cnt.siass_updt, cb->async_updt_cnt.comp_updt,
-		 cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.compcstype_updt);
-	TRACE_ENTER();
+	if (status != NCSCC_RC_SUCCESS)
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 
 	/*
 	 * Compare the update counts of the Standby with Active.
@@ -3085,11 +3021,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		/*
 		 * Now send data request, which will sync Standby with Active.
 		 */
-		if (NCSCC_RC_SUCCESS != avsv_send_data_req(cb)) {
-			/* Log error */
-			m_AVD_LOG_INVALID_VAL_FATAL(dec->i_msg_type);
-		}
-
+		(void) avsv_send_data_req(cb);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3114,9 +3046,8 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 num_of_obj;
 	uns8 *ptr;
-	char logbuff[SA_MAX_NAME_LENGTH];
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%u", dec->i_reo_type);
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -3126,11 +3057,6 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	num_of_obj = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
-	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
-	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
-		 "\n\nReceived reotype  data sync = %d num obj = %d --------------------\n", dec->i_reo_type,
-		 num_of_obj);
-	TRACE_ENTER();
 	/* 
 	 * Decode data received in the message.
 	 */
@@ -3205,14 +3131,13 @@ static uns32 avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 				      EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
 
 		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 			return status;
 		}
 
 		status = avd_ckpt_su_oper_list(cb, su_ptr, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
-			m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+			LOG_ER("%s: avd_ckpt_su_oper_list failed", __FUNCTION__);
 			return status;
 		}
 	}

@@ -409,8 +409,7 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si, uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si, &ederror, 1, 1);
 
 	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -424,9 +423,7 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
 		si_ptr_up->sg_of_si->admin_si = NULL;
 		break;
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(action);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	return status;
@@ -461,24 +458,22 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
 
 	su_ptr = avd_su_get(&su_si_ckpt->su_name);
+	assert(su_ptr);
 	si_ptr_up = avd_si_get(&su_si_ckpt->si_name);
-
-	if ((NULL == su_ptr) || (NULL == si_ptr_up)) {
-		m_AVD_LOG_INVALID_VAL_FATAL(action);
-		return NCSCC_RC_FAILURE;
-	}
+	assert(si_ptr_up);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
 			if (NULL == su_si_rel_ptr) {
 				if (NCSCC_RC_SUCCESS != avd_new_assgn_susi(cb, su_ptr, si_ptr_up,
-									   su_si_ckpt->state, TRUE, &su_si_rel_ptr)) {
-					m_AVD_LOG_INVALID_VAL_FATAL(action);
+					su_si_ckpt->state, TRUE, &su_si_rel_ptr)) {
+
+					LOG_ER("%s: avd_new_assgn_susi failed", __FUNCTION__);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVD_LOG_INVALID_VAL_FATAL(action);
+				LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 				break;
 			}
 		}
@@ -493,7 +488,7 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 				su_si_rel_ptr->fsm = su_si_ckpt->fsm;
 				su_si_rel_ptr->state = su_si_ckpt->state;
 			} else {
-				m_AVD_LOG_INVALID_VAL_FATAL(action);
+				LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -502,7 +497,7 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 		if (NULL != su_si_rel_ptr) {
 			avd_susi_delete(cb, su_si_rel_ptr, TRUE);
 		} else {
-			m_AVD_LOG_INVALID_VAL_FATAL(action);
+			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		break;
