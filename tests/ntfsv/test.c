@@ -22,7 +22,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <saAis.h>
-#include <logtrace.h>
 #include "test.h"
 #include "util.h"
 
@@ -44,8 +43,6 @@ static const char *suite_name[NO_SUITES];
 static int last_test_status;
 static SaAisErrorT actualStatus, expectedStatus;
 static unsigned int current_test;
-
-unsigned int testdebug;
 
 void test_validate(SaUint32T rc, SaUint32T expected)
 {
@@ -115,18 +112,6 @@ static int run_test_case(unsigned int suite, unsigned int tcase)
 int test_run(unsigned int suite, unsigned int tcase)
 {
     int i, j;
-    char *value;
-
-    if ((value = getenv("TESTDEBUG")) != NULL)
-    {
-        if (atoi(value) == 1)
-        {
-            testdebug = 1;
-            printf("debug enabled\n");
-            logtrace_init("test", "stdout");
-            trace_category_set(CATEGORY_ALL);
-        }
-    }
 
     if (suite == ALL_SUITES)
     {

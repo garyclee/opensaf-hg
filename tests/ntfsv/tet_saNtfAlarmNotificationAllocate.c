@@ -115,7 +115,6 @@ void saNtfAlarmNotificationAllocate_02(void) {
 
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-        TRACE("Test: FAILED");
 	}
 
 	/* Create a handle and then destroy it */
@@ -135,7 +134,6 @@ void saNtfAlarmNotificationAllocate_02(void) {
 
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-        TRACE("Test: FAILED");
 	}
 
 	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_BAD_HANDLE;
@@ -189,7 +187,6 @@ void saNtfAlarmNotificationAllocate_03(void) {
 					myAlarmParams.variableDataSize);
 	if(rc != SA_AIS_ERR_INVALID_PARAM) {
 		errors++;
-        TRACE("Test: FAILED");
 	}
 
 	safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);

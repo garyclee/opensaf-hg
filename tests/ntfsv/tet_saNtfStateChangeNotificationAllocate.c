@@ -84,7 +84,6 @@ void saNtfStateChangeNotificationAllocate_02(void) {
 
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-        TRACE("Test: FAILED");
 	}
 
 
@@ -106,7 +105,6 @@ void saNtfStateChangeNotificationAllocate_02(void) {
 
 	if(rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
-        TRACE("Test: FAILED");
 	}
 
 	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_BAD_HANDLE;
