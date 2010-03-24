@@ -135,15 +135,15 @@ Ntf server traces are by default disabled. To enable/disable ntf server traces
 in a running system, send signal USR1 to the ntfd process. Every time the 
 trace state is toggled. Example:
 
-$  pkill -USR2 opensaf_ntfd
+	$ pkill -USR2 opensaf_ntfd
 
 Traces are written to the file:
 
-PKGLOCALSTATEDIR/stdouts/opensaf_ntfd.log
+	$pklogdir/osafntfd.log
 
 To enable traces from the very start of the ntf server, uncomment the line:
 
-        #export NTFD_TRACE_CATEGORIES=ALL
+        #args="--tracemask=0xffffffff"
 
 in ntfd.conf (see CONFIGURATION above) and restart the cluster.
 

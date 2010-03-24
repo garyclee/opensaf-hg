@@ -27,13 +27,6 @@ static int __init_dts(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
 	char *env;
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("DTS_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
- 	}
 
 	/* Init LIB_CREATE request for Server */
 	memset(&lib_create, 0, sizeof(lib_create));
