@@ -107,13 +107,10 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	AVD_D2D_MSG *d2d_msg = 0;
 	NCS_UBAID *uba = dec_info->io_uba;
 
-	TRACE_ENTER();
-
 	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
-	if (d2d_msg == AVD_D2D_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_D2D_MSG_ALLOC_FAILED);
-		return;
+	if (d2d_msg == NULL) {
+		LOG_ER("calloc failed");
+		assert(0);
 	}
 
 	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uns32));
@@ -132,7 +129,6 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 
 	ncs_dec_skip_space(uba, 3 * sizeof(uns32));
 	dec_info->o_msg = (NCSCONTEXT)d2d_msg;
-
 }
 
 /****************************************************************************

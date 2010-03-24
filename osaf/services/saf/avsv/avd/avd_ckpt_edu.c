@@ -97,8 +97,8 @@ uns32 avd_compile_ckpt_edp(AVD_CL_CB *cb)
 
 	return rc;
 
- error:
-	m_AVD_LOG_INVALID_VAL_ERROR(err);
+error:
+	LOG_ER("%s:%u err=%u", __FUNCTION__, __LINE__, err);
 	/* EDU cleanup */
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 	return rc;

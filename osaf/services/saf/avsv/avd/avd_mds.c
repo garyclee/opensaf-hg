@@ -42,9 +42,6 @@
 #include <avd_msg.h>
 #include "avd.h"
 
-/* these will go away */
-#define m_AVD_LOG_MSG_MDS_RCV_INFO(a, b, c)
-
 const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] =
     { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2 };
 const MDS_CLIENT_MSG_FORMAT_VER avd_avm_msg_fmt_map_table[AVD_AVM_SUBPART_VER_MAX] = { AVSV_AVD_AVM_MSG_FMT_VER_1 };
@@ -77,8 +74,7 @@ uns32 avd_mds_reg_def(AVD_CL_CB *cb)
 
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_INVALID_VAL_ERROR(err);
-		/* EDU cleanup */
+		LOG_ER("m_NCS_EDU_COMPILE_EDP failed");
 		m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 		return rc;
 	}
@@ -109,7 +105,7 @@ uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
 	vda_info.info.vdest_chg_role.i_vdest = cb->vaddr;
 
 	if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_VDEST_ROL);
+		LOG_ER("ncsvda_api NCSVDA_VDEST_CHG_ROLE failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -149,11 +145,11 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 
 	/* create Vdest address */
 	if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_VDEST_CRT);
+		LOG_ER("ncsvda_api NCSVDA_VDEST_CREATE failed");
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_VDEST_CRT);
+	TRACE("vdest created");
 
 	/* store the info returned by MDS */
 	cb->vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
@@ -169,17 +165,17 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVD_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncsmds_api MDS_INSTALL vdest failed");
 		memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 		vda_info.req = NCSVDA_VDEST_DESTROY;
 		vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
 		ncsvda_api(&vda_info);
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_INSTALL);
+	TRACE("mds install vdest");
 
-   /*** subscribe to AVD mds event ***/
+	/*** subscribe to AVD mds event ***/
 	svc_to_mds_info.i_op = MDS_RED_SUBSCRIBE;
 	svc_to_mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_subscribe.i_svc_ids = svc_id;
@@ -188,12 +184,11 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 
 	rc = ncsmds_api(&svc_to_mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_ER("ncsmds_api MDS_RED_SUBSCRIBE failed");
 		memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 		vda_info.req = NCSVDA_VDEST_DESTROY;
 		vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
 		ncsvda_api(&vda_info);
-		/*avd_mds_unreg(cb); */
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -203,7 +198,7 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	ada_info.req = NCSADA_GET_HDLS;
 
 	if (ncsada_api(&ada_info) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
+		LOG_ER("ncsada_api NCSADA_GET_HDLS failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -221,36 +216,17 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVD_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncsmds_api MDS_INSTALL adest failed");
 		memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 		vda_info.req = NCSVDA_VDEST_DESTROY;
 		vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
 		ncsvda_api(&vda_info);
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_INSTALL);
+	TRACE("mds install adest");
 
-   /*** subscribe to avm mds event ***/
-	svc_to_mds_info.i_mds_hdl = cb->adest_hdl;
-	svc_to_mds_info.i_op = MDS_SUBSCRIBE;
-	svc_to_mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
-	svc_to_mds_info.info.svc_subscribe.i_svc_ids = svc_id;
-	svc_to_mds_info.info.svc_subscribe.i_num_svcs = 1;
-	svc_id[0] = NCSMDS_SVC_ID_AVM;
-
-	rc = ncsmds_api(&svc_to_mds_info);
-	if (NCSCC_RC_SUCCESS != rc) {
-		memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
-		vda_info.req = NCSVDA_VDEST_DESTROY;
-		vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
-		ncsvda_api(&vda_info);
-		/*avd_mds_unreg(cb); */
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
-		return NCSCC_RC_FAILURE;
-	}
-
-   /*** subscribe to avnd, just for not delaying bcast ***/
+	/*** subscribe to avnd, just for not delaying bcast ***/
 	svc_to_mds_info.i_mds_hdl = cb->adest_hdl;
 	svc_to_mds_info.i_op = MDS_SUBSCRIBE;
 	svc_to_mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
@@ -260,7 +236,7 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 
 	rc = ncsmds_api(&svc_to_mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);
+		LOG_ER("ncsmds_api MDS_SUBSCRIBE avnd failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -285,12 +261,6 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	if (info == NULL) {
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
-		return NCSCC_RC_FAILURE;
-	}
-
 	switch (info->i_op) {
 	case MDS_CALLBACK_RECEIVE:
 		/* check that the node director sent this
@@ -300,35 +270,24 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 		    (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD)) {
 			NODE_ID node_id = 0;
 			uns16 msg_fmt_ver = 0;
-			m_AVD_LOG_MSG_DND_RCV_INFO(AVD_LOG_RCVD_MSG,
-						   ((AVD_DND_MSG *)info->info.receive.i_msg),
-						   info->info.receive.i_node_id);
 			node_id = m_NCS_NODE_ID_FROM_MDS_DEST(info->info.receive.i_fr_dest);
 			msg_fmt_ver = info->info.receive.i_msg_fmt_ver;
 			rc = avd_n2d_msg_rcv((AVD_DND_MSG *)info->info.receive.i_msg, node_id, msg_fmt_ver);
 			info->info.receive.i_msg = (NCSCONTEXT)0;
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
+			if (rc != NCSCC_RC_SUCCESS)
 				return rc;
-			}
 		}
 		/* check if AvD sent this
 		 ** message to the director if not return error.
 		 */
 		else if ((info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_AVD) &&
 			 (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD)) {
-			m_AVD_LOG_MSG_MDS_RCV_INFO(AVD_LOG_RCVD_MSG,
-						   ((AVM_AVD_MSG_T *)info->info.receive.i_msg),
-						   info->info.receive.i_node_id);
-
 			rc = avd_d2d_msg_rcv((AVD_D2D_MSG *)info->info.receive.i_msg);
 			info->info.receive.i_msg = (NCSCONTEXT)0;
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
+			if (rc != NCSCC_RC_SUCCESS)
 				return rc;
-			}
 		} else {
-			m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
+			LOG_WA("%s: unknown svc id %u", __FUNCTION__, info->info.receive.i_fr_svc_id);
 			return NCSCC_RC_FAILURE;
 		}
 		break;
@@ -336,7 +295,6 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 		{
 			rc = avd_mds_svc_evt(&info->info.svc_evt);
 			if (rc != NCSCC_RC_SUCCESS) {
-				/*m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SVC_CBK); */
 				return rc;
 			}
 		}
@@ -347,10 +305,8 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 			    avd_avnd_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver - 1];
 
 			rc = avd_mds_cpy(&info->info.cpy);
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_CPY_CBK);
+			if (rc != NCSCC_RC_SUCCESS)
 				return rc;
-			}
 		}
 		break;
 	case MDS_CALLBACK_ENC:
@@ -365,8 +321,7 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 										     avd_avd_msg_fmt_map_table);
 
 				if (info->info.enc.o_msg_fmt_ver < AVD_AVD_MSG_FMT_VER_1) {
-					/* log the problem */
-					m_AVD_LOG_MDS_CRITICAL(AVSV_LOG_MDS_ENC_CBK);
+					LOG_ER("%s: wrong msg fmt ver %u", __FUNCTION__, info->info.enc.o_msg_fmt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -379,18 +334,15 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 										     avd_avnd_msg_fmt_map_table);
 
 				if (info->info.enc.o_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_1) {
-					/* log the problem */
-					m_AVD_LOG_MDS_CRITICAL(AVSV_LOG_MDS_ENC_CBK);
+					LOG_ER("%s: wrong msg fmt ver %u", __FUNCTION__, info->info.enc.o_msg_fmt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 
 				rc = avd_mds_enc(&info->info.enc);
-				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_ENC_CBK);
+				if (rc != NCSCC_RC_SUCCESS)
 					return rc;
-				}
 			} else {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_ENC_CBK);
+				LOG_ER("%s: svc id %u %u", __FUNCTION__, info->i_yr_svc_id, info->info.enc.i_to_svc_id);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -399,14 +351,12 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 	case MDS_CALLBACK_DEC:
 	case MDS_CALLBACK_DEC_FLAT:
 		{
-
 			if ((info->i_yr_svc_id == NCSMDS_SVC_ID_AVD)
 			    && (info->info.dec.i_fr_svc_id == NCSMDS_SVC_ID_AVD)) {
 				if (!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
 							       AVD_AVD_SUBPART_VER_MIN,
 							       AVD_AVD_SUBPART_VER_MAX, avd_avd_msg_fmt_map_table)) {
-					/* log the problem */
-					m_AVD_LOG_MDS_CRITICAL(AVSV_LOG_MDS_DEC_CBK);
+					LOG_ER("%s: wrong msg fmt not valid %u", __FUNCTION__, info->info.dec.i_msg_fmt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -416,41 +366,34 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 				if (!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
 							       AVD_AVND_SUBPART_VER_MIN,
 							       AVD_AVND_SUBPART_VER_MAX, avd_avnd_msg_fmt_map_table)) {
-					/* log the problem */
-					m_AVD_LOG_MDS_CRITICAL(AVSV_LOG_MDS_DEC_CBK);
+					LOG_ER("%s: wrong msg fmt not valid %u", __FUNCTION__, info->info.dec.i_msg_fmt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 
 				rc = avd_mds_dec(&info->info.dec);
 			} else {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_DEC_CBK);
+				LOG_ER("%s: svc id %u %u", __FUNCTION__, info->i_yr_svc_id, info->info.dec.i_fr_svc_id);
 				return NCSCC_RC_FAILURE;
 			}
 
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_DEC_CBK);
+			if (rc != NCSCC_RC_SUCCESS)
 				return rc;
-			}
 		}
 
 		break;
 	case MDS_CALLBACK_QUIESCED_ACK:
 		{
 			rc = avd_mds_qsd_ack_evt(&info->info.quiesced_ack);
-			if (rc != NCSCC_RC_SUCCESS) {
-				/*m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SVC_CBK); */
+			if (rc != NCSCC_RC_SUCCESS)
 				return rc;
-			}
 		}
 		break;
 	default:
-		m_AVD_LOG_INVALID_VAL_ERROR(info->i_op);
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
+		LOG_WA("%s: unknown op %u", __FUNCTION__, info->i_op);
 		return NCSCC_RC_FAILURE;
 		break;
 	}
 
-	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_RCV_CBK);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -555,33 +498,20 @@ static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 
 	TRACE_ENTER();
 
-	/* create the message event */
 	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
-		/* log error */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("calloc failed");
+		assert(0);
 	}
-
-	m_AVD_LOG_RCVD_VAL(((long)evt));
 
 	evt->rcv_evt = AVD_EVT_MDS_QSD_ACK;
 
-	m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT, evt->rcv_evt);
-
-	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
-	    != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* log error */
-		/* free the event and return */
+	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: m_NCS_IPC_SEND failed", __FUNCTION__);
 		free(evt);
-
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
-
-	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_RCV_CBK);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -602,7 +532,6 @@ uns32 avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	uns32 rc;
 
 	TRACE_ENTER();
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 
@@ -619,7 +548,7 @@ uns32 avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	 * Now do MDS send.
 	 */
 	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND);
+		LOG_ER("%s: ncsmds_api MDS_SEND failed %u", __FUNCTION__, rc);
 		return rc;
 	}
 
