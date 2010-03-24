@@ -50,7 +50,7 @@ static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 	unsigned int rc;
 
 	assert(app_type != NULL);
-	avd_trace("'%s'", app_type->name.value);
+	TRACE("'%s'", app_type->name.value);
 	rc = ncs_patricia_tree_add(&apptype_db, &app_type->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
 }
