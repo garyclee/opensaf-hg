@@ -40,8 +40,6 @@
 
 #include "avd.h"
 
-static uns8 trace_severity = NCSFL_SEV_INFO;
-
 /****************************************************************************
   Name          : avd_log_admin_state_ntfs
 
@@ -246,13 +244,6 @@ void avd_log_shutdown_failure(SaNameT *node_name, uns8 sev, AVD_SHUTDOWN_FAILURE
 void avd_flx_log_reg()
 {
 	NCS_DTSV_RQ reg;
-        char *p;
-
-        if ((p = getenv("AVD_TRACE_SEVERITY")) != NULL) {
-                trace_severity = atoi(p);
-                if (trace_severity > NCSFL_SEV_EMERGENCY)
-                        trace_severity = NCSFL_SEV_INFO;
-        }
 
 	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
 	reg.i_op = NCS_DTSV_OP_BIND;
@@ -322,19 +313,5 @@ void avd_pxy_pxd_log(uns32 sev,
 	ncs_logmsg(NCS_SERVICE_ID_AVD, (uns8)AVD_PXY_PXD, (uns8)AVD_FC_PXY_PXD,
 		   NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info, comp, info1, info2, info3, info4);
 	return;
-}
-
-void _avd_log(uns8 severity, const char *function, const char *format, ...)
-{
-	char preamble[164];
-	char str[164];
-	va_list ap;
-
-	va_start(ap, format);
-	snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
-	vsnprintf(str, sizeof(str), preamble, ap);
-	va_end(ap);
-
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_GENLOG, AVD_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
 }
 

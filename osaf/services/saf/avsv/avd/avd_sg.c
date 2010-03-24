@@ -464,13 +464,11 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
 				/*  Just for the sake of avoiding else. */
 			} else if (!strcmp(attribute->attrName, "saAmfSGType")) {
-				avd_log(NCSFL_SEV_ERROR,
-					"Attribute saAmfSGType cannot be modified when SG is unlocked");
+				LOG_ER("%s: Attribute saAmfSGType cannot be modified when SG is unlocked", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGHostNodeGroup")) {
-				avd_log(NCSFL_SEV_ERROR,
-					"Attribute saAmfSGHostNodeGroup cannot be modified when SG is unlocked");
+				LOG_ER("%s: Attribute saAmfSGHostNodeGroup cannot be modified when SG is unlocked", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
@@ -510,14 +508,12 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((pref_inservice_su == 0) ||
 				    ((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
 				     (pref_inservice_su < SG_2N_PREF_INSVC_SU_MIN))) {
-					avd_log(NCSFL_SEV_ERROR,
-						"Minimum preferred num of su should be 2 in 2N, N+M and NWay red models");
+					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 			} else {
-				avd_log(NCSFL_SEV_ERROR,
-					"Attribute '%s' cannot be modified when SG is unlocked", attribute->attrName);
+				LOG_ER("%s: Attribute '%s' cannot be modified when SG is unlocked", __FUNCTION__, attribute->attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -792,7 +788,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	AVD_SG *sg;
 	SaAmfAdminStateT adm_state;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", object_name->value, op_id);
+	TRACE_ENTER2("'%s', %llu", object_name->value, op_id);
 	sg = avd_sg_get(object_name);
 
 	if (sg->sg_ncs_spec == SA_TRUE) {

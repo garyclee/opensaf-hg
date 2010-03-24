@@ -379,13 +379,13 @@ void avd_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state)) {
 		/* There has been change in the role of peer AvD, so, we need to send
 		   the role to the peer controller AvND. */
-		avd_log(NCSFL_SEV_NOTICE, "role changed. nodeid=%x, prev role=%u, new role=%u",
+		TRACE("role changed. nodeid=%x, prev role=%u, new role=%u",
 			d2d_msg->msg_info.d2d_hrt_bt.node_id, cb->avail_state_avd_other,
 			d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		rc = avd_avnd_send_role_change(cb, d2d_msg->msg_info.d2d_hrt_bt.node_id,
 					       d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		if (NCSCC_RC_SUCCESS != rc) {
-			avd_log(NCSFL_SEV_NOTICE, "role send failed. nodeid=%x, role=%u",
+			LOG_ER("%s: role send failed. nodeid=%x, role=%u", __FUNCTION__,
 				d2d_msg->msg_info.d2d_hrt_bt.node_id, d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		} else {
 			avd_d2n_msg_dequeue(cb);

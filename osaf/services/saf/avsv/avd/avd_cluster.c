@@ -55,17 +55,17 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SG *i_sg;
 
 	TRACE_ENTER();
-	avd_log(NCSFL_SEV_NOTICE, "Cluster startup timeout");
+	LOG_NO("Cluster startup timeout");
 
 	assert(evt->info.tmr.type == AVD_TMR_CL_INIT);
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		avd_log(NCSFL_SEV_WARNING, "Admin state of cluster is locked");
+		LOG_WA("Admin state of cluster is locked");
 		goto done;
 	}
 
 	if (cb->init_state != AVD_INIT_DONE) {
-		avd_log(NCSFL_SEV_EMERGENCY, "wrong state %u", cb->init_state);
+		LOG_ER("wrong state %u", cb->init_state);
 		goto done;
 	}
 

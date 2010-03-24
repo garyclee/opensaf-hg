@@ -76,24 +76,8 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 {
 	AVD_DND_MSG *d2n_msg;
 
-	TRACE_ENTER();
-
-	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == NULL) {
-		/* This is a invalid situation as the node record
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that node record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+	if ((d2n_msg = calloc(1, sizeof(AVSV_DND_MSG))) == NULL) {
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -102,16 +86,10 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 	d2n_msg->msg_info.d2n_ack_info.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_DATA_ACK_MSG, avnd->node_info.nodeId);
+	TRACE("Send ack msg to %x", avnd->node_info.nodeId);
 
-	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-
-		/* free the node up message */
-
+		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -354,7 +332,7 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		LOG_ER("%s: calloc FAILED", __FUNCTION__);
-		goto done;
+		assert(0);
 	}
 
 	/* prepare the SU presence state change notification message */
@@ -1006,16 +984,6 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 
 	TRACE_ENTER();
 
-	if (su == NULL) {
-		/* This is a invalid situation as the SU
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that su can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
-
 	/* Get the node information from the SU */
 	m_AVD_GET_SU_NODE_PTR(cb, su, avnd);
 
@@ -1029,12 +997,9 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	trans_dsc = SA_AMF_CSI_NEW_ASSIGN;
 
 	/* prepare the SU SI message. */
-	susi_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (susi_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
+	if ((susi_msg = calloc(1, sizeof(AVSV_DND_MSG))) == NULL) {
+		LOG_ER("calloc failed");
+		assert(0);
 	}
 
 	susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;

@@ -65,7 +65,7 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_CLINIT_TMR_START(cb) \
 {\
-   avd_log(NCSFL_SEV_NOTICE, "Starting cluster startup timer"); \
+   LOG_NO("Starting cluster startup timer"); \
    cb->amf_init_tmr.is_active = FALSE; \
    cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
    avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \

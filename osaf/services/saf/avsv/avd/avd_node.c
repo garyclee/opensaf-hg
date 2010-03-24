@@ -345,11 +345,10 @@ void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 {
 	assert(node != NULL);
 	assert(node_state <= AVD_AVND_STATE_NCS_INIT);
-	avd_log(NCSFL_SEV_NOTICE, "'%s'::'%x' %s => %s",
-		node->name.value,node->node_info.nodeId, node_state_name[node->node_state], node_state_name[node_state]);
+	LOG_NO("'%s' %s => %s",	node->name.value, node_state_name[node->node_state],
+		node_state_name[node_state]);
 	node->node_state = node_state;
-	/*  TODO why isn't this followed by: */
-/*     m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE); */
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_NODE_STATE);
 }
 
 static const char *oper_state_name[] = {
@@ -367,8 +366,8 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 {
 	assert(node != NULL);
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		node->name.value, oper_state_name[node->saAmfNodeOperState], oper_state_name[oper_state]);
+	LOG_NO("'%s' %s => %s",	node->name.value, oper_state_name[node->saAmfNodeOperState],
+		oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);

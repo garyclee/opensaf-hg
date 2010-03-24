@@ -730,8 +730,7 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 						0);
 
 	if (status != SA_AIS_OK) {
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfAlarmNotificationAllocate Failed (%u)", status);
+		LOG_ER("%s: saNtfAlarmNotificationAllocate Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -750,16 +749,14 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (status != SA_AIS_OK) {
 		saNtfNotificationFree(myAlarmNotification.notificationHandle);
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfNotificationSend Failed (%u)", status);
+		LOG_ER("%s: saNtfNotificationSend Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
 	status = saNtfNotificationFree(myAlarmNotification.notificationHandle);
 
 	if (status != SA_AIS_OK) {
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfNotificationFree Failed (%u)", status);
+		LOG_ER("%s: saNtfNotificationFree Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -793,8 +790,7 @@ uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 						      0);
 
 	if (status != SA_AIS_OK) {
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfStateChangeNotificationAllocate Failed (%u)", status);
+		LOG_ER("%s: saNtfStateChangeNotificationAllocate Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -815,16 +811,14 @@ uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (status != SA_AIS_OK) {
 		saNtfNotificationFree(myStateNotification.notificationHandle);
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfNotificationSend Failed (%u)", status);
+		LOG_ER("%s: saNtfNotificationSend Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
 	status = saNtfNotificationFree(myStateNotification.notificationHandle);
 
 	if (status != SA_AIS_OK) {
-		/* log the error code here */
-		avd_log(NCSFL_SEV_ERROR,"saNtfNotificationFree Failed (%u)", status);
+		LOG_ER("%s: saNtfNotificationFree Failed (%u)", __FUNCTION__, status);
 		return NCSCC_RC_FAILURE;
 	}
 
