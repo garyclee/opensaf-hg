@@ -391,7 +391,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 */
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
 			    (NCSCC_RC_SUCCESS == status)) {
-				LOG_NO("cold sync complete");
+				LOG_NO("Cold sync complete!");
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
 				avd_init_heartbeat(cb);
 			}
@@ -537,7 +537,8 @@ static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
-		LOG_WA("mbcsv cold sync tmr exp");
+		/* The first cold sync request seems to be ignored so don't log */
+		TRACE("mbcsv cold sync tmr exp");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_TMR_EXP:
@@ -1248,6 +1249,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_STBY:
 	case AVSV_CKPT_COMP_OPER_STATE:
+	case AVSV_CKPT_COMP_READINESS_STATE:
 	case AVSV_CKPT_COMP_PRES_STATE:
 	case AVSV_CKPT_COMP_RESTART_COUNT:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_COMP_CONFIG)
