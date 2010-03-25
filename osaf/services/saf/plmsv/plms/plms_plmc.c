@@ -1079,8 +1079,6 @@ int32 plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 		assert(1);
 	}
 		
-	memset(&(evt->req_evt.plms_plmc_evt.ee_id),0,SA_MAX_NAME_LENGTH+3);
-	
 	evt->req_res = PLMS_REQ;
 	evt->req_evt.req_type = PLMS_PLMC_EVT_T;
 	/* Fill ee-id */
@@ -1139,8 +1137,6 @@ int32 plms_plmc_udp_cbk(udp_msg *msg)
 		assert(0);
 	}
 
-	memset(&(evt->req_evt.plms_plmc_evt.ee_id),0,SA_MAX_NAME_LENGTH+3);
-	
 	evt->req_res = PLMS_REQ;
 	evt->req_evt.req_type = PLMS_PLMC_EVT_T;
 	/* Fill ee-id */
@@ -1231,7 +1227,6 @@ static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 	/* Fill the EE-id.*/			
 	len = strlen(msg->ee_id);
 	
-	memset(&(evt->req_evt.plms_plmc_evt.ee_id),0,SA_MAX_NAME_LENGTH+3);
 	evt->req_evt.plms_plmc_evt.ee_id.length = len;
 	memcpy(evt->req_evt.plms_plmc_evt.ee_id.value,msg->ee_id,len);
 	
@@ -1522,7 +1517,7 @@ static SaUint32T plms_ee_verify(PLMS_ENTITY *ent, PLMS_PLMC_EE_OS_INFO *os_info)
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 
-	memset(&dn_ee_base_type_key,0,sizeof dn_ee_base_type_key);
+	memset(&dn_ee_base_type_key,0,sizeof(SaNameT));
 	
 	dn_ee_type = (SaInt8T *)calloc(1,sizeof(SaInt8T)*
 			(ent->entity.ee_entity.saPlmEEType.length + 1));
