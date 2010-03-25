@@ -278,7 +278,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	char *dndup = strdup(rname);
 	char *parent_name = strchr(rname, ',');
 	char *rdnstr;
-	uns32 nummemqgrp = 0, open = 0;
+	uns32 open = 0;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1], arr5[1], arr6[1];
 	SaImmAttrValuesT_2 attr_mqrsc, attr_mqIspersistent, attr_mqRetTime, attr_mqSize, attr_mqCreationTimeStamp,
 	    attr_mqIsOpen, *attrValues[7];
@@ -372,11 +372,9 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 	SaAisErrorT rc = SA_AIS_OK;
 	SaUint64T def_val=0;
 	int i = 0;
-	uns32 offset;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1];
 	SaImmAttrValuesT_2 attr_mqprio, attr_mqprioSize, attr_capavail, attr_capreached, *attrValues[5];
 	SaNameT mqp_parent, *mQPrioDn = NULL;
-	MQND_QUEUE_CKPT_INFO *shmBaseAddr = NULL;
 	memset(&mqp_parent, 0, sizeof(SaNameT));
 	char *mqprdn = (char *)malloc(sizeof(char) * SA_MAX_NAME_LENGTH);
 

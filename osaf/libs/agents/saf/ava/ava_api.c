@@ -127,8 +127,6 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    AVA_HDL_DB   *hdl_db = 0;
    AVA_HDL_REC  *hdl_rec = 0;
    SaAisErrorT  rc = SA_AIS_OK;
-   int argc = 0;
-   char **argv = NULL;
    
    if ( !o_hdl || !io_ver )
    {
@@ -288,11 +286,8 @@ SaAisErrorT saAmfDispatch (SaAmfHandleT hdl,
    AVA_CB      *cb = 0;
    AVA_HDL_REC *hdl_rec = 0;
    SaAisErrorT rc = SA_AIS_OK;
-   int argc = 0;
-   char **argv = NULL;
    uns32 pend_fin = 0;
    uns32 pend_dis = 0;
-
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -358,8 +353,6 @@ SaAisErrorT saAmfFinalize (SaAmfHandleT hdl)
    AVA_HDL_REC  *hdl_rec = 0;
    AVSV_NDA_AVA_MSG msg;
    SaAisErrorT  rc = SA_AIS_OK;
-   int argc = 0;
-   char **argv = NULL;
    NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 
    /* initialize the msg */

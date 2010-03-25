@@ -254,8 +254,6 @@ static void main_process(void)
  */
 int main(int argc, char *argv[])
 {
-	char *value;
-
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") != NULL) {
 		/* AMF start */

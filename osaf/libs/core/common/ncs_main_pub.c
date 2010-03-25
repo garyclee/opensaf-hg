@@ -285,8 +285,6 @@ unsigned int ncs_leap_startup(void)
 unsigned int ncs_mds_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
-	int argc;
-	char argv[256];
 
 	m_NCS_AGENT_LOCK;
 
@@ -715,15 +713,16 @@ uns32 mainget_node_id(uns32 *node_id)
 	char get_word[256];
 	uns32 res = NCSCC_RC_SUCCESS;
 	uns32 d_len, f_len;
-	char *tmp;
 
 #ifdef __NCSINC_LINUX__
 #if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-	tmp = getenv("NCS_SIM_NODE_ID");
-	if (tmp != NULL) {
-		m_NCS_DBG_PRINTF("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
-		*node_id = atoi(tmp);
-		return NCSCC_RC_SUCCESS;
+	{
+		char *tmp = getenv("NCS_SIM_NODE_ID");
+		if (tmp != NULL) {
+			m_NCS_DBG_PRINTF("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
+			*node_id = atoi(tmp);
+			return NCSCC_RC_SUCCESS;
+		}
 	}
 #endif
 	d_len = strlen(ncs_config_root);

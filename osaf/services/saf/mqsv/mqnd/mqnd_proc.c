@@ -42,7 +42,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 	MQND_QUEUE_NODE *qnode = NULL;
 	MQND_QNAME_NODE *pnode = NULL;
 	ASAPi_OPR_INFO opr;
-	uns32 rc = NCSCC_RC_SUCCESS, counter;
+	uns32 rc = NCSCC_RC_SUCCESS;
 	SaNameT qname;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	SaAisErrorT error;
@@ -205,7 +205,6 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	uns32 size = 0;
 	uns32 i;
 	NCS_OS_POSIX_MQ_REQ_INFO qreq;
-	uns32 counter;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 
 	memset(&transfer_rsp, 0, sizeof(MQSV_EVT));
@@ -943,7 +942,6 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 	SaTimeT timeout;
 	MQND_QNAME_NODE *pnode = 0;
 	SaNameT qname;
-	uns32 counter = 0;
 	*err = SA_AIS_OK;
 	SaMsgQueueHandleT listenerHandle;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;

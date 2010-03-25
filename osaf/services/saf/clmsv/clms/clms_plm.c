@@ -31,7 +31,6 @@ static void clms_plm_readiness_track_callback (
 {
 	SaUint32T i,rc;
 	CLMS_CLUSTER_NODE *node=NULL,*tmp_node=NULL;
-	CLMS_CKPT_REC ckpt;
 	uns32 node_id = 0;
 
 	TRACE_ENTER2("step=%d,error=%d,number of tracked entites %d",step,error,trackedEntities->numberOfEntities);
@@ -183,7 +182,6 @@ SaAisErrorT clms_plm_init(CLMS_CB *cb)
 	SaVersionT plmVersion = { 'A', 0x01, 0x01 };
 	SaNameT *entityNames;
 	CLMS_CLUSTER_NODE *node=NULL;
-	SaNameT eename;
 	SaNameT nodename;
 	SaUint32T i=0,entityNamesNumber = ncs_patricia_tree_size(&clms_cb->nodes_db);  
 	SaPlmReadinessTrackedEntitiesT *trackedEntities;

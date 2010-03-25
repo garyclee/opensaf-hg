@@ -62,13 +62,6 @@ extern "C" {
 	    __attribute__ ((format(printf, 1, 2)));
 
 /**
- * This function is called when a fatal error occurs. The default is
- * to print the message on "stderr" and to syslog and finally
- * abort the program with a call to "abort()".
- */
-	extern ImmutilErrorFnT immutilError;
-
-/**
  * Defines the command operation types.
  */
 	enum CcbUtilOperationType {
@@ -402,8 +395,6 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 /**
  * Default: errorsAreFatal=1, nTries=5, retryInterval=400.
  */
-	extern struct ImmutilWrapperProfile immutilWrapperProfile;
-
 	extern SaAisErrorT immutil_saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 						       const SaImmOiCallbacksT_2 *immOiCallbacks, const SaVersionT *version);
 

@@ -158,7 +158,6 @@ void eds_main_process(SYSF_MBX *mbx)
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 	EDS_CB *eds_cb = NULL;
-	uns32 rc;
 
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
 		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);

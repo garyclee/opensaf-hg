@@ -26,8 +26,6 @@ void *g_fma_task_hdl = NULL;
 
 static uns32 fma_create(NCS_LIB_CREATE *create_info);
 static uns32 fma_destroy(NCS_LIB_DESTROY *destroy_info);
-static uns32 fma_hpl_init(void);
-static uns32 fma_hpl_finalize(void);
 
 static uns32 lib_use_count = 0;
 
@@ -277,7 +275,6 @@ static void fma_main_proc(uns32 *fma_init_hdl)
 	NCS_SEL_OBJ mbx_sel_obj;
 	NCS_SEL_OBJ_SET temp_sel_obj_set;
 	FMA_MBX_EVT_T *fma_mbx_evt;
-	uns32 msg;
 
 	m_FMA_LOG_FUNC_ENTRY("fma_main_proc");
 
@@ -398,8 +395,6 @@ static uns32 fma_create(NCS_LIB_CREATE *create_info)
 {
 	FMA_CB *cb = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	int argc = 0;
-	char **argv = NULL;
 
 	m_FMA_LOG_FUNC_ENTRY("fma_create");
 
@@ -414,13 +409,13 @@ static uns32 fma_create(NCS_LIB_CREATE *create_info)
 		goto fma_ncs_agents_startup_fail;
 	}
 
-   /**  Registering with logging subsystem: DLSv **/
+	/*  Registering with logging subsystem: DLSv */
 	if (fma_log_reg() != NCSCC_RC_SUCCESS) {
 		rc = NCSCC_RC_FAILURE;
 		goto fma_log_reg_fail;
 	}
 
-   /** Allocate memory for control block **/
+	/* Allocate memory for control block */
 	cb = m_MMGR_ALLOC_FMA_CB;
 	if (cb == NULL) {
 		m_FMA_LOG_MEM(FMA_LOG_CB_ALLOC, FMA_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_CRITICAL);
@@ -433,34 +428,30 @@ static uns32 fma_create(NCS_LIB_CREATE *create_info)
 
 	cb->pool_id = NCS_HM_POOL_ID_COMMON;
 
-   /** create the association with hdl-mngr **/
+	/* create the association with hdl-mngr */
 	if (!(cb->cb_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_FMA, (NCSCONTEXT)cb))) {
 		m_FMA_LOG_CB(FMA_LOG_CB_HDL_ASS_CREATE, FMA_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_CRITICAL);
 		rc = NCSCC_RC_FAILURE;
 		goto cb_hdl_create_fail;
 	}
 
-   /** store the hdl in the global variable **/
+	/* store the hdl in the global variable */
 	gl_fma_hdl = cb->cb_hdl;
 
-   /** store my node id **/
+	/* store my node id */
 	cb->my_node_id = m_NCS_GET_NODE_ID;
 
 	/* Set the is_platform flag to FALSE, default environment is PC */
 	cb->is_platform = FALSE;
 
-   /** Initialize the hpl library */
-	if (fma_hpl_init() != NCSCC_RC_SUCCESS)
-		goto cb_mbx_create_fail;
-
-   /** Create mailbox for processing msg from FM **/
+	/* Create mailbox for processing msg from FM */
 	if (m_NCS_IPC_CREATE(&cb->mbx) != NCSCC_RC_SUCCESS) {
 		m_FMA_LOG_MBX(FMA_LOG_MBX_CREATE, FMA_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
 		rc = NCSCC_RC_FAILURE;
 		goto cb_mbx_create_fail;
 	}
 
-   /** Increment the referrence count **/
+	/* Increment the referrence count */
 	m_NCS_IPC_ATTACH(&cb->mbx);
 
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)fma_main_proc,
@@ -472,21 +463,21 @@ static uns32 fma_create(NCS_LIB_CREATE *create_info)
 		goto task_create_fail;
 	}
 
-   /** initialize the fma cb lock **/
+	/* initialize the fma cb lock */
 	if (m_NCS_LOCK_INIT(&cb->lock) != NCSCC_RC_SUCCESS) {
 		m_FMA_LOG_LOCK(FMA_LOG_LOCK_INIT, FMA_LOG_LOCK_FAILURE, NCSFL_SEV_CRITICAL);
 		rc = NCSCC_RC_FAILURE;
 		goto lock_init_fail;
 	}
 
-   /** Get FMA handle database : Initialize the patricia tree **/
+	/* Get FMA handle database : Initialize the patricia tree */
 	if (fma_hdl_db_init(&cb->hdl_db) != NCSCC_RC_SUCCESS) {
 		m_FMA_LOG_HDL_DB(FMA_LOG_HDL_DB_CREATE, FMA_LOG_HDL_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
 		rc = NCSCC_RC_FAILURE;
 		goto hdl_db_create_fail;
 	}
 
-   /** Register with MDS **/
+	/* Register with MDS */
 	if (fma_mds_reg(cb) != NCSCC_RC_SUCCESS) {
 		m_FMA_LOG_MDS(FMA_LOG_MDS_REG, FMA_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
 		rc = NCSCC_RC_FAILURE;
@@ -541,8 +532,6 @@ static uns32 fma_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	FMA_CB *cb = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	int argc = 0;
-	char **argv;
 
 	m_FMA_LOG_FUNC_ENTRY("fma_destroy");
 
@@ -562,24 +551,20 @@ static uns32 fma_destroy(NCS_LIB_DESTROY *destroy_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Finalize the hpl library */
-	if (fma_hpl_finalize() != NCSCC_RC_SUCCESS)
-		printf("Hpl library finalize failed\n");
-
-   /** Free all rec and destroy hdl-db patricia tree **/
+	/* Free all rec and destroy hdl-db patricia tree */
 	fma_hdl_db_del(cb);
 	m_FMA_LOG_HDL_DB(FMA_LOG_HDL_DB_DESTROY, FMA_LOG_HDL_DB_SUCCESS, 0, NCSFL_SEV_INFO);
 
-   /** Unregister with MDS **/
+	/* Unregister with MDS */
 	rc = fma_mds_dereg(cb);
 	if (!rc)
 		m_FMA_LOG_MDS(FMA_LOG_MDS_UNREG, FMA_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
 
-   /** Destroy the lock **/
+	/* Destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->lock);
 	m_FMA_LOG_LOCK(FMA_LOG_LOCK_FINALIZE, FMA_LOG_LOCK_SUCCESS, NCSFL_SEV_INFO);
 
-   /** Return FMA CB **/
+	/* Return FMA CB */
 	ncshm_give_hdl(gl_fma_hdl);
 
 	/* Destory FMA_CB hdl */
@@ -726,56 +711,4 @@ uns32 fma_get_slot_site_from_ent_path(SaHpiEntityPathT ent_path, uns8 *o_slot, u
 		return NCSCC_RC_FAILURE;
 
 	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
-  Name          : fma_hpl_init 
-  
-  Description   : Initializes the HPL client library.
-     
-  Arguments     : None.
-  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-  
-  Notes         : None. 
- *****************************************************************************/
-static uns32 fma_hpl_init(void)
-{
-	NCS_LIB_REQ_INFO req_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Initialize with HPL. */
-	/*memset(&req_info, '\0', sizeof(req_info));
-	req_info.i_op = NCS_LIB_REQ_CREATE;
-	rc = ncs_hpl_lib_req(&req_info);
-	if (rc != NCSCC_RC_SUCCESS) {
-		printf("hpl lib init failed\n ");
-		return rc;
-	}*/
-
-	return rc;
-}
-
-/****************************************************************************
-  Name          : fma_hpl_finalize
- 
-  Description   : Finalizes the HPL client library.
- 
-  Arguments     : None.
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-  
-  Notes         : None. 
- ****************************************************************************/
-static uns32 fma_hpl_finalize(void)
-{
-	NCS_LIB_REQ_INFO req_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Initialize with HPL. */
-	/*memset(&req_info, '\0', sizeof(req_info));
-	req_info.i_op = NCS_LIB_REQ_DESTROY;
-	rc = ncs_hpl_lib_req(&req_info);*/
-
-	return rc;
 }

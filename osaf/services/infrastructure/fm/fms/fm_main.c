@@ -42,8 +42,6 @@ char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 static uns32 fm_agents_startup(void);
 static uns32 fm_agents_shutdown(void);
 static uns32 fm_get_args(FM_CB *);
-static uns32 fm_hpl_init(void);
-static uns32 fm_hpl_finalize(void);
 static uns32 fm_can_smh_sw_process(FM_CB *, FM_EVT *);
 static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *, uns8, uns8, uns8);
 static uns32 fms_fma_node_reset_intimate(FM_CB *, uns32, uns32);
@@ -145,13 +143,6 @@ int main(int argc, char *argv[])
 		goto fm_rda_init_failed;
 	}
 
-	/* HPL initialization */
-	if (fm_hpl_init() != NCSCC_RC_SUCCESS) {
-		printf("\nfm_hpl_init() failed.");
-		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
-		goto fm_hpl_lib_init_failed;
-	}
-
 	/* Open FM pipe for receiving AMF up intimation */
 	if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS) {
 		printf("\nfm pipe open failed (avm) failed.");
@@ -234,7 +225,6 @@ int main(int argc, char *argv[])
 	}
 
 	fm_amf_close(&fm_cb->fm_amf_cb);
-	fm_hpl_finalize();
 
  fm_hpl_lib_init_failed:
 
@@ -311,58 +301,6 @@ static uns32 fm_agents_shutdown(void)
 		printf("ncs core agent shutdown failed\n ");
 		return rc;
 	}
-
-	return rc;
-}
-
-/****************************************************************************
- * Name          : fm_hpl_init 
- *
- * Description   :  Calls Hpl library for initialization.
- *
- * Arguments     :  None
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
- *****************************************************************************/
-static uns32 fm_hpl_init(void)
-{
-	NCS_LIB_REQ_INFO req_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Initialize with HPL. */
-	/*memset(&req_info, '\0', sizeof(req_info));
-	req_info.i_op = NCS_LIB_REQ_CREATE;
-	rc = ncs_hpl_lib_req(&req_info);
-	if (rc != NCSCC_RC_SUCCESS) {
-		printf("hpl lib init failed\n ");
-		return rc;
-	}*/
-
-	return rc;
-}
-
-/****************************************************************************
- * Name          : fm_hpl_finalize
- *
- * Description   :  Calls Hpl library for finalize
- *
- * Arguments     :  None
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
- *****************************************************************************/
-static uns32 fm_hpl_finalize(void)
-{
-	NCS_LIB_REQ_INFO req_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Initialize with HPL. */
-	/*memset(&req_info, '\0', sizeof(req_info));
-	req_info.i_op = NCS_LIB_REQ_DESTROY;
-	rc = ncs_hpl_lib_req(&req_info);*/
 
 	return rc;
 }

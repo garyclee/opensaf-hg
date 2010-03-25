@@ -553,7 +553,6 @@ static uns32 mqnd_cb_db_destroy(MQND_CB *cb)
 	MQND_QUEUE_NODE *qnode;
 	uns32 qhdl = 0;
 	ASAPi_OPR_INFO opr;
-	uns32 counter = 0;
 	/* Delete all the members in the qhdl_tree */
 	mqnd_queue_node_getnext(cb, qhdl, &qnode);
 	while (qnode) {

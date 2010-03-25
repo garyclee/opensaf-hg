@@ -23,12 +23,6 @@
 ******************************************************************************/
 #include "mqnd.h"
 
-/*static uns32 mqnd_queue_create_attr_get(MQND_CB *cb, uns32 qhdl,
-                                 MDS_DEST *qdest,
-                                 SaMsgQueueCreationAttributesT *o_qattr);*/
-/*static uns32 mqnd_set_queue_owner(MQND_CB *cb, MQND_QUEUE_NODE   *qnode, MDS_DEST* rcvr_mqa);*/
-/*static uns32 mqnd_queue_dereg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode);*/
-
 /****************************************************************************
  * Name          : mqnd_queue_create
  *
@@ -53,7 +47,6 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	MQND_QUEUE_NODE *qnode = NULL;
 	uns8 i = 0;
 	MQND_QNAME_NODE *pnode = NULL;
-	uns32 counter = 0;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	NCS_BOOL is_q_reopen = FALSE;
 	SaAisErrorT error;

@@ -50,6 +50,7 @@ extern "C"
 	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose);
 }
 
+extern ImmutilErrorFnT immutilError;
 char* imm_import_adminOwnerName = "imm_import";
 static bool imm_import_verbose = false;
 
