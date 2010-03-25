@@ -15,12 +15,16 @@
  *
  */
 
-/*****************************************************************************/
-#include "immutil.h"
-#include "saImm.h"
+#ifndef MQND_IMM_H
+#define MQND_IMM_H
 
-void mqnd_imm_declare_implementer(MQND_CB *cb);
-SaAisErrorT mqnd_imm_initialize(MQND_CB *cb);
-SaAisErrorT mqnd_create_runtime_MsgQobject(char *rname, SaTimeT time, MQND_QUEUE_NODE *qnode,
+#include <immutil.h>
+#include <saImm.h>
+
+extern void mqnd_imm_declare_implementer(MQND_CB *cb);
+extern SaAisErrorT mqnd_imm_initialize(MQND_CB *cb);
+extern SaAisErrorT mqnd_create_runtime_MsgQobject(char *rname, SaTimeT time, MQND_QUEUE_NODE *qnode,
 					   SaImmOiHandleT immOiHandle);
-SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(char *rname, MQND_QUEUE_NODE *qnode, SaImmOiHandleT immOiHandle);
+extern SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(char *rname, MQND_QUEUE_NODE *qnode, SaImmOiHandleT immOiHandle);
+
+#endif /* MQND_IMM_H */

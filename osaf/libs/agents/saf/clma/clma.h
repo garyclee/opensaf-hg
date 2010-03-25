@@ -92,15 +92,12 @@ extern uns32 clma_validate_version(SaVersionT *version);
 extern uns32 clma_mds_init(clma_cb_t *cb);
 extern uns32 clma_mds_msg_sync_send(clma_cb_t *cb, CLMSV_MSG *i_msg, CLMSV_MSG **o_msg, uns32 timeout);
 extern uns32 clma_mds_msg_async_send(clma_cb_t *cb, CLMSV_MSG *i_msg, uns32 prio);
-/*common*/
-/*extern static uns32 decodeNodeAddressT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaClmNodeAddressT * nodeAddress);*/
-/*extern static uns32 decodeSaNameT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNameT *name);*/
 
-/*extern static unsigned int clma_create(void);*/
 extern unsigned int clma_startup(void);
 extern unsigned int clma_shutdown(void);
 static void clma_destroy(void);
-/*extern extern void clma_msg_destroy(CLMSV_MSG *msg);*/
+extern void clma_msg_destroy(CLMSV_MSG *msg);
+extern void clma_mds_finalize(clma_cb_t *cb);
 
 extern clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t *clma_cb, uns32 client_id);
 extern clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t *cb, const SaClmCallbacksT *reg_cbks_1,
@@ -121,8 +118,6 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
                                 SaTimeT timeout,
                                 SaClmClusterNodeT *cluster_node,
                                 SaClmClusterNodeT_4 *cluster_node_4);
-/*uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress);
-uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name);*/
 extern uns32 clma_clms_msg_proc(clma_cb_t *cb, CLMSV_MSG *clmsv_msg, MDS_SEND_PRIORITY_TYPE prio);
 extern void clma_add_to_async_cbk_msg_list(CLMSV_MSG **head, CLMSV_MSG *new_node);
 extern void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,

@@ -26,6 +26,9 @@
 
 #include "cpnd.h"
 
+extern uns32 cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error);
+extern uns32 cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id);
+
 static uns32 cpnd_evt_proc_cb_dump(CPND_CB *cb);
 static uns32 cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);

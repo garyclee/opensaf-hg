@@ -35,6 +35,8 @@
 #ifndef MQD_LOG_H
 #define MQD_LOG_H
 
+extern void _mqd_genlog(uns8 severity, const char *function, const char *format, ...);
+
 #define mqd_genlog(severity, format, args...) _mqd_genlog((severity), __FUNCTION__, (format), ##args)
 /******************************************************************************\
             Logging offset indexes for Headline logging
