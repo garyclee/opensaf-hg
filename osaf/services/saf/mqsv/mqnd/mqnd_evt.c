@@ -567,7 +567,6 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	MQND_QNAME_NODE *pnode = NULL;
 	SaNameT qname;
-	uns32 counter = 0;
 
 	ulink_req = &evt->msg.mqp_req.info.unlinkReq;
 
@@ -1244,7 +1243,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
  *****************************************************************************/
 uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, counter = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 	SaMsgQueueHandleT qhdl;
 	MQND_QUEUE_NODE *qnode = NULL;
 	MQND_QNAME_NODE *pnode = NULL;

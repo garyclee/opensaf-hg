@@ -1520,7 +1520,6 @@ static uns32 ReadRawPacket(NCS_L2SOCKET_ENTRY *se, struct sockaddr_in *p_saddr, 
 
 static uns32 ncsl2sock_event_raw_indication(NCS_L2SOCKET_ENTRY *se_in, NCSCONTEXT arg)
 {
-	SYSF_DL_DISPATCH_INFO *ddi = (SYSF_DL_DISPATCH_INFO *)arg;
 	NCS_L2SOCKET_ENTRY *se;
 	NCS_L2FILTER_ENTRY *fe = NULL;
 	NCS_L2FILTER_KEY key;

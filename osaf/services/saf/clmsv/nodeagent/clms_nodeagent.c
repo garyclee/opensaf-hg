@@ -79,7 +79,7 @@ static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
         CLMSV_MSG *msg;
         NCS_UBAID *uba = info->info.dec.io_uba;
         uns8 local_data[20];
-        uns32 total_bytes = 0, ret_bytes = 0;
+        uns32 total_bytes = 0;
         TRACE_ENTER();
 
         if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,

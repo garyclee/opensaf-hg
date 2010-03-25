@@ -150,8 +150,6 @@ static void dump_sig_handler(int sig)
 static uns32 initialize()
 {
 	uns32 rc = NCSCC_RC_SUCCESS;;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
 

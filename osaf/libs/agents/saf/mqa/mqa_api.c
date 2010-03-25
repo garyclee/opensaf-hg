@@ -131,9 +131,6 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 	MQSV_EVT *out_evt = NULL;
 	MQA_CLIENT_INFO *client_info = NULL;
 	uns32 mds_rc;
-	int argc = 0;
-	char **argv = NULL;
-	SaVersionT client_version;
 
 #if (NCS_MQA_DEBUG==1)
 	printf("\n saMsgInitialize Called \n");
@@ -530,8 +527,6 @@ SaAisErrorT saMsgFinalize(SaMsgHandleT msgHandle)
 	uns32 mds_rc, flag = 0;
 	SaMsgQueueHandleT *temp_ptr = NULL;
 	SaMsgQueueHandleT temp_hdl;
-	int argc = 0;
-	char **argv = NULL;
 
 #if (NCS_MQA_DEBUG==1)
 	printf("\n SaMsgFinalize Called with Handle %d \n", (uns32)msgHandle);

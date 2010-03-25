@@ -284,7 +284,6 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 	/* Add the queue to the MQND queue node, queue name DB */
 	if (1) {
 		MQND_QNAME_NODE *pnode = 0;
-		uns32 counter = 0;
 
 		/* Add the queue into qnode DB */
 		mqnd_queue_node_add(cb, qnode);

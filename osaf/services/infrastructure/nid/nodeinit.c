@@ -1362,8 +1362,6 @@ int main(int argc, char *argv[])
 {
 	char sbuf[256];
 	char tracefile[NAME_MAX];
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
 
