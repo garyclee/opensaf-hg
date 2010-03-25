@@ -130,7 +130,7 @@ SmfCampaignWrapup::executeCampWrapup()
 	// The campaign will enter state "commited" even if some actions fails.
 	// Just log errors and try to execute as many operations as possible.
 
-	LOG_NO("CAMP: Campaign wrapup, start campWrapupActions (%z)", m_campWrapupAction.size());
+	LOG_NO("CAMP: Campaign wrapup, start campWrapupActions (%zu)", m_campWrapupAction.size());
 	std::list < SmfUpgradeAction * >::iterator iter;
 	for (iter = m_campWrapupAction.begin(); iter != m_campWrapupAction.end(); ++iter) {
 		if ((*iter)->execute() != 0) {
@@ -138,7 +138,7 @@ SmfCampaignWrapup::executeCampWrapup()
 		}
 	}
 
-	LOG_NO("CAMP: Campaign wrapup , start remove from IMM (%z)", m_removeFromImm.size());
+	LOG_NO("CAMP: Campaign wrapup , start remove from IMM (%zu)", m_removeFromImm.size());
 	if (m_removeFromImm.size() > 0) {
 		SmfImmUtils immUtil;
 		if (immUtil.doImmOperations(m_removeFromImm) == false) {
@@ -195,7 +195,7 @@ SmfCampaignWrapup::executeCampComplete()
 	TRACE_ENTER();
 
 	//Campaign wrapup complete actions
-	LOG_NO("CAMP: Campaign complete, start executeCampComplete (%z)", m_campCompleteAction.size());
+	LOG_NO("CAMP: Campaign complete, start executeCampComplete (%zu)", m_campCompleteAction.size());
 	std::list < SmfUpgradeAction * >::iterator iter;
 	iter = m_campCompleteAction.begin();
 	while (iter != m_campCompleteAction.end()) {
