@@ -22,7 +22,9 @@
 
 ******************************************************************************/
 
+#include <immutil.h>
 #include "mqnd.h"
+#include "mqnd_imm.h"
 
 extern NCS_OS_MQ_MSG transfer_mq_msg;	/* used in queue owner ship */
 

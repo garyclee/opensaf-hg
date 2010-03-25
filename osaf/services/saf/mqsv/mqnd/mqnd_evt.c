@@ -24,6 +24,7 @@
   mqnd_process_evt .........MQND Event processing routine.
 ******************************************************************************/
 
+#include <immutil.h>
 #include "mqnd.h"
 
 static uns32 mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt);

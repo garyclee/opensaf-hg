@@ -18,6 +18,8 @@
 #ifndef MQND_LOG_H
 #define MQND_LOG_H
 
+extern void _mqnd_genlog(uns8 severity, const char *function, const char *format, ...);
+
 #define mqnd_genlog(severity, format, args...) _mqnd_genlog((severity), __FUNCTION__, (format), ##args)
 /******************************************************************************
  Logging offset indexes for MQA Headline logging

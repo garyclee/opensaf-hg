@@ -20,7 +20,6 @@
 #include "clma.h"
 
 static void clma_hdl_list_del(clma_client_hdl_rec_t ** list);
-void clma_msg_destroy(CLMSV_MSG * msg);
 /* Variables used during startup/shutdown only */
 static pthread_mutex_t clma_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned int clma_use_count;

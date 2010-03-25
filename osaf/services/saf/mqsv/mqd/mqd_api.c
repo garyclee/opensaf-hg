@@ -43,9 +43,13 @@
  * Module Inclusion Control...
  */
 #define NCS_2_0 1
-#include "mqd.h"
+
 #include <poll.h>
- MQDLIB_INFO gl_mqdinfo;
+
+#include "mqd.h"
+#include "mqd_imm.h"
+
+MQDLIB_INFO gl_mqdinfo;
 
 #define FD_AMF 0
 #define FD_MBCSV 1
@@ -53,6 +57,7 @@
 
 static struct pollfd fds[3];
 static nfds_t nfds = 3;
+
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 mqd_lib_init(void);
 static void mqd_lib_destroy(void);
@@ -65,8 +70,6 @@ static uns32 mqd_amf_init(MQD_CB *);
 static void mqd_asapi_bind(MQD_CB *);
 static void mqd_asapi_unbind(void);
 static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-/*static uns32 mqd_clm_init(MQD_CB *);*/
-/*static uns32 mqd_clm_shut(MQD_CB *);*/
 /*****************************************************************************/
 
 /****************************************************************************\
@@ -196,7 +199,7 @@ static uns32 mqd_lib_init(void)
 	}
 	m_LOG_MQSV_D(MQD_MDS_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-/* Register with MBCSV initialise and open a session and do selection object*/
+	/* Register with MBCSV initialise and open a session and do selection object*/
 	rc = mqd_mbcsv_register(pMqd);
 	if (NCSCC_RC_SUCCESS != rc) {
 		mqd_mds_shut(pMqd);
@@ -241,7 +244,6 @@ static uns32 mqd_lib_init(void)
 	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
 	if (SA_AIS_OK != saErr) {	/* Handle failure */
 		m_LOG_MQSV_D(MQD_REG_COMP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-/*      mqd_clm_shut(pMqd);*/
 		mqd_mbcsv_finalize(pMqd);
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -257,7 +259,6 @@ static uns32 mqd_lib_init(void)
 	/* MQD Imm Initialization */
 	saErr = mqd_imm_initialize(pMqd);
 	if (saErr != SA_AIS_OK) {
-/*      mqd_clm_shut(pMqd);*/
 		mqd_genlog(NCSFL_SEV_ERROR, "MQD Imm Initialization Failed %u\n", saErr);
 		mqd_mbcsv_finalize(pMqd);
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {

@@ -39,6 +39,8 @@
 /*
  * Module Inclusion Control...
  */
+#include <immutil.h>
+#include "mqd_imm.h"
 #include "mqd.h"
 
 extern MQDLIB_INFO gl_mqdinfo;
