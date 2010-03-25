@@ -54,13 +54,6 @@ static void fm_tmr_exp(void *);
 
 uns32 gl_fm_hdl;
 
-extern void ava_install_amf_down_cb(void (*cb)(void));
-
-static void amf_down(void)
-{
-	ncs_reboot("AMF down");
-}
-
 /*****************************************************************************
 
   PROCEDURE NAME:       main
@@ -76,8 +69,6 @@ int main(int argc, char *argv[])
 	FM_EVT *fm_mbx_evt = NULL;
 
 	daemonize(argc, argv);
-
-	ava_install_amf_down_cb(amf_down);
 
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
 		/* notify the NID */

@@ -221,7 +221,7 @@ void avnd_main_process(void)
 
 	/* Change scheduling class to real time. */
 	{
-		struct sched_param param = {.sched_priority = 79 };
+		struct sched_param param = {.sched_priority = sched_get_priority_min(SCHED_RR) };
 
 		if (sched_setscheduler(0, SCHED_RR, &param) == -1)
 			syslog(LOG_ERR, "Could not set scheduling class for avnd: %s",
