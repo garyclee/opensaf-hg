@@ -14,6 +14,7 @@
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
 prog="opensafd"
+initscript=`basename $0`
 
 # Source LSB functions library
 . /lib/lsb/init-functions
@@ -27,7 +28,7 @@ else
 fi	
 
 binary=$pkglibdir/$prog
-lockfile=$pkglockdir/$prog
+lockfile=$lockdir/$initscript
 amfnd_bin=$pkglibdir/osafamfnd
 amfnd_pid=$pkgpiddir/osafamfnd.pid
 
@@ -71,8 +72,8 @@ check_env() {
 	fi
 
 	# Some distros store /var/lock, /var/run on tmpfs mounts and content gets cleaned
-	if [ ! -d $pkglockdir ]; then
-		mkdir -p $pkglockdir
+	if [ ! -d $lockdir ]; then
+		mkdir -p $lockdir
 	fi
 	if [ ! -d $pkgpiddir ]; then
 		mkdir -p $pkgpiddir
@@ -118,7 +119,7 @@ final_clean() {
 start() {
 	logger -t $prog "Starting the OpenSAF HA Framework"
 
-        [ -x $daemon ] || exit 5
+	[ -x $daemon ] || exit 5
 
 	check_tipc
 	check_env
@@ -126,17 +127,17 @@ start() {
 	# Uncomment if you want them enabled
 	#enable_coredump
 
-        echo -n "Starting $prog: "
-        start_daemon $binary $args
-        RETVAL=$?
-        if [ $RETVAL -eq 0 ]; then
+	echo -n "Starting $prog: "
+	start_daemon $binary $args
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		touch $lockfile
 		log_success_msg
 	else
 		final_clean
 		log_failure_msg
 	fi
-        return $RETVAL
+	return $RETVAL
 }
 
 stop() {
@@ -151,12 +152,12 @@ stop() {
 
 	final_clean
 
-       	if [ $RETVAL -eq 0 ]; then
+	if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
 		log_failure_msg
 	fi
-        return $RETVAL
+	return $RETVAL
 }
 
 restart() {
@@ -170,7 +171,7 @@ tryrestart() {
 }
 
 reload() {
-        echo -n "Reloading $prog: "
+	echo -n "Reloading $prog: "
 	log_warning_msg
 	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
 	return 3
@@ -207,7 +208,7 @@ case "$1" in
   restart)
 	restart
 	RETVAL=$?
-        ;;
+	;;
   try-restart|condrestart)
 	tryrestart
 	RETVAL=$?
@@ -215,15 +216,15 @@ case "$1" in
   reload)
 	reload
 	RETVAL=$?
-        ;;
+	;;
   force-reload)
 	forcereload
 	RETVAL=$?
-        ;;
+	;;
   status)
-        status
+	status
 	RETVAL=$?
-        ;;
+	;;
   *)
 	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
 	RETVAL=2
