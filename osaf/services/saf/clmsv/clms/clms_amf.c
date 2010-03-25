@@ -40,17 +40,7 @@ static SaAisErrorT amf_active_state_handler(CLMS_CB *cb, SaInvocationT invocatio
 {
 	SaAisErrorT error = SA_AIS_OK;
 
-	TRACE_ENTER2("HA ACTIVE request");
-
-	if (cb->ha_state == SA_AMF_HA_ACTIVE)
-		goto done;
-
-	/*osaf_cluster->init_time is still 0 means before checkpointing the active went down in that case get it gain from local node*/
-	if (osaf_cluster->init_time == 0)
-	 	osaf_cluster->init_time = clms_get_SaTime();
-
-	/* fail over or switch over, become implementer */
-	clms_imm_impl_set(cb);
+	TRACE_ENTER2("AMF HA ACTIVE request");
 
 	clms_cb->mds_role = V_DEST_RL_ACTIVE;
 
@@ -271,42 +261,14 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 			LOG_ER("clms_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
-		/* Walk through the node list and check for pending/incomplete
-                   IMM admin operations and send an ABORT step for that 
-                   admin operation
-                 */
+		/* Inform MBCSV of HA state change */
+		if (NCSCC_RC_SUCCESS != (error = clms_mbcsv_change_HA_state(clms_cb)))
+			error = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
-	/* Inform MBCSV of HA state change */
-	if (NCSCC_RC_SUCCESS != (error = clms_mbcsv_change_HA_state(clms_cb)))
-		error = SA_AIS_ERR_FAILED_OPERATION;
 
  response:
 	saAmfResponse(clms_cb->amf_hdl, invocation, error);
-	if( clms_cb->ha_state == SA_AMF_HA_ACTIVE )
-	{
-		CLMA_DOWN_LIST *clma_down_rec =NULL;
-		CLMA_DOWN_LIST *temp_clma_down_rec =NULL;
-
-		clma_down_rec = clms_cb->clma_down_list_head;
-		while(clma_down_rec)
-		{
-			/*Remove the CLMA DOWN REC from the CLMA_DOWN_LIST */
-			/* Free the CLMA_DOWN_REC */
-			/* Remove this CLMA entry from our processing lists */
-			temp_clma_down_rec = clma_down_rec;
-			(void) clms_client_delete_by_mds_dest(clma_down_rec->mds_dest);
-			clma_down_rec = clma_down_rec->next;
-			free(temp_clma_down_rec);
-		}
-		clms_cb->clma_down_list_head  = NULL;
-		clms_cb->clma_down_list_tail  = NULL;
-	}
-
-	/*Process pending admin op for each node,walk thru node list to find if any pending admin op */
-	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE )
-		clms_adminop_pending();
-
  done:
 	TRACE_LEAVE();
 }

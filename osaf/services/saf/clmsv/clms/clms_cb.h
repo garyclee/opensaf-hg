@@ -115,6 +115,13 @@ typedef struct clma_down_list_tag
     struct clma_down_list_tag *next;
 }CLMA_DOWN_LIST;
 
+
+typedef struct node_down_list_tag
+{
+	SaClmNodeIdT node_id;
+	struct node_down_list_tag *next;
+}NODE_DOWN_LIST;
+
 /* CLM Server control block */
 typedef struct clms_cb_t {
 	/* MDS, MBX & thread related defs */
@@ -168,6 +175,8 @@ typedef struct clms_cb_t {
 	CLMA_DOWN_LIST *clma_down_list_head;     /* CLMA down reccords - Fix for Failover missed 
         	                                   down events Processing */
 	CLMA_DOWN_LIST *clma_down_list_tail;
+	NODE_DOWN_LIST *node_down_list_head;    /*NODE_DOWN record - Fix when active node goes down*/
+	NODE_DOWN_LIST *node_down_list_tail;
 	/*NCS_LOCK lock;*/
 	
 } CLMS_CB;
@@ -177,6 +186,7 @@ typedef struct clms_lock_tmr_t {
 }CLMS_LOCK_TMR;
 
 EXTERN_C uns32 clm_snd_track_changes(CLMS_CB *cb,CLMS_CLUSTER_NODE * node,CLMS_CLIENT_INFO *client,SaImmAdminOperationIdT opId,SaClmChangeStepT step);
+EXTERN_C void clms_track_send_node_down(CLMS_CLUSTER_NODE * node);
 #define m_CLMSV_PACK_INV(inv, nodeid) ((((SaUint64T) inv) << 32) | nodeid)
 #define  m_CLMSV_INV_UNPACK_INVID(inv) ((inv) >> 32)
 #define  m_CLMSV_INV_UNPACK_NODEID(inv) ((inv) & 0x00000000ffffffff)

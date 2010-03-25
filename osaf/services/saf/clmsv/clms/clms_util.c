@@ -829,6 +829,31 @@ done:
 }
 
 /**
+* This updates its peer with the node's  data which went down
+* @param[in] node node on which the runtime data got changed
+*/
+void ckpt_node_down_rec(CLMS_CLUSTER_NODE *node )
+{
+	CLMS_CKPT_REC  ckpt;
+	uns32 async_rc;
+	TRACE_ENTER();
+
+	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
+                memset(&ckpt, 0, sizeof(CLMS_CKPT_REC));
+                ckpt.header.type = CLMS_CKPT_NODE_DOWN_REC;
+                ckpt.header.num_ckpt_records = 1;
+                ckpt.header.data_len = 1;
+                ckpt.param.node_down_rec.node_id = node->node_id;
+                async_rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+                if (async_rc != NCSCC_RC_SUCCESS)
+                        TRACE("send_async_update FAILED");
+
+                }
+        TRACE_LEAVE();
+}
+
+
+/**
 * This updates its peer with the node's runtime data
 * @param[in] node node on which the runtime data got changed
 */

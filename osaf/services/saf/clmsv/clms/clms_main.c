@@ -75,6 +75,38 @@ static NCS_SEL_OBJ usr1_sel_obj;
  * ========================================================================
  */
 
+
+/**
+ * Callback from RDA. Post a message/event to the clms mailbox.
+ * @param cb_hdl
+ * @param cb_info
+ * @param error_code
+ */
+static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+{
+	uns32 rc;
+	CLMSV_CLMS_EVT *evt = NULL;
+
+	TRACE_ENTER();
+
+	evt = calloc(1, sizeof(CLMSV_CLMS_EVT));
+	if (NULL == evt) {
+		LOG_ER("calloc failed");
+		goto done;
+	}
+
+	evt->type = CLMSV_CLMS_RDA_EVT;
+	evt->info.rda_info.io_role = cb_info->info.io_role;
+
+	rc = ncs_ipc_send(&clms_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("IPC send failed %d", rc);
+
+done:
+	TRACE_LEAVE();
+}
+
+
 /**
  * USR1 signal is used when AMF wants to instantiate us as a
  * component. Wakes up the main thread to register with
@@ -194,6 +226,7 @@ uns32 clms_cb_init(CLMS_CB *clms_cb)
         clms_cb->cluster_view_num = 0;
         clms_cb->csi_assigned = FALSE;
 	clms_cb->curr_invid = 1;
+	clms_cb->immOiHandle = 0;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
         clms_cb->clm_ver.releaseCode = CLM_RELEASE_CODE;
@@ -249,6 +282,10 @@ static uns32 clms_init(void)
 	}
 	TRACE("Current RDA Role %d",clms_cb->ha_state);
 
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
+		goto done;
+	}
 
 	/* Create the mailbox used for communication with CLMS */
 	if ((rc = m_NCS_IPC_CREATE(&clms_cb->mbx)) != NCSCC_RC_SUCCESS) {

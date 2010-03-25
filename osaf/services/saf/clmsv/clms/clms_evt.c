@@ -22,6 +22,7 @@
 static uns32 process_api_evt(CLMSV_CLMS_EVT *evt);
 static uns32 proc_clma_updn_mds_msg(CLMSV_CLMS_EVT *evt);
 static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt);
+static uns32 proc_rda_evt(CLMSV_CLMS_EVT *evt);
 static uns32 proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT *evt);
 static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT *evt);
 static uns32 proc_node_up_msg(CLMS_CB* cb ,CLMSV_CLMS_EVT *evt);
@@ -49,7 +50,8 @@ static const CLMSV_CLMS_EVT_HANDLER clms_clmsv_top_level_evt_dispatch_tbl[] = {
 	proc_clma_updn_mds_msg,
 	proc_mds_quiesced_ack_msg,
 	proc_node_lock_tmr_exp_msg,
-	proc_mds_node_evt
+	proc_mds_node_evt,
+	proc_rda_evt
 };
 
 
@@ -63,6 +65,43 @@ static const CLMSV_CLMS_CLMA_API_MSG_HANDLER  clms_clma_api_msg_dispatcher[] = {
 	proc_clm_response_msg,
 	proc_node_up_msg
 };
+
+/**
+* Clear any pending clma_down records or node_down list
+*
+*/
+static void clms_process_clma_down_list(void)
+{
+
+	TRACE_ENTER();
+	if( clms_cb->ha_state == SA_AMF_HA_ACTIVE )
+	{
+		/* Process The Agent Downs during the role change */
+		CLMA_DOWN_LIST *clma_down_rec =NULL;
+		CLMA_DOWN_LIST *temp_clma_down_rec =NULL;
+
+
+		clma_down_rec = clms_cb->clma_down_list_head;
+		while(clma_down_rec)
+		{
+			/*Remove the CLMA DOWN REC from the CLMA_DOWN_LIST */
+			/* Free the CLMA_DOWN_REC */
+			/* Remove this CLMA entry from our processing lists */
+			temp_clma_down_rec = clma_down_rec;
+			(void) clms_client_delete_by_mds_dest(clma_down_rec->mds_dest);
+			clma_down_rec = clma_down_rec->next;
+			free(temp_clma_down_rec);
+		}
+		clms_cb->clma_down_list_head  = NULL;
+		clms_cb->clma_down_list_tail  = NULL;
+
+		/*Process pending admin op for each node,walk thru node list to find if any pending admin op */
+		clms_adminop_pending();
+
+	}
+	
+	TRACE_LEAVE();
+}
 
 /**
  * Get client record from client ID
@@ -271,49 +310,40 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 		}
 	}
 	
-	/*Don't send callback for self node*/
-	if(clms_cb->node_id != nodeid){
-		/*When plm not in model,membership status depends only on the nodeup*/
-		if(node->admin_state == SA_CLM_ADMIN_UNLOCKED){
+	/*When plm not in model,membership status depends only on the nodeup*/
+	if(node->admin_state == SA_CLM_ADMIN_UNLOCKED){
 
-			if (clms_cb->reg_with_plm == SA_FALSE){
-				node->member = SA_TRUE;
+		if (clms_cb->reg_with_plm == SA_FALSE){
+			node->member = SA_TRUE;
+		}
+#ifdef ENABLE_AIS_PLM
+		else if (node->ee_red_state == SA_PLM_READINESS_IN_SERVICE){
+			node->member = SA_TRUE;
+		}
+#endif
+
+		if (node->member == SA_TRUE){
+			node->boot_time = clms_get_SaTime();
+			++(osaf_cluster->num_nodes);
+			node->stat_change = SA_TRUE;
+			node->init_view = ++(clms_cb->cluster_view_num);
+			TRACE("node->init_view %llu",node->init_view);
+			node->change = SA_CLM_NODE_JOINED;
+			clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
+			/* Clear node->stat_change after sending the callback to its clients*/
+			node->stat_change = SA_FALSE;
+
+			/* Send Node join notification*/
+			rc = clms_node_join_ntf(clms_cb,node);
+			if(rc != NCSCC_RC_SUCCESS) {
+                               	TRACE("clms_node_join_ntf failed %u", rc);
 			}
-			#ifdef ENABLE_AIS_PLM
-			else if (node->ee_red_state == SA_PLM_READINESS_IN_SERVICE){
-				node->member = SA_TRUE;
-			}
-			#endif
-
-			if (node->member == SA_TRUE){
-				node->boot_time = clms_get_SaTime();
-				++(osaf_cluster->num_nodes);
-				node->stat_change = SA_TRUE;
-				node->init_view = ++(clms_cb->cluster_view_num);
-				TRACE("node->init_view %llu",node->init_view);
-				node->change = SA_CLM_NODE_JOINED;
-				clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
-				/* Clear node->stat_change after sending the callback to its clients*/
-				node->stat_change = SA_FALSE;
-
-				/* Send Node join notification*/
-				rc = clms_node_join_ntf(clms_cb,node);
-                                if(rc != NCSCC_RC_SUCCESS) {
-                                	TRACE("clms_node_join_ntf failed %u", rc);
-				}
-			}	
 			clms_node_update_rattr(node);
 			clms_cluster_update_rattr(osaf_cluster);
 			ckpt_node_rec(node);
 			ckpt_cluster_rec();
-		}
-
+		}	
 	}
-	/*node->ee_red_state will be updated in plm callback only when nodeup is true so 
-	unless that gets updated we don't have any information with us neither for 
-	filling the notification buffer nor for sending trackcallback for completed case */
-
-	/* dude node up ckpt Checkpointing to be done*/
 
 done:
 	TRACE_LEAVE();
@@ -353,31 +383,15 @@ done:
 	TRACE_LEAVE();
 	return  rc;
 }
-/**
- * This is the function which is called when clms receives any
- * a Cluster Node UP/DN message via MDS subscription.
- *
- * @param evt  - Message that was posted to the CLMS Mail box.
- *
- * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- */
-static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
+
+void clms_track_send_node_down(CLMS_CLUSTER_NODE * node)
 {
+
 	uns32 rc = NCSCC_RC_SUCCESS;
-	CLMS_CLUSTER_NODE * node = NULL;
-	SaUint32T node_id = evt->info.node_mds_info.node_id;
-
-        TRACE_ENTER();
-
-        node = clms_node_get_by_id(node_id);
-        if(node == NULL){
-                LOG_ER("Node %d doesn't exist",node_id);
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+	CLMSV_CLMS_EVT *evt = NULL;
 
 	node->nodeup = 0;
-	TRACE("MDS Down nodeup info %d",node->nodeup);
+	TRACE_ENTER2("MDS Down nodeup info %d",node->nodeup);
 
 	/*When plm not in model,membership status depends only on the nodeup*/
 	if (clms_cb->reg_with_plm == SA_FALSE){
@@ -390,15 +404,15 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 		/* Clear node->stat_change after sending the callback to its clients*/
 		node->stat_change = SA_FALSE;
 		
-		
 		rc = clms_node_exit_ntf(clms_cb,node);
 		if(rc != NCSCC_RC_SUCCESS) {
 			TRACE("clms_node_exit_ntf failed %u", rc);
 		}
-
+		/*Update IMMSV*/
 		clms_node_update_rattr(node);
 		clms_cluster_update_rattr(osaf_cluster);
 		ckpt_node_rec(node);
+		ckpt_node_down_rec(node);
 		ckpt_cluster_rec();
         }
 	/*For the NODE DOWN, boottimestamp will not be updated*/
@@ -406,6 +420,90 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 	/* Delete the node reference from the nodeid database */
 	if (clms_node_delete(node,0) != NCSCC_RC_SUCCESS){
 		LOG_ER("CLMS node delete by nodeid failed");
+	}
+
+done:
+	TRACE_LEAVE();
+}
+
+/**
+* Process the rda callback and change the role
+*/
+static uns32 proc_rda_evt(CLMSV_CLMS_EVT *evt)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
+
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+		LOG_NO("ACTIVE request");
+		clms_cb->mds_role = V_DEST_RL_ACTIVE;
+		clms_cb->ha_state = SA_AMF_HA_ACTIVE;
+
+		/*osaf_cluster->init_time is still 0 means before checkpointing \
+		the active went down in that case get it gain from local node*/
+		if (osaf_cluster->init_time == 0)
+	 		osaf_cluster->init_time = clms_get_SaTime();
+
+		/* fail over, become implementer */
+		clms_imm_impl_set(clms_cb); 
+
+		if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("clms_mds_change_role FAILED %u", rc);
+			goto done;
+		}
+        
+		if (NCSCC_RC_SUCCESS != clms_mbcsv_change_HA_state(clms_cb))
+			goto done;
+
+	}
+	clms_process_clma_down_list();
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * This is the function which is called when clms receives any
+ * a Cluster Node UP/DN message via MDS subscription.
+ *
+ * @param evt  - Message that was posted to the CLMS Mail box.
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ */
+static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+        CLMS_CLUSTER_NODE * node = NULL;
+	SaUint32T node_id = evt->info.node_mds_info.node_id;
+
+	node = clms_node_get_by_id(node_id);
+
+        if(node == NULL){
+                LOG_ER("Node %d doesn't exist",node_id);
+                rc = NCSCC_RC_FAILURE;
+                goto done;
+        }
+
+	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		clms_track_send_node_down(node);
+
+	}else if (clms_cb->ha_state == SA_AMF_HA_STANDBY) {
+		NODE_DOWN_LIST *node_down_rec = NULL;
+		if (NULL == (node_down_rec = (NODE_DOWN_LIST *)malloc(sizeof(NODE_DOWN_LIST)))){	
+			rc = SA_AIS_ERR_NO_MEMORY;
+			LOG_ER("Memory Allocation for NODE_DOWN_LIST failed");
+			goto done;
+		}
+		memset(node_down_rec,0,sizeof(NODE_DOWN_LIST));
+		node_down_rec->node_id = node_id;
+		if (clms_cb->node_down_list_head == NULL){
+			clms_cb->node_down_list_head = node_down_rec;
+		}else {
+			if(clms_cb->node_down_list_tail)
+				clms_cb->node_down_list_tail->next = node_down_rec;
+		}
+		clms_cb->node_down_list_tail = node_down_rec;
 	}
 
 done:
@@ -1063,11 +1161,11 @@ void clms_process_mbx(SYSF_MBX *mbx)
 		break;
 
 	case CLMSV_CLMS_MDS_NODE_EVT:
-		if (clms_cb->ha_state == SA_AMF_HA_ACTIVE){
-			proc_mds_node_evt(msg);
-		}
+		proc_mds_node_evt(msg);
 		break;
-
+	case CLMSV_CLMS_RDA_EVT:
+		proc_rda_evt(msg);
+		break;
 	default:
 		LOG_ER("message type invalid %d",msg->type);
 		break;

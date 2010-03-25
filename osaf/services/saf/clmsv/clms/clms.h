@@ -112,6 +112,7 @@ extern void clms_imm_impl_set(CLMS_CB *cb);
 extern uns32 clms_rda_init(CLMS_CB *cb);
 extern void clms_adminop_pending(void);
 extern void ckpt_node_rec(CLMS_CLUSTER_NODE *node );
+extern void ckpt_node_down_rec(CLMS_CLUSTER_NODE *node );
 extern void ckpt_cluster_rec(void);
 extern void clms_cb_dump(void);
 #endif   /* ifndef CLMS_H */
