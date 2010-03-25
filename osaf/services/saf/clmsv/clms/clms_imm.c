@@ -57,13 +57,17 @@ static void clms_trackresp_patricia_init(CLMS_CLUSTER_NODE * node)
  * @param[in] _cb
  * @return void*
  */
-static void *imm_impl_set(void *_cb)
+static void *imm_impl_set_node_down_proc(void *_cb)
 {
 	SaAisErrorT rc;
 	CLMS_CB *cb = (CLMS_CB *)_cb;
+	NODE_DOWN_LIST *node_down_rec = NULL;
+	NODE_DOWN_LIST *temp_node_down_rec = NULL;
+	CLMS_CLUSTER_NODE *node = NULL;
 
 	TRACE_ENTER();
 
+	/* Update IMM */
 	if ((rc = immutil_saImmOiImplementerSet(cb->immOiHandle, IMPLEMENTER_NAME)) != SA_AIS_OK){
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		exit(EXIT_FAILURE);
@@ -78,6 +82,21 @@ static void *imm_impl_set(void *_cb)
 		LOG_ER("saImmOiClassImplementerSet failed  for class SaClmCluster%u", rc);
 		exit(EXIT_FAILURE);
 	}
+
+	/* Process The NodeDowns that occurred during the role change */
+	node_down_rec = clms_cb->node_down_list_head;
+	while(node_down_rec){
+		/*Remove NODE_DOWN_REC from the NODE_DOWN_LIST*/
+		node = clms_node_get_by_id(node_down_rec->node_id);
+		temp_node_down_rec = node_down_rec;
+		if (node != NULL)
+			clms_track_send_node_down(node);
+		node_down_rec = node_down_rec->next;
+		/*Free the NODE_DOWN_REC*/
+		free(temp_node_down_rec);
+	}	
+	clms_cb->node_down_list_head = NULL; 			
+	clms_cb->node_down_list_tail = NULL; 			
 
 	TRACE_LEAVE();
 	return NULL;
@@ -120,7 +139,7 @@ void clms_imm_impl_set(CLMS_CB *cb)
 
 	TRACE_ENTER();
 
-	if (pthread_create(&thread, &attr, imm_impl_set, cb) != 0) {
+	if (pthread_create(&thread, &attr, imm_impl_set_node_down_proc, cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}

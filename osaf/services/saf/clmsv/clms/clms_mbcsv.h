@@ -32,6 +32,7 @@ typedef enum clms_ckpt_rec_type {
 	CLMS_CKPT_NODE_RUNTIME_REC, /* For Async updates */
 	CLMS_CKPT_NODE_DEL_REC, /* For CCB delete */
 	CLMS_CKPT_AGENT_DOWN_REC,
+	CLMS_CKPT_NODE_DOWN_REC,
 	CLMS_CKPT_MSG_MAX
 } CLMS_CKPT_REC_TYPE;
 
@@ -58,6 +59,11 @@ typedef struct clms_ckpt_node_rec {
 	ADMIN_OP admin_op;			/*plm or clm operation*/
 	SaClmClusterChangesT  change;
 } CLMSV_CKPT_NODE_RUNTIME_INFO;
+
+
+typedef struct clms_ckpt_node_down_rec {
+	SaClmNodeIdT  node_id;
+}CLMSV_CKPT_NODE_DOWN_INFO;
 
 /* Checkpoint structure for node's config data */
 typedef struct clms_ckpt_node_config_rec {
@@ -139,6 +145,7 @@ typedef struct clms_ckpt_rec_t {
 		CLMSV_CKPT_NODE_DEL_REC node_del_rec;
 		CLMSV_CKPT_TRACKLIST track_rec;
 		CLMSV_CKPT_AGENT_DOWN_REC agent_rec;
+		CLMSV_CKPT_NODE_DOWN_INFO node_down_rec;
 	} param;
 } CLMS_CKPT_REC;
 

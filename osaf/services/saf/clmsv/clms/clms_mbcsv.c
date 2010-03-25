@@ -29,6 +29,7 @@ static uns32 ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 static uns32 ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 static uns32 ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uns32 ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 /* Common Callback interface to mbcsv */
 static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
@@ -80,6 +81,7 @@ static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
 	ckpt_proc_node_rec, /*CLMS_CKPT_NODE_RUNTIME_REC*/
 	ckpt_proc_node_del_rec, /* CLMS_CKPT_NODE_DEL_REC*/
 	ckpt_proc_agent_down_rec, /*CLMS_CKPT_AGENT_DOWN_REC*/
+	ckpt_proc_node_down_rec   /*CLMS_CKPT_NODE_DOWN_REC*/
 };
 
 
@@ -254,6 +256,9 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
         CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
 	CLMS_CLUSTER_NODE *node = NULL,*tmp_node = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("node_name:%s",param->node_name.value);
 	
 	node = clms_node_get_by_name(&param->node_name);
 	if(node != NULL){
@@ -261,7 +266,9 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 		if(node->node_id != 0){
 			tmp_node = clms_node_get_by_id(node->node_id);
 			if (tmp_node == NULL)
-				clms_node_add(node,0);
+				if(NCSCC_RC_SUCCESS != (rc = clms_node_add(node,0))){
+					LOG_ER("Patricia add failed");
+				}
 		}
 	}
         TRACE_LEAVE();
@@ -300,6 +307,26 @@ static uns32 ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;
 }
+
+static uns32 ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+{
+
+	SaClmNodeIdT  node_id = data->param.node_down_rec.node_id;
+	CLMS_CLUSTER_NODE *node = NULL;
+
+	node = clms_node_get_by_id(node_id);
+	if (node == NULL){
+		LOG_ER("Standby node is out of sync");
+		assert(0);
+	}
+
+	/* Delete the node reference from the nodeid database */
+        if (clms_node_delete(node,0) != NCSCC_RC_SUCCESS){
+                LOG_ER("CLMS node delete by nodeid failed");
+        }	
+
+}
+
 
 /****************************************************************************
  * Name          : ckpt_proc_agent_down_rec
@@ -392,13 +419,14 @@ static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
         CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
 	CLMS_CLUSTER_NODE * node = NULL;
+	CLMS_CLUSTER_NODE * tmp_node = NULL;
 
 	TRACE_ENTER2("node_id %u",param->node_id);
 
-	node = clms_node_get_by_id(param->node_id);
+	node = clms_node_get_by_name(&param->node_name);
 
         if (node == NULL){
-                LOG_ER("Node is NULL, bad ckpting boss or problem with the database.");
+                LOG_ER("Node is NULL,problem with the database.");
 		assert(0);
         }
 	
@@ -419,6 +447,14 @@ static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 	else
 		node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
 	#endif
+
+
+	if (NULL == (tmp_node = clms_node_get_by_id(node->node_id))){
+
+		if(clms_node_add(node,0) != NCSCC_RC_SUCCESS){
+                        LOG_ER("Patricia tree add failed");
+                }
+	}
 
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;
@@ -531,6 +567,8 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
                 LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
                 goto done;
         }
+
+	rc = clms_mbcsv_change_HA_state(cb);
 
 	/* Set MBCSV role here itself */
  done:
@@ -1853,7 +1891,7 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
                         if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
                                 TRACE(" COLD SYNC RESPONSE DECODE ....");
                         } else {
-                                TRACE_2(" COLD SYNC RESPONSE DECODE SUCCESS....");
+                                TRACE(" COLD SYNC RESPONSE DECODE SUCCESS....");
                                 clms_cb->ckpt_state = COLD_SYNC_COMPLETE;
                         }
                 }
@@ -1921,7 +1959,7 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
         CLMS_CKPT_REC msg;
-        CLMS_CKPT_REC *data = &msg;
+        CLMS_CKPT_REC *data = NULL;
         uns32 num_rec = 0;
         TRACE_ENTER();
 
@@ -1930,6 +1968,10 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
            | Header|Cluster rec|Header|node rec..n|Header|client rec..n|
            -------------------------------------------------------------
          */
+
+	memset(&msg,0,sizeof(CLMS_CKPT_REC));
+	data = &msg;
+
         TRACE_2("COLD SYNC DECODE START........");
 	if(decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
 		rc = NCSCC_RC_FAILURE;

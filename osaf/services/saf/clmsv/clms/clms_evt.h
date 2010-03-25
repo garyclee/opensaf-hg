@@ -25,6 +25,8 @@ typedef enum clmsv_clms_evt_type {
 	CLSMV_CLMS_QUIESCED_ACK =3 ,
 	CLMSV_CLMS_NODE_LOCK_TMR_EXP =4,
 	CLMSV_CLMS_MDS_NODE_EVT,
+	CLMSV_CLMS_RDA_EVT,
+	CLMSV_CLMS_RT_UPDATE,
 	CLMSV_CLMS_EVT_MAX,
 } CLMSV_CLMS_EVT_TYPE;
 
@@ -38,6 +40,13 @@ typedef struct clmsv_clms_node_mds_info_t {
 	SaBoolT nodeup;
 } CLMSV_CLMS_MDS_NODE_INFO;
 
+typedef struct clmsv_clms_rda_info_t {
+	PCS_RDA_ROLE io_role;
+}CLMSV_CLMS_RDA_INFO;
+
+typedef struct clmsv_clms_rt_node_info_t {
+	CLMS_CLUSTER_NODE *node;
+}CLMSV_CLMS_RT_INFO;
 
 typedef struct clmsv_clms_evt_t {
 	struct clmsv_clms_evt_t  *next;		/* For MailBox Processing */
@@ -51,7 +60,9 @@ typedef struct clmsv_clms_evt_t {
 		CLMSV_MSG  msg;		/* Message 'received'/'to be sent' from CLMA */
 		CLMSV_CLMS_MDS_INFO  mds_info; /* CLMA `MDS reachability information */ 
 		CLMSV_CLMS_MDS_NODE_INFO node_mds_info;
+		CLMSV_CLMS_RDA_INFO rda_info;
 		CLMS_LOCK_TMR  tmr_info;
+		CLMSV_CLMS_RT_INFO rt_node_info;
 	} info;
 }  CLMSV_CLMS_EVT;
 
