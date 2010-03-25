@@ -327,7 +327,7 @@ SmfImmCreateOperation::execute()
 	const char *className = m_className.c_str();
 
 	if (m_parentDn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmCreateOperation::execute:createObject failed Too long parent name %u",
+		LOG_ER("SmfImmCreateOperation::execute:createObject failed Too long parent name %z",
 		       m_parentDn.length());
                 TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
@@ -869,7 +869,7 @@ SmfImmRTCreateOperation::execute()
 	const char *className = m_className.c_str();
 
 	if (m_parentDn.length() > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SmfImmRTCreateOperation::execute:createObject failed Too long parent name %u",
+		LOG_ER("SmfImmRTCreateOperation::execute:createObject failed Too long parent name %z",
 		       m_parentDn.length());
                 TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
