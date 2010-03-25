@@ -90,7 +90,7 @@ clean_shm() {
 
 enable_coredump() {
 	core_size="unlimited"
-	core_pattern="/var/crash/opensaf/%e.%p"
+	core_pattern="/var/crash/opensaf/core_%t.%e.%p"
 
 	if [ ! -d /var/crash/opensaf ]; then
 		mkdir -p /var/crash/opensaf
