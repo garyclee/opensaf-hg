@@ -115,10 +115,15 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 static void amf_down_cb(void)
 {
 	int status;
+	const char *env_value = getenv("AMFMON_HC_TIMEOUT_MS");
 
-	syslog(LOG_ERR, "ordering system reboot, AMF unexpectedly crasched"); 
-	if ((status = system("shutdown -r now")) == -1)
+	if(env_value && !strtol(env_value, NULL, 0)) /* AMF monitor disabled */
+		syslog(LOG_ERR, "AMF is down. AMF monitor is disabled, no action");
+	else { /* AMF monitor enabled */
+		syslog(LOG_ERR, "ordering system reboot, AMF unexpectedly crasched"); 
+		if ((status = system("shutdown -r now")) == -1)
 		syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -133,6 +138,15 @@ int main(int argc, char *argv[])
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
+	
+	/* Change scheduling for current thread class to real time. */
+	{
+		struct sched_param param = {.sched_priority = sched_get_priority_min(SCHED_RR) }; /* Same prio as amfnd. */
+		
+		if (sched_setscheduler(0, SCHED_RR, &param) == -1)
+			syslog(LOG_ERR, "Could not set scheduling class for osafmond: %s",
+					strerror(errno));
+	}
 
 	daemonize(argc, argv);
 
@@ -216,7 +230,7 @@ int main(int argc, char *argv[])
 			** error. We want to catch that asap and fix it.
 			*/
 			syslog(LOG_ERR, "TIMEOUT receiving AMF health check request, generating core for amfnd");
-			if ((status = system("killall -ABRT opensaf_amfnd")) == -1)
+			if ((status = system("killall -ABRT osafamfnd")) == -1)
 				syslog(LOG_ERR, "system(killall) FAILED %x", status);
 
 			syslog(LOG_ERR, "%s", latest_healthcheck_trace); 
