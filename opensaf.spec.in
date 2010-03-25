@@ -765,7 +765,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/run/%{name}
-%dir %{_localstatedir}/lock/%{name}
 %config(noreplace) %{_pkgsysconfdir}/chassis_id
 %config(noreplace) %{_pkgsysconfdir}/slot_id
 %config(noreplace) %{_pkgsysconfdir}/subslot_id

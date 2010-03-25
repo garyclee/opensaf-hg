@@ -14,6 +14,7 @@
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
 prog="osafdtd"
+initscript=`basename $0`
 
 # Source LSB functions library
 . /lib/lsb/init-functions
@@ -29,7 +30,7 @@ fi
 
 binary=$pkglibdir/$prog
 pidfile=$pkgpiddir/$prog.pid
-lockfile=$pkglockdir/$prog
+lockfile=$lockdir/$initscript
 
 # Uncomment to enable tracing, or pas new command line options
 #args="-T $prog.log"
@@ -86,10 +87,10 @@ start() {
 		(cd $DTSV_ROOT_DIRECTORY; find -name "*.log" -amin +1) > $FILESFROM
 	fi
 
-        echo -n "Starting $prog: "
-        start_daemon -p $pidfile $binary $args
-        RETVAL=$?
-        if [ $RETVAL -eq 0 ]; then
+	echo -n "Starting $prog: "
+	start_daemon -p $pidfile $binary $args
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		touch $lockfile
 		log_success_msg
 	else
@@ -100,8 +101,7 @@ start() {
 	if [ "$1" = "ROLE=1" ] && [ $DTSV_MAX_ARCHIVES -gt 0 ]; then
 		archives_rotate
 	fi
-
-        return $RETVAL
+	return $RETVAL
 }
 
 instantiate() {
@@ -113,26 +113,26 @@ instantiate() {
 		start_daemon -p $pidfile $binary $args
 	fi
 	RETVAL=$?
-        if [ $RETVAL -eq 0 ]; then
+	if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
 		log_failure_msg
 	fi
-        return $RETVAL
+	return $RETVAL
 }
 
 stop() {
-        echo -n "Stopping $prog: "
-        killproc -p $pidfile $binary
-        RETVAL=$?
-        if [ $RETVAL -eq 0 ]; then
+	echo -n "Stopping $prog: "
+	killproc -p $pidfile $binary
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		rm -f $COMPNAMEFILE
 		rm -f $lockfile
 		log_success_msg
 	else
 		log_failure_msg
 	fi
-        return $RETVAL
+	return $RETVAL
 }
 
 restart() {
@@ -146,7 +146,7 @@ tryrestart() {
 }
 
 reload() {
-        echo -n "Reloading $prog: "
+	echo -n "Reloading $prog: "
 	log_warning_msg
 	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
 	return 3
@@ -180,7 +180,7 @@ case "$1" in
   restart)
 	restart
 	RETVAL=$?
-        ;;
+	;;
   try-restart|condrestart)
 	tryrestart
 	RETVAL=$?
@@ -188,15 +188,15 @@ case "$1" in
   reload)
 	reload
 	RETVAL=$?
-        ;;
+	;;
   force-reload)
 	forcereload
 	RETVAL=$?
-        ;;
+	;;
   status)
-        status
+	status
 	RETVAL=$?
-        ;;
+	;;
   *)
 	echo "Usage: $0 {start|instantiate|stop|restart|try-restart|reload|force-reload|status}"
 	RETVAL=2
