@@ -37,13 +37,14 @@ SaUint32T plms_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_mbcsv_enc_async_update(NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_mbcsv_dec_async_update(NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_mbcsv_decode_cold_sync_data(NCS_MBCSV_CB_ARG *cbk_arg);
-SaUint32T plms_mbcsv_encode_cold_sync_data();
+SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg);
 SaUint32T plms_mbcsv_enc_warm_sync_resp(PLMS_CB *cb, NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_mbcsv_add_client_info(PLMS_MBCSV_MSG *msg);
 SaUint32T plms_mbcsv_dec_warm_sync_resp(NCS_MBCSV_CB_ARG *arg);
 SaUint32T plms_process_mbcsv_data(PLMS_MBCSV_MSG *msg,NCS_MBCSV_ACT_TYPE action);
 SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg);
+static SaUint32T plms_clean_mbcsv_database();
 
 /*****************************************************************************
 * Name         :  plms_mbcsv_register
@@ -163,7 +164,7 @@ SaUint32T plms_mbcsv_open()
 		goto done;
 	}
 	cb->mbcsv_ckpt_hdl = arg.info.open.o_ckpt_hdl;
-
+#if 0
 	/* Disable warm sync */
 	arg.i_op = NCS_MBCSV_OP_OBJ_SET;
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -175,7 +176,7 @@ SaUint32T plms_mbcsv_open()
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-
+#endif
  done:
 	TRACE_LEAVE();
 	return rc;
@@ -434,7 +435,7 @@ SaUint32T plms_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 				
 			case NCS_MBCSV_MSG_DATA_RESP:
 				TRACE_5("PLMS MBCSV_MSG_DATA_RESP");
-				rc = plms_mbcsv_encode_cold_sync_data(cb, arg);
+				rc = plms_mbcsv_encode_cold_sync_data(arg);
 				break;
 
 			default:
@@ -1131,6 +1132,56 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 	return NCSCC_RC_SUCCESS;
 
 }
+
+static SaUint32T plms_clean_mbcsv_database()
+{
+	PLMS_CB * cb = plms_cb;
+	PLMS_CLIENT_INFO  *client_info = NULL;
+	PLMS_ENTITY_GROUP_INFO_LIST *tmp_ent_grp_ptr1 = NULL, *tmp_ent_grp_ptr2 = NULL;
+	PLMS_CKPT_ENTITY_GROUP_INFO *ckpt_grp_info = NULL,*tmp_ckpt_grp_info = NULL ;
+	PLMS_CKPT_ENTITY_LIST *list_ptr1 = NULL, *list_ptr2 = NULL;
+
+	TRACE_ENTER();
+
+	/* Free client_info patricia tree */
+	while ((client_info = (PLMS_CLIENT_INFO *)
+		ncs_patricia_tree_getnext(&cb->client_info,
+		(SaUint8T *) 0)) != NULL) {
+		tmp_ent_grp_ptr1 = client_info->entity_group_list;
+		while (tmp_ent_grp_ptr1) 
+		{
+			tmp_ent_grp_ptr2 = tmp_ent_grp_ptr1->next;
+			free(tmp_ent_grp_ptr1);
+			tmp_ent_grp_ptr1 = tmp_ent_grp_ptr2;
+		}
+		ncs_patricia_tree_del(&cb->client_info, &client_info->pat_node);
+		free(client_info);
+	}
+
+	/* Client info  is freed. Now free check point entity group info */
+	ckpt_grp_info = cb->ckpt_entity_grp_info;
+	while (ckpt_grp_info)
+	{
+		/* Free the entity list before freeing the group */
+		if (ckpt_grp_info->entity_list)
+		{
+			list_ptr1 = ckpt_grp_info->entity_list;
+			while(list_ptr1)
+			{
+				list_ptr2 =  list_ptr1->next;
+				free(list_ptr1);
+				list_ptr1 = list_ptr2;
+			}
+		}
+		tmp_ckpt_grp_info = ckpt_grp_info->next;
+		free(ckpt_grp_info);
+		ckpt_grp_info = tmp_ckpt_grp_info;
+	}
+	cb->ckpt_entity_grp_info = NULL;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
 
 SaUint32T plms_cpy_ent_grp_to_ckpt_ent(PLMS_ENTITY_GROUP_INFO *src_ptr,
 				PLMS_CKPT_ENTITY_GROUP_INFO *dst_ptr)
@@ -2110,6 +2161,7 @@ SaUint32T plms_mbcsv_add_client_info(PLMS_MBCSV_MSG *msg)
 		LOG_ER("Memory Allocation failed");
 		assert(0);
 	}
+	memset(client_info,0,sizeof(PLMS_CLIENT_INFO));
 	client_info->plm_handle = msg->info.client_info.plm_handle;
 	client_info->mdest_id = msg->info.client_info.mdest_id; 
 
@@ -2297,8 +2349,8 @@ SaUint32T plms_mbcsv_enc_warm_sync_resp(PLMS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		LOG_ER("PLMS mem alloc failed for encoding warm sync resp");
 		return NCSCC_RC_FAILURE;
 	}
-											/* SEND THE ASYNC UPDATE COUNTER */
-											ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	/* SEND THE ASYNC UPDATE COUNTER */
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	ncs_encode_32bit(&wsync_ptr, cb->async_update_cnt);
 	arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 	return rc;
@@ -2333,6 +2385,7 @@ SaUint32T plms_mbcsv_dec_warm_sync_resp(NCS_MBCSV_CB_ARG *arg)
 	{
 		return rc;
 	} else {
+		plms_clean_mbcsv_database();
 		ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
 		ncs_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 		ncs_arg.info.send_data_req.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
