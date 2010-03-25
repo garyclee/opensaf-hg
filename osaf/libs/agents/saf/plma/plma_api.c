@@ -1121,6 +1121,11 @@ SaAisErrorT saPlmEntityGroupAdd(SaPlmEntityGroupHandleT entityGroupHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto end;
 	}
+	if (entityNames == NULL){
+		LOG_ER("PLMA: entityNames PARAMETER IS NOT SET PROPERLY"); 
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto end;
+	}
 	TRACE_5("Group Add options got : %d ", options);
 	if((SA_PLM_GROUP_SINGLE_ENTITY != options) && 
 		(SA_PLM_GROUP_SUBTREE != options) &&
@@ -1278,6 +1283,11 @@ SaAisErrorT saPlmEntityGroupRemove(SaPlmEntityGroupHandleT entityGroupHandle,
 
 	if (entityNamesNumber == 0){
 		LOG_ER("PLMA: INVALID entityNamesNumber parameter"); 
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto end;
+	}
+	if (entityNames == NULL){
+		LOG_ER("PLMA: entityNames PARAMETER IS NOT SET PROPERLY"); 
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto end;
 	}
@@ -1727,6 +1737,7 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 			rc = SA_AIS_ERR_INIT;
 			goto end;
 		}
+		group_info->trk_strt_stop = 1;	
 	}
 
 	if (m_PLM_IS_SA_TRACK_CURRENT_SET(trackFlags) && (!trackedEntities)){
@@ -2181,11 +2192,22 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
+	if(!impactedEntity){
+		LOG_ER("PLMA: impactedEntity IS NOT SET PROPERLY");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto end;
+	}
+	if(!correlationIds){
+		LOG_ER("PLMA: correlationIds IS NOT SET PROPERLY");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto end;
+	}
 	if(!plma_cb->plms_svc_up){
 		LOG_ER("PLMA : PLM SERVICE DOWN");
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto end;
 	}
+
 	
 	/* Acquire lock for CB. Wait till you get the lock */
 	if (m_NCS_LOCK(&plma_cb->cb_lock,NCS_LOCK_READ) != NCSCC_RC_SUCCESS){
@@ -2218,7 +2240,7 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 	plm_in_evt.req_evt.agent_track.readiness_impact.correlation_ids = 
 					correlationIds;
 	
-	/** memset the extra characters of impactedEntity with 0*/
+	/** memset the extra characters of impactedEntity with 0*/ 
 	if(impactedEntity->length > SA_MAX_NAME_LENGTH){	
 			LOG_ER("Invalid length set for the impactedEntity %s", impactedEntity->value);
 			rc= SA_AIS_ERR_INVALID_PARAM;
