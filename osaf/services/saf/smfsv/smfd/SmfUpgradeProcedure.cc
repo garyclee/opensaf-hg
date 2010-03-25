@@ -1848,7 +1848,7 @@ SmfUpgradeProcedure::getImmSteps()
 			//---------------------------------------------
 			TRACE("Read the SaSmfActivationUnit object from IMM parent=%s", newStep->getDn().c_str());
 			if (immutil.getChildren(newStep->getDn(), auList, SA_IMM_SUBLEVEL, "SaSmfActivationUnit") != false) {
-				TRACE("SaSmfActivationUnit:Resulting list size=%d", auList.size());
+				TRACE("SaSmfActivationUnit:Resulting list size=%z", auList.size());
 
 				/* Fetch IMM data for SaSmfAactivationUnit (should be max one)*/
 				std::string activationUnit = (*auList.begin());
@@ -1872,7 +1872,7 @@ SmfUpgradeProcedure::getImmSteps()
 				std::list < std::string > imageNodesList;
 				if (immutil.getChildren(activationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
 
-					TRACE("Nr of SaSmfImageNodes found = %d", imageNodesList.size());
+					TRACE("Nr of SaSmfImageNodes found = %z", imageNodesList.size());
 					if (imageNodesList.size() > 0) {
 
 						//Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
@@ -1902,7 +1902,7 @@ SmfUpgradeProcedure::getImmSteps()
 			//---------------------------------------------
 			TRACE("Read the SaSmfDeactivationUnit object from IMM parent=%s", newStep->getDn().c_str());
 			if (immutil.getChildren(newStep->getDn(), duList, SA_IMM_SUBLEVEL, "SaSmfDeactivationUnit") != false) {
-				TRACE("SaSmfDeactivationUnit:Resulting list size=%d", duList.size());
+				TRACE("SaSmfDeactivationUnit:Resulting list size=%z", duList.size());
 
 				/* Fetch IMM data for SaSmfDeactivationUnit (should be max one)*/
 				std::string deactivationUnit = (*duList.begin());
@@ -1927,7 +1927,7 @@ SmfUpgradeProcedure::getImmSteps()
 
 				if (immutil.getChildren(deactivationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
 
-					TRACE("Nr of SaSmfImageNodes found = %d", imageNodesList.size());
+					TRACE("Nr of SaSmfImageNodes found = %z", imageNodesList.size());
 					if (imageNodesList.size() > 0) {
 						//Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
 						std::string imageNodes = (*imageNodesList.begin());
