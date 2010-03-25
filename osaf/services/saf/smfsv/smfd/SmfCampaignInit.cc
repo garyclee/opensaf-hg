@@ -128,7 +128,7 @@ SmfCampaignInit::execute()
 {
 	TRACE_ENTER();
 
-	LOG_NO("CAMP: Campaign init, start add to IMM (%z)", m_addToImm.size());
+	LOG_NO("CAMP: Campaign init, start add to IMM (%zu)", m_addToImm.size());
 
 	if (m_addToImm.size() > 0) {
 		SmfImmUtils immUtil;
@@ -141,7 +141,7 @@ SmfCampaignInit::execute()
 	//Campaign init actions
 	///////////////////////
 
-	LOG_NO("CAMP: Campaign init, start init actions (%z)", m_campInitAction.size());
+	LOG_NO("CAMP: Campaign init, start init actions (%zu)", m_campInitAction.size());
 	std::list < SmfUpgradeAction * >::iterator upActiter;
 	upActiter = m_campInitAction.begin();
 	while (upActiter != m_campInitAction.end()) {

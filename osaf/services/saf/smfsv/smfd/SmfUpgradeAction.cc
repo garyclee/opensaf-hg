@@ -423,7 +423,7 @@ SmfImmCcbAction::execute()
 	int result = 0;
 	TRACE_ENTER();
 
-	TRACE("Imm ccb actions %z", m_operations.size());
+	TRACE("Imm ccb actions %zu", m_operations.size());
 	if (m_operations.size() > 0) {
 		SmfImmUtils immUtil;
 		if (immUtil.doImmOperations(m_operations) == false) {
