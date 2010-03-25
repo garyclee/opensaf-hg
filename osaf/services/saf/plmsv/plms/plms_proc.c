@@ -300,7 +300,7 @@ SaUint32T plms_proc_quiesced_ack_evt()
 /***********************************************************************//**
 * @brief	This function Initializes the agent.	
 *
-* @param	plm_evt - plm evt structure received.
+* @param[in]	plm_evt - plm evt structure received.
 *
 * @return	Returns nothing.	
 ***************************************************************************/
@@ -400,6 +400,13 @@ send_resp:
 }
 
 
+/***********************************************************************//**
+* @brief	This function Finalizes the agent.	
+*
+* @param[in]	plm_evt - plm evt structure received.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_process_agent_finalize(PLMS_EVT *plm_evt)
 {
 
@@ -422,8 +429,7 @@ void plms_process_agent_finalize(PLMS_EVT *plm_evt)
 			(uns8 *)&plm_evt->req_evt.agent_lib_req.plm_handle);
 	if (!client_info)
 	{
-		/* LOG ERROR */
-		LOG_ER("PLMS : Received bad PLM Handle");
+		LOG_ER("PLMS : RECEIVED BAD PLM HANDLE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto send_resp;
 	}
@@ -439,11 +445,11 @@ void plms_process_agent_finalize(PLMS_EVT *plm_evt)
 		proc_rc =  plms_mbcsv_send_async_update(&mbcsv_msg, NCS_MBCSV_ACT_RMV);
 		if (proc_rc != NCSCC_RC_SUCCESS)
 		{
-			LOG_ER("Async update to stdby failed");
+			LOG_ER("PLMS : Async update to stdby failed");
 			/* FIXME  What to do ?? */
 		}
 	}
-	/* clean up entity info list and and entity infogroups  */
+	/** clean up entity info list and and entity infogroups  */
 	plm_clean_client_info(client_info);
 
 send_resp:
@@ -461,6 +467,19 @@ send_resp:
 	TRACE_LEAVE();
 	return;
 }
+
+/***********************************************************************//**
+* @brief	This function fills the SaPlmReadinessTrackedEntityT type
+*		structure with with the appropriate values.
+*
+* @param[out]	dest_entity - the structure of type 
+*			      SaPlmReadinessTrackedEntityT which has to be 
+*			      filled.
+* @param[in]	src_entity  - the structure of type PLMS_ENTITY which contains
+*			      the information of the entity.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_fill_entity(SaPlmReadinessTrackedEntityT *dest_entity,
 		 PLMS_ENTITY *src_entity)
 {
@@ -494,6 +513,13 @@ void plms_fill_entity(SaPlmReadinessTrackedEntityT *dest_entity,
 	return;
 }
 
+/***********************************************************************//**
+* @brief	This function gets the number of entities in a group.
+*
+* @param[in]	entity_list - List of entities in the given group.
+*
+* @return	Returns number of entities in a group.	
+***************************************************************************/
 SaUint32T plms_get_num_entities_of_grp(PLMS_GROUP_ENTITY_ROOT_LIST *entity_list)
 {
 	PLMS_GROUP_ENTITY_ROOT_LIST *head = entity_list;
@@ -508,6 +534,13 @@ SaUint32T plms_get_num_entities_of_grp(PLMS_GROUP_ENTITY_ROOT_LIST *entity_list)
 	return num;
 }
 
+/***********************************************************************//**
+* @brief	This function starts the tracking.
+*
+* @param[in]	plm_evt - plm evt structure received.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 {
 	PLMS_CB *cb = plms_cb;
@@ -525,6 +558,7 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 	SaUint32T no_of_ent_in_grp = 0;
 
 	TRACE_ENTER();
+	
 	
 	no_of_ent_recd = plm_evt->req_evt.agent_track.track_start.no_of_entities;
 	TRACE_5("Number of entities recd : %d", no_of_ent_recd);
@@ -565,6 +599,17 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 	}
 	
 
+	if(m_PLM_IS_SA_TRACK_CHANGES_SET(track_flags) || 
+	m_PLM_IS_SA_TRACK_CHANGES_ONLY_SET(track_flags)){
+		/** 
+		 * for other combination of flags send 
+		 * resp in callback
+		 */
+		grp_info->track_flags = track_flags & (~SA_TRACK_CURRENT);
+		grp_info->track_cookie = plm_evt->req_evt.agent_track.track_start.track_cookie;
+
+	}
+
 	/**
 	 * Get the number of entities in the group if the falg is set to 
 	 * SA_TRACK_CURRENT 
@@ -596,11 +641,18 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 			ii++;
 		}
 		
-			
 		plm_resp.res_evt.entities->numberOfEntities = no_of_ent_in_grp;
 		plm_resp.res_evt.entities->entities = entity_list;
-		goto send_resp;
-	}else{ /** for the rest, send async response */ 
+send_resp:
+		plm_resp.req_res = PLMS_RES;
+		plm_resp.res_evt.res_type = PLMS_AGENT_TRACK_START_RES;
+		plm_resp.res_evt.error = rc;							
+		/**  Send response */
+		plm_send_mds_rsp(cb->mds_hdl,
+                	    NCSMDS_SVC_ID_PLMS,
+                    	&plm_evt->sinfo,
+                    	&plm_resp);
+	}else{ /** for async response */ 
 		if(m_PLM_IS_SA_TRACK_CURRENT_SET(track_flags)){	
 	
 			memset(&trk_info, 0, sizeof(PLMS_TRACK_INFO));
@@ -629,36 +681,20 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 			grp_info->track_cookie = orig_tc;
 		
 		} /* Current */
-		if(m_PLM_IS_SA_TRACK_CHANGES_SET(track_flags) || 
-		m_PLM_IS_SA_TRACK_CHANGES_ONLY_SET(track_flags)){
-			/** 
-			 * for other combination of flags send 
-			 * resp in callback
-			 */
-			track_flags = track_flags & (~SA_TRACK_CURRENT); 
-			grp_info->track_flags = track_flags;
-			grp_info->track_cookie = plm_evt->req_evt.agent_track.track_start.track_cookie;
-
-		}
 		
-		TRACE_LEAVE();	
-		return;
-	
 	}
-send_resp:		
-		
-		plm_resp.req_res = PLMS_RES;
-		plm_resp.res_evt.res_type = PLMS_AGENT_TRACK_START_RES;
-		plm_resp.res_evt.error = rc;							
-		/**  Send response */
-		plm_send_mds_rsp(cb->mds_hdl,
-                	    NCSMDS_SVC_ID_PLMS,
-                    	&plm_evt->sinfo,
-                    	&plm_resp);
 		
 	TRACE_LEAVE();	
 	return;
 }
+
+/***********************************************************************//**
+* @brief	This function stops the tracking.
+*
+* @param[in]	plm_evt - plm evt structure received.
+*
+* @return	Returns number of entities in a group.	
+***************************************************************************/
 void plms_process_trk_stop_evt(PLMS_EVT *plm_evt)
 {
 	PLMS_CB *cb = plms_cb;
@@ -726,6 +762,16 @@ send_resp:
 
 	
 }
+
+/***********************************************************************//**
+* @brief	This function adds the new entity group patricia tree.
+*
+* @param[in]	grp_info    - grp info structure to be added to patricia tree.
+* @param[in]	client_info - info about the client who requested for 
+*			      grp create.
+*
+* @return	Returns NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.	
+***************************************************************************/
 SaUint32T plms_ent_grp_add_to_db(PLMS_ENTITY_GROUP_INFO *grp_info, 
 			PLMS_CLIENT_INFO *client_info)
 {
@@ -782,6 +828,14 @@ SaUint32T plms_ent_grp_add_to_db(PLMS_ENTITY_GROUP_INFO *grp_info,
 	return NCSCC_RC_SUCCESS;
 }
 
+/***********************************************************************//**
+* @brief	This function removes the group info node from the grp info
+*		list of the client.
+*
+* @param[in]	grp_info    - grp info structure which has to be removed.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plm_rem_grp_info_from_client(PLMS_ENTITY_GROUP_INFO *grp_info)
 {
 	PLMS_ENTITY_GROUP_INFO_LIST *grp_info_list, *prev_grp_node = NULL;
@@ -807,6 +861,14 @@ void plm_rem_grp_info_from_client(PLMS_ENTITY_GROUP_INFO *grp_info)
 	TRACE_LEAVE();
 	return;
 }
+
+/***********************************************************************//**
+* @brief	This function creates the grp info.
+*
+* @param[in]	plm_evt    - plm evt structure received.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_process_grp_create_evt(PLMS_EVT *plm_evt)
 {
 
@@ -911,7 +973,17 @@ send_resp:
 	return;
 }
 
-
+/***********************************************************************//**
+* @brief	This function gets the list of entities to be removed 
+*		from the grp.
+*
+* @param[out]	new_entity_list - list of entities to be removed.
+* @param[in]	grp_entity_list - list of entities in a grp.
+* @param[in]	ent_names       - array of entities received.
+* @param[in]	no_of_ents      - num of entities received.
+*
+* @return	Returns NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE;.	
+***************************************************************************/
 SaUint32T plm_rem_entity(PLMS_GROUP_ENTITY_ROOT_LIST **new_entity_list,
 		PLMS_GROUP_ENTITY_ROOT_LIST *grp_entity_list, 
 		SaNameT *ent_names, SaUint32T no_of_ents)
@@ -990,6 +1062,14 @@ SaUint32T plm_rem_entity(PLMS_GROUP_ENTITY_ROOT_LIST **new_entity_list,
 	return NCSCC_RC_SUCCESS;
 }
 		
+/***********************************************************************//**
+* @brief	This function removes entities from the grp.
+*
+* @param[in]	plm_entity  - entity to be removed from grp.
+* @param[in]	grp_info    - entity grp from which entity has to be removed.
+*
+* @return	Returns NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE;.	
+***************************************************************************/
 void plm_rem_ent_frm_grp(PLMS_ENTITY *plm_entity,  
 			PLMS_ENTITY_GROUP_INFO *grp_info) 
 {
@@ -1038,6 +1118,13 @@ void plm_rem_ent_frm_grp(PLMS_ENTITY *plm_entity,
 	TRACE_LEAVE();
 	return;
 }
+/***********************************************************************//**
+* @brief	This function frees the ckpt entity list.
+*
+* @param[in]	ckpt_ent_list  - ckpt entity list to be freed.
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plm_free_ckpt_ent_list(PLMS_CKPT_ENTITY_LIST *ckpt_ent_list)
 {
 	PLMS_CKPT_ENTITY_LIST *next;
@@ -1052,6 +1139,14 @@ void plm_free_ckpt_ent_list(PLMS_CKPT_ENTITY_LIST *ckpt_ent_list)
 	return;
 	
 }
+/***********************************************************************//**
+* @brief	This function gets the ckpt entity list.
+*
+* @param[in]	ent_list  - entity list from which the ckpt entity list 
+*			    has to be formed.
+*
+* @return	Returns check point entity list.	
+***************************************************************************/
 PLMS_CKPT_ENTITY_LIST *plm_get_ckpt_ent_list(PLMS_GROUP_ENTITY_ROOT_LIST *ent_list)
 {
 	PLMS_GROUP_ENTITY_ROOT_LIST *list = ent_list;
@@ -1084,6 +1179,13 @@ PLMS_CKPT_ENTITY_LIST *plm_get_ckpt_ent_list(PLMS_GROUP_ENTITY_ROOT_LIST *ent_li
 	return head;
 }
 
+/***********************************************************************//**
+* @brief	This function removes the entity from entity grp.
+*
+* @param[in]	plm_evt  -  plm evt received 
+*
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_process_grp_rem_evt(PLMS_EVT *plm_evt)
 {
 	PLMS_CB *cb = plms_cb;
@@ -1187,6 +1289,7 @@ void plms_process_grp_rem_evt(PLMS_EVT *plm_evt)
 	
 		if(plms_cbk_call(&trk_info, 1)!= NCSCC_RC_SUCCESS)
 		{
+			LOG_ER("PLMS : plms_cbk_call failed");
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto send_resp;
 		}
@@ -1242,6 +1345,17 @@ send_resp:
 }
 	
 
+/***********************************************************************//**
+* @brief	This function gets the list of single entities to be added 
+*		to the entity grp.
+*
+* @param[out]	entity_list  -  entity list to be filled with the single 
+*				entities to be added to the group.
+* @param[in]	ent_names    -  array of entity names received from client. 
+* @param[in]	no_of_ents   -  num of entity names received from client. 
+*
+* @return	Refer to SAI-AIS specification for various return values.	
+***************************************************************************/
 SaUint32T plm_add_single_entity(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list, 
 				SaNameT *ent_names, SaUint32T no_of_ents)
 {
@@ -1253,28 +1367,28 @@ SaUint32T plm_add_single_entity(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 	PLMS_GROUP_ENTITY_ROOT_LIST *node,*prev = *entity_list;
 
 	TRACE_ENTER();
-	/* Add entity referred by entity names to group */
-	/* Check if the entity is already added to group */
+	/** Add entity referred by entity names to group */
 	for ( ii = 0; 
 	      ii < no_of_ents; 
 	      ii++)
 	{
 		key_dn = &ent_names[ii];
-
+		/** Get the entity to be added from patricia tree */
 		new_entity = (PLMS_ENTITY *)ncs_patricia_tree_get(
-				&cb->entity_info, (uns8 *)key_dn); 
+				&cb->entity_info, (uns8 *)key_dn);
 
 		if(!new_entity){
 			LOG_ER("The entity %s does not exist", key_dn->value);
 			rc = SA_AIS_ERR_NOT_EXIST;
-			return rc;
+			goto end;
 		}
+		/** Add the entity to be added to end of entity_list */ 
 		node = (PLMS_GROUP_ENTITY_ROOT_LIST *)malloc(
 			sizeof(PLMS_GROUP_ENTITY_ROOT_LIST));
 		if(!node){
 			LOG_CR("PLMS : PLMS_GROUP_ENTITY_ROOT_LIST memory alloc failed, error val:%s",strerror(errno));
 			rc = SA_AIS_ERR_NO_MEMORY;
-			return rc;
+			goto end;
 		}
 		
 		memset(node ,0, sizeof(PLMS_GROUP_ENTITY_ROOT_LIST));
@@ -1290,16 +1404,28 @@ SaUint32T plm_add_single_entity(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 		prev = node;
 		TRACE_5("Entity added : %s", key_dn->value);
 	}
-		
-	rc = SA_AIS_OK;
+end:		
 	TRACE_LEAVE();
 	return rc;
 		
 }
 
 
-
-
+/***********************************************************************//**
+* @brief	This function gets the list of entities to be added to the 
+*		entity group
+*
+* @param[out]	entity_list  -  entity list to be filled with entities to be 
+*				added to the group.
+* @param[in]	ent_names    -  array of entity names received from client. 
+* @param[in]	no_of_ents   -  num of entity names received from client. 
+* @param[in]	option       -  represent how the entity is to be added. 
+*				The oprions include SA_PLM_GROUP_SUBTREE or 
+*				SA_PLM_GROUP_SUBTREE_HES_ONLY or
+*				SA_PLM_GROUP_SUBTREE_EES_ONLY.
+*			
+* @return	Refer to SAI-AIS specification for various return values.	
+***************************************************************************/
 SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 			PLMS_GROUP_ENTITY_ROOT_LIST *grp_entity_list,
 			SaNameT *ent_names, 
@@ -1316,14 +1442,14 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 	SaNameT *key_dn;
 
 
-	/* Add entity referred by entity names to group */
-	/* Check if the entity is already added to group */
+	/** Add entities referred by entity names to group */
 	for ( ii = 0; 
 	      ii < no_of_ents; 
 	      ii++)
 	{
 		
 		key_dn = &ent_names[ii];
+		/** get the root entity to be added from the patricia tree */
 		new_entity = (PLMS_ENTITY *)ncs_patricia_tree_get(
 				&cb->entity_info, (uns8 *)key_dn);
 		if(!new_entity){
@@ -1331,18 +1457,20 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 			rc = SA_AIS_ERR_NOT_EXIST;
 			return rc;
 		}
+		/** See if this entity is repeated in the entity names array */
 		added_ent = *entity_list;
 		while(added_ent)
 		{
 			if(added_ent->plm_entity == new_entity){
 				free_ent_root_list(*entity_list);
 				*entity_list=NULL;
-				LOG_ER("The entity %s cant be added again", new_entity->dn_name.value);
+				LOG_ER("The entity %s is repeated and  cant be added again", new_entity->dn_name.value);
 				rc = SA_AIS_ERR_EXIST;
 				return rc;
 			}
 			added_ent = added_ent->next;
 		}
+		/** Add the entity root to the entity_list */
 		node = (PLMS_GROUP_ENTITY_ROOT_LIST *)malloc(
 			sizeof(PLMS_GROUP_ENTITY_ROOT_LIST));
 		if(!node){
@@ -1367,7 +1495,7 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 		prev = node;
 		TRACE_5("Entity added : %s",key_dn->value);
 		
-		/* Get the children of this root */
+		/** Get the children of this root. */
 		PLMS_GROUP_ENTITY *child_list = NULL;
 		plms_chld_get(new_entity->leftmost_child,
 					&child_list);
@@ -1376,13 +1504,23 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 		{
 			PLMS_GROUP_ENTITY_ROOT_LIST *tmp_grp_entity_list = grp_entity_list;
 			added_ent = *entity_list;
+			/** 
+			 * See if this child entity is already added in this 
+			 * turn when entities in the entity_name list prior to 
+			 * this are added.
+			 */
 			while(added_ent)
 			{
 				if(added_ent->plm_entity == start->plm_entity){
+					TRACE("The entity %s is added just before this turn");
 					break;
 				}
 				added_ent = added_ent->next;
 			}
+			/** 
+			 * Skip the child entity if its already mentioned 
+			 * in this go.
+			 */ 
 			if(added_ent){
 				start = start->next;
 				continue;
@@ -1442,6 +1580,13 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 	return rc;
 }
 
+/***********************************************************************//**
+* @brief	This function adds the entities to the entity group
+*
+* @param[in]	plm_evt -  plm evt received from client. 
+*			
+* @return	Returns nothing.	
+***************************************************************************/
 void plms_process_grp_add_evt(PLMS_EVT *plm_evt)
 {
 
@@ -1496,7 +1641,8 @@ void plms_process_grp_add_evt(PLMS_EVT *plm_evt)
 				if((strncmp((SaInt8T *)key_dn->value,
 			(SaInt8T *)tmp_entity->plm_entity->dn_name.value , 
 				key_dn->length)) == 0){
-					/** Added as single entity */
+					/* Added as single entity */
+					LOG_ER("PLMS : The entity %s already exists", key_dn->value);
 					rc = SA_AIS_ERR_EXIST;
 					goto send_resp;	
 				}
