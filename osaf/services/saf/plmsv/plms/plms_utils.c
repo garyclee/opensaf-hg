@@ -16,12 +16,11 @@
 */
 
 /*****************************************************************************
-*                                                                            *
-*  MODULE NAME:  plms_utils.c                                                *
-*                                                                            *
-*                                                                            *
-*  DESCRIPTION: This file contains PLMS utility routines. 		     *	
-*                                                                            *
+@file	: plms_utils.c
+
+@brief	: PLMS utility functions.
+
+@author	:  Emerson Network Power.
 *****************************************************************************/
 
 #include "plms.h"
@@ -30,16 +29,17 @@
 #include "plms_utils.h"
 
 /******************************************************************************
-Name            : 
-Description     : If admin_op_in_progress is set for any the following then
+@brief		: If admin_op_in_progress is set for any the following then
                   return failure.
                   1. Any of the ancestors.
 		  2. Any entity, I am dependent on.
-                  3. Any of the children.
-                  4. Any entity which is dependent on this ent.
-Arguments       : 
-Return Values   : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-Notes           :  
+                  3. Any of the affected entity.
+		  4. Myself
+		  
+@param[in]	: ent - PLMS_ENTITY representing an EE or HE.
+@param[in]	: aff_ent_list - List of affected entities.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_anc_chld_dep_adm_flag_is_set( 
 					PLMS_ENTITY *ent,
@@ -104,21 +104,23 @@ SaUint32T plms_anc_chld_dep_adm_flag_is_set(
 }
 
 /******************************************************************************
-Name            : plms_affected_ent_list_get
-Description     : Find all the affected entities of the entity ent.
+@brief		: Find all the affected entities of the entity ent.
 		  1. All the children and rev dep of all the children.
 		  2. Scan through the rev dependency list recursively and all
 		  the children of the ent part of rev_dep_list.
 		  
-		  ent_list is the out parameter(head node) to have the list of 
-		  the affected entities.
-Arguments       : 
-Return Values   : 
-Notes           :1. root_ent is not part of the affected entity list.
+		Notes: 
+		1. root_ent is not part of the affected entity list.
 		2. If the function is called with is_insvc as 1, then make sure
 		the function is called only if the ent will move to insvc.
 		Similarly if the function is called with is_insvc as 0, then make
 		sure the function is called only if the ent will move to OOS.	
+
+@param[in]	: root_ent - Root entity for which the affected entities will be
+		calculated.
+@param[out]	: ent_list - Head of the resulting affected entity list.
+@param[in]	: is_insvc - If set to 1, then find the affeted entities as the
+		root entity will be moved to insvc. If set to 0, then OOS.
 ******************************************************************************/
 void plms_affected_ent_list_get( PLMS_ENTITY *root_ent,
 				PLMS_GROUP_ENTITY **ent_list,
@@ -189,8 +191,7 @@ void plms_affected_ent_list_get( PLMS_ENTITY *root_ent,
 	return;	
 }
 /******************************************************************************
-Name            : 
-Description     :Find out the dependent entities which are affected because 
+@brief		:Find out the dependent entities which are affected because 
 		the root ent(root_ent) is going to insvc/oos(is_insvc). We get to 
 		traverse the rev_dep_list recursively. We also get to see the
 		children of the ent part of rev_dep_list.
@@ -211,11 +212,20 @@ Description     :Find out the dependent entities which are affected because
 		Take that no into consideration to find out if the min dep
 		criteria for the ent is satisfied. If yes then add this
 		ent to aff_ent_list.
-		
 
-Arguments       : 
-Return Values   : 
-Notes           : 
+		This is a recurssive function works in conjuction with 
+		plms_aff_chld_ent_list_get
+		
+@param[in]	: root_ent - Root entity for which the affected entities will be
+		calculated.
+@param[in]	: Entity for which this function is called. Means we have to traverse
+		ent`s rev_dep_list.
+@param[out]	: ent_list - Head of list of affected entities whose readiness state
+		is affected.
+@param[out]	: ent_fg_list- Head of list of affected entities whose readiness flag
+		is affected.
+@param[in]	: is_insvc - 1 ==> In service
+			     0 ==> Out o service.	
 ******************************************************************************/
 void plms_aff_dep_ent_list_get(PLMS_ENTITY *root_ent,
 				PLMS_GROUP_ENTITY *ent,
@@ -548,8 +558,7 @@ void plms_aff_dep_ent_list_get(PLMS_ENTITY *root_ent,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     : A child entity is always affected when the parent goes OOS
+@brief		: A child entity is always affected when the parent goes OOS
 		 or insvc, but with the following exception. We also get to see
 		 the rev_dep_ent of all children. 
 
@@ -563,9 +572,20 @@ Description     : A child entity is always affected when the parent goes OOS
 		other conditions are matched. 
 		So If I am going to be insvc or my dependency flag is going to
 		be cleared because of my parent, then I am affected entity.
-Arguments       : 
-Return Values   : 
-Notes           :  
+
+		This is a recurssive function works in conjuction with
+		plms_aff_dep_ent_list_get.
+		
+@param[in]	: root_ent - Root entity for which the affected entities will be
+		calculated.
+@param[in]	: Entity for which this function is called. Means we have to traverse
+		ent`s child list. 
+@param[out]	: ent_list - Head of list of affected entities whose readiness state
+		is affected.
+@param[out]	: ent_fg_list- Head of list of affected entities whose readiness flag
+		is affected.
+@param[in]	: is_insvc - 1 ==> In service
+			     0 ==> Out o service.	
 ******************************************************************************/
 void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 				PLMS_ENTITY *ent, 
@@ -776,11 +796,13 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Find out if ent is a child of root.
+
+@param[in]	: root - parent
+@param[in]	: ent - child
+
+@return		: FALSE - If ent is not a child of root.
+		  TRUE - If ent is a child of root.
 ******************************************************************************/
 SaUint32T plms_is_chld(PLMS_ENTITY *root,PLMS_ENTITY *ent)
 {
@@ -802,11 +824,13 @@ SaUint32T plms_is_chld(PLMS_ENTITY *root,PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : Find out all children. 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Find out if ent is a child of root.
+
+@param[in]	: root - parent
+@param[in]	: ent - child
+
+@return		: FALSE - If ent is not a child of root.
+		  TRUE - If ent is a child of root.
 ******************************************************************************/
 SaUint32T plms_chld_get(PLMS_ENTITY *ent, 
 			PLMS_GROUP_ENTITY **chld_list)
@@ -821,12 +845,12 @@ SaUint32T plms_chld_get(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : Find the affected entities whose dependency-imminent-failure 
-		flag is to be marked/unmarked.	
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Get all the children of ent.
+
+@param[in]	: ent - Parent entity whose children are to be found out.
+@param[out]	: chld_list - Head of the children list.
+
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 void plms_aff_ent_list_imnt_failure_get(PLMS_ENTITY *ent,
 				PLMS_GROUP_ENTITY **ent_list,
@@ -868,12 +892,13 @@ void plms_aff_ent_list_imnt_failure_get(PLMS_ENTITY *ent,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Find the affected entities whose dependency-imminent-failure 
+@brief		: Find the affected entities whose dependency-imminent-failure 
 		flag is to be marked/unmarked.	
-Arguments       : 
-Return Values   : 
-Notes           :  
+
+@param[in]	: ent - Entity whose affected entities to be found out.
+@param[out]	: ent_list - Head of list of affecte entities.
+@param[in]	: mark_unmark - 1 ==> mark dependency-imminent-failure
+			      - 0 ==> unmark dependency-imminent-failure	
 ******************************************************************************/
 void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 					PLMS_ENTITY *ent,
@@ -981,12 +1006,15 @@ void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Find the affected entities whose dependency-imminent-failure 
-		flag is to be marked/unmarked.	
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Find out the dep entities (whose imminent-failure-flag is 
+		to be set/reset) of the ent(ent not root_ent).
+		 
+@param[in]	: root_ent - Root entity.
+@param[in]	: ent - Entity for which this recurssive function is called and
+		whose affected dep entities are to be calculated.
+@param[in]	: mark_unmark - If set to 1 ==> marked.
+					  0 ==> unmarked.
+@param[out]	: aff_ent_list - Head of affected entity list.					  
 ******************************************************************************/
 void plms_aff_dep_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 					PLMS_GROUP_ENTITY *ent,
@@ -1120,11 +1148,12 @@ void plms_aff_dep_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     : Find the all the affected HEs.
-Arguments       : 
-Return Values   : 
-Notes           : Not only children also dependent HEs. 
+@brief		: Find out the affected HEs part of aff_ent_list.
+
+@param[in]	: aff_ent_list - Head of list of affected entities.
+@param[out]	: aff_he_list - Head of the list of affected HEs.
+
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_aff_he_find(PLMS_GROUP_ENTITY *aff_ent_list,
 				PLMS_GROUP_ENTITY **aff_he_list)
@@ -1142,12 +1171,16 @@ SaUint32T plms_aff_he_find(PLMS_GROUP_ENTITY *aff_ent_list,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : Find all the affected EEs which are children of affected 
+@brief		: Find all the affected EEs which are children of affected 
 		HEs as well as children of target ent.
-Arguments       : 
-Return Values   : 
-Notes           : 
+
+@param[in]	: ent - Root entity.
+@param[in]	: aff_he_list - List of affected HEs.
+@param[in]	: aff_ent_list - List of all affected entities.
+@param[out]	: aff_chld_ee_list - List of affected EEs which are children of
+		affected HEs.
+		
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_ee_chld_of_aff_he_find(PLMS_ENTITY *ent,
 				PLMS_GROUP_ENTITY *aff_he_list,
@@ -1185,13 +1218,15 @@ SaUint32T plms_ee_chld_of_aff_he_find(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : Find out all the EEs which are affected entities but not child
+@brief		: Find out all the EEs which are affected entities but not child
 		of any of the affected HEs.
 
-Arguments       : 
-Return Values   : 
-Notes           : 
+@param[in]	: aff_ent_list - List of all affected entities.
+@param[in]	: aff_chld_ee_list - List of affected child EEs.
+@param[out]	: dep_chld_ee_list - List of affected EEs which are not children
+		of any of the affected HEs.
+
+@return		: NCSCC_RC_SUCCESS.
 ******************************************************************************/
 SaUint32T plms_ee_not_chld_of_aff_he_find(PLMS_GROUP_ENTITY *aff_ent_list,
 					PLMS_GROUP_ENTITY *aff_chld_ee_list,
@@ -1215,11 +1250,12 @@ SaUint32T plms_ee_not_chld_of_aff_he_find(PLMS_GROUP_ENTITY *aff_ent_list,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : Add all the groups to list, ent belongs to. 
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Add all the groups to list, ent belongs to. 
+
+@param[in]	: ent - Root entity.
+@param[out]	: list - List of groups, ent belongs to.
+
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_ent_grp_list_add(PLMS_ENTITY *ent, 
 			PLMS_ENTITY_GROUP_INFO_LIST **list)
@@ -1278,11 +1314,10 @@ SaUint32T plms_ent_grp_list_add(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     :Add all the groups to grp_list,entities of ent_list belong to.  
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Add all the groups to grp_list,entities of ent_list belong to. 
+
+@param[in]	: ent_list - List of entities.
+@param[out]	: list - List of groups, all the entities of ent_list belong to.
 ******************************************************************************/
 void plms_ent_list_grp_list_add(PLMS_GROUP_ENTITY *ent_list, 
 			PLMS_ENTITY_GROUP_INFO_LIST **list)
@@ -1298,11 +1333,10 @@ void plms_ent_list_grp_list_add(PLMS_GROUP_ENTITY *ent_list,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Add the ent to ent_list only if it is not part of the list.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Add the ent to ent_list only if it is not part of the list.
+
+@param[in]	: ent - Root entity.
+@param[in/out]	: list - List of entities to which ent will be added.
 ******************************************************************************/
 void plms_ent_to_ent_list_add(PLMS_ENTITY *ent,
 			PLMS_GROUP_ENTITY **list)
@@ -1347,11 +1381,13 @@ void plms_ent_to_ent_list_add(PLMS_ENTITY *ent,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :If the grp, represented by tmp_ent_grp is present in grp_list. 
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: If the grp, represented by tmp_ent_grp is present in grp_list. 
+
+@param[in]	: tmp_ent_grp - Entity group to be serached for.
+@param[in]	: grp_list - List of groups.
+
+@return		: NCSCC_RC_FAILURE - If tmp_ent_grp is not part of grp_list.
+		  NCSCC_RC_SUCCESS - If tmp_ent_grp is part of grp_list.	
 ******************************************************************************/
 
 SaUint32T plms_grp_is_in_grp_list(PLMS_ENTITY_GROUP_INFO *tmp_ent_grp,
@@ -1371,11 +1407,10 @@ SaUint32T plms_grp_is_in_grp_list(PLMS_ENTITY_GROUP_INFO *tmp_ent_grp,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Add inv_to_trk node to list.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Add inv_to_trk node to list.
+
+@param[in]	: node - inv_to_trk node to be added to the list.
+@param[out]	: list - list of inv_to_trk.
 ******************************************************************************/
 void plms_inv_to_trk_grp_add(PLMS_INVOCATION_TO_TRACK_INFO **list,
 				PLMS_INVOCATION_TO_TRACK_INFO *node)
@@ -1399,14 +1434,11 @@ void plms_inv_to_trk_grp_add(PLMS_INVOCATION_TO_TRACK_INFO **list,
 }
 
 /******************************************************************************
-Name            : 
-Description     :grp->invocation_list is list of PLMS_INVOCATION_TO_TRACK_INFO
-		 . Remove the node from the above list, whose trk_info field 
-		 is matching with the trk_info.Make sure the node which is 
-		 removed from grp->invocation_list is freed.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Remove all the inv_to_trk node from the grp->invocation_list
+		if the inv_to_trk points to the track info passed as trk_info.
+
+@param[in]	: grp - Group from where inv_to_trk nodes are to be removed.
+@trk_info[in]	: trk_info - Track info. 
 ******************************************************************************/
 void plms_inv_to_cbk_in_grp_trk_rmv(PLMS_ENTITY_GROUP_INFO *grp,
 				PLMS_TRACK_INFO *trk_info)
@@ -1432,15 +1464,11 @@ void plms_inv_to_cbk_in_grp_trk_rmv(PLMS_ENTITY_GROUP_INFO *grp,
 		
 }
 /******************************************************************************
-Name            : 
-Description     :grp->invocation_list is list of PLMS_INVOCATION_TO_TRACK_INFO
-		 . Remove the node from the above list, whose inv_id field 
-		 is matching with the inv_id (passed as argument to this func).
-		 Make sure the node which is removed from grp->invocation_list 
-		 is freed.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Remove the inv_to_trk node from the grp->invocation_list
+		if the inv id of inv_to_trk node matches with inv_id passed.
+
+@param[in]      : grp - Group from where inv_to_trk nodes are to be removed.
+@param[in]	: inv_id - innvocation id.
 ******************************************************************************/
 void plms_inv_to_cbk_in_grp_inv_rmv(PLMS_ENTITY_GROUP_INFO *grp,
 				SaInvocationT inv_id)
@@ -1465,11 +1493,13 @@ void plms_inv_to_cbk_in_grp_inv_rmv(PLMS_ENTITY_GROUP_INFO *grp,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     : Find inv_to_cbk node from list whose inv_id matches with inv.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Find inv_to_cbk node from list whose inv_id matches with inv.
+
+@param[in]	: list - List of inv_to_trk nodes.
+@param[in]	: inv - innvocation id.
+
+@return		: NULL - If inv does not match.
+		  PLMS_INVOCATION_TO_TRACK_INFO - If the inv matches.
 ******************************************************************************/
 PLMS_INVOCATION_TO_TRACK_INFO * plms_inv_to_cbk_in_grp_find(
 				PLMS_INVOCATION_TO_TRACK_INFO *list, 
@@ -1486,12 +1516,13 @@ PLMS_INVOCATION_TO_TRACK_INFO * plms_inv_to_cbk_in_grp_find(
 }
 
 /******************************************************************************
-Name            : 
-Description     : Find the no of entities to be packed for calling the callback
+@brief		: Find the no of entities to be packed for calling the callback.
 		  track_flag should be taken into consideration.
-Arguments       : 
-Return Values   : 
-Notes           :  
+
+@param[in]	: grp - Group for which the callback will be called.
+@param[in]	: aff_ent_list - List of affected entities.
+
+@return		: No of entities to be packed(0/count_changes/count_changes_only).
 ******************************************************************************/
 SaUint32T plms_no_aff_ent_in_grp_get(PLMS_ENTITY_GROUP_INFO *grp,
 				PLMS_GROUP_ENTITY *aff_ent_list)
@@ -1517,13 +1548,14 @@ SaUint32T plms_no_aff_ent_in_grp_get(PLMS_ENTITY_GROUP_INFO *grp,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Fill the ents with the no of affected entities belong to the 
-		  grp. Here the track_flag of the group is taken into 
-		  consideration. 
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Fill the affected entities to be sent as part of the readiness
+		callback.
+
+@param[in]	: ent - Pointer of type SaPlmReadinessTrackedEntityT which holds
+		the entities to be sent as part of the readiness callback.
+@param[in]	: grp - Group for which the callback will be called.
+@param[in]	: aff_ent_list - List of affected entities.
+@param[in]	: grp_op - Type of change (group change/readiness status change).
 ******************************************************************************/
 void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 				PLMS_ENTITY_GROUP_INFO *grp,
@@ -1624,11 +1656,8 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 	return;  
 }
 /******************************************************************************
-Name            : 
-Description     : Free inv_to_cbk list.
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Free inv_to_cbk list.
+@param[in]	: inv_list - List of inv_to_cbk nodes to be freed.
 ******************************************************************************/
 void plms_inv_to_trk_list_free(PLMS_INVOCATION_TO_TRACK_INFO *inv_list)
 {
@@ -1645,11 +1674,8 @@ void plms_inv_to_trk_list_free(PLMS_INVOCATION_TO_TRACK_INFO *inv_list)
 
 
 /******************************************************************************
-Name            : 
-Description     : Free the ent_list
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Free entity list.
+@param[in]	: ent_list - List of entities to be freed.
 ******************************************************************************/
 void plms_ent_list_free(PLMS_GROUP_ENTITY *ent_list)
 {
@@ -1665,11 +1691,8 @@ void plms_ent_list_free(PLMS_GROUP_ENTITY *ent_list)
 }
 
 /******************************************************************************
-Name            : 
-Description     : Free the grp_list
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Free entity list.
+@param[in]	: ent_list - List of entities to be freed.
 ******************************************************************************/
 void plms_ent_grp_list_free(PLMS_ENTITY_GROUP_INFO_LIST *grp_list)
 {
@@ -1685,11 +1708,10 @@ void plms_ent_grp_list_free(PLMS_ENTITY_GROUP_INFO_LIST *grp_list)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Mark/unmark am_i_aff_ent flag of the entities.
+@param[in]	: ent_list - List of entities.
+@param[in]	: mark_unmark - 0 ==> Unmark
+				1 ==> Mark
 ******************************************************************************/
 void plms_aff_ent_flag_mark_unmark(PLMS_GROUP_ENTITY *ent_list,
 						SaBoolT mark_unmark)
@@ -1704,11 +1726,11 @@ void plms_aff_ent_flag_mark_unmark(PLMS_GROUP_ENTITY *ent_list,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Check if the specified readiness flag is set.
+@param[in]	: ent - PLM entity.
+@param[in]	: flag - Readiness flag.
+@return		: TRUE - If set
+		  FALSE - If not set.
 ******************************************************************************/
 SaUint32T plms_rdness_flag_is_set(PLMS_ENTITY *ent,SaPlmReadinessFlagsT flag)
 {
@@ -1733,11 +1755,16 @@ SaUint32T plms_rdness_flag_is_set(PLMS_ENTITY *ent,SaPlmReadinessFlagsT flag)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Clear readiness flag. Takes care of updating IMM and sending 
+		the corresponding notification.
+@param[in]	: ent - Entity whose readiness flag is to be cleared.
+@param[in]	: root_ent - Root entity for which readiness flag to be cleared
+		of the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_readiness_flag_clear(PLMS_ENTITY *ent,
 					PLMS_ENTITY *root_ent,
@@ -1832,12 +1859,18 @@ SaNtfIdentifierT plms_readiness_flag_clear(PLMS_ENTITY *ent,
 	return ntf_id;
 }
 /******************************************************************************
-Name            : 
-Description     : Mark or Unmark the readiness flag. Make sure the IMM database
-		is updated and notification is sent.
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Clear readiness flag.
+@param[in]	: ent - Entity whose readiness flag is to be marked/unmarked.
+@param[in]	: flag - Flag to be marked/unmarked.
+@param[in]	: mark_unmark - 0 ==> Unmark
+				1 ==> Mark
+@param[in]	: root_ent - Root entity for which readiness flag to be marked/
+		unmarked of the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_readiness_flag_mark_unmark(PLMS_ENTITY *ent,
 					SaPlmReadinessFlagsT flag,
@@ -2000,12 +2033,16 @@ SaNtfIdentifierT plms_readiness_flag_mark_unmark(PLMS_ENTITY *ent,
 	return ntf_id;
 }
 /******************************************************************************
-Name            : 
-Description     : Set readiness state if not set. Send state change notification
-		and update IMM.
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Set the readiness state if not set.
+@param[in]	: ent - Entity whose readiness state is to be set.
+@param[in]	: state - Readiness state to be set.
+@param[in]	: root_ent - Root entity for which readiness state to be set
+		for the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_readiness_state_set(PLMS_ENTITY *ent,
 				SaPlmReadinessStateT state,
@@ -2082,11 +2119,13 @@ SaNtfIdentifierT plms_readiness_state_set(PLMS_ENTITY *ent,
 	return ntf_id;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Check if the mentioned readiness state is set or not.
+
+@param[in]	: ent - Entity whose readiness state if to be checked.
+@param[in]	: state - Readiness state to be checked.
+
+@return		: TRUE - If set.
+		  FALSE - If not set.	
 ******************************************************************************/
 SaUint32T plms_is_rdness_state_set(PLMS_ENTITY *ent,SaPlmReadinessStateT state)
 {
@@ -2109,11 +2148,11 @@ SaUint32T plms_is_rdness_state_set(PLMS_ENTITY *ent,SaPlmReadinessStateT state)
 }
 
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Set the expected readiness status of the entities.
+
+@param[in]	: aff_ent_list - List of affected entities.
+@param[in]	: rdyness_state - Readiness state to be marked.
+@param[in]	: flag - Readiness flag to be marked.
 ******************************************************************************/
 void plms_aff_ent_exp_rdness_state_mark(PLMS_GROUP_ENTITY *aff_ent_list,
 					SaPlmHEAdminStateT rdyness_state,
@@ -2140,11 +2179,8 @@ void plms_aff_ent_exp_rdness_state_mark(PLMS_GROUP_ENTITY *aff_ent_list,
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear the expected readiness status of the affected entities.
+@param[in]	: aff_ent_list - List of affected entities.
 ******************************************************************************/
 void plms_aff_ent_exp_rdness_status_clear(PLMS_GROUP_ENTITY *aff_ent_list)
 {
@@ -2159,11 +2195,9 @@ void plms_aff_ent_exp_rdness_status_clear(PLMS_GROUP_ENTITY *aff_ent_list)
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear the expected readiness status of the ent. 
+@param[in]	: aff_ent_list - Entity whose expected readiness status is to
+		be cleared.
 ******************************************************************************/
 void plms_ent_exp_rdness_status_clear(PLMS_ENTITY *ent)
 {
@@ -2172,11 +2206,9 @@ void plms_ent_exp_rdness_status_clear(PLMS_ENTITY *ent)
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Overwrite the expected readiness state of the affected entities
+		with the current readiness status.
+@param[in]	: aff_ent_list - List of affected entities.		
 ******************************************************************************/
 void plms_aff_ent_exp_rdness_state_ow(PLMS_GROUP_ENTITY *aff_ent_list)
 {
@@ -2211,11 +2243,10 @@ void plms_aff_ent_exp_rdness_state_ow(PLMS_GROUP_ENTITY *aff_ent_list)
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Overwrite the expected readiness state of the ent
+		with the current readiness status.
+@param[in]	: ent - Entity whose expected readiness status is to be 
+		overwritten.
 ******************************************************************************/
 void plms_ent_exp_rdness_state_ow(PLMS_ENTITY *ent)
 {
@@ -2240,11 +2271,16 @@ void plms_ent_exp_rdness_state_ow(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Set the operational state if not set.
+@param[in]	: ent - Entity whose operational state is to be set.
+@param[in]	: state - operational state to be set.
+@param[in]	: root_ent - Root entity for which operational state to be set
+		for the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_op_state_set(PLMS_ENTITY *ent,
 				SaPlmOperationalStateT state,
@@ -2320,11 +2356,16 @@ SaNtfIdentifierT plms_op_state_set(PLMS_ENTITY *ent,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Set the Admin state if not set.
+@param[in]	: ent - Entity whose Admin state is to be set.
+@param[in]	: state - Admin state to be set.
+@param[in]	: root_ent - Root entity for which Admin state to be set
+		for the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_admin_state_set(PLMS_ENTITY *ent, SaUint32T state,
 				PLMS_ENTITY *root_ent,
@@ -2407,11 +2448,16 @@ SaNtfIdentifierT plms_admin_state_set(PLMS_ENTITY *ent, SaUint32T state,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Set the presence state if not set.
+@param[in]	: ent - Entity whose presence state is to be set.
+@param[in]	: state - presence state to be set.
+@param[in]	: root_ent - Root entity for which presence state to be set
+		for the ent.
+@param[in]	: src_ind - Source indicator to be used for notification.
+@param[in]	: minor_id - Minor id to be used to send notification.
+
+@return		: SA_NTF_IDENTIFIER_UNUSED - If notification not sent.
+		SaNtfIdentifierT - Notfication id.	
 ******************************************************************************/
 SaNtfIdentifierT plms_presence_state_set(PLMS_ENTITY *ent, SaUint32T state,
 				PLMS_ENTITY *root_ent,
@@ -2501,11 +2547,16 @@ SaNtfIdentifierT plms_presence_state_set(PLMS_ENTITY *ent, SaUint32T state,
 }
 
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Update integer type IMM object atrribute. This is a specific
+		function for integer type of attribute and modification method
+		REPLACE. This is not a general function.
+
+@param[in]	: ent - Attribute of this entity is to be updated.
+@param[in]	: attr_name - Attribute name.
+@param[in]	: val_type - Type of attribute. It has to be of integer type.
+@param[in]	: val - Attribute val.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
 				SaImmValueTypeT val_type,SaUint64T val)
@@ -2538,11 +2589,14 @@ SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Update SaName type IMM object atrribute.
+
+@param[in]	: ent - Attribute of this entity is to be updated.
+@param[in]	: attr_name - Attribute name.
+@param[in]	: val - Attribute val.
+@param[in]	: mod_type - IMM modification type.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_attr_saname_imm_update(PLMS_ENTITY *ent,
 SaInt8T *attr_name,SaNameT val,SaImmAttrModificationTypeT mod_type)
@@ -2579,11 +2633,14 @@ SaInt8T *attr_name,SaNameT val,SaImmAttrModificationTypeT mod_type)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Update SaString type IMM object atrribute.
+
+@param[in]	: ent - Attribute of this entity is to be updated.
+@param[in]	: attr_name - Attribute name.
+@param[in]	: val - Attribute val.
+@param[in]	: mod_type - IMM modification type.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *ent,
 	SaInt8T *attr_name,SaStringT val,SaImmAttrModificationTypeT mod_type)
@@ -2616,11 +2673,10 @@ SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Mark/Unmark the am_i_aff_ent flag of the entities.
+
+@param[in]	: ent_list - List of entities.
+@param[in]	: flag - 0 or 1
 ******************************************************************************/
 void plms_aff_ent_mark_unmark(PLMS_GROUP_ENTITY *ent_list, SaBoolT flag)
 {
@@ -2634,11 +2690,8 @@ void plms_aff_ent_mark_unmark(PLMS_GROUP_ENTITY *ent_list, SaBoolT flag)
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Free trk_info.
+@param[in]	: trk_info - structure to be freed.
 ******************************************************************************/
 void plms_trk_info_free(PLMS_TRACK_INFO *trk_info)
 {
@@ -2659,11 +2712,11 @@ void plms_trk_info_free(PLMS_TRACK_INFO *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Check if the ent is persent in list.
+@param[in]	: list - List of entities.
+@param[in]	: ent - Entity to be checked for.
+@return		: TRUE - If ent is present in list.
+		  FALSE - If ent is not present in list.
 ******************************************************************************/
 SaBoolT plms_is_ent_in_ent_list(PLMS_GROUP_ENTITY *list,
 				PLMS_ENTITY *ent)
@@ -2680,17 +2733,17 @@ SaBoolT plms_is_ent_in_ent_list(PLMS_GROUP_ENTITY *list,
 }
 
 /******************************************************************************
-Name            : 
-Description     : Take the ent to insvc if the following conditions are matched
+@brief		: Take the ent to insvc if the following conditions are matched
 		1. All the ancestors are in svc.
 		2. It satisfies the min dependency criteria.
 		3. Its admin state is unlock.
 		4. Its operational state is enable.
-		5. Its presence state is either instantiated or terminating.
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+		5. Its presence state is either instantiated or terminating(for
+		EE) and active or deactivating(for HE).
+@param[in]	: chld_ent - Entity to be taken to insvc.
+@param[out]	: is_flag_aff - If the readiness flag is affected, then this
+		will have value 1, otherwise 0.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS		
 ******************************************************************************/
 SaUint32T plms_move_ent_to_insvc(PLMS_ENTITY *chld_ent, SaUint8T *is_flag_aff)
 {
@@ -2809,13 +2862,19 @@ SaUint32T plms_move_ent_to_insvc(PLMS_ENTITY *chld_ent, SaUint8T *is_flag_aff)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine takes care of moving all the dependends of 
-		the child ent to insvc if required.
+@brief		: A recurssive function takes care of moving the children and
+		its dependends to insvc. This function works in cojuction with
+		plms_move_dep_ent_to_insvc.
+@param[in]	: chld_ent - The leftmost child of the entity whose children 
+		are to move to insvc.
+@param[out]	: ent_list - List of entities whose readiness status has been
+		changed during this operation.
+@param[in]	: inst_chld_ee - 1 ==> Instantiate the chld EE if all the conditions
+		are matched.
+				 0 ==> Do not instantiate chld EE.
+@param[in]	: inst_dep_ee - 1 ==> Instantiate the dep EE if all the conditions
+		are matched.
+				 0 ==> Do not instantiate dep EE.
 ******************************************************************************/
 void plms_move_chld_ent_to_insvc(PLMS_ENTITY *chld_ent,
 	PLMS_GROUP_ENTITY **ent_list,SaUint8T inst_chld_ee,SaUint8T inst_dep_ee)
@@ -2955,13 +3014,15 @@ void plms_move_chld_ent_to_insvc(PLMS_ENTITY *chld_ent,
 	return;
 }	
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine also takes care of moving all the children of 
-		the dep ent to insvc if required.
+@brief		: A recurssive function takes care of moving the dep and
+		their childrens to insvc. This function works in cojuction with
+		plms_move_chld_ent_to_insvc.
+@param[in]	: dep_ent_list - list of dependend entities. 
+@param[out]	: ent_list - List of entities whose readiness status has been
+		changed during this operation.
+@param[in]	: inst_dep_ee - 1 ==> Instantiate the dep EE if all the conditions
+		are matched.
+				 0 ==> Do not instantiate dep EE.
 ******************************************************************************/
 void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 			PLMS_GROUP_ENTITY **ent_list,SaUint8T inst_dep_ee)
@@ -3116,14 +3177,11 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 	return;
 }	
 /******************************************************************************
-Name            : 
-Description     : Find out if the minimum no of dependent entities, required to 
-		keep this ent insvc, are insvc or not. If yes then return SUCCESS, 
-		otherwise FAILURE.	
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Check if the minimum no of dependent entities of the ent,
+		are insvc.
+@param[in]	: ent - HE or EE.
+@return		: TRUE - If minimum no of dependent entities are insvc.
+		  FALSE - If minimum no of dependent entities are not insvc.
 ******************************************************************************/
 SaUint32T plms_min_dep_is_ok(PLMS_ENTITY *ent)	
 {
@@ -3157,13 +3215,10 @@ SaUint32T plms_min_dep_is_ok(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : If any of the ancestor of this entity is in M5/M1/M0. 
-		
-Arguments       : 
-Return Values   : NCSCC_RC_SUCCESS : If any of ancestor is in M5/M1/M0.
-		  NCSCC_RC_FAILURE : If none of the ancestor is in M5/M1/M0.
-Notes           : 
+@brief		: If any of the ancestor of this entity is in M5/M1/M0. 
+@param[in]	: ent - HE.		
+@return		: TRUE - If any of ancestor is in M5/M1/M0.
+		  FALSE - If none of the ancestor is in M5/M1/M0.
 ******************************************************************************/
 SaUint32T plms_is_anc_in_deact_cnxt(PLMS_ENTITY *ent)
 {
@@ -3184,12 +3239,10 @@ SaUint32T plms_is_anc_in_deact_cnxt(PLMS_ENTITY *ent)
 	return FALSE;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Call readiness callback for marking/clearing the management lost flag.
+@param[in]	: ent - EE or HE.
+@param[in]	: lost - management lost flag lost/regained.
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_mngt_lost_clear_cbk_call(PLMS_ENTITY *ent,SaUint32T lost)
 {
@@ -3236,13 +3289,13 @@ SaUint32T plms_mngt_lost_clear_cbk_call(PLMS_ENTITY *ent,SaUint32T lost)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : The failure is yet to be happened. Set the imminent-failure
-		flag and call the callback.	
+@brief		: The failure is yet to be happened. Set the imminent-failure
+		flag and call the callback.
+@param[in]	: ent - HE or EE
+@param[in]	: snd_info - Used for sync send to PLMA.
+@param[in/out]	: cor_ids - Unused. PLMA takes care of filling the out parameter
+		for the application calling readiness impact call.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE			
 ******************************************************************************/
 SaUint32T plms_rdness_imminent_failure_process(PLMS_ENTITY *ent, 
 			PLMS_SEND_INFO *snd_info,SaNtfCorrelationIdsT *cor_ids)
@@ -3380,13 +3433,13 @@ SaUint32T plms_rdness_imminent_failure_process(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : The failure did not happen. Clear the imminent-failure
-		flag and call the callback.	
+@brief		: Failure did not happen as the application has reported.
+		Clear imminent failure flag.
+@param[in]	: ent - HE or EE
+@param[in]	: snd_info - Used for sync send to PLMA.
+@param[in/out]	: cor_ids - Unused. PLMA takes care of filling the out parameter
+		for the application calling readiness impact call.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE			
 ******************************************************************************/
 SaUint32T plms_rdness_imminent_failure_cleared_process(PLMS_ENTITY *ent,
 			PLMS_SEND_INFO *snd_info,SaNtfCorrelationIdsT *cor_ids)
@@ -3526,12 +3579,13 @@ SaUint32T plms_rdness_imminent_failure_cleared_process(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Application has reported a failure and hence clear the imminet
+		failure flag if set and isolate the entity.
+@param[in]	: ent - HE or EE
+@param[in]	: snd_info - Used for sync send to PLMA.
+@param[in/out]	: cor_ids - Unused. PLMA takes care of filling the out parameter
+		for the application calling readiness impact call.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE			
 ******************************************************************************/
 SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 			PLMS_SEND_INFO *snd_info,SaNtfCorrelationIdsT *cor_ids)
@@ -3833,12 +3887,13 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Application has reported that the fault is cleared. Hence 
+		enable the isolated the entity.
+@param[in]	: ent - HE or EE
+@param[in]	: snd_info - Used for sync send to PLMA.
+@param[in/out]	: cor_ids - Unused. PLMA takes care of filling the out parameter
+		for the application calling readiness impact call.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE			
 ******************************************************************************/
 SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 			PLMS_SEND_INFO *snd_info,SaNtfCorrelationIdsT *cor_ids)
@@ -4000,12 +4055,9 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Handle readiness impact api.
+@param[in]	: evt - PLMS_EVT received from PLMA reporting readiness impact.
+@return		: NCSCC_RC_SUCCESS/ NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_readiness_impact_process(PLMS_EVT *evt)
 {
@@ -4109,12 +4161,14 @@ SaUint32T plms_readiness_impact_process(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Enable the isolated entity. Enabling means activating/instantiating
+		the entity depending upon the isolation method.
+@param[in]	: ent - HE or EE
+@param[in]	: adm_op - is admin operation. Admin-pending flag will be set if
+		enabling the entity fails.
+@param[in]	: mngt_cbk - If set, call management lost callback if enabling
+		the entity fails.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.		
 ******************************************************************************/
 SaUint32T plms_ent_enable(PLMS_ENTITY *ent,SaUint32T adm_op, SaUint32T mngt_cbk)
 {
@@ -4212,12 +4266,20 @@ SaUint32T plms_ent_enable(PLMS_ENTITY *ent,SaUint32T adm_op, SaUint32T mngt_cbk)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Isolate the entity.
+		For EE
+		1. Terminate the EE.
+		2. If termination fails, reset assert the parent HE.
+		3. If reset assert fails, deactivate the parent HE.
+		For HE
+		1. Deactivate the HE.
+		2. If deactivation fails, then reset assert the HE.
+@param[in]	: ent - HE or EE
+@param[in]	: adm_op - is admin operation. Admin-pending flag will be set if
+		isolating the entity fails.
+@param[in]	: mngt_cbk - If set, call management lost callback if isolating
+		the entity fails.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.		
 ******************************************************************************/
 SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 {
@@ -4426,12 +4488,11 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Send async upadte to peer PLMS.
+@param[in]	: ent - HE or EE
+@param[in]	: step - change step.
+@param[in]	: ope_id - Change step virtually the operation id.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_peer_async_send(PLMS_ENTITY *ent,SaPlmChangeStepT step,
 					SaPlmTrackCauseT ope_id)
@@ -4469,12 +4530,9 @@ SaUint32T plms_peer_async_send(PLMS_ENTITY *ent,SaPlmChangeStepT step,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Remove ent from the ent list.
+@param[in]	: plm_ent - Entity to be removed.
+@param[in/out]	: ent_list - List of entities.
 ******************************************************************************/
 void plms_ent_from_ent_list_rem(PLMS_ENTITY *plm_ent, 
 				PLMS_GROUP_ENTITY **ent_list)
@@ -4502,12 +4560,12 @@ void plms_ent_from_ent_list_rem(PLMS_ENTITY *plm_ent,
 	TRACE_LEAVE();
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Timer handler called on timer expiry.
+@param[in]	: sig - signal no.
+@param[in]	: info - contains the timer info. As we pack the ent itself as
+		the context info when starting the timer, same we can retrieve
+		when the timer gets expired.
+@param[in]	: r_cnxt - Not used. 		
 ******************************************************************************/
 void plms_timer_handler(int sig, siginfo_t *info,void *r_cnxt)
 {
@@ -4540,12 +4598,11 @@ void plms_timer_handler(int sig, siginfo_t *info,void *r_cnxt)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Create and start the timer. The timer value is in nano-sec.
+@param[out]	: timer_id - timer id.
+@param[in]	: cnxt - cnxt to be used on timer expiry.
+@param[in]	: nsec - timer value in nsec.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_timer_start(timer_t *timer_id,void *cnxt,SaUint64T nsec)
 {
@@ -4582,12 +4639,9 @@ SaUint32T plms_timer_start(timer_t *timer_id,void *cnxt,SaUint64T nsec)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Stop and delete the timer.
+@param[in]	: ent - Entity whose timer is to be deleted.
+@return		: NCSCC_RC_SUCCESS.
 ******************************************************************************/
 SaUint32T plms_timer_stop(PLMS_ENTITY *ent)
 {
@@ -4617,12 +4671,9 @@ SaUint32T plms_timer_stop(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Install the timer handler. Used for instantiation failed and
+		termination failed timer.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE		
 ******************************************************************************/
 SaUint32T plms_tmr_handler_install()
 {
@@ -4643,12 +4694,13 @@ SaUint32T plms_tmr_handler_install()
 
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: The funtion is called to clean up the HE database when a
+		HE is removed(M0).
+		1. Clear the current entity path and current he type.
+		2. Update the above to IMM.
+		3. Reemove the HE from epath_to_ent tree.
+@param[in]	: ent - HE.
+@param[in]	: epath_ent - Place holder for epath_to_ent tree.
 ******************************************************************************/
 void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO 
 					**epath_ent)

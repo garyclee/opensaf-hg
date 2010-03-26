@@ -113,12 +113,9 @@ static void plms_shutdown_completed_cbk_call(PLMS_ENTITY *,PLMS_TRACK_INFO  *);
 static void plms_lock_completed_cbk_call(PLMS_ENTITY *, PLMS_TRACK_INFO *);
 static void plms_lock_start_cbk_call(PLMS_ENTITY *, PLMS_TRACK_INFO *);
 /******************************************************************************
-Name            : plms_he_adm_fsm_init
-Description     : Initializes the HE admin FSM function pointers.
-Arguments       : plm_HE_adm_state_op - Array of function pointers of type 
+@brief		: Initializes the HE admin FSM function pointers.
+@param[in]	: plm_HE_adm_state_op - Array of function pointers of type 
                   PLMS_ADM_FUNC_PTR representing HE adm FSM. 
-Return Values   : None.
-Notes           : Admin operations not meant for HE, are not part of the FSM.
 ******************************************************************************/
 void plms_he_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[]
 						[SA_PLM_ADMIN_OP_MAX])
@@ -177,12 +174,9 @@ void plms_he_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[]
 }
 
 /******************************************************************************
-Name            : plms_ee_adm_fsm_init
-Description     : Initializes the EE admin FSM function pointers.
-Arguments       : plm_EE_adm_state_op - Array of function pointers of type 
+@brief		: Initializes the EE admin FSM function pointers.
+@param[in]	: plm_EE_adm_state_op - Array of function pointers of type 
                   PLMS_ADM_FUNC_PTR representing EE adm FSM. 
-Return Values   : None.
-Notes           : Admin operations not meant for EE, are not part of the FSM.
 ******************************************************************************/
 void plms_ee_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[]
 						[SA_PLM_ADMIN_OP_MAX])
@@ -249,13 +243,10 @@ void plms_ee_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[]
 
 
 /******************************************************************************
-Name            : plms_HE_adm_unlock_state_unlock_op 
-Description     : Unlock admin operation performed on HE which is already in 
+@brief		: Unlock admin operation performed on HE which is already in 
                   unlocked state. 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : Return val of SaAisErrorT. 
-Notes           : None.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_unlock_op(PLMS_EVT *evt)
 {
@@ -280,15 +271,11 @@ SaUint32T plms_HE_adm_unlock_state_unlock_op(PLMS_EVT *evt)
 
 
 /******************************************************************************
-Name            : plm_HE_adm_unlock_state_lock_op 
-Description     : Lock the HE which is in unlocked state.
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info.
-
-Return Values   : NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+@brief		: Unlocked ==> Lock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
 		  NCSCC_RC_FAILURE(0) - For failure.
 		  others(SaAisErrorT) - For failure.
-Notes           : 
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 {
@@ -491,12 +478,11 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Unlocked ==> Shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_shutdown_op(PLMS_EVT *evt)
 {
@@ -514,13 +500,9 @@ SaUint32T plms_HE_adm_unlock_state_shutdown_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_unlock_state_act_op 
-Description     : Activate admin operation performed on HE which is in 
-                  unlocked state. 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : Return val of SaAisErrorT 
-Notes           : None.
+@brief		: Unlocked ==> Activate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT 
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_act_op(PLMS_EVT *evt)
 {
@@ -543,13 +525,9 @@ SaUint32T plms_HE_adm_unlock_state_act_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_unlock_state_deact_op 
-Description     : Activate admin operation performed on HE which is in 
-                  unlocked state. 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : Return val of  SaAisErrorT. 
-Notes           : None.
+@brief		: Unlocked ==> Deactivate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT 
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_deact_op(PLMS_EVT *evt)
 {
@@ -572,12 +550,11 @@ SaUint32T plms_HE_adm_unlock_state_deact_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :plm_HE_adm_locked_state_unlock_op 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Locked ==> Unlock 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_unlock_op(PLMS_EVT *evt)
 {
@@ -596,12 +573,9 @@ SaUint32T plms_HE_adm_locked_state_unlock_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_locked_state_act_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : Return val of SaAisErrorT. 
-Notes           : None.
+@brief		: Locked ==> Activate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_act_op(  PLMS_EVT *evt)
 {
@@ -625,12 +599,9 @@ SaUint32T plms_HE_adm_locked_state_act_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_locked_state_shutdown_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Locked ==> Shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -654,15 +625,14 @@ SaUint32T plms_HE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_locked_state_lock_op 
-Description     : This is possible if any of the application is not responding
-		  to START callback for the try/default lock and the adminstator
-		  issues forced lock.
-
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : 
-Notes           : None.
+@brief		: Locked ==> Lock
+		This is possible if any of the application is not responding
+		to START callback for the try/default lock and the adminstator
+		issues forced lock.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 {
@@ -683,20 +653,11 @@ SaUint32T plms_HE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :plm_HE_adm_locked_state_deact_op
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : TODO : No callback is to be called for this admin 
-		operation as readiness status is not being changed by this
-		operation.
-
-		There would be zero affected entities, as the root entity is
-		already in OOS.
-
-		I do not wait till I get M1. Return to IMM after initiating
-		deactivation process.
+@brief		: Locked ==> Deactivate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_deact_op (  PLMS_EVT *evt)
 {
@@ -773,12 +734,9 @@ SaUint32T plms_HE_adm_locked_state_deact_op (  PLMS_EVT *evt)
 
 }
 /******************************************************************************
-Name            : plms_HE_adm_shutdown_state_deact_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> Deactivate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_deact_op(  PLMS_EVT *evt)
 {
@@ -801,12 +759,9 @@ SaUint32T plms_HE_adm_shutdown_state_deact_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_shutdown_state_act_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> Activate 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_act_op(  PLMS_EVT *evt)
 {
@@ -829,12 +784,9 @@ SaUint32T plms_HE_adm_shutdown_state_act_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_shutdown_state_shutdown_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> Shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -858,16 +810,16 @@ SaUint32T plms_HE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_shutdown_state_lock_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : 
-Notes           : The assumption is, the adminstrator can issue only forced
+@brief		: Shutdown ==> Lock
+		The assumption is, the adminstrator can issue only forced
 		lock if any of the application does not respond to the start
 		callback of the shutdown operation.
 		If try/default lock is issued, we will reject although
 		spec does not speak this explicitly.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_lock_op(PLMS_EVT *evt)
 {
@@ -885,14 +837,11 @@ SaUint32T plms_HE_adm_shutdown_state_lock_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_HE_adm_shutdown_state_unlock_op
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Any of the application is not responding for shutdown admin
-		operation(for START callback). So adminstrator issues unlock 
-		admin operation.
+@brief		: Shutdown ==> unlock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 {
@@ -910,12 +859,9 @@ SaUint32T plms_HE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Lckinact ==> unlock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_unlock_op(  PLMS_EVT *evt)
 {
@@ -938,12 +884,9 @@ SaUint32T plms_HE_adm_lckinact_state_unlock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Lckinact ==> shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -966,12 +909,9 @@ SaUint32T plms_HE_adm_lckinact_state_shutdown_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Lckinact ==> lock 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_lock_op(  PLMS_EVT *evt)
 {
@@ -994,19 +934,11 @@ SaUint32T plms_HE_adm_lckinact_state_lock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : TODO: Not required to call readiness callback as no change
-		in readiness status of the entity.
-
-		There would not be any affected entities as the HE will still 
-		be in locked state after this activate operation.
-
-		I do not wait for the M4. Return to IMM on initiating HE
-		activation.
+@brief		: Lckinact ==> act 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_act_op(  PLMS_EVT *evt)
 {
@@ -1084,12 +1016,9 @@ SaUint32T plms_HE_adm_lckinact_state_act_op(  PLMS_EVT *evt)
 
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Lckinact ==> deacitvate
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: SaAisErrorT.
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_deact_op(  PLMS_EVT *evt)
 {
@@ -1113,18 +1042,19 @@ SaUint32T plms_HE_adm_lckinact_state_deact_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           :Three set of completed callbacks are called for this operation.
+@brief		: Perform HE admin reset. Remember this does not cause HE
+		power cycle.
+		Three set of completed callbacks are called for this operation.
 		1. Completed callback when the targeted HE and affected
 		entities are moved to inactive/uninstantiated and OOS.
 		2. When all the affected HEs and targeted HE is moved to
 		active and InSvc.
 		3. Each affected EEs are moved to instantiated and
 		InSvc.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 {
@@ -1563,12 +1493,9 @@ SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Unlocked ==> unlock 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_unlock_op(  PLMS_EVT *evt)
 {
@@ -1591,12 +1518,11 @@ SaUint32T plms_EE_adm_unlock_state_unlock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Unlocked ==> Lock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 {
@@ -1796,12 +1722,11 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Unlocked ==> Shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_shutdown_op( PLMS_EVT *evt)
 {
@@ -1819,13 +1744,9 @@ SaUint32T plms_EE_adm_unlock_state_shutdown_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_unlock_state_unlckinst_op 
-Description     : Activate admin operation performed on EE which is in 
-                  unlocked state. 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Unlocked ==> unlckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_unlckinst_op(  PLMS_EVT *evt)
 {
@@ -1848,13 +1769,9 @@ SaUint32T plms_EE_adm_unlock_state_unlckinst_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_unlock_state_lckinst_op 
-Description     : Activate admin operation performed on EE which is in 
-                  unlocked state. 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Unlocked ==> lckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_lckinst_op(  PLMS_EVT *evt)
 {
@@ -1878,12 +1795,11 @@ SaUint32T plms_EE_adm_unlock_state_lckinst_op(  PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Locked ==> unlock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_unlock_op( PLMS_EVT *evt)
 {
@@ -1901,12 +1817,11 @@ SaUint32T plms_EE_adm_locked_state_unlock_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Locked ==> lock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 {
@@ -1925,12 +1840,9 @@ SaUint32T plms_EE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 	
 }
 /******************************************************************************
-Name            : plms_EE_adm_locked_state_unlckinst_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: Locked ==> unlckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_unlckinst_op(  PLMS_EVT *evt)
 {
@@ -1954,12 +1866,9 @@ SaUint32T plms_EE_adm_locked_state_unlckinst_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_locked_state_shutdown_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   :SaAisErrorT. 
-Notes           : None.
+@brief		: Locked ==> shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -1984,20 +1893,11 @@ SaUint32T plms_EE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 }
                   
 /******************************************************************************
-Name            :plm_EE_adm_locked_state_lckinst_op
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : TODO : No callback is to be called for this admin 
-		operation as readiness status is not being changed by this
-		operation.
-
-		There would be zero affected entities, as the root entity is
-		already in OOS.
-
-		I do not wait till I get terminated from PLMC. Return to 
-		IMM after initiating uninstantiation process.
+@brief		: Locked ==> lckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_lckinst_op(   PLMS_EVT *evt )
 {
@@ -2072,14 +1972,11 @@ SaUint32T plms_EE_adm_locked_state_lckinst_op(   PLMS_EVT *evt )
 
 }
 /******************************************************************************
-Name            : plms_EE_adm_shutdown_state_unlock_op
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Any of the application is not responding for shutdown admin
-		operation(for START callback). So adminstrator issues unlock 
-		admin operation.
+@brief		: Shutdown ==> unlock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 {
@@ -2097,14 +1994,11 @@ SaUint32T plms_EE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_shutdown_state_lock_op
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Any of the application is not responding for shutdown admin
-		operation(for START callback). So adminstrator issues lock 
-		admin operation.
+@brief		: Shutdown ==> lock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_lock_op(  PLMS_EVT *evt)
 {
@@ -2122,12 +2016,9 @@ SaUint32T plms_EE_adm_shutdown_state_lock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_shutdown_state_shutdown_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> shutdown 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -2151,12 +2042,9 @@ SaUint32T plms_EE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_shutdown_state_lckinst_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> lckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_lckinst_op(  PLMS_EVT *evt)
 {
@@ -2179,12 +2067,9 @@ SaUint32T plms_EE_adm_shutdown_state_lckinst_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_shutdown_state_unlckinst_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: Shutdown ==> unlckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_unlckinst_op(  PLMS_EVT *evt)
 {
@@ -2207,12 +2092,9 @@ SaUint32T plms_EE_adm_shutdown_state_unlckinst_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_lckinst_state_shutdown_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: lckinst ==> shutdown
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_shutdown_op(  PLMS_EVT *evt)
 {
@@ -2235,12 +2117,9 @@ SaUint32T plms_EE_adm_lckinst_state_shutdown_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_lckinst_state_lock_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: lckinst ==> lock 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_lock_op(  PLMS_EVT *evt)
 {
@@ -2263,12 +2142,9 @@ SaUint32T plms_EE_adm_lckinst_state_lock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_lckinst_state_unlock_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: lckinst ==> unlock
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_unlock_op(  PLMS_EVT *evt)
 {
@@ -2291,12 +2167,11 @@ SaUint32T plms_EE_adm_lckinst_state_unlock_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_lckinst_state_unlckinst_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: lckinst ==> unlckinst
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_unlckinst_op(  PLMS_EVT *evt)
 {
@@ -2375,12 +2250,9 @@ SaUint32T plms_EE_adm_lckinst_state_unlckinst_op(  PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : plms_EE_adm_lckinst_state_lckinst_op 
-Description     : 
-Arguments       : cb  - PLMS control block.
-                  evt - PLMS evt structure holding IMM admin operation info      
-Return Values   : SaAisErrorT. 
-Notes           : None.
+@brief		: lckinst ==> lckinst 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_lckinst_op(  PLMS_EVT *evt)
 {
@@ -2404,12 +2276,11 @@ SaUint32T plms_EE_adm_lckinst_state_lckinst_op(  PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: EE admin restart.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_EE_adm_restart( PLMS_EVT *evt)
 {
@@ -2501,12 +2372,10 @@ SaUint32T plms_EE_adm_restart( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :plms_adm_remove 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Admin remove. This is valid only if management lost flag
+		is set.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_adm_remove( PLMS_EVT *evt)
 {
@@ -2850,12 +2719,9 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 
 }	
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Admin repair, fault is repaired and hence enable the EE. 
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: SaAisErrorT. 
 ******************************************************************************/
 SaUint32T plms_adm_repair( PLMS_EVT *evt)
 {
@@ -3114,12 +2980,11 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :plms_try_lock 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Try lock, involves all three callback.
+@param[in]	: ent - Entity on which try lock is performed.
+@param[in]	: adm_op - IMM admin operation related data.
+@param[in]	: aff_ent_list - List of affected entities for this lock operation.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_try_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 					PLMS_GROUP_ENTITY *aff_ent_list)
@@ -3209,12 +3074,11 @@ static SaUint32T plms_try_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 }
 
 /******************************************************************************
-Name            :plms_default_lock 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Default lock, involves start and completed callback.
+@param[in]	: ent - Entity on which try lock is performed.
+@param[in]	: adm_op - IMM admin operation related data.
+@param[in]	: aff_ent_list - List of affected entities for this lock operation.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_default_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 						PLMS_GROUP_ENTITY *aff_ent_list)
@@ -3311,12 +3175,11 @@ static SaUint32T plms_default_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 }
 
 /******************************************************************************
-Name            : plms_forced_lock
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Forced lock, involves only completed callback.
+@param[in]	: ent - Entity on which try lock is performed.
+@param[in]	: adm_op - IMM admin operation related data.
+@param[in]	: aff_ent_list - List of affected entities for this lock operation.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_forced_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 					PLMS_GROUP_ENTITY *aff_ent_list)
@@ -3384,12 +3247,18 @@ SaUint32T plms_forced_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process the forced lock, responsible for calling the completed
+		callback.
+@param[in]	: ent - Entity on which force lock is issued.
+@param[in]	: trk_info - Track info used for sending completed callback.
+@param[in]	: adm_op - IMM admin operation related data.
+@param[in]	: new_aff_ent - Affected entities are freshly calculated,
+		or we are using the old set of affected entities of the last 
+		operation like shutdown/try-lock/deafult-lock.
+@param[in]	: term_ee - Terminate the ee (0/1).
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent, 
 		PLMS_TRACK_INFO *trk_info, PLMS_IMM_ADMIN_OP adm_op,
@@ -3520,12 +3389,12 @@ static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Common function to process unlock to shutdown operation for 
+		both EE and HE.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 {
@@ -3749,12 +3618,12 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Common function to process shutdown to lock operation for 
+		both EE and HE.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *evt)
 {
@@ -3907,12 +3776,12 @@ static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Common function to process shutdown to unlock operation for 
+		both EE and HE.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 {
@@ -4067,12 +3936,12 @@ static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Common function to process lock to lock operation for 
+		both EE and HE.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
 {
@@ -4206,12 +4075,12 @@ static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Common function to process lock to unlock operation for 
+		both EE and HE.
+@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_locked_to_unlock( PLMS_EVT *evt)
 {
@@ -4373,12 +4242,16 @@ static SaUint32T plms_ent_locked_to_unlock( PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Unlock the entity. Take the entity to in service if other
+		conditions are matched.
+@param[in]	: ent - Entity to be unlocked.		
+@param[in]	: trk_info - used for calling the callback.		
+@param[in]	: adm_op - IMM admin operation related data.
+@param[in]	: inst_ee - Instantiate EE if required(1/0).		
+@param[in]	: unlck_ee - Unlock the EE(1/0).		
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 static SaUint32T plms_ent_unlock( PLMS_ENTITY *ent,PLMS_TRACK_INFO *trk_info,
 		PLMS_IMM_ADMIN_OP adm_op,SaUint32T inst_ee, SaUint32T unlck_ee)
@@ -4535,12 +4408,13 @@ static SaUint32T plms_ent_unlock( PLMS_ENTITY *ent,PLMS_TRACK_INFO *trk_info,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Takes care of packing the entities depending upon the track
+		flag and send the callback info to PLMA while PLMA taks care of
+		calling readiness callback to the clients.
+@param[in]	: trk_info - Carries the required info to be packed as the part
+		of callback.
+@param[in]	: add_root - Add root as part of affected entities(1/0).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_cbk_call(PLMS_TRACK_INFO *trk_info,SaUint8T add_root)
 {
@@ -4708,12 +4582,10 @@ SaUint32T plms_cbk_call(PLMS_TRACK_INFO *trk_info,SaUint8T add_root)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process the response from the client for the validate and 
+		start callback.
+@param[in]	: evt - PLMS_EVT representing client response.		
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 {
@@ -4887,12 +4759,9 @@ SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process the response from the client for the validate callback.  
+@param[in]	: trk_info - Carries the required info to call start callback. 
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_cbk_validate_resp_ok_err_proc(PLMS_TRACK_INFO *trk_info)
 {
@@ -4939,12 +4808,9 @@ SaUint32T plms_cbk_validate_resp_ok_err_proc(PLMS_TRACK_INFO *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process the response from the client for the start callback.  
+@param[in]	: trk_info - Carries the required info to call completed callback. 
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_cbk_start_resp_ok_err_proc(PLMS_TRACK_INFO *trk_info)
 {
@@ -4982,12 +4848,12 @@ SaUint32T plms_cbk_start_resp_ok_err_proc(PLMS_TRACK_INFO *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process imm admin event. Call the required function for
+		performing admin operation.
+@param[in]	: evt - PLMS_EVT representing IMM admin event.
+@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
+		  NCSCC_RC_FAILURE(0) - For failure.
+		  others(SaAisErrorT) - For failure.
 ******************************************************************************/
 SaUint32T plms_imm_adm_op_req_process(PLMS_EVT *evt)
 {
@@ -5122,12 +4988,10 @@ SaUint32T plms_imm_adm_op_req_process(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Call the start callback for lock operation after getting
+		response for the validate callback from all the clients.
+@param[in]	: ent - Entity on which lock operation is performed.
+@param[in]	: trk_info - Carries required info to call the callback.
 ******************************************************************************/
 static void plms_lock_start_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
@@ -5165,12 +5029,10 @@ static void plms_lock_start_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info
 	return;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Call the completed callback for lock operation after getting
+		response for the start callback from all the clients.
+@param[in]	: ent - Entity on which lock operation is performed.
+@param[in]	: trk_info - Carries required info to call the callback.
 ******************************************************************************/
 static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
@@ -5253,12 +5115,10 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Call the completed callback for shutdown operation after getting
+		response for the start callback from all the clients.
+@param[in]	: ent - Entity on which lock operation is performed.
+@param[in]	: trk_info - Carries required info to call the callback.
 ******************************************************************************/
 static void plms_shutdown_completed_cbk_call(PLMS_ENTITY *ent, 
 PLMS_TRACK_INFO  *trk_info)
@@ -5372,12 +5232,10 @@ PLMS_TRACK_INFO  *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Call the start callback for deact operation after getting
+		response for the validate callback from all the clients.
+@param[in]	: ent - Entity on which lock operation is performed.
+@param[in]	: trk_info - Carries required info to call the callback.
 ******************************************************************************/
 void plms_deact_start_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
@@ -5406,12 +5264,10 @@ void plms_deact_start_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Call the completed callback for deact operation after getting
+		response for the start callback from all the clients.
+@param[in]	: ent - Entity on which lock operation is performed.
+@param[in]	: trk_info - Carries required info to call the callback.
 ******************************************************************************/
 void plms_deact_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
@@ -5472,12 +5328,12 @@ void plms_deact_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process EE abrupt restart.
+@param[in]	: ent - EE to be restarted.
+@param[in]	: evt - Event carrying imm admin operation.
+@param[in]	: aff_ent_list - List of entities whose readiness status is 
+		affected because of the restart operation.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE		
 ******************************************************************************/
 static SaUint32T plms_ee_abrupt_restart_process(PLMS_ENTITY *ent, PLMS_EVT *evt,
 PLMS_GROUP_ENTITY *aff_ent_list)
@@ -5638,12 +5494,12 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process EE graceful restart.
+@param[in]	: ent - EE to be restarted.
+@param[in]	: evt - Event carrying imm admin operation.
+@param[in]	: aff_ent_list - List of entities whose readiness status is 
+		affected because of the restart operation.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE		
 ******************************************************************************/
 static SaUint32T plms_ee_graceful_restart_process(PLMS_ENTITY *ent, 
 PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)

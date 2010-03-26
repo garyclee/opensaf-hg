@@ -16,12 +16,11 @@
 */
 
 /*****************************************************************************
-*                                                                            *
-*  MODULE NAME:  plms_he_pres_fsm.c                                          *
-*                                                                            *
-*                                                                            *
-*  DESCRIPTION: This file contains PLMS HE presencse state FSM. 	     *
-*                                                                            *
+@file	: plms_he_pres_fsm.c
+
+@brief	: HE presence state FSM.
+
+@author	:  Emerson Network Power.
 *****************************************************************************/
 
 #include "plms.h"
@@ -69,12 +68,10 @@ static SaUint32T plms_act_resp_mngt_flag_clear(PLMS_ENTITY *);
 
 
 /******************************************************************************
-Name            : plms_he_pres_fsm_init
-Description     : Initializes the HE presence state FSM function pointers.
-Arguments       : plms_HE_pres_state_op - Array of function pointers of type 
+@brief		: Initializes the HE presence state FSM function pointers.
+@param[in]	: plms_HE_pres_state_op - Array of function pointers of type 
                   PLM_PRES_FUNC_PTR representing HE presence state FSM. 
-Return Values   : None.
-Notes           : 
+@return		: None.
 ******************************************************************************/
 void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 						[SA_PLM_HPI_HE_PRES_STATE_MAX])
@@ -143,13 +140,15 @@ void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 }
      
 /******************************************************************************
-Name            :
-Description     : M1->M2/M3 valid transition for 5 state and 5
-		partial state model. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M0/M1->M2/M3 valid transition for 5 state and 5 partial state model. 
+		1. Deactivate the board if the admin state is lock-inactive.
+		2. Nothing to do for partial 5 state model.
+		3. Activate the board for full 5 state model, as HS/HRB would have cancelled
+		the activation timer.
+	
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *evt)
 {
@@ -219,14 +218,17 @@ static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *evt)
 }
   
 /******************************************************************************
-Name            :
-Description     : 1. M1->M4 for 3 state model.
-		  2. M1->M2/M3->M4 for 5 state and 5 partial state and
-		  M2/M3 is missed.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Valid for 
+		1. M0/M1->M4 for 3 state model.
+		2. M0/M1->M2/M3->M4 for 5 state and 5 partial state when M2/M3 is missed. 
+
+		Deactivate the board if the admin state is lock-inactive. Otherwise
+		mark the presence state to active and take the board to insvc if
+		other conditions are satisfied.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_inact_np_to_act( PLMS_EVT *evt)
 {
@@ -292,14 +294,14 @@ static SaUint32T plms_HE_inact_np_to_act( PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     :M1->M2/M3->M4->M5/M6 valid for 5 state and 5 partial state.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : This transition does not make much sence as the HE did not go
-		to activated state. But for 5 state model, HSM would have 
-		canceled the extraction timer. So just deactivate the HE. 
+@brief		: M1->M2/M3->M4->M5/M6 valid for 5 state and 5 partial state.
+		This transition does not make much sence as the HE never went to 
+		activated state. But for 5 state model, HSM would have canceled the
+		extraction timer,just deactivate the HE.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_inact_to_extpending_op( PLMS_EVT *evt)
 {
@@ -351,12 +353,14 @@ static SaUint32T plms_HE_inact_to_extpending_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : M0<-M1 valid for 3 state, 5 state and 5 partial state model.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M0<-M1 valid for 3 state, 5 state and 5 partial state model.
+		1. Clear all the flags.
+		2. Wipe out the current entity path.
+		3. Wipe out the current HETpye.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *evt)
 {
@@ -391,13 +395,13 @@ static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     :
-		 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M1->M1 transition. This is the situation when HPI rediscovers the
+		resources. PLMS uses this to clear the management lost flag if set for
+		that HE.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *evt)
 {
@@ -439,12 +443,14 @@ static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *evt)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : M2/M3->M4 valid for 5 state and 5 partial state model. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M2/M3->M4 valid for 5 state and 5 partial state model. 
+		1. Mark the presence state to activated.
+		2. Take the HE to insvc if all required conditions are
+		satisfied.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *evt)
 {
@@ -496,16 +502,17 @@ static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : M2/M3->M4->M5/M6. Valid for 5 state and 5 partial state
-		model. M4 is missed.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : This transition does not make much sence. On getting M2/M3,
+@brief		: M2/M3->M4->M5/M6. Valid for 5 state and 5 partial state
+		model when M4 is missed.
+		
+		This transition does not make much sence. On getting M2/M3,
 		the HE would have been activated. But PLMS missed M4. So the HE
 		is never moved to insvc. Hence nothing to do. HSM would have 
 		cancelled extaction timer. Just deactivate the board.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *evt)
 {
@@ -561,15 +568,16 @@ static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *evt)
 
 }
 /******************************************************************************
-Name            :
-Description     : M1<-M2/M3. The HE is still in OOS. Hence nothing much to
+@brief		: M1<-M2/M3. The HE is still in OOS. Hence nothing much to
 		do. Mark the presence state to Inactive and return.	
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Use Case:
+	        
+		Use Case:
 		1. The HE is in activating state(M2 in HPI world) and admin
 		deactivate is issued. The HE will be moved back to M1. 
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_inact_op(PLMS_EVT *evt)
 {
@@ -617,13 +625,14 @@ static SaUint32T plms_HE_actving_to_inact_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : M0<-M1<-M2/M3. Valid for 5 state and 5 partial state model. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Use Case: 
-		1. The HE is in activating state and surprise extraction.
+@brief		: M0<-M1<-M2/M3. Valid for 5 state and 5 partial state model. 
+		1. Clear all the flags.
+		2. Wipe out the current entity path.
+		3. Wipe out the current HEType.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_np_op(PLMS_EVT *evt)
 {
@@ -661,14 +670,20 @@ static SaUint32T plms_HE_actving_to_np_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : M4->M5. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : If this ent in any admin operation context then
+@brief		: M4->M5. Valid for both 5 full and partial state model.
+		If this ent in any admin operation context then
 		1. For 5 partial state model, do the clean up on getting M1.
 		2. For 5 state model, reject the deactivation.	
+
+		If the entity is moving to M5 because of its parent, then just change 
+		the presence state.
+		As we do not have any control over 5-partial state model, dont do 
+		anything, only change the presence state. For 5-full state model 
+		make sure the callbacks are called depending upon deactivation policy.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 {
@@ -1011,14 +1026,17 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : M4->M1 for three state.
-		  M4->M5/M6->M1 for 5 state and 5 partial state and M5/M6 is
-		  missed.	
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M4->M1 for three state.
+		M4->M5/M6->M1 for 5 state and 5 partial state and M5/M6 is missed.
+		1. If I am moving to inactive because of my parent, then nothing to do.
+		Only change the presence and readiness state.
+		2. If the entity is already OOS, then change only the presence state.
+		3. If the entity is insvc, then make sure the entity is moved to OOS
+		and the callback is called.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 {
@@ -1161,15 +1179,17 @@ static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : M4->M0 : For 2 state
-		  M4->M1->M0 : For 3 state and M1 is missed.
-		  M4->M5/M6->M1->M0 : For 5 state and 5 partial state and 
-		  M5/M6/M1 are missed.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M4->M0 : For 2 state
+		M4->M1->M0 : For 3 state and M1 is missed.
+		M4->M5/M6->M1->M0 : For 5 state and 5 partial state and M5/M6/M1 are 
+		missed.
+		1. Take the HE to OOS if not in.
+		2. Clear the readiness flag.
+		3. Wipe out current entity path and current HEType.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_np_op(PLMS_EVT *evt)
 {
@@ -1238,16 +1258,16 @@ static SaUint32T plms_HE_act_to_np_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     :M4->M5/M6->M1->M2/M3. Valid only for 5 state and 5 state partial 
+@brief		: M4->M5/M6->M1->M2/M3. Valid only for 5 state and 5 state partial 
 		model and M5/M6/M1 are missed.
 		 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : In M4, this HE might be in InSvc. If it is and PLMS misses 
+        	In M4, this HE might be in InSvc. If it is and PLMS misses 
 		M5/M6/M1 then, PLMS has to move the affected entities to OOS before
 		activating this HE. 
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 {
@@ -1332,13 +1352,13 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     :
-		 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: M4->M4. PLMS gets this for those HE which are in M4 state on hpi
+		rediscovery. PLMS uses this information to clear the management lost 
+		flag, if set for the same HE.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_act_op(PLMS_EVT *evt)
 {
@@ -1380,13 +1400,11 @@ static SaUint32T plms_HE_act_to_act_op(PLMS_EVT *evt)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : M5->M1 : For 5 state and 5 partial state model. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : TODO: For 5 partial state model, what should I do if admin 
-		operation in progress for this ent??
+@brief		: M5->M1 : For 5 state and 5 partial state model. 
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 {
@@ -1674,14 +1692,15 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : M5/M6->M1->M2/M3 valid for 5 state and 5 partial state model. 
-Arguments       : 
+@brief		: M5/M6->M1->M2/M3 valid for 5 state and 5 partial state model. 
                   
-Return Values   : 
-Notes           : In M5/M6 means, the HE still can be in InSvc. Hence it is 
+        	In M5/M6 means, the HE still can be in InSvc. Hence it is 
 		same as M4->M2/M3. If the ent is in deactivation context, then
 		do the clean up job.  
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 {
@@ -1875,18 +1894,18 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : M5->M4 valid transtion for 5 state model.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Use case:
+@brief		: M5->M4 valid transtion for 5 state model.
+        	Use case:
 		1. Deactivation policy is SA_PLM_DP_REJECT_NOT_OOS but the HE is
 		not in OOS.
 		2. Any of the application rejects the deactivation.
 		
 		In both the cases, as the HE is not yet moved to OOS, nothing to
 		do. Just change the state. 
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_act_op( PLMS_EVT *evt)
 {
@@ -1951,15 +1970,15 @@ static SaUint32T plms_HE_deacting_to_act_op( PLMS_EVT *evt)
 
 }
 /******************************************************************************
-Name            :
-Description     : M5/M6->M1->M0 valid for 5 state and 5 partial state model and
+@brief		: M5/M6->M1->M0 valid for 5 state and 5 partial state model and
 		M1 is missed.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : For 5 state model,if deactivation is in progress and hence
+        	For 5 state model,if deactivation is in progress and hence
 		clean up the callbacks related to deactivation and process
-		M0 event.  
+		M0 event. 
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_np_op(PLMS_EVT *evt)
 {
@@ -2091,12 +2110,11 @@ static SaUint32T plms_HE_deacting_to_np_op(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : State transition invalid.
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Invalid State transition.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_HE_pres_state_invalid(PLMS_EVT *evt)
 {
@@ -2134,12 +2152,11 @@ static SaUint32T plms_HE_pres_state_invalid(PLMS_EVT *evt)
 }
 
 /******************************************************************************
-Name            :
-Description     : Process M4 for HE. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process M4 HPI event for HE. 
+
+@param[in]	: ent - PLMS_ENTITY type representing a HE.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 {
@@ -2254,12 +2271,13 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 
 }
 /******************************************************************************
-Name            :
-Description     : Process M0 for HE when the HE is already in OOS. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief     	: Process M0 for HE when the HE is already in OOS. 
+		1. Clear the readiness flag.
+		2. Wipe out current entity path and HEType.
+
+@param[in]	: ent - PLMS_ENTITY representation of the HE. 
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 
 SaUint32T plms_he_oos_to_np_process(PLMS_ENTITY *ent)
@@ -2411,12 +2429,14 @@ SaUint32T plms_he_oos_to_np_process(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief     	: Process M0 for HE in insvc.
+		1. Take the EE to OOS.
+		2. Clear the readiness flag.
+		3. Wipe out current entity path and HEType.
+
+@param[in]	: ent - PLMS_ENTITY representation of the HE. 
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 {
@@ -2599,12 +2619,11 @@ SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process M2/M3 HPI event when the HE is in insvc.
+
+@param[in]	: ent - PLMS_ENTITY representation of the HE. 
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 {
@@ -2712,12 +2731,13 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Clean up the previous admin operation so that the current 
+		operation can be performed. This function completes the prev
+		admin operation and clean up the context(trk_info).
+
+@param[in]	: ent - PLMS_ENTITY representation of the HE. 
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 {
@@ -2938,12 +2958,23 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : Process HPI Hot-swap events only. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process HPI hot swap events. This function is called from the
+		MBX. This function does the following things
+		1. If the HE is verified i.e. the transition is not from M0, then
+		call the required FSM function.
+		2. If the HE is yet to be verified and the hot swap event is M2
+		or M4, then verify the HE and call the FSM. If verification fails,
+		ignore the HE.
+
+		Note: If the verification fails, PLMS is supposed to send the 
+		nearest verified HE as part of the notification and domain if
+		HE is directly configured under domain or there is no verifed
+		ancestor HE. We are sending the domain name in the all above
+		case, which is slight deviation from spec. TODO.
+
+@param[in]	: evt - PLMS_EVT representation of the HE. 
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_hpi_hs_evt_process(PLMS_EVT *evt)
 {
@@ -3163,12 +3194,21 @@ SaUint32T plms_hpi_hs_evt_process(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : Verify the Inventory data. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Verifies the HE.
+		1. Verifies configured entity paths against hpi published.
+		2. Verifies configured inv date against the published one.
+
+		Notes: If the configured inv data if NULL(for string type) or
+		0(integer type), then that field is not taken into consideration
+		for verification.
+
+@param[in]	: hpi_evt - PLMS_HPI_EVT representation of the HE. 
+@param[out]	: o_he_type - If the verification is successful, this points to
+		the matched HEType which will be used to populate current HEType.
+@param[out]	: o_ent - If the verification is successful, this points to the
+		matched entity HE.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 				SaPlmHETypeT **o_he_type,
@@ -3273,11 +3313,15 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 }
 
 /******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Verifies configured inv date against the published one.
+		If the configured inv data if NULL(for string type) or
+		0(integer type), then that field is not taken into consideration
+		for verification.
+
+@param[in]	: conf_inv - configured inv data.
+@param[in]      : hpi_inv - hpi published inv data.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_inv_data_compare(PLMS_INV_DATA conf_inv, PLMS_INV_DATA hpi_inv)
 {
@@ -3587,16 +3631,21 @@ static SaUint32T plms_inv_data_compare(PLMS_INV_DATA conf_inv, PLMS_INV_DATA hpi
 }
 
 /******************************************************************************
-Name            : 
-Description     : Deactivate the HE,taking the state model into consideration.
+@brief		: Deactivate the HE,taking the state model into consideration.
 		If the HE is in not present state or already in deactivated
 		state, then return success without initiating hpi deactivation.
 		
-Arguments       : 
-Return Values   : 
-Notes           : This also takes care of setting management lost flag, admin
+		Notes: This also takes care of setting management lost flag, admin
 		operation pending flag and sending callback for management
 		lost.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+@param[in]	: is_adm_op - If adm operation or not. If set to 1 and HE deactivation
+		fails, then admin pending flag is set.
+@param[in]	: mngt_cbk - If set to 1 and HE deactivation fails, then call the
+		management lost flag.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -3717,15 +3766,20 @@ SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : Activate the HE,taking the state model into consideration.
-		If the HE is in not present state or already in deactivated
-		state, then return success without initiating hpi deactivation.
+@brief		: Activate the HE,taking the state model into consideration.
+		If the HE is in not present state or already in activated
+		state, then return success without initiating hpi activation.
 		
-Arguments       : 
-Return Values   : 
-Notes           : This also takes care of setting management lost flag, adm_op_
+		This also takes care of setting management lost flag, adm_op_
 		pending flag and calling management lost callback if required.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+@param[in]	: is_adm_op - If adm operation or not. If set to 1 and HE activation
+		fails, then admin pending flag is set.
+@param[in]	: mngt_cbk - If set to 1 and HE activation fails, then call the
+		management lost flag.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -3840,12 +3894,17 @@ SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_c
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: Reset the HE. This also takes care of setting management lost flag, 
+		adm_op_pending flag and calling management lost callback if required.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+@param[in]	: is_adm_op - If adm operation or not. If set to 1 and HE reset 
+		fails, then admin pending flag is set.
+@param[in]	: mngt_cbk - If set to 1 and HE reset fails, then call the
+		management lost flag.
+@param[in]	: reset_type - cold/warm/assert/deassert		
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_he_reset(PLMS_ENTITY *ent,SaUint32T is_adm_op, 
 					SaUint32T mngt_cbk, SaUint32T reset_type)
@@ -3915,12 +3974,13 @@ SaUint32T plms_he_reset(PLMS_ENTITY *ent,SaUint32T is_adm_op,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           :  
+@brief		: MDS sync request to HRB to execute cmd(activate/deactivate/reset). 
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+@param[in]	: cmd - command to be executed.
+@param[in]	: arg - argument to the cmd.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 {
@@ -3984,12 +4044,12 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 	return ret_err;	
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear management lost flag, admin pending flag and isolate
+		pening flag on getting M1.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+
+@return		: NCSCC_RC_SUCCESS.
 ******************************************************************************/
 static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -4042,12 +4102,14 @@ static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear management lost flag, admin pending flag and isolate
+		pening flag on getting M4. If isolate pending flag is set,
+		then isolate the entity and return failure if isolation is
+		successful.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ******************************************************************************/
 static SaUint32T plms_act_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -4080,12 +4142,14 @@ static SaUint32T plms_act_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear management lost flag, admin pending flag and isolate
+		pening flag on getting M2/M3. If isolate pending flag is set,
+		then isolate the entity and return failure if isolation is
+		successful.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ******************************************************************************/
 static SaUint32T plms_inspending_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -4118,12 +4182,14 @@ static SaUint32T plms_inspending_mngt_flag_clear(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear management lost flag, admin pending flag and isolate
+		pening flag on getting M5/M6. If isolate pending flag is set,
+		then isolate the entity and return failure if isolation is
+		successful.
+
+@param[in]	: ent - PLMS_ENTITY representation of HE.
+
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ******************************************************************************/
 static SaUint32T plms_extpending_mngt_flag_clear(PLMS_ENTITY *ent)
 {
