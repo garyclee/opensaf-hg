@@ -941,11 +941,10 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files plm-coordinator
 %defattr(-,root,root)
 %config(noreplace) %{_sysconfdir}/plmcd.conf
-%{_sbindir}/plmc_boot
-%{_sbindir}/plmc_d
+%{_sbindir}/plmcd
 %{_libdir}/libplmc_utils.so.*
 %{_initddir}/plmcboot
-%{_initddir}/plmc_main
+%{_initddir}/plmcd
 
 %endif
 

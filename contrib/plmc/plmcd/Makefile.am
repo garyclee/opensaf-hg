@@ -18,18 +18,18 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-sbin_PROGRAMS = plmc_d 
+sbin_PROGRAMS = plmcd 
 
-plmc_d_CPPFLAGS = \
+plmcd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/include
 
-plmc_d_CFLAGS = $(AM_CFLAGS)
+plmcd_CFLAGS = $(AM_CFLAGS)
 
-plmc_d_SOURCES = \
-	plmc_d.c
+plmcd_SOURCES = \
+	plmcd.c
 
-plmc_d_LDFLAGS = -lpthread
+plmcd_LDFLAGS = -lpthread
 
-plmc_d_LDADD = \
+plmcd_LDADD = \
 	$(top_builddir)/lib/utils/libplmc_utils.la

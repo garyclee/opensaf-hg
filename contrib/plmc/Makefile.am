@@ -47,7 +47,7 @@ EXTRA_DIST = \
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = config include lib plmc_boot plmcd scripts
+SUBDIRS = config include lib plmcd scripts
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
