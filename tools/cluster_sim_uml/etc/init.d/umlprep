@@ -37,13 +37,13 @@ if test -e "$r/var"; then
         mkdir -p /var/$n
     done
 
-    mkdir -p /var/lock/opensaf
     chmod 777 /var/tmp
 
     # Remove all PID files etc.
     rm -rf /var/run/*
+    rm -rf /var/lock/subsys/*
 fi
-mkdir /var/log/opensaf
+mkdir -p /var/log/opensaf
 ln -s /sbin/startproc /sbin/start_daemon
 rm /bin/sh
 ln -s /bin/bash /bin/sh
