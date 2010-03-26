@@ -124,8 +124,8 @@ start() {
 	check_tipc
 	check_env
 
-	# Uncomment if you want them enabled
-	#enable_coredump
+	# Comment/Uncomment if you want cores disabled/enabled
+	enable_coredump
 
 	echo -n "Starting $prog: "
 	start_daemon $binary $args
