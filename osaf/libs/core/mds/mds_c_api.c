@@ -2762,7 +2762,31 @@ else (entry exists)
 						     m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), svc_id, vdest_id,
 						     m_MDS_GET_NODE_ID_FROM_ADEST(adest),
 						     m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver);
+						{
+							MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
+							NCS_BOOL adest_exists = FALSE;
 
+							/* if no adest remains for this svc, send MDS_DOWN */
+							status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+
+							while (status != NCSCC_RC_FAILURE)
+							{
+								if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
+								{
+									adest_exists = TRUE;
+									break;
+								}
+
+								status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+							}
+
+							if (adest_exists == FALSE)
+							{
+								/* No other adest exists for this svc_id, Call user callback DOWN */
+								status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
+										NCSMDS_DOWN, svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+							}
+						}
 					} else {	/* vdest_policy == NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
 
 						status = NCSCC_RC_SUCCESS;
@@ -2870,6 +2894,31 @@ else (entry exists)
 					     m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl), svc_id, vdest_id,
 					     m_MDS_GET_NODE_ID_FROM_ADEST(adest),
 					     m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver);
+				}
+				{
+					MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
+					NCS_BOOL adest_exists = FALSE;
+
+					/* if no adest remains for this svc, send MDS_DOWN */
+					status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+
+					while (status != NCSCC_RC_FAILURE)
+					{
+						if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
+						{
+							adest_exists = TRUE;
+							break;
+						}
+
+						status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
+					}
+
+					if (adest_exists == FALSE)
+					{
+						/* No other adest exists for this svc_id, Call user callback DOWN */
+						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
+								NCSMDS_DOWN, svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+					}
 				}
 			}
 		}
