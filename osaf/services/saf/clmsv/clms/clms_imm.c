@@ -175,6 +175,7 @@ CLMS_CLUSTER_NODE * clms_node_new(SaNameT *name,const SaImmAttrValuesT_2 ** attr
 	/*Initialize some attributes of the node like*/
 	memcpy(node->node_name.value,name->value,name->length);
 	node->node_name.length=name->length;
+	node->node_addr.family = 1;
 	TRACE("nodename %s",node->node_name.value);
 	
 	while ((attr = attrs[i++]) != NULL) {

@@ -3,10 +3,6 @@
 	<object class="SaClmNode">
                 <dn>safNode=CLM_TOKEN,safCluster=myClmCluster</dn>
                 <attr>
-                        <name>saClmNodeAddressFamily</name>
-                        <value>1</value>
-                </attr>
-                <attr>
                         <name>saClmNodeEE</name>
                         <value>safEE=PL_2_3,safDomain=domain_1</value>
                 </attr>
