@@ -2215,6 +2215,9 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 				if (SA_AMF_HA_ACTIVE == i_susi->state) {
 					avd_si_inc_curr_act_ass(i_susi->si);
 					avd_si_dec_curr_stdby_ass(i_susi->si);
+				} else if (SA_AMF_HA_STANDBY == i_susi->state) {
+					avd_si_inc_curr_stdby_ass(i_susi->si);
+					avd_si_dec_curr_act_ass(i_susi->si);
 				}
 
 				i_susi = i_susi->su_next;
