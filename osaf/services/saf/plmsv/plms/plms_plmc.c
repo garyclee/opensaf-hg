@@ -45,20 +45,17 @@ static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *);
 /******************************************************************************
-Name            :
-Description     : Process instantiating event from PLMC.
+@brief		: Process instantiating event from PLMC.
 		  1. Do the OS verification irrespective of previous state.
 		  2. If successful then, mark the presence state to 
 		  instantiating.
 		  3. Start instantiating timer if not running. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : TODO: If the EE is not in OOS, then should we take care 
-		of moving the EE to OOS. But will I ever get instantiating
-		for an EE which is not in OOS?
-		
-		instantiating->instantiated->tcp_connection.
+
+		  This is almost dummy event for PLMS. I dont mind missing
+		  this event as it is UDP broadcasted.
+@param[in]	: ent - EE
+@param[in]	: os_inso - OS info from PLMC to be verified.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 ******************************************************************************/
 SaUint32T plms_plmc_instantiating_process(PLMS_ENTITY *ent,
 					PLMS_PLMC_EE_OS_INFO *os_info)
@@ -127,15 +124,12 @@ SaUint32T plms_plmc_instantiating_process(PLMS_ENTITY *ent,
 }	
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : intantiating->instantiated->tcp_connect. So if the EE is in
-		unlocked state, then we should start the required services only
-		after the TCP connection is established. So this PLMC event is
-		dummy for PLMS.
+@brief		: Process instantiated event from PLMC. If required  OS verification
+		is done and the entity is moved to instantiated. But still the
+		EE is not moved to insvc. Waiting for tcp-connect.
+@param[in]	: ent - EE
+@param[in]	: os_info - OS_INFO from PLMC to be verified.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_plmc_instantiated_process(PLMS_ENTITY *ent,
 				PLMS_PLMC_EE_OS_INFO *os_info)
@@ -195,13 +189,9 @@ SaUint32T plms_plmc_instantiated_process(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Process terminating event from PLMC.
+@param[in]	: ent - EE.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_terminating_process(PLMS_ENTITY *ent)
 {
@@ -256,15 +246,11 @@ SaUint32T plms_plmc_terminating_process(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : I can not depend on this PLMC message as for abrupt
+@brief		: Process terminated event.
+		I can not depend on this PLMC message as for abrupt
 		termination, I will not get this. Anyway this is UDP.
-		So do the corresponding processing on getting tcp_term
-		message for PLMC.
+		So do the corresponding processing on getting tcp-disconnect
+		message for this EE.
 		
 ******************************************************************************/
 SaUint32T plms_plmc_terminated_process(PLMS_ENTITY *ent)
@@ -295,12 +281,17 @@ SaUint32T plms_plmc_terminated_process(PLMS_ENTITY *ent)
 	return ret_err; 
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : instantiating->instantiated->tcp_connect 
+@brief		: Process tcp-connect msg for the EE.
+		Unlock the EE, if successful take the EE to insvc if all other
+		conditions are matched.
+
+		If the EE is not yet verififed, then request for the OS-info.
+		After getting the OS info, verify and unlock the EE and take
+		the EE to insvc.
+
+		If the admin state is lock-instantiated then terminate the EE.
+@param[in]	: ent - EE
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 {
@@ -479,12 +470,10 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process tcp-disconnect msg for the EE. Move the EE to OOS
+		if required.
+@param[in]	: ent - EE
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 {
@@ -624,13 +613,11 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Process EE-unlock response from PLMC. If unlock is not
+		successful, then set the management lost flag.
+@param[in]	: ent - EE
+@param[in]	: unlock_rc - return code for ee-unlock.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_unlock_response(PLMS_ENTITY *ent,SaUint32T unlock_rc)
 {
@@ -677,13 +664,11 @@ SaUint32T plms_plmc_unlock_response(PLMS_ENTITY *ent,SaUint32T unlock_rc)
 }
 
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Process EE-lock response from PLMC. If lock is not
+		successful, then set the management lost flag.
+@param[in]	: ent - EE
+@param[in]	: lock_rc - return code for ee-lock.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_lock_response(PLMS_ENTITY *ent,SaUint32T lock_rc)
 {
@@ -722,15 +707,15 @@ SaUint32T plms_plmc_lock_response(PLMS_ENTITY *ent,SaUint32T lock_rc)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Termination-failed timer is not stopped here. If the
+@brief		: Process EE-lckinst response from PLMC. If lock-inst is not
+		successful, then set the management lost flag.
+		Termination-failed timer is not stopped here. If the
 		termination is successful, then it will be taken care on
 		getting EE presence state events. If the termination fails,
 		then it will be taken care on getting timer expiry event.
+@param[in]	: ent - EE
+@param[in]	: lckinst_rc - return code for ee-lckinst.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_lckinst_response(PLMS_ENTITY *ent,SaUint32T lckinst_rc)
 {
@@ -768,12 +753,11 @@ SaUint32T plms_plmc_lckinst_response(PLMS_ENTITY *ent,SaUint32T lckinst_rc)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Process EE-restart response from PLMC. If restart is not
+		successful, then set the management lost flag.
+@param[in]	: ent - EE
+@param[in]	: lckinst_rc - return code for ee-restart.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_restart_response(PLMS_ENTITY *ent,SaUint32T restart_rc)
 {
@@ -813,12 +797,8 @@ SaUint32T plms_plmc_restart_response(PLMS_ENTITY *ent,SaUint32T restart_rc)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : Make sure the prot_ver is freed.
+@brief		:Process get_prot_ver response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_get_prot_ver_response(PLMS_ENTITY *ent,
 					SaUint8T *prot_ver)
@@ -828,13 +808,12 @@ SaUint32T plms_plmc_get_prot_ver_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Process get_os_info response. Verify the OS info. If verification
+		is successful, unlock the EE and change the readiness state to 
+		insvc.
+@param[in]	: ent - EE
+@param[in]	: os_info - OS info provided by PLMC to be verified.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 			PLMS_PLMC_EE_OS_INFO *os_info)
@@ -962,12 +941,8 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process osaf_start response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_osaf_start_response(PLMS_ENTITY *ent,
 			SaUint32T osaf_start_rc)
@@ -977,12 +952,8 @@ SaUint32T plms_plmc_osaf_start_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process osaf_stop response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_osaf_stop_response(PLMS_ENTITY *ent,
 			SaUint32T osaf_stop_rc)
@@ -992,12 +963,8 @@ SaUint32T plms_plmc_osaf_stop_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process svc_start response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_svc_start_response(PLMS_ENTITY *ent,
 			SaUint32T svc_start_rc)
@@ -1007,12 +974,8 @@ SaUint32T plms_plmc_svc_start_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process svc_stop response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_svc_stop_response(PLMS_ENTITY *ent,
 			SaUint32T svc_stop_rc)
@@ -1022,12 +985,8 @@ SaUint32T plms_plmc_svc_stop_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process plmcd restart response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_plmd_restart_response(PLMS_ENTITY *ent,
 			SaUint32T plmd_rest_rc)
@@ -1037,12 +996,8 @@ SaUint32T plms_plmc_plmd_restart_response(PLMS_ENTITY *ent,
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Not implemented for release-1. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		:Process get ee_id response.
+		TODO: Not implemented for release-1. 
 ******************************************************************************/
 SaUint32T plms_plmc_ee_id_response(PLMS_ENTITY *ent,
 			SaUint32T plmd_rest_rc)
@@ -1053,12 +1008,11 @@ SaUint32T plms_plmc_ee_id_response(PLMS_ENTITY *ent,
 }
 
 /******************************************************************************
-Name            :
-Description     : Connect cbk. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Plmc connect callbak. Put the evt into the plms MBX.
+@param[in]	: ee_id - EE id.
+@param[in]	: msg - msg representing tcp-connect/tcp-disconnect.
+@return		: 0 for success.
+		  1 for failure.
 ******************************************************************************/
 int32 plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 {
@@ -1112,12 +1066,11 @@ int32 plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 	return 0;
 }
 /******************************************************************************
-Name            :
-Description     : UDP callback. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Plmc UDP callback. Put the evt into the plms MBX.
+@param[in]	: msg - msg representing instantiating/instantiated/terminating/
+		terminated events. 
+@return		: 0 for success.
+		  1 for failure.
 ******************************************************************************/
 int32 plms_plmc_udp_cbk(udp_msg *msg)
 {
@@ -1197,12 +1150,10 @@ int32 plms_plmc_udp_cbk(udp_msg *msg)
 	return 0;	
 }
 /******************************************************************************
-Name            :
-Description     : TCP callback. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Plmc TCP callback. Put the evt into the plms MBX.
+@param[in]	: msg - msg representing tcp events.
+@return		: 0 for success.
+		  1 for failure.
 ******************************************************************************/
 static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 {
@@ -1368,12 +1319,11 @@ static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 	
 }
 /******************************************************************************
-Name            :
-Description     : TODO: Error callback. Not implemented. Blocked on HP. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief 		: TODO: Error callback. Not implemented. At this point of time,
+		PLMS does not feel like handling the mentioned errors reported
+		through error callback. Only error, PLMS interested is
+		tcp-disconnect but PLMS is dependend on connect callback for
+		this.
 ******************************************************************************/
 int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 {
@@ -1386,13 +1336,9 @@ int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 	return 0;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Process PLMC MBX events.
+@param[in]	: evt - PLMC events.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *evt)
 {
@@ -1499,13 +1445,13 @@ SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
-		
+@brief		: Verify the OS info provided by PLMC against the configured
+		OS info. If the optional parameters are not configured in 
+		XML file, then those parameters are not taken into consideration
+		for verification. version field is not optaional.
+@param[in]	: ent - EE.
+@param[in]	: os_info - PLMC provided OS info.
+@retuen		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_ee_verify(PLMS_ENTITY *ent, PLMS_PLMC_EE_OS_INFO *os_info)
 {
@@ -1632,12 +1578,13 @@ static SaUint32T plms_ee_verify(PLMS_ENTITY *ent, PLMS_PLMC_EE_OS_INFO *os_info)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : Parse the string os_info and fill evt_os_info. 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Parse the string os_info and fill evt_os_info. The string format
+		of the OS info should be mentioned in plmcd.conf as given 
+		below 
+		version;product;vendor;release
+@param[in]	: os_info - OS info in string format.
+@param[out]	: parsed OS info.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE		
 ******************************************************************************/
 static SaUint32T plms_os_info_parse(SaInt8T *os_info, 
 					PLMS_PLMC_EE_OS_INFO *evt_os_info)
@@ -1729,12 +1676,8 @@ static SaUint32T plms_os_info_parse(SaInt8T *os_info,
 return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Free os info.
+@param[in/out]	: os_info - os info to be freed.
 ******************************************************************************/
 void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *os_info)
 {
@@ -1759,12 +1702,12 @@ void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *os_info)
 	return;	
 }
 /******************************************************************************
-Name            :
-Description     : 
-Arguments       : 
-                  
-Return Values   : 
-Notes           : 
+@brief		: Make an attempt to take the EE to in service and if successful,
+		do the same for its dependent and children. If in the process any
+		change in readiness status, then call the readiness callback.
+@param[in]	: ent - EE which is to be moved to in service.
+@param[in]	: trk_info - used to send readiness callback.
+@return 	: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 				PLMS_TRACK_INFO *trk_info)
@@ -1891,15 +1834,15 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine takes care of marking management lost flag and 
-		admin-operation-pending readiness flag if required. Also calls
-		management lost flag if mngt_cbk flag is set.
-
+@brief		: Send unlock command to PLMC. The response to this command
+		is received asynchronously through tcp callback.
+		This function takes care of setting admin pending and management
+		lost flag and also calling the callback if the unlock operation 
+		fails.
+@param[in]	: ent - EE
+@param[in]	: is_adm_op - Is this an admin operation(0/1).
+@param[in]	: mngt_cbk - Should callback be called for management lost(0/1).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_ee_unlock(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -1949,17 +1892,15 @@ SaUint32T plms_ee_unlock(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : Call plmc_sa_plm_admin_lock_instantiation to terminate the EE.
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine takes care of marking management lost and
-		admin-operation-pending readiness flag if required.
-
-		Mark the presence state of the EE to terminating and also Start
-		termination-failed timer if the ee termination returns
-		success.
+@brief		: Send terminate command to PLMC. The response to this command
+		is received asynchronously through tcp callback.
+		This function takes care of setting admin pending and management
+		lost flag and also calling the callback if the term operation 
+		fails.
+@param[in]	: ent - EE
+@param[in]	: is_adm_op - Is this an admin operation(0/1).
+@param[in]	: mngt_cbk - Should callback be called for management lost(0/1).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_ee_term(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -2049,13 +1990,15 @@ SaUint32T plms_ee_term(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 	
 }
 /******************************************************************************
-Name            : 
-Description     : Call plmc_sa_plm_admin_lock to lock the EE.
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine takes care of marking management lost flag and 
-		admin-operation-pendng flag if required.
+@brief		: Send lock command to PLMC. The response to this command
+		is received asynchronously through tcp callback.
+		This function takes care of setting admin pending and management
+		lost flag and also calling the callback if the lock operation 
+		fails.
+@param[in]	: ent - EE
+@param[in]	: is_adm_op - Is this an admin operation(0/1).
+@param[in]	: mngt_cbk - Should callback be called for management lost(0/1).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_ee_lock(PLMS_ENTITY *ent, SaUint32T is_adm_op, SaUint32T mngt_cbk)
 {
@@ -2102,13 +2045,15 @@ SaUint32T plms_ee_lock(PLMS_ENTITY *ent, SaUint32T is_adm_op, SaUint32T mngt_cbk
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     :
-		
-Arguments       : 
-Return Values   : 
-Notes           : This routine takes care of marking management lost flag and 
-		admin-operation-pendng flag if required.
+@brief		: Send restart command to PLMC. The response to this command
+		is received asynchronously through tcp callback.
+		This function takes care of setting admin pending and management
+		lost flag and also calling the callback if the restart operation 
+		fails.
+@param[in]	: ent - EE
+@param[in]	: is_adm_op - Is this an admin operation(0/1).
+@param[in]	: mngt_cbk - Should callback be called for management lost(0/1).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_ee_reboot(PLMS_ENTITY *ent, SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -2163,12 +2108,14 @@ SaUint32T plms_ee_reboot(PLMS_ENTITY *ent, SaUint32T is_adm_op,SaUint32T mngt_cb
 }
 
 /******************************************************************************
-Name            : 
-Description     : Reset the HE on which the EE is running on.
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Instantiate the EE by resetting the parent HE. 
+		This function takes care of setting admin pending and management
+		lost flag and also calling the callback if the instantiate operation 
+		fails.
+@param[in]	: ent - EE
+@param[in]	: is_adm_op - Is this an admin operation(0/1).
+@param[in]	: mngt_cbk - Should callback be called for management lost(0/1).
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
@@ -2274,18 +2221,14 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : Logically the presence state of the ent should be
+@brief		: Process instantiation failed timer expiry. 
+		Logically the presence state of the ent should be
 		inst-failed. But as this is a failure, we have to isolate the
 		EE which means, uninstantiating the EE. Hence moving the EE to
-		uninstantiated state.
-		Isolated means, taking the EE to uninstantiated state. In this
-		case, instantiation failed and hence I can mark the presence
-		state to uninstantiated without trying to isolate the EE.
+		uninstantiated state. TODO: Should the presence state be
+		inst-failed??
+@param[in]	: ent - EE failed to instantiate.
+@return 	: NCSCC_RC_SUCCESS	
 ******************************************************************************/
 SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 {
@@ -2348,19 +2291,16 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS;	
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : Logically the presence state should be marked as termination-
+@brief		: Process termination failed timer expiry. 
+		Logically the presence state should be marked as termination-
 		failed. But termination failed is considered as a failure. 
 		This causes to isolate the EE i.e. make its parent HE to go to
 		"assert reset state on the HE" or "inactive". In both the cases
 		the presence state of the EE is to be set as uninstantiated. If
 		the isolation failed, then mark management lost flag and isolate
 		pending flag.
-		
+@param[in]	: ent - EE fails to terminate.
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
 ******************************************************************************/
 SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 {
@@ -2493,12 +2433,9 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Handle tmr events in MBX.
+@param[in]	: evt - PLMS_EVT representing timer expiry events.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_mbx_tmr_handler(PLMS_EVT *evt)
 {
@@ -2521,13 +2458,9 @@ SaUint32T plms_mbx_tmr_handler(PLMS_EVT *evt)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : Isolation pending flag takes precedence over admin operation
-		pending flag.
+@brief		: Clear readiness flags on getting EE terminated event.
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_ee_terminated_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2558,13 +2491,9 @@ static SaUint32T plms_ee_terminated_mngt_flag_clear(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : Isolation pending flag takes precedence over admin operation
-		pending flag.
+@brief		: Clear readiness flags on getting tcp-disconnect for the EE.
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS
 ******************************************************************************/
 static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2595,12 +2524,9 @@ static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting tcp-connect for the EE.
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2636,12 +2562,9 @@ static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
 }
 
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting successful unlock response. 
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2675,12 +2598,9 @@ static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting successful lock response. 
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_lck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2715,12 +2635,9 @@ static SaUint32T plms_lck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting successful lock-inst response. 
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2749,12 +2666,9 @@ static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return NCSCC_RC_SUCCESS; 
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting successful restart response. 
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_restart_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2785,12 +2699,9 @@ static SaUint32T plms_restart_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
+@brief		: Clear readiness flags on getting successful get os info response. 
+@param[in]	: ent - Entity whose readinsess flags are to be cleared.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
@@ -2821,13 +2732,10 @@ static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	return ret_err;
 }
 /******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : Isolation pending flag takes precedence over admin operation
-		pending flag.
+@brief		: Isolate the entity and clear the readiness flags(admin pending 
+		and isolate pending).
+@param[in]	: ent - Entity to be isolated.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *ent)
 {
