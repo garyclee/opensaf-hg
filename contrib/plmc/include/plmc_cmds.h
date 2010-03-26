@@ -18,7 +18,7 @@
 /*
  * PLMc commands file
  *
- * This header file is used by the plmc_d and plmc_lib implementations.
+ * This header file is used by the plmcd and plmc_lib implementations.
  * Users of the PLMc library should not include this header file.  Users
  * of the PLMc library should instead include the plmc_lib.h header file.
  *

@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 nodist_lsbinit_SCRIPTS = \
 	$(top_builddir)/scripts/plmcboot \
-	$(top_builddir)/scripts/plmc_main
+	$(top_builddir)/scripts/plmcd

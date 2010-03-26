@@ -18,7 +18,7 @@
 /*
  * PLMc header file
  *
- * This header file is used by the plmc_boot, plmc_d, and plmc_lib
+ * This header file is used by the plmcd, and plmc_lib
  * implementations.  Users of the PLMc library should not include
  * this header file.  Users of the PLmc library should instead 
  * include the plmc_lib.h header file.
@@ -53,7 +53,7 @@
 #define PLMC_CONFIG_FILE_LOC	"/etc/plmcd.conf"
 
 /* Default location of the plmc daemon pid file. */
-#define PLMC_D_PID_FILE_LOC	"/var/run/plmc_d.pid"
+#define PLMCD_PID	"/var/run/plmcd.pid"
 
 /* UDP message strings. */
 #define PLMC_BOOT_START_MSG	"EE_INSTANTIATING"
@@ -64,9 +64,8 @@
 /* These are the start/stop actions that the PLMc daemon has implemented. */
 typedef enum
 {
-    PLMC_START = 0,
-    PLMC_STOP = 1,
-    PLMC_RESTART = 2
+    PLMC_START = 1,
+    PLMC_STOP = 2,
 } PLMC_action;
 
 /* These are the numerical values of the tags found in the plmcd.conf */
@@ -74,19 +73,17 @@ typedef enum
 typedef enum
 {
     PLMC_EE_ID = 1,
-    PLMC_MSG_PROTOCOL_VERSION = 2,
-    PLMC_CONTROLLER_1_IP = 3,
-    PLMC_CONTROLLER_2_IP = 4,
-    PLMC_SERVICES_TO_START = 5,
-    PLMC_SERVICES_TO_STOP = 6,
-    PLMC_OSAF_TO_START = 7,
-    PLMC_OSAF_TO_STOP = 8,
-    PLMC_TCP_PLMS_LISTENING_PORT = 9,
-    PLMC_UDP_BROADCAST_PORT = 10,
-    PLMC_OS_TYPE = 11,
-    PLMC_CMD_TIMEOUT_SECS = 12,
-    PLMC_OS_REBOOT_CMD = 13,
-    PLMC_OS_SHUTDOWN_CMD = 14
+    PLMC_MSG_PROTOCOL_VERSION,
+    PLMC_CONTROLLER_1_IP,
+    PLMC_CONTROLLER_2_IP,
+    PLMC_SERVICES,
+    PLMC_OSAF,
+    PLMC_TCP_PLMS_LISTENING_PORT,
+    PLMC_UDP_BROADCAST_PORT,
+    PLMC_OS_TYPE,
+    PLMC_CMD_TIMEOUT_SECS,
+    PLMC_OS_REBOOT_CMD,
+    PLMC_OS_SHUTDOWN_CMD,
 } PLMC_config_tags;
 
 /* This struct holds the contents of the plmcd.conf configuration file. */
@@ -96,11 +93,9 @@ typedef struct {
     char controller_1_ip[PLMC_MAX_TAG_LEN];
     char controller_2_ip[PLMC_MAX_TAG_LEN];
     char services_to_start[PLMC_MAX_TAG_LEN][PLMC_MAX_SERVICES];
-    int  num_services_to_start;
-    char services_to_stop[PLMC_MAX_TAG_LEN][PLMC_MAX_SERVICES];
-    int  num_services_to_stop;
-    char osaf_to_start[PLMC_MAX_TAG_LEN];
-    char osaf_to_stop[PLMC_MAX_TAG_LEN];
+    int  num_services;
+    char services[PLMC_MAX_TAG_LEN][PLMC_MAX_SERVICES];
+    char osaf[PLMC_MAX_TAG_LEN];
     char tcp_plms_listening_port[PLMC_MAX_TAG_LEN];
     char udp_broadcast_port[PLMC_MAX_TAG_LEN];
     char os_type[PLMC_MAX_TAG_LEN];

@@ -10,24 +10,21 @@ Makefile
   with an OpenSAF source repository. For manual installation, see
   the note in the main README file in the above directory.
 
-  Also note: The plmc_d daemon is built with DEBUG messages turned off:
+  Also note: The plmcd daemon is built with DEBUG messages turned off:
     CFLAGS=-Wall -fpic
 
   If you want to turn on debug messages, use:
     CFLAGS=-Wall -fpic -DPLMC_DEBUG
   Additional debug messages will show up in syslog and STDOUT.
 
-  It is recommended that if you are running plmc_d for the first time,
+  It is recommended that if you are running plmcd for the first time,
   that you compile with PLMC_DEBUG turned turned on so that you can see
   additional informational output on STDOUT, and in /var/log/messages.
-  Later, when you are familiar with the operation of plmc_d, you can
+  Later, when you are familiar with the operation of plmcd, you can
   recompile the daemon with PLMC_DEBUG turned off.
 
-plmc_boot.c
-  The source code for the plmc_boot program.
-
-plmc_d.c
-  The source code for the plmc_d daemon program.
+plmcd.c
+  The source code for the plmcd daemon program.
 
 plmc_read_config.c
   The source code for the PLMc function: plmc_read_config().

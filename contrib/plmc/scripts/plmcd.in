@@ -1,15 +1,15 @@
 #!/bin/sh
 #
 ### BEGIN INIT INFO
-# Provides: plmcboot
+# Provides: plmcd
 # Required-Start: $local_fs $remote_fs $network $syslog
-# Required-Stop: $local_fs $remote_fs  $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
 # Should-Start: 
 # Should-Stop: 
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: send a UDP datagram to OpenSAF PLM controllers indicating OS state
-# Description: send a single UDP datagram to OpenSAF PLM controllers indications the OS state
+# Short-Description: starts/stops the plmcd daemon
+# Description: starts/stops the plmcd daemon
 ### END INIT INFO
 
 prog="plmcd"
@@ -19,32 +19,50 @@ configfile=/etc/plmcd.conf
 . /lib/lsb/init-functions
 
 if [ ! -r $configfile ]; then
-	logger -t $prog "can't read $configfile, exiting."
+	logger -t $prog "can't read /etc/plmcd.conf, exiting."
 	exit 6
 fi	
 
 binary=/usr/sbin/$prog
+lockfile=/var/lock/subsys/$prog
+pidfile=/var/run/$prog.pid
 
 RETVAL=0
 
 start() {
         [ -x $binary ] || exit 5
         echo -n "Starting $prog: "
-        start_daemon $binary -c $configfile -s
-        return $?
+        start_daemon $binary -c $configfile
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		touch $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
 }
 
 stop() {
         echo -n "Stopping $prog: "
-        start_daemon $binary -c $configfile -x
-        return $?
+	killproc -p $pidfile $prog
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		rm -f $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
 }
 
 restart() {
-        return 0
+        stop
+	start
 }
 
 tryrestart() {
+	[ -e $lockfile ] && restart
 	return 0
 }
 
@@ -56,6 +74,8 @@ reload() {
 }
 
 forcereload() {
+	reload
+	restart
 	return 0
 }
 
