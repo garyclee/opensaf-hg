@@ -1826,7 +1826,7 @@ SaNtfIdentifierT plms_readiness_flag_clear(PLMS_ENTITY *ent,
 			/* Update IMM.*/
 			ret_val = plms_attr_imm_update(ent,
 					"saPlmEEReadinessFlags",
-					SA_IMM_ATTR_SAUINT32T,
+					SA_IMM_ATTR_SAUINT64T,
 					PLMS_READINESS_FLAG_RESET);
 			if (NCSCC_RC_SUCCESS != ret_val){
 				LOG_ER("Cleared readiness flag for the ent %s,\
@@ -2003,7 +2003,7 @@ SaNtfIdentifierT plms_readiness_flag_mark_unmark(PLMS_ENTITY *ent,
 	}else if (ee_mark_unmark){
 		/* Update IMM.*/
 		ret_err = plms_attr_imm_update(ent,"saPlmEEReadinessFlags",
-					SA_IMM_ATTR_SAUINT32T,flag_imm);
+					SA_IMM_ATTR_SAUINT64T,flag_imm);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("Readiness Flag updated, updating IMM FAILED.\
 			Ent: %s, New_flag: %llu, Flag unmark: %llu",
