@@ -758,7 +758,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
+%doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS THANKS
 %doc README 00-README.uml 00-README.conf 00-README.debug
 %dir %{_pkglibdir}
 %dir %{_pkgsysconfdir}

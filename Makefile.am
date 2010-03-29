@@ -123,7 +123,6 @@ dist_doc_DATA = \
 	$(top_srcdir)/COPYING.LIB \
 	$(top_srcdir)/INSTALL \
 	$(top_srcdir)/NEWS \
-	$(top_srcdir)/OpenSAFCopyRights \
 	$(top_srcdir)/THANKS \
 	$(top_srcdir)/README \
 	$(top_srcdir)/00-README.uml \

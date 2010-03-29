@@ -40,7 +40,6 @@ EXTRA_DIST = \
 	COPYING.LIB \
 	INSTALL \
 	NEWS \
-	OpenSAFCopyRights \
 	THANKS \
 	README \
 	m4
