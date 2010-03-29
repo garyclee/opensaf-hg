@@ -18,7 +18,7 @@ AC_PREREQ([2.59])
 AC_INIT([plmc], [0.9], [devel@list.opensaf.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
-AC_CONFIG_SRCDIR([OpenSAFCopyRights])
+AC_CONFIG_SRCDIR([INSTALL])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
