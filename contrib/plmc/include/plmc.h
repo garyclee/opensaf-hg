@@ -94,7 +94,7 @@ typedef struct {
     char controller_2_ip[PLMC_MAX_TAG_LEN];
     char services_to_start[PLMC_MAX_TAG_LEN][PLMC_MAX_SERVICES];
     int  num_services;
-    char services[PLMC_MAX_TAG_LEN][PLMC_MAX_SERVICES];
+    char services[PLMC_MAX_SERVICES][PLMC_MAX_TAG_LEN];
     char osaf[PLMC_MAX_TAG_LEN];
     char tcp_plms_listening_port[PLMC_MAX_TAG_LEN];
     char udp_broadcast_port[PLMC_MAX_TAG_LEN];

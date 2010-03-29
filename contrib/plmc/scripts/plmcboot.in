@@ -13,7 +13,8 @@
 ### END INIT INFO
 
 prog="plmcd"
-configfile=/etc/plmcd.conf
+binary=@sbindir@/$prog
+configfile=@sysconfdir@/plmcd.conf
 
 # Source LSB functions library
 . /lib/lsb/init-functions
@@ -23,7 +24,6 @@ if [ ! -r $configfile ]; then
 	exit 6
 fi	
 
-binary=/usr/sbin/$prog
 
 RETVAL=0
 

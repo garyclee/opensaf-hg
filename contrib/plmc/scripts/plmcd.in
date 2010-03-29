@@ -13,19 +13,19 @@
 ### END INIT INFO
 
 prog="plmcd"
-configfile=/etc/plmcd.conf
+configfile=@sysconfdir@/plmcd.conf
+binary=@sbindir@/$prog
+lockfile=@localstatedir@/lock/subsys/$prog
+pidfile=@localstatedir@/run/$prog.pid
 
 # Source LSB functions library
 . /lib/lsb/init-functions
 
 if [ ! -r $configfile ]; then
-	logger -t $prog "can't read /etc/plmcd.conf, exiting."
+	logger -t $prog "can't read $configfile exiting."
 	exit 6
 fi	
 
-binary=/usr/sbin/$prog
-lockfile=/var/lock/subsys/$prog
-pidfile=/var/run/$prog.pid
 
 RETVAL=0
 
