@@ -58,6 +58,7 @@
 /* We need these utility functions. */
 extern int plmc_read_config(char *plmc_config_file, PLMC_config_data *config);
 extern int plmc_cmd_string_to_enum(char *cmd);
+extern void plmc_print_config(PLMC_config_data *config);
 
 void plmc_termination_handler(int signum);
 static int plmc_send_udp_msg(char *msg);
@@ -225,7 +226,10 @@ char* plmc_start_child_thread(int plmc_cmd_i) {
 	pthread_mutex_init(&(th_data.td_lock), NULL);
 
 	/* Create the child thread. */
-	pthread_create(&(th_data.td_id), NULL, plmc_child_thread, &th_data);
+	if (pthread_create(&(th_data.td_id), NULL, plmc_child_thread, &th_data)){
+		syslog(LOG_ERR, "Error pthread_create: %m");
+		exit(PLMC_EXIT_FAILURE);
+	}
 
 	/* Main watchdog loop - checks periodically to see if child thread is done.  */
 	/* If timeout is reached, then we cancel child thread and return value of    */
@@ -247,6 +251,7 @@ char* plmc_start_child_thread(int plmc_cmd_i) {
 			if (th_data.child_done)
 				child_not_done = 0;
 			if (pthread_mutex_unlock(&(th_data.td_lock))) {
+				syslog(LOG_ERR, "Error pthread_mutex_unlock");
 				exit(PLMC_EXIT_FAILURE);
 			}
 		}
@@ -629,7 +634,7 @@ int main(int argc, char** argv)
 					syslog(LOG_ERR, "Invalid config file: %s", optarg);
 					exit(3);
 				}
-				if ((plmc_config_file=(char *)malloc(strlen(optarg))) == NULL){
+				if ((plmc_config_file=(char *)malloc(strlen(optarg) + 1)) == NULL){
 					fprintf(stderr, "Can not allocate memory\n");
 					syslog(LOG_ERR, "Can not allocate memory");
 					exit(4);

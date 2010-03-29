@@ -68,25 +68,17 @@ AC_SUBST([initscriptdir], ["$with_initscriptdir"])
 
 
 #
-# Unless explicitly set, drop previx from sysconfdir
+# Unconditionaly drop previx from sysconfdir
 # and localstatedir
 #
 if test "$sysconfdir" = '${prefix}/etc' ; then
-        if test "$prefix" = 'NONE' ; then
-                sysconfdir="/etc"
-        else
-                sysconfdir="$prefix"/etc
-        fi
+        sysconfdir="/etc"
 fi
 
 AC_SUBST([sysconfdir])
 
 if test "$localstatedir" = '${prefix}/var' ; then
-        if test "$prefix" = 'NONE' ; then
-                localstatedir="/var"
-        else
-                localstatedir="$prefix"/var
-        fi
+        localstatedir="/var"
 fi
 
 AC_SUBST([localstatedir])

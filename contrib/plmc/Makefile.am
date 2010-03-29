@@ -48,5 +48,10 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = config include lib plmcd scripts
 
+install-data-hook:
+	@for i in $$(grep -lr -e '$${exec_prefix}' $(DESTDIR)$(sysconfdir)/init.d/plmc*) ; do \
+		sed -i 's|$${exec_prefix}|$(exec_prefix)|g' "$$i"; \
+	done
+
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
