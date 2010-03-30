@@ -325,16 +325,18 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 
 	/* log the failure details (placeholder for sending EDSv events) */
 	m_AVND_LOG_ERR(err_info->src, esc_rcvr, &comp->name, NCSFL_SEV_NOTICE);
+	syslog(LOG_INFO, "Component '%s' faulted due to '%s' - rcvr=%u",
+			comp->name.value, g_comp_err[err_info->src], esc_rcvr);
+
+	avnd_gen_comp_fail_on_node_ntf(cb, err_info->src, comp);
 
 	if (((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
 		syslog(LOG_ERR, "NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
+		/* do the local node reboot for node_failfast or ncs component failure*/
+		opensaf_reboot(cb->node_info.nodeId, cb->node_info.executionEnvironment.value,
+				"Component faulted: recovery is node failfast" );
 	}
-
-	syslog(LOG_INFO, "Component '%s' faulted due to '%s' - rcvr=%u",
-	       comp->name.value, g_comp_err[err_info->src], esc_rcvr);
-
-	avnd_gen_comp_fail_on_node_ntf(cb, err_info->src, comp);
 
 	/* execute the recovery */
 	rc = avnd_err_recover(cb, comp->su, comp, esc_rcvr);
