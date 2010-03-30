@@ -536,12 +536,10 @@ uns32 avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	
-	if (comp->admin_oper == SA_FALSE) {
-		/* mark the comp failed */
-		m_AVND_COMP_FAILED_SET(comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
-	}
+
+	/* mark the comp failed */
+	m_AVND_COMP_FAILED_SET(comp);
+	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* delete the comp current info */
 	rc = avnd_comp_curr_info_del(cb, comp);
