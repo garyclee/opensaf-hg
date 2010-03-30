@@ -1426,6 +1426,51 @@ uns32 clms_remove_clma_down_rec(CLMS_CB *cb , MDS_DEST mds_dest)
 	}
 	return NCSCC_RC_SUCCESS;
 }
+/**
+ * clms_remove_node_down_rec
+ * 
+ *  Searches the NODE_DOWN_LIST for an entry whose node_id equals
+ *  that passed in and removes the node_down rec. 
+ *  
+ * This routine is typically used to remove the node down rec from standby 
+ * NODE_DOWN_LIST.
+ */
+
+void clms_remove_node_down_rec(SaClmNodeIdT  node_id)
+{
+	NODE_DOWN_LIST *node_down_rec = clms_cb->node_down_list_head;
+	NODE_DOWN_LIST *prev_rec = NULL;
+
+	while(node_down_rec) {
+		if (node_down_rec->node_id == node_id) {
+			/* Remove the node down  entry */
+			/* Reset pointers */
+			if (node_down_rec == clms_cb->node_down_list_head) {             /* 1st in the list? */
+				if (node_down_rec->next == NULL) {
+					/* Only one in the list? */
+					clms_cb->node_down_list_head = NULL;          /* Clear head sublist pointer */
+					clms_cb->node_down_list_tail = NULL;          /* Clear tail sublist pointer */
+				}else {
+					/* 1st but not only one */
+					clms_cb->node_down_list_head = node_down_rec->next;      /* Move next one up */
+				}
+			}else {
+				if (prev_rec) {
+					if( node_down_rec->next == NULL)
+						clms_cb->node_down_list_tail = prev_rec;
+					prev_rec->next = node_down_rec->next;          /* Link previous to next */
+				}
+			}
+
+			/* Free the NODE_DOWN_REC */
+			free(node_down_rec);
+			node_down_rec = NULL;
+			break;
+		}
+		prev_rec = node_down_rec;             /* Remember address of this entry */
+		node_down_rec = node_down_rec->next;    /* Go to next entry */
+	}
+}
 
 /**
  * This is the function which is called to destroy an event.

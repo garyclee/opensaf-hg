@@ -84,6 +84,7 @@ extern uns32 clms_clmresp_error(CLMS_CB *cb, CLMS_CLUSTER_NODE * node);
 extern uns32 clms_clmresp_rejected(CLMS_CB *cb, CLMS_CLUSTER_NODE * node,CLMS_TRACK_INFO *trkrec);
 extern uns32 clms_clmresp_ok(CLMS_CB *cb,CLMS_CLUSTER_NODE * op_node,CLMS_TRACK_INFO *trkrec);
 extern uns32 clms_remove_clma_down_rec(CLMS_CB *cb , MDS_DEST mds_dest);
+extern void clms_remove_node_down_rec(SaClmNodeIdT  node_id);
 extern uns32 clms_node_add(CLMS_CLUSTER_NODE *node,int i);
 extern void clms_clmresp_error_timeout(CLMS_CB *cb, CLMS_CLUSTER_NODE * node);
 extern NCS_BOOL clms_clma_entry_valid(CLMS_CB *cb, MDS_DEST mds_dest);
