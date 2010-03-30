@@ -282,7 +282,7 @@ void plms_perform_pending_admin_operation()
 	TRACE_ENTER();
 
 	while(track_step){
-		if(SA_PLM_CHANGE_START != track_step->change_step ||
+		if(SA_PLM_CHANGE_START != track_step->change_step && 
 		   SA_PLM_CHANGE_VALIDATE != track_step->change_step){
 			/* Log the error */
 			LOG_ER("Invalid pending admin operation :%d ",
@@ -307,15 +307,15 @@ void plms_perform_pending_admin_operation()
 		}
 
 		switch(track_step->opr_type){
-			case SA_PLM_ADMIN_LOCK:
+			case SA_PLM_CAUSE_LOCK:
 				plms_perform_pending_admin_lock(
 							track_step,ent);
 				break;
-			case SA_PLM_ADMIN_SHUTDOWN:
+			case SA_PLM_CAUSE_SHUTDOWN:
 				plms_perform_pending_admin_shutdown(
 							track_step,ent);
 				break;
-			case SA_PLM_ADMIN_DEACTIVATE:
+			case SA_PLM_CAUSE_HE_DEACTIVATION:
 				plms_perform_pending_admin_deactivate(
 							track_step, ent);
 				break;
@@ -560,7 +560,7 @@ SaUint32T plms_perform_pending_admin_shutdown(
 		/* Lock the root EE. I am not wating, till I get
 		the callback. If this API returns success, I am done.
 		*/
-		ret_err = plms_ee_lock(ent,TRUE,1);
+		ret_err = plms_ee_lock(ent,TRUE,0);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			/* TODO:Do I need to update the expected
 			readiness state, I hope no. */
@@ -587,11 +587,11 @@ SaUint32T plms_perform_pending_admin_lock(
         uns32 ret_err;
         PLMS_GROUP_ENTITY *aff_ent_list = NULL,*log_head;
         PLMS_GROUP_ENTITY *tmp_aff_ent_list = NULL;
-	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list;
+	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list = NULL;
 	SaUint32T 	  admin_state;
 
 	TRACE_ENTER2("Entity:%s",ent->dn_name_str);
-
+#if 0
         /* Check if already in Locked state */
 	if ((PLMS_HE_ENTITY == ent->entity_type &&
 		SA_PLM_HE_ADMIN_LOCKED == 
@@ -620,6 +620,11 @@ SaUint32T plms_perform_pending_admin_lock(
 		TRACE_LEAVE2("ret_err: %d",NCSCC_RC_SUCCESS);
                 return NCSCC_RC_SUCCESS;
 	}
+#endif
+	if(PLMS_HE_ENTITY == ent->entity_type)
+		admin_state = SA_PLM_HE_ADMIN_LOCKED;
+	if(PLMS_EE_ENTITY == ent->entity_type)
+		admin_state = SA_PLM_EE_ADMIN_LOCKED;
 
 	/* Get all the affected entities.*/
 	plms_affected_ent_list_get(ent,&aff_ent_list,0);
@@ -692,10 +697,9 @@ SaUint32T plms_perform_pending_admin_lock(
 
 		if (PLMS_EE_ENTITY == ent->entity_type){
 			/* Lock the root EE*/
-			ret_err = plms_ee_lock(ent,TRUE,1);
+			ret_err = plms_ee_lock(ent,TRUE,0);
 			if(NCSCC_RC_SUCCESS != ret_err){
-				LOG_ER("EE %s term FAILED.",
-				tmp_aff_ent_list->plm_entity->dn_name_str);
+				LOG_ER("EE %s term FAILED.",ent->dn_name_str);
 			}
 		}
 	}

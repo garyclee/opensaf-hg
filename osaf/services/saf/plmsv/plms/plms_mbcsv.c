@@ -1784,6 +1784,7 @@ uns32 plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 	ptr->dn_name.length = msg->info.step_info.dn_name.length;
 	strcpy((SaInt8T *)ptr->dn_name.value,(SaInt8T *)msg->info.step_info.dn_name.value);
 	ptr->change_step = msg->info.step_info.change_step;
+	ptr->opr_type = msg->info.step_info.opr_type;
 	
 	/* Now add the new record to the list */
 	tmp_ptr = cb->step_info;
@@ -1792,8 +1793,10 @@ uns32 plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 		prev_ptr = tmp_ptr;
 		tmp_ptr = tmp_ptr->next;
 	}
-	
-	prev_ptr->next = ptr;
+	if(!cb->step_info)	
+		cb->step_info = ptr;
+	else
+		prev_ptr->next = ptr;
 	ptr->next = NULL;
 
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
