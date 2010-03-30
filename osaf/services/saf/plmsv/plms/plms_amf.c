@@ -222,7 +222,20 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 
 	case SA_AMF_HA_ACTIVE:
 		cb->mds_role = V_DEST_RL_ACTIVE;
-		LOG_IN("MY HA ROLE : AMF ACTIVE\n");
+		TRACE("MY HA ROLE : AMF ACTIVE\n");
+		/* PLMC initialize */
+		if(!cb->plmc_initialized){
+			TRACE("Initializing PLMC");
+			rc = plmc_initialize(plms_plmc_connect_cbk,
+						plms_plmc_udp_cbk,
+						plms_plmc_error_cbk);
+			if (rc){
+				LOG_ER("PLMC initialize failed.");
+				rc = NCSCC_RC_FAILURE;
+				goto response;
+			}
+			cb->plmc_initialized = TRUE;
+		}
 		if (prev_haState == SA_AMF_HA_QUIESCED) {
 			plms_proc_quiesced_active_role_change();
 		}
@@ -248,19 +261,6 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 				goto response;
 			}
 			cb->hpi_intf_up = TRUE;
-		}
-		/* PLMC initialize */
-		if(!cb->plmc_initialized){
-			TRACE("Initializing PLMC");
-			rc = plmc_initialize(plms_plmc_connect_cbk,
-						plms_plmc_udp_cbk,
-						plms_plmc_error_cbk);
-			if (rc){
-				LOG_ER("PLMC initialize failed.");
-				rc = NCSCC_RC_FAILURE;
-				goto response;
-			}
-			cb->plmc_initialized = TRUE;
 		}
 
 		TRACE("PLMS sending Active role to HSM");
