@@ -26,6 +26,7 @@ if [ ! -r $osafdirfile ]; then
 else
 	. $osafdirfile
 	. $pkgsysconfdir/nid.conf
+	. $pkgsysconfdir/fmd.conf
 fi	
 
 if [ -f $nodeinfofile ]; then
