@@ -53,32 +53,32 @@ void avd_sg_db_remove(AVD_SG *sg)
  */
 static void sg_add_to_model(AVD_SG *sg)
 {
-	SaNameT app_name;
-	AVD_APP *app;
-	char *p;
+	SaNameT dn;
 
-	memset(&app_name, 0, sizeof(app_name));
-	p = strstr((char*)sg->name.value, "safApp");
-	app_name.length = strlen(p);
-	memcpy(app_name.value, p, app_name.length);
-	app = avd_app_get(&app_name);
-	sg->sg_on_app = app;
+	TRACE_ENTER2("%s", sg->name.value);
 
+	/* Check parent link to see if it has been added already */
+	if (sg->app != NULL) {
+		TRACE("already added");
+		goto done;
+	}
 
-        if ((avd_sg_get(&sg->name) != NULL) && (TRUE == sg->add_to_model)) {
-                /* Means the it has been added into db and links with other objects alraedy created. */
-                return;
-        }
+	avsv_sanamet_init(&sg->name, &dn, "safApp");
+	sg->app = avd_app_get(&dn);
+
 	avd_sg_db_add(sg);
+	sg->sg_type = avd_sgtype_get(&sg->saAmfSGType);
+	assert(sg->sg_type);
 	avd_sgtype_add_sg(sg);
-	avd_app_add_sg(sg->sg_on_app, sg);
+	avd_app_add_sg(sg->app, sg);
 
 	/* SGs belonging to a magic app will be NCS, TODO Better name! */
-	if (!strcmp((char *)app_name.value, "safApp=OpenSAF"))
+	if (!strcmp((char *)dn.value, "safApp=OpenSAF"))
 		sg->sg_ncs_spec = TRUE;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
-        sg->add_to_model = TRUE;
+done:
+	TRACE_LEAVE();
 }
 
 /**
@@ -88,7 +88,7 @@ static void sg_add_to_model(AVD_SG *sg)
 static void sg_remove_from_model(AVD_SG *sg)
 {
 	avd_sgtype_remove_sg(sg);
-	avd_app_remove_sg(sg->sg_on_app, sg);
+	avd_app_remove_sg(sg->app, sg);
 	avd_sg_db_remove(sg);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
@@ -273,14 +273,16 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	if (NULL == (sg = avd_sg_get(sg_name))) {
 		if ((sg = avd_sg_new(sg_name)) == NULL)
 			goto done;
-	}
+	} else
+		TRACE("already created, refreshing config...");
+
 
 	error = immutil_getAttr("saAmfSGType", attributes, 0, &sg->saAmfSGType);
 	assert(error == SA_AIS_OK);
 
 	sgt = avd_sgtype_get(&sg->saAmfSGType);
 	assert(sgt);
-	sg->sg_on_sg_type = sgt;
+	sg->sg_type = sgt;
 
 	(void)immutil_getAttr("saAmfSGSuHostNodeGroup", attributes, 0, &sg->saAmfSGSuHostNodeGroup);
 
@@ -565,9 +567,9 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				/* Add sg to sg_type   */
 				/*  TODO remove from old type list */
-				avd_sg->sg_on_sg_type = avd_sg_type;
-				avd_sg->sg_list_sg_type_next = avd_sg->sg_on_sg_type->list_of_sg;
-				avd_sg->sg_on_sg_type->list_of_sg = avd_sg;
+				avd_sg->sg_type = avd_sg_type;
+				avd_sg->sg_list_sg_type_next = avd_sg->sg_type->list_of_sg;
+				avd_sg->sg_type->list_of_sg = avd_sg;
 			}
 			attr_mod = opdata->param.modify.attrMods[i++];
 		}		/* while (attr_mod != NULL) */

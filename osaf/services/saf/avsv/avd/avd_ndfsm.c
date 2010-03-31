@@ -129,8 +129,8 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (avnd->node_info.nodeId == cb->node_id_avd_other) {
 		/* Here obviously the role will be STDBY. Here we are not picking the
 		   state from "avail_state_avd_other" as it may happen that the cold 
-		   sync would be in progress and there has been no heart beat exchange
-		   till now, so "avail_state_avd_other" might not have been updated. */
+		   sync would be in progress so "avail_state_avd_other" might not
+		   have been updated. */
 		rc = avd_avnd_send_role_change(cb, cb->node_id_avd_other, SA_AMF_HA_STANDBY);
 		if (NCSCC_RC_SUCCESS != rc) {
 			m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change failed. Peer AvND Node Id is",
@@ -164,7 +164,6 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* checkpoint the node. */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_UP_INFO);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_CB_CL_VIEW_NUM);
 
 done:
 	avsv_dnd_msg_free(n2d_msg);
@@ -339,8 +338,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
  * Function: avd_nd_ncs_su_failed
  *
  * Purpose:  This function is the handler for node director event when a
- *           NCS SUs operation state goes to disabled. The functionality as
- *           for heartbeat failure is executed w.r.t to the node.
+ *           NCS SUs operation state goes to disabled.
  *
  * Input: cb - the AVD control block
  *        avnd - The AvND which has sent the ack for all the component additions.
@@ -664,13 +662,11 @@ done:
  **************************************************************************/
 uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 {
-
 	AVD_AVND *avnd;
 
 	TRACE_ENTER();
 
-	if ((avnd = avd_node_find_nodeid(node_id)
-	    ) == NULL) {
+	if ((avnd = avd_node_find_nodeid(node_id)) == NULL) {
 		/* log error that the node id is invalid */
 		m_AVD_LOG_INVALID_VAL_FATAL(node_id);
 		return NCSCC_RC_FAILURE;
@@ -679,11 +675,8 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) || (avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		/* log information error that the node is in invalid state */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
-		/* ignore the heartbeat timeout */
 		return NCSCC_RC_FAILURE;
 	}
-
-	/* log an error that the heartbeat failed so the node is down */
 
 	/* call the routine to failover all the effected nodes
 	 * due to restarting this node
@@ -694,3 +687,258 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 
 	return NCSCC_RC_SUCCESS;
 }
+
+void avd_node_mark_absent(AVD_AVND *node)
+{
+	TRACE_ENTER();
+
+	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+	avd_node_state_set(node, AVD_AVND_STATE_ABSENT);
+
+	node->adest = 0;
+	node->rcv_msg_id = 0;
+	node->snd_msg_id = 0;
+
+	node->node_info.initialViewNumber = 0;
+	node->node_info.member = SA_FALSE;
+
+	/* Increment node failfast counter */
+	avd_cb->nodes_exit_cnt++;
+
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_cb, AVSV_CKPT_AVD_CB_CONFIG);
+
+	TRACE_LEAVE();
+}
+
+/****************************************************************************
+ *  Name          : avd_handle_nd_failover_shutdown
+ * 
+ *  Description   : This routine is invoked by AvD to handle the shutdown
+ *                  request. 
+ * 
+ *  Arguments     : cb         -  AvD cb .
+ *                  avnd       -  ptr to AVD_AVND structure
+ * 
+ *  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ * 
+ *  Notes         : 
+ ***************************************************************************/
+
+static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_ncs)
+{
+	AVD_SU *i_su = NULL;
+	NCS_BOOL assign_list_empty = TRUE;
+
+	if (avnd == NULL) {
+		m_AVD_LOG_INVALID_VAL_ERROR(0);
+		return;
+	}
+
+	/* Mark the node operational state as disable and make all the
+	 * application SUs in the node as O.O.S. Also call the SG FSM
+	 * to do the reallignment of SIs for assigned SUs.
+	 */
+	if (for_ncs == SA_TRUE)
+		i_su = avnd->list_of_ncs_su;
+	else
+		i_su = avnd->list_of_su;
+
+	while (i_su != NULL) {
+		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
+		if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
+			/* Since assignments exists call the SG FSM.
+			 */
+			assign_list_empty = FALSE;
+
+			switch (i_su->sg_of_su->sg_redundancy_model) {
+			case SA_AMF_2N_REDUNDANCY_MODEL:
+				if (avd_sg_2n_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
+					/* log error about the failure */
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
+					return;
+				}
+				break;
+
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+				if (avd_sg_nway_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
+					/* log error about the failure */
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
+					return;
+				}
+				break;
+
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+				if (avd_sg_nacvred_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
+					/* log error about the failure */
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
+					return;
+				}
+				break;
+
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
+				if (avd_sg_npm_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
+					/* log error about the failure */
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
+					return;
+				}
+				break;
+
+			case SA_AMF_NO_REDUNDANCY_MODEL:
+			default:
+				if (avd_sg_nored_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
+					/* log error about the failure */
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
+					return;
+				}
+				break;
+			}
+
+		}
+
+		i_su = i_su->avnd_list_su_next;
+	}			/* while(i_su != AVD_SU_NULL) */
+
+	if (assign_list_empty == TRUE) {
+		/* move to next state */
+		avd_chk_failover_shutdown_cxt(cb, avnd, for_ncs);
+	}
+}
+/****************************************************************************
+ *  Name          : avd_chk_failover_shutdown_cxt
+ * 
+ *  Description   : This is called in the context when the SUSI is 
+ *                  deleted to check the context if node failover or
+ *                  node shutdown is in progress if yes, we check for
+ *                  the emptiness and then do the required processing.
+ * 
+ *  Arguments     : cb         -  AvD cb .
+ *                  avnd       -  ptr to AVD_AVND structure
+ *                  is_ncs     -  flag to indicate if in cxt of NCS SUs
+ * 
+ *  Return Values : None
+ * 
+ *  Notes         : 
+ ***************************************************************************/
+
+void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs)
+{
+	AVD_SU *i_su = NULL;
+
+	/* check for oper_state if its disable we are in context of 
+	 ** failover or shutdown 
+	 */
+	if (avnd->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED)
+		return;
+
+	if (is_ncs == SA_FALSE) {
+
+		i_su = avnd->list_of_su;
+
+		while (i_su != NULL) {
+			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
+				/* More susi removal pending on this SU nothing to be
+				 ** done now.
+				 */
+				return;
+			}
+			i_su = i_su->avnd_list_su_next;
+		}
+		/* If we are here we walked thru the entire list and found it empty 
+		 ** All the APP_sus are now unassigned. 
+		 ** 
+		 ** Check for the context failover/shutdown
+		 ** if shutdown, send terminate message to AvND and process NCS_SUs
+		 */
+		if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN) {
+			avd_snd_shutdown_app_su_msg(cb, avnd);
+			return;
+		}
+
+	} else {		/*if(is_ncs == SA_TRUE ) */
+
+		/* make sure this happens only in the shutdown context */
+		if (avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN)
+			return;	/* Should log an error ? */
+
+		/* Now check if all the susi's of NCS SUs on the entire node 
+		 ** are deleted
+		 */
+		i_su = avnd->list_of_ncs_su;
+
+		while (i_su != NULL) {
+			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
+				/* More susi removal pending on this SU nothing to  be
+				 ** done now.
+				 */
+				return;
+			}
+			i_su = i_su->avnd_list_su_next;
+		}
+		/* If we are here we walked thru the entire list and found it empty 
+		 ** All the ncs_sus are now unassigned.
+		 */
+		avd_node_mark_absent(avnd);
+	}			/* End is_ncs == TRUE */
+
+}
+
+/*****************************************************************************
+ * Function: avd_shutdown_app_su_resp_evh
+ *
+ * Purpose:  This function is the handler for response  
+ * event indicating that all the Application SUs have been terminated.
+ * Now the AVD will continue processing the NCS SUs.
+ *
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ *
+ * NOTES:
+ *
+ * 
+ **************************************************************************/
+
+void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
+	AVD_AVND *avnd;
+
+	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
+
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == NULL) {
+		/* log error that the node id is invalid */
+		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
+		avsv_dnd_msg_free(n2d_msg);
+		evt->info.avnd_msg = NULL;
+		return;
+	}
+
+	/* update the receive id count */
+	/* checkpoint the AVND structure : receive id */
+	m_AVD_SET_AVND_RCV_ID(cb, avnd, (n2d_msg->msg_info.n2d_shutdown_app_su.msg_id));
+
+	/* 
+	 * Send the Ack message to the node, indicationg that the message with this
+	 * message ID is received successfully.
+	 */
+	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
+		/* log error that the director is not able to send the message */
+		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+	}
+
+	avd_handle_nd_failover_shutdown(cb, avnd, SA_TRUE);
+
+	avsv_dnd_msg_free(n2d_msg);
+	evt->info.avnd_msg = NULL;
+	TRACE_LEAVE();
+}
+

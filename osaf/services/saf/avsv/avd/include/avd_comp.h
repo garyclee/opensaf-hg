@@ -116,12 +116,7 @@ typedef struct avd_comp_tag {
 	struct avd_su_tag *su;		/* SU to which this component belongs */
 	struct avd_comp_tag *su_comp_next;	/* the next component in list of  components
 						 * in this SU */
-	struct avd_comp_cs_type_tag *compcstype_list;
 	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
-        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
-
-
 } AVD_COMP;
 
 /* AMF Class SaAmfCompType */
@@ -155,7 +150,6 @@ typedef struct avd_amf_comp_type_tag {
 
 /* AMF Class SaAmfCompCsType */
 typedef struct avd_comp_cs_type_tag {
-
 	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT name;
 	SaUint32T saAmfCompNumMaxActiveCSIs;
@@ -164,9 +158,6 @@ typedef struct avd_comp_cs_type_tag {
 	SaUint32T saAmfCompNumCurrStandbyCSIs;
 	SaNameT **saAmfCompAssignedCsi;
 	AVD_COMP *comp;
-	struct avd_comp_cs_type_tag *comp_list_compcstype_next;
-        bool   added_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
 } AVD_COMPCS_TYPE;
 
 /* AMF Class SaAmfCtCsType */

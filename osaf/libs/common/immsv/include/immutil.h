@@ -392,6 +392,7 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 				 * tries.  */
 	};
 
+	extern struct ImmutilWrapperProfile immutilWrapperProfile;
 /**
  * Default: errorsAreFatal=1, nTries=5, retryInterval=400.
  */

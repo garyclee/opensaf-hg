@@ -240,7 +240,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 							goto done;
 						}
 
-						if (memcmp(&opdata->objectName, &su->su_on_sg->saAmfSGSuHostNodeGroup, sizeof(SaNameT)) == 0) {
+						if (memcmp(&opdata->objectName, &su->sg->saAmfSGSuHostNodeGroup, sizeof(SaNameT)) == 0) {
 							LOG_ER("SU '%s' is mapped to this node", su->name.value);
 							goto done;
 						}

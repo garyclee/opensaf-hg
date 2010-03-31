@@ -273,9 +273,7 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 	indx.si_name = si_name;
 	indx.su_rank = rank;
 
-	m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 	avd_sus_per_si_rank = avd_sirankedsu_create(avd_cb, indx);
-	m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 	assert(avd_sus_per_si_rank);
 
 	avd_sus_per_si_rank->su_name = su_name;
@@ -419,11 +417,8 @@ static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		/* delete and free the structure */
-		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 		avd_sirankedsu_del_si_list(avd_cb, opdata->userData);
 		avd_sirankedsu_delete(avd_cb, opdata->userData);
-		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-
 		break;
 	default:
 		assert(0);

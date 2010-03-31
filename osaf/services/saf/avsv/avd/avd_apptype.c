@@ -26,7 +26,7 @@
 
 static NCS_PATRICIA_TREE apptype_db;
 
-AVD_APP_TYPE *avd_apptype_find(const SaNameT *dn)
+AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 {
 	SaNameT tmp = {0};
 
@@ -157,7 +157,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfAppType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		app_type = avd_apptype_find(&opdata->objectName);
+		app_type = avd_apptype_get(&opdata->objectName);
 		if (NULL != app_type->list_of_app) {
 			LOG_ER("SaAmfAppType is in use");
 			goto done;
@@ -223,7 +223,7 @@ SaAisErrorT avd_apptype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((app_type = avd_apptype_find(&dn)) == NULL ) {
+		if ((app_type = avd_apptype_get(&dn)) == NULL ) {
 			if ((app_type = apptype_create(&dn, attributes)) == NULL)
 				goto done2;
 
@@ -241,8 +241,8 @@ SaAisErrorT avd_apptype_config_get(void)
 
 void avd_apptype_add_app(AVD_APP *app)
 {
-	app->app_type_list_app_next = app->app_on_app_type->list_of_app;
-	app->app_on_app_type->list_of_app = app;
+	app->app_type_list_app_next = app->app_type->list_of_app;
+	app->app_type->list_of_app = app;
 }
 
 void avd_apptype_remove_app(AVD_APP *app)
@@ -250,8 +250,8 @@ void avd_apptype_remove_app(AVD_APP *app)
 	AVD_APP *i_app = NULL;
 	AVD_APP *prev_app = NULL;
 
-	if (app->app_on_app_type != NULL) {
-		i_app = app->app_on_app_type->list_of_app;
+	if (app->app_type != NULL) {
+		i_app = app->app_type->list_of_app;
 
 		while ((i_app != NULL) && (i_app != app)) {
 			prev_app = i_app;
@@ -262,14 +262,14 @@ void avd_apptype_remove_app(AVD_APP *app)
 			/* Log a fatal error */
 		} else {
 			if (prev_app == NULL) {
-				app->app_on_app_type->list_of_app = app->app_type_list_app_next;
+				app->app_type->list_of_app = app->app_type_list_app_next;
 			} else {
 				prev_app->app_type_list_app_next = app->app_type_list_app_next;
 			}
 		}
 
 		app->app_type_list_app_next = NULL;
-		app->app_on_app_type = NULL;
+		app->app_type = NULL;
 	}
 }
 

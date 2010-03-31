@@ -579,6 +579,8 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 
 	TRACE_ENTER();
 
+	immutilWrapperProfile.errorsAreFatal = 0;
+
 	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize failed %u", error);
 		goto done;
@@ -594,8 +596,10 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 		goto done;
 	}
 
- done:
-	TRACE_LEAVE2("%u", error);
+	TRACE("Successfully initialized IMM");
+
+done:
+	TRACE_LEAVE();
 	return error;
 }
 
@@ -774,7 +778,7 @@ unsigned int avd_imm_config_get(void)
 
 done:
 	if (rc == NCSCC_RC_SUCCESS)
-		LOG_NO("AMF Configuration successfully read from IMM");
+		TRACE("AMF Configuration successfully read from IMM");
 	else
 		LOG_ER("Failed to read configuration, AMF will not start");
 
@@ -797,7 +801,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attribut
 		attrMod.modAttr.attrValueType = attrValueType;
 		attrMod.modAttr.attrValues = attrValues;
 
-		rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
+		rc = immutil_saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
 
 		if (rc != SA_AIS_OK)
 			LOG_ER("%s: FAILED %u, '%s', %s", __FUNCTION__, rc, dn->value, attributeName);
@@ -809,7 +813,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attribut
 SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
 {
-	SaAisErrorT rc = saImmOiRtObjectCreate_2(avd_cb->immOiHandle,
+	SaAisErrorT rc = immutil_saImmOiRtObjectCreate_2(avd_cb->immOiHandle,
 		className, parentName, attrValues);
 
 	if (rc != SA_AIS_OK)
@@ -820,7 +824,7 @@ SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 
 SaAisErrorT avd_saImmOiRtObjectDelete(const SaNameT* dn)
 {
-	SaAisErrorT rc = saImmOiRtObjectDelete(avd_cb->immOiHandle, dn);
+	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(avd_cb->immOiHandle, dn);
 
 	if (rc != SA_AIS_OK)
 		LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, dn->value);
@@ -828,3 +832,76 @@ SaAisErrorT avd_saImmOiRtObjectDelete(const SaNameT* dn)
 	return rc;
 }
 
+/**
+ * Update cached runtime attributes in IMM
+ */
+void avd_imm_update_runtime_attrs(void)
+{
+	SaNameT su_name = {0};
+	AVD_SU  *su;
+	SaNameT comp_name ={0};
+	AVD_COMP *comp;
+	SaNameT node_name = {0};
+	AVD_AVND *node;
+	SaNameT si_name = {0};
+	AVD_SI  *si;
+
+	/* Update SU Class runtime cached attributes. */
+	su = avd_su_getnext(&su_name);
+	while (su != NULL) {
+		avd_saImmOiRtObjectUpdate(&su->name,
+					  "saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T, 
+					  &su->saAmfSUPreInstantiable);
+
+		avd_saImmOiRtObjectUpdate(&su->name,
+					  "saAmfSUHostedByNode", SA_IMM_ATTR_SANAMET, 
+					  &su->saAmfSUHostedByNode);
+
+		avd_saImmOiRtObjectUpdate(&su->name,
+					  "saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T, 
+					  &su->saAmfSUPresenceState);
+
+		avd_saImmOiRtObjectUpdate(&su->name,
+					  "saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, 
+					  &su->saAmfSUOperState);
+
+		avd_saImmOiRtObjectUpdate(&su->name,
+					  "saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T, 
+					  &su->saAmfSuReadinessState);
+
+		su = avd_su_getnext(&su->name);
+	}
+
+	/* Update Component Class runtime cached attributes. */
+	comp = avd_comp_getnext(&comp_name);
+	while (comp != NULL) {
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+					  "saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
+
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+					  "saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
+
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+					  "saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
+
+		comp = avd_comp_getnext(&comp->comp_info.name);
+	}
+
+	/* Update Node Class runtime cached attributes. */
+	node = avd_node_getnext(&node_name);
+	while (node != NULL) {
+		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
+					  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
+
+		node = avd_node_getnext(&node->name);
+	}
+
+	/* Update Node Class runtime cached attributes. */
+	si = avd_si_getnext(&si_name);
+	while (si != NULL) {
+		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
+					  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+
+		si = avd_si_getnext(&si->name);
+	}
+}

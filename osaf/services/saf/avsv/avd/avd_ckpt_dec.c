@@ -38,14 +38,12 @@ static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 static uns32 avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
@@ -118,9 +116,6 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
 	 * Messages to update independent fields.
 	 */
 
-	/* CB Async Update messages */
-	avsv_decode_ckpt_cb_cl_view_num,
-
 	/* AVND Async Update messages */
 	avsv_decode_ckpt_node_admin_state,
 	avsv_decode_ckpt_node_oper_state,
@@ -128,7 +123,6 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
 	avsv_decode_ckpt_node_state,
 	avsv_decode_ckpt_node_rcv_msg_id,
 	avsv_decode_ckpt_node_snd_msg_id,
-	avsv_decode_ckpt_node_avm_oper_state, // TODO remove
 
 	/* SG Async Update messages */
 	avsv_decode_ckpt_sg_admin_state,
@@ -786,45 +780,6 @@ static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_cb_cl_view_num
- *
- * Purpose:  Decode cluster view number.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-
-	TRACE_ENTER();
-
-	/* 
-	 * Action in this case is just to update. If action passed is add/rmv then log
-	 * error. Call EDU decode to decode this field.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &dec->i_uba,
-			      EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb, &ederror, 1, 3);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	/* If update is successful, update async update count */
-	cb->async_updt_cnt.cb_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
  * Function: avsv_decode_ckpt_node_up_info
  *
  * Purpose:  Decode avnd node up info.
@@ -1105,56 +1060,6 @@ static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	/* Update the fields received in this checkpoint message */
 	avnd_struct->snd_msg_id = avnd_ptr->snd_msg_id;
-
-	cb->async_updt_cnt.node_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_node_avm_oper_state
- *
- * Purpose:  Decode avnd avm oper state info.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = 0;
-	AVD_AVND *avnd_struct;
-
-	TRACE_ENTER();
-
-	avnd_ptr = &dec_avnd;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 14);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	avnd_struct->avm_oper_state = avnd_ptr->avm_oper_state;
 
 	cb->async_updt_cnt.node_updt++;
 

@@ -65,271 +65,60 @@ static AVD_CL_CB _avd_cb;
 /* A handy global reference to the control block */
 AVD_CL_CB *avd_cb = &_avd_cb;
 
-/*****************************************************************************
- * Function: avd_hb_proc 
- *
- * Purpose: This is the infinite loop (for hb_thread) in which both the active
- * and standby AvDs execute waiting for heartbeat events to happen. When woken
- * up due to an event, based on the HA state it moves to either the active
- * or standby processing modules. Even in Init state the same arrays are used.
- *
- * Input: -
- *
- * Returns: NONE.
- *
- * NOTES: This function will never return execept in case of init errors.
- *
- * 
- **************************************************************************/
-
-static void avd_hb_proc(uns32 *null)
-{
-	struct pollfd fds[1];
-	AVD_CL_CB *cb = avd_cb;
-	AVD_EVT *evt;
-	NCS_SEL_OBJ mbx_fd;
-
-	TRACE_ENTER();
-
-	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_hb_mbx);
-
-	fds[0].fd = mbx_fd.rmv_obj;
-	fds[0].events = POLLIN;
-
-	while (1) {
-		int ret = poll(fds, 1, -1);
-
-		if (ret == -1) {
-			if (errno == EINTR)
-				continue;
-
-			LOG_ER("AVD-HB poll failed - %s", strerror(errno));
-			break;
-		}
-
-		if (fds[0].revents & POLLIN) {
-			evt = (AVD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->avd_hb_mbx, msg);
-
-			if ((evt != AVD_EVT_NULL) && (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
-				/* We will get only timer expiry and MDS msg  */
-				if ((evt->rcv_evt == AVD_EVT_TMR_SND_HB) || (evt->rcv_evt == AVD_EVT_D_HB)) {
-					/* Process the event */
-					avd_process_hb_event(cb, evt);
-				} else
-					LOG_ER("Invalid event: %u", evt->rcv_evt);
-			}
-		}
-	}
-
-	syslog(LOG_CRIT, "Avd-HB Thread Failed");
-	sleep(3);		/* Allow logs to be printed */
-	exit(EXIT_FAILURE);
-}
-
-/*****************************************************************************
- * Function: avd_hb_task_create 
- *
- * Purpose: This routine will create another thread which has another mailbox
- *          and will process only AVD-AVD heart beat msg.
- *
- * Returns: None. 
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static int avd_hb_task_create()
-{
-	void *avd_hb_task_hdl;
-
-	/* create and start the AvD HB thread */
-	if (m_NCS_TASK_CREATE((NCS_OS_CB) avd_hb_proc,
-			      NULL,
-			      NCS_AVD_HB_NAME_STR,
-			      NCS_AVD_HB_PRIORITY, NCS_AVD_HB_STCK_SIZE, &avd_hb_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("task create FAILED");
-		return -1;
-	}
-
-	if (m_NCS_TASK_START(avd_hb_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("task start FAILED");
-		return -1;
-	}
-
-	return 0;
-}
-
 /**
- * Callback from RDA. Post a messageto the AVD mailbox.
+ * Callback from RDA. Post a message to the AVD mailbox.
  * @param notused
  * @param cb_info
  * @param error_code
  */
 static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
 {
-	uns32 rc;
-	AVD_EVT *evt;
-
 	(void) notused;
 
 	TRACE_ENTER();
 
-	evt = malloc(sizeof(AVD_EVT));
-	assert(evt);
-	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
-	evt->info.avd_msg = malloc(sizeof(AVD_D2D_MSG));
-	evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
-	evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_FAIL_OVER;
-	evt->info.avd_msg->msg_info.d2d_chg_role_req.role = cb_info->info.io_role;
+	if (((avd_cb->avail_state_avd == SA_AMF_HA_STANDBY) ||
+	     (avd_cb->avail_state_avd == SA_AMF_HA_QUIESCED)) &&
+	    (cb_info->info.io_role == PCS_RDA_ACTIVE)) {
 
-	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
-	assert(rc == NCSCC_RC_SUCCESS);
+		uns32 rc;
+		AVD_EVT *evt;
+
+		evt = malloc(sizeof(AVD_EVT));
+		if (evt == NULL) {
+			LOG_ER("malloc failed");
+			assert(0);
+		}
+		evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
+		evt->info.avd_msg = malloc(sizeof(AVD_D2D_MSG));
+		if (evt->info.avd_msg == NULL) {
+			LOG_ER("malloc failed");
+			assert(0);
+		}
+		evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
+		evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_FAIL_OVER;
+		evt->info.avd_msg->msg_info.d2d_chg_role_req.role = cb_info->info.io_role;
+
+		rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+		assert(rc == NCSCC_RC_SUCCESS);
+	} else
+		TRACE("Ignoring change from %u to %u", avd_cb->avail_state_avd, cb_info->info.io_role);
+
+	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_init_proc
- *
- * Purpose: This is AvD thread initializtion.
- *
- * Input: -
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES:
- *
+/**
+ * Initialize everything...
  * 
- **************************************************************************/
-static uns32 avd_init_proc(void)
-{
-	AVD_CL_CB *cb = avd_cb;
-	NCS_PATRICIA_PARAMS patricia_params;
-	int rc = NCSCC_RC_FAILURE;
-	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
-	SaAmfHAStateT role;
-
-	TRACE_ENTER();
-
-	memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-	/* Initialize all the locks and trees in the CB */
-
-	if (NCSCC_RC_FAILURE == m_AVD_CB_LOCK_INIT(cb)) {
-		LOG_ER("cb lock init FAILED");
-		goto done;
-	}
-
-	if (NCSCC_RC_FAILURE == m_AVD_CB_AVND_TBL_LOCK_INIT(cb)) {
-		LOG_ER("tbl lock init FAILED");
-		goto done;
-	}
-
-	cb->init_state = AVD_INIT_BGN;
-	cb->rcv_hb_intvl = AVSV_RCV_HB_INTVL;
-	cb->snd_hb_intvl = AVSV_SND_HB_INTVL;
-	cb->swap_switch = SA_FALSE;
-	cb->stby_sync_state = AVD_STBY_IN_SYNC;
-	cb->sync_required = TRUE;
-	cb->avd_hrt_beat_rcvd = FALSE;
-
-	patricia_params.key_size = sizeof(SaClmNodeIdT);
-	if (ncs_patricia_tree_init(&cb->node_list, &patricia_params) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_patricia_tree_init FAILED");
-		goto done;
-	}
-
-	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
-	if (ncs_patricia_tree_init(&cb->si_dep.spons_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_patricia_tree_init FAILED");
-		goto done;
-	}
-
-	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
-	if (ncs_patricia_tree_init(&cb->si_dep.dep_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_patricia_tree_init FAILED");
-		goto done;
-	}
-
-	/* Initialise MDS */
-	if (avd_mds_reg_def(cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_mds_reg_def FAILED");
-		goto done;
-	}
-
-	/* get the node id of the node on which the AVD is running. */
-	cb->node_id_avd = m_NCS_GET_NODE_ID;
-
-	/* Initialise MDS */
-	if (avd_mds_reg(cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_mds_reg FAILED");
-		goto done;
-	}
-
-	if (NCSCC_RC_FAILURE == avsv_mbcsv_register(cb)) {
-		LOG_ER("avsv_mbcsv_register FAILED");
-		goto done;
-	}
-
-	if (avd_clm_init() != SA_AIS_OK) {
-		LOG_EM("avd_clm_init FAILED");
-		goto done;
-	}
-
-	if (avd_imm_init(cb) != SA_AIS_OK) {
-		LOG_ER("avd_imm_init FAILED");
-		goto done;
-	}
-
-	if (avd_hb_task_create() != 0)
-		goto done;
-
-	if ((rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion)) != SA_AIS_OK) {
-		LOG_ER("saNtfInitialize Failed (%u)", rc);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
-	if ((rc = rda_get_role(&role)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("rda_get_role FAILED");
-		goto done;
-	}
-
-	if ((rc = avd_init_role_set(cb, role)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_init_role_set FAILED");
-		goto done;
-	}
-
-	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("rda_register_callback FAILED %u", rc);
-		goto done;
-	}
-
-	rc = NCSCC_RC_SUCCESS;
-
- done:
-	TRACE_LEAVE2("%u", rc);
-	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_initialize
- *
- * Purpose: This is the routine that does the creation and starting of
- * AvD task/thread.
- * 
- *
- * Input: -
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
+ * @return uns32 NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ */
 uns32 avd_initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
+	NCS_PATRICIA_PARAMS patricia_params = {0};
+	int rc = NCSCC_RC_FAILURE;
+	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+	SaAmfHAStateT role;
 
 	TRACE_ENTER();
 
@@ -368,30 +157,87 @@ uns32 avd_initialize(void)
 
 	if (ncs_ipc_create(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_ipc_create FAILED");
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	if (ncs_ipc_attach(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_ipc_attach FAILED");
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
-	/* create a mailbox for heart beat thread. */
-	if (ncs_ipc_create(&cb->avd_hb_mbx) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_ipc_create FAILED");
-		return NCSCC_RC_FAILURE;
+	cb->init_state = AVD_INIT_BGN;
+	cb->swap_switch = SA_FALSE;
+	cb->stby_sync_state = AVD_STBY_IN_SYNC;
+	cb->sync_required = TRUE;
+
+	patricia_params.key_size = sizeof(SaClmNodeIdT);
+	if (ncs_patricia_tree_init(&cb->node_list, &patricia_params) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_patricia_tree_init FAILED");
+		goto done;
 	}
 
-	if (ncs_ipc_attach(&cb->avd_hb_mbx) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_ipc_attach FAILED");
-		return NCSCC_RC_FAILURE;
+	/* get the node id of the node on which the AVD is running. */
+	cb->node_id_avd = m_NCS_GET_NODE_ID;
+
+	if (avd_mds_init(cb) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_mds_init FAILED");
+		goto done;
 	}
 
-	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_init_proc failed");
-		return NCSCC_RC_FAILURE;
+	if (NCSCC_RC_FAILURE == avsv_mbcsv_register(cb)) {
+		LOG_ER("avsv_mbcsv_register FAILED");
+		goto done;
 	}
 
+	if (avd_clm_init() != SA_AIS_OK) {
+		LOG_EM("avd_clm_init FAILED");
+		goto done;
+	}
+
+	if (avd_imm_init(cb) != SA_AIS_OK) {
+		LOG_ER("avd_imm_init FAILED");
+		goto done;
+	}
+
+	if ((rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion)) != SA_AIS_OK) {
+		LOG_ER("saNtfInitialize Failed (%u)", rc);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if ((rc = rda_get_role(&role)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
+
+	cb->avail_state_avd = role;
+
+	if (NCSCC_RC_SUCCESS != avd_mds_set_vdest_role(cb, role)) {
+		LOG_ER("avd_mds_set_vdest_role FAILED");
+		goto done;
+	}
+
+	if (NCSCC_RC_SUCCESS != avsv_set_ckpt_role(cb, role)) {
+		LOG_ER("avsv_set_ckpt_role FAILED");
+		goto done;
+	}
+
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
+		goto done;
+	}
+
+	if (role == SA_AMF_HA_ACTIVE) {
+		rc = avd_active_role_initialization(cb, role);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("avd_active_role_initialization FAILED");
+			goto done;
+		}
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+done:
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	return rc;
 }
+

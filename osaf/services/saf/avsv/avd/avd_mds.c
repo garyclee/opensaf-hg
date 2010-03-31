@@ -44,42 +44,12 @@
 
 const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] =
     { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2 };
-const MDS_CLIENT_MSG_FORMAT_VER avd_avm_msg_fmt_map_table[AVD_AVM_SUBPART_VER_MAX] = { AVSV_AVD_AVM_MSG_FMT_VER_1 };
 const MDS_CLIENT_MSG_FORMAT_VER avd_avd_msg_fmt_map_table[AVD_AVD_SUBPART_VER_MAX] = { AVD_AVD_MSG_FMT_VER_1 };
 
 /* fwd decl */
 
 static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info);
 static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info);
-
-/****************************************************************************
-  Name          : avd_mds_reg_def
- 
-  Description   : This routine registers the AVD role Service with MDS on the
-                  default Aaddress.
- 
-  Arguments     : cb - ptr to the AVD control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avd_mds_reg_def(AVD_CL_CB *cb)
-{
-	uns32 rc;
-	EDU_ERR err = EDU_NORMAL;
-
-	/* Initialise the EDU to be used with MDS */
-	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
-
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("m_NCS_EDU_COMPILE_EDP failed");
-		m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-		return rc;
-	}
-	return NCSCC_RC_SUCCESS;
-}
 
 /****************************************************************************
   Name          : avd_mds_set_vdest_role
@@ -112,25 +82,32 @@ uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
 	return NCSCC_RC_SUCCESS;
 }
 
-/****************************************************************************
-  Name          : avd_mds_reg
- 
-  Description   : This routine registers the AVD Service with MDS with the 
-  AVDs Vaddress. 
- 
-  Arguments     : cb - ptr to the AVD control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avd_mds_reg(AVD_CL_CB *cb)
+/**
+ * Initialize MDS. Compile the EDP, create vdest, install svc id on vdest, subscribe, ...
+ * @param cb
+ * 
+ * @return uns32
+ */
+uns32 avd_mds_init(AVD_CL_CB *cb)
 {
 	NCSVDA_INFO vda_info;
 	NCSMDS_INFO svc_to_mds_info;
 	MDS_SVC_ID svc_id[1];
 	uns32 rc;
 	NCSADA_INFO ada_info;
+	EDU_ERR err = EDU_NORMAL;
+
+	TRACE_ENTER();
+
+	/* Initialise the EDU to be used with MDS */
+	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
+
+	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("m_NCS_EDU_COMPILE_EDP failed");
+		m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
+		return rc;
+	}
 
 	/* prepare the cb with the vaddress */
 	m_NCS_SET_VDEST_ID_IN_MDS_DEST(cb->vaddr, AVSV_AVD_VCARD_ID);
@@ -204,7 +181,6 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 
 	/* Store values returned by ADA */
 	cb->adest_hdl = ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
-	cb->avm_mds_dest = ada_info.info.adest_get_hdls.o_adest;
 
 	/* Install on mds ADEST */
 	svc_to_mds_info.i_mds_hdl = cb->adest_hdl;
@@ -240,6 +216,7 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -417,12 +394,6 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 	switch (evt_info->i_change) {
 	case NCSMDS_UP:
 		switch (evt_info->i_svc_id) {
-		case NCSMDS_SVC_ID_AVM:
-			if (m_NCS_MDS_DEST_EQUAL(&cb->avm_mds_dest, &evt_info->i_dest)) {
-				cb->avm_mds_dest = evt_info->i_dest;
-			}
-			break;
-
 		case NCSMDS_SVC_ID_AVD:
 			/* if((Is this up from other node) && (Is this Up from an Adest)) */
 			if ((evt_info->i_node_id != cb->node_id_avd) && (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))) {
@@ -434,7 +405,6 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 		case NCSMDS_SVC_ID_AVND:
 			break;
 
-		case NCSMDS_SVC_ID_BAM:
 		default:
 			assert(0);
 		}
@@ -442,20 +412,12 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 
 	case NCSMDS_DOWN:
 		switch (evt_info->i_svc_id) {
-		case NCSMDS_SVC_ID_AVM:
-			if (m_NCS_MDS_DEST_EQUAL(&cb->avm_mds_dest, &evt_info->i_dest)) {
-				memset(&cb->avm_mds_dest, 0, sizeof(MDS_DEST));
-			}
-			break;
-
 		case NCSMDS_SVC_ID_AVD:
-
 			/* if(Is this down from an Adest) && (Is this adest same as Adest in CB) */
 			if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest)
 			    && m_NCS_MDS_DEST_EQUAL(&evt_info->i_dest, &cb->other_avd_adest)) {
 				memset(&cb->other_avd_adest, '\0', sizeof(MDS_DEST));
 			}
-			/* cb->node_id_avd_other should not be made 0, because heart beat loss message to AvM relies on this field -  */
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
@@ -464,7 +426,6 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 				ncs_reboot("avnd down");
 			break;
 
-		case NCSMDS_SVC_ID_BAM:
 		default:
 			assert(0);
 		}
@@ -554,3 +515,70 @@ uns32 avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 
 	return rc;
 }
+
+/*****************************************************************************
+ * Function: avd_mds_avd_up_evh
+ *
+ * Purpose:  This function is the handler for the other AvD up event from
+ * mds. The function right now is just a place holder.
+ *
+ * Input:
+ *
+ * Returns:
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+
+void avd_mds_avd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+        TRACE_ENTER();
+}
+
+/*****************************************************************************
+ * Function: avd_mds_avd_down_evh
+ *
+ * Purpose:  This function is the handler for the standby AvD down event from
+ * mds. This function will issue restart request to HPI to restart the
+ * system controller card on which the standby is running. It then marks the
+ * node director on that card as down and migrates all the Service instances
+ * to other inservice SUs. It works similar to avd_tmr_rcv_hb_d_evh.
+ *
+ * Input:
+ *
+ * Returns:
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+
+void avd_mds_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+        TRACE_ENTER();
+}
+
+/*****************************************************************************
+ * Function: avd_standby_avd_down_evh
+ *
+ * Purpose:  This function is the handler for the active AvD down event from
+ * mds. This function will issue restart request to HPI to restart the
+ * system controller card on which the active is running. It then marks the
+ * node director on that card as down and migrates all the Service instances
+ * to other inservice SUs. It works similar to avd_standby_tmr_rcv_hb_d_evh.
+ *
+ * Input:
+ *
+ * Returns:
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+
+void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+        TRACE_ENTER();
+}
+

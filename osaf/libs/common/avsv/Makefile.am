@@ -34,7 +34,6 @@ libavsv_common_la_SOURCES = \
 	avsv_n2avamsg.c \
 	avsv_n2avaedu.c \
 	avsv_util.c \
-	avsv_eduutil.c \
-	avm_avd_mem.c
+	avsv_eduutil.c 
 
 libavsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

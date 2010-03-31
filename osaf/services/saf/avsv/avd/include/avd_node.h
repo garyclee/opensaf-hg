@@ -110,11 +110,6 @@ typedef struct avd_avnd_tag {
 
    /************ AMF B.04 **************************************************/
 
-	SaNameT hpi_entity_path;	/* The entity path of the HPI entity that
-					   implements the CLM node */
-
-	SaAmfOperationalStateT avm_oper_state;	/* operation state of the node */
-
 	AVD_AVND_STATE node_state;	/* F.S.M state of the AVND 
 					 * Checkpointing - Sent independent update 
 					 */
@@ -142,11 +137,8 @@ typedef struct avd_avnd_tag {
 				 */
 
 	struct avd_avnd_tag *cluster_list_node_next;
-	struct avd_cluster_tag *node_on_cluster;
+	struct avd_cluster_tag *cluster;
 	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
-	bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
-
 } AVD_AVND;
 
 typedef struct avd_ng_tag {

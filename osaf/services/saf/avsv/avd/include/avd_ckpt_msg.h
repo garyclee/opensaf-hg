@@ -61,17 +61,13 @@ typedef enum avsv_ckpt_msg_reo_type {
 	 * Messages to update independent fields.
 	 */
 
-	/* CB Async Update messages */
-	AVSV_CKPT_CB_CL_VIEW_NUM = AVSV_COLD_SYNC_UPDT_MAX,
-
 	/* AVND Async Update messages */
-	AVSV_CKPT_AVND_ADMIN_STATE,
+	AVSV_CKPT_AVND_ADMIN_STATE = AVSV_COLD_SYNC_UPDT_MAX,
 	AVSV_CKPT_AVND_OPER_STATE,
 	AVSV_CKPT_AVND_NODE_UP_INFO,
 	AVSV_CKPT_AVND_NODE_STATE,
 	AVSV_CKPT_AVND_RCV_MSG_ID,
 	AVSV_CKPT_AVND_SND_MSG_ID,
-	AVSV_CKPT_AVND_AVM_OPER_STATE,
 
 	/* SG Async Update messages */
 	AVSV_CKPT_SG_ADMIN_STATE,

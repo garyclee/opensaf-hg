@@ -35,7 +35,6 @@
 #define AVD_EVT_H
 
 #include <avsv_ipc.h>
-#include <avm_avd.h>
 #include <avd_util.h>
 
 /* event type enums */
@@ -54,10 +53,7 @@ typedef enum avd_evt_type {
 	AVD_EVT_VERIFY_ACK_NACK_MSG,
 	AVD_EVT_COMP_VALIDATION_MSG,
 	AVD_EVT_MSG_MAX,
-	AVD_EVT_TMR_SND_HB = AVD_EVT_MSG_MAX,
-	AVD_EVT_TMR_RCV_HB_D,
-	AVD_EVT_TMR_RCV_HB_INIT,
-	AVD_EVT_TMR_CL_INIT,
+	AVD_EVT_TMR_CL_INIT = AVD_EVT_MSG_MAX,
 	AVD_EVT_TMR_SI_DEP_TOL,
 	AVD_EVT_TMR_MAX,
 	AVD_EVT_MDS_AVD_UP = AVD_EVT_TMR_MAX,
@@ -66,12 +62,7 @@ typedef enum avd_evt_type {
 	AVD_EVT_MDS_AVND_DOWN,
 	AVD_EVT_MDS_QSD_ACK,
 	AVD_EVT_MDS_MAX,
-	AVD_EVT_ND_SHUTDOWN = AVD_EVT_MDS_MAX,
-	AVD_EVT_ND_FAILOVER,
-	AVD_EVT_FAULT_DMN_RSP,
-	AVD_EVT_ND_RESET_RSP,
-	AVD_EVT_ND_OPER_ST,
-	AVD_EVT_ROLE_CHANGE,
+	AVD_EVT_ROLE_CHANGE = AVD_EVT_MDS_MAX,
 	AVD_EVT_SWITCH_NCS_SU,
 	AVD_EVT_D_HB,
 	AVD_EVT_SI_DEP_STATE,
@@ -87,7 +78,6 @@ typedef struct avd_evt_tag {
 		AVD_DND_MSG *avnd_msg;
 		AVD_D2D_MSG *avd_msg;
 		AVD_TMR tmr;
-		AVM_AVD_MSG_T *avm_msg;
 	} info;
 
 } AVD_EVT;

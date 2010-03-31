@@ -103,6 +103,9 @@ void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 
 void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state)
 {
+	if (comp->saAmfCompReadinessState == readiness_state)
+		return;
+
 	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value,
@@ -342,19 +345,33 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	}
 }
 
+/**
+ * Add comp to model
+ * @param comp
+ */
 static void comp_add_to_model(AVD_COMP *comp)
 {
+	SaNameT dn;
 	AVD_COMP *i_comp = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 	NCS_BOOL isPre;
 
-        if ((avd_comp_get(&comp->comp_info.name) != NULL)  && (TRUE == comp->add_to_model)) {
-                /* Means the it has been added into db and links with other objects alraedy created. */
-                return;
-        }
+	TRACE_ENTER2("%s", comp->comp_info.name.value);
+
+	/* Check parent link to see if it has been added already */
+	if (comp->su != NULL) {
+		TRACE("already added");
+		goto done;
+	}
+
+	avsv_sanamet_init(&comp->comp_info.name, &dn, "safSu");
+	comp->su = avd_su_get(&dn);
+
 	avd_comp_db_add(comp);
-	avd_su_add_comp(comp);
+	comp->comp_type = avd_comptype_get(&comp->saAmfCompType);
+	assert(comp->comp_type);
 	avd_comptype_add_comp(comp);
+	avd_su_add_comp(comp);
 
 	/* check if the
 	 * corresponding node is UP send the component information
@@ -444,7 +461,9 @@ static void comp_add_to_model(AVD_COMP *comp)
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
-        comp->add_to_model = TRUE;
+
+done:
+	TRACE_LEAVE();
 }
 
 /**
@@ -643,7 +662,6 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	char *cmd_argv;
 	const char *str;
 	const AVD_COMP_TYPE *comptype;
-	SaNameT su_name;
 	SaAisErrorT error;
 
 	TRACE_ENTER2("'%s'", dn->value);
@@ -652,22 +670,20 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((NULL == (comp = avd_comp_get(dn))) &&
-	    (((comp = avd_comp_new(dn)) == NULL)))
-	    goto done;
-
-	avsv_sanamet_init(dn, &su_name, "safSu=");
-	comp->su = avd_su_get(&su_name);
+	if (NULL == (comp = avd_comp_get(dn))) {
+		if ((comp = avd_comp_new(dn)) == NULL)
+			goto done;
+	}
+	else
+		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
 	assert(error == SA_AIS_OK);
 
-	if ((comp->comp_type = avd_comptype_get(&comp->saAmfCompType)) == NULL) {
-		LOG_ER("Get '%s' FAILED for '%s'", comp->saAmfCompType.value, dn->value);
+	if ((comptype = avd_comptype_get(&comp->saAmfCompType)) == NULL) {
+		LOG_ER("saAmfCompType '%s' does not exist", comp->saAmfCompType.value);
 		goto done;
 	}
-
-	comptype = comp->comp_type;
 
 	/*  TODO clean this up! */
 	comp->comp_info.category = comp_category_to_ncs(comptype->saAmfCtCompCategory);

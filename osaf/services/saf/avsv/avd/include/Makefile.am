@@ -20,9 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
    avd_app.h \
-   avd_avm.h \
    avd_node.h \
-   avd_bam.h \
    avd_cb.h \
    avd_ckp.h \
    avd_ckpt_edu.h \
@@ -36,7 +34,6 @@ noinst_HEADERS = \
    avd_def.h \
    avd_evt.h \
    avd.h \
-   avd_hb.h \
    avd_hlt.h \
    avd_imm.h \
    avd_logstr.h \

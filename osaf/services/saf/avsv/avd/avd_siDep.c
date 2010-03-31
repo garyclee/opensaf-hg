@@ -59,6 +59,8 @@ static void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_d
 static uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
 static void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
 
+static AVD_SI_DEP si_dep; /* SI-SI dependency data */
+
 /*****************************************************************************
  * Function: avd_check_si_state_enabled 
  *
@@ -400,13 +402,13 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 		memcpy(dep_indx.si_name_prim.value, spons_indx.si_name_sec.value,
 		       spons_indx.si_name_sec.length);
 
-		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_imm)
+		if (ncs_patricia_tree_del(&si_dep.spons_anchor, &rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			/* LOG the message */
 		}
 
 		if ((rec = avd_si_si_dep_find(cb, &dep_indx, FALSE)) != NULL) {
-			if (ncs_patricia_tree_del(&cb->si_dep.dep_anchor, &rec->tree_node)
+			if (ncs_patricia_tree_del(&si_dep.dep_anchor, &rec->tree_node)
 			    != NCSCC_RC_SUCCESS) {
 				/* log error */
 				return;
@@ -1048,17 +1050,17 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	rec->tree_node.left = NCS_PATRICIA_NODE_NULL;
 	rec->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
-	if (ncs_patricia_tree_add(&cb->si_dep.spons_anchor, &rec->tree_node_imm)
+	if (ncs_patricia_tree_add(&si_dep.spons_anchor, &rec->tree_node_imm)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
 		free(rec);
 		return NULL;
 	}
 
-	if (ncs_patricia_tree_add(&cb->si_dep.dep_anchor, &rec->tree_node)
+	if (ncs_patricia_tree_add(&si_dep.dep_anchor, &rec->tree_node)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
-		ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_imm);
+		ncs_patricia_tree_del(&si_dep.spons_anchor, &rec->tree_node_imm);
 		free(rec);
 		return NULL;
 	}
@@ -1089,9 +1091,9 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_B
 	TRACE_ENTER();
 
 	if (isImmIdx) {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&cb->si_dep.spons_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.spons_anchor, (uns8 *)indx);
 	} else {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&cb->si_dep.dep_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&si_dep.dep_anchor, (uns8 *)indx);
 		if (rec != NULL) {
 			/* Adjust the pointer */
 			rec = (AVD_SI_SI_DEP *)(((char *)rec)
@@ -1126,9 +1128,9 @@ AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, 
 	TRACE_ENTER();
 
 	if (isImmIdx) {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&cb->si_dep.spons_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.spons_anchor, (uns8 *)indx);
 	} else {
-		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&cb->si_dep.dep_anchor, (uns8 *)indx);
+		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&si_dep.dep_anchor, (uns8 *)indx);
 		if (rec != NULL) {
 			/* Adjust the pointer */
 			rec = (AVD_SI_SI_DEP *)(((char *)rec)
@@ -1164,7 +1166,7 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 		return NCSCC_RC_FAILURE;
 
 	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx, FALSE)) != NULL) {
-		if (ncs_patricia_tree_del(&cb->si_dep.dep_anchor, &si_dep_rec->tree_node)
+		if (ncs_patricia_tree_del(&si_dep.dep_anchor, &si_dep_rec->tree_node)
 		    != NCSCC_RC_SUCCESS) {
 			/* log error */
 			return NCSCC_RC_FAILURE;
@@ -1174,7 +1176,7 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 	si_dep_rec = NULL;
 
 	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_imm, TRUE)) != NULL) {
-		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &si_dep_rec->tree_node_imm)
+		if (ncs_patricia_tree_del(&si_dep.spons_anchor, &si_dep_rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			/* log error */
 			return NCSCC_RC_FAILURE;
@@ -1472,5 +1474,15 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_sidep_constructor(void)
 {
+	unsigned int rc;
+	NCS_PATRICIA_PARAMS patricia_params = {0};
+
+	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
+	rc = ncs_patricia_tree_init(&si_dep.spons_anchor, &patricia_params);
+	assert(rc == NCSCC_RC_SUCCESS);
+	rc = ncs_patricia_tree_init(&si_dep.dep_anchor, &patricia_params);
+	assert(rc == NCSCC_RC_SUCCESS);
+
 	avd_class_impl_set("SaAmfSIDependency", NULL, NULL, sidep_ccb_completed_cb, sidep_ccb_apply_cb);
 }
+

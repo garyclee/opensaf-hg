@@ -171,7 +171,7 @@ void avd_si_delete(AVD_SI **si)
 {
 	unsigned int rc;
 
-	avd_app_remove_si((*si)->si_on_app, *si);
+	avd_app_remove_si((*si)->app, *si);
 	avd_sg_remove_si((*si)->sg_of_si, *si);
 	rc = ncs_patricia_tree_del(&si_db, &(*si)->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
@@ -212,37 +212,38 @@ AVD_SI *avd_si_getnext(const SaNameT *dn)
 
 static void si_add_to_model(AVD_SI *si)
 {
-	AVD_APP *app;
-	SaNameT app_name = {0};
-	char *p;
+	SaNameT dn;
 
-        if ((avd_si_get(&si->name) != NULL)  && (TRUE == si->added_to_model)) {
-                /* Means the it has been added into db and links with other objects alraedy created. */
-                return;
-        }
+	TRACE_ENTER2("%s", si->name.value);
+
+	/* Check parent link to see if it has been added already */
+	if (si->svc_type != NULL) {
+		TRACE("already added");
+		goto done;
+	}
+
+	avsv_sanamet_init(&si->name, &dn, "safApp");
+	si->app = avd_app_get(&dn);
+
 	avd_si_db_add(si);
 
-	p = strstr((char*)si->name.value, "safApp");
-	app_name.length = strlen(p);
-	memcpy(app_name.value, p, app_name.length);
-	app = avd_app_get(&app_name);
-	si->si_on_app = app;
-
-	si->si_on_svc_type = avd_svctype_get(&si->saAmfSvcType);
+	si->svc_type = avd_svctype_get(&si->saAmfSvcType);
 
 	if (si->saAmfSIProtectedbySG.length > 0)
 		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
 
 	/* Add SI to SvcType */
-	si->si_list_svc_type_next = si->si_on_svc_type->list_of_si;
-	si->si_on_svc_type->list_of_si = si;
+	si->si_list_svc_type_next = si->svc_type->list_of_si;
+	si->svc_type->list_of_si = si;
 
-	avd_app_add_si(si->si_on_app, si);
+	avd_app_add_si(si->app, si);
 	avd_sg_add_si(si->sg_of_si, si);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-	si->added_to_model = TRUE;
 	avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 		SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+
+done:
+	TRACE_LEAVE();
 }
 
 /**
@@ -324,7 +325,8 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	if (NULL == (si = avd_si_get(si_name))) {
 		if ((si = avd_si_new(si_name)) == NULL)
 			goto done;
-	}
+	} else
+		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfSvcType", attributes, 0, &si->saAmfSvcType);
 	assert(error == SA_AIS_OK);
@@ -871,7 +873,7 @@ static void si_update_ass_state(AVD_SI *si)
 	if (si->saAmfSINumCurrActiveAssignments == 0)
 		newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 	else {
-		switch (si->sg_of_si->sg_on_sg_type->saAmfSgtRedundancyModel) {
+		switch (si->sg_of_si->sg_type->saAmfSgtRedundancyModel) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
 			/* fall through */
 		case SA_AMF_NPM_REDUNDANCY_MODEL:

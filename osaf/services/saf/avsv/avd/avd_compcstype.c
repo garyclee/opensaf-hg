@@ -70,16 +70,13 @@ void avd_compcstype_delete(AVD_COMPCS_TYPE **cst)
 
 static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 {
-        if (((avd_compcstype_get(&cst->name)) != NULL)  && (TRUE == cst->added_to_model)) {
-                /* Means the it has been added into db and links with other objects alraedy created. */
-                return;
-        }
-	avd_compcstype_db_add(cst);
-
-	/* add to list in comp */
-	cst->comp_list_compcstype_next = cst->comp->compcstype_list;
-	cst->comp->compcstype_list = cst;
-        cst->added_to_model = TRUE;
+	/* Check comp link to see if it has been added already */
+	if (cst->comp == NULL) {
+		SaNameT dn;
+		avd_compcstype_db_add(cst);
+		avsv_sanamet_init(&cst->name, &dn, "safComp=");
+		cst->comp = avd_comp_get(&dn);
+	}
 }
 
 /*****************************************************************************
@@ -237,7 +234,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 		goto done;
 
 	avsv_sanamet_init(dn, &comp_name, "safComp=");
-	comp = compcstype->comp = avd_comp_get(&comp_name);
+	comp = avd_comp_get(&comp_name);
 
 	p = strchr(cstype_name, ',') + 1;
 	p = strchr(p, ',');
