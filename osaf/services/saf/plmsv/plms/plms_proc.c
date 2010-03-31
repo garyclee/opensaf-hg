@@ -1250,7 +1250,7 @@ void plms_process_grp_rem_evt(PLMS_EVT *plm_evt)
 	
 		}
 		if(!tmp_entity){
-			LOG_ER("The entity %s Does not exist", tmp_entity->plm_entity->dn_name.value);
+			LOG_ER("The entity %s Does not exist", key_dn->value);
 			rc = SA_AIS_ERR_NOT_EXIST;
 			goto send_resp;
 		}
