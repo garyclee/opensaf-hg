@@ -12,6 +12,7 @@
 			<name>saAmfClusterClmCluster</name>
 			<type>SA_NAME_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfClusterStartupTimeout</name>
@@ -206,6 +207,7 @@
 			<name>saAmfSGSuHostNodeGroup</name>
 			<type>SA_NAME_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfSGAutoRepair</name>
@@ -417,6 +419,7 @@
 			<name>saAmfSUHostNodeOrNodeGroup</name>
 			<type>SA_NAME_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfSUFailover</name>
@@ -517,6 +520,7 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_MULTI_VALUE</flag>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 	</class>
 	<class name="SaAmfSUBaseType">
@@ -1181,11 +1185,13 @@
 			<name>saAmfCompNumMaxActiveCSIs</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfCompNumMaxStandbyCSIs</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfCompNumCurrActiveCSIs</name>
