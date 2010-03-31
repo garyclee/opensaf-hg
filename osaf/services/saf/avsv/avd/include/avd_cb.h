@@ -41,7 +41,6 @@
 #include <mds_papi.h>
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
-#include <fm_papi.h>
 
 #include <avd_ckp.h>
 #include <avd_tmr.h>
@@ -253,8 +252,6 @@ typedef struct cl_cb_tag {
 	SaSelectionObjectT imm_sel_obj;
 	int is_implementer;
 
-	fmHandleT fm_hdl;
-	SaSelectionObjectT fm_sel_obj;
 	/* Clm stuff */
 	SaClmHandleT clmHandle;
 	SaSelectionObjectT clm_sel_obj;

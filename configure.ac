@@ -668,8 +668,6 @@ AC_CONFIG_FILES([
         osaf/libs/agents/Makefile
         osaf/libs/agents/infrastructure/Makefile
         osaf/libs/agents/infrastructure/dta/Makefile
-        osaf/libs/agents/infrastructure/fma/logstr/Makefile
-        osaf/libs/agents/infrastructure/fma/Makefile
         osaf/libs/agents/infrastructure/rda/Makefile
         osaf/libs/agents/saf/Makefile
         osaf/libs/agents/saf/ava/Makefile
@@ -759,7 +757,6 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/dtsv/dts/scripts/Makefile
         osaf/services/infrastructure/dtsv/dts/scripts/osaf-dtd
         osaf/services/infrastructure/fm/Makefile
-        osaf/services/infrastructure/fm/include/Makefile
         osaf/services/infrastructure/fm/fms/Makefile
         osaf/services/infrastructure/fm/config/Makefile
         osaf/services/infrastructure/fm/fms/scripts/Makefile

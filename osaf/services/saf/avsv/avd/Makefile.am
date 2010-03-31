@@ -27,7 +27,6 @@ osafamfd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/fm/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafamfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
@@ -99,5 +98,4 @@ osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/fma/libfma.la
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la 
