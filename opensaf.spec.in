@@ -1097,10 +1097,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_sysconfdir}/ld.so.conf.d/%{name}-%{_host_cpu}.conf
 %{_pkglibdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
-%{_pkglibdir}/libfma.so.*
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
-%{_pkglibdir}/libfma_logstr.so.*
 
 
 %files devel

@@ -304,11 +304,6 @@ static uns32 avd_init_proc(void)
 		goto done;
 	}
 
-	if ((rc = avd_fm_init()) != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_fm_init FAILED %u", rc);
-		goto done;
-	}
-
 	rc = NCSCC_RC_SUCCESS;
 
  done:

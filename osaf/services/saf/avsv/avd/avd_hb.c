@@ -119,8 +119,6 @@ static void avd_d2d_heartbeat_msg(AVD_CL_CB *cb)
 	   from peer AVD */
 
 	if (FALSE == cb->avd_hrt_beat_rcvd) {
-		avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatRestore);
-		/* message sent to AVM */
 		cb->avd_hrt_beat_rcvd = TRUE;
 	}
 
@@ -220,7 +218,6 @@ void avd_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
 	/* check if the node was undergoing shutdown, if so send shutdown response */
 	/*TODO*/
 
@@ -326,7 +323,6 @@ void avd_standby_tmr_rcv_hb_d_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Set the first heat beat variable to False */
 	cb->avd_hrt_beat_rcvd = FALSE;
 
-	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
 	TRACE_LEAVE();
 }
 

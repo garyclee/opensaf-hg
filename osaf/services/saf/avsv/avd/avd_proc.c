@@ -39,7 +39,6 @@
 enum {
 	FD_MBX = 0,
 	FD_MBCSV,
-	FD_FMA,
 	FD_CLM,
 	FD_IMM
 } AVD_FDS;
@@ -474,8 +473,6 @@ void avd_main_proc(void)
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
-	fds[FD_FMA].fd = cb->fm_sel_obj;
-	fds[FD_FMA].events = POLLIN;
 	fds[FD_CLM].fd = cb->clm_sel_obj;
 	fds[FD_CLM].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
@@ -618,11 +615,6 @@ void avd_main_proc(void)
 			}
 		}		/* End of if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN)  */
 
-		if (fds[FD_FMA].revents & POLLIN) {
-			TRACE("FM event rec");
-			if ((error = fmDispatch(avd_cb->fm_hdl, SA_DISPATCH_ONE)) != SA_AIS_OK)
-				LOG_ER("main: fmDispatch FAILED %u", error);
-		}
 	}
 
 	syslog(LOG_CRIT, "AVD Thread Failed");

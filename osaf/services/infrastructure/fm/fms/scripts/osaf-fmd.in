@@ -13,6 +13,7 @@
 ### END INIT INFO
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+nodeinfofile=@sysconfdir@/plmcd.conf
 prog="osaffmd"
 initscript=`basename $0`
 
@@ -25,9 +26,15 @@ if [ ! -r $osafdirfile ]; then
 else
 	. $osafdirfile
 	. $pkgsysconfdir/nid.conf
-	. $pkgsysconfdir/fmd.conf
 fi	
 
+if [ -f $nodeinfofile ]; then
+        ee_id=`grep -i safEE $nodeinfofile`
+        if [ $? -eq 0 ]; then
+        export EE_ID=$ee_id
+        fi
+fi
+         
 binary=$pkglibdir/$prog
 pidfile=$pkgpiddir/$prog.pid
 lockfile=$lockdir/$initscript
