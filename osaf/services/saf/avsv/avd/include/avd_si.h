@@ -101,16 +101,14 @@ typedef struct avd_si_tag {
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
 	struct avd_spons_si_tag *spons_si_list;
 	uns32 tol_timer_count;
-	struct avd_amf_svc_type_tag *si_on_svc_type;
+	struct avd_amf_svc_type_tag *svc_type;
 	struct avd_si_tag *si_list_svc_type_next;
-	struct avd_app_tag *si_on_app;
+	struct avd_app_tag *app;
 	struct avd_si_tag *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 
 	SaBoolT  si_swap_in_progress;
 	SaInvocationT invocation;
-        bool   added_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
 } AVD_SI;
 
 typedef struct avd_amf_svc_type_tag {

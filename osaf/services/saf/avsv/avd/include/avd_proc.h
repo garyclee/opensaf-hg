@@ -138,7 +138,6 @@ EXTERN_C void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 EXTERN_C void avd_fail_over_event(AVD_CL_CB *cb);
 EXTERN_C void avd_mds_avnd_down_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt);
-EXTERN_C void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 EXTERN_C void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 EXTERN_C void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 EXTERN_C void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd);
@@ -151,6 +150,9 @@ EXTERN_C void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_process_hb_event(AVD_CL_CB *cb_now, struct avd_evt_tag *evt);
+extern void avd_node_mark_absent(AVD_AVND *node);
+extern void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+extern void avd_chk_failover_shutdown_cxt(AVD_CL_CB *, AVD_AVND *, SaBoolT);
 
 
 #endif

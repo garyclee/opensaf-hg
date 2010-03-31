@@ -193,7 +193,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
                 notifItem = &notificationBuffer->notification[i];
 		if( (notifItem->clusterChange == SA_CLM_NODE_LEFT)||
 		    (notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN)) {
-			LOG_NO("Node has left the cluster '%s'",
+			TRACE("Node has left the cluster '%s'",
 					notifItem->clusterNode.nodeName.value);
 			/* you received clm node left indication process accordingly */
 			clm_node_left(notifItem->clusterNode.nodeId);	
@@ -225,7 +225,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			}
 		}
 		else
-			LOG_NO("clm_track_cb in COMPLETED::UNLOCK");
+			TRACE("clm_track_cb in COMPLETED::UNLOCK");
 	}
 
 done:

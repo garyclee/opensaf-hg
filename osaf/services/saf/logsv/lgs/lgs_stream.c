@@ -22,8 +22,6 @@
 #define LGS_LOG_FILE_EXT ".log"
 #define LGS_LOG_FILE_CONFIG_EXT ".cfg"
 
-extern struct ImmutilWrapperProfile immutilWrapperProfile;
-
 static NCS_PATRICIA_TREE stream_dn_tree;
 
 static log_stream_t **stream_array;

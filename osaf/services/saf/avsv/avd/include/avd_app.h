@@ -43,7 +43,6 @@ typedef struct avd_app_type_tag {
 } AVD_APP_TYPE;
 
 typedef struct avd_app_tag {
-
 	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
 	SaNameT saAmfAppType;
@@ -52,9 +51,7 @@ typedef struct avd_app_tag {
 	struct avd_sg_tag *list_of_sg;
 	struct avd_si_tag *list_of_si;
 	struct avd_app_tag *app_type_list_app_next;
-	struct avd_app_type_tag *app_on_app_type;
-        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
+	struct avd_app_type_tag *app_type;
 } AVD_APP;
 
 extern void avd_app_db_add(AVD_APP *app);
@@ -70,7 +67,7 @@ extern void avd_app_remove_sg(AVD_APP *app, struct avd_sg_tag *sg);
 extern SaAisErrorT avd_app_config_get(void);
 extern void avd_app_constructor(void);
 
-extern AVD_APP_TYPE *avd_apptype_find(const SaNameT *dn);
+extern AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn);
 extern void avd_apptype_add_app(AVD_APP *app);
 extern void avd_apptype_remove_app(AVD_APP *app);
 extern SaAisErrorT avd_apptype_config_get(void);

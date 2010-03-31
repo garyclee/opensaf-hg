@@ -36,7 +36,6 @@ osafamfd_SOURCES = \
 	amfd_main.c \
 	avd_app.c \
 	avd_apptype.c \
-	avd_avm.c \
 	avd.c \
 	avd_chkop.c \
 	avd_ckpt_dec.c \
@@ -54,7 +53,6 @@ osafamfd_SOURCES = \
 	avd_ctcstype.c \
 	avd_dblog.c \
 	avd_dmsg.c \
-	avd_hb.c \
 	avd_hlt.c \
 	avd_hlttype.c \
 	avd_imm.c \

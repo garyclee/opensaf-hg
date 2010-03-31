@@ -80,7 +80,6 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 	node->node_state = AVD_AVND_STATE_ABSENT;
 	node->node_info.member = SA_FALSE;
 	node->type = AVSV_AVND_CARD_PAYLOAD;
-	node->avm_oper_state = SA_AMF_OPERATIONAL_ENABLED;
 
 	return node;
 }
@@ -98,14 +97,21 @@ void avd_node_delete(AVD_AVND **node)
 
 static void node_add_to_model(AVD_AVND *node)
 {
-	if ((avd_node_get(&node->node_info.nodeName) != NULL)  && (TRUE == node->add_to_model)){
-		/* Means the node has been added into db and links with other objects alraedy created. */
-		return;
+	TRACE_ENTER2("%s", node->node_info.nodeName.value);
+
+	/* Check parent link to see if it has been added already */
+	if (node->cluster != NULL) {
+		TRACE("already added");
+		goto done;
 	}
+
+	node->cluster = avd_cluster;
+
 	avd_node_db_add(node);
-	avd_node_add_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
-        node->add_to_model = TRUE;
+
+done:
+	TRACE_LEAVE();
 }
 
 AVD_AVND *avd_node_get(const SaNameT *dn)
@@ -232,7 +238,9 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	if (NULL == (node = avd_node_get(dn))) {
 		if ((node = avd_node_new(dn)) == NULL)
 			goto done;
-	}
+	} else
+		TRACE("already created, refreshing config...");
+
 
 	if (immutil_getAttr("saAmfNodeClmNode", attributes, 0, &node->saAmfNodeClmNode) != SA_AIS_OK) { 
 		LOG_ER("saAmfNodeClmNode not configured for '%s'", node->saAmfNodeClmNode.value);
@@ -364,7 +372,9 @@ static const char *oper_state_name[] = {
  */
 void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 {
-	assert(node != NULL);
+	if (node->saAmfNodeOperState == oper_state)
+		return;
+
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	LOG_NO("'%s' %s => %s",	node->name.value, oper_state_name[node->saAmfNodeOperState],
 		oper_state_name[oper_state]);

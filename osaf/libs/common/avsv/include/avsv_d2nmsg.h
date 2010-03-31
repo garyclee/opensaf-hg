@@ -507,7 +507,6 @@ typedef struct avsv_d2n_data_verify_msg_info {
 	uns32 snd_id_cnt;
 	uns32 rcv_id_cnt;
 	SaClmNodeIdT node_id;
-	SaTimeT snd_hb_intvl;
 	SaTimeT su_failover_prob;
 	uns32 su_failover_max;
 } AVSV_D2N_DATA_VERIFY_MSG_INFO;

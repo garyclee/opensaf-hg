@@ -268,7 +268,7 @@ done:
  * Function: avd_node_down_func
  *
  * Purpose:  This function is called to abruptly reset a node. It issues the
- * AVM HPI request to reset the node, stop the timers if any.
+ * request to reset the node, stop the timers if any.
  *
  * Input: cb - the AVD control block
  *        avnd - The AVND pointer of the node that needs to be shutdown.

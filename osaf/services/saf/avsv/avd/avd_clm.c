@@ -147,13 +147,29 @@ done:
 	TRACE_LEAVE();
 }
 
-static void clm_node_exit_complete(AVD_AVND *node)
+static void clm_node_exit_complete(SaClmNodeIdT nodeId)
 {
-	/*TODO*/
-	/*AvND will terminate the local components*/
-	/*Currently since middleware components are considered to be up
-	 you cannot mark the node as absent :- TBD*/
-	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+	AVD_AVND *node = avd_node_find_nodeid(nodeId);
+
+	TRACE_ENTER2("%x", nodeId);
+
+	if (node == NULL) {
+		LOG_IN("Node %x left but is not an AMF cluster member", nodeId);
+		goto done;
+	}
+
+	node->node_info.member = SA_FALSE;
+
+	/* Don't want leave for myself... */
+	assert(node->node_info.nodeId != avd_cb->node_id_avd);
+
+	avd_node_mark_absent(node);
+	avd_node_susi_fail_func(avd_cb, node);
+
+	/* Remove the node from the node_id tree. */
+	avd_node_delete_nodeid(node);
+done:
+	TRACE_LEAVE();
 }
 
 static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBuffer,
@@ -212,18 +228,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		case SA_CLM_CHANGE_COMPLETED:
 			if( (notifItem->clusterChange == SA_CLM_NODE_LEFT)||
 			    (notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN)) {
-				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
-				if (node == NULL) {
-					LOG_NO("Node not a member");
-					goto done;
-				}
-				TRACE("Node has exited cluster '%x'", node->node_info.nodeId);
-				LOG_NO("%s:%d: FIX ME WHEN AVM LOGIC IS GONE", __FILE__, __LINE__);
-				/* make the node OO cluster */
-				clm_node_exit_complete(node);
-				node->node_info.member = SA_FALSE;
-				/* Remove the node from the node_id tree. */
-				//avd_node_delete_nodeid(node);
+				clm_node_exit_complete(notifItem->clusterNode.nodeId);
 			}
 			else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
 				/* delete, reconfigure, re-add to the node-id db
@@ -260,13 +265,14 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 						notifItem->clusterNode.nodeName.value,
 						notifItem->clusterNode.nodeName.length);
 				}
+
+				node->node_info.member = SA_TRUE;
+
 				if (node->node_state == AVD_AVND_STATE_PRESENT) {
 					TRACE("Node already up and configured");
 					/* now try to instantiate all the SUs that need to be */
 					clm_node_join_complete(node);
 				}
-
-				node->node_info.member = SA_TRUE;
 			}
 			else
 				LOG_NO("clmTrackCallback in COMPLETED::UNLOCK");
@@ -303,6 +309,7 @@ SaAisErrorT avd_clm_init(void)
 		LOG_ER("Failed to get selection object from CLM %u", error);
 		goto done;
 	}
+
 	TRACE("Successfully initialized CLM");
 
 done:

@@ -352,11 +352,10 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	** but needs to get configuration attributes initialized.
 	*/
 	if ((su = avd_su_get(dn)) == NULL) {
-		if ((su = avd_su_new(dn)) == NULL) {
-			LOG_ER("avd_sutype_new failed");
+		if ((su = avd_su_new(dn)) == NULL)
 			goto done;
-		}
-	}
+	} else
+		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfSUType", attributes, 0, &su->saAmfSUType);
 	assert(error == SA_AIS_OK);
@@ -367,8 +366,6 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	}
 
 	(void) immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &su->saAmfSUHostNodeOrNodeGroup);
-
-	memcpy(&su->saAmfSUHostedByNode, &su->saAmfSUHostNodeOrNodeGroup, sizeof(SaNameT));
 
 	if ((sut = avd_sutype_get(&su->saAmfSUType)) == NULL) {
 		LOG_ER("saAmfSUType '%s' does not exist", su->saAmfSUType.value);
@@ -384,7 +381,6 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	if (immutil_getAttr("saAmfSUAdminState", attributes, 0, &su->saAmfSUAdminState) != SA_AIS_OK)
 		su->saAmfSUAdminState = SA_AMF_ADMIN_UNLOCKED;
 
-	su->su_on_su_type = sut;
 	su->si_max_active = -1;	// TODO
 	su->si_max_standby = -1;	// TODO
 
@@ -394,6 +390,7 @@ done:
 	if (rc != 0)
 		avd_su_delete(&su);
 
+	TRACE_LEAVE();
 	return su;
 }
 
@@ -404,7 +401,7 @@ done:
  * 
  * @return AVD_AVND*
  */
-static AVD_AVND *map_su_to_node(const AVD_SU *su)
+static AVD_AVND *map_su_to_node(AVD_SU *su)
 {
 	AVD_AMF_NG *ng = NULL;
 	int i;          
@@ -414,8 +411,10 @@ static AVD_AVND *map_su_to_node(const AVD_SU *su)
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* If node is configured in SU we are done */
-	if (strstr((char *)su->saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") != NULL)
-		return avd_node_get(&su->saAmfSUHostNodeOrNodeGroup);
+	if (strstr((char *)su->saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") != NULL) {
+		node = avd_node_get(&su->saAmfSUHostNodeOrNodeGroup);
+		goto done;
+	}
 
 	/* A node group configured in the SU is prioritized before the same in SG */
 	if (strstr((char *)su->saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL)
@@ -447,41 +446,60 @@ static AVD_AVND *map_su_to_node(const AVD_SU *su)
 		}
 
 		if (su_temp == NULL)
-			return node;
+			goto done;
 	}
 
 	/* All nodes already have an SU mapped for the SG. Return a node in the node group. */
-	return avd_node_get(&ng->saAmfNGNodeList[0]);
+	node = avd_node_get(&ng->saAmfNGNodeList[0]);
+done:
+	memcpy(&su->saAmfSUHostedByNode, &node->name, sizeof(SaNameT));
+	TRACE_LEAVE2("hosted by %s", node->name.value);
+	return node;
 }
 
+/**
+ * Add SU to model
+ * @param su
+ */
 static void su_add_to_model(AVD_SU *su)
 {
-	unsigned int rc = NCSCC_RC_SUCCESS;
-	AVD_AVND *node = NULL;
+	SaNameT dn;
+	AVD_AVND *node;
 	int new_su = 0;
 
-	if (avd_su_get(&su->name) == NULL)
-		new_su = 1;
-	else if ((avd_su_get(&su->name) != NULL)  && (TRUE == su->add_to_model)){
-		/* Means the it has been added into db and links with other objects alraedy created. */
-		return;
+	TRACE_ENTER2("%s", su->name.value);
+
+	/* Check parent link to see if it has been added already */
+	if (su->sg != NULL) {
+		TRACE("already added");
+		goto done;
 	}
 
+	/* Determine of the SU is added now, if so msg to amfnd needs to be sent */
+	if (avd_su_get(&su->name) == NULL)
+		new_su = 1;
+
+	avsv_sanamet_init(&su->name, &dn, "safSg");
+	su->sg = avd_sg_get(&dn);
+
 	avd_su_db_add(su);
+	su->su_type = avd_sutype_get(&su->saAmfSUType);
+	assert(su->su_type);
 	avd_sutype_add_su(su);
 	avd_sg_add_su(su);
 
-	if (FALSE == su->su_is_external) {
-		su->su_on_node = map_su_to_node(su);
-
-		/* Update the saAmfSUHostedByNode runtime attribute. IMM is updated in avd_init_role_set(). */
-	        memcpy(&su->saAmfSUHostedByNode, &su->su_on_node->name, sizeof(SaNameT));
-		TRACE("'%s' hosted by '%s'", su->name.value, su->saAmfSUHostedByNode.value);
+	if (!su->su_is_external) {
+		if (su->saAmfSUHostedByNode.length == 0) {
+			/* This node has not been mapped yet, do it */
+			su->su_on_node = map_su_to_node(su);
+		} else {
+			/* Already mapped, setup the node link */
+			su->su_on_node = avd_node_get(&su->saAmfSUHostedByNode);
+		}
 
 		avd_node_add_su(su);
 		node = su->su_on_node;
-	}
-	else {
+	} else {
 		if (NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) {
 			/* This is an external SU and we need to create the 
 			   supporting info. */
@@ -506,27 +524,26 @@ static void su_add_to_model(AVD_SU *su)
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-	su->add_to_model = TRUE;
 
-	if (new_su && ((node->node_state == AVD_AVND_STATE_PRESENT) ||
-		       (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-		       (node->node_state == AVD_AVND_STATE_NCS_INIT))) {
+	if (new_su) {
+		if ((node->node_state == AVD_AVND_STATE_PRESENT) ||
+		    (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+		    (node->node_state == AVD_AVND_STATE_NCS_INIT)) {
 
-		if (avd_snd_su_msg(avd_cb, su) != NCSCC_RC_SUCCESS) {
-			avd_node_remove_su(su);
-			avd_sg_remove_su(su);
+			if (avd_snd_su_msg(avd_cb, su) != NCSCC_RC_SUCCESS) {
+				avd_node_remove_su(su);
+				avd_sg_remove_su(su);
 
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
+				LOG_ER("%s: avd_snd_su_msg failed %s", __FUNCTION__, su->name.value);
+				goto done;
+			}
 
-		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
-	} else
-		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+		} else
+			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
+	}
 
 done:
-	assert(rc == NCSCC_RC_SUCCESS);
-
 	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPreInstantiable);
 
@@ -538,6 +555,8 @@ done:
 
 	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
+
+	TRACE_LEAVE();
 }
 
 SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
@@ -628,6 +647,11 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_OPER_STATE);
 }
 
+/**
+ * Set readiness state in SU and calculate readiness state for all contained components
+ * @param su
+ * @param readiness_state
+ */
 void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state)
 {
         AVD_COMP *comp = NULL;

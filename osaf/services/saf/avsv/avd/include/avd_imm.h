@@ -29,9 +29,10 @@
 typedef void (*AvdImmOiCcbApplyCallbackT) (CcbUtilOperationData_t *opdata);
 typedef SaAisErrorT (*AvdImmOiCcbCompletedCallbackT) (CcbUtilOperationData_t *opdata);
 
-SaAisErrorT avd_imm_init(void *avd_cb);
-void avd_imm_impl_set_task_create(void);
-SaAisErrorT avd_imm_impl_set(void);
+extern SaAisErrorT avd_imm_init(void *avd_cb);
+extern void avd_imm_impl_set_task_create(void);
+extern SaAisErrorT avd_imm_impl_set(void);
+extern void avd_imm_update_runtime_attrs(void);
 
 /**
  * Install callbacks associated with classNames

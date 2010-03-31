@@ -298,7 +298,7 @@ done:
 	/* Add SU to list in SU Type */
 void avd_sutype_add_su(AVD_SU* su)
 {
-	struct avd_sutype *sut = su->su_on_su_type;
+	struct avd_sutype *sut = su->su_type;
 	su->su_list_su_type_next = sut->list_of_su;
 	sut->list_of_su = su;
 }
@@ -308,8 +308,8 @@ void avd_sutype_remove_su(AVD_SU* su)
 	AVD_SU *i_su = NULL;
 	AVD_SU *prev_su = NULL;
 
-	if (su->su_on_su_type != NULL) {
-		i_su = su->su_on_su_type->list_of_su;
+	if (su->su_type != NULL) {
+		i_su = su->su_type->list_of_su;
 
 		while ((i_su != NULL) && (i_su != su)) {
 			prev_su = i_su;
@@ -318,13 +318,13 @@ void avd_sutype_remove_su(AVD_SU* su)
 
 		if (i_su == su) {
 			if (prev_su == NULL) {
-				su->su_on_su_type->list_of_su = su->su_list_su_type_next;
+				su->su_type->list_of_su = su->su_list_su_type_next;
 			} else {
 				prev_su->su_list_su_type_next = su->su_list_su_type_next;
 			}
 			
 			su->su_list_su_type_next = NULL;
-			su->su_on_su_type = NULL;
+			su->su_type = NULL;
 		}
 	}
 }

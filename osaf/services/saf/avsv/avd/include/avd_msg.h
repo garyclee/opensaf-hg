@@ -37,14 +37,12 @@
 #include <avsv_d2nmsg.h>
 
 typedef enum {
-	AVD_D2D_HEARTBEAT_MSG = AVSV_DND_MSG_MAX,
-	AVD_D2D_CHANGE_ROLE_REQ,
+	AVD_D2D_CHANGE_ROLE_REQ = AVSV_DND_MSG_MAX,
 	AVD_D2D_CHANGE_ROLE_RSP,
 	AVD_D2D_MSG_MAX,
 } AVD_D2D_MSG_TYPE;
 
 typedef enum avd_rol_chg_cause_type {
-        AVD_INIT_ROLE,
         AVD_SWITCH_OVER,
         AVD_FAIL_OVER
 } AVD_ROLE_CHG_CAUSE_T;
@@ -59,10 +57,6 @@ typedef AVSV_DND_MSG AVD_DND_MSG;
 typedef struct avd_d2d_msg {
 	AVD_D2D_MSG_TYPE msg_type;
 	union {
-		struct {
-			SaClmNodeIdT node_id;
-			SaAmfHAStateT avail_state;
-		} d2d_hrt_bt;
 		struct {
 			AVD_ROLE_CHG_CAUSE_T cause;
 			SaAmfHAStateT role;
@@ -114,7 +108,6 @@ EXTERN_C uns32 avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, st
 				   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *);
 EXTERN_C uns32 avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_comp_csi_rel_tag *,
 				  SaAmfProtectionGroupChangesT, SaNameT *);
-EXTERN_C uns32 avd_avm_mds_cpy(MDS_CALLBACK_COPY_INFO *);
 EXTERN_C uns32 avd_snd_hb_msg(struct cl_cb_tag *);
 EXTERN_C uns32 avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
 					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
@@ -122,5 +115,6 @@ EXTERN_C void avsv_d2d_msg_free(AVD_D2D_MSG *);
 EXTERN_C void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *);
 EXTERN_C void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *);
 EXTERN_C uns32 avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
+extern uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg);
 
 #endif

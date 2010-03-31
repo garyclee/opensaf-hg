@@ -130,10 +130,6 @@ typedef struct cl_cb_tag {
 	NCSCONTEXT mds_handle;	/* The handle returned by MDS 
 				 * when initialized
 				 */
-	NCS_LOCK lock;		/* the control block lock */
-	NCS_LOCK avnd_tbl_lock;	/* the control block lock,
-				   will be taken while deleting
-				   or adding avnd struct */
 
 	AVD_INIT_STATE init_state;	/* when the AvD is comming up for
 					 * the first time it will come up
@@ -146,15 +142,9 @@ typedef struct cl_cb_tag {
 	NCS_BOOL avd_fover_state;	/* TRUE if avd is trying to 
 					 * recover from the fail-over */
 
-	NCS_BOOL role_set;	/* TRUE - Initial role is set.
-				 * FALSE - Initial role is not set */
-
 	SaAmfHAStateT avail_state_avd;	/* the redundancy state for 
 					 * Availability director
 					 */
-	SaAmfHAStateT avail_state_avd_other;	/* The redundancy state for 
-						 * Availability director (other).
-						 */
 
 	MDS_HDL vaddr_pwe_hdl;	/* The pwe handle returned when
 				 * vdest address is created.
@@ -205,48 +195,24 @@ typedef struct cl_cb_tag {
 					 */
 	SaClmNodeIdT node_avd_failed;	/* node id where AVD is down */
 
-	SaTimeT rcv_hb_intvl;	/* The interval within which
-				 * atleast one hearbeat should
-				 * be received by the AvD from 
-				 * the corresponding nodes and
-				 * the other AvD.
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	SaTimeT snd_hb_intvl;	/* The interval at which
-				 * the corresponding nodes and
-				 * the other AvD should 
-				 * heartbeat with this AvD.
-				 * Checkpointing - Sent as a one time update.
-				 */
-
 	NCS_PATRICIA_TREE node_list;	/* Tree of AvND nodes indexed by
 					 * node id. used for storing the 
 					 * nodes on f-over.
 					 */
-	AVD_SI_DEP si_dep;	/* SI-SI dependency data */
-	AVD_TMR heartbeat_send_avd;	/* The timer for sending the heartbeat */
-	AVD_TMR heartbeat_rcv_avd;	/* The timer for receiving the heartbeat */
 	AVD_TMR amf_init_tmr;	/* The timer for amf initialisation. */
 	uns32 nodes_exit_cnt;	/* The counter to identifies the number
 				   of nodes that have exited the membership
 				   since the cluster boot time */
 
-	MDS_DEST avm_mds_dest;
-
-   /********** NTF related params      ***********/
-
+	/********** NTF related params      ***********/
 	SaNtfHandleT ntfHandle;
 
- /********Peer AvD Heart Beat related*********************/
-	NCS_BOOL avd_hrt_beat_rcvd;	/* True value of this boolean Indicate 
-					   that first heart beat 
-					   have been received  */
+	/********Peer AvD related*********************/
 	AVD_EXT_COMP_INFO ext_comp_info;
 	uns16 peer_msg_fmt_ver;
 	uns16 avd_peer_ver;
 
-   /******** IMM related ********/
+	/******** IMM related ********/
 	SaImmOiHandleT immOiHandle;
 	SaImmOiHandleT immOmHandle;
 	SaSelectionObjectT imm_sel_obj;
@@ -304,56 +270,6 @@ typedef struct cl_cb_tag {
       (evt)->next = 0; \
       if (list->tail == (evt)) list->tail = 0; \
    } else (evt) = 0; \
-}
-
-/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-                         Locking Macros
-
-AVD is designed such that all the writes happen only in the event processing
-loop. So the event processing loop doesnt take any read locks It only
-takes write locks before doing any modification. All the other threads
-take read locks if necessary.
- 
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-	       /* CB Lock */
-
-#define m_AVD_CB_LOCK_INIT(avd_cb)  m_NCS_LOCK_INIT(&avd_cb->lock)
-#define m_AVD_CB_LOCK_DESTROY(avd_cb) \
-{\
-   m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_FINALIZE);\
-   m_NCS_LOCK_DESTROY(&avd_cb->lock);\
-}
-#define m_AVD_CB_LOCK(avd_cb, ltype) \
-{\
-   m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_TAKE);\
-   m_NCS_LOCK(&avd_cb->lock, ltype);\
-}
-#define m_AVD_CB_UNLOCK(avd_cb, ltype) \
-{\
-    m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_GIVE);\
-    m_NCS_UNLOCK(&avd_cb->lock, ltype);\
-}
-
-/* Below given lock will be taken by the main mailbox thread before deleting
-   or adding avnd structure to patritia tree. We can avoid these, if we have 
-   read locks  */
-#define m_AVD_CB_AVND_TBL_LOCK_INIT(avd_cb)  m_NCS_LOCK_INIT(&avd_cb->avnd_tbl_lock)
-#define m_AVD_CB_AVND_TBL_LOCK_DESTROY(avd_cb) \
-{\
-   m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_FINALIZE);\
-   m_NCS_LOCK_DESTROY(&avd_cb->avnd_tbl_lock);\
-}
-#define m_AVD_CB_AVND_TBL_LOCK(avd_cb, ltype) \
-{\
-   m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_TAKE);\
-   m_NCS_LOCK(&avd_cb->avnd_tbl_lock, ltype);\
-}
-#define m_AVD_CB_AVND_TBL_UNLOCK(avd_cb, ltype) \
-{\
-    m_AVD_LOG_LOCK_SUCC(AVSV_LOG_LOCK_GIVE);\
-    m_NCS_UNLOCK(&avd_cb->avnd_tbl_lock, ltype);\
 }
 
 extern AVD_CL_CB *avd_cb;

@@ -33,11 +33,13 @@
 #ifndef AVD_H
 #define AVD_H
 
+#include "logtrace.h"
 #include "avsv.h"
 #include "ncs_log.h"
 #include "dta_papi.h"
 #include "logtrace.h"
 
+#include "ncsencdec_pub.h"
 #include "avsv_d2nmsg.h"
 
 /* Porting Include Files */
@@ -59,7 +61,6 @@
 #include "avd_dblog.h"
 #include "avd_evt.h"
 #include "avd_proc.h"
-#include "avd_hb.h"
 
 #include "avd_mds.h"
 
@@ -67,10 +68,6 @@
 #include "avd_ckpt_msg.h"
 #include "avd_ckpt_edu.h"
 #include "avd_ckpt_updt.h"
-
-#include "fm_papi.h"
-#include "avd_avm.h"
-
 extern uns32 avd_initialize(void);
 
 #endif

@@ -32,8 +32,8 @@ static NCS_PATRICIA_TREE sgtype_db;
 
 void avd_sgtype_add_sg(AVD_SG *sg)
 {
-	sg->sg_list_sg_type_next = sg->sg_on_sg_type->list_of_sg;
-	sg->sg_on_sg_type->list_of_sg = sg;
+	sg->sg_list_sg_type_next = sg->sg_type->list_of_sg;
+	sg->sg_type->list_of_sg = sg;
 }
 
 void avd_sgtype_remove_sg(AVD_SG *sg)
@@ -41,8 +41,8 @@ void avd_sgtype_remove_sg(AVD_SG *sg)
 	AVD_SG *i_sg = NULL;
 	AVD_SG *prev_sg = NULL;
 
-	if (sg->sg_on_sg_type != NULL) {
-		i_sg = sg->sg_on_sg_type->list_of_sg;
+	if (sg->sg_type != NULL) {
+		i_sg = sg->sg_type->list_of_sg;
 
 		while ((i_sg != NULL) && (i_sg != sg)) {
 			prev_sg = i_sg;
@@ -54,14 +54,14 @@ void avd_sgtype_remove_sg(AVD_SG *sg)
 			assert(0);
 		} else {
 			if (prev_sg == NULL) {
-				sg->sg_on_sg_type->list_of_sg = sg->sg_list_sg_type_next;
+				sg->sg_type->list_of_sg = sg->sg_list_sg_type_next;
 			} else {
 				prev_sg->sg_list_sg_type_next = sg->sg_list_sg_type_next;
 			}
 		}
 
 		sg->sg_list_sg_type_next = NULL;
-		sg->sg_on_sg_type = NULL;
+		sg->sg_type = NULL;
 	}
 }
 

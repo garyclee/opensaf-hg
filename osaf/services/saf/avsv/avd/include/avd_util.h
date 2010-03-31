@@ -38,14 +38,12 @@
 #include <avd_cb.h>
 
 typedef enum {
-	AVD_D2D_HEARTBEAT_MSG = AVSV_DND_MSG_MAX,
-	AVD_D2D_CHANGE_ROLE_REQ,
+	AVD_D2D_CHANGE_ROLE_REQ = AVSV_DND_MSG_MAX,
 	AVD_D2D_CHANGE_ROLE_RSP,
 	AVD_D2D_MSG_MAX,
 } AVD_D2D_MSG_TYPE;
 
 typedef enum avd_rol_chg_cause_type {
-        AVD_INIT_ROLE,
         AVD_SWITCH_OVER,
         AVD_FAIL_OVER
 } AVD_ROLE_CHG_CAUSE_T;
@@ -115,7 +113,6 @@ EXTERN_C uns32 avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, st
 				   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *);
 EXTERN_C uns32 avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_comp_csi_rel_tag *,
 				  SaAmfProtectionGroupChangesT, SaNameT *);
-EXTERN_C uns32 avd_avm_mds_cpy(MDS_CALLBACK_COPY_INFO *);
 EXTERN_C uns32 avd_snd_hb_msg(struct cl_cb_tag *);
 EXTERN_C uns32 avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
 					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);

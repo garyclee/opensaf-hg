@@ -126,12 +126,9 @@ typedef struct avd_su_tag {
 	struct avd_su_tag *sg_list_su_next;	/* the next SU in the SG */
 	struct avd_su_tag *avnd_list_su_next;	/* the next SU in the AvND */
 	struct avd_su_tag *su_list_sg_next;
-	struct avd_sg_tag *su_on_sg;
-	struct avd_sutype *su_on_su_type;
+	struct avd_sg_tag *sg;
+	struct avd_sutype *su_type;
 	struct avd_su_tag *su_list_su_type_next;
-        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
-                                dependent objects. */
-
 } AVD_SU;
 
 typedef struct {
@@ -157,7 +154,6 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
 #define m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr) \
 ((su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) && \
 (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) && \
-(su_node_ptr->avm_oper_state == SA_AMF_OPERATIONAL_ENABLED) && \
 (i_su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&\
 (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&\
 (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED)\

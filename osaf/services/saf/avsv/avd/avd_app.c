@@ -84,24 +84,30 @@ AVD_APP *avd_app_getnext(const SaNameT *dn)
 
 static void app_add_to_model(AVD_APP *app)
 {
-	if ((avd_app_get(&app->name) != NULL) && (TRUE == app->add_to_model)){
-		/* Means the app has been added into db and links with other objects alraedy created. */
-		return;
+	TRACE_ENTER2("%s", app->name.value);
+
+	/* Check type link to see if it has been added already */
+	if (app->app_type != NULL) {
+		TRACE("already added");
+		goto done;
 	}
+
 	avd_app_db_add(app);
 	/* Find application type and make a link with app type */
-	app->app_on_app_type = avd_apptype_find(&app->saAmfAppType);
-	assert(app->app_on_app_type != NULL);
+	app->app_type = avd_apptype_get(&app->saAmfAppType);
+	assert(app->app_type);
 	avd_apptype_add_app(app);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
-	app->add_to_model = TRUE;
+
+done:
+	TRACE_LEAVE();
 }
 
 void avd_app_add_si(AVD_APP *app, AVD_SI *si)
 {
-	si->si_list_app_next = si->si_on_app->list_of_si;
-	si->si_on_app->list_of_si = si;
+	si->si_list_app_next = si->app->list_of_si;
+	si->app->list_of_si = si;
 }
 
 void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
@@ -128,7 +134,7 @@ void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
 	}
 	
 	si->si_list_app_next = NULL;
-	si->si_on_app = NULL;
+	si->app = NULL;
 }
 
 void avd_app_add_sg(AVD_APP *app, AVD_SG *sg)
@@ -166,7 +172,7 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 	app->saAmfApplicationCurrNumSGs--;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	sg->sg_list_app_next = NULL;
-	sg->sg_on_app = NULL;
+	sg->app = NULL;
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
@@ -185,7 +191,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr("saAmfAppType", attributes, 0, &aname);
 	assert(rc == SA_AIS_OK);
 
-	if (avd_apptype_find(&aname) == NULL) {
+	if (avd_apptype_get(&aname) == NULL) {
 		/* App type does not exist in current model, check CCB */
 		if (opdata == NULL) {
 			LOG_ER("App type '%s' does not exist in model", dn->value);
@@ -223,7 +229,8 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	if (NULL == (app = avd_app_get(dn))) {
 		if ((app = avd_app_new(dn)) == NULL)
 			goto done;
-	}
+	} else
+		TRACE("already created, refreshing config...");
 
 	error = immutil_getAttr("saAmfAppType", attributes, 0, &app->saAmfAppType);
 	assert(error == SA_AIS_OK);
@@ -262,7 +269,7 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
 				SaNameT dn = *((SaNameT*)attribute->attrValues[0]);
-				if (NULL == avd_apptype_find(&dn)) {
+				if (NULL == avd_apptype_get(&dn)) {
 					LOG_ER("saAmfAppType '%s' not found", dn.value);
 					goto done;
 				}
@@ -320,7 +327,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
 				avd_apptype_remove_app(app);
 				app->saAmfAppType = *((SaNameT*)attribute->attrValues[0]);
-				app->app_on_app_type = avd_apptype_find(&app->saAmfAppType);
+				app->app_type = avd_apptype_get(&app->saAmfAppType);
 				avd_apptype_add_app(app);
 				LOG_NO("Changed saAmfAppType to '%s' for '%s'",
 					app->saAmfAppType.value, app->name.value);

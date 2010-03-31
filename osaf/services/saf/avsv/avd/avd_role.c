@@ -44,8 +44,6 @@
 #include <avd_clm.h>
 #include <rda_papi.h>
 
-static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
-static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_rde_set_role(SaAmfHAStateT role);
@@ -76,90 +74,66 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	/* 
-	 * First validate that this is correct role switch.
-	 */
-	if (((cb->avail_state_avd == SA_AMF_HA_ACTIVE) &&
-	     (role == SA_AMF_HA_STANDBY)) ||
+	/* First validate that this is correct role switch. */
+	if (((cb->avail_state_avd == SA_AMF_HA_ACTIVE) && (role == SA_AMF_HA_STANDBY)) ||
 	    ((cb->avail_state_avd == SA_AMF_HA_STANDBY) && (role == SA_AMF_HA_QUIESCED))) {
 		LOG_ER("avd_role_change Invalid role change Active -> Standby");
 		status = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
-	/* Check what is the cause of this role set */
-	if ((cause == AVD_INIT_ROLE) &&
-	    (cb->role_set == FALSE) && ((role == SA_AMF_HA_ACTIVE) || (role == SA_AMF_HA_STANDBY))) {
-		/* Set Initial role of AVD */
-		status = avd_init_role_set(cb, role);
-		goto done;
-	}
-
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_SWITCH_OVER) &&
+	if ((cause == AVD_SWITCH_OVER) &&
 	    (cb->avail_state_avd == SA_AMF_HA_ACTIVE) && (role == SA_AMF_HA_QUIESCED)) {
 		if (SA_TRUE == cb->swap_switch ) {
 			/* swap resulted Switch Active -> Quiesced */
-			m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_ATOQ, NCSFL_SEV_NOTICE, 0);
 			amfd_switch_actv_qsd(cb);
 			status = NCSCC_RC_SUCCESS;
 		} 
 		goto done;
 	}
 
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_SWITCH_OVER) &&
+	if ((cause == AVD_SWITCH_OVER) &&
 	    (role == SA_AMF_HA_ACTIVE) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED)) {
 		if (SA_TRUE == cb->swap_switch ) {
 			/* swap resulted Switch  Quiesced -> Active */
-			m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_QTOA, NCSFL_SEV_NOTICE, 0);
 			amfd_switch_qsd_actv(cb);
 			status = NCSCC_RC_SUCCESS;
 		}
 		goto done;
 	}
 
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_SWITCH_OVER) &&
+	if ((cause == AVD_SWITCH_OVER) &&
 	    (role == SA_AMF_HA_STANDBY) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED)) {
 		if (SA_TRUE == cb->swap_switch ) {
 			/* swap resulted Switch  Quiesced -> standby */
-			m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_QTOS, NCSFL_SEV_NOTICE, 0);
 			amfd_switch_qsd_stdby(cb);
 			status = NCSCC_RC_SUCCESS;
 		}
 		goto done;
 	}
 
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_SWITCH_OVER) &&
+	if ((cause == AVD_SWITCH_OVER) &&
 	    (role == SA_AMF_HA_ACTIVE) && (cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
 		if (SA_TRUE == cb->swap_switch ) {
 			/* swap resulted Switch  standby -> Active */
-			m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_STOA, NCSFL_SEV_NOTICE, 0);
 			amfd_switch_stdby_actv(cb);
 			status = NCSCC_RC_SUCCESS;
 			goto done;
 		}
 	}
 
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_FAIL_OVER) &&
+	if ((cause == AVD_FAIL_OVER) &&
 	    (cb->avail_state_avd == SA_AMF_HA_QUIESCED) && (role == SA_AMF_HA_ACTIVE)) {
 		/* Fail-over Quiesced to Active */
-		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_QTOA, NCSFL_SEV_NOTICE, 0);
 		status = avd_role_failover_qsd_actv(cb, role);
 		goto done;
 
 	}
 
-	if ((cb->role_set == TRUE) &&
-	    (cause == AVD_FAIL_OVER) &&
+	if ((cause == AVD_FAIL_OVER) &&
 	    (cb->avail_state_avd == SA_AMF_HA_STANDBY) && (role == SA_AMF_HA_ACTIVE)) {
 		/* Fail-over Standby to Active */
-		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_STOA, NCSFL_SEV_NOTICE, 0);
 		status = avd_role_failover(cb, role);
-
 	} else {
 		LOG_ER("avd_role_change Invalid role change");
 		status = NCSCC_RC_FAILURE;
@@ -176,21 +150,6 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	return;
 }
 
-static const char *role_to_str(SaAmfHAStateT role)
-{
-	switch (role) {
-	case SA_AMF_HA_ACTIVE:
-		return "ACTIVE";
-		break;
-	case SA_AMF_HA_STANDBY:
-		return "STANDBY";
-		break;
-	default:
-		return "unknown";
-		break;
-	}
-}
-
 /****************************************************************************\
  * Function: avd_init_role_set
  *
@@ -205,131 +164,34 @@ static const char *role_to_str(SaAmfHAStateT role)
  *
  * 
 \**************************************************************************/
-uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
+uns32 avd_active_role_initialization(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 
-	LOG_NO("I am %s", role_to_str(role));
+	TRACE_ENTER();
 
-	/*
-	 * Set mds VDEST initial role. We need not send the role to AvND
-	 * as when AvND will come up, we will send.
-	 */
-	if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, role))) {
-		/* Log error */
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_VDEST_ROL);
-		m_AVD_LOG_INVALID_VAL_FATAL(status);
+	if (avd_clm_track_start() != SA_AIS_OK) {
+		LOG_ER("avd_clm_track_start FAILED");
 		goto done;
 	}
 
-	/*
-	 * Set mbcsv initial role.
-	 */
-	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, role))) {
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(status);
+	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_imm_config_get FAILED");
 		goto done;
 	}
 
-	cb->avail_state_avd = role;
-	cb->role_set = TRUE;
+	cb->init_state = AVD_CFG_DONE;
 
-	if (role == SA_AMF_HA_ACTIVE) {
-		/* start the cluster track now */
-		if(avd_clm_track_start() != SA_AIS_OK) {
-			LOG_ER("avd_clm_track_start FAILED");
-			goto done;
-		}
+	if (avd_imm_impl_set() != SA_AIS_OK) {
+		LOG_ER("avd_imm_impl_set FAILED");
+		goto done;
 	}
 
-	if ((role == SA_AMF_HA_ACTIVE) &&
-	    ((status = avd_imm_config_get()) == NCSCC_RC_SUCCESS) &&
-	    (avd_imm_impl_set() == SA_AIS_OK)) {
-		cb->init_state = AVD_CFG_DONE;
-		{
-			SaNameT su_name;
-                        AVD_SU  *avd_su = NULL;
-			memset(&su_name, '\0', sizeof(SaNameT));
-			/* Set runtime cached attributes. */
-			/* saAmfSUPreInstantiable and saAmfSUHostedByNode. */
-			avd_su = avd_su_getnext(&su_name);
-			while (avd_su != NULL) {
-				avd_saImmOiRtObjectUpdate(&avd_su->name,
-						"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T, 
-						&avd_su->saAmfSUPreInstantiable);
+	avd_imm_update_runtime_attrs();
 
-				avd_saImmOiRtObjectUpdate(&avd_su->name,
-						"saAmfSUHostedByNode", SA_IMM_ATTR_SANAMET, 
-						&avd_su->saAmfSUHostedByNode);
-
-				avd_saImmOiRtObjectUpdate(&avd_su->name,
-						"saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T, 
-						&avd_su->saAmfSUPresenceState);
-
-				avd_saImmOiRtObjectUpdate(&avd_su->name,
-						"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, 
-						&avd_su->saAmfSUOperState);
-
-				avd_saImmOiRtObjectUpdate(&avd_su->name,
-						"saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T, 
-						&avd_su->saAmfSuReadinessState);
-
-				avd_su = avd_su_getnext(&avd_su->name);
-			}
-		}
-
-		{
-			SaNameT comp_name;
-                        AVD_COMP  *avd_comp = NULL;
-			memset(&comp_name, '\0', sizeof(SaNameT));
-			/* Set Component Class runtime cached attributes. */
-			avd_comp = avd_comp_getnext(&comp_name);
-			while (avd_comp != NULL) {
-				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-						"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompReadinessState);
-
-				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-						"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompOperState);
-
-				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-						"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompPresenceState);
-
-				avd_comp = avd_comp_getnext(&avd_comp->comp_info.name);
-			}
-
-		}
-
-		{
-			SaNameT node_name;
-                        AVD_AVND  *avd_avnd = NULL;
-			memset(&node_name, '\0', sizeof(SaNameT));
-			/* Set Node Class runtime cached attributes. */
-			avd_avnd = avd_node_getnext(&node_name);
-			while (avd_avnd != NULL) {
-				avd_saImmOiRtObjectUpdate(&avd_avnd->name, "saAmfNodeOperState",
-						SA_IMM_ATTR_SAUINT32T, &avd_avnd->saAmfNodeOperState);
-
-				avd_avnd = avd_node_getnext(&avd_avnd->name);
-			}
-		}
-
-		{
-			SaNameT si_name;
-                        AVD_SI  *avd_si = NULL;
-			memset(&si_name, '\0', sizeof(SaNameT));
-			/* Set Node Class runtime cached attributes. */
-			avd_si = avd_si_getnext(&si_name);
-			while (avd_si != NULL) {
-				avd_saImmOiRtObjectUpdate(&avd_si->name, "saAmfSIAssignmentState",
-						SA_IMM_ATTR_SAUINT32T, &avd_si->saAmfSIAssignmentState);
-
-				avd_si = avd_si_getnext(&avd_si->name);
-			}
-		}
-
-	}
-
+	status = NCSCC_RC_SUCCESS;
 done:
+	TRACE_LEAVE();
 	return status;
 }
 
@@ -349,8 +211,8 @@ done:
 \**************************************************************************/
 static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd = NULL;
+	uns32 status = NCSCC_RC_FAILURE;
+	AVD_AVND *my_node, *failed_node;
 
 	TRACE_ENTER();
 	LOG_NO("FAILOVER StandBy --> Active");
@@ -365,30 +227,35 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	 * proceed further. Else return failure.
 	 */
 	if (AVD_STBY_OUT_OF_SYNC == cb->stby_sync_state) {
-		LOG_ER("FAILOVER StandBy --> Active FAILED, Stanby OUT OF SYNC");
+		LOG_ER("FAILOVER StandBy --> Active FAILED, Standby OUT OF SYNC");
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
-		LOG_ER("FAILOVER StandBy --> Active FAILED, DB not found");
-		return NCSCC_RC_FAILURE;
+	if (NULL == (my_node = avd_node_find_nodeid(cb->node_id_avd))) {
+		LOG_ER("FAILOVER StandBy --> Active FAILED, node %x not found", cb->node_id_avd);
+		goto done;
+	}
+
+	if (NULL == (failed_node = avd_node_find_nodeid(cb->node_id_avd_other))) {
+		LOG_ER("FAILOVER StandBy --> Active FAILED, node %x not found", cb->node_id_avd_other);
+		goto done;
 	}
 
 	/* check the node state */
-	if (avnd->node_state != AVD_AVND_STATE_PRESENT) {
+	if (my_node->node_state != AVD_AVND_STATE_PRESENT) {
 		LOG_ER("FAILOVER StandBy --> Active FAILED, stdby not in good state");
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_ACTIVE))) {
-		/* log error that the node id is invalid */
 		LOG_ER("FAILOVER StandBy --> Active, ckpt set role failed");
+		goto done;
 	}
 
 	/* Now Dispatch all the messages from the MBCSv mail-box */
 	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
 		LOG_ER("FAILOVER StandBy --> Active FAILED, MBCSV DISPATCH FAILED");
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	/*
@@ -402,6 +269,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* Declare this standby as Active. Set Vdest role and MBCSv role */
 	if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, role))) {
 		LOG_ER("FAILOVER StandBy --> Active, VDEST Change role failed ");
+		goto done;
 	}
 
 	/* Time to send fail-over messages to all the AVND's */
@@ -416,19 +284,29 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 		avd_d2n_msg_dequeue(cb);
 	}
 
-	/* We are successfully changed role to Active. Now reset 
-	 * the old Active. TODO */
-
+	/* We have successfully changed role to Active. */
 	cb->node_id_avd_other = 0;
 
 	if (avd_imm_config_get() != NCSCC_RC_SUCCESS)
-		return NCSCC_RC_FAILURE;
+		goto done;
 
 	if (avd_imm_impl_set() != SA_AIS_OK)
-		return NCSCC_RC_FAILURE;
+		goto done;
+
+	avd_node_mark_absent(failed_node);
+
+	/* Fail over all SI assignments */
+	avd_node_susi_fail_func(avd_cb, failed_node);
+
+	LOG_NO("FAILOVER StandBy --> Active DONE!");
+	status = NCSCC_RC_SUCCESS;
+
+done:
+	if (NCSCC_RC_SUCCESS != status)
+		ncs_reboot("FAILOVER failed");
 
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	return status;
 }
 
 /****************************************************************************\
@@ -488,7 +366,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	svc_to_mds_info.info.query_dest.i_dest = cb->vaddr;
 	svc_to_mds_info.info.query_dest.i_svc_id = NCSMDS_SVC_ID_AVD;
 	svc_to_mds_info.info.query_dest.i_query_for_role = TRUE;
-	svc_to_mds_info.info.query_dest.info.query_for_role.i_anc = cb->avm_mds_dest;
+	svc_to_mds_info.info.query_dest.info.query_for_role.i_anc = 0; // TODO?
 
 	if (ncsmds_api(&svc_to_mds_info) == NCSCC_RC_SUCCESS) {
 		if (svc_to_mds_info.info.query_dest.info.query_for_role.o_vdest_rl == SA_AMF_HA_ACTIVE) {
@@ -508,7 +386,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			if (NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				/* We are successfully changed role to Active.
 				   do node down processing for other node */
-				avd_avm_mark_nd_absent(cb, avnd_other);
+				avd_node_mark_absent(avnd_other);
 			} else {
 				m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 			}
@@ -652,28 +530,6 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	
 	TRACE_LEAVE();
 }
-
-/****************************************************************************\
- * Function: avd_role_switch_qsd_actv
- *
- * Purpose:  AVSV function to handle AVD's role switch from Quiesced to 
- *           Active.  
- *
- * Input: cb - AVD control block pointer.
- *        role - Role to be set.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: 
- *
- * 
-\**************************************************************************/
-static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
-{
-	LOG_NO("ROLE SWITCH Quiesced --> Active");
-	return amfd_switch_stdby_actv(cb);
-}
-
 
 /*****************************************************************************
  * Function: avd_mds_qsd_role_func
@@ -900,7 +756,6 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 {
 	AVD_AVND *avnd = NULL;
 	AVD_AVND *avnd_other = NULL;
-	SaClmNodeIdT node_id = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -930,8 +785,9 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	 * the AvND on the node is in present state. 
 	 */
 	if ((cb->node_id_avd_other == 0) ||
-	    (cb->avail_state_avd_other != SA_AMF_HA_STANDBY) ||
-	    (avnd->node_state != AVD_AVND_STATE_PRESENT) || (avnd_other->node_state != AVD_AVND_STATE_PRESENT)) {
+	    (avnd->node_state != AVD_AVND_STATE_PRESENT) ||
+	    (avnd_other->node_state != AVD_AVND_STATE_PRESENT)) {
+		LOG_NO("Peer controller not available for switch over");
 		cb->swap_switch = SA_FALSE;
 		return NCSCC_RC_FAILURE;
 	}
@@ -967,12 +823,7 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	cb->is_implementer = FALSE;
 
-	/* Walk through all the nodes and stop AvND rcv HeartBeat. */
-	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
-		node_id = avnd->node_info.nodeId;
-	}
 	TRACE_LEAVE();
-
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1162,6 +1013,7 @@ uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 uns32 amfd_switch_qsd_actv (AVD_CL_CB *cb)
 {
+	LOG_NO("ROLE SWITCH Quiesced --> Active");
 	cb->swap_switch = SA_FALSE;
 	if (NCSCC_RC_SUCCESS != avd_rde_set_role(SA_AMF_HA_ACTIVE)) {
 		LOG_ER("rde role change failed from qsd -> actv");

@@ -27,17 +27,15 @@
  * Module Inclusion Control...
  */
 
+#include <immutil.h>
+#include <logtrace.h>
 #include <avsv_util.h>
 #include <avd_util.h>
 #include <avd_susi.h>
-#include <immutil.h>
 #include <avd_imm.h>
 #include <avd_dblog.h>
 #include <avd_csi.h>
-#include <logtrace.h>
-
-// TODO remove
-extern void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs);
+#include <avd_proc.h>
 
 /**
  * Create an SaAmfSIAssignment runtime object in IMM.

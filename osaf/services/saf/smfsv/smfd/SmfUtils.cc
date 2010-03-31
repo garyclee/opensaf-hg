@@ -48,7 +48,6 @@
  * ========================================================================
  */
 
-extern struct ImmutilWrapperProfile immutilWrapperProfile;
 SaVersionT SmfImmUtils::s_immVersion = { 'A', 2, 1 };
 
 /* ========================================================================

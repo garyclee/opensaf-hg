@@ -37,11 +37,6 @@
 
 /* timer type enums */
 typedef enum avd_tmr_type {
-	AVD_TMR_SND_HB,		/* heart beat send timer */
-	AVD_TMR_RCV_HB_D,	/* heart beat receive from other
-				 * director timer */
-	AVD_TMR_RCV_HB_INIT,	/* heart beat received from other
-				 * director during init phase timer */
 	AVD_TMR_CL_INIT,	/* This is the AvD initialisation 
 				 * timer after which AvD will assign
 				 * SIs to application SU. */
@@ -69,28 +64,6 @@ typedef struct avd_tmr_tag {
    cb->amf_init_tmr.is_active = FALSE; \
    cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
    avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
-}
-
-/* macro to start the Send Heart beat timer. The cb structure
- * is the input.
- */
-#define m_AVD_SND_HB_TMR_START(cb) \
-{\
-   cb->heartbeat_send_avd.is_active = FALSE; \
-   cb->heartbeat_send_avd.type = AVD_TMR_SND_HB; \
-   cb->heartbeat_send_avd.node_id = cb->node_id_avd_other; \
-   avd_start_tmr(cb,&(cb->heartbeat_send_avd),cb->snd_hb_intvl); \
-}
-
-/* macro to start the Receive Heart beat timer. The cb structure
- * is the input.
- */
-#define m_AVD_RCV_HB_TMR_START(cb) \
-{\
-   cb->heartbeat_rcv_avd.is_active = FALSE; \
-   cb->heartbeat_rcv_avd.type = AVD_TMR_RCV_HB_D; \
-   cb->heartbeat_rcv_avd.node_id = cb->node_id_avd_other; \
-   avd_start_tmr(cb,&(cb->heartbeat_rcv_avd),cb->rcv_hb_intvl); \
 }
 
 #define m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec) \

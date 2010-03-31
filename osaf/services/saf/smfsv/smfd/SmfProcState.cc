@@ -45,8 +45,6 @@
  *   DATA DECLARATIONS
  * ========================================================================
  */
-extern struct ImmutilWrapperProfile immutilWrapperProfile;
-
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES

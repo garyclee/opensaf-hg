@@ -38,14 +38,12 @@ static uns32 avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 static uns32 avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 avsv_encode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uns32 avsv_encode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
@@ -118,9 +116,6 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 	 * Messages to update independent fields.
 	 */
 
-	/* CB Async Update messages */
-	avsv_encode_ckpt_cb_cl_view_num,
-
 	/* Node Async Update messages */
 	avsv_encode_ckpt_node_admin_state,
 	avsv_encode_ckpt_node_oper_state,
@@ -128,7 +123,6 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 	avsv_encode_ckpt_node_state,
 	avsv_encode_ckpt_node_rcv_msg_id,
 	avsv_encode_ckpt_node_snd_msg_id,
-	avsv_encode_ckpt_node_avm_oper_state, // TODO remove
 
 	/* SG Async Update messages */
 	avsv_encode_ckpt_sg_admin_state,
@@ -707,42 +701,6 @@ static uns32 avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_cb_cl_view_num
- *
- * Purpose:  Encode cluster view number.
- *
- * Input: cb - CB pointer.
- *        enc - Encode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_encode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-
-	/* 
-	 * Action in this case is just to update. If action passed is add/rmv then log
-	 * error. Call EDU encode to encode this field.
-	 */
-	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &enc->io_uba,
-						EDP_OP_TYPE_ENC, cb, &ederror, enc->i_peer_version, 1, 3);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-
-	} else 
-		assert(0);
-
-	return status;
-}
-
-/****************************************************************************\
  * Function: avsv_encode_ckpt_node_up_info
  *
  * Purpose:  Encode avnd node up info.
@@ -950,42 +908,6 @@ static uns32 avsv_encode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
 						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 						&ederror, enc->i_peer_version, 2, 1, 13);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-	} else
-		assert(0);
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_encode_ckpt_avnd_avm_oper_state
- *
- * Purpose:  Encode avnd avm oper state info.
- *
- * Input: cb - CB pointer.
- *        enc - Encode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_encode_ckpt_node_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-
-	/* 
-	 * Action in this case is just to update. If action passed is add/rmv then log
-	 * error. Call EDU encode to encode this field.
-	 */
-	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 14);
 
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
@@ -1940,10 +1862,6 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BO
 			enc->io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 	} else
 		enc->io_reo_type++;
-
-	/* Start Heart Beating with the peer */
-	if (enc->io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE)
-		avd_init_heartbeat(cb);
 
 	TRACE_LEAVE();
 	return status;

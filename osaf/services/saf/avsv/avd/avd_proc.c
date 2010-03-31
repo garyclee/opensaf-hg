@@ -24,13 +24,8 @@
 ******************************************************************************
 */
 
-/*
- * Module Inclusion Control...
- */
 #include <poll.h>
-
 #include <logtrace.h>
-
 #include <nid_api.h>
 #include <avd.h>
 #include <avd_imm.h>
@@ -72,9 +67,6 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
-	avd_tmr_snd_hb_evh,	  /* AVD_EVT_TMR_SND_HB */
-	avd_tmr_rcv_hb_d_evh,	  /* AVD_EVT_TMR_RCV_HB_D */
-	avd_tmr_rcv_hb_init_evh,  /* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_cluster_tmr_init_evh, /* AVD_EVT_TMR_CL_INIT */
 	avd_tmr_si_dep_tol_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
@@ -85,16 +77,9 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_down_evh,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_mds_qsd_role_evh,	/* AVD_EVT_MDS_QSD_ACK */
 
-	avd_avm_nd_shutdown_evh,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_avm_nd_failover_evh,	/* AVD_EVT_ND_FAILOVER */
-	avd_avm_fault_domain_rsp_evh,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_avm_nd_reset_rsp_evh,	/* AVD_EVT_ND_RESET_RSP */
-	avd_avm_nd_oper_st_evh,	        /* AVD_EVT_ND_OPER_ST */
-
 	/* Role change Event processing */
 	avd_role_change_evh,	     /* AVD_EVT_ROLE_CHANGE */
 	avd_role_switch_ncs_su_evh,  /* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_evh,	     /* AVD_EVT_D_HB */
 	avd_process_si_dep_state_evh /* AVD_EVT_SI_DEP_STATE */
 };
 
@@ -119,9 +104,6 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* standby AvD timer events processing */
-	avd_tmr_snd_hb_evh,           /* AVD_EVT_TMR_SND_HB */
-	avd_standby_tmr_rcv_hb_d_evh, /* AVD_EVT_TMR_RCV_HB_D */
-	avd_tmr_rcv_hb_init_evh,      /* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
 	avd_standby_invalid_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
 
@@ -132,62 +114,9 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_down_evh,    /* AVD_EVT_MDS_AVND_DOWN */
 	avd_standby_invalid_evh,  /* AVD_EVT_MDS_QSD_ACK */
 
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
-	avd_standby_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
-
 	/* Role change Event processing */
 	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
 	avd_standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_evh,	/*  AVD_EVT_D_HB */
-	avd_standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
-};
-
-/* list of all the function pointers related to handling the events
- * for No role AvD.
- */
-static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
-	avd_invalid_evh,	/* AVD_EVT_INVALID */
-
-	/* standby AvD message events processing */
-	avd_standby_invalid_evh,	/* AVD_EVT_NODE_UP_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_REG_SU_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_REG_COMP_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_STATE_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_INFO_SU_SI_ASSIGN_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_PG_TRACK_ACT_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_OPERATION_REQUEST_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_DATA_REQUEST_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
-	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
-
-	/* standby AvD timer events processing */
-	avd_standby_invalid_evh,	/* AVD_EVT_TMR_SND_HB */
-	avd_standby_invalid_evh,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_standby_invalid_evh,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_standby_invalid_evh,	/* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
-
-	/* standby AvD MDS events processing */
-	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVD_UP */
-	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVD_DOWN */
-	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVND_UP */
-	avd_standby_invalid_evh,	/* AVD_EVT_MDS_AVND_DOWN */
-	avd_standby_invalid_evh,	/* AVD_EVT_MDS_QSD_ACK */
-
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
-	avd_standby_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
-	avd_standby_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
-
-	/* Role change Event processing */
-	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
-	avd_standby_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_standby_invalid_evh,	/* AVD_EVT_D_HB */
 	avd_standby_invalid_evh	/* AVD_EVT_SI_DEP_STATE */
 };
 
@@ -213,9 +142,6 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
-	avd_tmr_snd_hb_evh,	/* AVD_EVT_TMR_SND_HB */
-	avd_tmr_rcv_hb_d_evh,	/* AVD_EVT_TMR_RCV_HB_D */
-	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
 	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
 
@@ -226,16 +152,9 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_mds_avnd_down_evh,	/* AVD_EVT_MDS_AVND_DOWN */
 	avd_mds_qsd_role_evh,	/* AVD_EVT_MDS_QSD_ACK */
 
-	avd_qsd_invalid_evh,	/* AVD_EVT_ND_SHUTDOWN */
-	avd_qsd_invalid_evh,	/* AVD_EVT_ND_FAILOVER */
-	avd_qsd_invalid_evh,	/* AVD_EVT_FAULT_DMN_RSP */
-	avd_qsd_invalid_evh,	/* AVD_EVT_ND_RESET_RSP */
-	avd_qsd_invalid_evh,	/* AVD_EVT_ND_OPER_ST */
-
 	/* Role change Event processing */
 	avd_role_change_evh,	/* AVD_EVT_ROLE_CHANGE */
 	avd_qsd_invalid_evh,	/* AVD_EVT_SWITCH_NCS_SU */
-	avd_rcv_hb_d_evh,	/*  AVD_EVT_D_HB */
 	avd_qsd_invalid_evh	/* AVD_EVT_TMR_SI_DEP_TOL */
 };
 
@@ -511,8 +430,7 @@ void avd_main_proc(void)
 				 * verify ack/nack and timer expiry events. Enqueue
 				 * all other events.
 				 */
-				if ((evt->rcv_evt == AVD_EVT_TMR_SND_HB) ||
-				    (evt->rcv_evt == AVD_EVT_VERIFY_ACK_NACK_MSG)) {
+				if (evt->rcv_evt == AVD_EVT_VERIFY_ACK_NACK_MSG) {
 					avd_process_event(cb, evt);
 				} else {
 					AVD_EVT_QUEUE *queue_evt;
@@ -522,22 +440,6 @@ void avd_main_proc(void)
 						m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
 					} else {
 						/* Log Error */
-					}
-
-					/* If it is Receive HB timer event then remove the node
-					 * from the node list */
-					if (evt->rcv_evt == AVD_EVT_TMR_RCV_HB_D) {
-						AVD_FAIL_OVER_NODE *node_fovr;
-
-						if (NULL != (node_fovr =
-							     (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-													 (uns8 *)
-													 &evt->info.tmr.
-													 node_id))) {
-							ncs_patricia_tree_del(&cb->node_list,
-									      &node_fovr->tree_node_id_node);
-							free(node_fovr);
-						}
 					}
 				}
 
@@ -571,6 +473,8 @@ void avd_main_proc(void)
 		if (fds[FD_CLM].revents & POLLIN) {
 			TRACE("CLM event rec");
 			saClmDispatch(cb->clmHandle, SA_DISPATCH_ALL);
+			/* flush messages possibly queued in the callback */
+			avd_d2n_msg_dequeue(cb);
 		}
 
 		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
@@ -641,9 +545,7 @@ void avd_main_proc(void)
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
 	/* check the HA state */
-	if (cb_now->role_set == FALSE)
-		g_avd_init_list[evt->rcv_evt] (cb_now, evt);
-	else if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
+	if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
 		/* if active call g_avd_actv_list functions */
 		g_avd_actv_list[evt->rcv_evt] (cb_now, evt);
 
@@ -682,40 +584,3 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	free(evt);
 }
 
-/*****************************************************************************
- * Function: avd_process_hb_event 
- *
- * Purpose: This function executes the event handler for the current AVD
- *           state. This function will be used in the avd_hb thread only.
- *
- * Input: cb  - AVD control block
- *        evt - ptr to AVD_EVT got from mailbox 
- *
- * Returns: NONE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-void avd_process_hb_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
-{
-	/* check the HA state */
-	if (cb_now->role_set == FALSE)
-		g_avd_init_list[evt->rcv_evt] (cb_now, evt);
-	else if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		/* if active call g_avd_actv_list functions */
-		g_avd_actv_list[evt->rcv_evt] (cb_now, evt);
-
-	} else if (cb_now->avail_state_avd == SA_AMF_HA_STANDBY) {
-		/* if standby call g_avd_stndby_list functions */
-		g_avd_stndby_list[evt->rcv_evt] (cb_now, evt);
-	} else if (cb_now->avail_state_avd == SA_AMF_HA_QUIESCED) {
-		/* if quiesced call g_avd_quiesc_list functions */
-		g_avd_quiesc_list[evt->rcv_evt] (cb_now, evt);
-
-	} else
-		assert(0);
-
-	free(evt);
-}

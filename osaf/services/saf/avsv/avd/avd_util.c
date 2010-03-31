@@ -144,7 +144,6 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	d2n_msg->msg_info.d2n_data_verify.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_data_verify.rcv_id_cnt = avnd->rcv_msg_id;
 	d2n_msg->msg_info.d2n_data_verify.snd_id_cnt = avnd->snd_msg_id;
-	d2n_msg->msg_info.d2n_data_verify.snd_hb_intvl = cb->snd_hb_intvl;
 	d2n_msg->msg_info.d2n_data_verify.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 	d2n_msg->msg_info.d2n_data_verify.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 
@@ -1559,62 +1558,6 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 }
 
 /*****************************************************************************
- * Function: avd_snd_hb_msg
- *
- * Purpose:  This function sends a message to AvND to set the leds on 
- *           that node. 
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the AVND structure of the node.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_snd_hb_msg(AVD_CL_CB *cb)
-{
-	AVD_D2D_MSG *d2d_msg;
-
-	TRACE_ENTER();
-
-	if ((cb->node_id_avd_other == 0) || (cb->other_avd_adest == 0)) {
-		m_AVD_LOG_INVALID_VAL_ERROR(cb->node_id_avd_other);
-		m_AVD_LOG_INVALID_VAL_ERROR(cb->other_avd_adest);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the message. */
-	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
-	if (d2d_msg == AVD_D2D_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_D2D_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
-		return NCSCC_RC_FAILURE;
-	}
-
-	d2d_msg->msg_type = AVD_D2D_HEARTBEAT_MSG;
-	d2d_msg->msg_info.d2d_hrt_bt.node_id = cb->node_id_avd;
-	d2d_msg->msg_info.d2d_hrt_bt.avail_state = cb->avail_state_avd;
-
-	/* send the message */
-	if (avd_d2d_msg_snd(cb, d2d_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(cb->node_id_avd);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2d_msg, sizeof(AVD_D2D_MSG), d2d_msg);
-		/* free the message */
-
-		avsv_d2d_msg_free(d2d_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	avsv_d2d_msg_free(d2d_msg);
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
  * Function: avd_snd_comp_validation_resp
  *
  * Purpose:  This function sends a component validation resp to AvND.
@@ -1799,7 +1742,6 @@ void avd_file_dump(const char *path)
 		fprintf(f, "\tadest=%llx\n", node->adest);
 		fprintf(f, "\trcv_msg_id=%u\n", node->rcv_msg_id);
 		fprintf(f, "\tsnd_msg_id=%u\n", node->snd_msg_id);
-		fprintf(f, "\tavm_oper_state=%u\n", node->avm_oper_state);
 		fprintf(f, "\tnodeId=%x\n", node->node_info.nodeId);
 		node_id = node->node_info.nodeId;
 	}

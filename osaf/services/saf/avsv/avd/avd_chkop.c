@@ -75,8 +75,6 @@ uns32 avsv_mbcsv_register(AVD_CL_CB *cb)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
 	/*
 	 * Send Async Update count to zero.
 	 */
@@ -107,11 +105,11 @@ uns32 avsv_mbcsv_register(AVD_CL_CB *cb)
 
 	return status;
 
- done_close:
+done_close:
 	avsv_mbcsv_close_ckpt(cb);
- done_final:
+done_final:
 	avsv_mbcsv_finalize(cb);
- done:
+done:
 	return status;
 }
 
@@ -393,23 +391,9 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			    (NCSCC_RC_SUCCESS == status)) {
 				LOG_NO("Cold sync complete!");
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
-				avd_init_heartbeat(cb);
 			}
 
 			cb->synced_reo_type = arg->info.decode.i_reo_type;
-
-			/* start sending heartbeat as soon as we get cb information. 
-			 * Note:- we are not expecting any heartbeat to reach us and
-			 * we are not starting rcv timer
-			 */
-			if (arg->info.decode.i_reo_type == 0) {
-				/* Start Heart Beating with the peer */
-				AVD_EVT evt;
-				memset(&evt, 0, sizeof(evt));
-				evt.info.tmr.type = AVD_TMR_SND_HB;
-				avd_tmr_snd_hb_evh(cb, &evt);
-			}
-
 		}
 		break;
 
@@ -659,8 +643,6 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
 	NCS_MBCSV_ARG mbcsv_arg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
@@ -847,7 +829,6 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	 */
 	switch (reo_type) {
 	case AVSV_CKPT_AVD_CB_CONFIG:
-	case AVSV_CKPT_CB_CL_VIEW_NUM:
 		cb->async_updt_cnt.cb_updt++;
 		break;
 
@@ -858,7 +839,6 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	case AVSV_CKPT_AVND_NODE_STATE:
 	case AVSV_CKPT_AVND_RCV_MSG_ID:
 	case AVSV_CKPT_AVND_SND_MSG_ID:
-	case AVSV_CKPT_AVND_AVM_OPER_STATE:
 		cb->async_updt_cnt.node_updt++;
 		break;
 
@@ -1172,7 +1152,6 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 
 	switch (reo_type) {
 	case AVSV_CKPT_AVD_CB_CONFIG:
-	case AVSV_CKPT_CB_CL_VIEW_NUM:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_CB_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
@@ -1185,7 +1164,6 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	case AVSV_CKPT_AVND_NODE_STATE:
 	case AVSV_CKPT_AVND_RCV_MSG_ID:
 	case AVSV_CKPT_AVND_SND_MSG_ID:
-	case AVSV_CKPT_AVND_AVM_OPER_STATE:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_NODE_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
@@ -1271,25 +1249,3 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	return status;
 }
 
-/***************************************************************************\
- *
- * Function   :avsv_send_hb_ntfy_msg
- *
- * Purpose:  Function for sending the heart-beat notify message to the 
- *           peer. We assume that AVD has one peer only. So when we send
- *           heart beat message then it will get sent to only peer.
- *           We are sending following info with this message:
- *           1) Node ID 2) Rcv HB timer 3) SND HB timer 4) HA state
- *
- * Input: cb - AVD CB pointer.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-uns32 avsv_send_hb_ntfy_msg(AVD_CL_CB *cb)
-{
-	return NCSCC_RC_SUCCESS;
-}
