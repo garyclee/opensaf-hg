@@ -113,16 +113,16 @@ void _logtrace_log(const char *file, unsigned int line, int priority, const char
 
 	/* Uncondionally send to syslog */
 	va_start(ap, format);
+	va_copy(ap2, ap);
 	vsyslog(priority, format, ap);
 
 	/* Only output to file if configured to */
-	if (!(category_mask & (1 << CAT_LOG))) {
-		va_end(ap);
-		return;
-	}
+	if (!(category_mask & (1 << CAT_LOG)))
+		goto done;
 
-	va_copy(ap2, ap);
 	output(file, line, priority, CAT_LOG, format, ap2);
+
+done:
 	va_end(ap);
 	va_end(ap2);
 }
