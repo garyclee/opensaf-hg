@@ -699,13 +699,17 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 			rc = avnd_comp_proxy_unreg(cb, comp);
 	}
 
-	if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)) {
+	if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && 
+		((SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st) ||
+		 (SA_AMF_PRESENCE_TERMINATION_FAILED == final_st))) {
 		avnd_instfail_su_failover(cb, comp->su, comp);
 	}
 
-	if ((SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)
-	    && (comp->su->is_ncs == TRUE)) {
-		syslog(LOG_ERR, "NCS_AvSv: %s got Inst failed", comp->name.value);
+	if (comp->su->is_ncs == TRUE) {
+		if(SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st) 
+			syslog(LOG_ERR, "%s got Inst failed", comp->name.value);
+		if(SA_AMF_PRESENCE_TERMINATION_FAILED == final_st)
+			syslog(LOG_ERR, "%s got Term failed", comp->name.value);
 	}
 
 	/* pi comp in pi su */
