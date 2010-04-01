@@ -42,23 +42,23 @@ static MDS_CLIENT_MSG_FORMAT_VER
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	clmsv_init_param_t *param = &msg->info.api_info.param.init;
-        uns8 local_data[3];
+	uns8 local_data[3];
 
-        /* releaseCode, majorVersion, minorVersion */
-        p8 = ncs_dec_flatten_space(uba, local_data, 3);
-        param->version.releaseCode = ncs_decode_8bit(&p8);
-        param->version.majorVersion = ncs_decode_8bit(&p8);
-        param->version.minorVersion = ncs_decode_8bit(&p8);
-        ncs_dec_skip_space(uba, 3);
-        total_bytes += 3;
+	/* releaseCode, majorVersion, minorVersion */
+	p8 = ncs_dec_flatten_space(uba, local_data, 3);
+	param->version.releaseCode = ncs_decode_8bit(&p8);
+	param->version.majorVersion = ncs_decode_8bit(&p8);
+	param->version.minorVersion = ncs_decode_8bit(&p8);
+	ncs_dec_skip_space(uba, 3);
+	total_bytes += 3;
 
-        TRACE_8("CLMSV_INITIALIZE_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_INITIALIZE_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -73,21 +73,21 @@ static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	clmsv_finalize_param_t *param = &msg->info.api_info.param.finalize;
-        uns8 local_data[4];
+	uns8 local_data[4];
 
-        /* client_id */
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->client_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	/* client_id */
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->client_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_8("CLMSV_FINALIZE_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_FINALIZE_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -102,11 +102,11 @@ static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        clmsv_track_start_param_t *param = &msg->info.api_info.param.track_start;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	clmsv_track_start_param_t *param = &msg->info.api_info.param.track_start;
 	uns8 local_data[9];
 	TRACE_ENTER();
 
@@ -114,12 +114,12 @@ static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 	param->client_id = ncs_decode_32bit(&p8);
 	param->flags = ncs_decode_8bit(&p8);
 	param->sync_resp = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 9);
-        total_bytes += 9;
+	ncs_dec_skip_space(uba, 9);
+	total_bytes += 9;
 
-        TRACE_8("CLMSV_TRACK_START_REQ");
+	TRACE_8("CLMSV_TRACK_START_REQ");
 	TRACE_LEAVE();
-        return total_bytes;
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -134,20 +134,20 @@ static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        clmsv_track_stop_param_t *param = &msg->info.api_info.param.track_stop;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	clmsv_track_stop_param_t *param = &msg->info.api_info.param.track_stop;
 	uns8 local_data[4];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->client_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->client_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_8("CLMSV_TRACK_STOP_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_TRACK_STOP_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -162,21 +162,21 @@ static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        clmsv_node_get_param_t *param = &msg->info.api_info.param.node_get;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	clmsv_node_get_param_t *param = &msg->info.api_info.param.node_get;
 	uns8 local_data[8];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->client_id = ncs_decode_32bit(&p8);
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->client_id = ncs_decode_32bit(&p8);
 	param->node_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        TRACE_8("CLMSV_NODE_GET_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_NODE_GET_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -191,22 +191,22 @@ static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        clmsv_node_get_async_param_t *param = &msg->info.api_info.param.node_get_async;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	clmsv_node_get_async_param_t *param = &msg->info.api_info.param.node_get_async;
 	uns8 local_data[16];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 16);
-        param->client_id = ncs_decode_32bit(&p8);
-        param->inv = ncs_decode_64bit(&p8);
+	p8 = ncs_dec_flatten_space(uba, local_data, 16);
+	param->client_id = ncs_decode_32bit(&p8);
+	param->inv = ncs_decode_64bit(&p8);
 	param->node_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 16);
-        total_bytes += 16;
+	ncs_dec_skip_space(uba, 16);
+	total_bytes += 16;
 
-        TRACE_8("CLMSV_NODE_GET_ASYNC_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_NODE_GET_ASYNC_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -221,34 +221,34 @@ static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-	SaUint32T inv1=0;
-	SaUint32T inv2=0;
-        uns32 total_bytes = 0;
-	
-        clmsv_clm_response_param_t *param = &msg->info.api_info.param.clm_resp;
-        uns8 local_data[100];
+	uns8 *p8;
+	SaUint32T inv1 = 0;
+	SaUint32T inv2 = 0;
+	uns32 total_bytes = 0;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 16);
-        param->client_id = ncs_decode_32bit(&p8);
-        param->resp = ncs_decode_32bit(&p8);
+	clmsv_clm_response_param_t *param = &msg->info.api_info.param.clm_resp;
+	uns8 local_data[100];
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 16);
+	param->client_id = ncs_decode_32bit(&p8);
+	param->resp = ncs_decode_32bit(&p8);
 
 	inv1 = ncs_decode_32bit(&p8);
 	inv2 = ncs_decode_32bit(&p8);
 
-	TRACE("inv1 %u",inv1);
-	TRACE("inv2 %u",inv2); 
+	TRACE("inv1 %u", inv1);
+	TRACE("inv2 %u", inv2);
 
-	param->inv = ((SaUint64T)inv2 << 32) |inv1;
-       /* param->inv = ncs_decode_64bit(&p8);*/
-	TRACE("param->inv %llu",param->inv);
-        ncs_dec_skip_space(uba, 16);
-        total_bytes += 16;
+	param->inv = ((SaUint64T)inv2 << 32) | inv1;
+	/* param->inv = ncs_decode_64bit(&p8); */
+	TRACE("param->inv %llu", param->inv);
+	ncs_dec_skip_space(uba, 16);
+	total_bytes += 16;
 
-        TRACE_8("CLMSV_RESPONSE_REQ");
-        return total_bytes;
+	TRACE_8("CLMSV_RESPONSE_REQ");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -263,106 +263,105 @@ static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        SaUint32T *client_id = &msg->info.api_resp_info.param.client_id;
-        /* client_id */
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (p8 == NULL) {
-                TRACE("ncs_enc_reserve_space failed");
-                goto done;
-        }
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	SaUint32T *client_id = &msg->info.api_resp_info.param.client_id;
+	/* client_id */
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (p8 == NULL) {
+		TRACE("ncs_enc_reserve_space failed");
+		goto done;
+	}
 
-        ncs_encode_32bit(&p8, *client_id);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	ncs_encode_32bit(&p8, *client_id);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
  done:
-        TRACE_8("CLMSV_INITIALIZE_RSP");
-        return total_bytes;
+	TRACE_8("CLMSV_INITIALIZE_RSP");
+	return total_bytes;
 }
 
-
-uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT * nodeAddress)
+uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 {
 	uns8 *p8 = NULL;
 	uns32 total_bytes = 0;
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, nodeAddress->family);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
-        p8 = ncs_enc_reserve_space(uba, 2);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        if (nodeAddress->length > SA_CLM_MAX_ADDRESS_LENGTH) {
-                LOG_ER("SaNameT length too long %hd", nodeAddress->length);
-                assert(0);
-        }
-        ncs_encode_16bit(&p8, nodeAddress->length);
-        ncs_enc_claim_space(uba, 2);
-        total_bytes += 2;
-        ncs_encode_n_octets_in_uba(uba, nodeAddress->value, (uns32)nodeAddress->length);
-        total_bytes += (uns32)nodeAddress->length;
-        return total_bytes;
-}   
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, nodeAddress->family);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 2);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	if (nodeAddress->length > SA_CLM_MAX_ADDRESS_LENGTH) {
+		LOG_ER("SaNameT length too long %hd", nodeAddress->length);
+		assert(0);
+	}
+	ncs_encode_16bit(&p8, nodeAddress->length);
+	ncs_enc_claim_space(uba, 2);
+	total_bytes += 2;
+	ncs_encode_n_octets_in_uba(uba, nodeAddress->value, (uns32)nodeAddress->length);
+	total_bytes += (uns32)nodeAddress->length;
+	return total_bytes;
+}
 
-static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 *msg)
+static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        SaClmClusterNodeT_4 *param = msg;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	SaClmClusterNodeT_4 *param = msg;
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->nodeId);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->nodeId);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        total_bytes += encodeNodeAddressT(uba,&param->nodeAddress);
-        total_bytes += clmsv_encodeSaNameT(uba,&param->nodeName);
-        total_bytes += clmsv_encodeSaNameT(uba,&param->executionEnvironment);
+	total_bytes += encodeNodeAddressT(uba, &param->nodeAddress);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->nodeName);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->executionEnvironment);
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->member);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->member);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba,8);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->bootTimestamp);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->bootTimestamp);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba,8);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        /*ncs_encode_32bit(&p8, param->initialViewNumber);*/
-        ncs_encode_64bit(&p8, param->initialViewNumber);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	/*ncs_encode_32bit(&p8, param->initialViewNumber); */
+	ncs_encode_64bit(&p8, param->initialViewNumber);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        return total_bytes;
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -377,50 +376,50 @@ static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-   return clms_enc_node_get_msg(uba, &msg->info.api_resp_info.param.node_get);
+	return clms_enc_node_get_msg(uba, &msg->info.api_resp_info.param.node_get);
 }
 
-static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 *notify_info)
+static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 * notify_info)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0,i;
-        SaClmClusterNotificationBufferT_4 *param = notify_info;
+	uns8 *p8;
+	uns32 total_bytes = 0, i;
+	SaClmClusterNotificationBufferT_4 *param = notify_info;
 	TRACE_ENTER();
 
-        p8 = ncs_enc_reserve_space(uba,8);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->viewNumber);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->viewNumber);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->numberOfItems);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->numberOfItems);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        for(i=0; i< param->numberOfItems; i++) {
-	        p8 = ncs_enc_reserve_space(uba,4);
-	        if (!p8) {
-	                TRACE("p8 NULL!!!");
-	                return 0;
-	        }
-	        ncs_encode_32bit(&p8, param->notification[i].clusterChange);
-	        ncs_enc_claim_space(uba, 4);
-	        total_bytes += 4;
-                total_bytes += clms_enc_node_get_msg(uba, &param->notification[i].clusterNode);
-        }
+	for (i = 0; i < param->numberOfItems; i++) {
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_32bit(&p8, param->notification[i].clusterChange);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
+		total_bytes += clms_enc_node_get_msg(uba, &param->notification[i].clusterNode);
+	}
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -435,12 +434,12 @@ static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificati
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
-        TRACE_ENTER();
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
+	TRACE_ENTER();
 
 /*	p8 = ncs_enc_reserve_space(uba,4);
         if (!p8) {
@@ -451,19 +450,19 @@ static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
 */
-        p8 = ncs_enc_reserve_space(uba,2);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_16bit(&p8,track->num);
-        ncs_enc_claim_space(uba, 2);
-        total_bytes += 2;
+	p8 = ncs_enc_reserve_space(uba, 2);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_16bit(&p8, track->num);
+	ncs_enc_claim_space(uba, 2);
+	total_bytes += 2;
 
-        total_bytes += clms_enc_cluster_ntf_buf_msg(uba,track->notify_info);
+	total_bytes += clms_enc_cluster_ntf_buf_msg(uba, track->notify_info);
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -478,38 +477,38 @@ static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
-        TRACE_ENTER();
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
+	TRACE_ENTER();
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, node_get->err);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
-	
-	if (node_get->err == SA_AIS_OK){
-	
-        	p8 = ncs_enc_reserve_space(uba,8);
-        	if (!p8) {
-                	TRACE("p8 NULL!!!");
-                	return 0;
-        	}
-        	ncs_encode_64bit(&p8, node_get->inv);
-        	ncs_enc_claim_space(uba, 8);
-        	total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, node_get->err);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        	total_bytes += clms_enc_node_get_msg(uba, &node_get->info);
+	if (node_get->err == SA_AIS_OK) {
+
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_64bit(&p8, node_get->inv);
+		ncs_enc_claim_space(uba, 8);
+		total_bytes += 8;
+
+		total_bytes += clms_enc_node_get_msg(uba, &node_get->info);
 	}
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -524,76 +523,77 @@ static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        CLMSV_TRACK_CBK_INFO *track = &msg->info.cbk_info.param.track;
-        TRACE_ENTER();
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	CLMSV_TRACK_CBK_INFO *track = &msg->info.cbk_info.param.track;
+	TRACE_ENTER();
 
-        total_bytes += clms_enc_cluster_ntf_buf_msg(uba,&track->buf_info);
+	total_bytes += clms_enc_cluster_ntf_buf_msg(uba, &track->buf_info);
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, track->mem_num);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, track->mem_num);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba,8);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, track->inv);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, track->inv);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        total_bytes += clmsv_encodeSaNameT(uba,track->root_cause_ent);
+	total_bytes += clmsv_encodeSaNameT(uba, track->root_cause_ent);
 
-        p8 = ncs_enc_reserve_space(uba,24);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, track->cor_ids->rootCorrelationId);
+	p8 = ncs_enc_reserve_space(uba, 24);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, track->cor_ids->rootCorrelationId);
 	ncs_encode_64bit(&p8, track->cor_ids->parentCorrelationId);
 	ncs_encode_64bit(&p8, track->cor_ids->notificationId);
-        ncs_enc_claim_space(uba, 24);
-        total_bytes += 24;
+	ncs_enc_claim_space(uba, 24);
+	total_bytes += 24;
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, track->step);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, track->step);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba,8);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, track->time_super);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, track->time_super);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba,4);
-        if (!p8) {
-                TRACE("p8 NULL!!!");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, track->err);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
-        
-        TRACE_LEAVE();
-        return total_bytes;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, track->err);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+
+	TRACE_LEAVE();
+	return total_bytes;
 }
+
 /****************************************************************************
  * Name          : clms_mds_cpy
  *
@@ -612,7 +612,6 @@ static uns32 clms_mds_cpy(struct ncsmds_callback_info *info)
 	return NCSCC_RC_FAILURE;
 }
 
-
 /****************************************************************************
   Name          : clms_mds_enc
 
@@ -627,132 +626,132 @@ static uns32 clms_mds_cpy(struct ncsmds_callback_info *info)
 ******************************************************************************/
 uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 {
-        CLMSV_MSG *msg;
-        NCS_UBAID *uba;
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
+	CLMSV_MSG *msg;
+	NCS_UBAID *uba;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
-        msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-                                                CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
-                                                CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY);
-        if (0 == msg_fmt_version) {
-                LOG_ER("msg_fmt_version FAILED!");
-                return NCSCC_RC_FAILURE;
-        }
-        info->info.enc.o_msg_fmt_ver = msg_fmt_version;
+	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+						CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
+						CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY);
+	if (0 == msg_fmt_version) {
+		LOG_ER("msg_fmt_version FAILED!");
+		return NCSCC_RC_FAILURE;
+	}
+	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
 
-        msg = (CLMSV_MSG *)info->info.enc.i_msg;
-        uba = info->info.enc.io_uba;
+	msg = (CLMSV_MSG *) info->info.enc.i_msg;
+	uba = info->info.enc.io_uba;
 
-        if (uba == NULL) {
-                LOG_ER("uba == NULL");
-                goto err;
-        }
+	if (uba == NULL) {
+		LOG_ER("uba == NULL");
+		goto err;
+	}
 
     /** encode the type of message **/
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (p8 == NULL) {
-                TRACE("ncs_enc_reserve_space failed");
-                goto err;
-        }
-        ncs_encode_32bit(&p8, msg->evt_type);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (p8 == NULL) {
+		TRACE("ncs_enc_reserve_space failed");
+		goto err;
+	}
+	ncs_encode_32bit(&p8, msg->evt_type);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        if (CLMSV_CLMS_TO_CLMA_API_RESP_MSG == msg->evt_type) {
-        /** encode the API RSP msg subtype **/
-                p8 = ncs_enc_reserve_space(uba, 4);
-                if (!p8) {
-                        TRACE("ncs_enc_reserve_space failed");
-                        goto err;
-                }
-                ncs_encode_32bit(&p8, msg->info.api_resp_info.type);
-                ncs_enc_claim_space(uba, 4);
-                total_bytes += 4;
+	if (CLMSV_CLMS_TO_CLMA_API_RESP_MSG == msg->evt_type) {
+	/** encode the API RSP msg subtype **/
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			TRACE("ncs_enc_reserve_space failed");
+			goto err;
+		}
+		ncs_encode_32bit(&p8, msg->info.api_resp_info.type);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
 
-                /* rc */
-                p8 = ncs_enc_reserve_space(uba, 4);
-                if (!p8) {
-                        TRACE("ncs_enc_reserve_space failed");
-                        goto err;
-                }
-                ncs_encode_32bit(&p8, msg->info.api_resp_info.rc);
-                ncs_enc_claim_space(uba, 4);
-                total_bytes += 4;
+		/* rc */
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			TRACE("ncs_enc_reserve_space failed");
+			goto err;
+		}
+		ncs_encode_32bit(&p8, msg->info.api_resp_info.rc);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
 
-                switch (msg->info.api_resp_info.type) {
-                case CLMSV_INITIALIZE_RESP:
-                        total_bytes += clms_enc_initialize_rsp_msg(uba, msg);
-                        break;
-                case CLMSV_FINALIZE_RESP:
-                        break;
-                case CLMSV_TRACK_CURRENT_RESP:
-                        total_bytes += clms_enc_track_current_rsp_msg(uba, msg);
-                        break;
-                case CLMSV_TRACK_STOP_RESP:
-                        break;
-                case CLMSV_NODE_GET_RESP:
-			if(msg->info.api_resp_info.rc == SA_AIS_OK)	
-	                        total_bytes += clms_enc_node_get_rsp_msg(uba, msg);
-                        break;
+		switch (msg->info.api_resp_info.type) {
+		case CLMSV_INITIALIZE_RESP:
+			total_bytes += clms_enc_initialize_rsp_msg(uba, msg);
+			break;
+		case CLMSV_FINALIZE_RESP:
+			break;
+		case CLMSV_TRACK_CURRENT_RESP:
+			total_bytes += clms_enc_track_current_rsp_msg(uba, msg);
+			break;
+		case CLMSV_TRACK_STOP_RESP:
+			break;
+		case CLMSV_NODE_GET_RESP:
+			if (msg->info.api_resp_info.rc == SA_AIS_OK)
+				total_bytes += clms_enc_node_get_rsp_msg(uba, msg);
+			break;
 		case CLMSV_CLUSTER_JOIN_RESP:
-				total_bytes += clmsv_encodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
-			break; 
-                default:
-                        TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
+			total_bytes += clmsv_encodeSaNameT(uba, &(msg->info.api_resp_info.param.node_name));
+			break;
+		default:
+			TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
 			goto err;
-		
-                }
-        } else if (CLMSV_CLMS_TO_CLMA_CBK_MSG == msg->evt_type) {
 
-	        p8 = ncs_enc_reserve_space(uba,8);
-	        if (!p8) {
-	                TRACE("p8 NULL!!!");
-	                return 0;
-	        }
-	        ncs_encode_32bit(&p8, msg->info.cbk_info.type);
+		}
+	} else if (CLMSV_CLMS_TO_CLMA_CBK_MSG == msg->evt_type) {
+
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_32bit(&p8, msg->info.cbk_info.type);
 		ncs_encode_32bit(&p8, msg->info.cbk_info.client_id);
-	        ncs_enc_claim_space(uba, 8);
-	        total_bytes += 8;
+		ncs_enc_claim_space(uba, 8);
+		total_bytes += 8;
 
-                TRACE_2("CLMSV_CLMS_TO_CLMA_CBK_MSG");
-                switch (msg->info.cbk_info.type) {
-                case CLMSV_TRACK_CBK:
-                       	TRACE_2("encode Track cbk message");
-                        total_bytes += clms_enc_track_cbk_msg(uba, msg);
-                        break;
-                case CLMSV_NODE_ASYNC_GET_CBK:
-                        TRACE_2("encode Ndoe async cbk message");
-	                total_bytes += clms_enc_node_async_get_cbk_msg(uba, msg);
-                        break;
-                default:
-                        TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
+		TRACE_2("CLMSV_CLMS_TO_CLMA_CBK_MSG");
+		switch (msg->info.cbk_info.type) {
+		case CLMSV_TRACK_CBK:
+			TRACE_2("encode Track cbk message");
+			total_bytes += clms_enc_track_cbk_msg(uba, msg);
+			break;
+		case CLMSV_NODE_ASYNC_GET_CBK:
+			TRACE_2("encode Ndoe async cbk message");
+			total_bytes += clms_enc_node_async_get_cbk_msg(uba, msg);
+			break;
+		default:
+			TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
 			goto err;
-                }
-        } else {
-                TRACE("unknown msg type %d", msg->evt_type);
-                goto err;
-        }
-	
-	if (total_bytes == 0){
+		}
+	} else {
+		TRACE("unknown msg type %d", msg->evt_type);
+		goto err;
+	}
+
+	if (total_bytes == 0) {
 		TRACE("Zero bytes encoded");
 		goto err;
 	}
 
-        return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
  err:
-        return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /**
 * Decode the nodeup msg
 **/
-static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
+static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uns8 *p8;
-        uns32 total_bytes = 0;
+	uns32 total_bytes = 0;
 	uns8 local_data[4];
 	TRACE_ENTER();
 
@@ -760,13 +759,15 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 	msg->info.api_info.param.nodeup_info.node_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 	total_bytes += 4;
-	total_bytes += clmsv_decodeSaNameT(uba,&(msg->info.api_info.param.nodeup_info.node_name));
-	TRACE("nodename %s length %d",msg->info.api_info.param.nodeup_info.node_name.value,msg->info.api_info.param.nodeup_info.node_name.length);
+	total_bytes += clmsv_decodeSaNameT(uba, &(msg->info.api_info.param.nodeup_info.node_name));
+	TRACE("nodename %s length %d", msg->info.api_info.param.nodeup_info.node_name.value,
+	      msg->info.api_info.param.nodeup_info.node_name.length);
 
 	TRACE("CLMSV_NODE_UP_MSG");
 	TRACE_LEAVE();
 	return total_bytes;
 }
+
 /****************************************************************************
  * Name          : clms_mds_dec
  *
@@ -780,91 +781,91 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
  *****************************************************************************/
 uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 {
-        uns8 *p8;
-        CLMSV_CLMS_EVT *evt;
-        NCS_UBAID *uba = info->info.dec.io_uba;
-        uns8 local_data[20];
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	CLMSV_CLMS_EVT *evt;
+	NCS_UBAID *uba = info->info.dec.io_uba;
+	uns8 local_data[20];
+	uns32 total_bytes = 0;
 
-	TRACE_ENTER();	
+	TRACE_ENTER();
 
-        if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-                                           CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
-                                           CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY)) {
-                TRACE("Wrong format version");
-                goto err;
-        }
+	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+					   CLMS_WRT_CLMA_SUBPART_VER_AT_MIN_MSG_FMT,
+					   CLMS_WRT_CLMA_SUBPART_VER_AT_MAX_MSG_FMT, CLMS_WRT_CLMA_MSG_FMT_ARRAY)) {
+		TRACE("Wrong format version");
+		goto err;
+	}
 
     /** allocate an CLMSV_CLMS_EVENT now **/
-        if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
-                TRACE("calloc failed");
-                goto err;
-        }       
+	if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
+		TRACE("calloc failed");
+		goto err;
+	}
 
-        /* Assign the allocated event */
-        info->info.dec.o_msg = (uns8 *)evt;
+	/* Assign the allocated event */
+	info->info.dec.o_msg = (uns8 *)evt;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        evt->info.msg.evt_type = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	evt->info.msg.evt_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-	TRACE("evt->info.msg.evt_type %d",evt->info.msg.evt_type);	
+	TRACE("evt->info.msg.evt_type %d", evt->info.msg.evt_type);
 
-        if (CLMSV_CLMA_TO_CLMS_API_MSG == evt->info.msg.evt_type) {
-                p8 = ncs_dec_flatten_space(uba, local_data, 4);
-                evt->info.msg.info.api_info.type = ncs_decode_32bit(&p8);
-                ncs_dec_skip_space(uba, 4);
-                total_bytes += 4;
+	if (CLMSV_CLMA_TO_CLMS_API_MSG == evt->info.msg.evt_type) {
+		p8 = ncs_dec_flatten_space(uba, local_data, 4);
+		evt->info.msg.info.api_info.type = ncs_decode_32bit(&p8);
+		ncs_dec_skip_space(uba, 4);
+		total_bytes += 4;
 
-		TRACE("evt->info.msg.info.api_info.type %d",evt->info.msg.info.api_info.type);
-                /* FIX error handling for dec functions */
-                switch (evt->info.msg.info.api_info.type) {
-                case CLMSV_INITIALIZE_REQ:
-                        total_bytes += clms_dec_initialize_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_FINALIZE_REQ:
-                        total_bytes += clms_dec_finalize_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_TRACK_START_REQ:
-                        total_bytes += clms_dec_track_start_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_TRACK_STOP_REQ:
-                        total_bytes += clms_dec_track_stop_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_NODE_GET_REQ:
-                        total_bytes += clms_dec_node_get_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_NODE_GET_ASYNC_REQ:
-                        total_bytes += clms_dec_node_get_async_msg(uba, &evt->info.msg);
-                        break;
-                case CLMSV_RESPONSE_REQ:
-                        total_bytes += clms_dec_response_msg(uba, &evt->info.msg);
-                        break;
+		TRACE("evt->info.msg.info.api_info.type %d", evt->info.msg.info.api_info.type);
+		/* FIX error handling for dec functions */
+		switch (evt->info.msg.info.api_info.type) {
+		case CLMSV_INITIALIZE_REQ:
+			total_bytes += clms_dec_initialize_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_FINALIZE_REQ:
+			total_bytes += clms_dec_finalize_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_TRACK_START_REQ:
+			total_bytes += clms_dec_track_start_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_TRACK_STOP_REQ:
+			total_bytes += clms_dec_track_stop_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_NODE_GET_REQ:
+			total_bytes += clms_dec_node_get_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_NODE_GET_ASYNC_REQ:
+			total_bytes += clms_dec_node_get_async_msg(uba, &evt->info.msg);
+			break;
+		case CLMSV_RESPONSE_REQ:
+			total_bytes += clms_dec_response_msg(uba, &evt->info.msg);
+			break;
 		case CLMSV_CLUSTER_JOIN_REQ:
-			 /* Decode the nodeup mesg*/
-	                TRACE("Node up message getting decoded");
+			/* Decode the nodeup mesg */
+			TRACE("Node up message getting decoded");
 			total_bytes += clms_dec_nodeup_msg(uba, &evt->info.msg);
 			break;
-                default:
-                        TRACE("Unknown API type = %d", evt->info.msg.info.api_info.type);
-                        break;
-                }
-                if (total_bytes == 4)
-                        goto err;
-	
-        } else {
-                TRACE("unknown msg type = %d", (int)evt->info.msg.evt_type);
-                goto err;
-        }
-	
+		default:
+			TRACE("Unknown API type = %d", evt->info.msg.info.api_info.type);
+			break;
+		}
+		if (total_bytes == 4)
+			goto err;
+
+	} else {
+		TRACE("unknown msg type = %d", (int)evt->info.msg.evt_type);
+		goto err;
+	}
+
 	TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
  err:
 	TRACE_LEAVE();
 	free(evt);
-        return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 
 }
 
@@ -882,18 +883,18 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 
 static uns32 clms_mds_enc_flat(struct ncsmds_callback_info *info)
 {
-        uns32 rc;
+	uns32 rc;
 
-        /* Retrieve info from the enc_flat */
-        MDS_CALLBACK_ENC_INFO enc = info->info.enc_flat;
-        /* Modify the MDS_INFO to populate enc */
-        info->info.enc = enc;
-        /* Invoke the regular mds_enc routine */
-        rc = clms_mds_enc(info);
-        if (rc != NCSCC_RC_SUCCESS) {
-                TRACE("mds_enc FAILED");
-        }
-        return rc;
+	/* Retrieve info from the enc_flat */
+	MDS_CALLBACK_ENC_INFO enc = info->info.enc_flat;
+	/* Modify the MDS_INFO to populate enc */
+	info->info.enc = enc;
+	/* Invoke the regular mds_enc routine */
+	rc = clms_mds_enc(info);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("mds_enc FAILED");
+	}
+	return rc;
 }
 
 /****************************************************************************
@@ -910,17 +911,17 @@ static uns32 clms_mds_enc_flat(struct ncsmds_callback_info *info)
 
 static uns32 clms_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
-        /* Retrieve info from the dec_flat */
-        MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
-        /* Modify the MDS_INFO to populate dec */
-        info->info.dec = dec;
-        /* Invoke the regular mds_dec routine */
-        rc = clms_mds_dec(info);
-        if (rc != NCSCC_RC_SUCCESS) {
-                TRACE("mds_dec FAILED ");
-        }
-        return rc;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	/* Retrieve info from the dec_flat */
+	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
+	/* Modify the MDS_INFO to populate dec */
+	info->info.dec = dec;
+	/* Invoke the regular mds_dec routine */
+	rc = clms_mds_dec(info);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("mds_dec FAILED ");
+	}
+	return rc;
 }
 
 /****************************************************************************
@@ -940,35 +941,35 @@ static uns32 clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 	CLMSV_CLMS_EVT *clmsv_evt = NULL;
 	TRACE_ENTER();
 
-
-	TRACE("node_id %d,nodeup %d",mds_info->info.node_evt.node_id,mds_info->info.node_evt.node_chg);
+	TRACE("node_id %d,nodeup %d", mds_info->info.node_evt.node_id, mds_info->info.node_evt.node_chg);
 
 	/* Send the message to clms */
-	/* Node up Events will be taken care by clms nodeagent*/
+	/* Node up Events will be taken care by clms nodeagent */
 
-	if (mds_info->info.node_evt.node_chg ==  NCSMDS_NODE_DOWN){
+	if (mds_info->info.node_evt.node_chg == NCSMDS_NODE_DOWN) {
 
 		if (NULL == (clmsv_evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
-                                rc = NCSCC_RC_FAILURE;
-                                TRACE("mem alloc FAILURE  ");
-                                goto done;
+			rc = NCSCC_RC_FAILURE;
+			TRACE("mem alloc FAILURE  ");
+			goto done;
 		}
-		
+
 		clmsv_evt->type = CLMSV_CLMS_MDS_NODE_EVT;
 		clmsv_evt->info.node_mds_info.node_id = mds_info->info.node_evt.node_id;
 		clmsv_evt->info.node_mds_info.nodeup = mds_info->info.node_evt.node_chg;
 
-        	rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt,MDS_SEND_PRIORITY_MEDIUM);
-        	if (rc != NCSCC_RC_SUCCESS){
-                	TRACE("IPC send failed %d", rc);
+		rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, MDS_SEND_PRIORITY_MEDIUM);
+		if (rc != NCSCC_RC_SUCCESS) {
+			TRACE("IPC send failed %d", rc);
 			free(clmsv_evt);
-		}	
+		}
 	}
 
-done:
-        TRACE_LEAVE();
-        return rc;
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
+
 /****************************************************************************
  * Name          : clms_mds_rcv
  *
@@ -983,26 +984,24 @@ done:
 
 static uns32 clms_mds_rcv(struct ncsmds_callback_info *mds_info)
 {
-        CLMSV_CLMS_EVT *clmsv_evt = (CLMSV_CLMS_EVT *)mds_info->info.receive.i_msg;
-        uns32 rc = NCSCC_RC_SUCCESS;
+	CLMSV_CLMS_EVT *clmsv_evt = (CLMSV_CLMS_EVT *) mds_info->info.receive.i_msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Event type  %u", clmsv_evt->type);
-						
-	
-        clmsv_evt->type = CLMSV_CLMS_CLMSV_MSG;
-        clmsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
-        clmsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
-        clmsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
-        clmsv_evt->rcvd_prio = mds_info->info.receive.i_priority;
-        clmsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
-	
-        /* Send the message to clms */
-        rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, mds_info->info.receive.i_priority);
-        if (rc != NCSCC_RC_SUCCESS)
-                TRACE("IPC send failed %d", rc);
 
+	clmsv_evt->type = CLMSV_CLMS_CLMSV_MSG;
+	clmsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
+	clmsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
+	clmsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
+	clmsv_evt->rcvd_prio = mds_info->info.receive.i_priority;
+	clmsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
+
+	/* Send the message to clms */
+	rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, mds_info->info.receive.i_priority);
+	if (rc != NCSCC_RC_SUCCESS)
+		TRACE("IPC send failed %d", rc);
 
 	TRACE_LEAVE();
-        return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -1019,19 +1018,18 @@ static uns32 clms_mds_rcv(struct ncsmds_callback_info *mds_info)
 
 static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
-        CLMSV_CLMS_EVT *clmsv_evt;
+	CLMSV_CLMS_EVT *clmsv_evt;
 
-	if (clms_cb->is_quiesced_set != TRUE) 
+	if (clms_cb->is_quiesced_set != TRUE)
 		return NCSCC_RC_SUCCESS;
 
-
     /** allocate an CLMSV_CLMS_EVENT now **/
-        if (NULL == (clmsv_evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
-                TRACE("memory alloc FAILED");
-                goto err;
-        }
-	
-        /** Initialize the Event here **/
+	if (NULL == (clmsv_evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
+		TRACE("memory alloc FAILED");
+		goto err;
+	}
+
+	/** Initialize the Event here **/
 	clmsv_evt->type = CLSMV_CLMS_QUIESCED_ACK;
 	clmsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
 
@@ -1042,10 +1040,10 @@ static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 		goto err;
 	}
 
-        return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
  err:
-        return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -1062,54 +1060,54 @@ static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 static uns32 clms_mds_svc_event(struct ncsmds_callback_info *info)
 {
-        CLMSV_CLMS_EVT *evt = NULL;
-        uns32 rc = NCSCC_RC_SUCCESS;
+	CLMSV_CLMS_EVT *evt = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-        /* First make sure that this event is indeed for us */
-        if (info->info.svc_evt.i_your_id != NCSMDS_SVC_ID_CLMS) {
-                TRACE("event not NCSMDS_SVC_ID_CLMS");
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+	/* First make sure that this event is indeed for us */
+	if (info->info.svc_evt.i_your_id != NCSMDS_SVC_ID_CLMS) {
+		TRACE("event not NCSMDS_SVC_ID_CLMS");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-        /* If this evt was sent from CLMA act on this */
-        if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
-                if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
-                        TRACE_8("MDS DOWN for CLMA dest: %llx, node ID: %x, svc_id: %d",
-                                info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
+	/* If this evt was sent from CLMA act on this */
+	if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_CLMA) {
+		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
+			TRACE_8("MDS DOWN for CLMA dest: %llx, node ID: %x, svc_id: %d",
+				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 
-                        /* As of now we are only interested in CLMA events */
-                        if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
-                                rc = NCSCC_RC_FAILURE;
-                                TRACE("mem alloc FAILURE  ");
-                                goto done;
-                        }
+			/* As of now we are only interested in CLMA events */
+			if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
+				rc = NCSCC_RC_FAILURE;
+				TRACE("mem alloc FAILURE  ");
+				goto done;
+			}
 
-                        evt->type = CLMSV_CLMS_CLMA_DOWN;
+			evt->type = CLMSV_CLMS_CLMA_DOWN;
 
-            /** Initialize the Event Header **/
-                        evt->cb_hdl = 0;
-                        evt->fr_node_id = info->info.svc_evt.i_node_id;
-                        evt->fr_dest = info->info.svc_evt.i_dest;
+	    /** Initialize the Event Header **/
+			evt->cb_hdl = 0;
+			evt->fr_node_id = info->info.svc_evt.i_node_id;
+			evt->fr_dest = info->info.svc_evt.i_dest;
 
-            /** Initialize the MDS portion of the header **/
-                        evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
-                        evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
+	    /** Initialize the MDS portion of the header **/
+			evt->info.mds_info.node_id = info->info.svc_evt.i_node_id;
+			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
 
-                        /* Push the event and we are done */
-                        if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
-                                TRACE("ipc send failed");
-                                free(evt);
-                                rc = NCSCC_RC_FAILURE;
-                                goto done;
-                        }
-                }
-        }
+			/* Push the event and we are done */
+			if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+				TRACE("ipc send failed");
+				free(evt);
+				rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+		}
+	}
  done:
 	TRACE_LEAVE();
-        return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -1135,8 +1133,9 @@ static uns32 clms_mds_dummy(struct ncsmds_callback_info *info)
 {
 
 	/* Not supported now */
-        return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
+
 /****************************************************************************
  * Name          : clms_mds_callback
  *
@@ -1187,7 +1186,7 @@ static uns32 clms_mds_callback(struct ncsmds_callback_info *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_create(CLMS_CB *clms_cb)
+static uns32 mds_vdest_create(CLMS_CB * clms_cb)
 {
 	NCSVDA_INFO vda_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -1211,6 +1210,7 @@ static uns32 mds_vdest_create(CLMS_CB *clms_cb)
 
 	return rc;
 }
+
 /****************************************************************************
  * Name          : clms_mds_init
  *
@@ -1223,11 +1223,11 @@ static uns32 mds_vdest_create(CLMS_CB *clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_init(CLMS_CB *cb)
+uns32 clms_mds_init(CLMS_CB * cb)
 {
 	NCSMDS_INFO mds_info;
 	uns32 rc;
-	MDS_SVC_ID svc[] = {NCSMDS_SVC_ID_CLMA,NCSMDS_SVC_ID_CLMNA};
+	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA };
 
 	TRACE_ENTER();
 
@@ -1280,17 +1280,17 @@ uns32 clms_mds_init(CLMS_CB *cb)
 		return rc;
 	}
 
-	 /* Now subscribe for NODEUP events in MDS*/
-        memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
+	/* Now subscribe for NODEUP events in MDS */
+	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;
-        mds_info.i_svc_id = NCSMDS_SVC_ID_CLMS;
-        mds_info.i_op = MDS_NODE_SUBSCRIBE;
-	
+	mds_info.i_svc_id = NCSMDS_SVC_ID_CLMS;
+	mds_info.i_op = MDS_NODE_SUBSCRIBE;
+
 	rc = ncsmds_api(&mds_info);
-        if (rc != NCSCC_RC_SUCCESS) {
-                LOG_ER("MDS subscribe for node info FAILED");
-                return rc;
-        }
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("MDS subscribe for node info FAILED");
+		return rc;
+	}
 
 	TRACE_LEAVE();
 	return rc;
@@ -1307,7 +1307,7 @@ uns32 clms_mds_init(CLMS_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_change_role(CLMS_CB *cb)
+uns32 clms_mds_change_role(CLMS_CB * cb)
 {
 	NCSVDA_INFO arg;
 
@@ -1331,7 +1331,7 @@ uns32 clms_mds_change_role(CLMS_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_destroy(CLMS_CB *clms_cb)
+static uns32 mds_vdest_destroy(CLMS_CB * clms_cb)
 {
 	NCSVDA_INFO vda_info;
 	uns32 rc;
@@ -1359,7 +1359,7 @@ static uns32 mds_vdest_destroy(CLMS_CB *clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_finalize(CLMS_CB *cb)
+uns32 clms_mds_finalize(CLMS_CB * cb)
 {
 	NCSMDS_INFO mds_info;
 	uns32 rc;
@@ -1399,12 +1399,9 @@ uns32 clms_mds_finalize(CLMS_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 clms_mds_msg_send(CLMS_CB *cb,
-			CLMSV_MSG *msg,
-			MDS_DEST *dest,
-			MDS_SYNC_SND_CTXT *mds_ctxt,
-			MDS_SEND_PRIORITY_TYPE prio,
-			NCSMDS_SVC_ID svc_id)
+uns32 clms_mds_msg_send(CLMS_CB * cb,
+			CLMSV_MSG * msg,
+			MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
@@ -1419,7 +1416,7 @@ uns32 clms_mds_msg_send(CLMS_CB *cb,
 	mds_info.i_op = MDS_SEND;
 
 	send_info->i_msg = msg;
-	send_info->i_to_svc = svc_id; /* NCSMDS_SVC_ID_CLMNA or NCSMDS_SVC_ID_CLMA */
+	send_info->i_to_svc = svc_id;	/* NCSMDS_SVC_ID_CLMNA or NCSMDS_SVC_ID_CLMA */
 	send_info->i_priority = prio;	/* Discuss the priority assignments TBD */
 
 	if (NULL == mds_ctxt || 0 == mds_ctxt->length) {

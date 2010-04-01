@@ -29,7 +29,8 @@
 #include <logtrace.h>
 #include <clmsv_msg.h>
 
-EXTERN_C uns32 clmsv_decodeSaNameT(NCS_UBAID *uba,SaNameT *name);
-EXTERN_C uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress);
-EXTERN_C uns32 clmsv_encodeSaNameT(NCS_UBAID *uba,SaNameT *name);
+EXTERN_C uns32 clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name);
+EXTERN_C uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress);
+EXTERN_C uns32 clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name);
+
 #endif
