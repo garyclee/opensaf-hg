@@ -914,7 +914,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 
 static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info, AVD_COMP_CSI_REL *compcsi)
 {
-	NCS_AVSV_ATTR_NAME_VAL *i_ptr;
+	AVSV_ATTR_NAME_VAL *i_ptr;
 	AVD_CSI_ATTR *attr_ptr;
 
 	TRACE_ENTER();
@@ -925,7 +925,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
 		return NCSCC_RC_SUCCESS;
 	}
 
-	compcsi_info->attrs.list = calloc(1, compcsi->csi->num_attributes * sizeof(NCS_AVSV_ATTR_NAME_VAL));
+	compcsi_info->attrs.list = calloc(1, compcsi->csi->num_attributes * sizeof(AVSV_ATTR_NAME_VAL));
 	if (compcsi_info->attrs.list == NULL) {
 		/* log that the avD is in degraded state */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
@@ -941,7 +941,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
 
 	/* Scan the list of attributes for the CSI and add it to the message */
 	while ((attr_ptr != NULL) && (compcsi_info->attrs.number < compcsi->csi->num_attributes)) {
-		memcpy(i_ptr, &attr_ptr->name_value, sizeof(NCS_AVSV_ATTR_NAME_VAL));
+		memcpy(i_ptr, &attr_ptr->name_value, sizeof(AVSV_ATTR_NAME_VAL));
 		compcsi_info->attrs.number++;
 		i_ptr = i_ptr + 1;
 		attr_ptr = attr_ptr->attr_next;

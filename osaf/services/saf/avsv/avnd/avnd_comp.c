@@ -1849,7 +1849,7 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 	SaNameT csi_name;
 	AVSV_AMF_CBK_INFO *cbk_info = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	NCS_AVSV_CSI_ATTRS attr;
+	AVSV_CSI_ATTRS attr;
 	MDS_DEST *dest = 0;
 	SaAmfHandleT hdl = 0;
 	SaTimeT per = 0;
@@ -1929,16 +1929,16 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 			}
 
 			/* copy the attributes */
-			memset(&attr, 0, sizeof(NCS_AVSV_CSI_ATTRS));
+			memset(&attr, 0, sizeof(AVSV_CSI_ATTRS));
 			if ((SA_AMF_CSI_ADD_ONE == csi_desc.csiFlags) && (curr_csi->attrs.number != 0)) {
-				attr.list = malloc(sizeof(NCS_AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
+				attr.list = malloc(sizeof(AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
 				if (!attr.list) {
 					rc = NCSCC_RC_FAILURE;
 					goto done;
 				}
 
 				memcpy(attr.list, curr_csi->attrs.list,
-				       sizeof(NCS_AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
+				       sizeof(AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
 				attr.number = curr_csi->attrs.number;
 			}
 

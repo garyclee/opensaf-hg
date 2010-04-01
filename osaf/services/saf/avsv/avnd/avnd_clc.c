@@ -2411,7 +2411,7 @@ static char *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 {
 
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	NCS_AVSV_ATTR_NAME_VAL *attr_list = 0;
+	AVSV_ATTR_NAME_VAL *attr_list = 0;
 	char *env_val = 0;
 	uns32 mem_length = 0;
 	uns32 count = 0;
@@ -2425,7 +2425,7 @@ static char *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 	assert(curr_csi);
 
 	if (0 != curr_csi->attrs.number) {
-		attr_list = (NCS_AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
+		attr_list = (AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
 
 		/*First get the length of the Memory to be allocated */
 
@@ -2451,7 +2451,7 @@ static char *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 
 	/* Now make the Env. variable */
 	if (0 != curr_csi->attrs.number) {
-		attr_list = (NCS_AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
+		attr_list = (AVSV_ATTR_NAME_VAL *)curr_csi->attrs.list;
 
 		for (count = 0; count < (curr_csi->attrs.number); count++, attr_list++) {
 			/* If only one attribute No "," */

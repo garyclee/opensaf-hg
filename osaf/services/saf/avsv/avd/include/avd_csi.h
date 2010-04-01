@@ -41,7 +41,7 @@
 
 /* The attribute value structure for the CSIs. */
 typedef struct avd_csi_attr_tag {
-	NCS_AVSV_ATTR_NAME_VAL name_value;	/* attribute name & value */
+	AVSV_ATTR_NAME_VAL name_value;	/* attribute name & value */
 	struct avd_csi_attr_tag *attr_next;	/* the next attribute in the list of attributes in the CSI. */
 } AVD_CSI_ATTR;
 

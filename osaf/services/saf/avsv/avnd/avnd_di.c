@@ -37,8 +37,6 @@
 #include <logtrace.h>
 #include "avnd.h"
 
-static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt);
-
 /* macro to push the AvD msg parameters (to the end of the list) */
 #define m_AVND_DIQ_REC_PUSH(cb, rec) \
 { \

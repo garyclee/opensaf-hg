@@ -172,7 +172,7 @@ typedef struct avnd_comp_csi_rec {
 	SaNameT act_comp_name;	/* active comp name */
 	SaAmfCSITransitionDescriptorT trans_desc;	/* transition descriptor */
 	uns32 standby_rank;	/* standby rank */
-	NCS_AVSV_CSI_ATTRS attrs;	/* list of attributes */
+	AVSV_CSI_ATTRS attrs;	/* list of attributes */
 	AVND_COMP_CSI_ASSIGN_STATE curr_assign_state;	/* csi assignment state 
 							   wrt current ha state */
 	AVND_COMP_CSI_ASSIGN_STATE prv_assign_state;	/* csi assignment state 

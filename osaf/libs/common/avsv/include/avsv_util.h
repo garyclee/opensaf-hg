@@ -31,6 +31,8 @@
 #define AVSV_UTIL_H
 
 #include <saAmf.h>
+#include <ncsgl_defs.h>
+#include <avsv_defs.h>
 
 #define IS_COMP_SAAWARE(category) \
 	(((category) & SA_AMF_COMP_SA_AWARE))
@@ -71,5 +73,6 @@ extern void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNa
 	const char *rdn_tag, SaNameT *dn);
 extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle);
 
+extern AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(saAmfCompCategoryT saf_comp_category);
 
 #endif   /* !AVSV_UTIL_H */

@@ -254,20 +254,20 @@ uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 
 	case AVSV_AMF_CSI_SET:
 		/* memset avsv & amf csi attr lists */
-		memset(&(*o_dcbk)->param.csi_set.attrs, 0, sizeof(NCS_AVSV_CSI_ATTRS));
+		memset(&(*o_dcbk)->param.csi_set.attrs, 0, sizeof(AVSV_CSI_ATTRS));
 		memset(&(*o_dcbk)->param.csi_set.csi_desc.csiAttr, 0, sizeof(SaAmfCSIAttributeListT));
 
 		/* copy the avsv csi attr list */
 		if (scbk->param.csi_set.attrs.number) {
 			(*o_dcbk)->param.csi_set.attrs.list =
-			    malloc(sizeof(NCS_AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
+			    malloc(sizeof(AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
 			if (!(*o_dcbk)->param.csi_set.attrs.list) {
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
 
 			memcpy((*o_dcbk)->param.csi_set.attrs.list, scbk->param.csi_set.attrs.list,
-			       sizeof(NCS_AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
+			       sizeof(AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
 			(*o_dcbk)->param.csi_set.attrs.number = scbk->param.csi_set.attrs.number;
 		}
 
@@ -445,7 +445,7 @@ void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
 uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 {
 	SaAmfCSIAttributeListT *amf_attrs = 0;
-	NCS_AVSV_CSI_ATTRS *avsv_attrs = 0;
+	AVSV_CSI_ATTRS *avsv_attrs = 0;
 	uns32 cnt, rc = NCSCC_RC_SUCCESS;
 
 	if ((!cbk_info) || (AVSV_AMF_CSI_SET != cbk_info->type) ||

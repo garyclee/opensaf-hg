@@ -229,7 +229,7 @@ typedef struct avsv_amf_csi_set_param_tag {
 	SaNameT comp_name;	/* comp name */
 	SaAmfHAStateT ha;	/* ha state */
 	SaAmfCSIDescriptorT csi_desc;	/* csi descriptor */
-	NCS_AVSV_CSI_ATTRS attrs;	/* contains the csi-attr list */
+	AVSV_CSI_ATTRS attrs;	/* contains the csi-attr list */
 } AVSV_AMF_CSI_SET_PARAM;
 
 /* csi remove */

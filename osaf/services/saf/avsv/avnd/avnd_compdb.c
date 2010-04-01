@@ -320,35 +320,35 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 	comp->is_am_en = info->am_enable;
 
 	switch (info->category) {
-	case NCS_COMP_TYPE_SA_AWARE:
+	case AVSV_COMP_TYPE_SA_AWARE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		break;
 
-	case NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_NON_SAF:
+	case AVSV_COMP_TYPE_NON_SAF:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		break;
 
@@ -1048,80 +1048,42 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 	return compt;
 }
 
-static NCS_COMP_TYPE_VAL amf_comp_category_to_ncs(SaUint32T saf_comp_category)
-{
-	NCS_COMP_TYPE_VAL ncs_comp_category = 0;
-
-	/* Check for mandatory attr for SA_AWARE. */
-	if (saf_comp_category & SA_AMF_COMP_SA_AWARE) {
-		/* It shouldn't match with any of others, we don't care about SA_AMF_COMP_LOCAL as it is optional */
-		if ((saf_comp_category & ~SA_AMF_COMP_LOCAL) == SA_AMF_COMP_SA_AWARE) {
-			ncs_comp_category = NCS_COMP_TYPE_SA_AWARE;
-		}
-	} else {
-		/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED and SA_AMF_COMP_SA_AWARE */
-		if (saf_comp_category & SA_AMF_COMP_LOCAL) {
-			/* It shouldn't match with any of others */
-			if ((saf_comp_category & SA_AMF_COMP_PROXIED) ||
-			    (!(saf_comp_category & SA_AMF_COMP_PROXIED_NPI))) {
-				ncs_comp_category = NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE;
-			} else if ((saf_comp_category & SA_AMF_COMP_PROXIED_NPI) ||
-				   (!(saf_comp_category & SA_AMF_COMP_PROXIED))) {
-				ncs_comp_category = NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE;
-			} else if (!((saf_comp_category & SA_AMF_COMP_PROXIED)) ||
-				   (!(saf_comp_category & SA_AMF_COMP_PROXIED_NPI))) {
-				ncs_comp_category = NCS_COMP_TYPE_NON_SAF;
-			}
-		} else {
-			/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED, SA_AMF_COMP_SA_AWARE and 
-			   SA_AMF_COMP_LOCAL */
-			if (saf_comp_category & SA_AMF_COMP_PROXIED_NPI) {
-				ncs_comp_category = NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE;
-			} else {
-				/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED, SA_AMF_COMP_SA_AWARE, 
-				   SA_AMF_COMP_LOCAL and SA_AMF_COMP_PROXIED_NPI. So only thing left is SA_AMF_COMP_PROXIED */
-				/* Whether SA_AMF_COMP_PROXIED is set or not, we don't care, as it is optional */
-				ncs_comp_category = NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE;
-			}
-
-		}		/* else of if((comp_type->ct_comp_category & SA_AMF_COMP_PROXIED)  */
-	}			/* else of if(comp_type->ct_comp_category & SA_AMF_COMP_SA_AWARE)  */
-
-	return ncs_comp_category;
-}
-
 static void init_comp_category(AVND_COMP *comp, saAmfCompCategoryT category)
 {
-	switch (amf_comp_category_to_ncs(category)) {
-	case NCS_COMP_TYPE_SA_AWARE:
+	AVSV_COMP_TYPE_VAL comptype = avsv_amfcompcategory_to_avsvcomptype(category);
+
+	assert(comptype != AVSV_COMP_TYPE_INVALID);
+
+	switch (comptype) {
+	case AVSV_COMP_TYPE_SA_AWARE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		break;
 
-	case NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
+	case AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
 		break;
 
-	case NCS_COMP_TYPE_NON_SAF:
+	case AVSV_COMP_TYPE_NON_SAF:
 		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
 		break;
 
@@ -1366,12 +1328,12 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 
 	comp->is_restart_en = (disable_restart == SA_TRUE) ? FALSE : TRUE;
 
+	init_comp_category(comp, comptype->saAmfCtCompCategory);
+
 	if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 	else
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-
-	init_comp_category(comp, comptype->saAmfCtCompCategory);
 
 	comp->config_is_valid = 1;
 

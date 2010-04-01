@@ -334,7 +334,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		syslog(LOG_ERR, "NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 		/* do the local node reboot for node_failfast or ncs component failure*/
-		opensaf_reboot(cb->node_info.nodeId, cb->node_info.executionEnvironment.value,
+		opensaf_reboot(cb->node_info.nodeId, (char*)cb->node_info.executionEnvironment.value,
 				"Component faulted: recovery is node failfast" );
 	}
 

@@ -53,30 +53,30 @@ uns32 avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	NCS_AVSV_ATTR_NAME_VAL *struct_ptr = NULL, **d_ptr = NULL;
+	AVSV_ATTR_NAME_VAL *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_attr_val_rules[] = {
 		{EDU_START, avsv_edp_attr_val, 0, 0, 0,
-		 sizeof(NCS_AVSV_ATTR_NAME_VAL), 0, NULL},
+		 sizeof(AVSV_ATTR_NAME_VAL), 0, NULL},
 
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((NCS_AVSV_ATTR_NAME_VAL *)0)->name, 0, NULL},
+		 (long)&((AVSV_ATTR_NAME_VAL *)0)->name, 0, NULL},
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((NCS_AVSV_ATTR_NAME_VAL *)0)->value, 0, NULL},
+		 (long)&((AVSV_ATTR_NAME_VAL *)0)->value, 0, NULL},
 
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (NCS_AVSV_ATTR_NAME_VAL *)ptr;
+		struct_ptr = (AVSV_ATTR_NAME_VAL *)ptr;
 	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (NCS_AVSV_ATTR_NAME_VAL **)ptr;
+		d_ptr = (AVSV_ATTR_NAME_VAL **)ptr;
 		if (*d_ptr == NULL) {
 			/* Malloc failed!! */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
-		memset(*d_ptr, '\0', sizeof(NCS_AVSV_ATTR_NAME_VAL));
+		memset(*d_ptr, '\0', sizeof(AVSV_ATTR_NAME_VAL));
 		struct_ptr = *d_ptr;
 	} else {
 		struct_ptr = ptr;
@@ -100,30 +100,30 @@ uns32 avsv_edp_csi_attr_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	NCS_AVSV_CSI_ATTRS *struct_ptr = NULL, **d_ptr = NULL;
+	AVSV_CSI_ATTRS *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_csi_attr_info_rules[] = {
 		{EDU_START, avsv_edp_csi_attr_info, 0, 0, 0,
-		 sizeof(NCS_AVSV_CSI_ATTRS), 0, NULL},
+		 sizeof(AVSV_CSI_ATTRS), 0, NULL},
 
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((NCS_AVSV_CSI_ATTRS *)0)->number, 0, NULL},
+		 (long)&((AVSV_CSI_ATTRS *)0)->number, 0, NULL},
 		{EDU_EXEC, avsv_edp_attr_val, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-		 (long)&((NCS_AVSV_CSI_ATTRS *)0)->list, (long)&((NCS_AVSV_CSI_ATTRS *)0)->number, NULL},
-		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
+		 (long)&((AVSV_CSI_ATTRS *)0)->list, (long)&((AVSV_CSI_ATTRS *)0)->number, NULL},
+		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (NCS_AVSV_CSI_ATTRS *)ptr;
+		struct_ptr = (AVSV_CSI_ATTRS *)ptr;
 	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (NCS_AVSV_CSI_ATTRS **)ptr;
+		d_ptr = (AVSV_CSI_ATTRS **)ptr;
 		if (*d_ptr == NULL) {
 			/* Malloc failed!! */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
 		}
-		memset(*d_ptr, '\0', sizeof(NCS_AVSV_CSI_ATTRS));
+		memset(*d_ptr, '\0', sizeof(AVSV_CSI_ATTRS));
 		struct_ptr = *d_ptr;
 	} else {
 		struct_ptr = ptr;
@@ -158,7 +158,7 @@ uns32 avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *ed
 		{EDU_EXEC, ncs_edp_saamfprotectiongroupnotificationt, EDQ_VAR_LEN_DATA, m_NCS_EDP_SAUINT32T, 0,
 		 (long)&((SaAmfProtectionGroupNotificationBufferT *)0)->notification,
 		 (long)&((SaAmfProtectionGroupNotificationBufferT *)0)->numberOfItems, NULL},
-		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
+		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 

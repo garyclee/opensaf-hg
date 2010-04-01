@@ -595,7 +595,7 @@ uns32 ava_mds_flat_dec (AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
                {
                   csi_set->attrs.list = 0;
                   csi_set->attrs.list = 
-                      calloc(1, csi_set->attrs.number * sizeof(NCS_AVSV_ATTR_NAME_VAL));
+                      calloc(1, csi_set->attrs.number * sizeof(AVSV_ATTR_NAME_VAL));
                   if (!csi_set->attrs.list)
                   {
                      rc = NCSCC_RC_FAILURE;
@@ -604,7 +604,7 @@ uns32 ava_mds_flat_dec (AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
                   
                   rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, 
                           (uns8 *)csi_set->attrs.list, 
-                          csi_set->attrs.number * sizeof(NCS_AVSV_ATTR_NAME_VAL));
+                          csi_set->attrs.number * sizeof(AVSV_ATTR_NAME_VAL));
                   if ( NCSCC_RC_SUCCESS != rc ) goto err;
                }
             }
