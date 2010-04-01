@@ -201,7 +201,7 @@ if [ $og -eq 1 ]; then
         $HG outgoing -M -p | diffstat >> $rr/rr
 else
         if [ $mq -eq 1 ]; then
-                $HG diff -r $(hg parents -r qbase --template '#rev#') -r qtip | diffstat >> $rr/rr
+                $HG diff -r $(hg parents -r qbase --template '{rev}') -r qtip | diffstat >> $rr/rr
         elif [ $cs -eq 1 ]; then
                 $HG export -g $rev | diffstat >> $rr/rr
         fi
