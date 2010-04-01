@@ -20,73 +20,69 @@
 #include "clms_mbcsv.h"
 #include "clms_evt.h"
 
-static uns32 ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_track_changes_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
-static uns32 ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
+static uns32 ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
+static uns32 ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
 /* Common Callback interface to mbcsv */
 static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_enc_cold_sync_data(CLMS_CB *clms_cb,NCS_MBCSV_CB_ARG *cbk_arg,
-				     NCS_BOOL data_req);
+static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
 uns32 clms_cold_sync(NCS_UBAID *uba);
 uns32 encode_client_rec(NCS_UBAID *uba);
 uns32 encode_node_rec(NCS_UBAID *uba);
 uns32 encode_cluster_rec(NCS_UBAID *uba);
 uns32 cluster_rec_(NCS_UBAID *uba);
-static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uns32 ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg);
 static void enc_ckpt_header(uns8 *pdata, CLMSV_CKPT_HEADER header);
-uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param);
-uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba,CLMSV_CKPT_NODE_DOWN_INFO * param);
-uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
-uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO *param);
-uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO*param);
-uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *param);
-uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param);
-uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param);
-uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param);
-uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param);
+uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
+uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
+uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
+uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
+uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
+uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
+uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
+uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_async_update(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param);
-uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
-static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param);
-static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO *param);
-static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
-static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO *param);
-static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param);
-static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *param);
-uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param);
-uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param);
-uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param);
-static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER *param);
+static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg);
+uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param);
+uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param);
+static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param);
+static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param);
+static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param);
+static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param);
+uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param);
+uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param);
+uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param);
+static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param);
 static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 
-
 static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
-	ckpt_proc_cluster_rec, /*CLMS_CKPT_CLUSTER_REC*/
-	ckpt_proc_reg_rec, /* CLMS_CKPT_CLIENT_INFO_REC*/
-	ckpt_proc_finalize_rec, /*CLMS_CKPT_FINALIZE_REC*/
-	ckpt_proc_track_changes_rec, /*CLMS_CKPT_TRACK_CHANGES_REC*/
-	ckpt_proc_node_csync_rec, /*CLMS_CKPT_NODE_REC*/
-	ckpt_proc_node_config_rec, /*CLMS_CKPT_NODE_CONFIG_REC*/
-	ckpt_proc_node_rec, /*CLMS_CKPT_NODE_RUNTIME_REC*/
-	ckpt_proc_node_del_rec, /* CLMS_CKPT_NODE_DEL_REC*/
-	ckpt_proc_agent_down_rec, /*CLMS_CKPT_AGENT_DOWN_REC*/
-	ckpt_proc_node_down_rec   /*CLMS_CKPT_NODE_DOWN_REC*/
+	ckpt_proc_cluster_rec,	/*CLMS_CKPT_CLUSTER_REC */
+	ckpt_proc_reg_rec,	/* CLMS_CKPT_CLIENT_INFO_REC */
+	ckpt_proc_finalize_rec,	/*CLMS_CKPT_FINALIZE_REC */
+	ckpt_proc_track_changes_rec,	/*CLMS_CKPT_TRACK_CHANGES_REC */
+	ckpt_proc_node_csync_rec,	/*CLMS_CKPT_NODE_REC */
+	ckpt_proc_node_config_rec,	/*CLMS_CKPT_NODE_CONFIG_REC */
+	ckpt_proc_node_rec,	/*CLMS_CKPT_NODE_RUNTIME_REC */
+	ckpt_proc_node_del_rec,	/* CLMS_CKPT_NODE_DEL_REC */
+	ckpt_proc_agent_down_rec,	/*CLMS_CKPT_AGENT_DOWN_REC */
+	ckpt_proc_node_down_rec	/*CLMS_CKPT_NODE_DOWN_REC */
 };
-
-
 
 /****************************************************************************
  * Name          : ckpt_proc_reg_rec
@@ -103,16 +99,16 @@ static CLMS_CKPT_HDLR ckpt_data_handler[CLMS_CKPT_MSG_MAX] = {
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_cluster_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 	CLMSV_CKPT_CLUSTER_INFO *param = &data->param.cluster_rec;
 
-        osaf_cluster->num_nodes = param->num_nodes;
-        osaf_cluster->init_time = param->init_time;
-	cb->cluster_view_num    = param->cluster_view_num;
-	
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	osaf_cluster->num_nodes = param->num_nodes;
+	osaf_cluster->init_time = param->init_time;
+	cb->cluster_view_num = param->cluster_view_num;
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -130,31 +126,31 @@ static uns32 ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_reg_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
+	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
 	CLMS_CLIENT_INFO *client = NULL;
 
-        TRACE_ENTER2("client ID: %d", param->client_id);
+	TRACE_ENTER2("client ID: %d", param->client_id);
 
-        client = clms_client_get_by_id(param->client_id);
-        if (client == NULL) {
-                /* Client does not exist, create new one */
-        	if ((client = clms_client_new(param->mds_dest, param->client_id)) == NULL) {
+	client = clms_client_get_by_id(param->client_id);
+	if (client == NULL) {
+		/* Client does not exist, create new one */
+		if ((client = clms_client_new(param->mds_dest, param->client_id)) == NULL) {
 			LOG_ER("new client addtion failed on standby");
 			assert(0);
-        	}
+		}
 		client->track_flags = param->track_flags;
-        } else {
-                /* Client with ID already exist, check other attributes */
-                if (client->mds_dest != param->mds_dest) {
-                        /* Do not allow standby to get out of sync */
+	} else {
+		/* Client with ID already exist, check other attributes */
+		if (client->mds_dest != param->mds_dest) {
+			/* Do not allow standby to get out of sync */
 			assert(0);
-                }
-        }
+		}
+	}
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -172,32 +168,32 @@ static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_finalize_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_FINALIZE_INFO *param = &data->param.finalize_rec;
+	CLMSV_CKPT_FINALIZE_INFO *param = &data->param.finalize_rec;
 	uns32 rc;
-	
-        TRACE_ENTER2("client: %d", param->client_id);
-        if (!param->client_id) {
-                TRACE("FAILED client_id = 0");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
-          /* Free all resources allocated by this client. */
-        if ((rc = clms_client_delete(param->client_id)) != 0) {
-                LOG_ER("clms_client_delete FAILED: %u", rc);
-                return SA_AIS_ERR_BAD_HANDLE;
-        }
 
-        /* Delete this client data from the clmresp tracking list*/
-        rc = clms_client_del_trackresp(param->client_id);
-        if(rc != NCSCC_RC_SUCCESS){
-                LOG_ER("clms_client_delete_trackresp FAILED: %u", rc);
-                return SA_AIS_ERR_BAD_HANDLE;
-        }
+	TRACE_ENTER2("client: %d", param->client_id);
+	if (!param->client_id) {
+		TRACE("FAILED client_id = 0");
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE;
+	}
+	/* Free all resources allocated by this client. */
+	if ((rc = clms_client_delete(param->client_id)) != 0) {
+		LOG_ER("clms_client_delete FAILED: %u", rc);
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	/* Delete this client data from the clmresp tracking list */
+	rc = clms_client_del_trackresp(param->client_id);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("clms_client_delete_trackresp FAILED: %u", rc);
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -215,28 +211,28 @@ static uns32 ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_track_changes_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_track_changes_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
-	CLMS_CLIENT_INFO * client;
+	CLMSV_CKPT_CLIENT_INFO *param = &data->param.client_rec;
+	CLMS_CLIENT_INFO *client;
 
-        TRACE_ENTER2("client: %d", param->client_id);
-        if (!param->client_id) {
-                TRACE("FAILED client_id = 0");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
-
-        client = clms_client_get_by_id(param->client_id);
-        if (client == NULL) {
-                TRACE("Bad client %d",param->client_id);
+	TRACE_ENTER2("client: %d", param->client_id);
+	if (!param->client_id) {
+		TRACE("FAILED client_id = 0");
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
-        }
-        /*Update the client database for the current trackflags*/
-        client->track_flags=param->track_flags;
+	}
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	client = clms_client_get_by_id(param->client_id);
+	if (client == NULL) {
+		TRACE("Bad client %d", param->client_id);
+		return NCSCC_RC_FAILURE;
+	}
+	/*Update the client database for the current trackflags */
+	client->track_flags = param->track_flags;
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -254,27 +250,27 @@ static uns32 ckpt_proc_track_changes_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
-	CLMS_CLUSTER_NODE *node = NULL,*tmp_node = NULL;
+	CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
+	CLMS_CLUSTER_NODE *node = NULL, *tmp_node = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("node_name:%s",param->node_name.value);
-	
+	TRACE_ENTER2("node_name:%s", param->node_name.value);
+
 	node = clms_node_get_by_name(&param->node_name);
-	if(node != NULL){
+	if (node != NULL) {
 		prepare_cluster_node(node, param);
-		if(node->node_id != 0){
+		if (node->node_id != 0) {
 			tmp_node = clms_node_get_by_id(node->node_id);
 			if (tmp_node == NULL)
-				if(NCSCC_RC_SUCCESS != (rc = clms_node_add(node,0))){
+				if (NCSCC_RC_SUCCESS != (rc = clms_node_add(node, 0))) {
 					LOG_ER("Patricia add failed");
 				}
 		}
 	}
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -292,44 +288,44 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_node_del_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_NODE_DEL_REC *param = &data->param.node_del_rec;
-        CLMS_CLUSTER_NODE *node = NULL;
-	
-	/*dude do you wanna have extra chekc in NULL case*/
-	/*Delete it from the plm entity group*/
+	CLMSV_CKPT_NODE_DEL_REC *param = &data->param.node_del_rec;
+	CLMS_CLUSTER_NODE *node = NULL;
+
+	/*dude do you wanna have extra chekc in NULL case */
+	/*Delete it from the plm entity group */
 	if ((node = clms_node_get_by_name(&param->node_name)) == NULL)
 		return NCSCC_RC_FAILURE;
-	clms_node_delete(node,0);
-	clms_node_delete(node,1);
-	clms_node_delete(node,2);
+	clms_node_delete(node, 0);
+	clms_node_delete(node, 1);
+	clms_node_delete(node, 2);
 	free(node);
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
 
-	SaClmNodeIdT  node_id = data->param.node_down_rec.node_id;
+	SaClmNodeIdT node_id = data->param.node_down_rec.node_id;
 	CLMS_CLUSTER_NODE *node = NULL;
 
 	TRACE_ENTER();
 
 	node = clms_node_get_by_id(node_id);
-	if (node == NULL){
+	if (node == NULL) {
 		LOG_ER("Standby node is out of sync");
 		assert(0);
 	}
 
 	/* Delete the node reference from the nodeid database */
-        if (clms_node_delete(node,0) != NCSCC_RC_SUCCESS){
-                LOG_ER("CLMS node delete by nodeid failed");
-        }	
+	if (clms_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
+		LOG_ER("CLMS node delete by nodeid failed");
+	}
 
-	/*Remove node_down_rec from the standby node_down_list*/	
+	/*Remove node_down_rec from the standby node_down_list */
 	clms_remove_node_down_rec(node_id);
 
 	TRACE_LEAVE();
@@ -351,16 +347,16 @@ static uns32 ckpt_proc_node_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_agent_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_AGENT_DOWN_REC *param = &data->param.agent_rec;
+	CLMSV_CKPT_AGENT_DOWN_REC *param = &data->param.agent_rec;
 
-	clms_remove_clma_down_rec(cb , param->mds_dest);
-         /* Remove this CLMA entry from our processing lists */
+	clms_remove_clma_down_rec(cb, param->mds_dest);
+	/* Remove this CLMA entry from our processing lists */
 	(void)clms_client_delete_by_mds_dest(param->mds_dest);
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -378,34 +374,31 @@ static uns32 ckpt_proc_agent_down_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_node_config_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_NODE_CONFIG_REC *param = &data->param.node_config_rec;
-        CLMS_CLUSTER_NODE *node = NULL;
+	CLMSV_CKPT_NODE_CONFIG_REC *param = &data->param.node_config_rec;
+	CLMS_CLUSTER_NODE *node = NULL;
 
 	node = clms_node_get_by_name(&param->node_name);
-        if (node == NULL){
-                LOG_ER("Node is NULL, Standby is out of sync.");
+	if (node == NULL) {
+		LOG_ER("Node is NULL, Standby is out of sync.");
 		/* TBD. Introduce warmsyncs */
-                assert(0);
-        }
+		assert(0);
+	}
 
-        node->node_name.length = param->node_name.length;
-        (void)memcpy(node->node_name.value, param->node_name.value,
-		     param->node_name.length);
-        node->ee_name.length = param->ee_name.length;
-        (void)memcpy(node->ee_name.value, param->ee_name.value,
-                     param->ee_name.length);
-        node->node_addr.family = param->node_addr.family;
-        node->node_addr.length = param->node_addr.length;
-        (void)memcpy(node->node_addr.value, param->node_addr.value,
-                     param->node_addr.length);
-        node->disable_reboot = param->disable_reboot;
-        node->lck_cbk_timeout = param->lck_cbk_timeout;
-        node->admin_state = param->admin_state;
+	node->node_name.length = param->node_name.length;
+	(void)memcpy(node->node_name.value, param->node_name.value, param->node_name.length);
+	node->ee_name.length = param->ee_name.length;
+	(void)memcpy(node->ee_name.value, param->ee_name.value, param->ee_name.length);
+	node->node_addr.family = param->node_addr.family;
+	node->node_addr.length = param->node_addr.length;
+	(void)memcpy(node->node_addr.value, param->node_addr.value, param->node_addr.length);
+	node->disable_reboot = param->disable_reboot;
+	node->lck_cbk_timeout = param->lck_cbk_timeout;
+	node->admin_state = param->admin_state;
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -423,21 +416,21 @@ static uns32 ckpt_proc_node_config_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-        CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
-	CLMS_CLUSTER_NODE * node = NULL;
-	CLMS_CLUSTER_NODE * tmp_node = NULL;
+	CLMSV_CKPT_NODE_RUNTIME_INFO *param = &data->param.node_rec;
+	CLMS_CLUSTER_NODE *node = NULL;
+	CLMS_CLUSTER_NODE *tmp_node = NULL;
 
-	TRACE_ENTER2("node_id %u",param->node_id);
+	TRACE_ENTER2("node_id %u", param->node_id);
 
 	node = clms_node_get_by_name(&param->node_name);
 
-        if (node == NULL){
-                LOG_ER("Node is NULL,problem with the database.");
+	if (node == NULL) {
+		LOG_ER("Node is NULL,problem with the database.");
 		assert(0);
-        }
-	
+	}
+
 	node->node_id = param->node_id;
 	node->node_name.length = param->node_name.length;
 	(void)memcpy(node->node_name.value, param->node_name.value, node->node_name.length);
@@ -448,24 +441,22 @@ static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 	node->admin_op = param->admin_op;
 	node->change = param->change;
 
-
-	#ifdef ENABLE_AIS_PLM
-	if(node->member)
+#ifdef ENABLE_AIS_PLM
+	if (node->member)
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;
 	else
 		node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
-	#endif
+#endif
 
+	if (NULL == (tmp_node = clms_node_get_by_id(node->node_id))) {
 
-	if (NULL == (tmp_node = clms_node_get_by_id(node->node_id))){
-
-		if(clms_node_add(node,0) != NCSCC_RC_SUCCESS){
-                        LOG_ER("Patricia tree add failed");
-                }
+		if (clms_node_add(node, 0) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Patricia tree add failed");
+		}
 	}
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -483,30 +474,30 @@ static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 process_ckpt_data(CLMS_CB *cb, CLMS_CKPT_REC *data)
+static uns32 process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
 {
-	TRACE_ENTER2("data->header.type %d",data->header.type);
+	TRACE_ENTER2("data->header.type %d", data->header.type);
 
-        uns32 rc = NCSCC_RC_SUCCESS;
-        if ((!cb) || (data == NULL)) {
-                TRACE("FAILED: (!cb) || (data == NULL)");
-                return (rc = NCSCC_RC_FAILURE);
-        }
+	uns32 rc = NCSCC_RC_SUCCESS;
+	if ((!cb) || (data == NULL)) {
+		TRACE("FAILED: (!cb) || (data == NULL)");
+		return (rc = NCSCC_RC_FAILURE);
+	}
 
-        if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
-                if (data->header.type >= CLMS_CKPT_MSG_MAX) {
-                        TRACE("FAILED: data->header.type >= CLMS_CKPT_MSG_MAX");
-                        return NCSCC_RC_FAILURE;
-                }
-                /* Update the internal database */
-                rc = ckpt_data_handler[data->header.type] (cb, data);
-                return rc;
-        } else {
-                return (rc = NCSCC_RC_FAILURE);
-        }
+	if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
+		if (data->header.type >= CLMS_CKPT_MSG_MAX) {
+			TRACE("FAILED: data->header.type >= CLMS_CKPT_MSG_MAX");
+			return NCSCC_RC_FAILURE;
+		}
+		/* Update the internal database */
+		rc = ckpt_data_handler[data->header.type] (cb, data);
+		return rc;
+	} else {
+		return (rc = NCSCC_RC_FAILURE);
+	}
 
 	TRACE_LEAVE();
-}       /*End process_ckpt_data() */
+}	/*End process_ckpt_data() */
 
 /****************************************************************************
  * Name          : clms_mbcsv_init 
@@ -520,68 +511,68 @@ static uns32 process_ckpt_data(CLMS_CB *cb, CLMS_CKPT_REC *data)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mbcsv_init(CLMS_CB *cb)
+uns32 clms_mbcsv_init(CLMS_CB * cb)
 {
-        uns32 rc;
-        NCS_MBCSV_ARG arg;
+	uns32 rc;
+	NCS_MBCSV_ARG arg;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
-        /* Initialize with MBCSv library */
-        arg.i_op = NCS_MBCSV_OP_INITIALIZE;
-        arg.info.initialize.i_mbcsv_cb = mbcsv_callback;
-        arg.info.initialize.i_version = CLMS_MBCSV_VERSION;
-        arg.info.initialize.i_service = NCS_SERVICE_ID_CLMS;
+	/* Initialize with MBCSv library */
+	arg.i_op = NCS_MBCSV_OP_INITIALIZE;
+	arg.info.initialize.i_mbcsv_cb = mbcsv_callback;
+	arg.info.initialize.i_version = CLMS_MBCSV_VERSION;
+	arg.info.initialize.i_service = NCS_SERVICE_ID_CLMS;
 
-        if ((rc = ncs_mbcsv_svc(&arg)) != NCSCC_RC_SUCCESS) {
-                LOG_ER("NCS_MBCSV_OP_INITIALIZE FAILED");
-                goto done;
-        }
+	if ((rc = ncs_mbcsv_svc(&arg)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("NCS_MBCSV_OP_INITIALIZE FAILED");
+		goto done;
+	}
 
-        cb->mbcsv_hdl = arg.info.initialize.o_mbcsv_hdl;
+	cb->mbcsv_hdl = arg.info.initialize.o_mbcsv_hdl;
 
-        /* Open a checkpoint */
-        arg.i_op = NCS_MBCSV_OP_OPEN;
-        arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-        arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
-        arg.info.open.i_client_hdl = 0;
+	/* Open a checkpoint */
+	arg.i_op = NCS_MBCSV_OP_OPEN;
+	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	arg.info.open.i_client_hdl = 0;
 
-        if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
-                LOG_ER("NCS_MBCSV_OP_OPEN FAILED");
-                goto done;
-        }
-        cb->mbcsv_ckpt_hdl = arg.info.open.o_ckpt_hdl;
+	if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
+		LOG_ER("NCS_MBCSV_OP_OPEN FAILED");
+		goto done;
+	}
+	cb->mbcsv_ckpt_hdl = arg.info.open.o_ckpt_hdl;
 
-        /* Get Selection Object */
-        arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
-        arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-        arg.info.sel_obj_get.o_select_obj = 0;
-        if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&arg))) {
-                LOG_ER("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
-                goto done;
-        }
+	/* Get Selection Object */
+	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
+	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	arg.info.sel_obj_get.o_select_obj = 0;
+	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&arg))) {
+		LOG_ER("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
+		goto done;
+	}
 
-        cb->mbcsv_sel_obj = arg.info.sel_obj_get.o_select_obj;
-        cb->ckpt_state = COLD_SYNC_IDLE;
+	cb->mbcsv_sel_obj = arg.info.sel_obj_get.o_select_obj;
+	cb->ckpt_state = COLD_SYNC_IDLE;
 
-        /* Disable warm sync */
+	/* Disable warm sync */
 	/* TBD: We need swarm sync, sodisabiling is not required */
-        arg.i_op = NCS_MBCSV_OP_OBJ_SET;
-        arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-        arg.info.obj_set.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-        arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
-        arg.info.obj_set.i_val = FALSE;
-        if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
-                LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
-                goto done;
-        }
+	arg.i_op = NCS_MBCSV_OP_OBJ_SET;
+	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	arg.info.obj_set.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
+	arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
+	arg.info.obj_set.i_val = FALSE;
+	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
+		goto done;
+	}
 
 	rc = clms_mbcsv_change_HA_state(cb);
 
 	/* Set MBCSV role here itself */
  done:
-        TRACE_LEAVE();
-        return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -599,27 +590,27 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uns32 clms_mbcsv_change_HA_state(CLMS_CB *cb)
+uns32 clms_mbcsv_change_HA_state(CLMS_CB * cb)
 {
-        NCS_MBCSV_ARG mbcsv_arg;
-        uns32 rc = SA_AIS_OK;
-        TRACE_ENTER();
-        memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc = SA_AIS_OK;
+	TRACE_ENTER();
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-        /* Set the mbcsv args */
-        mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
-        mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-        mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-        mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
+	/* Set the mbcsv args */
+	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
+	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
 
-        if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-                LOG_ER("ncs_mbcsv_svc FAILED");
-                rc = NCSCC_RC_FAILURE;
-        }
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		LOG_ER("ncs_mbcsv_svc FAILED");
+		rc = NCSCC_RC_FAILURE;
+	}
 
-        TRACE_LEAVE();
-        return rc;
-}  
+	TRACE_LEAVE();
+	return rc;
+}
 
 /****************************************************************************
  * Name          : clms_mbcsv_dispatch
@@ -635,14 +626,14 @@ uns32 clms_mbcsv_change_HA_state(CLMS_CB *cb)
  *****************************************************************************/
 uns32 clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
-        NCS_MBCSV_ARG mbcsv_arg;
+	NCS_MBCSV_ARG mbcsv_arg;
 
-        memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG));
-        mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
-        mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
-        mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
+	memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG));
+	mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
+	mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
+	mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
 
-        return ncs_mbcsv_svc(&mbcsv_arg);
+	return ncs_mbcsv_svc(&mbcsv_arg);
 }
 
 /****************************************************************************
@@ -661,50 +652,50 @@ uns32 clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  *****************************************************************************/
 static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-        assert(arg != NULL);
+	assert(arg != NULL);
 
-        switch (arg->i_op) {
-        case NCS_MBCSV_CBOP_ENC:
-                /* Encode Request from MBCSv */
-                rc = ckpt_encode_cbk_handler(arg);
-                break;
-        case NCS_MBCSV_CBOP_DEC:
-                /* Decode Request from MBCSv */
-                rc = ckpt_decode_cbk_handler(arg);
-                if (rc != NCSCC_RC_SUCCESS)
-                        LOG_ER("ckpt_decode_cbk_handler FAILED");
-                break;
-        case NCS_MBCSV_CBOP_PEER:
-                /* CLMS Peer info from MBCSv */
-                rc = ckpt_peer_info_cbk_handler(arg);
-                if (rc != NCSCC_RC_SUCCESS)
-                        LOG_ER("ckpt_peer_info_cbk_handler FAILED");
-                break;
-        case NCS_MBCSV_CBOP_NOTIFY:
-                /* NOTIFY info from CLMS peer */
-                rc = ckpt_notify_cbk_handler(arg);
-                if (rc != NCSCC_RC_SUCCESS)
-                        LOG_ER("ckpt_notify_cbk_handler FAILED");
-                break;
-        case NCS_MBCSV_CBOP_ERR_IND:
-                /* Peer error indication info */
-                rc = ckpt_err_ind_cbk_handler(arg);
-                if (rc != NCSCC_RC_SUCCESS)
-                        LOG_ER("ckpt_err_ind_cbk_handler FAILED");
-                break;
-        default:
-                rc = NCSCC_RC_FAILURE;
-                if (rc != NCSCC_RC_SUCCESS)
-                        TRACE("default FAILED");
-                break;
-        }
+	switch (arg->i_op) {
+	case NCS_MBCSV_CBOP_ENC:
+		/* Encode Request from MBCSv */
+		rc = ckpt_encode_cbk_handler(arg);
+		break;
+	case NCS_MBCSV_CBOP_DEC:
+		/* Decode Request from MBCSv */
+		rc = ckpt_decode_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			LOG_ER("ckpt_decode_cbk_handler FAILED");
+		break;
+	case NCS_MBCSV_CBOP_PEER:
+		/* CLMS Peer info from MBCSv */
+		rc = ckpt_peer_info_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			LOG_ER("ckpt_peer_info_cbk_handler FAILED");
+		break;
+	case NCS_MBCSV_CBOP_NOTIFY:
+		/* NOTIFY info from CLMS peer */
+		rc = ckpt_notify_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			LOG_ER("ckpt_notify_cbk_handler FAILED");
+		break;
+	case NCS_MBCSV_CBOP_ERR_IND:
+		/* Peer error indication info */
+		rc = ckpt_err_ind_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			LOG_ER("ckpt_err_ind_cbk_handler FAILED");
+		break;
+	default:
+		rc = NCSCC_RC_FAILURE;
+		if (rc != NCSCC_RC_SUCCESS)
+			TRACE("default FAILED");
+		break;
+	}
 
 	TRACE_LEAVE();
-        return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -728,35 +719,35 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 clms_send_async_update(CLMS_CB *cb, CLMS_CKPT_REC *ckpt_rec, uns32 action)
+uns32 clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uns32 action)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
-        NCS_MBCSV_ARG mbcsv_arg;
-        TRACE_ENTER();
-        /* Fill mbcsv specific data */
-        memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
-        mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
-        mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-        mbcsv_arg.info.send_ckpt.i_action = action;
-        mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-        mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(ckpt_rec);   /*Will be used in encode callback */
-        
-        /* Just store the address of the data to be send as an 
-         * async update record in reo_hdl. The same shall then be 
-         *dereferenced during encode callback */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCS_MBCSV_ARG mbcsv_arg;
+	TRACE_ENTER();
+	/* Fill mbcsv specific data */
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
+	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	mbcsv_arg.info.send_ckpt.i_action = action;
+	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(ckpt_rec);	/*Will be used in encode callback */
 
-        mbcsv_arg.info.send_ckpt.i_reo_type = ckpt_rec->header.type;
-        mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_SYNC;
+	/* Just store the address of the data to be send as an 
+	 * async update record in reo_hdl. The same shall then be 
+	 *dereferenced during encode callback */
 
-        /* Send async update */ 
-        if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-                LOG_ER(" MBCSV send data operation !! rc=%u.", rc);
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
-        TRACE_LEAVE();
-        return rc;
-}       /*End send_async_update() */
+	mbcsv_arg.info.send_ckpt.i_reo_type = ckpt_rec->header.type;
+	mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_SYNC;
+
+	/* Send async update */
+	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		LOG_ER(" MBCSV send data operation !! rc=%u.", rc);
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE;
+	}
+	TRACE_LEAVE();
+	return rc;
+}	/*End send_async_update() */
 
 /****************************************************************************
  * Name          : ckpt_encode_cbk_handler
@@ -773,64 +764,62 @@ uns32 clms_send_async_update(CLMS_CB *cb, CLMS_CKPT_REC *ckpt_rec, uns32 action)
 
 static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
-        uns16 mbcsv_version;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 mbcsv_version;
 
 	TRACE_ENTER();
-        assert(cbk_arg != NULL);
-	
-	
-        mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
-                                            CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
-        if (0 == mbcsv_version) {
-                TRACE("Wrong mbcsv_version!!!\n");
-                return NCSCC_RC_FAILURE;
-        }
-	TRACE("cbk_arg->info.encode.io_msg_type type %d",cbk_arg->info.encode.io_msg_type);
-        switch (cbk_arg->info.encode.io_msg_type) {
-        case NCS_MBCSV_MSG_ASYNC_UPDATE:
-                /* Encode async update */
-                if ((rc = ckpt_encode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
-                        LOG_ER("  ckpt_encode_async_update FAILED");
-                break;
+	assert(cbk_arg != NULL);
 
-        case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-                TRACE_2("COLD SYNC REQ ENCODE CALLED");
-                break;
+	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
+					    CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
+	if (0 == mbcsv_version) {
+		TRACE("Wrong mbcsv_version!!!\n");
+		return NCSCC_RC_FAILURE;
+	}
+	TRACE("cbk_arg->info.encode.io_msg_type type %d", cbk_arg->info.encode.io_msg_type);
+	switch (cbk_arg->info.encode.io_msg_type) {
+	case NCS_MBCSV_MSG_ASYNC_UPDATE:
+		/* Encode async update */
+		if ((rc = ckpt_encode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+			LOG_ER("  ckpt_encode_async_update FAILED");
+		break;
 
-        case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-                /* Encode cold sync response */
-                rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, FALSE);
-                if (rc != NCSCC_RC_SUCCESS) {
-                        TRACE(" COLD SYNC ENCODE FAIL....");
-                } else {
-                        clms_cb->ckpt_state = COLD_SYNC_COMPLETE;
-                        TRACE_2(" COLD SYNC RESPONSE SEND SUCCESS....");
-                }
-                break;
+	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+		TRACE_2("COLD SYNC REQ ENCODE CALLED");
+		break;
 
-        case NCS_MBCSV_MSG_WARM_SYNC_REQ:
-        case NCS_MBCSV_MSG_WARM_SYNC_RESP:
-                break;
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+		/* Encode cold sync response */
+		rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, FALSE);
+		if (rc != NCSCC_RC_SUCCESS) {
+			TRACE(" COLD SYNC ENCODE FAIL....");
+		} else {
+			clms_cb->ckpt_state = COLD_SYNC_COMPLETE;
+			TRACE_2(" COLD SYNC RESPONSE SEND SUCCESS....");
+		}
+		break;
 
-        case NCS_MBCSV_MSG_DATA_REQ:
-                break;
+	case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+		break;
 
-        case NCS_MBCSV_MSG_DATA_RESP:
-        case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-                if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
-                        LOG_ER("  ckpt_enc_cold_sync_data FAILED");
-                break;
-        default:
-                rc = NCSCC_RC_FAILURE;
-                TRACE("  default FAILED");
-                break;
-        }/*End switch(io_msg_type) */
-	
+	case NCS_MBCSV_MSG_DATA_REQ:
+		break;
+
+	case NCS_MBCSV_MSG_DATA_RESP:
+	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+		if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
+			LOG_ER("  ckpt_enc_cold_sync_data FAILED");
+		break;
+	default:
+		rc = NCSCC_RC_FAILURE;
+		TRACE("  default FAILED");
+		break;
+	}			/*End switch(io_msg_type) */
+
 	TRACE_LEAVE();
 	return rc;
-} /*End ckpt_encode_cbk_handler() */
-
+}	/*End ckpt_encode_cbk_handler() */
 
 /****************************************************************************
  * Name          : ckpt_enc_cold_sync_data
@@ -854,71 +843,70 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_enc_cold_sync_data(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+static uns32 ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
-        /* asynsc Update Count */
-        uns8 *async_upd_cnt = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	/* asynsc Update Count */
+	uns8 *async_upd_cnt = NULL;
 
-        /* Currently, we shall send all data in one send.
-         * This shall avoid "delta data" problems that are associated during
-         * multiple sends
-         */
-        TRACE_2("COLD SYNC ENCODE START........");
+	/* Currently, we shall send all data in one send.
+	 * This shall avoid "delta data" problems that are associated during
+	 * multiple sends
+	 */
+	TRACE_2("COLD SYNC ENCODE START........");
 	rc = clms_cold_sync(&cbk_arg->info.encode.io_uba);
-	if(rc != NCSCC_RC_SUCCESS) {
+	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("COLD_SYNC_ENCODE FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
-        /* This will have the count of async updates that have been sent,
-           this will be 0 initially */
-        async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
-        if (async_upd_cnt == NULL) {
-                LOG_ER("ncs_enc_reserve_space FAILED");
-                return NCSCC_RC_FAILURE;
-        }
-        ncs_encode_32bit(&async_upd_cnt, clms_cb->async_upd_cnt);
-        ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	/* This will have the count of async updates that have been sent,
+	   this will be 0 initially */
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	if (async_upd_cnt == NULL) {
+		LOG_ER("ncs_enc_reserve_space FAILED");
+		return NCSCC_RC_FAILURE;
+	}
+	ncs_encode_32bit(&async_upd_cnt, clms_cb->async_upd_cnt);
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
 
-        /* Set response mbcsv msg type to complete */
-        if (data_req == TRUE)
-                cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
-        else
-                cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
-        TRACE_2("COLD SYNC ENCODE END........");
-        return rc;
-}       /*End  ckpt_enc_cold_sync_data() */
-
+	/* Set response mbcsv msg type to complete */
+	if (data_req == TRUE)
+		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
+	else
+		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+	TRACE_2("COLD SYNC ENCODE END........");
+	return rc;
+}	/*End  ckpt_enc_cold_sync_data() */
 
 uns32 clms_cold_sync(NCS_UBAID *uba)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	/*encoding cluster runtime data*/
+	/*encoding cluster runtime data */
 	rc = encode_cluster_rec(uba);
-	if(rc != NCSCC_RC_SUCCESS) {
+	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("Cluster Encode Failed");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	
-	/*encode node db */
-        rc = encode_node_rec(uba);
-        if(rc != NCSCC_RC_SUCCESS) {
-                TRACE("Node Encode Failed");
-		TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
 
-        /*encode client db */
-        rc = encode_client_rec(uba);
-        if(rc != NCSCC_RC_SUCCESS) {
-                TRACE("Node Encode Failed");
+	/*encode node db */
+	rc = encode_node_rec(uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("Node Encode Failed");
 		TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
+		return NCSCC_RC_FAILURE;
+	}
+
+	/*encode client db */
+	rc = encode_client_rec(uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("Node Encode Failed");
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE;
+	}
 	TRACE_LEAVE();
 	return rc;
 }
@@ -928,103 +916,100 @@ uns32 encode_client_rec(NCS_UBAID *uba)
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	CLMSV_CKPT_CLIENT_INFO *client;
 	CLMS_CLIENT_INFO *client_db = NULL;
-	uns32  client_id = 0;
+	uns32 client_id = 0;
 	uns8 *pheader = NULL;
 	uns32 count = 0;
 
 	client = malloc(sizeof(CLMSV_CKPT_CLIENT_INFO));
-        if(client == NULL) {
-                TRACE("Malloc Failed");
-                return 0; /*dude can you return NCSCC_RC_FAILURE*/
-        }
-        memset(client, 0, sizeof(CLMSV_CKPT_CLIENT_INFO));
+	if (client == NULL) {
+		TRACE("Malloc Failed");
+		return 0;	/*dude can you return NCSCC_RC_FAILURE */
+	}
+	memset(client, 0, sizeof(CLMSV_CKPT_CLIENT_INFO));
 
-        /*Reserve space for "Checkpoint Header" */
-        pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
-        if (pheader == NULL) {
-                TRACE("  ncs_enc_reserve_space FAILED");
-                return 0;
-        }
-        ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	if (pheader == NULL) {
+		TRACE("  ncs_enc_reserve_space FAILED");
+		return 0;
+	}
+	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
 
-        while((client_db = clms_client_getnext_by_id(client_id)) != NULL){
+	while ((client_db = clms_client_getnext_by_id(client_id)) != NULL) {
 		client_id = client_db->client_id;
 		client->client_id = client_db->client_id;
 		client->mds_dest = client_db->mds_dest;
 		client->track_flags = client_db->track_flags;
-                if(enc_mbcsv_client_rec_msg(uba, client) == 0) {
-                        TRACE("ckpt client encode failed FAILED");
-                        return 0;
-                }
-                ++count;
-        }
+		if (enc_mbcsv_client_rec_msg(uba, client) == 0) {
+			TRACE("ckpt client encode failed FAILED");
+			return 0;
+		}
+		++count;
+	}
 
-        ckpt_hdr.type = CLMS_CKPT_CLIENT_INFO_REC; /*dude you need one more of this*/
-        ckpt_hdr.num_ckpt_records = count;
-        ckpt_hdr.data_len = 0;
-        enc_ckpt_header(pheader, ckpt_hdr);
+	ckpt_hdr.type = CLMS_CKPT_CLIENT_INFO_REC;	/*dude you need one more of this */
+	ckpt_hdr.num_ckpt_records = count;
+	ckpt_hdr.data_len = 0;
+	enc_ckpt_header(pheader, ckpt_hdr);
 
-        free(client);
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	free(client);
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 encode_node_rec(NCS_UBAID *uba)
 {
-        CLMSV_CKPT_HEADER ckpt_hdr;
-        CLMSV_CKPT_NODE *node = NULL;
-	CLMS_CLUSTER_NODE * cluster_node = NULL;
-        uns8 *pheader = NULL;
+	CLMSV_CKPT_HEADER ckpt_hdr;
+	CLMSV_CKPT_NODE *node = NULL;
+	CLMS_CLUSTER_NODE *cluster_node = NULL;
+	uns8 *pheader = NULL;
 	uns32 count = 0;
 
 	node = malloc(sizeof(CLMSV_CKPT_NODE));
-	if(node == NULL) {
+	if (node == NULL) {
 		TRACE("Malloc Failed");
-		return 0; /*dude can you return NCSCC_RC_FAILURE*/
+		return 0;	/*dude can you return NCSCC_RC_FAILURE */
 	}
 	memset(node, 0, sizeof(CLMSV_CKPT_NODE));
-        /*Reserve space for "Checkpoint Header" */
-        pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
-        if (pheader == NULL) {
-                TRACE("  ncs_enc_reserve_space FAILED");
-                return 0;
-        }
-        ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	if (pheader == NULL) {
+		TRACE("  ncs_enc_reserve_space FAILED");
+		return 0;
+	}
+	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
 
-	cluster_node = (CLMS_CLUSTER_NODE *)clms_node_getnext_by_id(0);;
-	while(cluster_node != NULL) {
+	cluster_node = (CLMS_CLUSTER_NODE *) clms_node_getnext_by_id(0);;
+	while (cluster_node != NULL) {
 		prepare_ckpt_node(node, cluster_node);
-		if(enc_mbcsv_node_msg(uba, node) == 0) {
+		if (enc_mbcsv_node_msg(uba, node) == 0) {
 			TRACE("ckpt node encode failed FAILED");
 			return 0;
-		}	
+		}
 		++count;
-		cluster_node = (CLMS_CLUSTER_NODE *)clms_node_getnext_by_id(node->node_id);
+		cluster_node = (CLMS_CLUSTER_NODE *) clms_node_getnext_by_id(node->node_id);
 	}
 
-        ckpt_hdr.type = CLMS_CKPT_NODE_REC;
-        ckpt_hdr.num_ckpt_records = count;
-        ckpt_hdr.data_len = 0;
-        enc_ckpt_header(pheader, ckpt_hdr);
+	ckpt_hdr.type = CLMS_CKPT_NODE_REC;
+	ckpt_hdr.num_ckpt_records = count;
+	ckpt_hdr.data_len = 0;
+	enc_ckpt_header(pheader, ckpt_hdr);
 
 	free(node);
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
-void prepare_ckpt_node(CLMSV_CKPT_NODE *node, CLMS_CLUSTER_NODE *cluster_node)
+void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node)
 {
 	node->node_id = cluster_node->node_id;
 	node->node_addr.family = cluster_node->node_addr.family;
 	node->node_addr.length = cluster_node->node_addr.length;
-	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
-		     cluster_node->node_addr.length);
-        node->node_name.length = cluster_node->node_name.length;
-        (void)memcpy(node->node_name.value, cluster_node->node_name.value, 
-                     cluster_node->node_name.length);
-        node->ee_name.length = cluster_node->ee_name.length;
-        (void)memcpy(node->ee_name.value, cluster_node->ee_name.value, 
-                     cluster_node->ee_name.length);
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	node->node_name.length = cluster_node->node_name.length;
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	node->ee_name.length = cluster_node->ee_name.length;
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
 	node->member = cluster_node->member;
 	node->boot_time = cluster_node->boot_time;
 	node->init_view = cluster_node->init_view;
@@ -1032,126 +1017,115 @@ void prepare_ckpt_node(CLMSV_CKPT_NODE *node, CLMS_CLUSTER_NODE *cluster_node)
 	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
 	node->admin_state = cluster_node->admin_state;
 	node->change = cluster_node->change;
-	#ifdef ENABLE_AIS_PLM
+#ifdef ENABLE_AIS_PLM
 	node->ee_red_state = cluster_node->ee_red_state;
-	#endif
+#endif
 	node->nodeup = cluster_node->nodeup;
 	node->curr_admin_inv = cluster_node->curr_admin_inv;
 	node->stat_change = cluster_node->stat_change;
 	node->admin_op = cluster_node->admin_op;
 	node->plm_invid = cluster_node->plm_invid;
 }
+
 /*Dude - can be improved let see how*/
-void prepare_cluster_node(CLMS_CLUSTER_NODE *node, CLMSV_CKPT_NODE *cluster_node)
+void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_node)
 {
 	TRACE_ENTER();
-        node->node_id = cluster_node->node_id;
-        node->node_addr.family = cluster_node->node_addr.family;
-        node->node_addr.length = cluster_node->node_addr.length;
-        (void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
-                     cluster_node->node_addr.length);
-        node->node_name.length = cluster_node->node_name.length;
-        (void)memcpy(node->node_name.value, cluster_node->node_name.value,
-                     cluster_node->node_name.length);
-        node->ee_name.length = cluster_node->ee_name.length;
-        (void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
-                     cluster_node->ee_name.length);
-        node->member = cluster_node->member;
-        node->boot_time = cluster_node->boot_time;
-        node->init_view = cluster_node->init_view;
-        node->disable_reboot = cluster_node->disable_reboot;
-        node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
-        node->admin_state = cluster_node->admin_state;
-        node->change = cluster_node->change;
-	#ifdef ENABLE_AIS_PLM
-        node->ee_red_state = cluster_node->ee_red_state;
-	#endif
-        node->nodeup = cluster_node->nodeup;
-        node->curr_admin_inv = cluster_node->curr_admin_inv;
-        node->stat_change = cluster_node->stat_change;
-        node->admin_op = cluster_node->admin_op;
-        node->plm_invid = cluster_node->plm_invid;
+	node->node_id = cluster_node->node_id;
+	node->node_addr.family = cluster_node->node_addr.family;
+	node->node_addr.length = cluster_node->node_addr.length;
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	node->node_name.length = cluster_node->node_name.length;
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	node->ee_name.length = cluster_node->ee_name.length;
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	node->member = cluster_node->member;
+	node->boot_time = cluster_node->boot_time;
+	node->init_view = cluster_node->init_view;
+	node->disable_reboot = cluster_node->disable_reboot;
+	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
+	node->admin_state = cluster_node->admin_state;
+	node->change = cluster_node->change;
+#ifdef ENABLE_AIS_PLM
+	node->ee_red_state = cluster_node->ee_red_state;
+#endif
+	node->nodeup = cluster_node->nodeup;
+	node->curr_admin_inv = cluster_node->curr_admin_inv;
+	node->stat_change = cluster_node->stat_change;
+	node->admin_op = cluster_node->admin_op;
+	node->plm_invid = cluster_node->plm_invid;
 	TRACE_LEAVE();
 }
 
-void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE *cluster_node)
+void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster_node)
 {
-        node->node_id = cluster_node->node_id;
-        node->node_addr.family = cluster_node->node_addr.family;
-        node->node_addr.length = cluster_node->node_addr.length;
-        (void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
-                     cluster_node->node_addr.length);
-        node->node_name.length = cluster_node->node_name.length;
-        (void)memcpy(node->node_name.value, cluster_node->node_name.value,
-                     cluster_node->node_name.length);
-        node->ee_name.length = cluster_node->ee_name.length;
-        (void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
-                     cluster_node->ee_name.length);
-        node->member = cluster_node->member;
-        node->boot_time = cluster_node->boot_time;
-        node->init_view = cluster_node->init_view;
-        node->disable_reboot = cluster_node->disable_reboot;
-        node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
-        node->admin_state = cluster_node->admin_state;
-        node->change = cluster_node->change;
-	#ifdef ENABLE_AIS_PLM
-        node->ee_red_state = cluster_node->ee_red_state;
-	#endif
-        node->nodeup = cluster_node->nodeup;
-        node->curr_admin_inv = cluster_node->curr_admin_inv;
-        node->stat_change = cluster_node->stat_change;
-        node->admin_op = cluster_node->admin_op;
-        node->plm_invid = cluster_node->plm_invid;
+	node->node_id = cluster_node->node_id;
+	node->node_addr.family = cluster_node->node_addr.family;
+	node->node_addr.length = cluster_node->node_addr.length;
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	node->node_name.length = cluster_node->node_name.length;
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	node->ee_name.length = cluster_node->ee_name.length;
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	node->member = cluster_node->member;
+	node->boot_time = cluster_node->boot_time;
+	node->init_view = cluster_node->init_view;
+	node->disable_reboot = cluster_node->disable_reboot;
+	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
+	node->admin_state = cluster_node->admin_state;
+	node->change = cluster_node->change;
+#ifdef ENABLE_AIS_PLM
+	node->ee_red_state = cluster_node->ee_red_state;
+#endif
+	node->nodeup = cluster_node->nodeup;
+	node->curr_admin_inv = cluster_node->curr_admin_inv;
+	node->stat_change = cluster_node->stat_change;
+	node->admin_op = cluster_node->admin_op;
+	node->plm_invid = cluster_node->plm_invid;
 
 }
 
-void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC *node, CLMS_CLUSTER_NODE *cluster_node)
+void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node)
 {
-        node->node_name.length = cluster_node->node_name.length;
-        (void)memcpy(node->node_name.value, cluster_node->node_name.value,
-                     cluster_node->node_name.length);
-        node->ee_name.length = cluster_node->ee_name.length;
-        (void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
-                     cluster_node->ee_name.length);
-        node->node_addr.family = cluster_node->node_addr.family;
-        node->node_addr.length = cluster_node->node_addr.length;
-        (void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
-                     cluster_node->node_addr.length);
-        node->disable_reboot = cluster_node->disable_reboot;
-        node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
-        node->admin_state = cluster_node->admin_state;
+	node->node_name.length = cluster_node->node_name.length;
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	node->ee_name.length = cluster_node->ee_name.length;
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	node->node_addr.family = cluster_node->node_addr.family;
+	node->node_addr.length = cluster_node->node_addr.length;
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	node->disable_reboot = cluster_node->disable_reboot;
+	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
+	node->admin_state = cluster_node->admin_state;
 }
 
-void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC *node, CLMSV_CKPT_NODE_CONFIG_REC *cluster_node)
+void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMSV_CKPT_NODE_CONFIG_REC * cluster_node)
 {
-        node->node_name.length = cluster_node->node_name.length;
-        (void)memcpy(node->node_name.value, cluster_node->node_name.value,
-                     cluster_node->node_name.length);
-        node->ee_name.length = cluster_node->ee_name.length;
-        (void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
-                     cluster_node->ee_name.length);
-        node->node_addr.family = cluster_node->node_addr.family;
-        node->node_addr.length = cluster_node->node_addr.length;
-        (void)memcpy(node->node_addr.value, cluster_node->node_addr.value,
-                     cluster_node->node_addr.length);
-        node->disable_reboot = cluster_node->disable_reboot;
-        node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
-        node->admin_state = cluster_node->admin_state;
+	node->node_name.length = cluster_node->node_name.length;
+	(void)memcpy(node->node_name.value, cluster_node->node_name.value, cluster_node->node_name.length);
+	node->ee_name.length = cluster_node->ee_name.length;
+	(void)memcpy(node->ee_name.value, cluster_node->ee_name.value, cluster_node->ee_name.length);
+	node->node_addr.family = cluster_node->node_addr.family;
+	node->node_addr.length = cluster_node->node_addr.length;
+	(void)memcpy(node->node_addr.value, cluster_node->node_addr.value, cluster_node->node_addr.length);
+	node->disable_reboot = cluster_node->disable_reboot;
+	node->lck_cbk_timeout = cluster_node->lck_cbk_timeout;
+	node->admin_state = cluster_node->admin_state;
 }
 
-uns32 encode_cluster_rec(NCS_UBAID *uba) 
+uns32 encode_cluster_rec(NCS_UBAID *uba)
 {
-        CLMSV_CKPT_HEADER ckpt_hdr;
-        uns8 *pheader = NULL;
-        /*Reserve space for "Checkpoint Header" */
-        pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
-        if (pheader == NULL) {
-                TRACE("  ncs_enc_reserve_space FAILED");
-                return 0;
-        }
-        ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	CLMSV_CKPT_HEADER ckpt_hdr;
+	uns8 *pheader = NULL;
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	if (pheader == NULL) {
+		TRACE("  ncs_enc_reserve_space FAILED");
+		return 0;
+	}
+	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
 
-	if(!(cluster_rec_(uba))) {
+	if (!(cluster_rec_(uba))) {
 		TRACE("  ncs_enc_reserve_space FAILED");
 		return 0;
 	}
@@ -1161,8 +1135,8 @@ uns32 encode_cluster_rec(NCS_UBAID *uba)
 	ckpt_hdr.data_len = 0;
 
 	enc_ckpt_header(pheader, ckpt_hdr);
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 cluster_rec_(NCS_UBAID *uba)
@@ -1171,11 +1145,12 @@ uns32 cluster_rec_(NCS_UBAID *uba)
 	cluster_rec.num_nodes = osaf_cluster->num_nodes;
 	cluster_rec.init_time = osaf_cluster->init_time;
 	cluster_rec.cluster_view_num = clms_cb->cluster_view_num;
-	if(enc_mbcsv_cluster_rec_msg(uba,&cluster_rec) == 0)
+	if (enc_mbcsv_cluster_rec_msg(uba, &cluster_rec) == 0)
 		return 0;
 	return 1;
-	
+
 }
+
 /****************************************************************************
  * Name          : ckpt_encode_async_update
  *
@@ -1192,178 +1167,177 @@ uns32 cluster_rec_(NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uns32 ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	CLMS_CKPT_REC *data = NULL;
-        uns32 rc = NCSCC_RC_SUCCESS, num_bytes;
-        uns8 *pheader = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS, num_bytes;
+	uns8 *pheader = NULL;
 	CLMSV_CKPT_HEADER ckpt_hdr;
 	NCS_UBAID *uba = &cbk_arg->info.encode.io_uba;
 	CLMSV_CKPT_CLIENT_INFO ckpt_client_rec;
-        CLMSV_CKPT_FINALIZE_INFO ckpt_finalize_rec;
-        CLMSV_CKPT_NODE_RUNTIME_INFO ckpt_node_rec;
-        CLMSV_CKPT_NODE ckpt_node_csync_rec;
-        CLMSV_CKPT_NODE_CONFIG_REC ckpt_node_config_rec;
-        CLMSV_CKPT_NODE_DEL_REC ckpt_node_del_rec;
+	CLMSV_CKPT_FINALIZE_INFO ckpt_finalize_rec;
+	CLMSV_CKPT_NODE_RUNTIME_INFO ckpt_node_rec;
+	CLMSV_CKPT_NODE ckpt_node_csync_rec;
+	CLMSV_CKPT_NODE_CONFIG_REC ckpt_node_config_rec;
+	CLMSV_CKPT_NODE_DEL_REC ckpt_node_del_rec;
 	CLMSV_CKPT_AGENT_DOWN_REC ckpt_agent_rec;
 	CLMSV_CKPT_CLUSTER_INFO ckpt_cluster_rec;
 	CLMSV_CKPT_NODE_DOWN_INFO ckpt_node_down_rec;
 
+	TRACE_ENTER();
+	/* Set reo_hdl from callback arg to ckpt_rec */
+	data = (CLMS_CKPT_REC *) (long)cbk_arg->info.encode.io_reo_hdl;
+	if (data == NULL) {
+		TRACE("   data == NULL, FAILED");
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE;
+	}
 
-        TRACE_ENTER();
-        /* Set reo_hdl from callback arg to ckpt_rec */
-        data = (CLMS_CKPT_REC*)(long)cbk_arg->info.encode.io_reo_hdl;
-        if (data == NULL) {
-                TRACE("   data == NULL, FAILED");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	if (pheader == NULL) {
+		TRACE("  ncs_enc_reserve_space FAILED");
+		TRACE_LEAVE();
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
+	TRACE("data->header.type %d", data->header.type);
 
-        /*Reserve space for "Checkpoint Header" */
-        pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
-        if (pheader == NULL) {
-                TRACE("  ncs_enc_reserve_space FAILED");
-                TRACE_LEAVE();
-                return (rc = EDU_ERR_MEM_FAIL);
-        }
-        ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
-	TRACE("data->header.type %d",data->header.type);
-
-        /* Encode async record */
-        switch (data->header.type) {
+	/* Encode async record */
+	switch (data->header.type) {
 	case CLMS_CKPT_CLIENT_INFO_REC:
 
-                TRACE("Async update CLMS_CKPT_CLIENT_INFO_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_CLIENT_INFO_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		TRACE("Async update CLMS_CKPT_CLIENT_INFO_REC");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_CLIENT_INFO_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_client_rec.client_id = data->param.client_rec.client_id;
 		ckpt_client_rec.mds_dest = data->param.client_rec.mds_dest;
-                num_bytes = enc_mbcsv_client_msg(uba, &ckpt_client_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
+		num_bytes = enc_mbcsv_client_msg(uba, &ckpt_client_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
 		break;
 	case CLMS_CKPT_FINALIZE_REC:
 
-                TRACE("Async update CLMS_CKPT_FINALIZE_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_FINALIZE_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		TRACE("Async update CLMS_CKPT_FINALIZE_REC");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_FINALIZE_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_finalize_rec.client_id = data->param.finalize_rec.client_id;
-                num_bytes = enc_mbcsv_finalize_msg(uba, &ckpt_finalize_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
+		num_bytes = enc_mbcsv_finalize_msg(uba, &ckpt_finalize_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 	case CLMS_CKPT_TRACK_CHANGES_REC:
 
-                TRACE("Async update CLMS_CKPT_TRACK_START");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_TRACK_CHANGES_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		TRACE("Async update CLMS_CKPT_TRACK_START");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_TRACK_CHANGES_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_client_rec.client_id = data->param.client_rec.client_id;
 		ckpt_client_rec.track_flags = data->param.client_rec.track_flags;
-                num_bytes = enc_mbcsv_track_changes_msg(uba, &ckpt_client_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
-        case CLMS_CKPT_NODE_RUNTIME_REC:
+		num_bytes = enc_mbcsv_track_changes_msg(uba, &ckpt_client_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
+	case CLMS_CKPT_NODE_RUNTIME_REC:
 
-                TRACE("Async update CLMS_CKPT_NODE_RUNTIME_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_NODE_RUNTIME_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		TRACE("Async update CLMS_CKPT_NODE_RUNTIME_REC");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_NODE_RUNTIME_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_node_rec.node_id = data->param.node_rec.node_id;
 		ckpt_node_rec.node_name.length = data->param.node_rec.node_name.length;
 		(void)memcpy(ckpt_node_rec.node_name.value, data->param.node_rec.node_name.value,
 			     data->param.node_rec.node_name.length);
 		ckpt_node_rec.member = data->param.node_rec.member;
-		ckpt_node_rec.boot_time = data->param.node_rec.boot_time; /*may be not needed*/
+		ckpt_node_rec.boot_time = data->param.node_rec.boot_time;	/*may be not needed */
 		ckpt_node_rec.init_view = data->param.node_rec.init_view;
 		ckpt_node_rec.admin_state = data->param.node_rec.admin_state;
 		ckpt_node_rec.admin_op = data->param.node_rec.admin_op;
 		ckpt_node_rec.change = data->param.node_rec.change;
 
-                num_bytes = enc_mbcsv_node_rec_msg(uba, &ckpt_node_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
+		num_bytes = enc_mbcsv_node_rec_msg(uba, &ckpt_node_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 	case CLMS_CKPT_NODE_REC:
-		
+
 		TRACE("Async update CLMS_CKPT_NODE_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_NODE_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_NODE_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		prepare_ckpt_to_ckpt_node(&ckpt_node_csync_rec, &data->param.node_csync_rec);
-                num_bytes = enc_mbcsv_node_msg(uba, &ckpt_node_csync_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
-	case CLMS_CKPT_NODE_CONFIG_REC:	
-	
-                TRACE("Async update CLMS_CKPT_NODE_CONFIG_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_NODE_CONFIG_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		num_bytes = enc_mbcsv_node_msg(uba, &ckpt_node_csync_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
+	case CLMS_CKPT_NODE_CONFIG_REC:
 
-                prepare_ckpt_to_ckpt_config_node(&ckpt_node_config_rec, &data->param.node_config_rec);
-                num_bytes = enc_mbcsv_node_config_msg(uba, &ckpt_node_config_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
+		TRACE("Async update CLMS_CKPT_NODE_CONFIG_REC");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_NODE_CONFIG_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
+
+		prepare_ckpt_to_ckpt_config_node(&ckpt_node_config_rec, &data->param.node_config_rec);
+		num_bytes = enc_mbcsv_node_config_msg(uba, &ckpt_node_config_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 	case CLMS_CKPT_NODE_DEL_REC:
 
-                TRACE("Async update CLMS_CKPT_NODE_DEL_REC");
-                /* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_NODE_DEL_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		TRACE("Async update CLMS_CKPT_NODE_DEL_REC");
+		/* Encode RegHeader */
+		ckpt_hdr.type = CLMS_CKPT_NODE_DEL_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_node_del_rec.node_name.length = data->param.node_del_rec.node_name.length;
 		(void)memcpy(ckpt_node_del_rec.node_name.value, data->param.node_del_rec.node_name.value,
 			     data->param.node_del_rec.node_name.length);
-	
-                num_bytes = enc_mbcsv_node_del_msg(uba, &ckpt_node_del_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
+
+		num_bytes = enc_mbcsv_node_del_msg(uba, &ckpt_node_del_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 	case CLMS_CKPT_AGENT_DOWN_REC:
 		TRACE("Async Update CLMS_CKPT_AGENT_DOWN_REC");
 		/* Encode RegHeader */
-                ckpt_hdr.type = CLMS_CKPT_AGENT_DOWN_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		ckpt_hdr.type = CLMS_CKPT_AGENT_DOWN_REC;
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_agent_rec.mds_dest = data->param.agent_rec.mds_dest;
 		num_bytes = enc_mbcsv_agent_down_msg(uba, &ckpt_agent_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
 		break;
 	case CLMS_CKPT_CLUSTER_REC:
 		TRACE("Async Update CLMS_CKPT_CLUSTER_REC");
@@ -1376,7 +1350,7 @@ static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 		ckpt_cluster_rec.init_time = data->param.cluster_rec.init_time;
 		ckpt_cluster_rec.cluster_view_num = data->param.cluster_rec.cluster_view_num;
 
-		num_bytes = enc_mbcsv_cluster_rec_msg(uba,&ckpt_cluster_rec);
+		num_bytes = enc_mbcsv_cluster_rec_msg(uba, &ckpt_cluster_rec);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
 		}
@@ -1384,26 +1358,26 @@ static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 	case CLMS_CKPT_NODE_DOWN_REC:
 		TRACE("Async Update CLMS_CKPT_NODE_DOWN_REC");
 		ckpt_hdr.type = CLMS_CKPT_NODE_DOWN_REC;
-                ckpt_hdr.num_ckpt_records = 1;
-                ckpt_hdr.data_len = 0;
-                enc_ckpt_header(pheader, ckpt_hdr);
+		ckpt_hdr.num_ckpt_records = 1;
+		ckpt_hdr.data_len = 0;
+		enc_ckpt_header(pheader, ckpt_hdr);
 
 		ckpt_node_down_rec.node_id = data->param.node_down_rec.node_id;
 
-                num_bytes = enc_mbcsv_node_down_rec_msg(uba,&ckpt_node_down_rec);
-                if (num_bytes == 0) {
-                        return NCSCC_RC_FAILURE;
-                }
-                break;
-        default:
-                TRACE_3("FAILED no type: %d", data->header.type);
-                break;
+		num_bytes = enc_mbcsv_node_down_rec_msg(uba, &ckpt_node_down_rec);
+		if (num_bytes == 0) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
+	default:
+		TRACE_3("FAILED no type: %d", data->header.type);
+		break;
 	}
 
-        /* Update the Async Update Count at standby */
-        clms_cb->async_upd_cnt++;
-        TRACE_LEAVE();
-        return rc;
+	/* Update the Async Update Count at standby */
+	clms_cb->async_upd_cnt++;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -1422,477 +1396,476 @@ static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 
 static void enc_ckpt_header(uns8 *pdata, CLMSV_CKPT_HEADER header)
 {
-        ncs_encode_32bit(&pdata, header.type);
-        ncs_encode_32bit(&pdata, header.num_ckpt_records);
-        ncs_encode_32bit(&pdata, header.data_len);
-}
-uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param)
-{
-        uns8 *p8;
-        uns32 total_bytes = 0;
-
-        TRACE_ENTER();
-
-	/** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 20);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->num_nodes);
-        ncs_encode_64bit(&p8, param->init_time);
-        ncs_encode_64bit(&p8, param->cluster_view_num);
-        ncs_enc_claim_space(uba, 20);
-        total_bytes += 20;
-
-        TRACE_LEAVE();
-        return total_bytes;
+	ncs_encode_32bit(&pdata, header.type);
+	ncs_encode_32bit(&pdata, header.num_ckpt_records);
+	ncs_encode_32bit(&pdata, header.data_len);
 }
 
-uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba,CLMSV_CKPT_NODE_DOWN_INFO * param)
+uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 {
 	uns8 *p8;
-        uns32 total_bytes = 0;
+	uns32 total_bytes = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
-        /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->node_id);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	/** encode the contents **/
+	p8 = ncs_enc_reserve_space(uba, 20);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->num_nodes);
+	ncs_encode_64bit(&p8, param->init_time);
+	ncs_encode_64bit(&p8, param->cluster_view_num);
+	ncs_enc_claim_space(uba, 20);
+	total_bytes += 20;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
+uns32 enc_mbcsv_node_down_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
+
+	TRACE_ENTER();
+
+	/** encode the contents **/
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->node_id);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+
+	TRACE_LEAVE();
+	return total_bytes;
+}
+
+uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
+{
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
 	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
-        mds_dest2 = (param->mds_dest >> 32);
-	
+	mds_dest2 = (param->mds_dest >> 32);
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 13);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->client_id);
-        ncs_encode_32bit(&p8, mds_dest1);
-        ncs_encode_32bit(&p8, mds_dest2);
-        /*ncs_encode_64bit(&p8, param->mds_dest);*/
+	p8 = ncs_enc_reserve_space(uba, 13);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->client_id);
+	ncs_encode_32bit(&p8, mds_dest1);
+	ncs_encode_32bit(&p8, mds_dest2);
+	/*ncs_encode_64bit(&p8, param->mds_dest); */
 	ncs_encode_8bit(&p8, param->track_flags);
-        ncs_enc_claim_space(uba, 13);
-        total_bytes += 13;
+	ncs_enc_claim_space(uba, 13);
+	total_bytes += 13;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param)
+uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
 {
 	uns8 *p8;
-        uns32 total_bytes = 0;
+	uns32 total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
 	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
-        mds_dest2 = (param->mds_dest >> 32);
+	mds_dest2 = (param->mds_dest >> 32);
 
 	/** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, mds_dest1);
-        ncs_encode_32bit(&p8, mds_dest2);
-        /*ncs_encode_64bit(&p8, param->mds_dest);*/
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, mds_dest1);
+	ncs_encode_32bit(&p8, mds_dest2);
+	/*ncs_encode_64bit(&p8, param->mds_dest); */
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-
-
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
+uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
 	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
-        mds_dest2 = (param->mds_dest >> 32);
+	mds_dest2 = (param->mds_dest >> 32);
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 12);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->client_id);
-        ncs_encode_32bit(&p8, mds_dest1);
-        ncs_encode_32bit(&p8, mds_dest2);
-        /*ncs_encode_64bit(&p8, param->mds_dest);*/
-        ncs_enc_claim_space(uba, 12);
-        total_bytes += 12;
+	p8 = ncs_enc_reserve_space(uba, 12);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->client_id);
+	ncs_encode_32bit(&p8, mds_dest1);
+	ncs_encode_32bit(&p8, mds_dest2);
+	/*ncs_encode_64bit(&p8, param->mds_dest); */
+	ncs_enc_claim_space(uba, 12);
+	total_bytes += 12;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO *param)
+uns32 enc_mbcsv_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->client_id);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->client_id);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO*param)
+uns32 enc_mbcsv_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 5);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->client_id);
-        ncs_encode_8bit(&p8, param->track_flags);
-        ncs_enc_claim_space(uba, 5);
-        total_bytes += 5;
+	p8 = ncs_enc_reserve_space(uba, 5);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->client_id);
+	ncs_encode_8bit(&p8, param->track_flags);
+	ncs_enc_claim_space(uba, 5);
+	total_bytes += 5;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *param)
+uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->node_id);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->node_id);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;  
-        }
-        ncs_encode_32bit(&p8, param->member);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->member);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->boot_time);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->boot_time);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->init_view); 
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->init_view);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->admin_state);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->admin_state);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->admin_op);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->admin_op);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->change);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->change);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param)
+uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
 	lck_timeout1 = (param->lck_cbk_timeout & 0x00000000ffffffff);
-        lck_timeout2 = (param->lck_cbk_timeout >> 32);
+	lck_timeout2 = (param->lck_cbk_timeout >> 32);
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
-	total_bytes += clmsv_encodeSaNameT(uba,&param->ee_name);
-	total_bytes += encodeNodeAddressT(uba,&param->node_addr);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->ee_name);
+	total_bytes += encodeNodeAddressT(uba, &param->node_addr);
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) { 
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->disable_reboot);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->disable_reboot);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, lck_timeout1);
-        ncs_encode_32bit(&p8, lck_timeout2);
-        /*ncs_encode_64bit(&p8, param->lck_cbk_timeout);*/
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, lck_timeout1);
+	ncs_encode_32bit(&p8, lck_timeout2);
+	/*ncs_encode_64bit(&p8, param->lck_cbk_timeout); */
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->admin_state);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->admin_state);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
+uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
+	uns8 *p8;
+	uns32 total_bytes = 0;
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
 	lck_timeout1 = (param->lck_cbk_timeout & 0x00000000ffffffff);
-        lck_timeout2 = (param->lck_cbk_timeout >> 32);
+	lck_timeout2 = (param->lck_cbk_timeout >> 32);
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) { 
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->node_id);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->node_id);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-	total_bytes += encodeNodeAddressT(uba,&param->node_addr);
-        total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
-        total_bytes += clmsv_encodeSaNameT(uba,&param->ee_name);
+	total_bytes += encodeNodeAddressT(uba, &param->node_addr);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->ee_name);
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->member);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->member);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->boot_time);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->boot_time);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->init_view);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->init_view);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->disable_reboot);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->disable_reboot);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, lck_timeout1);
-        ncs_encode_32bit(&p8, lck_timeout2);
-        /*ncs_encode_64bit(&p8, param->lck_cbk_timeout);*/
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, lck_timeout1);
+	ncs_encode_32bit(&p8, lck_timeout2);
+	/*ncs_encode_64bit(&p8, param->lck_cbk_timeout); */
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->admin_state);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->admin_state);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->change);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->change);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-	#ifdef ENABLE_AIS_PLM
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->ee_red_state);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
-	#endif
+#ifdef ENABLE_AIS_PLM
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->ee_red_state);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+#endif
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->nodeup);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->nodeup);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->curr_admin_inv);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->curr_admin_inv);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->stat_change);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->stat_change);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 4);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_32bit(&p8, param->admin_op);
-        ncs_enc_claim_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->admin_op);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_enc_reserve_space(uba, 8);
-        if (!p8) {
-                TRACE("NULL pointer");
-                return 0;
-        }
-        ncs_encode_64bit(&p8, param->plm_invid);
-        ncs_enc_claim_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, param->plm_invid);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
 
-uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
+uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 {
-        uns32 total_bytes = 0;
+	uns32 total_bytes = 0;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
     /** encode the contents **/
-	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba, &param->node_name);
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 }
+
 /****************************************************************************
  * Name          : ckpt_decode_cbk_handler
  *
@@ -1909,74 +1882,74 @@ uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
  *****************************************************************************/
 static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
-        uns16 msg_fmt_version;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 msg_fmt_version;
 
 	TRACE_ENTER();
 
-        msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
-                                              CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
-        if (0 == msg_fmt_version) {
-                TRACE("wrong msg_fmt_version!!!\n");
-                return NCSCC_RC_FAILURE;
-        }
+	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
+					      CLMS_MBCSV_VERSION, CLMS_MBCSV_VERSION_MIN);
+	if (0 == msg_fmt_version) {
+		TRACE("wrong msg_fmt_version!!!\n");
+		return NCSCC_RC_FAILURE;
+	}
 
-        TRACE_2("decode msg type: %u", (unsigned int)cbk_arg->info.decode.i_msg_type);
+	TRACE_2("decode msg type: %u", (unsigned int)cbk_arg->info.decode.i_msg_type);
 
-        switch (cbk_arg->info.decode.i_msg_type) {
-        case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-                TRACE_2(" COLD SYNC REQ DECODE called");
-                break;
+	switch (cbk_arg->info.decode.i_msg_type) {
+	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+		TRACE_2(" COLD SYNC REQ DECODE called");
+		break;
 
-        case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-        case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-                TRACE_2(" COLD SYNC RESP DECODE called");
-                if (clms_cb->ckpt_state != COLD_SYNC_COMPLETE) {        /*this check is needed to handle repeated requests */
-                        if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
-                                TRACE(" COLD SYNC RESPONSE DECODE ....");
-                        } else {
-                                TRACE(" COLD SYNC RESPONSE DECODE SUCCESS....");
-                                clms_cb->ckpt_state = COLD_SYNC_COMPLETE;
-                        }
-                }
-                break;
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
+		TRACE_2(" COLD SYNC RESP DECODE called");
+		if (clms_cb->ckpt_state != COLD_SYNC_COMPLETE) {	/*this check is needed to handle repeated requests */
+			if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
+				TRACE(" COLD SYNC RESPONSE DECODE ....");
+			} else {
+				TRACE(" COLD SYNC RESPONSE DECODE SUCCESS....");
+				clms_cb->ckpt_state = COLD_SYNC_COMPLETE;
+			}
+		}
+		break;
 
-        case NCS_MBCSV_MSG_ASYNC_UPDATE:
-                TRACE_2(" ASYNC UPDATE DECODE called");
-		if (clms_cb->ckpt_state != COLD_SYNC_COMPLETE){
-                	TRACE("Error: Recieved Async Update before coldsync, dropping it");
-                	rc = NCSCC_RC_FAILURE;
-            	}else {
-                	if ((rc=ckpt_decode_async_update(clms_cb,cbk_arg)) != NCSCC_RC_SUCCESS)
-                    		TRACE("  ckpt_decode_async_update FAILED %u",rc);
-            	}
-                break;
+	case NCS_MBCSV_MSG_ASYNC_UPDATE:
+		TRACE_2(" ASYNC UPDATE DECODE called");
+		if (clms_cb->ckpt_state != COLD_SYNC_COMPLETE) {
+			TRACE("Error: Recieved Async Update before coldsync, dropping it");
+			rc = NCSCC_RC_FAILURE;
+		} else {
+			if ((rc = ckpt_decode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+				TRACE("  ckpt_decode_async_update FAILED %u", rc);
+		}
+		break;
 
-        case NCS_MBCSV_MSG_WARM_SYNC_REQ:
-        case NCS_MBCSV_MSG_WARM_SYNC_RESP:
-        case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
-        case NCS_MBCSV_MSG_DATA_REQ:
-                TRACE_2("WARM SYNC called, not used");
-                break;
-        case NCS_MBCSV_MSG_DATA_RESP:
-        case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-                TRACE_2("DATA RESP COMPLETE DECODE called");
-                if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
-                        LOG_ER("ckpt_decode_cold_sync  FAILED");
-                break;
+	case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
+	case NCS_MBCSV_MSG_DATA_REQ:
+		TRACE_2("WARM SYNC called, not used");
+		break;
+	case NCS_MBCSV_MSG_DATA_RESP:
+	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+		TRACE_2("DATA RESP COMPLETE DECODE called");
+		if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+			LOG_ER("ckpt_decode_cold_sync  FAILED");
+		break;
 
-        default:
-                TRACE_2(" INCORRECT DECODE called");
-                rc = NCSCC_RC_FAILURE;
-                TRACE("  INCORRECT DECODE called, FAILED");
-                m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-                break;
-        }/*End switch(io_msg_type) */
+	default:
+		TRACE_2(" INCORRECT DECODE called");
+		rc = NCSCC_RC_FAILURE;
+		TRACE("  INCORRECT DECODE called, FAILED");
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		break;
+	}			/*End switch(io_msg_type) */
 
 	TRACE_LEAVE();
-        return rc;
+	return rc;
 
-}       /*End ckpt_decode_cbk_handler() */
+}	/*End ckpt_decode_cbk_handler() */
 
 /****************************************************************************
  * Name          : ckpt_decode_cold_sync 
@@ -1999,112 +1972,112 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  *                        header->num_records times, 
  *****************************************************************************/
 
-static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-        CLMS_CKPT_REC msg;
-        CLMS_CKPT_REC *data = NULL;
-        uns32 num_rec = 0;
-        TRACE_ENTER();
+	CLMS_CKPT_REC msg;
+	CLMS_CKPT_REC *data = NULL;
+	uns32 num_rec = 0;
+	TRACE_ENTER();
 
-        /* 
-           -------------------------------------------------------------
-           | Header|Cluster rec|Header|node rec..n|Header|client rec..n|
-           -------------------------------------------------------------
-         */
+	/* 
+	   -------------------------------------------------------------
+	   | Header|Cluster rec|Header|node rec..n|Header|client rec..n|
+	   -------------------------------------------------------------
+	 */
 
-	memset(&msg,0,sizeof(CLMS_CKPT_REC));
+	memset(&msg, 0, sizeof(CLMS_CKPT_REC));
 	data = &msg;
 
-        TRACE_2("COLD SYNC DECODE START........");
-	if(decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
+	TRACE_2("COLD SYNC DECODE START........");
+	if (decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
-        /* Check if the first in the order of records is reg record */
-        if (data->header.type != CLMS_CKPT_CLUSTER_REC) {
-                TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
-
-	if(decode_cluster_msg(&cbk_arg->info.decode.i_uba, &data->param.cluster_rec) == 0) {
+	/* Check if the first in the order of records is reg record */
+	if (data->header.type != CLMS_CKPT_CLUSTER_REC) {
+		TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-	
+
+	if (decode_cluster_msg(&cbk_arg->info.decode.i_uba, &data->param.cluster_rec) == 0) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
 	/* Update our database */
 	rc = process_ckpt_data(cb, data);
-	 if (rc != NCSCC_RC_SUCCESS) {
+	if (rc != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 
-        if(decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+	if (decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-        /* Check if the first in the order of records is reg record */
-        if (data->header.type != CLMS_CKPT_NODE_REC) {
-                TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
-	
+	/* Check if the first in the order of records is reg record */
+	if (data->header.type != CLMS_CKPT_NODE_REC) {
+		TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
 	num_rec = data->header.num_ckpt_records;
-	TRACE("num_rec %d",num_rec);
-	while(num_rec) {
-	        if(decode_node_msg(&cbk_arg->info.decode.i_uba, &data->param.node_csync_rec) == 0) {
-	                rc = NCSCC_RC_FAILURE;
-	                goto done;
-	        }
+	TRACE("num_rec %d", num_rec);
+	while (num_rec) {
+		if (decode_node_msg(&cbk_arg->info.decode.i_uba, &data->param.node_csync_rec) == 0) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-        	/* Update our database */
-	        rc = process_ckpt_data(cb, data);
-	         if (rc != NCSCC_RC_SUCCESS) {
-	                goto done;
-	        }
+		/* Update our database */
+		rc = process_ckpt_data(cb, data);
+		if (rc != NCSCC_RC_SUCCESS) {
+			goto done;
+		}
 		memset(&data->param, 0, sizeof(data->param));
 		--num_rec;
 	}
 
-        if(decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+	if (decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, &data->header) == 0) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-        /* Check if the first in the order of records is reg record */
-        if (data->header.type != CLMS_CKPT_CLIENT_INFO_REC) {
-                TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+	/* Check if the first in the order of records is reg record */
+	if (data->header.type != CLMS_CKPT_CLIENT_INFO_REC) {
+		TRACE("FAILED data->header.type != CLMS_CKPT_CLUSTER_REC");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-        num_rec = data->header.num_ckpt_records;
-        while(num_rec) {
-                if(decode_client_rec_msg(&cbk_arg->info.decode.i_uba, &data->param.client_rec) == 0) {
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
+	num_rec = data->header.num_ckpt_records;
+	while (num_rec) {
+		if (decode_client_rec_msg(&cbk_arg->info.decode.i_uba, &data->param.client_rec) == 0) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-                /* Update our database */
-                rc = process_ckpt_data(cb, data);
-                 if (rc != NCSCC_RC_SUCCESS) {
-                        goto done;
-                }
+		/* Update our database */
+		rc = process_ckpt_data(cb, data);
+		if (rc != NCSCC_RC_SUCCESS) {
+			goto done;
+		}
 
-                memset(&data->param, 0, sizeof(data->param));
-                --num_rec;
-        }
+		memset(&data->param, 0, sizeof(data->param));
+		--num_rec;
+	}
 
  done:
-        if (rc != NCSCC_RC_SUCCESS) {
-                /* Do not allow standby to get out of sync */
-                /*clms_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART);*/ /*dude chk it out*/
-        }
-        TRACE_LEAVE();
-        return rc; 
+	if (rc != NCSCC_RC_SUCCESS) {
+		/* Do not allow standby to get out of sync */
+		/*clms_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART); */	/*dude chk it out */
+	}
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -2121,9 +2094,9 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_async_update(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-        uns32 rc = NCSCC_RC_SUCCESS, num_bytes = 0;
+	uns32 rc = NCSCC_RC_SUCCESS, num_bytes = 0;
 	CLMS_CKPT_REC *ckpt_msg;
 	CLMSV_CKPT_HEADER *hdr = NULL;
 	CLMSV_CKPT_CLIENT_INFO *ckpt_client_rec;
@@ -2141,8 +2114,8 @@ static uns32 ckpt_decode_async_update(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	/* Allocate memory to hold the checkpoint message */
 	ckpt_msg = calloc(1, sizeof(CLMS_CKPT_REC));
 
-        /* Decode the message header */
-        hdr = &ckpt_msg->header;
+	/* Decode the message header */
+	hdr = &ckpt_msg->header;
 	num_bytes = decode_ckpt_hdr(&cbk_arg->info.decode.i_uba, hdr);
 	if (num_bytes == 0) {
 		TRACE("decode_ckpt_hdr FAILED");
@@ -2150,457 +2123,458 @@ static uns32 ckpt_decode_async_update(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		goto done;
 	}
 
-        TRACE("ckpt_rec_type: %d ", (int)hdr->type);
-        /* Call decode routines appropriately */
+	TRACE("ckpt_rec_type: %d ", (int)hdr->type);
+	/* Call decode routines appropriately */
 	switch (hdr->type) {
 
 	case CLMS_CKPT_CLIENT_INFO_REC:
 		TRACE("INITIALIZE REC: UPDATE");
 		ckpt_client_rec = &ckpt_msg->param.client_rec;
-                num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_client_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
+		num_bytes = decode_client_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_client_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		break;
 	case CLMS_CKPT_FINALIZE_REC:
 		TRACE_2("CLMS_CKPT_FINALIZE_REC REC: UPDATE");
 		ckpt_finalize_rec = &ckpt_msg->param.finalize_rec;
-                num_bytes = decode_finalize_msg(&cbk_arg->info.decode.i_uba, ckpt_finalize_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_finalize_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+		num_bytes = decode_finalize_msg(&cbk_arg->info.decode.i_uba, ckpt_finalize_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_finalize_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
 	case CLMS_CKPT_TRACK_CHANGES_REC:
 		TRACE_2("CLMS_CKPT_TRACK_START REC: UPDATE");
 		ckpt_client_rec = &ckpt_msg->param.client_rec;
-                num_bytes = decode_track_changes_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_track_start_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+		num_bytes = decode_track_changes_msg(&cbk_arg->info.decode.i_uba, ckpt_client_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_track_start_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
 	case CLMS_CKPT_NODE_RUNTIME_REC:
 		TRACE_2("CLMS_CKPT_NODE_RUNTIME_REC : UPDATE");
 		ckpt_node_rec = &ckpt_msg->param.node_rec;
 		num_bytes = decode_node_rec_msg(&cbk_arg->info.decode.i_uba, ckpt_node_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_track_stop_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+		if (num_bytes == 0) {
+			TRACE("decode_track_stop_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
 	case CLMS_CKPT_NODE_REC:
 		TRACE_2("CLMS_CKPT_NODE_REC : UPDATE");
 		ckpt_csync_node_rec = &ckpt_msg->param.node_csync_rec;
-                num_bytes = decode_node_msg(&cbk_arg->info.decode.i_uba, ckpt_csync_node_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_node_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
-        case CLMS_CKPT_NODE_CONFIG_REC:
-                TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
-                ckpt_node_config_rec = &ckpt_msg->param.node_config_rec;
-                num_bytes = decode_node_config_msg(&cbk_arg->info.decode.i_uba, ckpt_node_config_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_node_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+		num_bytes = decode_node_msg(&cbk_arg->info.decode.i_uba, ckpt_csync_node_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_node_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
+	case CLMS_CKPT_NODE_CONFIG_REC:
+		TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
+		ckpt_node_config_rec = &ckpt_msg->param.node_config_rec;
+		num_bytes = decode_node_config_msg(&cbk_arg->info.decode.i_uba, ckpt_node_config_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_node_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
 	case CLMS_CKPT_NODE_DEL_REC:
-                TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
-                ckpt_node_del_rec = &ckpt_msg->param.node_del_rec;
-                num_bytes = decode_node_del_msg(&cbk_arg->info.decode.i_uba, ckpt_node_del_rec);
-                if (num_bytes == 0) {
-                        TRACE("decode_node_del_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+		TRACE_2("CLMS_CKPT_NODE_CONFIG_REC : UPDATE");
+		ckpt_node_del_rec = &ckpt_msg->param.node_del_rec;
+		num_bytes = decode_node_del_msg(&cbk_arg->info.decode.i_uba, ckpt_node_del_rec);
+		if (num_bytes == 0) {
+			TRACE("decode_node_del_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		break;
 	case CLMS_CKPT_AGENT_DOWN_REC:
 		TRACE_2("CLMS_CKPT_AGENT_DOWN_REC : UPDATE");
-                ckpt_agent_down = &ckpt_msg->param.agent_rec;
-                num_bytes = decode_agent_down_msg(&cbk_arg->info.decode.i_uba, ckpt_agent_down);
-                if (num_bytes == 0) {
-                        TRACE("decode_agent_down_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
+		ckpt_agent_down = &ckpt_msg->param.agent_rec;
+		num_bytes = decode_agent_down_msg(&cbk_arg->info.decode.i_uba, ckpt_agent_down);
+		if (num_bytes == 0) {
+			TRACE("decode_agent_down_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		break;
 	case CLMS_CKPT_CLUSTER_REC:
 		TRACE_2("CLMS_CKPT_CLUSTER_REC :UPDATE");
 		ckpt_cluster_rec = &ckpt_msg->param.cluster_rec;
 		num_bytes = decode_cluster_msg(&cbk_arg->info.decode.i_uba, ckpt_cluster_rec);
-		if (num_bytes == 0) { 
-                        TRACE("decode_agent_down_msg FAILED");
-                        rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
+		if (num_bytes == 0) {
+			TRACE("decode_agent_down_msg FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		break;
 	case CLMS_CKPT_NODE_DOWN_REC:
 		TRACE_2("CLMS_CKPT_NODE_DOWN_REC: UPDATE:");
 		ckpt_node_down_rec = &ckpt_msg->param.node_down_rec;
-		num_bytes = decode_node_down_msg(&cbk_arg->info.decode.i_uba,ckpt_node_down_rec);
+		num_bytes = decode_node_down_msg(&cbk_arg->info.decode.i_uba, ckpt_node_down_rec);
 		if (num_bytes == 0) {
 			TRACE("decode_node_down_msg FAILED");
 			rc = NCSCC_RC_FAILURE;
-                        goto done;
-                }
-                break;
+			goto done;
+		}
+		break;
 	default:
-                rc = NCSCC_RC_FAILURE;
-                TRACE("   FAILED");
-                goto done;
-                break;
-	} /*end of switch*/
+		rc = NCSCC_RC_FAILURE;
+		TRACE("   FAILED");
+		goto done;
+		break;
+	}			/*end of switch */
 
-        rc = process_ckpt_data(cb, ckpt_msg);
-        /* Update the Async Update Count at standby */
-        cb->async_upd_cnt++;
+	rc = process_ckpt_data(cb, ckpt_msg);
+	/* Update the Async Update Count at standby */
+	cb->async_upd_cnt++;
 
  done:
-        free(ckpt_msg);
-        TRACE_LEAVE();
-        return rc;
-        /* if failure, should an indication be sent to active ? */
+	free(ckpt_msg);
+	TRACE_LEAVE();
+	return rc;
+	/* if failure, should an indication be sent to active ? */
 }
-static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO *param)
+
+static uns32 decode_node_down_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DOWN_INFO * param)
 {
 	uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[12];
+	uns32 total_bytes = 0;
+	uns8 local_data[12];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->node_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
-        TRACE_8("decode_node_down_rec_msg");
-        return total_bytes;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->node_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+	TRACE_8("decode_node_down_rec_msg");
+	return total_bytes;
 }
 
-uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param)
+uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[12];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[12];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 20);
-        param->num_nodes = ncs_decode_32bit(&p8);
-        param->init_time = ncs_decode_64bit(&p8);
+	p8 = ncs_dec_flatten_space(uba, local_data, 20);
+	param->num_nodes = ncs_decode_32bit(&p8);
+	param->init_time = ncs_decode_64bit(&p8);
 	param->cluster_view_num = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 20);
-        total_bytes += 20;
-        TRACE_8("decode_cluster_rec_msg");
-        return total_bytes;
+	ncs_dec_skip_space(uba, 20);
+	total_bytes += 20;
+	TRACE_8("decode_cluster_rec_msg");
+	return total_bytes;
 }
 
-uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
-{
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[13];
-	SaUint32T mds_dest1 = 0;
-	SaUint32T mds_dest2 = 0;
-
-        p8 = ncs_dec_flatten_space(uba, local_data, 13);
-        param->client_id = ncs_decode_32bit(&p8);
-        mds_dest1 = ncs_decode_32bit(&p8);
-        mds_dest2 = ncs_decode_32bit(&p8);
-	param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
-        /*param->mds_dest = ncs_decode_64bit(&p8);*/
-	param->track_flags = ncs_decode_8bit(&p8);
-        ncs_dec_skip_space(uba, 13);
-        total_bytes += 13;
-        TRACE_8("decode_client_msg");
-        return total_bytes;
-}
-
-static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param)
+uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
 	uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[8];
+	uns32 total_bytes = 0;
+	uns8 local_data[13];
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 
-        TRACE_ENTER();
+	p8 = ncs_dec_flatten_space(uba, local_data, 13);
+	param->client_id = ncs_decode_32bit(&p8);
+	mds_dest1 = ncs_decode_32bit(&p8);
+	mds_dest2 = ncs_decode_32bit(&p8);
+	param->mds_dest = ((SaUint64T)mds_dest2 << 32) | mds_dest1;
+	/*param->mds_dest = ncs_decode_64bit(&p8); */
+	param->track_flags = ncs_decode_8bit(&p8);
+	ncs_dec_skip_space(uba, 13);
+	total_bytes += 13;
+	TRACE_8("decode_client_msg");
+	return total_bytes;
+}
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-	if(p8 == NULL)
+static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC * param)
+{
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[8];
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
+
+	TRACE_ENTER();
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	if (p8 == NULL)
 		TRACE("p8 null");
 	else {
-        	mds_dest1 = ncs_decode_32bit(&p8);
-        	mds_dest2 = ncs_decode_32bit(&p8);
-		param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
-        	/*param->mds_dest = ncs_decode_64bit(&p8);*/
+		mds_dest1 = ncs_decode_32bit(&p8);
+		mds_dest2 = ncs_decode_32bit(&p8);
+		param->mds_dest = ((SaUint64T)mds_dest2 << 32) | mds_dest1;
+		/*param->mds_dest = ncs_decode_64bit(&p8); */
 	}
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
-        TRACE("decode_agent_down");
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
+	TRACE("decode_agent_down");
 
-        TRACE_LEAVE();
-        return total_bytes;
+	TRACE_LEAVE();
+	return total_bytes;
 
 }
 
-static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
+static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[12];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[12];
 	SaUint32T mds_dest1 = 0;
 	SaUint32T mds_dest2 = 0;
 	TRACE_ENTER();
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 12);
-        param->client_id = ncs_decode_32bit(&p8);
-        mds_dest1 = ncs_decode_32bit(&p8);
-        mds_dest2 = ncs_decode_32bit(&p8);
-	param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
-        /*param->mds_dest = ncs_decode_64bit(&p8);*/
-        ncs_dec_skip_space(uba, 12);
-        total_bytes += 12;
-        TRACE("decode_client_msg");
+	p8 = ncs_dec_flatten_space(uba, local_data, 12);
+	param->client_id = ncs_decode_32bit(&p8);
+	mds_dest1 = ncs_decode_32bit(&p8);
+	mds_dest2 = ncs_decode_32bit(&p8);
+	param->mds_dest = ((SaUint64T)mds_dest2 << 32) | mds_dest1;
+	/*param->mds_dest = ncs_decode_64bit(&p8); */
+	ncs_dec_skip_space(uba, 12);
+	total_bytes += 12;
+	TRACE("decode_client_msg");
 
 	TRACE_LEAVE();
-        return total_bytes;
+	return total_bytes;
 }
 
-static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO *param)
+static uns32 decode_finalize_msg(NCS_UBAID *uba, CLMSV_CKPT_FINALIZE_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[4];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[4];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->client_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
-        TRACE_8("decode_finalize_msg");
-        return total_bytes;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->client_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+	TRACE_8("decode_finalize_msg");
+	return total_bytes;
 }
 
-static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
+static uns32 decode_track_changes_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[5];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[5];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 5);
-        param->client_id = ncs_decode_32bit(&p8);
-        param->track_flags = ncs_decode_8bit(&p8);
-        ncs_dec_skip_space(uba, 5);
-        total_bytes += 5;
-        TRACE_8("decode_track_start_msg");
-        return total_bytes;
+	p8 = ncs_dec_flatten_space(uba, local_data, 5);
+	param->client_id = ncs_decode_32bit(&p8);
+	param->track_flags = ncs_decode_8bit(&p8);
+	ncs_dec_skip_space(uba, 5);
+	total_bytes += 5;
+	TRACE_8("decode_track_start_msg");
+	return total_bytes;
 }
 
-static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *param)
+static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[8];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[8];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->node_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->node_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->node_name);
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->member = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->member = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->boot_time = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->boot_time = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->init_view = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->init_view = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->admin_state = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->admin_state = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->admin_op = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->admin_op = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->change = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->change = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_8("decode_node_rec_msg");
-        return total_bytes;
+	TRACE_8("decode_node_rec_msg");
+	return total_bytes;
 }
 
-uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param)
+uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[8];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[8];
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
-	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
-	total_bytes += clmsv_decodeSaNameT(uba,&param->ee_name);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->ee_name);
 
-	total_bytes += clmsv_decodeNodeAddressT(uba,&param->node_addr);
+	total_bytes += clmsv_decodeNodeAddressT(uba, &param->node_addr);
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->disable_reboot = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->disable_reboot = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        lck_timeout1 = ncs_decode_32bit(&p8);
-        lck_timeout2 = ncs_decode_32bit(&p8);
-	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) |lck_timeout1;
-        /*param->lck_cbk_timeout = ncs_decode_64bit(&p8);*/
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	lck_timeout1 = ncs_decode_32bit(&p8);
+	lck_timeout2 = ncs_decode_32bit(&p8);
+	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) | lck_timeout1;
+	/*param->lck_cbk_timeout = ncs_decode_64bit(&p8); */
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->admin_state = ncs_decode_32bit(&p8); 
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->admin_state = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_8("decode_node_config_msg");
-        return total_bytes;
+	TRACE_8("decode_node_config_msg");
+	return total_bytes;
 }
 
-uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
+uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC * param)
 {
-        uns32 total_bytes = 0;
+	uns32 total_bytes = 0;
 
-	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->node_name);
 
-        TRACE_8("decode_node_delete_msg");
-        return total_bytes;
+	TRACE_8("decode_node_delete_msg");
+	return total_bytes;
 }
 
-uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
+uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[12];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[12];
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 	TRACE_ENTER();
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->node_id = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
-	
-	total_bytes += clmsv_decodeNodeAddressT(uba,&param->node_addr);
-        total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
-        total_bytes += clmsv_decodeSaNameT(uba,&param->ee_name);
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->node_id = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->member = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	total_bytes += clmsv_decodeNodeAddressT(uba, &param->node_addr);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba, &param->ee_name);
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->boot_time = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->member = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->init_view = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->boot_time = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->disable_reboot = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->init_view = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        lck_timeout1 = ncs_decode_32bit(&p8);
-        lck_timeout2 = ncs_decode_32bit(&p8);
-	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) |lck_timeout1;
-        /*param->lck_cbk_timeout = ncs_decode_64bit(&p8);*/
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->disable_reboot = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->admin_state = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	lck_timeout1 = ncs_decode_32bit(&p8);
+	lck_timeout2 = ncs_decode_32bit(&p8);
+	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) | lck_timeout1;
+	/*param->lck_cbk_timeout = ncs_decode_64bit(&p8); */
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->change = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->admin_state = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-	#ifdef ENABLE_AIS_PLM
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->ee_red_state = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
-	#endif
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->change = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->nodeup = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+#ifdef ENABLE_AIS_PLM
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->ee_red_state = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+#endif
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->curr_admin_inv = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->nodeup = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->stat_change = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->curr_admin_inv = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 4);
-        param->admin_op = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 4);
-        total_bytes += 4;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->stat_change = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->plm_invid = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 8);
-        total_bytes += 8;
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->admin_op = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
 
-        TRACE_8("decode_node_msg");
-        return total_bytes;
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->plm_invid = ncs_decode_64bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
+
+	TRACE_8("decode_node_msg");
+	return total_bytes;
 }
 
-static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER *param)
+static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER * param)
 {
-        uns8 *p8;
-        uns32 total_bytes = 0;
-        uns8 local_data[12];
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[12];
 
-        /* releaseCode, majorVersion, minorVersion */
-        p8 = ncs_dec_flatten_space(uba, local_data, 12);
-        param->type = ncs_decode_32bit(&p8);
-        param->num_ckpt_records = ncs_decode_32bit(&p8);
-        param->data_len = ncs_decode_32bit(&p8);
-        ncs_dec_skip_space(uba, 12);
-        total_bytes += 12;
-        TRACE_8("decode_client_msg");
-        return total_bytes;
+	/* releaseCode, majorVersion, minorVersion */
+	p8 = ncs_dec_flatten_space(uba, local_data, 12);
+	param->type = ncs_decode_32bit(&p8);
+	param->num_ckpt_records = ncs_decode_32bit(&p8);
+	param->data_len = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 12);
+	total_bytes += 12;
+	TRACE_8("decode_client_msg");
+	return total_bytes;
 }
 
 /****************************************************************************
@@ -2617,14 +2591,14 @@ static uns32 decode_ckpt_hdr(NCS_UBAID *uba, CLMSV_CKPT_HEADER *param)
  ***************************************************************************/
 static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-        uns16 peer_version;
+	uns16 peer_version;
 
-        peer_version = arg->info.peer.i_peer_version;
-        if (peer_version < CLMS_MBCSV_VERSION_MIN) {
-                TRACE("peer_version not correct!!\n");
-                return NCSCC_RC_FAILURE;
-        }
-        return NCSCC_RC_SUCCESS;
+	peer_version = arg->info.peer.i_peer_version;
+	if (peer_version < CLMS_MBCSV_VERSION_MIN) {
+		TRACE("peer_version not correct!!\n");
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2641,8 +2615,8 @@ static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  ***************************************************************************/
 static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-        /* Currently nothing to be done */
-        return NCSCC_RC_SUCCESS;
+	/* Currently nothing to be done */
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2658,7 +2632,6 @@ static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  ***************************************************************************/
 static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-        /* Currently nothing to be done. */
-        return NCSCC_RC_SUCCESS;
+	/* Currently nothing to be done. */
+	return NCSCC_RC_SUCCESS;
 }
-

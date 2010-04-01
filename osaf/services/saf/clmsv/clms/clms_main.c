@@ -41,10 +41,10 @@
 
 #define FD_USR1 0
 #define FD_AMF 0
-#define FD_MBCSV 1 
+#define FD_MBCSV 1
 #define FD_MBX 2
-#define FD_IMM 3		
-#define FD_PLM 4		/* Must be the last in the fds array */	
+#define FD_IMM 3
+#define FD_PLM 4		/* Must be the last in the fds array */
 
 #ifdef ENABLE_AIS_PLM
 #define NUM_FD 5
@@ -75,7 +75,6 @@ static NCS_SEL_OBJ usr1_sel_obj;
  * ========================================================================
  */
 
-
 /**
  * Callback from RDA. Post a message/event to the clms mailbox.
  * @param cb_hdl
@@ -102,10 +101,9 @@ static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE er
 	if (rc != NCSCC_RC_SUCCESS)
 		LOG_ER("IPC send failed %d", rc);
 
-done:
+ done:
 	TRACE_LEAVE();
 }
-
 
 /**
  * USR1 signal is used when AMF wants to instantiate us as a
@@ -128,57 +126,57 @@ static void sigusr1_handler(int sig)
 static uns32 clms_self_node_info(void)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
-        FILE *fp;
-        SaNameT node_name_dn = {0};
-        CLMS_CLUSTER_NODE * node=NULL;
+	FILE *fp;
+	SaNameT node_name_dn = { 0 };
+	CLMS_CLUSTER_NODE *node = NULL;
 	char node_name[256];
 	const char *node_name_file = PKGSYSCONFDIR "/node_name";
 
 	clms_cb->node_id = m_NCS_GET_NODE_ID;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
-	if(clms_cb->ha_state == SA_AMF_HA_STANDBY)
+	if (clms_cb->ha_state == SA_AMF_HA_STANDBY)
 		return NCSCC_RC_SUCCESS;
 
 	fp = fopen(node_name_file, "r");
-        if (fp == NULL){
+	if (fp == NULL) {
 		LOG_ER("Could not open file %s - %s", node_name_file, strerror(errno));
 		goto done;
-        }
-	
-        fscanf(fp, "%s", node_name);
-        fclose(fp);
+	}
+
+	fscanf(fp, "%s", node_name);
+	fclose(fp);
 
 	/* Generate a CLM node DN with the help of cluster DN */
-	node_name_dn.length = snprintf((char*)node_name_dn.value, sizeof(node_name_dn.value),
-		"safNode=%s,%s", node_name, osaf_cluster->name.value);
+	node_name_dn.length = snprintf((char *)node_name_dn.value, sizeof(node_name_dn.value),
+				       "safNode=%s,%s", node_name, osaf_cluster->name.value);
 
-        TRACE("%s", node_name_dn.value);
+	TRACE("%s", node_name_dn.value);
 
-        node = clms_node_get_by_name(&node_name_dn);
+	node = clms_node_get_by_name(&node_name_dn);
 
-	if (node == NULL){
+	if (node == NULL) {
 		LOG_ER("%s not found in the database. Please verify %s", node_name_dn.value, node_name_file);
 		goto done;
 	}
 
-        node->node_id = clms_cb->node_id;
+	node->node_id = clms_cb->node_id;
 	node->nodeup = SA_TRUE;
-	if (clms_node_add(node,0) != NCSCC_RC_SUCCESS)
+	if (clms_node_add(node, 0) != NCSCC_RC_SUCCESS)
 		goto done;
 
-	if(node->admin_state == SA_CLM_ADMIN_UNLOCKED){
+	if (node->admin_state == SA_CLM_ADMIN_UNLOCKED) {
 		node->member = SA_TRUE;
-                node->boot_time = clms_get_SaTime();
+		node->boot_time = clms_get_SaTime();
 #ifdef ENABLE_AIS_PLM
-		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE; /*TBD : changed when plm scripts are added to rc scripts*/
+		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;	/*TBD : changed when plm scripts are added to rc scripts */
 #endif
 		osaf_cluster->init_time = node->boot_time;
 	}
 	rc = NCSCC_RC_SUCCESS;
-done:	
-        TRACE_LEAVE();
+ done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -190,60 +188,59 @@ done:
  *
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
-uns32 clms_cb_init(CLMS_CB *clms_cb)
+uns32 clms_cb_init(CLMS_CB * clms_cb)
 {
-        NCS_PATRICIA_PARAMS client_param;
-        NCS_PATRICIA_PARAMS id_param;
-        NCS_PATRICIA_PARAMS eename_param;
-        NCS_PATRICIA_PARAMS nodename_param;
+	NCS_PATRICIA_PARAMS client_param;
+	NCS_PATRICIA_PARAMS id_param;
+	NCS_PATRICIA_PARAMS eename_param;
+	NCS_PATRICIA_PARAMS nodename_param;
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 
-        memset(&client_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-        memset(&id_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-        memset(&eename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-        memset(&nodename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&client_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&id_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&eename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&nodename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-        client_param.key_size = sizeof(uns32);
-        id_param.key_size = sizeof(uns32);
-        eename_param.key_size = sizeof(SaNameT);
-        nodename_param.key_size = sizeof(SaNameT);
+	client_param.key_size = sizeof(uns32);
+	id_param.key_size = sizeof(uns32);
+	eename_param.key_size = sizeof(SaNameT);
+	nodename_param.key_size = sizeof(SaNameT);
 
-        /* Assign Initial HA state */
-        clms_cb->ha_state = CLMS_HA_INIT_STATE;
-        osaf_cluster = NULL;
-        clms_cb->reg_with_plm = SA_FALSE;
-        clms_cb->cluster_view_num = 0;
-        clms_cb->csi_assigned = FALSE;
+	/* Assign Initial HA state */
+	clms_cb->ha_state = CLMS_HA_INIT_STATE;
+	osaf_cluster = NULL;
+	clms_cb->reg_with_plm = SA_FALSE;
+	clms_cb->cluster_view_num = 0;
+	clms_cb->csi_assigned = FALSE;
 	clms_cb->curr_invid = 1;
 	clms_cb->immOiHandle = 0;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
-        clms_cb->clm_ver.releaseCode = CLM_RELEASE_CODE;
-        clms_cb->clm_ver.majorVersion = CLM_MAJOR_VERSION_4;
-        clms_cb->clm_ver.minorVersion = CLM_MINOR_VERSION;
+	clms_cb->clm_ver.releaseCode = CLM_RELEASE_CODE;
+	clms_cb->clm_ver.majorVersion = CLM_MAJOR_VERSION_4;
+	clms_cb->clm_ver.minorVersion = CLM_MINOR_VERSION;
 
-        /* Initialize patricia tree for reg list */
-        if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->client_db, &client_param))
-                return NCSCC_RC_FAILURE;
+	/* Initialize patricia tree for reg list */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->client_db, &client_param))
+		return NCSCC_RC_FAILURE;
 
-        /* Initialize nodes_db patricia tree*/
-        if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->nodes_db, &nodename_param))
-                return NCSCC_RC_FAILURE;
+	/* Initialize nodes_db patricia tree */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->nodes_db, &nodename_param))
+		return NCSCC_RC_FAILURE;
 
-        /* Initialize ee_lookup patricia tree */
-        if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->ee_lookup, &eename_param))
-                return NCSCC_RC_FAILURE;
+	/* Initialize ee_lookup patricia tree */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->ee_lookup, &eename_param))
+		return NCSCC_RC_FAILURE;
 
-        /* Initialize id_lookup patricia tree */
-        if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->id_lookup, &id_param))
-                return NCSCC_RC_FAILURE;
+	/* Initialize id_lookup patricia tree */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->id_lookup, &id_param))
+		return NCSCC_RC_FAILURE;
 
-        TRACE_LEAVE();
-        return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
- 
 /**
  * Initialize clm
  * 
@@ -270,7 +267,7 @@ static uns32 clms_init(void)
 		LOG_ER("rda_get_role FAILED");
 		goto done;
 	}
-	TRACE("Current RDA Role %d",clms_cb->ha_state);
+	TRACE("Current RDA Role %d", clms_cb->ha_state);
 
 	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("rda_register_callback FAILED %u", rc);
@@ -288,21 +285,21 @@ static uns32 clms_init(void)
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		goto done;
 	}
-	
-	/*Initialize mds*/
+
+	/*Initialize mds */
 	if ((rc = clms_mds_init(clms_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_mds_init FAILED %d", rc);
 		goto done;
 	}
 
 	/* Initialize with MBCSV */
-	if ((rc = clms_mbcsv_init(clms_cb)) != NCSCC_RC_SUCCESS){
+	if ((rc = clms_mbcsv_init(clms_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_mbcsv_init FAILED");
 		goto done;
 	}
 
 	/* Initialize with IMMSv */
-	if ((rc = clms_imm_init(clms_cb)) != NCSCC_RC_SUCCESS){
+	if ((rc = clms_imm_init(clms_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_imm_init FAILED");
 		goto done;
 	}
@@ -312,24 +309,23 @@ static uns32 clms_init(void)
 
 	/* Declare as implementer && Read configuration data from IMM */
 	if (clms_imm_activate(clms_cb) != SA_AIS_OK) {
-        	LOG_ER("clms_imm_activate FAILED");
-                rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
+		LOG_ER("clms_imm_activate FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-	if ((rc = clms_ntf_init(clms_cb)) != SA_AIS_OK){
+	if ((rc = clms_ntf_init(clms_cb)) != SA_AIS_OK) {
 		LOG_ER("clms_ntf_init FAILED");
 		goto done;
 	}
-	
 #ifdef ENABLE_AIS_PLM
-        if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK){
-        	LOG_ER("clms_plm_init FAILED");
-                goto done;
-        }
+	if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK) {
+		LOG_ER("clms_plm_init FAILED");
+		goto done;
+	}
 #endif
 
-	/*Self Node update*/	
+	/*Self Node update */
 	if ((rc = clms_self_node_info()) != NCSCC_RC_SUCCESS)
 		goto done;
 
@@ -349,7 +345,6 @@ static uns32 clms_init(void)
 		goto done;
 	}
 
-
  done:
 	if (nid_notify("CLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
@@ -359,7 +354,6 @@ static uns32 clms_init(void)
 	TRACE_LEAVE();
 	return rc;
 }
-
 
 /**
  * The main routine for the clms daemon.
@@ -373,7 +367,7 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 	uns32 rc;
-	osaf_cluster = NULL;	
+	osaf_cluster = NULL;
 
 	daemonize(argc, argv);
 
@@ -420,7 +414,7 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
 				ncs_sel_obj_destroy(usr1_sel_obj);
 
-				if (clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS){
+				if (clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
 					LOG_ER("AMF Initialization failed");
 					break;
 				}
@@ -438,23 +432,22 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if (fds[FD_MBX].revents & POLLIN){
+		if (fds[FD_MBX].revents & POLLIN) {
 			clms_process_mbx(&clms_cb->mbx);
 		}
-
 #ifdef ENABLE_AIS_PLM
-		/*Incase the Immnd restart is not supported fully,have to reint imm - TO Be Done*/
-		if(fds[FD_PLM].revents & POLLIN) {
-			if ((error = saPlmDispatch(clms_cb->plm_hdl,SA_DISPATCH_ALL)) != SA_AIS_OK){
-				LOG_ER("saPlmDispatch FAILED: %u",error);
+		/*Incase the Immnd restart is not supported fully,have to reint imm - TO Be Done */
+		if (fds[FD_PLM].revents & POLLIN) {
+			if ((error = saPlmDispatch(clms_cb->plm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+				LOG_ER("saPlmDispatch FAILED: %u", error);
 				break;
 			}
 		}
 #endif
-			
+
 		if (clms_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
-			if ((error = saImmOiDispatch(clms_cb->immOiHandle, SA_DISPATCH_ALL))!= SA_AIS_OK) {
-				LOG_ER("saImmOiDispatch failed: %u",error);
+			if ((error = saImmOiDispatch(clms_cb->immOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+				LOG_ER("saImmOiDispatch failed: %u", error);
 				break;
 			}
 		}
@@ -465,48 +458,49 @@ int main(int argc, char *argv[])
 	TRACE_LEAVE();
 	exit(1);
 }
+
 /**
 * This dumps the CLMS CB
 */
 void clms_cb_dump(void)
 {
-	CLMS_CLUSTER_NODE *node = NULL; 
-	CLMS_CLIENT_INFO * client = NULL;
+	CLMS_CLUSTER_NODE *node = NULL;
+	CLMS_CLIENT_INFO *client = NULL;
 	uns32 client_id = 0;
-	SaNameT  nodename ;
-	
+	SaNameT nodename;
+
 	TRACE("\n***************************************************************************************");
 
 	TRACE("My DB Snapshot \n");
-	TRACE("Number of member nodes = %d\n",osaf_cluster->num_nodes);
-	TRACE("Async update count = %d\n",clms_cb->async_upd_cnt);
-	TRACE("CLMS_CB last client id %u",clms_cb->last_client_id);
+	TRACE("Number of member nodes = %d\n", osaf_cluster->num_nodes);
+	TRACE("Async update count = %d\n", clms_cb->async_upd_cnt);
+	TRACE("CLMS_CB last client id %u", clms_cb->last_client_id);
 
 	TRACE("Dump nodedb");
-	memset(&nodename,'\0',sizeof(SaNameT));
+	memset(&nodename, '\0', sizeof(SaNameT));
 
-	while((node = clms_node_getnext_by_name(&nodename)) != NULL){
-		memcpy(&nodename,&node->node_name,sizeof(SaNameT));
-		TRACE("Dump Runtime data of the node: %s",node->node_name.value);
-		TRACE("Membership status %d",node->member);
-		TRACE("Node Id %u",node->node_id);
-		TRACE("Init_view %llu",node->init_view);
-		TRACE("Admin_state %d",node->admin_state);
-		TRACE("Change %d",node->change);
-		TRACE("nodeup %d",node->nodeup);
-		TRACE("stat_change %d",node->stat_change);
-		TRACE("Admin_op %d",node->admin_op);
-		#ifdef ENABLE_AIS_PLM
-		TRACE("EE Readiness State %d",node->ee_red_state);
-		#endif
+	while ((node = clms_node_getnext_by_name(&nodename)) != NULL) {
+		memcpy(&nodename, &node->node_name, sizeof(SaNameT));
+		TRACE("Dump Runtime data of the node: %s", node->node_name.value);
+		TRACE("Membership status %d", node->member);
+		TRACE("Node Id %u", node->node_id);
+		TRACE("Init_view %llu", node->init_view);
+		TRACE("Admin_state %d", node->admin_state);
+		TRACE("Change %d", node->change);
+		TRACE("nodeup %d", node->nodeup);
+		TRACE("stat_change %d", node->stat_change);
+		TRACE("Admin_op %d", node->admin_op);
+#ifdef ENABLE_AIS_PLM
+		TRACE("EE Readiness State %d", node->ee_red_state);
+#endif
 	}
-		
+
 	TRACE("Dump Client data");
-	while((client = clms_client_getnext_by_id(client_id)) != NULL){
+	while ((client = clms_client_getnext_by_id(client_id)) != NULL) {
 		client_id = client->client_id;
 		TRACE("Client_id %u", client->client_id);
-		TRACE("MDS Dest %llx",client->mds_dest);
-		TRACE("Track flags %d",client->track_flags);
+		TRACE("MDS Dest %llx", client->mds_dest);
+		TRACE("Track flags %d", client->track_flags);
 	}
 	TRACE("\n***********************************************************************************");
 }

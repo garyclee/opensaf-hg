@@ -21,91 +21,79 @@
 #include "clms.h"
 
 static void fill_ntf_header_part_clms(SaNtfNotificationHeaderT *notificationHeader,
-                               SaNtfEventTypeT eventType,
-                               SaNameT node_name,
-                               SaUint8T *add_text,
-                               SaUint16T majorId,
-                               SaUint16T minorId, 
-                               SaInt8T *clm_node)
+				      SaNtfEventTypeT eventType,
+				      SaNameT node_name,
+				      SaUint8T *add_text, SaUint16T majorId, SaUint16T minorId, SaInt8T *clm_node)
 {
-        *notificationHeader->eventType = eventType; 
-        *notificationHeader->eventTime = (SaTimeT)SA_TIME_UNKNOWN;
+	*notificationHeader->eventType = eventType;
+	*notificationHeader->eventTime = (SaTimeT)SA_TIME_UNKNOWN;
 
-        notificationHeader->notificationObject->length = node_name.length;
-        (void)memcpy(notificationHeader->notificationObject->value, node_name.value, node_name.length);
+	notificationHeader->notificationObject->length = node_name.length;
+	(void)memcpy(notificationHeader->notificationObject->value, node_name.value, node_name.length);
 
-        notificationHeader->notifyingObject->length = strlen(clm_node);
-        (void)memcpy(notificationHeader->notifyingObject->value, clm_node, strlen(clm_node));
+	notificationHeader->notifyingObject->length = strlen(clm_node);
+	(void)memcpy(notificationHeader->notifyingObject->value, clm_node, strlen(clm_node));
 
-        notificationHeader->notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
-        notificationHeader->notificationClassId->majorId = majorId;
-        notificationHeader->notificationClassId->minorId = minorId;
+	notificationHeader->notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
+	notificationHeader->notificationClassId->majorId = majorId;
+	notificationHeader->notificationClassId->minorId = minorId;
 
-        (void)strcpy(notificationHeader->additionalText, (SaInt8T*)add_text);
+	(void)strcpy(notificationHeader->additionalText, (SaInt8T *)add_text);
 
 }
 
-
-
-static uns32 sendStateChangeNotificationClms(CLMS_CB *clms_cb,
-                                      SaNameT node_name,
-                                      SaUint8T *add_text,
-                                      SaUint16T majorId,
-                                      SaUint16T minorId,
-                                      uns32 sourceIndicator,
-                                      SaUint32T stateId,
-                                      SaUint32T newState)
+static uns32 sendStateChangeNotificationClms(CLMS_CB * clms_cb,
+					     SaNameT node_name,
+					     SaUint8T *add_text,
+					     SaUint16T majorId,
+					     SaUint16T minorId,
+					     uns32 sourceIndicator, SaUint32T stateId, SaUint32T newState)
 {
-        uns32 status = NCSCC_RC_FAILURE;
-        SaNtfStateChangeNotificationT myStateNotification;
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNtfStateChangeNotificationT myStateNotification;
 
-        status = saNtfStateChangeNotificationAllocate(clms_cb->ntf_hdl,/* handle to Notification Service instance */
-                                                      &myStateNotification,
-                                                      /* number of correlated notifications */
-                                                      0,
-                                                      /* length of additional text */
-                                                      ADDITION_TEXT_LENGTH,
-                                                      /* number of additional info items */
-                                                      0,
-                                                      /* number of state changes */
-                                                      1,
-                                                      /* use default allocation size */
-                                                      0);
+	status = saNtfStateChangeNotificationAllocate(clms_cb->ntf_hdl,	/* handle to Notification Service instance */
+						      &myStateNotification,
+						      /* number of correlated notifications */
+						      0,
+						      /* length of additional text */
+						      ADDITION_TEXT_LENGTH,
+						      /* number of additional info items */
+						      0,
+						      /* number of state changes */
+						      1,
+						      /* use default allocation size */
+						      0);
 
-        if (status != SA_AIS_OK) {
-                /* log the error code here */
-                return NCSCC_RC_FAILURE;
-        }
+	if (status != SA_AIS_OK) {
+		/* log the error code here */
+		return NCSCC_RC_FAILURE;
+	}
 
-        fill_ntf_header_part_clms(&myStateNotification.notificationHeader,
-                                  SA_NTF_OBJECT_STATE_CHANGE,
-                                  node_name,
-                                  add_text,
-                                  majorId,
-                                  minorId,
-                                  CLMS_NTF_SENDER);
+	fill_ntf_header_part_clms(&myStateNotification.notificationHeader,
+				  SA_NTF_OBJECT_STATE_CHANGE, node_name, add_text, majorId, minorId, CLMS_NTF_SENDER);
 
-        *(myStateNotification.sourceIndicator) = sourceIndicator;
-        myStateNotification.changedStates->stateId = stateId;
-        myStateNotification.changedStates->oldStatePresent = SA_FALSE;
-        myStateNotification.changedStates->newState = newState;
+	*(myStateNotification.sourceIndicator) = sourceIndicator;
+	myStateNotification.changedStates->stateId = stateId;
+	myStateNotification.changedStates->oldStatePresent = SA_FALSE;
+	myStateNotification.changedStates->newState = newState;
 
-        status = saNtfNotificationSend(myStateNotification.notificationHandle);
+	status = saNtfNotificationSend(myStateNotification.notificationHandle);
 
-        if (status != SA_AIS_OK) {
-                saNtfNotificationFree(myStateNotification.notificationHandle);
-                /* log the error code here */
-                return NCSCC_RC_FAILURE;
-        }
+	if (status != SA_AIS_OK) {
+		saNtfNotificationFree(myStateNotification.notificationHandle);
+		/* log the error code here */
+		return NCSCC_RC_FAILURE;
+	}
 
-        status = saNtfNotificationFree(myStateNotification.notificationHandle);
+	status = saNtfNotificationFree(myStateNotification.notificationHandle);
 
-        if (status != SA_AIS_OK) {
-                /* log the error code here */
-                return NCSCC_RC_FAILURE;
-        }
+	if (status != SA_AIS_OK) {
+		/* log the error code here */
+		return NCSCC_RC_FAILURE;
+	}
 
-        return status;
+	return status;
 
 }
 
@@ -121,33 +109,31 @@ static uns32 sendStateChangeNotificationClms(CLMS_CB *clms_cb,
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_join_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
+uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-        uns32 status = NCSCC_RC_FAILURE;
-        SaNameT dn;
-        SaUint8T add_text[SA_MAX_NAME_LENGTH];
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNameT dn;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
-        dn.length = node->node_name.length;
-        (void)memcpy(dn.value, node->node_name.value,dn.length);
+	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+	dn.length = node->node_name.length;
+	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
 	TRACE("Notification for CLM node %s Join", dn.value);
 
-        memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Joined", dn.value);
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T *)add_text, "CLM node %s Joined", dn.value);
 
-        status = sendStateChangeNotificationClms(clms_cb,
-                                                 dn,
-                                                 add_text,
-                                                 SA_SVC_CLM,
-                                                 SA_CLM_NTFID_NODE_JOIN,
-                                                 SA_NTF_OBJECT_OPERATION,
-                                                 SA_CLM_CLUSTER_CHANGE_STATUS,
-                                                 SA_CLM_NODE_JOINED);
+	status = sendStateChangeNotificationClms(clms_cb,
+						 dn,
+						 add_text,
+						 SA_SVC_CLM,
+						 SA_CLM_NTFID_NODE_JOIN,
+						 SA_NTF_OBJECT_OPERATION,
+						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_JOINED);
 
-        return status;
+	return status;
 }
-
 
 /*****************************************************************************
   Name          :  clms_node_exit_ntf
@@ -161,31 +147,30 @@ uns32 clms_node_join_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_exit_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
+uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-        uns32 status = NCSCC_RC_FAILURE;
-        SaNameT dn;
-        SaUint8T add_text[SA_MAX_NAME_LENGTH];
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNameT dn;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
-        dn.length = node->node_name.length;
-        (void)memcpy(dn.value, node->node_name.value, dn.length);
+	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+	dn.length = node->node_name.length;
+	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
 	TRACE("Notification for CLM node %s exit", dn.value);
 
-        memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Exit", dn.value);
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T *)add_text, "CLM node %s Exit", dn.value);
 
-        status = sendStateChangeNotificationClms(clms_cb,
-                                                 dn,
-                                                 add_text,
-                                                 SA_SVC_CLM,
-                                                 SA_CLM_NTFID_NODE_LEAVE,
-                                                 SA_NTF_OBJECT_OPERATION,
-                                                 SA_CLM_CLUSTER_CHANGE_STATUS,
-                                                 SA_CLM_NODE_LEFT);
+	status = sendStateChangeNotificationClms(clms_cb,
+						 dn,
+						 add_text,
+						 SA_SVC_CLM,
+						 SA_CLM_NTFID_NODE_LEAVE,
+						 SA_NTF_OBJECT_OPERATION,
+						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_LEFT);
 
-        return status;
+	return status;
 }
 
 /*****************************************************************************
@@ -200,29 +185,28 @@ uns32 clms_node_exit_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_reconfigured_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
+uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
-        uns32 status = NCSCC_RC_FAILURE;
-        SaNameT dn;
-        SaUint8T add_text[SA_MAX_NAME_LENGTH];
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNameT dn;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
-        dn.length = node->node_name.length;
-        (void)memcpy(dn.value, node->node_name.value, dn.length);
+	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+	dn.length = node->node_name.length;
+	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
-        memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Reconfigured", dn.value);
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T *)add_text, "CLM node %s Reconfigured", dn.value);
 
-        status = sendStateChangeNotificationClms(clms_cb,
-                                                 dn,
-                                                 add_text,
-                                                 SA_SVC_CLM,
-                                                 SA_CLM_NTFID_NODE_RECONFIG,
-                                                 SA_NTF_OBJECT_OPERATION,
-                                                 SA_CLM_CLUSTER_CHANGE_STATUS,
-                                                 SA_CLM_NODE_RECONFIGURED);
+	status = sendStateChangeNotificationClms(clms_cb,
+						 dn,
+						 add_text,
+						 SA_SVC_CLM,
+						 SA_CLM_NTFID_NODE_RECONFIG,
+						 SA_NTF_OBJECT_OPERATION,
+						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_RECONFIGURED);
 
-        return status;
+	return status;
 }
 
 /*****************************************************************************
@@ -237,47 +221,44 @@ uns32 clms_node_reconfigured_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_admin_state_change_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node, SaUint32T newState)
+uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState)
 {
-        uns32 status = NCSCC_RC_FAILURE;
-        SaNameT dn;
-        SaUint8T add_text[SA_MAX_NAME_LENGTH];
-	TRACE_ENTER2("admin state change for node name %s",node->node_name.value);
-	
-        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
-        dn.length = node->node_name.length;
-        (void)memcpy(dn.value, node->node_name.value, dn.length);
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNameT dn;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+	TRACE_ENTER2("admin state change for node name %s", node->node_name.value);
 
-        memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Admin State Change",dn.value);
+	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+	dn.length = node->node_name.length;
+	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
-        status = sendStateChangeNotificationClms(clms_cb,
-                                                 dn,
-                                                 add_text,
-                                                 SA_SVC_CLM,
-                                                 SA_CLM_NTFID_NODE_ADMIN_STATE,
-                                                 SA_NTF_MANAGEMENT_OPERATION,
-                                                 SA_CLM_ADMIN_STATE,
-                                                 newState);
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T *)add_text, "CLM node %s Admin State Change", dn.value);
+
+	status = sendStateChangeNotificationClms(clms_cb,
+						 dn,
+						 add_text,
+						 SA_SVC_CLM,
+						 SA_CLM_NTFID_NODE_ADMIN_STATE,
+						 SA_NTF_MANAGEMENT_OPERATION, SA_CLM_ADMIN_STATE, newState);
 	TRACE_LEAVE();
-        return status;
+	return status;
 }
 
-
-SaAisErrorT  clms_ntf_init(CLMS_CB * cb)
+SaAisErrorT clms_ntf_init(CLMS_CB * cb)
 {
 
-        SaAisErrorT rc = SA_AIS_OK;
-        SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
-	
+	SaAisErrorT rc = SA_AIS_OK;
+	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+
 	TRACE_ENTER();
-	
-        rc = saNtfInitialize(&cb->ntf_hdl, NULL, &ntfVersion);
-	TRACE("saNtfInitialize rc value %u",rc);
-        if (rc != SA_AIS_OK) {
-                LOG_ER("saNtfInitialize Failed (%u)", rc);
-        }
-	
+
+	rc = saNtfInitialize(&cb->ntf_hdl, NULL, &ntfVersion);
+	TRACE("saNtfInitialize rc value %u", rc);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saNtfInitialize Failed (%u)", rc);
+	}
+
 	TRACE_LEAVE();
 	return rc;
 }
