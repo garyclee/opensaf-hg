@@ -356,3 +356,63 @@ void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
 	memcpy(dn->value, p, dn->length);
 }
 
+/**
+ * Convert a SAF AMF Component category bit field to a AVSV Comp type value.
+ * @param saf_comp_category
+ * 
+ * @return AVSV_COMP_TYPE_VAL
+ */
+AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(saAmfCompCategoryT saf_comp_category)
+{
+	AVSV_COMP_TYPE_VAL avsv_comp_type = AVSV_COMP_TYPE_INVALID;
+
+	if (saf_comp_category & SA_AMF_COMP_SA_AWARE) {
+		if ((saf_comp_category & ~(SA_AMF_COMP_SA_AWARE | SA_AMF_COMP_LOCAL)) == 0)
+			return AVSV_COMP_TYPE_SA_AWARE;
+		else
+			return AVSV_COMP_TYPE_INVALID;
+	} 
+
+	if (saf_comp_category & SA_AMF_COMP_PROXY) {
+		if ((saf_comp_category & ~(SA_AMF_COMP_PROXY | SA_AMF_COMP_LOCAL | SA_AMF_COMP_SA_AWARE)) == 0)
+			return AVSV_COMP_TYPE_SA_AWARE;
+		else
+			return AVSV_COMP_TYPE_INVALID;
+	} 
+
+	if ((saf_comp_category & SA_AMF_COMP_PROXIED) && (saf_comp_category &  SA_AMF_COMP_LOCAL)) {
+		if ((saf_comp_category & ~(SA_AMF_COMP_PROXIED | SA_AMF_COMP_LOCAL)) == 0)
+			return AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE;
+		else
+			return AVSV_COMP_TYPE_INVALID;
+	} 
+
+	if ((saf_comp_category & SA_AMF_COMP_PROXIED_NPI) && (saf_comp_category & SA_AMF_COMP_LOCAL)) {
+		if ((saf_comp_category & ~(SA_AMF_COMP_PROXIED_NPI | SA_AMF_COMP_LOCAL)) == 0)
+			return AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE;
+		else
+			return AVSV_COMP_TYPE_INVALID;
+	} 
+
+	if (saf_comp_category & SA_AMF_COMP_LOCAL) {
+		if ((saf_comp_category & ~SA_AMF_COMP_LOCAL) == 0)
+			return AVSV_COMP_TYPE_NON_SAF;
+		else
+			return AVSV_COMP_TYPE_INVALID;
+	} 
+
+	if ((saf_comp_category == 0) || (saf_comp_category == SA_AMF_COMP_PROXIED))
+		return AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE;
+
+	if (saf_comp_category & SA_AMF_COMP_PROXIED_NPI) {
+		if ((saf_comp_category & ~SA_AMF_COMP_PROXIED_NPI) == 0)
+			return AVSV_COMP_TYPE_NON_SAF;
+		else
+			return AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE;
+	} 
+
+	/* Container type not yet supported, will return AVSV_COMP_TYPE_INVALID */
+
+	return avsv_comp_type;
+}
+

@@ -32,10 +32,11 @@
 ******************************************************************************
 */
 
+#include <logtrace.h>
+#include <immutil.h>
 #include "avnd.h"
 #include "mds_pvt.h"
 #include "nid_api.h"
-#include <logtrace.h>
 
 static void clm_node_left(SaClmNodeIdT node_id)
 {
@@ -105,7 +106,6 @@ done:
 
 static void clm_to_amf_node()
 {
-       #include <immutil.h>
 	SaAisErrorT error;
 	SaImmSearchHandleT searchHandle;
 	SaNameT amfdn, clmdn;

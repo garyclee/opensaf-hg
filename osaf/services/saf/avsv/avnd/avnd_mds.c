@@ -892,7 +892,7 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				if (cbk_info->param.csi_set.attrs.number) {
 					rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
 									(uns8 *)cbk_info->param.csi_set.attrs.list,
-									sizeof(NCS_AVSV_ATTR_NAME_VAL) *
+									sizeof(AVSV_ATTR_NAME_VAL) *
 									cbk_info->param.csi_set.attrs.number);
 					if (NCSCC_RC_SUCCESS != rc)
 						goto done;

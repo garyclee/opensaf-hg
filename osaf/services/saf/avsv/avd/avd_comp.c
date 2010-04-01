@@ -31,7 +31,7 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
-
+#include <avsv_util.h>
 #include <avd_util.h>
 #include <avd_dblog.h>
 #include <avd_comp.h>
@@ -66,7 +66,7 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 	comp->comp_info.name.length = dn->length;
 	comp->tree_node.key_info = (uns8 *)&(comp->comp_info.name);
 	comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
-	comp->comp_info.category = NCS_COMP_TYPE_NON_SAF;
+	comp->comp_info.category = AVSV_COMP_TYPE_NON_SAF;
 	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
 	comp->comp_info.inst_level = 1;
 	comp->comp_info.comp_restart = TRUE;
@@ -237,15 +237,15 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 		}
 
 		/* Verify if the SUs preinstan value need to be changed */
-		if ((NCS_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
-		    (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
-		    (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
+		if ((AVSV_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
+		    (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+		    (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
 			isPre = FALSE;
 			i_comp = comp->su->list_of_comp;
 			while (i_comp) {
-				if (((NCS_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
-				     (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
-				     (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category)) &&
+				if (((AVSV_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
+				     (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
+				     (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category)) &&
 				    (i_comp != comp)) {
 					isPre = TRUE;
 					break;
@@ -384,9 +384,9 @@ static void comp_add_to_model(AVD_COMP *comp)
 		   For some purpose of validations and sending SU/Comps info to
 		   hosting node (Controllers), we can take use of the hosting
 		   node. */
-		if ((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE ==
+		if ((AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE ==
 		     comp->comp_info.category) ||
-		    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
+		    (AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
 			/* This is a valid external component. Ext comp is in ext
 			   SU. */
 		} else {
@@ -416,17 +416,17 @@ static void comp_add_to_model(AVD_COMP *comp)
 	}
 #endif
 	/* Verify if the SUs preinstan value need to be changed */
-	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
-	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-	    (comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
+	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
+	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+	    (comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
 		comp->su->saAmfSUPreInstantiable = TRUE;
 	} else {
 		isPre = FALSE;
 		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
-			if ((i_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
-			    (i_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-			    (i_comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
+			if ((i_comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
+			    (i_comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+			    (i_comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
 				isPre = TRUE;
 				break;
 			}
@@ -504,17 +504,17 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 	}
 #if 0
-	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) && (comp->comp_info.init_len == 0)) {
+	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) && (comp->comp_info.init_len == 0)) {
 		LOG_ER("Sa Aware Component: instantiation command not configured");
 		return -1;
-	} else if ((comp->comp_info.category == NCS_COMP_TYPE_NON_SAF) &&
+	} else if ((comp->comp_info.category == AVSV_COMP_TYPE_NON_SAF) &&
 		   ((comp->comp_info.init_len == 0) || (comp->comp_info.term_len == 0))) {
 		LOG_ER("Non-SaAware Component: instantiation or termination command not configured");
 		return -1;
 	}
 
-	if ((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
-	    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
+	if ((AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+	    (AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
 		if ((comp->comp_info.init_len == 0) ||
 		    (comp->comp_info.term_len == 0) || (comp->comp_info.clean_len == 0)) {
 			/* For external component, the following fields should not be 
@@ -535,9 +535,9 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 	}
 
-	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
-	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE)) {
+	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
+	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE)) {
 
 		if (comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY) {
 			comp->max_num_csi_actv = 1;
@@ -560,7 +560,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	/* Check illegal component capability/category wrt SG red model */
 	if (((sg_red_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) &&
 	     ((comp->comp_info.cap != NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY) ||
-	      (comp->comp_info.category == NCS_COMP_TYPE_NON_SAF)))) {
+	      (comp->comp_info.category == AVSV_COMP_TYPE_NON_SAF)))) {
 		LOG_ER("Illegal category %u or cap %u for SG red model %u",
 			comp->comp_info.category, comp->comp_info.cap, sg_red_model);
 		return -1;
@@ -613,48 +613,6 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	return 1;
 }
 
-static NCS_COMP_TYPE_VAL comp_category_to_ncs(SaUint32T saf_comp_category)
-{
-	NCS_COMP_TYPE_VAL ncs_comp_category = 0;
-
-	/* Check for mandatory attr for SA_AWARE. */
-	if (saf_comp_category & SA_AMF_COMP_SA_AWARE) {
-		/* It shouldn't match with any of others, we don't care about SA_AMF_COMP_LOCAL as it is optional */
-		if ((saf_comp_category & ~SA_AMF_COMP_LOCAL) == SA_AMF_COMP_SA_AWARE) {
-			ncs_comp_category = NCS_COMP_TYPE_SA_AWARE;
-		}
-	} else {
-		/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED and SA_AMF_COMP_SA_AWARE */
-		if (saf_comp_category & SA_AMF_COMP_LOCAL) {
-			/* It shouldn't match with any of others */
-			if ((saf_comp_category & SA_AMF_COMP_PROXIED) ||
-			    (!(saf_comp_category & SA_AMF_COMP_PROXIED_NPI))) {
-				ncs_comp_category = NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE;
-			} else if ((saf_comp_category & SA_AMF_COMP_PROXIED_NPI) ||
-				   (!(saf_comp_category & SA_AMF_COMP_PROXIED))) {
-				ncs_comp_category = NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE;
-			} else if (!((saf_comp_category & SA_AMF_COMP_PROXIED)) ||
-				   (!(saf_comp_category & SA_AMF_COMP_PROXIED_NPI))) {
-				ncs_comp_category = NCS_COMP_TYPE_NON_SAF;
-			}
-		} else {
-			/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED, SA_AMF_COMP_SA_AWARE and 
-			   SA_AMF_COMP_LOCAL */
-			if (saf_comp_category & SA_AMF_COMP_PROXIED_NPI) {
-				ncs_comp_category = NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE;
-			} else {
-				/* Not SA_AMF_COMP_PROXY, SA_AMF_COMP_CONTAINER, SA_AMF_COMP_CONTAINED, SA_AMF_COMP_SA_AWARE, 
-				   SA_AMF_COMP_LOCAL and SA_AMF_COMP_PROXIED_NPI. So only thing left is SA_AMF_COMP_PROXIED */
-				/* Whether SA_AMF_COMP_PROXIED is set or not, we don't care, as it is optional */
-				ncs_comp_category = NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE;
-			}
-
-		}		/* else of if((comp_type->ct_comp_category & SA_AMF_COMP_PROXIED)  */
-	}			/* else of if(comp_type->ct_comp_category & SA_AMF_COMP_SA_AWARE)  */
-
-	return ncs_comp_category;
-}
-
 static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
@@ -686,7 +644,11 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	}
 
 	/*  TODO clean this up! */
-	comp->comp_info.category = comp_category_to_ncs(comptype->saAmfCtCompCategory);
+	comp->comp_info.category = avsv_amfcompcategory_to_avsvcomptype(comptype->saAmfCtCompCategory);
+	if (comp->comp_info.category == AVSV_COMP_TYPE_INVALID) {
+		LOG_ER("Comp category %x invalid for '%s'", comp->comp_info.category, comp->saAmfCompType.value);
+		goto done;
+	}
 
 	if (strlen(comptype->saAmfCtRelPathInstantiateCmd) > 0) {
 		strcpy(comp->comp_info.init_info, comptype->saAmfCtRelPathInstantiateCmd);
@@ -1467,15 +1429,15 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	}
 
 	/* Verify if the SUs preinstan value need to be changed */
-	if ((NCS_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
-	    (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
-	    (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
+	if ((AVSV_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
+	    (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+	    (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
 		isPre = FALSE;
 		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
-			if (((NCS_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
-			     (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
-			     (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
+			if (((AVSV_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
+			     (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
+			     (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
 			    && (i_comp != comp)) {
 				isPre = TRUE;
 				break;

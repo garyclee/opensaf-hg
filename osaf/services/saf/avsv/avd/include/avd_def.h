@@ -38,4 +38,16 @@
 #define NCS_AVD_HB_PRIORITY 0
 #define NCS_AVD_HB_STCK_SIZE NCS_STACKSIZE_HUGE
 
+/* The value to toggle a SI.*/
+typedef enum {
+	AVSV_SI_TOGGLE_STABLE,
+	AVSV_SI_TOGGLE_SWITCH
+} SaToggleState;
+
+/* The value to re adjust a SG.*/
+typedef enum {
+	AVSV_SG_STABLE,
+	AVSV_SG_ADJUST
+} SaAdjustState;
+
 #endif   /* !AVD_DEF_H */

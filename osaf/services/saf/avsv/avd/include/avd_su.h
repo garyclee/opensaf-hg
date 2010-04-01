@@ -36,6 +36,7 @@
 
 #include <saAmf.h>
 #include <ncspatricia.h>
+#include <avd_def.h>
 #include <avd_cb.h>
 #include <avd_node.h>
 #include <avd_sg.h>

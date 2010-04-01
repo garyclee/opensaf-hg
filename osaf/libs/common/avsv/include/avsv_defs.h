@@ -39,52 +39,9 @@
 
 /* Global known values */
 #define AVSV_AVD_VCARD_ID  (MDS_VDEST_ID)1
-#define AVSV_AVD_SSN_REF   (uns32)1
 
 /* units of nano seconds value 2 seconds */
 #define AVSV_CLUSTER_INIT_INTVL ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_INST_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_TERM_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_CLEAN_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_AM_START_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_AM_STOP_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_TERM_CB_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_CSI_SET_CB_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_QUES_DONE_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_CSI_RMV_CB_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_PROX_INST_CB_TIMEOUT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 2 second */
-#define AVSV_PROX_CL_CB_TIMEOT ((SaTimeT)2000000000)
-
-/* units of nano seconds value 1 second */
-#define AVSV_DEFAULT_HEALTH_CHECK_PERIOD ((SaTimeT)1000000000)
-
-/* units of nano seconds value 500 milisecond */
-#define AVSV_DEFAULT_HEALTH_CHECK_MAX_DURATION ((SaTimeT)500000000)
-
-/* units of nano seconds value 10 milisecond */
-#define AVSV_DEFAULT_HEALTH_CHECK_MIN_TIME ((SaTimeT)10000000)
 
 /* The defines for the script size and other 
  * misc string sizes. same as name size. 
@@ -92,36 +49,20 @@
 #define AVSV_MISC_STR_MAX_SIZE 256
 
 /* Minimum preferred num of su in 2N, N+M and NWay red model*/
-#define SG_2N_PREF_INSVC_SU_MIN 2
+#define AVSV_SG_2N_PREF_INSVC_SU_MIN 2
 
 /* Max value for a handle given by avsv to APP */
 #define AVSV_UNS32_HDL_MAX 0xffffffff
 
-/* Maximum number for component instantiation */
-#define AVSV_MAX_INST 1
-
-/* Maximum number for AM start attempts */
-#define AVSV_MAX_AMSTART 1
-
-/* comp capability model definition */
-typedef enum ncs_comp_capability_model {
-	NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY = 1,
-	NCS_COMP_CAPABILITY_X_ACTIVE_OR_Y_STANDBY = 2,
-	NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY = 3,
-	NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY = 4,
-	NCS_COMP_CAPABILITY_X_ACTIVE = 5,
-	NCS_COMP_CAPABILITY_1_ACTIVE = 6,
-	NCS_COMP_CAPABILITY_NO_STATE = 7
-} NCS_COMP_CAPABILITY_MODEL;
-
 typedef enum {
-	NCS_COMP_TYPE_SA_AWARE,
-	NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE,
-	NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE,
-	NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE,
-	NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE,
-	NCS_COMP_TYPE_NON_SAF,
-} NCS_COMP_TYPE_VAL;
+	AVSV_COMP_TYPE_INVALID,
+	AVSV_COMP_TYPE_SA_AWARE,
+	AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE,
+	AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE,
+	AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE,
+	AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE,
+	AVSV_COMP_TYPE_NON_SAF,
+} AVSV_COMP_TYPE_VAL;
 
 /* 
  * SaAmfRecommendedRecoveryT definition does not include escalated recovery
@@ -142,27 +83,15 @@ typedef enum avsv_err_rcvr {
 typedef struct {
 	SaNameT name;
 	SaNameT value;
-} NCS_AVSV_ATTR_NAME_VAL;
+} AVSV_ATTR_NAME_VAL;
 
 /* This structure is the list of CSI
  * attribute name value pairs .
  */
 typedef struct {
 	uns32 number;
-	NCS_AVSV_ATTR_NAME_VAL *list;
-} NCS_AVSV_CSI_ATTRS;
-
-/* The value to toggle a SI.*/
-typedef enum {
-	AVSV_SI_TOGGLE_STABLE,
-	AVSV_SI_TOGGLE_SWITCH
-} SaToggleState;
-
-/* The value to re adjust a SG.*/
-typedef enum {
-	AVSV_SG_STABLE,
-	AVSV_SG_ADJUST
-} SaAdjustState;
+	AVSV_ATTR_NAME_VAL *list;
+} AVSV_CSI_ATTRS;
 
 /* This enums represent classes defined in AMF Spec B.04.01, sorted from table 21 ch 8.4 */
 typedef enum {
@@ -212,7 +141,7 @@ typedef enum
    saAmfNodeSuFailoverProb_ID = 2,
    saAmfNodeSuFailoverMax_ID = 3,
    saAmfNodeAdminState_ID = 4,
-} SA_AMF_NODE_ATTR_ID; 
+} AVSV_AMF_NODE_ATTR_ID; 
 
 /* Attribute ID enum for the saAmfSG class */
 typedef enum
@@ -234,7 +163,7 @@ typedef enum
    saAmfSGNumCurrAssignedSU_ID = 15,
    saAmfSGNumCurrNonInstantiatedSpareSU_ID = 16,
    saAmfSGNumCurrSpareSU_ID = 17,
-} SA_AMF_SG_ATTR_ID; 
+} AVSV_AMF_SG_ATTR_ID; 
 
 /* Attribute ID enum for the saAmfSU class */
 typedef enum
@@ -252,7 +181,7 @@ typedef enum
    saAmfSUPreInstantiable_ID = 11,
    saAmfSUParentSGName_ID = 12,
    saAmfSUIsExternal_ID = 13,
-} SA_AMF_SU_ATTR_ID; 
+} AVSV_AMF_SU_ATTR_ID; 
 
 /* Attribute ID enum for the saAmfComp class */
 typedef enum
@@ -296,17 +225,17 @@ typedef enum
    saAmfCompCurrProxyName_ID = 37,
    saAmfCompAMEnable_ID = 38,
    saAmfCompType_ID,
-} SA_AMF_COMP_ATTR_ID; 
+} AVSV_AMF_COMP_ATTR_ID; 
 
 /* Attribute ID enum for the SaAmfHealthcheck class */
 typedef enum
 {
    saAmfHealthcheckPeriod_ID = 1,
    saAmfHealthcheckMaxDuration_ID = 2,
-} SA_AMF_HEALTHCHECK_ATTR_ID; 
+} AVSV_AMF_HEALTHCHECK_ATTR_ID; 
 
 
-#define NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL 1
+#define AVSV_COMMON_SUB_ID_DEFAULT_VAL 1
 #define SA_AMF_PRESENCE_ORPHANED (SA_AMF_PRESENCE_TERMINATION_FAILED+1)
 
 #endif

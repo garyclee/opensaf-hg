@@ -137,7 +137,7 @@ typedef struct avsv_comp_info_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	NCS_COMP_TYPE_VAL category;	/* component category . 
+	AVSV_COMP_TYPE_VAL category;	/* component category . 
 					 * saAware, proxiedLocalPreinstantiable,
 					 * proxiedLocalNonPreinstantiable,externalPreinstantiable or 
 					 * externalNonPreinstantiable,unproxiedSaUnaware.
@@ -303,7 +303,7 @@ typedef struct avsv_susi_asgn {
 	uns32 csi_rank;		/* The rank of the CSI in the SI */
 	uns32 stdby_rank;
 	SaAmfCSITransitionDescriptorT active_comp_dsc;
-	NCS_AVSV_CSI_ATTRS attrs;	/* Inside the struct there is a 
+	AVSV_CSI_ATTRS attrs;	/* Inside the struct there is a 
 					 * array of param vals.*/
 	struct avsv_susi_asgn *next;
 } AVSV_SUSI_ASGN;

@@ -509,7 +509,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				if ((pref_inservice_su == 0) ||
 				    ((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
-				     (pref_inservice_su < SG_2N_PREF_INSVC_SU_MIN))) {
+				     (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
 					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -759,7 +759,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((pref_inservice_su == 0) ||
 				    ((avd_sg->sg_redundancy_model <
 				      SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
-				     (pref_inservice_su < SG_2N_PREF_INSVC_SU_MIN))) {
+				     (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
 					/* minimum preferred num of su should be 2 in 2N, N+M and NWay 
 					   red models */
 					/* log information error */
