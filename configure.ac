@@ -797,6 +797,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/plmsv/Makefile
         osaf/services/saf/plmsv/config/Makefile
         osaf/services/saf/plmsv/plms/Makefile
+        osaf/services/saf/plmsv/plms/hpi_intf/Makefile
         osaf/services/saf/plmsv/plms/scripts/Makefile
 	osaf/services/saf/plmsv/plms/scripts/osaf-plmd
         osaf/services/saf/logsv/Makefile

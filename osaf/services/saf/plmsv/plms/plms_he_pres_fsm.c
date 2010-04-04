@@ -3923,11 +3923,16 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 {
 	SaUint32T ret_err;
 	PLMS_CB *cb = plms_cb;
+	PLMS_HPI_REQ req;
+	PLMS_HPI_RSP *resp = NULL;
+	SaUint32T (* hrb_mds_send_func_ptr)(MDS_HDL mds_hdl, SaUint32T from_svc,
+			                SaUint32T to_svc, MDS_DEST    to_dest,
+					PLMS_HPI_REQ *i_evt, PLMS_HPI_RSP **o_evt,
+					SaUint32T timeout) = NULL;
+
 	
 	TRACE_ENTER2("Entity: %s, hpi_cmd: %d",ent->dn_name_str,cmd);
 	
-	PLMS_HPI_REQ req;
-	PLMS_HPI_RSP *resp = NULL;
 	
 	if ( NULL == ent->entity.he_entity.saPlmHECurrEntityPath ){
 		
@@ -3944,16 +3949,23 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 	req.cmd = cmd;
 	req.arg = arg;
 	
-	ret_err = plms_hrb_mds_msg_sync_send(cb->mds_hdl,
-						NCSMDS_SVC_ID_PLMS,
-						NCSMDS_SVC_ID_PLMS_HRB,
-						cb->hrb_dest,&req,&resp,
-						PLMS_HRB_MDS_TIMEOUT);
-	
-	if (NCSCC_RC_SUCCESS != ret_err){
+	/* Get the hrb Init func ptr */
+	hrb_mds_send_func_ptr = dlsym(cb->hpi_intf_hdl, 
+				"plms_hrb_mds_msg_sync_send");
+	if ( NULL == hrb_mds_send_func_ptr) {
+		LOG_ER("dlsym()of plms_hrb_mds_msg_sync_send failed, error %s",dlerror());
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+	ret_err = (* hrb_mds_send_func_ptr)(cb->mds_hdl,
+				NCSMDS_SVC_ID_PLMS,
+				NCSMDS_SVC_ID_PLMS_HRB,
+				cb->hrb_dest,&req,&resp,
+				PLMS_HRB_MDS_TIMEOUT);
+	if( NCSCC_RC_SUCCESS != ret_err ) {
 		LOG_ER("plms_hrb_req FAILED. Ent: %s, cmd: %d",
 		ent->dn_name_str,cmd);
-	}else{
+	}else {
 		if ( NCSCC_RC_SUCCESS != resp->ret_val){
 			LOG_ER("plms_hrb_req FAILED. Ent: %s, cmd: %d\
 			resp: %d",ent->dn_name_str,cmd,resp->ret_val);

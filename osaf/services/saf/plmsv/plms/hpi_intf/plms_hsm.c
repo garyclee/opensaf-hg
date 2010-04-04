@@ -371,7 +371,7 @@ static void *plms_hsm(void)
 
 				}
 			}
-			hsm_send_hotswap_event(&rpt_entry,hotswap_state_model,state,state,
+			hsm_send_hotswap_event(&rpt_entry,hotswap_state_model,state,
 			event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,retriev_idr_info);
 
 		}

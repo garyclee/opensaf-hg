@@ -4660,6 +4660,7 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T ret_err;
+	SaUint32T (* hsm_func_ptr)(SaInt8T *epath_str,SaHpiEntityPathT *epath_ptr) = NULL;
 	
 	if ( NULL == *epath_ent ){
 		/* For not present HEs.*/
@@ -4668,8 +4669,17 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 			
 		ent_path = ent->entity.he_entity.saPlmHECurrEntityPath;
 	
-		convert_string_to_epath(ent_path,&epath_key);
-
+		hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "convert_string_to_epath");
+		if ( NULL == hsm_func_ptr ) {
+			LOG_ER("dlsym() of HPI lib failed with error %s", dlerror());
+			return NCSCC_RC_FAILURE;
+		}
+		ret_err = (* hsm_func_ptr)(ent_path,&epath_key);
+		if ( NCSCC_RC_SUCCESS != ret_err  ){
+			LOG_ER("Unable to dlsym the hsm library");
+			return NCSCC_RC_FAILURE;
+		}
+		 
 		epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)
 		ncs_patricia_tree_get(
 		&(cb->epath_to_entity_map_info),(SaUint8T *)&epath_key);

@@ -283,6 +283,7 @@ typedef struct plms_cb
 	SaHpiDomainIdT     	  domain_id;
 	PLMS_HPI_CONFIG           hpi_cfg;
 	SaUint8T		  hpi_intf_up;
+	void                      *hpi_intf_hdl;
 	SaUint8T		  plmc_initialized;
         SaUint32T		  mds_hdl;
         MDS_DEST                  mdest_id;
@@ -640,6 +641,6 @@ EXTERN_C void plms_he_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[]
 EXTERN_C void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
                                                 [SA_PLM_HPI_HE_PRES_STATE_MAX]);
 EXTERN_C SaUint32T plms_tmr_handler_install();
-
+EXTERN_C SaUint32T plms_hsm_hrb_init();
 
 #endif   /* PLMS_H */
