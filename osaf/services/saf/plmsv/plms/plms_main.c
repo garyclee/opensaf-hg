@@ -165,6 +165,58 @@ uns32 plms_db_init()
 
 }
 /****************************************************************************
+ * Name          : plms_hsm_hrb_init 
+ *
+ * Description   : This function initalizes HSM & HRB 
+ *
+ * Arguments     : create_info:
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+*****************************************************************************/
+SaUint32T plms_hsm_hrb_init()
+{
+	PLMS_CB   *cb = plms_cb;
+	SaUint32T (* hsm_init_func_ptr)(PLMS_HPI_CONFIG *hpi_cfg) = NULL;
+	SaUint32T (* hrb_init_func_ptr)() = NULL;
+	SaUint32T rc = NCSCC_RC_SUCCESS;
+
+	/* Get the hsm Init func ptr */
+	hsm_init_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hsm_initialize");
+	if ( NULL == hsm_init_func_ptr ) {
+		LOG_ER("dlsym() failed to get the hsm_init func_ptr,error %s",
+								dlerror());
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Initialize HSM */
+	rc = (* hsm_init_func_ptr)(&cb->hpi_cfg);
+	if ( NCSCC_RC_SUCCESS != rc ) {
+		LOG_ER("plms_hsm_initialize failed");
+		return rc;
+	}
+	TRACE("hsm_initialize success");
+
+	/* Get the HRB Init func ptr */
+	hrb_init_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hrb_initialize");
+	if ( NULL == hrb_init_func_ptr ) {
+		LOG_ER("dlsym() failed to get the hrb_init func_ptr,error %s",
+							dlerror());
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Initialize HRB */
+	rc = (* hrb_init_func_ptr)();
+	if ( NCSCC_RC_SUCCESS != rc ) {
+		LOG_ER("plms_hrb_initialize failed");
+		return rc;
+	}
+	TRACE("hrb_initialize success");
+	return rc;
+}
+
+/****************************************************************************
  * Name          : plms_init
  *
  * Description   : This is the function which initalize the PLMS libarary.
@@ -184,6 +236,7 @@ static uns32 plms_init()
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
+	void    *hpi_intf_handle = NULL;
 
 	TRACE_ENTER();
 	
@@ -255,7 +308,7 @@ static uns32 plms_init()
                 goto done;
         }
 
-	/* FIXME :Initialize the IMM stuff */
+	/* Initialize the IMM stuff */
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 		if ((plms_imm_intf_initialize()) != NCSCC_RC_SUCCESS) {
 			LOG_ER("imm_intf initialization failed");
@@ -264,24 +317,26 @@ static uns32 plms_init()
 		}
 	}
 
-	if(cb->ha_state == SA_AMF_HA_ACTIVE && cb->hpi_cfg.hpi_support) {
-		/* Create and initialize hsm thread */
-		if ((plms_hsm_initialize(&cb->hpi_cfg)) != NCSCC_RC_SUCCESS)
-		{
-			LOG_ER("hsm initialization failed");
+	if( cb->hpi_cfg.hpi_support ) {
+		/* Load the HPI Interface library */
+		hpi_intf_handle = dlopen("libplms_hpi.so",RTLD_LAZY);
+		if( NULL == hpi_intf_handle ) {
+			LOG_ER("dlopen() to load libplms_hpi.so failed with error %s",
+									dlerror());
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
+		TRACE("Successfully loaded libplms_hpi.so using dlopen");
+		cb->hpi_intf_hdl = hpi_intf_handle;
 
-		/* Create and initializae hrb thread */
-		if ((plms_hrb_initialize()) != NCSCC_RC_SUCCESS)
-		{
-			LOG_ER("hrb initialization failed");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
+		if( cb->ha_state == SA_AMF_HA_ACTIVE ){
+			rc = plms_hsm_hrb_init();
+			if(NCSCC_RC_FAILURE == rc)
+				goto done;
+			cb->hpi_intf_up = TRUE;
 		}
-		cb->hpi_intf_up = TRUE;
 	}
+
 	plms_tmr_handler_install();
 	plms_he_pres_fsm_init(plms_HE_pres_state_op);
 	plms_he_adm_fsm_init(plm_HE_adm_state_op);

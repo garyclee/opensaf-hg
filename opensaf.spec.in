@@ -927,6 +927,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %{_libdir}/libSaPlm.so.*
 %{_pkglibdir}/libplmsv_common.so.*
+%{_pkglibdir}/libplms_hpi.so.*
 
 %files plm-server
 %defattr(-,root,root)

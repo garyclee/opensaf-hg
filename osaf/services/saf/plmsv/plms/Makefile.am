@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = scripts
+SUBDIRS = hpi_intf scripts
 
 pkglib_PROGRAMS = osafplmd
 
@@ -39,10 +39,6 @@ osafplmd_SOURCES = \
 	plms_mds.c \
 	plms_notifications.c \
 	plms_mbcsv.c \
-	plms_hrb_mds.c \
-	plms_epath_util.c \
-	plms_hrb.c \
-	plms_hsm.c \
 	plms_imm.c \
 	plms_he_pres_fsm.c \
 	plms_adm_fsm.c \
@@ -53,7 +49,6 @@ osafplmd_SOURCES = \
 	plms_dbg_utils.c
 
 osafplmd_LDADD = \
-        @HPI_LIBS@ \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
@@ -65,3 +60,8 @@ osafplmd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+
+	if ENABLE_HPI
+osafplmd_LDADD += \
+	@HPI_LIBS@
+	endif
