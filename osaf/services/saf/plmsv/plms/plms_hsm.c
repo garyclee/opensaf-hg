@@ -351,24 +351,28 @@ static void *plms_hsm(void)
 		}
 
 		if (event.EventType == SAHPI_ET_HOTSWAP){ 
-			if (event.EventDataUnion.HotSwapEvent.HotSwapState ==
-				          SAHPI_HS_STATE_EXTRACTION_PENDING ||
-			     event.EventDataUnion.HotSwapEvent.HotSwapState ==
-				            SAHPI_HS_STATE_INSERTION_PENDING){
-				/* Cancel the hotswap polcy */ 
-				saHpiHotSwapPolicyCancel(cb->session_id,
-						  rpt_entry.ResourceId);
-				 
-				/* Set the AutoExtractionTimeout */
-				saHpiAutoExtractTimeoutSet(cb->session_id,
-						rpt_entry.ResourceId,
-						cb->extr_pending_timeout);
+			if(hotswap_state_model  == PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL){ 
+				if (event.EventDataUnion.HotSwapEvent.HotSwapState ==
+						  SAHPI_HS_STATE_EXTRACTION_PENDING ||
+				     event.EventDataUnion.HotSwapEvent.HotSwapState ==
+						    SAHPI_HS_STATE_INSERTION_PENDING){
+					/* Cancel the hotswap polcy */ 
+					rc = saHpiHotSwapPolicyCancel(cb->session_id,rpt_entry.ResourceId);
+					if (SA_OK != rc)
+						LOG_ER("Error taking control of res:%d ret val:%d",
+									rpt_entry.ResourceId,rc); 
+					 
+					/* Set the AutoExtractionTimeout */
+					rc = saHpiAutoExtractTimeoutSet(cb->session_id,rpt_entry.ResourceId,
+									cb->extr_pending_timeout);
+					if (SA_OK != rc)
+						LOG_ER("AutoExtractTimeoutSet failed for res:%u ret val:%d",
+										rpt_entry.ResourceId,rc);
 
+				}
 			}
-			hsm_send_hotswap_event(&rpt_entry,hotswap_state_model,
-			state,
-			event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
-			retriev_idr_info);
+			hsm_send_hotswap_event(&rpt_entry,hotswap_state_model,state,state,
+			event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,retriev_idr_info);
 
 		}
 	}
