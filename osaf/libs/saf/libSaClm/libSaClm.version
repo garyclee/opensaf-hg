@@ -1,0 +1,9 @@
+
+# Symbol scoping for libSaClm.so
+{
+	global:
+		saClm*;
+
+	local:
+		clm*;
+};

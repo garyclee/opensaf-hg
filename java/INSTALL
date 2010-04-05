@@ -1,0 +1,152 @@
+                      --- Java AIS API for Opensaf ---
+
+1. Introduction
+
+  The Java AIS API for OpenSAF provides the programming interfaces for Java
+  developers to access the AIS services. Currently provided interfaces are:
+   - AMF - Availability Management Framework version B.01.01.
+   - CLM - Cluster Membership version B.01.01
+
+2. Prerequisites
+
+  Java2SE JDK 1.5 or higher for compilation, JRE for execution
+  Ant
+  JUnit 3.2.8 - junit.jar provided with the package
+
+3. Directory structure
+
+  ais_api        - the SA Forum Java AIS interfaces
+  ais_api_impl   - implementation of the interfaces
+  ais_api_native - the native binding library between OpenSAF and the Java
+                   applications
+  ais_api_test   - tests
+
+4. Installation
+
+  Step 1. Compile and install OpenSAF
+    OpenSAF needs to be configured with the "--enable-java" option.
+    Follow the instructions in the OpenSAF INSTALL file to compile and install it.
+    The artifacts created are the following:
+        - ais_api_impl/bin/opensaf_ais_api.jar - archive containing the compiled
+        AIS Java API and the OpenSAF implementation.
+        - ais_api_impl_native/.libs/libjava_ais_api_native.so.x.x.x - the native binding
+        library
+    These files get installed with the distribution (rpm or make install).
+    
+  Step 2. Build the test project
+    Currently the test project is not compiled with the Java interfaces.
+    Go to the ais_api_test directory.
+    Issue "ant build-jar".
+    If the command succeeds, the opensaf_ais_api_test.jar. This file contains the
+    AIS interfaces, the OpenSAF implementation and the test classes.
+    
+5. Running the tests
+
+5.1  Preparation
+  
+    After building the test project jar file, go to the configandscript dir.
+    Execute the following steps:
+        sh gendeploypack.sh
+        sudo sh installjtests.sh
+    The last step is needed to be executed as root because the script copies files to 
+    the /opt/aistest by default. If you need a different target directory, the scripts
+    can be parameterized as follows:
+    
+       gendeploypack.sh [install_dir] [deploy_pack_dir]
+           install_dir - the directory where the application is installed. This
+           will be the same on all nodes of the cluster and needs to be an
+           absolute path. Default: /opt/aistest
+           deploy_pack_dir - directory where the current deployment is stored.
+           The install script uses this directory as source. Default: deploy
+           It is IMPORTANT to note that this script cannot be run from any other
+           directories.
+           
+       installjtests.sh [deploy_pack_dir]
+           deploy_pack_dir - the directory where the current deployment is stored.
+           The files from this directory are copied to the installation directory.
+           
+    To distribute the deployment in the cluster, use the <deploy_pack_dir>.tar.gz
+    file that is created by the gendeploypack.sh script.
+    
+    Run the sudo setupcontroller.sh command on the controller node(s) you will use.
+    This sets up the AppConfig for OpenSAF and resets the PSSV to use the XML source.
+    
+5.2  Running the CLM tests
+  
+    The CLM tests can be run manually.
+
+    Before running the CLM tests, make sure that OpenSAF is running on the node
+    where you plan to execute them. This can be either payload or controller.
+
+    The main class for the CLM tests is the org.opensaf.ais.clm.test.AllTests class.
+    This class and all the other test classes are packaged in the
+    opensaf_ais_api_test.jar archive. To ease the execution, there is a utility script
+    in the ais_api_test/configandscripts directory called runClmTests.sh. Use this to
+    execute CLM tests.
+
+    The main class uses the junit.textui.TestRunner to execute the tests and results
+    are printed to the stdout.
+    
+    Notice: in virtualized environments the timing diffences can cause some of the
+    time constrained tests to fail. These are not a real failures and  they occur only
+    accidentally.
+    
+5.3  Running the AMF tests
+    The AMF tests cannot be run manually and AMF has to be configured properly
+    for the tests.
+
+    Provided AMF configuration (ais_api_test/configandscripts/AppConfig.xml.template)
+      amfTestSG
+        |
+        |--SUs
+        |    |--amfTestSU1 --> node PL_2_3
+        |    |    `--amfTestComp
+        |    `--amfTestSU2 --> node PL_2_3
+        |         `--amfTestComp
+        `--SIs
+             |--amfTestSI_1
+             |--amfTestSI_2
+             `--amfTestSI_3
+      amfAdditionalTestSG
+        |--SUs
+        |    |--amfAdditionalTestSU1 --> node PL_2_3
+        |    |    `--amfAdditionalTestComp
+        |    `--amfAdditionalTestSU2 --> node PL_2_4
+        |         `--amfAdditionalTestComp
+        `--SIs
+             `--amfAdditionalTestSI
+
+      amfTestComp = org.opensaf.ais.amf.test.AmfTestComponent
+        This type of component only registers and reacts to callbacks.
+
+      amfAdditionalTestComp = org.opensaf.ais.amf.test.AmfTestRunner
+        This type of component registers with the AMF, and every time a CSI is
+        assigned to it, it executes the test suite.
+
+      This configuration may need to be adjusted to your current system. 
+      
+      The components will generate output to the <install_dir>/log directory.
+            
+5.4  Debug mode execution
+        By default the native library is copiled with trace messages turned off.
+        To turn them on, edit the trace.h file and remove the NDEBUG definition.
+        After this compile the library again with the make command and rebuild the
+        deployment configuration (Sec 5.1)
+
+6. Using the Java projects with Eclipse
+    Optionally start a new workspace.
+    Create three new Java projects from Ant file. 
+        Ant file: ais_api/build.xml
+        Ant file: ais_api_impl/build.xml
+        Ant file: ais_api_test/build.xml
+        Check link to the build file in the system each time in the dialog box.
+    Setup java 1.5 or 1.6 compliance in the project settings for all projects.
+    Setup build path for ais_api_impl: ais_api
+    Setup build path for ais_api_test: ais_api, ais_api_impl
+
+7. Creating components
+    User applications need the opensaf_ais_api.jar on the class path and the
+    java_ais_api_native.so.xxx library on the LD_LIBRARY_PATH. Examples for 
+    start scripts are the runClmTest.sh and the java_comp_inst.sh.
+    
+    To enable portability, use only functions provided by the Java AIS APIs.

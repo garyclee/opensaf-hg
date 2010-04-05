@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+
+#This script will be customized/replaced accordingly when there's no CLM node to EE mapping in the imm.xml 
+#In such cases rebooting would be done through proprietary mechanisms, i.e. not through PLM.
+#Node_id is (the only entity) at the disposal of any proprietary mechanism.
+
+node_id=$1
+ee_name=$2
+
+#If no plm in the system,old reboot mechanism is maintained.
+opensaf_reboot_no_plm()
+{
+test -x /sbin/shutdown && \
+    /sbin/shutdown -r now "OpenSAF requested system reboot"
+
+/sbin/reboot
+exit 0
+}
+
+#if plm exists in the system,then the reboot is performed using the eename.
+opensaf_reboot_with_plm()
+{
+immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name
+
+#Note: Operation Id SA_PLM_ADMIN_RESTART=7 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
+}
+
+if [ ":$ee_name" == ":" ]; then
+        opensaf_reboot_no_plm
+else
+        opensaf_reboot_with_plm
+fi

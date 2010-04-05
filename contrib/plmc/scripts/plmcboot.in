@@ -1,0 +1,100 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: plmcboot
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs  $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: send a UDP datagram to OpenSAF PLM controllers indicating OS state
+# Description: send a single UDP datagram to OpenSAF PLM controllers indications the OS state
+### END INIT INFO
+
+prog="plmcd"
+binary=@sbindir@/$prog
+configfile=@sysconfdir@/plmcd.conf
+
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+if [ ! -r $configfile ]; then
+	logger -t $prog "can't read $configfile, exiting."
+	exit 6
+fi	
+
+
+RETVAL=0
+
+start() {
+        [ -x $binary ] || exit 5
+        echo -n "Starting $prog: "
+        start_daemon $binary -c $configfile -s
+        return $?
+}
+
+stop() {
+        echo -n "Stopping $prog: "
+        start_daemon $binary -c $configfile -x
+        return $?
+}
+
+restart() {
+        return 0
+}
+
+tryrestart() {
+	return 0
+}
+
+reload() {
+        echo -n "Reloading $prog: "
+	log_warning_msg
+	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
+	return 3
+}
+
+forcereload() {
+	return 0
+}
+
+status() {
+	return 3
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
+        ;;
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+        ;;
+  force-reload)
+	forcereload
+	RETVAL=$?
+        ;;
+  status)
+        status
+	RETVAL=$?
+        ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL

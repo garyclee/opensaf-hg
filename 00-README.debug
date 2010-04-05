@@ -1,0 +1,69 @@
+Troubleshooting OpenSAF
+======================
+
+System Controller Checklist
+===========================
+
+1.  Did TIPC installation fail? The following error "FATAL: Error inserting 
+    tipc (<kernel_modules_dir>/tipc.ko): Invalid module format" indicates that 
+    user had not compiled TIPC with proper kernel files. Compile TIPC with 
+    appropriate kernel header files (e.g. They are different for an smp kernel 
+    type, etc.)
+
+2.  Have you checked the TIPC configuration? The following TIPC configuration 
+    parameters should be set appropriately in nodeinit.conf:
+
+    a. TIPC network_id should be the same as ACTIVE system controller's 
+       network_id.
+    b. The interface information is set with default values. This has 
+       to be set correctly to ensure connectivity between the system 
+       controller and payload nodes.
+       Also, the TIPC zone_id and cluster_id values are currently hard-coded.
+       These have to be checked for correctness as below if zone_id and 
+       cluster_id are changed:
+    c. zone_id should be the same as ACTIVE system controller's zone_id.
+    d. cluster_id should be the same as ACTIVE system controller's cluster_id.
+
+3.  Have you checked the slot_id?
+    The slot_id should be unique and different from any other node. The system 
+    controllers.
+
+4.  Have you checked the open source packages installation?
+    Ensure that the following open source packages are installed
+    (make install or the rpm packages are installed):
+
+    The configure process should have detected the presence or absence of
+    those packages at runtime.
+
+    a. The libxml2 libraries are available and libxml2 include files are 
+       available. In cases of rpm installation, make sure the devel package 
+       is installed.
+
+5.  Have you checked the chassis_id? The chassis_id should be the same as 
+    ACTIVE system controller.
+
+Payload Node Checklist
+======================
+
+1.  Did TIPC installation fail? The following error "FATAL: Error inserting 
+    tipc (<kernel_modules_dir>/tipc.ko): Invalid module format" indicates that 
+    user had not compiled TIPC with proper kernel files. Compile TIPC with 
+    appropriate kernel header files (e.g. They are different for an smp kernel 
+    type, etc.)
+
+2.  Have you checked the TIPC configuration?
+    The following TIPC configuration parameters should be set appropriately 
+    in nodeinit.conf:
+
+    a. TIPC Network id should be the same as system controllers's network ID.
+    b. The interface information is set with default values. This has to be 
+       set correctly to ensure connectivity between the payload and system 
+       controller nodes.
+       Also, the TIPC zone_id and cluster_id values are currently hardcoded. 
+       These have to be checked for correctness as below if zone_id and 
+       cluster_id are changed:
+    c. zone_id should be the same as the system controllers's zone_id.
+    d. cluster_id should be the same as the system controllers's cluster_id.
+
+3.  Have you checked the chassis_id? The chassis_id should be the same as 
+    ACTIVE & STANDBY system controllers.

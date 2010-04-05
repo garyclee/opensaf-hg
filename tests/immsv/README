@@ -1,0 +1,64 @@
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+1. General
+
+This directory tree contains a unit test suite for IMM A.02.01. The goal is to
+test the API extensively. Checking all possible error conditions etc.
+
+The test suite is not distributed but can of course be run on every node in
+the system which kind of makes it distributed.
+
+The IMM test suite uses the unit test framework in OpenSAF (tests/unit_test_fw).
+
+There are two independent suites for management and implementer respectively.
+
+
+2. Building and installing
+
+The two programs immomtest and immoitest are built by OpenSAF's normal make 
+system. They are either installed using 'make install' or packaged in the tools
+rpm. They will be in the path after installation.
+
+
+3. Running the test suite.
+
+3.1 General
+
+A specific test suite or test case can be run. Just give the numerical value 
+for the suite and/or test case as arguments to the binary.
+
+Examples from the UML Environment:
+# /hostfs/immomtest
+# /hostfs/immomtest 3
+# /hostfs/immomtest 4 2
+# /hostfs/immoitest
+# /hostfs/immoitest 3
+# /hostfs/immoitest 4 2
+
+The result is printed to stdout. Each test case represents one line. At the 
+end a result summary is printed.
+
+To enable debug printouts from the test cases set the variable TESTDEBUG
+to '1' before starting the suite:
+
+# export TESTDEBUG=1
+
+
+4. Adding a new test suite/case
+
+TBD.

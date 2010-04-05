@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaClmNode">
+                <dn>safNode=CLM_TOKEN,safCluster=myClmCluster</dn>
+                <attr>
+                        <name>saClmNodeEE</name>
+                        <value>safEE=PL_2_3,safDomain=domain_1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout</name>
+                        <value>50000000000</value>
+                </attr>
+        </object>
+</imm:IMM-contents>
