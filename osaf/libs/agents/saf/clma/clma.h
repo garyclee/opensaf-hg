@@ -94,7 +94,6 @@ extern uns32 clma_mds_msg_async_send(clma_cb_t * cb, CLMSV_MSG * i_msg, uns32 pr
 
 extern unsigned int clma_startup(void);
 extern unsigned int clma_shutdown(void);
-static void clma_destroy(void);
 extern void clma_msg_destroy(CLMSV_MSG * msg);
 extern void clma_mds_finalize(clma_cb_t * cb);
 
@@ -105,14 +104,6 @@ extern clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallba
 extern uns32 clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t * rm_node);
 extern SaAisErrorT clma_hdl_cbk_dispatch(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec, SaDispatchFlagsT flags);
 
-static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
-				  const SaClmCallbacksT_4 * reg_cbks_4, SaVersionT *version);
-static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
-				    SaClmClusterNotificationBufferT *buf, SaClmClusterNotificationBufferT_4 * buf_4);
-static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
-				      SaClmNodeIdT node_id,
-				      SaTimeT timeout,
-				      SaClmClusterNodeT *cluster_node, SaClmClusterNodeT_4 * cluster_node_4);
 extern uns32 clma_clms_msg_proc(clma_cb_t * cb, CLMSV_MSG * clmsv_msg, MDS_SEND_PRIORITY_TYPE prio);
 extern void clma_add_to_async_cbk_msg_list(CLMSV_MSG ** head, CLMSV_MSG * new_node);
 extern void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,

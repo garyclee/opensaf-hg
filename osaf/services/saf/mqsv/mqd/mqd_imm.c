@@ -20,8 +20,6 @@
 #define QUEUE_MEMS 100
 #define MQD_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safMsgGrpService"
 
-static SaAisErrorT mqd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT, const SaNameT *, const SaImmAttrNameT *);
-
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
 	.saImmOiCcbAbortCallback = NULL,

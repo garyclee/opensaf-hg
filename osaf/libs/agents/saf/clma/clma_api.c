@@ -34,6 +34,15 @@
 
 #define CLMS_WAIT_TIME 1000
 
+static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
+	const SaClmCallbacksT_4 *reg_cbks_4, SaVersionT *version);
+static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
+	SaClmClusterNotificationBufferT *buf,
+	SaClmClusterNotificationBufferT_4 *buf_4);
+static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
+	SaClmNodeIdT node_id, SaTimeT timeout, SaClmClusterNodeT *cluster_node,
+	SaClmClusterNodeT_4 *cluster_node_4);
+
 /* Macro to validate the dispatch flags */
 #define m_DISPATCH_FLAG_IS_VALID(flag) \
    ( (SA_DISPATCH_ONE == flag) || \
