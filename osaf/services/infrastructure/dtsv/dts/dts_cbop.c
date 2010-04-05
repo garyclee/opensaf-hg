@@ -100,7 +100,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 
 				for (j = 0; j < cir_buff->buff_part[num].num_of_elements; j++) {
 					strcpy(str, (char *)ptr);
-					fprintf(fh, (const char *)str);
+					fprintf(fh, "%s", (const char *)str);
 					ptr += (strlen(str) + 1);
 				}
 

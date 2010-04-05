@@ -1038,7 +1038,7 @@ uns32 ncs_tmr_whatsout(void)
 				ncs_fname(free->dbg.file),	/* OwnrF  */
 				gl_tmr_states[free->state],	/* state  */
 				(long)free);	/* pointr */
-			printf(pBuf);
+			printf("%s\n", pBuf);
 		}
 		free = free->keep;
 	}
