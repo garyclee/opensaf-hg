@@ -877,11 +877,11 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	} else {
-		if (notificationFilterHandles->alarmFilterHandle == SA_NTF_FILTER_HANDLE_NULL &&
-		    notificationFilterHandles->attributeChangeFilterHandle == SA_NTF_FILTER_HANDLE_NULL &&
-		    notificationFilterHandles->objectCreateDeleteFilterHandle == SA_NTF_FILTER_HANDLE_NULL &&
-		    notificationFilterHandles->securityAlarmFilterHandle == SA_NTF_FILTER_HANDLE_NULL &&
-		    notificationFilterHandles->stateChangeFilterHandle == SA_NTF_FILTER_HANDLE_NULL) {
+		if (! notificationFilterHandles->alarmFilterHandle &&
+		    ! notificationFilterHandles->attributeChangeFilterHandle &&
+		    ! notificationFilterHandles->objectCreateDeleteFilterHandle &&
+		    ! notificationFilterHandles->securityAlarmFilterHandle &&
+		    ! notificationFilterHandles->stateChangeFilterHandle) {
 			TRACE_1("All handles in notificationFilterHandles set to NULL!");
 			TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
@@ -895,7 +895,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	filterHndl[4] = notificationFilterHandles->alarmFilterHandle;
 	for (i = 0; i < 5; i++) {
 		TRACE_1("filter_hdl[%d] = %llu", i, filterHndl[i]);
-			  if (filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL) {
+			  if (filterHndl[i]) {
 						 TRACE_1("Get FilterHandle");
 
 						 /* retrieve notification filter hdl rec */
@@ -1025,9 +1025,8 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
  done:
 		ncshm_give_hdl(firstHandle);
 		for (i=0; i < 5; i++) {
-			if(filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL){
+			if(filterHndl[i])
 					  ncshm_give_hdl(filterHndl[i]);
-			}
 		}
 	TRACE_LEAVE();
 	return rc;
@@ -2135,7 +2134,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		goto done;
 	}
 
-	if (notificationFilterHandles->alarmFilterHandle != SA_NTF_FILTER_HANDLE_NULL) {
+	if (notificationFilterHandles->alarmFilterHandle) {
 		TRACE_1("Getting notificationFilterHandle!");
 
 		/* retrieve notification filter hdl rec */
