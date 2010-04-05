@@ -1512,7 +1512,8 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 			while(added_ent)
 			{
 				if(added_ent->plm_entity == start->plm_entity){
-					TRACE("The entity %s is added just before this turn");
+					TRACE("The entity %s is added just before this turn",
+						start->plm_entity->dn_name.value);
 					break;
 				}
 				added_ent = added_ent->next;
