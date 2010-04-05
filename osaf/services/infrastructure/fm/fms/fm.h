@@ -64,11 +64,8 @@
 #include "saAis.h"
 #include "saAmf.h"
 
-/* HPI include file. */
-#include <SaHpi.h>
 
 #include "rda_papi.h"
-#include "fm_papi.h"
 
 /* The below files are very specific to fm. */
 #include "fm_amf.h"
