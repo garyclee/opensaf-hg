@@ -290,7 +290,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	return;
 
 exit_error:
-	LOG_ER(error.c_str());
+	LOG_ER("%s", error.c_str());
 	SmfCampaignThread::instance()->campaign()->setError(error);
 
 	//Remain in state initial if prerequsites check or SMF backup fails
@@ -419,7 +419,7 @@ SmfCampStateExecuting::executeInit(SmfUpgradeCampaign * i_camp)
 
 	if (i_camp->m_campInit.execute() == false) {
 		std::string error = "Campaign init failed";
-		LOG_ER(error.c_str());
+		LOG_ER("%s", error.c_str());
 		SmfCampaignThread::instance()->campaign()->setError(error);
 		changeState(i_camp, SmfCampStateExecFailed::instance());
 		return;
@@ -483,7 +483,7 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 		case SA_SMF_PROC_FAILED:
 			{
 				std::string error = "Procedure " + (*iter)->getProcName() + " failed";
-				LOG_ER(error.c_str());
+				LOG_ER("%s", error.c_str());
 				SmfCampaignThread::instance()->campaign()->setError(error);
 				changeState(i_camp, SmfCampStateExecFailed::instance());
 				TRACE_LEAVE();
@@ -550,7 +550,7 @@ SmfCampStateExecuting::executeWrapup(SmfUpgradeCampaign * i_camp)
 
 	if (i_camp->m_campWrapup.executeCampComplete() == false) {
 		std::string error = "Campaign wrapup.executeCampComplete failed";
-		LOG_ER(error.c_str());
+		LOG_ER("%s", error.c_str());
 		SmfCampaignThread::instance()->campaign()->setError(error);
 		changeState(i_camp, SmfCampStateExecFailed::instance());
 		return;

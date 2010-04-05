@@ -434,7 +434,7 @@ SmfCampaign::adminOpExecute(void)
 		struct stat filestat;
 		if (stat(m_cmpgFileUri.c_str(), &filestat) == -1) {
 			std::string error = "Campaign file does not exist " + m_cmpgFileUri;
-			LOG_ER(error.c_str());
+			LOG_ER("%s", error.c_str());
 			setError(error);
 			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
 			return SA_AIS_OK;
@@ -445,7 +445,7 @@ SmfCampaign::adminOpExecute(void)
 		SmfUpgradeCampaign *p_uc = parser.parseCampaignXml(m_cmpgFileUri);
 		if (p_uc == NULL) {
 			std::string error = "Error when parsing the campaign file " + m_cmpgFileUri;
-			LOG_ER(error.c_str());
+			LOG_ER("%s", error.c_str());
 			setError(error);
 			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
 			return SA_AIS_OK;
