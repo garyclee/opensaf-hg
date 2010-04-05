@@ -88,7 +88,7 @@ extern "C" {
 	typedef unsigned int NCS_BOOL;	/* move to this solves BOOLEAN problem */
 	typedef unsigned char bcd;	/* Binary-Coded-Decimal */
 
-	typedef void *NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
+	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
 
 	typedef uns32 IE_DESC[2];	/* IE Descriptor for ATM Signallng */
 	typedef uns32 FIE_DESC;	/* IE Descriptor for FR Signalling. */
