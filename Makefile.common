@@ -26,18 +26,13 @@ CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/core/mds/include \
 	-I$(top_srcdir)/osaf/libs/core/common/include
 
-#
-# FIXME: Remove -Werror until we fix all the warnings
-#
-#CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
-#CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
 AM_CPPFLAGS = \
 	$(CORE_CPP_DEFINES) \
 	$(CORE_INCLUDES) \
 	$(all_includes)
 
-AM_CFLAGS = -fPIC -Wall -lpthread
-AM_CXXFLAGS = -fPIC -Wall
+AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -lpthread
+AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC
 
 
 #
