@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <configmake.h>
 #include "ncssysf_def.h"
 
 #include "plms.h"
@@ -37,7 +38,7 @@ plms_cb_dump_routine ()
 	PLMS_CLIENT_INFO *client_info;
 	PLMS_ENTITY_GROUP_INFO *group_info;
 	PLMS_INVOCATION_TO_TRACK_INFO *track_info;
-	SaInt8T tmp[SA_MAX_NAME_LENGTH +1]="",count;
+	char tmp[SA_MAX_NAME_LENGTH +1]="",count;
 	PLMS_CB *cb = plms_cb;
 
 	ee_base_info = (PLMS_EE_BASE_INFO *)ncs_patricia_tree_getnext(&cb->base_ee_info,NULL);
@@ -46,7 +47,7 @@ plms_cb_dump_routine ()
 
 	m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
 	
-	strcpy(tmp_file,"/var/lib/opensaf/stdouts/plms_dump_out_");
+	strcpy(tmp_file, PKGLOGDIR "/plms_dump.out");
 	strcat(tmp_file, asc_tod);
 
 	fp = fopen(tmp_file, "w");
@@ -394,10 +395,7 @@ plms_cb_dump_routine ()
 	while (he_base_info)
 	{
 		plms_get_str_from_dn_name(&(he_base_info->dn_name),tmp);
-		if (tmp)
-			fprintf(fp,"\n\n DN name of the base he[%d]:%s",count,tmp);
-		else
-			fprintf(fp,"\n\n DN name of the base he[%d]:NULL",count);
+		fprintf(fp,"\n\n DN name of the base he[%d]:%s",count,tmp);
 		if (he_base_info->he_base_type.safHEType)	
 			fprintf(fp,"\n RDN name of he base type:%s",he_base_info->he_base_type.safHEType);
 		else
@@ -597,4 +595,3 @@ plms_cb_dump_routine ()
 	}
 	fclose(fp);
 }
-		
