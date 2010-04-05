@@ -772,7 +772,7 @@ static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	clmsv_track_stop_param_t *param = &(evt->info.msg.info.api_info.param).track_stop;
-	CLMS_CLIENT_INFO *client;
+	CLMS_CLIENT_INFO *client = NULL;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	CLMSV_MSG clm_msg;
 	CLMS_CKPT_REC ckpt;

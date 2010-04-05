@@ -271,7 +271,7 @@ static void *plms_hrb(void)
 static SaUint32T hrb_process_hpi_req( PLMS_HPI_REQ  *hpi_req )
 {
 	PLMS_HRB_CB        *cb = hrb_cb;
-	SaHpiResourceIdT   resourceid;
+	SaHpiResourceIdT   resourceid = 0;
 	PLMS_HPI_RSP       *response = NULL;
 	PLMS_INV_DATA  	   *inv_data = NULL; 
 	SaHpiRptEntryT     rpt_entry;

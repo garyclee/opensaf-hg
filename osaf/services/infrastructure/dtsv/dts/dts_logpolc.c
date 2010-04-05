@@ -214,7 +214,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 	DTS_SVC_REG_TBL *service;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
-	SaImmAttrValuesT_2 *attribute, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
+	SaImmAttrValuesT_2 *attribute = NULL, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
 	unsigned int paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
 	uns8 old_log_device = 0;
 	int i = 0;
@@ -767,7 +767,7 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 	uns8 log_device = 0;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
-	SaImmAttrValuesT_2 *attribute, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
+	SaImmAttrValuesT_2 *attribute = NULL, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
 	unsigned int i = 0;
 
 	if (dts_parse_node_policy_DN(objName, &key) == NCSCC_RC_FAILURE) {

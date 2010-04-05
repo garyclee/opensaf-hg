@@ -61,7 +61,8 @@ DESCRIPTION:          Main routine for FM
 int main(int argc, char *argv[])
 {
 	FM_CB *fm_cb = NULL;
-	NCS_SEL_OBJ mbx_sel_obj, pipe_sel_obj, amf_sel_obj, highest_sel_obj;
+	NCS_SEL_OBJ mbx_sel_obj, pipe_sel_obj, highest_sel_obj;
+	NCS_SEL_OBJ amf_sel_obj = {0, 0};
 	NCS_SEL_OBJ_SET sel_obj_set;
 	FM_EVT *fm_mbx_evt = NULL;
 

@@ -447,7 +447,7 @@ uns32 gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 	GLSV_GLND_EVT *src, *cpy;
 
 	src = (GLSV_GLND_EVT *)cpy_info->i_msg;
-/*   cpy = m_MMGR_ALLOC_GLND_EVT; */
+	cpy = m_MMGR_ALLOC_GLND_EVT;
 
 	if (cpy == NULL) {
 		m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED);
@@ -457,9 +457,9 @@ uns32 gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 
 	*cpy = *src;
 	switch (src->type) {
-		/* Nothing in here as of now... in future if there are any linked lists
-		   in the 'src', just make sure that they are nulled out in src as they
-		   are now owned by cpy */
+	/* Nothing in here as of now... in future if there are any linked lists
+	 * in the 'src', just make sure that they are nulled out in src as they
+	 * are now owned by cpy */
 	default:
 		break;
 	}

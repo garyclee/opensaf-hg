@@ -343,6 +343,7 @@ static void getClassFromImm(
         {
 
             SaImmAttrValuesT_2 values;
+	    memset(&values, 0, sizeof values);
 
             size_t len = strlen(attr->attrName);
             values.attrName = (char*)malloc(len + 1);

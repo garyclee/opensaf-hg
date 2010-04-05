@@ -743,9 +743,9 @@ static SaAisErrorT plms_imm_ccb_obj_create_cbk(SaImmOiHandleT imm_oi_hdl,
 	   as return values of IMM OM API */
 	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *operation;
-	SaInt8T *obj_rdn;
+	SaInt8T *obj_rdn = NULL;
 	SaAisErrorT rc;
-	SaUint8T j, k, dep_names_num, dep_min_num;
+	SaUint8T j, k, dep_names_num = 0, dep_min_num = 0;
 	SaPlmHEDeactivationPolicyT *attr_value;
 	SaUint32T len;
 	SaNameT *dep_name;

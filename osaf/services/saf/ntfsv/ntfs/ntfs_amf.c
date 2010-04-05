@@ -374,7 +374,7 @@ SaAisErrorT ntfs_amf_init()
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
-	SaAisErrorT error;
+	SaAisErrorT error = SA_AIS_OK;
 
 	TRACE_ENTER();
 

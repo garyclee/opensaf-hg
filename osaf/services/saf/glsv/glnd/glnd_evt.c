@@ -1107,7 +1107,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	GLSV_GLA_EVT gla_evt;
 	GLND_CLIENT_INFO *client_info;
 	SaAisErrorT error = SA_AIS_ERR_LIBRARY;
-	SaLckLockModeT lock_type;
+	SaLckLockModeT lock_type = SA_LCK_PR_LOCK_MODE;
 	NCS_BOOL local_orphan_lock = FALSE;
 
 	rsc_unlock_info = (GLSV_EVT_RSC_UNLOCK_INFO *)&evt->info.rsc_unlock_info;

@@ -1301,7 +1301,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	uns32 ret;
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
-	SaLckResourceHandleT res_hdl;
+	SaLckResourceHandleT res_hdl = 0;
 
 	TRACE("saLckResourceUnlock Called with lock_id %d", (uns32)lockId);
 

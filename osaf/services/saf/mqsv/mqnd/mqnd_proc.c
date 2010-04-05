@@ -444,7 +444,7 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	MQP_OPEN_REQ *open = NULL;
-	SaTimeT timeout;
+	SaTimeT timeout = 0;
 
 	/* Build and send transfer ownership request to remote MQND */
 	memset(&transfer_req, 0, sizeof(MQSV_EVT));

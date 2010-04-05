@@ -1769,7 +1769,9 @@ uns32 plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 {
 
 	PLMS_CB * cb = plms_cb;
-	PLMS_CKPT_TRACK_STEP_INFO *ptr,*prev_ptr,*tmp_ptr;
+	PLMS_CKPT_TRACK_STEP_INFO *ptr = NULL,
+				  *prev_ptr = NULL,
+				  *tmp_ptr = NULL;
 	
 	ptr = (PLMS_CKPT_TRACK_STEP_INFO *)malloc(sizeof(PLMS_CKPT_TRACK_STEP_INFO));
 	if (!ptr)

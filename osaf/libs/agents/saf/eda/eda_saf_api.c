@@ -83,7 +83,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	EDA_CLIENT_HDL_REC *eda_hdl_rec;
 	EDSV_MSG i_msg, *o_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 reg_id;
+	uns32 reg_id = 0;
 	EDSV_EDA_INITIALIZE_RSP *init_rsp = NULL;
 	SaVersionT client_version;
 

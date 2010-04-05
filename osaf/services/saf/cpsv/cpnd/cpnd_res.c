@@ -311,7 +311,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	SaCkptHandleT client_hdl;
 	char *buf = NULL, *buffer = NULL;
 	uns8 size = 0, total_length;
-	GBL_SHM_PTR gbl_shm_addr;
+	GBL_SHM_PTR gbl_shm_addr = {0, 0, 0, 0, 0};
 	memset(&cp_info, '\0', sizeof(CKPT_INFO));
 	NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
 	SaTimeT presentTime, timeout = 0;

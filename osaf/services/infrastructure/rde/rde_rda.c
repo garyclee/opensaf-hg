@@ -516,7 +516,7 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconn
 	RDE_RDA_CMD_TYPE cmd_type;
 	char msg[256] = { 0 };
 	uns32 rc = NCSCC_RC_SUCCESS;
-	int value;
+	int value = 0;
 	char *ptr;
 
 	TRACE_ENTER2("%u", index);
