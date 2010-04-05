@@ -906,26 +906,24 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 	}
 	gl_pargc += tmp_ctr;
 
-	/* Check   argv[argc-1] through argv[1] */
+	/* Check argv[argc-1] through argv[1] */
 	for (; argc > 1; argc--) {
-		p_field = strstr(argv[argc - 1], "NODE_ID=");
+		p_field = strstr(&argv[argc - 1], "NODE_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
 				sys_params->node_id = params.node_id;
-
 			continue;
 		} else
-			p_field = strstr(argv[argc - 1], "PCON_ID=");
+			p_field = strstr(&argv[argc - 1], "PCON_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("PCON_ID="), "%d", &params.pcon_id) == 1)
 				sys_params->pcon_id = params.pcon_id;
-
 			continue;
 		} else {
 			/* else store whatever comes */
 			gl_pargv[gl_pargc] = (char *)malloc(NCS_MAX_STR_INPUT);
 			memset(gl_pargv[gl_pargc], 0, NCS_MAX_STR_INPUT);
-			strcpy(gl_pargv[gl_pargc], argv[argc - 1]);
+			strcpy(gl_pargv[gl_pargc], &argv[argc - 1]);
 			gl_pargc = (gl_pargc) + 1;
 		}
 	}
