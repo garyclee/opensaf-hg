@@ -1222,7 +1222,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
 			return 0;
-		ncs_encode_32bit(&p8, NULL);
+		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
 	}
 
@@ -1298,7 +1298,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		if (!p8) {
 			return 0;
 		}
-		ncs_encode_32bit(&p8, NULL);
+		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
 	}
 	
@@ -1331,7 +1331,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
 			return 0;
-		ncs_encode_32bit(&p8, NULL);
+		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
 	}
 
@@ -1364,7 +1364,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
 			return 0;
-		ncs_encode_32bit(&p8, NULL);
+		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
 	}
 	
@@ -1414,7 +1414,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)
 			return 0;
-		ncs_encode_32bit(&p8, NULL);
+		ncs_encode_32bit(&p8, 0);
 		ncs_enc_claim_space(uba, 4);
 	}	
 	
