@@ -99,8 +99,6 @@ static uns32 check_process(NID_SPAWN_INFO *service);
 static void cleanup(NID_SPAWN_INFO *service);
 static uns32 recovery_action(NID_SPAWN_INFO *, char *);
 static uns32 spawn_services(char *);
-static uns32 getrole(void);
-static uns32 get_role_from_rdf(void);
 static void nid_sleep(uns32);
 
 /* List of recovery strategies */
@@ -1198,111 +1196,6 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 	TRACE_LEAVE();
 
 	return NCSCC_RC_FAILURE;
-}
-
-/****************************************************************************
- * Name          : getrole                                                  *
- *                                                                          *
- * Description   : Calles the LHCPD provided API to determine the role      *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
- *                                                                          *
- ****************************************************************************/
-uns32 getrole(void)
-{
-	char *nid_role;
-
-	TRACE_ENTER();
-
-	/* obtain role from RDF */
-	if (get_role_from_rdf() == NCSCC_RC_FAILURE) {
-		LOG_ER("Couldn't get role from RDE");
-
-		/* if role can't be obtained from RDF, then get/set environment variables */
-		if ((nid_role = getenv("NID_ROLE_CONFIG")) != NULL) {
-			LOG_NO("Assuming default role %s", nid_role);
-			if (!strcmp(nid_role, "ACTIVE"))
-				role = SA_AMF_HA_ACTIVE;
-			else
-				role = SA_AMF_HA_STANDBY;
-		} else {
-			LOG_NO("NID_ROLE_CONFIG env not set. Defaulting to %s", "ACTIVE");
-			role = SA_AMF_HA_ACTIVE;
-		}
-	}
-
-	TRACE_LEAVE();
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : get_role_from_rdf                                        *
- *                                                                          *
- * Description   : Obtains the initial role from RDF                        *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
- *                                                                          *
- ***************************************************************************/
-uns32 get_role_from_rdf(void)
-{
-	int rc;
-	PCS_RDA_REQ pcs_rda_req;
-	uns32 ret_val;
-
-	TRACE_ENTER();
-
-	/* initialise the RDA library */
-	pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
-
-	if ((rc = pcs_rda_request(&pcs_rda_req)) != PCSRDA_RC_SUCCESS) {
-		ret_val = NCSCC_RC_FAILURE;
-		goto go_back;
-	}
-
-	/* get initial HA role */
-	pcs_rda_req.req_type = PCS_RDA_GET_ROLE;
-
-	if ((rc = pcs_rda_request(&pcs_rda_req)) != PCSRDA_RC_SUCCESS) {
-		/* if there's any error getting the role,
-		   then don't return right away; destroy the library first */
-		LOG_ER("Failed to get role from RDE");
-		ret_val = NCSCC_RC_FAILURE;
-	} else {
-		switch (pcs_rda_req.info.io_role) {
-		case PCS_RDA_ACTIVE:
-			role = SA_AMF_HA_ACTIVE;
-			ret_val = NCSCC_RC_SUCCESS;
-			LOG_NO("RDE-ROLE for this System Controller is: %d, %s",
-			      pcs_rda_req.info.io_role, "ACTIVE");
-			break;
-
-		case PCS_RDA_STANDBY:
-			role = SA_AMF_HA_STANDBY;
-			ret_val = NCSCC_RC_SUCCESS;
-			LOG_NO("RDE-ROLE for this System Controller is: %d, %s",
-			      pcs_rda_req.info.io_role, "STANDBY");
-			break;
-
-		default:
-			ret_val = NCSCC_RC_FAILURE;
-		};
-	}
-
-	/* destroy the RDA library */
-	pcs_rda_req.req_type = PCS_RDA_LIB_DESTROY;
-
-	if ((rc = pcs_rda_request(&pcs_rda_req)) != PCSRDA_RC_SUCCESS) {
-		ret_val = NCSCC_RC_FAILURE;
-	}
-
-go_back:
-	TRACE_LEAVE();
-	return ret_val;
 }
 
 /****************************************************************************

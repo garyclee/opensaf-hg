@@ -383,11 +383,9 @@ static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 	return rc;
 }
 
-void clms_track_send_node_down(CLMS_CLUSTER_NODE * node)
+void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 {
-
 	uns32 rc = NCSCC_RC_SUCCESS;
-	CLMSV_CLMS_EVT *evt = NULL;
 
 	node->nodeup = 0;
 	TRACE_ENTER2("MDS Down nodeup info %d", node->nodeup);
@@ -421,7 +419,6 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE * node)
 		LOG_ER("CLMS node delete by nodeid failed");
 	}
 
- done:
 	TRACE_LEAVE();
 }
 
