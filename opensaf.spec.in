@@ -22,15 +22,6 @@
 %define _pkgimmxmldir %{_datadir}/opensaf/immxml
 %define _pkgimmxml_svcdir %{_datadir}/opensaf/immxml/services
 
-# TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
-# and stack-protector by default which catches buffer overflows in
-# opensaf see Ticket #282
-# originally sourced from /usr/lib/rpm/redhat/macros
-#%if %is_rhel || %is_fedora
-#%define __global_cflags	-O2 -g -pipe -Wall
-#%endif
-
-
 Summary: OpenSAF is an open source implementation of the SAF AIS specification
 Name: opensaf
 Version: @OPENSAF_RELEASE@
