@@ -40,6 +40,8 @@ uns32 clma_validate_version(SaVersionT *version)
 		TRACE_LEAVE();
 		return 0;
 	}
+
+	return 0;
 }
 
 /**
