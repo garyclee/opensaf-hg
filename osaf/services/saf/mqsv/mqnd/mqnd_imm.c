@@ -295,7 +295,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	if (rdnstr)
 		arr1[0] = &rdnstr;
 	else
-		SA_AIS_ERR_FAILED_OPERATION;
+		return SA_AIS_ERR_FAILED_OPERATION;
 
 	arr2[0] = &(qnode->qinfo.queueStatus.creationFlags);
 	arr3[0] = &(qnode->qinfo.queueStatus.retentionTime);
