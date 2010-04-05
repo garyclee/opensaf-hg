@@ -31,6 +31,8 @@
 ******************************************************************************
 */
 
+#include <logtrace.h>
+
 #include "gla.h"
 #define NCS_SAF_MIN_ACCEPT_TIME  10
 
@@ -56,6 +58,8 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_CLIENT_INFO *client_info = NULL;
 
+	TRACE_ENTER();
+
 	rc = ncs_agents_startup();
 	if (rc != SA_AIS_OK)
 		return SA_AIS_ERR_LIBRARY;
@@ -65,8 +69,6 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 		ncs_agents_shutdown();
 		return SA_AIS_ERR_LIBRARY;
 	}
-
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Called \n");
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -140,10 +142,10 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 		*lckHandle = out_evt->handle;
 		m_MMGR_FREE_GLA_EVT(out_evt);
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Success handle - %llu \n", (uns64)*lckHandle);
 		version->releaseCode = REQUIRED_RELEASECODE;
 		version->majorVersion = REQUIRED_MAJORVERSION;
 		version->minorVersion = REQUIRED_MINORVERSION;
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -175,7 +177,8 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	/* return GLA CB */
 	if (gla_cb)
 		m_GLSV_GLA_GIVEUP_GLA_CB;
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Failed \n");
+
+	TRACE("saLckInitialize Failed");
 
 	ncs_gla_shutdown();
 	ncs_agents_shutdown();
@@ -202,7 +205,8 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckSelectionObjectGet Called with Handle %llu \n", (uns64)lckHandle);
+	TRACE("saLckSelectionObjectGet Called with Handle %llu", (uns64)lckHandle);
+
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
 	if (!gla_cb) {
@@ -245,9 +249,9 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 		m_LOG_GLA_API(GLA_API_LCK_SELECTION_OBJECT_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckSelectionObjectGet Called -  SUCCESS \n");
+		TRACE("saLckSelectionObjectGet SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckSelectionObjectGet Called -  FAILURE \n");
+		TRACE("saLckSelectionObjectGet FAILURE");
 	return rc;
 }
 
@@ -270,7 +274,7 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_CLIENT_INFO *client_info = NULL;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckOptionCheck Called with Handle %llu \n", (uns64)hdl);
+	TRACE("saLckOptionCheck Called with Handle %llu", (uns64)hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -310,9 +314,9 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 	}
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckOptionCheck Called -  SUCCESS \n");
+		TRACE("saLckOptionCheck SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckOptionCheck Called -  FAILURE \n");
+		TRACE("saLckOptionCheck FAILURE");
 	return rc;
 }
 
@@ -336,7 +340,7 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 	GLA_CLIENT_INFO *client_info = NULL;
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckDispatch Called with Handle %llu \n", (uns64)lckHandle);
+	TRACE("saLckDispatch Called with Handle %llu", (uns64)lckHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -387,9 +391,9 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 		m_LOG_GLA_API(GLA_API_LCK_DISPATCH_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckDispatch Called -  SUCCESS \n");
+		TRACE("saLckDispatch Called SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckDispatch Called -  FAILURE \n");
+		TRACE("saLckDispatch Called FAILURE");
 	return rc;
 }
 
@@ -414,7 +418,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	GLA_CLIENT_INFO *client_info = NULL;
 	uns32 ret;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n SaLckFinalize Called with Handle %llu \n", (uns64)hdl);
+	TRACE("SaLckFinalize Called with Handle %llu", (uns64)hdl);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -493,9 +497,9 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	}
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n SaLckFinalize Called -  SUCCESS \n");
+		TRACE("SaLckFinalize SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n SaLckFinalize Called -  FAILURE \n");
+		TRACE("SaLckFinalize FAILURE");
 
 	if (rc == SA_AIS_OK) {
 		ncs_gla_shutdown();
@@ -543,7 +547,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LCK-A.02.01 
 	   Section 3.5.1 saLckResourceOpen() and saLckResourceOpenAsync(), Return Values */
 	if (strncmp((const char *)lockResourceName->value, "safLock=", 8) != 0) {
-		m_GLSV_DEBUG_CONS_PRINTF("\"safLock=\" is missing in ResourceName");
+		TRACE("\"safLock=\" is missing in ResourceName");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -555,8 +559,8 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpen Called with Handle %llu and Name %.7s \n",
-				 (uns64)lckHandle, lockResourceName->value);
+	TRACE("\n saLckResourceOpen Called with Handle %llu and Name %.7s",
+		(uns64)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -655,10 +659,10 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 			m_LOG_GLA_API(GLA_API_LCK_RESOURCE_OPEN_SYNC_FAIL, NCSFL_SEV_ERROR);
 	}
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpen Called -  SUCCESS Res_id %llu \n",
+		TRACE("saLckResourceOpen SUCCESS Res_id %llu",
 					 (uns64)*lockResourceHandle);
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpen Called -  FAILURE \n");
+		TRACE("saLckResourceOpen FAILURE");
 	return rc;
 }
 
@@ -694,7 +698,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LCK-A.02.01 
 	   Section 3.5.1 saLckResourceOpen() and saLckResourceOpenAsync(), Return Values */
 	if (strncmp((const char *)lockResourceName->value, "safLock=", 8) != 0) {
-		m_GLSV_DEBUG_CONS_PRINTF("\"safLock=\" is missing in ResourceName");
+		TRACE("\"safLock=\" is missing in ResourceName");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -704,8 +708,8 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpenAsync Called with Handle %llu and Name %s \n", (uns64)lckHandle,
-				 lockResourceName->value);
+	TRACE("saLckResourceOpenAsync Called with Handle %llu and Name %s", (uns64)lckHandle,
+		lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -791,9 +795,9 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	}
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpenAsync Called -  SUCCESS \n");
+		TRACE("saLckResourceOpenAsync SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceOpenAsync Called -  FAILURE \n");
+		TRACE("saLckResourceOpenAsync FAILURE");
 
 	return rc;
 }
@@ -821,7 +825,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	GLA_CLIENT_INFO *client_info = NULL;
 	GLA_CLIENT_RES_INFO *client_res_info = NULL;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceClose Called with Res_handle %llu \n", (uns64)lockResourceHandle);
+	TRACE("saLckResourceClose Called with Res_handle %llu", (uns64)lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -925,9 +929,9 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	}
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceClose Called -  SUCCESS \n");
+		TRACE("saLckResourceClose SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceClose Called -  FAILURE \n");
+		TRACE("saLckResourceClose FAILURE");
 	return rc;
 }
 
@@ -965,7 +969,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLock Called with Resource Handle %d  \n", (uns32)lockResourceHandle);
+	TRACE("saLckResourceLock Called with Resource Handle %d", (uns32)lockResourceHandle);
 
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -1098,10 +1102,10 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_LOCK_SYNC_FAIL, NCSFL_SEV_ERROR);
 	}
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLock Called -  SUCCESS Lock -id %d Status %d \n",
-					 (uns32)*lockId, (uns32)*lockStatus);
+		TRACE("saLckResourceLock SUCCESS Lock id %d, Status %d",
+			(uns32)*lockId, (uns32)*lockStatus);
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLock Called -  FAILURE %d \n", rc);
+		TRACE("saLckResourceLock FAILURE %d", rc);
 
 	return rc;
 }
@@ -1137,7 +1141,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	GLA_LOCK_ID_INFO *lock_id_node = NULL;
 	uns32 ret;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLockAsync Called with Res_id %d \n", (uns32)lockResourceHandle);
+	TRACE("saLckResourceLockAsync Called with Res_id %d", (uns32)lockResourceHandle);
 
 	/* validate the parameters */
 	if (!(lockMode == SA_LCK_PR_LOCK_MODE || lockMode == SA_LCK_EX_LOCK_MODE)) {
@@ -1265,9 +1269,9 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_LOCK_ASYNC_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLockAsync Called -  SUCCESS \n");
+		TRACE("saLckResourceLockAsync SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceLockAsync Called -  FAILURE %d \n", rc);
+		TRACE("saLckResourceLockAsync FAILURE %d", rc);
 
 	return rc;
 }
@@ -1299,7 +1303,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	SaLckResourceHandleT res_hdl;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlock Called with lock_id %d \n", (uns32)lockId);
+	TRACE("saLckResourceUnlock Called with lock_id %d", (uns32)lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1399,9 +1403,9 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_UNLOCK_SYNC_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlock Called -  SUCCESS \n");
+		TRACE("saLckResourceUnlock SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlock Called -  FAILURE %d \n", rc);
+		TRACE("saLckResourceUnlock FAILURE %d", rc);
 
 	return rc;
 }
@@ -1428,7 +1432,7 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlockAsync Called with lock_id %d \n", (uns32)lockId);
+	TRACE("saLckResourceUnlockAsync Called with lock_id %d", (uns32)lockId);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1516,9 +1520,9 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_UNLOCK_ASYNC_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlockAsync Called -  SUCCESS \n");
+		TRACE("saLckResourceUnlockAsync SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckResourceUnlockAsync Called -  FAILURE %d \n", rc);
+		TRACE("saLckResourceUnlockAsync FAILURE %d", rc);
 
 	return rc;
 }
@@ -1545,7 +1549,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 	uns32 ret;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n saLckLockPurge Called with Res Handle %llu  \n", (uns64)lockResourceHandle);
+	TRACE("saLckLockPurge Called with Res Handle %llu", (uns64)lockResourceHandle);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;
@@ -1619,9 +1623,9 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 		m_LOG_GLA_API(GLA_API_LCK_RESOURCE_PURGE_FAIL, NCSFL_SEV_ERROR);
 
 	if (rc == SA_AIS_OK)
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckLockPurge Called -  SUCCESS \n");
+		TRACE("saLckLockPurge SUCCESS");
 	else
-		m_GLSV_DEBUG_CONS_PRINTF("\n saLckLockPurge Called -  FAILURE %d \n", rc);
+		TRACE("saLckLockPurge FAILURE %d", rc);
 
 	return rc;
 }

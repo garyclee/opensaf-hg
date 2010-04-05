@@ -32,6 +32,8 @@
 ******************************************************************************
 */
 
+#include <logtrace.h>
+
 #include "glnd.h"
 
 /*****************************************************************************
@@ -81,7 +83,7 @@ uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT per
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n  Started GLND Timer for %d @ %d ticks \n", type, my_period);
+	TRACE("Started GLND Timer for %d @ %d ticks", type, my_period);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -107,7 +109,7 @@ void glnd_stop_tmr(GLND_TMR *tmr)
 
 	/* Stop the timer if it is active... */
 	if (tmr->is_active == TRUE) {
-		m_GLSV_DEBUG_CONS_PRINTF("\n  Stopped GLND Timer for %d \n", tmr->type);
+		TRACE("Stopped GLND Timer for %d", tmr->type);
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = FALSE;
 	}

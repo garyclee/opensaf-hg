@@ -30,6 +30,8 @@
 
 ******************************************************************************/
 
+#include <logtrace.h>
+
 #include "glnd.h"
 
 static void glnd_main_process(SYSF_MBX *mbx);
@@ -167,7 +169,7 @@ void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
 			m_MMGR_FREE_GLND_EVT(evt);
 		}
 	}
-	m_GLSV_DEBUG_CONS_PRINTF(" Exiting the GLND Process MBX Evt \n");
+	TRACE("Exiting the GLND Process MBX Evt");
 	return;
 }
 
@@ -249,6 +251,6 @@ static void glnd_main_process(SYSF_MBX *mbx)
 		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 
 	}
-	m_GLSV_DEBUG_CONS_PRINTF(" \n DANGER: Exiting the Select loop of GLND \n");
+	TRACE("DANGER: Exiting the Select loop of GLND");
 	return;
 }
