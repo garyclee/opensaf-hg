@@ -23,6 +23,7 @@ static void clma_hdl_list_del(clma_client_hdl_rec_t ** list);
 /* Variables used during startup/shutdown only */
 static pthread_mutex_t clma_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned int clma_use_count;
+static void clma_destroy(void);
 
 /**
  * 
