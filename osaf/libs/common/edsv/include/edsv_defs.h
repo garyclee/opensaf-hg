@@ -75,16 +75,6 @@
      (SA_EVT_CHANNEL_SUBSCRIBER & flag) )
 
 /**** Verbose macro definitions for EDSv ****/
-#ifndef NCS_EDSV_DEBUG
-#define NCS_EDSV_DEBUG  0
-#endif
-
-#if(NCS_EDSV_DEBUG == 1)
-#define m_EDSV_DEBUG_CONS_PRINTF   printf
-#else
-#define m_EDSV_DEBUG_CONS_PRINTF
-#endif
-
 #define EDSV_NANOSEC_TO_LEAPTM 10000000
 
 #define m_EDSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;

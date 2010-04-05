@@ -29,6 +29,7 @@ This include file contains evt processing subroutines
 #include <limits.h>		/* for MAX_INT definition */
 #include "eds.h"
 #include "eds_ckpt.h"
+#include "logtrace.h"
 
 static uns32 eds_proc_eda_api_msg(EDSV_EDS_EVT *);
 static uns32 eds_proc_eda_misc_msg(EDSV_EDS_EVT *);
@@ -128,7 +129,7 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
 
-	m_EDSV_DEBUG_CONS_PRINTF(" INITIALIZE EVENT....\n");
+	TRACE("INITIALIZE EVENT....");
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);
@@ -213,7 +214,7 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (async_rc != NCSCC_RC_SUCCESS) {
 			/* log it */
 		} else {
-			m_EDSV_DEBUG_CONS_PRINTF("REG_REC ASYNC UPDATE SEND SUCCESS.....\n");
+			TRACE("REG_REC ASYNC UPDATE SEND SUCCESS.....");
 		}
 
 	}
@@ -239,7 +240,7 @@ static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 async_rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA ckpt;
 
-	m_EDSV_DEBUG_CONS_PRINTF(" FINALIZE EVENT....\n");
+	TRACE("FINALIZE EVENT....");
 	/* This call will insure all open subscriptions, channels, and any other */
 	/* resources allocated by this registration are freed up.                */
 	rc = eds_remove_reglist_entry(cb, evt->info.msg.info.api_info.param.finalize.reg_id, FALSE);
@@ -253,7 +254,7 @@ static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("FINALIZE: ASYNC UPDATE SEND SUCCESS....\n");
+				TRACE("FINALIZE: ASYNC UPDATE SEND SUCCESS....");
 			}
 		}
 	} else
@@ -287,7 +288,7 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *open_sync_param;
 	EDS_CKPT_DATA ckpt;
 
-	m_EDSV_DEBUG_CONS_PRINTF("CHANNEL OPEN EVENT....\n");
+	TRACE("CHANNEL OPEN EVENT....");
 	open_sync_param = &(evt->info.msg.info.api_info.param.chan_open_sync);
 
 	/* Set the open  time here */
@@ -323,7 +324,7 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("CHAN_OPEN:ASYNC UPDATE SEND SUCCESS...\n");
+				TRACE("CHAN_OPEN:ASYNC UPDATE SEND SUCCESS...");
 			}
 		}
 		m_LOG_EDSV_SF(EDS_CHN_OPEN_SYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
@@ -357,7 +358,7 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *open_async_param;
 	EDS_CKPT_DATA ckpt;
 
-	m_EDSV_DEBUG_CONS_PRINTF(" CHANNEL OPEN ASYNC EVENT....\n");
+	TRACE(" CHANNEL OPEN ASYNC EVENT....");
 	open_async_param = &(evt->info.msg.info.api_info.param.chan_open_async);
 
 	/* Set the open  time here */
@@ -397,7 +398,7 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("COPENASYNC: ASYNC UPDATE SEND SUCCESS...\n");
+				TRACE("COPENASYNC: ASYNC UPDATE SEND SUCCESS...");
 			}
 		}
 		m_LOG_EDSV_SF(EDS_CHN_OPEN_ASYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
@@ -426,7 +427,7 @@ static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	close_param = &(evt->info.msg.info.api_info.param.chan_close);
-	m_EDSV_DEBUG_CONS_PRINTF(" CHANNEL CLOSE EVENT....\n");
+	TRACE("CHANNEL CLOSE EVENT....");
 	rc = eds_channel_close(cb, close_param->reg_id, close_param->chan_id, close_param->chan_open_id, FALSE);
 	if (rc == NCSCC_RC_SUCCESS) {
 		/* Send an Async update to STANDBY EDS peer */
@@ -438,7 +439,7 @@ static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("CHAN_CLOSE:ASYNC UPDATE SEND SUCCESS...\n");
+				TRACE("CHAN_CLOSE:ASYNC UPDATE SEND SUCCESS...");
 			}
 		}
 		m_LOG_EDSV_SF(EDS_CHN_CLOSE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
@@ -470,7 +471,7 @@ static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	unlink_param = &(evt->info.msg.info.api_info.param.chan_unlink);
-	m_EDSV_DEBUG_CONS_PRINTF(" CHANNEL UNLINK EVENT....\n");
+	TRACE("CHANNEL UNLINK EVENT....");
 	rs = eds_channel_unlink(cb, unlink_param->chan_name.length, unlink_param->chan_name.value);
 	if (rs != SA_AIS_OK)
 		m_LOG_EDSV_SF(EDS_CHN_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__, __LINE__, 0,
@@ -492,7 +493,7 @@ static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("CHAN_UNLINK: ASYNC UPDATE SEND SUCCESS...\n");
+				TRACE("CHAN_UNLINK: ASYNC UPDATE SEND SUCCESS...");
 			}
 		}
 		m_LOG_EDSV_SF(EDS_CHN_UNLINK_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
@@ -529,7 +530,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 retd_evt_chan_open_id = 0;
 	EDS_CKPT_DATA ckpt;
 	publish_param = &(evt->info.msg.info.api_info.param).publish;
-	m_EDSV_DEBUG_CONS_PRINTF(" PUBLISH EVENT....\n");
+	TRACE("PUBLISH EVENT....");
 
 	/* Get worklist ptr for this chan */
 	wp = eds_get_worklist_entry(cb->eds_work_list, publish_param->chan_id);
@@ -632,7 +633,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF("RETEN_EVT: ASYNC UPDATE SEND SUCCESS....\n");
+				TRACE("RETEN_EVT: ASYNC UPDATE SEND SUCCESS....");
 			}
 		}
 		/* Now give the patternarray & data ownership to the reten record */
@@ -671,7 +672,7 @@ static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	SaUint8T list_iter;
 
 	subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
-	m_EDSV_DEBUG_CONS_PRINTF(" SUBSCRIBE EVENT....\n");
+	TRACE("SUBSCRIBE EVENT....");
 
 	/* Make sure this is a valid regID */
 	reglst = eds_get_reglist_entry(cb, subscribe_param->reg_id);
@@ -761,7 +762,7 @@ static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (async_rc != NCSCC_RC_SUCCESS) {
 			/* Log it */
 		} else {
-			m_EDSV_DEBUG_CONS_PRINTF(" SUBSCRIBE: ASYNC UPDATE SEND SUCCESS....\n");
+			TRACE("SUBSCRIBE: ASYNC UPDATE SEND SUCCESS....");
 		}
 	}
 
@@ -793,7 +794,7 @@ static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	unsubscribe_param = &(evt->info.msg.info.api_info.param.unsubscribe);
-	m_EDSV_DEBUG_CONS_PRINTF(" UNSUBSCRIBE EVENT....\n");
+	TRACE("UNSUBSCRIBE EVENT....");
 	/* Remove subscription from our lists */
 	rc = eds_remove_subscription(cb,
 				     unsubscribe_param->reg_id,
@@ -808,7 +809,7 @@ static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF(" UNSUBSCRIBE: ASYNC UPDATE SEND SUCCESS....\n");
+				TRACE("UNSUBSCRIBE: ASYNC UPDATE SEND SUCCESS....");
 			}
 		}
 
@@ -840,7 +841,7 @@ static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 async_rc = NCSCC_RC_SUCCESS;
 	EDSV_MSG msg;
 
-	m_EDSV_DEBUG_CONS_PRINTF(" RETENTION TIMER CLEAR EVENT....\n");
+	TRACE("RETENTION TIMER CLEAR EVENT....");
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(evt->info.msg.info.api_info.param.rettimeclr);
 	EDS_CKPT_DATA ckpt;
 
@@ -871,7 +872,7 @@ static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			if (async_rc != NCSCC_RC_SUCCESS) {
 				/* Log it */
 			} else {
-				m_EDSV_DEBUG_CONS_PRINTF(" RETEN_TIME_CLR: ASYNC UPDATE SEND SUCCESS....\n");
+				TRACE("RETEN_TIME_CLR: ASYNC UPDATE SEND SUCCESS....");
 			}
 		}
 		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__,
@@ -897,11 +898,11 @@ static uns32 eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 rc = SA_AIS_OK;
 	EDSV_MSG msg;
 
-	m_EDSV_DEBUG_CONS_PRINTF("LIMIT GET EVENT ...\n");
+	TRACE("LIMIT GET EVENT ...");
 	m_EDS_EDSV_LIMIT_GET_MSG_FILL(msg, rc)
 	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
-		m_EDSV_DEBUG_CONS_PRINTF("LIMIT GET Response Send Failed...\n");
+		TRACE("LIMIT GET Response Send Failed...");
 
 	return (rc);
 
@@ -994,7 +995,7 @@ static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDS_CB *eds_cb;
 
-	m_EDSV_DEBUG_CONS_PRINTF("RETENTION TIMER EXPIERY EVENT.....\n");
+	TRACE("RETENTION TIMER EXPIRY EVENT.....");
 	/* retrieve retained evt */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
 		m_LOG_EDSV_SF(EDS_RETENTION_TMR_EXP_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
@@ -1079,7 +1080,7 @@ static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 				if (async_rc != NCSCC_RC_SUCCESS) {
 					/* Log it */
 				} else
-					m_EDSV_DEBUG_CONS_PRINTF("AGENT DOWN : ASYNC UPDATE SEND SUCCESS...\n");
+					TRACE("AGENT DOWN : ASYNC UPDATE SEND SUCCESS...");
 			}
 		} else if (cb->ha_state == SA_AMF_HA_STANDBY) {
 			EDA_DOWN_LIST *eda_down_rec = NULL;
@@ -1215,7 +1216,7 @@ static uns32 eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 		cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (eds_mbcsv_change_HA_state(cb) != NCSCC_RC_SUCCESS) {
-			m_EDSV_DEBUG_CONS_PRINTF("EDS-MBCSV- CHANGE ROLE FAILED....\n");
+			TRACE("EDS-MBCSV- CHANGE ROLE FAILED....");
 		}
 
 		/* Update control block */
