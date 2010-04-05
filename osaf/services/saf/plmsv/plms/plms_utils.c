@@ -4672,12 +4672,12 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 		hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "convert_string_to_epath");
 		if ( NULL == hsm_func_ptr ) {
 			LOG_ER("dlsym() of HPI lib failed with error %s", dlerror());
-			return NCSCC_RC_FAILURE;
+			return;
 		}
 		ret_err = (* hsm_func_ptr)(ent_path,&epath_key);
 		if ( NCSCC_RC_SUCCESS != ret_err  ){
 			LOG_ER("Unable to dlsym the hsm library");
-			return NCSCC_RC_FAILURE;
+			return;
 		}
 		 
 		epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)

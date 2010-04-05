@@ -285,7 +285,10 @@ void avnd_main_process(void)
 					* Kill amfd otherwise it will reboot the system.
 					*/
 					LOG_IN("Killing amfd...");
-					system("killall osafamfd");
+					if(-1 == system("killall osafamfd"))
+						LOG_ER("%s: killall failed: %s",
+								__FUNCTION__,
+								strerror(errno));
 				}
 				break;
 			}

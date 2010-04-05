@@ -430,7 +430,9 @@ void ncs_reboot(const char *reason)
         fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
         syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
 
-        system(PKGLIBDIR "/opensaf_reboot");
+        if(system(PKGLIBDIR "/opensaf_reboot") == -1){
+        	syslog(LOG_CRIT, "node reboot failure!");
+	}
 }
   	
 
@@ -447,6 +449,8 @@ void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reason)
 	/* Here if ee is NULL, we could put some def. value on to sprintf.TBD */
 	snprintf(str,255,PKGLIBDIR"/opensaf_reboot %d %s\n",node_id,ee_name); 
 	syslog(LOG_CRIT,"Rebooting OpenSAF NodeId = %d EE Name = %s, Reason: %s\n",node_id,((ee_name == NULL)? "No EE Mapped":ee_name),reason);
-	system(str);
+	if(system(str) == -1){
+        	syslog(LOG_CRIT, "node reboot failure!");
+	}
 }
 

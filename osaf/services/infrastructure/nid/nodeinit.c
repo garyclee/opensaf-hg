@@ -619,7 +619,8 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
 	sigaddset(&nmask, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nmask, &omask);
 
-	pipe(filedes);
+	if(-1 == pipe(filedes))
+		LOG_ER("Problem creating pipe: %s", strerror(errno));
 
 	if ((pid = fork()) == 0) {
 		if (nis_fifofd > 0)
@@ -647,9 +648,14 @@ int32 fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
 		}
 
 		setsid();
-		freopen("/dev/null", "r", stdin);
-		freopen(NIDLOG, "a", stdout);
-		freopen(NIDLOG, "a", stderr);
+		if(! freopen("/dev/null", "r", stdin))
+			LOG_ER("freopen stdin: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stdout))
+			LOG_ER("freopen stdout: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stderr))
+			LOG_ER("freopen stderr: %s", strerror(errno));
 
 		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
 		if (prio_stat < 0)
@@ -737,9 +743,15 @@ int32 fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuf
 
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		setsid();
-		freopen("/dev/null", "r", stdin);
-		freopen(NIDLOG, "a", stdout);
-		freopen(NIDLOG, "a", stderr);
+		if(! freopen("/dev/null", "r", stdin))
+			LOG_ER("freopen stdin: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stdout))
+			LOG_ER("freopen stdout: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stderr))
+			LOG_ER("freopen stderr: %s", strerror(errno));
+
 
 		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
 		if (prio_stat < 0)
@@ -798,9 +810,14 @@ int32 fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbu
 			close(nis_fifofd);
 
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		freopen("/dev/null", "r", stdin);
-		freopen(NIDLOG, "a", stdout);
-		freopen(NIDLOG, "a", stderr);
+		if(! freopen("/dev/null", "r", stdin))
+			LOG_ER("freopen stdin: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stdout))
+			LOG_ER("freopen stdout: %s", strerror(errno));
+
+		if(! freopen(NIDLOG, "a", stderr))
+			LOG_ER("freopen stderr: %s", strerror(errno));
 
 		if (service) {
 			prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);

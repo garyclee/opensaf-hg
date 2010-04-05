@@ -176,7 +176,11 @@ int getversion(void)
 
 	fp = fopen("/proc/sys/kernel/osrelease", "r");
 	if (NULL != fp) {
-		fgets(verstr, 127, fp);
+		if(! fgets(verstr, 127, fp)){
+			fclose(fp);
+			syslog(LOG_ERR, "Could not read osrelease");
+			return NCS_OS_UNSUPPORTED;
+		}
 		verstr[127] = '\0';
 		fclose(fp);
 		if (5 <= strlen(verstr)) ;
@@ -2205,8 +2209,14 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 			/* Reopen standard file descriptors and connect to a harmless device */
 			i = open("/dev/null", O_RDWR); /* open stdin */
-			dup(i); /* stdout */
-			dup(i); /* stderr */
+
+			if(-1 == dup(i)){
+				perror("dup stdout to /dev/null");
+			}
+
+			if(-1 == dup(i)){
+				perror("dup stderr to /dev/null");
+			}
 		}
 
 		/* child part */
