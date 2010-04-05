@@ -621,7 +621,6 @@ SmfStepStateExecuting::executeAuLock(SmfUpgradeStep * i_step)
 		return false;
 	}
 //TODO: Remove comments when AMF is updated
-#warning "AMF_FAULTY: Remove comments when AMF is updated, setMaintenanceState()"
 #if 0
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
@@ -736,7 +735,6 @@ SmfStepStateExecuting::executeAuLockAct(SmfUpgradeStep * i_step)
 		return false;
 	}
 //TODO: Remove comments when AMF is updated
-#warning "AMF_FAULTY: Remove comments when AMF is updated, setMaintenanceState()"
 #if 0
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
@@ -1005,7 +1003,6 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 	}
 
 //TODO: Remove comments when AMF is updated
-#warning "AMF_FAULTY: Remove comments when AMF is updated, setMaintenanceState()"
 #if 0
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
@@ -1225,7 +1222,6 @@ SmfStepStateExecuting::executeNodeRebootAct(SmfUpgradeStep * i_step)
 	}
 
 //TODO: Remove comments when AMF is updated
-#warning "AMF_FAULTY: Remove comments when AMF is updated, setMaintenanceState()"
 #if 0
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
