@@ -16,6 +16,8 @@
  *
  */
 
+#include <inttypes.h>
+
 #include "dts.h"
 #include "dts_imm.h"
 #include "dts_pvt.h"
@@ -442,13 +444,13 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					attribute = ccbUtilOperationData->param.create.attrValues[i];
 
 				while (attribute) {
-					SaUint32T value;
+					uintptr_t value;
 
 					if (attribute->attrValuesNumber == 0) {
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
-					value = *(SaUint32T *)attribute->attrValues[0];
+					value = *(uintptr_t *)attribute->attrValues[0];
 					if (!strcmp(attribute->attrName, "osafDtsvServiceLogDevice")) {
 						uns8 LogDevice = *((uns8 *)&value);
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogDevice  %u\n", LogDevice);
@@ -591,13 +593,13 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					attribute = ccbUtilOperationData->param.create.attrValues[i];
 
 				while (attribute) {
-					SaUint32T value;
+					uintptr_t value;
 
 					if (attribute->attrValuesNumber == 0) {
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
-					value = *(SaUint32T *)attribute->attrValues[0];
+					value = *(uintptr_t *)attribute->attrValues[0];
 
 					if (!strcmp(attribute->attrName, "osafDtsvNodeMessageLogging")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeMessageLogging = %u\n", value);
