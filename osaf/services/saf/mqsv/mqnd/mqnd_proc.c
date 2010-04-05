@@ -170,13 +170,17 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 				return rc;
 			}
 			/* Immsv Runtime Object Create  */
-			error = mqnd_create_runtime_MsgQobject(qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
-						      cb->immOiHandle);
+			error = mqnd_create_runtime_MsgQobject((char *)qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
+				cb->immOiHandle);
+
 			if (error != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);
 				return NCSCC_RC_FAILURE;
 			}
-			error = mqnd_create_runtime_MsgQPriorityobject(qnode->qinfo.queueName.value, qnode, cb->immOiHandle);
+
+			error = mqnd_create_runtime_MsgQPriorityobject((char *)qnode->qinfo.queueName.value, qnode,
+				cb->immOiHandle);
+
 			if (error != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);
 				return NCSCC_RC_FAILURE;
@@ -198,8 +202,8 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	SaAisErrorT err = SA_AIS_OK;
 	uns32 num_messages;
 	MQND_QUEUE_NODE *qnode = NULL;
-	uns8 *mqsv_message = NULL;
-	uns8 *mqsv_message_cpy = NULL;
+	char *mqsv_message = NULL;
+	char *mqsv_message_cpy = NULL;
 	MQSV_MESSAGE *tmp_msg;
 	ASAPi_OPR_INFO opr;
 	uns32 msg_count = 0;

@@ -140,7 +140,7 @@ extern "C" {
 					 */
 
 		uns32 if_index;
-		uns8 if_name[NCS_IF_NAMESIZE];
+		char if_name[NCS_IF_NAMESIZE];
 
 		NCS_DL_INDICATION dl_data_indication;
 		NCS_DL_INDICATION dl_ctrl_indication;

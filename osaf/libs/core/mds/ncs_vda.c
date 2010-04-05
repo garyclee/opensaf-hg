@@ -121,9 +121,9 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		policy = vda_info->info.vdest_create.i_policy;
 		spir_req.info.lookup_create_inst.i_inst_attrs.number = 1;
 		spir_req.info.lookup_create_inst.i_inst_attrs.attr = attr;
-		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrName = m_SPRR_VDEST_POLICY_ATTR_NAME;	/* Name-value name */
+		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrName = (SaUint8T *)m_SPRR_VDEST_POLICY_ATTR_NAME;	/* Name-value name */
 		/* typecasting to avoid warning in 64bit compilation */
-		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrValue = (uns8 *)&policy;	/* Must be an uns32 pointer */
+		spir_req.info.lookup_create_inst.i_inst_attrs.attr[0].attrValue = (SaUint8T *)&policy;	/* Must be an uns32 pointer */
 
 		if (vda_info->info.vdest_create.i_create_type == NCSVDA_VDEST_CREATE_SPECIFIC) {
 			if ((vda_info->info.vdest_create.info.specified.i_vdest == 0)

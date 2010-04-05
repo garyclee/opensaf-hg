@@ -586,7 +586,7 @@ extern "C" {
 
 					/* Interface name to use for connection. Used if 
 					   "i_if_index is zero */
-					uns8 i_if_name[NCS_IF_NAMESIZE];
+					char i_if_name[NCS_IF_NAMESIZE];
 
 					/* Client Data indication handler, matching NCS_DL_INDICATION prototype */
 					NCS_DL_INDICATION i_dl_data_indication;

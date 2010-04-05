@@ -106,16 +106,11 @@ extern "C" {
    Pass the pointer to NCS_IP_ADDR is input */
 #define m_NCS_CMP_IP_ADDR(i_addr1, i_addr2) ncs_cmp_ip_addr(i_addr1, i_addr2)
 
-#define m_NCS_IP_ADDR_TO_STR(i_addr, o_str)            \
-                        ncs_ip_addr_to_display_str(i_addr, o_str)
-
 #define m_NCS_IS_IP_ADDR_ALL_ZERO(i_addr) ncs_is_ip_addr_all_zero(i_addr)\
 
 #define m_NCS_IS_IP_ADDR_ZERO(i_addr) ncs_is_ip_addr_zero(i_addr)
 
 	EXTERN_C int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2);
-
-	EXTERN_C void ncs_ip_addr_to_display_str(NCS_IP_ADDR *i_addr, int8 *o_str);
 
 	EXTERN_C NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr);
 

@@ -151,7 +151,7 @@ uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
  |-----------|----------|-----------|--------|----------|------------ |----------|---------|        
 */
 
-uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, uns8 *buf, CPND_CKPT_NODE **cp_node,
+uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
 				   uns32 ref_cnt, CKPT_INFO *cp_info)
 {
 /*   NCS_OS_POSIX_SHM_REQ_INFO read_req,shm_read; */
@@ -309,7 +309,8 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	CLIENT_HDR cli_hdr;
 	CKPT_INFO cp_info, tmp_cp_info;
 	SaCkptHandleT client_hdl;
-	uns8 *buf = NULL, size = 0, total_length, *buffer;
+	char *buf = NULL, *buffer = NULL;
+	uns8 size = 0, total_length;
 	GBL_SHM_PTR gbl_shm_addr;
 	memset(&cp_info, '\0', sizeof(CKPT_INFO));
 	NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
@@ -325,7 +326,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 
 	size = strlen("CPND_CHECKPOINT_INFO");
 	total_length = size + sizeof(nodeid) + 5;
-	buffer = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
+	buffer = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
 	if (buffer == NULL) {
 		m_LOG_CPND_CL(CPND_DEFAULT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NULL;
@@ -469,9 +470,9 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 					/* size=cp_node->ckpt_name.length; */
 					size = cp_node->ckpt_name.length;
 					total_length = size + sizeof(cp_node->ckpt_id) + sizeof(NODE_ID) + 5;
-					buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
+					buf = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
 					memset(buf, '\0', total_length);
-					strncpy(buf, cp_node->ckpt_name.value, size);
+					strncpy(buf, (char *)cp_node->ckpt_name.value, size);
 					sprintf(buf + size - 1, "_%d_%d", (uns32)nodeid, (uns32)cp_node->ckpt_id);
 					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info);
 					if (rc != NCSCC_RC_SUCCESS) {

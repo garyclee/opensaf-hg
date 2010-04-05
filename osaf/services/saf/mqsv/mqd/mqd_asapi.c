@@ -1399,9 +1399,7 @@ static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE
 	MQD_OBJ_NODE *pObjNode = 0;
 
 	/* Get hold of the MQD controll block */
-	/*m_HTON_SANAMET_LEN(name->length); */
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (char *)name);
-	/*m_NTOH_SANAMET_LEN(name->length); */
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uns8 *)name);
 
 	*o_node = pObjNode;
 	if (pObjNode)
@@ -1450,7 +1448,7 @@ void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest)
 	NCS_Q_ITR itr;
 	uns32 count = 0;
 
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)NULL);
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)NULL);
 	while (pObjNode) {
 		if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE) {
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(pObjNode->oinfo.info.q.dest) ==
@@ -1480,7 +1478,7 @@ void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest)
 			}
 		}
 		name = pObjNode->oinfo.name;
-		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&name);
+		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&name);
 	}
 }
 
@@ -1502,7 +1500,7 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
 	NCS_Q_ITR itr;
 	uns32 count = 0;
 
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)NULL);
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)NULL);
 	while (pObjNode) {
 		if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE) {
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(pObjNode->oinfo.info.q.dest)
@@ -1531,7 +1529,7 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
 			}
 		}
 		name = pObjNode->oinfo.name;
-		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&name);
+		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&name);
 	}
 	return;
 }
