@@ -1929,7 +1929,8 @@ static SaAisErrorT validate_changes_to_ee_type_obj(SaImmOiCcbIdT ccb_id,
 }
 static SaInt32T get_obj_type_from_obj_name(SaUint8T *str) 
 {
-	SaInt32T obj_type;
+	SaInt32T obj_type = 0;
+
 	if (memcmp(str, "safHEType", 9) == 0) 
 		obj_type = PLMS_HE_BASE_TYPE_OBJ_TYPE;
 	else if (memcmp(str, "safHE", 5) == 0) 
