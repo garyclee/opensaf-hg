@@ -360,7 +360,11 @@ static int get_node_info(NODE_INFO *node)
 		return -1;
 	}
 
-	fscanf(fp, "%s", node->node_name.value);
+	if(EOF == fscanf(fp, "%s", node->node_name.value)){
+		fclose(fp);
+		LOG_ER("Could not get node name - %s", strerror(errno));
+		return -1;
+	}
 	fclose(fp);
 	node->node_name.length = strlen((char *)node->node_name.value);
 	TRACE("%s", node->node_name.value);
@@ -371,7 +375,11 @@ static int get_node_info(NODE_INFO *node)
 		return -1;
 	}
 
-	fscanf(fp, "%x", &node->node_id);
+	if(EOF == fscanf(fp, "%x", &node->node_id)){
+		fclose(fp);
+		LOG_ER("Could not get node id - %s", strerror(errno));
+		return -1;
+	}
 	fclose(fp);
 	TRACE("%d", node->node_id);
 

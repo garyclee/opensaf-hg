@@ -848,14 +848,16 @@ EXTERN_C DTS_CB dts_cb;
       { \
          if(((msg->data.data.msg.log_msg.hdr.severity)&(cons_dev->cons_sev_filter)) && (cons_dev->cons_fd > 0)) \
          { \
-            write(cons_dev->cons_fd, str, len); \
+            if(-1 == write(cons_dev->cons_fd, str, len)) \
+               perror("m_DTS_CONS_PRINT"); \
          } \
          cons_dev = cons_dev->next; \
       } \
    } \
    else if(dts_cb.cons_fd >= 0) \
    { \
-      write(dts_cb.cons_fd, str, len); \
+      if(-1 == write(dts_cb.cons_fd, str, len)) \
+               perror("m_DTS_CONS_PRINT"); \
    } \
 } \
 

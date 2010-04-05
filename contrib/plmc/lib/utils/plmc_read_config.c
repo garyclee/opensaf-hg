@@ -82,9 +82,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
 	}
 
 	/* Read file. */
-	while(!feof(plmc_conf_file)){
-		fgets(line,(PLMC_MAX_TAG_LEN - 1),plmc_conf_file);
-
+	while(fgets(line, PLMC_MAX_TAG_LEN, plmc_conf_file)){
 		/* If blank line, skip it - and set tag back to 0. */
 		if (strcmp(line, "\n") == 0) {
 			tag = 0;
@@ -207,13 +205,17 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
 			}
 		}
 	}
+
+	/* End-of-file or error? */
+	int err = feof(plmc_conf_file) ? 0 : errno;
+
 	config->num_services = num_services;
 
 	/* Close file. */
 	fclose(plmc_conf_file);
 
-	/* All done - return 0. */
-	return(0);
+	/* All done. */
+	return(err);
 }
 
 /*

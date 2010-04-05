@@ -110,7 +110,11 @@ void ncs_exec_module_signal_hdlr(int signal)
 
 		/*  printf("\n In  SIGCHLD Handler \n"); */
 
-		write(module_cb.write_fd, (const void *)&info, sizeof(EXEC_MOD_INFO));
+		if(-1 == write(module_cb.write_fd, (const void *)&info,
+					sizeof(EXEC_MOD_INFO))){
+			perror("ncs_exec_module_signal_hdlr: write");
+		}
+		
 	}
 
 }
@@ -141,9 +145,10 @@ void ncs_exec_module_timer_hdlr(void *uarg)
 	info.status = status;
 	info.type = SYSF_EXEC_INFO_TIME_OUT;
 
-	write(module_cb.write_fd, (const void *)&info, sizeof(EXEC_MOD_INFO));
-
-	return;
+	if(-1 == write(module_cb.write_fd, (const void *)&info,
+				sizeof(EXEC_MOD_INFO))){
+		perror("ncs_exec_module_timer_hdlr: write");
+	} 
 }
 
 /**************************************************************************\

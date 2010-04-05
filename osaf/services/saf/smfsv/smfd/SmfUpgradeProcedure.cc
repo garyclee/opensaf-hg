@@ -378,9 +378,10 @@ SmfUpgradeProcedure::switchOver()
 {
 	TRACE_ENTER();
 	/* TODO We most likely need to spawn a separate thread to execute
-	   the switch over since the it ought to close down ourselfs */
+	   the switch over since the it ought to close down ourself */
 	TRACE("SwichOver RAW method, Ordering reboot()");
-	system("reboot");
+	if(-1 == system("reboot"))
+		LOG_ER("Ordering reboot failed.");
 	TRACE_LEAVE();
 }
 

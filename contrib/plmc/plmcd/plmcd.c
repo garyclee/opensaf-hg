@@ -534,7 +534,7 @@ int writepid(char *pidfile)
 	int fd;
 	int pid;
 
-	/* open the file and accociate a stream with it */
+	/* open the file and associate a stream with it */
 	if ( ((fd = open(pidfile, O_RDWR|O_CREAT, 0644)) == -1)
 			|| ((file = fdopen(fd, "r+")) == NULL) ) { 
 		syslog(LOG_ERR, "Error, open %s: %m", pidfile);
@@ -544,7 +544,6 @@ int writepid(char *pidfile)
 	/* Lock the file */
 	if (flock(fd, LOCK_EX|LOCK_NB) == -1) {
 		syslog(LOG_ERR, "Error, flock %s: %m", pidfile);
-		fscanf(file, "%d", &pid);
 		fclose(file);
 		return 0;
 	}
@@ -552,17 +551,17 @@ int writepid(char *pidfile)
 	pid = getpid();
 	if (!fprintf(file,"%d\n", pid)) {
 		syslog(LOG_ERR, "Error, fprintf %s: %m", pidfile);
-		close(fd);
+		fclose(file);
 		return 0;
 	}
 	fflush(file);
 
 	if (flock(fd, LOCK_UN) == -1) {
 		syslog(LOG_ERR, "Error, flock %s: %m", pidfile);
-		close(fd);
+		fclose(file);
 		return 0;
 	}
-	close(fd);
+	fclose(file);
 
 	return pid;
 }
@@ -580,7 +579,12 @@ int chkpid(char *pidfile)
 	if (!(file=fopen(pidfile,"r")))
 		return 0;
 
-	fscanf(file, "%d", &pid);
+	if(fscanf(file, "%d", &pid) == EOF){
+		syslog(LOG_ERR, "Error, reading %s: %m", pidfile);
+		fclose(file);
+		return 0;
+	}
+
 	fclose(file);
 
 	/* Is it my pid file? */

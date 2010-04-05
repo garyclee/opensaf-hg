@@ -145,7 +145,12 @@ static uns32 clms_self_node_info(void)
 		goto done;
 	}
 
-	fscanf(fp, "%s", node_name);
+	if(EOF == fscanf(fp, "%s", node_name)) {
+		LOG_ER("Could not read node name - %s", strerror(errno));
+		fclose(fp);
+		goto done;
+	}
+
 	fclose(fp);
 
 	/* Generate a CLM node DN with the help of cluster DN */
