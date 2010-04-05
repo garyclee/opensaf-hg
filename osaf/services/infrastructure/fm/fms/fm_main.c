@@ -46,7 +46,6 @@ static uns32 fms_fms_exchange_node_info(FM_CB *);
 static uns32 fm_nid_notify(uns32);
 static uns32 fm_tmr_start(FM_TMR *, SaTimeT);
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
-static void fm_tmr_stop(FM_TMR *);
 static void fm_tmr_exp(void *);
 
 uns32 gl_fm_hdl;
@@ -475,36 +474,6 @@ void fm_tmr_exp(void *fm_tmr)
 /* Give handle */
 	ncshm_give_hdl(gl_fm_hdl);
 	fm_cb = NULL;
-
-	return;
-}
-
-/****************************************************************************
-* Name          : fm_tmr_stop
-*
-* Description   :  Stops the timer
-*
-* Arguments     :  Pointer to Timer Data Str
-*
-* Return Values : None.
-* 
-* Notes         : None. 
-*****************************************************************************/
-void fm_tmr_stop(FM_TMR *tmr)
-{
-	if (FM_TMR_TYPE_MAX <= tmr->type) {
-		return;
-	}
-
-	if (FM_TMR_RUNNING == tmr->status) {
-		tmr->status = FM_TMR_STOPPED;
-		m_NCS_TMR_STOP(tmr->tmr_id);
-	}
-
-	if (TMR_T_NULL != tmr->tmr_id) {
-		m_NCS_TMR_DESTROY(tmr->tmr_id);
-		tmr->tmr_id = TMR_T_NULL;
-	}
 
 	return;
 }

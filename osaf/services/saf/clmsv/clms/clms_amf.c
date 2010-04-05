@@ -38,15 +38,14 @@
  *****************************************************************************/
 static SaAisErrorT amf_active_state_handler(CLMS_CB * cb, SaInvocationT invocation)
 {
-	SaAisErrorT error = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER2("AMF HA ACTIVE request");
 
 	clms_cb->mds_role = V_DEST_RL_ACTIVE;
 
- done:
 	TRACE_LEAVE();
-	return error;
+	return rc;
 }
 
 /****************************************************************************

@@ -119,7 +119,7 @@ static void sigusr1_handler(int sig)
  * Ssignal handler to dump information from all data structures
  * @param sig
  */
-static void dump_sig_handler(int sig)
+/*static void dump_sig_handler(int sig)
 {
 	log_stream_t *stream;
 	log_client_t *client;
@@ -163,7 +163,7 @@ static void dump_sig_handler(int sig)
 
 	if (trace_category_set(old_category_mask) == -1)
 		printf("trace_category_set failed");
-}
+}*/
 
 /**
  * Initialize log

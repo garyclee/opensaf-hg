@@ -1195,50 +1195,6 @@ uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	return rc;
 }
 
-/****************************************************************************
- * Name          : glsv_edp_gld_evt_gld_node_list
- *
- * Description   :
- *
- *
- *
- * Notes         : None.
- *****************************************************************************/
-static uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
-				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	GLSV_NODE_LIST *struct_ptr = NULL, **d_ptr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	EDU_INST_SET glsv_gld_create_rules[] = {
-		{EDU_START, glsv_edp_gld_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_NODE_LIST), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_NODE_LIST *)0)->dest_id, 0, NULL},
-		{EDU_TEST_LL_PTR, glsv_edp_gld_node_list, 0, 0, 0, (long)&((GLSV_NODE_LIST *)0)->next, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (GLSV_NODE_LIST *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (GLSV_NODE_LIST **)ptr;
-		if (*d_ptr == NULL) {
-			/* malloc the memory */
-			if (*d_ptr == NULL) {
-				*o_err = EDU_ERR_MEM_FAIL;
-				return NCSCC_RC_FAILURE;
-			}
-			memset(*d_ptr, '\0', sizeof(GLSV_NODE_LIST));
-		}
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr = ptr;
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, glsv_gld_create_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-	return rc;
-}
-
 uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 NCSCONTEXT ptr, uns32 *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)

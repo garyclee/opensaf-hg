@@ -380,8 +380,6 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	return NCSCC_RC_SUCCESS;
 
- amf_hc_start_fail:
-	mqnd_mds_unregister(cb);
  mqnd_mds_fail:
 	m_NCS_TASK_STOP(cb->task_hdl);
 
@@ -392,7 +390,6 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	saImmOiFinalize(cb->immOiHandle);
  mqnd_clm_fail:
 	saClmFinalize(cb->clm_hdl);
- clm_init_fail:
  amf_reg_err:
 	mqnd_amf_de_init(cb);
  amf_init_err:

@@ -910,16 +910,6 @@ void ckpt_cluster_rec(void)
 	TRACE_LEAVE();
 }
 
-static void ckpt_node_rec_list(CLMS_CLUSTER_NODE * node)
-{
-	CLMS_CLUSTER_NODE *node_list = node;
-	ckpt_node_rec(node);
-	if (node_list->dep_node_list) {
-		ckpt_node_rec(node_list->dep_node_list);
-		node_list->dep_node_list = node_list->dep_node_list->next;
-	}
-}
-
 /**
  * Walk through the clma list to find a match. 
  */
