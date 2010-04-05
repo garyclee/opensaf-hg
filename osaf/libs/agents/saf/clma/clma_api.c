@@ -1180,13 +1180,13 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 
 	TRACE_ENTER();
 
-	if ((clmHandle == NULL) || (node_id == NULL)) {
+	if ((clmHandle == 0) || (node_id == 0)) {
 		TRACE("clmHandle or notification is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
-	if (timeout == NULL) {
+	if (timeout == 0) {
 		TRACE("timeout is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
@@ -1293,7 +1293,7 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
 
 	TRACE_ENTER();
 
-	if ((clmHandle == NULL) || (node_id == NULL) || (inv == NULL)) {
+	if ((clmHandle == 0) || (node_id == 0) || (inv == 0)) {
 		TRACE("clmHandle or notification is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
@@ -1379,7 +1379,7 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 
 	TRACE_ENTER();
 
-	if ((clmHandle == NULL) || (notification == NULL)) {
+	if ((clmHandle == 0) || (notification == NULL)) {
 		TRACE("clmHandle or notification is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
@@ -1434,7 +1434,7 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 
 	TRACE_ENTER();
 
-	if ((clmHandle == NULL) || (invocation == NULL)) {
+	if ((clmHandle == 0) || (invocation == 0)) {
 		TRACE("clmHandle or invocation is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
