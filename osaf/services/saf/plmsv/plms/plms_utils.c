@@ -4574,7 +4574,7 @@ SaUint32T plms_timer_start(timer_t *timer_id,void *cnxt,SaUint64T nsec)
 	if((timer_settime(*timer_id,0,&timer,NULL)) != 0){
 		LOG_ER("\nStarting the timer failed, Timer_id: %ld\n",
 		(long int)*timer_id);
-		timer_delete(timer_id);
+		timer_delete(*timer_id);
 		TRACE("Timer deleted,Timer_id: %lu\n",(long unsigned)*timer_id);
 		return NCSCC_RC_FAILURE;
 	}
