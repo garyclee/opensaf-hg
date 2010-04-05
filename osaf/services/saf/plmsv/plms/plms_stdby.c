@@ -379,7 +379,7 @@ static SaUint32T plms_perform_pending_admin_clbk(
 	PLMS_CB       *cb = plms_cb;
 	SaInvocationT inv_id = 0;
         PLMS_EVT agent_evt;
-        SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
         SaUint32T cnt;
 
 	TRACE_ENTER();
@@ -584,7 +584,7 @@ SaUint32T plms_perform_pending_admin_lock(
 				PLMS_CKPT_TRACK_STEP_INFO  *track_step,
 				PLMS_ENTITY   *ent)
 {
-        uns32 ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
         PLMS_GROUP_ENTITY *aff_ent_list = NULL,*log_head;
         PLMS_GROUP_ENTITY *tmp_aff_ent_list = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list = NULL;

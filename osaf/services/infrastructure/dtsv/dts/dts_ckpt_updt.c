@@ -69,7 +69,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 	OP_DEVICE *device = NULL;
 	MDS_DEST dta_key;
 	SVC_ENTRY *svc_entry = NULL;
-	SVC_KEY svc_key, nt_key;
+	SVC_KEY svc_key = {0, 0}, nt_key = {0, 0};
 
 	if (dtadest == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_dta_dest: DTA_DEST_LIST ptr is NULL");

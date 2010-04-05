@@ -1257,7 +1257,7 @@ static SaUint32T hsm_session_reopen()
 { 
 	PLMS_HSM_CB       *cb = hsm_cb;
 	SaHpiSessionIdT   session_id;
-	SaInt32T	  rc, retry = 1;
+	SaInt32T	  rc = 0, retry = 1;
 	SaInt32T	  err;
 	
 	TRACE_ENTER();
@@ -1317,7 +1317,7 @@ static SaUint32T hsm_session_reopen()
 		}
 		else{
 			TRACE("HSM:Error in setting Auto Insertion timeout \
-                                                return value is:%d",rc);
+                                                return value is:%d", err);
 		}
 	}else
 	

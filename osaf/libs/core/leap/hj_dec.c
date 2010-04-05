@@ -381,7 +381,7 @@ uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key)
 ncsfloat32 ncs_decode_float(uns8 **stream)
 {
 	uns32 val;
-	ncsfloat32 ret_val;
+	ncsfloat32 ret_val = 0;
 
 	val = (uns32)*(*stream)++ << 24;
 	val |= (uns32)*(*stream)++ << 16;

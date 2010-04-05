@@ -249,7 +249,7 @@ uns32 glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_i
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
 	GLSV_GLND_EVT glnd_evt;
-	SaLckLockModeT lock_type;
+	SaLckLockModeT lock_type = SA_LCK_PR_LOCK_MODE;
 	NCS_BOOL local_orphan_lock = FALSE;
 
 	if (!client_info) {
@@ -331,7 +331,7 @@ uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
 	GLSV_GLND_EVT glnd_evt;
-	SaLckLockModeT lock_type;
+	SaLckLockModeT lock_type = SA_LCK_PR_LOCK_MODE;
 	NCS_BOOL local_orphan_lock = FALSE;
 	NCS_BOOL resource_del = TRUE;
 

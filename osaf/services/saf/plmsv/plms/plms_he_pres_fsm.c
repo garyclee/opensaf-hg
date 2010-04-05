@@ -231,7 +231,7 @@ Notes           :
 static SaUint32T plms_HE_inact_np_to_act( PLMS_EVT *evt)
 {
 	
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -303,7 +303,7 @@ Notes           : This transition does not make much sence as the HE did not go
 ******************************************************************************/
 static SaUint32T plms_HE_inact_to_extpending_op( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -360,7 +360,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -448,7 +448,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -509,7 +509,7 @@ Notes           : This transition does not make much sence. On getting M2/M3,
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -627,7 +627,7 @@ Notes           : Use Case:
 ******************************************************************************/
 static SaUint32T plms_HE_actving_to_np_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -1173,7 +1173,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_np_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -1251,7 +1251,7 @@ Notes           : In M4, this HE might be in InSvc. If it is and PLMS misses
 ******************************************************************************/
 static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -1890,7 +1890,7 @@ Notes           : Use case:
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_act_op( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -1963,7 +1963,7 @@ Notes           : For 5 state model,if deactivation is in progress and hence
 ******************************************************************************/
 static SaUint32T plms_HE_deacting_to_np_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
@@ -2420,7 +2420,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL, *act_ent_list = NULL;
 	PLMS_GROUP_ENTITY *head = NULL,*log_head, *chld_list = NULL;
@@ -2608,7 +2608,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
 	PLMS_GROUP_ENTITY *head = NULL;
@@ -2724,7 +2724,7 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 	PLMS_ENTITY_GROUP_INFO_LIST *head;
 	PLMS_CB *cb = plms_cb;
 	PLMS_GROUP_ENTITY *aff_head = NULL;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 
@@ -3174,7 +3174,7 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 				SaPlmHETypeT **o_he_type,
 				PLMS_ENTITY **o_ent)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaUint32T max;
 	PLMS_ENTITY *ent;
 	SaUint32T epath_matched = 0, he_type_idr_matched = 0;
@@ -3600,7 +3600,8 @@ Notes           : This also takes care of setting management lost flag, admin
 ******************************************************************************/
 SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
-	SaUint32T ret_err,cbk = 0;
+	SaUint32T cbk = 0;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
 	if (NULL == ent){
 		LOG_ER("HE deact failed. Ent NULL");
@@ -3728,7 +3729,8 @@ Notes           : This also takes care of setting management lost flag, adm_op_
 ******************************************************************************/
 SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
-	SaUint32T ret_err,cbk = 0;
+	SaUint32T cbk = 0;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	TRACE("State model of the ent: %d",ent->state_model);
@@ -3848,7 +3850,8 @@ Notes           :
 SaUint32T plms_he_reset(PLMS_ENTITY *ent,SaUint32T is_adm_op, 
 					SaUint32T mngt_cbk, SaUint32T reset_type)
 {
-	SaUint32T ret_err,cbk = 0;
+	SaUint32T cbk = 0;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 
 	if (NULL == ent){
 		LOG_ER("he_reset fail. Ent NULL.");
@@ -3921,7 +3924,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_HPI_REQ req;
 	PLMS_HPI_RSP *resp = NULL;

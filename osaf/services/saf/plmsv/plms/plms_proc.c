@@ -310,7 +310,7 @@ void  plms_process_agent_initialize(PLMS_EVT *plm_evt)
 	PLMS_EVT resp_evt;
 	SaUint32T rc = SA_AIS_OK;
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
-	PLMS_CLIENT_INFO *client_info;
+	PLMS_CLIENT_INFO *client_info = NULL;
 	PLMS_MBCSV_MSG mbcsv_msg;
 
 	TRACE_ENTER();
@@ -877,7 +877,7 @@ void plms_process_grp_create_evt(PLMS_EVT *plm_evt)
 	SaUint32T	  rc = SA_AIS_OK;
 	SaUint32T	  proc_rc = NCSCC_RC_SUCCESS; 
 	PLMS_EVT          plm_resp;
-	PLMS_ENTITY_GROUP_INFO *grp_info;
+	PLMS_ENTITY_GROUP_INFO *grp_info = NULL;
 	PLMS_MBCSV_MSG mbcsv_msg;
 
 	TRACE_ENTER();

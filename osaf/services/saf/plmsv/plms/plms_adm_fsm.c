@@ -259,7 +259,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_unlock_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -293,7 +293,7 @@ Notes           :
 SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 {
 	PLMS_ENTITY *ent;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
 	PLMS_TRACK_INFO *trk_info;
 	PLMS_CB *cb = plms_cb;
@@ -500,7 +500,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_shutdown_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -524,7 +524,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_act_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -553,7 +553,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_unlock_state_deact_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -582,7 +582,7 @@ Notes           :
 SaUint32T plms_HE_adm_locked_state_unlock_op(PLMS_EVT *evt)
 {
 
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -605,7 +605,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_act_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -634,7 +634,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -667,7 +667,7 @@ Notes           : None.
 SaUint32T plms_HE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 {
 	
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -700,7 +700,7 @@ Notes           : TODO : No callback is to be called for this admin
 ******************************************************************************/
 SaUint32T plms_HE_adm_locked_state_deact_op (  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -782,7 +782,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_deact_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -810,7 +810,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_act_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -838,7 +838,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -871,7 +871,7 @@ Notes           : The assumption is, the adminstrator can issue only forced
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_lock_op(PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -896,7 +896,7 @@ Notes           : Any of the application is not responding for shutdown admin
 ******************************************************************************/
 SaUint32T plms_HE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -919,7 +919,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_unlock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -947,7 +947,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -975,7 +975,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_lock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1010,7 +1010,7 @@ Notes           : TODO: Not required to call readiness callback as no change
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_act_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_ENTITY *ent;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -1093,7 +1093,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_HE_adm_lckinact_state_deact_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1130,7 +1130,7 @@ SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 {
 	PLMS_ENTITY *ent,*chld_head;
 	PLMS_CB *cb = plms_cb;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_GROUP_ENTITY *aff_ent_list=NULL,*act_aff_ent_list=NULL;
 	PLMS_GROUP_ENTITY *head,*temp;
 	PLMS_GROUP_ENTITY *aff_chld_ee_list=NULL,*dep_chld_ee_list=NULL;
@@ -1572,7 +1572,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_unlock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1601,7 +1601,7 @@ Notes           :
 SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 {
 	PLMS_ENTITY *ent;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_GROUP_ENTITY *aff_ent_list=NULL;
 	PLMS_CB *cb = plms_cb;
 	PLMS_TRACK_INFO *trk_info;
@@ -1805,7 +1805,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_shutdown_op( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -1829,7 +1829,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_unlckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1858,7 +1858,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_unlock_state_lckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1887,7 +1887,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_unlock_op( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -1910,7 +1910,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -1934,7 +1934,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_unlckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -1963,7 +1963,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2001,7 +2001,7 @@ Notes           : TODO : No callback is to be called for this admin
 ******************************************************************************/
 SaUint32T plms_EE_adm_locked_state_lckinst_op(   PLMS_EVT *evt )
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -2083,7 +2083,7 @@ Notes           : Any of the application is not responding for shutdown admin
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_unlock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -2108,7 +2108,7 @@ Notes           : Any of the application is not responding for shutdown admin
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_lock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
@@ -2131,7 +2131,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2160,7 +2160,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_lckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2188,7 +2188,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_shutdown_state_unlckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2216,7 +2216,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_shutdown_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2244,7 +2244,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_lock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2272,7 +2272,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_unlock_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2301,7 +2301,7 @@ Notes           : None.
 SaUint32T plms_EE_adm_lckinst_state_unlckinst_op(  PLMS_EVT *evt)
 {
 
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -2384,7 +2384,7 @@ Notes           : None.
 ******************************************************************************/
 SaUint32T plms_EE_adm_lckinst_state_lckinst_op(  PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
@@ -2414,7 +2414,7 @@ Notes           :
 SaUint32T plms_EE_adm_restart( PLMS_EVT *evt)
 {
 	PLMS_ENTITY *ent;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_GROUP_ENTITY *aff_ent_list=NULL;
 	PLMS_CB *cb = plms_cb;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -2510,7 +2510,7 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_adm_remove( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_GROUP_ENTITY *act_aff_ent_list = NULL,*act_aff_list = NULL;
@@ -2860,7 +2860,7 @@ Notes           :
 SaUint32T plms_adm_repair( PLMS_EVT *evt)
 {
 	
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO trk_info;
@@ -3395,7 +3395,7 @@ static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent,
 		PLMS_TRACK_INFO *trk_info, PLMS_IMM_ADMIN_OP adm_op,
 		SaUint32T new_aff_ent,SaUint32T term_ee)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_GROUP_ENTITY *head;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
@@ -3758,7 +3758,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO *trk_info;
@@ -3916,7 +3916,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_GROUP_ENTITY *aff_ent_list=NULL,*head;
@@ -4076,7 +4076,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_TRACK_INFO *trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *grp_list_head;
@@ -4215,7 +4215,7 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_ent_locked_to_unlock( PLMS_EVT *evt)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_GROUP_ENTITY *aff_ent_list=NULL;
@@ -4550,7 +4550,8 @@ SaUint32T plms_cbk_call(PLMS_TRACK_INFO *trk_info,SaUint8T add_root)
 	static SaInvocationT act_inv_id;
 	SaInvocationT inv_id;
 	PLMS_EVT agent_evt;
-	SaUint32T ret_err,cnt,is_validate;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
+	SaUint32T cnt,is_validate;
 
 	grp_list = trk_info->group_info_list;
 
@@ -5175,7 +5176,7 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 {
 	PLMS_GROUP_ENTITY *head = NULL;
 	PLMS_CB *cb = plms_cb;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
 	head = trk_info->aff_ent_list;
 	while(head){
@@ -5263,7 +5264,7 @@ static void plms_shutdown_completed_cbk_call(PLMS_ENTITY *ent,
 PLMS_TRACK_INFO  *trk_info)
 {
 	PLMS_GROUP_ENTITY *head = NULL;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_CB *cb = plms_cb;
 
 	/* Mark admin state of root ent to LOCK and 
@@ -5415,7 +5416,7 @@ Notes           :
 void plms_deact_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
 	PLMS_GROUP_ENTITY *head;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
 	/* Uninstantiate all the EEs.*/
 	head = trk_info->aff_ent_list;
