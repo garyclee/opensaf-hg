@@ -1082,8 +1082,6 @@ void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster
 	node->stat_change = cluster_node->stat_change;
 	node->admin_op = cluster_node->admin_op;
 	node->plm_invid = cluster_node->plm_invid;
-
-        return NCSCC_RC_SUCCESS;
 }
 
 void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node)
