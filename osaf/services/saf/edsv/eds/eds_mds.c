@@ -17,6 +17,7 @@
 
 #include "eds.h"
 #include "eds_ckpt.h"
+#include "logtrace.h"
 
 MDS_CLIENT_MSG_FORMAT_VER
  EDS_WRT_EDA_MSG_FMT_ARRAY[EDS_WRT_EDA_SUBPART_VER_RANGE] = {
@@ -1299,7 +1300,7 @@ static uns32 eds_mds_svc_event(struct ncsmds_callback_info *info)
 
 	eds_cb_hdl = (uns32)info->i_yr_svc_hdl;
 
-	m_EDSV_DEBUG_CONS_PRINTF("\n EDS Rcvd MDS subscribe evt from svc %d\n", info->info.svc_evt.i_svc_id);
+	TRACE("EDS Rcvd MDS subscribe evt from svc %d", info->info.svc_evt.i_svc_id);
 
 	/* Take the hdl */
 	if ((eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, eds_cb_hdl)) == NULL) {

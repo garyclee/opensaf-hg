@@ -15,21 +15,7 @@
  *
  */
 
-/*****************************************************************************
-..............................................................................
-
-..............................................................................
-
-  DESCRIPTION:
-
-  This file contains routines used by EDA library for MDS interaction.
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-  
-
-******************************************************************************
-*/
+#include <logtrace.h>
 
 #include "eda.h"
 
@@ -945,7 +931,7 @@ static uns32 eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	/* Retrieve the EDA_CB hdl */
 	eda_cb_hdl = (uns32)mds_cb_info->i_yr_svc_hdl;
 
-	m_EDSV_DEBUG_CONS_PRINTF("\n EDA Rcvd MDS subscribe evt from svc %d \n", mds_cb_info->info.svc_evt.i_svc_id);
+	TRACE("EDA Rcvd MDS subscribe evt from svc %d", mds_cb_info->info.svc_evt.i_svc_id);
 
 	/* Take the EDA hdl */
 	if ((eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eda_cb_hdl)) == NULL) {

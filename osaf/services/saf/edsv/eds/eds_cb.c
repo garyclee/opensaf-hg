@@ -30,6 +30,7 @@ This contains the EDS_CB functions.
 #include "eds.h"
 #include "poll.h"
 #include "signal.h"
+#include "logtrace.h"
 
 #define FD_AMF 0
 #define FD_MBCSV 1
@@ -173,10 +174,10 @@ void eds_main_process(SYSF_MBX *mbx)
 	if (eds_imm_init(eds_cb) == SA_AIS_OK) {
 		if (eds_cb->ha_state == SA_AMF_HA_ACTIVE) {
 			if (eds_imm_declare_implementer(eds_cb->immOiHandle) != SA_AIS_OK)
-				m_EDSV_DEBUG_CONS_PRINTF("Implementer Set Failed\n");
+				TRACE("Implementer Set Failed");
 		}
 	} else
-		m_EDSV_DEBUG_CONS_PRINTF("Imm Init Failed \n");
+		TRACE("Imm Init Failed");
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_AMF].fd = eds_cb->amfSelectionObject;
@@ -197,12 +198,12 @@ void eds_main_process(SYSF_MBX *mbx)
 			if (errno == EINTR)
 				continue;
 
-			m_EDSV_DEBUG_CONS_PRINTF("poll failed - %s", strerror(errno));
+			TRACE("poll failed - %s", strerror(errno));
 			break;
 		}
 		/* process all the AMF messages */
 		if (fds[FD_AMF].revents & POLLIN) {
-			m_EDSV_DEBUG_CONS_PRINTF("AMF EVENT HAS OCCURRED....\n");
+			TRACE("AMF EVENT HAS OCCURRED....");
 			/* dispatch all the AMF pending callbacks */
 			error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK) {
@@ -213,34 +214,34 @@ void eds_main_process(SYSF_MBX *mbx)
 
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
-			m_EDSV_DEBUG_CONS_PRINTF("MBCSV EVENT HAS OCCURRED....\n");
+			TRACE("MBCSV EVENT HAS OCCURRED....");
 			error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
 			if (NCSCC_RC_SUCCESS != error)
-				m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH FAILED...\n");
+				TRACE("MBCSV DISPATCH FAILED...");
 			else
-				m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH SUCCESS...\n");
+				TRACE("MBCSV DISPATCH SUCCESS...");
 		}
 
 		/* Process the EDS Mail box, if eds is ACTIVE. */
 		if (fds[FD_MBX].revents & POLLIN) {
-			m_EDSV_DEBUG_CONS_PRINTF("MAILBOX EVENT HAS OCCURRED....\n");
+			TRACE("MAILBOX EVENT HAS OCCURRED....");
 			/* now got the IPC mail box event */
 			eds_process_mbx(mbx);
 		}
 
 		/* process the CLM messages */
 		if (fds[FD_CLM].revents & POLLIN) {
-			m_EDSV_DEBUG_CONS_PRINTF("CLM EVENT HAS OCCURRED....\n");
+			TRACE("CLM EVENT HAS OCCURRED....");
 
 			/* dispatch all the AMF pending callbacks */
 			error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK)
-				m_EDSV_DEBUG_CONS_PRINTF("CLM Dispatch failed, error \n");
+				TRACE("CLM Dispatch failed, error");
 		}
 
 		/* process the IMM messages */
 		if (eds_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
-			m_EDSV_DEBUG_CONS_PRINTF("IMM EVENT HAS OCCURRED....\n");
+			TRACE("IMM EVENT HAS OCCURRED....");
 
 			/* dispatch all the IMM pending function */
 			error = saImmOiDispatch(eds_cb->immOiHandle, SA_DISPATCH_ONE);
@@ -256,7 +257,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			 */
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				m_EDSV_DEBUG_CONS_PRINTF("saImmOiDispatch returned BAD_HANDLE %u", error);
+				TRACE("saImmOiDispatch returned BAD_HANDLE %u", error);
 
 				/* Invalidate the IMM OI handle. */
 				eds_cb->immOiHandle = 0;
@@ -271,13 +272,13 @@ void eds_main_process(SYSF_MBX *mbx)
 					/* If this is the active server, become implementer again. */
 					if (eds_cb->ha_state == SA_AMF_HA_ACTIVE)
 						eds_imm_declare_implementer(eds_cb->immOiHandle);
-					m_EDSV_DEBUG_CONS_PRINTF("eds_imm_init successful\n");
+					TRACE("eds_imm_init successful");
 				}
 			
 				fds[FD_IMM].fd = eds_cb->imm_sel_obj;
 				nfds = FD_IMM + 1;
 			} else if (error != SA_AIS_OK) {
-				m_EDSV_DEBUG_CONS_PRINTF("saImmOiDispatch FAILED: %u", error);
+				TRACE("saImmOiDispatch FAILED: %u", error);
 				break;
 			}
 

@@ -25,6 +25,7 @@
 *                                                                            *
 *****************************************************************************/
 #include "eds.h"
+#include "logtrace.h"
 
 /****************************************************************************
  *
@@ -1746,7 +1747,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 		if (!give_hdl)
 			eds_stop_tmr(&rm_node->ret_tmr);
 
-		m_EDSV_DEBUG_CONS_PRINTF("\n Cleared Retained event %u\n", rm_node->event_id);
+		TRACE("Cleared Retained event %u", rm_node->event_id);
 
 		m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
 
@@ -1776,7 +1777,7 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 				if (!give_hdl)
 					eds_stop_tmr(&rm_node->ret_tmr);
 
-				m_EDSV_DEBUG_CONS_PRINTF("\n Cleared Retained event %u\n", rm_node->event_id);
+				TRACE("Cleared Retained event %u", rm_node->event_id);
 
 				m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
 

@@ -28,6 +28,7 @@ This include file contains SE api instrumentation for EDS
 *******************************************************************************/
 #include <configmake.h>
 #include "eds.h"
+#include "logtrace.h"
 
 /* global cb handle */
 uns32 gl_eds_hdl = 0;
@@ -128,7 +129,7 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	if (rc != SA_AIS_OK) {
 		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
 						     rc, __FILE__, __LINE__, 0);
-		m_EDSV_DEBUG_CONS_PRINTF("CLM Init failed: Exiting.\n");
+		TRACE("CLM Init failed: Exiting.");
 		exit(1);
 	} else {
 		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
@@ -140,7 +141,7 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	if (rc != NCSCC_RC_SUCCESS) {
 		m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
 						     __FILE__, __LINE__, 0);
-		m_EDSV_DEBUG_CONS_PRINTF("AMF Init failed: Exiting.\n");
+		TRACE("AMF Init failed: Exiting.");
 		exit(1);
 	} else {
 	m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
