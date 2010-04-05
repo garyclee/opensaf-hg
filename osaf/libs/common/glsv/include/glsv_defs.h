@@ -77,13 +77,6 @@ typedef enum {
 	GLND_DOWN_STATE
 } GLND_NODE_STATUS;
 
-/* DEBUG and LOG info that are scattered in the code */
-#if(NCS_GLSV_DEBUG == 1)
-#define m_GLSV_DEBUG_CONS_PRINTF   printf
-#else
-#define m_GLSV_DEBUG_CONS_PRINTF 
-#endif
-
 typedef SaUint32T SaLckResourceIdT;
 
 #define GLSV_LOCK_STATUS_RELEASED   100

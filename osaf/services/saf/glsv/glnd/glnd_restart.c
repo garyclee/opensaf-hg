@@ -30,6 +30,8 @@
 
 ******************************************************************************/
 
+#include <logtrace.h>
+
 #include "glnd.h"
 
 /*
@@ -346,7 +348,7 @@ static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_I
 			m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 			return NCSCC_RC_FAILURE;
 		}
-		m_GLSV_DEBUG_CONS_PRINTF("\n  GLND_RESOURCE_NODE_ADD - %d \n", (uns32)res_info->resource_id);
+		TRACE("GLND_RESOURCE_NODE_ADD - %d", (uns32)res_info->resource_id);
 		/* log the Resource Add */
 		m_LOG_GLND_HEADLINE(GLND_RSC_NODE_ADD_SUCCESS, (uns32)res_info->resource_id);
 	}

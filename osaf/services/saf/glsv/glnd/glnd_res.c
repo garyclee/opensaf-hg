@@ -30,6 +30,8 @@
   
 ******************************************************************************/
 
+#include <logtrace.h>
+
 #include "glnd.h"
 
 static void glnd_master_process_lock_initiate_waitercallbk(GLND_CB *cb,
@@ -147,7 +149,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 		m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 		return NULL;
 	}
-	m_GLSV_DEBUG_CONS_PRINTF("\n  GLND_RESOURCE_NODE_ADD - %d \n", (uns32)res_id);
+	TRACE("GLND_RESOURCE_NODE_ADD - %d", (uns32)res_id);
 	/* log the Resource Add */
 	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, (uns32)res_id);
 	return res_info;
@@ -286,7 +288,7 @@ uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n  GLND_RESOURCE_NODE_DESTROY - %d \n", (uns32)res_info->resource_id);
+	TRACE("GLND_RESOURCE_NODE_DESTROY - %d", (uns32)res_info->resource_id);
 	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_DESTROY_SUCCESS, (uns32)res_info->resource_id);
 
 	for (lock_info = res_info->lck_master_info.grant_list; lock_info != NULL;) {
@@ -534,8 +536,8 @@ void glnd_resource_lock_req_destroy(GLND_RESOURCE_INFO *res_info, GLND_RES_LOCK_
 		glnd_stop_tmr(&lck_list_info->timeout_tmr);
 	ncshm_destroy_hdl(NCS_SERVICE_ID_GLND, lck_list_info->lck_info_hdl_id);
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n  GLND_RESOURCE_LOCK_REQ_DESTROY res - %d lockid- %d \n",
-				 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
+	TRACE("GLND_RESOURCE_LOCK_REQ_DESTROY res - %d lockid- %d",
+		(uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
 
 	m_LOG_GLND_HEADLINE_TIL(GLND_RSC_LOCK_REQ_DESTROY, (uns32)res_info->resource_id,
 				(uns32)lck_list_info->lock_info.lockid);
@@ -661,9 +663,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 		if (res_info->lck_master_info.grant_list == NULL &&
 		    glnd_resource_grant_list_orphan_locks(res_info, &mode) == FALSE) {
 			/* add it to the grant list */
-			m_GLSV_DEBUG_CONS_PRINTF("\n LOCK_GRANTED handle - %d res - %d lockid- %d \n",
-						 (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-						 (uns32)lck_list_info->lock_info.lockid);
+			TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
+				(uns32)lock_info.handleId, (uns32)res_info->resource_id,
+				(uns32)lck_list_info->lock_info.lockid);
 
 			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, (uns32)lock_info.handleId,
 						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
@@ -680,9 +682,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_ORPHANED;
 		} else {
 			/* add it to the exclusive wait list */
-			m_GLSV_DEBUG_CONS_PRINTF("\n LOCK_QUEUED in EX handle - %d res - %d lockid- %d \n",
-						 (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-						 (uns32)lck_list_info->lock_info.lockid);
+			TRACE("LOCK_QUEUED in EX handle - %d res - %d lockid- %d",
+				(uns32)lock_info.handleId, (uns32)res_info->resource_id,
+				(uns32)lck_list_info->lock_info.lockid);
 
 			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, (uns32)lock_info.handleId,
 						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
@@ -770,9 +772,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 				res_info->lck_master_info.grant_list->prev = lck_list_info;
 			res_info->lck_master_info.grant_list = lck_list_info;
 
-			m_GLSV_DEBUG_CONS_PRINTF("\n LOCK_GRANTED handle - %d res - %d lockid- %d \n",
-						 (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-						 (uns32)lck_list_info->lock_info.lockid);
+			TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
+				(uns32)lock_info.handleId, (uns32)res_info->resource_id,
+				(uns32)lck_list_info->lock_info.lockid);
 
 			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, (uns32)lock_info.handleId,
 						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
@@ -786,9 +788,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_ORPHANED;
 		} else {
 
-			m_GLSV_DEBUG_CONS_PRINTF("\n LOCK_QUEUED handle - %d res - %d lockid- %d \n",
-						 (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-						 (uns32)lck_list_info->lock_info.lockid);
+			TRACE("LOCK_QUEUED handle - %d res - %d lockid- %d",
+				(uns32)lock_info.handleId, (uns32)res_info->resource_id,
+				(uns32)lck_list_info->lock_info.lockid);
 
 			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_QUEUED, (uns32)lock_info.handleId,
 						 (uns32)res_info->resource_id, (uns32)lck_list_info->lock_info.lockid);
@@ -975,9 +977,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_unlock_req(GLND_CB *cb,
 			m_LOG_GLND_API(GLND_RSC_GRANT_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR);
 			return NULL;
 		} else {
-			m_GLSV_DEBUG_CONS_PRINTF("\n UNLOCK_DONE handle - %d res - %d lockid- %d \n",
-						 (uns32)lock_info.handleId, (uns32)res_info->resource_id,
-						 (uns32)lock_info.lockid);
+			TRACE("UNLOCK_DONE handle - %d res - %d lockid- %d",
+				(uns32)lock_info.handleId, (uns32)res_info->resource_id,
+				(uns32)lock_info.lockid);
 
 			m_LOG_GLND_HEADLINE_TILL(GLND_RSC_UNLOCK_SUCCESS, (uns32)lock_info.handleId,
 						 (uns32)res_info->resource_id, (uns32)lock_info.lockid);
@@ -1250,9 +1252,9 @@ static void glnd_resource_master_grant_lock_send_notification(GLND_CB *glnd_cb,
 	GLSV_GLND_EVT glnd_evt;
 	GLSV_GLA_EVT gla_evt;
 
-	m_GLSV_DEBUG_CONS_PRINTF("\n LOCK_GRANTED handle - %d res - %d lockid- %d \n",
-				 (uns32)lock_list_node->lock_info.handleId,
-				 (uns32)res_info->resource_id, (uns32)lock_list_node->lock_info.lockid);
+	TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
+		(uns32)lock_list_node->lock_info.handleId,
+		(uns32)res_info->resource_id, (uns32)lock_list_node->lock_info.lockid);
 
 	m_LOG_GLND_HEADLINE_TILL(GLND_RSC_LOCK_GRANTED, (uns32)lock_list_node->lock_info.handleId,
 				 (uns32)res_info->resource_id, (uns32)lock_list_node->lock_info.lockid);

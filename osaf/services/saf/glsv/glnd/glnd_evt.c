@@ -63,6 +63,8 @@
   
 ******************************************************************************/
 
+#include <logtrace.h>
+
 #include "glnd.h"
 
 /******************************************************************************/
@@ -224,108 +226,9 @@ void glnd_evt_destroy(GLSV_GLND_EVT *evt)
 }
 
 /****************************************************************************
- * Name          : glnd_debug_print_evt_rcvd
+ * Name          : glnd_retrieve_info_from_evt
  *
- * Description   : Debug function 
- *
- * Notes         : None.
- *****************************************************************************/
-static void glnd_debug_print_evt_rcvd(GLSV_GLND_EVT_TYPE type)
-{
-	switch (type) {
-	case GLSV_GLND_EVT_REG_AGENT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n  Received GLSV_GLND_EVT_REG_AGENT \n");
-		break;
-	case GLSV_GLND_EVT_UNREG_AGENT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_UNREG_AGENT \n");
-		break;
-	case GLSV_GLND_EVT_INITIALIZE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received  GLSV_GLND_EVT_INITIALIZE \n");
-		break;
-	case GLSV_GLND_EVT_FINALIZE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_FINALIZE \n");
-		break;
-	case GLSV_GLND_EVT_RSC_OPEN:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_OPEN \n");
-		break;
-	case GLSV_GLND_EVT_RSC_CLOSE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_CLOSE \n");
-		break;
-	case GLSV_GLND_EVT_RSC_LOCK:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_LOCK \n");
-		break;
-	case GLSV_GLND_EVT_RSC_UNLOCK:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received  GLSV_GLND_EVT_RSC_UNLOCK \n");
-		break;
-	case GLSV_GLND_EVT_RSC_PURGE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_PURGE \n");
-		break;
-	case GLSV_GLND_EVT_LCK_REQ:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_REQ \n");
-		break;
-	case GLSV_GLND_EVT_UNLCK_REQ:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_UNLCK_REQ \n");
-		break;
-	case GLSV_GLND_EVT_LCK_RSP:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_RSP \n");
-		break;
-	case GLSV_GLND_EVT_UNLCK_RSP:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_UNLCK_RSP \n");
-		break;
-	case GLSV_GLND_EVT_LCK_REQ_CANCEL:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_REQ_CANCEL \n");
-		break;
-	case GLSV_GLND_EVT_LCK_REQ_ORPHAN:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_REQ_ORPHAN \n");
-		break;
-	case GLSV_GLND_EVT_LCK_WAITER_CALLBACK:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_WAITER_CALLBACK \n");
-		break;
-	case GLSV_GLND_EVT_LCK_PURGE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_LCK_PURGE \n");
-		break;
-	case GLSV_GLND_EVT_SND_RSC_INFO:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_SND_RSC_INFO:\n");
-		break;
-	case GLSV_GLND_EVT_FWD_DD_PROBE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_FWD_DD_PROBE:\n");
-		break;
-	case GLSV_GLND_EVT_DD_PROBE:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_DD_PROBE:\n");
-		break;
-	case GLSV_GLND_EVT_RSC_GLD_DETAILS:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_GLD_DETAILS \n");
-		break;
-	case GLSV_GLND_EVT_RSC_NEW_MASTER:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_NEW_MASTER:\n");
-		break;
-	case GLSV_GLND_EVT_RSC_OPEN_TIMEOUT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_OPEN_TIMEOUT\n");
-		break;
-	case GLSV_GLND_EVT_RSC_LOCK_TIMEOUT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_RSC_LOCK_TIMEOUT\n");
-		break;
-	case GLSV_GLND_EVT_NM_RSC_LOCK_TIMEOUT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_NM_RSC_LOCK_TIMEOUT\n");
-		break;
-	case GLSV_GLND_EVT_NM_RSC_UNLOCK_TIMEOUT:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_NM_RSC_UNLOCK_TIMEOUT \n");
-		break;
-	case GLSV_GLND_EVT_NON_MASTER_INFO:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_NON_MASTER_INFO\n");
-		break;
-	case GLSV_GLND_EVT_CB_DUMP:
-		m_GLSV_DEBUG_CONS_PRINTF("\n Received GLSV_GLND_EVT_CB_DUMP \n");
-		break;
-	default:
-		break;
-	}
-}
-
-/****************************************************************************
- * Name          : glnd_debug_print_evt_rcvd
- *
- * Description   : Debug function 
+ * Description   :  
  *
  * Notes         : None.
  *****************************************************************************/
@@ -443,7 +346,6 @@ uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt)
 	uns32 node_id = 0;
 	GLND_CB *glnd_cb = (GLND_CB *)cb;
 
-	glnd_debug_print_evt_rcvd(evt->type);
 	glnd_retrieve_info_from_evt(evt, &node_id, &hdl_id, &rsc_id, &lck_id);
 	m_LOG_GLND_EVT(GLND_EVT_RECIEVED, evt->type, (uns32)node_id, (uns32)hdl_id, (uns32)rsc_id, (uns32)lck_id);
 	glnd_evt_hdl = glsv_glnd_evt_dispatch_tbl[evt->type - (GLSV_GLND_EVT_BASE + 1)];
@@ -2754,8 +2656,7 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 	if (m_GLND_IS_LOCAL_NODE(&glnd_cb->glnd_mdest_id, &new_master_info->master_dest_id) == 0) {
 		if (new_master_info->status == GLND_RESOURCE_ELECTION_IN_PROGESS) {
 			if (res_node->status == GLND_RESOURCE_ACTIVE_NON_MASTER) {
-				m_GLSV_DEBUG_CONS_PRINTF("\n  GLND becoming MASTER for res %d \n",
-							 (uns32)res_node->resource_id);
+				TRACE("GLND becoming MASTER for res %d", (uns32)res_node->resource_id);
 				m_LOG_GLND_HEADLINE_TI(GLND_NEW_MASTER_RSC, (uns32)res_node->resource_id);
 
 				/* convert the non master info to the master info */
@@ -2785,9 +2686,9 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 			/* set status in election */
 			res_node->status = GLND_RESOURCE_ELECTION_IN_PROGESS;
 
-			m_GLSV_DEBUG_CONS_PRINTF("\n  GLND electing new MASTER for res %d as Node %d \n",
-						 (uns32)res_node->resource_id,
-						 (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
+			TRACE("GLND electing new MASTER for res %d as Node %d",
+				(uns32)res_node->resource_id,
+				(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
 			m_LOG_GLND_HEADLINE_TIL(GLND_MASTER_ELECTION_RSC, (uns32)res_node->resource_id,
 						(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
 
