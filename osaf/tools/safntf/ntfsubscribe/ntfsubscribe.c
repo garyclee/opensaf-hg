@@ -739,7 +739,7 @@ static void usage(void)
 static void freeNtfFilter(SaNtfNotificationFilterHandleT *fh_ptr)
 {
 	SaAisErrorT errorCode = SA_AIS_OK;
-+	if (*fh_ptr) {  
+	if (*fh_ptr) {  
 		errorCode = saNtfNotificationFilterFree(*fh_ptr);
 		if (SA_AIS_OK != errorCode) {
 			fprintf(stderr, "saNtfNotificationFilterFree failed - %s\n", error_output(errorCode));
