@@ -1522,7 +1522,7 @@ static SaUint32T plms_ee_verify(PLMS_ENTITY *ent, PLMS_PLMC_EE_OS_INFO *os_info)
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 
-	memset(&dn_ee_base_type_key,0,SA_MAX_NAME_LENGTH+3);
+	memset(&dn_ee_base_type_key,0,sizeof dn_ee_base_type_key);
 	
 	dn_ee_type = (SaInt8T *)calloc(1,sizeof(SaInt8T)*
 			(ent->entity.ee_entity.saPlmEEType.length + 1));

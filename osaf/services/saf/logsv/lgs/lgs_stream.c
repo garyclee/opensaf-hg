@@ -636,7 +636,7 @@ static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, i
 	int date, time, c, d;
 	date = time = c = d = 0;
 	int len = 0;
-	char name_format[NAME_MAX];
+	char name_format[NAME_MAX+1];
 	char time_stamps[] = "_%d_%d_%d_%d.log";
 
 	len = strlen(time_stamps);
