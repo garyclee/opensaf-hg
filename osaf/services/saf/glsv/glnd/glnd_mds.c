@@ -534,7 +534,7 @@ static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	NCS_UBAID *uba = info->io_uba;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt;
+	NCS_BOOL is_valid_msg_fmt = 0;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	switch (info->i_to_svc_id) {
