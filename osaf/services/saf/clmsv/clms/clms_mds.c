@@ -782,7 +782,7 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 {
 	uns8 *p8;
-	CLMSV_CLMS_EVT *evt;
+	CLMSV_CLMS_EVT *evt = NULL;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uns8 local_data[20];
 	uns32 total_bytes = 0;
@@ -796,7 +796,7 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 		goto err;
 	}
 
-    /** allocate an CLMSV_CLMS_EVENT now **/
+    /* allocate an CLMSV_CLMS_EVENT now */
 	if (NULL == (evt = calloc(1, sizeof(CLMSV_CLMS_EVT)))) {
 		TRACE("calloc failed");
 		goto err;

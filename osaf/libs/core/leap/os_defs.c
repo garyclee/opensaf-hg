@@ -2534,6 +2534,10 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 	uns32 rem10ms = 0, old_rem10ms = 0;
 	NCS_SEL_OBJ_SET save_rfds, save_wfds, save_efds;
 
+	FD_ZERO(&save_rfds);
+	FD_ZERO(&save_wfds);
+	FD_ZERO(&save_efds);
+
 	if (timeout_in_10ms != NULL) {
 		old_rem10ms = *timeout_in_10ms;
 	}
