@@ -739,7 +739,7 @@ static void usage(void)
 static void freeNtfFilter(SaNtfNotificationFilterHandleT *fh_ptr)
 {
 	SaAisErrorT errorCode = SA_AIS_OK;
-	if (*fh_ptr != SA_NTF_FILTER_HANDLE_NULL) {  
++	if (*fh_ptr) {  
 		errorCode = saNtfNotificationFilterFree(*fh_ptr);
 		if (SA_AIS_OK != errorCode) {
 			fprintf(stderr, "saNtfNotificationFilterFree failed - %s\n", error_output(errorCode));
@@ -760,11 +760,7 @@ static SaAisErrorT subscribeForNotifications(const saNotificationFilterAllocatio
 	SaNtfSecurityAlarmNotificationFilterT secAlarmFilter;
 	
 	SaNtfNotificationTypeFilterHandlesT notificationFilterHandles;
-	notificationFilterHandles.alarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-	notificationFilterHandles.attributeChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-	notificationFilterHandles.objectCreateDeleteFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-	notificationFilterHandles.securityAlarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-	notificationFilterHandles.stateChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
+	memset(&notificationFilterHandles, 0, sizeof notificationFilterHandles);
 
 	if (used_filters.all || used_filters.alarm) {
 		errorCode = saNtfAlarmNotificationFilterAllocate(ntfHandle,

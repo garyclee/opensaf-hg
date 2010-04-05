@@ -537,7 +537,7 @@ uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
 			goto done;
 		}
 		free(trkrec);
-		trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uns8 *)inv_id);
+		trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uns8 *)&inv_id);
 	}
  done:
 	TRACE_LEAVE();

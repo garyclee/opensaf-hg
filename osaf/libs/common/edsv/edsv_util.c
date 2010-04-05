@@ -216,6 +216,7 @@ SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT 
 
       /** zero the memory
       **/
+		n = src_filter_array->filtersNumber;
 		memset(dst_filter_array->filters, '\0', n * sizeof(SaEvtEventFilterT));
 
 		for (n = 0, src_filter = src_filter_array->filters, dst_filter = dst_filter_array->filters;
