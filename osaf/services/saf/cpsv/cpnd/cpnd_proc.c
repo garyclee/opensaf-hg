@@ -423,7 +423,8 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 {
 
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *buf, size = 0, total_length;
+	char *buf;
+	uns8 size = 0, total_length;
 	int32 sec_cnt = 0;
 
 	/* Return Error no resource */
@@ -434,9 +435,9 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	size = cp_node->ckpt_name.length;
 	total_length = size + sizeof(cp_node->ckpt_id) + sizeof(NODE_ID) + 5;
 
-	buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
+	buf = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
 	memset(buf, '\0', total_length);
-	strncpy(buf, cp_node->ckpt_name.value, size);
+	strncpy(buf, (char *)cp_node->ckpt_name.value, size);
 
 	sprintf(buf + size - 1, "_%d_%llu", (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id), cp_node->ckpt_id);
 	/* size of chkpt */

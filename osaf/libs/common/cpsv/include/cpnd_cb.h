@@ -285,7 +285,7 @@ typedef struct cpnd_cb_tag {
 	SaSelectionObjectT clm_sel_obj;
 	SaClmNodeIdT nodeid;
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
-	uns8 *cpnd_res_shm_name;
+	char *cpnd_res_shm_name;
 	NCS_BOOL cpnd_first_time;
 	NCS_BOOL read_lck_flag;
 
@@ -324,7 +324,7 @@ EXTERN_C uns32 cpnd_amf_register(CPND_CB *cpnd_cb);
 EXTERN_C uns32 cpnd_amf_deregister(CPND_CB *cpnd_cb);
 EXTERN_C uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
 EXTERN_C uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
-EXTERN_C uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, uns8 *buf, CPND_CKPT_NODE **cp_node,
+EXTERN_C uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
 					    uns32 ref_cnt, CKPT_INFO *cp_info);
 EXTERN_C int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
 EXTERN_C uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts);

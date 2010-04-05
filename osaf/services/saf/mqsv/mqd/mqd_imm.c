@@ -75,8 +75,9 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 		parentName = &parent;
 		strcpy((char *)parent.value, parent_name);
 		parent.length = strlen((char *)parent.value);
-	} else
-		rdnstr = pNode->oinfo.name.value;
+	} else {
+		rdnstr = (char *)pNode->oinfo.name.value;
+	}
 
 	if (rdnstr)
 		arr1[0] = &rdnstr;

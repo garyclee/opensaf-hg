@@ -523,7 +523,7 @@ uns32 parse_nodeinit_conf(char *strbuf)
 
 	TRACE_ENTER();
 
-	plat_conf.info.open.i_file_name = (uns8 *)NID_PLAT_CONF;
+	plat_conf.info.open.i_file_name = NID_PLAT_CONF;
 	plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 
 	if (m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
@@ -937,7 +937,7 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	*    1. If the executable exists.                     *
 	******************************************************/
 	if (service->pid == 0) {
-		fd1.info.open.i_file_name = (uns8 *)service->s_name;
+		fd1.info.open.i_file_name = service->s_name;
 		fd1.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 		if (m_NCS_OS_FILE(&fd1, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
 			if (errno != ETXTBSY) {

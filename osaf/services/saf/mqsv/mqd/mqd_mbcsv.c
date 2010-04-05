@@ -1038,12 +1038,8 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	queue_index_name = pMqd->record_qindex_name;
-
 	m_NCS_LOCK(q_rec_lock, NCS_LOCK_WRITE);
-/*   m_HTON_SANAMET_LEN(queue_index_name.length);*/
-
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&queue_index_name);
-
+	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
 	queue_record = (MQD_OBJ_NODE *)q_node;
 
 	while (queue_record != NULL) {
@@ -1082,14 +1078,13 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 		if (num_of_ckpts == MAX_NO_MQD_MSGS_A2S) {
 			/* Just check whether, it is a last message or not. It will help
 			   in deciding last message */
-			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&queue_index_name);
+			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
 			if (q_node == NULL)
 				last_message = TRUE;
 			break;
 		}
 
-		q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&queue_index_name);
-
+		q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
 		queue_record = (MQD_OBJ_NODE *)q_node;
 
 	}			/* while */
@@ -1113,7 +1108,7 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	ncs_encode_32bit(&sync_cnt_ptr, pMqd->mqd_sync_updt_count);
 
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (char *)&queue_index_name);
+	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
 	if (q_node == NULL) {
 		last_message = TRUE;
 	}

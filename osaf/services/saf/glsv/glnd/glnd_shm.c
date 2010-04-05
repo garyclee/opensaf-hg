@@ -48,7 +48,7 @@
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
 **************************************************************************************************************/
-static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[])
+static uns32 glnd_shm_open(GLND_CB *cb, char *shm_name)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO glnd_open_req;
 	uns64 shm_size;
@@ -72,7 +72,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[])
 	glnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	glnd_open_req.info.open.i_size = shm_size;
 	glnd_open_req.info.open.i_offset = 0;
-	glnd_open_req.info.open.i_name = (int8 *)shm_name;
+	glnd_open_req.info.open.i_name = shm_name;
 	glnd_open_req.info.open.i_map_flags = MAP_SHARED;
 	glnd_open_req.info.open.o_addr = NULL;
 	glnd_open_req.info.open.i_flags = O_RDWR;
@@ -188,14 +188,14 @@ uns32 glnd_shm_create(GLND_CB *cb)
  * Return Values  : SUCCESS/FAILURE
  * Notes          : None
 **************************************************************************************************************/
-uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[])
+uns32 glnd_shm_destroy(GLND_CB *cb, char *shm_name)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO glnd_dest_req;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	glnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
 
-	glnd_dest_req.info.unlink.i_name = (int8 *)shm_name;
+	glnd_dest_req.info.unlink.i_name = shm_name;
 	rc = ncs_os_posix_shm(&glnd_dest_req);
 
 	return rc;

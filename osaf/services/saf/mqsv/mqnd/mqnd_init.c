@@ -164,7 +164,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	MQND_CB *cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT healthy;
-	int8 *health_key = 0;
+	char *health_key = NULL;
 	SaAisErrorT amf_error;
 	NCS_OS_FILE file, file_read;
 	char *file1 = "/proc/sys/kernel/msgmax";
@@ -188,7 +188,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	memset(cb, 0, sizeof(MQND_CB));
 	cb->hm_pool = info->pool_id;
 
-   /*** Set attributes of queue in global variable ***/
+	/* Set attributes of queue in global variable */
 	file.info.open.i_file_name = file1;
 	file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
@@ -234,7 +234,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	/* As there is no specific limit for priority queue size at present it is kept as max msg size */
 	cb->gl_msg_max_prio_q_size = cb->gl_msg_max_q_size;
 
-   /*** END: Set attributes of queue in global variable ***/
+	/* END: Set attributes of queue in global variable */
 
 	/* Init the EDU Handle */
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
@@ -355,15 +355,15 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	mqnd_asapi_bind(cb);
 
 	/* Code for No Redundancy Support */
-	/*   start the AMF Health Check  */
+	/* start the AMF Health Check */
 	memset(&healthy, 0, sizeof(healthy));
 	health_key = getenv("MQSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
-		strcpy(healthy.key, "E5F6");
+		strcpy((char *)healthy.key, "E5F6");
 	} else {
-		strncpy(healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+		strncpy((char *)healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
 	}
-	healthy.keyLen = strlen(healthy.key);
+	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);

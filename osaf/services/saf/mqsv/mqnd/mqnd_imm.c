@@ -89,7 +89,7 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 
 	memset(&mQueueName, 0, sizeof(SaNameT));
 
-	if (strncmp((objectName->value), "safMqPrio=", 10) == 0) {
+	if (strncmp(((char *)objectName->value), "safMqPrio=", 10) == 0) {
 		char *mQPrio = strchr((char *)objectName->value, ',');
 		if (mQPrio != NULL) {
 			mQPrio++;

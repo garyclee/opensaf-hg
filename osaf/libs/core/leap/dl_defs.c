@@ -568,7 +568,7 @@ static void l2socket_list_task(void *ctxt)
 						/* If this socket is set in the select mask invoke the fsm */
 						if (m_NCSSOCK_FD_ISSET(se->client_socket, &writefds)) {
 							int err = 0;
-							int sz = sizeof(err);
+							socklen_t sz = sizeof(err);
 							/* Peek into the socket for errors */
 							getsockopt(se->client_socket, SOL_SOCKET, SO_ERROR,
 								   (char *)&err, &sz);
@@ -585,7 +585,8 @@ static void l2socket_list_task(void *ctxt)
 						}
 
 						if (m_NCSSOCK_FD_ISSET(se->client_socket, &exceptfds)) {
-							int err = 0, sz = sizeof(err);
+							int err = 0;
+							socklen_t sz = sizeof(err);
 							getsockopt(se->client_socket, SOL_SOCKET,
 								   SO_ERROR, (char *)&err, &sz);
 
@@ -1383,7 +1384,7 @@ static uns32 ReadRawPacket(NCS_L2SOCKET_ENTRY *se, struct sockaddr_in *p_saddr, 
 	unsigned int len;
 	USRBUF *bufn;
 	char *buf;
-	int saddrlen = sizeof(struct sockaddr_in);
+	socklen_t saddrlen = sizeof(struct sockaddr_in);
 	SOCKET rcv_socket = se->client_socket;
 	char *pBigBuff;
 	unsigned int PktLenRemaining;
@@ -1527,7 +1528,7 @@ static uns32 ncsl2sock_event_raw_indication(NCS_L2SOCKET_ENTRY *se_in, NCSCONTEX
 	NCS_DL_INDICATION_INFO dli;
 	unsigned int len;
 	USRBUF *dlbuf = NULL;
-	uns8 eth_hdr[17];
+	char eth_hdr[17];
 	uns32 header_len;
 	uns32 data_len;
 	uns8 *p8;

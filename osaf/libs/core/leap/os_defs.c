@@ -1027,7 +1027,7 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 
 			if (req->info.open.iflags & O_CREAT) {
 				os_req.req = NCS_OS_MQ_REQ_CREATE;
-				file.info.create.i_file_name = (uns8*)filename;
+				file.info.create.i_file_name = filename;
 
 				rc = ncs_os_file(&file, NCS_OS_FILE_CREATE);
 				if (rc != NCSCC_RC_SUCCESS)

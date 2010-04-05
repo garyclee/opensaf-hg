@@ -334,12 +334,12 @@ extern "C" {
 #define NCS_OS_FILE_PERM_APPEND 0x04
 
 	typedef struct ncs_os_file_op_create {
-		uns8 *i_file_name;	/* with full directory path */
+		char *i_file_name;	/* with full directory path */
 		void *o_file_handle;	/* handle for future reference */
 	} NCS_OS_FILE_OP_CREATE;
 
 	typedef struct ncs_os_file_op_open {
-		uns8 *i_file_name;
+		char *i_file_name;
 		uns8 i_read_write_mask;	/* to specify read-write permissions */
 		void *o_file_handle;	/* handle for future reference */
 	} NCS_OS_FILE_OP_OPEN;
@@ -368,63 +368,63 @@ extern "C" {
 	} NCS_OS_FILE_OP_SEEK;
 
 	typedef struct ncs_os_file_op_copy {
-		uns8 *i_file_name;
+		char *i_file_name;
 		uns8 *i_new_file_name;
 	} NCS_OS_FILE_OP_COPY;
 
 	typedef struct ncs_os_file_op_rename {
-		uns8 *i_file_name;
+		char *i_file_name;
 		uns8 *i_new_file_name;
 	} NCS_OS_FILE_OP_RENAME;
 
 	typedef struct ncs_os_file_op_remove {
-		uns8 *i_file_name;
+		char *i_file_name;
 	} NCS_OS_FILE_OP_REMOVE;
 
 	typedef struct ncs_os_file_op_size {
-		uns8 *i_file_name;
+		char *i_file_name;
 		uns32 o_file_size;
 	} NCS_OS_FILE_OP_SIZE;
 
 	typedef struct ncs_os_file_op_file_exists {
-		uns8 *i_file_name;
+		char *i_file_name;
 		NCS_BOOL o_file_exists;
 	} NCS_OS_FILE_OP_FILE_EXISTS;
 
 	typedef struct ncs_os_file_op_dir_path {
-		uns8 *i_main_dir;
-		uns8 *i_sub_dir;
+		char *i_main_dir;
+		char *i_sub_dir;
 		uns8 *io_buffer;
 		uns32 i_buf_size;
 	} NCS_OS_FILE_OP_DIR_PATH;
 
 	typedef struct ncs_os_file_op_create_dir {
-		uns8 *i_dir_name;
+		char *i_dir_name;
 	} NCS_OS_FILE_OP_CREATE_DIR;
 
 	typedef struct ncs_os_file_op_delete_dir {
-		uns8 *i_dir_name;
+		char *i_dir_name;
 	} NCS_OS_FILE_OP_DELETE_DIR;
 
 	typedef struct ncs_os_file_op_copy_dir {
-		uns8 *i_dir_name;
-		uns8 *i_new_dir_name;
+		char *i_dir_name;
+		char *i_new_dir_name;
 	} NCS_OS_FILE_OP_COPY_DIR;
 
 	typedef struct ncs_os_file_op_dir_exists {
-		uns8 *i_dir_name;
+		char *i_dir_name;
 		NCS_BOOL o_exists;
 	} NCS_OS_FILE_OP_DIR_EXISTS;
 
 	typedef struct ncs_os_file_op_get_next {
-		uns8 *i_dir_name;
-		uns8 *i_file_name;
+		char *i_dir_name;
+		char *i_file_name;
 		uns8 *io_next_file;
 		uns32 i_buf_size;
 	} NCS_OS_FILE_OP_GET_NEXT;
 
 	typedef struct ncs_os_file_op_get_list {
-		uns8 *i_dir_name;
+		char *i_dir_name;
 		char **o_namelist;
 		uns32 o_list_count;
 	} NCS_OS_FILE_OP_GET_LIST;
@@ -992,7 +992,7 @@ extern "C" {
 
 /*-----------------------------------*/
 	typedef struct ncs_mq_req_open_info {
-		uns8 *qname;
+		char *qname;
 		uns32 node;
 		uns32 iflags;
 		NCS_OS_POSIX_MQD o_mqd;
@@ -1083,7 +1083,7 @@ extern "C" {
 		NCS_OS_POSIX_SHM_REQ_MAX
 	} NCS_OS_POSIX_SHM_REQ_TYPE;
 	typedef struct ncs_os_posix_shm_req_open_info_tag {
-		int8 *i_name;
+		char *i_name;
 		uns32 i_flags;
 		uns32 i_map_flags;
 		uns64 i_size;
@@ -1101,7 +1101,7 @@ extern "C" {
 	} NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
 
 	typedef struct ncs_os_posix_shm_req_unlink_info_tag {
-		int8 *i_name;
+		char *i_name;
 	} NCS_OS_POSIX_SHM_REQ_UNLINK_INFO;
 
 	typedef struct ncs_os_posix_shm_req_read_info {

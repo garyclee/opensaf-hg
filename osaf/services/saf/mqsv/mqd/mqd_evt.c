@@ -520,9 +520,7 @@ static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE 
 	MQD_OBJ_NODE *pObjNode = 0;
 
 	/* Get hold of the MQD controll block */
-	/*m_HTON_SANAMET_LEN(name->length); */
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)name);
-	/*m_NTOH_SANAMET_LEN(name->length); */
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)name);
 
 	*o_node = pObjNode;
 	if (pObjNode)

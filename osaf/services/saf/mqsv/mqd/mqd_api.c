@@ -123,7 +123,7 @@ static uns32 mqd_lib_init(void)
 	SaNameT sname;
 #endif
 	SaAmfHealthcheckKeyT healthy;
-	int8 *health_key = 0;
+	char *health_key = NULL;
 	SaAisErrorT amf_error;
 
 	mqd_flx_log_reg();
@@ -208,9 +208,9 @@ static uns32 mqd_lib_init(void)
 		return rc;
 	}
 
-	strcpy(pMqd->safSpecVer.value, "B.03.01");
+	strcpy((char *)pMqd->safSpecVer.value, "B.03.01");
 	pMqd->safSpecVer.length = strlen("B.03.01");
-	strcpy(pMqd->safAgtVen.value, "OpenSAF");
+	strcpy((char *)pMqd->safAgtVen.value, "OpenSAF");
 	pMqd->safAgtVen.length = strlen("OpenSAF");
 	pMqd->safAgtVenPro = 2;
 	pMqd->serv_enabled = FALSE;
@@ -239,7 +239,7 @@ static uns32 mqd_lib_init(void)
 #if NCS_2_0			/* Not needed for NCS ver(1.0) */
 	/* Register MQSv - MQD component with AvSv */
 	sname.length = strlen(MQD_COMP_NAME);
-	strcpy(sname.value, MQD_COMP_NAME);
+	strcpy((char *)sname.value, MQD_COMP_NAME);
 
 	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
 	if (SA_AIS_OK != saErr) {	/* Handle failure */
@@ -275,15 +275,15 @@ static uns32 mqd_lib_init(void)
 	mqd_asapi_bind(pMqd);
 	m_LOG_MQSV_D(MQD_ASAPi_BIND_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-	/*   start the AMF Health Check  */
+	/* start the AMF Health Check */
 	memset(&healthy, 0, sizeof(SaAmfHealthcheckKeyT));
 	health_key = getenv("MQSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
-		strcpy(healthy.key, "E5F6");
+		strcpy((char *)healthy.key, "E5F6");
 	} else {
-		strncpy(healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+		strncpy((char *)healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
 	}
-	healthy.keyLen = strlen(healthy.key);
+	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(pMqd->amf_hdl, &pMqd->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
@@ -293,7 +293,6 @@ static uns32 mqd_lib_init(void)
 		rc = NCSCC_RC_FAILURE;
 		saImmOiFinalize(pMqd->immOiHandle);
 		mqd_asapi_unbind();
-/*      mqd_clm_shut(pMqd);*/
 		mqd_mbcsv_finalize(pMqd);
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -334,7 +333,7 @@ static void mqd_lib_destroy(void)
 	if (pMqd) {
 #if NCS_2_0			/* Required for NCS 2.0 */
 		sname.length = strlen(MQD_COMP_NAME);
-		strcpy(sname.value, MQD_COMP_NAME);
+		strcpy((char *)sname.value, MQD_COMP_NAME);
 
 		/* Deregister MQSv - MQD component from AVSv */
 		saAmfComponentUnregister(pMqd->amf_hdl, &sname, (SaNameT *)0);
@@ -354,8 +353,6 @@ static void mqd_lib_destroy(void)
 			m_LOG_MQSV_D(MQD_MDS_SHUT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
 				     __LINE__);
 		}
-
-/*      mqd_clm_shut(pMqd);*/
 
 		/* Release all LM resources */
 		mqd_lm_shut(pMqd);

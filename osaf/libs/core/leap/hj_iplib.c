@@ -60,27 +60,6 @@ int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2)
 	return -1;
 }
 
-void ncs_ip_addr_to_display_str(NCS_IP_ADDR *i_addr, int8 *o_str)
-{
-	NCS_IPV4_ADDR ipaddr = 0;
-
-	switch (i_addr->type) {
-	case NCS_IP_ADDR_TYPE_IPV4:
-		ipaddr = i_addr->info.v4;
-		sprintf(o_str, "%d.%d.%d.%d", ((ipaddr >> 24) & 0xFF),
-			((ipaddr >> 16) & 0xFF), ((ipaddr >> 8) & 0xFF), (ipaddr) & 0xFF);
-		break;
-#if(NCS_IPV6 == 1)
-	case NCS_IP_ADDR_TYPE_IPV6:
-		m_NCS_IPV6ADDR_TO_STR(&i_addr->info.v6, o_str);
-		break;
-#endif   /* NCS_IPV6 == 1 */
-	default:
-		return;
-		break;
-	}
-}
-
 /**************************************************************************
  Function: ncs_ip_addr_to_octdata
 
