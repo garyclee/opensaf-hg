@@ -1328,7 +1328,7 @@ uns32 spawn_services(char *strbuf)
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s", sbuff);
-			LOG_ER("Going for recovery", sbuff);
+			LOG_ER("Going for recovery");
 			if (recovery_action(service, sbuff) != NCSCC_RC_SUCCESS) {
 				exit(EXIT_FAILURE);
 			}
