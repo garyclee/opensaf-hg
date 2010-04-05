@@ -92,7 +92,6 @@ char * plmc_get_listening_ip_addr(char *plmc_config_file)
   struct ifconf ifconf;
   int  nifaces, i;
   int s, retval;
-  struct sockaddr_in *servaddr;
   PLMC_config_data config;
 
   retval = plmc_read_config(plmc_config_file, &config);
@@ -122,16 +121,19 @@ char * plmc_get_listening_ip_addr(char *plmc_config_file)
   {
     strncpy(ifreqs[i].ifr_name, ifreqs[i].ifr_name, sizeof(ifreqs[i].ifr_name));
     if (ioctl(s, SIOCGIFADDR, &ifreqs[i]) >= 0) {
-      servaddr = ((struct sockaddr_in *) &ifreqs[i].ifr_addr);
+      struct sockaddr_in addr;
+
+      memcpy(&addr, &ifreqs[i].ifr_addr, sizeof(struct sockaddr_in));
 #ifdef PLMC_DEBUG
-      printf("  %s IP address: %s\n", ifreqs[i].ifr_name, inet_ntoa(servaddr->sin_addr));
+      printf("  %s IP address: %s\n", ifreqs[i].ifr_name,
+		      inet_ntoa(addr.sin_addr));
 #endif
-      if (strcmp(inet_ntoa(servaddr->sin_addr), config.controller_1_ip) == 0) {
-        strcpy(match_ip, inet_ntoa(servaddr->sin_addr));
+      if (strcmp(inet_ntoa(addr.sin_addr), config.controller_1_ip) == 0) {
+        strncpy(match_ip, inet_ntoa(addr.sin_addr), INET_ADDRSTRLEN);
         break;
       }
-      if (strcmp(inet_ntoa(servaddr->sin_addr), config.controller_2_ip) == 0) {
-        strcpy(match_ip, inet_ntoa(servaddr->sin_addr));
+      if (strcmp(inet_ntoa(addr.sin_addr), config.controller_2_ip) == 0) {
+        strncpy(match_ip, inet_ntoa(addr.sin_addr), INET_ADDRSTRLEN);
         break;
       }
     }
