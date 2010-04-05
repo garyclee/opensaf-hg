@@ -19,6 +19,8 @@
 
 #include "clms.h"
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+
 void clms_all_node_rattr_update(void);
 SaAisErrorT clms_node_ccb_comp_cb(CcbUtilOperationData_t * opdata);
 uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop);
