@@ -918,7 +918,7 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %u, \
 				deletion cannot be done", 
 				plm_ent->entity.he_entity.saPlmHEReadinessState,
-				(SaUint32T)plm_ent->rev_dep_list);
+				plm_ent->rev_dep_list);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -951,7 +951,7 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %u, \
 				deletion cannot be done", 
 				plm_ent->entity.ee_entity.saPlmEEReadinessState,
-				(SaUint32T)plm_ent->rev_dep_list);
+				plm_ent->rev_dep_list);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -980,7 +980,7 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		if ((strcmp(plms_cb->domain_info.domain.safDomain, rdn_val)!= 0)
 			|| (plms_cb->domain_info.leftmost_child != NULL)) {
 			TRACE_LEAVE2("leftmost_child ptr of domain: %u", 
-				(SaUint32T)plms_cb->domain_info.leftmost_child);
+				plms_cb->domain_info.leftmost_child);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -989,7 +989,7 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		if ((strcmp(plms_cb->hpi_cfg.safHpiCfg, rdn_val) != 0)
 			|| (plms_cb->domain_info.leftmost_child != NULL)) {
 			TRACE_LEAVE2("leftmost_child ptr of domain: %u", 
-				(SaUint32T)plms_cb->domain_info.leftmost_child);
+				plms_cb->domain_info.leftmost_child);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
