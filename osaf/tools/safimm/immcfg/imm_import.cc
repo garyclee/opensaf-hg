@@ -51,7 +51,7 @@ extern "C"
 }
 
 extern ImmutilErrorFnT immutilError;
-char* imm_import_adminOwnerName = "imm_import";
+char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
 
 /* The possible states of the parser */
