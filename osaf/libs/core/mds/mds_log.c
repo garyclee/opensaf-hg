@@ -212,7 +212,11 @@ static void log_mds(const char *str)
 		if (i >= sizeof(log_string))
 			log_string[i - 2] = '\n';
 
-		fwrite(log_string, 1, i + 1, fp);
+		if (! fwrite(log_string, 1, i + 1, fp)) {
+			fclose(fp);
+			return;
+		}
+
 		fclose(fp);
 	} else {
 		fprintf(stderr, "Unable to log to file %s - %s\n", lf, strerror(errno));
