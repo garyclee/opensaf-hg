@@ -24,6 +24,9 @@
 *		with IMM 						     *
 *                                                                            *
 *****************************************************************************/
+
+#include <inttypes.h>
+
 #include "plms.h"
 #include "immutil.h"
 #include "plms_utils.h"
@@ -915,10 +918,10 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		if ((plm_ent->entity.he_entity.saPlmHEReadinessState != 
 			SA_PLM_READINESS_OUT_OF_SERVICE) || (plm_ent->
 			rev_dep_list != NULL)) {
-			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %u, \
+			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %" PRIdPTR ", \
 				deletion cannot be done", 
 				plm_ent->entity.he_entity.saPlmHEReadinessState,
-				plm_ent->rev_dep_list);
+				(intptr_t)plm_ent->rev_dep_list);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -948,10 +951,10 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		if ((plm_ent->entity.ee_entity.saPlmEEReadinessState != 
 			SA_PLM_READINESS_OUT_OF_SERVICE) || (plm_ent->
 			rev_dep_list != NULL)) {
-			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %u, \
+			TRACE_LEAVE2("readiness state: %u, rev_dep_list: %" PRIdPTR ", \
 				deletion cannot be done", 
 				plm_ent->entity.ee_entity.saPlmEEReadinessState,
-				plm_ent->rev_dep_list);
+				(intptr_t)plm_ent->rev_dep_list);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -979,8 +982,8 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		rdn_val = strtok(dn_name, "\0");
 		if ((strcmp(plms_cb->domain_info.domain.safDomain, rdn_val)!= 0)
 			|| (plms_cb->domain_info.leftmost_child != NULL)) {
-			TRACE_LEAVE2("leftmost_child ptr of domain: %u", 
-				plms_cb->domain_info.leftmost_child);
+			TRACE_LEAVE2("leftmost_child ptr of domain: %" PRIdPTR, 
+				(intptr_t)plms_cb->domain_info.leftmost_child);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}
@@ -988,8 +991,8 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 		rdn_val = strtok(dn_name, "\0");
 		if ((strcmp(plms_cb->hpi_cfg.safHpiCfg, rdn_val) != 0)
 			|| (plms_cb->domain_info.leftmost_child != NULL)) {
-			TRACE_LEAVE2("leftmost_child ptr of domain: %u", 
-				plms_cb->domain_info.leftmost_child);
+			TRACE_LEAVE2("leftmost_child ptr of domain: %" PRIdPTR, 
+				(intptr_t)plms_cb->domain_info.leftmost_child);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 	}

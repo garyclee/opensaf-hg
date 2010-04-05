@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <configmake.h>
 #include "ncssysf_def.h"
@@ -154,7 +155,7 @@ plms_cb_dump_routine ()
 			else
 				fprintf(fp,"\n Invoke Callback: NULL");
 			fprintf(fp,"\n First PLM notify id:%llu",(unsigned long long)ent->first_plm_ntf_id);
-			fprintf(fp,"\n PLMS Timer id:%d",ent->tmr.timer_id);
+			fprintf(fp,"\n PLMS Timer id: %" PRIdMAX, (intmax_t)ent->tmr.timer_id);
 			if (ent->tmr.tmr_type == PLMS_TMR_NONE)
 				fprintf(fp,"\n PLMS Timer type:PLMS_TMR_NONE");
 			else if (ent->tmr.tmr_type == PLMS_TMR_EE_INSTANTIATING)
