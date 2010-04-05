@@ -15,6 +15,8 @@
  *
  */
 
+#include <inttypes.h>
+
 #include "dts.h"
 #include "dts_imm.h"
 
@@ -265,13 +267,13 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 		attribute = &attrMod->modAttr;
 	}
 	while (attribute) {
-		SaUint32T value;
+		uintptr_t value;
 
 		if (attribute->attrValuesNumber == 0) {
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 
-		value = *((SaUint32T *)attribute->attrValues[0]);
+		value = *((uintptr_t *)attribute->attrValues[0]);
 
 		if (!strcmp(attribute->attrName, "osafDtsvServiceLogDevice")) {
 			paramid = osafDtsvServiceLogDevice_ID;
@@ -806,13 +808,13 @@ unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_i
 		attribute = &attrMod->modAttr;
 	}
 	while (attribute) {
-		SaUint32T value;
+		uintptr_t value;
 
 		if (attribute->attrValuesNumber == 0) {
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 
-		value = *((SaUint32T *)attribute->attrValues[0]);
+		value = *((uintptr_t *)attribute->attrValues[0]);
 
 		if (!strcmp(attribute->attrName, "osafDtsvNodeMessageLogging")) {
 			if ((value < 0) || (value > 1)) {

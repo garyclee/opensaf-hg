@@ -865,7 +865,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
 	SaNtfNotificationFilterHandleT filterHndl[5];
 	ntfsv_filter_ptrs_t filters = {NULL, NULL, NULL, NULL, NULL};
-	SaNtfHandleT firstHandle = NULL;
+	SaNtfHandleT firstHandle = 0;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
