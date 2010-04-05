@@ -497,7 +497,7 @@ static uns32 mqd_cb_init(MQD_CB *pMqd)
 
 	pMqd->hmpool = NCS_HM_POOL_ID_COMMON;
 	pMqd->my_svc_id = NCS_SERVICE_ID_MQD;
-	strcpy(&pMqd->my_name, MQD_COMP_NAME);
+	strcpy(pMqd->my_name, MQD_COMP_NAME);
 
 	/* Initilaze the database tree */
 	params.key_size = sizeof(SaNameT);
