@@ -63,6 +63,5 @@ pkginclude_HEADERS = \
 	nid_api.h \
 	os_defs.h \
 	rda_papi.h \
-	fm_papi.h \
 	sckt_defs.h \
 	sysf_ip.h
