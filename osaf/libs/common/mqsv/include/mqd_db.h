@@ -128,7 +128,7 @@ typedef struct mqd_cb {
 	MDS_HDL my_mds_hdl;	/* Self MDS handle   */
 	MDS_DEST my_dest;	/* Self MDS Destination ID */
 	NCS_SERVICE_ID my_svc_id;	/* Service ID of the MQD */
-	uns8 my_name[MQSV_COMP_NAME_SIZE];	/* Used in AVSv Registrations */
+	char my_name[MQSV_COMP_NAME_SIZE];	/* Used in AVSv Registrations */
 
 	NCS_PATRICIA_TREE qdb;	/* Queue's Database */
 	NCS_BOOL qdb_up;	/* Set to true is qdb is UP */

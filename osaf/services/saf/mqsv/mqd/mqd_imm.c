@@ -64,7 +64,8 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	char *parent_name = strchr((char *)pNode->oinfo.name.value, ',');
 	char *rdnstr;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1];
-	SaImmAttrValuesT_2 attr_mqGrp, attr_mqGrpPol, attr_mqGrpNumQs, attr_mqGrpMemName, *attrValues[5];
+	SaImmAttrValuesT_2 attr_mqGrp, attr_mqGrpPol, attr_mqGrpNumQs, attr_mqGrpMemName;
+	const SaImmAttrValuesT_2 *attrValues[5];
 	SaUint32T numMem = pNode->oinfo.ilist.count;
 
 	if (parent_name != NULL && dndup != NULL) {
@@ -140,7 +141,8 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 	SaAisErrorT error = SA_AIS_OK;
 	SaNameT name[QUEUE_MEMS];
 	SaImmAttrValueT attr1[QUEUE_MEMS];
-	SaImmAttrModificationT_2 attr_output[1], *attrMods[2];
+	SaImmAttrModificationT_2 attr_output[1];
+	const SaImmAttrModificationT_2 *attrMods[2];
 	uns32 count = pObjNode->oinfo.ilist.count;
 	int i = 0, attrCnt = 0;
 	NCS_QELEM *Queue = pObjNode->oinfo.ilist.head;
@@ -164,7 +166,7 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 	attrMods[attrCnt] = &attr_output[attrCnt];
 	++attrCnt;
 	attrMods[attrCnt] = NULL;
-	error = saImmOiRtObjectUpdate_2(pMqd->immOiHandle, &pObjNode->oinfo.name, &attrMods);
+	error = saImmOiRtObjectUpdate_2(pMqd->immOiHandle, &pObjNode->oinfo.name, attrMods);
 
 	if (error != SA_AIS_OK)
 		mqd_genlog(NCSFL_SEV_ERROR, "Runtime_Update_One_Attr FAILED: %u\n", error);
@@ -203,8 +205,7 @@ SaAisErrorT mqd_imm_initialize(MQD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-
-void _mqd_imm_declare_implementer(void *cb)
+void *_mqd_imm_declare_implementer(void *cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	MQD_CB *mqd_cb = (MQD_CB *)cb;
@@ -219,10 +220,12 @@ void _mqd_imm_declare_implementer(void *cb)
 		mqd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED: %u \n", error);
 		exit(EXIT_FAILURE);
 	}
+
+	return NULL;
 }
 
 /****************************************************************************
- * Name          : _mqd_imm_declare_implementer
+ * Name          : mqd_imm_declare_implementer
  *      
  * Description   : Become a OI implementer  
  *
