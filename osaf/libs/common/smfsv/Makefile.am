@@ -13,7 +13,6 @@
 #
 # Author(s): Ericsson AB
 #
-#
 
 include $(top_srcdir)/Makefile.common
 
@@ -29,5 +28,3 @@ libsmfsv_common_la_CPPFLAGS = \
 
 libsmfsv_common_la_SOURCES = \
 	smfsv_evt.c
-
-libsmfsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
