@@ -2381,6 +2381,39 @@ static void plms_create_he_obj(SaNameT *obj_name, SaImmAttrValuesT_2 **attrs)
 		}
 		he->parent = parent_ent;
 	}
+	/* Admin state need not be updated as default value will be in XML*/ 
+	rc = plms_attr_imm_update(he,"saPlmHEReadinessState",
+				SA_IMM_ATTR_SAUINT32T,he->entity.he_entity.
+				saPlmHEReadinessState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Readiness state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", he->dn_name_str, 
+		he->entity.he_entity.saPlmHEReadinessState, rc);
+	}
+	rc = plms_attr_imm_update(he,"saPlmHEPresenceState",
+				SA_IMM_ATTR_SAUINT32T,he->entity.he_entity.
+				saPlmHEPresenceState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Presence state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", he->dn_name_str, 
+		he->entity.he_entity.saPlmHEPresenceState, rc);
+	}
+	rc = plms_attr_imm_update(he,"saPlmHEOperationalState",
+				SA_IMM_ATTR_SAUINT32T,he->entity.he_entity.
+				saPlmHEOperationalState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Operational state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", he->dn_name_str, 
+		he->entity.he_entity.saPlmHEOperationalState, rc);
+	}
+	rc = plms_attr_imm_update(he,"saPlmHEReadinessFlags",
+				SA_IMM_ATTR_SAUINT64T,he->entity.he_entity.
+				saPlmHEReadinessFlags);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Readiness flags IMM update FAILED. Ent: %s, \
+		State: %llu, error: %d", he->dn_name_str, 
+		he->entity.he_entity.saPlmHEReadinessFlags, rc);
+	}
 	/*plms_check_n_add_ent_to_ent_groups(he);*/
 	TRACE_LEAVE2("HE object %s created", he->dn_name_str);
 }
@@ -2644,6 +2677,39 @@ static void plms_create_ee_obj(SaNameT *obj_name, SaImmAttrValuesT_2 **attrs)
 			tmp->right_sibling = ee;
 		}
 		ee->parent = parent_ent;
+	}
+	/* Admin state need not be updated as default value will be in XML*/ 
+	rc = plms_attr_imm_update(ee,"saPlmEEReadinessState",
+				SA_IMM_ATTR_SAUINT32T,ee->entity.ee_entity.
+				saPlmEEReadinessState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Readiness state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", ee->dn_name_str, 
+		ee->entity.ee_entity.saPlmEEReadinessState, rc);
+	}
+	rc = plms_attr_imm_update(ee,"saPlmEEPresenceState",
+				SA_IMM_ATTR_SAUINT32T,ee->entity.ee_entity.
+				saPlmEEPresenceState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Presence state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", ee->dn_name_str, 
+		ee->entity.ee_entity.saPlmEEPresenceState, rc);
+	}
+	rc = plms_attr_imm_update(ee,"saPlmEEOperationalState",
+				SA_IMM_ATTR_SAUINT32T,ee->entity.ee_entity.
+				saPlmEEOperationalState);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Operational state IMM update FAILED. Ent: %s, \
+		State: %d, error: %d", ee->dn_name_str, 
+		ee->entity.ee_entity.saPlmEEOperationalState, rc);
+	}
+	rc = plms_attr_imm_update(ee,"saPlmEEReadinessFlags",
+				SA_IMM_ATTR_SAUINT64T,ee->entity.ee_entity.
+				saPlmEEReadinessFlags);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Readiness flags IMM update FAILED. Ent: %s, \
+		State: %llu, error: %d", ee->dn_name_str, 
+		ee->entity.ee_entity.saPlmEEReadinessFlags, rc);
 	}
 	/*plms_check_n_add_ent_to_ent_groups(ee);*/
 	TRACE_LEAVE2("EE object %s created", ee->dn_name_str);
