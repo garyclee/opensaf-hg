@@ -390,83 +390,21 @@
 			<category>SA_CONFIG</category>
 		</attr>
 	</class>
-	<class name="SmfTestClass">
-		<category>SA_CONFIG</category>
+	<class name="SmfCampRestartInfo">
+		<category>SA_RUNTIME</category>
 		<rdn>
-			<name>aName</name>
+			<name>smfRestartInfo</name>
 			<type>SA_STRING_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_INITIALIZED</flag>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
 		</rdn>
 		<attr>
-			<name>aTimeT</name>
-			<type>SA_TIME_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aStringT</name>
-			<type>SA_STRING_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aInt32T</name>
-			<type>SA_INT32_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aUint32T</name>
+			<name>smfCampRestartCnt</name>
 			<type>SA_UINT32_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aInt64T</name>
-			<type>SA_INT64_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aUint64T</name>
-			<type>SA_UINT64_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aNameT</name>
-			<type>SA_NAME_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aFloatT</name>
-			<type>SA_FLOAT_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aDoubleT</name>
-			<type>SA_DOUBLE_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
-		</attr>
-		<attr>
-			<name>aAnyT</name>
-			<type>SA_ANY_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_WRITABLE</flag>
-			<flag>SA_MULTI_VALUE</flag>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
 		</attr>
 	</class>
 </imm:IMM-contents>

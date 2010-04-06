@@ -284,8 +284,8 @@ SmfProcedureThread::deleteImmHandle()
 }
 
 /** 
- * SmfProcedureThread::createImmHandle
- * Creates Imm handle for our runtime objects.
+ * SmfProcedureThread::getImmHandle
+ * Get the Imm handle for procedure runtime objects.
  */
 SaImmOiHandleT 
 SmfProcedureThread::getImmHandle()

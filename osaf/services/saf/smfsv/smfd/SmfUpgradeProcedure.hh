@@ -454,7 +454,7 @@ class SmfUpgradeProcedure {
 //////////////////////////////////////////////////
 class SmfSwapThread {
  public:
-	SmfSwapThread();
+	explicit SmfSwapThread(SmfUpgradeProcedure * i_proc);
 	~SmfSwapThread();
 	int start(void);
 
@@ -465,9 +465,9 @@ class SmfSwapThread {
 
 	static void main(NCSCONTEXT info);
 
-	NCSCONTEXT m_task_hdl;
-	bool m_running;
-	sem_t m_semaphore;
+	NCSCONTEXT  m_task_hdl;
+	SmfUpgradeProcedure * m_proc;
+	sem_t       m_semaphore;
 };
 
 #endif				// SMFUPGRADEPROCEDURE_HH

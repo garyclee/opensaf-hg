@@ -22,12 +22,14 @@
 
 #include <algorithm>
 #include "logtrace.h"
+#include <immutil.h>
 #include "SmfUpgradeCampaign.hh"
 #include "SmfCampaignThread.hh"
 #include "SmfCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfProcedureThread.hh"
 #include "SmfCampState.hh"
+#include "SmfUtils.hh"
 
 //#include "rollingupgrade.h"
 //#include "campaigntime.h"
@@ -408,6 +410,97 @@ SaTimeT
 SmfUpgradeCampaign::getWaitToAllowNewCampaign()
 {
 	return m_waitToAllowNewCampaign ;
+}
+
+//------------------------------------------------------------------------------
+// createCampRestartInfo()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeCampaign::createCampRestartInfo()
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+
+	SmfImmRTCreateOperation icoCampRestartInfo;
+
+	icoCampRestartInfo.setClassName("SmfCampRestartInfo");
+	icoCampRestartInfo.setParentDn(SmfCampaignThread::instance()->campaign()->getDn());
+	icoCampRestartInfo.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+
+	SmfImmAttribute attrsmfRestartInfo;
+        attrsmfRestartInfo.setName("smfRestartInfo");
+        attrsmfRestartInfo.setType("SA_IMM_ATTR_SASTRINGT");
+        attrsmfRestartInfo.addValue("smfRestartInfo=info");
+        icoCampRestartInfo.addValue(attrsmfRestartInfo);
+
+	SmfImmAttribute attrsmfCampRestartCnt;
+        attrsmfCampRestartCnt.setName("smfCampRestartCnt");
+        attrsmfCampRestartCnt.setType("SA_IMM_ATTR_SAUINT32T");
+        attrsmfCampRestartCnt.addValue("0");
+        icoCampRestartInfo.addValue(attrsmfCampRestartCnt);
+
+        rc = icoCampRestartInfo.execute(); //Create the object
+	if (rc != SA_AIS_OK){
+                LOG_ER("SmfUpgradeCampaign::createCampRestartInfo: icoCampRestartInfo.execute() returned %d", rc);
+        }
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// toManyRestarts()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeCampaign::toManyRestarts(bool *o_result)
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAttrValuesT_2 **attributes;
+	int curCnt;
+
+	/* Read the SmfCampRestartInfo object smfCampRestartCnt attr */
+	std::string obj = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn();
+	SmfImmUtils immUtil;
+	if (immUtil.getObject(obj, &attributes) == true) {
+		const SaUint32T* cnt = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, "smfCampRestartCnt", 0);
+
+		curCnt = *cnt;
+
+		/* Increment and store counter */
+		curCnt++;
+		SmfImmRTUpdateOperation imoCampRestartInfo;
+		std::string dn = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn();
+		imoCampRestartInfo.setDn(dn);
+		imoCampRestartInfo.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+		imoCampRestartInfo.setOp("SA_IMM_ATTR_VALUES_REPLACE");
+
+		SmfImmAttribute attrsmfCampRestartCnt;
+		attrsmfCampRestartCnt.setName("smfCampRestartCnt");
+		attrsmfCampRestartCnt.setType("SA_IMM_ATTR_SAUINT32T");
+		char buf[5];
+		snprintf(buf, 4, "%d", curCnt);
+		attrsmfCampRestartCnt.addValue(buf);
+		imoCampRestartInfo.addValue(attrsmfCampRestartCnt);
+
+		rc = imoCampRestartInfo.execute(); //Modify the object
+		if (rc != SA_AIS_OK){
+			LOG_ER("SmfUpgradeCampaign::createCampRestartInfo: imoCampRestartInfo.execute() returned %d", rc);
+		}
+	}
+
+	int maxCnt = atoi(getenv("CAMP_MAX_RESTART"));
+	TRACE("maxCnt=%d, curCnt=%d", 	maxCnt, curCnt);	
+	if (curCnt > maxCnt){
+		TRACE("TRUE");
+		*o_result = true;
+	} else {
+		TRACE("FALSE");
+		*o_result = false;
+	}
+
+	TRACE_LEAVE();
+	return rc;
 }
 
 //------------------------------------------------------------------------------

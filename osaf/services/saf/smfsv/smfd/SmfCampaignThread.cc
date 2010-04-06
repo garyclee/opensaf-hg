@@ -16,6 +16,9 @@
  */
 
 #include <poll.h>
+#include <saImmOm.h>
+#include <saImmOi.h>
+#include <immutil.h>
 
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
@@ -28,6 +31,11 @@
 #include "SmfUpgradeProcedure.hh"
 
 SmfCampaignThread *SmfCampaignThread::s_instance = NULL;
+
+/*====================================================================*/
+/*  Data Declarations                                                 */
+/*====================================================================*/
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 /*====================================================================*/
 /*  Class SmfCampaignThread                                           */
@@ -129,6 +137,10 @@ SmfCampaignThread::~SmfCampaignThread()
 		m_campaign->setUpgradeCampaign(NULL);
 		delete upgradeCampaign;
 	}
+
+	//Delete the IMM handler
+	deleteImmHandle();
+
 	TRACE_LEAVE();
 }
 
@@ -215,6 +227,12 @@ int SmfCampaignThread::init(void)
 		return -1;
 	}
 
+	/* Create Imm handle for our runtime objects */
+	if ((rc = createImmHandle(m_campaign)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("createImmHandle FAILED %d", rc);
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -257,6 +275,86 @@ int SmfCampaignThread::send(CAMPAIGN_EVT * evt)
 	rc = m_NCS_IPC_SEND(&m_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
 
 	return rc;
+}
+
+/** 
+ * SmfCampaignThread::createImmHandle
+ * Creates Imm handle for our runtime objects.
+ */
+SaAisErrorT 
+SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	SaVersionT immVersion = { 'A', 2, 1 };
+        const char *campDn = i_campaign->getDn().c_str();
+
+	TRACE_ENTER();
+
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	rc = immutil_saImmOiInitialize_2(&m_campOiHandle, NULL, &immVersion);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
+		goto done;
+	}
+#if 0
+	rc = immutil_saImmOiSelectionObjectGet(m_campOiHandle, &m_campSelectionObject);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet fails rc=%d", rc);
+		goto done;
+	}
+#endif
+
+	TRACE("saImmOiImplementerSet DN=%s", campDn);
+
+	rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiImplementerSet for DN=%s fails rc=%d", campDn, rc);
+		goto done;
+	}
+
+	done:
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+	TRACE_LEAVE();
+	return rc;
+}
+
+/** 
+ * SmfCampaignThread::deleteImmHandle
+ * Deletes Imm handle for our runtime objects.
+ */
+SaAisErrorT 
+SmfCampaignThread::deleteImmHandle()
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	rc = immutil_saImmOiImplementerClear(m_campOiHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiImplementerClear fails rc=%d", rc);
+		goto done;
+	}
+
+	rc = immutil_saImmOiFinalize(m_campOiHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiFinalize fails rc=%d", rc);
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/** 
+ * SmfCampaignThread::getImmHandle
+ * Get the Imm handle for campaign runtime objects.
+ */
+SaImmOiHandleT 
+SmfCampaignThread::getImmHandle()
+{
+	return m_campOiHandle;
 }
 
 /** 

@@ -47,6 +47,8 @@
  * ========================================================================
  */
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
@@ -282,6 +284,9 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 
 	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
 
+	TRACE("Create the SmfCampRestartInfo object");
+	i_camp->createCampRestartInfo();
+
 	//Preparation is ready, change state and continue the campaign execution
 	changeState(i_camp, SmfCampStateExecuting::instance());
 	i_camp->execute();
@@ -349,6 +354,27 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 
 	TRACE("SmfCampStateExecuting::execute, Do some checking");
 
+	/* Check if the campaign have been restarted to many times */
+	bool o_result;
+	if (i_camp->toManyRestarts(&o_result) == SA_AIS_OK){
+		if (o_result == true) {
+			LOG_ER("The campaign have been restarted to many times");
+			std::string cnt = getenv("CAMP_MAX_RESTART");
+			std::string error = "To many campaign restarts, max " + cnt;
+			SmfCampaignThread::instance()->campaign()->setError(error);
+			changeState(i_camp, SmfCampStateExecFailed::instance());
+			TRACE_LEAVE();
+			return;
+		}
+	} else {
+		LOG_ER("toManyRestarts() fails");
+		std::string error = "Restart number check fails";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
+	}
+
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
 	//Set the DN of the procedures
@@ -363,7 +389,6 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 
 	//Start procedure threads
 	TRACE("SmfCampStateExecuting::execute, start procedure threads and set initial state");
-//	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
 		SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
@@ -651,6 +676,25 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 		evt->type = PROCEDURE_EVT_COMMIT;
 		procThread->send(evt);
 	}
+
+	/* Remove smfRestartInfo runtime object */
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	SaNameT objectName;
+	std::string dn = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn(); 
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
+					   &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
+	}
+
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
 
 	/* Terminate campaign thread */
 	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();

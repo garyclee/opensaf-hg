@@ -23,6 +23,7 @@
 #include <ncssysf_ipc.h>
 #include <saNtf.h>
 #include <string>
+#include <saImmOi.h>
 
 /* TODO: This needs to be handled somewhere else */
 #define SMF_NOTIFYING_OBJECT "safApp=safSmfService"
@@ -171,6 +172,8 @@ class SmfCampaignThread {
 	int sendStateNotification(const std::string & dn, uns32 classId, SaNtfSourceIndicatorT sourceInd, uns32 stateId,
 				  uns32 newState);
 
+	SaImmOiHandleT getImmHandle();
+
  private:
 	 SmfCampaignThread(SmfCampaign * campaign);
 	~SmfCampaignThread();
@@ -183,6 +186,9 @@ class SmfCampaignThread {
 	int handleEvents(void);
 	void processEvt(void);
 
+	SaAisErrorT createImmHandle(SmfCampaign * i_campaign);
+	SaAisErrorT deleteImmHandle();
+
 	static void main(NCSCONTEXT info);
 	static SmfCampaignThread *s_instance;
 
@@ -192,6 +198,7 @@ class SmfCampaignThread {
 	SmfCampaign *m_campaign;
 	sem_t m_semaphore;
 	SaNtfHandleT m_ntfHandle;
+	SaImmOiHandleT m_campOiHandle;	/* IMM OI handle */
 };
 
 #endif
