@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
 				ncs_sel_obj_destroy(usr1_sel_obj);
 
-				if (ntfs_amf_init(ntfs_cb) != SA_AIS_OK)
+				if (ntfs_amf_init() != SA_AIS_OK)
 					break;
 
 				TRACE("AMF Initialization SUCCESS......");
