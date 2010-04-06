@@ -24,11 +24,6 @@ Description: This function contains the PLMS routines for MDS interaction
 #include "plms.h"
 #include "ncs_util.h"
 
-MDS_CLIENT_MSG_FORMAT_VER
- PLMS_WRT_PLMA_MSG_FMT_ARRAY[PLMS_WRT_PLMA_SUBPART_VER_RANGE] = {
-	                  1 /*msg format version for PLMA subpart version 1 */
-};
-
 /****************** Function Prototypes ***********************************/
 static SaUint32T plms_mds_callback(struct ncsmds_callback_info *info);
 static SaUint32T plms_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info);

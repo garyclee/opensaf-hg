@@ -25,9 +25,4 @@ plmtest_SOURCES = \
 
 plmtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la  
-
-
-
-
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la
