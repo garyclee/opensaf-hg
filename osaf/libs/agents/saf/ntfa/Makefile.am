@@ -29,8 +29,6 @@ libntfa_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 libntfa_la_SOURCES = \
-	$(top_srcdir)/osaf/libs/common/ntfsv/ntfsv_enc_dec.c \
-	$(top_srcdir)/osaf/libs/common/ntfsv/ntfsv_mem.c \
 	ntfa_api.c \
 	ntfa_util.c \
 	ntfa_mds.c
