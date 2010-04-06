@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libmqsv_common.la
+noinst_LTLIBRARIES = libmqsv_common.la
 
 libmqsv_common_la_CPPFLAGS = \
 	-DNCS_MQA=1 -DNCS_MQSV_LOG=1 \
@@ -34,5 +34,3 @@ libmqsv_common_la_SOURCES = \
 	mqsv_asapi.c \
 	mqsv_edu.c \
 	posix.c
-
-libmqsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
