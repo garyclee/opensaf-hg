@@ -51,9 +51,6 @@ osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 osafsmfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/core/leap/include \
-	-I$(top_srcdir)/osaf/libs/core/mds/include \
-	-I$(top_srcdir)/osaf/libs/core/common/include \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
@@ -93,6 +90,5 @@ osafsmfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la

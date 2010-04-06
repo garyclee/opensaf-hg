@@ -60,7 +60,6 @@ osafclmd_SOURCES += clms_plm.c
 osafclmd_LDADD += \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \

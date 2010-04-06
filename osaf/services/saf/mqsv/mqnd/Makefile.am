@@ -23,7 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = osafmsgnd
 
 osafmsgnd_CPPFLAGS = \
-        -DSA_CLM_B01=1 \
+	-DSA_CLM_B01=1 \
 	-DNCS_MQND=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/mqsv/include \
@@ -51,9 +51,8 @@ osafmsgnd_SOURCES = \
 osafmsgnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/common/mqsv/libmqsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-        $(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
