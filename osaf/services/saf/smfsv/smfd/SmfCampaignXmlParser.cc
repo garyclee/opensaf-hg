@@ -1242,19 +1242,19 @@ SmfCampaignXmlParser::parseCampaignWrapup(SmfUpgradeCampaign * i_campaign, xmlNo
 			TRACE("xmlTag campCompleteAction found");
 			parseCampCompleteAction(i_campaign, cur);
 		} else if ((!strcmp((char *)cur->name, "waitToCommit")) && (cur->ns == ns)) {
-			LOG_ER("xmlTag waitToCommit found");
+			TRACE("xmlTag waitToCommit found");
                         s = (char *)xmlGetProp(cur, (const xmlChar *) "time");
                         if (s != NULL) {
                            i_campaign->setWaitToCommit((SaTimeT)strtoll(s, NULL, 0));
                            xmlFree(s);
                         }
 		} else if ((!strcmp((char *)cur->name, "callbackAtCommit")) && (cur->ns == ns)) {
-			LOG_ER("xmlTag callbackAtCommit found, no parsing implemented yet");
+			TRACE("xmlTag callbackAtCommit found, no parsing implemented yet");
 		} else if ((!strcmp((char *)cur->name, "campWrapupAction")) && (cur->ns == ns)) {
 			TRACE("xmlTag campWrapupAction found");
 			parseCampWrapupAction(i_campaign, cur);
 		} else if ((!strcmp((char *)cur->name, "waitToAllowNewCampaign")) && (cur->ns == ns)) {
-			LOG_ER("xmlTag waitToAllowNewCampaign found");
+			TRACE("xmlTag waitToAllowNewCampaign found");
                         s = (char *)xmlGetProp(cur, (const xmlChar *) "time");
                         if (s != NULL) {
                            i_campaign->setWaitToAllowNewCampaign((SaTimeT)strtoll(s, NULL, 0));

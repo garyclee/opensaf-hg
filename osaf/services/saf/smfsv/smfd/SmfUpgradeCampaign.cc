@@ -77,12 +77,15 @@ class SmfUpgradeProcedure;
 // ------------------------------------------------------------------------------
 SmfUpgradeCampaign::~SmfUpgradeCampaign()
 {
+	TRACE_ENTER();
 	//Delete procedures
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
 	for (iter = m_procedure.begin(); iter != m_procedure.end(); ++iter) {
 		delete(*iter);
 	}
+
+	TRACE_LEAVE();
 }
 
 // ------------------------------------------------------------------------------
@@ -264,6 +267,15 @@ void
 SmfUpgradeCampaign::addUpgradeProcedure(SmfUpgradeProcedure * i_procedure)
 {
 	m_procedure.push_back(i_procedure);
+}
+
+//------------------------------------------------------------------------------
+// getUpgradeProcedures()
+//------------------------------------------------------------------------------
+const std::vector < SmfUpgradeProcedure * >&
+SmfUpgradeCampaign::getUpgradeProcedures()
+{
+	return m_procedure;
 }
 
 //------------------------------------------------------------------------------

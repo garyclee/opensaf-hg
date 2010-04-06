@@ -123,8 +123,8 @@ class SmfProcedureThread {
 	int handleEvents(void);
 	void processEvt(void);
 
-	int createImmHandle(SmfUpgradeProcedure * procedure);
-	int deleteImmHandle();
+	SaAisErrorT createImmHandle(SmfUpgradeProcedure * procedure);
+	SaAisErrorT deleteImmHandle();
 	SaAisErrorT getImmProcedure(SmfUpgradeProcedure * procedure);
 	SaAisErrorT createImmProcedure(SmfUpgradeProcedure * procedure);
 

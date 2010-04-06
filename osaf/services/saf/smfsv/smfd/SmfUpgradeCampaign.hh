@@ -152,6 +152,13 @@ class SmfUpgradeCampaign {
 	void addUpgradeProcedure(SmfUpgradeProcedure * i_procedure);
 
 ///
+/// Purpose: Get pointers to the upgrade procedures.
+/// @param   None.
+/// @return  A vector containing pointers to SmfUpgradeProcedure objecs.
+///
+	const std::vector < SmfUpgradeProcedure * >& getUpgradeProcedures();
+
+///
 /// Purpose: Sort the added SmfUpgradeProcedure in execution level order.
 /// @param   None.
 /// @return  None.

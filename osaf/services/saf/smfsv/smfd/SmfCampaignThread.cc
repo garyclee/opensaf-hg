@@ -87,11 +87,13 @@ int SmfCampaignThread::start(SmfCampaign * campaign)
  */
 void SmfCampaignThread::main(NCSCONTEXT info)
 {
+	TRACE_ENTER();
 	SmfCampaignThread *self = (SmfCampaignThread *) info;
 	self->main();
 	TRACE("Campaign thread exits");
 	delete self;
 	s_instance = NULL;
+	TRACE_LEAVE();
 }
 
 /*====================================================================*/
@@ -116,6 +118,7 @@ void SmfCampaignThread::main(NCSCONTEXT info)
  */
 SmfCampaignThread::~SmfCampaignThread()
 {
+	TRACE_ENTER();
 	SaAisErrorT rc = saNtfFinalize(m_ntfHandle);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("Failed to finalize NTF handle %u", rc);
@@ -126,6 +129,7 @@ SmfCampaignThread::~SmfCampaignThread()
 		m_campaign->setUpgradeCampaign(NULL);
 		delete upgradeCampaign;
 	}
+	TRACE_LEAVE();
 }
 
 /** 
@@ -168,6 +172,7 @@ int
  */
 int SmfCampaignThread::stop(void)
 {
+	TRACE_ENTER();
 	TRACE("Stopping campaign thread %s", m_campaign->getDn().c_str());
 
 	/* send a message to the thread to make it terminate */
@@ -177,6 +182,7 @@ int SmfCampaignThread::stop(void)
 
 	/* Wait for the thread to terminate */
 	sem_wait(&m_semaphore);
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -418,6 +424,7 @@ void SmfCampaignThread::processEvt(void)
  */
 int SmfCampaignThread::handleEvents(void)
 {
+	TRACE_ENTER();
 	NCS_SEL_OBJ mbx_fd;
 	struct pollfd fds[1];
 
@@ -446,7 +453,7 @@ int SmfCampaignThread::handleEvents(void)
 			processEvt();
 		}
 	}
-
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -456,6 +463,7 @@ int SmfCampaignThread::handleEvents(void)
  */
 void SmfCampaignThread::main(void)
 {
+	TRACE_ENTER();
 	if (this->init() == 0) {
 		/* Mark the thread started */
 		sem_post(&m_semaphore);
@@ -471,4 +479,6 @@ void SmfCampaignThread::main(void)
 	} else {
 		LOG_ER("init failed");
 	}
+
+	TRACE_LEAVE();
 }

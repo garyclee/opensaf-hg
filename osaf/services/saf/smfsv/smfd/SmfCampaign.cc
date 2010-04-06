@@ -69,6 +69,9 @@ SmfCampaign::SmfCampaign(const SaNameT * dn):
  */
 SmfCampaign::~SmfCampaign()
 {
+	TRACE_ENTER();
+
+	TRACE_LEAVE();
 }
 
 /** 
@@ -697,6 +700,7 @@ SmfCampaignList::del(const SaNameT * dn)
 void 
 SmfCampaignList::cleanup(void)
 {
+	TRACE_ENTER();
 	std::list < SmfCampaign * >::iterator it = m_campaignList.begin();
 
 	while (it != m_campaignList.end()) {
@@ -706,4 +710,5 @@ SmfCampaignList::cleanup(void)
 	}
 
        	m_campaignList.clear();
+	TRACE_LEAVE();
 }

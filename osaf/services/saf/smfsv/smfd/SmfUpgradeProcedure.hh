@@ -22,6 +22,8 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include <semaphore.h>
+#include <ncsgl_defs.h>
 
 #include <string>
 #include <vector>
@@ -51,6 +53,9 @@ class SmfEntity;
  *   TYPE DEFINITIONS
  * ========================================================================
  */
+#define m_PROCEDURE_TASKNAME "PROCEDURE"
+#define m_PROCEDURE_STACKSIZE NCS_STACKSIZE_HUGE
+#define m_PROCEDURE_TASK_PRI (5)
 
 typedef enum {
 	SMF_AU_NONE = 1,
@@ -271,9 +276,8 @@ class SmfUpgradeProcedure {
 ///
         void switchOver();
 
-
 ///
-/// Purpose:  Calculate upgrade steps for this procedure
+/// Purpose:  Calculate upgrade steps
 /// @param    -
 /// @return   True if successful otherwise false
 ///
@@ -441,6 +445,29 @@ class SmfUpgradeProcedure {
         std::vector < SmfUpgradeAction * >m_procInitAction;   //Container of the procedure initiation commands
         std::vector < SmfUpgradeAction * >m_procWrapupAction; //Container of the procedure wrap up commands
         std::vector < SmfUpgradeStep * >m_procSteps;	      //Container of the procedure wrap up commands
+	sem_t m_semaphore;
+};
+
+//////////////////////////////////////////////////
+//Class SmfSwapThread
+//Used for just one task, the SI_SWAP operation
+//////////////////////////////////////////////////
+class SmfSwapThread {
+ public:
+	SmfSwapThread();
+	~SmfSwapThread();
+	int start(void);
+
+ private:
+
+	void main(void);
+	int init(void);
+
+	static void main(NCSCONTEXT info);
+
+	NCSCONTEXT m_task_hdl;
+	bool m_running;
+	sem_t m_semaphore;
 };
 
 #endif				// SMFUPGRADEPROCEDURE_HH

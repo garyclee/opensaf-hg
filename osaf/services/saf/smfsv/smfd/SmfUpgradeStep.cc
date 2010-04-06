@@ -1142,7 +1142,7 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 	TRACE_ENTER();
 
 	for (dnit = i_dnList.begin(); dnit != i_dnList.end(); ++dnit) {
-		if (immUtil.callAdminOperation((*dnit), i_operation, i_params, smfd_cb->adminOpTimeout) == false) {
+		if (immUtil.callAdminOperation((*dnit), i_operation, i_params, smfd_cb->adminOpTimeout) != SA_AIS_OK) {
 			LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
 			return false;
 		}
@@ -1159,6 +1159,7 @@ bool
 SmfUpgradeStep::nodeReboot(const std::string & i_node)
 {
 	TRACE_ENTER();
+
 	bool result = true;
 	MDS_DEST nodeDest;
 	int rc;
