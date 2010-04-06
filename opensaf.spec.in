@@ -1009,7 +1009,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
 %{_libdir}/libSaNtf.so.*
-%{_pkglibdir}/libntfsv_common.so.*
 
 %files ntf-server
 %defattr(-,root,root)

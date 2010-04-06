@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libntfsv_common.la
+noinst_LTLIBRARIES = libntfsv_common.la
 
 libntfsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -29,5 +29,3 @@ libntfsv_common_la_CPPFLAGS = \
 libntfsv_common_la_SOURCES = \
 	ntfsv_enc_dec.c \
 	ntfsv_mem.c
-
-libntfsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

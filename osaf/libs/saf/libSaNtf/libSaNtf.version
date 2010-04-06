@@ -1,4 +1,4 @@
-# Version and symbol export for libSaLog.so
+# Version and symbol export for libSaNtf.so
 
 # Symbol scoping for libSaNtf.so
 {
@@ -7,5 +7,4 @@
 
 	local:
 		ntfa*;
-		ntfsv*;
 };
