@@ -598,8 +598,6 @@ void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_INFO * trk)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	CLMS_CLIENT_INFO *client = NULL;
-	SaAisErrorT ais_er;
 
 	TRACE_ENTER();
 
@@ -680,7 +678,7 @@ uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_I
 uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT ais_er = SA_AIS_OK;
+
 	TRACE_ENTER();
 
 	rc = clms_node_trackresplist_empty(node);
@@ -748,7 +746,7 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO * trkrec)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT ais_er = SA_AIS_OK;
+
 	TRACE_ENTER();
 
 	if (trkrec != NULL) {
