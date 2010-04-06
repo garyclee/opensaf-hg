@@ -943,7 +943,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files lck-libs
 %defattr(-,root,root)
 %{_libdir}/libSaLck.so.*
-%{_pkglibdir}/libglsv_common.so.*
 
 %files lck-director
 %defattr(-,root,root)
