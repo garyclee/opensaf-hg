@@ -874,7 +874,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %{_libdir}/libSaImmOi.so.*
 %{_libdir}/libSaImmOm.so.*
-%{_pkglibdir}/libimmsv_common.so.*
 
 %files imm-director
 %defattr(-,root,root)

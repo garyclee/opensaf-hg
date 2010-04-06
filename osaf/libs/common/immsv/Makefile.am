@@ -13,7 +13,6 @@
 #
 # Author(s): Ericsson AB
 #
-#
 
 include $(top_srcdir)/Makefile.common
 
@@ -21,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libimmsv_common.la
+noinst_LTLIBRARIES = libimmsv_common.la
 
 libimmsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -29,5 +28,3 @@ libimmsv_common_la_CPPFLAGS = \
 
 libimmsv_common_la_SOURCES = \
 	immsv_evt.c
-
-libimmsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
