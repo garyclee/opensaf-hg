@@ -20,8 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libglsv_common.la
+noinst_LTLIBRARIES = libglsv_common.la
 
+# TODO: Fix deps on cpsv includes
 libglsv_common_la_CPPFLAGS = \
 	-DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
@@ -31,5 +32,3 @@ libglsv_common_la_CPPFLAGS = \
 
 libglsv_common_la_SOURCES = \
 	glsv_edu.c
-
-libglsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
