@@ -20,14 +20,11 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libedsv_common.la
+noinst_LTLIBRARIES = libedsv_common.la
 
 libedsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include
 
 libedsv_common_la_SOURCES = \
 	edsv_util.c
-
-libedsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

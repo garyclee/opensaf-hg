@@ -856,7 +856,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files evt-libs
 %defattr(-,root,root)
 %{_libdir}/libSaEvt.so.*
-%{_pkglibdir}/libedsv_common.so.*
 
 %files evt-server
 %defattr(-,root,root)
