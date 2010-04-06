@@ -130,6 +130,7 @@
 		<category>SA_RUNTIME</category> 
 		<flag>SA_CACHED</flag> 
 		<flag>SA_PERSISTENT</flag> 
+		<default-value>1</default-value>
 	</attr>
 	<attr>
 		<name>saPlmHEReadinessState</name> 
@@ -235,6 +236,7 @@
 		<category>SA_RUNTIME</category> 
 		<flag>SA_PERSISTENT</flag> 
 		<flag>SA_CACHED</flag> 
+		<default-value>1</default-value>
 	</attr>
 	<attr>
 		<name>saPlmEEPresenceState</name> 
@@ -256,7 +258,7 @@
 	</attr>
 	<attr>
 		<name>saPlmEEReadinessFlags</name> 
-		<type>SA_UINT32_T</type> 
+		<type>SA_UINT64_T</type> 
 		<category>SA_RUNTIME</category> 
 		<flag>SA_CACHED</flag> 
 	</attr>

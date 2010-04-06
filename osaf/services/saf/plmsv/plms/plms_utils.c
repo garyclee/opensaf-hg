@@ -29,8 +29,6 @@
 #include "plms_mbcsv.h"
 #include "plms_utils.h"
 
-static SaUint32T plms_attr_imm_update(PLMS_ENTITY *,SaInt8T *,SaImmValueTypeT ,SaUint64T);
-
 /******************************************************************************
 Name            : 
 Description     : If admin_op_in_progress is set for any the following then
@@ -2509,7 +2507,7 @@ Arguments       :
 Return Values   : 
 Notes           : 
 ******************************************************************************/
-static SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
+SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
 				SaImmValueTypeT val_type,SaUint64T val)
 {
 	SaAisErrorT err;
