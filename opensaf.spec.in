@@ -805,7 +805,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files ckpt-libs
 %defattr(-,root,root)
 %{_libdir}/libSaCkpt.so.*
-%{_pkglibdir}/libcpsv_common.so.*
 
 %files ckpt-director
 %defattr(-,root,root)
