@@ -22,6 +22,7 @@ SUBDIRS = scripts
 
 pkglib_PROGRAMS = osaflckd
 
+# TODO: Fix the cpsv include dep
 osaflckd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_GLD=1 -DNCS_GLSV_LOG=1 \
@@ -47,7 +48,6 @@ osaflckd_SOURCES = \
 
 osaflckd_LDADD =  \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaLck/libSaLck.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
