@@ -60,7 +60,7 @@ static void __print_usage(const char* progname, FILE* stream, int exit_code)
 
 static int __create_pidfile(const char* pidfile)
 {
-	FILE *file;
+	FILE *file = NULL;
 	int fd, pid, rc = 0;
 
 	/* open the file and associate a stream with it */
