@@ -43,11 +43,8 @@ cmd_help() {
     grep '^##' $dir/$prg | cut -c3-
 }
 
-if test "$(uname -m)" = "x86_64"; then
-    lib_dir=lib64
-else
-    lib_dir=lib
-fi
+# "make install" always install to /usr/local/lib no matter 32/64 bit
+lib_dir=lib
 
 opensaf_home=$(cd ../..; pwd)
 top=`pwd`
@@ -149,6 +146,7 @@ cmd_create_rootfs()
     # Some distros use startproc/killproc, others start-stop-daemon
     test -e /sbin/startproc && install /sbin/startproc sbin
     test -e /sbin/killproc && install /sbin/killproc sbin
+    test -e /sbin/pidofproc && install /sbin/pidofproc sbin
     test -e /sbin/start-stop-daemon && install /sbin/start-stop-daemon sbin
 
     mkdir -p lib/lsb
@@ -168,6 +166,9 @@ cmd_create_rootfs()
     # Change LOG configuration to use "replicated" disk
     sed -i 's/=$pkglogdir\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/logd.conf
+
+    # Change core pattern, uml cannot write cores to hostfs
+    sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd
 
     # The var directory structure is setup from within each UML
     rm -rf var/*
@@ -210,7 +211,7 @@ cmd_installibs() {
     cd $root
     cmd_getlibs \
 	$(find . -name immload) ./bin/* ./usr/bin/* ./usr/sbin/* |\
-	grep -v -e 'libSa\|libimmsv\|libncs\|libsaf' \
+	grep -v -e 'libSa\|libimmsv\|libsaf' \
 	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
 
     for n in $(cat $deplib | sort | uniq); do
