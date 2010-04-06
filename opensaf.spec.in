@@ -830,7 +830,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files clm-libs
 %defattr(-,root,root)
 %{_libdir}/libSaClm.so.*
-%{_pkglibdir}/libclmsv_common.so.*
 
 %files clm-server
 %defattr(-,root,root)

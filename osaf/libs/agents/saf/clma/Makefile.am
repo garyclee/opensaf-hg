@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libclma.la
 
 noinst_HEADERS = \
-        clma.h 
+	clma.h 
 
 libclma_la_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
@@ -33,5 +33,4 @@ libclma_la_LDFLAGS = -static
 libclma_la_SOURCES = \
 	clma_api.c \
 	clma_mds.c \
-	clma_util.c \
-	$(top_srcdir)/osaf/libs/common/clmsv/clmsv_enc_dec.c
+	clma_util.c
