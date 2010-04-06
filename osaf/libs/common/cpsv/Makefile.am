@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libcpsv_common.la
+noinst_LTLIBRARIES = libcpsv_common.la
 
 libcpsv_common_la_CPPFLAGS = \
 	-DNCS_CPND=1 -DNCS_CPD=1 \
@@ -31,5 +31,3 @@ libcpsv_common_la_SOURCES = \
 	cpsv_edu.c \
 	cpsv_evt.c \
 	cpsv_mbedu.c
-
-libcpsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
