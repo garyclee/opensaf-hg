@@ -54,8 +54,7 @@ osafdtd_LDFLAGS = -Wl,--export-dynamic
 
 osafdtd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

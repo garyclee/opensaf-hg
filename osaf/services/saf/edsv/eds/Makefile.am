@@ -23,7 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = osafevtd
 
 osafevtd_CPPFLAGS = \
-        -DSA_CLM_B01=1 \
+	-DSA_CLM_B01=1 \
 	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \
@@ -48,7 +48,6 @@ osafevtd_SOURCES = \
 
 osafevtd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \

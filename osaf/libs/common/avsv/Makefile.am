@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libavsv_common.la
+noinst_LTLIBRARIES = libavsv_common.la
 
 libavsv_common_la_CPPFLAGS = \
 	-DNCS_EDU=1 \
@@ -34,6 +34,4 @@ libavsv_common_la_SOURCES = \
 	avsv_n2avamsg.c \
 	avsv_n2avaedu.c \
 	avsv_util.c \
-	avsv_eduutil.c 
-
-libavsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+	avsv_eduutil.c

@@ -47,7 +47,6 @@ osafimmd_SOURCES = \
 
 osafimmd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

@@ -773,7 +773,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files amf-libs
 %defattr(-,root,root)
 %{_libdir}/libSaAmf.so.*
-%{_pkglibdir}/libavsv_common.so.*
 
 %files amf-director
 %defattr(-,root,root)
