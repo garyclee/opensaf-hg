@@ -1022,6 +1022,8 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 
 	SmfImmUtils immutil;
 	SaImmAttrValuesT_2 ** attributes;
+
+	/* Find out which bundles requires restart to be installed */
 	std::list< SmfBundleRef >::const_iterator bundleIter;
 	const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
 	bundleIter = addList.begin();
@@ -1060,7 +1062,7 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 		// Here the rebooted node is up and running
 	}
 
-	/* Find out which requires restart to be removed */
+	/* Find out which bundles requires restart to be removed */
 	std::list < SmfBundleRef > restartBundles;
 	const std::list < SmfBundleRef > &removeList = i_step->getSwRemoveList();
 	bundleIter = removeList.begin();

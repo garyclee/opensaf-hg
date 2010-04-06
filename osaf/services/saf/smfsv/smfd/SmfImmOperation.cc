@@ -774,7 +774,7 @@ SmfImmRTCreateOperation::setParentDn(const std::string & i_dn)
 }
 
 //------------------------------------------------------------------------------
-// setParentDn()
+// setImmHandle()
 //------------------------------------------------------------------------------
 void 
 SmfImmRTCreateOperation::setImmHandle(const SaImmOiHandleT & i_handle)
@@ -905,3 +905,153 @@ SmfImmRTCreateOperation::execute()
 	return result;
 }
 
+//================================================================================
+// Class SmfImmRTUpdateOperation
+// Purpose:
+// Comments:
+//================================================================================
+
+SmfImmRTUpdateOperation::SmfImmRTUpdateOperation():
+   m_dn(""), 
+   m_op(""), 
+   m_values(0), 
+   m_immAttrMods(0)
+{
+}
+
+// ------------------------------------------------------------------------------
+// ~SmfImmRTUpdateOperation()
+// ------------------------------------------------------------------------------
+SmfImmRTUpdateOperation::~SmfImmRTUpdateOperation()
+{
+}
+
+//------------------------------------------------------------------------------
+// setDn()
+//------------------------------------------------------------------------------
+void
+SmfImmRTUpdateOperation::setDn(const std::string & i_dn)
+{
+	m_dn = i_dn;
+}
+
+//------------------------------------------------------------------------------
+// setOp()
+//------------------------------------------------------------------------------
+void 
+SmfImmRTUpdateOperation::setOp(const std::string & i_op)
+{
+	m_op = i_op;
+}
+
+//------------------------------------------------------------------------------
+// setImmHandle()
+//------------------------------------------------------------------------------
+void 
+SmfImmRTUpdateOperation::setImmHandle(const SaImmOiHandleT & i_handle)
+{
+	m_immHandle = i_handle;
+}
+
+//------------------------------------------------------------------------------
+// createAttrMods()
+//------------------------------------------------------------------------------
+void 
+SmfImmRTUpdateOperation::createAttrMods(void)
+{
+	TRACE_ENTER();
+
+	SaImmAttrModificationT_2 **attributeModifications =
+	    (SaImmAttrModificationT_2 **) new SaImmAttrModificationT_2 *[m_values.size() + 1];
+
+	int i = 0;		//Index to a SaImmAttrModificationT_2 pointer in the attributeModificationss array
+
+	std::list < SmfImmAttribute >::iterator iter;
+	std::list < SmfImmAttribute >::iterator iterE;
+
+	iter = m_values.begin();
+	iterE = m_values.end();
+	while (iter != iterE) {
+		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
+		assert(mod != 0);
+		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
+		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
+		mod->modAttr.attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
+		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
+
+		assert((*iter).m_values.size() > 0);	//Must have at least one value
+		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
+
+		smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type
+
+		//Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
+		attributeModifications[i++] = mod;
+
+		iter++;
+	}
+
+	attributeModifications[i] = NULL;	//Null terminate the list of modification pointers
+	m_immAttrMods = attributeModifications;
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// addValue()
+//------------------------------------------------------------------------------
+void 
+SmfImmRTUpdateOperation::addValue(const SmfImmAttribute & i_value)
+{
+	m_values.push_back(i_value);
+}
+
+//------------------------------------------------------------------------------
+// execute()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfImmRTUpdateOperation::execute()
+{
+	TRACE_ENTER();
+
+	SaAisErrorT result = SA_AIS_OK;
+
+	//Convert the strings to structures and types accepted by the IMM interface
+	this->createAttrMods();
+
+	if (m_dn.length() > SA_MAX_NAME_LENGTH) {
+		LOG_ER("SmfImmRTCreateOperation::execute:createObject failed Too long DN %zu",
+		       m_dn.length());
+                TRACE_LEAVE();
+		return SA_AIS_ERR_NAME_TOO_LONG;
+	}
+
+	if (!m_immAttrMods) {
+		LOG_ER("SmfImmRTCreateOperation::execute: no SaImmAttrValuesT_2** is set");
+                TRACE_LEAVE();
+		return SA_AIS_ERR_UNAVAILABLE;
+	}
+
+	SaNameT objectName;
+	objectName.length = m_dn.length();
+	strncpy((char *)objectName.value, m_dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	result = immutil_saImmOiRtObjectUpdate_2(m_immHandle,
+                                                 &objectName, 
+                                                 (const SaImmAttrModificationT_2**)m_immAttrMods);
+
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+
+	if (result != SA_AIS_OK) {
+		TRACE("saImmOiRtObjectUpdate_2 returned %u for %s", result, objectName.value);
+	}
+
+	TRACE_LEAVE();
+
+	return result;
+
+}

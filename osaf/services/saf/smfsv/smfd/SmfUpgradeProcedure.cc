@@ -403,7 +403,7 @@ SmfUpgradeProcedure::switchOver()
 
 done:
 
-	SmfSwapThread *swapThread = new SmfSwapThread();
+	SmfSwapThread *swapThread = new SmfSwapThread(this);
 	TRACE("SmfUpgradeProcedure::switchOver, Starting SI_SWAP thread");
 	swapThread->start();
 
@@ -2196,8 +2196,9 @@ SmfSwapThread::main(NCSCONTEXT info)
 /** 
  * Constructor
  */
-SmfSwapThread::SmfSwapThread():
-	m_task_hdl(0)
+SmfSwapThread::SmfSwapThread(SmfUpgradeProcedure * i_proc):
+	m_task_hdl(0),
+	m_proc(i_proc)
 {
 	sem_init(&m_semaphore, 0, 0);
 }
@@ -2258,6 +2259,11 @@ SmfSwapThread::main(void)
 	admOp.setDoId(SA_AMF_ADMIN_SI_SWAP);
 	if (admOp.execute() != SA_AIS_OK) {
 		LOG_ER("SmfSwapThread::main: SA_AMF_ADMIN_SI_SWAP fails");
+		CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+		evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+		evt->event.procResult.rc = PROCEDURE_FAILED;
+		evt->event.procResult.procedure = m_proc;
+		SmfCampaignThread::instance()->send(evt);
 	}
 
 	TRACE_LEAVE();

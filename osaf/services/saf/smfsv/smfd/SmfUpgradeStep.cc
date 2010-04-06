@@ -1181,7 +1181,7 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 
 	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
 #if 0
-	// The rebooted node will not answer
+	// Do not wait for answer, the rebooted node will not answer
 	if (rc != 0) {
 		LOG_ER("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
 		       cmd.c_str(), i_node.c_str(), rc);

@@ -229,6 +229,20 @@ class SmfUpgradeCampaign {
 	SaTimeT getWaitToAllowNewCampaign();
 
 ///
+/// Purpose: Create the SmfCampRestartInfo object
+/// @param   None.
+/// @return  SaAisErrorT
+///
+	SaAisErrorT createCampRestartInfo();
+
+///
+/// Purpose: Check if number of campaign restarts are exceeded
+/// @param   bool o_result, .true if level exceeded otherwise false
+/// @return  SaAisErrorT
+///
+	SaAisErrorT toManyRestarts(bool *o_result);
+
+///
 /// Purpose: Start or continue the execution of the campaign.
 /// @param   None.
 /// @return  None.

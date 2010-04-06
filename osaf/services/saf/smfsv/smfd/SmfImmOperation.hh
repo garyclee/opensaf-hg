@@ -105,6 +105,7 @@ class SmfImmAttribute {
 	friend class SmfImmModifyOperation;
 	friend class SmfImmDeleteOperation;
 	friend class SmfImmRTCreateOperation;
+	friend class SmfImmRTUpdateOperation;
 
  private:
 	 std::string m_name;	/* Attribute name */
@@ -494,6 +495,80 @@ class SmfImmRTCreateOperation {
 	SaImmAttrValuesT_2 **m_immAttrValues;	/* The array of opinters to SaImmAttrValuesT_2 structures */
 };
 
+///
+/// Purpose: Class for update of run time IMM objects.
+///
 
+class SmfImmRTUpdateOperation {
+ public:
+
+///
+/// Purpose: Constructor.
+/// @param   None
+/// @return  None
+///
+	SmfImmRTUpdateOperation();
+
+///
+/// Purpose: Destructor.
+/// @param   None
+/// @return  None
+///
+	~SmfImmRTUpdateOperation();
+
+///
+/// Purpose: Execute the operation.
+/// @param   None.
+/// @return  None.
+///
+	SaAisErrorT execute();
+
+///
+/// Purpose: Set the DN for the object to modify
+/// @param   i_dn The object DN.
+/// @return  None.
+///
+	void setDn(const std::string & i_dn);
+
+///
+/// Purpose: Set the type of modification operation.
+/// @param   i_op The name of the operation (SA_IMM_ATTR_VALUES_ADD/SA_IMM_ATTR_VALUES_DELETE/SA_IMM_ATTR_VALUES_REPLACE).
+/// @return  None.
+///
+	void setOp(const std::string & i_op);
+
+///
+/// Purpose: Set the IMM OI handle.
+/// @param   i_handle The SaImmOiHandleT.
+/// @return  None.
+///
+	void setImmHandle(const SaImmOiHandleT & i_handle);
+
+///
+/// Purpose: Add a value for an attribute of the object to be created.
+/// @param   i_value A SmfImmAttribute containing the attribute information.
+/// @return  None.
+///
+	void addValue(const SmfImmAttribute & i_value);
+
+///
+/// Purpose: Create the attr values structure from previously added string values.
+/// @param   None.
+/// @return  None.
+///
+	void createAttrMods(void);
+
+ private:
+///
+/// Purpose: Set the SaImmAttrValuesT_2**, pointing to the array of pointers to SaImmAttrValuesT_2.
+/// @param   i_values A SaImmAttrValuesT_2** pointing to a null terminated array of SaImmAttrValuesT_2 pointers.
+/// @return  None.
+///
+        std::string    m_dn;	        /* dn to the parent object */
+        std::string    m_op;	        /* type of modification operation */
+        SaImmOiHandleT m_immHandle;     /* The IMM OI handle */
+        std::list < SmfImmAttribute > m_values;	/* Attribute creation values */
+	SaImmAttrModificationT_2 **m_immAttrMods;  /* The array of opinters to SaImmAttrValuesT_2 structures */
+};
 
 #endif				// SMFIMMOPERATION_HH
