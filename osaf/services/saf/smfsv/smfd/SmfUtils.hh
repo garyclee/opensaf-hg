@@ -135,9 +135,9 @@ class SmfImmUtils {
 /// @param   i_timeout Max time it may take
 /// @return  True if successful, otherwise false
 ///
-	bool callAdminOperation(const std::string & i_dn, unsigned int i_operationId,
-				const SaImmAdminOperationParamsT_2 ** i_params = NULL, SaTimeT i_timeout =
-				SA_TIME_ONE_MINUTE);
+	SaAisErrorT callAdminOperation(const std::string & i_dn, unsigned int i_operationId,
+				       const SaImmAdminOperationParamsT_2 ** i_params = NULL, SaTimeT i_timeout =
+				       SA_TIME_ONE_MINUTE);
 
 ///
 /// Purpose: Call administrative operation on an object.

@@ -15,6 +15,9 @@
  *
  */
 
+#include <string>
+#include <vector>
+
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
@@ -31,7 +34,10 @@
 #include "smfd.h"
 #include "smfsv_defs.h"
 #include "SmfCampaign.hh"
+#include "SmfUpgradeCampaign.hh"
+#include "SmfUpgradeProcedure.hh"
 #include "SmfCampaignThread.hh"
+#include "SmfProcedureThread.hh"
 #include "SmfUtils.hh"
 #include "SmfCampState.hh"
 
@@ -493,6 +499,7 @@ uns32 campaign_oi_deactivate(smfd_cb_t * cb)
 	/* We should terminate all threads (if exists) */
 	/* and remove all local Campaign objects */
 	SmfCampaignThread::terminate();
+
 	/* The thread should now be terminated, cleanup */
 	SmfCampaignList::instance()->cleanup();
 

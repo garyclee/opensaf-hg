@@ -333,7 +333,7 @@ SmfAdminOperationAction::addUndoParameter(const std::string & i_name, const std:
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-int 
+int
 SmfAdminOperationAction::execute()
 {
 	TRACE_ENTER();

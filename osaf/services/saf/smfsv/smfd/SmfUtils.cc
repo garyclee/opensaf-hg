@@ -378,7 +378,7 @@ done:
 // ------------------------------------------------------------------------------
 // callAdminOperation()
 // ------------------------------------------------------------------------------
-bool 
+SaAisErrorT
 SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operationId,
 				     const SaImmAdminOperationParamsT_2 ** i_params, SaTimeT i_timeout)
 {
@@ -386,6 +386,7 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	SaAisErrorT returnValue;
 	SaNameT objectName;
 	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	int retry          = 100;
 
 	/* First set admin owner on the object */
 	objectName.length = i_dn.length();
@@ -407,29 +408,36 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle, objectNames, SA_IMM_ONE);
 	if ( rc != SA_AIS_OK) {
 		LOG_ER("SmfImmUtils::callAdminOperation: immutil_saImmOmAdminOwnerSet rc = %u", rc);
-		goto error_exit;
+		goto done;
 	}
 
 	/* Call the admin operation */
-	rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
-						   &returnValue, i_timeout);
+	do {
+		TRACE("call immutil_saImmOmAdminOperationInvoke_2");
+		rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
+							   &returnValue, i_timeout);
+		if (retry <= 0) {
+			LOG_ER("immutil_saImmOmAdminOperationInvoke_2 returnValue = SA_AIS_ERR_TRY_AGAIN, giving up");
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto done;
+		}
+		sleep(2);
+		retry--;
+	} while ((rc == SA_AIS_OK) && (returnValue == SA_AIS_ERR_TRY_AGAIN));
+
 	if ( rc != SA_AIS_OK) {
 		LOG_ER("SmfImmUtils::callAdminOperation: immutil_saImmOmAdminOperationInvoke_2 rc = %u", rc);
-		goto error_exit;
+		goto done;
 	}
        
-	if ( returnValue != SA_AIS_OK ) {
+	if ((returnValue != SA_AIS_OK ) && (returnValue != SA_AIS_ERR_REPAIR_PENDING)) {
 		LOG_ER("SmfImmUtils::callAdminOperation: admin operation %u on %s returned %u", i_operationId, i_dn.c_str(),
 		       returnValue);
-		goto error_exit;
 	}
 
+done:
 	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
-	return true;
-
-error_exit:
-	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
-	return false;	
+	return rc;
 }	
 
 

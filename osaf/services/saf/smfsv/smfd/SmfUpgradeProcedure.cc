@@ -20,9 +20,17 @@
  * ========================================================================
  */
 #include <string>
+#include <vector>
 #include <sstream>
 #include <assert.h>
 
+#include <poll.h>
+
+#include <ncssysf_def.h>
+#include <ncssysf_ipc.h>
+#include <ncssysf_tsk.h>
+
+#include <saAmf.h>
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
@@ -85,6 +93,7 @@
 // ------------------------------------------------------------------------------
 SmfUpgradeProcedure::~SmfUpgradeProcedure()
 {
+	TRACE_ENTER();
 	if (m_procedureThread != NULL) {
 		m_procedureThread->stop();
 		/* The thread deletes it's own object when terminating */
@@ -110,6 +119,7 @@ SmfUpgradeProcedure::~SmfUpgradeProcedure()
 	for (stepit = m_procSteps.begin(); stepit != m_procSteps.end(); ++stepit) {
 		delete(*stepit);
 	}
+	TRACE_LEAVE();
 }
 
 // ------------------------------------------------------------------------------
@@ -377,11 +387,26 @@ void
 SmfUpgradeProcedure::switchOver()
 {
 	TRACE_ENTER();
-	/* TODO We most likely need to spawn a separate thread to execute
-	   the switch over since the it ought to close down ourself */
-	TRACE("SwichOver RAW method, Ordering reboot()");
-	if(-1 == system("reboot"))
-		LOG_ER("Ordering reboot failed.");
+	//Delete the IMM handle
+	SaImmOiHandleT immh = getProcThread()->getImmHandle();
+	SaAisErrorT rc;
+	rc = immutil_saImmOiImplementerClear(immh);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiImplementerClear fails rc=%d", rc);
+		goto done;
+	}
+	rc = immutil_saImmOiFinalize(immh);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiFinalize fails rc=%d", rc);
+		goto done;
+	}
+
+done:
+
+	SmfSwapThread *swapThread = new SmfSwapThread();
+	TRACE("SmfUpgradeProcedure::switchOver, Starting SI_SWAP thread");
+	swapThread->start();
+
 	TRACE_LEAVE();
 }
 
@@ -1173,6 +1198,11 @@ SmfUpgradeProcedure::addStepModificationsNode(SmfUpgradeStep * i_newStep, const 
                                                         immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
                                                                             "saAmfSUHostedByNode",
                                                                             0);
+						if (hostedByNode == NULL) {
+                                                        LOG_ER("SmfUpgradeProcedure::addStepModificationsNode:No hostedByNode attr set for %s", (*objit).c_str());  
+                                                        return false;
+						}
+                               
 						TRACE("hostedByNode = %s", (char*)hostedByNode->value);
 						if ((hostedByNode != NULL)
 						    && (strcmp(auNodeName.c_str(), (char *)hostedByNode->value) == 0)) {
@@ -2134,5 +2164,101 @@ SmfUpgradeProcedure::commit()
 {
 	TRACE_ENTER();
 	m_state->commit(this);
+	TRACE_LEAVE();
+}
+
+
+/*====================================================================*/
+/*  Class SmfSwapThread                                               */
+/*====================================================================*/
+
+/*====================================================================*/
+/*  Static methods                                                    */
+/*====================================================================*/
+
+/** 
+ * SmfSmfSwapThread::main
+ * static main for the thread
+ */
+void
+SmfSwapThread::main(NCSCONTEXT info)
+{
+	SmfSwapThread *self = (SmfSwapThread *) info;
+	self->main();
+	TRACE("Swap thread exits");
+	delete self;
+}
+
+/*====================================================================*/
+/*  Methods                                                           */
+/*====================================================================*/
+
+/** 
+ * Constructor
+ */
+SmfSwapThread::SmfSwapThread():
+	m_task_hdl(0)
+{
+	sem_init(&m_semaphore, 0, 0);
+}
+
+/** 
+ * Destructor
+ */
+SmfSwapThread::~SmfSwapThread()
+{
+}
+
+/**
+ * SmfSwapThread::start
+ * Start the SmfSwapThread.
+ */
+int
+SmfSwapThread::start(void)
+{
+	TRACE_ENTER();
+	uns32 rc;
+
+	/* Create the task */
+	if ((rc =
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfSwapThread::main, (NCSCONTEXT) this, (char*) m_PROCEDURE_TASKNAME,
+			       m_PROCEDURE_TASK_PRI, m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("TASK_CREATE_FAILED");
+		return -1;
+	}
+	if ((rc =m_NCS_TASK_DETACH(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("TASK_START_DETACH\n");
+		return -1;
+	}
+
+	if ((rc = m_NCS_TASK_START(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("TASK_START_FAILED\n");
+		return -1;
+	}
+
+	/* Wait for the thread to start */
+	sem_wait(&m_semaphore);
+
+	TRACE_LEAVE();
+	return 0;
+}
+
+/** 
+ * SmfSwapThread::main
+ * main for the thread.
+ */
+void 
+SmfSwapThread::main(void)
+{
+	TRACE_ENTER();
+	sem_post(&m_semaphore);          //Start method waits for thread to start
+	SmfAdminOperationAction admOp(1);
+	std::string si_name = getenv("SI_SWAP_SI");
+	admOp.setDoDn(si_name);
+	admOp.setDoId(SA_AMF_ADMIN_SI_SWAP);
+	if (admOp.execute() != SA_AIS_OK) {
+		LOG_ER("SmfSwapThread::main: SA_AMF_ADMIN_SI_SWAP fails");
+	}
+
 	TRACE_LEAVE();
 }
