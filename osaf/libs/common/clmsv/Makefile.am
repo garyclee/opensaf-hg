@@ -20,15 +20,11 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libclmsv_common.la
+noinst_LTLIBRARIES = libclmsv_common.la
 
 libclmsv_common_la_CPPFLAGS = \
         $(AM_CPPFLAGS) \
-        -I$(top_srcdir)/osaf/libs/common/clmsv/include \
-        -I$(top_srcdir)/osaf/services/infrastructure/masv/include
+        -I$(top_srcdir)/osaf/libs/common/clmsv/include
 
 libclmsv_common_la_SOURCES = \
-        clmsv_enc_dec.c 
-
-libclmsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
-
+        clmsv_enc_dec.c

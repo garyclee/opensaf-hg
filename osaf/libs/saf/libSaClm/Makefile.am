@@ -30,11 +30,10 @@ libSaClm_la_SOURCES =
 
 libSaClm_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
-#	-DNCS_CLA=1 -DNCS_AVSV_LOG=1
 
 libSaClm_la_LDFLAGS = \
-		-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaClm/libSaClm.version \
-		-version-number $(LIB_VERSION)
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaClm/libSaClm.version \
+	-version-number $(LIB_VERSION)
 
 libSaClm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

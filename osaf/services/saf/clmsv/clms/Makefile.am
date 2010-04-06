@@ -37,7 +37,6 @@ osafclmd_CPPFLAGS = \
 
 osafclmd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	$(top_srcdir)/osaf/libs/common/clmsv/clmsv_enc_dec.c \
 	clms_amf.c \
 	clms_evt.c \
 	clms_imm.c \
@@ -59,11 +58,12 @@ if ENABLE_AIS_PLM
 osafclmd_SOURCES += clms_plm.c
 
 osafclmd_LDADD += \
-        $(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-        $(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
-        $(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
-	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
-	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
-	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la \
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
+	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la
+
 endif

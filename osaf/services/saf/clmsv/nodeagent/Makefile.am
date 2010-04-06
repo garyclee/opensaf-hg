@@ -24,14 +24,11 @@ pkglib_PROGRAMS = osafnoded
 
 osafnoded_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/clmsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/clmsv/include
 
 osafnoded_SOURCES = \
-	$(top_srcdir)/osaf/libs/common/clmsv/clmsv_enc_dec.c \
 	clms_nodeagent.c
 
 osafnoded_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la 

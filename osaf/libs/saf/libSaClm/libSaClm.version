@@ -1,3 +1,4 @@
+# Version and symbol export for libSaClm.so
 
 # Symbol scoping for libSaClm.so
 {
@@ -5,5 +6,5 @@
 		saClm*;
 
 	local:
-		clm*;
+		clma*;
 };
