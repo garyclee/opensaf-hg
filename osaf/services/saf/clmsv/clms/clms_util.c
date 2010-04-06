@@ -610,6 +610,9 @@ uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_I
 	case PLM:
 		{
 #ifdef ENABLE_AIS_PLM
+			CLMS_CLIENT_INFO *client = NULL;
+			SaAisErrorT ais_er;
+
 			clms_clear_node_dep_list(node);
 			client = clms_client_get_by_id(trk->client_id);
 			if (client->track_flags & SA_TRACK_VALIDATE_STEP) {
@@ -714,6 +717,8 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 	case PLM:
 		{
 #ifdef ENABLE_AIS_PLM
+			SaAisErrorT ais_er = SA_AIS_OK;
+
 			clms_clear_node_dep_list(node);
 			ais_er =
 			    saPlmReadinessTrackResponse(cb->ent_group_hdl, node->plm_invid,
@@ -762,6 +767,8 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 	if (op_node->admin_op == PLM) {
 
 #ifdef ENABLE_AIS_PLM
+		SaAisErrorT ais_er = SA_AIS_OK;
+
 		if (ncs_patricia_tree_size(&op_node->trackresp) == 0) {
 			/*Clear the node dependency list */
 			clms_clear_node_dep_list(op_node);
