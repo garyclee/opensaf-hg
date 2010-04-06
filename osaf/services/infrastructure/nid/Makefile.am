@@ -33,5 +33,4 @@ opensafd_SOURCES = \
 	nodeinit.c
 
 opensafd_LDADD = \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la
