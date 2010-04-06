@@ -983,7 +983,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files msg-libs
 %defattr(-,root,root)
 %{_libdir}/libSaMsg.so.*
-%{_pkglibdir}/libmqsv_common.so.*
 
 %files msg-director
 %defattr(-,root,root)
