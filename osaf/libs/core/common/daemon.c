@@ -29,6 +29,7 @@
 #include <utmp.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 
 #include <configmake.h>
 
@@ -59,21 +60,37 @@ static void __print_usage(const char* progname, FILE* stream, int exit_code)
 
 static int __create_pidfile(const char* pidfile)
 {
-	int pidfd, rc = 0;
-	char buf[32];
+	FILE *file;
+	int fd, pid, rc = 0;
 
-	pidfd = open(pidfile, O_WRONLY | O_CREAT, 0644);
-	if (pidfd < 0) {
-		syslog(LOG_ERR, "open failed, pidfile=%s (%s)", pidfile, strerror(errno));
+	/* open the file and associate a stream with it */
+	if ( ((fd = open(pidfile, O_RDWR|O_CREAT, 0644)) == -1)
+			|| ((file = fdopen(fd, "r+")) == NULL) ) { 
+		syslog(LOG_ERR, "open failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
 		rc = -1;
-	} else {
-		snprintf(buf, sizeof(buf), "%d\n", getpid());
-		if (write(pidfd, buf, strlen(buf)) < 0) {
-			syslog(LOG_ERR, "write failed, pidfile=%s (%s)", pidfile, strerror(errno));
-			rc = -1;
-		}
-		close(pidfd);
 	}
+
+	/* Lock the file */
+	if (flock(fd, LOCK_EX|LOCK_NB) == -1) {
+		syslog(LOG_ERR, "flock failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
+		fclose(file);
+		rc = -1;
+	}
+
+	pid = getpid();
+	if (!fprintf(file,"%d\n", pid)) {
+		syslog(LOG_ERR, "fprintf failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
+		fclose(file);
+		rc = -1;
+	}
+	fflush(file);
+
+	if (flock(fd, LOCK_UN) == -1) {
+		syslog(LOG_ERR, "flock failed, pidfile=%s, errno=%s", pidfile, strerror(errno));
+		fclose(file);
+		rc = -1;
+	}
+	fclose(file);
 
 	return rc;
 }
