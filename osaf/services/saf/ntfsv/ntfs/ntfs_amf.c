@@ -233,7 +233,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		role_change = FALSE;
 
 	if (role_change == TRUE) {
-		if ((rc = ntfs_mds_change_role(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+		if ((rc = ntfs_mds_change_role()) != NCSCC_RC_SUCCESS) {
 			TRACE("ntfs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}

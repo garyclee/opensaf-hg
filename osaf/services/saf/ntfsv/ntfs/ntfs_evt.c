@@ -162,7 +162,7 @@ static uns32 proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 		LOG_NO("ACTIVE request");
 
 		ntfs_cb->mds_role = V_DEST_RL_ACTIVE;
-		if ((rc = ntfs_mds_change_role(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+		if ((rc = ntfs_mds_change_role()) != NCSCC_RC_SUCCESS) {
 			LOG_ER("ntfs_mds_change_role FAILED %u", rc);
 			goto done;
 		}

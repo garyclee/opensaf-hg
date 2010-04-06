@@ -1040,7 +1040,7 @@ uns32 ntfs_mds_init(ntfs_cb_t *cb)
 	if (cb->ha_state == SA_AMF_HA_STANDBY)
 		cb->mds_role = V_DEST_RL_STANDBY;
 
-	if (NCSCC_RC_SUCCESS != (rc = ntfs_mds_change_role(cb))) {
+	if (NCSCC_RC_SUCCESS != (rc = ntfs_mds_change_role())) {
 		LOG_ER("MDS role change to %d FAILED\n", cb->mds_role);
 		return rc;
 	}
@@ -1091,7 +1091,7 @@ uns32 ntfs_mds_init(ntfs_cb_t *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 ntfs_mds_change_role(ntfs_cb_t *cb)
+uns32 ntfs_mds_change_role()
 {
 	NCSVDA_INFO arg;
 
