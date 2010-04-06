@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libplmsv_common.la
+noinst_LTLIBRARIES = libplmsv_common.la
 
 libplmsv_common_la_CPPFLAGS = \
 	-DNCS_PLMSV_LOG=1 \
@@ -30,11 +30,11 @@ libplmsv_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/contrib/plmc/include \
 	-I$(top_srcdir)/contrib/plmc/lib/plmc/include
 
-libplmsv_common_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+libplmsv_common_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	@HPI_CFLAGS@
 
 libplmsv_common_la_SOURCES = \
         plms_edu.c \
 	plms_common_mds.c \
 	plms_common_utils.c
-
-libplmsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

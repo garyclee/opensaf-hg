@@ -25,7 +25,9 @@ libplma_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include
 
-libplma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+libplma_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	@HPI_CFLAGS@
 
 libplma_la_LDFLAGS = -static
 
@@ -33,7 +35,4 @@ libplma_la_SOURCES = \
 	plma_init.c \
 	plma_api.c \
 	plma_comm.c \
-	plma_mds.c 
-
-libplma_la_LIBADD = \
-	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la
+	plma_mds.c
