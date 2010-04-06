@@ -73,6 +73,6 @@
 #include "avnd_ckpt_msg.h"
 
 extern uns32 avnd_create(void);
-extern void avnd_sigusr1_handler(void);
+extern void avnd_sigterm_handler(void);
 
 #endif

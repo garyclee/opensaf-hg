@@ -47,7 +47,7 @@
 #include "avnd_mon.h"
 
 #define FD_MBX   0
-#define FD_USR1  1
+#define FD_TERM  1
 #define FD_CLM   2 
 #define FD_MBCSV 3
 
@@ -104,7 +104,7 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_PID_EXIT",
 };
 
-static NCS_SEL_OBJ usr1_sel_obj; /* Selection object for USR1 signal events */
+static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
 static NCS_BOOL avnd_mbx_process(SYSF_MBX *);
 static void avnd_evt_process(AVND_EVT *);
@@ -183,15 +183,15 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 };
 
 /**
- * USR1 signal is used when NID wants to stop OpenSAF (AMF).
+ * TERM signal is used when user wants to stop OpenSAF (AMF).
  * 
  * @param sig
  */
-static void sigusr1_handler(int sig)
+static void sigterm_handler(int sig)
 {
 	TRACE_ENTER();
-	ncs_sel_obj_ind(usr1_sel_obj);
-	signal(SIGUSR1, SIG_IGN);
+	ncs_sel_obj_ind(term_sel_obj);
+	signal(SIGTERM, SIG_IGN);
 }
 
 /****************************************************************************
@@ -228,13 +228,13 @@ void avnd_main_process(void)
 				strerror(errno));
 	}
 
-	if (ncs_sel_obj_create(&usr1_sel_obj) != NCSCC_RC_SUCCESS) {
+	if (ncs_sel_obj_create(&term_sel_obj) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
 
-	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
-		LOG_ER("signal USR1 failed: %s", strerror(errno));
+	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
+		LOG_ER("signal TERM failed: %s", strerror(errno));
 		goto done;
 	}
 
@@ -242,8 +242,8 @@ void avnd_main_process(void)
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 
-	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
-	fds[FD_USR1].events = POLLIN;
+	fds[FD_TERM].fd = term_sel_obj.rmv_obj;
+	fds[FD_TERM].events = POLLIN;
 
 	fds[FD_CLM].fd = avnd_cb->clm_sel_obj;
 	fds[FD_CLM].events = POLLIN;
@@ -278,24 +278,13 @@ void avnd_main_process(void)
 
 		if (fds[FD_MBX].revents & POLLIN) {
 			avnd_exit = avnd_mbx_process(&avnd_cb->mbx);
-			if (TRUE == avnd_exit) {
-				if (avnd_cb->type == AVSV_AVND_CARD_SYS_CON) {
-					/*
-					* FIXME: this is a hack until NID is removed
-					* Kill amfd otherwise it will reboot the system.
-					*/
-					LOG_IN("Killing amfd...");
-					if(-1 == system("killall osafamfd"))
-						LOG_ER("%s: killall failed: %s",
-								__FUNCTION__,
-								strerror(errno));
-				}
+			if (TRUE == avnd_exit)
 				break;
-			}
 		}
 
-		if (fds[FD_USR1].revents & POLLIN)
-			avnd_sigusr1_handler();
+		if (fds[FD_TERM].revents & POLLIN)
+			avnd_sigterm_handler();
+
 #if FIXME
 		if ((avnd_cb->type == AVSV_AVND_CARD_SYS_CON) &&
 		    (fds[FD_MBCSV].revents & POLLIN)) {
@@ -310,12 +299,6 @@ void avnd_main_process(void)
 		syslog(LOG_ERR, "%s: Thread Exited", __FUNCTION__);
 
 done:
-	/* NOTIFY THE NIS script that we are done cleanup */
-	if (avnd_cb->destroy == TRUE) {
-		uns32 rc = NCSCC_RC_SUCCESS;
-		nis_notify("DONE", &rc);
-	}
-
 	/* Give some time for cleanup and reboot scripts */
 	signal(SIGCHLD, SIG_IGN); /* must ignore for sleep to work */
 	sleep(5);

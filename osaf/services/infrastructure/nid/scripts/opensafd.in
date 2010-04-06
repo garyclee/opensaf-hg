@@ -34,6 +34,7 @@ amfnd_pid=$pkgpiddir/osafamfnd.pid
 
 OPENSAF_MANAGE_TIPC="yes"
 RETVAL=0
+TERMTIMEOUT=60
 
 unload_tipc() {
 	# FIXME: Once tipc scripts are cleaned
@@ -42,9 +43,9 @@ unload_tipc() {
   	# Unload TIPC if already loaded
 	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
 		modprobe -r tipc
-		if [ $? -eq 1 ]; then
+		RETVAL=$?
+		if [ $RETVAL -eq 1 ]; then
 			logger -t $prog "TIPC module unloading failed"
-			exit 1
 		fi
 	fi
 }
@@ -127,7 +128,7 @@ start() {
 	# Comment/Uncomment if you want cores disabled/enabled
 	enable_coredump
 
-	echo -n "Starting $prog: "
+	echo -n "Starting OpenSAF Services: "
 	start_daemon $binary $args
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]; then
@@ -144,10 +145,19 @@ stop() {
 	logger -t $prog "Stopping the OpenSAF HA Framework"
 
 	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
-	echo -n "Stopping $prog: "
+	echo -n "Stopping OpenSAF Services: "
 	if [ -n "$amfpid" ]; then
-		killproc -p $amfnd_pid $amfnd_bin -USR1
-		RETVAL=$?
+		kill $amfpid
+		timeout=$TERMTIMEOUT
+		while [ $timeout -gt 0 ]; do
+			sleep 1
+			if [ ! -d /proc/$amfpid ]; then
+				timeout=0
+			else
+				timeout=$((timeout-1))
+			fi
+		done
+		test -d /proc/$amfpid && RETVAL=1
 	fi
 
 	final_clean

@@ -601,7 +601,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 /****************************************************************************
    Name          : avnd_sigusr1_handler
   
-   Description   : This routine handles the USR1 signal sent by NID script.
+   Description   : This routine handles the TERM signal sent by the start/stop script.
                    This routine posts the message to mailbox to clean 
                    all the NCS components also. This is the signal to perform 
                    the last step of termination including db clean-up.
@@ -612,7 +612,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
   
    Notes         : None.
  *****************************************************************************/
-void avnd_sigusr1_handler(void)
+void avnd_sigterm_handler(void)
 {
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
