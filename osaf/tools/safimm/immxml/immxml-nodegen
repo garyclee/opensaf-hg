@@ -54,17 +54,26 @@ create_node()
    ID=$4
    CLMID=$5
    trace "PATTERN:$PATTERN TEMPLATE:$TEMPLATE ID:$ID CLMID:$CLMID"
-   
-   trace "replace NoRed_TOKEN with NoRed$INDEX"
+
+   NORED_INDEX=$3
+   NORED_TOKEN=NoRed_TOKEN
+   trace "DISABLE_SI_REPL:*$DISABLE_SI_REPL*"
+   if [ -n "$DISABLE_SI_REPL" ] ; then
+      NORED_TOKEN=NONMATCH__NoRed_TOKEN  # assuming this will not match...
+      trace "NORED_TOKEN:$NORED_TOKEN"
+   fi
+
+   trace "replace $NORED_TOKEN with NoRed$NORED_INDEX"
    trace "replace $PATTERN with $ID"
    trace "replace CLM_TOKEN with $CLMID"
+   trace "replace Rank_TOKEN with $INDEX"
 
    cat $TEMPLATE | sed "
-s/NoRed_TOKEN/NoRed$INDEX/g 
+s/$NORED_TOKEN/NoRed$NORED_INDEX/g
+s/Rank_TOKEN/$INDEX/g
 s/CLM_TOKEN/$CLMID/g 
 s/$PATTERN/$ID/g"  > $RESULT_DIR/imm_$ID.xml
 
-   #cat $TEMPLATE | sed "s/NoRed_$PATTERN/NoRed$INDEX/" | sed "s/$PATTERN/$ID/" > $RESULT_DIR/imm_$ID.xml
 }
 
 imm_file_header()
@@ -304,7 +313,7 @@ entries thats exists in node config file (default: input/nodes.cfg).\n\
 Possible to restrict to specified list of nodes with --nodelist (out of entries in nodes.cfg)\
 "
 
-TEMP=`getopt -o d:s:p:c:ht --long nodelist:,sc-template:,pl-template:,node-config:,nodegen-dir:,help,trace,pl-count:,sc-count: \
+TEMP=`getopt -o d:s:p:c:ht --long disable-ng-gen,disable-si-replacement,nodelist:,sc-template:,pl-template:,node-config:,nodegen-dir:,help,trace,pl-count:,sc-count: \
      -- "$@"`
 if [ $? != 0 ] ; then 
    script_error "Failed to process command options. Terminating..."
@@ -319,8 +328,10 @@ while true ; do
 		-s|--sc-template) SC_TEMPLATE_FILE=$2; trace "Option --sc-template, argument \`$SC_TEMPLATE_FILE'" ; shift 2 ;;
 		-p|--pl-template) PL_TEMPLATE_FILE=$2; trace "Option --pl-template, argument \`$PL_TEMPLATE_FILE'" ; shift 2 ;;
 		-x|--pl-count) PL_COUNT=$2; trace "Option --pl-count, argument \`$PL_COUNT'" ; shift 2 ;;
-		--nodelist) NODELIST=$2; trace "Option --nodelist, argument \`$NODELIST'" ; shift 2 ;;
 		-y|--sc-count) SC_COUNT=$2; trace "Option --sc-count, argument \`$SC_COUNT'" ; shift 2 ;;
+		--nodelist) NODELIST=$2; trace "Option --nodelist, argument \`$NODELIST'" ; shift 2 ;;
+		--disable-si-replacement) DISABLE_SI_REPL=1; trace "Option --disable-si-replacement set" ; shift 1 ;;
+		--disable-ng-gen) DISABLE_NG_GEN=1; trace "Option --disable-ng-gen set" ; shift 1 ;;
 		-h|--help) echo -e $USAGE ; exit 1 ;;
 		-t|--trace) TRACE_ENABLED=on ; shift 1 ;;
 		--) shift ; break ;;
@@ -350,7 +361,7 @@ while read TYPE ID CLMID ; do
       if should_include_scnode $ID ; then
           trace "Creating SC with ID:$ID"
           create_node $SC_PATTERN $SC_TEMPLATE_FILE $N $ID $CLMID
-          if [ -z "$NODELIST" ] ; then
+          if [ -z "$DISABLE_NG_GEN" ] ; then
               nodegroup_sc_addnode $ID
               nodegroup_all_addnode $ID
           fi
@@ -363,7 +374,7 @@ while read TYPE ID CLMID ; do
       if should_include_plnode $ID ; then
           trace "Creating PL with ID:$ID"
           create_node $PL_PATTERN $PL_TEMPLATE_FILE $N $ID $CLMID
-          if [ -z "$NODELIST" ] ; then
+          if [ -z "$DISABLE_NG_GEN" ] ; then
               nodegroup_pl_addnode $ID
               nodegroup_all_addnode $ID
           fi
@@ -378,7 +389,7 @@ verify_result
 
 
 # generate nodegroups unless immxml is generated only for selected nodes
-if [ -z "$NODELIST" ] ; then
+if [ -z "$DISABLE_NG_GEN" ] ; then
     nodegroups_end
  
     NODEGROUP_FILE=$RESULT_DIR/imm_nodegroups.xml
