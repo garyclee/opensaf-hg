@@ -33,10 +33,12 @@ pkglib_PROGRAMS = osafclmd
 osafclmd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/clmsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafclmd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	clms_amf.c \
 	clms_evt.c \
 	clms_imm.c \
@@ -52,6 +54,7 @@ osafclmd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
 

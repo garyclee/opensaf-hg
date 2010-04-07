@@ -51,6 +51,7 @@
 #ifdef ENABLE_AIS_PLM
 #include <saPlm.h>
 #endif
+#include <saflog.h>
 
 /* CLMS files */
 #include "clmsv_defs.h"
@@ -80,6 +81,8 @@
 #define sec_to_nanosec 1000000000L
 extern CLMS_CB *clms_cb;
 extern CLMS_CLUSTER_INFO *osaf_cluster;
+extern const SaNameT *clmSvcUsrName;
+
 extern uns32 clms_amf_init(CLMS_CB *);
 extern uns32 clms_mds_init(CLMS_CB * cb);
 extern uns32 clms_cb_init(CLMS_CB * clms_cb);

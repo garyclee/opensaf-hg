@@ -17,6 +17,13 @@
 
 #include "clms.h"
 
+static const SaNameT _clmSvcUsrName = {
+	.value = "safApp=safClmService",
+	.length = sizeof("safApp=safClmService")
+};
+
+const SaNameT *clmSvcUsrName = &_clmSvcUsrName;
+
 /**
 * Retrieve node from node db by nodename
 * @param[in] Node_name
