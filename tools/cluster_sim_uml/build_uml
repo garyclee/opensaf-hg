@@ -84,7 +84,7 @@ cmd_install_testprog() {
     cp $src/amf_demo_script $installd
     gcc -g -O2 -Wall -fPIC -I$opensaf_home/osaf/libs/saf/include \
 	-o $installd/amf_demo $src/amf_comp_template.c \
-	-L$libd -lSaAmf -L$libd/opensaf -lavsv_common -lopensaf_core
+	-L$libd -lSaAmf -L$libd/opensaf -lopensaf_core
 
     test -r $immxml.orig || cp $immxml $immxml.orig
     $opensaf_home/osaf/tools/safimm/immxml/immxml-merge \
