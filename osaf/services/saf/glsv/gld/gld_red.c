@@ -50,9 +50,9 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB gld_cb, SaNameT rsc_name, SaLckResou
 	/* send msg to MBCSv */
 	rc = glsv_gld_mbcsv_async_update(&gld_cb, &a2s_evt);
 	if (rc != SA_AIS_OK)
-		m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 	else
-		m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_SUCCESS, NCSFL_SEV_INFO);
+		m_LOG_GLD_MBCSV(GLD_A2S_RSC_OPEN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 }
 
@@ -78,9 +78,9 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB gld_cb, MDS_DEST mdest_id, uns32
 	/* send msg to MBCSv */
 	rc = glsv_gld_mbcsv_async_update(&gld_cb, &a2s_evt);
 	if (rc != SA_AIS_OK)
-		m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 	else
-		m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_SUCCESS, NCSFL_SEV_INFO);
+		m_LOG_GLD_MBCSV(GLD_A2S_RSC_NODE_DOWN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 }
 
 /*****************************************************************************
@@ -111,14 +111,14 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB gld_cb, GLSV_GLD_EVT_TYPE evt_typ
 	rc = glsv_gld_mbcsv_async_update(&gld_cb, &a2s_evt);
 	if (rc != SA_AIS_OK) {
 		if (evt_type == GLSV_GLD_EVT_RSC_CLOSE)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_FAILED, NCSFL_SEV_INFO);
+			m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		if (evt_type == GLSV_GLD_EVT_SET_ORPHAN)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_FAILED, NCSFL_SEV_INFO);
+			m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 	} else {
 		if (evt_type == GLSV_GLD_EVT_RSC_CLOSE)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_SUCCESS, NCSFL_SEV_INFO);
+			m_LOG_GLD_MBCSV(GLD_A2S_RSC_CLOSE_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		if (evt_type == GLSV_GLD_EVT_SET_ORPHAN)
-			m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_SUCCESS, NCSFL_SEV_INFO);
+			m_LOG_GLD_MBCSV(GLD_A2S_RSC_SET_ORPHAN_ASYNC_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 	}
 }

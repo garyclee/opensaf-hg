@@ -109,7 +109,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char *shm_name)
 			cb->node_state = GLND_OPERATIONAL_STATE;
 		}
 	} else {
-		m_LOG_GLND(GLND_SHM_OPEN_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0, 0, 0);
+		m_LOG_GLND(GLND_SHM_OPEN_SUCCESS, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0, 0, 0);
 
 		if (memcmp(shm_name, RES_SHM_NAME, strlen(shm_name)) == 0) {
 			/* Store the shared memory base address */

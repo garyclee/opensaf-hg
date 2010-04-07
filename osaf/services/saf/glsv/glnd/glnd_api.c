@@ -56,7 +56,7 @@ uns32 glnd_se_lib_create(uns8 pool_id)
 	glnd_cb = glnd_cb_create(pool_id);
 
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -64,13 +64,13 @@ uns32 glnd_se_lib_create(uns8 pool_id)
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)glnd_main_process,
 			      &glnd_cb->glnd_mbx,
 			      "GLND", m_GLND_TASK_PRIORITY, m_GLND_STACKSIZE, &gl_glnd_task_hdl) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_TASK_CREATE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_TASK_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		glnd_cb_destroy(glnd_cb);
 		return (NCSCC_RC_FAILURE);
 	}
 
 	if (m_NCS_TASK_START(m_GLND_RETRIEVE_GLND_TASK_HDL) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_TASK_START_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_TASK_START_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_TASK_STOP(m_GLND_RETRIEVE_GLND_TASK_HDL);
 		m_NCS_TASK_RELEASE(m_GLND_RETRIEVE_GLND_TASK_HDL);
 		glnd_cb_destroy(glnd_cb);
@@ -98,12 +98,12 @@ uns32 glnd_se_lib_destroy()
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (glnd_cb_destroy(glnd_cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_CB_DESTROY_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -165,7 +165,7 @@ void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
 			/* process mail box */
 			glnd_process_evt((NCSCONTEXT)cb, evt);
 		} else {
-			m_LOG_GLND_EVT(GLND_EVT_UNKNOWN, evt->type, 0, 0, 0, 0);
+			m_LOG_GLND_EVT(GLND_EVT_UNKNOWN, __FILE__, __LINE__, evt->type, 0, 0, 0, 0);
 			m_MMGR_FREE_GLND_EVT(evt);
 		}
 	}
@@ -202,7 +202,7 @@ static void glnd_main_process(SYSF_MBX *mbx)
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 
@@ -217,7 +217,7 @@ static void glnd_main_process(SYSF_MBX *mbx)
 	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
 
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_GLND_HEADLINE(GLND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
@@ -231,7 +231,7 @@ static void glnd_main_process(SYSF_MBX *mbx)
 			/* dispatch all the AMF pending function */
 			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
 			if (amf_error != SA_AIS_OK) {
-				m_LOG_GLND_HEADLINE(GLND_AMF_DISPATCH_FAILURE, NCSFL_SEV_ERROR);
+				m_LOG_GLND_HEADLINE(GLND_AMF_DISPATCH_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			}
 		}
 		/* process the GLND Mail box */

@@ -166,9 +166,7 @@ typedef enum glnd_flex_sets {
 	GLND_FC_HDLN_TILLL,
 	GLND_FC_MEMFAIL,
 	GLND_FC_API,
-	GLND_FC_NCS_LOCK,
 	GLND_FC_EVT,
-	GLND_FC_SYS_CALL,
 	GLND_FC_DATA_SEND,
 	GLND_FC_TIMER,
 	GLND_FC_LOG
@@ -181,9 +179,7 @@ typedef enum glnd_log_ids {
 	GLND_LID_HDLN_TILLL,
 	GLND_LID_MEMFAIL,
 	GLND_LID_API,
-	GLND_LID_NCS_LOCK,
 	GLND_LID_EVT,
-	GLND_LID_SYS_CALL,
 	GLND_LID_DATA_SEND,
 	GLND_LID_TIMER,
 	GLND_LID_LOG
@@ -192,31 +188,28 @@ typedef enum glnd_log_ids {
 void glnd_flx_log_reg(void);
 void glnd_flx_log_dereg(void);
 
-EXTERN_C void glnd_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void glnd_log_headline_TIL(uns8 hdln_id, uns32 p1);
-EXTERN_C void glnd_log_headline_TILL(uns8 hdln_id, uns32 p1, uns32 p2);
-EXTERN_C void glnd_log_headline_TILLL(uns8 hdln_id, uns32 p1, uns32 p2, uns32 p3);
-EXTERN_C void glnd_log_memfail(uns8 mf_id);
-EXTERN_C void glnd_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void glnd_log_lockfail(uns8 lck_id, uns8 sev);
-EXTERN_C void glnd_log_evt(uns8 evt_id, uns32 type, uns32 node, uns32 hdl, uns32 rsc, uns32 lck);
-EXTERN_C void glnd_log_sys_call(uns8 id, uns32 node);
-EXTERN_C void glnd_log_data_send(uns8 id, uns32 node, uns32 evt);
-EXTERN_C void glnd_log_timer(uns8 id, uns32 type);
+EXTERN_C void glnd_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void glnd_log_headline_TIL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1);
+EXTERN_C void glnd_log_headline_TILL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2);
+EXTERN_C void glnd_log_headline_TILLL(uns8 hdln_id, char *file_name, uns32 line_no, uns32 p1, uns32 p2, uns32 p3);
+EXTERN_C void glnd_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
+EXTERN_C void glnd_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void glnd_log_evt(uns8 evt_id, char *file_name, uns32 line_no, uns32 type, uns32 node, uns32 hdl, uns32 rsc,
+			   uns32 lck);
+EXTERN_C void glnd_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
+EXTERN_C void glnd_log_timer(uns8 id, uns32 type, char *file_name, uns32 line_no);
 EXTERN_C void glnd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *file_name, uns32 line_no, SaUint64T handle_id,
 		       SaUint32T res_id, SaUint64T lock_id);
 
-#define m_LOG_GLND_HEADLINE(id, sev)            glnd_log_headline(id,sev)
-#define m_LOG_GLND_HEADLINE_TI(id, p1)          glnd_log_headline_TIL(id,p1)
-#define m_LOG_GLND_HEADLINE_TIL(id,p1,p2)       glnd_log_headline_TILL(id,p1,p2)
-#define m_LOG_GLND_HEADLINE_TILL(id,p1,p2,p3)   glnd_log_headline_TILLL(id,p1,p2,p3)
-#define m_LOG_GLND_MEMFAIL(id)                  glnd_log_memfail(id)
-#define m_LOG_GLND_API(id,sev)                  glnd_log_api(id,sev)
-#define m_LOG_GLND_LOCKFAIL(id,sev)             glnd_log_lockfail(id,sev)
-#define m_LOG_GLND_EVT(id,type,node,hdl,rsc,lck) glnd_log_evt(id,type,node,hdl,rsc,lck)
-#define m_LOG_GLND_SYS_CALL(id,node)            glnd_log_sys_call(id,node)
-#define m_LOG_GLND_DATA_SEND(id,node,evt)       glnd_log_data_send(id,node,evt)
-#define m_LOG_GLND_TIMER(id,type)               glnd_log_timer(id,type)
+#define m_LOG_GLND_HEADLINE(id,sev,file_name,line_no)            glnd_log_headline(id,sev,file_name,line_no)
+#define m_LOG_GLND_HEADLINE_TI(id,file_name,line_no,p1)          glnd_log_headline_TIL(id,file_name,line_no,p1)
+#define m_LOG_GLND_HEADLINE_TIL(id,file_name,line_no,p1,p2)       glnd_log_headline_TILL(id,file_name,line_no,p1,p2)
+#define m_LOG_GLND_HEADLINE_TILL(id,file_name,line_no,p1,p2,p3)   glnd_log_headline_TILLL(id,file_name,line_no,p1,p2,p3)
+#define m_LOG_GLND_MEMFAIL(id,file_name,line_no)                  glnd_log_memfail(id,file_name,line_no)
+#define m_LOG_GLND_API(id,sev,file_name,line_no)                  glnd_log_api(id,sev,file_name,line_no)
+#define m_LOG_GLND_EVT(id,file_name,line_no,type,node,hdl,rsc,lck) glnd_log_evt(id,file_name,line_no,type,node,hdl,rsc,lck)
+#define m_LOG_GLND_DATA_SEND(id,file_name,line_no,node,evt)       glnd_log_data_send(id,file_name,line_no,node,evt)
+#define m_LOG_GLND_TIMER(id,type,file_name,line_no)               glnd_log_timer(id,type,file_name,line_no)
 #define m_LOG_GLND(id,category,sev,rc,file_name,line_no,handle_id, res_id, lock_id)  glnd_log(id,category,sev,rc,file_name,line_no,handle_id, res_id, lock_id)
 
 #endif

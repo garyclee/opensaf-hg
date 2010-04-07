@@ -73,9 +73,8 @@ GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb, SaLckHandleT hand
 		if (memcmp(&client_info->agent_mds_dest, &agent_mds_dest, sizeof(MDS_DEST)) == 0)
 			return client_info;
 		else
-			client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree,
-										    (uns8 *)&client_info->
-										    app_handle_id);
+			client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree, (uns8 *)
+										    &client_info->app_handle_id);
 	}
 	return NULL;
 
@@ -101,7 +100,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 
 	/* create new clientt info and put it into the tree */
 	if ((client_info = m_MMGR_ALLOC_GLND_CLIENT_INFO) == NULL) {
-		m_LOG_GLND_MEMFAIL(GLND_CLIENT_ALLOC_FAILED);
+		m_LOG_GLND_MEMFAIL(GLND_CLIENT_ALLOC_FAILED, __FILE__, __LINE__);
 		return NULL;
 	}
 	memset(client_info, 0, sizeof(GLND_CLIENT_INFO));
@@ -115,7 +114,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 
 	client_info->patnode.key_info = (uns8 *)&client_info->app_handle_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		/* free and return */
 		m_MMGR_FREE_GLND_CLIENT_INFO(client_info);
 		return NULL;
@@ -145,7 +144,7 @@ uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 
 	/* delete from the tree */
 	if (ncs_patricia_tree_del(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_API(GLND_CLIENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_CLIENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	/* free up all the resource requests */
@@ -218,7 +217,7 @@ uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE
 	if (resource_list == NULL) {
 		resource_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LIST;
 		if (resource_list == NULL) {
-			m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LIST_ALLOC_FAILED);
+			m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LIST_ALLOC_FAILED, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		memset(resource_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE));
@@ -352,28 +351,28 @@ uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 						/* send request to orphan the lock */
 						m_GLND_RESOURCE_NODE_LCK_INFO_FILL(glnd_evt,
 										   GLSV_GLND_EVT_LCK_REQ_ORPHAN,
-										   lock_req_list->lck_req->res_info->
-										   resource_id,
 										   lock_req_list->lck_req->
-										   lcl_resource_id,
-										   lock_req_list->lck_req->lock_info.
-										   handleId,
-										   lock_req_list->lck_req->lock_info.
-										   lockid,
-										   lock_req_list->lck_req->lock_info.
-										   lock_type,
-										   lock_req_list->lck_req->lock_info.
-										   lockFlags, 0, 0, 0, 0,
-										   lock_req_list->lck_req->lock_info.
-										   lcl_lockid, 0);
+										   res_info->resource_id,
+										   lock_req_list->
+										   lck_req->lcl_resource_id,
+										   lock_req_list->lck_req->
+										   lock_info.handleId,
+										   lock_req_list->lck_req->
+										   lock_info.lockid,
+										   lock_req_list->lck_req->
+										   lock_info.lock_type,
+										   lock_req_list->lck_req->
+										   lock_info.lockFlags, 0, 0, 0, 0,
+										   lock_req_list->lck_req->
+										   lock_info.lcl_lockid, 0);
 
 						glnd_evt.info.node_lck_info.glnd_mds_dest = glnd_cb->glnd_mdest_id;
 						glnd_mds_msg_send_glnd(glnd_cb, &glnd_evt, res_info->master_mds_dest);
 					} else {
 						/* unset any orphan count */
 						lock_type = lock_req_list->lck_req->lock_info.lock_type;
-						if ((lock_req_list->lck_req->lock_info.
-						     lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN)
+						if ((lock_req_list->lck_req->
+						     lock_info.lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN)
 							local_orphan_lock = TRUE;
 					}
 					del_req_list = lock_req_list;
@@ -443,7 +442,7 @@ uns32 glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 
 	lock_req_list = m_MMGR_ALLOC_GLND_CLIENT_RES_LOCK_LIST_REQ;
 	if (!lock_req_list) {
-		m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LOCK_LIST_ALLOC_FAILED);
+		m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LOCK_LIST_ALLOC_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	memset(lock_req_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE_LOCK_REQ));

@@ -44,6 +44,8 @@ const NCSFL_STR gld_hdln_set[] = {
 	{GLD_UNKNOWN_GLND_EVT, "EVENT FROM UNKNOWN GLND"},
 	{GLD_HEALTH_KEY_DEFAULT_SET, "GLD HEALTH KEY DEFAULT SET"},
 	{GLD_MSG_FRMT_VER_INVALID, "GLD MSG FMT VERSION INVALID"},
+	{GLD_ND_RESTART_WAIT_TMR_EXP, "NODE RESTART WAIT TIMER EXPIRED"},
+	{GLD_ACTIVE_RMV_NODE, "NODE GETTING REMOVED ON ACTIVE"},
 	{0, 0}
 };
 
@@ -210,15 +212,15 @@ NCSFL_SET gld_str_set[] = {
 };
 
 NCSFL_FMAT gld_fmat_set[] = {
-	{GLD_LID_HDLN, NCSFL_TYPE_TI, "%s GLD HEADLINE : %s\n"},
-	{GLD_LID_MEMFAIL, NCSFL_TYPE_TI, "%s GLD MEMERR: %s\n"},
-	{GLD_LID_API, NCSFL_TYPE_TI, "%s GLD API: %s\n"},
-	{GLD_LID_EVT, NCSFL_TYPE_TILL, "%s GLD EVT: %s <rsc id:%ld> <rcvd frm:%ld>\n"},
-	{GLD_LID_SVC_PRVDR, NCSFL_TYPE_TI, "%s GLD SVC PRVDR: %s\n"},
-	{GLD_LID_LCK_OPER, NCSFL_TYPE_TICLL, "%s GLD LCK OPER: %s <rsc name:%s> <rsc id:%ld> <rcvd frm:%ld>\n"},
-	{GLD_LID_MBCSV, NCSFL_TYPE_TI, "%s GLD MBCSV: %s\n"},
-	{GLD_LID_TIMER, NCSFL_TYPE_TIL, "%s GLD TIMER: %s type :%ld \n"},
-	{GLD_LID_GENLOG, NCSFL_TYPE_TC, "%s %s\n"},
+	{GLD_LID_HDLN, NCSFL_TYPE_TICLL, "%s GLD HEADLINE : %s : %s : %u : node_id %d\n"},
+	{GLD_LID_MEMFAIL, NCSFL_TYPE_TICL, "%s GLD MEMERR: %s : %s : %u \n"},
+	{GLD_LID_API, NCSFL_TYPE_TICL, "%s GLD API: %s : %s : %u \n"},
+	{GLD_LID_EVT, NCSFL_TYPE_TICLLL, "%s GLD EVT: %s : %s : %u <rsc id:%ld> <rcvd frm:%ld>\n"},
+	{GLD_LID_SVC_PRVDR, NCSFL_TYPE_TICL, "%s GLD SVC PRVDR: %s : %s : %u \n"},
+	{GLD_LID_LCK_OPER, NCSFL_TYPE_TICLCLL,
+	 "%s GLD LCK OPER: %s : %s : %u <rsc name:%s> <rsc id:%ld> <rcvd frm:%ld>\n"},
+	{GLD_LID_MBCSV, NCSFL_TYPE_TICL, "%s GLD MBCSV: %s : %s : %u \n"},
+	{GLD_LID_TIMER, NCSFL_TYPE_TICLL, "%s GLD TIMER: %s : %s : %u type :%ld \n"},
 	{0, 0, 0}
 };
 

@@ -52,6 +52,8 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 {
 	GLA_RESOURCE_ID_INFO *res_id_node = NULL;
 
+	if (callback == NULL)
+		return;
 	/* invoke the corresponding callback */
 	switch (callback->callback_type) {
 	case GLSV_LOCK_RES_OPEN_CBK:
@@ -140,17 +142,14 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 							if (lock_id_node) {
 								gla_lock_tree_delete_node(gla_cb, lock_id_node);
 
-								client_info->lckCallbk.saLckLockGrantCallback(param->
-													      invocation,
-													      param->
-													      lockStatus,
-													      param->
-													      error);
+								client_info->lckCallbk.
+								    saLckLockGrantCallback(param->invocation,
+											   param->lockStatus,
+											   param->error);
 							} else {
-								client_info->lckCallbk.saLckLockGrantCallback(param->
-													      invocation,
-													      0,
-													      SA_AIS_ERR_NOT_EXIST);
+								client_info->lckCallbk.
+								    saLckLockGrantCallback(param->invocation, 0,
+											   SA_AIS_ERR_NOT_EXIST);
 							}
 						} else {
 							/* retrieve Lock hdl record */
@@ -164,17 +163,14 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 
 								ncshm_give_hdl(param->lcl_lockId);
 
-								client_info->lckCallbk.saLckLockGrantCallback(param->
-													      invocation,
-													      param->
-													      lockStatus,
-													      param->
-													      error);
+								client_info->lckCallbk.
+								    saLckLockGrantCallback(param->invocation,
+											   param->lockStatus,
+											   param->error);
 							} else {
-								client_info->lckCallbk.saLckLockGrantCallback(param->
-													      invocation,
-													      0,
-													      SA_AIS_ERR_NOT_EXIST);
+								client_info->lckCallbk.
+								    saLckLockGrantCallback(param->invocation, 0,
+											   SA_AIS_ERR_NOT_EXIST);
 							}
 						}
 					}
@@ -272,7 +268,7 @@ uns32 gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
 				callback = glsv_gla_callback_queue_read(client_info);
 		}
 	} else {
-		m_LOG_GLA_API(GLA_API_LCK_DISPATCH_FAIL, NCSFL_SEV_INFO);
+		m_LOG_GLA_API(GLA_API_LCK_DISPATCH_FAIL, NCSFL_SEV_INFO, __FILE__, __LINE__);
 	}
 	return rc;
 }

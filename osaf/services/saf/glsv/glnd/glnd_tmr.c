@@ -59,7 +59,7 @@ uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT per
 	uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
 	if (GLND_TMR_MAX <= type) {
-		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type);
+		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -79,7 +79,7 @@ uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT per
 	tmr->is_active = TRUE;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
-		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type);
+		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -102,8 +102,13 @@ uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT per
 void glnd_stop_tmr(GLND_TMR *tmr)
 {
 	/* If timer type is invalid just return */
+	if (tmr == NULL) {
+		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
+		return;
+	}
+
 	if (tmr != NULL && GLND_TMR_MAX <= tmr->type) {
-		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, tmr->type);
+		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
 		return;
 	}
 
@@ -169,7 +174,7 @@ void glnd_tmr_exp(void *uarg)
 	/* retrieve GLND CB */
 	cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, tmr->cb_hdl);
 	if (!cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 
@@ -186,7 +191,7 @@ void glnd_tmr_exp(void *uarg)
 			evt->glnd_hdl = tmr->cb_hdl;
 			rc = glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_HIGH);
 			if (rc != NCSCC_RC_SUCCESS) {
-				m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
+				m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
 						     m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id), evt->type);
 			}
 

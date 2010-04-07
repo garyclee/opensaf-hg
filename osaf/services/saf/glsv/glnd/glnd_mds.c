@@ -86,7 +86,7 @@ uns32 glnd_mds_get_handle(GLND_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_GET_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_GET_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return rc;
 	}
 	cb->glnd_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
@@ -129,7 +129,7 @@ uns32 glnd_mds_register(GLND_CB *cb)
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = GLND_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	cb->glnd_mdest_id = svc_info.info.svc_install.o_dest;
@@ -143,7 +143,7 @@ uns32 glnd_mds_register(GLND_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		/* Uninstall with the mds */
 		svc_info.i_op = MDS_UNINSTALL;
 		ncsmds_api(&svc_info);
@@ -157,7 +157,7 @@ uns32 glnd_mds_register(GLND_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = gla_svc_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		/* Uninstall with the mds */
 		svc_info.i_op = MDS_UNINSTALL;
 		ncsmds_api(&svc_info);
@@ -191,7 +191,7 @@ void glnd_mds_unregister(GLND_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_UNREGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_UNREGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	return;
 }
@@ -217,7 +217,7 @@ uns32 glnd_mds_callback(struct ncsmds_callback_info *info)
 
 	glnd_cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, (uns32)info->i_yr_svc_hdl);
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -249,7 +249,7 @@ uns32 glnd_mds_callback(struct ncsmds_callback_info *info)
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_MDS_CALLBACK_PROCESS_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_CALLBACK_PROCESS_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
 	return rc;
@@ -282,7 +282,7 @@ static uns32 glnd_mds_cpy(GLND_CB *cb, MDS_CALLBACK_COPY_INFO *info)
 	   cpy = m_MMGR_ALLOC_GLND_EVT;
 	   if (cpy == NULL)
 	   {
-	   m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+	   m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 	   return NCSCC_RC_FAILURE;
 	   }
 	   memset(cpy,0,sizeof(GLSV_GLND_EVT));
@@ -324,7 +324,7 @@ static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 	  /** encode the type of message **/
 			p8 = ncs_enc_reserve_space(uba, 16);
 			if (!p8) {
-				m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+				m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 				return NCSCC_RC_FAILURE;
 			}
 			ncs_encode_64bit(&p8, evt->handle);
@@ -386,7 +386,7 @@ static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 	}
 
 	if (!info->o_msg_fmt_ver) {	/* Drop The Message */
-		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("glnd_mds_enc:INVALID MSG FORMAT %d\n", info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
@@ -443,7 +443,7 @@ static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	if (is_valid_msg_fmt) {
 		evt = m_MMGR_ALLOC_GLND_EVT;
 		if (evt == NULL) {
-			m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+			m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		memset(evt, 0, sizeof(GLSV_GLND_EVT));
@@ -511,7 +511,7 @@ static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 		return rc;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("glnd_mds_dec:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -534,7 +534,6 @@ static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	NCS_UBAID *uba = info->io_uba;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = 0;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	switch (info->i_to_svc_id) {
@@ -586,8 +585,7 @@ static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	}
 	if (!info->o_msg_fmt_ver) {
 		/* Drop The Message */
-		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
-		printf("glnd_mds_enc_flat:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
+		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	return rc;
@@ -660,7 +658,7 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		case NCSMDS_SVC_ID_GLD:
 			evt = (GLSV_GLND_EVT *)m_MMGR_ALLOC_GLND_EVT;
 			if (evt == NULL) {
-				m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+				m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 				return NCSCC_RC_FAILURE;
 			}
 			memset(evt, 0, sizeof(GLSV_GLND_EVT));
@@ -672,7 +670,7 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 					rsc_master_list =
 					    m_MMGR_ALLOC_GLND_RES_MASTER_LIST_INFO(evt->info.rsc_master_info.no_of_res);
 					if (rsc_master_list == NULL) {
-						m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+						m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 						return NCSCC_RC_FAILURE;
 					}
 					ncs_decode_n_octets(uba->ub, (uns8 *)rsc_master_list,
@@ -690,7 +688,7 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("glnd_mds_dec_flat:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -825,7 +823,8 @@ uns32 glnd_mds_msg_send_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_de
 
 	/* send the message */
 	if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
+		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
+				     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -867,7 +866,8 @@ uns32 glnd_mds_msg_send_rsp_gla(GLND_CB *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_md
 	mds_info.info.svc_send.info.rsp.i_msg_ctxt.length = mds_ctxt->length;
 	/* send the message */
 	if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
+		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
+				     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -908,7 +908,8 @@ uns32 glnd_mds_msg_send_glnd(GLND_CB *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_
 	mds_info.info.svc_send.info.snd.i_to_dest = to_mds_dest;
 
 	if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
+		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
+				     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->type);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -950,7 +951,7 @@ uns32 glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_de
 		mds_info.info.svc_send.info.snd.i_to_dest = to_mds_dest;
 		/* send the message */
 		if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
+			m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
 					     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->evt_type);
 			return NCSCC_RC_FAILURE;
 		}
@@ -960,13 +961,14 @@ uns32 glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_de
 			mds_info.info.svc_send.info.snd.i_to_dest = to_mds_dest;
 			/* send the message */
 			if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
-				m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
+				m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
 						     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->evt_type);
 				return NCSCC_RC_FAILURE;
 			}
 
 		}
-		m_LOG_GLND_DATA_SEND(GLND_MDS_GLD_DOWN, m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->evt_type);
+		m_LOG_GLND_DATA_SEND(GLND_MDS_GLD_DOWN, __FILE__, __LINE__,
+				     m_NCS_NODE_ID_FROM_MDS_DEST(to_mds_dest), i_evt->evt_type);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_SUCCESS;
@@ -1017,7 +1019,7 @@ static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest)
 
 	evt = m_MMGR_ALLOC_GLND_EVT;
 	if (!evt) {
-		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	memset(evt, 0, sizeof(GLSV_GLND_EVT));
@@ -1026,7 +1028,8 @@ static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest)
 	evt->glnd_hdl = cb->cb_hdl_id;
 
 	if (glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id), evt->type);
+		m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE, __FILE__, __LINE__,
+				     m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id), evt->type);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -1049,7 +1052,7 @@ static uns32 glsv_dec_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *e
 	size = 8 + 4;
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1078,7 +1081,7 @@ static uns32 glsv_dec_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 	size = 8 + 4 + 4 + (3 * 1);
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1112,7 +1115,7 @@ static uns32 glsv_dec_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1142,7 +1145,7 @@ static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1182,7 +1185,7 @@ static uns32 glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1220,7 +1223,7 @@ static uns32 glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1260,7 +1263,7 @@ static uns32 glsv_dec_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *e
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1296,7 +1299,7 @@ static uns32 glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 	size = (3 * 8) + (2 * 4);
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1329,7 +1332,7 @@ static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_DEC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1361,7 +1364,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
  /** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	ncs_encode_32bit(&p8, evt->callback_type);
@@ -1374,7 +1377,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = 8 + (2 * 4);
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1389,7 +1392,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (3 * 8) + (4 * 4);
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1408,7 +1411,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (3 * 8) + (4 * 4);
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1427,7 +1430,7 @@ static uns32 glsv_gla_enc_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (2 * 8) + (3 * 4);
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1465,7 +1468,7 @@ static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
  /** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	ncs_encode_32bit(&p8, evt->prc_id);
@@ -1478,7 +1481,7 @@ static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 		size = 4;
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1491,7 +1494,7 @@ static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 		size = 8 + 4;
 		p8 = ncs_enc_reserve_space(uba, size);
 		if (!p8) {
-			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLND_HEADLINE(GLND_ENC_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
