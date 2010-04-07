@@ -85,15 +85,17 @@ while true ; do
         esac
 done
 
+trace "Remaining arguments:"
+for arg do trace '--> '"\`$arg'" ; done
 
-if [[ -z $1 ]] && [[ -z $RESULTFILE ]] ; then
-   RESULTFILE=./imm.xml.`date "+%Y%m%d_%H%M"`
-else
+if [[ -n $1 ]] ; then
    if [ -f $1 ] ; then
       echo "The file $1 already exists"
       exit 1
    fi
-  RESULTFILE=$1
+   RESULTFILE=$1
+elif [[ -z $1 ]] && [[ -z $RESULTFILE ]] ; then
+   RESULTFILE=./imm.xml.`date "+%Y%m%d_%H%M"`
 fi
 
 trace "Resulting file: $RESULTFILE"
