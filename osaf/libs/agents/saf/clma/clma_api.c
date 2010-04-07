@@ -108,6 +108,11 @@ static SaAisErrorT clma_validate_flags_buf(clma_client_hdl_rec_t * hdl_rec, SaUi
 		return SA_AIS_ERR_BAD_FLAGS;
 	}
 
+	if ((flags & SA_TRACK_LOCAL) &&
+		!((flags & SA_TRACK_CURRENT) || (flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY))) {
+		return SA_AIS_ERR_BAD_FLAGS;
+	}
+
 	/* validate the notify buffer */
 	if ((flags & SA_TRACK_CURRENT) && buf && buf->notification) {
 		if (!buf->numberOfItems)
@@ -141,6 +146,11 @@ static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t * hdl_rec, Sa
 	if ((flags & SA_TRACK_CHANGES) && (flags & SA_TRACK_CHANGES_ONLY)) {
 		TRACE("2nd Case");
 		TRACE_LEAVE();
+		return SA_AIS_ERR_BAD_FLAGS;
+	}
+
+	if ((flags & SA_TRACK_LOCAL) &&
+		!((flags & SA_TRACK_CURRENT) || (flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY))) {
 		return SA_AIS_ERR_BAD_FLAGS;
 	}
 
@@ -224,7 +234,7 @@ static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT
 		buf_4->numberOfItems = msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems;
 		buf_4->viewNumber = msg_rsp->info.api_resp_info.param.track.notify_info->viewNumber;
 		buf_4->notification =
-		    (SaClmClusterNotificationT_4 *) malloc(sizeof(SaClmClusterNotificationT) * buf_4->numberOfItems);
+		    (SaClmClusterNotificationT_4 *) malloc(sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 		memset(buf_4->notification, 0, sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 		memcpy(buf_4->notification, msg_rsp->info.api_resp_info.param.track.notify_info->notification,
 		       sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
@@ -1189,8 +1199,8 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 
 	TRACE_ENTER();
 
-	if ((clmHandle == 0) || (node_id == 0)) {
-		TRACE("clmHandle or notification is NULL");
+	if (node_id == 0) {
+		TRACE("node_id is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -1302,8 +1312,8 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
 
 	TRACE_ENTER();
 
-	if ((clmHandle == 0) || (node_id == 0) || (inv == 0)) {
-		TRACE("clmHandle or notification is NULL");
+	if ((node_id == 0) || (inv == 0)) {
+		TRACE("node_id or invocation is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -1388,8 +1398,8 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 
 	TRACE_ENTER();
 
-	if ((clmHandle == 0) || (notification == NULL)) {
-		TRACE("clmHandle or notification is NULL");
+	if (notification == NULL) {
+		TRACE("notification is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -1443,8 +1453,8 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 
 	TRACE_ENTER();
 
-	if ((clmHandle == 0) || (invocation == 0)) {
-		TRACE("clmHandle or invocation is NULL");
+	if (invocation == 0) {
+		TRACE("invocation is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}

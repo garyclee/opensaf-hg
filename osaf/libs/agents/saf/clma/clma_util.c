@@ -252,7 +252,16 @@ clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *r
 	}
 
 	/* Store verison in clma_client_hdl_rec_t */
-	rec->version = version;
+	rec->version = calloc(1, sizeof(SaVersionT));
+	if (rec->version == NULL) {
+		TRACE("calloc failed");
+		goto err_destroy_hdl;
+	}
+
+	rec->version->releaseCode = version->releaseCode;
+	rec->version->majorVersion = version->majorVersion;
+	rec->version->minorVersion = version->minorVersion;
+
 	/** Associate with the client_id obtained from CLMS
      	**/
 	rec->clms_client_id = client_id;
@@ -333,6 +342,7 @@ uns32 clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t
 		ncshm_destroy_hdl(NCS_SERVICE_ID_CLMA, rm_node->local_hdl);
 	/** free the hdl rec 
          **/
+		free(rm_node->version);
 		free(rm_node);
 		rc = NCSCC_RC_SUCCESS;
 		goto out;
@@ -350,6 +360,7 @@ uns32 clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t
 				ncshm_destroy_hdl(NCS_SERVICE_ID_CLMA, rm_node->local_hdl);
 
 		/** free the hdl rec */
+				free(rm_node->version);
 				free(rm_node);
 
 				rc = NCSCC_RC_SUCCESS;

@@ -844,36 +844,46 @@ static uns32 proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_node_get_param_t *param = &(evt->info.msg.info.api_info.param).node_get;
 	CLMSV_MSG clm_msg;
-	CLMS_CLUSTER_NODE *node = NULL;
-	SaClmNodeIdT nodeid;
+	CLMS_CLUSTER_NODE *node = NULL, *local_node = NULL;
+	SaClmNodeIdT nodeid, local_nodeid;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 	memset(&clm_msg, 0, sizeof(CLMSV_MSG));
+	
+	local_nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest);
+
 	if (param->node_id == SA_CLM_LOCAL_NODE_ID) {
 		nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest);
 		TRACE("nodeid after getting it from mds_dest %d", nodeid);
 	} else
 		nodeid = param->node_id;
 
+	local_node = clms_node_get_by_id(local_nodeid);
 	node = clms_node_get_by_id(nodeid);
 
-	if (node) {
-		if (node->member == SA_TRUE) {
-			clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
-			clm_msg.info.api_resp_info.type = CLMSV_NODE_GET_RESP;
-			clm_msg.info.api_resp_info.rc = ais_rc;
-			clm_msg.info.api_resp_info.param.node_get.nodeId = node->node_id;
-			clm_msg.info.api_resp_info.param.node_get.nodeAddress = node->node_addr;
-			clm_msg.info.api_resp_info.param.node_get.nodeName = node->node_name;
-			clm_msg.info.api_resp_info.param.node_get.executionEnvironment = node->ee_name;
-			clm_msg.info.api_resp_info.param.node_get.member = node->member;
-			clm_msg.info.api_resp_info.param.node_get.bootTimestamp = node->boot_time;
-			clm_msg.info.api_resp_info.param.node_get.initialViewNumber = node->init_view;
+	if(local_node) {
+		if (node) {
+			if (node->member == SA_TRUE && local_node->member == SA_TRUE) {
+				clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+				clm_msg.info.api_resp_info.type = CLMSV_NODE_GET_RESP;
+				clm_msg.info.api_resp_info.rc = ais_rc;
+				clm_msg.info.api_resp_info.param.node_get.nodeId = node->node_id;
+				clm_msg.info.api_resp_info.param.node_get.nodeAddress = node->node_addr;
+				clm_msg.info.api_resp_info.param.node_get.nodeName = node->node_name;
+				clm_msg.info.api_resp_info.param.node_get.executionEnvironment = node->ee_name;
+				clm_msg.info.api_resp_info.param.node_get.member = node->member;
+				clm_msg.info.api_resp_info.param.node_get.bootTimestamp = node->boot_time;
+				clm_msg.info.api_resp_info.param.node_get.initialViewNumber = node->init_view;
+			} else {
+				clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+				clm_msg.info.api_resp_info.type = CLMSV_NODE_GET_RESP;
+				clm_msg.info.api_resp_info.rc = SA_AIS_ERR_UNAVAILABLE;
+			}
 		} else {
 			clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
 			clm_msg.info.api_resp_info.type = CLMSV_NODE_GET_RESP;
-			clm_msg.info.api_resp_info.rc = SA_AIS_ERR_UNAVAILABLE;
+			clm_msg.info.api_resp_info.rc = SA_AIS_ERR_NOT_EXIST;
 		}
 	} else {
 		clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
@@ -898,11 +908,13 @@ static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 {
 	clmsv_node_get_async_param_t *param = &(evt->info.msg.info.api_info.param).node_get_async;
 	CLMSV_MSG clm_msg;
-	CLMS_CLUSTER_NODE *node = NULL;
-	SaClmNodeIdT nodeid;
+	CLMS_CLUSTER_NODE *node = NULL, *local_node = NULL;
+	SaClmNodeIdT nodeid, local_nodeid;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	TRACE_ENTER();
+
+	local_nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest);
 
 	memset(&clm_msg, 0, sizeof(CLMSV_MSG));
 	if (param->node_id == SA_CLM_LOCAL_NODE_ID)
@@ -910,28 +922,38 @@ static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	else
 		nodeid = param->node_id;
 
+	local_node = clms_node_get_by_id(local_nodeid);
 	node = clms_node_get_by_id(nodeid);
 
-	if (node) {
-		if (node->member == SA_TRUE) {
-			clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
-			clm_msg.info.cbk_info.type = CLMSV_NODE_ASYNC_GET_CBK;
-			clm_msg.info.cbk_info.param.node_get.info.nodeId = node->node_id;
-			clm_msg.info.cbk_info.param.node_get.info.nodeAddress = node->node_addr;
-			clm_msg.info.cbk_info.param.node_get.info.nodeName = node->node_name;
-			clm_msg.info.cbk_info.param.node_get.info.executionEnvironment = node->ee_name;
-			clm_msg.info.cbk_info.param.node_get.info.member = node->member;
-			clm_msg.info.cbk_info.param.node_get.info.bootTimestamp = node->boot_time;
-			clm_msg.info.cbk_info.param.node_get.info.initialViewNumber = node->init_view;
-			clm_msg.info.cbk_info.param.node_get.inv = param->inv;
-			clm_msg.info.cbk_info.param.node_get.err = ais_rc;
-			clm_msg.info.cbk_info.client_id = param->client_id;
+	if (local_node) {
+		if (node) {
+			if (node->member == SA_TRUE && local_node->member == SA_TRUE) {
+				clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
+				clm_msg.info.cbk_info.type = CLMSV_NODE_ASYNC_GET_CBK;
+				clm_msg.info.cbk_info.param.node_get.info.nodeId = node->node_id;
+				clm_msg.info.cbk_info.param.node_get.info.nodeAddress = node->node_addr;
+				clm_msg.info.cbk_info.param.node_get.info.nodeName = node->node_name;
+				clm_msg.info.cbk_info.param.node_get.info.executionEnvironment = node->ee_name;
+				clm_msg.info.cbk_info.param.node_get.info.member = node->member;
+				clm_msg.info.cbk_info.param.node_get.info.bootTimestamp = node->boot_time;
+				clm_msg.info.cbk_info.param.node_get.info.initialViewNumber = node->init_view;
+				clm_msg.info.cbk_info.param.node_get.inv = param->inv;
+				clm_msg.info.cbk_info.param.node_get.err = ais_rc;
+				clm_msg.info.cbk_info.client_id = param->client_id;
+			} else {
+				TRACE("Node exists in the database but is non-member");
+				clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
+				clm_msg.info.cbk_info.type = CLMSV_NODE_ASYNC_GET_CBK;
+				clm_msg.info.cbk_info.param.node_get.inv = param->inv;
+				clm_msg.info.cbk_info.param.node_get.err = SA_AIS_ERR_UNAVAILABLE;
+				clm_msg.info.cbk_info.client_id = param->client_id;
+			}
 		} else {
-			TRACE("Node exists in the database but is non-member");
+			TRACE("Node doesn't exist in the data base");
 			clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
 			clm_msg.info.cbk_info.type = CLMSV_NODE_ASYNC_GET_CBK;
 			clm_msg.info.cbk_info.param.node_get.inv = param->inv;
-			clm_msg.info.cbk_info.param.node_get.err = SA_AIS_ERR_UNAVAILABLE;
+			clm_msg.info.cbk_info.param.node_get.err = SA_AIS_ERR_NOT_EXIST;
 			clm_msg.info.cbk_info.client_id = param->client_id;
 		}
 	} else {
@@ -942,7 +964,6 @@ static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		clm_msg.info.cbk_info.param.node_get.err = SA_AIS_ERR_NOT_EXIST;
 		clm_msg.info.cbk_info.client_id = param->client_id;
 	}
-
 	TRACE_LEAVE();
 
 	/*Send the valid node info to clma */
