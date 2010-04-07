@@ -87,6 +87,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 
 			node->plm_invid = 0;	/* No resp */
 			node->admin_op = PLM;
+			node->ee_red_state = trackedEntities->entities[i].expectedReadinessStatus.readinessState;
 
 			if (node->nodeup &&
 			    trackedEntities->entities[i].expectedReadinessStatus.readinessState ==
@@ -100,7 +101,6 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					++(clms_cb->cluster_view_num);
 					--(osaf_cluster->num_nodes);
 					node->member = SA_FALSE;
-					node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
 					rc = clms_node_exit_ntf(clms_cb, node);
 					if (rc != SA_AIS_OK) {
 						TRACE("clms_node_exit_ntf failed %u", rc);
@@ -121,7 +121,6 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					++(osaf_cluster->num_nodes);
 					node->init_view = (++(clms_cb->cluster_view_num));
 					node->member = SA_TRUE;
-					node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;
 					node->change = SA_CLM_NODE_JOINED;
 					node->boot_time = clms_get_SaTime();
 					node->admin_state = SA_CLM_ADMIN_UNLOCKED;
