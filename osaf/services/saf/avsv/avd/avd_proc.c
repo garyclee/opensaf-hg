@@ -399,6 +399,8 @@ void avd_main_proc(void)
 
 	(void) nid_notify("AMFD", NCSCC_RC_SUCCESS, NULL);
 
+	LOG_NO("Started");
+
 	while (1) {
 		int ret = poll(fds, nfds, -1);
 

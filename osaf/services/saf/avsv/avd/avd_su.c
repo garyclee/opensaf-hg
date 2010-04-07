@@ -19,6 +19,7 @@
 
 #include <immutil.h>
 #include <logtrace.h>
+#include <saflog.h>
 
 #include <avd_util.h>
 #include <avd_su.h>
@@ -616,17 +617,21 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 {
 	if (su->saAmfSUPresenceState == pres_state)
 		return;
+
 	assert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
+	TRACE_ENTER2("'%s' %s => %s",	su->name.value,
+				 avd_pres_state_name[su->saAmfSUPresenceState],
+				 avd_pres_state_name[pres_state]);
 
 	/* only log for certain changes, see notifications in spec */
 	if (pres_state == SA_AMF_PRESENCE_UNINSTANTIATED ||
 	    pres_state == SA_AMF_PRESENCE_INSTANTIATED ||
-	    pres_state == SA_AMF_PRESENCE_RESTARTING)
-		LOG_NO("'%s' %s => %s",	su->name.value, avd_pres_state_name[su->saAmfSUPresenceState],
-			avd_pres_state_name[pres_state]);
-	else
-		TRACE("'%s' %s => %s",	su->name.value, avd_pres_state_name[su->saAmfSUPresenceState],
-			avd_pres_state_name[pres_state]);
+	    pres_state == SA_AMF_PRESENCE_RESTARTING) {
+
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s", su->name.value,
+			   avd_pres_state_name[su->saAmfSUPresenceState], avd_pres_state_name[pres_state]);
+	}
+
 
 	su->saAmfSUPresenceState = pres_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
@@ -639,8 +644,10 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 	if (su->saAmfSUOperState == oper_state)
 		return;
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	LOG_NO("'%s' %s => %s",	su->name.value, avd_oper_state_name[su->saAmfSUOperState],
-		avd_oper_state_name[oper_state]);
+	TRACE_ENTER2("'%s' %s", su->name.value, avd_oper_state_name[oper_state]);
+
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", su->name.value,
+		   avd_oper_state_name[su->saAmfSUOperState], avd_oper_state_name[oper_state]);
 	su->saAmfSUOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
@@ -654,12 +661,13 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
  */
 void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state)
 {
-        AVD_COMP *comp = NULL;
+	AVD_COMP *comp = NULL;
 	if (su->saAmfSuReadinessState == readiness_state)
 		return;
 	assert(readiness_state <= SA_AMF_READINESS_STOPPING);
-	LOG_NO("'%s' %s => %s",	su->name.value,
-		avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
+	TRACE_ENTER2("'%s' %s", su->name.value, avd_readiness_state_name[readiness_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s", su->name.value,
+		   avd_readiness_state_name[su->saAmfSuReadinessState], avd_readiness_state_name[readiness_state]);
 	su->saAmfSuReadinessState = readiness_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		 "saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
@@ -683,20 +691,12 @@ void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state
 	}
 }
 
-static const char *admin_state_name[] = {
-	"INVALID",
-	"UNLOCKED",
-	"LOCKED",
-	"LOCKED_INSTANTIATION",
-	"SHUTTING_DOWN"
-};
-
 void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 {
-	assert(su != NULL);
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	LOG_NO("'%s' %s => %s",	su->name.value, admin_state_name[su->saAmfSUAdminState],
-		admin_state_name[admin_state]);
+	TRACE_ENTER2("'%s' %s", su->name.value, avd_adm_state_name[admin_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", su->name.value,
+		   avd_adm_state_name[su->saAmfSUAdminState], avd_adm_state_name[admin_state]);
 	su->saAmfSUAdminState = admin_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUAdminState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);

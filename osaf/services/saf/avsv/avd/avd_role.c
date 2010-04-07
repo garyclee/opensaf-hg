@@ -401,7 +401,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Now Dispatch all the messages from the MBCSv mail-box */
 	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
-		LOG_ER("NCS_AvSv: FAILOVER Quiesced --> Active FAILED, MBCSV DISPATCH FAILED");
+		LOG_ER("FAILOVER Quiesced --> Active FAILED, MBCSV DISPATCH FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 

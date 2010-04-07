@@ -17,6 +17,7 @@
  */
 
 #include <logtrace.h>
+#include <saflog.h>
 
 #include <avd_util.h>
 #include <avd_si.h>
@@ -908,7 +909,8 @@ static void si_update_ass_state(AVD_SI *si)
 	}
 
 	if (newState != si->saAmfSIAssignmentState) {
-		/* Log? Send notification? */
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s AssignmentState %s => %s", si->name.value,
+			   avd_ass_state[si->saAmfSIAssignmentState], avd_ass_state[newState]);
 		si->saAmfSIAssignmentState = newState;
 		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 								  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);

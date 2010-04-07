@@ -18,6 +18,7 @@
 
 #include <immutil.h>
 #include <logtrace.h>
+#include <saflog.h>
 
 #include <avd_util.h>
 #include <avd_cluster.h>
@@ -55,7 +56,7 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SG *i_sg;
 
 	TRACE_ENTER();
-	LOG_NO("Cluster startup timeout");
+	saflog(LOG_NOTICE, amfSvcUsrName, "Cluster startup timeout, assigning SIs to SUs");
 
 	assert(evt->info.tmr.type == AVD_TMR_CL_INIT);
 

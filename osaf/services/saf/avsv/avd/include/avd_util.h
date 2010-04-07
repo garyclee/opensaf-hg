@@ -73,9 +73,13 @@ typedef struct avd_d2d_msg {
 	} msg_info;
 } AVD_D2D_MSG;
 
+extern const SaNameT *amfSvcUsrName;
+extern const char *avd_adm_state_name[];
 extern const char *avd_pres_state_name[];
 extern const char *avd_oper_state_name[];
 extern const char *avd_readiness_state_name[];
+extern const char *avd_ass_state[];
+extern const char *avd_ha_state[];
 
 struct cl_cb_tag;
 struct avd_avnd_tag;

@@ -29,6 +29,8 @@
 
 #include <immutil.h>
 #include <logtrace.h>
+#include <saflog.h>
+
 #include <avsv_util.h>
 #include <avd_util.h>
 #include <avd_susi.h>
@@ -121,7 +123,10 @@ void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT
 
        avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
 
-       if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
+	   saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
+			  avd_ha_state[ha_state], su_dn->value, si_dn->value);
+
+	   if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
 	       LOG_ER("rc=%u, '%s'", rc, dn.value);
 }
 
@@ -251,8 +256,11 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	}
 
 done:
-	if (su_si != NULL)
+	if (su_si != NULL) {
 		avd_create_susi_in_imm(state, &si->name, &su->name);
+		saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
+			   avd_ha_state[state], su->name.value, si->name.value);
+	}
 
 	return su_si;
 }

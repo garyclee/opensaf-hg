@@ -31,6 +31,21 @@
 #include <string.h>
 #include <avd.h>
 
+static const SaNameT _amfSvcUsrName = {
+	.value = "safApp=safAmfService",
+	.length = sizeof("safApp=safAmfService")
+};
+
+const SaNameT *amfSvcUsrName = &_amfSvcUsrName;
+
+const char *avd_adm_state_name[] = {
+	"INVALID",
+	"UNLOCKED",
+	"LOCKED",
+	"LOCKED_INSTANTIATION",
+	"SHUTTING_DOWN"
+};
+
 const char *avd_pres_state_name[] = {
 	"INVALID",
 	"UNINSTANTIATED",
@@ -53,6 +68,21 @@ const char *avd_readiness_state_name[] = {
 	"OUT_OF_SERVICE",
 	"IN_SERVICE",
 	"STOPPING"
+};
+
+const char *avd_ass_state[] = {
+	"INVALID",
+	"UNASSIGNED",
+	"FULLY_ASSIGNED",
+	"PARTIALLY_ASSIGNED"
+};
+
+const char *avd_ha_state[] = {
+	"INVALID",
+	"ACTIVE",
+	"STANDBY",
+	"QUIESCED",
+	"QUIESCING"
 };
 
 /*****************************************************************************

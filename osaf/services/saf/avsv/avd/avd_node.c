@@ -19,6 +19,7 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
+#include <saflog.h>
 
 #include <avd.h>
 #include <avd_cluster.h>
@@ -351,19 +352,12 @@ static const char *node_state_name[] = {
 
 void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 {
-	assert(node != NULL);
 	assert(node_state <= AVD_AVND_STATE_NCS_INIT);
-	LOG_NO("'%s' %s => %s",	node->name.value, node_state_name[node->node_state],
+	TRACE_ENTER2("'%s' %s => %s",	node->name.value, node_state_name[node->node_state],
 		node_state_name[node_state]);
 	node->node_state = node_state;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_NODE_STATE);
 }
-
-static const char *oper_state_name[] = {
-	"INVALID",
-	"ENABLED",
-	"DISABLED"
-};
 
 /**
  * Set AMF operational state of a node. Log & update IMM, checkpoint with standby
@@ -376,12 +370,11 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 		return;
 
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	LOG_NO("'%s' %s => %s",	node->name.value, oper_state_name[node->saAmfNodeOperState],
-		oper_state_name[oper_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", node->name.value,
+		   avd_oper_state_name[node->saAmfNodeOperState], avd_oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
-	/*  TODO is this always correct or do we need a new param? */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_OPER_STATE);
 }
 
@@ -630,14 +623,6 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	TRACE_LEAVE();
 }
 
-static const char *admin_state_name[] = {
-	"INVALID",
-	"UNLOCKED",
-	"LOCKED",
-	"LOCKED_INSTANTIATION",
-	"SHUTTING_DOWN"
-};
-
 /**
  * sets the admin state of a node
  *
@@ -646,12 +631,12 @@ static const char *admin_state_name[] = {
  */
 void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 {
-	assert(node != NULL);
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("'%s' %s => %s",
-		     node->name.value, admin_state_name[node->saAmfNodeAdminState],
-		     admin_state_name[admin_state]);
+	TRACE_ENTER2("%s AdmState %s => %s", node->name.value,
+		avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
 
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", node->name.value,
+		avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
 	node->saAmfNodeAdminState = admin_state;
 	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
