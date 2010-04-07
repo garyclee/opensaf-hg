@@ -682,16 +682,6 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 
 	TRACE_ENTER2("step: %d", step);
 
-	if (node->change == SA_CLM_NODE_LEFT)
-		LOG_NO("%s LEFT, initial view=%llu, cluster view=%llu",
-		       node->node_name.value, node->init_view, cb->cluster_view_num);
-	else if (node->change == SA_CLM_NODE_JOINED)
-		LOG_NO("%s JOINED, initial view=%llu, cluster view=%llu",
-		       node->node_name.value, node->init_view, cb->cluster_view_num);
-	else if (node->change == SA_CLM_NODE_SHUTDOWN)
-		LOG_NO("%s SHUTDOWN, initial view=%llu, cluster view=%llu",
-		       node->node_name.value, node->init_view, cb->cluster_view_num);
-
 	/* Check for previous stale tracklist on this node and delete it.
 	   PLM doesnt allows multiple admin operations, hence this means
 	   PLM is enforcing its clients to forcibly-move to the next step
@@ -1209,6 +1199,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		clms_node_add_to_model(opdata->userData);
+		saflog(LOG_NOTICE, clmSvcUsrName, "%s ADDED", opdata->objectName.value);
 		/*clms_cluster_update_rattr(osaf_cluster); */
 		/*Checkpointing also need to be done */
 		/* Add to the plm entity group */
@@ -1250,6 +1241,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 
 		break;
 	case CCBUTIL_MODIFY:
+		saflog(LOG_NOTICE, clmSvcUsrName, "%s MODIFIED", opdata->objectName.value);
 		rc = clms_node_ccb_apply_modify(opdata);
 		if (rc != SA_AIS_OK)
 			goto done;
@@ -1271,6 +1263,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 
 		break;
 	case CCBUTIL_DELETE:
+		saflog(LOG_NOTICE, clmSvcUsrName, "%s DELETED", opdata->objectName.value);
 		if ((node = clms_node_get_by_name(&opdata->objectName)) == NULL)
 			goto done;
 		clms_node_delete(node, 0);

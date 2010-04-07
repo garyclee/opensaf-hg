@@ -15,10 +15,17 @@
  *
  */
 
+#include "clms.h"
+
 #define ADDITION_TEXT_LENGTH 256
 #define CLMS_NTF_SENDER "safApp=safClmService"
 
-#include "clms.h"
+static const char *clm_adm_state_name[] = {
+	"INVALID",
+	"UNLOCKED",
+	"LOCKED",
+	"SHUTTING_DOWN"
+};
 
 static void fill_ntf_header_part_clms(SaNtfNotificationHeaderT *notificationHeader,
 				      SaNtfEventTypeT eventType,
@@ -120,6 +127,8 @@ uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
 	TRACE("Notification for CLM node %s Join", dn.value);
+	saflog(LOG_NOTICE, clmSvcUsrName, "%s JOINED, init view=%llu, cluster view=%llu",
+		   node->node_name.value, node->init_view, clms_cb->cluster_view_num);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T *)add_text, "CLM node %s Joined", dn.value);
@@ -158,6 +167,8 @@ uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
 	TRACE("Notification for CLM node %s exit", dn.value);
+	saflog(LOG_NOTICE, clmSvcUsrName, "%s LEFT, init view=%llu, cluster view=%llu",
+		   node->node_name.value, node->init_view, clms_cb->cluster_view_num);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T *)add_text, "CLM node %s Exit", dn.value);
@@ -192,6 +203,8 @@ uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+	saflog(LOG_NOTICE, clmSvcUsrName, "%s RECONFIGURED, init view=%llu, cluster view=%llu",
+		   node->node_name.value, node->init_view, clms_cb->cluster_view_num);
 	dn.length = node->node_name.length;
 	(void)memcpy(dn.value, node->node_name.value, dn.length);
 
@@ -226,7 +239,12 @@ uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * no
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT dn;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
 	TRACE_ENTER2("admin state change for node name %s", node->node_name.value);
+
+	assert(newState < SA_CLM_ADMIN_SHUTTING_DOWN);
+	saflog(LOG_NOTICE, clmSvcUsrName, "%s Admin State Changed, new state=%s",
+		   node->node_name.value, clm_adm_state_name[newState]);
 
 	memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
 	dn.length = node->node_name.length;
@@ -241,6 +259,7 @@ uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * no
 						 SA_SVC_CLM,
 						 SA_CLM_NTFID_NODE_ADMIN_STATE,
 						 SA_NTF_MANAGEMENT_OPERATION, SA_CLM_ADMIN_STATE, newState);
+
 	TRACE_LEAVE();
 	return status;
 }
