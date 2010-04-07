@@ -93,6 +93,9 @@ typedef SaUint32T SaLckResourceIdT;
 #define GLND_CKPT_MAX_SECTIONS                              10
 #define GLND_CKPT_RETENTION_DURATION                        100000000000LL
 
+/*To increment mds timer value(in milli sec)*/
+#define LCK_TIMEOUT_LATENCY			 	    200
+
 /* DTSv versioning support */
 #define GLSV_LOG_VERSION 3
 

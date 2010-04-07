@@ -1046,6 +1046,10 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 		lock_id_node = NULL;
 		goto done;
 	}
+	/* Incrementing mds timer value so that before mds timer expires at agent,
+	   lock request timer at glnd will be expired and send the response to agent */
+	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
+
 	/* send the event */
 	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_lock_evt, &out_evt, (uns32)gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT) {
@@ -1359,6 +1363,9 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 		rc = SA_AIS_ERR_TIMEOUT;
 		goto done;
 	}
+	/* Incrementing mds timer value so that before mds timer expires at agent,
+	   lock request timer at glnd will be expired and send the response to agent */
+	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
 
 	/* send the event */
 	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_unlock_evt, &out_evt, (uns32)gla_timeout)) != NCSCC_RC_SUCCESS) {
