@@ -975,7 +975,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 	if ((comp->su->is_ncs == TRUE) &&
 	    (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) &&
 	    (!m_AVND_COMP_IS_FAILED(comp)) && (!m_AVND_COMP_TYPE_IS_PROXIED(comp))) {
-		syslog(LOG_ERR, "NCS_AvSv: %s unregistered", comp->name.value);
+		syslog(LOG_ERR, "%s unregistered", comp->name.value);
 	}
 
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {

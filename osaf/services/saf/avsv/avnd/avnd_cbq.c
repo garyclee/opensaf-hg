@@ -373,7 +373,7 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
 		if (SA_AIS_OK != resp->err) {
 			if (SA_AMF_HA_QUIESCED == cbk_rec->cbk_info->param.csi_set.ha) {
 				if (comp->su->is_ncs == TRUE) {
-					syslog(LOG_ERR, "NCS_AvSv: %s got failure for qsd cbk", comp->name.value);
+					syslog(LOG_ERR, "%s got failure %u for qsd cbk", comp->name.value, resp->err);
 				}
 
 				/* => quiesced assignment failed.. dont treat it as a comp failure */
@@ -504,7 +504,7 @@ uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
 		csi = m_AVND_COMPDB_REC_CSI_GET(*(rec->comp), rec->cbk_info->param.csi_set.csi_desc.csiName);
 
 		if (rec->comp->su->is_ncs == TRUE) {
-			syslog(LOG_ERR, "NCS_AvSv: %s got qsd cbk timeout", rec->comp->name.value);
+			syslog(LOG_ERR, "%s got qsd cbk timeout", rec->comp->name.value);
 		}
 
 		rc = avnd_comp_csi_qscd_assign_fail_prc(cb, rec->comp, csi);

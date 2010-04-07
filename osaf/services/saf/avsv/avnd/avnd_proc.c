@@ -215,7 +215,7 @@ void avnd_main_process(void)
 	TRACE_ENTER();
 
 	if (avnd_create() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "avnd_create\n");
+		syslog(LOG_ERR, "avnd_create");
 		goto done;
 	}
 
@@ -256,6 +256,8 @@ void avnd_main_process(void)
 	}
 #endif
 	(void) nid_notify("AMFND", NCSCC_RC_SUCCESS, NULL);
+
+	LOG_NO("Started");
 
 	/* now wait forever */
 	while (1) {

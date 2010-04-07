@@ -33,6 +33,7 @@
 #ifndef AVD_TMR_H
 #define AVD_TMR_H
 
+#include <saflog.h>
 #include <ncssysf_tmr.h>
 
 /* timer type enums */
@@ -60,10 +61,10 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_CLINIT_TMR_START(cb) \
 {\
-   LOG_NO("Starting cluster startup timer"); \
-   cb->amf_init_tmr.is_active = FALSE; \
-   cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
-   avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
+	saflog(LOG_NOTICE, amfSvcUsrName, "Starting cluster startup timer"); \
+	cb->amf_init_tmr.is_active = FALSE; \
+	cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
+	avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
 }
 
 #define m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec) \
