@@ -938,6 +938,7 @@ uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 event)
 
 		/* Start the transmit timer */
 		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_TRANSMIT);
+		break;
 
 	case NCSMBCSV_EVENT_COLD_SYNC_RESP_COMPLETE:
 	case NCSMBCSV_EVENT_WARM_SYNC_RESP_COMPLETE:

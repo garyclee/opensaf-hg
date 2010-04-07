@@ -470,7 +470,7 @@ uns32 mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
 	if (0 == msg_fmt_version) {
 		char str[200];
-		sprintf(str, "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
+		snprintf(str, sizeof(str), "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
 			to_svc);
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, str);
 	}
@@ -647,7 +647,7 @@ uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 					   MBCSV_WRT_PEER_SUBPART_VER_MIN,
 					   MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array)) {
 		char str[200];
-		sprintf(str, "Msg format version:%d not supported, message from svc-id:%d dropped", msg_fmat_ver,
+		snprintf(str, sizeof(str), "Msg format version:%d not supported, message from svc-id:%d dropped", msg_fmat_ver,
 			to_svc);
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, str);
 	}
@@ -853,7 +853,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 						MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
 	if (0 == msg_fmt_version) {
 		char str[200];
-		sprintf(str, "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
+		snprintf(str, sizeof(str), "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
 			to_svc);
 		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, str);
 	}
