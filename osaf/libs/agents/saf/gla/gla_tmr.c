@@ -46,7 +46,6 @@
   NOTES         : None
 *****************************************************************************/
 uns32 gla_start_tmr(GLA_TMR *tmr)
-
 {
 	uns32 period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
 

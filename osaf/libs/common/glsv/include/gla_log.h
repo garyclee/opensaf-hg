@@ -54,7 +54,7 @@ typedef enum gla_hdln_log_flex {
 typedef enum gla_memfail_log_flex {
 	GLA_CB_ALLOC_FAILED,
 	GLA_CLIENT_ALLOC_FAILED,
-	GLA_EVT_ALLOC_FAILED,
+	GLA_EVT_ALLOC_FAILED
 } GLA_MEMFAIL_LOG_FLEX;
 
 /******************************************************************************
@@ -76,7 +76,7 @@ typedef enum gla_api_log_flex {
 	GLA_API_LCK_RESOURCE_PURGE_FAIL,
 	GLA_DISPATCH_ALL_CALLBK_FAIL,
 	GLA_DISPATCH_ALL_RMV_IND,
-	GLA_DISPATCH_BLOCK_CLIENT_DESTROYED,
+	GLA_DISPATCH_BLOCK_CLIENT_DESTROYED
 } GLA_API_LOG_FLEX;
 
 /******************************************************************************
@@ -87,18 +87,11 @@ typedef enum gla_lock_log_flex {
 } GLA_LOCK_LOG_FLEX;
 
 /******************************************************************************
- Logging offset indexes for Event logging 
- ******************************************************************************/
-typedef enum gla_evt_log_flex {
-	GLA_EVT_UNKNOWN
-} GLA_EVT_LOG_FLEX;
-
-/******************************************************************************
  Logging offset indexes for system call fail logging 
  ******************************************************************************/
 typedef enum gla_sys_call_log_flex {
 	GLA_GET_SEL_OBJ_FAIL,
-	GLA_SEL_OBJ_RMV_IND_FAIL,
+	GLA_SEL_OBJ_RMV_IND_FAIL
 } GLA_SYS_CALL_LOG_FLEX;
 
 /******************************************************************************
@@ -117,7 +110,6 @@ typedef enum gla_flex_sets {
 	GLA_FC_MEMFAIL,
 	GLA_FC_API,
 	GLA_FC_NCS_LOCK,
-	GLA_FC_EVT,
 	GLA_FC_SYS_CALL,
 	GLA_FC_DATA_SEND
 } GLA_FLEX_SETS;
@@ -127,7 +119,6 @@ typedef enum gla_log_ids {
 	GLA_LID_MEMFAIL,
 	GLA_LID_API,
 	GLA_LID_NCS_LOCK,
-	GLA_LID_EVT,
 	GLA_LID_SYS_CALL,
 	GLA_LID_DATA_SEND
 } GLA_LOG_IDS;
@@ -135,20 +126,18 @@ typedef enum gla_log_ids {
 void gla_flx_log_reg(void);
 void gla_flx_log_dereg(void);
 
-EXTERN_C void gla_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void gla_log_memfail(uns8 mf_id);
-EXTERN_C void gla_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void gla_log_lockfail(uns8 lck_id, uns8 sev);
-EXTERN_C void gla_log_evt(uns8 evt_id, uns32 node);
-EXTERN_C void gla_log_sys_call(uns8 id, uns32 node);
-EXTERN_C void gla_log_data_send(uns8 id, uns32 node, uns32 evt);
+EXTERN_C void gla_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gla_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
+EXTERN_C void gla_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gla_log_lockfail(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gla_log_sys_call(uns8 id, char *file_name, uns32 line_no, SaUint64T handle_id);
+EXTERN_C void gla_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
 
-#define m_LOG_GLA_HEADLINE(id, sev)        gla_log_headline(id,sev)
-#define m_LOG_GLA_MEMFAIL(id)              gla_log_memfail(id)
-#define m_LOG_GLA_API(id,sev)              gla_log_api(id,sev)
-#define m_LOG_GLA_LOCKFAIL(id,sev)         gla_log_lockfail(id,sev)
-#define m_LOG_GLA_EVT(id,node)             gla_log_evt(evt_id,node)
-#define m_LOG_GLA_SYS_CALL(id,node)        gla_log_sys_call(id,node)
-#define m_LOG_GLA_DATA_SEND(id,node,evt)   gla_log_data_send(id,node,evt)
+#define m_LOG_GLA_HEADLINE(id,sev,file_name,line_no)        gla_log_headline(id,sev,file_name,line_no)
+#define m_LOG_GLA_MEMFAIL(id,file_name,line_no)              gla_log_memfail(id,file_name,line_no)
+#define m_LOG_GLA_API(id,sev,file_name,line_no)              gla_log_api(id,sev,file_name,line_no)
+#define m_LOG_GLA_LOCKFAIL(id,sev,file_name,line_no)         gla_log_lockfail(id,sev,file_name,line_no)
+#define m_LOG_GLA_SYS_CALL(id,file_name,line_no,handle_id)        gla_log_sys_call(id,file_name,line_no,handle_id)
+#define m_LOG_GLA_DATA_SEND(id,file_name,line_no,node,evt)   gla_log_data_send(id,file_name,line_no,node,evt)
 
 #endif

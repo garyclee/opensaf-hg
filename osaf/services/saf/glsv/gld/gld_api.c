@@ -27,7 +27,7 @@
 #include "gld.h"
 #include "gld_imm.h"
 #include <poll.h>
- uns32 gl_gld_hdl;
+uns32 gl_gld_hdl;
 
 static void gld_main_process(SYSF_MBX *mbx);
 
@@ -62,25 +62,25 @@ uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info)
 		/* need to fetch the information from the "NCS_LIB_REQ_INFO" struct - TBD */
 		res = gld_se_lib_init(req_info);
 		if (res == NCSCC_RC_SUCCESS)
-			m_LOG_GLD_API(GLD_SE_API_CREATE_SUCCESS, NCSFL_SEV_INFO);
+			m_LOG_GLD_API(GLD_SE_API_CREATE_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		else
-			m_LOG_GLD_API(GLD_SE_API_CREATE_SUCCESS, NCSFL_SEV_ERROR);
+			m_LOG_GLD_API(GLD_SE_API_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
 		/* need to fetch the information from the "NCS_LIB_REQ_INFO" struct - TBD */
 		res = gld_se_lib_destroy(req_info);
 		if (res == NCSCC_RC_SUCCESS)
-			m_LOG_GLD_API(GLD_SE_API_DESTROY_SUCCESS, NCSFL_SEV_INFO);
+			m_LOG_GLD_API(GLD_SE_API_DESTROY_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		else
-			m_LOG_GLD_API(GLD_SE_API_DESTROY_FAILED, NCSFL_SEV_ERROR);
+			m_LOG_GLD_API(GLD_SE_API_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 #if (NCS_GLSV_LOG == 1)
 		gld_flx_log_dereg();
 #endif
 		break;
 
 	default:
-		m_LOG_GLD_API(GLD_SE_API_UNKNOWN, NCSFL_SEV_ERROR);
+		m_LOG_GLD_API(GLD_SE_API_UNKNOWN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		break;
 	}
 	return (res);
@@ -113,7 +113,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	gld_cb = m_MMGR_ALLOC_GLSV_GLD_CB;
 
 	if (gld_cb == NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_CB_ALLOC_FAILED);
+		m_LOG_GLD_MEMFAIL(GLD_CB_ALLOC_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	memset(gld_cb, 0, sizeof(GLSV_GLD_CB));
@@ -121,7 +121,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* TBD- Pool id is to be set */
 	gl_gld_hdl = gld_cb->my_hdl = ncshm_create_hdl(gld_cb->hm_poolid, NCS_SERVICE_ID_GLD, (NCSCONTEXT)gld_cb);
 	if (0 == gld_cb->my_hdl) {
-		m_LOG_GLD_HEADLINE(GLD_CREATE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_CREATE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 	}
@@ -134,31 +134,31 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	/* Initialize amf framework */
 	if (gld_amf_init(gld_cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_ERROR, NCSFL_SEV_ERROR);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 	}
-	m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_SUCCESS, NCSFL_SEV_INFO);
+	m_LOG_GLD_SVC_PRVDR(GLD_AMF_INIT_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 	/* Bind to MDS */
 	if (gld_mds_init(gld_cb) != NCSCC_RC_SUCCESS) {
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	} else
-		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_SUCCESS, NCSFL_SEV_INFO);
+		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 	/*   Initialise with the MBCSV service  */
 	if (glsv_gld_mbcsv_register(gld_cb) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		gld_mds_shut(gld_cb);
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 
 	} else {
-		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_SUCCESS, NCSFL_SEV_INFO);
+		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 	}
 
@@ -181,7 +181,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 			       m_GLD_STACKSIZE,
 			       &gld_cb->task_hdl) != NCSCC_RC_SUCCESS) ||
 	    (m_NCS_TASK_START(gld_cb->task_hdl) != NCSCC_RC_SUCCESS)) {
-		m_LOG_GLD_HEADLINE(GLD_IPC_TASK_INIT, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_IPC_TASK_INIT, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		saImmOiFinalize(gld_cb->immOiHandle);
 		glsv_gld_mbcsv_unregister(gld_cb);
 		gld_mds_shut(gld_cb);
@@ -197,7 +197,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* register GLD component with AvSv */
 	amf_error = saAmfComponentRegister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_ERROR, NCSFL_SEV_ERROR);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
@@ -208,14 +208,14 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 	} else
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_SUCCESS, NCSFL_SEV_INFO);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
    /** start the AMF health check **/
 	memset(&Healthy, 0, sizeof(Healthy));
 	health_key = (int8 *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		strcpy((char *)Healthy.key, "A1B2");
-		m_LOG_GLD_HEADLINE(GLD_HEALTH_KEY_DEFAULT_SET, NCSFL_SEV_INFO);
+		m_LOG_GLD_HEADLINE(GLD_HEALTH_KEY_DEFAULT_SET, NCSFL_SEV_INFO, __FILE__, __LINE__, 0);
 	} else {
 		strcpy((char *)Healthy.key, (char *)health_key);
 	}
@@ -224,7 +224,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	amf_error = saAmfHealthcheckStart(gld_cb->amf_hdl, &gld_cb->comp_name, &Healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 	if (amf_error != SA_AIS_OK) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_FAIL, NCSFL_SEV_ERROR);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
@@ -235,7 +235,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 	} else
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_DONE, NCSFL_SEV_INFO);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_DONE, NCSFL_SEV_INFO, __FILE__, __LINE__);
 
 	return (res);
 }
@@ -257,7 +257,7 @@ uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return (NCSCC_RC_FAILURE);
 	} else {
 		/* Disconnect from MDS */
@@ -299,7 +299,7 @@ uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params))
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 	gld_cb->glnd_details_tree_up = TRUE;
@@ -308,7 +308,7 @@ uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->rsc_info_id, &params))
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 	gld_cb->rsc_info_id_tree_up = TRUE;
@@ -317,7 +317,7 @@ uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->rsc_map_info, &params))
 	    != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -350,11 +350,21 @@ uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uns8 *)0))) {
 		while ((glnd_rsc =
 			(GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0))) {
-			ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc);
+			if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) !=
+			    NCSCC_RC_SUCCESS) {
+				m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+						   0);
+				return NCSCC_RC_FAILURE;
+			}
 			m_MMGR_FREE_GLSV_GLD_GLND_RSC_REF(glnd_rsc);
 		}
 		ncs_patricia_tree_destroy(&node_details->rsc_info_tree);
-		ncs_patricia_tree_del(&gld_cb->glnd_details, (NCS_PATRICIA_NODE *)node_details);
+		if (ncs_patricia_tree_del(&gld_cb->glnd_details, (NCS_PATRICIA_NODE *)node_details) != NCSCC_RC_SUCCESS) {
+			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
+					   node_details->node_id);
+			return NCSCC_RC_FAILURE;
+		}
+
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 	}
 
@@ -419,7 +429,7 @@ void gld_process_mbx(SYSF_MBX *mbx)
 			/* This event belongs to GLD */
 			gld_process_evt(evt);
 		} else {
-			m_LOG_GLD_HEADLINE(GLD_UNKNOWN_EVT_RCVD, NCSFL_SEV_ERROR);
+			m_LOG_GLD_HEADLINE(GLD_UNKNOWN_EVT_RCVD, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 			m_MMGR_FREE_GLSV_GLD_EVT(evt);
 		}
 	}
@@ -452,14 +462,14 @@ static void gld_main_process(SYSF_MBX *mbx)
 
 	if ((gld_cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return;
 	}
 	mbx_fd = ncs_ipc_get_sel_obj(&gld_cb->mbx);
 	error = saAmfSelectionObjectGet(gld_cb->amf_hdl, &amf_sel_obj);
 
 	if (error != SA_AIS_OK) {
-		m_LOG_GLD_SVC_PRVDR(GLD_AMF_SEL_OBJ_GET_ERROR, NCSFL_SEV_ERROR);
+		m_LOG_GLD_SVC_PRVDR(GLD_AMF_SEL_OBJ_GET_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 
@@ -489,7 +499,8 @@ static void gld_main_process(SYSF_MBX *mbx)
 				/* dispatch all the AMF pending function */
 				error = saAmfDispatch(gld_cb->amf_hdl, SA_DISPATCH_ALL);
 				if (error != SA_AIS_OK) {
-					m_LOG_GLD_SVC_PRVDR(GLD_AMF_DISPATCH_ERROR, NCSFL_SEV_ERROR);
+					m_LOG_GLD_SVC_PRVDR(GLD_AMF_DISPATCH_ERROR, NCSFL_SEV_ERROR, __FILE__,
+							    __LINE__);
 				}
 			} else
 				gld_log(NCSFL_SEV_ERROR, "gld_cb->amf_hdl == 0");
@@ -501,7 +512,7 @@ static void gld_main_process(SYSF_MBX *mbx)
 			mbcsv_arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
 			mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
 			if (ncs_mbcsv_svc(&mbcsv_arg) != SA_AIS_OK) {
-				m_LOG_GLD_HEADLINE(GLD_MBCSV_DISPATCH_FAILURE, NCSFL_SEV_ERROR);
+				m_LOG_GLD_HEADLINE(GLD_MBCSV_DISPATCH_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 			}
 		}
 

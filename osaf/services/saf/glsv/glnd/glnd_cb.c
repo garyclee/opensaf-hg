@@ -57,7 +57,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	glnd_cb = m_MMGR_ALLOC_GLND_CB;
 
 	if (!glnd_cb) {
-		m_LOG_GLND_MEMFAIL(GLND_CB_ALLOC_FAILED);
+		m_LOG_GLND_MEMFAIL(GLND_CB_ALLOC_FAILED, __FILE__, __LINE__);
 		glnd_flx_log_dereg();
 		return NULL;
 	}
@@ -68,7 +68,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	/* create the handle */
 	glnd_cb->cb_hdl_id = ncshm_create_hdl((uns8)pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)glnd_cb);
 	if (!glnd_cb->cb_hdl_id) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto hdl_err;
 	}
 
@@ -77,7 +77,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	params.key_size = sizeof(SaLckHandleT);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_client_tree, &params)) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_CLIENT_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CLIENT_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto client_err;
 	}
 
@@ -85,7 +85,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	params.key_size = sizeof(MDS_DEST);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_agent_tree, &params)) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_AGENT_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AGENT_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto agent_err;
 	}
 
@@ -93,18 +93,18 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	params.key_size = sizeof(SaLckResourceIdT);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_res_tree, &params)) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_RSC_TREE_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_RSC_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto res_err;
 	}
 
 	/* create the mail box and attach it */
 	if (m_NCS_IPC_CREATE(&glnd_cb->glnd_mbx) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_IPC_CREATE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_IPC_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto mbx_create_err;
 	}
 
 	if (m_NCS_IPC_ATTACH(&glnd_cb->glnd_mbx) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_IPC_ATTACH_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_IPC_ATTACH_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto mbx_attach_err;
 	}
 
@@ -114,26 +114,26 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	/* resigter with the MDS */
 	if (glnd_mds_register(glnd_cb) != NCSCC_RC_SUCCESS) {
 		printf("\n GLND_MDS_REGISTER_FAILED\n");
-		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto mds_err;
 	} else
-		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_SUCCESS, NCSFL_SEV_NOTICE);
+		m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
 	/* Initialise with the AMF service */
 	if (glnd_amf_init(glnd_cb) != NCSCC_RC_SUCCESS) {
 		printf("\n GLND_AMF_INIT_FAILED\n");
-		m_LOG_GLND_HEADLINE(GLND_AMF_INIT_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto amf_init_err;
 	} else
-		m_LOG_GLND_HEADLINE(GLND_AMF_INIT_SUCCESS, NCSFL_SEV_NOTICE);
+		m_LOG_GLND_HEADLINE(GLND_AMF_INIT_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
 	/* register with the AMF service */
 	if (glnd_amf_register(glnd_cb) != NCSCC_RC_SUCCESS) {
 		printf("\n GLND_AMF_REGISTER_FAILED\n");
-		m_LOG_GLND_HEADLINE(GLND_AMF_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto amf_reg_err;
 	} else
-		m_LOG_GLND_HEADLINE(GLND_AMF_REGISTER_SUCCESS, NCSFL_SEV_NOTICE);
+		m_LOG_GLND_HEADLINE(GLND_AMF_REGISTER_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
 	/* everything went off well.. store the hdl in the global variable */
 	gl_glnd_hdl = glnd_cb->cb_hdl_id;
@@ -155,9 +155,9 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
 		printf("\n ERROR IN HEALTH CHECK START\n");
-		m_LOG_GLND_HEADLINE(GLND_AMF_HEALTHCHECK_START_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_HEALTHCHECK_START_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	} else
-		m_LOG_GLND_HEADLINE(GLND_AMF_HEALTHCHECK_START_SUCCESS, NCSFL_SEV_NOTICE);
+		m_LOG_GLND_HEADLINE(GLND_AMF_HEALTHCHECK_START_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
 	if (glnd_cb->node_state != GLND_CLIENT_INFO_GET_STATE) {
 		printf("\n setting the state as  GLND_OPERATIONAL_STATE\n");
@@ -305,6 +305,10 @@ void glnd_dump_cb()
 
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
+	if (!glnd_cb) {
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		return;
+	}
 
 	memset(&agent_mds_dest, 0, sizeof(MDS_DEST));
 

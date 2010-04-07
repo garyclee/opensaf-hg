@@ -75,11 +75,11 @@ void glnd_saf_health_chk_callback(SaInvocationT invocation,
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
 	return;
@@ -114,11 +114,11 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
 
@@ -199,7 +199,7 @@ void glnd_amf_CSI_set_callback(SaInvocationT invocation,
 	glnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_GLND, cb_hdl);
 
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 
@@ -233,11 +233,11 @@ void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
 	/* take the handle */
 	glnd_cb = (GLND_CB *)m_GLND_TAKE_GLND_CB;
 	if (!glnd_cb) {
-		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
 	if (saAmfResponse(glnd_cb->amf_hdl, invocation, error) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_RESPONSE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	/* giveup the handle */
 	m_GLND_GIVEUP_GLND_CB;
 
@@ -258,7 +258,7 @@ void glnd_amf_csi_rmv_callback(SaInvocationT invocation,
 void glnd_amf_de_init(GLND_CB *glnd_cb)
 {
 	if (saAmfFinalize(glnd_cb->amf_hdl) != SA_AIS_OK)
-		m_LOG_GLND_HEADLINE(GLND_AMF_DESTROY_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_HEADLINE(GLND_AMF_DESTROY_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 }
 
 /****************************************************************************

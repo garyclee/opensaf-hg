@@ -54,7 +54,7 @@ uns32 glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
 		}
 		m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
 	}
-	m_LOG_GLA_SYS_CALL(GLA_GET_SEL_OBJ_FAIL, client_info->lock_handle_id);
+	m_LOG_GLA_SYS_CALL(GLA_GET_SEL_OBJ_FAIL, __FILE__, __LINE__, client_info->lock_handle_id);
 	return NCSCC_RC_FAILURE;
 }
 

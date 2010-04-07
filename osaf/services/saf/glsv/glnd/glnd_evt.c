@@ -347,12 +347,13 @@ uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt)
 	GLND_CB *glnd_cb = (GLND_CB *)cb;
 
 	glnd_retrieve_info_from_evt(evt, &node_id, &hdl_id, &rsc_id, &lck_id);
-	m_LOG_GLND_EVT(GLND_EVT_RECIEVED, evt->type, (uns32)node_id, (uns32)hdl_id, (uns32)rsc_id, (uns32)lck_id);
+	m_LOG_GLND_EVT(GLND_EVT_RECIEVED, __FILE__, __LINE__, evt->type, (uns32)node_id, (uns32)hdl_id, (uns32)rsc_id,
+		       (uns32)lck_id);
 	glnd_evt_hdl = glsv_glnd_evt_dispatch_tbl[evt->type - (GLSV_GLND_EVT_BASE + 1)];
 	if (glnd_evt_hdl != NULL) {
 		if (glnd_evt_hdl(glnd_cb, evt) != NCSCC_RC_SUCCESS) {
 			/* Log the event for the failure */
-			m_LOG_GLND_EVT(GLND_EVT_PROCESS_FAILURE, evt->type, 0, 0, 0, 0);
+			m_LOG_GLND_EVT(GLND_EVT_PROCESS_FAILURE, __FILE__, __LINE__, evt->type, 0, 0, 0, 0);
 		}
 	}
 	glnd_evt_destroy(evt);
@@ -408,7 +409,7 @@ static uns32 glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 		glnd_agent_node_del(glnd_cb, del_node);
 		return NCSCC_RC_SUCCESS;
 	} else {
-		m_LOG_GLND_API(GLND_AGENT_NODE_NOT_FOUND, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_AGENT_NODE_NOT_FOUND, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -438,7 +439,7 @@ static uns32 glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 	gla_evt.type = GLSV_GLA_API_RESP_EVT;
 
 	if (glnd_cb->node_state != GLND_OPERATIONAL_STATE || glnd_cb->gld_card_up != TRUE) {
-		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		/* initialise the gla_evt */
 		gla_evt.error = SA_AIS_ERR_TRY_AGAIN;
 		gla_evt.type = GLSV_GLA_API_RESP_EVT;
@@ -452,7 +453,7 @@ static uns32 glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 
 	/* verify that the agent exists */
 	if (!glnd_agent_node_find(glnd_cb, client_info->agent_mds_dest)) {
-		m_LOG_GLND_API(GLND_AGENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_AGENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto err;
 	}
 
@@ -509,7 +510,7 @@ static uns32 glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	gla_evt.type = GLSV_GLA_API_RESP_EVT;
 
 	if (glnd_cb->node_state != GLND_OPERATIONAL_STATE || glnd_cb->gld_card_up != TRUE) {
-		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		/* initialise the gla_evt */
 		gla_evt.error = SA_AIS_ERR_TRY_AGAIN;
 		gla_evt.handle = finalize_info->handle_id;
@@ -571,7 +572,7 @@ static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 		gla_evt.handle = rsc_info->client_handle_id;
 
 		if (rsc_info->call_type == GLSV_SYNC_CALL) {
-			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 			/* initialise the gla_evt */
 			gla_evt.error = SA_AIS_ERR_TRY_AGAIN;
 			gla_evt.type = GLSV_GLA_API_RESP_EVT;
@@ -645,7 +646,7 @@ static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 		    glnd_resource_req_node_add(glnd_cb, rsc_info, &evt->mds_context, rsc_info->lcl_resource_id);
 
 		if (!res_req_node) {
-			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_ERROR);
+			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			/* initialise the gla_evt */
 			memset(&gla_evt, 0, sizeof(GLSV_GLA_EVT));
 
@@ -755,7 +756,7 @@ static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 	rsc_info = (GLSV_EVT_RSC_INFO *)&evt->info.rsc_info;
 
 	if (glnd_cb->node_state != GLND_OPERATIONAL_STATE || glnd_cb->gld_card_up != TRUE) {
-		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		/* initialise the gla_evt */
 		memset(&gla_evt, 0, sizeof(GLSV_GLA_EVT));
 
@@ -779,7 +780,7 @@ static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 		gla_evt.info.gla_resp_info.type = GLSV_GLA_LOCK_RES_CLOSE;
 		glnd_mds_msg_send_rsp_gla(glnd_cb, &gla_evt, rsc_info->agent_mds_dest, &evt->mds_context);
 
-		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -820,7 +821,7 @@ static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 		}
 		error = SA_AIS_OK;	/* NEED TO SEE */
 	} else {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		error = SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -891,7 +892,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, rsc_lock_info->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto err;
 	}
@@ -901,7 +902,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 		memset(&gla_evt, 0, sizeof(GLSV_GLA_EVT));
 
 		if (rsc_lock_info->call_type == GLSV_SYNC_CALL) {
-			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+			m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 			/* initialise the gla_evt */
 			gla_evt.error = SA_AIS_ERR_TRY_AGAIN;
 			gla_evt.handle = rsc_lock_info->client_handle_id;
@@ -931,7 +932,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 	/* get the client handle */
 	client_info = glnd_client_node_find(glnd_cb, rsc_lock_info->client_handle_id);
 	if (!client_info) {
-		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1116,7 +1117,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	/* get the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, rsc_unlock_info->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		error = SA_AIS_ERR_INVALID_PARAM;
 		goto err;
 	}
@@ -1154,7 +1155,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	/* get the client handle */
 	client_info = glnd_client_node_find(glnd_cb, rsc_unlock_info->client_handle_id);
 	if (!client_info) {
-		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_CLIENT_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1337,14 +1338,14 @@ static uns32 glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 	/* get the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, rsc_info->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		error = SA_AIS_ERR_INVALID_PARAM;
 		goto err;
 	}
 
 	if (glnd_cb->node_state != GLND_OPERATIONAL_STATE || glnd_cb->gld_card_up != TRUE
 	    || res_node->master_status != GLND_OPERATIONAL_STATE) {
-		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLND_API(GLND_RSC_REQ_NODE_ADD_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		/* initialise the gla_evt */
 		gla_evt.error = SA_AIS_ERR_TRY_AGAIN;
 		gla_evt.handle = rsc_info->client_handle_id;
@@ -1426,7 +1427,7 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, lck_req->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_SUCCESS;
 	}
 	rc = glnd_process_check_master_and_non_master_status(glnd_cb, res_node);
@@ -1551,7 +1552,7 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, lck_req->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_SUCCESS;
 
 	}
@@ -1670,7 +1671,7 @@ static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	/* check for the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, lck_rsp->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1679,7 +1680,7 @@ static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	    glnd_resource_local_lock_req_find(res_node, lck_rsp->lcl_lockid, lck_rsp->client_handle_id,
 					      lck_rsp->lcl_resource_id);
 	if (!lck_list_info) {
-		m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1806,7 +1807,7 @@ static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	/* check for the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, lck_rsp->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1818,7 +1819,7 @@ static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 			res_node->lck_master_info.pr_orphaned = FALSE;
 			return NCSCC_RC_SUCCESS;
 		} else {
-			m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR);
+			m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -1888,7 +1889,7 @@ static uns32 glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	res_node = glnd_resource_node_find(glnd_cb, lck_req_cancel->resource_id);
 
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1931,7 +1932,7 @@ static uns32 glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, lck_req_orphan->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	/* find the lock request */
@@ -1983,7 +1984,7 @@ static uns32 glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *
 
 	res_node = glnd_resource_node_find(glnd_cb, waiter_clbk->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1992,7 +1993,7 @@ static uns32 glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *
 	    glnd_resource_local_lock_req_find(res_node, waiter_clbk->lcl_lockid, waiter_clbk->client_handle_id,
 					      waiter_clbk->lcl_resource_id);
 	if (!lck_list_info) {
-		m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_LOCAL_LOCK_REQ_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2040,7 +2041,7 @@ static uns32 glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 	res_node = glnd_resource_node_find(glnd_cb, rsc_info->resource_id);
 
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	/* clear out all the orphaned requests */
@@ -2072,7 +2073,7 @@ static uns32 glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 	/* get the resource node */
 	res_node = glnd_resource_node_find(glnd_cb, rsc_info->resource_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2212,7 +2213,7 @@ static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 
 			tmp_glnd_evt = m_MMGR_ALLOC_GLND_EVT;
 			if (tmp_glnd_evt == NULL) {
-				m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+				m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 				return NCSCC_RC_FAILURE;
 			}
 			memset(tmp_glnd_evt, 0, sizeof(GLSV_GLND_EVT));
@@ -2387,7 +2388,7 @@ static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
 					tmp_glnd_evt = m_MMGR_ALLOC_GLND_EVT;
 					if (tmp_glnd_evt == NULL) {
-						m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+						m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 						return NCSCC_RC_FAILURE;
 					}
 					memset(tmp_glnd_evt, 0, sizeof(GLSV_GLND_EVT));
@@ -2564,7 +2565,7 @@ static uns32 glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, new_master_info->rsc_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_SUCCESS;
 	} else {
 
@@ -2617,7 +2618,7 @@ static uns32 glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLN
 		/* check for the resource node  */
 		res_node = glnd_resource_node_find(glnd_cb, rsc_master_list[index].rsc_id);
 		if (!res_node) {
-			m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+			m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		} else {
 			if (memcmp(&glnd_cb->glnd_mdest_id, &rsc_master_list[index].master_dest_id, sizeof(MDS_DEST))) {
 				res_node->master_mds_dest = rsc_master_list[index].master_dest_id;
@@ -2649,7 +2650,7 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 	/* check for the resource node  */
 	res_node = glnd_resource_node_find(glnd_cb, new_master_info->rsc_id);
 	if (!res_node) {
-		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -2657,7 +2658,8 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 		if (new_master_info->status == GLND_RESOURCE_ELECTION_IN_PROGESS) {
 			if (res_node->status == GLND_RESOURCE_ACTIVE_NON_MASTER) {
 				TRACE("GLND becoming MASTER for res %d", (uns32)res_node->resource_id);
-				m_LOG_GLND_HEADLINE_TI(GLND_NEW_MASTER_RSC, (uns32)res_node->resource_id);
+				m_LOG_GLND_HEADLINE_TI(GLND_NEW_MASTER_RSC, __FILE__, __LINE__,
+						       (uns32)res_node->resource_id);
 
 				/* convert the non master info to the master info */
 				glnd_resource_convert_nonmaster_to_master(glnd_cb, res_node);
@@ -2687,9 +2689,10 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 			res_node->status = GLND_RESOURCE_ELECTION_IN_PROGESS;
 
 			TRACE("GLND electing new MASTER for res %d as Node %d",
-				(uns32)res_node->resource_id,
-				(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
-			m_LOG_GLND_HEADLINE_TIL(GLND_MASTER_ELECTION_RSC, (uns32)res_node->resource_id,
+			      (uns32)res_node->resource_id,
+			      (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
+			m_LOG_GLND_HEADLINE_TIL(GLND_MASTER_ELECTION_RSC, __FILE__, __LINE__,
+						(uns32)res_node->resource_id,
 						(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
 
 			/* set the master */
@@ -3030,17 +3033,18 @@ static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 											   GLSV_GLND_EVT_LCK_RSP,
 											   res_node->resource_id,
 											   temp_info->lcl_resource_id,
-											   temp_info->lock_info.
-											   handleId,
+											   temp_info->
+											   lock_info.handleId,
 											   temp_info->lock_info.lockid,
-											   temp_info->lock_info.
-											   lock_type,
-											   temp_info->lock_info.
-											   lockFlags,
-											   temp_info->lock_info.
-											   lockStatus, 0, 0, SA_AIS_OK,
-											   temp_info->lock_info.
-											   lcl_lockid, 0);
+											   temp_info->
+											   lock_info.lock_type,
+											   temp_info->
+											   lock_info.lockFlags,
+											   temp_info->
+											   lock_info.lockStatus, 0, 0,
+											   SA_AIS_OK,
+											   temp_info->
+											   lock_info.lcl_lockid, 0);
 							glnd_evt.info.node_lck_info.glnd_mds_dest =
 							    glnd_cb->glnd_mdest_id;
 

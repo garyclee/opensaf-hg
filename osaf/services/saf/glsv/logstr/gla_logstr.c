@@ -95,14 +95,6 @@ const NCSFL_STR gla_lock_set[] = {
 };
 
 /******************************************************************************
- Logging stuff for Event 
- ******************************************************************************/
-const NCSFL_STR gla_evt_set[] = {
-	{GLA_EVT_UNKNOWN, "UNKNOWN GLA EVT RCVD"},
-	{0, 0}
-};
-
-/******************************************************************************
  Logging stuff for system call 
  ******************************************************************************/
 const NCSFL_STR gla_evt_sys_call_set[] = {
@@ -128,20 +120,18 @@ NCSFL_SET gla_str_set[] = {
 	{GLA_FC_MEMFAIL, 0, (NCSFL_STR *)gla_memfail_set},
 	{GLA_FC_API, 0, (NCSFL_STR *)gla_api_set},
 	{GLA_FC_NCS_LOCK, 0, (NCSFL_STR *)gla_lock_set},
-	{GLA_FC_EVT, 0, (NCSFL_STR *)gla_evt_set},
 	{GLA_FC_SYS_CALL, 0, (NCSFL_STR *)gla_evt_sys_call_set},
 	{GLA_FC_DATA_SEND, 0, (NCSFL_STR *)gla_evt_data_send_set},
 	{0, 0, 0}
 };
 
 NCSFL_FMAT gla_fmat_set[] = {
-	{GLA_LID_HDLN, NCSFL_TYPE_TI, "%s GLA HEADLINE : %s\n"},
-	{GLA_LID_MEMFAIL, NCSFL_TYPE_TI, "%s GLA MEMERR: %s\n"},
-	{GLA_LID_API, NCSFL_TYPE_TI, "%s GLA API: %s\n"},
-	{GLA_LID_NCS_LOCK, NCSFL_TYPE_TI, "%s GLA NCSLOCK: %s\n"},
-	{GLA_LID_EVT, NCSFL_TYPE_TIL, "%s GLA EVT: %s  client_id :%ld \n"},
-	{GLA_LID_SYS_CALL, NCSFL_TYPE_TIL, "%s GLA SYSCALL: %s client_id :%ld \n"},
-	{GLA_LID_DATA_SEND, NCSFL_TYPE_TILL, "%s GLA SYSCALL: %s node_id :%ld evt: %ld \n"},
+	{GLA_LID_HDLN, NCSFL_TYPE_TICL, "%s GLA HEADLINE : %s : %s : %lu \n"},
+	{GLA_LID_MEMFAIL, NCSFL_TYPE_TICL, "%s GLA MEMERR: %s : %s : %lu \n"},
+	{GLA_LID_API, NCSFL_TYPE_TICL, "%s GLA API: %s : %s : %lu \n"},
+	{GLA_LID_NCS_LOCK, NCSFL_TYPE_TICL, "%s GLA NCSLOCK: %s : %s : %lu \n"},
+	{GLA_LID_SYS_CALL, NCSFL_TYPE_TICLL, "%s GLA SYSCALL: %s : %s : %lu : handle_id  %ld \n"},
+	{GLA_LID_DATA_SEND, NCSFL_TYPE_TICLLL, "%s GLA DATASEND: %s : %s : %lu : node_id %ld : evt %ld \n"},
 	{0, 0, 0}
 };
 

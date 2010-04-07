@@ -112,28 +112,12 @@ const NCSFL_STR glnd_api_set[] = {
 };
 
 /******************************************************************************
- Logging stuff for ncs lock  
- ******************************************************************************/
-const NCSFL_STR glnd_lock_set[] = {
-
-	{0, 0}
-};
-
-/******************************************************************************
  Logging stuff for Event 
  ******************************************************************************/
 const NCSFL_STR glnd_evt_set[] = {
 	{GLND_EVT_UNKNOWN, "UNKNOWN GLND EVT RCVD"},
 	{GLND_EVT_PROCESS_FAILURE, "GLND EVT PROCESS FAILURE"},
 	{GLND_EVT_RECIEVED, "GLND EVT RECIEVED"},
-	{0, 0}
-};
-
-/******************************************************************************
- Logging stuff for system call 
- ******************************************************************************/
-const NCSFL_STR glnd_sys_call_set[] = {
-
 	{0, 0}
 };
 
@@ -193,9 +177,7 @@ NCSFL_SET glnd_str_set[] = {
 	{GLND_FC_HDLN_TILLL, 0, (NCSFL_STR *)glnd_hdln_set},
 	{GLND_FC_MEMFAIL, 0, (NCSFL_STR *)glnd_memfail_set},
 	{GLND_FC_API, 0, (NCSFL_STR *)glnd_api_set},
-	{GLND_FC_NCS_LOCK, 0, (NCSFL_STR *)glnd_lock_set},
 	{GLND_FC_EVT, 0, (NCSFL_STR *)glnd_evt_set},
-	{GLND_FC_SYS_CALL, 0, (NCSFL_STR *)glnd_sys_call_set},
 	{GLND_FC_DATA_SEND, 0, (NCSFL_STR *)glnd_data_send_set},
 	{GLND_FC_TIMER, 0, (NCSFL_STR *)glnd_timer_set},
 	{GLND_FC_LOG, 0, (NCSFL_STR *)glnd_log_set},
@@ -203,18 +185,19 @@ NCSFL_SET glnd_str_set[] = {
 };
 
 NCSFL_FMAT glnd_fmat_set[] = {
-	{GLND_LID_HDLN, NCSFL_TYPE_TI, "%s GLND HEADLINE : %s\n"},
-	{GLND_LID_HDLN_TIL, NCSFL_TYPE_TIL, "%s GLND HEADLINE : %s Res id %ld \n"},
-	{GLND_LID_HDLN_TILL, NCSFL_TYPE_TILL, "%s GLND HEADLINE : %s Res id %ld , Node id %ld \n"},
-	{GLND_LID_HDLN_TILLL, NCSFL_TYPE_TILLL, "%s GLND HEADLINE : %s Handle  %ld Res id %ld lockid %ld \n"},
-	{GLND_LID_MEMFAIL, NCSFL_TYPE_TI, "%s GLND MEMERR: %s\n"},
-	{GLND_LID_API, NCSFL_TYPE_TI, "%s GLND API: %s\n"},
-	{GLND_LID_NCS_LOCK, NCSFL_TYPE_TI, "%s GLND NCSLOCK: %s\n"},
-	{GLND_LID_EVT, NCSFL_TYPE_TILLLL, "%s GLND EVT: %s  event_id :%ld Node:%ld Hdl:%ld Rsc:%ld Lock:%ld\n"},
-	{GLND_LID_SYS_CALL, NCSFL_TYPE_TIL, "%s GLND SYSCALL: %s client_id :%ld \n"},
-	{GLND_LID_DATA_SEND, NCSFL_TYPE_TILL, "%s GLND DATA SEND: %s node_id :%ld evt: %ld \n"},
-	{GLND_LID_TIMER, NCSFL_TYPE_TIL, "%s GLND TIMER: %s type :%ld \n"},
-	{GLND_LID_LOG, NCSFL_TYPE_TCLILLLL, "%s GLND : %14s:%lu : %s Ret:%lu Handle  %ld Res id %ld lockid %ld \n"},
+	{GLND_LID_HDLN, NCSFL_TYPE_TICL, "%s GLND HEADLINE : %s : %s : %lu \n"},
+	{GLND_LID_HDLN_TIL, NCSFL_TYPE_TICLL, "%s GLND HEADLINE : %s : %s : %lu : Res id %ld \n"},
+	{GLND_LID_HDLN_TILL, NCSFL_TYPE_TICLLL, "%s GLND HEADLINE : %s : %s : %lu : Res id %ld : Node id %ld \n"},
+	{GLND_LID_HDLN_TILLL, NCSFL_TYPE_TICLLLL,
+	 "%s GLND HEADLINE : %s : %s : %lu : Handle  %ld : Res id %ld : lockid %ld \n"},
+	{GLND_LID_MEMFAIL, NCSFL_TYPE_TICL, "%s GLND MEMERR: %s : %s : %lu \n"},
+	{GLND_LID_API, NCSFL_TYPE_TICL, "%s GLND API: %s : %s : %lu \n"},
+	{GLND_LID_EVT, NCSFL_TYPE_TICLLLLLL,
+	 "%s GLND EVT: %s : %s : %lu : event_id %ld : Node %ld : Hdl %ld : Rsc %ld : Lock %ld \n"},
+	{GLND_LID_DATA_SEND, NCSFL_TYPE_TICLLL, "%s GLND DATA SEND: %s : %s : %lu : node_id %ld : evt %ld \n"},
+	{GLND_LID_TIMER, NCSFL_TYPE_TICLL, "%s GLND TIMER: %s : %s : %lu : type %ld \n"},
+	{GLND_LID_LOG, NCSFL_TYPE_TCLILLLL,
+	 "%s GLND LOG: %s : %lu : %s : Ret %lu : Handle %ld : Res id %ld : lockid %ld \n"},
 	{0, 0, 0}
 };
 

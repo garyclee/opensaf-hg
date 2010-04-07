@@ -35,9 +35,10 @@
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void gla_log_headline(uns8 hdln_id, uns8 sev)
+void gla_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_HDLN, GLA_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_HDLN, GLA_FC_HDLN,
+		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TICL, hdln_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -47,10 +48,10 @@ void gla_log_headline(uns8 hdln_id, uns8 sev)
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void gla_log_memfail(uns8 mf_id)
+void gla_log_memfail(uns8 mf_id, char *file_name, uns32 line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_MEMFAIL, GLA_FC_MEMFAIL,
-		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TICL, mf_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -60,9 +61,10 @@ void gla_log_memfail(uns8 mf_id)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void gla_log_api(uns8 api_id, uns8 sev)
+void gla_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API,
+		   NCSFL_LC_API, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -72,22 +74,10 @@ void gla_log_api(uns8 api_id, uns8 sev)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void gla_log_lockfail(uns8 api_id, uns8 sev)
+void gla_log_lockfail(uns8 api_id, uns8 sev, char *file_name, uns32 line_no)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TI, api_id);
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:    gla_log_evt
-
-  DESCRIPTION:       Event logging info
-
-*****************************************************************************/
-void gla_log_evt(uns8 evt_id, uns32 node)
-{
-	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_EVT, GLA_FC_EVT,
-		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TIL, evt_id, node);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_NCS_LOCK, GLA_FC_NCS_LOCK,
+		   NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -97,10 +87,10 @@ void gla_log_evt(uns8 evt_id, uns32 node)
   DESCRIPTION:       System call logging info
 
 *****************************************************************************/
-void gla_log_sys_call(uns8 id, uns32 node)
+void gla_log_sys_call(uns8 id, char *file_name, uns32 line_no, SaUint64T handle_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_SYS_CALL, GLA_FC_SYS_CALL,
-		   NCSFL_LC_SYS_CALL_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TIL, id, node);
+		   NCSFL_LC_SYS_CALL_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL, id, file_name, line_no, handle_id);
 }
 
 /*****************************************************************************
@@ -110,10 +100,10 @@ void gla_log_sys_call(uns8 id, uns32 node)
   DESCRIPTION:       MDS send logging info
 
 *****************************************************************************/
-void gla_log_data_send(uns8 id, uns32 node, uns32 evt_id)
+void gla_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_DATA_SEND, GLA_FC_DATA_SEND,
-		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, id, node, evt_id);
+		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLLL, id, file_name, line_no, node, evt_id);
 }
 
 /****************************************************************************
@@ -139,7 +129,8 @@ void gla_flx_log_reg()
 	/* fill version no. */
 	reg.info.bind_svc.version = GLSV_LOG_VERSION;
 	/* fill svc_name */
-	strcpy(reg.info.bind_svc.svc_name, "GLSv");
+	if (strlen("GLSv") < sizeof(reg.info.bind_svc.svc_name))
+		strncpy(reg.info.bind_svc.svc_name, "GLSv", sizeof(reg.info.bind_svc.svc_name));
 
 	ncs_dtsv_su_req(&reg);
 	return;

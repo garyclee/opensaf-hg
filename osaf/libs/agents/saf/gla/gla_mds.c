@@ -78,7 +78,7 @@ uns32 gla_mds_get_handle(GLA_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_GET_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_GET_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return rc;
 	}
 	cb->gla_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
@@ -163,7 +163,7 @@ void gla_mds_unregister(GLA_CB *cb)
 	arg.i_op = MDS_UNINSTALL;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_REGISTER_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	return;
 }
@@ -189,7 +189,7 @@ uns32 gla_mds_callback(struct ncsmds_callback_info *info)
 
 	gla_cb = (GLA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, (uns32)info->i_yr_svc_hdl);
 	if (!gla_cb) {
-		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO);
+		m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED, NCSFL_SEV_INFO, __FILE__, __LINE__);
 		return rc;
 	}
 
@@ -223,7 +223,7 @@ uns32 gla_mds_callback(struct ncsmds_callback_info *info)
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_CALLBK_FAILURE, NCSFL_SEV_INFO);
+		m_LOG_GLA_HEADLINE(GLA_MDS_CALLBK_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 	}
 	ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
 	return rc;
@@ -263,7 +263,7 @@ static uns32 gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("gla_mds_enc_flat:INVALID MSG FORMAT %d\n", info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
@@ -288,7 +288,7 @@ static uns32 gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 	uns8 *p8;
 
 	if (uba == NULL) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -306,7 +306,7 @@ static uns32 gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
     /** encode the type of message **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		ncs_encode_32bit(&p8, evt->type);
@@ -358,7 +358,7 @@ static uns32 gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
-		m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("gla_mds_enc_flat:INVALID MSG FORMAT %d\n", info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
@@ -393,7 +393,7 @@ static uns32 gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	if (is_valid_msg_fmt && (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND)) {
 		evt = (GLSV_GLA_EVT *)m_MMGR_ALLOC_GLA_EVT;
 		if (evt == NULL) {
-			m_LOG_GLA_MEMFAIL(GLA_EVT_ALLOC_FAILED);
+			m_LOG_GLA_MEMFAIL(GLA_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		info->o_msg = evt;
@@ -401,10 +401,10 @@ static uns32 gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		if (!is_valid_msg_fmt) {
-			m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			printf("gla_mds_dec_flat:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		}
-		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -439,7 +439,7 @@ static uns32 gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	if (is_valid_msg_fmt && (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND)) {
 		evt = (GLSV_GLA_EVT *)m_MMGR_ALLOC_GLA_EVT;
 		if (evt == NULL) {
-			m_LOG_GLA_MEMFAIL(GLA_EVT_ALLOC_FAILED);
+			m_LOG_GLA_MEMFAIL(GLA_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 		memset(evt, 0, sizeof(GLSV_GLA_EVT));
@@ -466,10 +466,10 @@ static uns32 gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		if (!is_valid_msg_fmt) {
-			m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			printf("gla_mds_dec_flat:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		}
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -492,6 +492,8 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	GLSV_GLA_CALLBACK_INFO *gla_callbk_info;
 	uns32 rc;
 
+	if (evt == NULL)
+		return NCSCC_RC_FAILURE;
 	/* check the event type */
 	if (evt->type == GLSV_GLA_CALLBK_EVT) {
 		/*allocate the memory */
@@ -556,8 +558,7 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 						/* add the resource id to the local tree */
 						if ((res_id_node =
 						     (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA,
-											    gla_callbk_info->
-											    resourceId)))
+											    gla_callbk_info->resourceId)))
 						{
 							res_id_node->gbl_res_id = param->resourceId;
 							res_id_node->lock_handle_id = client_info->lock_handle_id;
@@ -602,7 +603,7 @@ static uns32 gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 				/* clean up the client tree */
 				m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_DOWN, NCSFL_SEV_ERROR);
+				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_DOWN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			}
 			cb->glnd_svc_up = FALSE;
 			cb->glnd_crashed = TRUE;
@@ -615,9 +616,10 @@ static uns32 gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			if (cb->glnd_svc_up == FALSE) {
 				cb->glnd_svc_up = TRUE;
 				/* send the resigteration information to the GLND */
-				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_UP, NCSFL_SEV_INFO);
+				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_UP, NCSFL_SEV_INFO, __FILE__, __LINE__);
 				if (gla_agent_register(cb) != NCSCC_RC_SUCCESS) {
-					m_LOG_GLA_HEADLINE(GLA_AGENT_REGISTER_FAILURE, NCSFL_SEV_ERROR);
+					m_LOG_GLA_HEADLINE(GLA_AGENT_REGISTER_FAILURE, NCSFL_SEV_ERROR, __FILE__,
+							   __LINE__);
 				}
 
 				if (cb->glnd_crashed) {
@@ -833,7 +835,7 @@ static uns32 glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *e
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -863,7 +865,7 @@ static uns32 glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -897,7 +899,7 @@ static uns32 glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -927,7 +929,7 @@ static uns32 glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -967,7 +969,7 @@ static uns32 glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1005,7 +1007,7 @@ static uns32 glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1045,7 +1047,7 @@ static uns32 glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *e
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1082,7 +1084,7 @@ static uns32 glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1115,7 +1117,7 @@ static uns32 glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 
 	p8 = ncs_enc_reserve_space(uba, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1148,7 +1150,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 	/*decode the type of message */
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	evt->callback_type = ncs_decode_32bit(&p8);
@@ -1161,7 +1163,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = 8 + (2 * 4);
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1176,7 +1178,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (3 * 8) + (4 * 4);
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1195,7 +1197,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (3 * 8) + (4 * 4);
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1213,7 +1215,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 		size = (2 * 8) + (3 * 4);
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1250,7 +1252,7 @@ static uns32 glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 	size = (2 * 4);
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
-		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+		m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	evt->prc_id = ncs_decode_32bit(&p8);
@@ -1263,7 +1265,7 @@ static uns32 glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 		size = 4;
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1276,7 +1278,7 @@ static uns32 glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 		size = 8 + 4;
 		p8 = ncs_dec_flatten_space(uba, local_data, size);
 		if (!p8) {
-			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR);
+			m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
 

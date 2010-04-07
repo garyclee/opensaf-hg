@@ -39,7 +39,9 @@ typedef enum gld_hdln_flex {
 	GLD_MBCSV_DISPATCH_FAILURE,
 	GLD_UNKNOWN_GLND_EVT,
 	GLD_HEALTH_KEY_DEFAULT_SET,
-	GLD_MSG_FRMT_VER_INVALID
+	GLD_MSG_FRMT_VER_INVALID,
+	GLD_ND_RESTART_WAIT_TMR_EXP,
+	GLD_ACTIVE_RMV_NODE
 } GLD_HDLN_FLEX;
 
 /******************************************************************************
@@ -125,7 +127,7 @@ typedef enum gld_evt_flex {
 	GLD_A2S_EVT_MDS_GLND_UP,
 	GLD_A2S_EVT_MDS_GLND_DOWN,
 	GLD_A2S_EVT_ADD_NODE_FAILED,
-	GLD_A2S_EVT_ADD_RSC_FAILED,
+	GLD_A2S_EVT_ADD_RSC_FAILED
 } GLD_EVT_FLEX;
 
 typedef enum gld_mbcsv_flex {
@@ -210,36 +212,38 @@ typedef enum gld_log_ids {
 void gld_flx_log_reg();
 void gld_flx_log_dereg();
 
-EXTERN_C void gld_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void gld_log_memfail(uns8 mf_id);
-EXTERN_C void gld_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void gld_log_evt(uns8 evt_id, uns32 rsc_id, uns32 node);
-EXTERN_C void gld_log_svc_prvdr(uns8 sp_id, uns8 sev);
-EXTERN_C void gld_log_lck_oper(uns8 lck_id, uns8 sev, char *rsc_name, uns32 rsc_id, uns32 node);
-EXTERN_C void gld_mbcsv_log(uns8 id, uns8 sev);
-EXTERN_C void gld_log_timer(uns8 id, uns32 type);
+EXTERN_C void gld_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no, SaUint32T node_id);
+EXTERN_C void gld_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
+EXTERN_C void gld_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gld_log_evt(uns8 evt_id, uns8 sev, char *file_name, uns32 line_no, uns32 rsc_id, uns32 node_id);
+EXTERN_C void gld_log_svc_prvdr(uns8 sp_id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gld_log_lck_oper(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no,
+			       char *rsc_name, uns32 rsc_id, uns32 node_id);
+EXTERN_C void gld_mbcsv_log(uns8 id, uns8 sev, char *file_name, uns32 line_no);
+EXTERN_C void gld_log_timer(uns8 id, uns32 type, char *file_name, uns32 line_no);
+
 void gld_flx_log_reg(void);
 
 void gld_flx_log_dereg(void);
 
-#define m_LOG_GLD_MBCSV(id,sev)             gld_mbcsv_log(id,sev)
-#define m_LOG_GLD_HEADLINE(id, sev)        gld_log_headline(id,sev)
-#define m_LOG_GLD_MEMFAIL(id)              gld_log_memfail(id)
-#define m_LOG_GLD_API(id,sev)              gld_log_api(id,sev)
-#define m_LOG_GLD_EVT(id,rsc_id,node)      gld_log_evt(id,rsc_id,node)
-#define m_LOG_GLD_SVC_PRVDR(id, sev)       gld_log_svc_prvdr(id,sev)
-#define m_LOG_GLD_LCK_OPER(id, sev, name, rsc_id, node) gld_log_lck_oper(id, sev, \
-                                                        name, rsc_id,node)
-#define m_LOG_GLD_TIMER(id,type)           gld_log_timer(id,type)
+#define m_LOG_GLD_MBCSV(id,sev,file_name,line_no)             gld_mbcsv_log(id,sev,file_name,line_no)
+#define m_LOG_GLD_HEADLINE(id,sev,file_name,line_no,node_id)        gld_log_headline(id,sev,file_name,line_no,node_id)
+#define m_LOG_GLD_MEMFAIL(id,file_name,line_no)              gld_log_memfail(id,file_name,line_no)
+#define m_LOG_GLD_API(id,sev,file_name,line_no)              gld_log_api(id,sev,file_name,line_no)
+#define m_LOG_GLD_EVT(id,sev,file_name,line_no,rsc_id,node_id)      gld_log_evt(id,sev,file_name,line_no,rsc_id,node_id)
+#define m_LOG_GLD_SVC_PRVDR(id,sev,file_name,line_no)       gld_log_svc_prvdr(id,sev,file_name,line_no)
+#define m_LOG_GLD_LCK_OPER(id,sev,file_name,line_no,name,rsc_id,node_id) gld_log_lck_oper(id,sev,file_name,line_no, \
+                                                        name,rsc_id,node_id)
+#define m_LOG_GLD_TIMER(id,type,file_name,line_no)           gld_log_timer(id,type,file_name,line_no)
 #else
-#define m_LOG_GLD_HEADLINE(id, sev)
-#define m_LOG_GLD_MEMFAIL(id)
-#define m_LOG_GLD_API(id,sev)
-#define m_LOG_GLD_EVT(id,rsc_id,node)
-#define m_LOG_GLD_SVC_PRVDR(id, sev)
-#define m_LOG_GLD_LCK_OPER(id, sev, name, rsc_id, node)
-#define m_LOG_GLD_MBCSV(id,sev)
-#define m_LOG_GLD_TIMER(id,sev)
+#define m_LOG_GLD_HEADLINE(id,sev,file_name,line_no,node_id)
+#define m_LOG_GLD_MEMFAIL(id,file_name,line_no)
+#define m_LOG_GLD_API(id,sev,file_name,line_no)
+#define m_LOG_GLD_EVT(id,sev,file_name,line_no,rsc_id,node_id)
+#define m_LOG_GLD_SVC_PRVDR(id,sev,file_name,line_no)
+#define m_LOG_GLD_LCK_OPER(id,sev,file_name,line_no,name,rsc_id,node_id)
+#define m_LOG_GLD_MBCSV(id,sev,file_name,line_no)
+#define m_LOG_GLD_TIMER(id,type,file_name,line_no)
 #endif   /* NCS_GLSV_LOG == 1 */
 
 #endif

@@ -35,9 +35,10 @@
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void gld_log_headline(uns8 hdln_id, uns8 sev)
+void gld_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no, SaUint32T node_id)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_HDLN, GLD_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_HDLN, GLD_FC_HDLN,
+		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TICLL, hdln_id, file_name, line_no, node_id);
 }
 
 /*****************************************************************************
@@ -47,10 +48,10 @@ void gld_log_headline(uns8 hdln_id, uns8 sev)
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void gld_log_memfail(uns8 mf_id)
+void gld_log_memfail(uns8 mf_id, char *file_name, uns32 line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_MEMFAIL, GLD_FC_MEMFAIL,
-		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TICL, mf_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -60,9 +61,10 @@ void gld_log_memfail(uns8 mf_id)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void gld_log_api(uns8 api_id, uns8 sev)
+void gld_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_API, GLD_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_API, GLD_FC_API,
+		   NCSFL_LC_API, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -72,10 +74,10 @@ void gld_log_api(uns8 api_id, uns8 sev)
   DESCRIPTION:       Event logging info
 
 *****************************************************************************/
-void gld_log_evt(uns8 evt_id, uns32 rsc_id, uns32 node)
+void gld_log_evt(uns8 evt_id, uns8 sev, char *file_name, uns32 line_no, uns32 rsc_id, uns32 node_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_EVT, GLD_FC_EVT,
-		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TILL, evt_id, rsc_id, node);
+		   NCSFL_LC_EVENT, sev, NCSFL_TYPE_TICLLL, evt_id, file_name, line_no, rsc_id, node_id);
 }
 
 /*****************************************************************************
@@ -86,9 +88,10 @@ void gld_log_evt(uns8 evt_id, uns32 rsc_id, uns32 node)
 
 *****************************************************************************/
 
-void gld_mbcsv_log(uns8 mbcsv_id, uns8 sev)
+void gld_mbcsv_log(uns8 mbcsv_id, uns8 sev, char *file_name, uns32 line_no)
 {
-	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_MBCSV, GLD_FC_MBCSV, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, mbcsv_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_MBCSV, GLD_FC_MBCSV, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TICL, mbcsv_id,
+		   file_name, line_no);
 }
 
 /*****************************************************************************
@@ -98,10 +101,10 @@ void gld_mbcsv_log(uns8 mbcsv_id, uns8 sev)
   DESCRIPTION:       Service Provider logging info
 
 *****************************************************************************/
-void gld_log_svc_prvdr(uns8 sp_id, uns8 sev)
+void gld_log_svc_prvdr(uns8 sp_id, uns8 sev, char *file_name, uns32 line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_SVC_PRVDR, GLD_FC_SVC_PRVDR,
-		   NCSFL_LC_SVC_PRVDR, sev, NCSFL_TYPE_TI, sp_id);
+		   NCSFL_LC_SVC_PRVDR, sev, NCSFL_TYPE_TICL, sp_id, file_name, line_no);
 }
 
 /*****************************************************************************
@@ -111,10 +114,11 @@ void gld_log_svc_prvdr(uns8 sp_id, uns8 sev)
   DESCRIPTION:       lock oriented logging info
 
 *****************************************************************************/
-void gld_log_lck_oper(uns8 lck_id, uns8 sev, char *rsc_name, uns32 rsc_id, uns32 node)
+void gld_log_lck_oper(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no, char *rsc_name, uns32 rsc_id,
+		      uns32 node_id)
 {
-	ncs_logmsg(NCS_SERVICE_ID_DTSV, GLD_LID_LCK_OPER, GLD_FC_LCK_OPER,
-		   NCSFL_LC_MISC, sev, NCSFL_TYPE_TICLL, lck_id, rsc_name, rsc_id, node);
+	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_LCK_OPER, GLD_FC_LCK_OPER,
+		   NCSFL_LC_MISC, sev, NCSFL_TYPE_TICLCLL, lck_id, file_name, line_no, rsc_name, rsc_id, node_id);
 }
 
 /****************************************************************************
@@ -140,7 +144,8 @@ void gld_flx_log_reg(void)
 	/* fill version no. */
 	reg.info.bind_svc.version = GLSV_LOG_VERSION;
 	/* fill svc_name */
-	strcpy(reg.info.bind_svc.svc_name, "GLSv");
+	if (strlen("GLSv") < sizeof(reg.info.bind_svc.svc_name))
+		strncpy(reg.info.bind_svc.svc_name, "GLSv", sizeof(reg.info.bind_svc.svc_name));
 
 	ncs_dtsv_su_req(&reg);
 	return;
@@ -177,10 +182,10 @@ void gld_flx_log_dereg()
   DESCRIPTION:       Timer stast/stop/exp logging info
 
 *****************************************************************************/
-void gld_log_timer(uns8 id, uns32 type)
+void gld_log_timer(uns8 id, uns32 type, char *file_name, uns32 line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_TIMER, GLD_FC_TIMER,
-		   NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSFL_TYPE_TIL, id, type);
+		   NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL, id, file_name, line_no, type);
 }
 
 void _gld_log(uns8 severity, const char *function, const char *format, ...)

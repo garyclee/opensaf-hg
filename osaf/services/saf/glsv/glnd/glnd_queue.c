@@ -50,7 +50,7 @@ void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
 	GLSV_GLND_EVT *evt = m_MMGR_ALLOC_GLND_EVT;
 
 	if (!evt) {
-		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 		return;
 	}
 	memcpy(evt, glnd_evt, sizeof(GLSV_GLND_EVT));

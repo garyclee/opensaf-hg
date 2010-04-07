@@ -57,9 +57,12 @@
 uns32 gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT period, uns32 uarg)
 {
 	uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
-	if (GLD_TMR_MAX <= type) {
+
+	if (tmr == NULL)
 		return NCSCC_RC_FAILURE;
-		m_LOG_GLD_TIMER(GLD_TIMER_START_FAIL, type);
+
+	if (GLD_TMR_MAX <= type) {
+		m_LOG_GLD_TIMER(GLD_TIMER_START_FAIL, type, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -80,7 +83,7 @@ uns32 gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT pe
 	tmr->is_active = TRUE;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
-		m_LOG_GLD_TIMER(GLD_TIMER_START_FAIL, type);
+		m_LOG_GLD_TIMER(GLD_TIMER_START_FAIL, type, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -103,6 +106,10 @@ uns32 gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT pe
 void gld_stop_tmr(GLD_TMR *tmr)
 {
 	/* If timer type is invalid just return */
+	if (tmr == NULL) {
+		m_LOG_GLD_TIMER(GLD_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
+		return;
+	}
 	if (tmr != NULL && GLD_TMR_MAX <= tmr->type) {
 		return;
 	}
@@ -165,7 +172,7 @@ void gld_tmr_exp(void *uarg)
 	/* retrieve GLD CB */
 	cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, tmr->cb_hdl);
 	if (!cb) {
-		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return;
 	}
 
@@ -174,7 +181,7 @@ void gld_tmr_exp(void *uarg)
 	/* create & send the timer event */
 	evt = m_MMGR_ALLOC_GLSV_GLD_EVT;
 	if (evt == GLSV_GLD_EVT_NULL) {
-		m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED);
+		m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED, __FILE__, __LINE__);
 		ncshm_give_hdl(cb_hdl);
 		return;
 	}
@@ -188,7 +195,7 @@ void gld_tmr_exp(void *uarg)
 		evt->gld_cb = cb;
 		/* Push the event and we are done */
 		if (m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE) {
-			m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR);
+			m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 			gld_evt_destroy(evt);
 			ncshm_give_hdl(cb_hdl);
 			return;
