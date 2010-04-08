@@ -189,6 +189,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 						m_LOG_MQSV_A(MQP_OPEN_RSP_ALLOC_FAILED, NCSFL_LC_MQSV_INIT,
 							     NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__, __LINE__);
 						mqa_queue_tree_delete_node(cb, param->queueHandle);
+						m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 						break;
 					}
 
