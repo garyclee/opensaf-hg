@@ -166,6 +166,7 @@ extern "C" {
 		NCS_OS_TASK_STOP,
 		NCS_OS_TASK_SLEEP,
 		NCS_OS_TASK_CURRENT_HANDLE,
+		NCS_OS_TASK_JOIN,
 		NCS_OS_TASK_MAX
 	} NCS_OS_TASK_REQUEST;
 
@@ -1378,10 +1379,9 @@ extern "C" {
 \***************************************************************************/
 /* Select is returnig uns32 it should be int */
 
-	 int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
-					   NCS_SEL_OBJ_SET *io_readfds,
-					   NCS_SEL_OBJ_SET *io_writefds,
-					   NCS_SEL_OBJ_SET *io_exceptfds, uns32 *io_timeout);
+	int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
+			       NCS_SEL_OBJ_SET *io_readfds,
+			       NCS_SEL_OBJ_SET *io_writefds, NCS_SEL_OBJ_SET *io_exceptfds, uns32 *io_timeout);
 #define     m_NCS_SEL_OBJ_SELECT(m, r, w, e, t)\
             ncs_sel_obj_select(m, r, w, e, t)
 
@@ -1411,7 +1411,7 @@ extern "C" {
                         of "fds" than that accepted by select(). 
 
 \***************************************************************************/
-	 int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *io_timeout);
+	int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *io_timeout);
 #define     m_NCS_SEL_OBJ_POLL_SINGLE_OBJ(obj, io_timeout)\
             ncs_sel_obj_poll_single_obj(obj, io_timeout)
 
@@ -1967,8 +1967,7 @@ extern "C" {
 /* declarations */
 	EXTERN_C uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-	EXTERN_C unsigned int ncs_os_process_execute(char *exec_mod, char *argv[],
-								 NCS_OS_ENVIRON_ARGS *set_env_args);
+	EXTERN_C unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args);
 
 	EXTERN_C int ncs_os_process_terminate(unsigned int proc_id);
 

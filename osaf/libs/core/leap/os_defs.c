@@ -176,7 +176,7 @@ int getversion(void)
 
 	fp = fopen("/proc/sys/kernel/osrelease", "r");
 	if (NULL != fp) {
-		if(! fgets(verstr, 127, fp)){
+		if (!fgets(verstr, 127, fp)) {
 			fclose(fp);
 			syslog(LOG_ERR, "Could not read osrelease");
 			return NCS_OS_UNSUPPORTED;
@@ -598,6 +598,16 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 		}
 		break;
 
+	case NCS_OS_TASK_JOIN:
+		{
+			void *status = NULL;
+
+			if (pthread_join(*(pthread_t *)task->info.release.i_handle, &status) != 0) {
+				return (NCSCC_RC_FAILURE);
+			}
+
+		}
+		break;
 	case NCS_OS_TASK_DETACH:
 		if (pthread_detach(*(pthread_t *)task->info.release.i_handle) != 0) {
 			free(task->info.release.i_handle);
@@ -2020,7 +2030,6 @@ unsigned int os_cur_cpu_usage(void)
  **                                                                         **
  ****************************************************************************/
 
-
       /** Construct a Filter to accept only multicast on our if_index.
        This filter could be useful when opening a socket that will need
     to receive multicast addressed datagrams.
@@ -2205,16 +2214,16 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 			/* Close all inherited file descriptors */
 			for (i = getdtablesize(); i >= 0; --i)
-				close(i); /* close all descriptors */
+				close(i);	/* close all descriptors */
 
 			/* Reopen standard file descriptors and connect to a harmless device */
-			i = open("/dev/null", O_RDWR); /* open stdin */
+			i = open("/dev/null", O_RDWR);	/* open stdin */
 
-			if(-1 == dup(i)){
+			if (-1 == dup(i)) {
 				perror("dup stdout to /dev/null");
 			}
 
-			if(-1 == dup(i)){
+			if (-1 == dup(i)) {
 				perror("dup stderr to /dev/null");
 			}
 		}

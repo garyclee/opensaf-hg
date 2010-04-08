@@ -76,6 +76,18 @@ uns32 ncs_task_release(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_RELEASE);
 }
 
+uns32 ncs_task_join(void *task_handle)
+{
+	NCS_OS_TASK task;
+
+	if (task_handle == NULL)
+		return NCSCC_RC_SUCCESS;
+
+	task.info.release.i_handle = task_handle;
+
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_JOIN);
+}
+
 uns32 ncs_task_detach(void *task_handle)
 {
 	NCS_OS_TASK task;

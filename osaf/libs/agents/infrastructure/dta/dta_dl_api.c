@@ -36,7 +36,7 @@
 #include "dta.h"
 #include "ncs_tasks.h"
 #include "ncssysf_mem.h"
-
+#include "ncssysf_tsk.h"
 
 static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
@@ -169,8 +169,7 @@ uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info)
  *****************************************************************************/
 uns32 dta_lib_destroy(void)
 {
-	NCS_SEL_OBJ_SET set;
-	uns32 tmout = 2000;	/* (2000 ms = 20sec) */
+
 	DTSV_MSG *msg = NULL;
 
 	msg = m_MMGR_ALLOC_DTSV_MSG;
@@ -180,21 +179,13 @@ uns32 dta_lib_destroy(void)
 	memset(msg, 0, sizeof(DTSV_MSG));
 	msg->msg_type = DTA_DESTROY_EVT;
 
-	m_NCS_SEL_OBJ_CREATE(&dta_cb.dta_dest_sel);
-	m_NCS_SEL_OBJ_ZERO(&set);
-	m_NCS_SEL_OBJ_SET(dta_cb.dta_dest_sel, &set);
-
 	if (m_DTA_SND_MSG(&gl_dta_mbx, msg, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		m_MMGR_FREE_DTSV_MSG(msg);
-		m_NCS_SEL_OBJ_DESTROY(dta_cb.dta_dest_sel);
-		memset(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
+
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lib_destroy: IPC send failed");
 	}
 
-	/* Wait for indication on destroy selection object */
-	m_NCS_SEL_OBJ_SELECT(dta_cb.dta_dest_sel, &set, 0, 0, &tmout);
-	m_NCS_SEL_OBJ_DESTROY(dta_cb.dta_dest_sel);
-	memset(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
+	m_NCS_TASK_JOIN(dta_cb.task_handle);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -260,8 +251,6 @@ uns32 dta_cleanup_seq(void)
 	m_NCS_IPC_DETACH(&gl_dta_mbx, dta_clear_mbx, &dta_cb);
 	m_NCS_IPC_RELEASE(&gl_dta_mbx, NULL);
 	gl_dta_mbx = 0;
-
-	m_NCS_TASK_DETACH(dta_cb.task_handle);
 
 	return NCSCC_RC_SUCCESS;
 }
