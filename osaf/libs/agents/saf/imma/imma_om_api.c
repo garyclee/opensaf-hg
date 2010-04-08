@@ -5238,6 +5238,20 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
+	if ((searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) && (attributeNames == NULL)) {
+		TRACE_2("ERR_INVALID_PARAM: SA_IMM_SEARCH_GET_SOME_ATTR is set & "
+			"AttributeName is NULL");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if ((searchParam) && ((searchParam->searchOneAttr.attrName == NULL) && 
+		(searchParam->searchOneAttr.attrValue != NULL))) {
+		TRACE_2("ERR_INVALID_PARAM: attrName is NULL but attrValue is not NULL");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
