@@ -38,7 +38,7 @@
  */
 #include "mqsv.h"
 
- ASAPi_CB asapi;	/* Global ASAPi Control Block */
+ASAPi_CB asapi;			/* Global ASAPi Control Block */
 
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *);
@@ -887,15 +887,98 @@ uns32 asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 	ASAPi_QUEUE_INFO *pQelm = 0;
 	NCS_Q_ITR itr;
 	uns32 q_cnt = pGinfo->qlist.count;
+	uns32 queue_open_flag = FALSE;
 
 	/* Ignore the request if there is no queue under the group */
 	if (!pGinfo->qlist.count)
 		return NCSCC_RC_SUCCESS;
 
-	if ((SA_MSG_QUEUE_GROUP_ROUND_ROBIN == pGinfo->policy) ||
-	    (SA_MSG_QUEUE_GROUP_BROADCAST == pGinfo->policy) ||
-	    (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN == pGinfo->policy)) {
-		itr.state = pGinfo->plaQueue;
+	itr.state = pGinfo->plaQueue;
+	q_cnt = pGinfo->qlist.count;
+
+	/* changes for local round robin and round robin takeover */
+	switch (pGinfo->policy) {
+	case SA_MSG_QUEUE_GROUP_ROUND_ROBIN:
+		do {
+			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+			if (!pQelm) {
+				/* It has reach end of the list, need to get the first Queue */
+				itr.state = 0;
+				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+			}
+			if (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN) {
+				queue_open_flag = TRUE;
+				break;
+			}
+			q_cnt--;
+		} while (q_cnt > 0);
+
+		if (!queue_open_flag) {
+			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+			if (!pQelm) {
+				/* It has reach end of the list, need to get the first Queue */
+				itr.state = 0;
+				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+			}
+		}
+		break;
+
+	case SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN:
+		do {
+			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+			if (!pQelm) {
+				/* It has reach end of the list, need to get the first Queue */
+				itr.state = 0;
+				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+			}
+			if ((m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+			     m_NCS_NODE_ID_FROM_MDS_DEST(pQelm->param.addr)) &&
+			    (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN)) {
+				queue_open_flag = TRUE;
+				break;
+			}
+			q_cnt--;
+		} while (q_cnt > 0);
+
+		q_cnt = pGinfo->qlist.count;
+
+		if (!queue_open_flag) {
+			do {
+				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+				if (!pQelm) {
+					/* It has reach end of the list, need to get the first Queue */
+					itr.state = 0;
+					pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+				}
+				if (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN) {
+					queue_open_flag = TRUE;
+					break;
+				}
+				q_cnt--;
+			} while (q_cnt > 0);
+		}
+
+		if (!queue_open_flag) {
+			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+			if (!pQelm) {
+				/* It has reach end of the list, need to get the first Queue */
+				itr.state = 0;
+				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+			}
+		}
+
+		break;
+
+	case SA_MSG_QUEUE_GROUP_LOCAL_BEST_QUEUE:
+		pGinfo->pQueue = 0;
+		break;
+
+	case SA_MSG_QUEUE_GROUP_BROADCAST:
 		pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
 
 		if (!pQelm) {
@@ -903,35 +986,13 @@ uns32 asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 			itr.state = 0;
 			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
 		}
+		break;
 
-		if ((pGinfo->lcl_qcnt) && (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN == pGinfo->policy)) {
-			/* Select only the local queue */
-			while (q_cnt) {
-				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-				    m_NCS_NODE_ID_FROM_MDS_DEST(pQelm->param.addr)) {
-					break;
-				} else {
-					q_cnt--;
-					itr.state = pQelm;
-					pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
-
-					if (!pQelm) {
-						/* It has reach end of the list, need to get the first Queue */
-						itr.state = 0;
-						pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
-					}
-				}	/* End of else */
-			}	/* End of while */
-		}
-
-		/* Endof SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN if */
-		/* Queue Selected, return the result */
-		pGinfo->pQueue = pQelm;	/* This is current selected Queue */
-		pGinfo->plaQueue = pQelm;	/* update last selected Queue */
-	} else {		/* Other policy not supported */
-
+	default:
 		pGinfo->pQueue = 0;
 	}
+	pGinfo->pQueue = pQelm;	/* This is current selected Queue */
+	pGinfo->plaQueue = pQelm;	/* update last selected Queue */
 
 	return NCSCC_RC_SUCCESS;
 }	/* End of asapi_queue_select() */
