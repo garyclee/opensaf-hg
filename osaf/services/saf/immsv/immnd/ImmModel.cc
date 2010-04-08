@@ -6202,6 +6202,17 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                                         //implementer different from the class
                                         //implementer, as long as there *is* a
                                         //class implementer for the class. 
+                                        if(obj->mCcbId) {
+                                            CcbVector::iterator i1 = 
+                                                std::find_if(sCcbVector.begin(), sCcbVector.end(),
+                                                    CcbIdIs(obj->mCcbId));
+                                            if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                                                LOG_IN("ERR_BUSY: ccb %u is active on object %s",
+                                                    obj->mCcbId, oi->first.c_str());
+                                                TRACE_LEAVE();
+                                                return SA_AIS_ERR_BUSY;
+                                            }
+                                        }
                                         obj->mImplementer = 0;
                                     }
                                 }
@@ -6449,10 +6460,23 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                 obj->mImplementer->mImplementerName.c_str(),
                 info->mImplementerName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
-        } else if(doIt) {
-            obj->mImplementer = 0;
-            TRACE_5("implementer for object '%s' is released", 
-                objectName.c_str());
+        } else {
+            if(obj->mCcbId) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                    sCcbVector.end(), CcbIdIs(obj->mCcbId));
+                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                    assert(!doIt);
+                    LOG_IN("ERR_BUSY: ccb %u is active on object %s",
+			    obj->mCcbId, objectName.c_str());
+                    return SA_AIS_ERR_BUSY;
+                }
+            }
+
+            if(doIt) {
+                obj->mImplementer = 0;
+                TRACE_5("implementer for object '%s' is released", 
+                    objectName.c_str());
+            }
         }
     }
     /*TRACE_LEAVE();*/
