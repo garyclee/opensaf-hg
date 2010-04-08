@@ -1084,6 +1084,21 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 			} else
 				assert(0); /* is not multivalue, IMM should enforce */
+		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
+			AVD_SU *su;
+			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
+			su = avd_su_get(&opdata->objectName);
+			if(SA_AMF_ADMIN_LOCKED_INSTANTIATION != su->saAmfSUAdminState) {
+				LOG_ER("SU is not in locked-inst, present state '%d'", su->saAmfSUAdminState);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			if (avd_sutype_get(&sutype_name) == NULL) {
+				LOG_ER("SU Type not found '%s'", sutype_name.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
 		} else {
 			LOG_ER("Modification of attribute '%s' not supported", attr_mod->modAttr.attrName);
 			goto done;
@@ -1254,6 +1269,16 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				LOG_NO("saAmfSUMaintenanceCampaign cleared for '%s'", su->name.value);
 			} else
 				assert(0);
+                } else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
+                        struct avd_sutype *sut;
+                        SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
+                        sut = avd_sutype_get(&sutype_name);
+                        avd_sutype_remove_su(su);
+                        su->saAmfSUType = sutype_name;
+                        su->su_type = sut;
+                        avd_sutype_add_su(su);
+                        su->saAmfSUFailover = sut->saAmfSutDefSUFailover;
+                        su->su_is_external = sut->saAmfSutIsExternal;
 		}
 		else
 			assert(0);
