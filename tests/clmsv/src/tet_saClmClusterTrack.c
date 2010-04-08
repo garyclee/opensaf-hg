@@ -17,6 +17,7 @@
 #include "clmtest.h" 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 SaClmClusterNotificationBufferT notificationBuffer_1;
 SaClmClusterNotificationBufferT_4 notificationBuffer_4;
@@ -25,7 +26,7 @@ SaClmNodeIdT nodeId;
 SaInvocationT invocation;
 SaInvocationT lock_inv;
 
-static void admin_lock(void)
+static void* admin_lock(void* dummy)
 {
         int rc;
         char command[256];
@@ -34,9 +35,10 @@ static void admin_lock(void)
         sprintf(command, "immadm -o 2 %s",name);
         assert((rc = system(command)) != -1);
         /*test_validate(WEXITSTATUS(rc), 0);*/
+	return NULL;
 }
 
-static void admin_unlock(void)
+static void* admin_unlock(void* dummy)
 {
         int rc;
         char command[256];
@@ -45,9 +47,10 @@ static void admin_unlock(void)
         sprintf(command, "immadm -o 1 %s",name);
         assert((rc = system(command)) != -1);
         /*test_validate(WEXITSTATUS(rc), 0);*/
+	return NULL;
 }
 
-static void admin_shutdown(void)
+static void* admin_shutdown(void* dummy)
 {
         int rc;
         char command[256];
@@ -56,6 +59,7 @@ static void admin_shutdown(void)
         sprintf(command, "immadm -o 3 %s",name);
         assert((rc = system(command)) != -1);
         /*test_validate(WEXITSTATUS(rc), 0);*/
+	return NULL;
 }
 
 static void saClmadmin_lock1(void)
@@ -91,7 +95,7 @@ static void saClmadmin_shutdown1(void)
         test_validate(WEXITSTATUS(rc), 1);
 }
 
-static void plm_admin_trylock(void)
+static void* plm_admin_trylock(void* dummy)
 {
 
 	int rc;
@@ -100,6 +104,7 @@ static void plm_admin_trylock(void)
 
         sprintf(command, "immadm -o 1 -p SA_PLM_ADMIN_LOCK_OPTION:SA_STRING_T:trylock  %s",name);
         assert((rc = system(command)) != -1);
+	return NULL;
 }
 
 static void saClmPlm_unlock(void)
@@ -129,12 +134,12 @@ static void clmTrackbuf_4(SaClmClusterNotificationBufferT_4 *notificationBuffer)
 
 		printf("Node Member = %d\n",notificationBuffer->notification[i].clusterNode.member);
 
-		printf("Node  view number  = %u\n",notificationBuffer->notification[i].clusterNode.initialViewNumber);
+		printf("Node  view number  = %llu\n",notificationBuffer->notification[i].clusterNode.initialViewNumber);
 
 		printf("Node  eename length = %d,value  = %s\n",notificationBuffer->notification[i].clusterNode.executionEnvironment.length,
 							notificationBuffer->notification[0].clusterNode.executionEnvironment.value);
 
-		printf("Node  boottimestamp  = %u\n",notificationBuffer->notification[i].clusterNode.bootTimestamp);
+		printf("Node  boottimestamp  = %llu\n",notificationBuffer->notification[i].clusterNode.bootTimestamp);
 
 		printf("Node  nodeAddress family  = %d,node address length = %d, node address value = %s\n",
 					notificationBuffer->notification[i].clusterNode.nodeAddress.family												,notificationBuffer->notification[i].clusterNode.nodeAddress.length,
@@ -155,11 +160,11 @@ static void clmTrackCallback4(const SaClmClusterNotificationBufferT_4 *notificat
 {
 printf("\n");
 printf("Inside TrackCallback4\n");
-printf("invocation : %u\n",invocation);
+printf("invocation : %llu\n",invocation);
 printf("Step : %d\n",step);
 printf("error = %d\n", error);
 printf("numberOfMembers = %d\n", numberOfMembers);
-clmTrackbuf_4(notificationBuffer);
+clmTrackbuf_4((SaClmClusterNotificationBufferT_4 *) notificationBuffer);
 lock_inv= invocation;
 printf("\n");
 }
@@ -261,7 +266,7 @@ void saClmClusterTrack_05(void)
                 malloc(sizeof(SaClmClusterNotificationT)*notificationBuffer_1.numberOfItems);
 
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterTrack(NULL, trackFlags, &notificationBuffer_1);
+        rc = saClmClusterTrack(0, trackFlags, &notificationBuffer_1);
         /*safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);*/
 	free(notificationBuffer_1.notification);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
@@ -288,7 +293,7 @@ void saClmClusterTrack_06(void)
                 malloc(sizeof(SaClmClusterNotificationT)*notificationBuffer_1.numberOfItems);
         
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterTrack(clmHandle, NULL, &notificationBuffer_1);
+        rc = saClmClusterTrack(clmHandle, 0, &notificationBuffer_1);
         /*safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);*/
 	free(notificationBuffer_1.notification);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
@@ -320,7 +325,7 @@ void saClmClusterTrack_08(void)
                 malloc(sizeof(SaClmClusterNotificationT_4)*notificationBuffer_4.numberOfItems);
 
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
-        rc = saClmClusterTrack_4(NULL, trackFlags, &notificationBuffer_4);
+        rc = saClmClusterTrack_4(0, trackFlags, &notificationBuffer_4);
         /*safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);*/
         safassert(saClmClusterNotificationFree_4(clmHandle, notificationBuffer_4.notification), SA_AIS_OK);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
@@ -347,7 +352,7 @@ void saClmClusterTrack_09(void)
                 malloc(sizeof(SaClmClusterNotificationT_4)*notificationBuffer_4.numberOfItems);
 
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
-        rc = saClmClusterTrack_4(clmHandle, NULL, &notificationBuffer_4);
+        rc = saClmClusterTrack_4(clmHandle, 0, &notificationBuffer_4);
         /*safassert(saClmClusterTrackStop(clmHandle), SA_AIS_OK);*/
         safassert(saClmClusterNotificationFree_4(clmHandle, notificationBuffer_4.notification), SA_AIS_OK);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);

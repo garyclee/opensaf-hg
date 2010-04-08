@@ -33,7 +33,7 @@ static void clmTrackCallback44(const SaClmClusterNotificationBufferT_4 *notifica
 {
 printf("\n");
 printf("Inside TrackCallback4\n");
-printf("invocation : %u\n",invocation);
+printf("invocation : %llu\n",invocation);
 printf("rc = %d\n", error);
 printf("\n");
 }

@@ -144,9 +144,9 @@ void saClmResponse_03(void)
 
 void saClmResponse_04(void)
 {
-	rc = saClmResponse_4(NULL,200,SA_CLM_CALLBACK_RESPONSE_REJECTED);
+	rc = saClmResponse_4(0,200,SA_CLM_CALLBACK_RESPONSE_REJECTED);
 	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
-        rc = saClmResponse_4(1234,NULL,SA_CLM_CALLBACK_RESPONSE_REJECTED);
+        rc = saClmResponse_4(1234,0,SA_CLM_CALLBACK_RESPONSE_REJECTED);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
         rc = saClmResponse_4(1234,200,10);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
