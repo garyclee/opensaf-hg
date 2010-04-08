@@ -22,7 +22,7 @@ OBJS = amf_demo.o
 CC = gcc
 CFLAGS = -g -O2 -Wall -fPIC
 INCLUDES = -I. -I/usr/include/opensaf
-LDFLAGS = -lSaAmf -lavsv_common -lopensaf_core
+LDFLAGS = -lSaAmf
 
 all: $(PROG)
 
