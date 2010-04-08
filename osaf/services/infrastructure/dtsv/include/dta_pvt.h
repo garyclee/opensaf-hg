@@ -111,8 +111,6 @@ typedef struct dta_cb {
 	uns32 msg_count;
 #endif
 
-	NCS_SEL_OBJ dta_dest_sel;
-
 	/* DTA MDS sub-part version */
 	MDS_SVC_PVT_SUB_PART_VER dta_mds_version;
 	/* Version of Active DTS as seen by the DTA */

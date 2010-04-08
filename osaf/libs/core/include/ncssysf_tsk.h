@@ -33,6 +33,7 @@
 #define NCSSYSF_TSK_H
 
 #include "ncsgl_defs.h"
+extern uns32 ncs_task_join(void *task_handle);
 
 #ifdef  __cplusplus
 extern "C" {
@@ -93,6 +94,22 @@ extern "C" {
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_TASK_RELEASE(t_handle)           ncs_task_release(t_handle)
+
+/****************************************************************************
+ * m_NCS_TASK_JOIN
+ *
+ *  This macro is invoked in order to suspend the execution of  
+ *   the calling thread until the thread identified by `task_handle` terminates.
+ * ARGUMENTS:
+ *
+ * "t_handle" is a task handle (void *).
+ *
+ * RETURNS:
+ *
+ * NCSCC_RC_SUCCESS  if task Joins successfully.
+ * <error return>   otherwise (such as NCSCC_RC_FAILURE).
+ */
+#define m_NCS_TASK_JOIN(t_handle)           ncs_task_join(t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_DETACH    
