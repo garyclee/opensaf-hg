@@ -20,4 +20,5 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	saf_error.h
+	saf_error.h \
+	saflog.h
