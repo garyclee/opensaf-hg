@@ -967,10 +967,180 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				LOG_ER("Modification of saAmfCompType for OpenSAF comp not supported");
 				goto done;
 			}
-
-			break; /* out of while */
-		}
-		else {
+		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
+			char *param_val = *((char **)value);
+			if (NULL == param_val) {
+				LOG_ER("Modification of saAmfCompInstantiateCmdArgv Fail, NULL arg");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompInstantiateTimeout Fail, Zero Timeout");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
+			uns32 num_inst = *((SaUint32T *)value);
+			if (num_inst == 0) {
+				LOG_ER("Modification of saAmfCompInstantiationLevel Fail, Zero InstantiationLevel");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
+			uns32 num_inst = *((SaUint32T *)value);
+			if (num_inst == 0) {
+				LOG_ER("Modification of saAmfCompNumMaxInstantiateWithoutDelay Fail, Zero withoutDelay");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
+			uns32 num_inst = *((SaUint32T *)value);
+			if (num_inst == 0) {
+				LOG_ER("Modification of saAmfCompNumMaxInstantiateWithDelay Fail, Zero withDelay");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompDelayBetweenInstantiateAttempts")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompDelayBetweenInstantiateAttempts Fail, Zero Delay");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateCmdArgv")) {
+			char *param_val = *((char **)value);
+			if (NULL == param_val) {
+				LOG_ER("Modification of saAmfCompTerminateCmdArgv Fail, NULL arg");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompTerminateTimeout Fail, Zero timeout");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupCmdArgv")) {
+			char *param_val = *((char **)value);
+			if (NULL == param_val) {
+				LOG_ER("Modification of saAmfCompCleanupCmdArgv Fail, NULL arg");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompCleanupTimeout Fail, Zero Timeout");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartCmdArgv")) {
+			char *param_val = *((char **)value);
+			if (NULL == param_val) {
+				LOG_ER("Modification of saAmfCompAmStartCmdArgv Fail, NULL arg");
+				goto done;
+			}
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompAmStartCmdArgv Fail, Comp su_is_external");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompAmStartTimeout Fail, Zero Timeout");
+				goto done;
+			}
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompAmStartTimeout Fail, Comp su_is_external");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
+			uns32 num_am_start = *((SaUint32T *)value);
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompNumMaxAmStartAttempt Fail, Comp su_is_external");
+				goto done;
+			}
+			if (num_am_start == 0) {
+				LOG_ER("Modification of saAmfCompNumMaxAmStartAttempt Fail, Zero num_am_start");
+				goto done;
+			} 
+		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
+			char *param_val = *((char **)value);
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompAmStopCmdArgv Fail, Comp su_is_external");
+				goto done;
+			}
+			if (NULL == param_val) {
+				LOG_ER("Modification of saAmfCompAmStopCmdArgv Fail, NULL arg");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
+			SaTimeT timeout;
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompAmStopTimeout Fail, Comp su_is_external");
+				goto done;
+			}
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompAmStopTimeout Fail, Zero Timeout");
+				goto done;
+			}		
+		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {	
+			uns32 num_am_stop = *((SaUint32T *)value);
+			if (TRUE == comp->su->su_is_external) {
+				LOG_ER("Modification of saAmfCompNumMaxAmStopAttempt Fail, Comp su_is_external");
+				goto done;
+			}
+			if (num_am_stop == 0) {
+				LOG_ER("Modification of saAmfCompNumMaxAmStopAttempt Fail, Zero num_am_stop");
+				goto done;
+			}		
+		} else if (!strcmp(attribute->attrName, "saAmfCompCSISetCallbackTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompCSISetCallbackTimeout Fail, Zero Timeout");
+				goto done;
+			}		
+		} else if (!strcmp(attribute->attrName, "saAmfCompCSIRmvCallbackTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompCSIRmvCallbackTimeout Fail, Zero Timeout");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompQuiescingCompleteTimeout")) {
+			SaTimeT timeout;
+			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
+			if (timeout == 0) {
+				LOG_ER("Modification of saAmfCompQuiescingCompleteTimeout Fail, Zero Timeout");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
+			uns32 recovery = *((SaUint32T *)value);
+			if ((recovery < SA_AMF_NO_RECOMMENDATION) || (recovery > SA_AMF_CONTAINER_RESTART )) {
+				LOG_ER("Modification of saAmfCompRecoveryOnError Fail, Invalid recovery =%d",recovery);
+				goto done;
+			} 
+		} else if (!strcmp(attribute->attrName, "saAmfCompDisableRestart")) {
+			SaBoolT val = *((SaBoolT *)value);
+			if ((val != SA_TRUE) && (val != SA_FALSE)) {
+				LOG_ER("Modification of saAmfCompDisableRestart Fail, Invalid Input %d",val);
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompProxyCsi")) {
+			SaNameT name;
+			name = *((SaNameT *)value);
+			if (name.length == 0) {
+				LOG_ER("Modification of saAmfCompProxyCsi Fail, Length Zero");
+				goto done;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfCompContainerCsi")) {
+			SaNameT name;
+			name = *((SaNameT *)value);
+			if (name.length == 0) {
+				LOG_ER("Modification of saAmfCompContainerCsi Fail, Length Zero");
+				goto done;
+			}
+		} else {
 			LOG_ER("Modification of attribute '%s' not supported", attribute->attrName);
 			goto done;
 		}
