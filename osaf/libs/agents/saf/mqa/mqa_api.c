@@ -1886,7 +1886,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 			SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uns32 length)
 {
 
-	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver;
+	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver=0;
 	MDS_DEST destination_mqnd;
 	uns8 unicast = 0;
 	SaAisErrorT rc = SA_AIS_ERR_NO_RESOURCES;
@@ -1996,7 +1996,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 			if (to_dest_ver == 0) {
 				/* Drop The Message */
 				m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					     o_msg_fmt_ver, __FILE__, __LINE__);
+					to_dest_ver, __FILE__, __LINE__);
 				mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt);
 				goto loop;
 			}
