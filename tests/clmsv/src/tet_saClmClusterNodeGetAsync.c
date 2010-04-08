@@ -41,8 +41,8 @@ SaClmCallbacksT clmCallbacks1 = {nodeGetCallBack1, NULL};
 
 void saClmClusterNodeGetAsync_01(void)
 {	
-	struct pollfd fds[1];
-        int ret;
+	/*struct pollfd fds[1];*/
+        /*int ret;*/
         nodeId = 131343;
         invocation = 600;
         SaAisErrorT rc;
@@ -88,7 +88,7 @@ void saClmClusterNodeGetAsync_03(void)
         nodeId = 131343;
 	invocation = 300;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterNodeGetAsync(NULL, invocation, nodeId);
+        rc = saClmClusterNodeGetAsync(0, invocation, nodeId);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
@@ -98,7 +98,7 @@ void saClmClusterNodeGetAsync_03(void)
         test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks4, &clmVersion_4), SA_AIS_OK);
-        rc = saClmClusterNodeGetAsync(NULL, invocation, nodeId);
+        rc = saClmClusterNodeGetAsync(0, invocation, nodeId);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
@@ -113,7 +113,7 @@ void saClmClusterNodeGetAsync_04(void)
         nodeId = 131343;
 	invocation = 400;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterNodeGetAsync(clmHandle, NULL, nodeId);
+        rc = saClmClusterNodeGetAsync(clmHandle, 0, nodeId);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
@@ -123,7 +123,7 @@ void saClmClusterNodeGetAsync_05(void)
         nodeId = 131343;
 	invocation = 500;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterNodeGetAsync(clmHandle, invocation, NULL);
+        rc = saClmClusterNodeGetAsync(clmHandle, invocation, 0);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
@@ -191,8 +191,8 @@ void saClmClusterNodeGetAsync_08(void)
 
 void saClmClusterNodeGetAsync_09(void)
 {
-        struct pollfd fds[1];
-        int ret;
+        /*struct pollfd fds[1];*/
+        /*int ret;*/
         nodeId = 131343;
         invocation = 600;
         SaAisErrorT rc;

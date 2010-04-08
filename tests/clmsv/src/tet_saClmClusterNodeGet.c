@@ -44,7 +44,7 @@ void saClmClusterNodeGet_03(void)
 {
         nodeId = 131343;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterNodeGet(NULL, nodeId, timeout, &clusterNode_1);
+        rc = saClmClusterNodeGet(0, nodeId, timeout, &clusterNode_1);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
@@ -56,7 +56,7 @@ void saClmClusterNodeGet_03(void)
 
         nodeId = 131343;
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
-        rc = saClmClusterNodeGet_4(NULL, nodeId, timeout, &clusterNode_4);
+        rc = saClmClusterNodeGet_4(0, nodeId, timeout, &clusterNode_4);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
@@ -71,13 +71,13 @@ void saClmClusterNodeGet_04(void)
 {
         nodeId = 131343;
         safassert(saClmInitialize(&clmHandle, &clmCallbacks_1, &clmVersion_1), SA_AIS_OK);
-        rc = saClmClusterNodeGet(clmHandle, nodeId, NULL, &clusterNode_1);
+        rc = saClmClusterNodeGet(clmHandle, nodeId, 0, &clusterNode_1);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
         nodeId = 131343;
         safassert(saClmInitialize_4(&clmHandle, &clmCallbacks_4, &clmVersion_4), SA_AIS_OK);
-        rc = saClmClusterNodeGet_4(clmHandle, nodeId, NULL, &clusterNode_4);
+        rc = saClmClusterNodeGet_4(clmHandle, nodeId, 0, &clusterNode_4);
         safassert(saClmFinalize(clmHandle), SA_AIS_OK);
         test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
