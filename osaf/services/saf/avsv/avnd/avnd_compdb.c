@@ -41,6 +41,7 @@
 
 #include <avnd.h>
 
+static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const SaNameT *dn, SaStringT *str);
 /* AMF Class SaAmfCompGlobalAttributes */
 typedef struct {
 	SaUint32T saAmfNumMaxInstantiateWithoutDelay;
@@ -682,7 +683,6 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	avnd_log(NCSFL_SEV_NOTICE, "Op %u, %s", param->act, param->name.value);
 	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
 
 	switch (param->act) {
@@ -691,60 +691,17 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 			comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name);
 			if (!comp) {
-				avnd_log(LOG_ERR, "failed to get %s", param->name.value);
+				LOG_ER("failed to get %s", param->name.value);
 				goto done;
 			}
 
 			switch (param->attr_id) {
 			case saAmfCompInstantiateCmd_ID:
-				memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
-				       0,
-				       sizeof(comp->
-					      clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE -
-							    1].cmd));
-				memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
-				       param->value, param->value_len);
-				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len =
-				    param->value_len;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD);
-				break;
 			case saAmfCompTerminateCmd_ID:
-				memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
-				       0,
-				       sizeof(comp->clc_info.
-					      cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd));
-				memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
-				       param->value, param->value_len);
-				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len =
-				    param->value_len;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CMD);
-				break;
 			case saAmfCompCleanupCmd_ID:
-				memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 0,
-				       sizeof(comp->clc_info.
-					      cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd));
-				memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd,
-				       param->value, param->value_len);
-				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len =
-				    param->value_len;
-				break;
 			case saAmfCompAmStartCmd_ID:
-				memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 0,
-				       sizeof(comp->clc_info.
-					      cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd));
-				memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd,
-				       param->value, param->value_len);
-				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len =
-				    param->value_len;
-				break;
 			case saAmfCompAmStopCmd_ID:
-				memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 0,
-				       sizeof(comp->clc_info.
-					      cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd));
-				memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd,
-				       param->value, param->value_len);
-				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len =
-				    param->value_len;
+				comp->config_is_valid = 0;
 				break;
 			case saAmfCompInstantiateTimeout_ID:
 				assert(sizeof(SaTimeT) == param->value_len);
