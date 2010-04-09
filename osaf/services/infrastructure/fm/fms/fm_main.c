@@ -69,7 +69,6 @@ int main(int argc, char *argv[])
 
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
 /* notify the NID */
-		printf("\nfm_agents_startup() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_agents_startup_failed;
 	}
@@ -78,7 +77,7 @@ int main(int argc, char *argv[])
 	fm_cb = m_MMGR_ALLOC_FM_CB;
 	if (NULL == fm_cb) {
 /* notify the NID */
-		printf("\nCB Allocation failed.");
+		syslog(LOG_ERR, "CB Allocation failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_agents_startup_failed;
 	}
@@ -93,42 +92,38 @@ int main(int argc, char *argv[])
 
 	if (fm_get_args(fm_cb) != NCSCC_RC_SUCCESS) {
 /* notify the NID */
-		printf("\nfm_get_args() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_get_args_failed;
 	}
 
 /* Create MBX. */
 	if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS) {
-		printf("\nm_NCS_IPC_CREATE() failed.");
+		syslog(LOG_ERR, "m_NCS_IPC_CREATE() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_get_args_failed;
 	}
 
 /* Attach MBX */
 	if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS) {
-		printf("\nm_NCS_IPC_ATTACH() failed.");
+		syslog(LOG_ERR, "m_NCS_IPC_ATTACH() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_mbx_attach_failure;
 	}
 
 /* MDS initialization */
 	if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS) {
-		printf("\nfm_mds_init() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_mds_init_failed;
 	}
 
 /* RDA initialization */
 	if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS) {
-		printf("\nfm_rda_init() failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_rda_init_failed;
 	}
 
 /* Open FM pipe for receiving AMF up intimation */
 	if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS) {
-		printf("\nfm pipe open failed (avm) failed.");
 		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
 		goto fm_hpl_lib_init_failed;
 	}
@@ -161,7 +156,8 @@ int main(int argc, char *argv[])
 			ncshm_take_hdl(NCS_SERVICE_ID_GFM, gl_fm_hdl);
 
 /* Process the message received on pipe */
-			fm_amf_pipe_process_msg(&fm_cb->fm_amf_cb);
+			if (fm_amf_pipe_process_msg(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
+				goto done;
 
 /* Get amf selection object */
 			m_SET_FD_IN_SEL_OBJ(fm_cb->fm_amf_cb.amf_fd, amf_sel_obj);
@@ -234,7 +230,7 @@ int main(int argc, char *argv[])
  fm_agents_startup_failed:
 
 	fm_agents_shutdown();
-
+ done:
 	return 1;
 }
 
@@ -256,7 +252,7 @@ static uns32 fm_agents_startup(void)
 /* Start agents */
 	rc = ncs_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS) {
-		printf("ncs core agent startup failed\n ");
+		syslog(LOG_ERR, "ncs_agents_startup failed");
 		return rc;
 	}
 
@@ -281,7 +277,7 @@ static uns32 fm_agents_shutdown(void)
 /* Start agents */
 	rc = ncs_agents_shutdown();
 	if (rc != NCSCC_RC_SUCCESS) {
-		printf("ncs core agent shutdown failed\n ");
+		syslog(LOG_ERR, "ncs_agents_shutdown failed");
 		return rc;
 	}
 
@@ -344,7 +340,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 /* Start Promote active timer */
 				if (fm_cb->peer_node_name.length != 0) {
 
-					LOG_IN("Promote active timer started\n");
+					LOG_IN("Promote active timer started");
 					fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
 				} else {
 					fm_cb->role = PCS_RDA_ACTIVE;
@@ -368,7 +364,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 /* Now. Try resetting other blade */
 			fm_cb->role = PCS_RDA_ACTIVE;
 
-			LOG_IN("Reseting peer controller node_id=%u\n", fm_cb->peer_node_id);
+			LOG_IN("Reseting peer controller node_id=%u", fm_cb->peer_node_id);
 			opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
 				       "Received Node Down for Active peer");
 			fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
@@ -448,7 +444,7 @@ void fm_tmr_exp(void *fm_tmr)
 	fm_cb = ncshm_take_hdl(NCS_SERVICE_ID_GFM, gl_fm_hdl);
 
 	if (fm_cb == NULL) {
-		syslog(LOG_ERR, "Taking handle failed in timer expiry \n");
+		syslog(LOG_ERR, "Taking handle failed in timer expiry ");
 		return;
 	}
 
@@ -466,7 +462,7 @@ void fm_tmr_exp(void *fm_tmr)
 		evt->info.fm_tmr = tmr;
 
 		if (m_NCS_IPC_SEND(&fm_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
-			syslog(LOG_ERR, "IPC send failed in timer expiry \n");
+			syslog(LOG_ERR, "IPC send failed in timer expiry ");
 			m_MMGR_FREE_FM_EVT(evt);
 		}
 	}
@@ -504,7 +500,7 @@ static uns32 fms_fms_exchange_node_info(FM_CB *fm_cb)
 		if (NCSCC_RC_SUCCESS != fm_mds_async_send(fm_cb, (NCSCONTEXT)&gfm_msg,
 							  NCSMDS_SVC_ID_GFM, MDS_SEND_PRIORITY_MEDIUM,
 							  0, fm_cb->peer_adest, 0)) {
-			syslog(LOG_ERR, "Sending node-info message to peer fms failed\n");
+			syslog(LOG_ERR, "Sending node-info message to peer fms failed");
 			return NCSCC_RC_FAILURE;
 		}
 

@@ -77,6 +77,7 @@ uns32 fm_mds_init(FM_CB *cb)
 	arg.info.svc_install.i_mds_svc_pvt_ver = FM_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "MDS_INSTALL failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -93,6 +94,7 @@ uns32 fm_mds_init(FM_CB *cb)
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
 /* Subcription failed amd hence uninstall. */
+		syslog(LOG_ERR, "MDS_SUBSCRIBE failed");
 		arg.i_op = MDS_UNINSTALL;
 		ncsmds_api(&arg);
 		return NCSCC_RC_FAILURE;
@@ -104,6 +106,7 @@ uns32 fm_mds_init(FM_CB *cb)
 	arg.i_mds_hdl = cb->adest_pwe1_hdl;
 /* Finally, start using MDS API */
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "MDS_SUBSCRIBE failed");
 		memset(&arg, 0, sizeof(NCSMDS_INFO));
 		arg.i_mds_hdl = (MDS_HDL)cb->adest_pwe1_hdl;
 		arg.i_svc_id = NCSMDS_SVC_ID_GFM;
@@ -189,14 +192,14 @@ static uns32 fm_mds_callback(NCSMDS_CALLBACK_INFO *info)
 	uns32 return_val = NCSCC_RC_SUCCESS;
 
 	if (info == NULL) {
-		syslog(LOG_INFO, "fm_mds_callback: Invalid param info\n");
+		syslog(LOG_INFO, "fm_mds_callback: Invalid param info");
 		return NCSCC_RC_SUCCESS;
 	}
 
 	cb_hdl = (uns32)info->i_yr_svc_hdl;
 	cb = (FM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GFM, cb_hdl);
 	if (cb == NULL) {
-		syslog(LOG_INFO, "fm_mds_callback: CB retrieve failed\n");
+		syslog(LOG_INFO, "fm_mds_callback: CB retrieve failed");
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -262,7 +265,7 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 	FM_EVT *fm_evt;
 
 	if (NULL == node_evt) {
-		syslog(LOG_INFO, "fm_mds_node_evt: node_evt NULL.\n");
+		syslog(LOG_INFO, "fm_mds_node_evt: node_evt NULL.");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -272,11 +275,11 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 
 			fm_evt = m_MMGR_ALLOC_FM_EVT;
 			if (NULL == fm_evt) {
-				syslog(LOG_INFO, "fm_mds_rcv_evt: fm_evt allocation FAILED.\n");
+				syslog(LOG_INFO, "fm_mds_rcv_evt: fm_evt allocation FAILED.");
 				return NCSCC_RC_FAILURE;
 			}
 
-			LOG_IN("Node Down for %u \n ", node_evt->node_id);
+			LOG_IN("Node Down for %u  ", node_evt->node_id);
 			return_val = fm_fill_mds_evt_post_fm_mbx(cb, fm_evt, node_evt->node_id, FM_EVT_NODE_DOWN);
 			if (NCSCC_RC_FAILURE == return_val) {
 				m_MMGR_FREE_FM_EVT(fm_evt);
@@ -290,7 +293,7 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 
 	default:
 
-		LOG_IN("Wrong MDS event from GFM.\n");
+		LOG_IN("Wrong MDS event from GFM.");
 		break;
 	}
 	return return_val;
@@ -313,7 +316,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 	FM_EVT *fm_evt;
 
 	if (NULL == svc_evt) {
-		syslog(LOG_INFO, "fm_mds_svc_evt: svc_evt NULL.\n");
+		syslog(LOG_INFO, "fm_mds_svc_evt: svc_evt NULL.");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -328,7 +331,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			break;
 
 		default:
-			syslog(LOG_INFO, "Wrong MDS DOWN event type\n");
+			syslog(LOG_INFO, "Wrong MDS DOWN event type");
 		}
 		break;
 
@@ -339,7 +342,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
 				fm_evt = m_MMGR_ALLOC_FM_EVT;
 				if (NULL == fm_evt) {
-					syslog(LOG_INFO, "fm_mds_svc_evt: fm_evt allocation FAILED.\n");
+					syslog(LOG_INFO, "fm_mds_svc_evt: fm_evt allocation FAILED.");
 					return NCSCC_RC_FAILURE;
 				}
 				cb->peer_adest = svc_evt->i_dest;
@@ -358,7 +361,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		break;
 
 	default:
-		syslog(LOG_INFO, "Wrong MDS event\n");
+		syslog(LOG_INFO, "Wrong MDS event");
 		break;
 	}
 
@@ -382,7 +385,7 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	GFM_GFM_MSG *gfm_rcv_msg = NULL;
 
 	if (NULL == rcv_info) {
-		syslog(LOG_INFO, "fm_mds_rcv_evt: rcv_info NULL.\n");
+		syslog(LOG_INFO, "fm_mds_rcv_evt: rcv_info NULL.");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -395,11 +398,11 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			cb->peer_node_name.length = gfm_rcv_msg->info.node_info.node_name.length;
 			memcpy(cb->peer_node_name.value, gfm_rcv_msg->info.node_info.node_name.value,
 			       cb->peer_node_name.length);
-			LOG_IN("Peer Node_id  %u : EE_ID %s\n", cb->peer_node_id, cb->peer_node_name.value);
+			LOG_IN("Peer Node_id  %u : EE_ID %s", cb->peer_node_id, cb->peer_node_name.value);
 			break;
 
 		default:
-			syslog(LOG_INFO, "Wrong MDS event from GFM.\n");
+			syslog(LOG_INFO, "Wrong MDS event from GFM.");
 			return_val = NCSCC_RC_FAILURE;
 			break;
 		}
@@ -466,7 +469,7 @@ uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 		info.info.svc_send.info.rsp.i_sender_dest = *i_to_dest;
 		info.info.svc_send.info.rsp.i_msg_ctxt = *mds_ctxt;
 	} else {
-		syslog(LOG_INFO, "fm_mds_sync_send: mds_ctxt NULL\n");
+		syslog(LOG_INFO, "fm_mds_sync_send: mds_ctxt NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -517,11 +520,11 @@ uns32 fm_mds_async_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
 
 		return_val = ncsmds_api(&info);
 		if (NCSCC_RC_FAILURE == return_val) {
-			syslog(LOG_INFO, "fms async send failed \n");
+			syslog(LOG_INFO, "fms async send failed ");
 		}
 	} else {
 		return_val = NCSCC_RC_FAILURE;
-		syslog(LOG_INFO, "fm_mds_async_send: MDS Send fail: alt gfm NOT UP/Invalid svc id.\n");
+		syslog(LOG_INFO, "fm_mds_async_send: MDS Send fail: alt gfm NOT UP/Invalid svc id.");
 	}
 
 	return return_val;
@@ -546,14 +549,14 @@ static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 							    FM_SUBPART_VER_MAX, fm_fm_msg_fmt_map_table);
 
 		if (enc_info->o_msg_fmt_ver < FM_FM_MSG_FMT_VER_1) {
-			syslog(LOG_INFO, "fm_encode: MSG FMT VER from GFM mis-match\n");
+			syslog(LOG_INFO, "fm_encode: MSG FMT VER from GFM mis-match");
 			return NCSCC_RC_FAILURE;
 		}
 
 		return fm_fm_mds_enc(enc_info);
 	}
 
-	syslog(LOG_INFO, "fm_encode: MDS MSG is not for GFM.\n");
+	syslog(LOG_INFO, "fm_encode: MDS MSG is not for GFM.");
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -574,14 +577,14 @@ static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 	if (NCSMDS_SVC_ID_GFM == dec_info->i_fr_svc_id) {
 		if (!m_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
 					   FM_SUBPART_VER_MIN, FM_SUBPART_VER_MAX, fm_fm_msg_fmt_map_table)) {
-			syslog(LOG_INFO, "fm_decode: MSG FMT VER from GFM mis-match\n");
+			syslog(LOG_INFO, "fm_decode: MSG FMT VER from GFM mis-match");
 			return NCSCC_RC_FAILURE;
 		}
 
 		return fm_fm_mds_dec(dec_info);
 	}
 
-	syslog(LOG_INFO, "fm_decode: MDS MSG is not for GFM.\n");
+	syslog(LOG_INFO, "fm_decode: MDS MSG is not for GFM.");
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -634,7 +637,7 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	default:
-		syslog(LOG_INFO, "fm_fm_mds_enc: Invalid msg type for encode.\n");
+		syslog(LOG_INFO, "fm_fm_mds_enc: Invalid msg type for encode.");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		break;
 	}
@@ -695,7 +698,7 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 					     msg->info.node_info.node_name.length);
 		break;
 	default:
-		syslog(LOG_INFO, "fm_fm_mds_dec: Invalid msg for decoding.\n");
+		syslog(LOG_INFO, "fm_fm_mds_dec: Invalid msg for decoding.");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		break;
 	}
