@@ -1026,7 +1026,7 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 			NCS_OS_MQ_REQ_INFO os_req;
 			NCS_OS_MQ_KEY key;
 			NCS_OS_FILE file;
-			char filename[128];
+			char filename[264];
 			uns32 rc;
 			struct msqid_ds buf;
 			void *file_handle;
@@ -1103,6 +1103,20 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 		}
 		break;
 	case NCS_OS_POSIX_MQ_REQ_UNLINK:
+		{
+			char filename[264];
+			NCS_OS_FILE file;
+
+			memset(filename, 0, sizeof(filename));
+			sprintf(filename, "/tmp/%s%d", req->info.unlink.qname, req->info.unlink.node);
+
+			file.info.remove.i_file_name = filename;
+
+			if (ncs_os_file(&file, NCS_OS_FILE_REMOVE) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+
 	default:
 		return NCSCC_RC_FAILURE;
 	}

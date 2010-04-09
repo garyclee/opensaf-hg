@@ -1013,6 +1013,7 @@ extern "C" {
 /*-----------------------------------*/
 	typedef struct ncs_mq_req_unlink_info {
 		uns8 *qname;
+		uns32 node;
 	} NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
 
 /*-----------------------------------*/
