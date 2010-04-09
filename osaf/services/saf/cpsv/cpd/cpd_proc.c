@@ -140,7 +140,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	uns32 proc_rc = NCSCC_RC_SUCCESS;
 	SaCkptCheckpointHandleT ckpt_id = 0;
-	NCS_BOOL add_flag = TRUE, create_reploc_node = FALSE;;
+	NCS_BOOL add_flag = TRUE, create_reploc_node = FALSE;
 	SaClmClusterNodeT cluster_node;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
@@ -215,7 +215,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 
 		reploc_info->rep_key.node_name = cluster_node.nodeName;
 
-		if (ckpt_create != NULL) {
+		if ((ckpt_create != NULL) && (ckpt_create->attributes.creationFlags != 0)) {
 			reploc_info->rep_key.ckpt_name = ckpt_create->ckpt_name;
 
 			if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_create->attributes))
@@ -273,12 +273,12 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 		/*   memcpy(&map_info->ckpt_name,&ckpt_create->ckpt_name,sizeof(ckpt_create->ckpt_name.length)); */
 		map_info->ckpt_name = ckpt_create->ckpt_name;
 		map_info->attributes = ckpt_create->attributes;
+	map_info->client_version = ckpt_create->client_version;
 		map_info->ckpt_id = cb->nxt_ckpt_id++;
 
 		proc_rc = cpd_ckpt_map_node_add(&cb->ckpt_map_tree, map_info);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_FCL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, map_info->ckpt_id, __FILE__,
-				      __LINE__);
+		m_LOG_CPD_FCL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, map_info->ckpt_id, __FILE__, __LINE__);
 			goto map_node_add_fail;
 		}
 
@@ -316,13 +316,11 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 		}
 		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
-			m_LOG_CPD_FCL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__,
-				      __LINE__);
+		m_LOG_CPD_FCL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__, __LINE__);
 			goto ckpt_node_add_fail;
 		}
 		if (reploc_info && create_reploc_node) {
-			proc_rc =
-			    cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				/* goto reploc_node_add_fail; */
 				m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -1113,7 +1111,7 @@ void cpd_cb_dump(void)
 					printf("\n creationFlags: %d, ", (uns32)ckpt_node->attributes.creationFlags);
 					printf("\n retentionDuration: %d, ",
 					       (uns32)ckpt_node->attributes.retentionDuration);
-					printf("\n maxSections: %u, ", ckpt_node->attributes.maxSections);
+					printf("\n maxSections: %d, ", ckpt_node->attributes.maxSections);
 					printf("\n maxSectionSize: %d, ", (uns32)ckpt_node->attributes.maxSectionSize);
 					printf("\n maxSectionIdSize: %d, ",
 					       (uns32)ckpt_node->attributes.maxSectionIdSize);
@@ -1174,7 +1172,7 @@ void cpd_cb_dump(void)
 				printf("\n creationFlags: %d, ", (uns32)ckpt_map_node->attributes.creationFlags);
 				printf("\n retentionDuration: %d, ",
 				       (uns32)ckpt_map_node->attributes.retentionDuration);
-				printf("\n maxSections: %u, ", ckpt_map_node->attributes.maxSections);
+				printf("\n maxSections: %d, ", ckpt_map_node->attributes.maxSections);
 				printf("\n maxSectionSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionSize);
 				printf("\n maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
 				ckpt_map_node =

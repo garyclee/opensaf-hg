@@ -43,7 +43,7 @@
 
 /*CPD - CPA communication */
 #define CPD_WRT_CPA_SUBPART_VER_MIN 1
-#define CPD_WRT_CPA_SUBPART_VER_MAX 1
+#define CPD_WRT_CPA_SUBPART_VER_MAX 2
 
 #define CPD_WRT_CPA_SUBPART_VER_RANGE \
         (CPD_WRT_CPA_SUBPART_VER_MAX - \
@@ -135,6 +135,7 @@ typedef struct cpd_ckpt_map_info {
 	SaNameT ckpt_name;
 	SaCkptCheckpointHandleT ckpt_id;
 	SaCkptCheckpointCreationAttributesT attributes;
+	SaVersionT client_version;
 } CPD_CKPT_MAP_INFO;
 
 typedef struct cpd_rep_key_info {

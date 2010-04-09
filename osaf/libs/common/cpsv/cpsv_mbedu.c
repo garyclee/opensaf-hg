@@ -76,8 +76,7 @@ FUNC_DECLARATION(DS)
 	NCS_ENC_DEC_ARRAY(DS) {
 
 		{
-		EDU_START, FUNC_NAME(CPD_A2S_CKPT_CREATE), 0, 0, 0, sizeof(DS), 0, NULL}
-		, {
+		EDU_START, FUNC_NAME(CPD_A2S_CKPT_CREATE), 0, 0, 0, sizeof(DS), 0, NULL}, {
 		EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *) 0)->ckpt_name, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)(long)&((DS *) 0)->ckpt_id, 0, NULL}, {
 		EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0,
@@ -108,8 +107,7 @@ FUNC_DECLARATION(DS)
 	NCS_ENC_DEC_ARRAY(DS) {
 
 		{
-		EDU_START, FUNC_NAME(CPD_A2S_CKPT_UNLINK), 0, 0, 0, sizeof(DS), 0, NULL}
-		, {
+		EDU_START, FUNC_NAME(CPD_A2S_CKPT_UNLINK), 0, 0, 0, sizeof(DS), 0, NULL}, {
 		EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *) 0)->ckpt_name, 0, NULL}, {
 		EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS *) 0)->is_unlink_set, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
@@ -125,8 +123,7 @@ FUNC_DECLARATION(DS)
 	NCS_ENC_DEC_ARRAY(DS) {
 
 		{
-		EDU_START, FUNC_NAME(CPD_A2S_CKPT_USR_INFO), 0, 0, 0, sizeof(DS), 0, NULL}
-		, {
+		EDU_START, FUNC_NAME(CPD_A2S_CKPT_USR_INFO), 0, 0, 0, sizeof(DS), 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)(long)&((DS *) 0)->ckpt_id, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_user, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_writer, 0, NULL}, {

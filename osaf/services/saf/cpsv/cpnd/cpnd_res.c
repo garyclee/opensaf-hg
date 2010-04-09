@@ -331,7 +331,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 		m_LOG_CPND_CL(CPND_DEFAULT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NULL;
 	}
-	cb->cpnd_res_shm_name = buffer;
+	cb->cpnd_res_shm_name = (uns8*)buffer;
 	memset(buffer, '\0', total_length);
 	strncpy(buffer, "CPND_CHECKPOINT_INFO", total_length);
 	sprintf(buffer + size, "_%d", (uns32)nodeid);

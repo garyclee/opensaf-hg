@@ -74,7 +74,7 @@ static uns32 cpnd_evt_proc_ckpt_iter_next_req(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 static uns32 cpnd_evt_proc_ckpt_mem_size(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpnd_evt_proc_ckpt_num_sections(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpsv_cpnd_active_replace(CPND_CKPT_NODE *cp_node, CPND_EVT *evt);
-
+static uns32 cpnd_evt_proc_ckpt_refcntset(CPND_CB *cb,CPND_EVT *evt);
 static uns32 cpnd_proc_cpd_new_active(CPND_CB *cb);
 
 static uns32 cpnd_is_cpd_up(CPND_CB *cb);
@@ -145,6 +145,7 @@ static char *cpnd_evt_str[] = {
 	"CPND_EVT_ND2ND_CKPT_ACTIVE_ITERNEXT",
 	"CPND_EVT_CB_DUMP",
 	"CPND_EVT_D2ND_CKPT_NUM_SECTIONS",
+   "CPND_EVT_A2ND_CKPT_REFCNTSET", 
 	"CPND_EVT_MAX"
 };
 #endif
@@ -347,6 +348,9 @@ void cpnd_process_evt(CPSV_EVT *evt)
 	case CPND_EVT_CB_DUMP:
 		rc = cpnd_evt_proc_cb_dump(cb);
 		break;
+  case CPND_EVT_A2ND_CKPT_REFCNTSET:
+     rc = cpnd_evt_proc_ckpt_refcntset(cb, &evt->info.cpnd);
+     break;
 
 	default:
 		rc = NCSCC_RC_FAILURE;
@@ -396,8 +400,7 @@ static uns32 cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 	/* Allocate the CPND_CKPT_CLIENT_NODE Struct
 	   & populate ckpt_app_hdl, agent_mds_dest and version
 	   Add it to patricia cb->cpnd_client_info */
-
-	if ((evt->info.initReq.version.majorVersion > 1) && (evt->info.initReq.version.minorVersion > 1))
+	if (m_CPA_VER_IS_ABOVE_B_1_1(&evt->info.initReq.version))
 		if (cb->is_joined_cl == FALSE) {
 			m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			rc = SA_AIS_ERR_UNAVAILABLE;
@@ -586,7 +589,7 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 	}
 
 	if (((cp_node = cpnd_ckpt_node_find_by_name(cb, ckpt_name)) != NULL) && cp_node->is_unlink == FALSE) {
-		if ((cl_node->version.majorVersion > 1) && (cl_node->version.minorVersion > 1)) {
+		if (m_CPA_VER_IS_ABOVE_B_1_1(&cl_node->version)) {
 			if (m_CPND_IS_CREAT_ATTRIBUTE_EQUAL(cp_node->create_attrib, evt->info.openReq.ckpt_attrib) !=
 			    TRUE) {
 
@@ -663,6 +666,7 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 	send_evt.info.cpd.info.ckpt_create.ckpt_name = ckpt_name;
 	send_evt.info.cpd.info.ckpt_create.attributes = evt->info.openReq.ckpt_attrib;
 	send_evt.info.cpd.info.ckpt_create.ckpt_flags = evt->info.openReq.ckpt_flags;
+	send_evt.info.cpd.info.ckpt_create.client_version = cl_node->version;
 
 	/* send the request to the CPD */
 	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt, CPSV_WAIT_TIME);
@@ -864,8 +868,8 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 				cpnd_evt_destroy(out_evt);
 				out_evt = NULL;
 			}
-			return rc;
-		}
+	            goto agent_rsp2;	
+              }
 
  agent_rsp2:
 		send_evt.info.cpa.info.openRsp.gbl_ckpt_hdl = cp_node->ckpt_id;
@@ -918,13 +922,13 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_OPEN_RSP;
 	send_evt.info.cpa.info.openRsp.lcl_ckpt_hdl = evt->info.openReq.lcl_ckpt_hdl;
+	send_evt.info.cpa.info.openRsp.sync_async = evt->info.openReq.sync_async;
 
-	if (sinfo->stype == MDS_SENDTYPE_SNDRSP) {
-		rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-	} else {
-		send_evt.info.cpa.info.openRsp.invocation = evt->info.openReq.invocation;
-		rc = cpnd_mds_msg_send(cb, sinfo->to_svc, sinfo->dest, &send_evt);
-	}
+
+        if(!send_evt.info.cpa.info.openRsp.sync_async)
+           send_evt.info.cpa.info.openRsp.invocation = evt->info.openReq.invocation;
+	
+	rc = cpnd_mds_msg_send(cb, sinfo->to_svc, sinfo->dest, &send_evt);
 
 	if (out_evt)
 		cpnd_evt_destroy(out_evt);
@@ -1585,8 +1589,11 @@ static uns32 cpnd_evt_proc_ckpt_active_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 	CPND_CKPT_NODE *cp_node = NULL;
 	MDS_DEST mds_dest;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	CPSV_EVT send_evt;
 
 	memset(&mds_dest, '\0', sizeof(MDS_DEST));
+	m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_INFO, evt->info.active_set.ckpt_id,
+			evt->info.active_set.mds_dest, __FILE__, __LINE__);
 
 	/* get cp_node from ckpt_info_db */
 	cpnd_ckpt_node_get(cb, evt->info.active_set.ckpt_id, &cp_node);
@@ -1601,8 +1608,14 @@ static uns32 cpnd_evt_proc_ckpt_active_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 	} else {
 		cp_node->is_active_exist = TRUE;
 		cp_node->active_mds_dest = evt->info.active_set.mds_dest;
-		m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_INFO,
-				cp_node->ckpt_id, cp_node->active_mds_dest, __FILE__, __LINE__);
+		memset(&send_evt, 0, sizeof(CPSV_EVT));
+		send_evt.type = CPSV_EVT_TYPE_CPA;
+		send_evt.info.cpa.type = CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND;
+		send_evt.info.cpa.info.ackpt_info.ckpt_id = cp_node->ckpt_id;
+		send_evt.info.cpa.info.ackpt_info.mds_dest = cp_node->active_mds_dest;
+		rc = cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+		m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS, CPND_FC_HDLN, NCSFL_SEV_NOTICE, cp_node->ckpt_id,
+				cp_node->active_mds_dest, __FILE__, __LINE__);
 	}
 	cp_node->is_restart = FALSE;
 	return rc;
@@ -2001,8 +2014,7 @@ static uns32 cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 	}
 
 	/* CPND REDUNDANCY */
-	if ((TRUE == cp_node->is_restart) || (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) != 0))
-	{
+	if ((TRUE == cp_node->is_restart) || (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) != 0)) {
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 		send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -2160,8 +2172,8 @@ static uns32 cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 						    evt->info.sec_creatReq.init_size;
 						rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, tmp->dest,
 									    &send_evt, &out_evt,
-									    CPND_WAIT_TIME(evt->info.sec_creatReq.
-											   init_size));
+									    CPND_WAIT_TIME(evt->info.
+											   sec_creatReq.init_size));
 						if (rc != NCSCC_RC_SUCCESS) {
 							if (rc == NCSCC_RC_REQ_TIMOUT) {
 								m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL,
@@ -2196,12 +2208,12 @@ static uns32 cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 							else
 								tmp_sec_info =
 								    cpnd_ckpt_sec_del(cp_node,
-										      evt->info.sec_creatReq.sec_attri.
-										      sectionId);
+										      evt->info.sec_creatReq.
+										      sec_attri.sectionId);
 
 							if (tmp_sec_info == sec_info) {
-								cp_node->replica_info.shm_sec_mapping[sec_info->
-												      lcl_sec_id] = 1;
+								cp_node->replica_info.
+								    shm_sec_mapping[sec_info->lcl_sec_id] = 1;
 								m_CPND_FREE_CKPT_SECTION(sec_info);
 							} else {
 								m_LOG_CPND_CL(CPND_CKPT_SECT_DEL_FAILED, CPND_FC_API,
@@ -2301,8 +2313,7 @@ static uns32 cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 		goto agent_rsp;
 	}
 	/* CPND REDUNDANCY */
-	if ((TRUE == cp_node->is_restart) || (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) != 0))
-	{
+	if ((TRUE == cp_node->is_restart) || (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) != 0)) {
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_DELETE_RSP;
 		send_evt.info.cpa.info.sec_delete_rsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -2740,7 +2751,7 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_EVT send_evt;
 	uns32 err_flag = 0;
-
+	uns32 errflag = 0;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_write.ckpt_id, &cp_node);
@@ -2799,12 +2810,14 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO
 		goto agent_rsp;
 	}
 
-	rc = cpnd_ckpt_update_replica(cb, cp_node, &evt->info.ckpt_write, evt->info.ckpt_write.type, &err_flag);
+	rc = cpnd_ckpt_update_replica(cb, cp_node, &evt->info.ckpt_write,
+				      evt->info.ckpt_write.type, &err_flag, &errflag);
 	if (rc == NCSCC_RC_FAILURE) {
 		send_evt.type = CPSV_EVT_TYPE_CPA;
 		send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_DATA_RSP;
 		switch (evt->info.ckpt_write.type) {
 		case CPSV_CKPT_ACCESS_WRITE:
+			send_evt.info.cpa.info.sec_data_rsp.info.write_err_index = &errflag;
 			send_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_WRITE_RSP;
 			send_evt.info.cpa.info.sec_data_rsp.num_of_elmts = -1;
 			if (err_flag == CKPT_UPDATE_REPLICA_RES_ERR)
@@ -2814,6 +2827,7 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO
 			break;
 
 		case CPSV_CKPT_ACCESS_OVWRITE:
+			send_evt.info.cpa.info.sec_data_rsp.info.write_err_index = &errflag;
 			send_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_OVWRITE_RSP;
 			send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error = SA_AIS_ERR_NOT_EXIST;
 			break;
@@ -2869,7 +2883,7 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPND_E
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_EVT send_evt;
 	uns32 err_flag = 0;
-
+	uns32 errflag = 0;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;
@@ -2901,7 +2915,7 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, CPND_E
 	}
 	if (cp_node->cpnd_rep_create) {
 		rc = cpnd_ckpt_update_replica(cb, cp_node, &evt->info.ckpt_nd2nd_data,
-					      evt->info.ckpt_nd2nd_data.type, &err_flag);
+					      evt->info.ckpt_nd2nd_data.type, &err_flag, &errflag);
 		if (rc == NCSCC_RC_FAILURE) {
 			/* crash the sec_id */
 			m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
@@ -3198,8 +3212,10 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		return rc;
 	}
 
+	if (cp_node->create_attrib.creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED) {
 	send_evt.info.cpnd.info.ckpt_nd2nd_sync.num_of_elmts = cp_node->replica_info.n_secs;
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+	}
 
 	if ((cp_node->replica_info.n_secs > 0) && (cp_node->replica_info.section_info)) {
 
@@ -3241,6 +3257,7 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt, CP
 	CPSV_EVT send_evt;
 	uns32 err_flag = 0;
 	CPSV_EVT des_evt, *out_evt = NULL;
+	uns32 errflag = 0;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
@@ -3252,8 +3269,8 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt, CP
 	}
 	if (cp_node->cpnd_rep_create) {
 		if (cpnd_ckpt_update_replica
-		    (cb, cp_node, &evt->info.ckpt_nd2nd_sync, evt->info.ckpt_nd2nd_sync.type,
-		     &err_flag) != NCSCC_RC_SUCCESS)
+		    (cb, cp_node, &evt->info.ckpt_nd2nd_sync, evt->info.ckpt_nd2nd_sync.type, &err_flag,
+		     &errflag) != NCSCC_RC_SUCCESS)
 			cp_node->open_active_sync_tmr.is_active_sync_err = TRUE;
 
 		if (evt->info.ckpt_nd2nd_sync.last_seq == TRUE) {
@@ -3279,8 +3296,8 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt, CP
 						send_evt.info.cpa.info.sync_rsp.lcl_ckpt_hdl =
 						    evt->info.ckpt_nd2nd_sync.ckpt_sync.lcl_ckpt_hdl;
 						rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,
-								       evt->info.ckpt_nd2nd_sync.ckpt_sync.cpa_sinfo.
-								       dest, &send_evt);
+								       evt->info.ckpt_nd2nd_sync.ckpt_sync.
+								       cpa_sinfo.dest, &send_evt);
 					}
 				}
 			} else if (evt->info.ckpt_nd2nd_sync.ckpt_sync.is_ckpt_open == TRUE) {
@@ -3339,8 +3356,8 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb, CPND_EVT *evt, CP
 						send_evt.info.cpa.info.openRsp.invocation =
 						    evt->info.ckpt_nd2nd_sync.ckpt_sync.invocation;
 						rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,
-								       evt->info.ckpt_nd2nd_sync.ckpt_sync.cpa_sinfo.
-								       dest, &send_evt);
+								       evt->info.ckpt_nd2nd_sync.ckpt_sync.
+								       cpa_sinfo.dest, &send_evt);
 					}
 				}
 			}
@@ -3692,7 +3709,7 @@ static uns32 cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
 	uns32 rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaCkptHandleT client_hdl = 0;
-	CPSV_EVT send_evt, *out_evt = NULL;
+	CPSV_EVT send_evt;
 
 	/* Check if this ckpt is created by someone on this node */
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_create.ckpt_info.ckpt_id, &cp_node);
@@ -3796,8 +3813,8 @@ static uns32 cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
 	send_evt.info.cpnd.type = CPND_EVT_ND2ND_CKPT_SYNC_REQ;
 	send_evt.info.cpnd.info.sync_req.ckpt_id = cp_node->ckpt_id;
 
-	rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt,
-				    &out_evt, CPSV_WAIT_TIME);
+
+	rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL, CPND_FC_MDSFAIL, NCSFL_SEV_ERROR,
@@ -3906,8 +3923,7 @@ static uns32 cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, CPND_EVT *evt, CPSV_SE
 
 	if ((m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, &cb->cpnd_mdest_id) == 0) ||
 	    ((m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE)
-	     && (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE)))
-	{
+	     && (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE))) {
 		if (cpnd_proc_getnext_section(cp_node, &evt->info.iter_getnext, &sect_desc, &num_secs_trav)
 		    != NCSCC_RC_SUCCESS) {
 			rc = SA_AIS_ERR_NO_SECTIONS;
@@ -3978,6 +3994,31 @@ static uns32 cpnd_evt_proc_ckpt_iter_next_req(CPND_CB *cb, CPND_EVT *evt, CPSV_S
 
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	return rc;
+}
+
+static uns32 cpnd_evt_proc_ckpt_refcntset(CPND_CB *cb,CPND_EVT *evt)
+{
+
+   uns32                   rc = NCSCC_RC_SUCCESS,i=0;
+   CPND_CKPT_NODE          *cp_node=NULL;
+
+ for(i=0;i<evt->info.refCntsetReq.no_of_nodes;i++)
+  {
+   cpnd_ckpt_node_get(cb,evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id,&cp_node);
+
+   if (cp_node == NULL)
+   {
+      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
+        evt->info.refCntsetReq.ref_cnt_array[i].ckpt_id,__FILE__,__LINE__);
+      rc = NCSCC_RC_FAILURE;
+   }
+   else
+   {
+       cp_node->ckpt_lcl_ref_cnt = (cp_node->ckpt_lcl_ref_cnt + evt->info.refCntsetReq.ref_cnt_array[i].ckpt_ref_cnt);
+   }
+  }
+   return rc;
+
 }
 
 /****************************************************************************
@@ -4084,8 +4125,8 @@ uns32 cpnd_evt_destroy(CPSV_EVT *evt)
 		if (evt->info.cpnd.info.active_sec_creat.sec_attri.sectionId) {
 			if (evt->info.cpnd.info.active_sec_creat.sec_attri.sectionId->id != NULL
 			    && evt->info.cpnd.info.active_sec_creat.sec_attri.sectionId->idLen != 0)
-				m_MMGR_FREE_CPSV_DEFAULT_VAL(evt->info.cpnd.info.active_sec_creat.sec_attri.sectionId->
-							     id, NCS_SERVICE_ID_CPND);
+				m_MMGR_FREE_CPSV_DEFAULT_VAL(evt->info.cpnd.info.active_sec_creat.sec_attri.
+							     sectionId->id, NCS_SERVICE_ID_CPND);
 
 			m_MMGR_FREE_CPSV_SaCkptSectionIdT(evt->info.cpnd.info.sec_creatReq.sec_attri.sectionId,
 							  NCS_SERVICE_ID_CPND);
@@ -4178,17 +4219,17 @@ uns32 cpnd_evt_destroy(CPSV_EVT *evt)
 					for (; i < evt->info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts; i++) {
 						if ((evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data[i].data !=
 						     NULL)) {
-							m_MMGR_FREE_CPND_DEFAULT(evt->info.cpnd.info.
-										 ckpt_nd2nd_data_rsp.info.read_data[i].
-										 data);
+							m_MMGR_FREE_CPND_DEFAULT(evt->info.cpnd.
+										 info.ckpt_nd2nd_data_rsp.info.
+										 read_data[i].data);
 							evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data[i].data =
 							    NULL;
 						}
 					}
 				}
 				if (evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data)
-					m_MMGR_FREE_CPND_DEFAULT(evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.
-								 read_data);
+					m_MMGR_FREE_CPND_DEFAULT(evt->info.cpnd.info.ckpt_nd2nd_data_rsp.
+								 info.read_data);
 				evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data = NULL;
 			}
 			break;

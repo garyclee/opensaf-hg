@@ -143,11 +143,11 @@ void cpd_process_evt(CPSV_EVT *evt)
 		break;
 	}
 
-	if (rc != NCSCC_RC_SUCCESS)
-		/* TBD Log the error */
+	/*  if(rc != NCSCC_RC_SUCCESS)
+	   TBD Log the error */
 
-		/* Return the Handle */
-		ncshm_give_hdl(cb_hdl);
+	/* Return the Handle */
+	ncshm_give_hdl(cb_hdl);
 
 	/* Free the Event */
 	m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
@@ -176,12 +176,12 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPSV_ND2D_CKPT_CREATE *ckpt_create = &evt->info.ckpt_create;
 	NCS_BOOL is_first_rep = FALSE, is_new_noncol = FALSE;
-	MDS_CLIENT_MSG_FORMAT_VER fmt_ver = 2;
 
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_create->ckpt_name, &map_info);
 	if (map_info) {
-		if (fmt_ver == 2) {
-			/*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
+
+		/*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
+		if (m_CPA_VER_IS_ABOVE_B_1_1(&ckpt_create->client_version)) {
 			if ((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (!m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &map_info->attributes))) {
 				m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE, CPD_FC_HDLN, NCSFL_SEV_NOTICE,
@@ -189,7 +189,7 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
 				rc = SA_AIS_ERR_EXIST;
 				goto send_rsp;
 			}
-		} else if (fmt_ver == 1) {
+		} else {
 			if ((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (!m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &map_info->attributes))) {
 				m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE, CPD_FC_HDLN, NCSFL_SEV_NOTICE,
@@ -201,14 +201,24 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
 	} else {
 		SaCkptCheckpointCreationAttributesT ckpt_local_attrib;
 		memset(&ckpt_local_attrib, 0, sizeof(SaCkptCheckpointCreationAttributesT));
-		/*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length); */
+		/* ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length); */
 		is_first_rep = TRUE;
-		if (!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
-		    (m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &ckpt_local_attrib))) {
-			m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR,
-				       ckpt_create->ckpt_name.value, sinfo->dest, __FILE__, __LINE__);
-			rc = SA_AIS_ERR_NOT_EXIST;
-			goto send_rsp;
+		if (m_CPA_VER_IS_ABOVE_B_1_1(&ckpt_create->client_version)) {
+			if (!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
+			    (m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &ckpt_local_attrib))) {
+				m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR,
+					       ckpt_create->ckpt_name.value, sinfo->dest, __FILE__, __LINE__);
+				rc = SA_AIS_ERR_NOT_EXIST;
+				goto send_rsp;
+			}
+		} else {
+			if (!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
+			    (m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &ckpt_local_attrib))) {
+				m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR,
+					       ckpt_create->ckpt_name.value, sinfo->dest, __FILE__, __LINE__);
+				rc = SA_AIS_ERR_NOT_EXIST;
+				goto send_rsp;
+			}
 		}
 	}
 
@@ -1181,7 +1191,8 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 										      &ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
-												      &cb->loc_cpnd_dest,
+												      &cb->
+												      loc_cpnd_dest,
 												      ckpt_node,
 												      map_info);
 								}
@@ -1217,7 +1228,8 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 										      &ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
-												      &cb->rem_cpnd_dest,
+												      &cb->
+												      rem_cpnd_dest,
 												      ckpt_node,
 												      map_info);
 

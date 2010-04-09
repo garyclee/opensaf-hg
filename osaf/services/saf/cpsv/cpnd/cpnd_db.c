@@ -1030,7 +1030,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST ade
 	CPSV_EVT *bck_evt = NULL;
 	uns32 err_flag = 0;
 	CPSV_SEND_INFO *sinfo = NULL;
-
+	uns32 errflag = 0;
 	/* This check is for one write and 1 local read and then kill the reader */
 
 	cpnd_agent_dest_del(cp_node, adest);
@@ -1039,7 +1039,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST ade
 		bck_evt = cp_node->evt_bckup_q;
 
 		cpnd_ckpt_update_replica(cb, cp_node, &bck_evt->info.cpnd.info.ckpt_nd2nd_data,
-					 bck_evt->info.cpnd.info.ckpt_nd2nd_data.type, &err_flag);
+					 bck_evt->info.cpnd.info.ckpt_nd2nd_data.type, &err_flag, &errflag);
 
 		cpnd_proc_ckpt_arrival_info_ntfy(cb, cp_node, &bck_evt->info.cpnd.info.ckpt_nd2nd_data, sinfo);
 

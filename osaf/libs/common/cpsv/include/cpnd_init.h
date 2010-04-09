@@ -74,7 +74,9 @@ typedef struct cpnd_destroy_info {
 
 /* file : -  cpnd_proc.c */
 
+uns32 cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error);
 uns32 cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node);
+uns32 cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id);
 uns32 cpnd_ckpt_client_del(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node);
 uns32 cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node);
 uns32 cpnd_client_ckpt_info_del(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node);
@@ -89,7 +91,7 @@ uns32 cpnd_ckpt_sec_read(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 			 *sec_info, void *data, uns32 size, uns32 offset);
 void cpnd_proc_cpa_down(CPND_CB *cb, MDS_DEST dest);
 uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
-			       CPSV_CKPT_ACCESS *write_data, uns32 type, uns32 *err_type);
+			       CPSV_CKPT_ACCESS *write_data, uns32 type, uns32 *err_type, uns32 *errflag);
 uns32 cpnd_ckpt_read_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *read_data, CPSV_EVT *evt);
 CPSV_CKPT_DATA *cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node);
 void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read, CPSV_EVT *evt);

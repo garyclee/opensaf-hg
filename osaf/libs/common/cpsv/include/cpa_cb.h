@@ -18,6 +18,8 @@
 #ifndef CPA_CB_H
 #define CPA_CB_H
 
+#include "ncs_queue.h"
+
 /* Node to store checkpoint client information */
 typedef struct cpa_client_node {
 	NCS_PATRICIA_NODE patnode;
@@ -104,6 +106,7 @@ typedef struct cpa_cb {
 
 	NCS_PATRICIA_TREE sect_iter_tree;	/* CPA_SECT_ITER_NODE - node */
 	NCS_BOOL is_sect_iter_tree_up;
+        NCS_QUEUE cpa_evt_process_queue;
 
 	/* Sync up with CPND ( MDS ) */
 	NCS_LOCK cpnd_sync_lock;
@@ -113,6 +116,13 @@ typedef struct cpa_cb {
 } CPA_CB;
 
 EXTERN_C uns32 gl_cpa_hdl;
+
+typedef struct cpa_prcess_evt_sync {
+	NCS_QELEM qelem;
+	CPSV_EVT error_code;
+} CPA_PROCESS_EVT_SYNC;
+
+
 
 #define m_CPA_RETRIEVE_CB(cb)                                                  \
 {                                                                              \
@@ -135,10 +145,10 @@ EXTERN_C uns32 gl_cpa_hdl;
             (((attr & SA_CKPT_CHECKPOINT_COLLOCATED) != 0)?TRUE:FALSE)
 
 /*30B Versioning Changes */
-#define CPA_MDS_PVT_SUBPART_VERSION 1
+#define CPA_MDS_PVT_SUBPART_VERSION 2
 /*CPA - CPND communication */
 #define CPA_WRT_CPND_SUBPART_VER_MIN 1
-#define CPA_WRT_CPND_SUBPART_VER_MAX 1
+#define CPA_WRT_CPND_SUBPART_VER_MAX 2
 
 #define CPA_WRT_CPND_SUBPART_VER_RANGE \
         (CPA_WRT_CPND_SUBPART_VER_MAX - \
@@ -146,7 +156,7 @@ EXTERN_C uns32 gl_cpa_hdl;
 
 /*CPND - CPD communication */
 #define CPA_WRT_CPD_SUBPART_VER_MIN 1
-#define CPA_WRT_CPD_SUBPART_VER_MAX 1
+#define CPA_WRT_CPD_SUBPART_VER_MAX 2
 
 #define CPA_WRT_CPD_SUBPART_VER_RANGE \
         (CPA_WRT_CPD_SUBPART_VER_MAX - \

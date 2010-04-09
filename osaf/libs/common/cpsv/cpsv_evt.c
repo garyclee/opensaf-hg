@@ -64,6 +64,55 @@ uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id)
 	return rc;
 
 }
+uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
+{
+   uns32 rc= NCSCC_RC_SUCCESS;
+   uns8 *pStream = NULL; 
+   uns32 counter =0,array_cnt=0;
+
+   pStream = ncs_enc_reserve_space(i_ub, 4);
+   ncs_encode_32bit(&pStream, data->no_of_nodes);
+   ncs_enc_claim_space(i_ub, 4);
+
+
+   counter = data->no_of_nodes;
+   while(counter!=0)
+   {
+     pStream = ncs_enc_reserve_space(i_ub,12 );
+     ncs_encode_64bit(&pStream , data->ref_cnt_array[array_cnt].ckpt_id); 
+     ncs_encode_32bit(&pStream , data->ref_cnt_array[array_cnt].ckpt_ref_cnt); 
+     counter--;
+     array_cnt++;
+     ncs_enc_claim_space(i_ub, 12);
+   }
+   
+   return rc;
+}
+
+
+uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
+{
+   uns8* pstream = NULL;
+   uns8 local_data[50];
+   uns32 counter=0,array_cnt=0;
+ 
+
+   pstream = ncs_dec_flatten_space(io_uba,local_data, 4);
+   pdata->no_of_nodes = ncs_decode_32bit(&pstream);
+   ncs_dec_skip_space(io_uba, 4);
+
+   counter =  pdata->no_of_nodes; 
+   while (counter != 0)
+   {
+    pstream = ncs_dec_flatten_space(io_uba,local_data, 12);
+    pdata->ref_cnt_array[array_cnt].ckpt_id = ncs_decode_64bit(&pstream);
+    pdata->ref_cnt_array[array_cnt].ckpt_ref_cnt = ncs_decode_32bit(&pstream);
+    ncs_dec_skip_space(io_uba, 12);
+    counter--;
+    array_cnt++;
+   }
+   return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************\
  PROCEDURE NAME : cpsv_ckpt_data_encode
@@ -353,15 +402,14 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 						for (; iter < data_rsp->size; iter++) {
 							size = sizeof(CPSV_ND2A_READ_DATA);
 							ncs_encode_n_octets_in_uba(o_ub,
-										   (uns8 *)&data_rsp->info.
-										   read_data[iter]
+										   (uns8 *)&data_rsp->
+										   info.read_data[iter]
 										   , size);
 							if (data_rsp->info.read_data[iter].read_size > 0) {
 								size = data_rsp->info.read_data[iter].read_size;
 								ncs_encode_n_octets_in_uba(o_ub,
-											   (uns8 *)data_rsp->
-											   info.read_data[iter].data,
-											   size);
+											   (uns8 *)data_rsp->info.
+											   read_data[iter].data, size);
 							}
 						}
 					}
@@ -508,7 +556,12 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)dest_list, size);
 			}
 		}
-	}
+      else if(i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_REFCNTSET)
+      {
+       if(i_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
+           cpsv_ref_cnt_encode(o_ub, &i_evt->info.cpnd.info.refCntsetReq);
+      }
+    }
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -542,9 +595,11 @@ static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id)
 
 	if (sec_id->idLen) {
 		size = sec_id->idLen;
-		sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, svc_id);
-		if (sec_id->id)
+		sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, svc_id);
+		if (sec_id->id) {
 			ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+			sec_id->id[size] = 0;
+		}
 	}
 	return sec_id;
 }
@@ -626,12 +681,12 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 
 	/* Allocate Memory for sec_id.id */
 	if (pdata->sec_id.idLen) {
-		pdata->sec_id.id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(pdata->sec_id.idLen, NCS_SERVICE_ID_CPND);
+		pdata->sec_id.id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(pdata->sec_id.idLen + 1, NCS_SERVICE_ID_CPND);
 		if (!pdata->sec_id.id) {
 			m_MMGR_FREE_CPSV_CKPT_DATA(pdata);
 			return NCSCC_RC_FAILURE;
 		}
-		memset(pdata->sec_id.id, 0, pdata->sec_id.idLen);
+		memset(pdata->sec_id.id, 0, pdata->sec_id.idLen + 1);
 		ncs_decode_n_octets_from_uba(io_uba, pdata->sec_id.id, (uns32)pdata->sec_id.idLen);
 	}
 	size = 8 + 8 + 8;
@@ -818,8 +873,9 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 							for (; iter < data_rsp->size; iter++) {
 								size = sizeof(CPSV_ND2A_READ_DATA);
 								ncs_decode_n_octets_from_uba(i_ub,
-											     (uns8 *)&data_rsp->info.
-											     read_data[iter], size);
+											     (uns8 *)&data_rsp->
+											     info.read_data[iter],
+											     size);
 								if (data_rsp->info.read_data[iter].read_size > 0) {
 									size = data_rsp->info.read_data[iter].read_size;
 									data_rsp->info.read_data[iter].data =
@@ -827,11 +883,8 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 													  NCS_SERVICE_ID_CPA);
 									if (data_rsp->info.read_data[iter].data) {
 										ncs_decode_n_octets_from_uba(i_ub,
-													     data_rsp->
-													     info.
-													     read_data
-													     [iter].
-													     data,
+													     data_rsp->info.read_data
+													     [iter].data,
 													     size);
 									}
 								}
@@ -848,8 +901,8 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 										NCS_SERVICE_ID_CPA);
 						if (data_rsp->info.write_err_index)
 							ncs_decode_n_octets_from_uba(i_ub,
-										     (uns8 *)data_rsp->info.
-										     write_err_index, size);
+										     (uns8 *)data_rsp->
+										     info.write_err_index, size);
 					}
 				}
 				break;
@@ -888,9 +941,12 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (sec_id) {
 					size = sec_id->idLen;
 					if (size) {
-						sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-						if (sec_id->id && size)
+						sec_id->id =
+						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+						if (sec_id->id) {
 							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							sec_id->id[size] = 0;
+						}
 					}
 				}
 				break;
@@ -901,9 +957,12 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (sec_id) {
 					size = sec_id->idLen;
 					if (size) {
-						sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-						if (sec_id->id && size)
+						sec_id->id =
+						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+						if (sec_id->id) {
 							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							sec_id->id[size] = 0;
+						}
 					}
 				}
 				break;
@@ -947,8 +1006,9 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 											NCS_SERVICE_ID_CPA);
 							if (data_rsp->info.write_err_index)
 								ncs_decode_n_octets_from_uba(i_ub,
-											     (uns8 *)data_rsp->info.
-											     write_err_index, size);
+											     (uns8 *)data_rsp->
+											     info.write_err_index,
+											     size);
 						} else
 							data_rsp->info.write_err_index = NULL;
 					}
@@ -980,12 +1040,14 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			{
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.active_sec_creat_rsp.sec_id;
 				if (sec_id) {
-					if (sec_id->idLen) {
+					size = sec_id->idLen;
+					if (size) {
 						sec_id->id =
-						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(sec_id->idLen, NCS_SERVICE_ID_CPND);
-						if (sec_id->id)
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id,
-										     sec_id->idLen);
+						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+						if (sec_id->id) {
+							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							sec_id->id[size] = 0;
+						}
 					} else
 						sec_id->id = NULL;
 				}
@@ -995,12 +1057,14 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			{
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_delete_req.sec_id;
 				if (sec_id) {
-					if (sec_id->idLen) {
+					size = sec_id->idLen;
+					if (size) {
 						sec_id->id =
-						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(sec_id->idLen, NCS_SERVICE_ID_CPND);
-						if (sec_id->id)
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id,
-										     sec_id->idLen);
+						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+						if (sec_id->id) {
+							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							sec_id->id[size] = 0;
+						}
 					} else
 						sec_id->id = NULL;
 				}
@@ -1031,10 +1095,14 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (sec_id) {
 					size = sec_id->idLen;
 					if (size) {
-						sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-						if (sec_id->id && size)
+						sec_id->id =
+						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+						if (sec_id->id) {
 							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							sec_id->id[size] = 0;
 					}
+					} else
+						sec_id->id = NULL;
 				}
 				break;
 			}
@@ -1044,9 +1112,14 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			if (o_evt->info.cpnd.info.sec_delReq.sec_id.idLen) {
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_delReq.sec_id;
 				uns32 size = o_evt->info.cpnd.info.sec_delReq.sec_id.idLen;
-				sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-				if (sec_id->id && size)
+				if (size) {
+					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+					if (sec_id->id) {
 					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+						sec_id->id[size] = 0;
+					}
+				} else
+					sec_id->id = NULL;
 			}
 			break;
 
@@ -1055,9 +1128,14 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 			if (o_evt->info.cpnd.info.sec_expset.sec_id.idLen) {
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_expset.sec_id;
 				uns32 size = o_evt->info.cpnd.info.sec_expset.sec_id.idLen;
-				sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-				if (sec_id->id && size)
+				if (size) {
+					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+					if (sec_id->id) {
 					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+						sec_id->id[size] = 0;
+					}
+				} else
+					sec_id->id = NULL;
 			}
 			break;
 
@@ -1067,9 +1145,11 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				SaCkptSectionIdT *sec_id = &o_evt->info.cpnd.info.sec_exp_set.sec_id;
 				uns32 size = o_evt->info.cpnd.info.sec_exp_set.sec_id.idLen;
 				if (size) {
-					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-					if (sec_id->id)
+					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
+					if (sec_id->id) {
 						ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+						sec_id->id[size] = 0;
+					}
 				} else
 					sec_id->id = NULL;
 
@@ -1129,6 +1209,10 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				o_evt->info.cpnd.info.ckpt_add.dest_list = dest_list;
 			}
 			break;
+      case CPND_EVT_A2ND_CKPT_REFCNTSET:
+         if(o_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
+           cpsv_refcnt_ckptid_decode(&o_evt->info.cpnd.info.refCntsetReq,i_ub ); 
+     break;
 		default:
 			break;
 		}

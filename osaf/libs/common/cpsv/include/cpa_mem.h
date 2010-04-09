@@ -42,7 +42,7 @@ typedef enum {
 	CPA_SVC_SUB_ID_CPA_GLOBAL_CKPT_NODE,
 	CPA_SVC_SUB_ID_CPA_CALLBACK_INFO,
 	CPA_SVC_SUB_ID_SaCkptIOVectorElementT,
-
+        CPA_SVC_SUB_ID_CPA_PROCESS_EVT_SYNC,
 	CPA_SVC_SUB_ID_MAX
 } CPA_SVC_SUB_ID;
 
@@ -106,6 +106,17 @@ typedef enum {
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
                                                 CPA_SVC_SUB_ID_CPA_SECT_ITER_NODE)
+
+#define m_MMGR_ALLOC_CPA_PROCESS_EVT_SYNC  m_NCS_MEM_ALLOC(sizeof(CPA_PROCESS_EVT_SYNC), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_CPA, \
+                                                CPA_SVC_SUB_ID_CPA_PROCESS_EVT_SYNC)
+
+#define m_MMGR_FREE_CPA_PROCESS_EVT_SYNC(p)      m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_CPA, \
+                                                CPA_SVC_SUB_ID_CPA_PROCESS_EVT_SYNC)
+
 
 #define m_MMGR_FREE_CPA_SECT_ITER_NODE(p)        m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \

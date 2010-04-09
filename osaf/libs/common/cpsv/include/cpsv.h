@@ -74,6 +74,11 @@
    ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&        \
    ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))      \
 
+#define m_CPA_VER_IS_ABOVE_B_1_1(ver) \
+  ((((ver)->releaseCode == 'B') || \
+    ((ver)->releaseCode > 'B') )&& \
+    ((ver)->majorVersion > 0x01 ) && \
+    ((ver)->minorVersion > 0x01 ) )
 #define m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(attr)                  \
     ((attr)->creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED)
 
