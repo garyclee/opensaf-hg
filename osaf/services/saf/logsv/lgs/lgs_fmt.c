@@ -1016,6 +1016,7 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
 		} else if (*fmtExpPtrSnabel != STRING_END_CHARACTER) {
 			/* All chars between tokens */
 			fmtExpTokenOffset = LITTERAL_CHAR_OFFSET;
+			tokenOk = SA_TRUE;
 		} else {	/* End of formatExpression */
 			if (*fmtExpPtr == TOKEN_START_SYMBOL) {
 				tokenOk = SA_FALSE;	/* Illegal litteral character at the end */
