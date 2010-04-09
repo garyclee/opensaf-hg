@@ -45,11 +45,11 @@ FUNC_DECLARATION(CPSV_EVT);
 
 /* Message Format Verion Tables at CPND */
 MDS_CLIENT_MSG_FORMAT_VER cpa_cpnd_msg_fmt_table[CPA_WRT_CPND_SUBPART_VER_RANGE] = {
-	1
+	1, 2
 };
 
 MDS_CLIENT_MSG_FORMAT_VER cpa_cpd_msg_fmt_table[CPA_WRT_CPD_SUBPART_VER_RANGE] = {
-	1
+	1, 2
 };
 
 /****************************************************************************
@@ -404,6 +404,12 @@ static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
+    SaCkptCheckpointHandleT  prev_ckpt_id=0;
+    CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
+    uns32 proc_rc = 0, i = 0, no_of_nodes = 0;
+    uns32 counter=cb->gbl_ckpt_tree.n_nodes;
+    CPSV_EVT send_evt;
+    CPSV_REF_CNT   ref_cnt_array[100];
 
 	/* TBD: The CPND and CPD restarts are to be implemented post April release */
 	switch (svc_evt->i_change) {
@@ -434,7 +440,48 @@ static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 					m_NCS_SEL_OBJ_IND(cb->cpnd_sync_sel);
 				}
 				m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
-			}
+           /* Get the First Node */
+           gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
+                                           (uns8*)&prev_ckpt_id);
+           if(gc_node) 
+           {
+            for(i=0;i<counter;i++) 
+             {
+                prev_ckpt_id = gc_node->gbl_ckpt_hdl;
+                if(gc_node->ref_cnt > 1)
+                {
+              	  ref_cnt_array[no_of_nodes].ckpt_ref_cnt= gc_node->ref_cnt - 1;
+              	  ref_cnt_array[no_of_nodes].ckpt_id = gc_node->gbl_ckpt_hdl;
+                  no_of_nodes++;
+                }
+                gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
+                                                        (uns8*)&prev_ckpt_id);
+             }  
+
+               memset(&send_evt, 0, sizeof(CPSV_EVT));
+               send_evt.type = CPSV_EVT_TYPE_CPND;
+               send_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_REFCNTSET;
+               memcpy(send_evt.info.cpnd.info.refCntsetReq.ref_cnt_array,ref_cnt_array,no_of_nodes*sizeof(CPSV_REF_CNT));
+           
+               send_evt.info.cpnd.info.refCntsetReq.no_of_nodes = no_of_nodes;
+         
+               proc_rc = cpa_mds_msg_send(cb->cpa_mds_hdl,&cb->cpnd_mds_dest,&send_evt,NCSMDS_SVC_ID_CPND);
+    
+               switch (proc_rc)
+               {
+                 case NCSCC_RC_SUCCESS:
+                      break;
+                 case NCSCC_RC_REQ_TIMOUT:
+                      m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                               "active_ckpt_info_bcast :MDS", __FILE__ ,__LINE__, proc_rc ,0, cb->cpnd_mds_dest);
+                      break;
+                 default:
+                      m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                                "active_ckpt_info_bcast:MDS", __FILE__ ,__LINE__, proc_rc ,0, cb->cpnd_mds_dest);
+                      break;
+               }
+           } 
+         }
 			break;
 		default:
 			break;
@@ -501,7 +548,25 @@ static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				rc = cpsv_ckpt_access_encode(&pevt->info.cpnd.info.ckpt_read, io_uba);
 				return rc;
 			}
-		}		/* For all other cases call EDU othen than Write/Read API's */
+         else  if(pevt->info.cpnd.type == CPND_EVT_A2ND_CKPT_REFCNTSET)
+         {
+             if(enc_info->o_msg_fmt_ver < 2)
+                return NCSCC_RC_FAILURE;
+             else
+                {
+		  pstream = ncs_enc_reserve_space(io_uba, 12);
+                  if(!pstream)
+                     return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpa_mds_enc \n");
+                  ncs_encode_32bit(&pstream , pevt->type);              
+                  ncs_encode_32bit(&pstream , pevt->info.cpnd.error);  
+                  ncs_encode_32bit(&pstream , pevt->info.cpnd.type);         
+                  ncs_enc_claim_space(io_uba, 12);
+
+                  rc = cpsv_ref_cnt_encode(io_uba,&pevt->info.cpnd.info.refCntsetReq);
+                  return rc; 
+                }
+         }
+      }  /* For all other cases call EDU othen than Write/Read API's */
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
 				    enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror);
 		return rc;

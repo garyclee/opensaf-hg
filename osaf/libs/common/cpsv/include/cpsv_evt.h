@@ -81,6 +81,7 @@ typedef enum cpa_evt_type {
 	CPA_EVT_CB_DUMP,
 	CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT,
 	CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED,
+	CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND,
 	CPA_EVT_MAX
 } CPA_EVT_TYPE;
 
@@ -172,10 +173,11 @@ typedef enum cpnd_evt_type {
 
 	CPND_EVT_CB_DUMP,
 
-	CPND_EVT_D2ND_CKPT_NUM_SECTIONS,
+   CPND_EVT_D2ND_CKPT_NUM_SECTIONS,
+   CPND_EVT_A2ND_CKPT_REFCNTSET,        /* ref cont opener's set call */
+   CPND_EVT_MAX
 
-	CPND_EVT_MAX
-} CPND_EVT_TYPE;
+}CPND_EVT_TYPE;
 
 /*****************************************************************************
  * Event Types of CPD 
@@ -281,6 +283,7 @@ typedef struct cpsv_a2nd_open_req {
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
 	SaInvocationT invocation;
 	SaTimeT timeout;
+        NCS_BOOL sync_async;
 } CPSV_A2ND_OPEN_REQ;
 
 typedef struct cpsv_a2nd_ckpt_close {
@@ -428,6 +431,7 @@ typedef struct cpsv_nd2a_open_rsp {
    CPSV_REQ_TYPE              req_type;*/
 	SaInvocationT invocation;
 	SaAisErrorT error;
+        NCS_BOOL sync_async;
 	/* TBD Shared memory details, Name, SHM start address */
 	void *addr;
 } CPSV_ND2A_OPEN_RSP;
@@ -562,6 +566,7 @@ typedef struct cpsv_nd2d_ckpt_create {
 	SaNameT ckpt_name;
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
+	SaVersionT client_version;
 
 } CPSV_ND2D_CKPT_CREATE;
 
@@ -585,6 +590,17 @@ typedef struct cpsv_nd2d_ckpt_unlink {
 /* Deleted    SaCkptCheckpointHandleT   ckpt_id;   */
 } CPSV_ND2D_CKPT_UNLINK;
 
+typedef struct cpsv_ref_cnt 
+{
+   SaCkptCheckpointHandleT  ckpt_id;
+   uns32  ckpt_ref_cnt;
+}CPSV_REF_CNT;
+
+typedef struct cpsv_a2nd_refcntset
+{
+   uns32           		      no_of_nodes;      
+   CPSV_REF_CNT                       ref_cnt_array[100];
+}CPSV_A2ND_REFCNTSET;
 typedef struct cpsv_ckpt_rdset {
 	SaCkptCheckpointHandleT ckpt_id;
 	SaTimeT reten_time;
@@ -652,20 +668,23 @@ typedef struct cpnd_tmr_info {
 /******************************************************************************
  CPND Event Data Structures
  ******************************************************************************/
-typedef struct cpnd_evt {
-	NCS_BOOL dont_free_me;
-	SaAisErrorT error;
-	CPND_EVT_TYPE type;
-	union {
-		/* CPA --> CPND */
-		CPSV_INIT_REQ initReq;
-		CPSV_FINALIZE_REQ finReq;
-		CPSV_A2ND_OPEN_REQ openReq;
-		CPSV_A2ND_CKPT_CLOSE closeReq;
-		CPSV_A2ND_CKPT_UNLINK ulinkReq;
-		CPSV_A2ND_RDSET rdsetReq;
-		CPSV_A2ND_ACTIVE_REP_SET arsetReq;
-		CPSV_CKPT_STATUS_GET statReq;
+typedef struct cpnd_evt
+{
+   NCS_BOOL       dont_free_me;
+   SaAisErrorT    error; 
+   CPND_EVT_TYPE   type;
+   union
+   {
+      /* CPA --> CPND */
+      CPSV_INIT_REQ             initReq;
+      CPSV_FINALIZE_REQ         finReq;
+      CPSV_A2ND_OPEN_REQ        openReq;
+      CPSV_A2ND_CKPT_CLOSE      closeReq;
+      CPSV_A2ND_CKPT_UNLINK     ulinkReq;
+      CPSV_A2ND_RDSET           rdsetReq;
+      CPSV_A2ND_ACTIVE_REP_SET  arsetReq;
+      CPSV_CKPT_STATUS_GET      statReq;
+      CPSV_A2ND_REFCNTSET       refCntsetReq;
 
 		CPSV_CKPT_SECT_CREATE sec_creatReq;
 		CPSV_A2ND_SECT_DELETE sec_delReq;
@@ -793,6 +812,8 @@ EXTERN_C uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id);
 EXTERN_C uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
 EXTERN_C uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
 EXTERN_C uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data);
+EXTERN_C uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data);
+EXTERN_C uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *data, NCS_UBAID *io_uba);
 EXTERN_C uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata);
 EXTERN_C uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba);
 EXTERN_C uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba);

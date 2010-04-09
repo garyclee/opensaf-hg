@@ -43,11 +43,11 @@ FUNC_DECLARATION(CPSV_EVT);
 
 /* Message Format Verion Tables at CPND */
 MDS_CLIENT_MSG_FORMAT_VER cpnd_cpa_msg_fmt_table[CPND_WRT_CPA_SUBPART_VER_RANGE] = {
-	1
+	1, 2
 };
 
 MDS_CLIENT_MSG_FORMAT_VER cpnd_cpnd_msg_fmt_table[CPND_WRT_CPND_SUBPART_VER_RANGE] = {
-	1
+	1, 2
 };
 
 MDS_CLIENT_MSG_FORMAT_VER cpnd_cpd_msg_fmt_table[CPND_WRT_CPD_SUBPART_VER_RANGE] = {
@@ -482,8 +482,13 @@ static uns32 cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 			case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP:
 				ncs_dec_skip_space(dec_info->io_uba, 12);
 				rc = cpsv_data_access_rsp_decode(&msg_ptr->info.cpnd.info.ckpt_nd2nd_data_rsp,
-								 dec_info->io_uba);
+			 dec_info->io_uba);
 				goto free;
+				
+				          case CPND_EVT_A2ND_CKPT_REFCNTSET:
+             ncs_dec_skip_space(dec_info->io_uba, 12);
+             rc = cpsv_refcnt_ckptid_decode(&msg_ptr->info.cpnd.info.refCntsetReq,dec_info->io_uba);
+             goto free;
 			default:
 				break;
 			}

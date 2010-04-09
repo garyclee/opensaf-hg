@@ -53,14 +53,14 @@ EXTERN_C uns32 cpa_proc_shm_close(CPA_GLOBAL_CKPT_NODE *gc_node);
 
 EXTERN_C uns32 cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
 					      uns32 numberOfElements, uns32 data_access_type,
-					      CPSV_CKPT_DATA **ckpt_data);
+					      SaSizeT maxSectionSize, SaUint32T *errflag, CPSV_CKPT_DATA **ckpt_data);
 
 EXTERN_C void cpa_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
 EXTERN_C void cpa_proc_free_arrival_ntfy_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
 EXTERN_C uns32 cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node,
-				       const SaCkptIOVectorElementT *iovector, uns32 num_of_elmts);
+				       const SaCkptIOVectorElementT *iovector, uns32 num_of_elmts, uns32 *errflag);
 
 EXTERN_C uns32 cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
 				     SaCkptCheckpointHandleT gbl_ckpt_hdl,

@@ -157,7 +157,7 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 	CPND_CB *cb = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT healthy;
-	char *health_key;
+	uns8 *health_key;
 	SaAisErrorT amf_error;
 	NCS_OS_POSIX_SHM_REQ_INFO cpnd_open_req;
 	void *shm_ptr;
@@ -300,16 +300,16 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 	/*   start the AMF Health Check  */
 	memset(&healthy, 0, sizeof(healthy));
 
-	health_key = getenv("CPSV_ENV_HEALTHCHECK_KEY");
+	health_key = (uns8 *)getenv("CPSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		strcpy((char *)healthy.key, "A1B2");
 	} else {
-		if (strlen(health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
+		if (strlen((char *)health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
 			rc = NCSCC_RC_FAILURE;
 			m_LOG_CPND_CL(CPND_INIT_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			return rc;
 		} else
-			strcpy((char *)healthy.key, health_key);
+			strcpy((char *)healthy.key, (char *)health_key);
 	}
 	healthy.keyLen = strlen((char *)healthy.key);
 

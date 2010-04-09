@@ -871,7 +871,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
-			       CPSV_CKPT_ACCESS *write_data, uns32 type, uns32 *err_type)
+			       CPSV_CKPT_ACCESS *write_data, uns32 type, uns32 *err_type, uns32 *errflag)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	uns32 i = 0;
@@ -894,6 +894,7 @@ uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 			} else {
 				m_LOG_CPND_LCL(CPND_REPLICA_HAS_NO_SECTIONS, CPND_FC_GENERIC, NCSFL_SEV_ERROR, type,
 					       __FILE__, __LINE__);
+				*errflag = i;
 				*err_type = CKPT_UPDATE_REPLICA_NO_SECTION;
 				return NCSCC_RC_FAILURE;
 			}
@@ -904,6 +905,7 @@ uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 		if (rc == NCSCC_RC_FAILURE) {
 			m_LOG_CPND_CFCL(CPND_CKPT_SECT_WRITE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
 					data->sec_id.id, cp_node->ckpt_id, __FILE__, __LINE__);
+			*errflag = i;
 			*err_type = CKPT_UPDATE_REPLICA_RES_ERR;
 			return rc;
 		}
@@ -964,11 +966,11 @@ uns32 cpnd_ckpt_read_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACC
 			continue;
 		}
 
-		if (((data->dataOffset + data->dataSize) > (cp_node->create_attrib.maxSectionSize))
-		    || (data->dataOffset > sec_info->sec_size)) {
+		if (data->dataOffset > sec_info->sec_size) {
 			m_LOG_CPND_CL(CPND_SECTION_BOUNDARY_VIOLATION, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
 				      __LINE__);
 			evt->info.cpa.info.sec_data_rsp.num_of_elmts = -1;
+			evt->info.cpa.info.sec_data_rsp.info.write_err_index = &i;
 			evt->info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_INVALID_PARAM;
 			for (j = 0; j < i; j++) {
 				if (ptr_read_data[j].data != NULL) {

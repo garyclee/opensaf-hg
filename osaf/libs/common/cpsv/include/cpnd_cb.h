@@ -88,7 +88,7 @@ EXTERN_C uns32 gl_cpnd_cb_hdl;
 
 /*CPND - CPA communication */
 #define CPND_WRT_CPA_SUBPART_VER_MIN 1
-#define CPND_WRT_CPA_SUBPART_VER_MAX 1
+#define CPND_WRT_CPA_SUBPART_VER_MAX 2
 
 #define CPND_WRT_CPA_SUBPART_VER_RANGE \
         (CPND_WRT_CPA_SUBPART_VER_MAX - \
@@ -96,7 +96,7 @@ EXTERN_C uns32 gl_cpnd_cb_hdl;
 
 /*CPND - CPND communication */
 #define CPND_WRT_CPND_SUBPART_VER_MIN 1
-#define CPND_WRT_CPND_SUBPART_VER_MAX 1
+#define CPND_WRT_CPND_SUBPART_VER_MAX 2
 
 #define CPND_WRT_CPND_SUBPART_VER_RANGE \
         (CPND_WRT_CPND_SUBPART_VER_MAX - \
@@ -285,7 +285,7 @@ typedef struct cpnd_cb_tag {
 	SaSelectionObjectT clm_sel_obj;
 	SaClmNodeIdT nodeid;
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
-	char *cpnd_res_shm_name;
+	uns8 *cpnd_res_shm_name;
 	NCS_BOOL cpnd_first_time;
 	NCS_BOOL read_lck_flag;
 
