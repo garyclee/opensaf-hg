@@ -240,7 +240,7 @@ class SmfUpgradeCampaign {
 /// @param   bool o_result, .true if level exceeded otherwise false
 /// @return  SaAisErrorT
 ///
-	SaAisErrorT toManyRestarts(bool *o_result);
+	SaAisErrorT tooManyRestarts(bool *o_result);
 
 ///
 /// Purpose: Start or continue the execution of the campaign.

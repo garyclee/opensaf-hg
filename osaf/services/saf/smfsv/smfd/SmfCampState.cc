@@ -356,7 +356,7 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 
 	/* Check if the campaign have been restarted to many times */
 	bool o_result;
-	if (i_camp->toManyRestarts(&o_result) == SA_AIS_OK){
+	if (i_camp->tooManyRestarts(&o_result) == SA_AIS_OK){
 		if (o_result == true) {
 			LOG_ER("The campaign have been restarted to many times");
 			std::string cnt = getenv("CAMP_MAX_RESTART");
