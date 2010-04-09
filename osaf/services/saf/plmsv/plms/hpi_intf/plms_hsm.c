@@ -54,6 +54,7 @@ static SaUint32T hsm_send_hotswap_event(SaHpiRptEntryT   *rpt_entry,
 					SaHpiHsStateT hotswap_state,
 					SaHpiHsStateT prev_hotswap_state,
 					SaUint32T  retriev_idr_info); 
+SaUint32T hsm_correct_length(SaHpiIdrFieldT *thisfield);
 SaUint32T hsm_get_idr_info(SaHpiRptEntryT  *rpt_entry, 
 			   PLMS_INV_DATA  *inv_data);
 static SaUint32T hsm_get_idr_product_info(SaHpiRptEntryT  *rpt_entry,
@@ -733,104 +734,93 @@ static SaUint32T hsm_send_hotswap_event(SaHpiRptEntryT   *rpt_entry,
 	TRACE_LEAVE();
 	return rc;
 }
+
 /***********************************************************************
- * @brief	 This function retrieves chassi_info_area of IDR for
+ * @brief	 This function retrieves Inventory Data  Record (IDR) for
  *		 the given resource 
  *                        
- * @param[in]	rpt_entry 
- * @param[in]   idr_id	
- * @param[out]	inv_data	
+ * @param[in]	 rpt_entry 
+ * @param[in]	 idr_id 
+ * @param[out]	 inv_data 
  *
  * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
 ***********************************************************************/
-static SaUint32T hsm_get_idr_chassis_info(SaHpiRptEntryT  *rpt_entry, 
-				 	  SaHpiIdrIdT 	  idr_id,
-				 	  PLMS_INV_DATA   *inv_data)
+static SaUint32T hsm_get_idr_chassis_info(SaHpiRptEntryT  *rpt_entry,
+                                          SaHpiIdrIdT     idr_id,
+                                          PLMS_INV_DATA   *inv_data)
 {
-	SaHpiEntryIdT        next_area, next_field;
-	SaHpiIdrAreaHeaderT  area_info;
-	SaHpiIdrFieldT       chassis_type, serial_no, part_no;
-	PLMS_HSM_CB          *cb = hsm_cb;
-	SaUint32T            err;
+        SaHpiEntryIdT        next_area, next_field, area_id;
+        SaHpiIdrAreaHeaderT  area_info;
+        SaHpiIdrFieldT       thisField;
+        PLMS_HSM_CB          *cb = hsm_cb;
+        SaUint32T            err = SA_OK;
+        SaHpiEntryIdT        fieldId;
+        area_id = SAHPI_FIRST_ENTRY;
 
-	/* get the chassis_info_area header */
-	err = saHpiIdrAreaHeaderGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				SAHPI_IDR_AREATYPE_CHASSIS_INFO,
-				SAHPI_FIRST_ENTRY,
-				&next_area,
-				&area_info);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("hsm_get_idr_chassis_info failed error val is:%u \
-				sess_id:%u",err, cb->session_id);
-		return NCSCC_RC_FAILURE;
-	}
+	/* First make sure that we find the chassis info area */
+        while ((err == SA_OK) && (area_id != SAHPI_LAST_ENTRY)) {
+                /* get the chassis_info_area header */
+                err = saHpiIdrAreaHeaderGet(cb->session_id,
+                                        rpt_entry->ResourceId,
+                                        idr_id,
+                                        SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                                        area_id,
+                                        &next_area,
+                                        &area_info);
+                /* Check out what Area it is */
+                if (area_info.Type == SAHPI_IDR_AREATYPE_CHASSIS_INFO) {
+                        break;
+                }
+                area_id = next_area;
+        }
+        if (area_info.Type != SAHPI_IDR_AREATYPE_CHASSIS_INFO)
+                return NCSCC_RC_FAILURE;
 
-	/* Retrieve chassis type */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&chassis_type);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get chassis type %u \
-				sess_id:%u",err, cb->session_id);
-	}
-	else{
-		/* copy chassis_type to event structure */
-		inv_data->chassis_area.chassis_type =
-				chassis_type.Field.Data[0]; 
-	}
-	
-	/* Retrieve serial no */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&serial_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("HSM:saHpiIdrFieldGet failed to get serial no "); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->chassis_area.serial_no.DataLength = 
-				serial_no.Field.DataLength;
-		memcpy(inv_data->chassis_area.serial_no.Data, 
-			serial_no.Field.Data,
-			serial_no.Field.DataLength);
-	}
+	/* Okay, now get all fields we are interested in */
+        fieldId = SAHPI_FIRST_ENTRY;
+        while ((err == SA_OK) && (fieldId != SAHPI_LAST_ENTRY)) {
+                err = saHpiIdrFieldGet(cb->session_id,  rpt_entry->ResourceId,
+                                        idr_id,
+                                        area_info.AreaId,
+                                        SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                                        fieldId, &next_field,
+                                        &thisField);
+                if (err == SA_OK) {
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE){
+                                /* copy thisfield to chassevent structure */
+                                inv_data->chassis_area.chassis_type =
+                                                thisField.Field.Data[0];
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER){
+                                /* copy product_name into event structure */
+                                inv_data->chassis_area.serial_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->chassis_area.serial_no.Data,
+                                        thisField.Field.Data,
+                                        thisField.Field.DataLength);
 
-	/* Retrieve Part no*/
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&part_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("HSM:saHpiIdrFieldGet failed to get part no "); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->chassis_area.part_no.DataLength = 
-				part_no.Field.DataLength;
-		memcpy(inv_data->chassis_area.part_no.Data, 
-			part_no.Field.Data,
-			inv_data->chassis_area.part_no.DataLength);
-	}
-	
-	return NCSCC_RC_SUCCESS;
-	
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_PART_NUMBER){
+                                /* copy product_name into event structure */
+                                inv_data->chassis_area.part_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->chassis_area.part_no.Data,
+                                        thisField.Field.Data,
+                                        inv_data->chassis_area.part_no.DataLength);
+
+                        }
+                } else {
+                        LOG_ER("hsm_get_idr_chassis_info failed error val is:%d",err);
+                        return NCSCC_RC_FAILURE;
+                }
+                fieldId = next_field;
+        }
+        return NCSCC_RC_SUCCESS;
+
 }
+
+
+
 /***********************************************************************
  * @brief	 This function retrieves Inventory Data  Record (IDR) for
  *		 the given resource 
@@ -846,132 +836,93 @@ static SaUint32T hsm_get_idr_board_info(SaHpiRptEntryT  *rpt_entry,
 				PLMS_INV_DATA  *inv_data)
 {
 	PLMS_HSM_CB       *cb = hsm_cb;
-	SaHpiEntryIdT   next_area, next_field;
+	SaHpiEntryIdT   next_area, next_field, area_id;
 	SaHpiIdrAreaHeaderT area_info;
-	SaHpiIdrFieldT manufacturer_name, product_name;
-	SaHpiIdrFieldT serial_no, part_no, fru_field_id;
+	SaHpiIdrFieldT thisField;
+	SaHpiEntryIdT  fieldId;
+	SaUint32T      err = SA_OK;
+	area_id = SAHPI_FIRST_ENTRY;
 
-	SaUint32T      err;
+	/* get the BOARD_INFO area header for the given resource */
+	/* First we need to make sure we can find the board info */
+        while ((err == SA_OK) && (area_id != SAHPI_LAST_ENTRY)) {
+                err = saHpiIdrAreaHeaderGet(cb->session_id,
+                                        rpt_entry->ResourceId,
+                                        idr_id,
+                                        SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                                        area_id,
+                                        &next_area,
+                                        &area_info);
+                /* Check out what Area it is */
+                if (area_info.Type == SAHPI_IDR_AREATYPE_BOARD_INFO) {
+                        break;
+                }
+                area_id = next_area;
+        }
+        if (area_info.Type != SAHPI_IDR_AREATYPE_BOARD_INFO)
+                return NCSCC_RC_FAILURE;
 
-	/* get the IDR Area info header for the BOARD_INFO area */
-	err = saHpiIdrAreaHeaderGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				SAHPI_IDR_AREATYPE_BOARD_INFO,
-				SAHPI_FIRST_ENTRY,
-				&next_area,
-				&area_info);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		LOG_ER("hsm_get_idr_board_info failed error val is:%u",err);
-		return NCSCC_RC_FAILURE;
-	}
-	
-	/* Retrieve manufacturer name */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_MANUFACTURER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&manufacturer_name);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get manufacturer name err:%u",
-							err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->board_area.manufacturer_name.DataLength = 
-				manufacturer_name.Field.DataLength;
-		memcpy(inv_data->board_area.manufacturer_name.Data, 
-			manufacturer_name.Field.Data,
-			manufacturer_name.Field.DataLength);
-	}
-
-	/* Retrieve product name */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&product_name);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get productname err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->board_area.product_name.DataLength = 
-				product_name.Field.DataLength;
-		memcpy(inv_data->board_area.product_name.Data, 
-			product_name.Field.Data,
-			inv_data->board_area.product_name.DataLength);
-	}
-
-	/* Retrieve serial no */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&serial_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get serial no err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->board_area.serial_no.DataLength = 
-				serial_no.Field.DataLength;
-		memcpy(inv_data->board_area.serial_no.Data, 
-			serial_no.Field.Data,
-			serial_no.Field.DataLength);
-	}
-
-	/* Retrieve Part no*/
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&part_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get part no err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->board_area.part_no.DataLength = 
-				part_no.Field.DataLength;
-		memcpy(inv_data->board_area.part_no.Data, 
-			part_no.Field.Data,
-			inv_data->board_area.part_no.DataLength);
-	}
-	
-	/* Retrieve fru_field_id */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_FILE_ID,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&fru_field_id);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get frufield_id err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->board_area.fru_field_id.DataLength = 
-				fru_field_id.Field.DataLength;
-		memcpy(inv_data->board_area.fru_field_id.Data, 
-			fru_field_id.Field.Data,
-			inv_data->board_area.fru_field_id.DataLength);
-	}
-	
+	/* Now extract all fields we can find and are looking for */
+        fieldId = SAHPI_FIRST_ENTRY;
+        while ((err == SA_OK) && (fieldId != SAHPI_LAST_ENTRY)) {
+                err = saHpiIdrFieldGet(cb->session_id,  rpt_entry->ResourceId,
+                                        idr_id,
+                                        area_info.AreaId,
+                                        SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                                        fieldId, &next_field,
+                                        &thisField);
+                if (err == SA_OK) {
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_MANUFACTURER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->board_area.manufacturer_name.
+                                        DataLength = thisField.Field.DataLength;
+                                memcpy(inv_data->board_area.manufacturer_name.
+                                        Data, thisField.Field.Data, thisField.
+                                                        Field.DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_PRODUCT_NAME){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->board_area.product_name.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->board_area.product_name.Data,
+                                        thisField.Field.Data, thisField.Field.
+                                                                DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->board_area.serial_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->board_area.serial_no.Data,
+                                        thisField.Field.Data, thisField.Field.
+                                                                DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_PART_NUMBER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->board_area.part_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->board_area.part_no.Data,
+                                        thisField.Field.Data, inv_data->
+                                                board_area.part_no.DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_FILE_ID){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->board_area.fru_field_id.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->board_area.fru_field_id.Data,
+                                        thisField.Field.Data, inv_data->
+                                        board_area.fru_field_id.DataLength);
+                        }
+                } else {
+                        LOG_ER("hsm_get_idr_board_info failed error val is:%d",err);
+                        return NCSCC_RC_FAILURE;
+                }
+                fieldId = next_field;
+        }
 	return NCSCC_RC_SUCCESS;
 }
 /***********************************************************************
@@ -989,174 +940,151 @@ static SaUint32T hsm_get_idr_product_info(SaHpiRptEntryT  *rpt_entry,
 				PLMS_INV_DATA  *inv_data)
 {
 	PLMS_HSM_CB       *cb = hsm_cb;
-	SaHpiEntryIdT   next_area, next_field;
+	SaHpiEntryIdT   next_area, next_field, area_id;
 	SaHpiIdrAreaHeaderT area_info;
-	SaHpiIdrFieldT manufacturer_name, product_name, product_version;
-	SaHpiIdrFieldT serial_no, part_no, asset_tag, fru_field_id;
-	SaUint32T      err;
+	SaHpiIdrFieldT thisField;
+	SaHpiEntryIdT  fieldId;
+	SaUint32T      err = SA_OK;
+	area_id = SAHPI_FIRST_ENTRY;
 
 	/* get the PRODUCT_INFO area header for the given resource */
-	err = saHpiIdrAreaHeaderGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				SAHPI_IDR_AREATYPE_PRODUCT_INFO,
-				SAHPI_FIRST_ENTRY,
-				&next_area,
-				&area_info);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		LOG_ER("hsm_get_idr_product_info failed error val is:%d",err);
-		return NCSCC_RC_FAILURE;
-	}
-	
-	/* Retrieve format version */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_MANUFACTURER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&manufacturer_name);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get manufacturername:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.manufacturer_name.DataLength = 
-				manufacturer_name.Field.DataLength;
-		memcpy(inv_data->product_area.manufacturer_name.Data, 
-			manufacturer_name.Field.Data,
-			inv_data->product_area.manufacturer_name.DataLength);
-	}
+	/* First we need to make sure we can find the product info */
+        while ((err == SA_OK) && (area_id != SAHPI_LAST_ENTRY)) {
+                /* get the chassis_info_area header */
+                err = saHpiIdrAreaHeaderGet(cb->session_id,
+                                        rpt_entry->ResourceId,
+                                        idr_id,
+                                        SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                                        area_id,
+                                        &next_area,
+                                        &area_info);
+                /* Check out what Area it is */
+                if (area_info.Type == SAHPI_IDR_AREATYPE_PRODUCT_INFO) {
+                        break;
+                }
+                area_id = next_area;
+        }
+        if (area_info.Type != SAHPI_IDR_AREATYPE_PRODUCT_INFO)
+                return NCSCC_RC_FAILURE;
 
-	/* Retrieve manufacturer name */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&product_name);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get productname err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.product_name.DataLength = 
-				product_name.Field.DataLength;
-		memcpy(inv_data->product_area.product_name.Data, 
-			product_name.Field.Data,
-			inv_data->product_area.product_name.DataLength);
-	}
+	/* Now extract all fields we can find and are looking for */
+        fieldId = SAHPI_FIRST_ENTRY;
+        while ((err == SA_OK) && (fieldId != SAHPI_LAST_ENTRY)) {
+                err = saHpiIdrFieldGet(cb->session_id,  rpt_entry->ResourceId,
+                                        idr_id,
+                                        area_info.AreaId,
+                                        SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                                        fieldId, &next_field,
+                                        &thisField);
+                if (err == SA_OK) {
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_MANUFACTURER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.manufacturer_name.
+                                        DataLength = thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.manufacturer_name
+                                        .Data, thisField.Field.Data,
+                                        inv_data->product_area.manufacturer_name
+                                                                .DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_PRODUCT_NAME){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.product_name.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.product_name.Data,
+                                        thisField.Field.Data, inv_data->
+                                        product_area.product_name.DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.serial_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.serial_no.Data,
+                                        thisField.Field.Data, inv_data->
+                                        product_area.serial_no.DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_PART_NUMBER){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.part_no.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.part_no.Data,
+                                        thisField.Field.Data, inv_data->
+                                        product_area.part_no.DataLength);
+                        } else
+                        if (thisField.Type ==
+                                        SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.product_version.
+                                                DataLength = thisField.Field.
+                                                                DataLength;
+                                memcpy(inv_data->product_area.product_version.
+                                                Data, thisField.Field.Data,
+                                        inv_data->product_area.product_version.
+                                                                DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_ASSET_TAG){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.asset_tag.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.asset_tag.Data,
+                                        thisField.Field.Data, inv_data->
+                                        product_area.asset_tag.DataLength);
+                        } else
+                        if (thisField.Type == SAHPI_IDR_FIELDTYPE_FILE_ID){
+                                /* copy product_name into event structure */
+				hsm_correct_length(&thisField);
+                                inv_data->product_area.fru_field_id.DataLength =
+                                                thisField.Field.DataLength;
+                                memcpy(inv_data->product_area.fru_field_id.Data,
+                                        thisField.Field.Data, inv_data->
+                                        product_area.fru_field_id.DataLength);
+                        }
+                } else {
+                        LOG_ER("hsm_get_idr_board_info failed error val is:%d",err);
+                        return NCSCC_RC_FAILURE;
+                }
+                fieldId = next_field;
+        }
 
-	/* Retrieve product name */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&serial_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get serialno err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.serial_no.DataLength = 
-				serial_no.Field.DataLength;
-		memcpy(inv_data->product_area.serial_no.Data, 
-			serial_no.Field.Data,
-			inv_data->product_area.serial_no.DataLength);
-	}
-
-	/* Retrieve Seral no*/
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&part_no);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get partno er:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.part_no.DataLength = 
-				part_no.Field.DataLength;
-		memcpy(inv_data->product_area.part_no.Data, 
-			part_no.Field.Data,
-			inv_data->product_area.part_no.DataLength);
-	}
-	
-	/* Retrieve product version */
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&product_version);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get prod vers err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.product_version.DataLength = 
-				product_version.Field.DataLength;
-		memcpy(inv_data->product_area.product_version.Data, 
-			product_version.Field.Data,
-			inv_data->product_area.product_version.DataLength);
-	}
-	
-	/* Retrieve asset Tag*/
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_ASSET_TAG,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&asset_tag);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get asset tag err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.asset_tag.DataLength = 
-				asset_tag.Field.DataLength;
-		memcpy(inv_data->product_area.asset_tag.Data, 
-			asset_tag.Field.Data,
-			inv_data->product_area.asset_tag.DataLength);
-	}
-	
-	/* Retrieve Field_id*/
-	err = saHpiIdrFieldGet(cb->session_id,
-				rpt_entry->ResourceId,
-				idr_id,
-				area_info.AreaId,
-				SAHPI_IDR_FIELDTYPE_FILE_ID,
-				SAHPI_FIRST_ENTRY,
-				&next_field,
-				&fru_field_id);
-	if (SA_OK != err && SA_ERR_HPI_CAPABILITY != err){
-		TRACE("saHpiIdrFieldGet failed to get Field id err:%u",err); 
-	}
-	else{
-		/* copy product_name into event structure */
-		inv_data->product_area.fru_field_id.DataLength = 
-				fru_field_id.Field.DataLength;
-		memcpy(inv_data->product_area.fru_field_id.Data, 
-			fru_field_id.Field.Data,
-			inv_data->product_area.fru_field_id.DataLength);
-	}
-	
-	return NCSCC_RC_SUCCESS;
+        return NCSCC_RC_SUCCESS;
 }
+
+/***********************************************************************
+ * @brief        This function retrieves SaHpiIdrFieldT and calgulate
+ *               the correct field length
+ *
+ * @param[in]    thisfield
+ * @param[out]   thisfield
+ *
+ * @return      NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+***********************************************************************/
+SaUint32T hsm_correct_length(SaHpiIdrFieldT *thisfield)
+{
+        char *field_ptr;
+        SaHpiUint8T fieldlength;
+        fieldlength = thisfield->Field.DataLength;
+	if (fieldlength == 0)
+		return 0;
+	else
+		fieldlength--;
+        field_ptr = (char *)thisfield->Field.Data;
+        while (isspace(field_ptr[fieldlength]) || (field_ptr[fieldlength]
+                                                                == '\0')) {
+                if (fieldlength == 0) {
+                        thisfield->Field.DataLength = 0;
+                        return 0;
+                }
+                fieldlength--;
+        }
+        thisfield->Field.DataLength = fieldlength + 1;
+        return 0;
+}
+
 /***********************************************************************
  * @brief	 This function retrieves Inventory Data  Record (IDR) for
  *		 the given resource 
