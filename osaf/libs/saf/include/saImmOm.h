@@ -104,7 +104,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saImmOmClassCreate(SaImmHandleT immHandle,
 			    const SaImmClassNameT className,
-			    SaImmClassCategoryT classCategory, const SaImmAttrDefinitionT ** attrDefinitions);
+			    SaImmClassCategoryT classCategory, const SaImmAttrDefinitionT ** attrDefinitions) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -117,7 +117,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saImmOmClassDescriptionGet(SaImmHandleT immHandle,
 				    const SaImmClassNameT className,
-				    SaImmClassCategoryT *classCategory, SaImmAttrDefinitionT *** attrDefinitions);
+				    SaImmClassCategoryT *classCategory, SaImmAttrDefinitionT *** attrDefinitions) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -128,7 +128,7 @@ extern "C" {
 	/* 4.4.3 saImmOmClassDescriptionMemoryFree() */
 #ifdef IMM_A_01_01
 	extern SaAisErrorT
-	 saImmOmClassDescriptionMemoryFree(SaImmHandleT immHandle, SaImmAttrDefinitionT ** attrDefinitions);
+	 saImmOmClassDescriptionMemoryFree(SaImmHandleT immHandle, SaImmAttrDefinitionT ** attrDefinitions) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -147,7 +147,7 @@ extern "C" {
 				 SaImmScopeT scope,
 				 SaImmSearchOptionsT searchOptions,
 				 const SaImmSearchParametersT * searchParam,
-				 const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
+				 const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -161,7 +161,7 @@ extern "C" {
 	/* 4.5.2 saImmOmSearchNext() */
 #ifdef IMM_A_01_01
 	extern SaAisErrorT
-	 saImmOmSearchNext(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT *** attributes);
+	 saImmOmSearchNext(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT *** attributes) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -182,7 +182,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saImmOmAccessorGet(SaImmAccessorHandleT accessorHandle,
 			    const SaNameT *objectName,
-			    const SaImmAttrNameT *attributeNames, SaImmAttrValuesT *** attributes);
+			    const SaImmAttrNameT *attributeNames, SaImmAttrValuesT *** attributes) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -232,7 +232,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saImmOmCcbObjectCreate(SaImmCcbHandleT ccbHandle,
 				const SaImmClassNameT className,
-				const SaNameT *parentName, const SaImmAttrValuesT ** attrValues);
+				const SaNameT *parentName, const SaImmAttrValuesT ** attrValues) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -249,7 +249,7 @@ extern "C" {
 #ifdef IMM_A_01_01
 	extern SaAisErrorT
 	 saImmOmCcbObjectModify(SaImmCcbHandleT ccbHandle,
-				const SaNameT *objectName, const SaImmAttrModificationT ** attrMods);
+				const SaNameT *objectName, const SaImmAttrModificationT ** attrMods) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -274,7 +274,7 @@ extern "C" {
 				     const SaNameT *objectName,
 				     SaImmAdminOperationIdT operationId,
 				     const SaImmAdminOperationParamsT ** params,
-				     SaAisErrorT *operationReturnValue, SaTimeT timeout);
+				     SaAisErrorT *operationReturnValue, SaTimeT timeout) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -291,7 +291,7 @@ extern "C" {
 					  SaInvocationT invocation,
 					  const SaNameT *objectName,
 					  SaImmAdminOperationIdT operationId,
-					  const SaImmAdminOperationParamsT ** params);
+					  const SaImmAdminOperationParamsT ** params) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
