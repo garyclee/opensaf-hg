@@ -470,7 +470,7 @@ static int extractCommonField(char *dest, size_t dest_size,
 			      SaInt32T inputPos,
 			      SaUint32T logRecordIdCounter,
 			      const SaBoolT *twelveHourModeFlag,
-			      const struct tm *timeStampData, const SaLogRecordT *logRecord)
+			      const struct tm *timeStampData, const SaLogRecordT *logRecord, SaUint16T rec_size)
 {
 	SaInt32T fieldSize;
 	size_t stringSize;
@@ -610,8 +610,11 @@ static int extractCommonField(char *dest, size_t dest_size,
 		stringSize = 2 * sizeof(char);
 		/* A space inserted at the truncationCharacter:s position */
 		characters = snprintf(dest, dest_size, " ");
-		*truncationLetterPos = inputPos;	/* The position of the truncation 
-							   character in the log record */
+		if ((inputPos + 1) == rec_size)
+			*truncationLetterPos = inputPos - 1;
+		else
+			*truncationLetterPos = inputPos;        /* The position of the truncation 
+                                                           character in the log record */
 		break;
 
 	case C_LR_STRING_BODY_LETTER:
@@ -1057,6 +1060,7 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 	SaBoolT _twelveHourModeFlag = SA_FALSE;
 	const SaBoolT *twelveHourModeFlag = &_twelveHourModeFlag;
 	int i = 0;
+	SaUint16T rec_size = dest_size;
 
 	if (formatExpression == NULL) {
 		goto error_exit;
@@ -1084,7 +1088,7 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 							&truncationLetterPos,
 							(SaInt32T)strlen(dest),
 							logRecordIdCounter,
-							twelveHourModeFlag, timeStampData, logRecord);
+							twelveHourModeFlag, timeStampData, logRecord,rec_size);
 				break;
 
 			case NOTIFICATION_LOG_RECORD_FIELD_TYPE:
@@ -1110,13 +1114,15 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 			/* Insert litteral chars i.e. [:, ,/ and "] */
 			if (i < dest_size) {
 				dest[i++] = *fmtExpPtr;
-			} else {	/* Truncation exists */
-				truncationCharacter = (SaInt8T)TRUNCATED_LOG_RECORD;
-				break;
 			}
 
 			if (*fmtExpPtrSnabel == STRING_END_CHARACTER)
 				break;	/* End of formatExpression */
+		}
+
+		if (i >= dest_size){
+			/* Truncation exists */
+			truncationCharacter = (SaInt8T)TRUNCATED_LOG_RECORD;
 		}
 
 		/* Step forward */
