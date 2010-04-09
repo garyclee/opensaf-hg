@@ -804,32 +804,54 @@ static int extractNotificationField(char *dest, size_t dest_size,
 		break;
 
 	case N_EVENT_TYPE_LETTER:
-		/* Check field size */
+		/* Check field size */ 
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-		/* TODO!!! Fit hex output to size => two steps for non strings */
-		/* 0x included in total field size */
-		characters = snprintf(dest, ((size_t)fieldSize + 1),	/* Incl NULL */
-				      "%#.*x", (int)(fieldSize - 2), logRecord->logHeader.ntfHdr.eventType);
+		if (fieldSize == 0) {
+			characters = snprintf(dest, dest_size, "%#x", logRecord->logHeader.ntfHdr.eventType);
+
+		} else {
+
+			/* TODO!!! Fit hex output to size => two steps for non strings */
+                	/* 0x included in total field size */
+			characters = snprintf(dest, ((size_t)fieldSize + 1),    /* Incl NULL */
+                                      "%#.*x", (int)(fieldSize - 2), logRecord->logHeader.ntfHdr.eventType);
+		}
+
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
 		break;
 
 	case N_NOTIFICATION_OBJECT_LETTER:
 		/* Check field size and trunkate alternative pad with blanks */
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-		characters = snprintf(dest, ((size_t)fieldSize + 1),	/* Incl NULL */
-				      "%*.*s",
-				      (int)-fieldSize,
-				      (int)fieldSize, logRecord->logHeader.ntfHdr.notificationObject->value);
+		if (fieldSize == 0) {
+                
+			characters = snprintf(dest,
+                                              dest_size, "%s", logRecord->logHeader.ntfHdr.notificationObject->value);
+
+		} else {
+			characters = snprintf(dest, ((size_t)fieldSize + 1),    /* Incl NULL */
+                                      "%*.*s",
+                                      (int)-fieldSize,
+                                      (int)fieldSize, logRecord->logHeader.ntfHdr.notificationObject->value);
+                }
+
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
 		break;
 
 	case N_NOTIFYING_OBJECT_LETTER:
 		/* Check field size and trunkate alternative pad with blanks */
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-		characters = snprintf(dest, ((size_t)fieldSize + 1),	/* Incl NULL */
-				      "%*.*s",
-				      (int)-fieldSize,
-				      (int)fieldSize, logRecord->logHeader.ntfHdr.notifyingObject->value);
+		if (fieldSize == 0) {
+			characters = snprintf(dest,
+                                              dest_size, "%s", logRecord->logHeader.ntfHdr.notifyingObject->value);
+		} else {
+
+			characters = snprintf(dest, ((size_t)fieldSize + 1),    /* Incl NULL */
+                                      "%*.*s",
+                                      (int)-fieldSize,
+                                      (int)fieldSize, logRecord->logHeader.ntfHdr.notifyingObject->value);
+		}
+
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
 		break;
 

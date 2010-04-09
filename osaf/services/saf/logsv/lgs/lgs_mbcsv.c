@@ -1311,6 +1311,10 @@ static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 	stream->logFullAction = param->logFullAction;
 	stream->logFullHaltThreshold = param->logFullHaltThreshold;
 	stream->maxFilesRotated = param->maxFilesRotated;
+	if (stream->logFileFormat != NULL) {
+		free(stream->logFileFormat);
+		stream->logFileFormat = strdup(param->logFileFormat);
+	}        
 	strcpy(stream->logFileFormat, param->logFileFormat);
 	stream->severityFilter = param->severityFilter;
 	strcpy(stream->logFileCurrent, param->logFileCurrent);

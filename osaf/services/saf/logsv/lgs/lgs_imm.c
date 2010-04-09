@@ -693,6 +693,9 @@ void lgs_imm_impl_set(lgs_cb_t *cb)
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+	
+	pthread_attr_destroy(&attr);
+	
 	TRACE_LEAVE();
 }
 
