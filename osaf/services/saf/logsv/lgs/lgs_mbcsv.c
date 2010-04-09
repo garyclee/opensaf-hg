@@ -1271,6 +1271,10 @@ static uns32 ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	TRACE_ENTER();
 
+	/*Remove the  LGA DOWN REC from the LGA_DOWN_LIST */
+	/* Search for matching LGA in the LGA_DOWN_LIST  */
+	lgs_remove_lga_down_rec(cb, data->ckpt_rec.agent_dest);
+
 	/* Ensure all resources allocated by this registration are freed. */
 	(void)lgs_client_delete_by_mds_dest(data->ckpt_rec.agent_dest);
 

@@ -279,6 +279,54 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 }
 
 /****************************************************************************
+ *
+ * lgs_remove_lga_down_rec
+ * 
+ *  Searches the LGA_DOWN_LIST for an entry whos MDS_DEST equals
+ *  that passed in and removes the LGA rec.
+ *
+ * This routine is typically used to remove the lga down rec from standby 
+ * LGA_DOWN_LIST as  LGA client has gone away.
+ * 
+ ****************************************************************************/
+uns32 lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest)
+{
+	LGA_DOWN_LIST *lga_down_rec = cb->lga_down_list_head;
+	LGA_DOWN_LIST *prev = NULL;
+	while (lga_down_rec) {
+		if (m_NCS_MDS_DEST_EQUAL(&lga_down_rec->mds_dest, &mds_dest)) {
+			/* Remove the LGA entry */
+			/* Reset pointers */
+			if (lga_down_rec == cb->lga_down_list_head) {   /* 1st in the list? */
+				if (lga_down_rec->next == NULL) {       /* Only one in the list? */
+					cb->lga_down_list_head = NULL;  /* Clear head sublist pointer */
+					cb->lga_down_list_tail = NULL;  /* Clear tail sublist pointer */
+				} else {        /* 1st but not only one */
+
+					cb->lga_down_list_head = lga_down_rec->next;    /* Move next one up */
+				}
+			} else {        /* Not 1st in the list */
+
+				if (prev) {
+					if (lga_down_rec->next == NULL)
+						cb->lga_down_list_tail = prev;
+					prev->next = lga_down_rec->next;        /* Link previous to next */
+				}
+			}
+
+			/* Free the EDA_DOWN_REC */
+			free(lga_down_rec);
+			lga_down_rec = NULL;
+			break;
+		}
+		prev = lga_down_rec;    /* Remember address of this entry */
+		lga_down_rec = lga_down_rec->next;      /* Go to next entry */
+	}
+	return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
  * Name          : proc_lga_updn_mds_msg
  *
  * Description   : This is the function which is called when lgs receives any
@@ -294,13 +342,50 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest)
 static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 {
 	TRACE_ENTER();
+	lgsv_ckpt_msg_t ckpt;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 async_rc = NCSCC_RC_SUCCESS;
 
 	switch (evt->evt_type) {
 	case LGSV_LGS_EVT_LGA_UP:
 		break;
 	case LGSV_LGS_EVT_LGA_DOWN:
+		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
 		(void)lgs_client_delete_by_mds_dest(evt->fr_dest);
+
+			/*Send an async checkpoint update to STANDBY EDS peer */
+			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+				memset(&ckpt, 0, sizeof(ckpt));
+				ckpt.header.ckpt_rec_type = LGS_CKPT_CLIENT_DOWN;
+				ckpt.header.num_ckpt_records = 1;
+				ckpt.header.data_len = 1;
+				ckpt.ckpt_rec.agent_dest = evt->fr_dest;
+				async_rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+				if (async_rc == NCSCC_RC_SUCCESS) {
+					TRACE_4("ASYNC UPDATE SEND SUCCESS for LGA_DOWN event..");
+				}
+			}
+		} else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
+			LGA_DOWN_LIST *lga_down_rec = NULL;
+			if (lgs_lga_entry_valid(lgs_cb, evt->fr_dest)) {
+				if (NULL == (lga_down_rec = (LGA_DOWN_LIST *) malloc(sizeof(LGA_DOWN_LIST)))) {
+				/* Log it */
+					rc = SA_AIS_ERR_NO_MEMORY;
+					TRACE("memory allocation for the LGA_DOWN_LIST failed");
+					break;
+				}
+				memset(lga_down_rec, 0, sizeof(LGA_DOWN_LIST));
+				lga_down_rec->mds_dest = evt->fr_dest;
+				if (lgs_cb->lga_down_list_head == NULL) {
+					lgs_cb->lga_down_list_head = lga_down_rec;
+				} else {
+					if (lgs_cb->lga_down_list_tail)
+						lgs_cb->lga_down_list_tail->next = lga_down_rec;
+				}
+				lgs_cb->lga_down_list_tail = lga_down_rec;
+			}
+		}
 		break;
 	default:
 		TRACE("Unknown evt type!!!");
@@ -345,6 +430,34 @@ static uns32 proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 	return NCSCC_RC_SUCCESS;
 }
 
+
+/**
+* Clear any pending lga_down records 
+*
+*/
+static void lgs_process_lga_down_list(void)
+{
+	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		LGA_DOWN_LIST *lga_down_rec = NULL;
+		LGA_DOWN_LIST *temp_lga_down_rec = NULL;
+
+		lga_down_rec = lgs_cb->lga_down_list_head;
+		while (lga_down_rec) {
+			/*Remove the LGA DOWN REC from the LGA_DOWN_LIST */
+			/* Free the LGA_DOWN_REC */
+			/* Remove this LGA entry from our processing lists */
+			temp_lga_down_rec = lga_down_rec;
+			(void)lgs_client_delete_by_mds_dest(lga_down_rec->mds_dest);
+			lga_down_rec = lga_down_rec->next;
+			free(temp_lga_down_rec);
+		}
+		lgs_cb->lga_down_list_head = NULL;
+		lgs_cb->lga_down_list_tail = NULL;
+	}
+
+}
+
+
 static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 {
 	log_stream_t *stream;
@@ -378,6 +491,7 @@ static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 			
 			stream = log_stream_getnext_by_name(stream->name);
 		}
+		lgs_process_lga_down_list();
 	}
 
 	rc = NCSCC_RC_SUCCESS;

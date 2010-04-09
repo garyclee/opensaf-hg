@@ -67,5 +67,7 @@ extern log_client_t *lgs_client_get_by_id(uns32 client_id);
 extern int lgs_client_add_stream(log_client_t *client, uns32 stream_id);
 extern int lgs_client_delete(uns32 client_id);
 extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest);
+extern NCS_BOOL lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest);
+extern uns32 lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
 
 #endif   /*!LGS_EVT_H */
