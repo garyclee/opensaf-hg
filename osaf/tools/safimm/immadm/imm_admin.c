@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 		}
 
 		error = saImmOmAdminOperationInvoke_2(ownerHandle, &objectName, 0, operationId,
-			params, &operationReturnValue, SA_TIME_ONE_SECOND * 10);
+			params, &operationReturnValue, SA_TIME_ONE_SECOND * 60);
 
 		if (error != SA_AIS_OK) {
 			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 returned: %s\n",
