@@ -185,3 +185,31 @@ void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr)
 	(void)saAmfComponentErrorReport(lgs_cb->amf_hdl, &lgs_cb->comp_name, 0, rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
 	exit(EXIT_FAILURE);
 }
+
+/****************************************************************************
+ *                      
+ * lgs_lga_entry_valid  
+ *                              
+ *  Searches the cb->client_tree for an reg_id entry whos MDS_DEST equals
+ *  that passed DEST and returns TRUE if itz found.
+ *                                      
+ * This routine is typically used to find the validity of the lga down rec from standby 
+ * LGA_DOWN_LIST as  LGA client has gone away.
+ *                              
+ ****************************************************************************/
+NCS_BOOL lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest)
+{                                       
+	log_client_t *rp = NULL;
+                                       
+	rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)0);
+                                
+	while (rp != NULL) {    
+		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
+			return TRUE;
+		}
+
+		rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)&rp->client_id_net);
+	}       
+        
+	return FALSE;
+}  

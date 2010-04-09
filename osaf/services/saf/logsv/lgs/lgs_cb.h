@@ -50,6 +50,11 @@ typedef struct {
 	lgs_stream_list_t *stream_list_root;
 } log_client_t;
 
+typedef struct lga_down_list_tag {
+	MDS_DEST mds_dest;
+	struct lga_down_list_tag *next;
+} LGA_DOWN_LIST;
+
 typedef struct lgs_cb {
 	SYSF_MBX mbx;		/* LGS's mailbox                             */
 	MDS_HDL mds_hdl;	/* PWE Handle for interacting with LGAs      */
@@ -76,6 +81,10 @@ typedef struct lgs_cb {
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
 	NCS_BOOL csi_assigned;
+	LGA_DOWN_LIST *lga_down_list_head;      /* LGA down reccords - Fix for Failover missed 
+                                                   down events Processing */
+	LGA_DOWN_LIST *lga_down_list_tail;
+
 	char *logsv_root_dir;	/* Root directory for log files */
 } lgs_cb_t;
 
