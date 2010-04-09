@@ -288,13 +288,22 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 					goto done;
 				}
 			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-				SaUint32T severityFilter = *((SaUint32T *)value);
-				if (severityFilter > 0x7f) {
-					LOG_ER("Invalid severity: %x", severityFilter);
+
+				if ((stream->streamType != STREAM_TYPE_ALARM)
+                                    && (stream->streamType != STREAM_TYPE_NOTIFICATION)) {
+
+					SaUint32T severityFilter = *((SaUint32T *)value);
+					if (severityFilter > 0x7f) {
+						LOG_ER("Invalid severity: %x", severityFilter);
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto done;
+					}
+					TRACE("severityFilter: %u", severityFilter);
+				} else {
+					LOG_ER("severityFilter cannot be changed for Alarm amd Notification Stream");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
-				TRACE("severityFilter: %u", severityFilter);
 			} else {
 				LOG_ER("invalid attribute");
 				rc = SA_AIS_ERR_BAD_OPERATION;
