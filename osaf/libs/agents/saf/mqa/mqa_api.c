@@ -163,18 +163,13 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 		      && (version->minorVersion == MQA_BASE_MINOR_VERSION))))) {
 		m_LOG_MQSV_A(MQA_VERSION_INCOMPATIBLE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 
-		/* Implimentation is supporting the required release code */
+		/* Implementation is supporting the required release code */
 		version->releaseCode = MQA_RELEASE_CODE;
 		version->majorVersion = MQA_MAJOR_VERSION;
 		version->minorVersion = MQA_MINOR_VERSION;
 
 		rc = SA_AIS_ERR_VERSION;
 		goto final1;
-	} else {
-		/* Implimentation is supporting the required release code */
-		version->releaseCode = MQA_RELEASE_CODE;
-		version->majorVersion = MQA_MAJOR_VERSION;
-		version->minorVersion = MQA_MINOR_VERSION;
 	}
 
 	/* retrieve MQA CB */
@@ -264,6 +259,11 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 
 		*msgHandle = client_info->msgHandle;
 		client_info->finalize = 0;
+
+		/* Implementation is supporting the required release code */
+		version->releaseCode = MQA_RELEASE_CODE;
+		version->majorVersion = MQA_MAJOR_VERSION;
+		version->minorVersion = MQA_MINOR_VERSION;
 	}
 
  final3:
