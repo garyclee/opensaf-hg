@@ -449,15 +449,15 @@ SmfUpgradeCampaign::createCampRestartInfo()
 }
 
 //------------------------------------------------------------------------------
-// toManyRestarts()
+// tooManyRestarts()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfUpgradeCampaign::toManyRestarts(bool *o_result)
+SmfUpgradeCampaign::tooManyRestarts(bool *o_result)
 {
 	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 	SaImmAttrValuesT_2 **attributes;
-	int curCnt;
+	int curCnt = 0;
 
 	/* Read the SmfCampRestartInfo object smfCampRestartCnt attr */
 	std::string obj = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn();
