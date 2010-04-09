@@ -599,11 +599,19 @@ static int extractCommonField(char *dest, size_t dest_size,
 
 	case C_NOTIFICATION_CLASS_ID_LETTER:
 		stringSize = 30 * sizeof(char);
-		characters = snprintf(dest, dest_size,
-				      "NCI[%#08x,%#04x,%#04x]",
-				      (unsigned int)logRecord->logHeader.genericHdr.notificationClassId->vendorId,
-				      logRecord->logHeader.genericHdr.notificationClassId->majorId,
-				      logRecord->logHeader.genericHdr.notificationClassId->minorId);
+		if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
+			characters = snprintf(dest, dest_size,
+					"NCI[0x%#08x,0x%#04x,0x%#04x]",
+					(unsigned int)logRecord->logHeader.genericHdr.notificationClassId->
+					vendorId, logRecord->logHeader.genericHdr.notificationClassId->majorId,
+					logRecord->logHeader.genericHdr.notificationClassId->minorId);
+		} else
+			characters = snprintf(dest, dest_size,
+					"NCI[0x%08x,0x%04x,0x%04x]",
+					(unsigned int)logRecord->logHeader.ntfHdr.notificationClassId->vendorId,
+					logRecord->logHeader.ntfHdr.notificationClassId->majorId,
+					logRecord->logHeader.ntfHdr.notificationClassId->minorId);
+
 		break;
 
 	case C_LR_TRUNCATION_INFO_LETTER:
