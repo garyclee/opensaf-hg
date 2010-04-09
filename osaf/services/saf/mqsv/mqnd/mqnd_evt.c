@@ -305,7 +305,8 @@ static uns32 mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
 	while (qnode) {
 		qhdl = qnode->qinfo.queueHandle;
 
-		if (qnode->qinfo.msgHandle == final->msgHandle) {
+		if ((qnode->qinfo.msgHandle == final->msgHandle)
+		    && (m_NCS_MDS_DEST_EQUAL(&qnode->qinfo.rcvr_mqa, &evt->msg.mqp_req.agent_mds_dest))) {
 			/* Close this Queue */
 			mqnd_proc_queue_close(cb, qnode, &err);	/* err returned by this function
 								   is not handled in this routine */
@@ -649,7 +650,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
 			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MessageQueue Object %s FAILED \n",
-				 qnode->qinfo.queueName.value);
+				    qnode->qinfo.queueName.value);
 			return NCSCC_RC_FAILURE;
 		}
 		/* Delete the queue immediately */
@@ -750,7 +751,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 		if (qnode) {
 			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
-					 qnode->qinfo.queueName.value);
+					    qnode->qinfo.queueName.value);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -1293,7 +1294,7 @@ uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
 			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
-				 qnode->qinfo.queueName.value);
+				    qnode->qinfo.queueName.value);
 			return NCSCC_RC_FAILURE;
 		}
 		/* Delete the Queue */
@@ -1529,11 +1530,10 @@ static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 	}
 
 	if (((qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT) == SA_MSG_QUEUE_PERSISTENT) ||
-        (qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE))
-   	{
-        	err = SA_AIS_ERR_BAD_OPERATION;
-      		goto send_rsp;
-   	}
+	    (qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)) {
+		err = SA_AIS_ERR_BAD_OPERATION;
+		goto send_rsp;
+	}
 	/* Set retention time only if timer is not started */
 	if (!qnode->qinfo.tmr.is_active) {
 		qnode->qinfo.queueStatus.retentionTime = evt->msg.mqp_req.info.retTimeSetReq.retentionTime;

@@ -1509,6 +1509,12 @@ SaAisErrorT saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *r
 	printf("\n SaMsgQueueHandleT Called with Handle %d \n", (uns32)queueHandle);
 #endif
 
+	if ((retentionTime == NULL) || (*retentionTime <= 0)) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return rc;
+	}
+
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
 	if (!mqa_cb) {
