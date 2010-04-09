@@ -147,7 +147,7 @@ extern "C" {
 	/* 5.3.1 saImmOiInitialize() */
 #ifdef IMM_A_01_01
 	extern SaAisErrorT
-	 saImmOiInitialize(SaImmOiHandleT *immOiHandle, const SaImmOiCallbacksT * immOiCallbacks, SaVersionT *version);
+	 saImmOiInitialize(SaImmOiHandleT *immOiHandle, const SaImmOiCallbacksT * immOiCallbacks, SaVersionT *version) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -209,7 +209,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saImmOiRtObjectCreate(SaImmOiHandleT immOiHandle,
 			       const SaImmClassNameT className,
-			       const SaNameT *parentName, const SaImmAttrValuesT ** attrValues);
+			       const SaNameT *parentName, const SaImmAttrValuesT ** attrValues) __attribute__ ((deprecated));
 #endif
 
 	extern SaAisErrorT
@@ -227,7 +227,7 @@ extern "C" {
 #ifdef IMM_A_01_01
 	extern SaAisErrorT
 	 saImmOiRtObjectUpdate(SaImmOiHandleT immOiHandle,
-			       const SaNameT *objectName, const SaImmAttrModificationT ** attrMods);
+			       const SaNameT *objectName, const SaImmAttrModificationT ** attrMods) __attribute__ ((deprecated));
 #endif
 	extern SaAisErrorT
 	 saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
