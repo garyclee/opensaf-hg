@@ -476,6 +476,8 @@ static int extractCommonField(char *dest, size_t dest_size,
 	size_t stringSize;
 	SaUint16T fieldSizeOffset = 0;
 	int characters = 0;
+	char *hex_string = NULL, *hex_string_ptr = NULL;
+        int no_ch = 0, i;
 
 	*fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
@@ -647,8 +649,31 @@ static int extractCommonField(char *dest, size_t dest_size,
 		break;
 
 	case C_LR_HEX_CHAR_BODY_LETTER:
-		stringSize = (SaInt32T)logRecord->logBuffer->logBufSize;
-		characters = snprintf(dest, dest_size, "%lx", (long unsigned int)logRecord->logBuffer->logBuf);
+		stringSize = logRecord->logBuffer->logBufSize;
+		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
+		hex_string = (char *)malloc(2 * stringSize + 1);
+
+		if (hex_string == NULL){
+			assert(0);
+		}
+
+		hex_string_ptr = hex_string;
+
+		for (i = 0; i < stringSize; i++) {
+			no_ch = sprintf(hex_string_ptr, "%x", (int)logRecord->logBuffer->logBuf[i]);
+			hex_string_ptr = hex_string_ptr + no_ch;
+		}
+		*hex_string_ptr = '\0';
+
+		if (fieldSize == 0) {
+
+			characters = snprintf(dest, dest_size, "%s", hex_string);
+		} else {
+
+			characters = snprintf(dest, dest_size, "%*.*s", (int)fieldSize, (int)fieldSize, hex_string);
+		}
+		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
+		free(hex_string);
 		break;
 
 	default:
@@ -700,7 +725,7 @@ static int extractNotificationField(char *dest, size_t dest_size,
 	switch (*fmtExpPtr++) {
 	case N_NOTIFICATION_ID_LETTER:
 		stringSize = 19 * sizeof(char);
-		characters = snprintf(dest, dest_size, "%#016llx", logRecord->logHeader.ntfHdr.notificationId);
+		characters = snprintf(dest, dest_size, "0x%#016llx", logRecord->logHeader.ntfHdr.notificationId);
 		break;
 
 	case N_EVENT_TIME_LETTER:
