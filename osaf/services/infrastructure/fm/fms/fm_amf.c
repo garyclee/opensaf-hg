@@ -125,7 +125,7 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
 
-	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s\n", compName->value, ha_role_string[haState - 1]);
+	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s", compName->value, ha_role_string[haState - 1]);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
@@ -207,7 +207,7 @@ void fm_saf_CSI_rem_callback(SaInvocationT invocation,
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
 
-	syslog(LOG_INFO, "fm_saf_CSI_rem_callback: Comp %s\n", compName->value);
+	syslog(LOG_INFO, "fm_saf_CSI_rem_callback: Comp %s", compName->value);
 
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
@@ -243,7 +243,7 @@ void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *com
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
 
-	syslog(LOG_INFO, "fm_saf_comp_terminate_callback: Comp %s\n", compName->value);
+	syslog(LOG_INFO, "fm_saf_comp_terminate_callback: Comp %s", compName->value);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
@@ -282,7 +282,7 @@ static uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb)
 
 	amf_error = saAmfInitialize(&fm_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d\n", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d", amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -314,7 +314,7 @@ static uns32 fm_amf_register(FM_AMF_CB *fm_amf_cb)
 	 */
 	amf_error = saAmfComponentRegister(fm_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d\n", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d", amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 	return (res);
@@ -345,7 +345,7 @@ static uns32 fm_amf_unregister(FM_AMF_CB *fm_amf_cb)
 	 */
 	amf_error = saAmfComponentUnregister(fm_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_UNREG_FAILED: amf_rc %d\n", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_UNREG_FAILED: amf_rc %d", amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -395,8 +395,8 @@ static uns32 fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
 		syslog(LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL:"
-		       " Healthcheck key: %s amf_rc %d\n", Healthy.key, amf_error);
-
+		       " Healthcheck key: %s amf_rc %d", Healthy.key, amf_error);
+		return NCSCC_RC_FAILURE;
 	}
 
 	return (NCSCC_RC_SUCCESS);
@@ -433,7 +433,7 @@ static uns32 fm_amf_lib_init(FM_AMF_CB *fm_amf_cb)
 		memset(&sname, 0, sizeof(sname));
 		amf_error = saAmfComponentNameGet(fm_amf_cb->amf_hdl, &sname);
 		if (amf_error != SA_AIS_OK) {
-			syslog(LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d\n", amf_error);
+			syslog(LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d", amf_error);
 			rc = NCSCC_RC_FAILURE;
 			break;
 		}
@@ -444,7 +444,8 @@ static uns32 fm_amf_lib_init(FM_AMF_CB *fm_amf_cb)
 		 */
 		amf_error = saAmfSelectionObjectGet(fm_amf_cb->amf_hdl, &fm_amf_cb->amf_fd);
 		if (amf_error != SA_AIS_OK) {
-			syslog(LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n", amf_error);
+			syslog(LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d", amf_error);
+			rc = NCSCC_RC_FAILURE;
 			break;
 		}
 
@@ -529,12 +530,14 @@ static uns32 fm_pipe_open(FM_AMF_CB *fm_amf_cb)
 		/* Create the pipe since FM comes up before NCS starts it */
 		result = mkfifo(FM_HA_COMP_NAMED_PIPE, S_IWUSR | S_IRUSR | S_IRGRP);
 		if (result != 0 && result != EEXIST) {
+			syslog(LOG_ERR, "mkfifo %s failed: %s", FM_HA_COMP_NAMED_PIPE, strerror(errno));
 			return NCSCC_RC_FAILURE;
 		}
 
 		/* Try to open the pipe now */
 		fm_amf_cb->pipe_fd = open(FM_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
 		if (fm_amf_cb->pipe_fd == -1) {
+			syslog(LOG_ERR, "open %s failed: %s", FM_HA_COMP_NAMED_PIPE, strerror(errno));
 			/* Unable to open the pipe */
 			return NCSCC_RC_FAILURE;
 		}
@@ -564,7 +567,11 @@ static uns32 fm_pipe_close(FM_AMF_CB *fm_amf_cb)
 	/* 
 	 ** Close the named pipe 
 	 */
-	close(fm_amf_cb->pipe_fd);
+	if (close(fm_amf_cb->pipe_fd) == -1) {
+		syslog(LOG_ERR, "%s: close failed: %s", __FUNCTION__, strerror(errno));
+		return NCSCC_RC_FAILURE;
+	}
+
 	fm_amf_cb->pipe_fd = -1;
 
 	/* 
@@ -572,6 +579,7 @@ static uns32 fm_pipe_close(FM_AMF_CB *fm_amf_cb)
 	 */
 	result = unlink(FM_HA_COMP_NAMED_PIPE);
 	if (result != 0) {
+		syslog(LOG_ERR, "%s: unlink failed: %s", __FUNCTION__, strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -653,7 +661,7 @@ uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb)
 	if (msg_size < 0) {
 		if (errno != EINTR && errno != EWOULDBLOCK)
 			/* log Non-benign error */
-			syslog(LOG_ERR, "read failed: errno %d\n", errno);
+			syslog(LOG_ERR, "read failed: %s", strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -663,13 +671,16 @@ uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb)
 	pc = strchr(comp_name, '|');
 	if (pc != NULL)
 		*pc = '\0';
-	else
+	else {
+		syslog(LOG_ERR, "%s: | not found", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
+	}
 
 	/*
 	 ** Check if component name is empty
 	 */
 	if (strlen(comp_name) == 0) {
+		syslog(LOG_ERR, "%s: comp name empty", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -679,6 +690,7 @@ uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb)
 	 ** Check if health check key is empty
 	 */
 	if (strlen(pc) == 0) {
+		syslog(LOG_ERR, "%s: key empty", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -686,6 +698,7 @@ uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb)
 	 ** Set SA_AMF_COMPONENT_NAME env variable 
 	 */
 	if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1) {
+		syslog(LOG_ERR, "%s: setenv failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -693,6 +706,7 @@ uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb)
 	 ** Set FM_HA_ENV_HEALTHCHECK_KEY env variable 
 	 */
 	if (setenv("FM_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1) {
+		syslog(LOG_ERR, "%s: setenv failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -740,6 +754,7 @@ uns32 fm_amf_process_msg(FM_AMF_CB *fm_amf_cb)
 	 */
 	amf_error = saAmfDispatch(fm_amf_cb->amf_hdl, SA_DISPATCH_ALL);
 	if (amf_error != SA_AIS_OK) {
+		syslog(LOG_ERR, "%s: saAmfDispatch failed %u", __FUNCTION__, amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 
