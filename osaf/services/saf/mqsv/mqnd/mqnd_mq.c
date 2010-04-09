@@ -121,10 +121,25 @@ uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
+	uns8 qName[SA_MAX_NAME_LENGTH] = { 0 };
+
+	/* No queuehdl present so return success */
+	if (q_info->queueHandle == 0)
+		return NCSCC_RC_SUCCESS;
 
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
 	info.info.close.mqd = q_info->queueHandle;
+
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		return (NCSCC_RC_FAILURE);
+
+/* Unlink the file created by leap */
+	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+	info.req = NCS_OS_POSIX_MQ_REQ_UNLINK;
+	strncpy((char *)qName, (char *)q_info->queueName.value, q_info->queueName.length);
+	info.info.unlink.qname = qName;
+	info.info.unlink.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
 		return (NCSCC_RC_FAILURE);
@@ -293,6 +308,7 @@ uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
 uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
+	uns8 qName[SA_MAX_NAME_LENGTH] = { 0 };
 
 	/* No listener queue present, return */
 	if (!q_info->listenerHandle)
@@ -301,6 +317,16 @@ uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
 	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 	info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
 	info.info.close.mqd = q_info->listenerHandle;
+
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		return (NCSCC_RC_FAILURE);
+
+/* Unlink the file created by leap */
+	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+	info.req = NCS_OS_POSIX_MQ_REQ_UNLINK;
+	sprintf((char *)qName, "NCS_MQSV%llu", q_info->queueHandle);
+	info.info.unlink.qname = qName;
+	info.info.unlink.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
 
 	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
 		return (NCSCC_RC_FAILURE);
