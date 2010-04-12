@@ -351,7 +351,7 @@ void plms_process_client_down_list()
 	TRACE_ENTER();
 
 	while(client_down_list){
-		plms_clean_agent_db(client_down_list->mdest_id);
+		plms_clean_agent_db(client_down_list->mdest_id,SA_AMF_HA_ACTIVE);
 		tmp_client_list = client_down_list;
 		client_down_list = client_down_list->next;
 		free(tmp_client_list);

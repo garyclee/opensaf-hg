@@ -1852,7 +1852,7 @@ send_resp:
 	return;
 }
 
-void plms_clean_agent_db(MDS_DEST agent_mdest_id)
+void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state)
 {
 	PLMS_CB *cb = plms_cb;
 	PLMS_CLIENT_INFO *client_info;
@@ -1870,7 +1870,7 @@ void plms_clean_agent_db(MDS_DEST agent_mdest_id)
 
 	        {	
 			if(client_info){
-				if(SA_AMF_HA_STANDBY == cb->ha_state){
+				if(SA_AMF_HA_STANDBY == ha_state){
 					client_node = (PLMS_CKPT_CLIENT_INFO_LIST *)malloc(sizeof(PLMS_CKPT_CLIENT_INFO_LIST));
 					if(!client_node){
 						LOG_CR("PLMS : PLMS_CKPT_CLIENT_INFO_LIST memory alloc failed, error val:%s",strerror(errno));
@@ -1888,10 +1888,9 @@ void plms_clean_agent_db(MDS_DEST agent_mdest_id)
 							cb->client_down_list;
 					
 					if(start == NULL){
-						cb->client_down_list = 
-								client_node;
+						cb->client_down_list = client_node; 
 					}else{
-						while(!start->next)	
+						while(start->next != NULL)	
 						{
 							start = start->next;
 						}
@@ -1912,9 +1911,9 @@ void plms_clean_agent_db(MDS_DEST agent_mdest_id)
 					 * indicating that the clean up of 
 					 * client database is done.
 					 */
-					 plm_clean_client_info(client_info); 
 					 plms_mbcsv_send_async_update(&msg,
 					 		NCS_MBCSV_ACT_UPDATE); 
+					 plm_clean_client_info(client_info); 
 				}
 				
 			}
@@ -2023,7 +2022,7 @@ void plms_process_mds_info_event(PLMS_EVT *plm_evt)
 		case NCSMDS_DOWN:
 			if (mds_info->svc_id == NCSMDS_SVC_ID_PLMA) {
 				TRACE_5("unhandled DOWN case ? 	NCSMDS_DOWN for PLMS");
-				plms_clean_agent_db(plm_evt->sinfo.dest);
+				plms_clean_agent_db(plm_evt->req_evt.mds_info.dest,cb->ha_state);
 			}
 
 			break;

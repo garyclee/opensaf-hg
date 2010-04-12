@@ -631,7 +631,7 @@ EXTERN_C void plms_proc_quiesced_active_role_change();
 EXTERN_C void plms_proc_active_quiesced_role_change();
 EXTERN_C SaUint32T plms_proc_quiesced_ack_evt();
 EXTERN_C SaUint32T plms_imm_intf_initialize();
-EXTERN_C void plms_clean_agent_db(MDS_DEST agent_mdest_id);
+EXTERN_C void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state);
 EXTERN_C SaUint32T convert_string_to_epath(SaInt8T *epath_str,
                                       SaHpiEntityPathT *epath_ptr);
 EXTERN_C void plms_ee_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[]
