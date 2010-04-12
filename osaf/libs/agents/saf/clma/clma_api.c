@@ -547,8 +547,9 @@ SaAisErrorT saClmInitialize_4(SaClmHandleT *clmHandle, const SaClmCallbacksT_4 *
 	}
 
 	/* validate the version */
-	if ((version->releaseCode == CLM_RELEASE_CODE) && (version->majorVersion <= CLM_MAJOR_VERSION_4) &&
-	    (0 < version->majorVersion)) {
+	if ((version->releaseCode == CLM_RELEASE_CODE) && 
+		(version->majorVersion > CLM_MAJOR_VERSION_1 && version->majorVersion <= CLM_MAJOR_VERSION_4) &&
+		(0 < version->majorVersion)) {
 		version->majorVersion = CLM_MAJOR_VERSION_4;
 		version->minorVersion = CLM_MINOR_VERSION;
 	} else {
