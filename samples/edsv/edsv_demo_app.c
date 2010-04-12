@@ -18,7 +18,7 @@
 
   DESCRIPTION:
 
-  This file contains EDSv toolkit sample application. It demonstrates the
+  This file contains EDSv sample application. It demonstrates the
   following:
   a) usage of EVT APIs.
   b) certain EDSv features:
@@ -40,7 +40,7 @@
 SaEvtHandleT          gl_evt_hdl = 0;
 
 /* Channel created/opened in the demo */
-SaNameT               gl_chan_name = {4,"DEMO"};
+SaNameT               gl_chan_name = {40, "safChnl=DemoChannel,safApp=safEvtService"};
 
 /* Channel handle of the channel that'll be used */
 SaEvtChannelHandleT   gl_chan_hdl = 0;
@@ -55,10 +55,10 @@ SaEvtEventIdT         gl_chan_pub_event_id = 0;
 SaEvtSubscriptionIdT  gl_subid = 19428;
 
 /* Name of the event publisher */
-SaNameT               gl_pubname = {11,"EDSvToolkit"};
+SaNameT               gl_pubname = {11,"EDSvDemokit"};
 
 /* Data content of the event */
-uns8                  gl_event_data[64] = "  I am a TRAP event";
+unsigned char gl_event_data[64] = "  I am a TRAP event";
 
 /* Description of the pattern by which the evt will be published */
 #define TRAP_PATTERN_ARRAY_LEN 3
@@ -106,9 +106,9 @@ static void edsv_evt_delv_callback(SaEvtSubscriptionIdT,
                                    const SaSizeT);
 
 /* Utilty routine to allocate an empty pattern array */
-static uns32 alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
-                                 uns32 num_patterns, 
-                                 uns32 pattern_size);
+static unsigned int alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
+                                 unsigned int num_patterns, 
+                                 unsigned int  pattern_size);
 
 /* Utility routine to free a pattern array */
 static void free_pattern_array(SaEvtEventPatternArrayT *pattern_array);
@@ -129,7 +129,7 @@ static void dump_event_patterns(SaEvtEventPatternArrayT *pattern_array);
  
   Arguments     : None.
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : 0/1
  
   Notes         : This demo involves a single process 
                   acting as a subscriber and a publisher.
@@ -138,7 +138,7 @@ static void dump_event_patterns(SaEvtEventPatternArrayT *pattern_array);
                   attributes obtained.
                   
 ******************************************************************************/
-uns32 ncs_edsv_run(void)
+unsigned int  ncs_edsv_run(void)
 {
 
    SaAisErrorT                 rc;
@@ -151,12 +151,7 @@ uns32 ncs_edsv_run(void)
    SaEvtEventFilterArrayT   filter_array;
    SaEvtCallbacksT          reg_callback_set; 
    SaSelectionObjectT       evt_sel_obj;
-   NCS_SEL_OBJ              evt_ncs_sel_obj;
-   NCS_SEL_OBJ_SET          wait_sel_obj;
-
-
-   /* this is to allow to establish MDS session with EDSv */
-   m_NCS_TASK_SLEEP(3000);
+   struct pollfd fds[1];
 
    /*#########################################################################
                      Demonstrating the usage of saEvtInitialize()
@@ -174,11 +169,11 @@ uns32 ncs_edsv_run(void)
    if (SA_AIS_OK != (rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver)))
    {
       printf("\n EDSv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf(
-      "\n EDSv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (uns32)gl_evt_hdl);
+      "\n EDSv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (unsigned int )gl_evt_hdl);
 
    /*#########################################################################
                   Demonstrating the usage of saEvtSelectionObjectGet()
@@ -187,7 +182,7 @@ uns32 ncs_edsv_run(void)
    if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evt_hdl, &evt_sel_obj)))
    {
       printf("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
@@ -196,7 +191,7 @@ uns32 ncs_edsv_run(void)
                   Demonstrating the usage of saEvtChannelOpen()
    #########################################################################*/
 
-   m_NCS_TASK_SLEEP(2000);
+   sleep(1);
 
    chan_open_flags = 
       SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER|SA_EVT_CHANNEL_PUBLISHER;
@@ -206,35 +201,35 @@ uns32 ncs_edsv_run(void)
             saEvtChannelOpen(gl_evt_hdl, &gl_chan_name, chan_open_flags, timeout, &gl_chan_hdl)))
    {
       printf("\n EDSv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
-   printf("\n EDSv: Opened DEMO - Channel Successfully !!! \n");
+   printf("\n EDSv: Opened DEMO Channel: %s Successfully !!! \n",gl_chan_name.value);
 
   /*#########################################################################
                   Demonstrating the usage of SaEvtEventSubscribe()
    #########################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    filter_array.filtersNumber = TRAP_FILTER_ARRAY_LEN;
    filter_array.filters = gl_trap_filter_array;
    if (SA_AIS_OK != (rc = saEvtEventSubscribe(gl_chan_hdl, &filter_array, gl_subid)))
    {
       printf("\n EDSv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
-   printf("\n EDSv: Subscribed for events on DEMO channel successfully !!! \n");
+   printf("\n EDSv: Subscribed for events on DEMO channel as Both a Publisher and Subscriber !!! \n");
 
    /*#########################################################################
                   Demonstrating the usage of saEvtEventAllocate()
    #########################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    if (SA_AIS_OK != (rc = saEvtEventAllocate(gl_chan_hdl, &gl_chan_pub_event_hdl)))
    {
       printf("\n EDSv: EDA: SaEvtEventAllocate() failed. rc=%d \n", rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: Allocated an Event Successfully !!! \n");
@@ -242,7 +237,7 @@ uns32 ncs_edsv_run(void)
    /*#########################################################################
                   Demonstrating the usage of saEvtEventAttributesSet()
    #########################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    pattern_array.patternsNumber = TRAP_PATTERN_ARRAY_LEN;
    pattern_array.patterns = gl_trap_pattern_array;
@@ -253,7 +248,7 @@ uns32 ncs_edsv_run(void)
                                           &gl_pubname)))
    {
       printf("\n EDSv: EDA: SaEvtEventAttributesSet() failed. rc=%d \n", rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: Set the attributes for the event successfully !!! \n");
@@ -261,7 +256,7 @@ uns32 ncs_edsv_run(void)
    /*#########################################################################
                   Demonstrating the usage of saEvtEventPublish()
    #########################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    rc = saEvtEventPublish(gl_chan_pub_event_hdl,
                   &gl_event_data[0],
@@ -277,21 +272,22 @@ uns32 ncs_edsv_run(void)
    
    /***** Now wait (select) on EVT selction object *****/
 
-   /* Reset the wait select objects */
-   m_NCS_SEL_OBJ_ZERO(&wait_sel_obj);
-
-   /* derive the fd for EVT selection object */
-   m_SET_FD_IN_SEL_OBJ((uns32)evt_sel_obj, evt_ncs_sel_obj);
-
-   /* Set the EVT select object on which EDSv toolkit application waits */
-   m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
-
-  
-   while (m_NCS_SEL_OBJ_SELECT(evt_ncs_sel_obj,&wait_sel_obj,NULL,NULL,NULL) != -1)
+   fds[0].fd = evt_sel_obj;
+   fds[0].events = POLLIN;
+ 
+   while (1)
    {
+      int res = poll(fds,1,-1);
+      if (res == -1) {
+              if (errno == EINTR)
+                      continue;
+              else {
+                     printf("Poll Failed - %s\n",strerror(errno));
+                     exit(1);
+              }
+     }
       /* Process EDSv evt messages */
-      if (m_NCS_SEL_OBJ_ISSET(evt_ncs_sel_obj, &wait_sel_obj))
-      {
+      if (fds[0].revents & POLLIN) {
          /* Dispatch all pending messages */
          printf("\n EDSv: EDA: Dispatching message received on demo channel\n");
          
@@ -307,32 +303,30 @@ uns32 ncs_edsv_run(void)
          break;
       }
 
-      /* Again set EVT select object to wait for another callback */
-      m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
    }
 
    /*######################################################################
                         Demonstrating the usage of saEvtEventFree()
    ########################################################################*/
-   m_NCS_TASK_SLEEP(4000);
+   sleep(4);
 
    if (SA_AIS_OK != (rc = saEvtEventFree(gl_chan_pub_event_hdl)))
    {
       printf("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
-   printf("\n EDSv: Freed the event Successfully !!! \n");
+   printf("\n EDSv: Freed the event that I allocated as a Publisher !!! \n");
 
    /*##########################################################################
                         Demonstrating the usage of saEvtEventUnsubscribe()
    ############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    if (SA_AIS_OK != (rc = saEvtEventUnsubscribe(gl_chan_hdl, gl_subid)))
    {
       printf("\n EDSv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: Unsubscribed for events Successfully !!! \n");
@@ -340,12 +334,12 @@ uns32 ncs_edsv_run(void)
    /*###########################################################################
                         Demonstrating the usage of saEvtChannelClose()
    #############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    if (SA_AIS_OK != (rc = saEvtChannelClose(gl_chan_hdl)))
    {
       printf("\n EDSv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: Closed DEMO channel Successfully !!! \n");
@@ -353,19 +347,19 @@ uns32 ncs_edsv_run(void)
    /*###########################################################################
                         Demonstrating the usage of SaEvtFinalize()
    #############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 
    rc = saEvtFinalize(gl_evt_hdl);
 
    if (rc != SA_AIS_OK)
    {
       printf("\n EDSv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
-      return (NCSCC_RC_FAILURE);
+      return (1);
    }
 
    printf("\n EDSv: Finalized with event service successfully !!! \n");
 
-   return NCSCC_RC_SUCCESS;
+   return 0;
 
 }
 
@@ -381,7 +375,7 @@ uns32 ncs_edsv_run(void)
                   chan_hdl        - hdl of the channel which was opened.
                   rc              - return code.
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : 0/1
  
   Notes         : NONE
 ******************************************************************************/
@@ -407,7 +401,7 @@ edsv_chan_open_callback(SaInvocationT inv,
                   event_hdl       - hdl of the received evt.
                   event_data_size - data size of the received event.
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : 0/1
  
   Notes         : NONE
 ******************************************************************************/
@@ -425,15 +419,15 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    SaEvtEventIdT             event_id;
    SaUint8T                 *p_data = NULL;
    SaSizeT                   data_len;
-   uns32                     rc;
-   uns32                     num_patterns;
-   uns32                     pattern_size;
+   unsigned int                      rc;
+   unsigned int                      num_patterns;
+   unsigned int                      pattern_size;
    
 
    /* Prepare an appropriate-sized data buffer.
     */
    data_len = event_data_size;
-   p_data = m_MMGR_ALLOC_EDSVTM_EVENT_DATA((uns32)data_len+1);
+   p_data = malloc(data_len+1);
    if (p_data == NULL)
       return;
    memset(&publisher_name,'\0',sizeof(SaNameT));
@@ -443,7 +437,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    num_patterns = 8;
    pattern_size = 128;
 
-   if (NCSCC_RC_SUCCESS != 
+   if (0 != 
          (rc = alloc_pattern_array(&pattern_array, num_patterns, pattern_size)))
    {
       printf("\n EDSv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
@@ -489,17 +483,18 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    printf(" patternArray\n");
    dump_event_patterns(pattern_array);
    printf(" priority       =    %d\n", priority);
-   printf(" publishTime    =    %llu\n", (uns64)publish_time);
-   printf(" retentionTime  =    %llu\n", (uns64)retention_time);
-   printf(" eventId        =    %llu\n", (uns64)event_id);
-   printf(" dataLen        =    %d\n", (uns32)data_len);
+   printf(" publishTime    =    %llu\n", (unsigned long long)publish_time);
+   printf(" retentionTime  =    %llu\n", (unsigned long long)retention_time);
+   printf(" eventId        =    %llu\n", (unsigned long long)event_id);
+   printf(" dataLen        =    %d\n", (unsigned int )data_len);
    printf(" data           =    %s\n", p_data);
    printf("---------------------------------------------------------\n\n");
 
   /*#############################################################################
                Demonstrating the usage of saEvtEventRetentionTimeClear()
    #############################################################################*/
-
+   printf("Press <Enter> key to continue\n");	
+   getchar();
    /* Test clearing the retention timer */
    if (0 != retention_time)
    {
@@ -517,14 +512,14 @@ done:
    
    /* Free data storage */
    if (p_data != NULL)
-      m_MMGR_FREE_EDSVTM_EVENT_DATA(p_data);
+      free(p_data);
 
    /* Free the rcvd event */
    rc =  saEvtEventFree(event_hdl);
    if (rc != SA_AIS_OK)
       printf("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
    else
-      printf("\n EDSv: Freed the Event Successfully \n");
+      printf("\n EDSv: Freed the Event that I recieved as a Subscriber \n");
 
    /* Free the pattern_array */
    pattern_array->patternsNumber = 8;
@@ -544,33 +539,33 @@ done:
                   num_patterns     - number of patterns in the array.
                   pattern_size     - size of the patterns in th array.
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : 0/1
  
   Notes         : NONE
 ******************************************************************************/
-static uns32
+static unsigned int 
 alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
-                    uns32 num_patterns,
-                    uns32 pattern_size)
+                    unsigned int  num_patterns,
+                    unsigned int  pattern_size)
 {
-   uns32   x;
+   unsigned int    x;
    SaEvtEventPatternArrayT  *array_ptr;
    SaEvtEventPatternT       *pattern_ptr;
 
-   array_ptr = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERN_ARRAY;
+   array_ptr = (SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
    if (array_ptr == NULL)
-      return(NCSCC_RC_FAILURE);
+      return(1);
 
-   array_ptr->patterns = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERNS(num_patterns);
+   array_ptr->patterns = (SaEvtEventPatternT *)malloc(num_patterns*sizeof(SaEvtEventPatternT));
    if (array_ptr->patterns == NULL)
-      return(NCSCC_RC_FAILURE);
+      return(1);
 
    pattern_ptr = array_ptr->patterns;
    for (x=0; x<num_patterns; x++)
    {
-      pattern_ptr->pattern = m_MMGR_ALLOC_EDSVTM_EVENT_DATA(pattern_size);
+      pattern_ptr->pattern = malloc(pattern_size);
       if (pattern_ptr->pattern == NULL)
-         return(NCSCC_RC_FAILURE);
+         return(1);
 
       pattern_ptr->patternSize = pattern_size;
       pattern_ptr->allocatedSize = pattern_size;
@@ -579,7 +574,7 @@ alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
 
    array_ptr->patternsNumber = num_patterns;
    *pattern_array = array_ptr;
-   return(NCSCC_RC_SUCCESS);
+   return(0);
 }
 
 /****************************************************************************
@@ -596,20 +591,20 @@ alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
 static void
 free_pattern_array(SaEvtEventPatternArrayT *pattern_array)
 {
-   uns32   x;
+   unsigned int    x;
    SaEvtEventPatternT *pattern_ptr;
 
    /* Free all the pattern buffers */
    pattern_ptr = pattern_array->patterns;
    for (x=0; x<pattern_array->patternsNumber; x++)
    {
-      m_MMGR_FREE_EDSVTM_EVENT_DATA(pattern_ptr->pattern);
+      free(pattern_ptr->pattern);
       pattern_ptr++;
    }
 
    /* Now free the pattern structs */
-   m_MMGR_FREE_EDSVTM_EVENT_PATTERNS(pattern_array->patterns);
-   m_MMGR_FREE_EDSVTM_EVENT_PATTERN_ARRAY(pattern_array);
+   free(pattern_array->patterns);
+   free(pattern_array);
 }
 
 /****************************************************************************
@@ -628,8 +623,8 @@ static void
 dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 {
    SaEvtEventPatternT  *pEventPattern;
-   int32   x = 0;
-   int8    buf[256];
+   int   x = 0;
+   char    buf[256];
 
    if (patternArray == NULL)
       return;
@@ -637,11 +632,11 @@ dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
       return;
 
    pEventPattern = patternArray->patterns; /* Point to first pattern */
-   for (x=0; x<(int32)patternArray->patternsNumber; x++) {
-      memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+   for (x=0; x<(int)patternArray->patternsNumber; x++) {
+      memcpy(buf, pEventPattern->pattern, (unsigned int )pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
-      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
-             x, (uns32)pEventPattern->patternSize, buf);
+      printf(" pattern[%d] =    {%2u, \"%s\"}\n",
+             x, (unsigned int )pEventPattern->patternSize, buf);
       pEventPattern++;
    }
 }

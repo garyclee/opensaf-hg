@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
    if (argc != 1)
    {
       printf("\nWrong Arguments USAGE: <glsv_demo> \n");
-      return (NCSCC_RC_FAILURE);
+      return 1;
    }
 
   /* start the application */ 

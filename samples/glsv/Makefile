@@ -23,7 +23,7 @@ CC = gcc
 CFLAGS = -g -O2 -Wall -fPIC
 INCLUDES = -I. -I/usr/include/opensaf
 CPPFLAGS = -DNCS_SAF=1
-LDFLAGS = -lncs_core -lSaLck
+LDFLAGS = -lSaLck
 
 all: $(PROG)
 

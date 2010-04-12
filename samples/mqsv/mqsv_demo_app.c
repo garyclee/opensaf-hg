@@ -22,7 +22,7 @@
 
   DESCRIPTION:
 
-  This file contains MQSV toolkit sample application. It demonstrates the
+  This file contains MQSV sample application. It demonstrates the
   following:
   a) usage of Message Service APIs.
 
@@ -30,23 +30,25 @@
 
 */
 
-/* OpenSAF Include */
-
-#include <opensaf/ncsgl_defs.h>
-#include <opensaf/os_defs.h>
-#include <opensaf/ncs_osprm.h>
-#include <opensaf/ncssysf_def.h>
-#include <opensaf/ncssysf_tsk.h>
-
+/* Standard Includes */
+#include<stdio.h>
+#include<stdlib.h>
+#include<errno.h>
+#include<string.h>
+#include<poll.h>
+#include<unistd.h>
+#include<pthread.h>
 /* SAF Include */
 
-#include <saAis.h>
 #include <saMsg.h>
 
 #define APP_TIMEOUT 10000000000ll /* Timeout in nano seconds */
 #define NUM_MESSAGES_SENT 5
 #define MAX_MESSAGE_SIZE 1024
-
+#define DEMO_Q_NAME1 "safMq=Demo_Queue1,safApp=safMsgService"
+#define DEMO_Q_NAME2 "safMq=Demo_Queue2,safApp=safMsgService"
+#define DEMO_Q_NAME3 "safMq=Demo_Queue3,safApp=safMsgService"
+#define DEMO_Q_NAME4 "safMq=Demo_Queue4,safApp=safMsgService"
 
 void message_send_sync(void);
 void message_send_async(void);
@@ -56,7 +58,7 @@ void message_rcv_sync(void);
 void message_rcv_async(void);
 void message_reply_sync(void);
 void message_reply_async(void);
-void select_thread (NCSCONTEXT arg);
+void *select_thread (void* arg);
 
 /* Demo Message buffers */
 
@@ -148,7 +150,7 @@ static void saMsgMessageReceivedCallback(SaMsgQueueHandleT queueHandle)
  SaMsgSenderIdT senderId;
  SaMsgMessageT receive_message;
  SaAisErrorT rc;
- int32 i;
+ int i;
 
  printf(" \n\nMessage Received Callback  invoked with Queue Handle - %llu \n",queueHandle );
 
@@ -200,7 +202,6 @@ void message_send_sync(void)
   SaNameT       queueName;
   SaTimeT timeout=APP_TIMEOUT;
 
-  sleep(5);
 
   callbk.saMsgQueueOpenCallback = saMsgQueueOpenCallback;
   callbk.saMsgMessageDeliveredCallback = saMsgMessageDeliveredCallback;
@@ -210,7 +211,7 @@ void message_send_sync(void)
   version.releaseCode= 'B';
   version.majorVersion = 1;
   version.minorVersion = 1;
-
+  printf("##########################################################################\n");
   printf("\nSCENARIO#1:Sending Messages via Sync API - saMsgMessageSend START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
@@ -221,9 +222,9 @@ void message_send_sync(void)
     return;
    }
 
-  sprintf(queueName.value, "queue_demo1"); 
+  sprintf((char *)queueName.value,DEMO_Q_NAME1);
 
-  queueName.length = strlen(queueName.value);
+  queueName.length = strlen((char *)queueName.value);
 
   printf(" Sending Message0 using saMsgMessageSend()...");
 
@@ -281,6 +282,7 @@ void message_send_sync(void)
 
    printf("success.\n"); 
    printf("SCENARIO#1:Sending Messages via Sync API - saMsgMessageSend END\n");
+   printf("##########################################################################\n");
    printf(" \n\n\n");
 
 finalize:
@@ -320,9 +322,7 @@ void message_send_async(void)
   SaAisErrorT  rc;
   SaNameT       queueName;
   SaMsgAckFlagsT ackFlags;
-  NCSCONTEXT thread_handle;
-
-  sleep(5);
+  pthread_t thread;
 
   callbk.saMsgQueueOpenCallback = saMsgQueueOpenCallback;
   callbk.saMsgMessageDeliveredCallback = saMsgMessageDeliveredCallback;
@@ -333,6 +333,7 @@ void message_send_async(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
+  printf("##########################################################################\n");
   printf("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
@@ -342,28 +343,15 @@ void message_send_async(void)
     printf(" Error Initialising saMsgInitialize with error - %d", rc);
        return;
    }
+ /* Create a thread and wait in select() */
 
-  /* Create a thread and wait in select() */
-  rc = m_NCS_TASK_CREATE((NCS_OS_CB)select_thread, (NCSCONTEXT)&msgHandle,
-                          "mqa_sendasync_thread", 5, NCS_STACKSIZE_HUGE, &thread_handle);
-
-  if (rc != NCSCC_RC_SUCCESS)
-  {
-   printf("failed to create thread\n");
-   goto finalize;
+  if( pthread_create(&thread, NULL,select_thread,&msgHandle) != 0) {
+	printf("Thread Creation Failed: %s\n",strerror(errno));
   }
 
-  rc = m_NCS_TASK_START(thread_handle);
-
-  if (rc != NCSCC_RC_SUCCESS)
-  {
-   printf("failed to start thread\n");
-   goto finalize;
-  }
-
-   sprintf(queueName.value, "queue_demo2");
+   sprintf((char *)queueName.value,DEMO_Q_NAME2);
  
-   queueName.length = strlen(queueName.value);
+   queueName.length = strlen((char *)queueName.value);
    ackFlags = 0;
    invocation=1;
 
@@ -446,6 +434,7 @@ void message_send_async(void)
 
    printf("success.\n"); 
    printf("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync END\n");
+   printf("##########################################################################\n");
    printf(" \n\n\n");
 
 finalize:
@@ -498,6 +487,7 @@ void message_send_receive(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
+  printf("#####################################################################################\n");
   printf("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive START \n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
@@ -508,9 +498,9 @@ void message_send_receive(void)
       return;
    }
 
-   sprintf(queueName.value, "queue_demo3"); 
+   sprintf((char *)queueName.value,DEMO_Q_NAME3);
 
-   queueName.length = strlen(queueName.value);
+   queueName.length = strlen((char *)queueName.value);
 
    printf(" Sending Message using saMsgMessageSendReceive()...");
 
@@ -529,6 +519,7 @@ void message_send_receive(void)
 
    printf("success.\n"); 
    printf("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive END\n");
+  printf("#####################################################################################\n");
    printf(" \n\n\n");
 
 finalize:
@@ -580,6 +571,7 @@ void message_send_receive_a(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
   
+  printf("#####################################################################################\n");
   printf("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive \n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
@@ -589,9 +581,9 @@ void message_send_receive_a(void)
       return;
    }
 
-   sprintf(queueName.value, "queue_demo4"); 
+   sprintf((char *)queueName.value,DEMO_Q_NAME4);
 
-   queueName.length = strlen(queueName.value);
+   queueName.length = strlen((char *)queueName.value);
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
 
    printf(" Sending Message using saMsgMessageSendReceive()...");
@@ -610,6 +602,7 @@ void message_send_receive_a(void)
 
    printf("success.\n"); 
    printf("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive END \n");
+  printf("#####################################################################################\n");
    printf(" \n\n\n");
 
 finalize:
@@ -651,14 +644,15 @@ void message_rcv_sync(void)
  SaMsgQueueOpenFlagsT open_flags;
  SaTimeT timeout = APP_TIMEOUT;
  char data[MAX_MESSAGE_SIZE];
- int32 i,j;
+ int i,j;
  SaTimeT newRetentionTime;
 
  version.releaseCode= 'B';
  version.majorVersion = 1;
  version.minorVersion = 1;
 
- printf("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet START\n\n");
+ printf("#####################################################################################\n");
+ printf("\nDEMO SCENARIO#1: Receiving messages via Sync API - saMsgMessageGet START\n\n");
 
  rc = saMsgInitialize(&msgHandle,NULL,&version); 
 
@@ -678,9 +672,9 @@ void message_rcv_sync(void)
  /* Receiver creates the message queue */
  open_flags = SA_MSG_QUEUE_CREATE; 
 
- sprintf(queueName.value, "queue_demo1"); 
+ sprintf((char *)queueName.value,DEMO_Q_NAME1);
 
- queueName.length = strlen(queueName.value);
+ queueName.length = strlen((char *)queueName.value);
 
  rc = saMsgQueueOpen(msgHandle, &queueName, &creation_attributes, 
                       open_flags, timeout, &queue_handle);
@@ -690,8 +684,7 @@ void message_rcv_sync(void)
      printf("saMsgQueueOpen failed with rc - %d\n", rc);
      goto finalize;
    }
-
- printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+ printf("\nOpened message queue with params:-\nQueue Name - %s\nQCreation Flags: %u\nQSize - %llu\nQRetention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 /* retention time set test */
  newRetentionTime = 20000000000ll;
  rc = saMsgQueueRetentionTimeSet(queue_handle, &newRetentionTime); 
@@ -702,7 +695,9 @@ void message_rcv_sync(void)
      goto finalize;
    }
  printf("Retention time set function passed \n");
-
+ 
+ printf("Ready to receive messages... Press a key to continue\n");
+ getchar();
  for (i=0;i< NUM_MESSAGES_SENT; i++)
    {
     memset(&receive_message, '\0', sizeof(receive_message));
@@ -754,6 +749,7 @@ api_error:
    }
 
  printf("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet END\n");
+ printf("#####################################################################################\n");
  printf(" \n\n\n");
 
 finalize:
@@ -789,15 +785,13 @@ void message_rcv_async(void)
   SaMsgQueueHandleT queue_handle;
   SaVersionT version;
   SaAisErrorT  rc;
-  int32         sel_rc;
   SaNameT       queueName;
   SaMsgQueueCreationAttributesT creation_attributes;
   SaMsgQueueOpenFlagsT open_flags;
   SaTimeT timeout=APP_TIMEOUT;
   SaSelectionObjectT       selection_object;
-  NCS_SEL_OBJ_SET io_readfds;
-  NCS_SEL_OBJ sel_obj;
-  int32 num_messages;
+  struct pollfd fds[1];
+  int num_messages;
 
   callbk.saMsgQueueOpenCallback = saMsgQueueOpenCallback;
   callbk.saMsgMessageDeliveredCallback = saMsgMessageDeliveredCallback;
@@ -805,10 +799,10 @@ void message_rcv_async(void)
   callbk.saMsgQueueGroupTrackCallback = NULL;
 
   version.releaseCode= 'B';
-  version.majorVersion = 1;
+  version.majorVersion = 3;
   version.minorVersion = 1;
 
-  printf("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch START\n\n");
+  printf("\nSCENARIO#2: Receiving messages via Async API - Poll and saMsgDispatch START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
@@ -818,9 +812,9 @@ void message_rcv_async(void)
      return;
    }
 
-  sprintf(queueName.value, "queue_demo2"); 
+  sprintf((char *)queueName.value, DEMO_Q_NAME2); 
 
-  queueName.length = strlen(queueName.value);
+  queueName.length = strlen((char *)queueName.value);
 
   creation_attributes.creationFlags = 0;
   creation_attributes.size[0] = 512;
@@ -831,7 +825,7 @@ void message_rcv_async(void)
 
   open_flags = SA_MSG_QUEUE_RECEIVE_CALLBACK| SA_MSG_QUEUE_CREATE; 
 
-  printf("Open Flags - SA_MSG_QUEUE_SELECTION_OBJECT_SET\n");
+  printf("Open Flags - SA_MSG_QUEUE_RECEIVE_CALLBACK\n");
 
   rc = saMsgQueueOpen(msgHandle,  &queueName, &creation_attributes, open_flags, timeout, &queue_handle);
 
@@ -841,8 +835,8 @@ void message_rcv_async(void)
     goto finalize;
    }
 
-   printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
+   printf("Opening message queue with params: Queue Name - %s,creation flags %u, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
    rc = saMsgSelectionObjectGet(msgHandle, &selection_object);
 
    if (rc != SA_AIS_OK)
@@ -850,24 +844,22 @@ void message_rcv_async(void)
      printf("Error Getting Selection Object - %d", rc);
      goto api_error;
    }
-
-   m_SET_FD_IN_SEL_OBJ(selection_object, sel_obj);
-   m_NCS_SEL_OBJ_ZERO(&io_readfds);
-   m_NCS_SEL_OBJ_SET(sel_obj, &io_readfds);
-
+   
+   fds[0].fd = selection_object;
+   fds[0].events = POLLIN;
    for (num_messages=0;num_messages <5;num_messages++)
    {
-       printf("\nWaiting on Select...\n");
-
-       sel_rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
-
-       if (sel_rc < 1)
-       {
-         printf("Select failed\n");
-         goto api_error;
-       }
-
-       if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
+      printf("\npoll() on Selection Object...\n");
+      int res = poll(fds,1,-1);
+      if (res == -1) {
+              if (errno == EINTR)
+                      continue;
+              else {
+                     printf("Poll Failed - %s\n",strerror(errno));
+                     exit(1);
+              }
+     }
+       if (fds[0].revents & POLLIN)
        {
             printf("Dispatching the notification using saMsgDispatch\n");
 
@@ -890,7 +882,7 @@ api_error:
       goto finalize;
      }
 
-   printf("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch END\n");
+   printf("\nSCENARIO#2: Receiving messages via Async API - Using POLL and saMsgDispatch END\n");
    printf(" \n\n\n");
 
 finalize:
@@ -935,7 +927,7 @@ void message_reply_sync(void)
   SaTimeT timeout=APP_TIMEOUT;
   char data[1024];
   SaMsgAckFlagsT ackFlags;
-  uns32 j;
+  unsigned int j;
 
   callbk.saMsgQueueOpenCallback = saMsgQueueOpenCallback;
   callbk.saMsgMessageDeliveredCallback = saMsgMessageDeliveredCallback;
@@ -956,9 +948,9 @@ void message_reply_sync(void)
       return;
    }
 
-  sprintf(queueName.value, "queue_demo3"); 
+  sprintf((char *)queueName.value, DEMO_Q_NAME3);
 
-  queueName.length = strlen(queueName.value);
+  queueName.length = strlen((char *)queueName.value);
 
   creation_attributes.creationFlags = 0;
   creation_attributes.size[0] = 512;
@@ -977,8 +969,8 @@ void message_reply_sync(void)
      goto finalize;
    }
 
-   printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
+   printf("Opening message queue with params: Queue Name - %s,creation flags %u, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
    memset(&receive_message, '\0', sizeof(receive_message));
    receive_message.data = data;
    receive_message.size = 1024;
@@ -1086,7 +1078,7 @@ void message_reply_async(void)
   SaTimeT timeout=APP_TIMEOUT;
   char data[1024];
   SaMsgAckFlagsT ackFlags;
-  uns32 j;
+  unsigned int j;
   SaInvocationT invocation=10;
 
   callbk.saMsgQueueOpenCallback = saMsgQueueOpenCallback;
@@ -1095,7 +1087,7 @@ void message_reply_async(void)
   callbk.saMsgQueueGroupTrackCallback = NULL;
 
   version.releaseCode= 'B';
-  version.majorVersion = 1;
+  version.majorVersion = 3;
   version.minorVersion = 1;
 
   printf("\nSCENARIO#4:Replying Messages via Async API - saMsgMessageReplyAsync START \n\n");
@@ -1108,9 +1100,9 @@ void message_reply_async(void)
     return;
    }
 
-  sprintf(queueName.value, "queue_demo4"); 
+  sprintf((char *)queueName.value,DEMO_Q_NAME4); 
 
-  queueName.length = strlen(queueName.value);
+  queueName.length = strlen((char *)queueName.value);
 
   creation_attributes.creationFlags = 0;
   creation_attributes.size[0] = 512;
@@ -1129,8 +1121,8 @@ void message_reply_async(void)
     goto finalize;
    }
 
-  printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
+  printf("Opening message queue with params: Queue Name - %s,creation flags %u, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
   memset(&receive_message, '\0', sizeof(receive_message));
 
   receive_message.data = data;
@@ -1181,7 +1173,6 @@ void message_reply_async(void)
    else
      printf("sendReceive Flag not set to SA_TRUE in the received message. No Reply sent\n");
 
-   sleep(100);
 
    rc = saMsgQueueClose(queue_handle);
 
@@ -1213,41 +1204,39 @@ finalize:
    }
 }
 
-void select_thread (NCSCONTEXT arg)
+void * select_thread (void* arg)
 {
    SaSelectionObjectT       selection_object;
    SaMsgHandleT  msgHandle = *(SaMsgHandleT *)arg;
-   NCS_SEL_OBJ_SET io_readfds;
-   NCS_SEL_OBJ sel_obj;
+   struct pollfd fds[1];
    SaAisErrorT rc;
-   int32 sel_rc;
 
    rc = saMsgSelectionObjectGet(msgHandle, &selection_object);
 
    if (rc != SA_AIS_OK)
    {
-       return;
+       return NULL;
    }
 
-   m_SET_FD_IN_SEL_OBJ(selection_object, sel_obj);
-
-   m_NCS_SEL_OBJ_ZERO(&io_readfds);
-
-   m_NCS_SEL_OBJ_SET(sel_obj, &io_readfds);
+   fds[0].fd = selection_object;
+   fds[0].events = POLLIN;
 
    while(1)
    {
-      sel_rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
-
-      if (sel_rc != NCSCC_RC_SUCCESS)
-      {
-          return;
-      }
-
-      if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
+      int res = poll(fds,1,-1);
+      if (res == -1) {
+              if (errno == EINTR)
+                      continue;
+              else {
+                     printf("Poll Failed - %s\n",strerror(errno));
+                     exit(1);
+              }
+     }
+      if (fds[0].revents & POLLIN)
       {
           saMsgDispatch(msgHandle, SA_DISPATCH_ONE);
       }
    }
+   return NULL;
 }
 

@@ -35,13 +35,13 @@ int main(int argc, char*argv[])
    if (argc != 1)
    {
       printf("\n INCORRECT ARGUMENTS:\n USAGE: <edsv_demo>\n");
-      return (NCSCC_RC_FAILURE);
+      return 1;
    }
 
    printf("\n\n ############################################## \n");
    printf(" #                                            # \n");
    printf(" #   You are about to witness EDSv Demo !!!   # \n");
-   printf(" #   To start the demo, press any key         # \n");
+   printf(" #   To start the demo, press <Enter> key     # \n");
    printf(" #                                            # \n");
    printf(" ############################################## \n");
 
