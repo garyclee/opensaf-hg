@@ -2529,7 +2529,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
 						"INIT_FROM_FILE":"KEEP_REPOSITORY");
-					if(cb->mPbeFile) {
+					if(cb->mPbeFile && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
 						immnd_announceDump(cb); 
 						/* Communicates RIM to IMMD. Needed to decide if reload
 						   must cause cluster restart. 
@@ -4465,10 +4465,12 @@ TRACE("ABT procc_ccb_apply pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
 						"INIT_FROM_FILE":"KEEP_REPOSITORY");
-					immnd_announceDump(cb); 
-					/* Communicates RIM to IMMD. Needed to decide if reload
-					   must cause cluster restart. 
-					 */
+					if(cb->mPbeFile && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
+						immnd_announceDump(cb); 
+						/* Communicates RIM to IMMD. Needed to decide if reload
+						   must cause cluster restart. 
+						*/
+					}
 				}
 			}
 			/* TODO: INFORM DIRECTOR OF CCB-COMMIT DECISION */
