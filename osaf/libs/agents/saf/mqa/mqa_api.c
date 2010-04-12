@@ -5202,7 +5202,7 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 	MQA_CB *mqa_cb;
 	MQA_CLIENT_INFO *client_info = NULL;
 	MQA_TRACK_INFO *track_info = NULL;
-	SaAisErrorT rc;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	if (!queueGroupName) {
 		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
@@ -5234,8 +5234,6 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 			     __FILE__, __LINE__);
 		return SA_AIS_ERR_LIBRARY;
 	}
-
-	memset(&asapi_or, 0, sizeof(asapi_or));
 
 	/* Check if mqd, mqnd are up */
 	if (!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up) {
@@ -5285,6 +5283,7 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 		goto done;
 	}
 
+	memset(&asapi_or, 0, sizeof(asapi_or));
 	asapi_or.info.track.i_sinfo.dest = mqa_cb->mqd_mds_dest;
 	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -5302,10 +5301,10 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
  done:
 	if ((rc == SA_AIS_OK) || !((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT))) {
 		if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			m_MQSV_MQA_GIVEUP_MQA_CB;
 			m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
 				     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__);
-			return SA_AIS_ERR_LIBRARY;
+			rc = SA_AIS_ERR_LIBRARY;
+                        goto done1;
 		}
 		mqa_track_tree_find_and_del(client_info, (SaNameT *)queueGroupName);
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
