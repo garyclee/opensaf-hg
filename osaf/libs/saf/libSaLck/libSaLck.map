@@ -1,0 +1,9 @@
+# Version and symbol export for libSaLck.so
+
+{
+	global:
+		saLck*;
+
+	local:
+		*;
+};

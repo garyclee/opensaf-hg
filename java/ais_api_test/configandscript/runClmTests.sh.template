@@ -1,0 +1,42 @@
+#!/bin/sh
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Andras Kovi (OptXware)
+#
+# This script is used for executing the Java API CLM tests.
+
+source [PATH_TO_INSTALL]/config/scripts.conf
+
+XTERM=
+# Use this for debugging
+#XTERM="xterm gdb"
+
+JAVA="java"
+
+# Define Java options:
+#   SAF_AIS_CLM_IMPL_CLASSNAME: name of the CLM handle implementation class (optional, only required if CLM is used by component)
+#   SAF_AIS_CLM_IMPL_URL: url to the CLM handle implmementation class (jar file or the fully qualified path without .class extension)
+#   SAF_AIS_AMF_IMPL_CLASSNAME: name of the AMF handle implementation class
+#   SAF_AIS_AMF_IMPL_URL: url to the AMF handle implmementation class (jar file or the fully qualified path without .class extension)
+#   java.library.path: list of directories for natile library loading
+#   nativeLibrary: name of the native library without the lib prefix and the extension / this is specific for the OpenSAF java implementation
+JAVA_OPTIONS="-DSAF_AIS_CLM_IMPL_CLASSNAME=org.opensaf.ais.clm.ClmHandleImpl \
+              -DSAF_AIS_CLM_IMPL_URL=file:///${AIS_API_JAR} \
+              -Djava.library.path=${AIS_API_NATIVE_DIR} \
+              -DnativeLibrary=java_ais_api_native"
+
+# Execute the CLM tests.
+java ${JAVA_OPTIONS} \
+    -cp ${AIS_API_JAR}:${JUNIT_LIB} \
+    org.opensaf.ais.clm.test.AllTests

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+logger "shutdown rebooting the system"
+reboot

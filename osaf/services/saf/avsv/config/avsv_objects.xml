@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfAppBaseType">
+		<dn>safAppType=OpenSafApplicationType</dn>
+	</object>
+	<object class="SaAmfAppType">
+		<dn>safVersion=4.0.0,safAppType=OpenSafApplicationType</dn>
+		<attr>
+			<name>saAmfApptSGTypes</name>
+			<value>safVersion=4.0.0,safSgType=OpenSafSgType2N</value>
+			<value>safVersion=4.0.0,safSgType=OpenSafSgTypeNoRed</value>
+		</attr>
+	</object>
+	<object class="SaAmfApplication">
+		<dn>safApp=safAmfService</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+		</attr>
+	</object>
+	<object class="SaAmfCluster">
+		<dn>safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfClusterStartupTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfClusterClmCluster</name>
+			<value>safCluster=myClmCluster</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompGlobalAttributes">
+		<dn>safRdn=compGlobalAttributes,safApp=safAmfService</dn>
+	</object>
+	<object class="SaAmfApplication">
+		<dn>safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=OpenSafSgType2N</dn>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=4.0.0,safSgType=OpenSafSgType2N</dn>
+		<attr>
+			<name>saAmfSgtRedundancyModel</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=4.0.0,safSuType=OpenSafSuTypeServer</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSG">
+		<dn>safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=4.0.0,safSgType=OpenSafSgType2N</value>
+		</attr>
+		<attr>
+			<name>saAmfSGSuHostNodeGroup</name>
+			<value>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxActiveSIsperSUs</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxStandbySIsperSUs</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=OpenSafSgTypeNoRed</dn>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=4.0.0,safSgType=OpenSafSgTypeNoRed</dn>
+		<attr>=
+			<name>saAmfSgtRedundancyModel</name>
+			<value>5</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=4.0.0,safSuType=OpenSafSuTypeND</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSG">
+		<dn>safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=4.0.0,safSgType=OpenSafSgTypeNoRed</value>
+		</attr>
+		<attr>
+			<name>saAmfSGSuHostNodeGroup</name>
+			<value>safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxActiveSIsperSUs</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxStandbySIsperSUs</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjustProb</name>
+			<value>0</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=OpenSafSuTypeServer</dn>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=4.0.0,safSuType=OpenSafSuTypeServer</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=OpenSafSuTypeND</dn>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=4.0.0,safSuType=OpenSafSuTypeND</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=4.0.0,safSvcType=NoRed-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfSvcBaseType">
+		<dn>safSvcType=SC-2N-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcType">
+		<dn>safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcBaseType">
+		<dn>safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcType">
+		<dn>safVersion=4.0.0,safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSI">
+		<dn>safSi=SC-2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=2N,safApp=OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaSmfSwBundle">
+		<dn>safBundle=OpenSAF</dn>
+	</object>
+</imm:IMM-contents>

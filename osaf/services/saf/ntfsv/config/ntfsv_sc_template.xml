@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfComp">
+		<dn>safComp=NTF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeNTF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=NTF-OpenSAF,safComp=NTF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+</imm:IMM-contents>

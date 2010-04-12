@@ -1,0 +1,52 @@
+OpenSAF Coding Style
+====================
+
+As of now, the OpenSAF project will use the Linux Kernel Coding Style. It will
+use all the same rules, except the 80-char line wrapping one. This rule is
+flexed to 120-char per line.
+
+For your reference the coding style document can be found here:
+http://lxr.linux.no/linux/Documentation/CodingStyle
+
+
+GNU indent for C
+================
+
+To automate the task of writing code that complies with the Linux Kernel Coding
+Style, we use GNU indent with the -linux option.
+
+A helper script has been created to parse C source files and headers, it can be
+found in the current directory (./tools/devel/indent) as 'cindent'.
+
+The script accepts 2 parameters:
+
+        Usage:  cindent {typedefs} {files} [...]
+
+Where 'typedefs' is a dictionary file of all the typedefs found in the OpenSAF
+codebase. This file can be produced by the 'find_typedef' script (./tools/devel)
+
+And where 'file' is the file mask or subdirectory that you want to parse
+recursively.
+
+A pregenerated copy can be found at:
+
+        wget http://planck.opensaf.org/~jfournier/osaf_typedefs
+
+Soon this dictionary will be produced automatically with the nightly builds.
+
+The reason why this typedefs list is needed is to fix a little indent bug when
+parsing typedefs and pointers.
+
+For example:
+
+        -foo(bar_t *bar);       /* would be parsed as */
+        +foo(bar_t * bar);      /* a multiplication like string */
+
+Using this dictionary, the script passes each of the listed typedef as a '-T
+<typedef>' option to 'indent' and instruct it to parse them correctly.
+
+
+astyle for ANSI C++
+===================
+
+A script will be created soon for the C++ code.
