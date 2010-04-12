@@ -440,9 +440,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	/* Validate whether we can modify it. */
 
-	/*  TODO... */
-	if (avd_sg->saAmfSGAdminState != SA_AMF_ADMIN_UNLOCKED) {
-
+	if (avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 			void *value = attribute->attrValues[0];
@@ -456,17 +455,36 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
+
+			} else if (!strcmp(attribute->attrName, "saAmfSGHostNodeGroup")) {
+				LOG_ER("%s: Attribute saAmfSGHostNodeGroup cannot be modified", __FUNCTION__);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefAssignedSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
+			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartProb")) {
+			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartMax")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
+			} else {
+				assert(0);
 			}
 		}		/* while (attr_mod != NULL) */
-
+	} else if (avd_sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
+		i = 0;
 		/* Modifications can be done for any parameters. */
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
-				/*  Just for the sake of avoiding else. */
-			} else if (!strcmp(attribute->attrName, "saAmfSGType")) {
-				LOG_ER("%s: Attribute saAmfSGType cannot be modified when SG is unlocked", __FUNCTION__);
+				LOG_ER("%s: Attribute saAmfSGType cannot be modified when SG is not in locked instantion", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGHostNodeGroup")) {
@@ -491,8 +509,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		}		/* while (attr_mod != NULL) */
 
-	} /* Admin state is not UNLOCKED */
-	else {			/* Admin state is UNLOCKED */
+	} else {	/* Admin state is UNLOCKED */
 		i = 0;
 		/* Modifications can be done for the following parameters. */
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -508,8 +525,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				pref_inservice_su = *((SaUint32T *)value);
 
 				if ((pref_inservice_su == 0) ||
-				    ((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
-				     (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
+					((avd_sg->sg_redundancy_model < SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) &&
+					 (pref_inservice_su < AVSV_SG_2N_PREF_INSVC_SU_MIN))) {
 					LOG_ER("%s: Minimum preferred num of su should be 2 in 2N, N+M and NWay red models", __FUNCTION__);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -522,8 +539,81 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		}		/* while (attr_mod != NULL) */
 	}			/* Admin state is UNLOCKED */
 
- done:
+done:
 	return rc;
+}
+
+/**
+ * update these attributes on the nd
+ * @param sg
+ * @param attrib_id
+ * @param value
+ */
+static void sg_nd_attribute_update(AVD_SG *sg, uns32 attrib_id)
+{
+	AVD_SU *su = NULL;
+	AVD_AVND *su_node_ptr = NULL;
+	AVSV_PARAM_INFO param;
+	memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+
+	TRACE_ENTER();
+
+	param.class_id = AVSV_SA_AMF_SG;
+	param.act = AVSV_OBJ_OPR_MOD;
+
+	switch (attrib_id) {
+	case saAmfSGSuRestartProb_ID:
+	{
+		SaTimeT temp_su_restart_prob;
+		param.attr_id = saAmfSGSuRestartProb_ID;
+		param.value_len = sizeof(SaTimeT);
+		m_NCS_OS_HTONLL_P(&temp_su_restart_prob, sg->saAmfSGSuRestartProb);
+		memcpy((char *)&param.value[0], (char *)&temp_su_restart_prob, param.value_len);
+		break;
+	}
+	case saAmfSGSuRestartMax_ID:
+	{
+		param.attr_id = saAmfSGSuRestartMax_ID;
+		param.value_len = sizeof(SaUint32T);
+		m_NCS_OS_HTONL_P(&param.value[0], sg->saAmfSGSuRestartMax);
+		break;
+	}
+	case saAmfSGCompRestartProb_ID:
+	{
+		SaTimeT temp_comp_restart_prob;
+		param.attr_id = saAmfSGCompRestartProb_ID;
+		param.value_len = sizeof(SaTimeT);
+		m_NCS_OS_HTONLL_P(&temp_comp_restart_prob, sg->saAmfSGCompRestartProb);
+		memcpy((char *)&param.value[0], (char *)&temp_comp_restart_prob, param.value_len);
+		break;
+	}
+	case saAmfSGCompRestartMax_ID:
+	{
+		param.attr_id = saAmfSGCompRestartMax_ID;
+		param.value_len = sizeof(SaUint32T);
+		m_NCS_OS_HTONL_P(&param.value[0], sg->saAmfSGCompRestartMax);	
+		break;
+	}
+	default:
+		assert(0);
+	}
+
+	/* This value has to be updated on each SU on this SG */
+	su = sg->list_of_su;
+	while (su) {
+		m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
+
+		if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
+			param.name = su->name;
+
+			if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) != NCSCC_RC_SUCCESS) {
+				LOG_ER("%s::failed for %s",__FUNCTION__, su_node_ptr->name.value);
+			}
+		}
+		su = su->sg_list_su_next;
+	}
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
+	TRACE_LEAVE();
 }
 
 static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
@@ -532,8 +622,6 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_AMF_SG_TYPE *avd_sg_type;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_SU *ncs_su = NULL;
-	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
@@ -558,6 +646,8 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				assert(NULL != avd_sg_type);
 
 				/* Fill the relevant values from sg_type. */
+				avd_sg->saAmfSGAutoRepair = avd_sg_type->saAmfSgtDefAutoRepair;
+				avd_sg->saAmfSGAutoAdjust = avd_sg_type->saAmfSgtDefAutoAdjust;
 				avd_sg->saAmfSGAutoAdjustProb = avd_sg_type->saAmfSgtDefAutoAdjustProb;
 				avd_sg->saAmfSGCompRestartProb = avd_sg_type->saAmfSgtDefCompRestartProb;
 				avd_sg->saAmfSGCompRestartMax = avd_sg_type->saAmfSgtDefCompRestartMax;
@@ -570,6 +660,11 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_sg->sg_type = avd_sg_type;
 				avd_sg->sg_list_sg_type_next = avd_sg->sg_type->list_of_sg;
 				avd_sg->sg_type->list_of_sg = avd_sg;
+				/* update all the nodes with the modified values */
+				sg_nd_attribute_update(avd_sg, saAmfSGSuRestartProb_ID);
+				sg_nd_attribute_update(avd_sg, saAmfSGSuRestartMax_ID);
+				sg_nd_attribute_update(avd_sg, saAmfSGCompRestartProb_ID);
+				sg_nd_attribute_update(avd_sg, saAmfSGCompRestartMax_ID);
 			}
 			attr_mod = opdata->param.modify.attrMods[i++];
 		}		/* while (attr_mod != NULL) */
@@ -627,131 +722,25 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		while (attr_mod != NULL) {
 			void *value;
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-			AVSV_PARAM_INFO param;
 
 			value = attribute->attrValues[0];
 
 			if (!strcmp(attribute->attrName, "saAmfSGSuRestartProb")) {
-				SaTimeT su_restart_prob;
-				SaTimeT temp_su_restart_prob;
-				su_restart_prob = *((SaTimeT *)value);
-				m_NCS_OS_HTONLL_P(&temp_su_restart_prob, su_restart_prob);
+				avd_sg->saAmfSGSuRestartProb = *((SaTimeT *)value);
+				sg_nd_attribute_update(avd_sg, saAmfSGSuRestartProb_ID);
 
-				memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-				param.class_id = AVSV_SA_AMF_SG;
-				param.attr_id = saAmfSGSuRestartProb_ID;
-				param.act = AVSV_OBJ_OPR_MOD;
-				param.value_len = sizeof(SaTimeT);
-				memcpy((char *)&param.value[0], (char *)&temp_su_restart_prob, param.value_len);
-
-				avd_sg->saAmfSGSuRestartProb = su_restart_prob;
-
-				/* This value has to be updated on each SU on this SG */
-				ncs_su = avd_sg->list_of_su;
-				while (ncs_su) {
-					m_AVD_GET_SU_NODE_PTR(avd_cb, ncs_su, su_node_ptr);
-
-					if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
-						param.name = ncs_su->name;
-
-						if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) != NCSCC_RC_SUCCESS) {
-							assert(0);
-						}
-					}
-					ncs_su = ncs_su->sg_list_su_next;
-				}
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuRestartMax")) {
-				uns32 su_restart_max;
-				su_restart_max = *((SaUint32T *)value);
-
-				memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-				param.class_id = AVSV_SA_AMF_SG;
-				param.attr_id = saAmfSGSuRestartMax_ID;
-				param.act = AVSV_OBJ_OPR_MOD;
-
-				param.value_len = sizeof(uns32);
-				m_NCS_OS_HTONL_P(&param.value[0], su_restart_max);
-
-				avd_sg->saAmfSGSuRestartMax = su_restart_max;
-				/* This value has to be updated on each SU on this SG */
-				ncs_su = avd_sg->list_of_su;
-				while (ncs_su) {
-					m_AVD_GET_SU_NODE_PTR(avd_cb, ncs_su, su_node_ptr);
-
-					if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
-						param.name = ncs_su->name;
-
-						if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param)
-						    != NCSCC_RC_SUCCESS) {
-							assert(0);
-						}
-					}
-					ncs_su = ncs_su->sg_list_su_next;
-				}
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
+				avd_sg->saAmfSGSuRestartMax = *((SaUint32T *)value);
+				sg_nd_attribute_update(avd_sg, saAmfSGSuRestartMax_ID);
 
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartProb")) {
-				SaTimeT comp_restart_prob;
-				SaTimeT temp_comp_restart_prob;
-				comp_restart_prob = *((SaTimeT *)value);
-				m_NCS_OS_HTONLL_P(&temp_comp_restart_prob, comp_restart_prob);
-
-				memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-				param.class_id = AVSV_SA_AMF_SG;
-				param.attr_id = saAmfSGCompRestartProb_ID;
-				param.act = AVSV_OBJ_OPR_MOD;
-
-				param.value_len = sizeof(SaTimeT);
-				memcpy((char *)&param.value[0], (char *)&temp_comp_restart_prob, param.value_len);
-
-				avd_sg->saAmfSGCompRestartProb = comp_restart_prob;
-
-				/* This value has to be updated on each SU on this SG */
-				ncs_su = avd_sg->list_of_su;
-				while (ncs_su) {
-					m_AVD_GET_SU_NODE_PTR(avd_cb, ncs_su, su_node_ptr);
-
-					if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
-						param.name = ncs_su->name;
-
-						if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param)
-						    != NCSCC_RC_SUCCESS) {
-							assert(0);
-						}
-					}
-					ncs_su = ncs_su->sg_list_su_next;
-				}
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
+				avd_sg->saAmfSGCompRestartProb = *((SaTimeT *)value);
+				sg_nd_attribute_update(avd_sg, saAmfSGCompRestartProb_ID);
 
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartMax")) {
-				uns32 comp_restart_max;
-				comp_restart_max = *((SaUint32T *)value);
+				avd_sg->saAmfSGCompRestartMax = *((SaUint32T *)value);
+				sg_nd_attribute_update(avd_sg, saAmfSGCompRestartMax_ID);
 
-				memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-				param.class_id = AVSV_SA_AMF_SG;
-				param.attr_id = saAmfSGCompRestartMax_ID;
-				param.act = AVSV_OBJ_OPR_MOD;
-
-				param.value_len = sizeof(uns32);
-				m_NCS_OS_HTONL_P(&param.value[0], comp_restart_max);
-				avd_sg->saAmfSGCompRestartMax = comp_restart_max;
-				/* This value has to be updated on each SU on this SG */
-				ncs_su = avd_sg->list_of_su;
-				while (ncs_su) {
-					m_AVD_GET_SU_NODE_PTR(avd_cb, ncs_su, su_node_ptr);
-
-					if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
-						param.name = ncs_su->name;
-
-						if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param)
-						    != NCSCC_RC_SUCCESS) {
-							assert(0);
-						}
-					}
-					ncs_su = ncs_su->sg_list_su_next;
-				}
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_sg, AVSV_CKPT_AVD_SG_CONFIG);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 				uns32 pref_inservice_su, back_val;
 				pref_inservice_su = *((SaUint32T *)value);
@@ -782,6 +771,78 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}			/* Admin state is UNLOCKED */
 }
 
+/**
+ * perform lock-instantiation on a given SG
+ * @param cb
+ * @param sg
+ */
+static uns32 sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
+{
+	AVD_SU *su;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s", sg->name.value);
+
+	/* terminate all the SUs on this Node */
+	su = sg->list_of_su;
+	while (su != NULL) {
+		if ((su->saAmfSUPreInstantiable == TRUE) &&
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED ||
+			 su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED ||
+			 su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+
+			if (avd_snd_presence_msg(cb, su, TRUE) == NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SU_TERM(cb, su, TRUE);
+			} else {
+				rc = NCSCC_RC_FAILURE;
+				LOG_WA("Failed Termination '%s'", su->name.value);
+			}
+		}
+		su = su->su_list_sg_next;
+	}
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+/**
+ * perform unlock-instantiation on a given SG
+ * @param cb
+ * @param sg
+ */
+static uns32 sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
+{
+	AVD_SU *su;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s", sg->name.value);
+
+	/* instantiate the SUs on this Node */
+	su = sg->list_of_su;
+	while (su != NULL) {
+		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+			(su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+			&& (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+
+			if (su->saAmfSUPreInstantiable == TRUE) {
+				if (avd_snd_presence_msg(cb, su, FALSE) == NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SU_TERM(cb, su, FALSE);
+				} else {
+					rc = NCSCC_RC_FAILURE;
+					LOG_WA("Failed Instantiation '%s'", su->name.value);
+				}
+			} else {
+				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+			}
+		}
+		su = su->su_list_sg_next;
+	}
+
+	TRACE_LEAVE2("'%d'", rc);
+	return rc;
+}
+
 static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaNameT *object_name, SaImmAdminOperationIdT op_id,
 	const SaImmAdminOperationParamsT_2 **params)
@@ -796,6 +857,12 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	if (sg->sg_ncs_spec == SA_TRUE) {
 		LOG_ER("Admin Op on OpenSAF MW SG is not allowed");
 		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		LOG_WA("SG not in STABLE state (%s)", sg->name.value);
 		goto done;
 	}
 
@@ -867,8 +934,50 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 		break;
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
+		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			LOG_ER("%s is already locked-instantiation", object_name->value);
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED) {
+			LOG_ER("%s is not locked", object_name->value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		adm_state = sg->saAmfSGAdminState;
+		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+		if (sg_app_sg_admin_lock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
+			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
-	case SA_AMF_ADMIN_RESTART:
+		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
+			LOG_ER("%s is already locked", object_name->value);
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			LOG_ER("%s is locked instantiation", object_name->value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		adm_state = sg->saAmfSGAdminState;
+		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_LOCKED);
+		if (sg_app_sg_admin_unlock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
+			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		break;
+	case SA_AMF_ADMIN_SG_ADJUST:
 	default:
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		break;
