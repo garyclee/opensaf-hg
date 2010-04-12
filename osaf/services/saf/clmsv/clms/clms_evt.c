@@ -390,28 +390,27 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	node->nodeup = 0;
 	TRACE_ENTER2("MDS Down nodeup info %d", node->nodeup);
 
-	/*When plm not in model,membership status depends only on the nodeup */
-	if (clms_cb->reg_with_plm == SA_FALSE) {
-		node->member = SA_FALSE;
-		--(osaf_cluster->num_nodes);
-		node->stat_change = SA_TRUE;
-		node->change = SA_CLM_NODE_LEFT;
-		++(clms_cb->cluster_view_num);
-		clms_send_track(clms_cb, node, SA_CLM_CHANGE_COMPLETED);
-		/* Clear node->stat_change after sending the callback to its clients */
-		node->stat_change = SA_FALSE;
+	/*Irrespective of plm in system or not,toggle the membership status for MDS NODE DOWN*/
+	node->member = SA_FALSE;
+	--(osaf_cluster->num_nodes);
+	node->stat_change = SA_TRUE;
+	node->change = SA_CLM_NODE_LEFT;
+	++(clms_cb->cluster_view_num);
+	clms_send_track(clms_cb, node, SA_CLM_CHANGE_COMPLETED);
+	/* Clear node->stat_change after sending the callback to its clients */
+	node->stat_change = SA_FALSE;
 
-		rc = clms_node_exit_ntf(clms_cb, node);
-		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("clms_node_exit_ntf failed %u", rc);
-		}
-		/*Update IMMSV */
-		clms_node_update_rattr(node);
-		clms_cluster_update_rattr(osaf_cluster);
-		ckpt_node_rec(node);
-		ckpt_node_down_rec(node);
-		ckpt_cluster_rec();
+	rc = clms_node_exit_ntf(clms_cb, node);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("clms_node_exit_ntf failed %u", rc);
 	}
+	/*Update IMMSV */
+	clms_node_update_rattr(node);
+	clms_cluster_update_rattr(osaf_cluster);
+	ckpt_node_rec(node);
+	ckpt_node_down_rec(node);
+	ckpt_cluster_rec();
+
 	/*For the NODE DOWN, boottimestamp will not be updated */
 
 	/* Delete the node reference from the nodeid database */
