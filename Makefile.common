@@ -1,11 +1,4 @@
 #
-# FIXME: At present enable-debug is hard coded
-#
-DEBUG_FLAG = -DNCS_DEBUG=1
-DEBUG_VAL = 1
-
-
-#
 # Define a common string for core CPP defines
 #
 CORE_CPP_DEFINES = \
@@ -13,8 +6,7 @@ CORE_CPP_DEFINES = \
     -DNCS_SAF=1 \
     -DNCS_MDS=1 \
     -DDTS_SIM_TEST_ENV=1 \
-    -DDTA_FLOW=1 \
-    $(DEBUG_FLAG)
+    -DDTA_FLOW=1
 
 CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/saf/include \
@@ -30,7 +22,6 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -lpthread
 AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC
-
 
 #
 # Define some useful directory prefixes/suffixes
