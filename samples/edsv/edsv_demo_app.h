@@ -26,13 +26,12 @@
 #define EDSV_DEMO_APP_H
 
 /* Common header files */
-#include <opensaf/ncsgl_defs.h>
-#include <opensaf/ncs_osprm.h>
-#include <opensaf/ncs_svd.h>
-#include <opensaf/ncssysfpool.h>
-#include <opensaf/ncssysf_def.h>
-#include <opensaf/ncssysf_tsk.h>
-#include <opensaf/ncssysf_mem.h>
+#include<stdio.h>
+#include <poll.h>
+#include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /* SAF header files */
 #include <saAis.h>
@@ -50,40 +49,7 @@ typedef enum
 
 
 /* Top level routine to run EDSv demo */
-EXTERN_C uns32 ncs_edsv_run(void);
-
-#define m_MMGR_ALLOC_EDSVTM_EVENT_DATA(size)  m_NCS_MEM_ALLOC( \
-                                            size, \
-                                            NCS_MEM_REGION_PERSISTENT, \
-                                            NCS_SERVICE_ID_EDSVTM, \
-                                            NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA)
-
-#define m_MMGR_FREE_EDSVTM_EVENT_DATA(p)  m_NCS_MEM_FREE(p, \
-                                            NCS_MEM_REGION_PERSISTENT, \
-                                            NCS_SERVICE_ID_EDSVTM, \
-                                            NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA)
-
-#define m_MMGR_ALLOC_EDSVTM_EVENT_PATTERN_ARRAY (SaEvtEventPatternArrayT *) \
-                                             m_NCS_MEM_ALLOC(sizeof(SaEvtEventPatternArrayT), \
-                                                       NCS_MEM_REGION_PERSISTENT, \
-                                                       NCS_SERVICE_ID_EDSVTM, \
-                                                       NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY)
-
-#define m_MMGR_FREE_EDSVTM_EVENT_PATTERN_ARRAY(p)   m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_EDSVTM, \
-                                                NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY)
-
-#define m_MMGR_ALLOC_EDSVTM_EVENT_PATTERNS(n)  (SaEvtEventPatternT *) \
-                                             m_NCS_MEM_ALLOC((n * sizeof(SaEvtEventPatternT)), \
-                                                       NCS_MEM_REGION_PERSISTENT, \
-                                                       NCS_SERVICE_ID_EDSVTM, \
-                                                       NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS)
-
-#define m_MMGR_FREE_EDSVTM_EVENT_PATTERNS(p)        m_NCS_MEM_FREE(p, \
-                                                       NCS_MEM_REGION_PERSISTENT, \
-                                                       NCS_SERVICE_ID_EDSVTM, \
-                                                       NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS)
+extern unsigned int ncs_edsv_run(void);
 
 #endif /* !EDSV_DEMO_APP_H */
 

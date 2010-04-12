@@ -16,28 +16,26 @@
 
 
 #include <stdio.h>
-#include <opensaf/ncsgl_defs.h>
-#include <opensaf/os_defs.h>
-#include <opensaf/ncs_main_papi.h>
-#include <opensaf/ncs_osprm.h>
-#include <opensaf/ncssysf_def.h>
-#include <opensaf/ncssysf_tsk.h>
-
+#include <stdlib.h>
 
 extern void cpsv_test_sync_app_process(void *info);
 
 int main(int argc, char *argv[])
 {
-   uns32 temp_var;
+   unsigned int temp_var;
   
    if (argc != 2)
    {
       printf("\nWrong Arguments USAGE: <cpsv_demo><1(Writer)/0(Reader)>\n");
-      return (NCSCC_RC_FAILURE);
+      return -1;
    }
 
    temp_var = atoi(argv[1]);  
    
+   /* initiliase the Environment */
+/*   ncs_agents_startup(0, 0); */
+
+
   /* start the application */ 
   cpsv_test_sync_app_process((void *)(long)temp_var);
   return 0;    

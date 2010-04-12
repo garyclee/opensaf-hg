@@ -34,18 +34,18 @@ MODULE NAME: glsv_test_app.c  (GLSv Test Functions)
 #include <saAis.h>
 #include <saLck.h>
 
-void glsv_test_sync_app1_process(NCSCONTEXT info);
-void glsv_test_neagtive_handle_process(NCSCONTEXT info);
-void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info);
-void glsv_test_sync_resource_open_app1_process(NCSCONTEXT info);
-void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info);
-void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info); 
-void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info); 
-void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info);
-void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info);
-void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info);
-void glsv_test_sync_master_change_process(NCSCONTEXT info);
-void glsv_test_sync_big_app1_process(NCSCONTEXT info);
+void glsv_test_sync_app1_process(void * info);
+void glsv_test_neagtive_handle_process(void * info);
+void glsv_test_neagtive_resource_handle_process(void * info);
+void glsv_test_sync_resource_open_app1_process(void * info);
+void glsv_test_sync_app1_pre_purge_process(void * info);
+void glsv_test_sync_app1_post_purge_process(void * info); 
+void glsv_test_sync_app_res_timeout_process(void * info); 
+void glsv_test_sync_app_lock_timeout_non_master_process(void * info);
+void glsv_test_sync_app_lock_timeout_master_process(void * info);
+void glsv_test_sync_app_unlock_timeout_process(void * info);
+void glsv_test_sync_master_change_process(void * info);
+void glsv_test_sync_big_app1_process(void * info);
 
 static void App1_ResourceOpenCallbackT(SaInvocationT invocation,
                                        SaLckResourceHandleT resourceId,
@@ -119,7 +119,7 @@ static void App1_ResourceUnlockCallbackT(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app1_process(NCSCONTEXT info)
+void glsv_test_sync_app1_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -142,8 +142,8 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    printf("Lock Initialising being called ....\t");
    rc = saLckInitialize(&hdl1,&callbk,&version);
@@ -162,19 +162,19 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
    printf("Resource Open  being called ....");
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    if(rc == SA_AIS_OK)
-      printf("PASSED res_id = %lu\n",res_id);
+      printf("PASSED res_id = %llu\n",res_id);
    else
       printf("Failed \n");
 
    printf("Resource Lock for Exclusive lock being called ....");
    rc = saLckResourceLock(res_id,&lockid,2,0,0,10000000000ll,&status);
    if(rc == SA_AIS_OK && status == SA_LCK_LOCK_GRANTED)
-      printf("PASSED lock_id = %lu\n",lockid);
+      printf("PASSED lock_id = %llu\n",lockid);
    else
       printf("Failed \n");
    
    printf("Waiting for 5 seconds....\n");
-   m_NCS_TASK_SLEEP(5000);
+   sleep(5);
 
    printf("Resource unlock being called ....");
    rc = saLckResourceUnlock(lockid,10000000000ll);
@@ -197,7 +197,7 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
    else
       printf("Failed \n");
 
-   m_NCS_TASK_SLEEP(2000);
+   sleep(2);
 }
 
 
@@ -214,7 +214,7 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_neagtive_handle_process(NCSCONTEXT info)
+void glsv_test_neagtive_handle_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -243,8 +243,8 @@ void glsv_test_neagtive_handle_process(NCSCONTEXT info)
    wrong_version.minorVersion = 0;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"Ripple",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=Ripple,safApp=safLockService", 36);
 
    printf("\nCalling  Lock Initialization with a wrong inputs \n");
    rc = saLckInitialize(NULL,NULL,NULL);
@@ -358,7 +358,7 @@ void glsv_test_neagtive_handle_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info)
+void glsv_test_neagtive_resource_handle_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -381,8 +381,8 @@ void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -423,7 +423,7 @@ void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_resource_open_app1_process(NCSCONTEXT info)
+void glsv_test_sync_resource_open_app1_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -444,8 +444,8 @@ void glsv_test_sync_resource_open_app1_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -466,7 +466,7 @@ void glsv_test_sync_resource_open_app1_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info)
+void glsv_test_sync_app1_pre_purge_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -489,14 +489,14 @@ void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    rc = saLckResourceLock(res_id,&lockid,2,0x0,0,10000000000ll,&status);
-   m_NCS_TASK_SLEEP(10000);
+   sleep(10);
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
@@ -516,7 +516,7 @@ void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info)
+void glsv_test_sync_app1_post_purge_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -537,8 +537,8 @@ void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -563,7 +563,7 @@ void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info)
+void glsv_test_sync_app_res_timeout_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -584,8 +584,8 @@ void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -609,7 +609,7 @@ void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info)
+void glsv_test_sync_app_lock_timeout_non_master_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -632,8 +632,8 @@ void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -658,7 +658,7 @@ void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info)
+void glsv_test_sync_app_lock_timeout_master_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -681,8 +681,8 @@ void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
@@ -711,7 +711,7 @@ void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info)
+void glsv_test_sync_app_unlock_timeout_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -734,14 +734,14 @@ void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    rc = saLckResourceLock(res_id,&lockid,2,0,0,10000000000ll,&status);
-   m_NCS_TASK_SLEEP(10000);
+   sleep(10);
    rc = saLckResourceUnlock(lockid,1000000);
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
@@ -763,7 +763,7 @@ void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_master_change_process(NCSCONTEXT info)
+void glsv_test_sync_master_change_process(void * info)
 {
    SaLckHandleT         hdl1;
    SaLckCallbacksT      callbk;
@@ -786,14 +786,14 @@ void glsv_test_sync_master_change_process(NCSCONTEXT info)
    version.minorVersion = 1;
 
    memset(&res_name, 0, sizeof(res_name));
-   res_name.length = 7;
-   memcpy(res_name.value,"sample",7);
+   res_name.length = 36;
+   memcpy(res_name.value, "safLock=sample,safApp=safLockService", 36);
 
    rc = saLckInitialize(&hdl1,&callbk,&version);
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    rc = saLckResourceLock(res_id,&lockid,2,0x0,0,1000000000000ll,&status);
-   m_NCS_TASK_SLEEP(50000);
+   sleep(50);
    rc = saLckResourceUnlock(lockid,10000000000ll);
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
@@ -815,7 +815,7 @@ void glsv_test_sync_master_change_process(NCSCONTEXT info)
  *
  * Notes         : None.
  *****************************************************************************/
-void glsv_test_sync_big_app1_process(NCSCONTEXT info)
+void glsv_test_sync_big_app1_process(void * info)
 {
    SaLckHandleT         hdl1,hdl2;
    SaLckCallbacksT      callbk;
@@ -876,7 +876,7 @@ void glsv_test_sync_big_app1_process(NCSCONTEXT info)
    rc = saLckResourceLock(res_id[3],&lockid[3],2,0,0,10000000000ll,&status);
    rc = saLckResourceLock(res_id[4],&lockid[4],2,0,0,10000000000ll,&status);
 
-   m_NCS_TASK_SLEEP(10000);
+   sleep(10);
 
    rc = saLckResourceUnlock(lockid[0],10000000000ll);
    rc = saLckResourceUnlock(lockid[1],10000000000ll);

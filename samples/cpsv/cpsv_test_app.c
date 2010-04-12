@@ -25,18 +25,16 @@ MODULE NAME: cpsv_test_app.c  (CPSv Test Functions)
     
       
 ******************************************************************************/
-#include <opensaf/ncsgl_defs.h>
-#include <opensaf/os_defs.h>
-#include <opensaf/ncs_osprm.h>
-#include <opensaf/ncssysf_def.h>
-#include <opensaf/ncssysf_tsk.h>
-
-#include <saAis.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <saCkpt.h>
+
+#define DEMO_CKPT_NAME "safCkpt=DemoCkpt,safApp=safCkptService"
 
 void AppCkptOpenCallback(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle, SaAisErrorT error);
 void AppCkptSyncCallback(SaInvocationT invocation, SaAisErrorT error);
-void cpsv_test_sync_app_process(NCSCONTEXT info);
+void cpsv_test_sync_app_process(void *info);
 
 
 void AppCkptOpenCallback(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle, SaAisErrorT error)
@@ -80,7 +78,7 @@ void AppCkptSyncCallback(SaInvocationT invocation, SaAisErrorT error)
  *
  * Notes         : None.
  *****************************************************************************/
-void cpsv_test_sync_app_process(NCSCONTEXT info)
+void cpsv_test_sync_app_process(void *info)
 {
    SaCkptHandleT ckptHandle;
    SaCkptCheckpointHandleT  checkpointHandle;
@@ -94,14 +92,14 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    SaCkptIOVectorElementT writeVector, readVector;
    SaUint32T erroneousVectorIndex;
    void *initialData = "Default data in the section";
-   uns8 read_buff[100] = {0};
+   unsigned char read_buff[100] = {0};
    SaTimeT timeout = 1000000000;
-   uns32  temp_var = (uns32)(long)info; 
+   unsigned int  temp_var = (unsigned int)(long)info; 
 
 
-   memset(&ckptName, 0, sizeof(ckptName));
-   ckptName.length = 7;
-   memcpy(ckptName.value,"sample",7);
+   memset(&ckptName, 0, 255);
+   ckptName.length = strlen(DEMO_CKPT_NAME);
+   memcpy(ckptName.value,DEMO_CKPT_NAME,strlen(DEMO_CKPT_NAME));
 
    callbk.saCkptCheckpointOpenCallback = AppCkptOpenCallback;
    callbk.saCkptCheckpointSynchronizeCallback = AppCkptSyncCallback;
@@ -109,10 +107,12 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    version.majorVersion = 2;
    version.minorVersion = 2;
    
-    
-   m_NCS_TASK_SLEEP(1000);                                                                                                                                                                
+   printf("*******************************************************************\n");
+   printf("Demonstrating Checkpoint Service Usage with a collocated Checkpoint \n");
+   printf("*******************************************************************\n");
+   sleep(2);
 
-   printf("Ckpt Initialising being called ....\t");
+   printf("Initialising With Checkpoint Service....\n");
    rc = saCkptInitialize(&ckptHandle,&callbk,&version);
    if(rc == SA_AIS_OK)
       printf("PASSED \n");
@@ -127,8 +127,7 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    ckptCreateAttr.maxSectionIdSize = 4;
 
    ckptOpenFlags = SA_CKPT_CHECKPOINT_CREATE|SA_CKPT_CHECKPOINT_READ|SA_CKPT_CHECKPOINT_WRITE;
-                                                                                                                                                                      
-   printf("Ckpt Open being called ....\t");
+   printf("Opening Collocated Checkpoint = %s with create flags....\n",ckptName.value);
    rc = saCkptCheckpointOpen(ckptHandle,&ckptName,&ckptCreateAttr,ckptOpenFlags,timeout,&checkpointHandle);
    if(rc == SA_AIS_OK)
       printf("PASSED \n");
@@ -140,9 +139,7 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    if(temp_var == 1)
    {
  
-      printf("Ckpt Active Replica Set being called ....\t");
-
-
+      printf("Setting the Active Replica for my checkpoint ....\t");
       rc = saCkptActiveReplicaSet(checkpointHandle);
       if(rc == SA_AIS_OK)
          printf("PASSED \n");
@@ -152,11 +149,11 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
 
    sectionCreationAttributes.sectionId = (SaCkptSectionIdT*) malloc(sizeof \
                                 (SaCkptSectionIdT));
-   sectionCreationAttributes.sectionId->id = "11";
+   sectionCreationAttributes.sectionId->id = (unsigned char *)"11";
    sectionCreationAttributes.sectionId->idLen = 2;
    sectionCreationAttributes.expirationTime = 3600000000000ll;   /* One Hour */
 
-   printf("Ckpt Section Create being called ....\t");
+   printf("Created Section ....\t");
    rc = saCkptSectionCreate(checkpointHandle,&sectionCreationAttributes,initialData,28);
    if(rc == SA_AIS_OK)
       printf("PASSED \n");
@@ -164,39 +161,46 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
       printf("Failed \n");
 
   
-      writeVector.sectionId.id = "11";
+      writeVector.sectionId.id = (unsigned char *)"11";
       writeVector.sectionId.idLen = 2;
-      writeVector.dataBuffer = "The Checkpoint Service provides a facility for processes to record checkpoint data";
+      writeVector.dataBuffer = "The Checkpoint Service provides a facility for processes to store checkpoint data";
       writeVector.dataSize = strlen(writeVector.dataBuffer);
       writeVector.dataOffset = 0;
       writeVector.readSize = 0;
 
-      printf("Ckpt Write being called ....\t");
+      printf("Writing to Checkpoint %s ....\n",DEMO_CKPT_NAME);
+      printf("Section-Id = %s ....\n",writeVector.sectionId.id);
+      printf("CheckpointData being written = \"%s\"\n",(char *)writeVector.dataBuffer);
+      printf("DataOffset = %llu ....\n",writeVector.dataOffset);
       rc = saCkptCheckpointWrite(checkpointHandle,&writeVector,1,&erroneousVectorIndex);
-      printf("%s\n",(char *)writeVector.dataBuffer);
       if(rc == SA_AIS_OK)
          printf("PASSED \n");
       else
          printf("Failed \n");
-      m_NCS_TASK_SLEEP(10000); 
+      sleep(1); 
+
+      printf("Press <Enter> key to continue...\n");
+      getchar();
     }
     else
     {  
-       m_NCS_TASK_SLEEP(4000);
-       readVector.sectionId.id = "11";
+       sleep(4);
+       readVector.sectionId.id = (unsigned char *)"11";
        readVector.sectionId.idLen = 2;
        readVector.dataBuffer = read_buff;
        readVector.dataSize = 90;
        readVector.dataOffset = 0;                                                                                                                                                                 
-       printf("Ckpt Read being called ....\t");
+       printf("Waiting to Read from Checkpoint %s....\n",DEMO_CKPT_NAME);
+       printf("Press <Enter> key to continue...\n");
+       getchar();	
        rc = saCkptCheckpointRead(checkpointHandle,&readVector,1,&erroneousVectorIndex);
-       printf("%s\n",(char *)readVector.dataBuffer);
+       printf("Checkpoint Data Read = \"%s\"\n",(char *)readVector.dataBuffer);
        if(rc == SA_AIS_OK)
           printf("PASSED \n");
        else
           printf("Failed \n");   
-   }                                                                                                                                                                                                                                                       
-   printf("Ckpt Synchronize being called ....\t");
+   }
+   printf("Synchronizing My Checkpoint being called ....\n");
    rc = saCkptCheckpointSynchronize(checkpointHandle,timeout);
    if(rc == SA_AIS_OK)
       printf("PASSED \n");
@@ -205,16 +209,14 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
                                              
    if(temp_var==1)
    {
-                                                                                                                        
-      printf("Ckpt Unlink being called ....\t");
+      printf("Unlink My Checkpoint ....\t");
       rc = saCkptCheckpointUnlink(ckptHandle,&ckptName);
       if(rc == SA_AIS_OK)
          printf("PASSED \n");
       else
          printf("Failed \n");
-   }                                                                                                                                                                   
-
-   printf("Ckpt Close being called ....\t");
+   }
+   printf("Ckpt Closed ....\t");
    rc = saCkptCheckpointClose(checkpointHandle);
    if(rc == SA_AIS_OK)
       printf("PASSED \n");
@@ -229,7 +231,7 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    else
       printf("Failed \n");
                                                                                                                                                                       
-   m_NCS_TASK_SLEEP(100000);
+   sleep(2);
   return;
 }
 

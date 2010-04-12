@@ -14,13 +14,9 @@
  * Author(s): Emerson Network Power
  */
 
-
-#include <opensaf/ncsgl_defs.h>
-#include <opensaf/os_defs.h>
-#include <opensaf/ncs_osprm.h>
-#include <opensaf/ncssysf_def.h>
-#include <opensaf/ncs_main_papi.h>
-
+#include<stdio.h>
+#include<unistd.h>
+#include<stdlib.h>
 
 #define MQSV_DEMO_MAIN_MAX_INPUT 9
 
@@ -36,12 +32,12 @@ void message_reply_async(void);
 
 int main(int argc, char **argv)
 {
-   uns32 temp_var;
+   unsigned int temp_var;
 
    if (argc != 2)
    {
       printf("\nWrong Arguments USAGE: <mqsv_demo><1(Sender)/0(Receiver)>\n");
-      return (NCSCC_RC_FAILURE);
+      return -1;
    }
 
    temp_var = atoi(argv[1]);
@@ -53,21 +49,39 @@ int main(int argc, char **argv)
     /* start the application */ 
    if (temp_var == 1)
    {
-      sleep(5);
+      printf("MessageQ Sender Application \n");
+      sleep(2);
       message_send_sync();
+      printf("Press Enter Key to Continue...\n");
+      getchar();
       message_send_async(); 
+      printf("Press Enter Key to Continue...\n");
+      getchar();
       message_send_receive();
+      printf("Press Enter Key to Continue...\n");
+      getchar();
       message_send_receive_a();
+      printf("Press Enter Key to Continue...\n");
+      getchar();
     }
     else
     {
-       sleep(3);
+       printf("MessageQ Receiver Application \n");
        message_rcv_sync();
+       printf("Press Enter Key to Continue...\n");
+       getchar();
        message_rcv_async(); 
+       printf("Press Enter Key to Continue...\n");
+       getchar();
        message_reply_sync();
+       printf("Press Enter Key to Continue...\n");
+       getchar();
        message_reply_async(); 
+       printf("Press Enter Key to Continue...\n");
+       getchar();
 
     }
-    sleep(500);
+    printf("End of MessageService Demo. Press Enter Key to Quit\n");
+    getchar();
     return 0;
 }
