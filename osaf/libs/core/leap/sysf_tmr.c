@@ -85,8 +85,6 @@
 
 /* SYSF_TMR the thing given to a create/start client */
 
-#if( NCS_TMR_DBG_ENABLE == 1)
-
 /* Timer Debug data points to see who left timers dangling               */
 
 typedef struct sysf_tmr_leak {
@@ -103,20 +101,7 @@ typedef struct sysf_tmr_leak {
 #define TMR_DBG_STAMP(t,v)        (t->dbg.stamp=v)
 #define TMR_DBG_SET(d,f,l)        {d.isa=TMR_ISA;d.file=f;d.line=l;}
 #define TMR_DBG_ASSERT_ISA(d)     {if(d.isa!=TMR_ISA)m_LEAP_DBG_SINK_VOID;}
-#else
-
-#define TMR_DBG_LEAK uns32
-
-#define TMR_DBG_TICK(s)
-#define TMR_DBG_STAMP(t,v)
-#define TMR_DBG_ASSERT_ISA(t)
-#endif
-
-#if ( NCS_TMR_DBG_ENABLE == 1)
-#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID;assert((t->state&s));}}
-#else
-#define TMR_DBG_ASSERT_STATE(t,s)
-#endif
+#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s))m_LEAP_DBG_SINK_VOID;}
 
 #if ENABLE_SYSLOG_TMR_STATS
 typedef struct tmr_stats {
@@ -717,11 +702,7 @@ tmr_t ncs_tmr_alloc(char *file, uns32 line)
 	if (tmr != NULL) {
 		tmr->next = NULL;	/* put it in start state */
 		TMR_SET_STATE(tmr, TMR_STATE_CREATE);
-
-#if (NCS_TMR_DBG_ENABLE == 1)
 		TMR_DBG_SET(tmr->dbg, file, line);
-#endif
-
 	}
 
 	ncslpg_give(&gl_tcb.persist, 0);
@@ -821,10 +802,7 @@ tmr_t ncs_tmr_start(tmr_t tid, uns32 tmrDelay,	/* timer period in number of 10ms
 	TMR_STAT_STARTS(gl_tcb.stats);
 
 	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
-
-#if (NCS_TMR_DBG_ENABLE == 1)
 	TMR_DBG_SET(tmr->dbg, file, line);
-#endif
 
 	ncslpg_give(&gl_tcb.persist, 0);
 
@@ -990,13 +968,6 @@ uns32 ncs_tmr_remaining(tmr_t tmrID, uns32 *p_tleft)
  * NOTE: This is quick output scheme. Needs to be fit into sysmon model.
  *
  ****************************************************************************/
-#if (NCS_TMR_DBG_ENABLE == 0)
-
-uns32 ncs_tmr_whatsout(void)
-{
-	return NCSCC_RC_SUCCESS;
-}
-#else
 
 static char *gl_tmr_states[] = { "illegal",
 	"CREATE",
@@ -1045,7 +1016,6 @@ uns32 ncs_tmr_whatsout(void)
 	m_NCS_UNLOCK(&gl_tcb.safe.free_lock, NCS_LOCK_WRITE);	/* critical region END */
 	return ncslpg_give(&gl_tcb.persist, NCSCC_RC_SUCCESS);
 }
-#endif
 
 /****************************************************************************
  * Function Name: ncs_tmr_getstats
