@@ -35,7 +35,7 @@ struct ContinuationInfo2
 {
     ContinuationInfo2():mCreateTime(0), mConn(0), mTimeout(0){}
     ContinuationInfo2(SaUint32T conn, SaUint32T timeout):mConn(conn), mTimeout(timeout) 
-	{mCreateTime = time(NULL);}
+        {mCreateTime = time(NULL);}
     
     time_t  mCreateTime;
     SaUint32T mConn;
@@ -276,7 +276,7 @@ static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 SaAisErrorT 
 immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId)
 {
-	return ImmModel::instance(&cb->immModel)->ccbResult(ccbId);
+    return ImmModel::instance(&cb->immModel)->ccbResult(ccbId);
 }
 
 void
@@ -355,7 +355,7 @@ immModel_ccbObjectModify(IMMND_CB *cb,
     SaClmNodeIdT* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-	    ccbObjectModify(req, implConn, implNodeId, continuationId,
+        ccbObjectModify(req, implConn, implNodeId, continuationId,
             pbeConn, pbeNodeId);
 }
 
@@ -369,7 +369,7 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
     SaUint32T** implIdArr,
     SaStringT** objNameArr,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId)		 
+    SaClmNodeIdT* pbeNodeId)
     
 {
     ConnVector cv;
@@ -718,7 +718,7 @@ immModel_ccbCommit(IMMND_CB *cb,
     unsigned int ix=0;
     
     SaBoolT pbeModeChange = (SaBoolT) 
-	    ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
+        ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
     
     *arrSize = cv.size();
     if(*arrSize) {
@@ -1024,7 +1024,7 @@ SaImmRepositoryInitModeT
 immModel_getRepositoryInitMode(IMMND_CB *cb)
 {
     return (SaImmRepositoryInitModeT)
-		ImmModel::instance(&cb->immModel)->getRepositoryInitMode();
+        ImmModel::instance(&cb->immModel)->getRepositoryInitMode();
 }
 
 void
@@ -1467,7 +1467,7 @@ ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
        classInfo->mImplementer->mId &&
        !(classInfo->mImplementer->mDying))) {
         *pbeConn = classInfo->mImplementer->mConn;
-	*pbeNode = classInfo->mImplementer->mNodeId;
+        *pbeNode = classInfo->mImplementer->mNodeId;
         return classInfo->mImplementer;
     }
     *pbeConn = 0;
@@ -1549,13 +1549,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                     if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
                         LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config attributes '%s'",
                             attNm);
-                        illegal = 1;		
+                        illegal = 1;
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_PERSISTENT) {
                         LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
                             "SA_IMM_ATTR_PERSISTENT", attNm);
-                        illegal = 1;		
+                        illegal = 1;
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_CACHED) {
@@ -1576,13 +1576,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                     if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
                         LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
                             "SA_IMM_ATTR_WRITABLE", attNm);
-                        illegal = 1;		
+                        illegal = 1;
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
                         LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
                             "SA_IMM_ATTR_INITIALIZED", attNm);
-                        illegal = 1;		
+                        illegal = 1;
                     }
                     
                     if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
@@ -1769,7 +1769,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr)
         AttrMap::iterator i = classInfo->mAttrMap.find(attrName);
         if (i != classInfo->mAttrMap.end()) {
             LOG_NO("ERR_INVALID_PARAM: attr def for '%s' is duplicated",
-				attrName.c_str());
+                attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
         } else {
             TRACE_5("create attribute '%s'", attrName.c_str());
@@ -1808,7 +1808,7 @@ struct AttrDescriptionGet
         if(item.second->mDefaultValue.empty()) {
             p->d.attrDefaultValue=NULL;
         } else {
-            p->d.attrDefaultValue = 	(IMMSV_EDU_ATTR_VAL *)/*alloc-Z*/
+            p->d.attrDefaultValue = (IMMSV_EDU_ATTR_VAL *)/*alloc-Z*/
                 calloc(1, sizeof(IMMSV_EDU_ATTR_VAL));  
             
             item.second->mDefaultValue.
@@ -1906,7 +1906,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     }
     
     if(strncmp("IMMLOADER", (const char *) req->adminOwnerName.value,
-	       (size_t) req->adminOwnerName.length) == 0) {
+        (size_t) req->adminOwnerName.length) == 0) {
         if(sImmNodeState != IMM_NODE_LOADING) {
             LOG_NO("ERR_INVALID_PARAM: Admin Owner 'IMMLOADER' only allowed for loading");
             TRACE_LEAVE();
@@ -2324,7 +2324,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 LOG_ER("Missing Parent DN: %s", oni->c_str());
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
-	    ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         } else {
             /* Remove assert after component test */
             assert(!sMissingParents.size());
@@ -2342,7 +2342,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                     LOG_WA("Lost connection with implementer %s, "
                         "refusing apply", impInfo->mImplementerName.c_str());
                     err = SA_AIS_ERR_FAILED_OPERATION;
-		    ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+	            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
                     break;
                 }
                 //Wait for ack, possibly remote
@@ -2421,9 +2421,9 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
                 LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
             } else {
                 LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
-	    }
-	    TRACE_LEAVE();
-	    return true;
+            }
+            TRACE_LEAVE();
+            return true;
         }
     }
     TRACE_LEAVE();
@@ -2617,8 +2617,8 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
             
         case IMM_CCB_ABORTED:
             TRACE_5("CCB %u was already aborted", ccbId);
-			TRACE_LEAVE();
-			return;
+            TRACE_LEAVE();
+            return;
 
         default:
             LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
@@ -2626,10 +2626,10 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
     }
     
     
-	TRACE_5("Ccb %u ABORTED", ccb->mId);
+    TRACE_5("Ccb %u ABORTED", ccb->mId);
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
-	ccb->mWaitStartTime = 0;
+    ccb->mWaitStartTime = 0;
     
     CcbImplementerMap::iterator isi;
     for(isi = ccb->mImplementers.begin();
@@ -2977,7 +2977,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
-			adminOwner->mId, ccb->mAdminOwnerId);
+            adminOwner->mId, ccb->mAdminOwnerId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
     }
@@ -3029,7 +3029,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                     "Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
-                goto ccbObjectCreateExit;	  
+                goto ccbObjectCreateExit;
             }
             if(parent->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
                 if(classInfo->mCategory == SA_IMM_CLASS_CONFIG) {
@@ -3037,7 +3037,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                         "Will not allow create of config sub-object.",
                         parentName.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
-                    goto ccbObjectCreateExit;	  
+                    goto ccbObjectCreateExit;
                 } else {
                     assert(isLoading); 
                     /* See check above, only loader allowed to create 
@@ -3341,11 +3341,11 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' must be initialized "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
-                err = SA_AIS_ERR_INVALID_PARAM;	  
+                err = SA_AIS_ERR_INVALID_PARAM;
             }
         }
 
-	// Prepare for call on PersistentBackEnd
+         // Prepare for call on PersistentBackEnd
         if((err == SA_AIS_OK) && pbeNodeIdPtr) {
             void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
             if(!pbe) {
@@ -3425,7 +3425,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             //This is a create => No need to check if there already is a 
             //mutation on this object.
             ccb->mMutations[objectName] = oMut;
-	    ccb->mOpCount++;
+            ccb->mOpCount++;
             
             //Object placed in map before apply/commit as a place-holder.
             //The mCreateLock on the object should prevent premature 
@@ -3518,7 +3518,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     SaUint32T adminOwnerId = req->adminOwnerId;
 
     TRACE_2("Modify objectName:%s ccbId:%u admoId:%u\n", 
-		objectName.c_str(), ccbId, adminOwnerId);
+        objectName.c_str(), ccbId, adminOwnerId);
     
     CcbInfo* ccb = 0;
     AdminOwnerInfo* adminOwner = 0;
@@ -3725,9 +3725,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             afim->mAttrValueMap.find(attrName);
         
         if (i5 == afim->mAttrValueMap.end()) {
-			LOG_ER("Attr '%s' defined in class yet missing from existing object %s", 
-				attrName.c_str(), objectName.c_str());
-			assert(0); 
+            LOG_ER("Attr '%s' defined in class yet missing from existing object %s", 
+                attrName.c_str(), objectName.c_str());
+            assert(0); 
         }
         
         ImmAttrValue* attrValue = i5->second;
@@ -3738,13 +3738,12 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 //Remove existing values and then fall through to the add case.
                 attrValue->discardValues();
                 if(p->attrValue.attrValuesNumber == 0) {
-			if(attr->mFlags & SA_IMM_ATTR_INITIALIZED) {
-				LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
-					" cannot modify to zero values",
-					attrName.c_str());
-				err = SA_AIS_ERR_INVALID_PARAM;
-				break; //out of switch
-			}
+                    if(attr->mFlags & SA_IMM_ATTR_INITIALIZED) {
+                        LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
+                            " cannot modify to zero values", attrName.c_str());
+                        err = SA_AIS_ERR_INVALID_PARAM;
+                        break; //out of switch
+                    }
                     continue; //Ok to replace with nothing.
                 }
                 //else intentional fall-through
@@ -3828,13 +3827,12 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         }
                     }
 
-		    if(attrValue->empty() && (attr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
-			    LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
-				    " cannot modify to zero values",
-				    attrName.c_str());
-			    err = SA_AIS_ERR_INVALID_PARAM;
-			    break; //out of switch
-		    }
+                    if(attrValue->empty() && (attr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
+                        LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
+                            " cannot modify to zero values", attrName.c_str());
+                        err = SA_AIS_ERR_INVALID_PARAM;
+                        break; //out of switch
+                    }
                 }
 
                 break; //out of switch
@@ -3941,7 +3939,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 adminOwner->mTouchedObjects.insert(object);
             }
         }
-	ccb->mOpCount++;
+        ccb->mOpCount++;
     } else { 
         //err != SA_AIS_OK
         if(ccb->mState == IMM_CCB_MODIFY_OP) {ccb->mState = IMM_CCB_READY;}
@@ -4106,7 +4104,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                     (subObjName[pos-1] == ',')){
                     err = deleteObject(oi2, reqConn, adminOwner, ccb, doIt, 
                         objNameVector, connVector, continuations, 
-			    pbeConnPtr?(*pbeConnPtr):0);
+                        pbeConnPtr?(*pbeConnPtr):0);
                 }
             }
         }
@@ -4201,7 +4199,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             new ObjectMutation(IMM_DELETE);
         ccb->mMutations[oi->first] = oMut;
         //oMut->mBeforeImage = oi->second;
-	ccb->mOpCount++;
+        ccb->mOpCount++;
 
         if(oi->second->mImplementer && oi->second->mImplementer->mNodeId) {
             ccb->mState = IMM_CCB_DELETE_OP;
@@ -4220,10 +4218,10 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             SaUint32T implConn = oi->second->mImplementer->mConn;
             
             ccb->mWaitStartTime = time(NULL);
-	    /* TODO: Resetting the ccb timer for each deleted object here. 
-	       Not so efficient. Should set it only when all objects
-	       are processed.
-	     */
+            /* TODO: Resetting the ccb timer for each deleted object here. 
+               Not so efficient. Should set it only when all objects
+               are processed.
+            */
             
             if(implConn) { //implementer is on THIS node.
                 if(oi->second->mImplementer->mDying) {
@@ -4248,7 +4246,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
         } 
 
-	if(pbeIsLocal && !localImpl) {
+        if(pbeIsLocal && !localImpl) {
             /* No regular and local implementer, but we have a PBE. */
             if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                 std::string objectName(oi->first);
@@ -4259,7 +4257,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             }
             connVector.push_back(0);
             continuations.push_back(0);
-	}
+        }
     }
     /*TRACE_LEAVE();*/
     return SA_AIS_OK;
@@ -4351,9 +4349,9 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
     if(ccb->mState == IMM_CCB_CRITICAL) {
         /* This must be the PBE reply. Stop waiting. */
         TRACE_5("PBE replied with rc:%u for ccb:%u", *err, ccbId);
-	if((*err) != SA_AIS_OK) {
-		ccb->mState = IMM_CCB_PBE_ABORT;
-	}
+        if((*err) != SA_AIS_OK) {
+            ccb->mState = IMM_CCB_PBE_ABORT;
+        }
         return false;
     }
 
@@ -4434,7 +4432,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
-        assert(omuti->second->mWaitForImplAck);	    
+        assert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
         assert(/*(omuti->second->mContinuationId == 0) ||*/
                (omuti->second->mContinuationId == (SaUint32T) rsp->inv));
@@ -4484,20 +4482,20 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     } else {
         if(ccb->mState == IMM_CCB_CRITICAL) {
             /* This is the commit/abort decision from the PBE.*/
-            /* Verify that it is the PBE that is replying. */	
+            /* Verify that it is the PBE that is replying. */
             SaUint32T dummyConn;
             unsigned int dummyNodeId;
             ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(&dummyConn, &dummyNodeId);
             if(!pbeImpl || (pbeImpl->mId != rsp->implId)) {
                 LOG_WA("Received commit/abort decision on ccb %u from terminated PBE", ccbId);
                 return; /* Intentionally drop the missmatched response.*/
-		/* If the PBE responds corrrectly, but crashes and gets deregistered
-		   as implementer before this reply reaches us, the reply should be
-		   seen as valid, but gets discard here. This could be fixed by
+                /* If the PBE responds corrrectly, but crashes and gets deregistered
+                   as implementer before this reply reaches us, the reply should be
+                   seen as valid, but gets discard here. This could be fixed by
                    replacing the getPbeOi call with code that checks against the 
                    implementer info even when the implementer is marked as dead.
-		   getPbeOi returns NULL for the valid but dead case.
-		 */
+                   getPbeOi returns NULL for the valid but dead case.
+                */
             }
             if(rsp->result == SA_AIS_OK) {
                 TRACE("COMMIT decision on ccb %u received from PBE", ccbId);
@@ -5542,7 +5540,7 @@ ImmModel::findConnForImplementerOfObject(std::string objectDn)
 
     if(! (nameCheck(objectDn)||nameToInternal(objectDn)) ) {
         LOG_ER("Invalid object name %s sent internally", objectDn.c_str());
-		assert(0);
+        assert(0);
     }
 
     oi = sObjectMap.find(objectDn);
@@ -5776,18 +5774,17 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
 bool
 ImmModel::ccbsTerminated()
 {
-	CcbVector::iterator i;
+    CcbVector::iterator i;
 
     if(sCcbVector.empty()) {return true;}
 
-	for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
-		if((*i)->mState < IMM_CCB_COMMITED) {
-			return false;
-		}
-	}
+    for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+        if((*i)->mState < IMM_CCB_COMMITED) {
+            return false;
+        }
+    }
 
-
-	return true;
+    return true;
 }
 
 void
@@ -5822,14 +5819,14 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
 {
     time_t now = time(NULL);
     ContinuationMap2::iterator ci2;
-	CcbVector::iterator i3;
-	CcbVector ccbsToGc;
+    CcbVector::iterator i3;
+    CcbVector ccbsToGc;
     
     for(ci2=sAdmReqContinuationMap.begin(); 
         ci2!=sAdmReqContinuationMap.end();
         ++ci2) {
         if(ci2->second.mTimeout && 
-			(now - ci2->second.mCreateTime >= (int) ci2->second.mTimeout)) {
+            (now - ci2->second.mCreateTime >= (int) ci2->second.mTimeout)) {
             TRACE_5("Timeout on AdministrativeOp continuation %llu  tmout:%u", 
                 ci2->first, ci2->second.mTimeout);
             admReqs.push_back(ci2->first);
@@ -5880,7 +5877,12 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
                 //TODO Timeout value should be fetched from IMM service object.
                 TRACE_5("Timeout on CCB %u while waiting on implementer reply",
                     (*i3)->mId);
-                ccbs.push_back((*i3)->mId);
+                if((*i3)->mState == IMM_CCB_CRITICAL) {
+                    LOG_NO("Critical transaction backloged! ccb:%u",
+                       (*i3)->mId);
+                } else {
+                    ccbs.push_back((*i3)->mId);
+                }
             }
         }
     }
@@ -6035,7 +6037,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
                 LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
                     "conn:%u nodeId:%x", conn, nodeId);
-                err = SA_AIS_ERR_BAD_HANDLE;	
+                err = SA_AIS_ERR_BAD_HANDLE;
             } else {
                 //conn is NULL on all nodes except primary.
                 //At these other nodes the only info on implementer existence
@@ -6151,7 +6153,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
                 LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                     conn, nodeId);
-                err = SA_AIS_ERR_BAD_HANDLE;	
+                err = SA_AIS_ERR_BAD_HANDLE;
             } else {
                 //conn is NULL on all nodes except primary.
                 //At these other nodes the only info on implementer existence
@@ -6619,7 +6621,7 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
         if((info->mConn != conn) || (info->mNodeId != nodeId)) {
             LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                 conn, nodeId);
-            err = SA_AIS_ERR_BAD_HANDLE;	
+            err = SA_AIS_ERR_BAD_HANDLE;
         } else {
             discardImplementer(req->impl_id, true);
         }
@@ -6681,7 +6683,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
         LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
             conn, nodeId);
-        err = SA_AIS_ERR_BAD_HANDLE;	
+        err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectCreateExit;
     }
     //conn is NULL on all nodes except primary.
@@ -6754,7 +6756,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_ER("No RDN attribute found in class!");
-		assert(0); 
+        assert(0); 
     }
     
     attrValues = req->attrValues;
@@ -6835,7 +6837,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
 
     if(objectName.find(',') != std::string::npos) {
         LOG_NO("ERR_INVALID_PARAM: Can not tolerate ',' in RDN: '%s'", 
-			objectName.c_str());
+            objectName.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto rtObjectCreateExit;
     }
@@ -6938,7 +6940,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
-            } else 	if(!(attr->mFlags & SA_IMM_ATTR_CACHED)) {
+            } else if(!(attr->mFlags & SA_IMM_ATTR_CACHED)) {
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is a non-cached runtime attribute => "
                     "can not be assigned in rtObjectCreate (see spec).", 
                     attrName.c_str());
@@ -7016,7 +7018,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is cached "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
-                err = SA_AIS_ERR_INVALID_PARAM;	  
+                err = SA_AIS_ERR_INVALID_PARAM;
             }
         }
         
@@ -7118,7 +7120,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
             "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
-        err = SA_AIS_ERR_BAD_OPERATION;	
+        err = SA_AIS_ERR_BAD_OPERATION;
         goto rtObjectUpdateExit;
     }
     //conn is NULL on all nodes except primary.
@@ -7134,7 +7136,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle or object "
             "not handled by the implementer conn:%u nodeId:%x "
             "object->mImplementer:%p", conn, nodeId, object->mImplementer);
-        err = SA_AIS_ERR_BAD_OPERATION;	
+        err = SA_AIS_ERR_BAD_OPERATION;
         goto rtObjectUpdateExit;
     }
     //conn is NULL on all nodes except primary.
@@ -7457,7 +7459,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
             "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
-        err = SA_AIS_ERR_BAD_OPERATION;	
+        err = SA_AIS_ERR_BAD_OPERATION;
         goto rtObjectDeleteExit;
     }
     //conn is NULL on all nodes except primary.
@@ -7520,7 +7522,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
             (object->mImplementer->mImplementerName.c_str()):"NIL",
             (object->mImplementer)?(object->mImplementer->mConn):0,
             (object->mImplementer)?(object->mImplementer->mNodeId):0);
-        return SA_AIS_ERR_BAD_OPERATION;	
+        return SA_AIS_ERR_BAD_OPERATION;
     }
     
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
@@ -7545,12 +7547,12 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         object->mImplementer = 0;
         object->mObjFlags = 0;
 
-	i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+        i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
             AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT));
 
-	isPersistent = i4 != classInfo->mAttrMap.end();
+        isPersistent = i4 != classInfo->mAttrMap.end();
         
-	if(isPersistent) {
+        if(isPersistent) {
             LOG_IN("Delete PERSISTENT runtime object '%s' by Impl-id: %u", 
                 oi->first.c_str(), info->mId);
         } else {
@@ -7785,7 +7787,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' must be initialized "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
-                err = SA_AIS_ERR_INVALID_PARAM;	  
+                err = SA_AIS_ERR_INVALID_PARAM;
             }
         }
         
@@ -7862,7 +7864,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
     }
     
     if(isCoord) {//Produce the checkpoint 
-		CcbVector::iterator ccbItr;
+        CcbVector::iterator ccbItr;
         
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
         LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
@@ -8161,7 +8163,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             //Opens for OM and OI connections to this node.
             //immnd must also set cb->mAccepted=SA_TRUE
         } else {
-			CcbVector::iterator ccbItr;
+            CcbVector::iterator ccbItr;
             //verify the checkpoint
 
             
