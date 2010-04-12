@@ -102,6 +102,10 @@ SaAisErrorT plms_state_change_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 
 	/* Copy notifyingObject details give above */
 	memset(plm_notification.notificationHeader.notifyingObject,0,sizeof(SaNameT));
+	strcpy(plm_notification.notificationHeader.notifyingObject->value,"safApp=safPlmService");
+	plm_notification.notificationHeader.notifyingObject->length = 
+		strlen(plm_notification.notificationHeader.notifyingObject->value);
+
 	/* Fill in the class identifier details */
 	plm_notification.notificationHeader.notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
 	plm_notification.notificationHeader.notificationClassId->majorId = SA_SVC_PLM;
@@ -271,6 +275,9 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 #endif 
 	/* Initialize notifying object details. */
 	memset(plm_notification.notificationHeader.notifyingObject,0,sizeof(SaNameT));
+	strcpy(plm_notification.notificationHeader.notifyingObject->value,"safApp=safPlmService");
+	plm_notification.notificationHeader.notifyingObject->length = 
+		strlen(plm_notification.notificationHeader.notifyingObject->value);
 
 	/* Fill in the class identifier details */
 	plm_notification.notificationHeader.notificationClassId->vendorId = 
@@ -425,6 +432,10 @@ SaAisErrorT plms_alarm_ntf_send(SaNtfHandleT  plm_ntf_hdl,
 	
 	/* Initialize notifying object details. */
 	memset(plm_notification.notificationHeader.notifyingObject,0,sizeof(SaNameT));
+	strcpy(plm_notification.notificationHeader.notifyingObject->value,"safApp=safPlmService");
+	plm_notification.notificationHeader.notifyingObject->length = 
+		strlen(plm_notification.notificationHeader.notifyingObject->value);
+
 	/* Fill in the class identifier details */
 	plm_notification.notificationHeader.notificationClassId->vendorId = 
 							SA_NTF_VENDOR_ID_SAF;
