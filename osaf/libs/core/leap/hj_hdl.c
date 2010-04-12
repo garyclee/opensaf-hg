@@ -236,7 +236,7 @@ void ncshm_delete(void)
 	/* Destroy all the locks now. */
 	for (i = 0; i < HM_POOL_CNT; i++) {
 		if (m_NCS_LOCK_DESTROY(&gl_hm.lock[i]) != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 		}
 	}
 

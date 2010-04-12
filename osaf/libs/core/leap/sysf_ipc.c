@@ -503,7 +503,7 @@ uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 		 * IPC queue is being released or has no "users" - don't queue
 		 * messages...
 		 */
-		m_LEAP_DBG_SINK_VOID(0);
+		m_LEAP_DBG_SINK_VOID;
 		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 		ncshm_give_hdl((uns32)*mbx);
 		return NCSCC_RC_FAILURE;

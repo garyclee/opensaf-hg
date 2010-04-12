@@ -80,7 +80,7 @@ COMPILER := $(CC_EXEC_PREFIX)gcc
 
 NCS_DEFINES := -DNCS_SAF=1
 #NCS_DEFINES += -DNCS_MMGR_DEBUG=1 -DNDEBUG=1 
-CPPFLAGS := $(NCS_DEFINES) -DENABLE_LEAP_DBG=0
+CPPFLAGS := $(NCS_DEFINES)
 # need following to get the standard-conforming ctime_r() function
 ifeq "$(OS)" "SunOS"
 CPPFLAGS += -D_POSIX_PTHREAD_SEMANTICS

@@ -147,7 +147,7 @@ void *sysf_stub_alloc(uns32 b, uns8 pool_id, uns8 pri)
 
 void sysf_stub_free(void *data, uns8 pool_id)
 {
-	m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+	m_LEAP_DBG_SINK_VOID;
 }
 
 /***************************************************************************
@@ -404,7 +404,7 @@ NCSUB_POOL *ncsmmgr_ub_getpool(uns8 pool_id)
 	if ((pool_id < UB_MAX_POOLS) && (gl_ub_pool_mgr.pools[pool_id].busy == TRUE))
 		answer = &gl_ub_pool_mgr.pools[pool_id];
 	else
-		m_LEAP_DBG_SINK_VOID((long)NULL);
+		m_LEAP_DBG_SINK_VOID;
 
 	m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
 	return answer;
