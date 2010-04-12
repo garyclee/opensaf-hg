@@ -181,48 +181,6 @@ uns16 decode_16bitOS_inc(uns8 **stream)
 
 /*****************************************************************************
 
-  PROCEDURE NAME:    leap_dbg_sink
-
-  DESCRIPTION:
-
-   has been instrumented to seek runtime errors will invoke this macro.
-   If the flag is disabled, LEAP debug code is benign and not in the built
-   image.
-
-   The customer is invited to redefine the macro or re-populate the function 
-   here.  This sample function is invoked by the macro m_LEAP_DBG_SINK.
-   
-  ARGUMENTS:
-
-  uns32   l             line # in file
-  char*   f             file name where macro invoked
-  code    code          Error code value.. Usually FAILURE
-
-  RETURNS:
-
-  code
-
-  NOTES:
-
-*****************************************************************************/
-
-uns32 leap_dbg_sink(uns32 l, char *f, long code)
-{
-#if (ENABLE_LEAP_DBG == 1)
-	switch (code) {
-	case NCSCC_RC_NO_TO_SVC:
-		printf("MDS: Destination service is not UP: line %d, file %s\n", (unsigned int)l, f);
-		break;
-	default:
-		printf("IN LEAP_DBG_SINK: line %d, file %s\n", (unsigned int)l, f);
-		break;
-	}
-#endif
-	return code;
-}
-
-/*****************************************************************************
-
   PROCEDURE NAME:    leap_failure
 
   DESCRIPTION:

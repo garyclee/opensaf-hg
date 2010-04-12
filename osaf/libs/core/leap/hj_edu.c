@@ -137,32 +137,32 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 	/* Error checks done here. */
 	if (o_err == NULL) {
 		m_NCS_EDU_PRINT_ERROR_STRING(EDU_ERR_POINTER_TO_EDU_ERR_RET_VAL_NULL);
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
 	if (edu_hdl == NULL) {
 		*o_err = EDU_ERR_EDU_HDL_NULL;
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
 	if (!edu_hdl->is_inited) {
 		/* The application didn't init the EDU_HDL. Fatal Error!!!! */
 		*o_err = EDU_ERR_EDU_HDL_NOT_INITED_BY_OWNER;
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
 	if (edp == NULL) {
 		*o_err = EDU_ERR_EDP_NULL;
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
 	if (uba == NULL) {
 		*o_err = EDU_ERR_UBAID_POINTER_NULL;
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
@@ -172,7 +172,7 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 		break;
 	default:
 		*o_err = EDU_ERR_INV_OP_TYPE;
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		ncs_edu_free_uba_contents(uba);
 		return NCSCC_RC_FAILURE;
 	}
@@ -180,12 +180,12 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 		if (op == EDP_OP_TYPE_ENC) {
 			/* At encode time, source pointer can't be NULL. */
 			*o_err = EDU_ERR_SRC_POINTER_NULL;
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return NCSCC_RC_FAILURE;
 		} else {
 			*o_err = EDU_ERR_DEST_DOUBLE_POINTER_NULL;
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return NCSCC_RC_FAILURE;
 		}
@@ -215,7 +215,7 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 	if (op == EDP_OP_TYPE_DEC) {
 		rc = ncs_edu_perform_pp_op(edu_hdl, edp, &lcl_edu_buf, op, o_err, var_cnt, var_array);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return rc;
 		}
@@ -226,14 +226,14 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 	if (op == EDP_OP_TYPE_ENC) {
 		rc = ncs_edu_perform_enc_op(edu_hdl, edp, &lcl_edu_buf, &lcl_cnt, arg, o_err, var_cnt, var_array);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return rc;
 		}
 	} else if (op == EDP_OP_TYPE_DEC) {
 		rc = ncs_edu_perform_dec_op(edu_hdl, edp, &lcl_edu_buf, &lcl_cnt, arg, o_err, var_cnt, var_array);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return rc;
 		}
@@ -243,7 +243,7 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 	if (op == EDP_OP_TYPE_ENC) {
 		rc = ncs_edu_perform_pp_op(edu_hdl, edp, &lcl_edu_buf, op, o_err, var_cnt, var_array);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			ncs_edu_free_uba_contents(uba);
 			return rc;
 		}
@@ -480,7 +480,7 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 		while (cnt != 0) {
 			lcl_rc = edp(edu_hdl, edu_tkn, lcl_ptr, dcnt, buf_env, optype, o_err);
 			if (lcl_rc != NCSCC_RC_SUCCESS) {
-				m_LEAP_DBG_SINK_VOID(lcl_rc);
+				m_LEAP_DBG_SINK_VOID;
 				return lcl_rc;
 			}
 			if (optype == EDP_OP_TYPE_DEC) {
@@ -630,7 +630,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		rc = ncs_edu_perform_exec_action(edu_hdl, edu_tkn, hdl_node, rule, optype,
 						 ptr, ptr_data_len, buf_env, o_err);
 		if (rc != NCSCC_RC_SUCCESS) {
-			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+			m_LEAP_DBG_SINK_VOID;
 			return EDU_FAIL;
 		}
 		break;
@@ -663,7 +663,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if ((ppdb_node = edu_ppdb_node_findadd(&edu_tkn->ppdb,
 							       hdl_node->edp, rule->fld1, rule->fld5, FALSE)) == NULL) {
 				/* Malloc failed. */
-				m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+				m_LEAP_DBG_SINK_VOID;
 				*o_err = EDU_ERR_MEM_FAIL;
 				return EDU_FAIL;
 			}
@@ -699,7 +699,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	case EDU_END:
 		break;
 	default:
-		m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		m_LEAP_DBG_SINK_VOID;
 		*o_err = EDU_ERR_ILLEGAL_INSTR_GIVEN;
 		return EDU_FAIL;
 	}
@@ -1512,7 +1512,7 @@ EDU_LABEL ncs_edu_run_test_ll_rule(EDU_INST_SET *rule, NCSCONTEXT ptr, EDP_OP_TY
 	}
 
 	/* Land here, only in case of invalid Operation types */
-	m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+	m_LEAP_DBG_SINK_VOID;
 	return EDU_FAIL;
 }
 
@@ -1548,7 +1548,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		if (buf_env->is_ubaid) {
 			encoded_cnt_loc = ncs_enc_reserve_space(buf_env->info.uba, 2);
 			if (!encoded_cnt_loc) {
-				m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+				m_LEAP_DBG_SINK_VOID;
 				*o_err = EDU_ERR_MEM_FAIL;
 				return EDU_FAIL;
 			}
@@ -1602,7 +1602,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				if (buf_env->is_ubaid) {
 					encoded_ptr_cnt_loc = ncs_enc_reserve_space(buf_env->info.uba, 2);
 					if (!encoded_ptr_cnt_loc) {
-						m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+						m_LEAP_DBG_SINK_VOID;
 						*o_err = EDU_ERR_MEM_FAIL;
 						return EDU_FAIL;
 					}
@@ -1640,7 +1640,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					if (buf_env->is_ubaid) {
 						encoded_ptr_cnt_loc = ncs_enc_reserve_space(buf_env->info.uba, 2);
 						if (!encoded_ptr_cnt_loc) {
-							m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+							m_LEAP_DBG_SINK_VOID;
 							*o_err = EDU_ERR_MEM_FAIL;
 							return EDU_FAIL;
 						}
@@ -1659,7 +1659,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				cur_inst_indx = edu_tkn->var_array[select_index];
 				if (cur_inst_indx >= instr_count) {
 					/* This is a very fatal error. */
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					*o_err = EDU_ERR_SELECTIVE_EXECUTE_OP_FAIL;
 					return EDU_FAIL;
 				}
@@ -1744,7 +1744,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 				cur_inst_indx = cur_inst_indx + rc_lbl;
 				if (cur_inst_indx >= instr_count) {
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					switch (temp_instr) {
 					case EDU_TEST:
 						*o_err = EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC;
@@ -1811,7 +1811,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				cur_inst_indx = edu_tkn->var_array[select_index];
 				if (cur_inst_indx >= instr_count) {
 					/* This is a very fatal error. */
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					*o_err = EDU_ERR_SELECTIVE_EXECUTE_OP_FAIL;
 					return EDU_FAIL;
 				}
@@ -1881,7 +1881,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 				cur_inst_indx = cur_inst_indx + rc_lbl;
 				if (cur_inst_indx >= instr_count) {
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					switch (temp_instr) {
 					case EDU_TEST:
 						*o_err = EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC;
@@ -1948,7 +1948,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				cur_inst_indx = edu_tkn->var_array[select_index];
 				if (cur_inst_indx >= instr_count) {
 					/* This is a very fatal error. */
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					*o_err = EDU_ERR_SELECTIVE_EXECUTE_OP_FAIL;
 					return EDU_FAIL;
 				}
@@ -2014,7 +2014,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 				cur_inst_indx = cur_inst_indx + rc_lbl;
 				if (cur_inst_indx >= instr_count) {
-					m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+					m_LEAP_DBG_SINK_VOID;
 					switch (temp_instr) {
 					case EDU_TEST:
 						*o_err = EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC;

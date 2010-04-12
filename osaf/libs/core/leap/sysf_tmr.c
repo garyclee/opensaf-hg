@@ -102,7 +102,7 @@ typedef struct sysf_tmr_leak {
 #define TMR_DBG_TICK(s)           (s.tick++)
 #define TMR_DBG_STAMP(t,v)        (t->dbg.stamp=v)
 #define TMR_DBG_SET(d,f,l)        {d.isa=TMR_ISA;d.file=f;d.line=l;}
-#define TMR_DBG_ASSERT_ISA(d)     {if(d.isa!=TMR_ISA)m_LEAP_DBG_SINK_VOID(0);}
+#define TMR_DBG_ASSERT_ISA(d)     {if(d.isa!=TMR_ISA)m_LEAP_DBG_SINK_VOID;}
 #else
 
 #define TMR_DBG_LEAK uns32
@@ -113,7 +113,7 @@ typedef struct sysf_tmr_leak {
 #endif
 
 #if ( NCS_TMR_DBG_ENABLE == 1)
-#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID(0);assert((t->state&s));}}
+#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID;assert((t->state&s));}}
 #else
 #define TMR_DBG_ASSERT_STATE(t,s)
 #endif
@@ -704,7 +704,7 @@ tmr_t ncs_tmr_alloc(char *file, uns32 line)
 						  NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 		memset(tmr, '\0', sizeof(SYSF_TMR));
 		if (tmr == NULL)
-			m_LEAP_DBG_SINK_VOID(0);	/* can't allocate memory?? */
+			m_LEAP_DBG_SINK_VOID;	/* can't allocate memory?? */
 		else {
 			TMR_STAT_TTL_TMRS(gl_tcb.stats);
 			tmr->keep = gl_tcb.safe.dmy_keep.keep;	/* put it on keep list */

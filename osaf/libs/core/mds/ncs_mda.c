@@ -209,7 +209,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
 		case MDA_INST_NAME_TYPE_ADEST:
 			spir_req.i_sp_abstract_name = m_ADA_SP_ABST_NAME;
 			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+				m_LEAP_DBG_SINK_VOID;
 			}
 			break;
 
@@ -218,7 +218,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
 			spir_req.i_instance_name = req->info.inst.i_inst_name;
 			spir_req.i_sp_abstract_name = m_VDA_SP_ABST_NAME;
 			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+				m_LEAP_DBG_SINK_VOID;
 			}
 			break;
 		default:

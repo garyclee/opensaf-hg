@@ -35,6 +35,7 @@
 #define NCSSYSF_DEF_H
 
 #include "ncsgl_defs.h"
+#include "logtrace.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -211,20 +212,9 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  * If LEAP fails an if-conditional or other test that we would not expect
  * under normal conditions, it will call this macro.
  *
- * If ENABLE_LEAP_DBG == 1, fall into the sink function. A customer can put
- * a breakpoint there or leave the CONSOLE print statement, etc.
- *
- * If ENABLE_LEAP_DBG == 0, just echo the value passed. It is typically a
- * return code or a NULL.
- *
- * ENABLE_LEAP_DBG can be enabled in ncs_opt,h
  */
-
-	EXTERN_C uns32 leap_dbg_sink(uns32, char *, long);
-
-#define m_LEAP_GOTO_DBG_SINK(l,f,r) leap_dbg_sink(l,f,(uns32)r)
-#define m_LEAP_DBG_SINK(r)          leap_dbg_sink(__LINE__,__FILE__,(long)r)
-#define m_LEAP_DBG_SINK_VOID(r)          leap_dbg_sink(__LINE__,__FILE__,(uns32)r)
+#define m_LEAP_DBG_SINK(r)	(TRACE("IN LEAP_DBG_SINK"), r)
+#define m_LEAP_DBG_SINK_VOID	TRACE("IN LEAP_DBG_SINK")
 
 /*****************************************************************************
  **                                                                         **
