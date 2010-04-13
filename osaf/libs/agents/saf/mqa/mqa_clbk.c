@@ -618,6 +618,18 @@ uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_inf
 		break;
 
 	case ASAPi_QUEUE_ADD:
+		/* Check if the QUEUE already exists notification list. */
+		for (i = 0; i < track_index; i++) {
+			SaMsgQueueGroupNotificationBufferT *buff =
+			    &track_current_callback->params.qGrpTrack.notificationBuffer;
+			SaNameT *name = &asapi_msg->info.tntfy.oinfo.qparam->name;
+			if ((buff->notification[i].member.queueName.length == name->length) &&
+			    memcmp(buff->notification[i].member.queueName.value, name->value, name->length) == 0) {
+				rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+		}
+
 		callback_buffer[track_index].member.queueName = asapi_msg->info.tntfy.oinfo.qparam->name;
 		/* Status is removed from B.1.1 
 		   callback_buffer[track_index].member.sendingState = asapi_msg->info.tntfy.oinfo.qparam->status; */
@@ -662,28 +674,24 @@ uns32 mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_inf
 		}
 
 		/* check whether there are any queues in the group or not */
-		if (track_index - 1) {
-			track_info->notificationBuffer.notification =
-			    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)(track_index - 1));
-			if (!track_info->notificationBuffer.notification) {
-				m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					     NCSCC_RC_FAILURE, __FILE__, __LINE__);
-				rc = NCSCC_RC_FAILURE;
-				goto done;
-			}
+		track_info->notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)(track_index));
+		if (!track_info->notificationBuffer.notification) {
+			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
+				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-			for (i = 0; i < num_items; i++) {
-				SaMsgQueueGroupNotificationBufferT *buff =
-				    &track_current_callback->params.qGrpTrack.notificationBuffer;
-				SaNameT *name = &asapi_msg->info.tntfy.oinfo.qparam->name;
-				if ((buff->notification[i].member.queueName.length == name->length) &&
-				    memcmp(buff->notification[i].member.queueName.value, name->value,
-					   name->length) == 0)
-					continue;
-				memcpy(&track_info->notificationBuffer.notification[j],
-				       &buff->notification[i], sizeof(SaMsgQueueGroupNotificationT));
-				j++;
-			}
+		for (i = 0; i < num_items; i++) {
+			SaMsgQueueGroupNotificationBufferT *buff =
+			    &track_current_callback->params.qGrpTrack.notificationBuffer;
+			SaNameT *name = &asapi_msg->info.tntfy.oinfo.qparam->name;
+			if ((buff->notification[i].member.queueName.length == name->length) &&
+			    memcmp(buff->notification[i].member.queueName.value, name->value, name->length) == 0)
+				continue;
+			memcpy(&track_info->notificationBuffer.notification[j],
+			       &buff->notification[i], sizeof(SaMsgQueueGroupNotificationT));
+			j++;
 		}
 		track_info->notificationBuffer.numberOfItems = track_index - 1;
 		track_info->track_index = track_index - 1;
