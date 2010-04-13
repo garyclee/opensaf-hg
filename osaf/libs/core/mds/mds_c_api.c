@@ -3190,7 +3190,12 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
 
 	/* Get Subtn info */
 	mds_subtn_tbl_get(local_svc_hdl, svc_id, &local_subtn_info);
-	/* FIXME : If this function returns failure, then its invalid state. Handling required */
+	/* If this function returns failure, then its invalid state. Handling required */
+	if (NULL == local_subtn_info) {
+		m_MDS_LOG_ERR("MCM_API:Sub fr svc=%d to =%d doesnt exists, ret fr mds_mcm_user_event_callback\n",
+				m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl), svc_id);
+		return NCSCC_RC_FAILURE;
+	}
 
 	/* If it is up check for subscription timer running or not */
 	/* If running raise selection objects of blocking send */
