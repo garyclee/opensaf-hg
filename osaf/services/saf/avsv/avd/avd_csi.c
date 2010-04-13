@@ -498,7 +498,7 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
 {
        SaAisErrorT rc; 
        SaNameT dn;
-       SaAmfReadinessStateT saAmfCSICompHAReadinessState = SA_AMF_READINESS_IN_SERVICE;
+       SaAmfHAReadinessStateT saAmfCSICompHAReadinessState = SA_AMF_HARS_READY_FOR_ASSIGNMENT;
        void *arr1[] = { &dn };
        void *arr2[] = { &ha_state };
        void *arr3[] = { &saAmfCSICompHAReadinessState };

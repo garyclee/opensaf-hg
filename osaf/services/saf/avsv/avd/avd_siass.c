@@ -50,7 +50,7 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 {
        SaAisErrorT rc;
        SaNameT dn;
-       SaAmfReadinessStateT saAmfSISUHAReadinessState = SA_AMF_READINESS_IN_SERVICE;
+       SaAmfHAReadinessStateT saAmfSISUHAReadinessState = SA_AMF_HARS_READY_FOR_ASSIGNMENT;
        void *arr1[] = { &dn };
        void *arr2[] = { &ha_state };
        void *arr3[] = { &saAmfSISUHAReadinessState };
