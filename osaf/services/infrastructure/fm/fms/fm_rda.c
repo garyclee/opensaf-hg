@@ -149,7 +149,7 @@ void fm_rda_callback(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE 
 		syslog(LOG_INFO,
 		       "fm_rda_callback(): CurrentState: %s, NewState: %s",
 		       role_string[fm_cb->role], role_string[cb_info->info.io_role]);
-		if ((cb_info->info.io_role == PCS_RDA_ACTIVE) || (cb_info->info.io_role == PCS_RDA_STANDBY)) {
+		if ((cb_info->info.io_role == PCS_RDA_ACTIVE) || (cb_info->info.io_role == PCS_RDA_STANDBY) || (cb_info->info.io_role == PCS_RDA_QUIESCED)) {
 			/* Update local role */
 			fm_cb->role = cb_info->info.io_role;
 		}
