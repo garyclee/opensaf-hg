@@ -2225,11 +2225,11 @@ uns32 avnd_comp_proxied_del(AVND_CB *cb,
 
 	/*remove the association between proxy and proxied */
 	comp->pxy_comp = 0;
-	memset(&comp->proxy_comp_name, 0, sizeof(SaNameT)),
-	    /* mark the proxied as unregistered.
-	       No need to send Async Update here as the same thing happens on the STDBY,
-	       as avnd_comp_proxied_del is called on STDBY. */
-	    m_AVND_COMP_REG_RESET(comp);
+	memset(&comp->proxy_comp_name, 0, sizeof(SaNameT));
+	/* mark the proxied as unregistered.
+	   No need to send Async Update here as the same thing happens on the STDBY,
+	   as avnd_comp_proxied_del is called on STDBY. */
+	m_AVND_COMP_REG_RESET(comp);
 
 	/* mark the proxy comp as normal comp, its not proxying anybody */
 	if (pxy_comp->pxied_list.n_nodes == 0) {
