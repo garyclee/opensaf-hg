@@ -321,6 +321,9 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
 			fclose(service->device.svc_fh);
 			service->device.svc_fh = NULL;
+			service->device.file_open = FALSE;
+			service->device.new_file = TRUE;
+			service->device.cur_file_size = 0;
 		}
 
 		/* Clear the log file datastructure associated with each svc device */
@@ -414,7 +417,11 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
 		fclose(inst->g_policy.device.svc_fh);
 		inst->g_policy.device.svc_fh = NULL;
+		inst->g_policy.device.file_open = FALSE;
+		inst->g_policy.device.new_file = TRUE;
+		inst->g_policy.device.cur_file_size = 0;
 	}
+
 	/* Clear all the console devices for global policy */
 	m_DTS_RMV_ALL_CONS(device);
 

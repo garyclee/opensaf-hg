@@ -594,6 +594,9 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 						if ((TRUE == svc->device.file_open) && (svc->device.svc_fh != NULL)) {
 							fclose(svc->device.svc_fh);
 							svc->device.svc_fh = NULL;
+							svc->device.file_open = FALSE;
+							svc->device.new_file = TRUE;
+							svc->device.cur_file_size = 0;
 						}
 						/* Cleanup the console devices associated with the node */
 						m_DTS_RMV_ALL_CONS(dev);

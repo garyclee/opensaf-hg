@@ -37,7 +37,7 @@
 EXTERN_C uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb,
 					       DTA_DEST_LIST *dtadest, NCS_MBCSV_ACT_TYPE action, SVC_KEY key);
 EXTERN_C uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb,
-					      DTS_SVC_REG_TBL *svcreg, DTS_FILE_LIST *file_list,
+					      DTS_SVC_REG_TBL *svcreg,
 					      NCS_MBCSV_ACT_TYPE action);
 EXTERN_C uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb,
 						    GLOBAL_POLICY *gp, DTS_FILE_LIST *file_list,
@@ -57,9 +57,6 @@ EXTERN_C uns32 dts_data_clean_up(DTS_CB *cb);
    svc->svc_policy.file_log_fmt = param->svc_policy.file_log_fmt; \
    svc->svc_policy.cir_buff_size = param->svc_policy.cir_buff_size; \
    svc->svc_policy.buff_log_fmt = param->svc_policy.buff_log_fmt; \
-   svc->device.new_file = param->device.new_file; \
-   svc->device.cur_file_size = param->device.cur_file_size; \
-   svc->device.file_open = param->device.file_open; \
    svc->device.last_rec_id = param->device.last_rec_id; \
    svc->device.file_log_fmt_change = param->device.file_log_fmt_change; \
    svc->device.buff_log_fmt_change = param->device.buff_log_fmt_change; \
