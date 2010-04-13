@@ -19,8 +19,7 @@
 #include "mqnd_imm.h"
 
 static SaUint32T getdata_from_mqd(MQND_CB *, MQND_QUEUE_NODE *);
-static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT,
-                                             const SaNameT *, const SaImmAttrNameT *);
+static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT, const SaNameT *, const SaImmAttrNameT *);
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
 	.saImmOiCcbAbortCallback = NULL,
@@ -58,7 +57,7 @@ static SaVersionT imm_version = {
  * Notes         : None.
  *****************************************************************************/
 static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-					     const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+						    const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
 	int i = 0, attrCnt = 0;
 	SaNameT mQueueName;
@@ -208,11 +207,11 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						++attrCnt;
 					}
 					i++;
-				}	/* end of while */       
+				}	/* end of while */
 				attrMods[attrCnt] = NULL;
 				saImmOiRtObjectUpdate_2(mqnd_cb->immOiHandle, objectName, attrMods);
 				return SA_AIS_OK;
-			}	/* enf of <if i==j> */   
+			}	/* enf of <if i==j> */
 		}		/* end of <for i=> */
 	}			/* end of <else > */
 	return SA_AIS_ERR_FAILED_OPERATION;
@@ -271,7 +270,7 @@ static SaUint32T getdata_from_mqd(MQND_CB *cb, MQND_QUEUE_NODE *pNode)
  * Notes         : None.
  *****************************************************************************/
 SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time, MQND_QUEUE_NODE *qnode,
-				      SaImmOiHandleT immOiHandle)
+					   SaImmOiHandleT immOiHandle)
 {
 	SaNameT parent, *parentName = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -371,7 +370,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_NODE *qnode, SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	SaUint64T def_val=0;
+	SaUint64T def_val = 0;
 	int i = 0;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1];
 	SaImmAttrValuesT_2 attr_mqprio, attr_mqprioSize, attr_capavail, attr_capreached;
@@ -392,8 +391,8 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 
 		arr1[0] = &mqprdn;
 		arr2[0] = &(qnode->qinfo.size[i]);
-		arr3[0] = &def_val; /* not implemented */
-		arr4[0] = &def_val; /* not implemented */
+		arr3[0] = &def_val;	/* not implemented */
+		arr4[0] = &def_val;	/* not implemented */
 
 		attr_mqprio.attrName = "safMqPrio";
 		attr_mqprio.attrValueType = SA_IMM_ATTR_SASTRINGT;

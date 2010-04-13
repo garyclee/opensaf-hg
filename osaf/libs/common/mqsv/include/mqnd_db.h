@@ -156,6 +156,12 @@ typedef struct mqnd_shm_version {
 	uns16 dummy_verson3;	/* Not in use */
 } MQND_SHM_VERSION;
 
+typedef struct mqa_rsp_cntxt {
+	MQSV_EVT evt;
+	MQSV_SEND_INFO sinfo;
+	struct mqa_rsp_cntxt *next;
+} MQA_RSP_CNTXT;
+
 /* Global data stored in MQND */
 typedef struct mqnd_cb {
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
@@ -184,6 +190,7 @@ typedef struct mqnd_cb {
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	SaNameT comp_name;
 	NCS_DB_LINK_LIST mqa_list_info;	/* List of MQAs which are up */
+	MQA_RSP_CNTXT *mqa_dfrd_evt_rsp_list_head;	/* List of Deferred Event responses to mqa */
 	NCS_BOOL is_restart_done;
 	MDS_DEST up_mqa_dest;
 	MQND_TMR mqa_timer;

@@ -529,6 +529,7 @@ static uns32 mqnd_cb_db_init(MQND_CB *cb)
 		return rc;
 	}
 	cb->is_qevt_hdl_db_up = TRUE;
+	cb->mqa_dfrd_evt_rsp_list_head = NULL;
 	rc = mqnd_mqa_list_init(&cb->mqa_list_info);
 
 	return (rc);

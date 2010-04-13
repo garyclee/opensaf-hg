@@ -105,8 +105,11 @@ uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	if (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))
+	if ((!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT)) || (qnode->qinfo.tmr.is_active))
 		mqnd_tmr_stop(&qnode->qinfo.tmr);
+
+	if (qnode->qinfo.qtransfer_complete_tmr.is_active)
+		mqnd_tmr_stop(&qnode->qinfo.qtransfer_complete_tmr);
 
 	if (cb->is_qhdl_db_up)
 		rc = ncs_patricia_tree_del(&cb->qhndl_db, (NCS_PATRICIA_NODE *)qnode);

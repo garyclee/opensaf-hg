@@ -1277,7 +1277,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 
 	/* Delete the queue handle node from the queue tree */
 
-	if (rc == SA_AIS_OK) {
+	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_BAD_HANDLE)) {
 		if (mqa_queue_tree_delete_node(mqa_cb, queueHandle) != NCSCC_RC_SUCCESS) {
 			rc = SA_AIS_ERR_LIBRARY;
 			m_LOG_MQSV_A(MQA_QUEUE_TREE_DEL_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -1892,7 +1892,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 			SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uns32 length)
 {
 
-	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver=0;
+	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver = 0;
 	MDS_DEST destination_mqnd;
 	uns8 unicast = 0;
 	SaAisErrorT rc = SA_AIS_ERR_NO_RESOURCES;
@@ -2002,7 +2002,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 			if (to_dest_ver == 0) {
 				/* Drop The Message */
 				m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
-					to_dest_ver, __FILE__, __LINE__);
+					     to_dest_ver, __FILE__, __LINE__);
 				mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt);
 				goto loop;
 			}
@@ -2053,13 +2053,18 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 					return SA_AIS_ERR_NO_MEMORY;
 				}
 				memset(qsend_evt_copy, 0, length);
-
 				qsend_evt = qsend_evt_copy;
 				memcpy(qsend_evt, qsend_evt_buffer, length);
 			}
 
 		} while (num_queues > 0);
 		mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt_buffer);
+
+		if ((is_send_success == FALSE) && (rc != SA_AIS_ERR_QUEUE_FULL))
+			return SA_AIS_ERR_TRY_AGAIN;
+		else if ((is_send_success == FALSE) && (rc == SA_AIS_ERR_QUEUE_FULL))
+			return SA_AIS_ERR_QUEUE_FULL;
+
 	}
 
 	return rc;
@@ -5304,7 +5309,7 @@ SaAisErrorT saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle, const SaNameT *queu
 			m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
 				     SA_AIS_ERR_LIBRARY, __FILE__, __LINE__);
 			rc = SA_AIS_ERR_LIBRARY;
-                        goto done1;
+			goto done1;
 		}
 		mqa_track_tree_find_and_del(client_info, (SaNameT *)queueGroupName);
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);

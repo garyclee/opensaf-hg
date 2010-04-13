@@ -519,13 +519,12 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
 								     endianness);
 				} else {
 					pEvt->info.snd_msg.messageInfo.sender.sender_context.sender_dest =
-					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.
-								     sender.sender_context.sender_dest, endianness);
+					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.sender.
+								     sender_context.sender_dest, endianness);
 
 					pEvt->info.snd_msg.messageInfo.sender.sender_context.reply_buffer_size =
-					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.
-								     sender.sender_context.reply_buffer_size,
-								     endianness);
+					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.sender.
+								     sender_context.reply_buffer_size, endianness);
 				}
 
 				pEvt->info.snd_msg.message.type =
@@ -568,8 +567,8 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
 							    endianness);
 
 				pEvt->info.sndMsgAsync.SendMsg.messageInfo.sender.senderId =
-				    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.sndMsgAsync.SendMsg.messageInfo.
-							     sender.senderId, endianness);
+				    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.sndMsgAsync.SendMsg.messageInfo.sender.
+							     senderId, endianness);
 
 				pEvt->info.sndMsgAsync.SendMsg.message.type =
 				    m_MQSV_REVERSE_ENDIAN_L(&pEvt->info.sndMsgAsync.SendMsg.message.type, endianness);
@@ -740,6 +739,33 @@ static uns32 mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			break;
 		default:
 			break;
+		}
+		break;
+	case NCSMDS_NO_ACTIVE:
+		cb->is_mqd_up = FALSE;
+		break;
+	case NCSMDS_NEW_ACTIVE:
+		cb->is_mqd_up = TRUE;
+		{
+			MQSV_EVT *evt = NULL;
+			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
+			if (evt == NULL) {
+				cb->is_mqd_up = TRUE;
+				m_LOG_MQSV_ND(MQND_EVT_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
+					      NCSCC_RC_FAILURE, __FILE__, __LINE__);
+				return NCSCC_RC_FAILURE;
+			}
+			memset(evt, 0, sizeof(MQSV_EVT));
+			evt->evt_type = MQSV_NOT_DSEND_EVENT;
+			evt->type = MQSV_EVT_MQND_CTRL;
+			evt->msg.mqnd_ctrl.type = MQND_CTRL_EVT_DEFERRED_MQA_RSP;
+
+			/* Post the event to MQND Thread */
+			rc = m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_HIGH);
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_MQSV_ND(MQND_MDS_SND_TO_MAILBOX_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
+					      __FILE__, __LINE__);
+			}
 		}
 		break;
 	default:

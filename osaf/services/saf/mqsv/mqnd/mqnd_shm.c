@@ -93,7 +93,8 @@ uns32 mqnd_shm_create(MQND_CB *cb)
 	mqnd_shm_version.shm_version = MQSV_MQND_SHM_VERSION;
 
 	mqnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
-	mqnd_open_req.info.open.i_size = sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues;
+	mqnd_open_req.info.open.i_size =
+	    sizeof(MQND_SHM_VERSION) + (sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues);
 	mqnd_open_req.info.open.i_offset = 0;
 	mqnd_open_req.info.open.i_name = shm_name;
 	mqnd_open_req.info.open.i_map_flags = MAP_SHARED;
@@ -111,7 +112,8 @@ uns32 mqnd_shm_create(MQND_CB *cb)
 			return rc;
 		else {
 			memset(mqnd_open_req.info.open.o_addr, 0,
-			       sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues));
+			       sizeof(MQND_SHM_VERSION) +
+			       (sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues)));
 			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, SA_AIS_OK,
 				      __FILE__, __LINE__);
 			cb->is_restart_done = TRUE;
