@@ -57,7 +57,7 @@ NCS_LOCK *mds_lock(void)
 uns32 gl_mds_log_level = 2;
 uns32 gl_mds_checksum = 0;
 
-uns32 MDS_QUIESCED_TMR_VAL = 200;
+uns32 MDS_QUIESCED_TMR_VAL = 80;
 uns32 MDS_AWAIT_ACTIVE_TMR_VAL = 18000;
 uns32 MDS_SUBSCRIPTION_TMR_VAL = 500;
 uns32 MDTM_REASSEMBLE_TMR_VAL = 500;
