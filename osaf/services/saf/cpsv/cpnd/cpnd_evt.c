@@ -3626,16 +3626,19 @@ static uns32 cpnd_proc_cpd_new_active(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
+static pthread_mutex_t ckpt_destroy_lock = PTHREAD_MUTEX_INITIALIZER;
 static uns32 cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 
+	(void)pthread_mutex_lock(&ckpt_destroy_lock);
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_destroy.ckpt_id, &cp_node);
 	if (cp_node == NULL) {
 		m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED, CPND_FC_API, NCSFL_SEV_ERROR,
 			       evt->info.ckpt_destroy.ckpt_id, __FILE__, __LINE__);
-		return NCSCC_RC_FAILURE;
+		(void)pthread_mutex_unlock(&ckpt_destroy_lock);
+		return NCSCC_RC_SUCCESS;
 	}
 
 	if (cp_node->cpnd_rep_create) {
@@ -3688,6 +3691,7 @@ static uns32 cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		cpnd_restart_shm_ckpt_free(cb, cp_node);
 		cpnd_ckpt_node_destroy(cb, cp_node);
 	}
+	(void)pthread_mutex_unlock(&ckpt_destroy_lock);
 	return rc;
 }
 
