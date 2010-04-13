@@ -646,8 +646,14 @@ void avnd_comp_reg_val(AVND_CB *cb,
 	}
 
 	/* verify if the comp is not already registered */
-	if (m_AVND_COMP_IS_REG(*o_comp)) {
+	if (m_AVND_COMP_IS_REG(*o_comp) && msg_from_avnd) {
 		*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
+		return;
+	}
+
+	/* verify if the comp is not already registered */
+	if (m_AVND_COMP_IS_REG(*o_comp)) {
+		*o_amf_rc = SA_AIS_ERR_EXIST;
 		return;
 	}
 
