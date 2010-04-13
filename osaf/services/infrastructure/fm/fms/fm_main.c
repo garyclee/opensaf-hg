@@ -335,7 +335,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 	switch (fm_mbx_evt->evt_code) {
 	case FM_EVT_NODE_DOWN:
 		LOG_IN("Role: %s, Node Down for node id: %u", role_string[fm_cb->role], fm_mbx_evt->node_id);
-		if (fm_cb->role == PCS_RDA_STANDBY) {
+		if ((fm_cb->role == PCS_RDA_STANDBY)||(fm_cb->role == PCS_RDA_QUIESCED)) {
 			if ((fm_mbx_evt->node_id == fm_cb->peer_node_id)) {
 /* Start Promote active timer */
 				if (fm_cb->peer_node_name.length != 0) {

@@ -81,10 +81,6 @@ uns32 rde_set_role(PCS_RDA_ROLE role)
 
 	rde_cb->ha_role = role;
 
-	if (role == PCS_RDA_QUIESCED) {
-		return NCSCC_RC_SUCCESS;
-	}
-
 	/* Send new role to all RDA client */
 	rde_rda_send_role(rde_cb->ha_role);
 
