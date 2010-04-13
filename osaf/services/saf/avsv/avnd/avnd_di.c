@@ -64,6 +64,8 @@ static uns32 avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
+	TRACE_ENTER2("'%s'", param->name.value);
+
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:
 		switch (param->attr_id) {
@@ -76,18 +78,20 @@ static uns32 avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			cb->su_failover_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
 			break;
 		default:
-			assert(0);
+			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+			goto done;
 		}
 		break;
 		
-	case AVSV_OBJ_OPR_DEL:
-		assert(0);
 	default:
-		assert(0);
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
 
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -95,13 +99,17 @@ static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
+	TRACE_ENTER2("'%s'", param->name.value);
+
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:	{
-		AVND_SU *su = 0;
+		AVND_SU *su;
 
 		su = m_AVND_SUDB_REC_GET(cb->sudb, param->name);
-		if (!su)
+		if (!su) {
+			LOG_ER("%s: failed to get %s", __FUNCTION__, param->name.value);
 			goto done;
+		}
 
 		switch (param->attr_id) {
 		case saAmfSGCompRestartProb_ID:
@@ -126,19 +134,21 @@ static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
 			break;
 		default:
-			break;
+			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+			goto done;
 		}
 		break;
 	}
 
-	case AVSV_OBJ_OPR_DEL:
-		assert(0);
 	default:
-		assert(0);
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
+
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -159,27 +169,22 @@ done:
 uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_OPERATION_REQUEST_MSG_INFO *info;
-	AVSV_PARAM_INFO *param = 0;
+	AVSV_PARAM_INFO *param;
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	info = &evt->info.avd->msg_info.d2n_op_req;
+	param = &info->param_info;
+
+	TRACE_ENTER2("Class=%u, action=%u", param->class_id, param->act);
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
 		goto done;
 
-	info = &evt->info.avd->msg_info.d2n_op_req;
-	param = &info->param_info;
-
-	if (info->msg_id != (cb->rcv_msg_id + 1)) {
-		rc = NCSCC_RC_FAILURE;
-		avnd_log(NCSFL_SEV_EMERGENCY, "Msg ID mismatch %d %d",
-			info->msg_id, cb->rcv_msg_id + 1);
-		goto done;
-	}
+	assert(info->msg_id == (cb->rcv_msg_id + 1));
 
 	cb->rcv_msg_id = info->msg_id;
-
-	avnd_log(NCSFL_SEV_NOTICE, "Class %u, Op %u", param->class_id, param->act);
 
 	switch (param->class_id) {
 	case AVSV_SA_AMF_NODE:
@@ -198,19 +203,18 @@ uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 		rc = avnd_hc_oper_req(cb, param);
 		break;
 	default:
-		assert(0);
-	}			/* switch */
+		LOG_NO("%s: Unknown class ID %u", __FUNCTION__, param->class_id);
+		rc = NCSCC_RC_FAILURE;
+		break;
+	}
 
-	/* 
-	 * Send the response to avd.
-	 */
+	/* Send the response to avd. */
 	if (info->node_id == cb->node_info.nodeId) {
 		memset(&msg, 0, sizeof(AVND_MSG));
 		msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
 		if (!msg.info.avd) {
-			avnd_log(NCSFL_SEV_ERROR, "calloc FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
+			LOG_ER("calloc FAILED");
+			assert(0);
 		}
 
 		msg.type = AVND_MSG_AVD;
@@ -224,13 +228,13 @@ uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 		if (NCSCC_RC_SUCCESS == rc)
 			msg.info.avd = 0; // TODO Mem leak?
 		else
-			avnd_log(NCSFL_SEV_ERROR, "avnd_di_msg_send FAILED");
+			LOG_ER("avnd_di_msg_send FAILED");
 
-		/* free the contents of avnd message */
 		avnd_msg_content_free(cb, &msg);
 	}
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 

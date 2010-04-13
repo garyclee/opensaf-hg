@@ -515,7 +515,6 @@ static void node_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
-	uns32 rc;
 	AVD_AVND *node;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
@@ -556,8 +555,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 
-				rc = avd_snd_op_req_msg(avd_cb, node, &param);
-				assert(rc == NCSCC_RC_SUCCESS);
+				avd_snd_op_req_msg(avd_cb, node, &param);
 			} else {
 				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 			}
@@ -582,8 +580,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				m_NCS_OS_HTONL_P(&param.value[0], failover_val);
 				node->saAmfNodeSuFailoverMax = failover_val;
 
-				rc = avd_snd_op_req_msg(avd_cb, node, &param);
-				assert(rc == NCSCC_RC_SUCCESS);
+				avd_snd_op_req_msg(avd_cb, node, &param);
 			} else {
 				node->saAmfNodeSuFailoverMax = failover_val;
 			}

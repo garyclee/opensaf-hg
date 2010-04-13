@@ -21,6 +21,7 @@
 #include <logtrace.h>
 #include <immutil.h>
 
+#include <avsv_util.h>
 #include <avd_imm.h>
 #include <avd_hlt.h>
 #include <avd_comp.h>
@@ -53,6 +54,42 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	return SA_AIS_OK;
 }
 
+static SaAisErrorT ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
+{
+	AVD_COMP *comp;
+	SaNameT comp_name;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+
+	TRACE_ENTER();
+	avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
+
+	comp = avd_comp_get(&comp_name);
+
+	if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
+		/* Middleware component */
+		if (comp->su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) {
+			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
+			LOG_ER("MW object can only be deleted when its hosting node is down");
+			goto done;
+		}
+	}
+	else {
+		/* Non-middleware component */
+		if (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
+			LOG_ER("SU admin state is not locked instantiation required for deletion");
+			goto done;
+		}
+	}
+
+	opdata->userData = comp->su->su_on_node;
+	rc = SA_AIS_OK;
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
 static SaAisErrorT hc_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -67,7 +104,7 @@ static SaAisErrorT hc_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = SA_AIS_ERR_BAD_OPERATION;
+		rc = ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
@@ -84,7 +121,6 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	const AVD_COMP *comp;
 	SaNameT comp_dn;
 	char *comp_name;
-	uns32 rc;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -113,10 +149,20 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		} else
 			assert(0);
 
-		rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
-		if (rc != NCSCC_RC_SUCCESS)
-			LOG_ER("avd_snd_op_req_msg FAILED, '%s'", opdata->objectName.value);
+		avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
 	}
+}
+
+static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
+{
+	AVSV_PARAM_INFO param = {0};
+	AVD_AVND *node = opdata->userData;
+
+	param.class_id = AVSV_SA_AMF_HEALTH_CHECK;
+	param.act = AVSV_OBJ_OPR_DEL;
+	param.name = opdata->objectName;
+
+	avd_snd_op_req_msg(avd_cb, node, &param);
 }
 
 static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
@@ -127,6 +173,8 @@ static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_CREATE:
 		break;
 	case CCBUTIL_DELETE:
+		ccb_apply_delete_hdlr(opdata);
+		LOG_IN("Deleted '%s'", opdata->objectName.value);
 		break;
 	case CCBUTIL_MODIFY:
 		ccb_apply_modify_hdlr(opdata);

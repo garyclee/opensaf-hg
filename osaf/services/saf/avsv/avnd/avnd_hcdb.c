@@ -379,13 +379,14 @@ uns32 avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	avnd_log(NCSFL_SEV_NOTICE, "'%s' (%u)", param->name.value, param->name.length);
+	TRACE_ENTER2("'%s'", param->name.value);
 	
+	AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
+
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD: {
-		AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
 		if (!hc) {
-			avnd_log(NCSFL_SEV_ERROR, "failed to get '%s'",	param->name.value);
+			LOG_ER("%s: failed to get %s", __FUNCTION__, param->name.value);
 			goto done;
 		}
 
@@ -403,29 +404,36 @@ uns32 avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			break;
 
 		default:
-			break;
+			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+			goto done;
 		}
+		break;
 	}
-	break;
 
 	case AVSV_OBJ_OPR_DEL: {
-#if 0
-		AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
-		
-		if (NULL != hc) {
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-			rc = avnd_hcdb_rec_del(cb, &hc_key);
+		if (hc != NULL) {
+			rc = ncs_patricia_tree_del(&cb->hcdb, &hc->tree_node);
+			assert(rc = NCSCC_RC_SUCCESS);
+			LOG_IN("Deleted '%s'", param->name.value);
+		} else {
+			/* 
+			** Normal case that happens if a parent of this HC was
+			** the real delete target for the CCB.
+			*/
+			TRACE("already deleted!");
 		}
-#endif
-		assert(0);
+
 		break;
 	}
 	default:
-		assert(0);
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
+
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
