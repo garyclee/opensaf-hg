@@ -128,7 +128,8 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 							"Ee_id=%s\n", ee_id);
 			fflush(plmc_lib_debug);
 			#endif
-			strcpy(tdata->ee_id, ee_id);
+			strncpy(tdata->ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
+			tdata->ee_id[PLMC_EE_ID_MAX_LENGTH] == '\0';
 			tdata->socketfd = sock;
 			tdata->command[0] = '\0';
 			tdata->callback = NULL;
@@ -160,7 +161,8 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 		/* We need a copy of the ee_id 
 		 *because we are running in our own thread 
 		*/
-		strcpy(new_entry->thread_d.ee_id, ee_id);
+		strncpy(new_entry->thread_d.ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
+		new_entry->thread_d.ee_id[PLMC_EE_ID_MAX_LENGTH] == '\0';
 		new_entry->thread_d.socketfd = sock;
 		new_entry->thread_d.command[0] = '\0';
 		new_entry->thread_d.callback = NULL;
@@ -173,6 +175,7 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 	if (pthread_mutex_lock(&td_list_lock) != 0) {
 		syslog(LOG_ERR, "plmc_lib: create thread_entry encountered an "
 						"error locking the list");
+		free(new_entry);
 		return(NULL);
 	}
 
@@ -196,6 +199,7 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 	if (pthread_mutex_unlock(&td_list_lock) != 0) {
 		syslog(LOG_ERR, "plmc_lib: create threa_entry encountered an "
 						"error unlocking the list");
+		free(new_entry);
 		return(NULL);
 	}
 	/*** End Critical Section ***/
@@ -253,7 +257,6 @@ int delete_thread_entry(char *ee_id) {
 
 	pthread_mutex_destroy(&(entry_to_delete->thread_d.td_lock));
 	free(entry_to_delete);
-	entry_to_delete = find_thread_entry(ee_id);
 	return(0);
 }
 
@@ -350,10 +353,13 @@ int send_error(int error, int action, char *ee_id, PLMC_cmd_idx cmd_enum) {
 	
 	myerr.ecode = error;
 	myerr.acode = action;
-	strcpy(myerr.errormsg, PLMC_error_msg[error]);
-	strcpy(myerr.action, PLMC_action_msg[action]);
+	strncpy(myerr.errormsg, PLMC_error_msg[error], PLMC_MAX_ERROR_MSG_LENGTH);
+	myerr.errormsg[PLMC_MAX_ERROR_MSG_LENGTH] == '\0';
+	strncpy(myerr.action, PLMC_action_msg[action], PLMC_MAX_ACTION_LENGTH);
+	myerr.action[PLMC_MAX_ACTION_LENGTH] = '\0';
 	if (ee_id != NULL) {
-		strcpy(myerr.ee_id, ee_id);
+		strncpy(myerr.ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
+		myerr.ee_id[PLMC_EE_ID_MAX_LENGTH] = '\0';
 	} else {
 		strcpy(myerr.ee_id, "");
 	}
@@ -392,12 +398,16 @@ int parse_udp (udp_msg *parsed, char *incoming)
 	tmpstring = strstr(tmpstring, " ");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 1;
+	if (strlen(tmpstring) > 0)
+		tmpstring = tmpstring + 1;
+	else
+		return 1;
 	i = 0;
 	while (tmpstring[i] != ':') {
 		i++;
-		if (i >= strlen(tmpstring))
+		if (i >= strlen(tmpstring) || i > PLMC_EE_ID_MAX_LENGTH) {
 			return 1;
+		}
 	}
 	strncpy(parsed->ee_id, tmpstring, i - 1);
 	parsed->ee_id[i - 1] = '\0';
@@ -405,12 +415,16 @@ int parse_udp (udp_msg *parsed, char *incoming)
 	tmpstring = strstr(tmpstring, ":");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 2;
+	if (strlen(tmpstring) > 1)
+		tmpstring = tmpstring + 2;
+	else
+		return 1;
 	i = 0;
 	while (tmpstring[i] != ':') {
 			i++;
-		if (i >= strlen(tmpstring))
+		if (i >= strlen(tmpstring) || i > PLMC_CMD_RESULT_MAX_LENGTH) {
 			return 1;
+		}
 	}
 	strncpy(parsed->msg, tmpstring, i - 1);
 	parsed->msg[i - 1] = '\0';
@@ -418,8 +432,12 @@ int parse_udp (udp_msg *parsed, char *incoming)
 	tmpstring = strstr(tmpstring, ":");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 2;
-	strcpy(parsed->os_info, tmpstring);
+	if (strlen(tmpstring) > 1)
+		tmpstring = tmpstring + 2;
+	else
+		return 1;
+	strncpy(parsed->os_info, tmpstring, PLMC_CMD_RESULT_MAX_LENGTH);
+	parsed->os_info[PLMC_CMD_RESULT_MAX_LENGTH] = '\0';
 	if (strcmp(parsed->msg, "EE_INSTANTIATING") == 0)
 		parsed->msg_idx = EE_INSTANTIATING;
 	else if (strcmp(parsed->msg, "EE_TERMINATED") == 0)
@@ -541,36 +559,51 @@ int parse_tcp(tcp_msg *parsed, char *incoming)
 	tmpstring = strstr(tmpstring, " ");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 1; /* Move to beginning of command name */
+	if (strlen(tmpstring) > 0)
+		tmpstring = tmpstring + 1;
+	else
+		return 1;
 	i = 0;
 	while (tmpstring[i] != ' ') {
 		i++;
-		if (i >= strlen(tmpstring))
+		if (i >= strlen(tmpstring) || i > PLMC_CMD_NAME_MAX_LENGTH) {
 			return 1;
+		}
 	}
 	strncpy(parsed->cmd, tmpstring, i);
 	parsed->cmd[i] = '\0';
 	tmpstring = strstr(tmpstring, " ");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 1;
+	if (strlen(tmpstring) > 0)
+		tmpstring = tmpstring + 1;
+	else
+		return 1;
 	tmpstring = strstr(tmpstring, " ");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 1; /* Beginning of ee_id */
+	if (strlen(tmpstring) > 0)
+		tmpstring = tmpstring + 1; /* Beginning of ee_id */
+	else
+		return 1;
 	i = 0;
 	while (tmpstring[i] != ':') {
 		i++;
-		if (i >= strlen(tmpstring))
+		if (i >= strlen(tmpstring) || i > PLMC_EE_ID_MAX_LENGTH) {
 			return 1;
+		}
 	}
 	strncpy(parsed->ee_id, tmpstring, i - 1);
 	parsed->ee_id[i - 1] = '\0';
 	tmpstring = strstr(tmpstring, ":");
 	if (tmpstring == NULL)
 		return 1;
-	tmpstring = tmpstring + 2;
-	strcpy(parsed->result, tmpstring);
+	if (strlen(tmpstring) > 1)
+		tmpstring = tmpstring + 2;
+	else
+		return 1;
+	strncpy(parsed->result, tmpstring, PLMC_CMD_RESULT_MAX_LENGTH);
+	parsed->result[PLMC_CMD_RESULT_MAX_LENGTH] = '\0';
 
 	parsed->cmd_enum = plmc_cmd_string_to_enum(parsed->cmd);
 	
@@ -603,7 +636,7 @@ void *plmc_connection_mgr(void *arguments)
 {
 	thread_entry *tentry;
 	thread_data *tdata;
-	char result[PLMC_CMD_RESULT_MAX_LENGTH]; 
+	char result[PLMC_MAX_TCP_DATA_LEN]; 
 	pthread_t plmc_client_mgr_id;
 	PLMC_cmd_idx cmd_enum;
 	int sockfd, o_state, kill;
@@ -761,7 +794,7 @@ void *plmc_client_mgr(void *arguments)
 	thread_entry *tentry;
 	thread_data *tdata;
 	char command[PLMC_CMD_NAME_MAX_LENGTH];
-	char result[PLMC_CMD_RESULT_MAX_LENGTH];
+	char result[PLMC_MAX_TCP_DATA_LEN];
 	char ee_id[PLMC_EE_ID_MAX_LENGTH];
 	PLMC_cmd_idx cmd_enum;
 	int sockfd, retval, bytes_received;
@@ -792,13 +825,15 @@ void *plmc_client_mgr(void *arguments)
 		pthread_exit((void *)NULL);
 	}
 	sockfd = tentry->thread_d.socketfd;
-	strcpy(ee_id, tdata->ee_id);
+	strncpy(ee_id, tdata->ee_id, PLMC_EE_ID_MAX_LENGTH);
+	ee_id[PLMC_EE_ID_MAX_LENGTH] = '\0';
 	
 	/* 
 	* There is a new command, copy it locally and return the 
 	* lock 
 	*/
-	strcpy(command, tdata->command);
+	strncpy(command, tdata->command, PLMC_CMD_NAME_MAX_LENGTH);
+	command[PLMC_CMD_NAME_MAX_LENGTH] = '\0';
 	cmd_enum = plmc_cmd_string_to_enum(tdata->command);
 	/* Get the callback as well */
 	callback = tdata->callback;
