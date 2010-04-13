@@ -30,7 +30,7 @@ osafamfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
-osafamfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+osafamfd_CFLAGS = $(AM_CFLAGS)
 
 osafamfd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \

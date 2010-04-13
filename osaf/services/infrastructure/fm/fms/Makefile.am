@@ -34,7 +34,7 @@ osaffmd_CPPFLAGS= \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/fm/include
 
-osaffmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+osaffmd_CFLAGS = $(AM_CFLAGS)
 
 osaffmd_SOURCES = \
 	fm_main.c \

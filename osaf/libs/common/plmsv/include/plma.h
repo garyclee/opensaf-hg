@@ -32,7 +32,6 @@
 #include "ncs_edu_pub.h"
 #include "ncssysf_lck.h"
 
-#include <SaHpi.h>
 #include <saAis.h>
 #include <saPlm.h>
 

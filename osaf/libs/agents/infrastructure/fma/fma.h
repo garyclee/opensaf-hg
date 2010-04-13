@@ -30,8 +30,6 @@
 #include "ncs_log.h"
 #include "dta_papi.h"
 
-#include <SaHpi.h>
-
 #include "fm_papi.h"
 #include "fma_hdl.h"
 #include "fma_mem.h"

@@ -49,6 +49,7 @@ osafplmd_SOURCES = \
 	plms_dbg_utils.c
 
 osafplmd_LDADD = \
+	@HPI_LIBS@ \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/contrib/plmc/lib/plmc/libplmc.la \
