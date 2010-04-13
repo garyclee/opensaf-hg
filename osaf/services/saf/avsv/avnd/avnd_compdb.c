@@ -1333,6 +1333,13 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	comp_init(comp, attributes);
 
+	/* create the association with hdl-mngr */
+	comp->comp_hdl = ncshm_create_hdl(avnd_cb->pool_id, NCS_SERVICE_ID_AVND, comp);
+	if (0 == comp->comp_hdl) {
+		LOG_ER("%s: ncshm_create_hdl FAILED for '%s'", __FUNCTION__, comp_name->value);
+		goto done;
+	}
+
 	comp->avd_updt_flag = FALSE;
 
 	/* synchronize comp oper state */
@@ -1393,6 +1400,8 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	rc = 0;
 done:
 	if (rc != 0) {
+		/* remove the association with hdl mngr */
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
 		free(comp);
 		comp = NULL;
 	}
