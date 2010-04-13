@@ -517,8 +517,14 @@ uns32 ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 				prev_tmr_info->pnext = NULL;
 				prev_tmr_info->pprev = NULL;
 				prev_tmr_info->tmr_value = 0;	/* this will identify for repeat STOP */
-				/* need to call the timer callback */
+
+				/* need to call the timer callback . But before calling unlock the lock 
+				   as it may lead to deadlock with other thread if the callback function 
+				   acquires someother lock */
+
+				m_NCS_UNLOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 				call_back(arg);
+				m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 
 			} else {
 				break;
