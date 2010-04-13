@@ -205,6 +205,7 @@ SaUint32T plms_build_ent_grp_tree()
 			if(NULL == plm_entity){
 				LOG_ER("plm_entity corresponding to dn_name:%s\
 				  is not found",entity_list->entity_name.value);
+				entity_list  = entity_list->next;
 				continue;
 			}
 			if(entity_list->root_entity_name.length){
@@ -216,6 +217,7 @@ SaUint32T plms_build_ent_grp_tree()
 					LOG_ER("root plm corresponding to \
 					dn_name:%s not found",
 					entity_list->root_entity_name.value);
+					entity_list  = entity_list->next;
 					continue;
 				}
 			}else

@@ -3817,6 +3817,7 @@ static void plms_delete_domain_obj()
 	free(plms_cb->domain_info.domain.safDomain);
 	plms_cb->domain_info.domain.safDomain = NULL;
 	plms_cb->domain_info.domain.saPlmHEDeactivationPolicy = 0;
+	plms_cb->domain_info.leftmost_child = NULL;
 	TRACE_LEAVE();
 	return;
 }
