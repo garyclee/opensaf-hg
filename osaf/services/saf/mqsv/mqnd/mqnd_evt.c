@@ -46,7 +46,10 @@ static void mqnd_dump_timer_info(MQND_TMR tmr);
 void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
 void mqnd_process_evt(MQSV_EVT *evt);
 static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt);
-
+static uns32 mqnd_proc_deferred_mqa_rsp(MQND_CB *cb);
+static uns32 mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl);
+static uns32 mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
+					   MQP_UNLINK_REQ *ulink_req);
 extern MSG_FRMT_VER mqnd_mqa_msg_fmt_table[];
 /*******************************************************************************/
 
@@ -219,6 +222,10 @@ static uns32 mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
 
 	case MQND_CTRL_EVT_MDS_MQA_UP_INFO:
 		rc = mqnd_proc_mds_mqa_up(cb, evt);
+		break;
+
+	case MQND_CTRL_EVT_DEFERRED_MQA_RSP:
+		rc = mqnd_proc_deferred_mqa_rsp(cb);
 		break;
 
 	case MQND_CTRL_EVT_QATTR_INFO:
@@ -535,8 +542,11 @@ static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 	else
 		m_LOG_MQSV_ND(MQND_PROC_QUEUE_CLOSE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, err, __FILE__,
 			      __LINE__);
+	if (!cb->is_mqd_up) {
+		rc = mqnd_enqueue_evt_cntxt_close(cb, &evt->sinfo, err, close->queueHandle);
+	} else
+		rc = mqnd_send_mqp_close_rsp(cb, &evt->sinfo, err, close->queueHandle);
 
-	rc = mqnd_send_mqp_close_rsp(cb, &evt->sinfo, err, close->queueHandle);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 			      __LINE__);
@@ -771,7 +781,11 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
  send_rsp:
 	/* Send the Response */
-	rc = mqnd_send_mqp_ulink_rsp(cb, &evt->sinfo, err, ulink_req);
+	if (!cb->is_mqd_up) {
+		rc = mqnd_enqueue_evt_cntxt_unlink(cb, &evt->sinfo, err, ulink_req);
+	} else
+		rc = mqnd_send_mqp_ulink_rsp(cb, &evt->sinfo, err, ulink_req);
+
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 			      __LINE__);
@@ -1590,8 +1604,8 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (cb == NULL) {
-		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
-			      __LINE__);
+		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
+			      __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1763,11 +1777,141 @@ static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
 		}
 
 		if (cb->is_restart_done) {
-			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
-				      __LINE__);
+			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc,
+				      __FILE__, __LINE__);
 
 		}
 	} else
 		return NCSCC_RC_FAILURE;
+	return rc;
+}
+
+/****************************************************************************
+ * Name          : mqnd_proc_deferred_mqa_rsp 
+ *
+ * Description   : Function to porcess the deferred MQA responses
+ *
+ * Arguments     : MQND_CB *cb - MQND CB pointer
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uns32 mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
+{
+	MQA_RSP_CNTXT *mqa_rsp_cntx = cb->mqa_dfrd_evt_rsp_list_head;
+	MQA_RSP_CNTXT *temp = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (mqa_rsp_cntx == NULL) {
+		printf(" Deferred mqa event list head NULL\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	while (mqa_rsp_cntx != NULL) {
+		if (mqa_rsp_cntx->evt.msg.mqp_rsp.type == MQP_EVT_CLOSE_RSP) {
+			rc = mqnd_send_mqp_close_rsp(cb, &mqa_rsp_cntx->sinfo,
+						     mqa_rsp_cntx->evt.msg.mqp_rsp.error,
+						     mqa_rsp_cntx->evt.msg.mqp_rsp.info.closeRsp.queueHandle);
+
+			if (rc != NCSCC_RC_SUCCESS)
+				m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT,
+					      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			else
+				m_LOG_MQSV_ND(MQND_QUEUE_CLOSE_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
+					      NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+
+			printf(" mqnd_proc_deferred_mqa_rsp: CLOSE: Queue Handle - %llu err - %d %s %d\n",
+			       mqa_rsp_cntx->evt.msg.mqp_rsp.info.closeRsp.queueHandle,
+			       mqa_rsp_cntx->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
+		} else if (mqa_rsp_cntx->evt.msg.mqp_rsp.type == MQP_EVT_UNLINK_RSP) {
+			rc = mqnd_send_mqp_ulink_rsp(cb, &mqa_rsp_cntx->evt.sinfo,
+						     mqa_rsp_cntx->evt.msg.mqp_rsp.error,
+						     &mqa_rsp_cntx->evt.msg.mqp_req.info.unlinkReq);
+
+			if (rc != NCSCC_RC_SUCCESS)
+				m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED, NCSFL_LC_MQSV_Q_MGMT,
+					      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+			else
+				m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_SUCCESS, NCSFL_LC_MQSV_Q_MGMT,
+					      NCSFL_SEV_INFO, rc, __FILE__, __LINE__);
+			printf("mqnd_proc_deferred_mqa_rsp: UNLINK: err - %d %s %d\n",
+			       mqa_rsp_cntx->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
+		} else {
+			printf("mqnd_proc_deferred_mqa_rsp: Default case\n");
+		}
+		temp = mqa_rsp_cntx;
+		mqa_rsp_cntx = mqa_rsp_cntx->next;
+		free(temp);
+		temp = NULL;
+	}
+
+	cb->mqa_dfrd_evt_rsp_list_head = NULL;
+	return rc;
+}
+
+static uns32 mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl)
+{
+	MQA_RSP_CNTXT *mqa_rsp = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
+	if (mqa_rsp == NULL)
+		return SA_AIS_ERR_NO_RESOURCES;
+
+	memset(mqa_rsp, 0, sizeof(MQA_RSP_CNTXT));
+	mqa_rsp->evt.type = MQSV_EVT_MQP_RSP;
+	mqa_rsp->evt.msg.mqp_rsp.error = err;
+	mqa_rsp->evt.msg.mqp_rsp.type = MQP_EVT_CLOSE_RSP;
+	mqa_rsp->evt.msg.mqp_rsp.info.closeRsp.queueHandle = qhdl;
+
+	memcpy(&mqa_rsp->sinfo, sinfo, sizeof(MQSV_SEND_INFO));
+
+	if (cb->mqa_dfrd_evt_rsp_list_head != NULL) {
+		mqa_rsp->next = cb->mqa_dfrd_evt_rsp_list_head;
+		cb->mqa_dfrd_evt_rsp_list_head = mqa_rsp;
+	} else {
+		mqa_rsp->next = NULL;
+		cb->mqa_dfrd_evt_rsp_list_head = mqa_rsp;
+	}
+
+	printf("mqnd_enqueue_evt_cntxt_close: Queue Handle - %llu Err - %d %s %d\n",
+	       mqa_rsp->evt.msg.mqp_rsp.info.closeRsp.queueHandle, mqa_rsp->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
+
+	return rc;
+}
+
+static uns32 mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
+					   MQP_UNLINK_REQ *ulink_req)
+{
+	MQA_RSP_CNTXT *mqa_rsp = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
+	if (mqa_rsp == NULL)
+		return SA_AIS_ERR_NO_RESOURCES;
+
+	memset(mqa_rsp, 0, sizeof(MQA_RSP_CNTXT));
+	mqa_rsp->evt.type = MQSV_EVT_MQP_RSP;
+	mqa_rsp->evt.msg.mqp_rsp.error = err;
+	mqa_rsp->evt.msg.mqp_rsp.type = MQP_EVT_UNLINK_RSP;
+	mqa_rsp->evt.msg.mqp_rsp.info.unlinkRsp.queueHandle = ulink_req->queueHandle;
+	mqa_rsp->evt.msg.mqp_rsp.info.unlinkRsp.msgHandle = ulink_req->msgHandle;
+	mqa_rsp->evt.msg.mqp_rsp.info.unlinkRsp.queueName = ulink_req->queueName;
+
+	memcpy(&mqa_rsp->sinfo, sinfo, sizeof(MQSV_SEND_INFO));
+
+	if (cb->mqa_dfrd_evt_rsp_list_head != NULL) {
+		mqa_rsp->next = cb->mqa_dfrd_evt_rsp_list_head;
+		cb->mqa_dfrd_evt_rsp_list_head = mqa_rsp;
+	} else {
+		mqa_rsp->next = NULL;
+		cb->mqa_dfrd_evt_rsp_list_head = mqa_rsp;
+	}
+
+	printf("mqnd_enqueue_evt_cntxt_unlink: Queue Handle - %llu Err - %d %s %d\n",
+	       mqa_rsp->evt.msg.mqp_rsp.info.unlinkRsp.queueHandle, mqa_rsp->evt.msg.mqp_rsp.error, __FILE__, __LINE__);
+
 	return rc;
 }

@@ -523,7 +523,8 @@ typedef enum mqnd_ctrl_evt_type {
 	MQND_CTRL_EVT_QGRP_MEMBER_INFO,
 	MQND_CTRL_EVT_MDS_MQA_UP_INFO,
 	MQND_CTRL_EVT_MAX,
-	MQND_CTRL_EVT_QGRP_CNT_RSP
+	MQND_CTRL_EVT_QGRP_CNT_RSP,
+	MQND_CTRL_EVT_DEFERRED_MQA_RSP
 } MQND_CTRL_EVT_TYPE;
 
 /* Datastructure used to get the queue attributes */
@@ -610,8 +611,8 @@ typedef struct mqsv_direct_send_event {
 } MQSV_DSEND_EVT;
 
 #define m_MQD_EVT_SEND(mbx, msg, prio) m_NCS_IPC_SEND(mbx, (NCSCONTEXT)msg, prio)
-#define MQSV_WAIT_TIME  600	/* MDS wait time in case of syncronous call */
-#define MQSV_WAIT_TIME_MQND  400
+#define MQSV_WAIT_TIME  1000	/* MDS wait time in case of syncronous call */
+#define MQSV_WAIT_TIME_MQND  800
 #define MQSV_MAX_SND_SIZE       4096
 
 #endif

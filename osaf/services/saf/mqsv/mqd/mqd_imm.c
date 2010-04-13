@@ -116,7 +116,8 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	attrValues[4] = NULL;
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueueGroup", parentName, attrValues);
-	mqd_genlog(NCSFL_SEV_ERROR, "create_runtime_MqGrpObj FAILED: %u\n", rc);
+	if (rc != SA_AIS_OK)
+		mqd_genlog(NCSFL_SEV_ERROR, "create_runtime_MqGrpObj FAILED: %u\n", rc);
 
 	if (dndup)
 		free(dndup);
