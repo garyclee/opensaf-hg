@@ -34,7 +34,7 @@ libfma_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/fm/include
 
-libfma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+libfma_la_CFLAGS = $(AM_CFLAGS)
 
 libfma_la_SOURCES = \
 	$(top_srcdir)/osaf/services/infrastructure/fm/fma_fm_intf.c \

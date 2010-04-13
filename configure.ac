@@ -177,44 +177,6 @@ AC_SUBST([XML2_CONFIG_BIN], ["$with_xml2_config_bin"])
 
 
 #
-# Enable/disable global HPI hardware management support
-#
-AC_MSG_CHECKING([whether to enable the HPI integration support])
-AC_ARG_ENABLE([hpi],
-        [AS_HELP_STRING([--enable-hpi],
-                [enable hardware management with HPI [default=yes]])],
-        [],
-        [enable_hpi=yes])
-AC_MSG_RESULT([$enable_hpi])
-
-AM_CONDITIONAL([ENABLE_HPI], [test "$enable_hpi" = yes])
-AC_SUBST([HPI_ENABLED], ["$enable_hpi"])
-
-
-#
-# Enable OpenHPI as the HPI implementation to be used for linking
-#
-AC_ARG_WITH([openhpi],
-        [AS_HELP_STRING([--with-openhpi],
-                [enable OpenHPI as the HPI implementation [default=yes]])],
-        [
-        if test "$enable_hpi" = yes; then
-                with_openhpi="$withval"
-        fi
-        ],
-        [
-        if test "$enable_hpi" = yes; then
-                with_openhpi=yes
-        else
-                with_openhpi=no
-        fi
-        ])
-
-AM_CONDITIONAL([WITH_OPENHPI], [test "$with_openhpi" = yes])
-AC_SUBST([OPENHPI_ENABLED], ["$with_openhpi"])
-
-
-#
 # Enable/disable the Java AIS interface mapping components
 #
 m4_include([m4/java.m4])
@@ -443,105 +405,53 @@ AC_SUBST([MDS_WORD_ARCH_FLAGS], [" -DMDS_ARCH_TYPE=$mdsarchtype"])
 #############################################
 # Checks for libraries.
 #############################################
-if test "$enable_hpi" = yes; then
-   if test "$with_openhpi" = yes; then
-      PKG_CHECK_MODULES([HPI], [openhpi])
+if test "$enable_ais_plm" = yes; then
+    PKG_CHECK_MODULES([HPI], [openhpi])
 
-      if test "$with_hpi_interface" = check; then
-         if test "$cross_compiling" = no; then
-            # Test for the SAHPI_INTERFACE_VERSION
-            AC_RUN_IFELSE(
-               AC_LANG_PROGRAM(
-                  [#include <openhpi/SaHpi.h>],
-                  [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
-               ),
-               AC_DEFINE(
-                  [HAVE_HPI_A01], 1, [SAHPI_INTERFACE_VERSION == A01]
-               )
-            )
-            AC_RUN_IFELSE(
-               AC_LANG_PROGRAM(
-                  [#include <openhpi/SaHpi.h>],
-                  [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
-               ),
-               AC_DEFINE(
-                  [HAVE_HPI_B01], 1, [SAHPI_INTERFACE_VERSION == B01]
-               )
-            )
-            AC_RUN_IFELSE(
-               AC_LANG_PROGRAM(
-                  [#include <openhpi/SaHpi.h>],
-                  [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
-               ),
-               AC_DEFINE(
-                  [HAVE_HPI_B02], 1, [SAHPI_INTERFACE_VERSION == B02]
-               )
-            )
-            AC_RUN_IFELSE(
-               AC_LANG_PROGRAM(
-                  [#include <openhpi/SaHpi.h>],
-                  [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
-               ),
-               AC_DEFINE(
-                  [HAVE_HPI_B03], 1, [SAHPI_INTERFACE_VERSION == B03]
-               )
-            )
-         else
-           AC_ERROR([Autodecting HPI interface version isn't supported while
-           cross-compiling, force --with-hpi-version])
-         fi
-      fi
-   fi
-else
-   # FIXME
-   # Not supposed to be using HPI if here, but we currently
-   # need a workaround because typedefs from SaHpi.h are used
-   # even if HPI support is disabled in OpenSAF.
-
-   if test "$with_hpi_interface" = check; then
-      if test "$cross_compiling" = no; then
-         # Test for the SAHPI_INTERFACE_VERSION
-         AC_RUN_IFELSE(
-            AC_LANG_PROGRAM(
-               [#include <SaHpi.h>],
-               [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
-            ),
-            AC_DEFINE(
-               [HAVE_HPI_A01], 1, [SAHPI_INTERFACE_VERSION == A01]
-            )
-         )
-         AC_RUN_IFELSE(
-            AC_LANG_PROGRAM(
-               [#include <SaHpi.h>],
-               [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
-            ),
-            AC_DEFINE(
-               [HAVE_HPI_B01], 1, [SAHPI_INTERFACE_VERSION == B01]
-            )
-         )
-         AC_RUN_IFELSE(
-            AC_LANG_PROGRAM(
-               [#include <SaHpi.h>],
-               [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
-            ),
-            AC_DEFINE(
-               [HAVE_HPI_B02], 1, [SAHPI_INTERFACE_VERSION == B02]
-            )
-         )
-         AC_RUN_IFELSE(
-            AC_LANG_PROGRAM(
-               [#include <SaHpi.h>],
-               [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
-            ),
-            AC_DEFINE(
-               [HAVE_HPI_B03], 1, [SAHPI_INTERFACE_VERSION == B03]
-            )
-         )
-      else
+    if test "$with_hpi_interface" = check; then
+       if test "$cross_compiling" = no; then
+          # Test for the SAHPI_INTERFACE_VERSION
+          AC_RUN_IFELSE(
+             AC_LANG_PROGRAM(
+                [#include <openhpi/SaHpi.h>],
+                [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
+             ),
+             AC_DEFINE(
+                [HAVE_HPI_A01], 1, [SAHPI_INTERFACE_VERSION == A01]
+             )
+          )
+          AC_RUN_IFELSE(
+             AC_LANG_PROGRAM(
+                [#include <openhpi/SaHpi.h>],
+                [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
+             ),
+             AC_DEFINE(
+                [HAVE_HPI_B01], 1, [SAHPI_INTERFACE_VERSION == B01]
+             )
+          )
+          AC_RUN_IFELSE(
+             AC_LANG_PROGRAM(
+                [#include <openhpi/SaHpi.h>],
+                [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
+             ),
+             AC_DEFINE(
+                [HAVE_HPI_B02], 1, [SAHPI_INTERFACE_VERSION == B02]
+             )
+          )
+          AC_RUN_IFELSE(
+             AC_LANG_PROGRAM(
+                [#include <openhpi/SaHpi.h>],
+                [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
+             ),
+             AC_DEFINE(
+                [HAVE_HPI_B03], 1, [SAHPI_INTERFACE_VERSION == B03]
+             )
+          )
+       else
          AC_ERROR([Autodecting HPI interface version isn't supported while
          cross-compiling, force --with-hpi-version])
-      fi
-   fi
+       fi
+    fi
 fi
 
 
@@ -928,7 +838,7 @@ AM_CONDITIONAL([WITH_VPATH], [test "$srcdir" != "."])
 echo ""
 echo " Dependencies Options:"
 
-if test "$enable_hpi" = yes; then
+if test "$enable_ais_plm" = yes; then
         echo "${ECHO_T}  HPI_CFLAGS: ${HPI_CFLAGS}"
         echo "${ECHO_T}  HPI_LIBS: ${HPI_LIBS}"
 fi
@@ -943,8 +853,7 @@ echo "${ECHO_T}  XML2_LIBS: ${XML2_LIBS}"
 echo ""
 echo " OpenSAF Options:"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
-echo "${ECHO_T}  Enable HPI support: ${enable_hpi}"
-echo "${ECHO_T}  Enable OpenHPI: ${with_openhpi}"
+echo "${ECHO_T}  Enable PLM support: ${enable_ais_plm}"
 echo "${ECHO_T}  Enable Build for Payload: ${enable_payload_build}"
 echo "======================================================="
 echo ""

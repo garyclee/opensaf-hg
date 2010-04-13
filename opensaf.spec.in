@@ -1,11 +1,3 @@
-%define is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
-%define is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
-%define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
-%define is_rhel %(test -e /etc/redhat-release && echo 1 || echo 0)
-%define is_gentoo %(test -e /etc/gentoo-release && echo 1 || echo 0)
-
-%define is_hpi %(test "@HPI_ENABLED@" = "yes" && echo 1 || echo 0)
-%define is_openhpi %(test "@OPENHPI_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_tests %(test "@TESTS_ENABLED@" = "yes" && echo 1 || echo 0)
 
@@ -36,7 +28,6 @@ Requires(post): /usr/lib/lsb/install_initd /sbin/service
 Requires(preun): /usr/lib/lsb/remove_initd /sbin/service
 Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
-
 
 %description
 OpenSAF is an open source project established to develop a base platform
@@ -301,6 +292,7 @@ Requires: %{name}-amf-libs = %{version}-%{release}
 %package plm-libs
 Group: System Environment/Libraries
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name}-libs = %{version}-%{release}
@@ -315,8 +307,9 @@ applications that must be highly available. To use the PLM Service API, a
 process must be bound with the libSaPlm.so library.
 
 %package plm-server
-Group: System Environment/Libraries
+Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name}-libs = %{version}-%{release}
@@ -328,12 +321,23 @@ Requires: %{name}-amf-libs = %{version}-%{release}
 %description plm-server
 
 %package plm-coordinator
-Group: System Environment/Libraries
+Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 %description plm-coordinator
+
+%package plm-hpi
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: openhpi
+Requires: %{name}-plm-server = %{version}-%{release}
+
+%description plm-hpi
 
 %endif
 
@@ -477,6 +481,7 @@ Requires: %{name}-ntf-server = %{version}-%{release}
 Requires: %{name}-plm-libs = %{version}-%{release}
 Requires: %{name}-plm-server = %{version}-%{release}
 Requires: %{name}-plm-coordinator = %{version}-%{release}
+Requires: %{name}-plm-hpi = %{version}-%{release}
 %endif
 %if %is_ais_ckpt
 Requires: %{name}-ckpt-libs = %{version}-%{release}
@@ -666,6 +671,7 @@ fi
 %post plm-libs -p /sbin/ldconfig
 %postun plm-libs -p/sbin/ldconfig
 
+%if %is_ais_plm
 %post plm-coordinator
 # If we're being upgraded
 if [ "$1" = "2" ]; then
@@ -681,6 +687,13 @@ if [ "$1" = "0" ]; then
 fi
 %endif
 
+%post plm-hpi
+/sbin/ldconfig
+sed -i '/isHpiSupported/{N;s|<value>0</value>|<value>1</value>|g}' \
+	%{_pkgimmxml_svcdir}/plmsv_objects.xml
+
+%postun plm-hpi -p /sbin/ldconfig
+%endif
 
 %if %is_ais_ckpt
 %post ckpt-libs -p /sbin/ldconfig
@@ -912,7 +925,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files plm-libs
 %defattr(-,root,root)
 %{_libdir}/libSaPlm.so.*
-%{_pkglibdir}/libplms_hpi.so.*
 
 %files plm-server
 %defattr(-,root,root)
@@ -931,6 +943,10 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_libdir}/libplmc_utils.so.*
 %{_initddir}/plmcboot
 %{_initddir}/plmcd
+
+%files plm-hpi
+%defattr(-,root,root)
+%{_pkglibdir}/libplms_hpi.so.*
 
 %endif
 

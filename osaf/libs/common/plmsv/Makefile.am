@@ -30,11 +30,9 @@ libplmsv_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/contrib/plmc/include \
 	-I$(top_srcdir)/contrib/plmc/lib/plmc/include
 
-libplmsv_common_la_CFLAGS = \
-	$(AM_CFLAGS) \
-	@HPI_CFLAGS@
+libplmsv_common_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libplmsv_common_la_SOURCES = \
-        plms_edu.c \
+	plms_edu.c \
 	plms_common_mds.c \
 	plms_common_utils.c
