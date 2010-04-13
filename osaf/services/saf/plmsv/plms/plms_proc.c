@@ -277,7 +277,6 @@ SaUint32T plms_proc_quiesced_ack_evt()
 	PLMS_CB *cb = plms_cb;
 
 	TRACE_ENTER();
-	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_READ);
 
 	if (cb->is_quisced_set == TRUE) {
 		cb->ha_state = SA_AMF_HA_QUIESCED;
@@ -288,7 +287,7 @@ SaUint32T plms_proc_quiesced_ack_evt()
 		/* Update control block */
 		saAmfResponse(cb->amf_hdl, cb->amf_invocation_id, SA_AIS_OK);
 		cb->is_quisced_set = FALSE;
-		m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_READ);
+
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}

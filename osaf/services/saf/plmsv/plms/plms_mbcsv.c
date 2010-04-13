@@ -1927,6 +1927,7 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 			
 					return NCSCC_RC_FAILURE;
 				}
+				memset(cur_list_ptr,0,sizeof(PLMS_CKPT_ENTITY_LIST));
 				
 				strncpy(str,
 				(SaInt8T *)msg_list_ptr->entity_name.value,
@@ -2004,6 +2005,7 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 				
 				return NCSCC_RC_FAILURE;
 			}
+			memset(cur_list_ptr, 0 , sizeof(PLMS_CKPT_ENTITY_LIST));
 			strncpy(str,
 				(SaInt8T *)msg_list_ptr->entity_name.value,
 				msg_list_ptr->entity_name.length);
