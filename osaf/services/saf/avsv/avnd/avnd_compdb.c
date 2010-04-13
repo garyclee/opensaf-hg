@@ -536,20 +536,23 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 ******************************************************************************/
 uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 {
-	AVND_COMP *comp = 0;
+	AVND_COMP *comp;
 	AVND_SU *su = 0;
 	SaNameT su_name;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s", name->value);
+
 	/* get the comp */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, *name);
 	if (!comp) {
+		LOG_ER("%s: %s not found", __FUNCTION__, name->value);
 		rc = AVND_ERR_NO_COMP;
-		goto err;
+		goto done;
 	}
 
 	/* comp should not be attached to any csi when it is being deleted */
-	assert(!comp->csi_list.n_nodes);
+	assert(comp->csi_list.n_nodes == 0);
 
 	/*
 	 * Determine if the SU is present
@@ -562,8 +565,9 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
 	if (!su) {
+		LOG_ER("%s: %s not found", __FUNCTION__, su_name.value);
 		rc = AVND_ERR_NO_SU;
-		goto err;
+		goto done;
 	}
 
 	/* 
@@ -571,8 +575,9 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	 */
 	rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
 	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_ER("%s: %s remove failed", __FUNCTION__, name->value);
 		rc = AVND_ERR_DLL;
-		goto err;
+		goto done;
 	}
 
 	/* 
@@ -580,8 +585,9 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	 */
 	rc = ncs_patricia_tree_del(&cb->compdb, &comp->tree_node);
 	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_ER("%s: %s tree del failed", __FUNCTION__, name->value);
 		rc = AVND_ERR_TREE;
-		goto err;
+		goto done;
 	}
 
 	/* 
@@ -594,15 +600,19 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	/* remove the association with hdl mngr */
 	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_DEL, AVND_LOG_COMP_DB_SUCCESS, name, 0, NCSFL_SEV_INFO);
+	/* comp should not be attached to any hc when it is being deleted */
+	assert(comp->hc_list.n_nodes == 0);
 
 	/* free the memory */
 	free(comp);
 
-	return rc;
+done:
+	if (rc == NCSCC_RC_SUCCESS)
+		LOG_IN("Deleted '%s'", name->value);
+	else
+		LOG_ER("Delete of '%s' failed", name->value);
 
- err:
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_DEL, AVND_LOG_COMP_DB_FAILURE, name, 0, NCSFL_SEV_CRITICAL);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -824,7 +834,8 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 			}
 			default:
-				break;
+				LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
+				goto done;
 			}
 		}
 		break;
@@ -844,10 +855,12 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		break;
 
 	default:
-		assert(0);
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
+
 done:
 	TRACE_LEAVE();
 	return rc;

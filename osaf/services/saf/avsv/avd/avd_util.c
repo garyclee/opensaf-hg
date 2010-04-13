@@ -410,27 +410,15 @@ done:
 
 uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_info)
 {
-
 	AVD_DND_MSG *op_req_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-	if (param_info == NULL) {
-		/* This is a invalid situation as the parameter information
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that parameter can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
-
 	op_req_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (op_req_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
+	if (op_req_msg == NULL) {
+		LOG_ER("calloc failed");
+		assert(0);
 	}
 
 	/* prepare the operation request message. */
@@ -443,31 +431,19 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 		 */
 
 		/* Broadcast the operation request message to all the nodes. */
+		avd_d2n_msg_bcast(cb, op_req_msg);
 
-		m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_OPERATION_REQUEST_MSG, 0);
-
-		if ((rc = avd_d2n_msg_bcast(cb, op_req_msg)) != NCSCC_RC_SUCCESS) {
-			/* log error that the director is not able to broad cast */
-			m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, op_req_msg, sizeof(AVD_DND_MSG), op_req_msg);
-		} else {
-			m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, op_req_msg, sizeof(AVD_DND_MSG), op_req_msg);
-		}
-
-		/* done sending the message, free the message. 
-		 */
 		free(op_req_msg);
-		return rc;
-
+		goto done;
 	}
 
-	/* if (avnd == AVD_AVND_NULL) */
 	/* check whether AvND is in good state */
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
-	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) || (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)) {
-		/* log error that the director is not able to send message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+		(avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)) {
+		TRACE("Node %x down", avnd->node_info.nodeId);
 		free(op_req_msg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/* send this operation request to a particular node. */
@@ -475,18 +451,16 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 
 	op_req_msg->msg_info.d2n_op_req.msg_id = ++(avnd->snd_msg_id);
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_OPERATION_REQUEST_MSG, avnd->node_info.nodeId);
-
-	/* send the operation request message to the node.
-	 */
+	/* send the operation request message to the node. */
 	if ((rc = avd_d2n_msg_snd(cb, avnd, op_req_msg)) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, op_req_msg, sizeof(AVD_DND_MSG), op_req_msg);
+		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
 		--(avnd->snd_msg_id);
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
+
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 

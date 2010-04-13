@@ -1156,7 +1156,7 @@ done:
 static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_COMP *comp;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER();
 
@@ -1165,18 +1165,23 @@ static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 	if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
 		/* Middleware component */
 		if (comp->su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) {
-			LOG_ER("Node state is in wrong state for MW %s deletion", comp->comp_info.name.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
+			LOG_ER("MW object can only be deleted when its hosting node is down");
+			goto done;
 		}
 	}
 	else {
 		/* Non-middleware component */
 		if (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("SU adm state is not LOCKED_INSTANTIATION for %s deletion", comp->comp_info.name.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
+			LOG_ER("SU admin state is not locked instantiation required for deletion");
+			goto done;
 		}
 	}
 
+	rc = SA_AIS_OK;
+
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1536,11 +1541,8 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			assert(0);
 		}
 
-		if (TRUE == node_present) {
-			rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
-			if (rc != NCSCC_RC_SUCCESS)
-				goto done;
-		}
+		if (TRUE == node_present)
+			avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
 done:
@@ -1559,6 +1561,14 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	TRACE_ENTER();
 
 	comp = avd_comp_get(&opdata->objectName);
+	if (comp == NULL) {
+		/* 
+		** Normal case that happens if a parent of this component was
+		** the real delete target for the CCB.
+		*/
+		TRACE("already deleted!");
+		goto done;
+	}
 
 	/* verify if the max ACTIVE and STANDBY SIs of the SU 
 	 ** need to be changed
@@ -1647,6 +1657,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	}
 
 	avd_comp_delete(&comp);
+done:
 	TRACE_LEAVE();
 }
 
@@ -1667,6 +1678,7 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		comp_ccb_apply_delete_hdlr(opdata);
+		LOG_IN("Deleted '%s'", opdata->objectName.value);
 		break;
 	default:
 		assert(0);

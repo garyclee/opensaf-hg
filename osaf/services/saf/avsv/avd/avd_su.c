@@ -75,14 +75,30 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	return su;
 }
 
-void avd_su_delete(AVD_SU **su)
+/**
+ * Delete the SU from the model. Check point with peer. Send delete order
+ * to node director. Delete all contained components.
+ * 
+ * @param i_su
+ */
+void avd_su_delete(AVD_SU **i_su)
 {
-	avd_node_remove_su(*su);
-	avd_sutype_remove_su(*su);
-	avd_su_db_remove(*su);
-	avd_sg_remove_su(*su);
-	free(*su);
-	*su = NULL;
+	AVD_SU *su = *i_su;
+	AVD_COMP *comp;
+
+	TRACE_ENTER2("'%s'", su->name.value);
+
+	while ((comp = su->list_of_comp) != NULL)
+		avd_comp_delete(&comp);
+
+	avd_node_remove_su(su);
+	avd_sutype_remove_su(su);
+	avd_su_db_remove(su);
+	avd_sg_remove_su(su);
+	free(su);
+	*i_su = NULL;
+
+	TRACE_LEAVE();
 }
 
 AVD_SU *avd_su_get(const SaNameT *dn)
@@ -388,8 +404,10 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 	rc = 0;
 
 done:
-	if (rc != 0)
-		avd_su_delete(&su);
+	if (rc != 0) {
+		free(su);
+		su = NULL;
+	}
 
 	TRACE_LEAVE();
 	return su;
@@ -1126,46 +1144,34 @@ done:
 static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SU *su;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	int is_app_su = 1;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	if (strstr((char *)opdata->objectName.value, "safApp=OpenSAF") != NULL)
 		is_app_su = 0;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	/* Find the su name. */
 	su = avd_su_get(&opdata->objectName);
 	assert(su != NULL);
 
-	if ((su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-	    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
-		LOG_ER("'%s' has wrong pres state %u for deletion", su->name.value, su->saAmfSUPresenceState);
-		rc = SA_AIS_ERR_BAD_OPERATION;
+	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
+		LOG_ER("Rejecting deletion of '%s'", su->name.value);
+		LOG_ER("Admin state is not locked instantiation required for deletion");
 		goto done;
 	}
 
-	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED)) {
-		LOG_ER("'%s' has wrong admin state %u for deletion", su->name.value, su->saAmfSUAdminState);
-		rc = SA_AIS_ERR_BAD_OPERATION;
+	if (!is_app_su && (su->su_on_node->node_state != AVD_AVND_STATE_ABSENT)) {
+		LOG_ER("Rejecting deletion of '%s'", su->name.value);
+		LOG_ER("MW SU can only be deleted when its hosting node is down");
 		goto done;
 	}
 
-	if (su->list_of_comp != NULL) {
-		LOG_ER("'%s' scheduled for deletion still has components", su->name.value);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
-
-	if (su->list_of_susi != NULL) {
-		LOG_ER("'%s' scheduled for deletion still has assignments", su->name.value);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
+	rc = SA_AIS_OK;
+	opdata->userData = su;
 
 done:
-	opdata->userData = su;
-	TRACE_LEAVE2("%u", rc);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1292,8 +1298,9 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
  * 
  * @param su
  */
-static void su_ccb_apply_delete_hdlr(AVD_SU *su)
+static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
+	AVD_SU *su = opdata->userData;
 	AVD_AVND *su_node_ptr;
 	AVSV_PARAM_INFO param;
 
@@ -1317,6 +1324,7 @@ static void su_ccb_apply_delete_hdlr(AVD_SU *su)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 
 	avd_su_delete(&su);
+	LOG_IN("Deleted '%s'", opdata->objectName.value);
 
 	TRACE_LEAVE();
 }
@@ -1337,7 +1345,7 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		su_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		su_ccb_apply_delete_hdlr(opdata->userData);
+		su_ccb_apply_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);

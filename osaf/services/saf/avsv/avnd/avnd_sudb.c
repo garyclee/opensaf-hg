@@ -232,36 +232,51 @@ uns32 avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
 {
 	AVND_SU *su = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_COMP *comp;
+
+	TRACE_ENTER2("%s", name->value);
 
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, *name);
 	if (!su) {
+		LOG_NO("%s: %s not found", __FUNCTION__, su->name.value);
 		rc = AVND_ERR_NO_SU;
-		goto err;
+		goto done;
 	}
 
-	/* su should not have any comp or si attached to it */
-	assert((!su->comp_list.n_nodes) && (!su->si_list.n_nodes));
+	/* Delete all components */
+	while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)))) {
+		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
+		rc = avnd_compdb_rec_del(cb, &comp->name);
+		if (rc != NCSCC_RC_SUCCESS)
+			goto done;
+	}
+
+	/* SU should not have any comp or SI attached to it */
+	assert(su->comp_list.n_nodes == 0);
+	assert(su->si_list.n_nodes == 0);
 
 	/* remove from the patricia tree */
 	rc = ncs_patricia_tree_del(&cb->sudb, &su->tree_node);
 	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_NO("%s: %s tree del failed", __FUNCTION__, su->name.value);
 		rc = AVND_ERR_TREE;
-		goto err;
+		goto done;
 	}
 
 	/* remove the association with hdl mngr */
 	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_SUCCESS, name, 0, NCSFL_SEV_INFO);
-
 	/* free the memory */
 	free(su);
 
-	return rc;
+done:
+	if (rc == NCSCC_RC_SUCCESS)
+		LOG_IN("Deleted '%s'", name->value);
+	else
+		LOG_ER("Delete of '%s' failed", name->value);
 
- err:
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_FAILURE, name, 0, NCSFL_SEV_CRITICAL);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -270,31 +285,29 @@ uns32 avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	AVND_SU *su;
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	avnd_log(NCSFL_SEV_NOTICE, "Op %u, '%s'", param->act, param->name.value);
+	TRACE_ENTER2("'%s'", param->name.value);
 
 	su = m_AVND_SUDB_REC_GET(cb->sudb, param->name);
 	if (!su) {
-		avnd_log(LOG_ERR, "failed to get %s", param->name.value);
+		LOG_ER("%s: failed to get %s", __FUNCTION__, param->name.value);
 		goto done;
 	}
 
 	switch (param->act) {
-	case AVSV_OBJ_OPR_MOD:
-		switch (param->attr_id) {
-		default:
-			assert(0);
-		}
-		break;
 	case AVSV_OBJ_OPR_DEL:
 		/* delete the record */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
 		rc = avnd_sudb_rec_del(cb, &param->name);
 		break;
 	default:
-		assert(0);
+		LOG_NO("%s: Unsupported action %u", __FUNCTION__, param->act);
+		goto done;
+		break;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
+
 done:
+	TRACE_LEAVE();
 	return rc;
 }
