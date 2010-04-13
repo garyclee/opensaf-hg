@@ -80,7 +80,26 @@ forcereload() {
 }
 
 status() {
-	return 3
+        pid=`pidofproc -p ${pidfile} ${binary}`
+        ret=$?
+        if test "${ret}" = "0"
+        then
+                log_success_msg "$prog is running"
+                return $ret
+        elif test "${ret}" == "1"
+        then
+                log_warning_msg "$prog is dead and /var/run pid file exists"
+        elif test "${ret}" == "2"
+        then
+                log_warning_msg "$prog is dead and /var/lock lock file exists"
+        elif test "${ret}" == "3"
+        then
+                echo "$prog is not running"
+        elif test "${ret}" == "4"
+        then
+                log_warning_msg "$prog or service status is unknown"
+        fi
+        return $ret
 }
 
 case "$1" in
