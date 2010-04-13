@@ -107,13 +107,13 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 
   NOTES         : 
 *****************************************************************************/
-GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT resource_name)
+GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *resource_name)
 {
 	GLND_RESOURCE_REQ_LIST *res_req_info;
 
 	/* find it from the list */
 	for (res_req_info = glnd_cb->res_req_list; res_req_info != NULL; res_req_info = res_req_info->next) {
-		if (memcmp(&resource_name, &res_req_info->resource_name, sizeof(SaNameT)) == 0) {
+		if (memcmp(resource_name, &res_req_info->resource_name, sizeof(SaNameT)) == 0) {
 			break;
 		}
 	}

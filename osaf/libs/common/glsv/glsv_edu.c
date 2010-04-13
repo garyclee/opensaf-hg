@@ -80,6 +80,7 @@ static int glsv_glnd_evt_test_type_fnc(NCSCONTEXT arg)
 	typedef enum {
 		LCL_TEST_JUMP_OFFSET_AGENT_INFO = 1,
 		LCL_TEST_JUMP_OFFSET_CLIENT_INFO,
+		LCL_TEST_JUMP_OFFSET_RESTART_CLIENT_INFO,
 		LCL_TEST_JUMP_OFFSET_FINALIZE_INFO,
 		LCL_TEST_JUMP_OFFSET_RSC_INFO,
 		LCL_TEST_JUMP_OFFSET_RSC_LOCK_INFO,
@@ -107,6 +108,10 @@ static int glsv_glnd_evt_test_type_fnc(NCSCONTEXT arg)
 
 	case GLSV_GLND_EVT_INITIALIZE:
 		return LCL_TEST_JUMP_OFFSET_CLIENT_INFO;
+		break;
+
+	case GLSV_GLND_EVT_CLIENT_INFO:
+		return LCL_TEST_JUMP_OFFSET_RESTART_CLIENT_INFO;
 		break;
 
 	case GLSV_GLND_EVT_FINALIZE:
@@ -265,6 +270,56 @@ static uns32 glsv_edp_glnd_evt_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 }
 
 /****************************************************************************
+ * Name          : glsv_edp_glnd_evt_restart_client_info
+ *
+ * Description   : This is the function which is used to encode decode
+ *                 GLSV_EVT_RESTART_CLIENT_INFO structure.
+ *
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 glsv_edp_glnd_evt_restart_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+						   NCSCONTEXT ptr, uns32 *ptr_data_len,
+						   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	GLSV_EVT_RESTART_CLIENT_INFO *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET glsv_glnd_create_rules[] = {
+		{EDU_START, glsv_edp_glnd_evt_restart_client_info, 0, 0, 0, sizeof(GLSV_EVT_RESTART_CLIENT_INFO), 0,
+		 NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->client_handle_id, 0,
+		 NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->app_proc_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->agent_mds_dest, 0,
+		 NULL},
+		{EDU_EXEC, ncs_edp_saversiont, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->version, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->cbk_reg_info, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->no_of_res, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RESTART_CLIENT_INFO *)0)->resource_id, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (GLSV_EVT_RESTART_CLIENT_INFO *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (GLSV_EVT_RESTART_CLIENT_INFO **)ptr;
+		if (*d_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*d_ptr, '\0', sizeof(GLSV_EVT_RESTART_CLIENT_INFO));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, glsv_glnd_create_rules, struct_ptr,
+				 ptr_data_len, buf_env, op, o_err);
+	return rc;
+}
+
+/****************************************************************************
  * Name          : glsv_edp_glnd_evt_finalize_info
  *
  * Description   : This is the function which is used to encode decode 
@@ -329,6 +384,7 @@ static uns32 glsv_edp_glnd_evt_rsc_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->resource_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->resource_id, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->lcl_resource_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->lcl_lockid, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->lcl_resource_id_count, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->invocation, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO *)0)->call_type, 0, NULL},
@@ -1006,6 +1062,10 @@ uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, glsv_edp_glnd_evt_client_info, 0, 0, EDU_EXIT,
 		 (long)&((GLSV_GLND_EVT *)0)->info.client_info, 0, NULL},
 
+		/* For GLSV_EVT_RESTART_CLIENT_INFO */
+		{EDU_EXEC, glsv_edp_glnd_evt_restart_client_info, 0, 0, EDU_EXIT,
+		 (long)&((GLSV_GLND_EVT *)0)->info.restart_client_info, 0, NULL},
+
 		/* For GLSV_EVT_FINALIZE_INFO */
 		{EDU_EXEC, glsv_edp_glnd_evt_finalize_info, 0, 0, EDU_EXIT,
 		 (long)&((GLSV_GLND_EVT *)0)->info.finalize_info, 0, NULL},
@@ -1186,6 +1246,49 @@ uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			return NCSCC_RC_FAILURE;
 		}
 		memset(*d_ptr, '\0', sizeof(GLSV_RSC_DETAILS));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, glsv_gld_create_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+}
+
+/****************************************************************************
+ * Name          : glsv_edp_gld_evt_gld_node_list
+ *
+ * Description   :
+ *
+ *
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	GLSV_NODE_LIST *struct_ptr = NULL, **d_ptr = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	EDU_INST_SET glsv_gld_create_rules[] = {
+		{EDU_START, glsv_edp_gld_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_NODE_LIST), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_NODE_LIST *)0)->dest_id, 0, NULL},
+		{EDU_TEST_LL_PTR, glsv_edp_gld_node_list, 0, 0, 0, (long)&((GLSV_NODE_LIST *)0)->next, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (GLSV_NODE_LIST *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (GLSV_NODE_LIST **)ptr;
+		if (*d_ptr == NULL) {
+			/* malloc the memory */
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+			memset(*d_ptr, '\0', sizeof(GLSV_NODE_LIST));
+		}
 		struct_ptr = *d_ptr;
 	} else {
 		struct_ptr = ptr;

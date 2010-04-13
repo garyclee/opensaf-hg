@@ -212,7 +212,7 @@ EXTERN_C GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 							    struct glsv_evt_rsc_info_tag *rsc_info,
 							    MDS_SYNC_SND_CTXT *mds_ctxt,
 							    SaLckResourceIdT lcl_resource_id);
-EXTERN_C GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT resource_name);
+EXTERN_C GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *resource_name);
 EXTERN_C void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl);
 
 /* Amf prototypes */

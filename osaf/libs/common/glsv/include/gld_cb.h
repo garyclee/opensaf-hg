@@ -123,7 +123,7 @@ EXTERN_C uns32 glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb);
 EXTERN_C void gld_dump_cb(void);
 
 GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
-					 SaNameT rsc_name,
+					 SaNameT *rsc_name,
 					 SaLckResourceIdT rsc_id, SaLckResourceOpenFlagsT flag, SaAisErrorT *error);
 
 void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info);
@@ -140,7 +140,7 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 #define GLD_RESOURCE_INFO_NODE_NULL ((GLSV_GLD_RSC_INFO *)0)
 EXTERN_C uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
 				      SaLckLockModeT lck_mode);
-EXTERN_C GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLckResourceIdT rsc_id,
+EXTERN_C GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id,
 					     SaAisErrorT *error);
 EXTERN_C uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb);
 

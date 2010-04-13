@@ -1328,7 +1328,7 @@ static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 {
 	uns8 *p8, local_data[20], size;
 
-	size = (2 * 8) + 4 + 2;
+	size = 33;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
@@ -1336,10 +1336,15 @@ static uns32 glsv_dec_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 		return NCSCC_RC_FAILURE;
 	}
 
-	evt->agent_mds_dest = ncs_decode_64bit(&p8);
 	evt->client_handle_id = ncs_decode_64bit(&p8);
-	evt->app_proc_id = ncs_decode_32bit(&p8);
-	evt->cbk_reg_info = ncs_decode_16bit(&p8);
+ 	evt->app_proc_id = ncs_decode_32bit(&p8);
+ 	evt->agent_mds_dest = ncs_decode_64bit(&p8);
+ 	evt->version.releaseCode = ncs_decode_8bit(&p8);
+ 	evt->version.majorVersion = ncs_decode_8bit(&p8);
+ 	evt->version.minorVersion = ncs_decode_8bit(&p8);
+ 	evt->cbk_reg_info = ncs_decode_16bit(&p8);
+ 	evt->no_of_res = ncs_decode_32bit(&p8);
+ 	evt->resource_id = ncs_decode_32bit(&p8);
 
 	ncs_dec_skip_space(uba, size);
 	return NCSCC_RC_SUCCESS;

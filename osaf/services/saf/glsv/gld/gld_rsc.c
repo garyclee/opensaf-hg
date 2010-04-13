@@ -75,7 +75,7 @@ static SaLckResourceIdT gld_gen_rsc_id(GLSV_GLD_CB *gld_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLckResourceIdT rsc_id, SaAisErrorT *error)
+GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id, SaAisErrorT *error)
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
 	GLSV_GLD_RSC_MAP_INFO *rsc_map_info;
@@ -88,7 +88,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 		return NULL;
 	}
 	memset(rsc_info, '\0', sizeof(GLSV_GLD_RSC_INFO));
-	memcpy(&rsc_info->lck_name, &rsc_name, sizeof(SaNameT));
+	memcpy(&rsc_info->lck_name, rsc_name, sizeof(SaNameT));
 	memset(&creation_time, '\0', sizeof(SaTimeT));
 	rsc_info->saf_rsc_no_of_users = 1;
 	rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time) * SA_TIME_ONE_SECOND;
@@ -124,7 +124,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 		return NULL;
 	}
 	memset(rsc_map_info, '\0', sizeof(GLSV_GLD_RSC_MAP_INFO));
-	memcpy(&rsc_map_info->rsc_name, &rsc_name, sizeof(SaNameT));
+	memcpy(&rsc_map_info->rsc_name, rsc_name, sizeof(SaNameT));
 	rsc_map_info->rsc_name.length = m_NCS_OS_HTONS(rsc_map_info->rsc_name.length);
 
 	rsc_map_info->rsc_id = rsc_info->rsc_id;
@@ -145,7 +145,8 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 	/*Add the imm runtime object */
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
 		err =
-		    create_runtime_object((char *)rsc_name.value, rsc_info->saf_rsc_creation_time, gld_cb->immOiHandle);
+		    create_runtime_object((char *)rsc_name->value, rsc_info->saf_rsc_creation_time,
+					  gld_cb->immOiHandle);
 
 	if (err != SA_AIS_OK) {
 		gld_log(NCSFL_SEV_ERROR, "create_runtime_object failed %u\n", err);
@@ -215,7 +216,7 @@ GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_
  * Notes         : None.
  *****************************************************************************/
 GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
-					 SaNameT rsc_name,
+					 SaNameT *rsc_name,
 					 SaLckResourceIdT rsc_id, SaLckResourceOpenFlagsT flag, SaAisErrorT *error)
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
@@ -226,7 +227,7 @@ GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
 	*error = SA_AIS_OK;
 
 	while (rsc_info != NULL) {
-		if (m_CMP_HORDER_SANAMET(rsc_name, rsc_info->lck_name) == 0)
+		if (!memcmp(rsc_name, &rsc_info->lck_name, sizeof(SaNameT)))
 			break;
 		rsc_info = rsc_info->next;
 	}
@@ -389,13 +390,16 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 	GLSV_NODE_LIST **node_list, *free_node_list = NULL;
 	NCS_BOOL chg_master = FALSE;
 
-	if (!memcmp(&rsc_info->node_list->dest_id, &node_details->dest_id, sizeof(MDS_DEST)))
+	if (glnd_rsc == NULL || rsc_info == NULL) {
+		return;
+	}
+	if (rsc_info->node_list->node_id == node_details->node_id)
 		chg_master = TRUE;
 
 	/* rmv the references to this resource by the mentioned node */
 	node_list = &rsc_info->node_list;
 	while (*node_list != NULL) {
-		if (!memcmp(&(*node_list)->dest_id, &node_details->dest_id, sizeof(MDS_DEST))) {
+		if ((*node_list)->node_id == node_details->node_id) {
 			free_node_list = *node_list;
 			break;
 		}
@@ -414,10 +418,13 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 		rsc_info->can_orphan = FALSE;
 	}
 
-	if ((glnd_rsc != NULL) &&
-	    (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) != NCSCC_RC_SUCCESS)) {
+	if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 	}
+
+	if (rsc_info->node_list != NULL && rsc_info->can_orphan == FALSE)
+		glnd_rsc->rsc_info->saf_rsc_no_of_users = glnd_rsc->rsc_info->saf_rsc_no_of_users + 1;	/* In the purge flow we need to increment the number of users beacuse we have already decremented it in finalize flow and again decremented in purge flow which amounts to double decrement */
+
 	m_MMGR_FREE_GLSV_GLD_GLND_RSC_REF(glnd_rsc);
 
 	if (rsc_info->node_list == NULL && rsc_info->can_orphan == FALSE)

@@ -137,10 +137,11 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 *****************************************************************************/
 uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 {
-	GLND_CLIENT_LIST_RESOURCE *res_list;
+	GLND_CLIENT_LIST_RESOURCE *res_list, *tmp_res_list;
 	GLND_RESOURCE_INFO *res_info;
 	SaLckLockModeT mode;
 	GLSV_GLD_EVT gld_evt;
+	NCS_BOOL orphan = FALSE;
 
 	/* delete from the tree */
 	if (ncs_patricia_tree_del(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
@@ -150,6 +151,7 @@ uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 	/* free up all the resource requests */
 	for (res_list = client_info->res_list; res_list != NULL;) {
 		res_info = res_list->rsc_info;
+		tmp_res_list = res_list;
 		res_list = res_list->next;
 		if (res_info) {
 			glnd_set_orphan_state(glnd_cb, res_info);
@@ -174,7 +176,16 @@ uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 
 			if (res_info->lcl_ref_cnt == 0
 			    && glnd_resource_grant_list_orphan_locks(res_info, &mode) == FALSE) {
-				glnd_resource_node_destroy(glnd_cb, res_info);
+				glnd_resource_node_destroy(glnd_cb, res_info, orphan);
+			}
+			if (tmp_res_list->open_ref_cnt > 1) {
+				memset(&gld_evt, 0, sizeof(GLSV_GLD_EVT));
+
+				gld_evt.evt_type = GLSV_GLD_EVT_RSC_CLOSE;
+				gld_evt.info.rsc_details.rsc_id = res_info->resource_id;
+				gld_evt.info.rsc_details.lcl_ref_cnt = tmp_res_list->open_ref_cnt;
+				glnd_mds_msg_send_gld(glnd_cb, &gld_evt, glnd_cb->gld_mdest_id);
+
 			}
 		}
 	}
@@ -222,11 +233,14 @@ uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE
 		}
 		memset(resource_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE));
 		resource_list->rsc_info = res_info;
+		resource_list->open_ref_cnt = 1;
 		resource_list->next = client_info->res_list;
 		if (client_info->res_list)
 			client_info->res_list->prev = resource_list;
 		client_info->res_list = resource_list;
 		return NCSCC_RC_SUCCESS;
+	} else if (resource_list->rsc_info == res_info) {
+		resource_list->open_ref_cnt++;
 	}
 	return NCSCC_RC_FAILURE;
 }
@@ -385,7 +399,6 @@ uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 									       del_req_list);
 				} else {
 					lock_req_list = lock_req_list->next;
-					resource_del = FALSE;
 				}
 
 			}
@@ -549,8 +562,8 @@ uns32 glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_i
 
 	if (resource_list) {
 		for (lck_req_list = resource_list->lck_list; lck_req_list != NULL &&
-		     resource_list->lck_list->lck_req->lcl_resource_id == lcl_resource_id &&
-		     resource_list->lck_list->lck_req->lock_info.lockid != lockid; lck_req_list = lck_req_list->next) ;
+		     lck_req_list->lck_req->lcl_resource_id == lcl_resource_id &&
+		     lck_req_list->lck_req->lock_info.lockid != lockid; lck_req_list = lck_req_list->next) ;
 
 		if (lck_req_list) {
 			if (lck_req_list == resource_list->lck_list) {

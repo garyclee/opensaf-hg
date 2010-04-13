@@ -122,7 +122,7 @@ static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	}
 
 	rsc_info =
-	    gld_find_add_rsc_name(gld_cb, async_evt->info.rsc_open_info.rsc_name, async_evt->info.rsc_open_info.rsc_id,
+	    gld_find_add_rsc_name(gld_cb, &async_evt->info.rsc_open_info.rsc_name, async_evt->info.rsc_open_info.rsc_id,
 				  0, &error);
 	if (rsc_info == NULL) {
 		m_LOG_GLD_EVT(GLD_A2S_EVT_ADD_RSC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__,
@@ -151,7 +151,7 @@ static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 		*tmp_node_list = node_list;
 
 	}
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_OPEN_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__, rsc_info->rsc_id, node_id);
+	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_OPEN_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__, rsc_info->rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
 	return NCSCC_RC_SUCCESS;
  error:
@@ -217,7 +217,7 @@ static uns32 glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	if (async_evt->info.rsc_details.lcl_ref_cnt == 0)
 		gld_rsc_rmv_node_ref(gld_cb, glnd_rsc->rsc_info, glnd_rsc, node_details, orphan_flag);
 
-	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_CLOSE_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__,
+	m_LOG_GLD_EVT(GLD_A2S_EVT_RSC_CLOSE_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__,
 		      async_evt->info.rsc_details.rsc_id, node_id);
 	ncshm_give_hdl(gld_cb->my_hdl);
 	return NCSCC_RC_SUCCESS;
@@ -265,7 +265,7 @@ static uns32 glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	if (gld_rsc_ref_set_orphan(node_details, async_evt->info.rsc_details.rsc_id,
 				   async_evt->info.rsc_details.orphan,
 				   async_evt->info.rsc_details.lck_mode) == NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_EVT(GLD_A2S_EVT_SET_ORPHAN_SUCCESS, NCSFL_SEV_NOTICE, __FILE__, __LINE__,
+		m_LOG_GLD_EVT(GLD_A2S_EVT_SET_ORPHAN_SUCCESS, NCSFL_SEV_INFO, __FILE__, __LINE__,
 			      async_evt->info.rsc_details.rsc_id, node_id);
 		ncshm_give_hdl(gld_cb->my_hdl);
 		return NCSCC_RC_SUCCESS;
@@ -435,7 +435,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_de
 		    (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_info_id, (uns8 *)&rsc_details->rsc_id);
 		if (rsc_info == NULL)
 			rsc_info =
-			    gld_add_rsc_info(gld_cb, rsc_details->resource_name, rsc_details->rsc_id, &ret_error);
+			    gld_add_rsc_info(gld_cb, &rsc_details->resource_name, rsc_details->rsc_id, &ret_error);
 		if (rsc_info == NULL)
 			return NCSCC_RC_FAILURE;
 		else
@@ -472,7 +472,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_de
 		tmp1_node_list = rsc_info->node_list;
 		tmp2_node_list = &rsc_info->node_list;
 		while (tmp1_node_list != NULL) {
-			if (!memcmp(&tmp1_node_list->dest_id, &node_list->dest_id, sizeof(MDS_DEST)))
+			if (tmp1_node_list->node_id == node_list->node_id)
 				break;
 			tmp2_node_list = &tmp1_node_list->next;
 			tmp1_node_list = tmp1_node_list->next;
@@ -481,6 +481,8 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_de
 			tmp1_node_list = m_MMGR_ALLOC_GLSV_NODE_LIST;
 			memset(tmp1_node_list, 0, sizeof(GLSV_NODE_LIST));
 			tmp1_node_list->dest_id = node_details->dest_id;
+			/*In cold_sync,while decoding node_id value will be derived from dest_id,here updating the correct node_id in the node_list */
+			tmp1_node_list->node_id = node_details->node_id;
 			*tmp2_node_list = tmp1_node_list;
 
 		}

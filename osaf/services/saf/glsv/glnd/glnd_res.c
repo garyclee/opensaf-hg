@@ -78,7 +78,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb, SaLckResourceIdT r
   NOTES         : None
 *****************************************************************************/
 
-GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT res_name)
+GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT *res_name)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 	SaLckResourceIdT prev_rsc_info;
@@ -86,7 +86,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT re
 	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)0);
 	while (res_info) {
 		prev_rsc_info = res_info->resource_id;
-		if (memcmp(&res_name, &res_info->resource_name, sizeof(SaNameT)) == 0) {
+		if (memcmp(res_name, &res_info->resource_name, sizeof(SaNameT)) == 0) {
 			return res_info;
 		}
 		res_info =
@@ -113,7 +113,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT re
 *****************************************************************************/
 GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 					   SaLckResourceIdT res_id,
-					   SaNameT resource_name, NCS_BOOL is_master, MDS_DEST master_mds_dest)
+					   SaNameT *resource_name, NCS_BOOL is_master, MDS_DEST master_mds_dest)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 
@@ -138,7 +138,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 	else
 		res_info->status = GLND_RESOURCE_ACTIVE_NON_MASTER;
 
-	memcpy(&res_info->resource_name, &resource_name, sizeof(SaNameT));
+	memcpy(&res_info->resource_name, resource_name, sizeof(SaNameT));
 	res_info->master_mds_dest = master_mds_dest;
 	res_info->master_status = GLND_OPERATIONAL_STATE;
 
@@ -265,7 +265,7 @@ void glnd_resource_lock_req_unset_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *r
   NOTES         : Decrements the reference count and deletes the node when it reaches
                   zero.
 *****************************************************************************/
-uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
+uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan)
 {
 	GLSV_GLD_EVT evt;
 	GLND_CLIENT_INFO *client_info = NULL;
@@ -276,11 +276,11 @@ uns32 glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 
 	if (res_info == NULL)
 		return NCSCC_RC_FAILURE;
-
+	memset(&evt, 0, sizeof(GLSV_GLD_EVT));
 	evt.evt_type = GLSV_GLD_EVT_RSC_CLOSE;
 	evt.info.rsc_details.rsc_id = res_info->resource_id;
 	evt.info.rsc_details.lcl_ref_cnt = res_info->lcl_ref_cnt;
-
+	evt.info.rsc_details.orphan = orphan;
 	glnd_mds_msg_send_gld(glnd_cb, &evt, glnd_cb->gld_mdest_id);
 
 	if (ncs_patricia_tree_del(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
@@ -1195,6 +1195,7 @@ static void glnd_master_process_lock_initiate_waitercallbk(GLND_CB *cb,
 *****************************************************************************/
 void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL is_local)
 {
+	NCS_BOOL orphan = TRUE;
 	if (res_info->lck_master_info.ex_orphaned == TRUE) {
 		res_info->lck_master_info.ex_orphaned = FALSE;
 
@@ -1222,7 +1223,7 @@ void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *r
 
 	glnd_restart_resource_info_ckpt_overwrite(glnd_cb, res_info);
 	if (res_info->lcl_ref_cnt == 0) {
-		glnd_resource_node_destroy(glnd_cb, res_info);
+		glnd_resource_node_destroy(glnd_cb, res_info, orphan);
 	} else {
 		if (res_info->status == GLND_RESOURCE_ACTIVE_MASTER) {
 			/* do the re sync of the grant list */
