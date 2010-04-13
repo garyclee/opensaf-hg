@@ -151,13 +151,10 @@ stop() {
 		timeout=$TERMTIMEOUT
 		while [ $timeout -gt 0 ]; do
 			sleep 1
-			if [ ! -d /proc/$amfpid ]; then
-				timeout=0
-			else
-				timeout=$((timeout-1))
-			fi
+			[ -d /proc/$amfpid ] || break
+			timeout=$((timeout-1))
 		done
-		test -d /proc/$amfpid && RETVAL=1
+		[ -d /proc/$amfpid ] && RETVAL=1
 	fi
 
 	final_clean
@@ -166,6 +163,10 @@ stop() {
 		log_success_msg
 	else
 		log_failure_msg
+		# If AMF fails to terminate its components,
+		# this system is out of control, reboot it now!
+		logger -t $prog "Stopping OpenSAF failed, rebooting..."
+		/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
 	fi
 	return $RETVAL
 }

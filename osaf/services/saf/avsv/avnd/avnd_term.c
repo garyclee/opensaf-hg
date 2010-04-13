@@ -57,38 +57,46 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
 ******************************************************************************/
 static void avnd_last_step_clean(AVND_CB *cb)
 {
-	AVND_SU *su = 0;
-	AVND_COMP *comp = 0;
+	AVND_COMP *comp;
+	int cleanup_call_cnt = 0;
 
-	/* We have to loop to call cleanup script, However we cannot delete 
-	 ** record right here and have to loop again in call 
-	 ** avnd_compdb_destroy() coz comp_csi is not deleted.
-	 */
+	TRACE_ENTER();
+
+	/* Protect from multiple stop */
+	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP)
+		goto done;
+
+	cb->term_state = AVND_TERM_STATE_OPENSAF_STOP;
+
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
-
 	while (comp != 0) {
 		if (FALSE == comp->su->su_is_external) {
+
+			/* if there is a single comp in failed termination this op has failed */
+			if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
+				LOG_ER("%s in termination failed state", comp->name.value);
+				ncs_reboot("Stopping opensaf failed");
+			}
+
 			avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+			cleanup_call_cnt++;
+
+			/* make avnd_err_process() a nop, will be called due to ava mds down */
+			comp->admin_oper = SA_TRUE;
 		}
 
 		comp = (AVND_COMP *)
 		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 	}
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	/* Stop was called early or some other problem */
+	if (cleanup_call_cnt == 0) {
+		LOG_NO("No component to terminate, exiting");
+		exit(0);
+	}
 
-	/* We have to loop to get rid of si_list, we cannot delete record right here
-	 * and have loop again in call avnd_sudb_destroy() coz compdb is not deleted.
-	 */
-	while (su != 0) {
-		if (FALSE == su->su_is_external) {
-			avnd_su_si_del(cb, &su->name);
-		}
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
-	}			/* end while SU */
-
-	/* Mark the destroy flag */
-	cb->destroy = TRUE;
+done:
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -164,11 +172,10 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 
 		if (empty_sulist == TRUE) {
 			/* No SUs to be processed for termination.
-			 ** we are DONE. Inform NIS the same. 
+			 ** we are DONE.
 			 */
-
-			/* Mark the destroy flag */
-			cb->destroy = TRUE;
+			LOG_NO("%s: exiting", __FUNCTION__);
+			exit(0);
 		}
 	}
 
@@ -219,9 +226,8 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 		/* All NCS SUs have finished their termination. Now call the 
 		 ** cleanup of CB
 		 */
-
-		/* Mark the destroy flag */
-		cb->destroy = TRUE;
+		LOG_NO("%s: exiting", __FUNCTION__);
+		exit(0);
 	} else {
 		/* No SUs to be processed for termination.
 		 ** send the response message to AVD informing DONE. 
