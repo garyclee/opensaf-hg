@@ -106,7 +106,6 @@ char *avnd_evt_type_name[] = {
 
 static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
-static NCS_BOOL avnd_mbx_process(SYSF_MBX *);
 static void avnd_evt_process(AVND_EVT *);
 
 static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt);
@@ -189,7 +188,6 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
  */
 static void sigterm_handler(int sig)
 {
-	TRACE_ENTER();
 	ncs_sel_obj_ind(term_sel_obj);
 	signal(SIGTERM, SIG_IGN);
 }
@@ -208,9 +206,9 @@ static void sigterm_handler(int sig)
 void avnd_main_process(void)
 {
 	NCS_SEL_OBJ mbx_fd;
-	NCS_BOOL avnd_exit = FALSE;
 	struct pollfd fds[4];
 	nfds_t nfds = 3;
+	AVND_EVT *evt;
 
 	TRACE_ENTER();
 
@@ -272,20 +270,20 @@ void avnd_main_process(void)
 			break;
 		}
 
-                if (fds[FD_CLM].revents & POLLIN) {
-                        TRACE("CLM event recieved");
-                        avnd_log(NCSFL_SEV_NOTICE,"CLM event recieved");
-                        saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
-                }
-
-		if (fds[FD_MBX].revents & POLLIN) {
-			avnd_exit = avnd_mbx_process(&avnd_cb->mbx);
-			if (TRUE == avnd_exit)
-				break;
+		if (fds[FD_CLM].revents & POLLIN) {
+			TRACE("CLM event recieved");
+			saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
 		}
 
-		if (fds[FD_TERM].revents & POLLIN)
+		if (fds[FD_MBX].revents & POLLIN) {
+			while (NULL != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(&avnd_cb->mbx)))
+				avnd_evt_process(evt);
+		}
+
+		if (fds[FD_TERM].revents & POLLIN) {
+			ncs_sel_obj_rmv_ind(term_sel_obj, TRUE, TRUE);
 			avnd_sigterm_handler();
+		}
 
 #if FIXME
 		if ((avnd_cb->type == AVSV_AVND_CARD_SYS_CON) &&
@@ -297,43 +295,9 @@ void avnd_main_process(void)
 #endif
 	}
 
-	if (FALSE == avnd_exit)
-		syslog(LOG_ERR, "%s: Thread Exited", __FUNCTION__);
-
 done:
-	/* Give some time for cleanup and reboot scripts */
-	signal(SIGCHLD, SIG_IGN); /* must ignore for sleep to work */
-	sleep(5);
-
+	syslog(LOG_NOTICE, "exiting");
 	exit(0);
-}
-
-/****************************************************************************
-  Name          : avnd_mbx_process
- 
-  Description   : This routine dequeues & processes the events from the avnd
-                  mailbox.
- 
-  Arguments     : mbx - ptr to the mailbox
- 
-  Return Values : TRUE - avnd needs to be destroyed
-                  FALSE - normal mbx processing
- 
-  Notes         : None
-******************************************************************************/
-NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
-{
-	AVND_EVT *evt;
-
-	/* process each event */
-	while (0 != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(mbx))) {
-		avnd_evt_process(evt);
-
-		if (avnd_cb->destroy == TRUE)
-			return TRUE;
-	}
-
-	return FALSE;
 }
 
 /****************************************************************************

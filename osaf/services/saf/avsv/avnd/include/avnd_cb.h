@@ -100,7 +100,6 @@ typedef struct avnd_cb_tag {
 
 	AVND_TERM_STATE term_state;
 	AVND_LED_STATE led_state;
-	NCS_BOOL destroy;
 
    /********** NTF related params      ***********/
 

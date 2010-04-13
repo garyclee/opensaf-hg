@@ -236,7 +236,6 @@ AVND_CB *avnd_cb_create()
 	cb->oper_state = SA_AMF_OPERATIONAL_ENABLED;
 	cb->term_state = AVND_TERM_STATE_UP;
 	cb->led_state = AVND_LED_STATE_RED;
-	cb->destroy = FALSE;
 	cb->stby_sync_state = AVND_STBY_IN_SYNC;
 
 	/* assign the default timeout values (in nsec) */
@@ -616,8 +615,6 @@ void avnd_sigterm_handler(void)
 {
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	TRACE_ENTER();
 
 	/* create the evt with evt type indicating last step of termination */
 	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);
