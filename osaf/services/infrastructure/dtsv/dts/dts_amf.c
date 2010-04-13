@@ -300,6 +300,7 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
 		if (dts_role_change(dts_cb_inst, haState) != NCSCC_RC_SUCCESS) {
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: Role change failed");
 			saAmfResponse(dts_cb_inst->amf_hdl, invocation, SA_AIS_ERR_FAILED_OPERATION);
+			fflush(stdout);
 			return;
 		}
 
@@ -316,6 +317,7 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
 		} else {
 			saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
 			m_LOG_DTS_API(DTS_CSI_SET_CB_RESP);
+			fflush(stdout);
 		}
 		if (((prev_haState == SA_AMF_HA_STANDBY) ||
 		     (prev_haState == SA_AMF_HA_QUIESCED)) && (haState == SA_AMF_HA_ACTIVE)) {
@@ -323,15 +325,20 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
 			if (dts_stby_update_dta_config() != NCSCC_RC_SUCCESS) {
 				if (saAmfComponentErrorReport
 				    (dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, 0, SA_AMF_COMPONENT_RESTART,
-				     0) != SA_AIS_OK)
+				     0) != SA_AIS_OK) {
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dts_saf_CSI_set_callback: Failed to send Error report to AMF");
+				}
+
+				m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+					       "dts_saf_CSI_set_callback: Failed to update dta config");
 				return;
 			}
 
 		}
 	}
 
+	fflush(stdout);
 	return;
 }
 

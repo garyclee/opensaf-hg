@@ -141,7 +141,7 @@ extern uns32 gl_severity_filter;	/* To allow manipulat at init-time */
 
 typedef struct ascii_spec_lib {
 	NCS_PATRICIA_NODE libname_node;
-	int8 lib_name[255];
+	char lib_name[255];
 	NCS_OS_DLIB_HDL *lib_hdl;
 	uns32 use_count;
 } ASCII_SPEC_LIB;
@@ -211,14 +211,14 @@ typedef struct seq_buffer {
 **************************************************************************/
 typedef struct circular_buffer_part {
 	uns8 status;		/* Status : can be clear/in use/full */
-	uns8 *cir_buff_ptr;	/* Ponter to the buffer */
+	char *cir_buff_ptr;	/* Ponter to the buffer */
 	uns32 num_of_elements;	/* Number of elements currently copied into buffer */
 } CIRCULAR_BUFFER_PART;
 
 typedef struct cir_buffer {
 	uns8 buff_allocated;	/* TRUE : Buffer is allocated; FALSE : Buffer is freed */
 	uns8 inuse;		/* TRUE : Currently in use else set to FALSE */
-	uns8 *cur_location;	/* Current pointer */
+	char *cur_location;	/* Current pointer */
 	uns8 cur_buff_num;	/* Holds the buffer number currently being used */
 	uns32 cur_buff_offset;	/* Current Position offset from buffer partition base */
 	uns32 part_size;	/* Partition size in KBytes */
@@ -402,22 +402,23 @@ typedef struct dts_svc_reg_tbl {
 { \
    DTS_SVC_REG_TBL *svc_reg; \
    SVC_KEY   nt_key; \
+   uns32 rc = NCSCC_RC_SUCCESS; \
    \
    /* Network order key added */ \
    nt_key.node = m_NCS_OS_HTONL(p->node); \
    nt_key.ss_svc_id = m_NCS_OS_HTONL(p->ss_svc_id); \
    if((svc_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&dts_cb.svc_tbl, \
              (const uns8*)&nt_key)) == NULL) \
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
+       rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
                       No service registration entry present"); \
    else \
    { \
       if(svc_reg->spec_list == NULL) \
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
+         rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
                       No Spec list present"); \
       else if(svc_reg->spec_list->spec_struct->ss_spec == NULL) \
       { \
-         m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
+         rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
                     registered with service"); \
          sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       } \
@@ -426,6 +427,7 @@ typedef struct dts_svc_reg_tbl {
       else \
          strcpy(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
    } \
+   rc; \
 }
 
 typedef struct dts_cb {

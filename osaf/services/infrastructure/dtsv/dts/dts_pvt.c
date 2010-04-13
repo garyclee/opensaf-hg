@@ -1425,11 +1425,12 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 	strcpy(file, dts_cb.log_path);
 
 	if (file_type == PER_SVC_FILE) {
-		m_DTS_GET_SVC_NAME(svc, name);
+		if ((m_DTS_GET_SVC_NAME(svc, name)) == NCSCC_RC_FAILURE)
+			dts_print_current_config(&dts_cb);
 		/* Node-id display change */
 		sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
 	} else if (file_type == GLOBAL_FILE) {
-		sprintf(tfile, "%s_%s%s", "NCS", asc_dtime, ".log");
+		sprintf(tfile, "%s_%s%s", "OPENSAF", asc_dtime, ".log");
 	} else {
 		/* Node-id display change */
 		sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
@@ -1606,6 +1607,7 @@ uns32 dts_close_opened_files(void)
 		inst->g_policy.device.file_open = FALSE;
 		inst->g_policy.device.new_file = TRUE;
 		inst->g_policy.device.svc_fh = NULL;
+		inst->g_policy.device.cur_file_size = 0;
 	}
 
 	/* Send the update for the device changes in global policy to STBY */
@@ -1624,6 +1626,7 @@ uns32 dts_close_opened_files(void)
 			service->device.file_open = FALSE;
 			service->device.new_file = TRUE;
 			service->device.svc_fh = NULL;
+			service->device.cur_file_size = 0;
 		}
 		/* Send update to STBY for the service device variable changes */
 		m_DTSV_SEND_CKPT_UPDT_ASYNC(inst, NCS_MBCSV_ACT_UPDATE, (MBCSV_REO_HDL)(long)service,
@@ -1658,6 +1661,9 @@ uns32 dts_close_files_quiesced(void)
 	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
 		fclose(inst->g_policy.device.svc_fh);
 		inst->g_policy.device.svc_fh = NULL;
+		inst->g_policy.device.file_open = FALSE;
+		inst->g_policy.device.new_file = TRUE;
+		inst->g_policy.device.cur_file_size = 0;
 	}
 
 	service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, NULL);
@@ -1667,6 +1673,9 @@ uns32 dts_close_files_quiesced(void)
 		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
 			fclose(service->device.svc_fh);
 			service->device.svc_fh = NULL;
+			service->device.file_open = FALSE;
+			service->device.new_file = TRUE;
+			service->device.cur_file_size = 0;
 		}
 		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
 	}
@@ -1763,49 +1772,12 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 \**************************************************************************/
 static uns32 dts_stby_initialize(DTS_CB *cb)
 {
-	SVC_KEY key, nt_key;
-	DTS_SVC_REG_TBL *node;
-	OP_DEVICE *device;
-	POLICY *policy;
-
 	/* Check for message sequencing enabled or not */
-	if (cb->g_policy.g_enable_seq == TRUE)
+	if (cb->g_policy.g_enable_seq == TRUE) {
 		if (dts_enable_sequencing(cb) != NCSCC_RC_SUCCESS)
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				       "dts_stby_initialize: Failed to enable sequencing of messages");
-
-	/* Smik - Check for the logging level and initialize accordingly */
-	if (cb->g_policy.global_logging == TRUE) {
-		device = &cb->g_policy.device;
-		policy = &cb->g_policy.g_policy;
-
-		m_DTS_STBY_INIT(policy, device, GLOBAL_FILE);
-
 	}
-	/*end of global_logging = TRUE */
-	/* Not global logging; so it would be either node logging or service logging
-	 * Traverse the service registration table to do node/service specific 
-	 * initialization */
-	else {
-		/* Get the 1st node in the tree */
-		node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, NULL);
-		while (node != NULL) {
-			key = node->my_key;
-			/*  Network order key added */
-			nt_key = node->ntwk_key;
-
-			device = &node->device;
-			policy = &node->svc_policy;
-			if ((node->per_node_logging == TRUE) && (key.ss_svc_id == 0)) {
-				m_DTS_STBY_INIT(policy, device, PER_NODE_FILE);
-			} else if (key.ss_svc_id != 0) {
-				m_DTS_STBY_INIT(policy, device, PER_SVC_FILE);
-			}
-			/* Go to the next node(not service) in the tree */
-			/*  Network order key added */
-			node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
-		}		/*end of while */
-	}			/*end of else */
 
 	return NCSCC_RC_SUCCESS;
 }

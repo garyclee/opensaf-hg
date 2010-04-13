@@ -56,7 +56,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 	uns32 j;
 	FILE *fh;
 	char *str = dts_cb.cb_log_str;
-	uns8 *ptr;
+	char *ptr;
 	uns8 inuse_buff = 0;
 	NCS_BOOL found = FALSE;
 
@@ -479,7 +479,7 @@ uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_bu
 {
 	uns8 i = 0, num = 0;
 	uns32 j = 0;
-	uns8 *ptr = NULL;
+	char *ptr = NULL;
 	uns8 inuse_buff = 0;
 	NCS_BOOL found = FALSE;
 

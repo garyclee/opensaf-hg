@@ -69,7 +69,7 @@ uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 		m_LOG_DTS_DBGSTRL(DTS_IGNORE, str, f, l);
 #endif
 	}
-
+	fflush(stdout);
 	return code;
 }
 
@@ -89,6 +89,7 @@ uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
 #endif
 
 	}
+	fflush(stdout);
 	return code;
 }
 
@@ -108,6 +109,7 @@ uns32 dts_dbg_sink_svc_name(uns32 l, char *f, uns32 code, char *str, char *svc)
 #endif
 
 	}
+	fflush(stdout);
 	return code;
 }
 #endif

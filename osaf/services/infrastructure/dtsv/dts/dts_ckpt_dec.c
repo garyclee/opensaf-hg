@@ -190,7 +190,7 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_ASYNC_UPDT, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLLL",
 		   DTS_ASYNC_SVC_REG, dec->i_action, svc_reg_ptr->my_key.node, svc_reg_ptr->my_key.ss_svc_id,
 		   (uns32)cb->svc_rmv_mds_dest);
-	status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, NULL, dec->i_action);
+	status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, dec->i_action);
 
 	memset(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
 
@@ -532,7 +532,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MB
 					      "dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config: Decode DTS_FILE_LIST failed");
 		}
 
-		status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, file_list, NCS_MBCSV_ACT_ADD);
+		status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, NCS_MBCSV_ACT_ADD);
 
 		/* Removing probable mem leak */
 		dev = &dec_svc_reg.device;

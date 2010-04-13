@@ -1028,7 +1028,7 @@ SaAisErrorT dts_read_log_policies(char *className)
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
+	searchParam.searchOneAttr.attrValue = className;
 
 	if ((rc = immutil_saImmOmSearchInitialize_2(omHandle, &root_obj,
 						    SA_IMM_SUBLEVEL,

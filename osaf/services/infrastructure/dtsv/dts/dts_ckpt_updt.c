@@ -350,7 +350,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
  *           action is to remove and update data if request is to update.
  *
  * Input: cb  - CB pointer.
- *        sg - Decoded structur.
+ *        svcreg - pointer to SVC REG table structure.
  *        action - ADD/RMV/UPDT
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
@@ -365,14 +365,13 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
  *        DTS_SVC_REG_TBL RMV takes care of removing svc entries from all DTAs 
  *        in its v_cd_list. 
 \**************************************************************************/
-uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FILE_LIST *file_list,
+uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 				     NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 count, status = NCSCC_RC_SUCCESS;
+	uns32 status = NCSCC_RC_SUCCESS;
 	DTS_SVC_REG_TBL *svc_ptr = NULL, *node_reg_ptr = NULL;
 	DTA_DEST_LIST *to_reg = NULL;
 	SVC_KEY nt_key, key;
-	DTS_LL_FILE *file_node = NULL;
 	OP_DEVICE *device = NULL;
 	DTA_ENTRY *dta_entry = NULL;
 	MDS_DEST *vkey = NULL;
@@ -433,20 +432,9 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 					node_reg_ptr->svc_policy.file_log_fmt = NODE_FILE_LOG_FMT;
 					node_reg_ptr->svc_policy.cir_buff_size = NODE_CIR_BUFF_SIZE;
 					node_reg_ptr->svc_policy.buff_log_fmt = NODE_BUFF_LOG_FMT;
-					node_reg_ptr->device.cur_file_size = svcreg->device.cur_file_size;
 					node_reg_ptr->device.new_file = TRUE;
 					node_reg_ptr->device.file_open = FALSE;
 					node_reg_ptr->device.last_rec_id = 0;
-				}
-				/* Configure the node device as per the file list received */
-				if ((file_list != NULL) && (svcreg->my_key.ss_svc_id == 0)) {
-					file_node = file_list->head;
-					device = &node_reg_ptr->device;
-					for (count = 0; count < file_list->num_of_files; count++) {
-						m_DTS_ADD_NEW_FILE(device);
-						strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
-						file_node = file_node->next;
-					}
 				}
 
 				/* Add the node to the patricia tree */
@@ -518,18 +506,6 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 							      "dtsv_ckpt_add_rmv_updt_svc_reg : Failed to add service entry in patricia tree");
 				}
 				m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD, key.ss_svc_id, key.node, 0);
-
-				/* Configure the service device as per the file list received */
-				if (file_list != NULL) {
-					file_node = file_list->head;
-					device = &svc_ptr->device;
-					for (count = 0; count < file_list->num_of_files; count++) {
-						m_DTS_ADD_NEW_FILE(device);
-						strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
-						file_node = file_node->next;
-					}
-				}
-				svc_ptr->device.file_open = svcreg->device.file_open;
 				svc_ptr->device.last_rec_id = svcreg->device.last_rec_id;
 
 				m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, 0);
@@ -862,13 +838,6 @@ uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MB
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		{
-			m_DTS_ADD_NEW_FILE(device);
-			strcpy(m_DTS_LOG_FILE_NAME(device), data->file_name);
-			device->new_file = data->new_file;
-			/* Set file open to TRUE, cuz a file has obviously been opened */
-			device->file_open = TRUE;
-		}
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		{
@@ -906,11 +875,10 @@ uns32 dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_MB
 uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FILE_LIST *file_list,
 					   NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 count, status = NCSCC_RC_SUCCESS;
-	OP_DEVICE *device = NULL;
-	DTS_LL_FILE *file_node = NULL;
-	/*Smik - here we don't need to explicitly handle ADD and RMV functionality 
-	 *       we only handle the UPDT functionality 
+	uns32 status = NCSCC_RC_SUCCESS;
+
+	/* Here we don't need to explicitly handle ADD and RMV functionality 
+	 * we only handle the UPDT functionality 
 	 */
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -933,28 +901,16 @@ uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FI
 			cb->g_policy.g_policy.severity_bit_map = gp->g_policy.severity_bit_map;
 			cb->g_policy.g_policy.log_dev = gp->g_policy.log_dev;
 			cb->g_policy.g_policy.log_file_size = gp->g_policy.log_file_size;
-			cb->g_policy.device.new_file = gp->device.new_file;
 			cb->g_policy.g_policy.file_log_fmt = gp->g_policy.file_log_fmt;
 			cb->g_policy.g_policy.cir_buff_size = gp->g_policy.cir_buff_size;
 			cb->g_policy.g_policy.buff_log_fmt = gp->g_policy.buff_log_fmt;
-			cb->g_policy.g_num_log_files = gp->g_num_log_files;
 			cb->g_policy.g_enable_seq = gp->g_enable_seq;
-			cb->g_policy.device.cur_file_size = gp->device.cur_file_size;
-			cb->g_policy.device.new_file = gp->device.new_file;
-			cb->g_policy.device.file_open = gp->device.file_open;
+			cb->g_policy.g_num_log_files = gp->g_num_log_files;
+			cb->g_policy.device.new_file = TRUE;
+			cb->g_policy.device.file_open = FALSE;
 			cb->g_policy.device.last_rec_id = gp->device.last_rec_id;
 
-			if (file_list != NULL) {
-				device = &cb->g_policy.device;
-				file_node = file_list->head;
-				/* Update the DTS_FILE_LIST in device for global_policy */
-				for (count = 0; count < file_list->num_of_files; count++) {
-					m_DTS_ADD_NEW_FILE(device);
-					strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
-					file_node = file_node->next;
-				}
-			}
-			/* Smik - Check for cb->cli_bit_map, if it is set to non-zero,
+			/* Check for cb->cli_bit_map, if it is set to non-zero,
 			   update the node/service policy with the changes */
 			if (cb->cli_bit_map != 0) {
 				switch (cb->cli_bit_map) {
