@@ -56,6 +56,10 @@ EXTERN_C uns32 glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_t
 						NCSCONTEXT ptr, uns32 *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
+EXTERN_C uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+
 EXTERN_C uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					  NCSCONTEXT ptr, uns32 *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);

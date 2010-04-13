@@ -107,10 +107,11 @@ void gld_stop_tmr(GLD_TMR *tmr)
 {
 	/* If timer type is invalid just return */
 	if (tmr == NULL) {
-		m_LOG_GLD_TIMER(GLD_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
+		m_LOG_GLD_TIMER(GLD_TIMER_STOP_FAIL, 0, __FILE__, __LINE__);
 		return;
 	}
 	if (tmr != NULL && GLD_TMR_MAX <= tmr->type) {
+		m_LOG_GLD_TIMER(GLD_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
 		return;
 	}
 

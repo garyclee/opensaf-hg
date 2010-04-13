@@ -279,6 +279,7 @@ uns32 glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_
 	/* Fill resstart_res_lock_list_info */
 	restart_res_lock_list_info.app_handle_id = app_handle_id;
 	restart_res_lock_list_info.resource_id = res_id;
+	restart_res_lock_list_info.lcl_resource_id = res_lock_list->lcl_resource_id;
 	restart_res_lock_list_info.lck_info_hdl_id = res_lock_list->lck_info_hdl_id;
 	restart_res_lock_list_info.lock_info = res_lock_list->lock_info;
 	restart_res_lock_list_info.req_mdest_id = res_lock_list->req_mdest_id;

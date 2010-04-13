@@ -25,6 +25,7 @@ typedef struct glnd_client_list_resource_lock_req_tag {
 
 typedef struct glnd_client_list_resource_tag {
 	struct glnd_resource_info_tag *rsc_info;
+	uns32 open_ref_cnt;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lck_list;
 	struct glnd_client_list_resource_tag *prev, *next;
 } GLND_CLIENT_LIST_RESOURCE;

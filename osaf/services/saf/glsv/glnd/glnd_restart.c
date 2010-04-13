@@ -44,9 +44,9 @@ static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb);
 static uns32 glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb);
 
 static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
-							GLND_RESTART_RES_LOCK_LIST_INFO restart_res_lock_list_info);
+							GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_list_info);
 
-static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO restart_res_info);
+static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info);
 
 static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *evt_info);
 
@@ -116,7 +116,7 @@ static uns32 glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 			rc = glnd_restart_resource_ckpt_read(glnd_cb, &restart_res_info, i);
 
 			if (rc == NCSCC_RC_SUCCESS)
-				glnd_restart_resource_node_add(glnd_cb, restart_res_info);
+				glnd_restart_resource_node_add(glnd_cb, &restart_res_info);
 			else {
 				m_LOG_GLND(GLND_RESTART_RESOURCE_TREE_BUILD_FAILURE, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO,
 					   rc, __FILE__, __LINE__, 0, 0, 0);
@@ -156,7 +156,8 @@ static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
 			rc = glnd_restart_res_lock_ckpt_read(glnd_cb, &restart_res_lock_list_info, i);
 			if (rc == NCSCC_RC_SUCCESS) {
 				if (restart_res_lock_list_info.resource_id) {
-					glnd_restart_add_res_lock_to_resource_tree(glnd_cb, restart_res_lock_list_info);
+					glnd_restart_add_res_lock_to_resource_tree(glnd_cb,
+										   &restart_res_lock_list_info);
 				}
 
 			} else {
@@ -184,54 +185,57 @@ static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
   NOTES         : None
 *****************************************************************************/
 static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
-							GLND_RESTART_RES_LOCK_LIST_INFO restart_res_lock_list_info)
+							GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_list_info)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info = NULL;
 	GLND_CLIENT_INFO *client_info = NULL;
 	uns32 node_id;
 
+	if (restart_res_lock_list_info == NULL)
+		return NCSCC_RC_FAILURE;
+
 	lck_list_info = (GLND_RES_LOCK_LIST_INFO *)m_MMGR_ALLOC_GLND_RES_LOCK_LIST_INFO;
 	if (lck_list_info == NULL) {
 		m_LOG_GLND_MEMFAIL(GLND_RSC_LOCK_LIST_ALLOC_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
-	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(restart_res_lock_list_info.req_mdest_id);
+	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(restart_res_lock_list_info->req_mdest_id);
 
 	client_info =
 	    (GLND_CLIENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_client_tree,
-						      (uns8 *)&restart_res_lock_list_info.lock_info.handleId);
+						      (uns8 *)&(restart_res_lock_list_info->lock_info.handleId));
 
 	res_info =
 	    (GLND_RESOURCE_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_res_tree,
-							(uns8 *)&restart_res_lock_list_info.resource_id);
+							(uns8 *)&(restart_res_lock_list_info->resource_id));
 	if (res_info) {
 		memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
 
 		lck_list_info->lck_info_hdl_id =
 		    ncshm_create_hdl((uns8)glnd_cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
 
-		lck_list_info->lock_info = restart_res_lock_list_info.lock_info;
+		lck_list_info->lock_info = restart_res_lock_list_info->lock_info;
 		if (node_id == m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id))
 			lck_list_info->req_mdest_id = glnd_cb->glnd_mdest_id;
 		else
-			lck_list_info->req_mdest_id = restart_res_lock_list_info.req_mdest_id;
+			lck_list_info->req_mdest_id = restart_res_lock_list_info->req_mdest_id;
 		lck_list_info->res_info = res_info;
-		lck_list_info->lcl_resource_id = restart_res_lock_list_info.lcl_resource_id;
-		lck_list_info->unlock_call_type = restart_res_lock_list_info.unlock_call_type;
-		lck_list_info->unlock_req_sent = restart_res_lock_list_info.unlock_req_sent;
-		lck_list_info->non_master_status = restart_res_lock_list_info.non_master_status;
-		lck_list_info->shm_index = restart_res_lock_list_info.shm_index;
+		lck_list_info->lcl_resource_id = restart_res_lock_list_info->lcl_resource_id;
+		lck_list_info->unlock_call_type = restart_res_lock_list_info->unlock_call_type;
+		lck_list_info->unlock_req_sent = restart_res_lock_list_info->unlock_req_sent;
+		lck_list_info->non_master_status = restart_res_lock_list_info->non_master_status;
+		lck_list_info->shm_index = restart_res_lock_list_info->shm_index;
 		/* based on which_list add the restart_res_lock_list_info->which_list 
 		   add res_lock_list_info to either lock_master_info or lcl_lck_req_info of resource_info  */
 
-		if (restart_res_lock_list_info.to_which_list == 1) {
+		if (restart_res_lock_list_info->to_which_list == LCL_LOCK_REQ_LIST) {
 			/* ADD TO LCL_LOCK_REQ_INFO */
 			lck_list_info->next = res_info->lcl_lck_req_info;
 			if (res_info->lcl_lck_req_info)
 				res_info->lcl_lck_req_info->prev = lck_list_info;
 			res_info->lcl_lck_req_info = lck_list_info;
-		} else if (restart_res_lock_list_info.to_which_list == 2) {
+		} else if (restart_res_lock_list_info->to_which_list == LOCK_MASTER_LIST) {
 			/* ADD TO LOCK_MASTER_INFO */
 			if (lck_list_info->lock_info.lock_type == SA_LCK_EX_LOCK_MODE) {
 				if (lck_list_info->lock_info.lockStatus == SA_LCK_LOCK_GRANTED) {
@@ -300,15 +304,17 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO restart_res_info)
+static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 	int new_node = 0;
 	uns32 node_id;
 
+	if (restart_res_info == NULL)
+		return NCSCC_RC_FAILURE;
 	/* TBD NEED TO remove adding new node info */
 	/* check to see if already present */
-	res_info = glnd_resource_node_find(glnd_cb, restart_res_info.resource_id);
+	res_info = glnd_resource_node_find(glnd_cb, restart_res_info->resource_id);
 	if (res_info == NULL) {
 		new_node = 1;
 		/* allocate the memory */
@@ -321,24 +327,24 @@ static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_I
 	}
 
 	/* assign the values */
-	res_info->resource_id = restart_res_info.resource_id;
-	res_info->status = restart_res_info.status;
-	res_info->master_status = restart_res_info.master_status;
-	res_info->lcl_ref_cnt = restart_res_info.lcl_ref_cnt;
-	res_info->lck_master_info.pr_orphan_req_count = restart_res_info.pr_orphan_req_count;
-	res_info->lck_master_info.ex_orphan_req_count = restart_res_info.ex_orphan_req_count;
-	res_info->lck_master_info.pr_orphaned = restart_res_info.pr_orphaned;
-	res_info->lck_master_info.ex_orphaned = restart_res_info.ex_orphaned;
-	res_info->shm_index = restart_res_info.shm_index;
+	res_info->resource_id = restart_res_info->resource_id;
+	res_info->status = restart_res_info->status;
+	res_info->master_status = restart_res_info->master_status;
+	res_info->lcl_ref_cnt = restart_res_info->lcl_ref_cnt;
+	res_info->lck_master_info.pr_orphan_req_count = restart_res_info->pr_orphan_req_count;
+	res_info->lck_master_info.ex_orphan_req_count = restart_res_info->ex_orphan_req_count;
+	res_info->lck_master_info.pr_orphaned = restart_res_info->pr_orphaned;
+	res_info->lck_master_info.ex_orphaned = restart_res_info->ex_orphaned;
+	res_info->shm_index = restart_res_info->shm_index;
 
-	memcpy(&res_info->resource_name, &restart_res_info.resource_name, sizeof(SaNameT));
+	memcpy(&res_info->resource_name, &restart_res_info->resource_name, sizeof(SaNameT));
 
-	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(restart_res_info.master_mds_dest);
+	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(restart_res_info->master_mds_dest);
 
 	if (node_id == m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id))
 		res_info->master_mds_dest = glnd_cb->glnd_mdest_id;
 	else
-		res_info->master_mds_dest = restart_res_info.master_mds_dest;
+		res_info->master_mds_dest = restart_res_info->master_mds_dest;
 
 	if (new_node) {
 		/* add it to the tree */

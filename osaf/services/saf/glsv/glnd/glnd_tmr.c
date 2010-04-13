@@ -103,7 +103,7 @@ void glnd_stop_tmr(GLND_TMR *tmr)
 {
 	/* If timer type is invalid just return */
 	if (tmr == NULL) {
-		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, tmr->type, __FILE__, __LINE__);
+		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, 0, __FILE__, __LINE__);
 		return;
 	}
 
