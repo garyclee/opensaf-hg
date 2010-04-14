@@ -318,8 +318,8 @@ static uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_
 					(int)ntfsv_msg->info.cbk_info.ntfs_client_id);
 			/** Lookup the hdl rec by client_id  **/
 				if (NULL == (ntfa_hdl_rec =
-						  ntfa_find_hdl_rec_by_client_id(cb,
-										 ntfsv_msg->info.cbk_info.ntfs_client_id))) {
+					     ntfa_find_hdl_rec_by_client_id(cb,
+									    ntfsv_msg->info.cbk_info.ntfs_client_id))) {
 					TRACE("client_id not found");
 					ntfa_msg_destroy(ntfsv_msg);
 					TRACE_LEAVE();
@@ -596,6 +596,7 @@ static uns32 ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	ntfsv_send_not_req_t *param = msg->info.cbk_info.param.notification_cbk;
 	return ntfsv_dec_not_msg(uba, param);
 }
+
 /****************************************************************************
   Name          : ntfa_dec_not_discard_cbk_msg
  
@@ -817,8 +818,8 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 			case NTFSV_SUBSCRIBE_RSP:
 				total_bytes += ntfa_dec_subscribe_rsp_msg(uba, msg);
 				break;
-			case NTFSV_UNSUBSCRIBE_RSP: /* Only header sent from server */
-				break;                        
+			case NTFSV_UNSUBSCRIBE_RSP:	/* Only header sent from server */
+				break;
 			case NTFSV_SEND_NOT_RSP:
 				total_bytes += ntfa_dec_send_not_rsp_msg(uba, msg);
 				break;
@@ -861,14 +862,14 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 				break;
 			case NTFSV_DISCARDED_CALLBACK:
 				TRACE_2("decode discarded cbk message");
-			total_bytes += ntfa_dec_not_discard_cbk_msg(uba, msg);
-			break;
+				total_bytes += ntfa_dec_not_discard_cbk_msg(uba, msg);
+				break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
 				break;
 			}
 		}
-		break;		
+		break;
 	default:
 		TRACE("Unknown MSG type %d", msg->type);
 		break;
