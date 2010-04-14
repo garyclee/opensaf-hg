@@ -392,11 +392,25 @@ class SmfUpgradeProcedure {
 	SaAisErrorT createImmStep(SmfUpgradeStep * i_step);
 
 ///
-/// Purpose:  Get IMM procedure steps
+/// Purpose:  Get procedure steps
 /// @param    -
 /// @return   -
 ///
 	SaAisErrorT getImmSteps();
+
+///
+/// Purpose:  Get procedure steps for rolling upgrade
+/// @param    -
+/// @return   -
+///
+	SaAisErrorT getImmStepsRolling();
+
+///
+/// Purpose:  Get procedure steps for Single step upgrade
+/// @param    -
+/// @return   -
+///
+	SaAisErrorT getImmStepsSingleStep();
 
 ///
 /// Purpose:  Register the DNs of the added, removed or modified objects in the step

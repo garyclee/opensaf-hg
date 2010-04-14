@@ -22,6 +22,7 @@
 
 #include "logtrace.h"
 #include "smfd.h"
+#include "SmfUtils.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfCampState.hh"
 #include "SmfProcState.hh"
@@ -245,7 +246,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	LOG_NO("CAMP: Check SMF repository %s", i_camp->getCampaignName().c_str());
 	if (smfd_cb->repositoryCheckCmd != NULL) {
 		TRACE("Executing SMF repository check cmd %s", smfd_cb->repositoryCheckCmd);
-		int rc = system(smfd_cb->repositoryCheckCmd);
+		int rc = smf_system(smfd_cb->repositoryCheckCmd);
 		if (rc != 0) {
 			error = "CAMP: SMF repository check command ";
 			error += smfd_cb->repositoryCheckCmd;
@@ -267,7 +268,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		backupCmd += i_camp->getCampaignName();
 
 		TRACE("Executing backup create cmd %s", backupCmd.c_str());
-		int rc = system(backupCmd.c_str());
+		int rc = smf_system(backupCmd.c_str());
 		if (rc != 0) {
 			error = "CAMP: Backup create command ";
 			error += smfd_cb->backupCreateCmd;
@@ -669,12 +670,17 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	/* Commit all procedures to remove all runtime objects */
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
-
+#if 0
 	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
 		SmfProcedureThread *procThread = (*iter)->getProcThread();
 		PROCEDURE_EVT *evt = new PROCEDURE_EVT();
 		evt->type = PROCEDURE_EVT_COMMIT;
 		procThread->send(evt);
+	}
+#endif
+	//Remove the procedure runtime objects
+	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
+		(*iter)->commit();
 	}
 
 	/* Remove smfRestartInfo runtime object */

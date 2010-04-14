@@ -142,6 +142,7 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 	bool rebootNeeded = false;
 	SaImmAttrValuesT_2 ** attributes;
 
+	//Check if any bundle to install needs reboot
 	const std::list < SmfBundleRef > &removeList = i_step->getSwRemoveList();
 	std::list< SmfBundleRef >::const_iterator bundleIter;
 	bundleIter = removeList.begin();
@@ -167,29 +168,32 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 		bundleIter++;
 	}
 
-	const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
-	bundleIter = addList.begin();
-	while (bundleIter != addList.end()) {
-		/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-			LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
-			changeState(i_step, SmfStepStateFailed::instance());
-			TRACE_LEAVE();
-			return false;
+	//If restart was not needed for installation, also check the bundle removal otherwise not needed
+	if (rebootNeeded == false) {
+		const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
+		bundleIter = addList.begin();
+		while (bundleIter != addList.end()) {
+			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				changeState(i_step, SmfStepStateFailed::instance());
+				TRACE_LEAVE();
+				return false;
+			}
+			const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+								       "saSmfBundleInstallOfflineScope",
+								       0);
+
+			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+				      (*bundleIter).getBundleDn().c_str());
+
+				rebootNeeded = true;
+				break;
+			}
+
+			bundleIter++;
 		}
-		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-							       "saSmfBundleInstallOfflineScope",
-							       0);
-
-		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-			TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-			      (*bundleIter).getBundleDn().c_str());
-
-			rebootNeeded = true;
-			break;
-		}
-
-		bundleIter++;
 	}
 
 	//Find out type of step
@@ -239,14 +243,19 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 		/* AU is AMF node */
 
 		if (rebootNeeded) {
-			/* Check if the step will lock/reboot our own node and if so
-			   move our campaign execution to the other controller using e.g. 
-			   admin operation SWAP on the SI we belong to. Then the other
-			   controller will continue with this step and do the lock/reboot */
+			/* -If rolling upgrade: Check if the step will lock/reboot our own node and if so
+			    move our campaign execution to the other controller using e.g. 
+			    admin operation SWAP on the SI we belong to. Then the other
+			    controller will continue with this step and do the lock/reboot.
+			   
+			   -If single step  upgrade: No switchover is needed. A cluster reboot will be 
+                            ordered within the step */
 
-			if (i_step->isCurrentNode(firstAuDu) == true) {
-				i_step->setSwitchOver(true);
-				return true; 
+			if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
+				if (i_step->isCurrentNode(firstAuDu) == true) {
+					i_step->setSwitchOver(true);
+					return true; 
+				}
 			}
 
 			i_step->setStepType(SMF_STEP_NODE_REBOOT);
@@ -961,210 +970,324 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing node reboot step %s", i_step->getDn().c_str());
 
-	/* Online installation of all new software */
-	/* All online scripts could be installed here, also for those bundles which requires restart */
-	LOG_NO("STEP: Online installation of new software");
-	if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online install bundles");
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
+	SmfImmUtils immutil;
+	SaImmAttrValuesT_2 ** attributes;
+	const SaUint32T* scope;
+
+	std::list< SmfBundleRef >::const_iterator bundleIter;
+	std::list < SmfBundleRef > addList;
+	bool installationRebootNeeded;
+	
+	std::list < SmfBundleRef > restartBundles;
+        std::list < SmfBundleRef > removeList;
+	bool removalRebootNeeded;
+
+	int singleStepRebootInfo = SMF_NO_CLUSTER_REBOOT;
+	if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		//Read the reboot info object. If the object does not exist is it assumed that
+		//this is the first time the step is executed i.e. the cluster has not yet been rebooted
+		SaAisErrorT rc = i_step->getSingleStepRebootInfo(&singleStepRebootInfo);
+		if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST)){
+			LOG_ER("Failed to get single step reboot info");
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 	}
 
-        /* Lock deactivation units */
-        LOG_NO("STEP: Lock deactivation units");
-        if (i_step->lockDeactivationUnits() == false) {
-                LOG_ER("Failed to Lock deactivation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+	//singleStepRebootInfo is always equal 0 for a rolling type upgrade, i.e. the sequence is unbroken
+	//In case of a single step upgrade the singleStepRebootInfo is equal 0 the first time the sequence
+	//is entered. Before each possible cluster reboot the singleStepRebootInfo is updated.
+	switch(singleStepRebootInfo) { 
+	case SMF_NO_CLUSTER_REBOOT:
 
-        /* Terminate deactivation units */
-        LOG_NO("STEP: Terminate deactivation units");
-        if (i_step->terminateDeactivationUnits() == false) {
-                LOG_ER("Failed to Terminate deactivation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+		/* Online installation of all new software */
+		/* All online scripts could be installed here, also for those bundles which requires restart */
+		LOG_NO("STEP: Online installation of new software");
+		if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to online install bundles");
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-        /* Offline uninstallation of old software */
-        LOG_NO("STEP: Offline uninstallation of old software");
-        if (i_step->offlineRemoveBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to offline remove bundles in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-	}
+		/* Lock deactivation units */
+		LOG_NO("STEP: Lock deactivation units");
+		if (i_step->lockDeactivationUnits() == false) {
+			LOG_ER("Failed to Lock deactivation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-	/* Modify information model and set maintenance status */
-	LOG_NO("STEP: Modify information model and set maintenance status");
-	if (i_step->modifyInformationModel() == false) {
-		LOG_ER("Failed to Modify information model in step=%s",i_step->getRdn().c_str());
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
-	}
+		/* Terminate deactivation units */
+		LOG_NO("STEP: Terminate deactivation units");
+		if (i_step->terminateDeactivationUnits() == false) {
+			LOG_ER("Failed to Terminate deactivation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Offline uninstallation of old software */
+		LOG_NO("STEP: Offline uninstallation of old software");
+		if (i_step->offlineRemoveBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to offline remove bundles in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Modify information model and set maintenance status */
+		LOG_NO("STEP: Modify information model and set maintenance status");
+		if (i_step->modifyInformationModel() == false) {
+			LOG_ER("Failed to Modify information model in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
 //TODO: Remove comments when AMF is updated
 #if 0
-	if (i_step->setMaintenanceState() == false) {
-                LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-	}
+		if (i_step->setMaintenanceState() == false) {
+			LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 #endif
-        /* The action below is an add on to SMF.---------------------------------------*/
-	/* See if any of the software bundles installed at online installation has the */
-        /* saSmfBundleInstallOfflineScope attribute set to SA_SMF_CMD_SCOPE_PLM_EE     */
-	/* If true one or several of the bundles need a reboot to install              */
-	/* After the reboot these bundles are considered installed                     */
-	/* This is an OpenSAF extension of the SMF specification. This behaviour make  */
-	/* it possible to install e.g. new OS which needs a restart to be taken into   */
-	/* operation. These kind of software bundles shall install/remove the software */
-	/* in the online portion only.                                                 */
+		/* The action below is an add on to SMF.---------------------------------------*/
+		/* See if any of the software bundles installed at online installation has the */
+		/* saSmfBundleInstallOfflineScope attribute set to SA_SMF_CMD_SCOPE_PLM_EE     */
+		/* If true one or several of the bundles need a reboot to install              */
+		/* After the reboot these bundles are considered installed                     */
+		/* This is an OpenSAF extension of the SMF specification. This behaviour make  */
+		/* it possible to install e.g. new OS which needs a restart to be taken into   */
+		/* operation. These kind of software bundles shall install/remove the software */
+		/* in the online portion only.                                                 */
 
-	SmfImmUtils immutil;
-	SaImmAttrValuesT_2 ** attributes;
+		/* Find out if any bundle to install which bundles requires restart to be installed */
+		addList = i_step->getSwAddList();
+		bundleIter = addList.begin();
+		installationRebootNeeded = false;
+		while (bundleIter != addList.end()) {
+			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				changeState(i_step, SmfStepStateFailed::instance());
+				TRACE_LEAVE();
+				return false;
+			}
+			scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+								       "saSmfBundleInstallOfflineScope",
+								       0);
 
-	/* Find out which bundles requires restart to be installed */
-	std::list< SmfBundleRef >::const_iterator bundleIter;
-	const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
-	bundleIter = addList.begin();
-	bool installationRebootNeeded = false;
-	while (bundleIter != addList.end()) {
-		/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-			LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+				      (*bundleIter).getBundleDn().c_str());
+
+				installationRebootNeeded = true;
+				break;
+			}
+
+			bundleIter++;
+		}
+
+		if(installationRebootNeeded == true) {
+			/* If rolling upgrade, reboot node */
+			if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
+				LOG_NO("STEP: Reboot node %s", i_step->getSwNode().c_str());
+				if (i_step->nodeReboot(i_step->getSwNode()) == false){
+					LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
+					changeState(i_step, SmfStepStateFailed::instance());
+					TRACE_LEAVE();
+					return false;
+				}
+				// Here the rebooted node is up and running
+
+			/* If single step, reboot cluster */
+			} else if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+				SaAisErrorT rc;
+				//Create smfSingleStepInfo object
+				if ((rc = i_step->setSingleStepRebootInfo(SMF_INSTALLATION_REBOOT)) != SA_AIS_OK){
+					LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+
+				//Save IMM content
+				if ((rc = i_step->saveImmContent()) != SA_AIS_OK){
+					LOG_ER("Fails to save imm content, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+
+				//Reboot cluster
+				LOG_NO("STEP: Order cluster reboot");
+				if ((rc = i_step->clusterReboot()) != SA_AIS_OK){
+					LOG_ER("Fails to save imm content, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+				
+				//Wait for cluster to reboot
+				LOG_NO("STEP: Waiting for cluster to reboot");
+				sleep(100000);
+				//This should never happend !!
+				LOG_ER("Cluster refuses to reboot");
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+			}
+		}
+
+	case SMF_INSTALLATION_REBOOT:
+
+		/* Find out which bundles requires restart to be removed */
+		removeList = i_step->getSwRemoveList();
+		bundleIter = removeList.begin();
+		removalRebootNeeded = false;
+		while (bundleIter != removeList.end()) {
+			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				changeState(i_step, SmfStepStateFailed::instance());
+				TRACE_LEAVE();
+				return false;
+			}
+			scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+						      "saSmfBundleInstallOfflineScope",
+						      0);
+
+			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+				      (*bundleIter).getBundleDn().c_str());
+
+				restartBundles.push_back((*bundleIter));
+				removalRebootNeeded = true;
+			}
+
+			bundleIter++;
+		}
+
+		/* Online ununstallation of old software for bundles where */
+		/* saSmfBundleRemoveOfflineScope=SA_SMF_CMD_SCOPE_PLM_EE   */
+		if( removalRebootNeeded == true ) {
+			LOG_NO("STEP: Online uninstallation of old software where reboot is needed to complete the removal");
+			if (i_step->onlineRemoveBundlesUserList(i_step->getSwNode(), restartBundles) == false) {
+				LOG_ER("Failed to online remove bundles to be rebooted in step=%s",i_step->getRdn().c_str());
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+			}
+
+			/* If rolling upgrade, reboot node */
+			if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
+				if (i_step->nodeReboot(i_step->getSwNode()) == false){
+					LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
+					changeState(i_step, SmfStepStateFailed::instance());
+					TRACE_LEAVE();
+					return false;
+				}
+				// Here the rebooted node is up and running
+
+			/* If single step, reboot cluster */
+			} else if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+				i_step->setSingleStepRebootInfo(SMF_REMOVAL_REBOOT); //Create smfSingleStepInfo object
+				i_step->saveImmContent(); //Save IMM content
+				i_step->clusterReboot();  //Reboot cluster
+				return true;
+
+
+				SaAisErrorT rc;
+				//Create smfSingleStepInfo object
+				if ((rc = i_step->setSingleStepRebootInfo(SMF_REMOVAL_REBOOT)) != SA_AIS_OK){
+					LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+
+				//Save IMM content
+				if ((rc = i_step->saveImmContent()) != SA_AIS_OK){
+					LOG_ER("Fails to save imm content, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+
+				//Reboot cluster
+				LOG_NO("STEP: Order cluster reboot");
+				if ((rc = i_step->clusterReboot()) != SA_AIS_OK){
+					LOG_ER("Fails to save imm content, rc=%d", rc);
+					changeState(i_step, SmfStepStateFailed::instance());
+					return false;
+				}
+				
+				//Wait for cluster to reboot
+				LOG_NO("STEP: Waiting for cluster to reboot");
+				sleep(100000);
+				//This should never happend !!
+				LOG_ER("Cluster refuses to reboot");
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+
+			}
+		}
+
+	case SMF_REMOVAL_REBOOT:
+
+		/* --------------------------------------------------------------------------------------*/
+		/* End of add on action -----------------------------------------------------------------*/
+		/* --------------------------------------------------------------------------------------*/
+
+		/* Offline installation of new software */
+		LOG_NO("STEP: Offline installation of new software");
+		if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to offline install new software in step=%s",i_step->getRdn().c_str());
 			changeState(i_step, SmfStepStateFailed::instance());
-			TRACE_LEAVE();
 			return false;
 		}
-		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-							       "saSmfBundleInstallOfflineScope",
-							       0);
 
-		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-			TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-			      (*bundleIter).getBundleDn().c_str());
-
-			installationRebootNeeded = true;
-			break;
-		}
-
-		bundleIter++;
-	}
-
-	if(installationRebootNeeded == true) {
-		/* Reboot node */
-		if (i_step->nodeReboot(i_step->getSwNode()) == false){
-			LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
-			changeState(i_step, SmfStepStateFailed::instance());
-			TRACE_LEAVE();
-			return false;
-		}
-		// Here the rebooted node is up and running
-	}
-
-	/* Find out which bundles requires restart to be removed */
-	std::list < SmfBundleRef > restartBundles;
-	const std::list < SmfBundleRef > &removeList = i_step->getSwRemoveList();
-	bundleIter = removeList.begin();
-	bool removalRebootNeeded = false;
-	while (bundleIter != removeList.end()) {
-		/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-			LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
-			changeState(i_step, SmfStepStateFailed::instance());
-			TRACE_LEAVE();
-			return false;
-		}
-		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-							       "saSmfBundleInstallOfflineScope",
-							       0);
-
-		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-			TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-			      (*bundleIter).getBundleDn().c_str());
-
-			restartBundles.push_back((*bundleIter));
-			removalRebootNeeded = true;
-		}
-
-		bundleIter++;
-	}
-
-	/* Online ununstallation of old software for bundles where */
-	/* saSmfBundleRemoveOfflineScope=SA_SMF_CMD_SCOPE_PLM_EE   */
-	if( removalRebootNeeded == true ) {
-		LOG_NO("STEP: Online uninstallation of old software where reboot is needed to complete the removal");
-		if (i_step->onlineRemoveBundlesUserList(i_step->getSwNode(), restartBundles) == false) {
-			LOG_ER("Failed to online remove bundles to be rebooted in step=%s",i_step->getRdn().c_str());
+		/* Create SaAmfNodeSwBundle object for all bundles to be adde */
+		LOG_NO("STEP: Create SaAmfNodeSwBundle object");
+		if (i_step->createSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to create SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
 			changeState(i_step, SmfStepStateFailed::instance());
 			return false;
 		}
 
-		/* Reboot node */
-		if (i_step->nodeReboot(i_step->getSwNode()) == false){
-			LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
+		/* Instantiate activation units */
+		LOG_NO("STEP: Instantiate activation units");
+		if (i_step->instantiateActivationUnits() == false) {
+			LOG_ER("Failed to Instantiate activation units in step=%s",i_step->getRdn().c_str());
 			changeState(i_step, SmfStepStateFailed::instance());
-			TRACE_LEAVE();
 			return false;
 		}
-		// Here the rebooted node is up and running
-	}
 
-	/* --------------------------------------------------------------------------------------*/
-	/* End of add on action -----------------------------------------------------------------*/
-	/* --------------------------------------------------------------------------------------*/
+		/* Unlock activation units */
+		LOG_NO("STEP: Unlock activation units");
+		if (i_step->unlockActivationUnits() == false) {
+			LOG_ER("Failed to Unlock activation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-        /* Offline installation of new software */
-        LOG_NO("STEP: Offline installation of new software");
-        if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to offline install new software in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-       /* Create SaAmfNodeSwBundle object for all bundles to be adde */
-        LOG_NO("STEP: Create SaAmfNodeSwBundle object");
-        if (i_step->createSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to create SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-        /* Instantiate activation units */
-        LOG_NO("STEP: Instantiate activation units");
-        if (i_step->instantiateActivationUnits() == false) {
-                LOG_ER("Failed to Instantiate activation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-        /* Unlock activation units */
-        LOG_NO("STEP: Unlock activation units");
-        if (i_step->unlockActivationUnits() == false) {
-                LOG_ER("Failed to Unlock activation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+		break;
 
 #if 0
 //Moved to the procedure
 
-	/* Online uninstallation of old software (no reboot required) */
-	LOG_NO("STEP: Online uninstallation of old software");
-	if (i_step->onlineRemoveBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online remove bundles in step=%s",i_step->getRdn().c_str());
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
-	}
+		/* Online uninstallation of old software (no reboot required) */
+		LOG_NO("STEP: Online uninstallation of old software");
+		if (i_step->onlineRemoveBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to online remove bundles in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-        /* Delete SaAmfNodeSwBundle object */
-        LOG_NO("STEP: Delete SaAmfNodeSwBundle object");
-        if (i_step->deleteSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to delete SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+		/* Delete SaAmfNodeSwBundle object */
+		LOG_NO("STEP: Delete SaAmfNodeSwBundle object");
+		if (i_step->deleteSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to delete SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 #endif
+	default:
+                LOG_ER("Unknown reboot info %d", singleStepRebootInfo);
+                assert(0);
+                return false;
+        }		//End switch
 
 	LOG_NO("STEP: Upgrade node reboot step completed %s", i_step->getDn().c_str());
 	changeState(i_step, SmfStepStateCompleted::instance());
@@ -1182,115 +1305,180 @@ SmfStepStateExecuting::executeNodeRebootAct(SmfUpgradeStep * i_step)
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing node reboot activate step %s", i_step->getDn().c_str());
 
-	/* Online installation of all new software */
-	/* All online scripts could be installed here, also for those bundles which requires restart */
-	LOG_NO("STEP: Online installation of new software");
-	if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online install bundles");
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
+	int singleStepRebootInfo = SMF_NO_CLUSTER_REBOOT;
+	if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		//Read the reboot info object. If the object does not exist is it assumed that
+		//this is the first time the step is executed i.e. the cluster has not yet been rebooted
+		SaAisErrorT rc = i_step->getSingleStepRebootInfo(&singleStepRebootInfo);
+		if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST)){
+			LOG_ER("Failed to get single step reboot info");
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 	}
 
-        /* Lock deactivation units */
-        LOG_NO("STEP: Lock deactivation units");
-        if (i_step->lockDeactivationUnits() == false) {
-                LOG_ER("Failed to Lock deactivation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+	//singleStepRebootInfo is always equal 0 for a rolling type upgrade, i.e. the sequence is unbroken
+	//In case of a single step upgrade the singleStepRebootInfo is equal 0 the first time the sequence
+	//is entered. Before each possible cluster reboot the singleStepRebootInfo is updated.
+	switch(singleStepRebootInfo) { 
+	case SMF_NO_CLUSTER_REBOOT:
 
-        /* Terminate deactivation units */
-        LOG_NO("STEP: Terminate deactivation units");
-        if (i_step->terminateDeactivationUnits() == false) {
-                LOG_ER("Failed to Terminate deactivation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+		/* Online installation of all new software */
+		/* All online scripts could be installed here, also for those bundles which requires restart */
+		LOG_NO("STEP: Online installation of new software");
+		if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to online install bundles");
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-        /* Offline uninstallation of old software */
-        LOG_NO("STEP: Offline uninstallation of old software");
-        if (i_step->offlineRemoveBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to offline remove bundles in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-	}
+		/* Lock deactivation units */
+		LOG_NO("STEP: Lock deactivation units");
+		if (i_step->lockDeactivationUnits() == false) {
+			LOG_ER("Failed to Lock deactivation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
-	/* Modify information model and set maintenance status */
-	LOG_NO("STEP: Modify information model and set maintenance status");
-	if (i_step->modifyInformationModel() == false) {
-		LOG_ER("Failed to Modify information model in step=%s",i_step->getRdn().c_str());
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
-	}
+		/* Terminate deactivation units */
+		LOG_NO("STEP: Terminate deactivation units");
+		if (i_step->terminateDeactivationUnits() == false) {
+			LOG_ER("Failed to Terminate deactivation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Offline uninstallation of old software */
+		LOG_NO("STEP: Offline uninstallation of old software");
+		if (i_step->offlineRemoveBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to offline remove bundles in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Modify information model and set maintenance status */
+		LOG_NO("STEP: Modify information model and set maintenance status");
+		if (i_step->modifyInformationModel() == false) {
+			LOG_ER("Failed to Modify information model in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 
 //TODO: Remove comments when AMF is updated
 #if 0
-	if (i_step->setMaintenanceState() == false) {
-                LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-	}
+		if (i_step->setMaintenanceState() == false) {
+			LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
 #endif
 
-        /* Offline installation of new software */
-        LOG_NO("STEP: Offline installation of new software");
-        if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to offline install new software in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
+		/* Offline installation of new software */
+		LOG_NO("STEP: Offline installation of new software");
+		if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to offline install new software in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Create SaAmfNodeSwBundle object for all bundles to be adde */
+		LOG_NO("STEP: Create SaAmfNodeSwBundle object");
+		if (i_step->createSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to create SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Online uninstallation of old software (no reboot required) */
+		LOG_NO("STEP: Online uninstallation of old software");
+		if (i_step->onlineRemoveBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to online remove bundles in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Delete SaAmfNodeSwBundle object */
+		LOG_NO("STEP: Delete SaAmfNodeSwBundle object");
+		if (i_step->deleteSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
+			LOG_ER("Failed to delete SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* The reboot will include an activation of the software */
+
+		/* If rolling upgrade, reboot node */
+		if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
+
+			/* Reboot node */
+			LOG_NO("STEP: Reboot node %s", i_step->getSwNode().c_str());
+			if (i_step->nodeReboot(i_step->getSwNode()) == false){
+				LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
+				changeState(i_step, SmfStepStateFailed::instance());
+				TRACE_LEAVE();
+				return false;
+			}
+			// Here the rebooted node is up and running
+
+			/* If single step, reboot cluster */
+		} else if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+			SaAisErrorT rc;
+			//Create smfSingleStepInfo object
+			if ((rc = i_step->setSingleStepRebootInfo(SMF_INSTALLATION_REBOOT)) != SA_AIS_OK) {
+				LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+			}
+
+			//Save IMM content
+			if ((rc = i_step->saveImmContent()) != SA_AIS_OK){
+				LOG_ER("Fails to save imm content, rc=%d", rc);
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+			}
+
+			//Reboot cluster
+			LOG_NO("STEP: Order cluster reboot");
+			if ((rc = i_step->clusterReboot()) != SA_AIS_OK){
+				LOG_ER("Fails to save imm content, rc=%d", rc);
+				changeState(i_step, SmfStepStateFailed::instance());
+				return false;
+			}
+				
+			//Wait for cluster to reboot
+			LOG_NO("STEP: Waiting for cluster to reboot");
+			sleep(100000);
+			//This should never happend !!
+			LOG_ER("Cluster refuses to reboot");
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+	case SMF_INSTALLATION_REBOOT:
+
+		/* Instantiate activation units */
+		LOG_NO("STEP: Instantiate activation units");
+		if (i_step->instantiateActivationUnits() == false) {
+			LOG_ER("Failed to Instantiate activation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		/* Unlock activation units */
+		LOG_NO("STEP: Unlock activation units");
+		if (i_step->unlockActivationUnits() == false) {
+			LOG_ER("Failed to Unlock activation units in step=%s",i_step->getRdn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			return false;
+		}
+
+		break;
+
+	default:
+                LOG_ER("Unknown reboot info %d", singleStepRebootInfo);
+                assert(0);
                 return false;
-        }
-
-       /* Create SaAmfNodeSwBundle object for all bundles to be adde */
-        LOG_NO("STEP: Create SaAmfNodeSwBundle object");
-        if (i_step->createSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to create SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-	/* Online uninstallation of old software (no reboot required) */
-	LOG_NO("STEP: Online uninstallation of old software");
-	if (i_step->onlineRemoveBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online remove bundles in step=%s",i_step->getRdn().c_str());
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
-	}
-
-        /* Delete SaAmfNodeSwBundle object */
-        LOG_NO("STEP: Delete SaAmfNodeSwBundle object");
-        if (i_step->deleteSaAmfNodeSwBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to delete SaAmfNodeSwBundle object in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-	/* The reboot will include an activation of the software */
-	/* Reboot node */
-        LOG_NO("STEP: Reboot node %s", i_step->getSwNode().c_str());
-	if (i_step->nodeReboot(i_step->getSwNode()) == false){
-		LOG_ER("Fails to reboot node %s", i_step->getSwNode().c_str());
-		changeState(i_step, SmfStepStateFailed::instance());
-		TRACE_LEAVE();
-		return false;
-	}
-
-	// Here the rebooted node is up and running
-
-        /* Instantiate activation units */
-        LOG_NO("STEP: Instantiate activation units");
-        if (i_step->instantiateActivationUnits() == false) {
-                LOG_ER("Failed to Instantiate activation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
-
-        /* Unlock activation units */
-        LOG_NO("STEP: Unlock activation units");
-        if (i_step->unlockActivationUnits() == false) {
-                LOG_ER("Failed to Unlock activation units in step=%s",i_step->getRdn().c_str());
-                changeState(i_step, SmfStepStateFailed::instance());
-                return false;
-        }
+        }		//End switch
 
 	LOG_NO("STEP: Upgrade node reboot step completed %s", i_step->getDn().c_str());
 	changeState(i_step, SmfStepStateCompleted::instance());

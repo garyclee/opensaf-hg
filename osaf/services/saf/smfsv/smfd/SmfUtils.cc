@@ -286,6 +286,28 @@ SmfImmUtils::getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attrib
 }
 
 // ------------------------------------------------------------------------------
+// getObjectAisRC()
+// ------------------------------------------------------------------------------
+SaAisErrorT 
+SmfImmUtils::getObjectAisRC(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attributes)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	SaNameT objectName;
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+
+	objectName.length = i_dn.length();
+	strncpy((char *)objectName.value, i_dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	rc = immutil_saImmOmAccessorGet_2(m_accessorHandle, &objectName, NULL, o_attributes);
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+
+	return rc;
+}
+
+// ------------------------------------------------------------------------------
 // getParentObject()
 // ------------------------------------------------------------------------------
 bool 
@@ -696,4 +718,51 @@ smf_opStringToInt(const char *i_str)
 		TRACE("SmfUtils::smf_opStringToInt type %s not found", i_str);
 		assert(0);
 	}
+}
+
+//------------------------------------------------------------------------------
+// smfSystem()
+//------------------------------------------------------------------------------
+int
+smf_system(std::string i_cmd)
+{
+	int rc = 0;
+
+	TRACE("smf_system: trying command ""%s""",i_cmd.c_str());
+	int status = system(i_cmd.c_str());
+
+	if(!WIFEXITED(status)) //returns  true  if  the  child  terminated  normally,  that is, by calling exit(3) or _exit(2), or by returning from  main().
+	{
+		//Something went wrong
+		TRACE("smf_system:child  was not terminated  normally, status = %d, command string = %s", status, i_cmd.c_str());
+		if(WIFSIGNALED(status)) //returns true if the child process was terminated by a signal.
+		{
+			int signal = WTERMSIG(status); // returns the number of the signal that caused the child process to terminate.
+			TRACE("smf_system: The child process was terminated by signal = %d", signal);
+		}
+
+		if(WIFSTOPPED(status)) //returns  true  if the child process was stopped by delivery of a signal; this is only possible if the call was done
+			//using WUNTRACED or when the child is being traced (see ptrace(2))
+		{
+			int signal = WSTOPSIG(status); //returns the number of the signal which caused the child to stop. 
+			// This macro should only be employed if  WIFSTOPPED returned true.
+			TRACE("smf_system: Process was stopped by delivery of a signal = %d", signal);
+		}
+	}
+	else //WIFEXITED returned true
+	{
+		rc = WEXITSTATUS(status); //returns the exit status of the child.  This consists of the least significant 8 bits of the  status  argument  that
+		//the child specified in a call to exit() or _exit() or as the argument for a return statement in main().  This macro
+		//should only be employed if WIFEXITED returned true.
+		if(rc == 0)
+		{
+			TRACE("smf_system: command ""%s"", sucessfully executed", i_cmd.c_str());
+		}
+		else 
+		{
+			TRACE("smf_system: command ""%s"", fails rc=%d", i_cmd.c_str(), rc);
+		}
+	}
+
+	return rc;
 }

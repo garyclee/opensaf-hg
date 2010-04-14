@@ -58,6 +58,12 @@ typedef enum {
 	SMF_STEP_NODE_REBOOT = 5
 } SmfStepT;
 
+typedef enum {
+	SMF_NO_CLUSTER_REBOOT = 0,
+	SMF_INSTALLATION_REBOOT = 1,
+	SMF_REMOVAL_REBOOT = 2
+} SmfRebootT;
+
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -443,6 +449,34 @@ class SmfUpgradeStep {
 /// @return   true if the calling component executes on the given AMF node, otherwise false.
 ///
 	bool isCurrentNode(const std::string & i_amfNodeDN);
+
+///
+/// Purpose:  setSingleStepRebootInfo(int i_rebootInfo)
+/// @param    An int containing a SmfRebootT enum, specifying where to continue after a cluster reboot
+/// @return   SaAisErrorT
+///
+	 SaAisErrorT setSingleStepRebootInfo(int i_rebootInfo);
+
+///
+/// Purpose:  getSingleStepRebootInfo  
+/// @param    An int containing a SmfRebootT enum, specifying where to continue after a cluster reboot
+/// @return   SaAisErrorT
+///
+	SaAisErrorT getSingleStepRebootInfo(int* o_rebootInfo);
+
+///
+/// Purpose:  Reboots the whole cluster  
+/// @param    None
+/// @return   SaAisErrorT
+///
+	SaAisErrorT clusterReboot();
+
+///
+/// Purpose:  Save the IMM content to a persistant location (which is read at reboot) 
+/// @param    None
+/// @return   SaAisErrorT
+///
+	SaAisErrorT saveImmContent();
 
 	friend class SmfStepState;
 	friend class SmfStepStateExecuting;

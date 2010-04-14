@@ -128,6 +128,7 @@ SmfUpgradeProcedure::~SmfUpgradeProcedure()
 SaAisErrorT 
 SmfUpgradeProcedure::init(const SaImmAttrValuesT_2 ** attrValues)
 {
+	TRACE_ENTER();
 	const SaImmAttrValuesT_2 **attribute;
 
 	for (attribute = attrValues; *attribute != NULL; attribute++) {
@@ -159,6 +160,7 @@ SmfUpgradeProcedure::init(const SaImmAttrValuesT_2 ** attrValues)
 		}
 	}
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 
@@ -387,21 +389,6 @@ void
 SmfUpgradeProcedure::switchOver()
 {
 	TRACE_ENTER();
-	//Delete the IMM handle
-	SaImmOiHandleT immh = getProcThread()->getImmHandle();
-	SaAisErrorT rc;
-	rc = immutil_saImmOiImplementerClear(immh);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerClear fails rc=%d", rc);
-		goto done;
-	}
-	rc = immutil_saImmOiFinalize(immh);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiFinalize fails rc=%d", rc);
-		goto done;
-	}
-
-done:
 
 	SmfSwapThread *swapThread = new SmfSwapThread(this);
 	TRACE("SmfUpgradeProcedure::switchOver, Starting SI_SWAP thread");
@@ -1794,13 +1781,43 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 SaAisErrorT 
 SmfUpgradeProcedure::getImmSteps()
 {
+	SaAisErrorT rc = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	SmfUpgradeMethod *upgradeMethod = getUpgradeMethod();
+	if (upgradeMethod == NULL) {
+		LOG_ER("SmfUpgradeProcedure::getImmSteps: no upgrade method found");
+		rc = SA_AIS_ERR_NOT_EXIST;
+	}
+			
+	if (upgradeMethod->getUpgradeMethod() == SA_SMF_ROLLING) {
+		TRACE("Rolling upgrade");
+		rc = getImmStepsRolling();
+
+	} else if (upgradeMethod->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		TRACE("Single step upgrade");
+		rc = getImmStepsSingleStep();
+	} else {
+		LOG_ER("SmfUpgradeProcedure::getImmSteps: no upgrade method type found");
+		rc =  SA_AIS_ERR_NOT_EXIST;
+	}
+
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// getImmStepsRolling()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeProcedure::getImmStepsRolling()
+{
 	SmfImmUtils immutil;
 	SaImmAttrValuesT_2 **attributes;
 	SaAisErrorT rc = SA_AIS_OK;
 	std::list < std::string > stepList;
 
 	TRACE_ENTER();
-
 	// Read the steps from IMM
 	if (immutil.getChildren(getDn(), stepList, SA_IMM_SUBLEVEL, "SaSmfStep") == false) {
 		LOG_ER("SmfUpgradeProcedure::getImmSteps: Failed to get steps for procedure %s", getDn().c_str());
@@ -1858,6 +1875,7 @@ SmfUpgradeProcedure::getImmSteps()
 				goto done;
 			}
 
+			TRACE("Rolling upgrade");
 			newStep->setMaxRetry(((SmfRollingUpgrade*)upgradeMethod)->getStepMaxRetryCount());
 			newStep->setRestartOption(((SmfRollingUpgrade*)upgradeMethod)->getStepRestartOption());
 
@@ -2008,6 +2026,24 @@ SmfUpgradeProcedure::getImmSteps()
 	}
 
  done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// getImmStepsSingleStep()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeProcedure::getImmStepsSingleStep()
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
+
+	TRACE("SmfUpgradeProcedure::getImmStepsSingleStep");
+        if( !this->calculateSteps() ) {
+		rc = SA_AIS_ERR_INIT;
+        }
+
 	TRACE_LEAVE();
 	return rc;
 }

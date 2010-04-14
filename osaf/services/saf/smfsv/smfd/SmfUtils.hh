@@ -57,6 +57,7 @@ extern "C" {
 	extern bool smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, const std::list < std::string > i_values);
         extern bool smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* i_str);
         extern int  smf_opStringToInt(const char* i_str);
+        extern int  smf_system(std::string i_cmd);
         
 #ifdef __cplusplus
 }
@@ -108,6 +109,14 @@ class SmfImmUtils {
 /// @return  True if successful, otherwise false
 ///
 	bool getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attributes);
+
+///
+/// Purpose: Get all attributes for an IMM object.
+/// @param   i_dn DN of the object to get.
+/// @param   o_attributes Resulting attribute values
+/// @return  SaAisErrorT
+///
+	SaAisErrorT getObjectAisRC(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attributes);
 
 ///
 /// Purpose: Get all attributes for the parent to an IMM object.

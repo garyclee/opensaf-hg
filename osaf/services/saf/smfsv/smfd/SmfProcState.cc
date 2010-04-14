@@ -384,7 +384,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			/* Online uninstallation of old software */
 			LOG_NO("PROC: Online uninstallation of old software");
 
-			/* Run only remove scripts for those bundles which does not require reboot to online uninstall */
+			/* Run only remove scripts for those bundles which does NOT require reboot to online uninstall */
 			/* Find out which bundles to be removed here. Bundles which requires reboot have already has   */
 			/* their online remove scripts executed in the step.                                           */
 			SmfImmUtils immutil;

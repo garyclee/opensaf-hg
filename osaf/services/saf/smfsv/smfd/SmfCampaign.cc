@@ -227,6 +227,7 @@ SmfCampaign::modify(const SaImmAttrModificationT_2 ** attrMods)
 SaAisErrorT 
 SmfCampaign::init(const SaImmAttrValuesT_2 ** attrValues)
 {
+	TRACE_ENTER();
 	const SaImmAttrValuesT_2 **attribute;
 
 	for (attribute = attrValues; *attribute != NULL; attribute++) {
@@ -287,6 +288,7 @@ SmfCampaign::init(const SaImmAttrValuesT_2 ** attrValues)
 		}
 	}
 
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 

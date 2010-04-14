@@ -123,6 +123,7 @@ typedef struct {
 } CAMPAIGN_EVT;
 
 class SmfCampaign;
+class SmfUpgradeCampaign;
 
 ///
 /// Class for the SMF campaign thread. This is a singleton.
@@ -199,6 +200,7 @@ class SmfCampaignThread {
 	sem_t m_semaphore;
 	SaNtfHandleT m_ntfHandle;
 	SaImmOiHandleT m_campOiHandle;	/* IMM OI handle */
+	SmfUpgradeCampaign * m_tmpSmfUpgradeCampaign; /*Used at campaign termination */
 };
 
 #endif
