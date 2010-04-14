@@ -640,6 +640,11 @@ void avnd_comp_reg_val(AVND_CB *cb,
 		return;
 	}
 
+	if (NULL == (*o_comp)) {
+		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
+		return;
+	}
+
 	if ((m_AVND_COMP_TYPE_IS_INTER_NODE(*o_comp)) && (TRUE == (*o_comp)->reg_resp_pending)) {
 		*o_amf_rc = SA_AIS_ERR_EXIST;
 		return;
