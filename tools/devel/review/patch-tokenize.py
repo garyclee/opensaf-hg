@@ -24,5 +24,5 @@ pattern = re.compile("\+\s.*")
 m = pattern.match(sys.argv[1])
 if m:
 	# Tokenize all alphanumeric words for banned word lookup
-	for word in re.findall("\s*(\w+)", m.group(0)):
+	for word in re.findall("\s*(\w+).?\(", m.group(0)):
 		print word

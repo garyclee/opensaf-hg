@@ -19,10 +19,17 @@
 # policy (e.g. ban usage of strcpy, printf etc.)
 # Usage: ./hg-check-banned-func.sh <changeset>
 # Dependency: banned.txt and patch-tokenize.py
+# TODO: Improve the tokeninzer to exclude code comment validation
 
 HG_NODE=$1
 BANNED_FUNCTIONS_DICT="banned.txt"
 TOKENIZER="python patch-tokenize.py"
+
+trap catch_errors ERR;
+
+catch_errors() {
+	exit 1
+}
 
 # Get a list of changesets in this changegroup
 for rev in $(hg log --template '{rev}\n' -r $HG_NODE); do
