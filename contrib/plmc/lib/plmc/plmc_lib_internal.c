@@ -129,7 +129,7 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 			fflush(plmc_lib_debug);
 			#endif
 			strncpy(tdata->ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
-			tdata->ee_id[PLMC_EE_ID_MAX_LENGTH] == '\0';
+			tdata->ee_id[PLMC_EE_ID_MAX_LENGTH - 1] = '\0';
 			tdata->socketfd = sock;
 			tdata->command[0] = '\0';
 			tdata->callback = NULL;
@@ -162,7 +162,7 @@ thread_entry *create_thread_entry(char *ee_id, int sock) {
 		 *because we are running in our own thread 
 		*/
 		strncpy(new_entry->thread_d.ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
-		new_entry->thread_d.ee_id[PLMC_EE_ID_MAX_LENGTH] == '\0';
+		new_entry->thread_d.ee_id[PLMC_EE_ID_MAX_LENGTH - 1] = '\0';
 		new_entry->thread_d.socketfd = sock;
 		new_entry->thread_d.command[0] = '\0';
 		new_entry->thread_d.callback = NULL;
@@ -354,12 +354,12 @@ int send_error(int error, int action, char *ee_id, PLMC_cmd_idx cmd_enum) {
 	myerr.ecode = error;
 	myerr.acode = action;
 	strncpy(myerr.errormsg, PLMC_error_msg[error], PLMC_MAX_ERROR_MSG_LENGTH);
-	myerr.errormsg[PLMC_MAX_ERROR_MSG_LENGTH] == '\0';
+	myerr.errormsg[PLMC_MAX_ERROR_MSG_LENGTH - 1] = '\0';
 	strncpy(myerr.action, PLMC_action_msg[action], PLMC_MAX_ACTION_LENGTH);
-	myerr.action[PLMC_MAX_ACTION_LENGTH] = '\0';
+	myerr.action[PLMC_MAX_ACTION_LENGTH - 1] = '\0';
 	if (ee_id != NULL) {
 		strncpy(myerr.ee_id, ee_id, PLMC_EE_ID_MAX_LENGTH);
-		myerr.ee_id[PLMC_EE_ID_MAX_LENGTH] = '\0';
+		myerr.ee_id[PLMC_EE_ID_MAX_LENGTH - 1] = '\0';
 	} else {
 		strcpy(myerr.ee_id, "");
 	}
@@ -437,7 +437,7 @@ int parse_udp (udp_msg *parsed, char *incoming)
 	else
 		return 1;
 	strncpy(parsed->os_info, tmpstring, PLMC_CMD_RESULT_MAX_LENGTH);
-	parsed->os_info[PLMC_CMD_RESULT_MAX_LENGTH] = '\0';
+	parsed->os_info[PLMC_CMD_RESULT_MAX_LENGTH - 1] = '\0';
 	if (strcmp(parsed->msg, "EE_INSTANTIATING") == 0)
 		parsed->msg_idx = EE_INSTANTIATING;
 	else if (strcmp(parsed->msg, "EE_TERMINATED") == 0)
@@ -603,7 +603,7 @@ int parse_tcp(tcp_msg *parsed, char *incoming)
 	else
 		return 1;
 	strncpy(parsed->result, tmpstring, PLMC_CMD_RESULT_MAX_LENGTH);
-	parsed->result[PLMC_CMD_RESULT_MAX_LENGTH] = '\0';
+	parsed->result[PLMC_CMD_RESULT_MAX_LENGTH - 1] = '\0';
 
 	parsed->cmd_enum = plmc_cmd_string_to_enum(parsed->cmd);
 	
@@ -826,14 +826,14 @@ void *plmc_client_mgr(void *arguments)
 	}
 	sockfd = tentry->thread_d.socketfd;
 	strncpy(ee_id, tdata->ee_id, PLMC_EE_ID_MAX_LENGTH);
-	ee_id[PLMC_EE_ID_MAX_LENGTH] = '\0';
+	ee_id[PLMC_EE_ID_MAX_LENGTH - 1] = '\0';
 	
 	/* 
 	* There is a new command, copy it locally and return the 
 	* lock 
 	*/
 	strncpy(command, tdata->command, PLMC_CMD_NAME_MAX_LENGTH);
-	command[PLMC_CMD_NAME_MAX_LENGTH] = '\0';
+	command[PLMC_CMD_NAME_MAX_LENGTH - 1] = '\0';
 	cmd_enum = plmc_cmd_string_to_enum(tdata->command);
 	/* Get the callback as well */
 	callback = tdata->callback;
