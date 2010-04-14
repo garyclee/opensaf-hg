@@ -776,6 +776,7 @@ uns32 immd_mds_bcast_send(IMMD_CB *cb, IMMSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 	NCSMDS_INFO info;
 	uns32 res;
 
+	TRACE_ENTER();
 	memset(&info, 0, sizeof(info));
 
 	info.i_mds_hdl = cb->mds_handle;
@@ -795,5 +796,6 @@ uns32 immd_mds_bcast_send(IMMD_CB *cb, IMMSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 		LOG_ER("IMMD - MDS Send Failed");
 	}
 
+	TRACE_LEAVE();
 	return (res);
 }
