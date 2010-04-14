@@ -36,6 +36,8 @@ static SaVersionT imm_version = {
 static const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
 static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
+static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
+static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -79,6 +81,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	CPD_CPND_INFO_NODE *cpnd_info_node;
 	SaNameT replica_dn, ckptName, clm_node_name;
 	char *ckpt_name;
+	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 
 	memset(&replica_dn, 0, sizeof(SaNameT));
 	memset(&ckptName, 0, sizeof(ckptName));
@@ -149,16 +152,16 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 					while ((attributeName = attributeNames[i]) != NULL) {
 						if (strcmp(attributeName, "saCkptReplicaIsActive") == 0) {
 							/* replicaIsActive  DESCRIPTION " Indicates if the node 
-							contains an active replica of the checkpoint designated 
-							by 'saCkptCheckpointNameLoc'.  Applicable only for collocated 
-							checkpoints created with either asynchronous or asynchronousweak 
-							update option. The concept of an active replica doesn't apply 
-							if the checkpoint is either non-collocated or collocated but 
-							created with a synchronous update option and hence the other 
-							INTEGER values have been provided to bring out those specific traits." */
+							   contains an active replica of the checkpoint designated 
+							   by 'saCkptCheckpointNameLoc'.  Applicable only for collocated 
+							   checkpoints created with either asynchronous or asynchronousweak 
+							   update option. The concept of an active replica doesn't apply 
+							   if the checkpoint is either non-collocated or collocated but 
+							   created with a synchronous update option and hence the other 
+							   INTEGER values have been provided to bring out those specific traits." */
 
-						        if(rep_info->rep_type == REP_NOTACTIVE)
-							   replicaIsActive = FALSE;
+							if (rep_info->rep_type == REP_NOTACTIVE)
+								replicaIsActive = FALSE;
 							attr_output[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
 							attr_output[0].modAttr.attrName = attributeName;
 							attr_output[0].modAttr.attrValuesNumber = 1;
@@ -167,13 +170,15 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 							    ckptReplicaIsActiveUpdateValue;
 							attrMods[0] = &attr_output[0];
 							attrMods[1] = NULL;
-							saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
+							rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
+							if (rc != SA_AIS_OK) {
+								cpd_log(NCSFL_SEV_ERROR, "saImmOiRtObjectUpdate failed for replica object: %u", rc);
+							}
 
 						}
 						i++;
 					}
-
-					return SA_AIS_OK;
+					goto done;
 				}
 
 			}
@@ -191,6 +196,12 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						attrMods[attr_count] = &attr_output[attr_count];
 						++attr_count;
 					} else if (strcmp(attributeName, "saCkptCheckpointUsedSize") == 0) {
+						if (cpd_fetch_used_size(ckpt_node, cb) == NCSCC_RC_FAILURE) {
+							cpd_log(NCSFL_SEV_ERROR, "cpd_fetch_used_size failed");
+							rc = SA_AIS_ERR_FAILED_OPERATION;
+							goto done;
+						}
+
 						ckpt_used_size = ckpt_node->ckpt_used_size;
 						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 						attr_output[attr_count].modAttr.attrName = attributeName;
@@ -250,8 +261,13 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						attrMods[i] = &attr_output[attr_count];
 						++attr_count;
 					} else if (strcmp(attributeName, "saCkptCheckpointNumSections") == 0) {
-						num_sections = ckpt_node->num_sections;
+						if (cpd_fetch_num_sections(ckpt_node, cb) == NCSCC_RC_FAILURE) {
+							cpd_log(NCSFL_SEV_ERROR, "cpd_fetch_num_sections failed");
+							rc = SA_AIS_ERR_FAILED_OPERATION;
+							goto done;
+						}
 
+						num_sections = ckpt_node->num_sections;
 						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 						attr_output[attr_count].modAttr.attrName = attributeName;
 						attr_output[attr_count].modAttr.attrValuesNumber = 1;
@@ -276,12 +292,18 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 				}	/* End while attributesNames() */
 
 				attrMods[attr_count] = NULL;
-				saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
-				return SA_AIS_OK;
+				rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
+				if (rc != SA_AIS_OK) {
+					cpd_log(NCSFL_SEV_ERROR, "saImmOiRtObjectUpdate failed for ckpt object: %u", rc);
+				}
+				goto done;
 			}	/* End if  m_CMP_HORDER_SANAMET */
 		}		/* end of if (ckpt_node != NULL) */
 	}
-	return SA_AIS_ERR_FAILED_OPERATION;
+	
+done:
+	ncshm_give_hdl(cb->cpd_hdl);
+	return rc;
 }
 
 /****************************************************************************
@@ -506,4 +528,92 @@ void cpd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *par
 	}
 
 	dn->length = strlen((char *)dn->value);
+}
+
+static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
+{
+	CPSV_EVT send_evt;
+	CPSV_EVT *out_evt = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	memset(&send_evt, 0, sizeof(CPSV_EVT));
+
+	send_evt.type = CPSV_EVT_TYPE_CPND;
+	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_SIZE;
+	send_evt.info.cpnd.info.ckpt_mem_size.ckpt_id = ckpt_node->ckpt_id;
+
+	if (ckpt_node->active_dest == 0) {
+		ckpt_node->ckpt_used_size = 0;
+	} else {
+		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
+					   CPSV_WAIT_TIME);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
+				      __LINE__);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+
+		if (out_evt == NULL) {
+			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
+				      __LINE__);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		if (out_evt->info.cpd.info.ckpt_mem_used.error != SA_AIS_OK) {
+			m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		ckpt_node->ckpt_used_size = out_evt->info.cpd.info.ckpt_mem_used.ckpt_used_size;
+		m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
+	}
+
+ done:
+	return rc;
+}
+
+static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
+{
+	CPSV_EVT send_evt;
+	CPSV_EVT *out_evt = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	memset(&send_evt, 0, sizeof(CPSV_EVT));
+	send_evt.type = CPSV_EVT_TYPE_CPND;
+	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_NUM_SECTIONS;
+	send_evt.info.cpnd.info.ckpt_sections.ckpt_id = ckpt_node->ckpt_id;
+
+	if (ckpt_node->active_dest == 0) {
+		ckpt_node->num_sections = 0;
+		m_LOG_CPD_FCL(CPD_CPND_NODE_DOES_NOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest,
+			      __FILE__, __LINE__);
+	} else {
+		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
+					   CPSV_WAIT_TIME);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
+				      __LINE__);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+
+		if (out_evt == NULL) {
+			m_LOG_CPD_FCL(CPD_MDS_SEND_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_node->active_dest, __FILE__,
+				      __LINE__);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		} else {
+			if (out_evt->info.cpd.info.ckpt_created_sections.error == SA_AIS_ERR_NOT_EXIST) {
+				m_LOG_CPD_FCL(CPD_CPND_NODE_DOES_NOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR,
+					      ckpt_node->active_dest, __FILE__, __LINE__);
+				rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+
+			ckpt_node->num_sections = out_evt->info.cpd.info.ckpt_created_sections.ckpt_num_sections;
+			m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
+		}
+	}
+
+ done:
+	return rc;
 }
