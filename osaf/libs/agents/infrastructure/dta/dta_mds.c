@@ -608,10 +608,6 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 				}
 
 				m_DTA_LK(&inst->lock);
-				if (FALSE == inst->dts_sync_done) {
-					m_NCS_SEL_OBJ_IND(inst->dts_sync_sel);
-					inst->dts_sync_done = TRUE;
-				}
 
 				/* Send indication to DTA mbx to send buffered logs to DTS now */
 				{

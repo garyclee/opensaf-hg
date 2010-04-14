@@ -105,8 +105,6 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 {
 	/* Create a new structure and initialize all its fields */
 	DTA_CB *inst = &dta_cb;
-	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 300;
 	NCS_PATRICIA_PARAMS pt_params;
 
 	m_DTA_LK_INIT;
@@ -115,20 +113,16 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 
 	m_DTA_LK(&inst->lock);
 
-	inst->dts_sync_done = FALSE;
 	inst->created = TRUE;
 	inst->dts_exist = FALSE;
 	/* Versioning changes */
 	inst->act_dts_ver = DTA_MIN_ACT_DTS_MDS_SUB_PART_VER;
-
-	m_NCS_SEL_OBJ_CREATE(&inst->dts_sync_sel);
 
 	pt_params.key_size = sizeof(SS_SVC_ID);
 
 	/*Create a Patricia tree for the DTA registration table instead of queue */
 	if (ncs_patricia_tree_init(&inst->reg_tbl, &pt_params) != NCSCC_RC_SUCCESS) {
 		inst->created = FALSE;
-		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Patricia tree init failed");
@@ -139,7 +133,6 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 	 */
 	if (dta_get_ada_hdl() != NCSCC_RC_SUCCESS) {
 		inst->created = FALSE;
-		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
 		ncs_patricia_tree_destroy(&inst->reg_tbl);
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
@@ -151,26 +144,12 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 
 	if (dta_mds_install_and_subscribe() != NCSCC_RC_SUCCESS) {
 		inst->created = FALSE;
-		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
 		ncs_patricia_tree_destroy(&inst->reg_tbl);
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: MDS install and subscribe failed");
 	}
 
-	m_NCS_SEL_OBJ_ZERO(&set);
-	m_NCS_SEL_OBJ_SET(inst->dts_sync_sel, &set);
-
-	m_DTA_UNLK(&inst->lock);
-
-#ifndef NCS_DTS			/* Only DTA should wait */
-	/* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
-	m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
-#endif
-
-	m_DTA_LK(&inst->lock);
-	inst->dts_sync_done = TRUE;
-	m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
 	m_DTA_UNLK(&inst->lock);
 
 	return NCSCC_RC_SUCCESS;
