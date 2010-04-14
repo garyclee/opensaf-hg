@@ -407,4 +407,21 @@
 			<flag>SA_CACHED</flag>
 		</attr>
 	</class>
+	<class name="SmfSingleStepInfo">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>smfSingleStepInfo</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>smfRebootType</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+	</class>
 </imm:IMM-contents>

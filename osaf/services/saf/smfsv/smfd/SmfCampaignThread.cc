@@ -116,7 +116,8 @@ void SmfCampaignThread::main(NCSCONTEXT info)
 	 m_mbx(0),
 	 m_running(true), 
 	 m_campaign(campaign),
-	 m_ntfHandle(0)
+	 m_ntfHandle(0),
+	 m_tmpSmfUpgradeCampaign()
 {
 	sem_init(&m_semaphore, 0, 0);
 }
@@ -132,14 +133,20 @@ SmfCampaignThread::~SmfCampaignThread()
 		LOG_ER("Failed to finalize NTF handle %u", rc);
 	}
 
-	SmfUpgradeCampaign *upgradeCampaign = m_campaign->getUpgradeCampaign();
+	//Delete the IMM handler
+	deleteImmHandle();
+
+        //The temporary m_tmpSmfUpgradeCampaign is used because the Campaign
+        //object may be deleted (the m_campaign variable become empty), by the campaignThread 
+	//cleanup function before the SmfCampaignThread destructor is executed.
+
+//	SmfUpgradeCampaign *upgradeCampaign = m_campaign->getUpgradeCampaign();
+	SmfUpgradeCampaign *upgradeCampaign = m_tmpSmfUpgradeCampaign;
+
 	if (upgradeCampaign != NULL) {
 		m_campaign->setUpgradeCampaign(NULL);
 		delete upgradeCampaign;
 	}
-
-	//Delete the IMM handler
-	deleteImmHandle();
 
 	TRACE_LEAVE();
 }
@@ -213,6 +220,7 @@ SmfCampaign *SmfCampaignThread::campaign(void)
  */
 int SmfCampaignThread::init(void)
 {
+	TRACE_ENTER();
 	uns32 rc;
 
 	/* Create the mailbox used for communication with this thread */
@@ -233,6 +241,7 @@ int SmfCampaignThread::init(void)
 		return -1;
 	}
 
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -294,6 +303,10 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 	immutilWrapperProfile.errorsAreFatal = 0;
 
 	rc = immutil_saImmOiInitialize_2(&m_campOiHandle, NULL, &immVersion);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiInitialize_2(&m_campOiHandle, NULL, &immVersion);	
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
 		goto done;
@@ -309,6 +322,10 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 	TRACE("saImmOiImplementerSet DN=%s", campDn);
 
 	rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);	
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet for DN=%s fails rc=%d", campDn, rc);
 		goto done;
@@ -330,19 +347,32 @@ SmfCampaignThread::deleteImmHandle()
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
 
 	rc = immutil_saImmOiImplementerClear(m_campOiHandle);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiImplementerClear(m_campOiHandle);	
+	}
+
 	if (rc != SA_AIS_OK) {
 		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiImplementerClear fails rc=%d", rc);
 		goto done;
 	}
 
 	rc = immutil_saImmOiFinalize(m_campOiHandle);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiFinalize(m_campOiHandle);	
+	}
+
 	if (rc != SA_AIS_OK) {
 		LOG_ER("SmfCampaignThread::deleteImmHandle:saImmOiFinalize fails rc=%d", rc);
 	}
 
 	done:
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
 	TRACE_LEAVE();
 	return rc;
 }
@@ -447,6 +477,11 @@ void SmfCampaignThread::processEvt(void)
 		switch (evt->type) {
 		case CAMPAIGN_EVT_TERMINATE:
 			{
+				// Save a pointer to the SmfUpgradeCampaign since
+				// this pointer will be removed by the main process
+				// after ordering campaign thread terminate
+				m_tmpSmfUpgradeCampaign = m_campaign->getUpgradeCampaign();
+				
 				/* */
 				m_running = false;
 				break;

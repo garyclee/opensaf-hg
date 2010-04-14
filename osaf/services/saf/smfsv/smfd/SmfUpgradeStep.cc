@@ -23,6 +23,7 @@
 #include <saSmf.h>
 #include <stdio.h>
 #include <logtrace.h>
+#include <sstream>
 
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
@@ -930,6 +931,155 @@ SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
 }
 
 //------------------------------------------------------------------------------
+// setSingleStepRebootInfo()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAttrValuesT_2 **attributes;
+	std::string parent = getDn();
+	std::string rdn = "smfSingleStepInfo=info";
+	std::string obj = rdn + "," + parent;;
+	SmfImmUtils immUtil;
+
+	//Check if the object exist
+	rc = immUtil.getObjectAisRC(obj, &attributes);
+	if (rc == SA_AIS_ERR_NOT_EXIST) {  //If not exist, create the object
+
+		SmfImmRTCreateOperation icoSingleStepInfo;
+
+		icoSingleStepInfo.setClassName("SmfSingleStepInfo");
+		icoSingleStepInfo.setParentDn(parent);
+		icoSingleStepInfo.setImmHandle(getProcedure()->getProcThread()->getImmHandle());
+
+		SmfImmAttribute attrsmfSingleStepInfo;
+		attrsmfSingleStepInfo.setName("smfSingleStepInfo");
+		attrsmfSingleStepInfo.setType("SA_IMM_ATTR_SASTRINGT");
+		attrsmfSingleStepInfo.addValue(rdn);
+		icoSingleStepInfo.addValue(attrsmfSingleStepInfo);
+
+		SmfImmAttribute attrsmfRebootType;
+		attrsmfRebootType.setName("smfRebootType");
+		attrsmfRebootType.setType("SA_IMM_ATTR_SAUINT32T");
+		char buf[5];
+		snprintf(buf, 4, "%d", i_rebootInfo);
+		attrsmfRebootType.addValue(buf);
+		icoSingleStepInfo.addValue(attrsmfRebootType);
+
+		rc = icoSingleStepInfo.execute(); //Create the object
+		if (rc != SA_AIS_OK){
+			LOG_ER("SmfUpgradeCampaign::setSingleStepRebootInfo: icoSingleStepInfo.execute() returned %d", rc);
+		}
+
+	} else { //Update the object
+		SmfImmRTUpdateOperation imoSingleStepInfo;
+		imoSingleStepInfo.setDn(obj);
+		imoSingleStepInfo.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+		imoSingleStepInfo.setOp("SA_IMM_ATTR_VALUES_REPLACE");
+
+		SmfImmAttribute attrsmfRebootType;
+		attrsmfRebootType.setName("smfRebootType");
+		attrsmfRebootType.setType("SA_IMM_ATTR_SAUINT32T");
+		char buf[5];
+		snprintf(buf, 4, "%d", i_rebootInfo);
+		attrsmfRebootType.addValue(buf);
+		imoSingleStepInfo.addValue(attrsmfRebootType);
+
+		rc = imoSingleStepInfo.execute(); //Modify the object
+		if (rc != SA_AIS_OK){
+			LOG_ER("SmfUpgradeCampaign::setSingleStepRebootInfo: imoSingleStepInfo.execute() returned %d", rc);
+		}
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// getSingleStepRebootInfo()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::getSingleStepRebootInfo(int *o_rebootInfo)
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	std::string parent = getDn();
+	std::string rdn = "smfSingleStepInfo=info";
+	std::string obj = rdn + "," + parent;;
+
+	SaImmAttrValuesT_2 **attributes;
+
+	/* Read the SmfSingleStepInfo object smfRebootType attr */
+	SmfImmUtils immUtil;
+	rc = immUtil.getObjectAisRC(obj, &attributes);
+	if (rc == SA_AIS_OK) {
+		const SaUint32T* cnt = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, "smfRebootType", 0);
+		*o_rebootInfo = *cnt;
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// clusterReboot()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::clusterReboot()
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	std::string error;
+	std::string s;
+	std::stringstream out;
+	
+	if (smfd_cb->clusterRebootCmd != NULL) {
+		std::string clusterBootCmd = smfd_cb->clusterRebootCmd;
+
+		LOG_NO("STEP: Reboot the cluster");
+		TRACE("Executing cluster reboot cmd %s", clusterBootCmd.c_str());
+		int rc = smf_system(clusterBootCmd.c_str());
+		if (rc != 0) {
+			error = "CAMP: Cluster reboot command ";
+			error += clusterBootCmd;
+			error += " failed ";
+			out << rc;
+			s = out.str();
+			error += s;
+			LOG_ER("%s", error.c_str());
+		}
+	} else {
+		LOG_ER("STEP: No cluster reboot command  found");
+	}
+
+	TRACE_LEAVE();
+
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// saveImmContent()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::saveImmContent()
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+
+	std::string cmd = "/usr/local/bin/immdump /etc/opensaf/imm.xml";
+	int result  = smf_system(cmd);
+	if (result != 0) {
+		TRACE("SmfUpgradeStep::saveImmContent fails, cmd=""%s"", rc=%d", cmd.c_str(), result);
+		rc = SA_AIS_ERR_ACCESS;
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
 // executeRemoteCmd()
 //------------------------------------------------------------------------------
 bool 
@@ -990,8 +1140,9 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 		if (immUtil.getObject((*bundleit).getBundleDn(), &attributes) == false) {
 			return false;
 		}
-
-		TRACE("Found bundle %s in Imm", (*bundleit).getBundleDn().c_str());
+		
+		std::string curBundleDN = (*bundleit).getBundleDn();
+		TRACE("Found bundle %s in Imm", curBundleDN.c_str());
 
 		switch (i_order) {
 		case SMF_STEP_OFFLINE_INSTALL:
@@ -1027,9 +1178,9 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 		/* Get cmd attribute */
 		cmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)
 					    attributes, cmdAttr.c_str(), 0);
-		if (cmd == NULL) {
-			LOG_NO("callBundleScript cmd %s not found for %s", cmdAttr.c_str(),
-			       (*bundleit).getBundleDn().c_str());
+		if ((cmd == NULL) || (strlen(cmd) == 0)) {
+			LOG_NO("STEP: Attribute %s is NULL or empty in bundle %s",
+			       cmdAttr.c_str(), curBundleDN.c_str());
 			/* cmd is not a must so don't set result = false */
 			goto done;
 		}

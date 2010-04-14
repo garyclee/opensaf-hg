@@ -28,7 +28,6 @@
 #include <ncssysf_ipc.h>
 #include <ncssysf_tsk.h>
 #include <logtrace.h>
-
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
@@ -84,9 +83,9 @@ SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
 SmfProcedureThread::~SmfProcedureThread()
 {
 	TRACE_ENTER();
-
 	//Delete the IMM handler
-	deleteImmHandle();
+//	deleteImmHandle();
+
 	TRACE_LEAVE();
 }
 
@@ -133,6 +132,9 @@ SmfProcedureThread::stop(void)
 {
 	TRACE_ENTER();
 	TRACE("Stopping procedure thread %s", m_procedure->getDn().c_str());
+
+	//Delete the IMM handler
+	deleteImmHandle();
 
 	/* send a message to the thread to make it terminate */
 	PROCEDURE_EVT *evt = new PROCEDURE_EVT();
@@ -227,20 +229,29 @@ SmfProcedureThread::createImmHandle(SmfUpgradeProcedure * procedure)
 	immutilWrapperProfile.errorsAreFatal = 0;
 
 	rc = immutil_saImmOiInitialize_2(&m_procOiHandle, NULL, &immVersion);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiInitialize_2(&m_procOiHandle, NULL, &immVersion);
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
 		goto done;
 	}
 
+#if 0
 	rc = immutil_saImmOiSelectionObjectGet(m_procOiHandle, &m_procSelectionObject);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiSelectionObjectGet fails rc=%d", rc);
 		goto done;
 	}
-
+#endif
 	TRACE("saImmOiImplementerSet DN=%s", procDn);
 
 	rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet for DN=%s fails rc=%d", procDn, rc);
 		goto done;
@@ -262,8 +273,14 @@ SmfProcedureThread::deleteImmHandle()
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
 
 	rc = immutil_saImmOiImplementerClear(m_procOiHandle);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiImplementerClear(m_procOiHandle);
+	}
 	if (rc != SA_AIS_OK) {
 		if (rc == SA_AIS_ERR_BAD_HANDLE) {
 			TRACE("saImmOiImplementerClear returns SA_AIS_ERR_BAD_HANDLE, probably because of switchover");
@@ -274,11 +291,17 @@ SmfProcedureThread::deleteImmHandle()
 	}
 
 	rc = immutil_saImmOiFinalize(m_procOiHandle);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		sleep(1);
+		rc = immutil_saImmOiFinalize(m_procOiHandle);
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("SmfProcedureThread::deleteImmHandle:saImmOiFinalize fails rc=%d", rc);
 	}
 
 	done:
+	m_procOiHandle = 0;
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
 	TRACE_LEAVE();
 	return rc;
 }
@@ -578,8 +601,8 @@ SmfProcedureThread::handleEvents(void)
 	/* Set up all file descriptors to listen to */
 	fds[PROC_MBX_FD].fd = mbx_fd.rmv_obj;
 	fds[PROC_MBX_FD].events = POLLIN;
-	fds[PROC_OI_FD].fd = m_procSelectionObject;
-	fds[PROC_OI_FD].events = POLLIN;
+//	fds[PROC_OI_FD].fd = m_procSelectionObject;
+//	fds[PROC_OI_FD].events = POLLIN;
 
 	TRACE("Procedure thread %s waiting for events", m_procedure->getDn().c_str());
 
@@ -599,15 +622,15 @@ SmfProcedureThread::handleEvents(void)
 			/* dispatch MBX events */
 			processEvt();
 		}
-
+#if 0
 		/* Process the Imm callback events */
 		if (fds[PROC_OI_FD].revents & POLLIN) {
 			SaAisErrorT rc = SA_AIS_OK;
-
 			if ((rc = saImmOiDispatch(m_procOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK) {
 				LOG_ER("saImmOiDispatch FAILED: %u", rc);
 			}
 		}
+#endif
 	}
 
 	return 0;
@@ -620,6 +643,7 @@ SmfProcedureThread::handleEvents(void)
 void 
 SmfProcedureThread::main(void)
 {
+	TRACE_ENTER();
 	if (this->init() == 0) {
 		/* Mark the thread started */
 		sem_post(&m_semaphore);
@@ -631,4 +655,5 @@ SmfProcedureThread::main(void)
 	} else {
 		LOG_ER("init failed");
 	}
+	TRACE_LEAVE();
 }
