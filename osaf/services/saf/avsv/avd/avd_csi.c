@@ -314,6 +314,56 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 	return error;
 }
 
+/*****************************************************************************
+ * Function: csi_ccb_completed_modify_hdlr
+ * 
+ * Purpose: This routine validates modify CCB operations on SaAmfCSI objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
+			AVD_CSI *csi;
+			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
+			csi = avd_csi_get(&opdata->objectName);
+			if(SA_AMF_ADMIN_LOCKED != csi->si->saAmfSIAdminState) {
+				LOG_ER("Parent SI is not in locked state, SI state '%d'", csi->si->saAmfSIAdminState);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			if (avd_cstype_get(&cstype_name) == NULL) {
+				LOG_ER("CS Type not found '%s'", cstype_name.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
+		} else {
+			LOG_ER("Modification of attribute '%s' not supported", attr_mod->modAttr.attrName);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+	}
+
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
 static SaAisErrorT csi_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -327,7 +377,7 @@ static SaAisErrorT csi_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCSI not supported");
+		rc = csi_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		csi = avd_csi_get(&opdata->objectName);
@@ -372,6 +422,46 @@ static void ccb_apply_delete_hdlr(AVD_CSI *csi)
 	csi_delete(csi);
 }
 
+/*****************************************************************************
+ * Function: csi_ccb_apply_modify_hdlr
+ * 
+ * Purpose: This routine handles modify operations on SaAmfCSI objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data. 
+ *              
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *              
+ *      
+ **************************************************************************/
+static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+{               
+        const SaImmAttrModificationT_2 *attr_mod;
+        int i = 0;
+        AVD_CSI *csi = NULL;
+
+        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+ 
+	csi = avd_csi_get(&opdata->objectName);
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
+			struct avd_cstype *csi_type;
+			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
+			csi_type = avd_cstype_get(&cstype_name);
+			avd_cstype_remove_csi(csi);
+			csi->saAmfCSType = cstype_name;
+			csi->cstype = csi_type;
+			avd_cstype_add_csi(csi);
+		}
+		else
+			assert(0);
+	}
+
+        TRACE_LEAVE();
+}
+
 static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_CSI *csi;
@@ -385,6 +475,9 @@ static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		assert(csi);
 		csi_add_to_model(csi);
 		break;
+        case CCBUTIL_MODIFY:
+                csi_ccb_apply_modify_hdlr(opdata);
+                break;
 	case CCBUTIL_DELETE:
 		ccb_apply_delete_hdlr(opdata->userData);
 		break;
