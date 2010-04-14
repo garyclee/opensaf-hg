@@ -154,6 +154,12 @@ static SaAisErrorT fillSendStruct(SaNtfNotificationHeaderT *notificationHeader, 
 	/* nodificationId set to zero means that this is a new notification */
 	/* and not an sync message send from the server. */
 	*(notificationHeader->notificationId) = 0;
+
+	if(notificationHeader->notifyingObject->length == 0) {
+		notificationHeader->notifyingObject->length = notificationHeader->notificationObject->length;
+		(void)memcpy(notificationHeader->notifyingObject->value, notificationHeader->notificationObject->value,
+				notificationHeader->notifyingObject->length);
+	}
 	return rc;
 }
 
