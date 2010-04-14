@@ -170,5 +170,6 @@ extern void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
 					   *notificationFilterInstance);
 extern ntfa_reader_hdl_rec_t *ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
 extern uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **, ntfa_reader_hdl_rec_t *);
-
+extern void ntfa_add_to_async_cbk_msg_list(ntfsv_msg_t ** head, ntfsv_msg_t * new_node);
+extern uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio);
 #endif   /* !NTFA_H */

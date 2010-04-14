@@ -1160,3 +1160,37 @@ uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_hdl
 	TRACE("The node couldn't be deleted");
 	return NCSCC_RC_FAILURE;
 }
+
+/****************************************************************************
+  Name          : ntfa_add_to_async_cbk_msg_list
+ 
+  Description   : This routine create linked list 
+ 
+  Arguments     : CLMSV_MSG ** head
+                  CLMSV_MSG * new_node
+
+  Return Values : None
+ 
+  Notes         : 
+******************************************************************************/
+void ntfa_add_to_async_cbk_msg_list(ntfsv_msg_t ** head, ntfsv_msg_t * new_node)
+{
+	TRACE_ENTER();
+	ntfsv_msg_t *temp;
+
+	if (*head == NULL) {
+		new_node->next = NULL;
+		*head = new_node;
+		TRACE("in the head");
+	} else {
+		temp = *head;
+		while (temp->next != NULL)
+			temp = temp->next;
+
+		TRACE("in the tail");
+		new_node->next = NULL;
+		temp->next = new_node;
+	}
+
+	TRACE_LEAVE();
+}

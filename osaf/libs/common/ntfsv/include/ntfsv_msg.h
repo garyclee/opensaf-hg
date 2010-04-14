@@ -23,7 +23,7 @@
 
 #include "saNtf.h"
 #include "ncsgl_defs.h"
-
+#include <mds_papi.h>
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -183,6 +183,7 @@ extern "C" {
 		ntfsv_cbk_msg_type_t type;	/* callback type */
 		uns32 ntfs_client_id;	/* ntfs client_id */
 		SaNtfSubscriptionIdT subscriptionId;
+		MDS_SEND_PRIORITY_TYPE mds_send_priority;
 		union {
 			ntfsv_send_not_req_t *notification_cbk;
 			ntfsv_discarded_info_t discarded_cbk;
