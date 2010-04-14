@@ -50,6 +50,7 @@ static SaAisErrorT checkHeader(SaNtfNotificationHeaderT *nh)
 
 static SaAisErrorT checkAlarmParameters(SaNtfAlarmNotificationT *alarmNotification)
 {
+	int i=0;
 
 	if (*alarmNotification->probableCause < SA_NTF_ADAPTER_ERROR ||
 	    *alarmNotification->probableCause > SA_NTF_UNSPECIFIED_REASON) {
@@ -63,11 +64,42 @@ static SaAisErrorT checkAlarmParameters(SaNtfAlarmNotificationT *alarmNotificati
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
+	if(*alarmNotification->trend < SA_NTF_TREND_MORE_SEVERE || 
+		*alarmNotification->trend > SA_NTF_TREND_LESS_SEVERE) {
+		TRACE_1("Invalid trend value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	for (i = 0; i < alarmNotification->numSpecificProblems; i++) {
+		if (alarmNotification->specificProblems[i].problemType < SA_NTF_VALUE_UINT8 ||
+			alarmNotification->specificProblems[i].problemType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid specific problem type value");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+        for (i = 0; i < alarmNotification->numMonitoredAttributes; i++) {
+                if (alarmNotification->monitoredAttributes[i].attributeType < SA_NTF_VALUE_UINT8 ||
+                        alarmNotification->monitoredAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
+                        TRACE_1("Invalid monitoredAttributes type value");
+                        return SA_AIS_ERR_INVALID_PARAM;
+                }
+        }
+
+        for (i = 0; i < alarmNotification->numProposedRepairActions; i++) {
+                if (alarmNotification->proposedRepairActions[i].actionValueType < SA_NTF_VALUE_UINT8 ||
+                        alarmNotification->proposedRepairActions[i].actionValueType > SA_NTF_VALUE_ARRAY) {
+                        TRACE_1("Invalid proposedRepairActions type value");
+                        return SA_AIS_ERR_INVALID_PARAM;
+                }
+        }
+
 	if (*alarmNotification->notificationHeader.eventType < SA_NTF_ALARM_NOTIFICATIONS_START ||
 	    *alarmNotification->notificationHeader.eventType > SA_NTF_ALARM_ENVIRONMENT) {
 		TRACE_1("Invalid eventType value = %d", (int)*alarmNotification->notificationHeader.eventType);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
+	
 	return checkHeader(&alarmNotification->notificationHeader);
 }
 
@@ -79,6 +111,19 @@ static SaAisErrorT checkSecurityAlarmParameters(SaNtfSecurityAlarmNotificationT 
 		TRACE_1("Invalid eventType value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
+
+	if (*notification->probableCause < SA_NTF_ADAPTER_ERROR ||
+		*notification->probableCause > SA_NTF_UNSPECIFIED_REASON) {
+		TRACE_1("Invalid probableCause value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if (*notification->severity < SA_NTF_SEVERITY_CLEARED ||
+		*notification->severity > SA_NTF_SEVERITY_CRITICAL) {
+		TRACE_1("Invalid Severity value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 	return checkHeader(&notification->notificationHeader);
 }
 
@@ -92,6 +137,13 @@ static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *not
 		 TRACE_1("Invalid eventType value");
 		 return SA_AIS_ERR_INVALID_PARAM;
 	}
+
+	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
+		*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+		TRACE_1("Invalid sourceIndicator value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 	for (i = 0; i < notification->numStateChanges; i++) {
 		SaBoolT sp = notification->changedStates[i].oldStatePresent;
 		if (sp != SA_FALSE && sp != SA_TRUE)
@@ -108,6 +160,13 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 		TRACE_1("Invalid eventType value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
+
+	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
+		*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+		TRACE_1("Invalid sourceIndicator value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
 	for (i = 0; i < notification->numAttributes; i++) {
 		SaBoolT sp = notification->changedAttributes[i].oldAttributePresent;
 		if (sp != SA_FALSE && sp != SA_TRUE)
@@ -119,11 +178,28 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 static SaAisErrorT checkObjectCreateDeleteParameters(SaNtfObjectCreateDeleteNotificationT *notification)
 {
 
+	int i=0;
+
 	if (*notification->notificationHeader.eventType < SA_NTF_OBJECT_NOTIFICATIONS_START ||
 	    *notification->notificationHeader.eventType > SA_NTF_OBJECT_DELETION) {
 		TRACE_1("Invalid eventType value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
+
+	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
+	*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+		TRACE_1("Invalid sourceIndicator value");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	for (i = 0; i < notification->numAttributes; i++) {
+		if (notification->objectAttributes[i].attributeType < SA_NTF_VALUE_UINT8 ||
+			notification->objectAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid attributeType value");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
 	return checkHeader(&notification->notificationHeader);
 }
 
