@@ -3755,7 +3755,6 @@ static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
 	MDS_SVC_INFO *svc_cb;
 	MDS_SUBSCRIPTION_INFO *sub_info = NULL;	/* Subscription info */
 	MDS_SUBSCRIPTION_RESULTS_INFO *info_result = NULL;
-	uns32 disc_rc;
 	uns8 to;
 
 	if (to_msg.msg_type == MSG_NCSCONTEXT) {
@@ -3806,47 +3805,10 @@ static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
 				return MDS_INT_RC_DIRECT_SEND_FAIL;	/* This is as the direct buff is freed at a common location */
 			}
 			return NCSCC_RC_FAILURE;
-		} else {
-			disc_rc = mds_subtn_tbl_add_disc_queue(sub_info, req, 0, 0, env_hdl, fr_svc_id);
-			if (NCSCC_RC_SUCCESS != disc_rc) {
-				/* Again we will come here when timeout or result has come */
-				/* Check whether the Dest exists */
-				/* After Subscription timeout also no route found */
-				/* m_MDS_LOG_ERR("MDS_SND_RCV: No Route FOUND \n"); */
-				if (NCSCC_RC_REQ_TIMOUT == disc_rc) {
-					/* We timed out waiting for a route */
-					m_MDS_LOG_ERR
-					    ("MDS_SND_RCV: Broadcast : No Route Found from SVC id = %d to SVC id = %d",
-					     svc_cb->svc_id, to_svc_id);
-				}
-				if (to_msg.msg_type == MSG_DIRECT_BUFF) {
-					return MDS_INT_RC_DIRECT_SEND_FAIL;	/* This is as the direct buff is freed at a common location */
-				}
-				return NCSCC_RC_FAILURE;
-			}
-			/* Route Present, Taking lock because we give away the lock in the mds_subtn_tbl_add_disc_queue function */
-		}
-	} else if (sub_info->tmr_flag == TRUE) {
-		disc_rc = mds_subtn_tbl_add_disc_queue(sub_info, req, 0, 0, env_hdl, fr_svc_id);
-		if (NCSCC_RC_SUCCESS != disc_rc) {
-			/* Again we will come here when timeout or result has come */
-			/* Check whether the Dest exists */
-			/* After Subscription timeout also no route found */
-			/* m_MDS_LOG_ERR("MDS_SND_RCV: No Route FOUND \n"); */
-			if (NCSCC_RC_REQ_TIMOUT == disc_rc) {
-				/* We timed out waiting for a route */
-				m_MDS_LOG_ERR("MDS_SND_RCV: Broadcast : No Route Found from SVC id = %d to SVC id = %d",
-					      svc_cb->svc_id, to_svc_id);
-			}
-			if (to_msg.msg_type == MSG_DIRECT_BUFF) {
-				return MDS_INT_RC_DIRECT_SEND_FAIL;	/* This is as the direct buff is freed at a common location */
-			}
-			return NCSCC_RC_FAILURE;
-		}
-		/* Route Present, Taking lock because we give away the lock in the mds_subtn_tbl_add_disc_queue function */
-	}
+		} 
+	} 
 
-	/* It has come here means that route is available, Get each destination and send */
+	/* Get each destination and send */
 	while (1) {
 		if (flag == 0) {
 			if (NCSCC_RC_SUCCESS !=
