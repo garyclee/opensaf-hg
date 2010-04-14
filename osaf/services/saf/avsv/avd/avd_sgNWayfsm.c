@@ -1138,7 +1138,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER();
 
-	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
+	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_FSM_STATE);
 
 	/* assign active assignments to unassigned sis */
 	for (curr_si = sg->list_of_si; curr_si; curr_si = curr_si->sg_list_of_si_next) {
