@@ -158,7 +158,7 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
 		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp)))
 		amf_rc = SA_AIS_ERR_INVALID_PARAM;
 
-	if ((TRUE == comp->su->su_is_external) && ((TRUE == msg_from_avnd))) {
+	if (comp && (TRUE == comp->su->su_is_external) && ((TRUE == msg_from_avnd))) {
 		/* This request has come from other AvND and it is for external component.
 		   Recommended recovery SA_AMF_NODE_SWITCHOVER, 
 		   SA_AMF_NODE_FAILOVER, SA_AMF_NODE_FAILFAST or SA_AMF_CLUSTER_RESET
