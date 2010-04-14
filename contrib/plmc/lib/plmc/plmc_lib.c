@@ -78,7 +78,7 @@ int do_command(char *ee_id, int( *cb)(tcp_msg  *), char *cmd,
 	}
 	
 	strncpy(tentry->thread_d.command, cmd, PLMC_CMD_NAME_MAX_LENGTH);
-	tentry->thread_d.command[PLMC_CMD_NAME_MAX_LENGTH] = '\0';
+	tentry->thread_d.command[PLMC_CMD_NAME_MAX_LENGTH - 1] = '\0';
 	tentry->thread_d.callback = cb;
 	tentry->thread_d.done=0;
 
