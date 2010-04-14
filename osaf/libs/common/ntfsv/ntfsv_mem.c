@@ -152,7 +152,7 @@ SaAisErrorT ntfsv_alloc_ntf_header(SaNtfNotificationHeaderT *notificationHeader,
 	}
 
 	/* Notification object */
-	notificationHeader->notificationObject = malloc(sizeof(SaNameT));
+	notificationHeader->notificationObject = calloc(1,sizeof(SaNameT));
 	if (notificationHeader->notificationObject == NULL) {
 		TRACE("Out of memory in notificationObject field");
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -160,7 +160,7 @@ SaAisErrorT ntfsv_alloc_ntf_header(SaNtfNotificationHeaderT *notificationHeader,
 	}
 
 	/* Notifying object */
-	notificationHeader->notifyingObject = malloc(sizeof(SaNameT));
+	notificationHeader->notifyingObject = calloc(1,sizeof(SaNameT));
 	if (notificationHeader->notifyingObject == NULL) {
 		TRACE("Out of memory in notifyingObject field");
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -263,6 +263,9 @@ SaAisErrorT ntfsv_alloc_ntf_alarm(SaNtfAlarmNotificationT *alarmNotification,
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
+
+	*(alarmNotification->trend) = SA_NTF_TREND_NO_CHANGE;
+
 	/* ThresholdInformation */
 	alarmNotification->thresholdInformation = calloc(1, sizeof(SaNtfThresholdInformationT));
 	if (alarmNotification->thresholdInformation == NULL) {
@@ -330,6 +333,9 @@ SaAisErrorT ntfsv_alloc_ntf_obj_create_del(SaNtfObjectCreateDeleteNotificationT 
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
+
+	*(objCrDelNotification->sourceIndicator) = SA_NTF_UNKNOWN_OPERATION;
+
 	/* Object attributes */
 	if (numAttributes != 0) {
 		objCrDelNotification->objectAttributes = (SaNtfAttributeT *)
@@ -363,6 +369,9 @@ SaAisErrorT ntfsv_alloc_ntf_attr_change(SaNtfAttributeChangeNotificationT *attrC
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
+
+	*(attrChangeNotification->sourceIndicator) = SA_NTF_UNKNOWN_OPERATION;
+
 	/* Changed attributes */
 	if (numAttributes != 0) {
 		attrChangeNotification->changedAttributes = (SaNtfAttributeChangeT *)
@@ -395,6 +404,9 @@ SaAisErrorT ntfsv_alloc_ntf_state_change(SaNtfStateChangeNotificationT *stateCha
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
+
+	*(stateChangeNotification->sourceIndicator) = SA_NTF_UNKNOWN_OPERATION;
+
 	/* Changed states */
 	if (numStateChanges != 0) {
 		stateChangeNotification->changedStates = (SaNtfStateChangeT *)
