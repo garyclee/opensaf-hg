@@ -2411,6 +2411,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	ntfa_client_hdl_rec_t *client_hdl_rec;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
+	ntfsv_msg_t *async_cbk_msg = NULL, *process = NULL, *cbk_msg = NULL;
 	ntfsv_unsubscribe_req_t *send_param;
 	uns32 timeout = NTFS_WAIT_TIME;
 
@@ -2494,6 +2495,31 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 		free(listPtr);
 		if (o_msg)
 			ntfa_msg_destroy(o_msg);
+
+		/*Remove msg for subscriptionId from mailbox*/
+		do {
+			if(NULL == (cbk_msg = (ntfsv_msg_t *)
+				m_NCS_IPC_NON_BLK_RECEIVE(&client_hdl_rec->mbx, cbk_msg)))
+				break;
+
+			if(cbk_msg->info.cbk_info.subscriptionId == subscriptionId)
+				ntfa_msg_destroy(cbk_msg);
+			else
+				ntfa_add_to_async_cbk_msg_list(&async_cbk_msg, cbk_msg);
+		}while(1);
+
+		/*post msg to mailbox*/
+		process = async_cbk_msg;
+		while (process) {
+			/* IPC send is making next as NULL in process pointer */
+			/* process the message */
+			async_cbk_msg = async_cbk_msg->next;
+			rc = ntfa_ntfs_msg_proc(&ntfa_cb, process, process->info.cbk_info.mds_send_priority);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE_2("From saNtfNotificationUnsubscribe ntfa_ntfs_msg_proc returned: %d", rc);
+			}
+			process = async_cbk_msg;
+		}
 	}
 
  done_give_hdl:

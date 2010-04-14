@@ -274,7 +274,7 @@ static uns32 ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio)
+uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio)
 {
 	TRACE_ENTER();
 
@@ -430,6 +430,9 @@ static uns32 ntfa_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 	uns32 rc;
 
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
+
+	/*this priority is later used in unsubscribe api to post messeges back to mailbox*/
+	ntfsv_msg->info.cbk_info.mds_send_priority = mds_cb_info->info.receive.i_priority;
 
 	/* process the message */
 	rc = ntfa_ntfs_msg_proc(&ntfa_cb, ntfsv_msg, mds_cb_info->info.receive.i_priority);
