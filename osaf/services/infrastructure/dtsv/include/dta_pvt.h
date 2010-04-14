@@ -94,8 +94,6 @@ typedef struct dta_cb {
 
 	NCS_BOOL dts_exist;
 	NCS_BOOL created;	/* TRUE : CB created, FALSE : CB destroyed */
-	NCS_BOOL dts_sync_done;
-	NCS_SEL_OBJ dts_sync_sel;
 
 	/* Create time constants */
 	MDS_HDL mds_hdl;
