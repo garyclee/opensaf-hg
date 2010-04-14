@@ -38,6 +38,261 @@ ntfa_cb_t ntfa_cb = {
 /* list of subscriptions for this process */
 ntfa_subscriber_list_t *subscriberNoList = NULL;
 
+static SaAisErrorT checkAttributeChangeFilterParameters(ntfa_filter_hdl_rec_t *attributeChangeFilterData)
+{
+	SaUint16T i;
+
+	for (i = 0;
+	     i <
+	     attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
+	     notificationFilterHeader.numEventTypes; i++) {
+		if (attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] < SA_NTF_ATTRIBUTE_NOTIFICATIONS_START
+		    || attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] > SA_NTF_ATTRIBUTE_RESET) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)attributeChangeFilterData->notificationFilter.
+				attributeChangeNotificationfilter.notificationFilterHeader.eventTypes[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0;
+	     i < attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.numSourceIndicators;
+	     i++) {
+		if (attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
+		    sourceIndicators[i] < SA_NTF_OBJECT_OPERATION
+		    || attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
+		    sourceIndicators[i] > SA_NTF_MANAGEMENT_OPERATION) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)attributeChangeFilterData->notificationFilter.
+				attributeChangeNotificationfilter.sourceIndicators[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	TRACE_1("Returning SA_AIS_OK!");
+	return SA_AIS_OK;
+
+}
+
+static SaAisErrorT checkObjectCreateDeleteFilterParameters(ntfa_filter_hdl_rec_t *objectCreateDeleteFilterData)
+{
+	SaUint16T i;
+
+	for (i = 0;
+	     i <
+	     objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
+	     notificationFilterHeader.numEventTypes; i++) {
+		if (objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] < SA_NTF_OBJECT_NOTIFICATIONS_START
+		    || objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] > SA_NTF_OBJECT_DELETION) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)objectCreateDeleteFilterData->notificationFilter.
+				objectCreateDeleteNotificationfilter.notificationFilterHeader.eventTypes[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0;
+	     i <
+	     objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.numSourceIndicators;
+	     i++) {
+		if (objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
+		    sourceIndicators[i] < SA_NTF_OBJECT_OPERATION
+		    || objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
+		    sourceIndicators[i] > SA_NTF_MANAGEMENT_OPERATION) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)objectCreateDeleteFilterData->notificationFilter.
+				objectCreateDeleteNotificationfilter.sourceIndicators[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	TRACE_1("Returning SA_AIS_OK!");
+	return SA_AIS_OK;
+
+}
+
+static SaAisErrorT checkStateChangeFilterParameters(ntfa_filter_hdl_rec_t *stateChangeFilterData)
+{
+	SaUint16T i;
+
+	for (i = 0;
+	     i <
+	     stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.
+	     notificationFilterHeader.numEventTypes; i++) {
+		if (stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] < SA_NTF_STATE_CHANGE_NOTIFICATIONS_START
+		    || stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] > SA_NTF_OBJECT_STATE_CHANGE) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)stateChangeFilterData->notificationFilter.
+				stateChangeNotificationfilter.notificationFilterHeader.eventTypes[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.numSourceIndicators;
+	     i++) {
+		if (stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.sourceIndicators[i] <
+		    SA_NTF_OBJECT_OPERATION
+		    || stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.sourceIndicators[i] >
+		    SA_NTF_MANAGEMENT_OPERATION) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)stateChangeFilterData->notificationFilter.
+				stateChangeNotificationfilter.sourceIndicators[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	TRACE_1("Returning SA_AIS_OK!");
+	return SA_AIS_OK;
+
+}
+
+static SaAisErrorT checkAlarmFilterParameters(ntfa_filter_hdl_rec_t *alarmFilterData)
+{
+	SaUint16T i;
+
+	for (i = 0;
+	     i < alarmFilterData->notificationFilter.alarmNotificationfilter.notificationFilterHeader.numEventTypes;
+	     i++) {
+		if (alarmFilterData->notificationFilter.alarmNotificationfilter.notificationFilterHeader.eventTypes[i] <
+		    SA_NTF_ALARM_NOTIFICATIONS_START
+		    || alarmFilterData->notificationFilter.alarmNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] > SA_NTF_ALARM_ENVIRONMENT) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)alarmFilterData->notificationFilter.
+				alarmNotificationfilter.notificationFilterHeader.eventTypes[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < alarmFilterData->notificationFilter.alarmNotificationfilter.numProbableCauses; i++) {
+		if (alarmFilterData->notificationFilter.alarmNotificationfilter.probableCauses[i] < SA_NTF_ADAPTER_ERROR
+		    || alarmFilterData->notificationFilter.alarmNotificationfilter.probableCauses[i] >
+		    SA_NTF_UNSPECIFIED_REASON) {
+			TRACE_1("Invalid ProbableCause value = %d",
+				(int)alarmFilterData->notificationFilter.alarmNotificationfilter.probableCauses[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < alarmFilterData->notificationFilter.alarmNotificationfilter.numPerceivedSeverities; i++) {
+		if (alarmFilterData->notificationFilter.alarmNotificationfilter.perceivedSeverities[i] <
+		    SA_NTF_SEVERITY_CLEARED
+		    || alarmFilterData->notificationFilter.alarmNotificationfilter.perceivedSeverities[i] >
+		    SA_NTF_SEVERITY_CRITICAL) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)alarmFilterData->notificationFilter.
+				alarmNotificationfilter.perceivedSeverities[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < alarmFilterData->notificationFilter.alarmNotificationfilter.numTrends; i++) {
+		if (alarmFilterData->notificationFilter.alarmNotificationfilter.trends[i] < SA_NTF_TREND_MORE_SEVERE ||
+		    alarmFilterData->notificationFilter.alarmNotificationfilter.trends[i] > SA_NTF_TREND_LESS_SEVERE) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)alarmFilterData->notificationFilter.alarmNotificationfilter.trends[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	TRACE_1("Returning SA_AIS_OK!");
+	return SA_AIS_OK;
+}
+
+static SaAisErrorT checkSecurityAlarmFilterParameters(ntfa_filter_hdl_rec_t *securityAlarmFilterData)
+{
+	SaUint16T i;
+
+	for (i = 0;
+	     i <
+	     securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+	     notificationFilterHeader.numEventTypes; i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] < SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    notificationFilterHeader.eventTypes[i] > SA_NTF_TIME_VIOLATION) {
+			TRACE_1("Invalid eventType value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.notificationFilterHeader.eventTypes[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.numProbableCauses;
+	     i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.probableCauses[i] <
+		    SA_NTF_ADAPTER_ERROR
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.probableCauses[i] >
+		    SA_NTF_UNSPECIFIED_REASON) {
+			TRACE_1("Invalid ProbableCause value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.probableCauses[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.numSeverities; i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.severities[i] <
+		    SA_NTF_SEVERITY_CLEARED
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.severities[i] >
+		    SA_NTF_SEVERITY_CRITICAL) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.severities[i]);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0;
+	     i < securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.numSecurityAlarmDetectors;
+	     i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    securityAlarmDetectors[i].valueType < SA_NTF_VALUE_UINT8
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    securityAlarmDetectors[i].valueType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.securityAlarmDetectors[i].valueType);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.numServiceUsers;
+	     i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    serviceUsers[i].valueType < SA_NTF_VALUE_UINT8
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    serviceUsers[i].valueType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.serviceUsers[i].valueType);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	for (i = 0; i < securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.numServiceProviders;
+	     i++) {
+		if (securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    serviceProviders[i].valueType < SA_NTF_VALUE_UINT8
+		    || securityAlarmFilterData->notificationFilter.securityAlarmNotificationfilter.
+		    serviceProviders[i].valueType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid PercievedSeverity value = %d",
+				(int)securityAlarmFilterData->notificationFilter.
+				securityAlarmNotificationfilter.serviceProviders[i].valueType);
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
+
+	TRACE_1("Returning SA_AIS_OK!");
+	return SA_AIS_OK;
+}
+
 /* help functions */
 static SaAisErrorT checkHeader(SaNtfNotificationHeaderT *nh)
 {
@@ -50,7 +305,7 @@ static SaAisErrorT checkHeader(SaNtfNotificationHeaderT *nh)
 
 static SaAisErrorT checkAlarmParameters(SaNtfAlarmNotificationT *alarmNotification)
 {
-	int i=0;
+	int i = 0;
 
 	if (*alarmNotification->probableCause < SA_NTF_ADAPTER_ERROR ||
 	    *alarmNotification->probableCause > SA_NTF_UNSPECIFIED_REASON) {
@@ -64,42 +319,42 @@ static SaAisErrorT checkAlarmParameters(SaNtfAlarmNotificationT *alarmNotificati
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if(*alarmNotification->trend < SA_NTF_TREND_MORE_SEVERE || 
-		*alarmNotification->trend > SA_NTF_TREND_LESS_SEVERE) {
+	if (*alarmNotification->trend < SA_NTF_TREND_MORE_SEVERE ||
+	    *alarmNotification->trend > SA_NTF_TREND_LESS_SEVERE) {
 		TRACE_1("Invalid trend value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	for (i = 0; i < alarmNotification->numSpecificProblems; i++) {
 		if (alarmNotification->specificProblems[i].problemType < SA_NTF_VALUE_UINT8 ||
-			alarmNotification->specificProblems[i].problemType > SA_NTF_VALUE_ARRAY) {
+		    alarmNotification->specificProblems[i].problemType > SA_NTF_VALUE_ARRAY) {
 			TRACE_1("Invalid specific problem type value");
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
 	}
 
-        for (i = 0; i < alarmNotification->numMonitoredAttributes; i++) {
-                if (alarmNotification->monitoredAttributes[i].attributeType < SA_NTF_VALUE_UINT8 ||
-                        alarmNotification->monitoredAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
-                        TRACE_1("Invalid monitoredAttributes type value");
-                        return SA_AIS_ERR_INVALID_PARAM;
-                }
-        }
+	for (i = 0; i < alarmNotification->numMonitoredAttributes; i++) {
+		if (alarmNotification->monitoredAttributes[i].attributeType < SA_NTF_VALUE_UINT8 ||
+		    alarmNotification->monitoredAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid monitoredAttributes type value");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
 
-        for (i = 0; i < alarmNotification->numProposedRepairActions; i++) {
-                if (alarmNotification->proposedRepairActions[i].actionValueType < SA_NTF_VALUE_UINT8 ||
-                        alarmNotification->proposedRepairActions[i].actionValueType > SA_NTF_VALUE_ARRAY) {
-                        TRACE_1("Invalid proposedRepairActions type value");
-                        return SA_AIS_ERR_INVALID_PARAM;
-                }
-        }
+	for (i = 0; i < alarmNotification->numProposedRepairActions; i++) {
+		if (alarmNotification->proposedRepairActions[i].actionValueType < SA_NTF_VALUE_UINT8 ||
+		    alarmNotification->proposedRepairActions[i].actionValueType > SA_NTF_VALUE_ARRAY) {
+			TRACE_1("Invalid proposedRepairActions type value");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
+	}
 
 	if (*alarmNotification->notificationHeader.eventType < SA_NTF_ALARM_NOTIFICATIONS_START ||
 	    *alarmNotification->notificationHeader.eventType > SA_NTF_ALARM_ENVIRONMENT) {
 		TRACE_1("Invalid eventType value = %d", (int)*alarmNotification->notificationHeader.eventType);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
-	
+
 	return checkHeader(&alarmNotification->notificationHeader);
 }
 
@@ -113,13 +368,12 @@ static SaAisErrorT checkSecurityAlarmParameters(SaNtfSecurityAlarmNotificationT 
 	}
 
 	if (*notification->probableCause < SA_NTF_ADAPTER_ERROR ||
-		*notification->probableCause > SA_NTF_UNSPECIFIED_REASON) {
+	    *notification->probableCause > SA_NTF_UNSPECIFIED_REASON) {
 		TRACE_1("Invalid probableCause value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if (*notification->severity < SA_NTF_SEVERITY_CLEARED ||
-		*notification->severity > SA_NTF_SEVERITY_CRITICAL) {
+	if (*notification->severity < SA_NTF_SEVERITY_CLEARED || *notification->severity > SA_NTF_SEVERITY_CRITICAL) {
 		TRACE_1("Invalid Severity value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -131,15 +385,15 @@ static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *not
 {
 	int i;
 	if (*notification->notificationHeader.eventType < SA_NTF_STATE_CHANGE_NOTIFICATIONS_START ||
-		 (*notification->notificationHeader.eventType > SA_NTF_OBJECT_STATE_CHANGE &&
-		  *notification->notificationHeader.eventType < SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) ||
-		 *notification->notificationHeader.eventType > SA_NTF_HPI_EVENT_OTHER) {
-		 TRACE_1("Invalid eventType value");
-		 return SA_AIS_ERR_INVALID_PARAM;
+	    (*notification->notificationHeader.eventType > SA_NTF_OBJECT_STATE_CHANGE &&
+	     *notification->notificationHeader.eventType < SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) ||
+	    *notification->notificationHeader.eventType > SA_NTF_HPI_EVENT_OTHER) {
+		TRACE_1("Invalid eventType value");
+		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
-		*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+	    *(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
 		TRACE_1("Invalid sourceIndicator value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -147,7 +401,7 @@ static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *not
 	for (i = 0; i < notification->numStateChanges; i++) {
 		SaBoolT sp = notification->changedStates[i].oldStatePresent;
 		if (sp != SA_FALSE && sp != SA_TRUE)
-			return SA_AIS_ERR_INVALID_PARAM;			
+			return SA_AIS_ERR_INVALID_PARAM;
 	}
 	return checkHeader(&notification->notificationHeader);
 }
@@ -162,7 +416,7 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 	}
 
 	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
-		*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+	    *(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
 		TRACE_1("Invalid sourceIndicator value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -170,7 +424,7 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 	for (i = 0; i < notification->numAttributes; i++) {
 		SaBoolT sp = notification->changedAttributes[i].oldAttributePresent;
 		if (sp != SA_FALSE && sp != SA_TRUE)
-			return SA_AIS_ERR_INVALID_PARAM;			
+			return SA_AIS_ERR_INVALID_PARAM;
 	}
 	return checkHeader(&notification->notificationHeader);
 }
@@ -178,7 +432,7 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 static SaAisErrorT checkObjectCreateDeleteParameters(SaNtfObjectCreateDeleteNotificationT *notification)
 {
 
-	int i=0;
+	int i = 0;
 
 	if (*notification->notificationHeader.eventType < SA_NTF_OBJECT_NOTIFICATIONS_START ||
 	    *notification->notificationHeader.eventType > SA_NTF_OBJECT_DELETION) {
@@ -187,14 +441,14 @@ static SaAisErrorT checkObjectCreateDeleteParameters(SaNtfObjectCreateDeleteNoti
 	}
 
 	if (*(notification->sourceIndicator) < SA_NTF_OBJECT_OPERATION ||
-	*(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
+	    *(notification->sourceIndicator) > SA_NTF_UNKNOWN_OPERATION) {
 		TRACE_1("Invalid sourceIndicator value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	for (i = 0; i < notification->numAttributes; i++) {
 		if (notification->objectAttributes[i].attributeType < SA_NTF_VALUE_UINT8 ||
-			notification->objectAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
+		    notification->objectAttributes[i].attributeType > SA_NTF_VALUE_ARRAY) {
 			TRACE_1("Invalid attributeType value");
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
@@ -231,10 +485,10 @@ static SaAisErrorT fillSendStruct(SaNtfNotificationHeaderT *notificationHeader, 
 	/* and not an sync message send from the server. */
 	*(notificationHeader->notificationId) = 0;
 
-	if(notificationHeader->notifyingObject->length == 0) {
+	if (notificationHeader->notifyingObject->length == 0) {
 		notificationHeader->notifyingObject->length = notificationHeader->notificationObject->length;
 		(void)memcpy(notificationHeader->notifyingObject->value, notificationHeader->notificationObject->value,
-				notificationHeader->notifyingObject->length);
+			     notificationHeader->notifyingObject->length);
 	}
 	return rc;
 }
@@ -281,8 +535,8 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 	}
 
 	/* validate the version */
-	if ((version->releaseCode == NTF_RELEASE_CODE) && (version->majorVersion <= NTF_MAJOR_VERSION) && 
-		 (0 < version->majorVersion)) {
+	if ((version->releaseCode == NTF_RELEASE_CODE) && (version->majorVersion <= NTF_MAJOR_VERSION) &&
+	    (0 < version->majorVersion)) {
 		version->majorVersion = NTF_MAJOR_VERSION;
 		version->minorVersion = NTF_MINOR_VERSION;
 	} else {
@@ -935,7 +1189,8 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 
 /*  3.15.3	Subscriber Operations   */
 /*  3.15.3.1	saNtfNotificationSubscribe()  */
-SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles, SaNtfSubscriptionIdT subscriptionId)
+SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+				       SaNtfSubscriptionIdT subscriptionId)
 {
 	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
 	int i;
@@ -946,7 +1201,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	ntfa_filter_hdl_rec_t *filter_hdl_rec = NULL;
 	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
 	SaNtfNotificationFilterHandleT filterHndl[5];
-	ntfsv_filter_ptrs_t filters = {NULL, NULL, NULL, NULL, NULL};
+	ntfsv_filter_ptrs_t filters = { NULL, NULL, NULL, NULL, NULL };
 	SaNtfHandleT firstHandle = 0;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
@@ -959,11 +1214,11 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	} else {
-		if (! notificationFilterHandles->alarmFilterHandle &&
-		    ! notificationFilterHandles->attributeChangeFilterHandle &&
-		    ! notificationFilterHandles->objectCreateDeleteFilterHandle &&
-		    ! notificationFilterHandles->securityAlarmFilterHandle &&
-		    ! notificationFilterHandles->stateChangeFilterHandle) {
+		if (!notificationFilterHandles->alarmFilterHandle &&
+		    !notificationFilterHandles->attributeChangeFilterHandle &&
+		    !notificationFilterHandles->objectCreateDeleteFilterHandle &&
+		    !notificationFilterHandles->securityAlarmFilterHandle &&
+		    !notificationFilterHandles->stateChangeFilterHandle) {
 			TRACE_1("All handles in notificationFilterHandles set to NULL!");
 			TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
@@ -973,143 +1228,202 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	filterHndl[0] = notificationFilterHandles->attributeChangeFilterHandle;
 	filterHndl[1] = notificationFilterHandles->objectCreateDeleteFilterHandle;
 	filterHndl[2] = notificationFilterHandles->securityAlarmFilterHandle;
-	filterHndl[3] = notificationFilterHandles->stateChangeFilterHandle; 
+	filterHndl[3] = notificationFilterHandles->stateChangeFilterHandle;
 	filterHndl[4] = notificationFilterHandles->alarmFilterHandle;
 	for (i = 0; i < 5; i++) {
 		TRACE_1("filter_hdl[%d] = %llu", i, filterHndl[i]);
-			  if (filterHndl[i]) {
-						 TRACE_1("Get FilterHandle");
+		if (filterHndl[i]) {
+			TRACE_1("Get FilterHandle");
 
-						 /* retrieve notification filter hdl rec */
-						 filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
-						 if (filter_hdl_rec == NULL) {
-									TRACE_1("ncshm_take_hdl failed");
-									TRACE_LEAVE();
-									return SA_AIS_ERR_BAD_HANDLE;
-						 }
-						 TRACE_1("filter_hdl[%d] = %llu", i, filter_hdl_rec->filter_hdl);
-						 if (client_hdl_rec == NULL) {
-							 /* retrieve client hdl rec */
-							 client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
-							 if (client_hdl_rec == NULL) {
-								 int max_i = i;
-								 TRACE_1("ncshm_take_hdl failed");
-								 for (i=0; i < max_i; i++) {
-											ncshm_give_hdl(filterHndl[i]);
-								 }
-								 TRACE_LEAVE();
-								 return SA_AIS_ERR_BAD_HANDLE;
-							 }
-							 firstHandle = filter_hdl_rec->ntfHandle;
-						 }
+			/* retrieve notification filter hdl rec */
+			filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
+			if (filter_hdl_rec == NULL) {
+				TRACE_1("ncshm_take_hdl failed");
+				TRACE_LEAVE();
+				return SA_AIS_ERR_BAD_HANDLE;
+			}
+			TRACE_1("filter_hdl[%d] = %llu", i, filter_hdl_rec->filter_hdl);
+			switch (i) {
+			case 0:
+				rc = checkAttributeChangeFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 0; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 1:
+				rc = checkObjectCreateDeleteFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 1; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 2:
+				rc = checkSecurityAlarmFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 2; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 3:
+				rc = checkStateChangeFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 3; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			case 4:
+				rc = checkAlarmFilterParameters(filter_hdl_rec);
+				if (rc != SA_AIS_OK) {
+					for (i = 0; i <= 4; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return rc;
+				}
+				break;
+			default:
+				return SA_AIS_ERR_INVALID_PARAM;
+				break;
+			}
 
-						 if (firstHandle != filter_hdl_rec->ntfHandle) {
-									TRACE_1("filter handles refers to different clients");
-									return SA_AIS_ERR_BAD_HANDLE;
-						 }
-						 switch (i) {
-									case 0:
-											  filters.att_ch_filter = &filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter;
-											  break;
-									case 1:
-											  filters.obj_cr_del_filter = &filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter;
-											  break;
-									case 2:
-											  filters.sec_al_filter = &filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter;
-											  break;
-									case 3:
-											  filters.sta_ch_filter = &filter_hdl_rec->notificationFilter.stateChangeNotificationfilter;
-											  break;
-									case 4:
-											  filters.alarm_filter = &filter_hdl_rec->notificationFilter.alarmNotificationfilter;
-											  break;
-									default:
-											  return SA_AIS_ERR_INVALID_PARAM;
-						 }
-			  }
+			if (client_hdl_rec == NULL) {
+				/* retrieve client hdl rec */
+				client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
+				if (client_hdl_rec == NULL) {
+					int max_i = i;
+					TRACE_1("ncshm_take_hdl failed");
+					for (i = 0; i < max_i; i++) {
+						ncshm_give_hdl(filterHndl[i]);
+					}
+					TRACE_LEAVE();
+					return SA_AIS_ERR_BAD_HANDLE;
+				}
+				firstHandle = filter_hdl_rec->ntfHandle;
+			}
+
+			if (firstHandle != filter_hdl_rec->ntfHandle) {
+				TRACE_1("filter handles refers to different clients");
+				return SA_AIS_ERR_BAD_HANDLE;
+			}
+			switch (i) {
+			case 0:
+				filters.att_ch_filter =
+				    &filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter;
+				break;
+			case 1:
+				filters.obj_cr_del_filter =
+				    &filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter;
+				break;
+			case 2:
+				filters.sec_al_filter =
+				    &filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter;
+				break;
+			case 3:
+				filters.sta_ch_filter =
+				    &filter_hdl_rec->notificationFilter.stateChangeNotificationfilter;
+				break;
+			case 4:
+				filters.alarm_filter = &filter_hdl_rec->notificationFilter.alarmNotificationfilter;
+				break;
+			default:
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+		}
 	}
 
-		/* Check earlier subscriptions in subscriber list */
-		if (NULL != subscriberNoList) {
-			for (listPtr = subscriberNoList,
-			     listPtrNext = listPtr->next;
-			     listPtr != NULL; listPtr = listPtrNext, listPtrNext = listPtr->next) {
-				TRACE_1("listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
-				if (listPtr->subscriberListSubscriptionId == subscriptionId) {
-					rc = SA_AIS_ERR_EXIST;
-					goto done;
-				}
-				if (listPtrNext == NULL) {
-					break;
-				}
+	/* Check earlier subscriptions in subscriber list */
+	if (NULL != subscriberNoList) {
+		for (listPtr = subscriberNoList,
+		     listPtrNext = listPtr->next; listPtr != NULL; listPtr = listPtrNext, listPtrNext = listPtr->next) {
+			TRACE_1("listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
+			if (listPtr->subscriberListSubscriptionId == subscriptionId) {
+				rc = SA_AIS_ERR_EXIST;
+				goto done;
+			}
+			if (listPtrNext == NULL) {
+				break;
 			}
 		}
+	}
 
-		/* An unique subscriptionId was passed */
-		ntfSubscriberList = malloc(sizeof(ntfa_subscriber_list_t));
-		if (!ntfSubscriberList) {
-			LOG_ER("Out of memory in ntfSubscriberList");
-			TRACE_LEAVE();
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto done;
-		}
-		/* Add ntfHandle and subscriptionId into list */
-		ntfSubscriberList->subscriberListNtfHandle = filter_hdl_rec->ntfHandle;
-		ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
-		if (NULL == subscriberNoList) {
-			subscriberNoList = ntfSubscriberList;
-			subscriberNoList->prev = NULL;
-			subscriberNoList->next = NULL;
-		} else {
-			ntfSubscriberList->prev = NULL;
-			ntfSubscriberList->next = subscriberNoList;
-			subscriberNoList->prev = ntfSubscriberList;
-			subscriberNoList = ntfSubscriberList;
-		}
-		TRACE_1("ADD: subscriberNoList->SubscriptionId %d", subscriberNoList->subscriberListSubscriptionId);
+	/* An unique subscriptionId was passed */
+	ntfSubscriberList = malloc(sizeof(ntfa_subscriber_list_t));
+	if (!ntfSubscriberList) {
+		LOG_ER("Out of memory in ntfSubscriberList");
+		TRACE_LEAVE();
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done;
+	}
+	/* Add ntfHandle and subscriptionId into list */
+	ntfSubscriberList->subscriberListNtfHandle = filter_hdl_rec->ntfHandle;
+	ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
+	if (NULL == subscriberNoList) {
+		subscriberNoList = ntfSubscriberList;
+		subscriberNoList->prev = NULL;
+		subscriberNoList->next = NULL;
+	} else {
+		ntfSubscriberList->prev = NULL;
+		ntfSubscriberList->next = subscriberNoList;
+		subscriberNoList->prev = ntfSubscriberList;
+		subscriberNoList = ntfSubscriberList;
+	}
+	TRACE_1("ADD: subscriberNoList->SubscriptionId %d", subscriberNoList->subscriberListSubscriptionId);
 
-		/*	Populate a sync MDS message  */	
-		memset(&msg, 0, sizeof(ntfsv_msg_t));
-		msg.type = NTFSV_NTFA_API_MSG;
-		msg.info.api_info.type = NTFSV_SUBSCRIBE_REQ;
-		send_param = &msg.info.api_info.param.subscribe;
+	/*      Populate a sync MDS message  */
+	memset(&msg, 0, sizeof(ntfsv_msg_t));
+	msg.type = NTFSV_NTFA_API_MSG;
+	msg.info.api_info.type = NTFSV_SUBSCRIBE_REQ;
+	send_param = &msg.info.api_info.param.subscribe;
 
-		send_param->client_id = client_hdl_rec->ntfs_client_id;
-		send_param->subscriptionId = ntfSubscriberList->subscriberListSubscriptionId;
-		send_param->f_rec = filters;
-		/* Check whether NTFS is up or not */
-		if (ntfa_cb.ntfs_up) {
-			/* Send a sync MDS message to obtain a log stream id */
-			rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
-			if (rc == NCSCC_RC_SUCCESS) {
-				if (SA_AIS_OK == o_msg->info.api_resp_info.rc) {
-					TRACE_1("subscriptionId from server %u",
-						o_msg->info.api_resp_info.param.subscribe_rsp.subscriptionId);
-				} else {
-					rc = o_msg->info.api_resp_info.rc;
-					TRACE("Bad return status!!! rc = %d", rc);
-				}
+	send_param->client_id = client_hdl_rec->ntfs_client_id;
+	send_param->subscriptionId = ntfSubscriberList->subscriberListSubscriptionId;
+	send_param->f_rec = filters;
+	/* Check whether NTFS is up or not */
+	if (ntfa_cb.ntfs_up) {
+		/* Send a sync MDS message to obtain a log stream id */
+		rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
+		if (rc == NCSCC_RC_SUCCESS) {
+			if (SA_AIS_OK == o_msg->info.api_resp_info.rc) {
+				TRACE_1("subscriptionId from server %u",
+					o_msg->info.api_resp_info.param.subscribe_rsp.subscriptionId);
 			} else {
-				rc = SA_AIS_ERR_TRY_AGAIN;
+				rc = o_msg->info.api_resp_info.rc;
+				TRACE("Bad return status!!! rc = %d", rc);
 			}
 		} else {
-			TRACE_1("NTFS down");
 			rc = SA_AIS_ERR_TRY_AGAIN;
 		}
+	} else {
+		TRACE_1("NTFS down");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+	}
 
-		if (rc != SA_AIS_OK) {
-			subscriberNoList = subscriberNoList->next;
-			subscriberNoList->prev = NULL;
-			free(ntfSubscriberList);
-		}
-		if (o_msg)
-			ntfa_msg_destroy(o_msg);
+	if (rc != SA_AIS_OK) {
+		subscriberNoList = subscriberNoList->next;
+		subscriberNoList->prev = NULL;
+		free(ntfSubscriberList);
+	}
+	if (o_msg)
+		ntfa_msg_destroy(o_msg);
  done:
-		ncshm_give_hdl(firstHandle);
-		for (i=0; i < 5; i++) {
-			if(filterHndl[i])
-					  ncshm_give_hdl(filterHndl[i]);
-		}
+	ncshm_give_hdl(firstHandle);
+	for (i = 0; i < 5; i++) {
+		if (filterHndl[i])
+			ncshm_give_hdl(filterHndl[i]);
+	}
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1608,8 +1922,7 @@ SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 }
 
 /* 3.15.2.5  saNtfObjectCreateDeleteNotificationFilterAllocate() */
-SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle,
-							      SaNtfObjectCreateDeleteNotificationFilterT
+SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle, SaNtfObjectCreateDeleteNotificationFilterT
 							      *notificationFilter, SaUint16T numEventTypes,
 							      SaUint16T numNotificationObjects,
 							      SaUint16T numNotifyingObjects,
@@ -1656,10 +1969,12 @@ SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHa
 
 	new_filter = &(filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter);
 	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
-	new_header = &(filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter.notificationFilterHeader);
+	new_header =
+	    &(filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter.notificationFilterHeader);
 
 	/* Allocate memory */
-	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects,
+				       numNotificationClassIds);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
@@ -1696,7 +2011,7 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 							   SaUint16T numNotificationClassIds,
 							   SaUint16T numSourceIndicators)
 {
- SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;
 	ntfa_filter_hdl_rec_t *filter_hdl_rec;
 	SaNtfAttributeChangeNotificationFilterT *new_filter;
@@ -1739,14 +2054,15 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 	new_header = &(filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter.notificationFilterHeader);
 
 	/* Allocate memory */
-	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects,
+				       numNotificationClassIds);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
-  rc = ntfsv_filter_attr_change_alloc(new_filter, numSourceIndicators);
-  if (rc != SA_AIS_OK) {
-	  goto done_rec_del;
-  }
+	rc = ntfsv_filter_attr_change_alloc(new_filter, numSourceIndicators);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
+	}
 	/* initialize the Client struct data */
 	*notificationFilter = *new_filter;
 
@@ -1771,13 +2087,12 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 
 /*  3.15.2.7	saNtfStateChangeNotificationFilterAllocate()  */
 SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
-	SaNtfStateChangeNotificationFilterT *notificationFilter,
-	SaUint16T numEventTypes,
-	SaUint16T numNotificationObjects,
-	SaUint16T numNotifyingObjects,
-	SaUint16T numNotificationClassIds,
-	SaUint16T numSourceIndicators,
-	SaUint16T numChangedStates)
+						       SaNtfStateChangeNotificationFilterT *notificationFilter,
+						       SaUint16T numEventTypes,
+						       SaUint16T numNotificationObjects,
+						       SaUint16T numNotifyingObjects,
+						       SaUint16T numNotificationClassIds,
+						       SaUint16T numSourceIndicators, SaUint16T numChangedStates)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;
@@ -1822,7 +2137,8 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 	new_header = &(filter_hdl_rec->notificationFilter.stateChangeNotificationfilter.notificationFilterHeader);
 
 	/* Allocate memory */
-	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects,
+				       numNotificationClassIds);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
@@ -1904,7 +2220,8 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 	new_header = &(filter_hdl_rec->notificationFilter.alarmNotificationfilter.notificationFilterHeader);
 
 	/* Allocate memory */
-	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects,
+				       numNotificationClassIds);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
@@ -1989,12 +2306,13 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 	new_header = &(filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter.notificationFilterHeader);
 
 	/* Allocate memory */
-	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	rc = ntfsv_filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects,
+				       numNotificationClassIds);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
 	rc = ntfsv_filter_sec_alarm_alloc(new_filter, numProbableCauses, numSeverities, numSecurityAlarmDetectors,
-												 numServiceUsers, numServiceProviders);
+					  numServiceUsers, numServiceProviders);
 	if (rc != SA_AIS_OK) {
 		goto done_rec_del;
 	}
@@ -2080,8 +2398,8 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
  * @param subscriptionId
  *
  * @return SaAisErrorT
- */ SaAisErrorT saNtfNotificationUnsubscribe(
-						    SaNtfSubscriptionIdT subscriptionId)
+ */ 
+SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 {
 	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_ERR_NOT_EXIST;
@@ -2159,7 +2477,7 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 				ntfa_msg_destroy(o_msg);
 			goto done_give_hdl;
 		}
-		
+
 		if (listPtr->next != NULL) {
 			listPtr->next->prev = listPtr->prev;
 		}
@@ -2175,7 +2493,7 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 		TRACE_1("REMOVE: listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
 		free(listPtr);
 		if (o_msg)
-			ntfa_msg_destroy(o_msg);		
+			ntfa_msg_destroy(o_msg);
 	}
 
  done_give_hdl:
