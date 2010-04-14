@@ -2126,9 +2126,9 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	uns32 timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
-	if (notificationFilterHandles == NULL) {
+	if (notificationFilterHandles == NULL || readHandle == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		TRACE_1("notificationFilterHandles == NULL");
+		TRACE_1("notificationFilterHandles == NULL or readHandle == NULL");
 		goto done;
 	}
 
@@ -2338,6 +2338,12 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 	ntfsv_send_not_req_t *read_not = NULL;
 
 	TRACE_ENTER();
+
+	if (notification == NULL) {
+		TRACE_1("notification is NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
 
 	/* retrieve notification filter hdl rec */
 	reader_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, readHandle);
