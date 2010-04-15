@@ -812,7 +812,7 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 					goto done;
 				}
 			} else if (op_node->change == SA_CLM_NODE_SHUTDOWN) {
-				rc = clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_NODE_SHUTDOWN);
+				rc = clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_ADMIN_SHUTTING_DOWN);
 				if (rc != NCSCC_RC_SUCCESS) {
 					TRACE("clms_node_admin_state_change_ntf failed %d", rc);
 					goto done;

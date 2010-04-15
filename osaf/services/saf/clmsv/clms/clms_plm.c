@@ -74,7 +74,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 		for (i = 0; i < trackedEntities->numberOfEntities; i++) {
 			TRACE("Entity Name %s", trackedEntities->entities[i].entityName.value);
 			TRACE("Entity Readiness State %d",
-			      trackedEntities->entities[i].expectedReadinessStatus.readinessState);
+			      trackedEntities->entities[i].currentReadinessStatus.readinessState);
 
 			node = clms_node_get_by_eename(&trackedEntities->entities[i].entityName);
 
@@ -86,14 +86,14 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 			TRACE("nodeup %d", node->nodeup);
 
 			node->plm_invid = 0;	/* No resp */
-			node->admin_op = PLM;
-			node->ee_red_state = trackedEntities->entities[i].expectedReadinessStatus.readinessState;
+			node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
 
 			if (node->nodeup &&
-			    trackedEntities->entities[i].expectedReadinessStatus.readinessState ==
+			   trackedEntities->entities[i].currentReadinessStatus.readinessState  ==
 			    SA_PLM_READINESS_OUT_OF_SERVICE) {
 
 				if (node->member == SA_TRUE) {
+					node->admin_op = PLM;
 					node->stat_change = SA_TRUE;
 
 					node->change = SA_CLM_NODE_LEFT;
@@ -117,6 +117,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 				    SA_PLM_READINESS_IN_SERVICE)) {
 
 				if (node->member == SA_FALSE) {
+					node->admin_op = PLM;
 					node->stat_change = SA_TRUE;
 					++(osaf_cluster->num_nodes);
 					node->init_view = (++(clms_cb->cluster_view_num));

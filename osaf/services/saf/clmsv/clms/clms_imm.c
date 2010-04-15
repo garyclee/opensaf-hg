@@ -581,6 +581,7 @@ static void clms_imm_admin_op_callback(SaImmOiHandleT immOiHandle,
 
 	/* Don't proceed: already admin op is in progress on this node */
 	if (nodeop->admin_op != 0) {
+		TRACE("Another Admin operation already in progress: %d",nodeop->admin_op);
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION);
 		goto done;
 	}
