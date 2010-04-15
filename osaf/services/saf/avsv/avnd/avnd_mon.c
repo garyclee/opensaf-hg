@@ -191,6 +191,8 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 	uns32 rc;
 	AVND_MON_REQ *mon_rec;
 
+	m_NCS_LOCK(&cb->mon_lock, NCS_LOCK_WRITE);
+
 	rc = ncs_db_link_list_del(pid_mon_list, (uns8 *)&pid);
 
 	avnd_log(NCSFL_SEV_NOTICE, "PID: %lld deleted from (passive) Monitoring", pid);
@@ -208,6 +210,8 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 			avnd_log(NCSFL_SEV_NOTICE, "Passive Monitoring thread was released");
 		}
 	}
+
+	m_NCS_UNLOCK(&cb->mon_lock, NCS_LOCK_WRITE);
 
 	return rc;
 }
