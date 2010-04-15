@@ -1484,19 +1484,16 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 
-	TRACE_ENTER2("%s", comp->name.value);
-
 	/*
 	** If the component configuration is not valid (e.g. comptype has been
 	** changed by an SMF upgrade), refresh it from IMM.
 	** At first time instantiation of OpenSAF components we cannot go
 	** to IMM since we would deadloack.
 	*/
-	if (comp->config_is_valid) {
-		res = 0;
-		goto done;
-	}
+	if (comp->config_is_valid)
+		return 0;
 
+	TRACE_ENTER2("%s", comp->name.value);
 
 	(void)immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
 

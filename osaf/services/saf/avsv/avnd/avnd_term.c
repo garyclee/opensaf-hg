@@ -62,20 +62,27 @@ static void avnd_last_step_clean(AVND_CB *cb)
 
 	TRACE_ENTER();
 
-	/* Protect from multiple stop */
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP)
+	/* Protect from multiple stop attempts */
+	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN)
 		goto done;
 
-	cb->term_state = AVND_TERM_STATE_OPENSAF_STOP;
+	cb->term_state = AVND_TERM_STATE_OPENSAF_SHUTDOWN;
 
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
-	while (comp != 0) {
+	while (comp != NULL) {
 		if (FALSE == comp->su->su_is_external) {
-
-			/* if there is a single comp in failed termination this op has failed */
+			/*
+			** If there is a single comp in failed termination or instantiation state
+			** stopping OpenSAF has failed.
+			*/
 			if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
 				LOG_ER("%s in termination failed state", comp->name.value);
-				ncs_reboot("Stopping opensaf failed");
+				ncs_reboot("Stopping OpenSAF failed");
+			}
+
+			if (comp->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) {
+				LOG_ER("%s in instantiation failed state", comp->name.value);
+				ncs_reboot("Stopping OpenSAF failed");
 			}
 
 			avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
