@@ -49,8 +49,6 @@ static uns32 avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_restart_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_inst_term_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_inst_clean_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_inst_cleansucc_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_inst_cleanfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_inst_restart_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_inst_orph_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_terming_termsucc_hdler(AVND_CB *, AVND_COMP *);
@@ -118,9 +116,9 @@ static AVND_COMP_CLC_FSM_FN avnd_comp_clc_fsm[][AVND_COMP_CLC_PRES_FSM_EV_MAX - 
 	 avnd_comp_clc_inst_term_hdler,	/* TERM EV */
 	 0,			/* TERM_SUCC EV */
 	 0,			/* TERM_FAIL EV */
-	 avnd_comp_clc_inst_clean_hdler,     /* CLEANUP EV */
-	 avnd_comp_clc_inst_cleansucc_hdler, /* CLEANUP_SUCC EV */
-	 avnd_comp_clc_inst_cleanfail_hdler, /* CLEANUP_FAIL EV */
+	 avnd_comp_clc_inst_clean_hdler,	/* CLEANUP EV */
+	 0,			/* CLEANUP_SUCC EV */
+	 0,			/* CLEANUP_FAIL EV */
 	 avnd_comp_clc_inst_restart_hdler,	/* RESTART EV */
 	 avnd_comp_clc_inst_orph_hdler,	/* ORPH EV */
 	 },
@@ -201,35 +199,6 @@ static AVND_COMP_CLC_FSM_FN avnd_comp_clc_fsm[][AVND_COMP_CLC_PRES_FSM_EV_MAX - 
 	 }
 
 };
-
-/**
- * Check if all components have been terminated, if so exit this process.
- * Only to be used in the AVND_TERM_STATE_OPENSAF_STOP state.
- */
-static void check_opensaf_stop_completed(void)
-{
-	AVND_COMP *comp;
-	int all_comps_terminated = 1;
-
-	assert(avnd_cb->term_state == AVND_TERM_STATE_OPENSAF_STOP);
-
-	/* Scan all components to see if we're done terminating all comps */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)0);
-	while (comp != 0) {
-		if ((comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-		    (comp->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
-			all_comps_terminated = 0;
-			TRACE("'%s' not terminated, pres.st=%u", comp->name.value, comp->pres);
-		}
-
-		comp = (AVND_COMP *) ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)&comp->name);
-	}
-	
-	if (all_comps_terminated) {
-		LOG_NO("All AMF components terminated successfully, exiting");
-		exit(0);
-	}
-}
 
 /****************************************************************************
   Name          : avnd_evt_clc_resp
@@ -607,6 +576,36 @@ uns32 avnd_comp_clc_fsm_trigger(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES
 	return rc;
 }
 
+/**
+ * Check if all components have been terminated, if so exit this process.
+ * Only to be used in the AVND_TERM_STATE_OPENSAF_STOP state.
+ * 
+ * @param term_comp last terminated comp
+ * 
+ * @return int
+ */
+static int all_comps_terminated(void)
+{
+	AVND_COMP *comp;
+	int all_comps_terminated = 1;
+
+	assert(avnd_cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN);
+
+	/* Scan all components to see if we're done terminating all comps */
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)0);
+	while (comp != 0) {
+		if ((comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+		    (comp->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
+			all_comps_terminated = 0;
+			TRACE("'%s' not terminated, pres.st=%u", comp->name.value, comp->pres);
+		}
+
+		comp = (AVND_COMP *) ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)&comp->name);
+	}
+
+	return all_comps_terminated;
+}
+
 /****************************************************************************
   Name          : avnd_comp_clc_fsm_run
  
@@ -625,6 +624,27 @@ uns32 avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_FSM
 {
 	SaAmfPresenceStateT prv_st, final_st;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN) {
+		switch (ev) {
+		case AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL:
+			LOG_ER("%s termination failed", comp->name.value);
+			ncs_reboot("Stopping OpenSAF failed");
+			break;
+		case AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC:
+			m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+			if (all_comps_terminated()) {
+				LOG_NO("All AMF components terminated successfully, exiting");
+				exit(0);
+			}
+			break;
+		default:
+			LOG_NO("%s: ignoring event=%u in state OPENSAF_SHUTDOWN", __FUNCTION__, ev);
+			break;
+		}
+
+		goto done; /* skip execution of event handlers in this state */
+	}
 
 	/* get the prv presence state */
 	prv_st = comp->pres;
@@ -1332,11 +1352,6 @@ uns32 avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP) {
-		LOG_ER("%s termination failed", comp->name.value);
-		ncs_reboot("Stopping OpenSAF failed");
-	}
-
 	/* cleanup the comp */
 	rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 	if (NCSCC_RC_SUCCESS == rc) {
@@ -1372,13 +1387,6 @@ uns32 avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	SaAmfPresenceStateT pres = comp->pres;
-
-	/* temporarily change the presence state to suit check_opensaf_stop_completed() */
-	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP)
-		check_opensaf_stop_completed();
-	m_AVND_COMP_PRES_STATE_SET(comp, pres);
 
 	if ((clc_info->inst_retry_cnt < clc_info->inst_retry_max) &&
 	    (AVND_COMP_INST_EXIT_CODE_NO_RETRY != clc_info->inst_code_rcvd)) {
@@ -1445,11 +1453,6 @@ uns32 avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 uns32 avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP) {
-		LOG_ER("%s termination failed", comp->name.value);
-		ncs_reboot("Stopping OpenSAF failed");
-	}
 
 	/* nothing can be done now.. just transition to inst-failed state */
 	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
@@ -1588,58 +1591,6 @@ uns32 avnd_comp_clc_inst_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 	}
 
 	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_comp_clc_inst_cleansucc_hdler
- 
-  Description   : This routine processes the `cleanup success` event in 
-                  `instantiated` state.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr to the comp
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_comp_clc_inst_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
-{
-	TRACE_ENTER2("%s", comp->name.value);
-
-	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP)
-		check_opensaf_stop_completed();
-
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
-  Name          : avnd_comp_clc_inst_cleanfail_hdler
- 
-  Description   : This routine processes the `cleanup fail` event in 
-                  `instantiated` state.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr to the comp
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_comp_clc_inst_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
-{
-	TRACE_ENTER();
-
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP) {
-		LOG_ER("%s termination failed", comp->name.value);
-		ncs_reboot("Stopping OpenSAF failed");
-	}
-
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1833,10 +1784,6 @@ uns32 avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* just transition to 'uninstantiated' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
-
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP)
-		check_opensaf_stop_completed();
-
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
 
 	/* reset the comp-reg & instantiate params */
@@ -1844,7 +1791,6 @@ uns32 avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
-
 	return rc;
 }
 
@@ -1864,11 +1810,6 @@ uns32 avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 uns32 avnd_comp_clc_terming_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP) {
-		LOG_ER("%s termination failed", comp->name.value);
-		ncs_reboot("Stopping OpenSAF failed");
-	}
 
 	/* just transition to 'term-failed' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
@@ -2094,11 +2035,6 @@ uns32 avnd_comp_clc_restart_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	if (cb->term_state == AVND_TERM_STATE_OPENSAF_STOP) {
-		LOG_ER("%s termination failed", comp->name.value);
-		ncs_reboot("Stopping opensaf failed");
-	}
-
 	/* transition to 'term-failed' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
@@ -2266,7 +2202,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	TRACE_ENTER2("%s, type:%u", comp->name.value, cmd_type);
 
 	/* Refresh the component configuration, it may have changed */
-	if (!comp->config_is_valid && avnd_comp_config_reinit(comp) != 0) {
+	if (avnd_comp_config_reinit(comp) != 0) {
 		rc = NCSCC_RC_FAILURE;
 		goto err;
 	}
