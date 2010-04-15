@@ -1329,7 +1329,7 @@ int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 {
 	TRACE_ENTER2("Not implemented");
 
-	LOG_NO("Error cbk received. cmd: %d, ee_id: %s, err_msg: %s, err_act: %s",
+	TRACE("Error cbk received. cmd: %d, ee_id: %s, err_msg: %s, err_act: %s",
 	msg->cmd_enum,msg->ee_id,msg->errormsg,msg->action);	
 
 	TRACE_LEAVE2("Not implemented");
