@@ -786,14 +786,14 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   && (op_id == SA_AMF_ADMIN_LOCK))   ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 	      (op_id == SA_AMF_ADMIN_LOCK_INSTANTIATION))                                     ||
-	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   && (op_id == SA_AMF_ADMIN_SHUTDOWN))) {
+	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   && (op_id == SA_AMF_ADMIN_UNLOCK_INSTANTIATION))) {
 
 		rc = SA_AIS_ERR_NO_OP;
 		LOG_WA("Admin operation (%llu) has no effect on current state (%u)", op_id, su->saAmfSUAdminState);
 		goto done;
 	}
 
-	if ( ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) && (op_id != SA_AMF_ADMIN_LOCK))    ||
+	if ( ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) && (op_id != SA_AMF_ADMIN_LOCK) && (op_id != SA_AMF_ADMIN_SHUTDOWN))    ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   &&
 	      ((op_id != SA_AMF_ADMIN_UNLOCK) && (op_id != SA_AMF_ADMIN_LOCK_INSTANTIATION)))  ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
