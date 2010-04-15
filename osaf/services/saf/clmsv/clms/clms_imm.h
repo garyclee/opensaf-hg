@@ -22,7 +22,7 @@ extern SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata);
 extern void clms_cluster_update_rattr(CLMS_CLUSTER_INFO * osaf_cluster);
 extern void clms_node_update_rattr(CLMS_CLUSTER_NODE * nd);
 extern void clms_admin_state_update_rattr(CLMS_CLUSTER_NODE * nd);
-extern uns32 clms_chk_sub_start(void);
+extern uns32 clms_chk_sub_exist(SaUint8T track_flag);
 extern void clms_imm_impl_set(CLMS_CB * cb);
 extern CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs);
 extern void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT step);

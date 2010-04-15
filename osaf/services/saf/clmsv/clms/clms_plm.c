@@ -28,16 +28,26 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					      SaPlmChangeStepT step, SaAisErrorT error)
 {
 	SaUint32T i, rc;
+	SaAisErrorT ais_er;
 	CLMS_CLUSTER_NODE *node = NULL, *tmp_node = NULL;
 	uns32 node_id = 0;
 
 	TRACE_ENTER2("step=%d,error=%d,number of tracked entites %d", step, error, trackedEntities->numberOfEntities);
 
-	if (clms_cb->ha_state == SA_AMF_HA_STANDBY)
+	if (clms_cb->ha_state == SA_AMF_HA_STANDBY){
+		if ((step == SA_PLM_CHANGE_VALIDATE)||(step == SA_PLM_CHANGE_START)){
+			ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation, SA_PLM_CALLBACK_RESPONSE_OK);
+			if (ais_er != SA_AIS_OK) {
+				TRACE("saPlmReadinessTrackResponse FAILED");
+				goto done;
+			}
+
+		}
 		goto done;
+	}
 
 	/*Check for the expectedReadinessStatus of the entityName */
-	if (step == SA_PLM_CHANGE_VALIDATE || step == SA_PLM_CHANGE_START || step == SA_PLM_CHANGE_ABORTED) {
+	if( (step == SA_PLM_CHANGE_VALIDATE) || (step == SA_PLM_CHANGE_START) || (step == SA_PLM_CHANGE_ABORTED)) {
 
 		for (i = 0; i < trackedEntities->numberOfEntities; i++) {
 
@@ -60,6 +70,22 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					node->stat_change = SA_TRUE;
 					node->admin_op = PLM;
 					node->change = SA_CLM_NODE_LEFT;
+					
+					if (step == SA_PLM_CHANGE_START){
+						rc = clms_chk_sub_exist(SA_TRACK_START_STEP);
+					}else if (step == SA_PLM_CHANGE_VALIDATE) {
+						rc = clms_chk_sub_exist(SA_TRACK_VALIDATE_STEP);
+					}
+
+					if (rc != NCSCC_RC_SUCCESS){
+						TRACE("No clients exists for validate/start step");
+						ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation,SA_PLM_CALLBACK_RESPONSE_OK);
+						if (ais_er != SA_AIS_OK) {
+							TRACE("saPlmReadinessTrackResponse FAILED");
+							goto done;
+						}
+						TRACE("PLM Track Response Send Succedeed");
+					}
 				}
 			}
 			/* Checkpoint node data */
@@ -69,7 +95,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 		node->admin_op = PLM;
 		node->plm_invid = invocation;
 
-	} else if (step == SA_PLM_CHANGE_COMPLETED) {
+	}else if (step == SA_PLM_CHANGE_COMPLETED) {
 
 		for (i = 0; i < trackedEntities->numberOfEntities; i++) {
 			TRACE("Entity Name %s", trackedEntities->entities[i].entityName.value);

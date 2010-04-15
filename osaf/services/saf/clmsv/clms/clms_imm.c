@@ -103,10 +103,10 @@ static void *imm_impl_set_node_down_proc(void *_cb)
 }
 
 /**
-* Lookup the client db to find if any subscribers exist for the START step
+* Lookup the client db to find if any subscribers exist for the VALIDATE/START step
 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_chk_sub_start(void)
+uns32 clms_chk_sub_exist(SaUint8T track_flag)
 {
 
 	CLMS_CLIENT_INFO *rec = NULL;
@@ -117,7 +117,7 @@ uns32 clms_chk_sub_start(void)
 	while (NULL != (rec = clms_client_getnext_by_id(client_id))) {
 		client_id = rec->client_id;
 
-		if (rec->track_flags & (SA_TRACK_START_STEP))
+		if (rec->track_flags & (track_flag))
 			return NCSCC_RC_SUCCESS;
 	}
 
@@ -1548,7 +1548,7 @@ uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 
 		/*No Subscribers for start step */
 		nodeop->stat_change = SA_TRUE;
-		rc = clms_chk_sub_start();
+		rc = clms_chk_sub_exist(SA_TRACK_START_STEP);
 
 		if (rc == NCSCC_RC_SUCCESS) {
 
@@ -1708,7 +1708,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 
 	} else {
 
-		rc = clms_chk_sub_start();
+		rc = clms_chk_sub_exist(SA_TRACK_START_STEP);
 		if (rc == NCSCC_RC_SUCCESS) {
 			nodeop->admin_state = SA_CLM_ADMIN_SHUTTING_DOWN;
 			nodeop->stat_change = SA_TRUE;
