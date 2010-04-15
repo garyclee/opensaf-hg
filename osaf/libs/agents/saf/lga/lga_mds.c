@@ -1110,7 +1110,7 @@ void lga_mds_finalize(lga_cb_t *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uns32 timeout)
+uns32 lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uns32 timeout, uns32 prio)
 {
 	NCSMDS_INFO mds_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -1128,7 +1128,7 @@ uns32 lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg,
 	mds_info.info.svc_send.i_msg = (NCSCONTEXT)i_msg;
 	mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_LGS;
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
-	mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;	/* fixme? */
+	mds_info.info.svc_send.i_priority = prio;	/* fixme? */
 	/* fill the sub send rsp strcuture */
 	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms FIX!!! */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = cb->lgs_mds_dest;

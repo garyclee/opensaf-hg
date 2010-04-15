@@ -167,7 +167,7 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	/* Send a message to LGS to obtain a client_id/server ref id which is cluster
 	 * wide unique.
 	 */
-	rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGS_WAIT_TIME);
+	rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGS_WAIT_TIME,MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
 		lga_shutdown();
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -382,7 +382,7 @@ SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
 	msg.info.api_info.type = LGSV_FINALIZE_REQ;
 	msg.info.api_info.param.finalize.client_id = hdl_rec->lgs_client_id;
 
-	mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME);
+	mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME,MDS_SEND_PRIORITY_MEDIUM);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -462,6 +462,12 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 
 		/* SA_AIS_ERR_INVALID_PARAM, bullet 1 in SAI-AIS-LOG-A.02.01 
 		   Section 3.6.1, Return Values */
+
+		if (logStreamOpenFlags > 1) {
+			TRACE("logStreamOpenFlags invalid  when create");
+			return SA_AIS_ERR_BAD_FLAGS;
+		}
+
 		if ((logStreamOpenFlags == SA_LOG_STREAM_CREATE)
 		    && (logFileCreateAttributes == NULL)) {
 			TRACE("logFileCreateAttributes == NULL, when create");
@@ -612,7 +618,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	}
 
 	/* Send a sync MDS message to obtain a log stream id */
-	rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, timeout);
+	rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, timeout,MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
 		if (o_msg)
 			lga_msg_destroy(o_msg);
@@ -758,8 +764,8 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 	}
 
 	if ((ackFlags != 0) && (ackFlags != SA_LOG_RECORD_WRITE_ACK)) {
-		TRACE("SA_AIS_ERR_INVALID_PARAM => ackFlags");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE("SA_AIS_ERR_BAD_FLAGS=> ackFlags");
+		rc = SA_AIS_ERR_BAD_FLAGS;
 		goto done;
 	}
 
@@ -851,6 +857,15 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 		goto done;
 	}
 
+	if ((hdl_rec->reg_cbk.saLogWriteLogCallback == NULL) && (ackFlags == SA_LOG_RECORD_WRITE_ACK)) {
+		TRACE("Write Callback not registered");
+		ncshm_give_hdl(logStreamHandle);
+		ncshm_give_hdl(hdl_rec->local_hdl);
+		rc = SA_AIS_ERR_INIT;
+		goto done;
+	}
+
+
 	/* Check Whether LGS is up or not */
 	if (!lga_cb.lgs_up) {
 		ncshm_give_hdl(logStreamHandle);
@@ -934,7 +949,7 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 	msg.info.api_info.type = LGSV_STREAM_CLOSE_REQ;
 	msg.info.api_info.param.lstr_close.client_id = hdl_rec->lgs_client_id;
 	msg.info.api_info.param.lstr_close.lstr_id = lstr_hdl_rec->lgs_log_stream_id;
-	mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME);
+	mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME,MDS_SEND_PRIORITY_MEDIUM);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
