@@ -779,7 +779,7 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 		if (ncs_patricia_tree_size(&op_node->trackresp) == 0) {
 			/*Clear the node dependency list */
 			clms_clear_node_dep_list(op_node);
-			ais_er = saPlmReadinessTrackResponse(cb->ent_group_hdl, op_node->plm_invid, SA_AIS_OK);
+			ais_er = saPlmReadinessTrackResponse(cb->ent_group_hdl, op_node->plm_invid, SA_PLM_CALLBACK_RESPONSE_OK);
 			if (ais_er != SA_AIS_OK) {
 				TRACE("saPlmReadinessTrackResponse FAILED");
 				goto done;
