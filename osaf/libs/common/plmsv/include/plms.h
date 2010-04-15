@@ -404,7 +404,7 @@ typedef struct plms_track_info
 	SaNtfIdentifierT            root_correlation_id; 
 	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list;          
 	PLMS_GROUP_ENTITY	    *aff_ent_list;
-	SaUint32T		    inv_id;
+	SaInvocationT		    inv_id;
 	SaPlmGroupChangesT	    grp_op;			
 } PLMS_TRACK_INFO;
 
