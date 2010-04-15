@@ -74,6 +74,7 @@ SaUint32T plm_free_entity_root_list_frm_grp(PLMS_ENTITY_GROUP_INFO *grp_info)
 					prev->next = start->next;
 				}
 				free(start);
+				start = NULL;
 				break;
 			}else{
 				prev = start;
@@ -84,6 +85,7 @@ SaUint32T plm_free_entity_root_list_frm_grp(PLMS_ENTITY_GROUP_INFO *grp_info)
 		free(grp_entity_list);
 		grp_entity_list = ent_next;
 	}
+	grp_info->plm_entity_list = NULL;
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -97,10 +99,43 @@ SaUint32T plm_free_entity_root_list_frm_grp(PLMS_ENTITY_GROUP_INFO *grp_info)
 *
 * @return	Returns nothing. 
 ***************************************************************************/
-void plm_free_invocation_list_frm_grp(PLMS_INVOCATION_TO_TRACK_INFO *invocation_list)
+void plm_free_invocation_list_frm_grp(PLMS_ENTITY_GROUP_INFO *grp_info) 
 {
+	PLMS_INVOCATION_TO_TRACK_INFO *invocation_list = grp_info->invocation_list;
+	SaPlmEntityGroupHandleT grp_hdl = grp_info->entity_grp_hdl;
 	PLMS_INVOCATION_TO_TRACK_INFO *next_inv_node = NULL;
+	PLMS_ENTITY_GROUP_INFO_LIST *grp_list,*grp_prev;
+	PLMS_ENTITY *ent;
+	PLMS_CB *cb = plms_cb;
 	TRACE_ENTER();	
+	/* Remove the grp from track_info.*/
+	ent = (PLMS_ENTITY *)ncs_patricia_tree_getnext(&cb->entity_info,(SaUint8T *)0);
+	while (ent){
+		if (NULL != ent->trk_info){
+			grp_list = ent->trk_info->group_info_list;
+			grp_prev = NULL;
+			while ( grp_list ){
+				if ( grp_hdl == grp_list->ent_grp_inf->entity_grp_hdl){
+					if ( NULL == grp_prev ){
+						ent->trk_info->group_info_list = grp_list->next; 
+						free(grp_list);
+						grp_list = NULL;
+					}else {
+						grp_prev->next = grp_list->next;
+						free(grp_list);
+						grp_list = NULL;
+					}
+					break;
+				} else {
+					grp_prev = grp_list;
+					grp_list = grp_list->next;
+				}
+						
+			}
+		}
+
+		ent = (PLMS_ENTITY *)ncs_patricia_tree_getnext(&cb->entity_info,(SaUint8T *)&ent->dn_name);
+	}
 	while(invocation_list)
 	{
 		/** Decrement the track count */
@@ -121,8 +156,10 @@ void plm_free_invocation_list_frm_grp(PLMS_INVOCATION_TO_TRACK_INFO *invocation_
 		}
 		next_inv_node = invocation_list->next;
 		free(invocation_list);
+		invocation_list = NULL;
 		invocation_list = next_inv_node;	
 	}
+	grp_info->invocation_list = NULL;
 	TRACE_LEAVE();
 	return;
 }
@@ -143,9 +180,10 @@ void plm_clean_grp_info(PLMS_ENTITY_GROUP_INFO *grp_info)
 	/** free the list of entities of this group */
 	plm_free_entity_root_list_frm_grp(grp_info);
 	/** free the invocation list of this group */
-	plm_free_invocation_list_frm_grp(grp_info->invocation_list);
+	plm_free_invocation_list_frm_grp(grp_info);
 	ncs_patricia_tree_del(&cb->entity_group_info, &grp_info->pat_node);
 	free(grp_info);
+	grp_info = NULL;
 	TRACE_LEAVE();
 	return;
 }
