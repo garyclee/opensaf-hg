@@ -373,10 +373,12 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 		iter++;
 	}
 
+	// Execute the online remove commands.
 	// If the OpenSAF proprietary step actions was selected (by the nodeBundleActCmd attribute in the SmfConfig class)
-	// the offline remove scripts was run within the steps.
+	// the offline remove scripts was run within the steps. Check if the proprietary step actions was choosen.
+
 	if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
-		//Run all online remove scripts for all bundles listed in the upgrade steps
+		//Run all online remove scripts for all bundles (which does not require restart) listed in the upgrade steps
 		iter = i_proc->m_procSteps.begin();
 		while (iter != i_proc->m_procSteps.end()) {
 
@@ -387,13 +389,15 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			/* Run only remove scripts for those bundles which does NOT require reboot to online uninstall */
 			/* Find out which bundles to be removed here. Bundles which requires reboot have already has   */
 			/* their online remove scripts executed in the step.                                           */
+
+			/* Create the list of bundles NOT restarted */
 			SmfImmUtils immutil;
 			SaImmAttrValuesT_2 ** attributes;
 			std::list < SmfBundleRef > nonRestartBundles;
 			const std::list < SmfBundleRef > &removeList = (*iter)->getSwRemoveList();
 			std::list< SmfBundleRef >::const_iterator bundleIter = removeList.begin();
 			while (bundleIter != removeList.end()) {
-				/* Read the saSmfBundleInstallOfflineScope to detect if the bundle shall be included */
+				/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle shall be included */
 				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
 					LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
 					CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -405,7 +409,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 					return;
 				}
 				const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-									       "saSmfBundleInstallOfflineScope",
+									       "saSmfBundleRemoveOfflineScope",
 									       0);
 				/* Include only bundles not need reboot */
 				if ((scope != NULL) && (*scope != SA_SMF_CMD_SCOPE_PLM_EE)) {
@@ -418,8 +422,8 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 				bundleIter++;
 			}
 
-//                if ((*iter)->onlineRemoveBundles((*iter)->getSwNode()) == false) {
-			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), removeList) == false) {
+			/* Run the online remove scripts for the bundles NOT restarted */
+			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), nonRestartBundles) == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
 				LOG_ER("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
 				CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -431,7 +435,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 				return;
 			}
 
-			/* Delete SaAmfNodeSwBundle objects */
+			/* Delete SaAmfNodeSwBundle objects for ALL bundles in the step*/
 			LOG_NO("PROC: Delete SaAmfNodeSwBundle objects");
 			if ((*iter)->deleteSaAmfNodeSwBundles((*iter)->getSwNode()) == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
@@ -564,6 +568,7 @@ SmfProcStateExecutionCompleted::commit(SmfUpgradeProcedure * i_proc)
 	   -SaSmfActivationUnit, 
 	   -SaSmfDeactivationUnit 
 	   -SaSmfImageNodes 
+	   -SmfSingleStepInfo
 	*/
 
 	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;

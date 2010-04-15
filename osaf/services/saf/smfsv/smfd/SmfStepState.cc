@@ -1140,7 +1140,7 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 		bundleIter = removeList.begin();
 		removalRebootNeeded = false;
 		while (bundleIter != removeList.end()) {
-			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+			/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
 			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
 				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
 				changeState(i_step, SmfStepStateFailed::instance());
@@ -1148,7 +1148,7 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 				return false;
 			}
 			scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-						      "saSmfBundleInstallOfflineScope",
+						      "saSmfBundleRemoveOfflineScope",
 						      0);
 
 			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
