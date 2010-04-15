@@ -27,7 +27,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					      const SaPlmReadinessTrackedEntitiesT * trackedEntities,
 					      SaPlmChangeStepT step, SaAisErrorT error)
 {
-	SaUint32T i, rc;
+	SaUint32T i, rc = SA_AIS_OK;
 	SaAisErrorT ais_er;
 	CLMS_CLUSTER_NODE *node = NULL, *tmp_node = NULL;
 	uns32 node_id = 0;
