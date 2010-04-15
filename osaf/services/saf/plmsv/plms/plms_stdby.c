@@ -117,6 +117,7 @@ SaUint32T plms_build_ent_grp_tree()
 	PLMS_ENTITY            		*root_plm_entity = NULL;
 	PLMS_CLIENT_INFO  *client_info = NULL;
 	PLMS_ENTITY_GROUP_INFO  *grp_info = NULL;
+	PLMS_ENTITY_GROUP_INFO_LIST *client_grp_list = NULL,*grp_node = NULL;
 
 	TRACE_ENTER();
 
@@ -185,6 +186,26 @@ SaUint32T plms_build_ent_grp_tree()
 				continue;
 			}
 				
+		}
+		/* add the new group created in entity group list of this client */
+		client_grp_list = client_info->entity_group_list;
+		grp_node = (PLMS_ENTITY_GROUP_INFO_LIST *)malloc(sizeof(PLMS_ENTITY_GROUP_INFO_LIST));
+		if(!grp_node){
+			LOG_CR("PLMS_ENTITY_GROUP_INFO_LIST memory alloc failed, error val:%s",strerror(errno));
+			free(grp_info);
+			continue;
+		}
+		memset(grp_node, 0, sizeof(PLMS_ENTITY_GROUP_INFO_LIST));
+		grp_node->ent_grp_inf = grp_info;
+		grp_node->next = NULL;
+		if(!client_grp_list){
+			client_info->entity_group_list = grp_node;
+		}else{
+			while(client_grp_list->next)
+			{
+				client_grp_list = client_grp_list->next;
+			}
+			client_grp_list->next = grp_node;
 		}
 
 		/* Check and add entities to the entity_group */
