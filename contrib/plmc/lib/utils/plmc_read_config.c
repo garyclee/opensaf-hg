@@ -31,6 +31,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <syslog.h>
 
 #include <plmc.h>
 
@@ -46,7 +47,8 @@ static int checkfile(char *buf)
 			cmd[ii] = '\0';
 
 	if (stat(cmd, &statbuf) == -1) {
-		fprintf(stderr, "File does not exsist: %s\n", cmd);
+		syslog(LOG_ERR, "plmc_read_config: File does not exsist: %s",
+									 cmd);
 		return -1;
 	}
 
@@ -66,18 +68,27 @@ static int checkfile(char *buf)
  * Returns: errno on error.
  *
  */
-int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
+int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) 
+{
 	FILE *plmc_conf_file;
 	char line[PLMC_MAX_TAG_LEN];
-	int i, n, comment_line, tag = 0;
+	int i, n, comment_line, fieldmissing = 0, tag = 0;
 	int num_services = 0;
 
 	memset(config, 0, sizeof(PLMC_config_data));
+
+	/* 
+	* Set timeout to a negative value so we can detect if the value 
+	* is missing in the conf file
+	*/
+	config->plmc_cmd_timeout_secs = -1;
 
 	/* Open plmcd.conf config file. */
 	plmc_conf_file = fopen(plmc_config_file, "r");
 	if (plmc_conf_file == NULL) {
 		/* Problem with conf file - return errno value */
+		syslog(LOG_ERR, "plmc_read_cofig: there was a problem opening "
+							"the plmcd.conf file");
 		return(errno);
 	}
 
@@ -140,64 +151,105 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
 			/* Set the value of the tag in config data structure. */
 			switch (tag) {
 				case PLMC_EE_ID:
-					strncpy(config->ee_id, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->ee_id, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_MSG_PROTOCOL_VERSION:
-					strncpy(config->msg_protocol_version, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->msg_protocol_version, 
+						line, PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_CONTROLLER_1_IP:
-					strncpy(config->controller_1_ip, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->controller_1_ip, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_CONTROLLER_2_IP:
-					strncpy(config->controller_2_ip, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->controller_2_ip, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_SERVICES:
-					if (checkfile(line))
-						exit(-1);
-					strncpy(config->services[num_services], line, PLMC_MAX_TAG_LEN -1);
+					if (checkfile(line)) {
+						syslog(LOG_ERR, "plmc_read_"
+							"config.c: Service "
+							"to start and stop "
+							"%s doesn't exist", 
+									line);
+						return -1;
+					}
+					strncpy(config->services[num_services],
+						 line, PLMC_MAX_TAG_LEN -1);
 					num_services++;
-					/* Don't want to overrun our array of services. */
+					/*
+					* Don't want to overrun our array of 
+					* services. 
+					*/
 					if (num_services >= PLMC_MAX_SERVICES){
-						fprintf(stderr, "Number of services exceeded MAX_SERVIES: %d\n", PLMC_MAX_SERVICES);
-						exit(-1);
+						syslog(LOG_ERR, "plmc_read_"
+							"config.c: Number of "
+							"services exceeded "
+							"MAX_SERVIES: %d\n", 
+							PLMC_MAX_SERVICES);
+						return -1;
 					}
 					break;
 				case PLMC_OSAF:
-					if (checkfile(line))
-						exit(-1);
-					strncpy(config->osaf, line, PLMC_MAX_TAG_LEN -1);
+					if (checkfile(line)) {
+						syslog(LOG_ERR, "plmc_read_"
+							"config.c: Osaf "
+							"to start and stop "
+							"%s doesn't exist", 
+									line);
+						return -1;
+					}
+					strncpy(config->osaf, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_TCP_PLMS_LISTENING_PORT:
-					strncpy(config->tcp_plms_listening_port, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->tcp_plms_listening_port,
+						 line, PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_UDP_BROADCAST_PORT:
-					strncpy(config->udp_broadcast_port, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->udp_broadcast_port,
+						 line, PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_OS_TYPE:
-					strncpy(config->os_type, line, PLMC_MAX_TAG_LEN -1);
+					strncpy(config->os_type, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_CMD_TIMEOUT_SECS:
-					config->plmc_cmd_timeout_secs = atoi(line);
+					config->plmc_cmd_timeout_secs = 
+								atoi(line);
 					tag = 0;
 					break;
 				case PLMC_OS_REBOOT_CMD:
-					if (checkfile(line))
-						exit(-1);
-					strncpy(config->os_reboot_cmd, line, PLMC_MAX_TAG_LEN -1);
+					if (checkfile(line)) {
+						syslog(LOG_ERR, "plmc_read_"
+							"config.c: Reboot "
+							"command %s doesn't "
+								"exist", line);
+						return -1;
+					}
+					strncpy(config->os_reboot_cmd, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				case PLMC_OS_SHUTDOWN_CMD:
-					if (checkfile(line))
-						exit(-1);
-					strncpy(config->os_shutdown_cmd, line, PLMC_MAX_TAG_LEN -1);
+					if (checkfile(line)) {
+						syslog(LOG_ERR, "plmc_read_"
+							"config.c: Shutdown "
+							"command %s doesn't "
+								"exist", line);
+						return -1;
+					}
+					strncpy(config->os_shutdown_cmd, line, 
+							PLMC_MAX_TAG_LEN -1);
 					tag = 0;
 					break;
 				default:
@@ -214,6 +266,51 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
 	/* Close file. */
 	fclose(plmc_conf_file);
 
+	/* Test so we have all mandatory fields */
+	if (strlen(config->ee_id) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: ee_id is missing in conf "
+								"file");
+		fieldmissing = 1;
+	} else if (strlen(config->msg_protocol_version) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: msg_protocol_version "
+						"is missing in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->controller_1_ip) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: controller_1_ip is missing "
+							"in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->controller_2_ip) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: controller_2_ip is missing "
+							"in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->tcp_plms_listening_port) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: tcp_plms_listening_port is "
+						"missing in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->udp_broadcast_port) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: udp_broadcast_port is "
+						"missing in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->os_type) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: os_type is missing in "
+								"conf file");
+		fieldmissing = 1;
+	} else if (config->plmc_cmd_timeout_secs < 0) {
+		syslog(LOG_ERR, "plmc_read_config: plmc_cmd_timeout_secs "
+					"is missing or invalid in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->os_reboot_cmd) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: os_reboot_cmd is missing "
+								"in conf file");
+		fieldmissing = 1;
+	} else if (strlen(config->os_shutdown_cmd) == 0) {
+		syslog(LOG_ERR, "plmc_read_config: os_shutdown_cmd is missing "
+								"in conf file");
+		fieldmissing = 1;
+	}
+
+	if (fieldmissing == 1)
+		return -1;
 	/* All done. */
 	return(err);
 }
