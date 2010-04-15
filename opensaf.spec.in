@@ -1123,7 +1123,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_includedir}/saNtf.h
 %{_includedir}/saSmf.h
 %{_includedir}/saPlm.h
-%{_includedir}/%{name}/*
 
 
 #TODO: Is it going out of the main opensaf repo?
