@@ -673,8 +673,10 @@ int main(int argc, char** argv)
 
 	/* Read the plmcd.conf config file. */
 	if ((ret = plmc_read_config(plmc_config_file, &config))) {
-		fprintf(stderr, "Error, reading %s.  errno = %d\n", plmc_config_file, ret);
-		syslog(LOG_ERR, "Error reading %s.  errno = %d", plmc_config_file, ret);
+		fprintf(stderr, "Error, reading %s. See syslog for more "
+					"information\n", plmc_config_file);
+		syslog(LOG_ERR, "Error reading %s.  errno = %d", 
+							plmc_config_file, ret);
 		exit(6);
 	}
 
