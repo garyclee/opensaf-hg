@@ -635,30 +635,26 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 	case NCSMDS_DOWN:
 		switch (evt_info->i_svc_id) {
 		case NCSMDS_SVC_ID_AVD:
-			{
-				/* Validate whether this is a ADEST or VDEST */
-				if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
-					return rc;
-
-				/* supervise our local avd */
-				if (evt_info->i_node_id == ncs_get_node_id())
-					ncs_reboot("avd down");
-
-				/* reset the avd mds-dest */
-				memset(&cb->avd_dest, 0, sizeof(MDS_DEST));
-
-				/* create the mds event */
-				evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_DN, 0, &evt_info->i_dest, 0, 0, 0);
-
-				syslog(LOG_ERR, "Controller node not available");
-			}
+			/* Supervise our node local director */
+			if (evt_info->i_node_id == ncs_get_node_id())
+				ncs_reboot("AMF director unexpectedly crasched");
+			
+			/* Validate whether this is a ADEST or VDEST */
+			if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
+				return rc;
+			
+			/* reset the avd mds-dest */
+			memset(&cb->avd_dest, 0, sizeof(MDS_DEST));
+			
+			/* create the mds event */
+			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_DN, 0, &evt_info->i_dest, 0, 0, 0);
+			
+			syslog(LOG_ERR, "Controller node not available");
 			break;
 
 		case NCSMDS_SVC_ID_AVA:
-			{
-				/* create the mds event */
-				evt = avnd_evt_create(cb, AVND_EVT_MDS_AVA_DN, 0, &evt_info->i_dest, 0, 0, 0);
-			}
+			/* create the mds event */
+			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVA_DN, 0, &evt_info->i_dest, 0, 0, 0);
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
