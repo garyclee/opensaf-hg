@@ -113,7 +113,7 @@ uns32 plma_mds_register()
         svc_info.info.svc_subscribe.i_svc_ids = svc_id;
         if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
                 LOG_ER("PLMA - MDS Subscribe for PLMS up/down Failed");
-                plma_mds_unregister(plma_cb);
+                plma_mds_unregister();
                 return NCSCC_RC_FAILURE;
         }
 	TRACE_LEAVE();

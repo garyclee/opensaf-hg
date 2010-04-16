@@ -63,7 +63,6 @@ SaUint32T plms_mbcsv_register()
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	PLMS_CB * cb = plms_cb;
 	
 	TRACE_ENTER();
 
@@ -87,9 +86,9 @@ SaUint32T plms_mbcsv_register()
 	return rc;
 
  fail:
-	plms_mbcsv_close(cb);
+	plms_mbcsv_close();
  error:
-	plms_mbcsv_finalize(cb);
+	plms_mbcsv_finalize();
 	TRACE_LEAVE();
 	return rc;
 }
