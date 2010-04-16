@@ -44,7 +44,8 @@ noinst_HEADERS = \
 libjava_ais_api_native_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I $(JAVA_HOME)/include \
-	-I $(JAVA_HOME)/include/linux
+	-I $(JAVA_HOME)/include/linux \
+	-DSA_CLM_B01
 
 libjava_ais_api_native_la_SOURCES = \
 	$(top_srcdir)/java/ais_api_impl_native/j_ais.c \
