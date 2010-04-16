@@ -231,7 +231,7 @@ uns32 plma_create(NCS_LIB_CREATE *create_info)
 	}
 	
 	/** register with MDS */
-	if (plma_mds_register(plma_cb) != NCSCC_RC_SUCCESS) {
+	if (plma_mds_register() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: MDS REGISTER FAILED");
 		rc = NCSCC_RC_FAILURE;
 		goto mds_reg_fail;
@@ -284,7 +284,7 @@ uns32 plma_destroy(NCS_LIB_DESTROY *destroy_info)
 	TRACE_ENTER();
 
 	/* MDS unregister. */
-	plma_mds_unregister(plma_cb);
+	plma_mds_unregister();
 
 	/** flush the EDU handle */
 	m_NCS_EDU_HDL_FLUSH(&plma_cb->edu_hdl);	

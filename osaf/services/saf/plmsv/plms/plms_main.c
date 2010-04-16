@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
-			if (plms_mbcsv_dispatch(plms_cb) != NCSCC_RC_SUCCESS) {
+			if (plms_mbcsv_dispatch() != NCSCC_RC_SUCCESS) {
 				LOG_ER("PLMS MBCSv Dispatch Failed");
 				break;
 			}
@@ -477,7 +477,7 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(plms_cb->usr1_sel_obj, TRUE,TRUE);
 				ncs_sel_obj_destroy(plms_cb->usr1_sel_obj);
 				
-				if (plms_amf_register(plms_cb) != NCSCC_RC_SUCCESS)
+				if (plms_amf_register() != NCSCC_RC_SUCCESS)
 					break;
 
 				TRACE("PLMS AMF Initialization SUCCESS......");
