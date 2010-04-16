@@ -2485,8 +2485,9 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					   then resend the completed upcall, which should generate an aborted 
 					   reply to all IMMNDs. 
 					   err = SA_AIS_ERR_FAILED_OPERATION;
+					   But actually we know here that we have not sent the completed call to
+					   the pbe. This means it should be easy to abort!
 					 */
-					assert(0);
 				}
 
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -2501,7 +2502,6 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 					    oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("CCB COMPLETED UPCALL SEND TO PBE FAILED");
-					abort();
 				} else {
 					TRACE_5("IMMND UPCALL TO PBE for ccb %u, SEND SUCCEEDED", 
 						evt->info.ccbUpcallRsp.ccbId);

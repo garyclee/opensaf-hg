@@ -29,7 +29,7 @@
 #include "immsv_api.h"
 
 // Local types
-#define DEFAULT_TIMEOUT_SEC 6
+#define DEFAULT_TIMEOUT_SEC 6 /* Should be saImmOiTimeout in SaImmMngt */
 
 struct ContinuationInfo2
 {
@@ -191,9 +191,9 @@ typedef enum {
     IMM_CCB_MODIFY_OP = 4,  //Ongoing modify (pending implementer calls/replies)
     IMM_CCB_DELETE_OP = 5,  //Ongoing delete (pending implementer calls/replies)
     IMM_CCB_PREPARE = 6,    //Waiting for nodes prepare & completed calls/replies
-    IMM_CCB_CRITICAL = 7,   //Commit(apply) has started on nodes.
+    IMM_CCB_CRITICAL = 7,   //Unilateral abort no longer allowed (except by PBE). 
     IMM_CCB_PBE_ABORT = 8,  //The Persistent back end replied with abort
-    IMM_CCB_COMMITED = 9,  //Commited at nodes pending implementer apply calls
+    IMM_CCB_COMMITTED = 9,  //Committed at nodes pending implementer apply calls
     IMM_CCB_ABORTED = 10,   //READY->ABORTED PREPARE->ABORTED
     IMM_CCB_ILLEGAL = 11   //CCB has been removed.
 } ImmCcbState;
@@ -201,7 +201,7 @@ typedef enum {
 struct CcbInfo
 {
     bool isOk() {return mVeto == SA_AIS_OK;}
-    bool isActive() {return (mState < IMM_CCB_COMMITED);}
+    bool isActive() {return (mState < IMM_CCB_COMMITTED);}
     SaUint32T         mId;
     SaUint32T         mAdminOwnerId;
     SaUint32T         mCcbFlags;
@@ -215,6 +215,7 @@ struct CcbInfo
     SaAisErrorT       mVeto;  //SA_AIS_OK as long as no "participan" voted error.
     time_t            mWaitStartTime;
     SaUint32T         mOpCount;
+    SaUint32T         mPbeRestartId;
 };
 typedef std::vector<CcbInfo*> CcbVector;
 
@@ -431,6 +432,36 @@ immModel_getNonCriticalCcbs(IMMND_CB *cb,
 }
 
 void
+immModel_getOldCriticalCcbs(IMMND_CB *cb,
+    SaUint32T** ccbIdArr,
+    SaUint32T* ccbIdArrSize,
+    SaUint32T *pbeConn,
+    unsigned int *pbeNodeId,
+    SaUint32T* pbeId)
+{
+    IdVector ccbs;
+    IdVector::iterator ix2;
+    unsigned int ix;
+
+    if(ImmModel::instance(&cb->immModel)->getPbeOi(pbeConn, pbeNodeId)) {
+        ImmModel::instance(&cb->immModel)->getOldCriticalCcbs(ccbs, pbeConn,
+            pbeNodeId, pbeId);
+        *ccbIdArrSize = ccbs.size();
+        if(*ccbIdArrSize) {
+            *ccbIdArr = (SaUint32T *)
+                malloc((*ccbIdArrSize) * sizeof(SaUint32T));
+        
+            for(ix2=ccbs.begin(), ix=0;
+                ix2!=ccbs.end();
+                ++ix2, ++ix) {
+                (*ccbIdArr)[ix] = (*ix2);
+            }
+            assert(ix==(*ccbIdArrSize));
+        }
+    }
+}
+
+SaBoolT
 immModel_cleanTheBasement(IMMND_CB *cb, 
     SaUint32T seconds,
     SaInvocationT** admReqArr,
@@ -448,11 +479,13 @@ immModel_cleanTheBasement(IMMND_CB *cb,
     IdVector::iterator ix2;
     unsigned int ix;
     
-    ImmModel::instance(&cb->immModel)->cleanTheBasement(seconds, 
+    SaBoolT ccbsStuck = (SaBoolT)
+        ImmModel::instance(&cb->immModel)->cleanTheBasement(seconds, 
         admReqs, 
         searchReqs, 
         ccbs,
         iAmCoordNow);
+
     *admReqArrSize = admReqs.size();
     if(*admReqArrSize) {
         *admReqArr = (SaInvocationT *) malloc((*admReqArrSize) *
@@ -488,6 +521,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
         }
         assert(ix==(*ccbIdArrSize));
     }
+    return ccbsStuck;
 }
 
 SaAisErrorT
@@ -2214,6 +2248,7 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     info->mState = IMM_CCB_EMPTY;
     info->mWaitStartTime = 0;
     info->mOpCount = 0;
+    info->mPbeRestartId = 0;
     sCcbVector.push_back(info);
     
     TRACE_5("CCB %u created with admo %u", info->mId, adminOwnerId);
@@ -2240,8 +2275,8 @@ ImmModel::ccbResult(SaUint32T ccbId)
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				break; //Normal
 
-			case IMM_CCB_COMMITED:
-				TRACE_5("Fetch ccb result: CCB %u was commited", ccbId);
+			case IMM_CCB_COMMITTED:
+				TRACE_5("Fetch ccb result: CCB %u was committed", ccbId);
 				err = SA_AIS_OK;
 				break; //Normal
  
@@ -2260,10 +2295,10 @@ ImmModel::ccbResult(SaUint32T ccbId)
 				err = SA_AIS_ERR_TRY_AGAIN;
 				break; //Unusual
 
-        case IMM_CCB_CRITICAL:
+			case IMM_CCB_CRITICAL:
 				LOG_WA("ccbResult: CCB %u in critical state! Commit/apply in progress?", ccbId);
 				err = SA_AIS_ERR_TRY_AGAIN;
-				break; //Extremely Unusual
+				break; //Can happen if PBE crashes.
 
         default:
             LOG_ER("ccbResult: Illegal state %u in ccb %u", (*i)->mState, ccbId);
@@ -2329,7 +2364,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
             /* Remove assert after component test */
             assert(!sMissingParents.size());
 
-            TRACE_5("Apply CCB %u", (*i)->mId);
+            TRACE_5("Apply CCB %u", ccb->mId);
             ccb->mState = IMM_CCB_PREPARE;
             CcbImplementerMap::iterator isi;
             for(isi = ccb->mImplementers.begin();
@@ -2350,6 +2385,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 implAssoc->mContinuationId = ++sLastContinuationId;
                 if(ccb->mWaitStartTime == 0) {
                     ccb->mWaitStartTime = time(NULL);
+		    TRACE("Wait timer for completed started for ccb:%u", 
+			    ccb->mId);
                 }
                 SaUint32T implConn = impInfo->mConn;
                 if(implConn) {
@@ -2535,8 +2572,8 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         SaUint32T implConn = impInfo->mConn;
         if(implConn) {
             if(impInfo->mDying) {
-                LOG_ER("LOST CONNECTION WITH IMPLEMENTER %s AFTER APPLY BUT "
-                    "BEFORE COMPLETED. CCB %u will complete ayway. "
+                LOG_ER("LOST CONNECTION WITH IMPLEMENTER %s AFTER COMPLETED OK BUT "
+                    "BEFORE APPLY UC. CCB %u will apply ayway. "
                     "Discrepancy between Immsv and this implementer may be "
                     "the result", impInfo->mImplementerName.c_str(), ccbId);
                 
@@ -2552,8 +2589,8 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     //With FEVS and no PBE the critical phase is trivially completed.
     //We do not wait for replies from peer imm-server-nodes or from
     //implementers on the apply callback (no return code).
-    ccb->mState = IMM_CCB_COMMITED;
-    LOG_NO("Ccb %u COMMITED", ccb->mId);
+    ccb->mState = IMM_CCB_COMMITTED;
+    LOG_NO("Ccb %u COMMITTED", ccb->mId);
     return pbeModeChange;
 }
 
@@ -2610,8 +2647,8 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
             *client = ccb->mOriginatingConn;
             break;
             
-        case IMM_CCB_COMMITED:
-            TRACE_5("CCB %u was already commited", ccbId);
+        case IMM_CCB_COMMITTED:
+            TRACE_5("CCB %u was already committed", ccbId);
             TRACE_LEAVE();
             return;
             
@@ -2646,6 +2683,9 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
                     impInfo->mImplementerName.c_str(), ccbId);
             } else {
                 connVector.push_back(implConn);
+		TRACE_5("Abort upcall for implemneter %u/%s", 
+			impInfo->mId,
+			impInfo->mImplementerName.c_str());
             }
         }
         delete isi->second; //Should not affect the iteration
@@ -2678,7 +2718,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         switch(ccb->mState) {
             case IMM_CCB_EMPTY:
             case IMM_CCB_READY:
-            case IMM_CCB_COMMITED:
+            case IMM_CCB_COMMITTED:
             case IMM_CCB_ABORTED:
                 break; //OK
             case IMM_CCB_CREATE_OP:
@@ -2811,7 +2851,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         if(ccb->mWaitStartTime == 0)  {
             ccb->mWaitStartTime = time(NULL); 
             TRACE_5("Ccb Wait-time for GC set. State: %u/%s", ccb->mState,
-                (ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                (ccb->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                 ((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
         }
         //TODO(?) Would be neat to store ccb outcomes in the OpenSafImm object.
@@ -4343,8 +4383,9 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
        If the PBE crashes we could possibly force it to presumed abort.
        But that requires the current repository on disk to be scrapped,
        followed by a fresh PBE dump.
+       Instead we reset the timer so that a timeout on a ccb in critical
+       will force attempts to recover ccb-outcome from the current PBE.
     */
-    ccb->mWaitStartTime = 0;
 
     if(ccb->mState == IMM_CCB_CRITICAL) {
         /* This must be the PBE reply. Stop waiting. */
@@ -4352,6 +4393,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         if((*err) != SA_AIS_OK) {
             ccb->mState = IMM_CCB_PBE_ABORT;
         }
+        ccb->mWaitStartTime = 0;
         return false;
     }
 
@@ -4380,8 +4422,10 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
                The CCB is in critical phase until we know the outcome.
                This means we can not terminate the ccb (release the
                objects write locked by the ccb) until we know the outcome.
+               Restart the timer to catch ccbs hung waiting on PBE.
             */
-            return true; /* Wait also for PBE*/
+             ccb->mWaitStartTime = time(NULL);
+            return true; /* Wait for PBE commit*/
         } else {
             /* But there is not any PBE up currently => abort.  */
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
@@ -4474,10 +4518,14 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     CcbImplementerMap::iterator ix =
         ccb->mImplementers.find(rsp->implId);
     if(ix == ccb->mImplementers.end()) {
-        LOG_WA("implementer '%u' Not found in ccb - aborting ccb", 
-            rsp->implId);
         if((ccb->mVeto == SA_AIS_OK) && (ccb->mState < IMM_CCB_CRITICAL)) {
+            LOG_WA("Completed continuation: implementer '%u' Not found "
+                "in ccb %u aborting ccb", rsp->implId, ccbId);
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+        } else {
+            LOG_WA("Completed continuation: implementer '%u' Not found "
+                "in ccb %u in state(%u), can not abort", rsp->implId, 
+                    ccbId, ccb->mState);
         }
     } else {
         if(ccb->mState == IMM_CCB_CRITICAL) {
@@ -4488,6 +4536,7 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
             ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(&dummyConn, &dummyNodeId);
             if(!pbeImpl || (pbeImpl->mId != rsp->implId)) {
                 LOG_WA("Received commit/abort decision on ccb %u from terminated PBE", ccbId);
+                TRACE_LEAVE();
                 return; /* Intentionally drop the missmatched response.*/
                 /* If the PBE responds corrrectly, but crashes and gets deregistered
                    as implementer before this reply reaches us, the reply should be
@@ -4505,14 +4554,18 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
         }
 
         ix->second->mWaitForImplAck = false;
-        assert(/*(ix->second->mContinuationId == 0) ||*/
-               (ix->second->mContinuationId == rsp->inv));
+        if(/*(ix->second->mContinuationId == 0) ||*/
+               (ix->second->mContinuationId != rsp->inv)) {
+            TRACE("ix->second->mContinuationId(%u) != rsp->inv(%u)",
+                ix->second->mContinuationId, rsp->inv);
+        }
+
         *reqConn = ccb->mOriginatingConn;
 
         if((ccb->mVeto == SA_AIS_OK) && (rsp->result != SA_AIS_OK)) {
             LOG_IN("implementer returned error, Ccb aborted with error: %u",
                 rsp->result);
-            ccb->mVeto = rsp->result;
+            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     }
     TRACE_LEAVE();  
@@ -5779,7 +5832,9 @@ ImmModel::ccbsTerminated()
     if(sCcbVector.empty()) {return true;}
 
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
-        if((*i)->mState < IMM_CCB_COMMITED) {
+        if((*i)->mState < IMM_CCB_COMMITTED) {
+            TRACE("Waiting for CCB:%u in state %u", 
+                (*i)->mId, (*i)->mState);
             return false;
         }
     }
@@ -5799,6 +5854,91 @@ ImmModel::getNonCriticalCcbs(IdVector& cv)
 }
 
 void
+ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
+    unsigned int *pbeNodeIdPtr, SaUint32T* pbeIdPtr)
+{
+    assert(pbeConnPtr);
+    assert(pbeNodeIdPtr);
+    assert(pbeIdPtr);
+    *pbeNodeIdPtr = 0;
+    *pbeConnPtr = 0;
+    *pbeIdPtr = 0;
+    CcbVector::iterator i;
+    time_t now = time(NULL);
+    for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+        if((*i)->mState == IMM_CCB_CRITICAL && 
+           (((*i)->mWaitStartTime && 
+             now - (*i)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)||/* Should be saImmOiTimeout*/
+             (*i)->mPbeRestartId))
+        {
+            /* We have a critical ccb that has: timed out OR lived through a PBE restart.
+               This means the PBE is slow in processing (hung?) OR the PBE has crashed.
+               Find the ccb-implementer association and verify which case it is.
+             */
+            CcbInfo* ccb = (*i);
+            CcbImplementerMap::iterator isi;
+            ImplementerCcbAssociation* implAssoc = NULL;
+
+            for(isi = ccb->mImplementers.begin(); isi != ccb->mImplementers.end(); ++isi) {
+                implAssoc = isi->second;
+                if(implAssoc->mWaitForImplAck) {
+                    break;
+                }
+                implAssoc = NULL;
+            }
+
+            if(!implAssoc) {
+                LOG_ER("CCB %u seems blocked in CRITICAL, yet NOT waiting on implementer!!",
+                    ccb->mId);
+                continue;
+            }
+            
+            assert(implAssoc->mImplementer);
+
+            bool isPbe = (implAssoc->mImplementer->mImplementerName ==
+                std::string(OPENSAF_IMM_PBE_IMPL_NAME));
+
+
+            if(!isPbe) {
+                LOG_ER("CCB %u is blocked in CRITICAL, waiting on implementer %u/%s.",
+                    ccb->mId, implAssoc->mImplementer->mId,
+                    implAssoc->mImplementer->mImplementerName.c_str());
+                continue;
+            }
+
+            TRACE("CCB %u is waiting on PBE commit", ccb->mId);
+            ImplementerInfo* impInfo = (ImplementerInfo *)
+                getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+
+            if(!impInfo) {
+                LOG_IN("No PBE implementer registered at this time");
+                /* TODO###Should check rim if it was switched to  FROM_FILE
+                   FROM_FILE indicates the pathological case of PBE switched off
+                   accidentally leaving a ccb in critical state. 
+                */
+                continue;
+            } 
+
+            if(impInfo->mId != ccb->mPbeRestartId) {
+                LOG_WA("Missmatch between pbe-Id %u and pbe-restart-id %u", 
+                    impInfo->mId, ccb->mPbeRestartId);
+                if(ccb->mPbeRestartId == 0 &&
+                   (implAssoc->mImplementer->mId == impInfo->mId)) {
+                    LOG_ER("PBE implementer %u seems hung!", impInfo->mId);
+                    /*TODO return true => signalling need to kill pbe*/
+                } 
+            } 
+
+            /*This is the perfect match recovery case. **/
+            LOG_IN("PBE implementer %s restarted, check ccb %u",
+                impInfo->mImplementerName.c_str(), ccb->mId);
+            (*pbeIdPtr) = impInfo->mId;
+            cv.push_back((*i)->mId);
+        }
+    }
+}
+
+void
 ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
 {
     AdminOwnerVector::iterator i;
@@ -5812,7 +5952,7 @@ ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
     }
 }
 
-void
+bool
 ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     InvocVector& searchReqs, IdVector& ccbs,
     bool iAmCoord)
@@ -5821,6 +5961,7 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     ContinuationMap2::iterator ci2;
     CcbVector::iterator i3;
     CcbVector ccbsToGc;
+    bool ccbsStuck=false;
     
     for(ci2=sAdmReqContinuationMap.begin(); 
         ci2!=sAdmReqContinuationMap.end();
@@ -5857,6 +5998,7 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     //TODO See above problem description for sAdmImplContinuationMap.
     //Conclusion: I should add cleanup logic here anyway, since it is easy to
     //do and solves the problem. 
+
     
     for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
         if((*i3)->mState > IMM_CCB_CRITICAL) {
@@ -5869,19 +6011,31 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
             }
         } else if(iAmCoord) {
             //Fetch CcbIds for Ccbs that have waited too long on an implementer
+            //AND ccbIds for ccbs in critical and marked with PbeRestartedId.
+            //Restarted PBE => try to recover outcome BEFORE timeout, making
+            //recovery transparent to user!
             //TODO the timeout should not be hardwired, but for now it is.
             TRACE("Checking active ccb %u for deadlock or blocked implementer",
                 (*i3)->mId);
-            if((*i3)->mWaitStartTime &&
-               (now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) {
+            TRACE("state:%u waitsart:%u PberestartId:%u",(*i3)->mState, 
+                (unsigned int) (*i3)->mWaitStartTime, (*i3)->mPbeRestartId);
+            if(((*i3)->mWaitStartTime &&
+                (now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) ||
+                ((*i3)->mPbeRestartId)) {
                 //TODO Timeout value should be fetched from IMM service object.
-                TRACE_5("Timeout on CCB %u while waiting on implementer reply",
-                    (*i3)->mId);
+                if((*i3)->mPbeRestartId) { 
+                    TRACE_5("PBE restarted id:%u with ccb:%u in critical",
+                        (*i3)->mPbeRestartId, (*i3)->mId);
+                } else {
+                    TRACE_5("CCB %u timeout while waiting on implementer reply",
+                        (*i3)->mId);
+                }
                 if((*i3)->mState == IMM_CCB_CRITICAL) {
                     LOG_NO("Critical transaction backloged! ccb:%u",
-                       (*i3)->mId);
+                        (*i3)->mId);
+                    ccbsStuck=true;
                 } else {
-                    ccbs.push_back((*i3)->mId);
+                    ccbs.push_back((*i3)->mId); /*Non critical ccb to abort.*/
                 }
             }
         }
@@ -5916,6 +6070,7 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
       info->mAdminOpBusy);
       }
     */
+    return ccbsStuck;
 }
 
 
@@ -5986,7 +6141,40 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     LOG_IN("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
         info->mImplementerName.c_str(), info->mId, info->mConn, info->mNodeId,
         info->mDying);
-    
+
+    if(implName == std::string(OPENSAF_IMM_PBE_IMPL_NAME)) {
+        TRACE_7("Implementer %s for PBE created - "
+            "check for ccbs stuck in critical", implName.c_str());
+       /* If we find any, then surgically replace the implId of the implAssoc with
+           the new implId of the newly reincarnated PBE implementer.*/
+
+        CcbVector::iterator i;
+        for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+            CcbInfo* ccb = (*i);
+            if(ccb->mState == IMM_CCB_CRITICAL) {
+                TRACE("ABT ccId:%u", ccb->mId);
+                CcbImplementerMap::iterator isi;
+                for(isi = ccb->mImplementers.begin();
+                    isi != ccb->mImplementers.end(); ++isi) {
+                    ImplementerCcbAssociation* oldImplAssoc = isi->second;
+                    TRACE("ABT ccbid:%u assocImpl:%u", ccb->mId, isi->first);
+                    if(oldImplAssoc->mWaitForImplAck && oldImplAssoc->mImplementer) {
+                        ImplementerInfo* impInfo = oldImplAssoc->mImplementer;
+                        if(impInfo->mImplementerName == implName) {
+                            SaUint32T oldImplId = isi->first;
+                            if(oldImplId == info->mId) { continue; }/*already replaced*/
+                                ccb->mImplementers.erase(isi);
+                                ccb->mImplementers[info->mId] = oldImplAssoc;
+                                TRACE_7("Replaced implid %u with %u", oldImplId, info->mId);
+                                ccb->mPbeRestartId = info->mId;
+                                /* Can only be one PBE impl asoc*/
+                                break;  /* out of for(isi = ccb->mImplementers....*/
+                        }
+                    }
+                }
+            }
+        }
+    }
     /*
       ImplementerVector::iterator i;
       for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
@@ -8009,7 +8197,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             /*
               TRACE("Encode CCB-ID:%u outcome:(%u)%s", (*ccbItr)->mId,
                (*ccbItr)->mState,
-               ((*ccbItr)->mState == IMM_CCB_COMMITED)?"COMMITED":
+               ((*ccbItr)->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                (((*ccbItr)->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
             */
 
@@ -8151,7 +8339,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 sCcbVector.push_back(newCcb);
     
                 TRACE_5("CCB %u state %s", newCcb->mId, 
-                    (newCcb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                    (newCcb->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                     ((newCcb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
                 assert(!(newCcb->isActive()));
                 ol = ol->next;
@@ -8332,7 +8520,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     ++verified;
                     /*
                         TRACE_5("CCB %u verified with state %s", ccb->mId, 
-                         (ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                         (ccb->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                          ((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
                     */
                 }

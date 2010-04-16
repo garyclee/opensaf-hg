@@ -34,8 +34,6 @@
 #include "immnd.h"
 #include "immsv_api.h"
 
-#define SIG_TERM 15 
-
 static const char *loaderBase = "immload";
 static const char *pbeBase = BINDIR "/immdump";
 
@@ -680,6 +678,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	SaImmHandleT tmp_hdl = 0LL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaBoolT ccbsStuckInCritical=SA_FALSE;
 	/*TRACE_ENTER(); */
 
 	if (!immnd_is_immd_up(cb)) {
@@ -694,7 +693,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		dequeue_outgoing(cb); /* function body in immnd_evt.c */
 	}
 
-	immModel_cleanTheBasement(cb,
+	ccbsStuckInCritical = immModel_cleanTheBasement(cb,
 				  cb->mTimer,
 				  &admReqArr,
 				  &admReqArrSize,
@@ -737,6 +736,101 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		}
 
 		free(admReqArr);
+	}
+
+	if(ccbsStuckInCritical) {
+		TRACE("Try to recover outcome for ccbs stuck in critical.");
+		assert(cb->mPbeFile); 
+		/* We cant have lingering ccbs in critical if Pbe is not even 
+		   configured in the system !
+		*/
+
+		if(cb->mRim == SA_IMM_KEEP_REPOSITORY) {
+			SaUint32T pbeConn = 0;
+			if(cb->pbePid > 0) {/* Pbe is running. */
+				/* PBE has probably crashed and been restarted.
+				   This is the typical case where we could get 
+				   ccbs stuck in critical. Fetch the list of stuck
+				   ccb ids and probe the pbe for their outcome. 
+				 */
+				NCS_NODE_ID pbeNodeId = 0;
+				SaUint32T pbeId = 0;
+				int ix;
+				SaUint32T *ccbIdArr = NULL;
+				SaUint32T ccbIdArrSize = 0;
+				immModel_getOldCriticalCcbs(cb, &ccbIdArr, &ccbIdArrSize,
+					&pbeConn, &pbeNodeId, &pbeId);
+				if(pbeConn) {
+					IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
+					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+					IMMSV_EVT send_evt;
+					memset(&send_evt, 0, sizeof(IMMSV_EVT));
+					send_evt.type = IMMSV_EVT_TYPE_IMMA;
+					send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+					send_evt.info.imma.info.ccbCompl.implId = pbeId;
+					send_evt.info.imma.info.ccbCompl.invocation = 0;/* anonymous */
+
+
+					assert(ccbIdArrSize);
+					/*Fetch client node for PBE */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					assert(oi_cl_node);
+					assert(!(oi_cl_node->mIsStale));
+					for (ix = 0; ix < ccbIdArrSize; ++ix) {
+						TRACE_2("Fetch ccb outcome for ccb%u, nodeId:%u, conn:%u implId:%u",
+							ccbIdArr[ix], pbeNodeId, pbeConn, pbeId);
+						/* Generate a IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC towards pbeOi
+						   The pbe must somehow not reject this when it cant find the 
+						   ccb-record at the IMMA_OI level and the pbe-oi level.
+						   Instead generate a new ccb record at IMMA and PBE, fetch
+						   ccb outcome (or discard ccb) reply. This should hopefully click
+						   into the pending waitingforccbcompletedcontinuations, which should
+						   casue the ccb to get resolved. 
+
+						   Maybe, just maybe, first send a dummy ccb-op call to the oi ?
+						   This would also be safer.
+						 */
+						send_evt.info.imma.info.ccbCompl.ccbId = ccbIdArr[ix];
+						TRACE_2("MAKING CCB COMPLETED RECOVERY upcall for ccb:%u", ccbIdArr[ix]);
+						if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							   oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+							LOG_ER("CCB COMPLETED RECOVERY UPCALL for %u, SEND TO PBE FAILED", 
+								ccbIdArr[ix]);
+						} else {
+							TRACE_2("CCB COMPLETED RECOVERY UPCALL for ccb %u, SEND SUCCEEDED", 
+								ccbIdArr[ix]);
+						}
+
+					}
+				}
+				free(ccbIdArr);
+			}
+
+			if(!pbeConn)
+			{
+				LOG_WA("There are ccbs blocked in critical state, "
+					"waiting for pbe process to re-attach as OI");
+			}
+
+		} else {
+			assert(cb->mRim == SA_IMM_INIT_FROM_FILE);
+			/* This is a problematic case. Apparently PBE has
+			   been disabled in such a way that there are ccbs left
+			   blocked in critical. This should not be possible with
+			   current implementation as the PBE only handles one ccb
+			   commit at a time and a change of repository init mode
+			   is itself done in a ccb. Future implementations or 
+			   alternative backends could allow for severeal ccbs to
+			   commit concurrently. 
+			   Note that the PBE does handle several concurrent ccbs 
+			   in the operational (NON critical) state. The NON critical
+			   state includes the execution of completed upcalls by 
+			   normal OIs. 
+			*/
+			LOG_ER("PBE has beeb disabled with ccbs in critical state - "
+			       "To resolve: Enable PBE or resart/reload the cluster");
+		}
 	}
 
 	if (searchReqArrSize) {
@@ -798,6 +892,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 {
 	assert(cb->mIsCoord);
 	if (cb->mPendSync) {
+		TRACE("ccbsTerminated false because cb->mPendSync is still FALSE");
 		return SA_FALSE;
 	}
 
@@ -993,10 +1088,10 @@ uns32 immnd_proc_server(uns32 *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mTimer % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u cord:%u rim:%s",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
 			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-			"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			"KEEP_REPO":"FROM_FILE");
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1364,12 +1459,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			}
 			/* Independently of aborting or coordinating sync, 
 			   check if we should be starting/stopping persistent back-end.*/
-			if (cb->mPbeFile) {/* Pbe enabled */
-				/* TODO more efficient, only check if pbePid is zero. 
-				   Move rim to cb and only fetch after ccb-apply. 
-				 */
-				/*cb->mRim = immModel_getRepositoryInitMode(cb); Should not be needed */
-
+			if (cb->mPbeFile) {/* Pbe configured */
 				if (cb->pbePid == 0) { /* Pbe is NOT running */
 					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
 						LOG_NO("STARTING persistent back end process.");
@@ -1379,7 +1469,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 					assert(cb->pbePid > 0); /* Pbe is running. */
 					if (cb->mRim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
 						LOG_NO("STOPPING persistent back end process.");
-						kill(cb->pbePid, SIG_TERM);
+						kill(cb->pbePid, SIGTERM);
 					}
 				}
 			}
