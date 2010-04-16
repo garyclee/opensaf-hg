@@ -798,18 +798,18 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/osaf-amfd
 %{_pkgimmxml_svcdir}/avsv_classes.xml
 %{_pkgimmxml_svcdir}/avsv_objects.xml
-%{_pkgimmxml_svcdir}/amfmon_pl_template.xml
-%{_pkgimmxml_svcdir}/amfmon_sc_template.xml
-%{_pkgimmxml_svcdir}/amfmon_objects.xml
+%{_pkgimmxml_svcdir}/amfwdog_pl_template.xml
+%{_pkgimmxml_svcdir}/amfwdog_sc_template.xml
+%{_pkgimmxml_svcdir}/amfwdog_objects.xml
 
 %files amf-nodedirector
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/amfnd.conf
-%config(noreplace) %{_pkgsysconfdir}/amfmon.conf
+%config(noreplace) %{_pkgsysconfdir}/amfwdog.conf
 %{_pkglibdir}/osafamfnd
 %{_pkglibdir}/osaf-amfnd
-%{_pkglibdir}/osafmond
-%{_pkglibdir}/osaf-mond
+%{_pkglibdir}/osafamfwd
+%{_pkglibdir}/osaf-amfwd
 
 
 %if %is_ais_ckpt

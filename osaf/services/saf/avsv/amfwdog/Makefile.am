@@ -18,5 +18,17 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/avsv/amfmon/scripts/osaf-mond
+SUBDIRS = scripts
+
+pkglib_PROGRAMS = osafamfwd
+
+osafamfwd_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/libs/saf/include
+
+osafamfwd_SOURCES = \
+	amf_wdog.c
+
+osafamfwd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

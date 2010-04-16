@@ -21,13 +21,14 @@ MAINTAINERCLEANFILES = Makefile.in
 dist_pkgsysconf_DATA = \
 	$(top_srcdir)/osaf/services/saf/avsv/config/amfd.conf \
 	$(top_srcdir)/osaf/services/saf/avsv/config/amfnd.conf \
-	$(top_srcdir)/osaf/services/saf/avsv/config/amfmon.conf
+	$(top_srcdir)/osaf/services/saf/avsv/config/amfwdog.conf
 
 dist_pkgimmxml_svc_DATA = \
 	common_pl_template.xml \
 	common_sc_template.xml \
 	avsv_classes.xml \
 	avsv_objects.xml \
-	amfmon_sc_template.xml \
-	amfmon_pl_template.xml \
-	amfmon_objects.xml
+	amfwdog_sc_template.xml \
+	amfwdog_pl_template.xml \
+	amfwdog_objects.xml
+

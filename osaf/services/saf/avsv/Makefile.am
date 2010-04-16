@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = logstr avd avnd config amfmon
+SUBDIRS = logstr avd avnd config amfwdog
