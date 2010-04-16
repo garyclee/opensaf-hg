@@ -154,9 +154,6 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-
-		if (susi->si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL)
-			avd_gen_si_oper_state_chg_ntf(cb, susi->si);
 	}
 
 	*ret_ptr = susi;

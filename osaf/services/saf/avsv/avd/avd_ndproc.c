@@ -673,6 +673,17 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								    value_len);
 				}
 				break;
+			case saAmfCompProxyStatus_ID:
+				TRACE("comp proxy status");
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
+					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+					avd_comp_proxy_status_change(comp, l_val);
+				} else {
+					/* log error that a the  value len is invalid */
+					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+								    value_len);
+				}
+				break;
 			default:
 				/* log error that a the object value is invalid */
 				m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.attr_id);

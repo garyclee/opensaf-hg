@@ -158,7 +158,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 	/*
 	 * Update the rest of the parameters with default values.
 	 */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_ENABLED);
+	m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 	su->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
 	su->avd_updt_flag = FALSE;
 

@@ -63,6 +63,12 @@ const char *avd_oper_state_name[] = {
 	"DISABLED"
 };
 
+const char *avd_proxy_status_name[] = {
+	"INVALID",
+	"UNPROXIED",
+	"PROXIED"
+};
+
 const char *avd_readiness_state_name[] = {
 	"INVALID",
 	"OUT_OF_SERVICE",
@@ -1553,8 +1559,6 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
-
-	avd_gen_ncs_init_success_ntf(cb, avnd);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 
