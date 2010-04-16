@@ -207,6 +207,7 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 			TRACE("saClmNodeEE attribute name's length %d", name->length);
 
 			if (name->length != 0) {
+				clms_cb->reg_with_plm = SA_TRUE;
 				memcpy(node->ee_name.value, name->value, name->length);
 				node->ee_name.length = name->length;
 			}
@@ -1217,11 +1218,13 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 			i++;
 		}
 #ifdef ENABLE_AIS_PLM
-		rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
-					 SA_PLM_GROUP_SINGLE_ENTITY);
-		if (rc != SA_AIS_OK) {
-			LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
-			return rc;
+		if(clms_cb->reg_with_plm == SA_TRUE) {
+			rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
+					SA_PLM_GROUP_SINGLE_ENTITY);
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
+				return rc;
+			}
 		}
 #endif
 
@@ -1287,12 +1290,13 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 			i++;
 		}
 #ifdef ENABLE_AIS_PLM
-
-		rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
-					 SA_PLM_GROUP_SINGLE_ENTITY);
-		if (rc != SA_AIS_OK) {
-			LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
-			return rc;
+		if(clms_cb->reg_with_plm == SA_TRUE) {
+			rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
+					SA_PLM_GROUP_SINGLE_ENTITY);
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
+				return rc;
+			}
 		}
 #endif
 
