@@ -308,9 +308,6 @@ static uns32 clms_init(void)
 		LOG_ER("clms_imm_init FAILED");
 		goto done;
 	}
-#ifdef ENABLE_AIS_PLM
-	clms_cb->reg_with_plm = SA_TRUE;
-#endif
 
 	/* Declare as implementer && Read configuration data from IMM */
 	if (clms_imm_activate(clms_cb) != SA_AIS_OK) {
@@ -324,10 +321,11 @@ static uns32 clms_init(void)
 		goto done;
 	}
 #ifdef ENABLE_AIS_PLM
-	if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK) {
-		LOG_ER("clms_plm_init FAILED");
-		goto done;
-	}
+	if(clms_cb->reg_with_plm == SA_TRUE)
+		if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK) {
+			LOG_ER("clms_plm_init FAILED");
+			goto done;
+		}
 #endif
 
 	/*Self Node update */
@@ -442,10 +440,12 @@ int main(int argc, char *argv[])
 		}
 #ifdef ENABLE_AIS_PLM
 		/*Incase the Immnd restart is not supported fully,have to reint imm - TO Be Done */
-		if (fds[FD_PLM].revents & POLLIN) {
-			if ((error = saPlmDispatch(clms_cb->plm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-				LOG_ER("saPlmDispatch FAILED: %u", error);
-				break;
+		if (clms_cb->reg_with_plm == SA_TRUE){
+			if (fds[FD_PLM].revents & POLLIN) {
+				if ((error = saPlmDispatch(clms_cb->plm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saPlmDispatch FAILED: %u", error);
+					break;
+				}
 			}
 		}
 #endif
