@@ -1547,9 +1547,11 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 		if ((wp->chan_attrib & CHANNEL_UNLINKED) || (TRUE == forced)) {
 			if ((TRUE == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED)))
 				eds_remove_cname_rec(cb, wp);
-			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
-				printf("Deleting runtime object %s FAILED", chan_name.value);
-				return NCSCC_RC_FAILURE;
+			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
+					printf("Deleting runtime object %s FAILED", chan_name.value);
+					return NCSCC_RC_FAILURE;
+				}
 			}
 			eds_remove_worklist_entry(cb, wp->chan_id);
 		}
@@ -1590,9 +1592,11 @@ uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uns8 *chan_name)
 			if (wp->use_cnt == 0) {
 				channel_name.length = strlen((char *)wp->cname);
 				strncpy((char *)channel_name.value, (char *)wp->cname, channel_name.length);
-				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name) != SA_AIS_OK) {
-					printf("Deleting runtime object %s FAILED", channel_name.value);
-					return NCSCC_RC_FAILURE;
+				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+					if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name) != SA_AIS_OK) {
+						printf("Deleting runtime object %s FAILED", channel_name.value);
+						return NCSCC_RC_FAILURE;
+					}
 				}
 				eds_remove_worklist_entry(cb, wp->chan_id);
 			}
