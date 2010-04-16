@@ -1039,6 +1039,8 @@ void *plmc_udp_listener(void *arguments)
 		syslog(LOG_ERR, "plmc_udp_listener cannot match available "
 				"network insterfaces with IPs of controllers "
 				"specified in the plmcd.conf file");
+		send_error(PLMC_LIBERR_NO_CONF, PLMC_LIBACT_DESTROY_LIBRARY, 
+							NULL, PLMC_NOOP_CMD);
 		pthread_exit((void *)NULL);
 	}
 	inet_aton(match_ip, &inp);
@@ -1170,6 +1172,8 @@ void *plmc_tcp_listener(void *arguments)
 		syslog(LOG_ERR, "plmc_tcp_listener cannot match available "
 				"network insterfaces with IPs of controllers "
 				"specified in the plmcd.conf file");
+		send_error(PLMC_LIBERR_NO_CONF, PLMC_LIBACT_DESTROY_LIBRARY, 
+							NULL, PLMC_NOOP_CMD);
 		pthread_exit((void *)NULL);
 	}
 	inet_aton(match_ip, &inp);
