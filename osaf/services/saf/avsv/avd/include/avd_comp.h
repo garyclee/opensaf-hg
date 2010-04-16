@@ -193,6 +193,14 @@ extern void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_
  */
 extern void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state);
 
+/**
+ * Information regarding change of proxy status of the specified component,
+ * log, update IMM & check point to peer
+ * @param comp
+ * @param proxy_status
+ */
+extern void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status);
+
 extern void avd_comp_db_add(AVD_COMP *comp);
 
 extern AVD_COMP *avd_comp_new(const SaNameT *dn);

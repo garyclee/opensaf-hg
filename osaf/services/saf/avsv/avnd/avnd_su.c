@@ -371,7 +371,7 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 
 		/* disable the oper state (if pi su) */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_DISABLED);
+			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 		}
 	}

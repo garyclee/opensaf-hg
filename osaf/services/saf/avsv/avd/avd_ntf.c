@@ -26,47 +26,76 @@
 ******************************************************************************/
 
 #include <logtrace.h>
-#include <avd_ntf.h>
+#include <saflog.h>
+#include <avd_util.h>
 #include <avd_dblog.h>
+#include <avd_ntf.h>
 
 /*****************************************************************************
-  Name          :  avd_amf_alarm_service_impaired_ntf
+  Name          :  avd_gen_comp_inst_failed_ntf
 
-  Description   :  This function generates a ntf when the AMF service is not 
-                   able to provide its service.
+  Description   :  This function generates a component instantiation failed ntf.
 
   Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
-                   err -    Error Code
+                   comp - Pointer to the AVD_COMP struct
 
   Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
 
   Notes         :
 *****************************************************************************/
-uns32 avd_amf_alarm_service_impaired_ntf(AVD_CL_CB *avd_cb, SaAisErrorT err)
+uns32 avd_gen_comp_inst_failed_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
 {
 	uns32 status = NCSCC_RC_FAILURE;
-	SaNameT comp_name;
-	SaUint8T add_text[SA_MAX_NAME_LENGTH] = "AMF service";
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER();
 
-	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = strlen((SaInt8T*)add_text);
-	(void)memcpy(comp_name.value, add_text, strlen((SaInt8T*)add_text));
-
-	strcpy((SaInt8T*)add_text, "AMF service impaired");
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Instantiation Of Component %s Failed", comp->comp_info.name.value);
 
 	status = sendAlarmNotificationAvd(avd_cb,
-					  comp_name,
-					  add_text,
-					  SA_SVC_AMF,
-					  0x01,
-					  SA_NTF_OUT_OF_SERVICE,
-					  SA_NTF_SEVERITY_CRITICAL);
+						comp->comp_info.name,
+						add_text,
+						SA_SVC_AMF,
+						SA_AMF_NTFID_COMP_INSTANTIATION_FAILED, /* 0x02 */
+						SA_NTF_TIMING_PROBLEM,
+						SA_NTF_SEVERITY_MAJOR);
+	return status;
+
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_comp_clean_failed_ntf
+
+  Description   :  This function generates a component cleanup failed ntf.
+
+  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
+                   comp - Pointer to the AVD_COMP struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_comp_clean_failed_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	TRACE_ENTER();
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Cleanup Of Component %s Failed", comp->comp_info.name.value);
+
+	status = sendAlarmNotificationAvd(avd_cb,
+						comp->comp_info.name,
+						add_text,
+						SA_SVC_AMF,
+						SA_AMF_NTFID_COMP_CLEANUP_FAILED, /* 0x03 */
+						SA_NTF_RECEIVE_FAILURE,
+						SA_NTF_SEVERITY_MAJOR);
 
 	return status;
 }
-
 /*****************************************************************************
   Name          :  avd_gen_cluster_reset_ntf
 
@@ -100,9 +129,81 @@ uns32 avd_gen_cluster_reset_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
 					  comp_name,
 					  add_text,
 					  SA_SVC_AMF,
-					  0x04,
+					  SA_AMF_NTFID_CLUSTER_RESET, /* 0x04 */
 					  SA_NTF_RECEIVE_FAILURE,
 					  SA_NTF_SEVERITY_MAJOR);
+
+	return status;
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_si_unassigned_ntf
+
+  Description   :  This function generates a si unassigned ntf
+
+  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
+                   si - Pointer to the AVD_SI struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_si_unassigned_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaNameT comp_name;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	TRACE_ENTER();
+	saflog(LOG_NOTICE, amfSvcUsrName, "SI %s has no active assignments to any SU", si->name.value);
+
+	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
+	comp_name.length = si->name.length;
+	(void)memcpy(comp_name.value, si->name.value, comp_name.length);
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "SI designated by %s has no current active assignments to any SU", comp_name.value);
+
+	status = sendAlarmNotificationAvd(avd_cb,
+					  comp_name,
+					  add_text,
+					  SA_SVC_AMF,
+					  SA_AMF_NTFID_SI_UNASSIGNED, /* 0x05 */
+					  SA_NTF_SOFTWARE_ERROR,
+					  SA_NTF_SEVERITY_MAJOR);
+
+	return status;
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_comp_proxy_status_unproxied_ntf
+
+  Description   :  This function generates a proxied component orphane ntf.
+
+  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
+                   comp - Pointer to the AVD_COMP struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_comp_proxy_status_unproxied_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	TRACE_ENTER();
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Component %s become orphan", comp->comp_info.name.value);
+
+	status = sendAlarmNotificationAvd(avd_cb,
+						comp->comp_info.name,
+						add_text,
+						SA_SVC_AMF,
+						SA_AMF_NTFID_COMP_UNPROXIED, /* 0x06 */
+						SA_NTF_UNEXPECTED_INFORMATION,
+						SA_NTF_SEVERITY_MAJOR);
 
 	return status;
 }
@@ -126,7 +227,6 @@ uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER();
-	avd_log_admin_state_ntfs(node->saAmfNodeAdminState, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = node->name.length;
@@ -227,87 +327,6 @@ uns32 avd_gen_su_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
 }
 
 /*****************************************************************************
-  Name          :  avd_gen_si_unassigned_ntf
-
-  Description   :  This function generates a si unassigned ntf
-
-  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
-                   si - Pointer to the AVD_SI struct
-
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
-
-  Notes         :
-*****************************************************************************/
-uns32 avd_gen_si_unassigned_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
-{
-	uns32 status = NCSCC_RC_FAILURE;
-	SaNameT comp_name;
-	SaUint8T add_text[SA_MAX_NAME_LENGTH];
-
-	TRACE_ENTER();
-	avd_log_si_unassigned_ntfs(AVD_NTFS_UNASSIGNED, &(si->name), NCSFL_SEV_NOTICE);
-
-	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = si->name.length;
-	(void)memcpy(comp_name.value, si->name.value, comp_name.length);
-
-	memset(&add_text, '\0', sizeof(add_text));
-	sprintf((SaInt8T*)add_text, "SI designated by %s has no current active assignments to any SU", comp_name.value);
-
-	status = sendAlarmNotificationAvd(avd_cb,
-					  comp_name,
-					  add_text,
-					  SA_SVC_AMF,
-					  0x05,
-					  SA_NTF_SOFTWARE_ERROR,
-					  SA_NTF_SEVERITY_MAJOR);
-
-	return status;
-}
-
-/*****************************************************************************
-  Name          :  avd_gen_si_oper_state_chg_ntf
-
-  Description   :  This function generates a si oper state change ntf.
-
-  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
-                   si - Pointer to the AVD_SI struct
-
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
-
-  Notes         :
-*****************************************************************************/
-uns32 avd_gen_si_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
-{
-	uns32 status = NCSCC_RC_FAILURE;
-	SaNameT comp_name;
-	SaUint8T add_text[SA_MAX_NAME_LENGTH];
-
-	TRACE_ENTER();
-	if (si->list_of_sisu != AVD_SU_SI_REL_NULL) 
-	avd_log_oper_state_ntfs(NCS_OPER_STATE_ENABLE, &(si->name), NCSFL_SEV_NOTICE);
-	else 
-	avd_log_oper_state_ntfs(NCS_OPER_STATE_DISABLE, &(si->name), NCSFL_SEV_NOTICE);
-
-	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = si->name.length;
-	memcpy(comp_name.value, si->name.value, comp_name.length);
-
-	memset(&add_text, '\0', sizeof(add_text));
-	sprintf((SaInt8T*)add_text, "Oper state of SI %s changed", comp_name.value);
-
-	status = sendStateChangeNotificationAvd(avd_cb,
-						comp_name,
-						add_text,
-						SA_SVC_AMF,
-						0x6B,
-						SA_NTF_OBJECT_OPERATION,
-						SA_AMF_OP_STATE,
-						si->saAmfSIAdminState);
-	return status;
-}
-
-/*****************************************************************************
   Name          :  avd_gen_si_admin_state_chg_ntf
 
   Description   :  This function generates a si admin state change ntf.
@@ -326,7 +345,7 @@ uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER();
-	avd_log_admin_state_ntfs(si->saAmfSIAdminState, &(si->name), NCSFL_SEV_NOTICE);	
+	avd_log_admin_state_ntfs(si->saAmfSIAdminState, &(si->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = si->name.length;
@@ -343,6 +362,75 @@ uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_AMF_ADMIN_STATE,
 						si->saAmfSIAdminState);
+
+	return status;
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_su_oper_chg_ntf
+
+  Description   :  This function generates a su oper state change ntf.
+
+  Arguments     :  avd_cb - Pointer to the AVD_CB structure
+                   su - Pointer to the AVD_SU struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_su_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	/* Log the SU oper state  */
+	TRACE_ENTER();
+	avd_log_oper_state_ntfs(su->saAmfSUOperState, &(su->name), NCSFL_SEV_NOTICE);
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Oper state of SU %s changed", su->name.value);
+
+	status = sendStateChangeNotificationAvd(avd_cb,
+						 su->name,
+						 add_text,
+						 SA_SVC_AMF,
+						 SA_AMF_NTFID_SU_OP_STATE,
+						 SA_NTF_OBJECT_OPERATION,
+						 SA_AMF_OP_STATE,
+						 su->saAmfSUOperState);
+	return status;
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_su_pres_state_chg_ntf
+
+  Description   :  This function generates a su presense state change ntf.
+
+  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
+                   su - Pointer to the AVD_SU struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_su_pres_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	TRACE_ENTER();
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Presence state of SU %s changed", su->name.value);
+
+	status = sendStateChangeNotificationAvd(avd_cb,
+						 su->name,
+						 add_text,
+						 SA_SVC_AMF,
+						 SA_AMF_NTFID_SU_PRESENCE_STATE,
+						 SA_NTF_OBJECT_OPERATION,
+						 SA_AMF_PRESENCE_STATE,
+						 su->saAmfSUPresenceState);
 
 	return status;
 }
@@ -432,6 +520,41 @@ uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 						SA_NTF_OBJECT_OPERATION,
 						SA_AMF_HA_STATE,
 						susi->state);
+
+	return status;
+}
+
+/*****************************************************************************
+  Name          :  avd_gen_comp_proxy_status_proxied_ntf
+
+  Description   :  This function generates a notify when a component once again
+				   is proxied.
+
+  Arguments     :  avnd_cb - Pointer to the AVND_CB structure
+                   comp - Pointer to the AVND_COMP struct
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :
+*****************************************************************************/
+uns32 avd_gen_comp_proxy_status_proxied_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+	SaUint8T add_text[SA_MAX_NAME_LENGTH];
+
+	TRACE_ENTER();
+
+	memset(&add_text, '\0', sizeof(add_text));
+	sprintf((SaInt8T*)add_text, "Component %s is now proxied", comp->comp_info.name.value);
+
+	status = sendStateChangeNotificationAvd(avd_cb,
+						comp->comp_info.name,
+						add_text,
+						SA_SVC_AMF,
+						SA_AMF_NTFID_COMP_PROXY_STATUS, /* 0x070 */
+						SA_NTF_OBJECT_OPERATION,
+						SA_AMF_PROXY_STATUS,
+						SA_AMF_PROXY_STATUS_PROXIED);
 
 	return status;
 }
@@ -592,48 +715,6 @@ uns32 avd_clm_node_reconfiured_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 }
 
 /*****************************************************************************
-  Name          :  avd_gen_ncs_init_success_ntf
-
-  Description   :  This function generates a ncs initialization sucessful ntf
-
-  Arguments     :  avd_cb - Pointer to the AVD_CL_CB structure
-                   node -   Pointer to the AVD_AVND struct
-
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
-
-  Notes         :
-*****************************************************************************/
-uns32 avd_gen_ncs_init_success_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
-{
-	uns32 status = NCSCC_RC_FAILURE;
-	SaNameT comp_name;
-	SaUint8T add_text[ADDITION_TEXT_LENGTH];
-
-	TRACE_ENTER();
-        ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_NTFS_NCS_SUCC, AVD_FC_NTF, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, "TIL",
-           	   AVD_NTFS_NCS_INIT_SUCCESS,
-           	   node->node_info.nodeId);
-
-	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->name.length;
-	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
-
-	memset(&add_text, '\0', sizeof(add_text));
-	sprintf((SaInt8T*)add_text, "Opensaf Initialization is successful on a node %s ", comp_name.value);
-
-	status = sendStateChangeNotificationAvd(avd_cb,
-						comp_name,
-						add_text,
-						SA_SVC_AMF,
-						0x69,
-						SA_NTF_MANAGEMENT_OPERATION,
-						SA_AMF_ADMIN_STATE,
-						0);
-
-	return status;
-}
-
-/*****************************************************************************
   Name          :  avd_node_shutdown_failure_ntf
 
   Description   :  This function sends the ntf corresponding to a failure
@@ -712,12 +793,12 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNtfAlarmNotificationT myAlarmNotification;
-    
+
 	status = saNtfAlarmNotificationAllocate(avd_cb->ntfHandle, &myAlarmNotification,
 						/* numCorrelatedNotifications */
 						0,
 						/* lengthAdditionalText */
-						ADDITION_TEXT_LENGTH,
+						strlen((char*)add_text)+1,
 						/* numAdditionalInfo */
 						0,
 						/* numSpecificProblems */
@@ -740,7 +821,7 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 				 add_text,
 				 majorId,
 				 minorId,
-				 AVD_NTF_SENDER);
+				 AMF_NTF_SENDER);
 
 	*(myAlarmNotification.probableCause) = probableCause;
 	*(myAlarmNotification.perceivedSeverity) = perceivedSeverity;
@@ -781,7 +862,7 @@ uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 						      /* number of correlated notifications */
 						      0,
 						      /* length of additional text */
-						      ADDITION_TEXT_LENGTH,
+						      strlen((char*)add_text)+1,
 						      /* number of additional info items */
 						      0,
 						      /* number of state changes */
@@ -800,7 +881,7 @@ uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 				 add_text,
 				 majorId,
 				 minorId,
-				 AVD_NTF_SENDER);
+				 AMF_NTF_SENDER);
 
 	*(myStateNotification.sourceIndicator) = sourceIndicator;
 	myStateNotification.changedStates->stateId = stateId;

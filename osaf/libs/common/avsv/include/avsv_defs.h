@@ -224,6 +224,7 @@ typedef enum
    saAmfCompRestartCount_ID = 36,
    saAmfCompCurrProxyName_ID = 37,
    saAmfCompAMEnable_ID = 38,
+   saAmfCompProxyStatus_ID = 39,
    saAmfCompType_ID,
 } AVSV_AMF_COMP_ATTR_ID; 
 

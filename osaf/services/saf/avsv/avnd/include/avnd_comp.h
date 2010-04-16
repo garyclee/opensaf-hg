@@ -301,6 +301,7 @@ typedef struct avnd_comp_tag {
 	/* component states */
 	SaAmfOperationalStateT oper;	/* operational state */
 	SaAmfPresenceStateT pres;	/* presence state */
+	SaAmfProxyStatusT proxy_status;	/* status for component with proxy */
 
 	/* 
 	 * component request info (healthcheck, passive 
@@ -626,6 +627,22 @@ typedef struct avnd_comp_tag {
    } else \
       av[ac] = NULL; \
 }
+
+/* macros for comp proxy status */
+#define m_AVND_COMP_PROXY_STATUS_SET(x, val)  (((x)->proxy_status = val))
+
+#define m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, comp, o_rc) \
+{ \
+   AVSV_PARAM_INFO param; \
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO)); \
+   param.class_id = AVSV_SA_AMF_COMP; \
+   param.attr_id = saAmfCompProxyStatus_ID; \
+   param.name = (comp)->name; \
+   param.act = AVSV_OBJ_OPR_MOD; \
+   *((uns32 *)param.value) = m_NCS_OS_HTONL((comp)->proxy_status); \
+   param.value_len = sizeof(uns32); \
+   (o_rc) = avnd_di_object_upd_send((cb), &param); \
+};
 
 /*****************************************************************************
                  Macros to fill the callback parameters

@@ -208,12 +208,6 @@ typedef struct avnd_su_tag {
                       ((SA_AMF_OPERATIONAL_DISABLED == (x)->oper))
 #define m_AVND_SU_OPER_STATE_SET(x, val)  (((x)->oper= val))
 
-#define m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, x, val)\
-{\
-  m_AVND_SU_OPER_STATE_SET(x,val);\
-  avnd_gen_su_oper_state_chg_ntf(cb,x);\
-}
-
 /* macro to determine if all the comps in an su are operationally enabled */
 #define m_AVND_SU_IS_ENABLED(su, is) \
 { \
@@ -247,12 +241,6 @@ typedef struct avnd_su_tag {
            ( SA_AMF_PRESENCE_INSTANTIATED == (x)->pres )
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATING(x) \
            ( SA_AMF_PRESENCE_INSTANTIATING == (x)->pres )
-#define m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, x, val)\
-{\
-   m_AVND_SU_PRES_STATE_SET(x,val);\
-   avnd_gen_su_pres_state_chg_ntf(cb,x);\
-}\
-
 
 /* pre-configured su params */
 #define AVND_SU_FLAG_RESTART_DIS  0x00000001
