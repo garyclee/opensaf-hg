@@ -2836,6 +2836,13 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 			ncshm_give_hdl(gl_eda_hdl);
 			return rc;
 		}
+	} else {
+		rc = SA_AIS_ERR_VERSION;
+		m_LOG_EDSV_AF(EDA_LIMIT_GET_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
+			      gl_eda_hdl);
+		ncshm_give_hdl(evtHandle);
+		ncshm_give_hdl(gl_eda_hdl);
+		return rc;
 	}
 
 	/* Populate the message to be sent to the EDS */

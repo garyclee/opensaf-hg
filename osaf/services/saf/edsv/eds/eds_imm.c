@@ -22,6 +22,8 @@ static SaVersionT imm_version = { EDSV_IMM_RELEASE_CODE,
 	EDSV_IMM_MINOR_VERSION
 };
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+
 static const SaImmOiImplementerNameT implementer_name = EDSV_IMM_IMPLEMENTER_NAME;
 
 SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
@@ -132,7 +134,7 @@ SaImmOiCallbacksT_2 oi_cbks = {
 SaAisErrorT eds_imm_init(EDS_CB *cb)
 {
 	SaAisErrorT rc;
-
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK)
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
