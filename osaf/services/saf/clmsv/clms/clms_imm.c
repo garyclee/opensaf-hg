@@ -1170,6 +1170,7 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	node->stat_change = SA_TRUE;
 	node->change = SA_CLM_NODE_RECONFIGURED;
 	node->admin_op = IMM_RECONFIGURED;
+	++(clms_cb->cluster_view_num);
 	/*Send track callback with saClmClusterChangesT= SA_CLM_NODE_RECONFIGURED */
 	clms_send_track(clms_cb, node, SA_CLM_CHANGE_COMPLETED);
 	/*Clear admin_op and stat_change */
@@ -1614,7 +1615,6 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				/* nodeup true  ==> cluster member */
 				nodeop->member = SA_TRUE;
 				nodeop->admin_state = SA_CLM_ADMIN_UNLOCKED;
-				nodeop->boot_time = clms_get_SaTime();
 				nodeop->init_view = ++(clms_cb->cluster_view_num);
 				nodeop->stat_change = SA_TRUE;
 				nodeop->change = SA_CLM_NODE_JOINED;
@@ -1636,7 +1636,6 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				/* SA_PLM_READINESS_IN_SERVICE ==> cluster member */
 				nodeop->member = SA_TRUE;
 				nodeop->admin_state = SA_CLM_ADMIN_UNLOCKED;
-				nodeop->boot_time = clms_get_SaTime();
 				nodeop->init_view = ++(clms_cb->cluster_view_num);
 				nodeop->stat_change = SA_TRUE;
 				nodeop->change = SA_CLM_NODE_JOINED;
@@ -1722,7 +1721,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 			nodeop->stat_change = SA_TRUE;
 			nodeop->change = SA_CLM_NODE_SHUTDOWN;
-			nodeop->init_view = ++(clms_cb->cluster_view_num);
+			++(clms_cb->cluster_view_num);
 			--(osaf_cluster->num_nodes);
 
 			clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
