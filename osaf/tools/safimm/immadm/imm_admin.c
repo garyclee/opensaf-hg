@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (operationReturnValue != SA_AIS_OK) {
-			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s\n",
+			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 RETURNED: %s\n",
 				saf_error(operationReturnValue));
 			exit(EXIT_FAILURE);
 		}

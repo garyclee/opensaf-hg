@@ -94,7 +94,8 @@ extern "C" {
 
 	SaAisErrorT
 	    immModel_classDescriptionGet(IMMND_CB *cb, const IMMSV_OCTET_STRING *clName, struct ImmsvOmClassDescr *res);
-	void immModel_cleanTheBasement(IMMND_CB *cb,
+
+	SaBoolT immModel_cleanTheBasement(IMMND_CB *cb,
 				       SaUint32T seconds,
 				       SaInvocationT **admReqArr,
 				       SaUint32T *admReqArrSize,
@@ -103,6 +104,9 @@ extern "C" {
 				       SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize, SaBoolT iAmCoordNow);
 
 	void immModel_getNonCriticalCcbs(IMMND_CB *cb, SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize);
+
+	void immModel_getOldCriticalCcbs(IMMND_CB *cb, SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize, 
+		SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *pbeId);
 
 	SaAisErrorT
 	    immModel_ccbApply(IMMND_CB *cb,

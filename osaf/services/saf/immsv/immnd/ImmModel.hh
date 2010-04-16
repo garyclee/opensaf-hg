@@ -297,6 +297,11 @@ public:
     SaAisErrorT       ccbResult(SaUint32T ccbId);
     bool              ccbsTerminated();
     void              getNonCriticalCcbs(IdVector& cv);
+    void              getOldCriticalCcbs(
+					 IdVector& cv, 
+					 SaUint32T* pbeConn,
+					 unsigned int* pbeNodeId,
+					 SaUint32T* pbeId);
     bool              immNotWritable();
     bool              immNotPbeWritable();
     void*             getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode);
@@ -316,7 +321,7 @@ public:
                                SaUint32T ccbId, 
                                ConnVector& connVector,
                                SaUint32T* client);
-    void              cleanTheBasement(
+    bool              cleanTheBasement(
                                        unsigned int seconds, 
                                        InvocVector& admReqs,
                                        InvocVector& searchReqs,

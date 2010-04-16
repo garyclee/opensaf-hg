@@ -666,7 +666,7 @@ static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			SaImmRepositoryInitModeT oldRim = cb->mRim;
 			cb->mRim = (evt->info.ctrl_msg.pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
 			if(oldRim != cb->mRim) {
-				LOG_NO("SaImmRepositoryInitModeT changed to %s", 
+				LOG_NO("SaImmRepositoryInitModeT noted as being: %s", 
 					(cb->mRim == SA_IMM_KEEP_REPOSITORY)?"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 			}
 		}
