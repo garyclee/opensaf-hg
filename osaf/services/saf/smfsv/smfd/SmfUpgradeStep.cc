@@ -525,7 +525,7 @@ SmfUpgradeStep::onlineRemoveBundles(const std::string & i_node)
 bool 
 SmfUpgradeStep::onlineRemoveBundlesUserList(const std::string & i_node, const std::list < SmfBundleRef > &i_bundleList)
 {
-	TRACE("Online remove bundles supplied by separate list containing %d items on node %s", i_bundleList.size(), i_node.c_str());
+	TRACE("Online remove bundles supplied by separate list containing %zu items on node %s", i_bundleList.size(), i_node.c_str());
 	return callBundleScript(SMF_STEP_ONLINE_REMOVE, i_bundleList, i_node);
 }
 
