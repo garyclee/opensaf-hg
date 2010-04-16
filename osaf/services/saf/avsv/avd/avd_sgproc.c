@@ -68,7 +68,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
 
-	if ((susi = avd_susi_create(cb, si, su, ha_state)) == NULL) {
+	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == NULL) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
 			su->name.value, si->name.value);
 		goto done;
@@ -141,15 +141,6 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			avd_susi_delete(cb, susi, TRUE);
 
 			goto done;
-		}
-
-		if (ha_state == SA_AMF_HA_ACTIVE) {
-			avd_su_inc_curr_act_si(su);
-			avd_si_inc_curr_act_ass(si);
-		}
-		else {
-			avd_su_inc_curr_stdby_si(su);
-			avd_si_inc_curr_stdby_ass(si);
 		}
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -807,12 +798,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			goto done;
 		}
 
+		TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
 		case AVSV_SUSI_ACT_DEL:
-			/* AvND can force a abrupt removal of assignments */
-			su->saAmfSUNumCurrStandbySIs = 0;
-			su->saAmfSUNumCurrActiveSIs = 0;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 			break;
 
 		case AVSV_SUSI_ACT_MOD:
@@ -1043,16 +1031,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			goto done;
 		}
 
+		TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
 		case AVSV_SUSI_ACT_DEL:
-			/* AvND can force a abrupt removal of assignments */
-			if (susi->state == SA_AMF_HA_STANDBY) {
-				avd_su_dec_curr_stdby_si(susi->su);
-				avd_si_dec_curr_stdby_ass(susi->si);
-			} else {
-				avd_su_dec_curr_act_si(susi->su);
-				avd_si_dec_curr_act_ass(susi->si);
-			}
 			break;
 
 		case AVSV_SUSI_ACT_ASGN:

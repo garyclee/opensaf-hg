@@ -147,13 +147,15 @@ void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state)
+AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, NCS_BOOL ckpt)
 {
 	AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
 	AVD_SU *curr_su = 0;
 	AVD_SUS_PER_SI_RANK_INDX i_idx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0, *i_su_rank_rec = 0;
 	uns32 rank1, rank2;
+
+	TRACE_ENTER2("%s %s state=%u", su->name.value, si->name.value, state);
 
 	/* Allocate a new block structure now
 	 */
@@ -256,12 +258,22 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	}
 
 done:
-	if (su_si != NULL) {
+	if ((ckpt == FALSE) && (su_si != NULL)) {
 		avd_create_susi_in_imm(state, &si->name, &su->name);
 		saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
 			   avd_ha_state[state], su->name.value, si->name.value);
+
+		if (state == SA_AMF_HA_ACTIVE) {
+			avd_su_inc_curr_act_si(su);
+			avd_si_inc_curr_act_ass(si);
+		}
+		else {
+			avd_su_inc_curr_stdby_si(su);
+			avd_si_inc_curr_stdby_ass(si);
+		}
 	}
 
+	TRACE_LEAVE();
 	return su_si;
 }
 
@@ -426,6 +438,7 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	AVD_AVND *avnd = NULL;
 	SaBoolT is_ncs = susi->su->sg_of_su->sg_ncs_spec;
 
+	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
 	m_AVD_GET_SU_NODE_PTR(cb, susi->su, avnd);
 
 	/* delete the comp-csi rels */
@@ -478,11 +491,12 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 		susi->si_next = NULL;
 	}
 
-	if (!ckpt) {
-		/* update the si counters */
+	if (ckpt == FALSE) {
 		if (SA_AMF_HA_STANDBY == susi->state) {
+			avd_su_dec_curr_stdby_si(susi->su);
 			avd_si_dec_curr_stdby_ass(susi->si);
 		} else {
+			avd_su_dec_curr_act_si(susi->su);
 			avd_si_dec_curr_act_ass(susi->si);
 		}
 	}
@@ -499,6 +513,7 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 
 	free(susi);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
