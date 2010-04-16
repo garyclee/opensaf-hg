@@ -19,7 +19,7 @@
  *
  * DESCRIPTION:
  *
- * This file contains the AMF monitor process.
+ * This file contains the AMF watchdog process.
  *
  * If health checks stops being received from AMF or if AMF goes down,
  * the latest received health check will be printed in syslog and the node
@@ -115,14 +115,14 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 static void amf_down_cb(void)
 {
 	int status;
-	const char *env_value = getenv("AMFMON_HC_TIMEOUT_MS");
+	const char *env_value = getenv("AMFWDOG_TIMEOUT_MS");
 
-	if(env_value && !strtol(env_value, NULL, 0)) /* AMF monitor disabled */
-		syslog(LOG_ERR, "AMF is down. AMF monitor is disabled, no action");
-	else { /* AMF monitor enabled */
+	if(env_value && !strtol(env_value, NULL, 0)) /* AMF watchdog disabled */
+		syslog(LOG_ERR, "AMF is down. AMF watchdog is disabled, no action");
+	else { /* AMF watchdog enabled */
 		syslog(LOG_ERR, "ordering system reboot, AMF unexpectedly crasched"); 
 		if ((status = system("shutdown -r now")) == -1)
-		syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
+			syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
 	}
 }
 
@@ -134,18 +134,18 @@ int main(int argc, char *argv[])
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[1];
 	int poll_timeout = 60000; 	/* Default timeout is 60s */
-	const char *env_value = getenv("AMFMON_HC_TIMEOUT_MS");
+	const char *env_value = getenv("AMFWDOG_TIMEOUT_MS");
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
 	
 	/* Change scheduling for current thread class to real time. */
 	{
-		struct sched_param param = {.sched_priority = sched_get_priority_min(SCHED_RR) }; /* Same prio as amfnd. */
+		/* Use same prio as AMF node director. */
+		struct sched_param param = {.sched_priority = sched_get_priority_min(SCHED_RR) };
 		
 		if (sched_setscheduler(0, SCHED_RR, &param) == -1)
-			syslog(LOG_ERR, "Could not set scheduling class for osafmond: %s",
-					strerror(errno));
+			syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
 	}
 
 	daemonize(argc, argv);
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
 	rc = saAmfInitialize(&amf_hdl, &amf_callbacks, &ver);
 	if (SA_AIS_OK != rc) {
-		syslog(LOG_ERR, " saAmfInitialize FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfInitialize FAILED %u", rc);
 		goto done;
 	}
 
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 
 	/* start the AMF health check */
 	memset(&hc_key, 0, sizeof(hc_key));
-	if ((hc_key_env = getenv("AMFMON_ENV_HEALTHCHECK_KEY")) == NULL)
+	if ((hc_key_env = getenv("AMFWDOG_ENV_HEALTHCHECK_KEY")) == NULL)
 		strcpy((char *)hc_key.key, "Default");
 	else
 		strcpy((char *)hc_key.key, hc_key_env);
