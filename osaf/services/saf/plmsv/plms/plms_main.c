@@ -319,7 +319,7 @@ static uns32 plms_init()
 
 	if( cb->hpi_cfg.hpi_support ) {
 		/* Load the HPI Interface library */
-		hpi_intf_handle = dlopen("libplms_hpi.so",RTLD_LAZY);
+		hpi_intf_handle = dlopen("libplms_hpi.so.0",RTLD_LAZY);
 		if( NULL == hpi_intf_handle ) {
 			LOG_ER("dlopen() to load libplms_hpi.so failed with error %s",
 									dlerror());
