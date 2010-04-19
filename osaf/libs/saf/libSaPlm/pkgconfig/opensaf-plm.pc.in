@@ -1,13 +1,11 @@
 prefix=@prefix@
 exec_prefix=@prefix@
 libdir=@libdir@
-pkglibdir=@libdir@/@PACKAGE_NAME@
 includedir=@includedir@
 
 Name: OpenSAF PLM 
 Description: Implementation of SA Forum AIS PLM Service
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lSaPlm -L${pkglibdir}
+Libs: -L${libdir} -lSaPlm
 Cflags: -I${includedir}
-
