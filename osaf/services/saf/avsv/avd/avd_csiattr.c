@@ -101,6 +101,30 @@ done:
 	return csiattr;
 }
 
+static int is_csiattr_valid(AVD_CSI *csi, char *csiattr)
+{
+	AVD_CSI_ATTR *i_attr = csi->list_attributes;
+	char *p1, *p2;
+	
+	p2 = strchr(csiattr, ',');
+	*p2 = '\0';
+
+	p1 = strchr(csiattr, '=');
+	p1++;
+
+	if ((p2 - p1) > SA_MAX_NAME_LENGTH)
+		goto done;
+
+	while (i_attr != NULL) {
+		if (strncmp((char *)&i_attr->name_value.name.value, p1, p2 - p1) == 0)
+			return 0;
+		i_attr = i_attr->attr_next;
+	}
+
+done:
+	return 1;
+}
+
 static int is_config_valid(const SaNameT *dn)
 {
 	char *parent;
@@ -176,8 +200,35 @@ static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfCSIAttribute not supported");
+		{
+		SaNameT csi_dn;
+		AVD_CSI *csi;
+
+		if (!is_config_valid(&opdata->objectName)) 
+			break;
+
+		/* extract the parent csi dn */
+		strncpy((char *)&csi_dn.value, 
+				strstr((char *)&opdata->objectName.value, "safCsi="),
+				SA_MAX_NAME_LENGTH); 
+		csi_dn.length = strlen((char *)&csi_dn.value);
+
+		if (NULL == (csi = avd_csi_get(&csi_dn)))
+			break;
+
+		/* check whether the SI of parent csi is in locked state */
+		if ((csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) ||
+		    (csi->si->list_of_sisu != NULL) || (csi->list_compcsi != NULL))
+			break;
+
+		/* check whether an attribute with this name already exists in csi
+		   if exists, only then the modification of attr values allowed */
+		if (!is_csiattr_valid(csi, (char *)&opdata->objectName.value))
+			break;
+
+		rc = SA_AIS_OK;
 		break;
+		}
 	case CCBUTIL_DELETE:
 		rc = SA_AIS_OK;
 		break;
@@ -189,6 +240,54 @@ static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
+static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attr_mod;
+	const SaImmAttrValuesT_2 *attribute;
+	AVD_CSI_ATTR *csiattr = NULL, *i_attr;
+	char *p1, *p2;
+	int i;
+	AVD_CSI *csi;
+	SaNameT csi_dn;
+
+	/* get the parent csi dn */
+	strncpy((char *)&csi_dn.value, 
+			strstr((char *)&opdata->objectName.value, "safCsi="),
+			SA_MAX_NAME_LENGTH); 
+	csi_dn.length = strlen((char *)&csi_dn.value);
+
+	assert (NULL != (csi = avd_csi_get(&csi_dn)));
+
+	attr_mod = opdata->param.modify.attrMods[0];
+	attribute = &attr_mod->modAttr;
+
+	p2 = strchr((char *)&opdata->objectName.value, ',');
+	*p2 = '\0';
+	p1 = strchr((char *)&opdata->objectName.value, '=');
+	p1++;
+
+	/* create new name-value pairs for the modified csi attribute */
+	for (i = 0; i < attribute->attrValuesNumber; i++)
+	{
+		char *value = attribute->attrValues[i++];
+		if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
+			LOG_ER("%s:calloc FAILED", __FUNCTION__);
+			return;
+		}
+
+		i_attr->attr_next = csiattr;
+		csiattr = i_attr;
+
+		csiattr->name_value.name.length = p2 - p1;
+		memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
+		csiattr->name_value.value.length = strlen (value);
+		memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+	}
+
+	/* add the modified csiattr values to parent csi */
+	avd_csi_add_csiattr(csi, csiattr);
+}
+
 static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -197,6 +296,9 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_CREATE:
 		break;
 	case CCBUTIL_DELETE:
+		break;
+	case CCBUTIL_MODIFY:
+		csiattr_modify_apply(opdata);
 		break;
 	default:
 		assert(0);
