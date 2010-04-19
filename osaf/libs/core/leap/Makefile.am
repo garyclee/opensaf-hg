@@ -30,7 +30,6 @@ libleap_la_CPPFLAGS = \
 libleap_la_SOURCES = \
 	ncsdlib.c \
 	ncs_posix_tmr.c \
-	sysf_dl.c \
 	sysf_def.c \
 	patricia.c \
 	sysf_ipc.c \
@@ -43,7 +42,6 @@ libleap_la_SOURCES = \
 	nid_api.c \
 	sysf_file.c \
 	nid_ipc.c \
-	hj_dlprm.c \
 	hj_dec.c \
 	hj_edp.c \
 	hj_edu.c \
@@ -55,7 +53,6 @@ libleap_la_SOURCES = \
 	hj_ubaid.c \
 	hj_ipv6.c \
 	sysf_exc_scr.c \
-	os_defs.c \
-	dl_defs.c
+	os_defs.c
 
 libleap_la_LDFLAGS = -static
