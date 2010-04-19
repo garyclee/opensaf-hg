@@ -67,22 +67,30 @@ set of components protecting the same component service instance.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-log-libs = %{version}-%{release}
 
 %description amf-director
+The OpenSAF implementation of the SAF-AIS-AMF Service. This daemon must be
+running on the System Controller nodes only.
 
 %package amf-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description amf-nodedirector
-
+The OpenSAF implementation of the SAF-AIS-AMF Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %if %is_ais_ckpt
 
@@ -105,25 +113,30 @@ recorded before the failure.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-ckpt-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description ckpt-director
+The OpenSAF implementation of the SAF-AIS-CKPT Service. This daemon must be
+running on the System Controller nodes only.
 
 %package ckpt-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-ckpt-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description ckpt-nodedirector
+The OpenSAF implementation of the SAF-AIS-CKPT Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %endif
-
 
 %package clm-libs
 Group: System Environment/Libraries
@@ -143,6 +156,8 @@ configured nodes, each with a unique node name.
 %package clm-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -152,13 +167,18 @@ Requires: %{name}-plm-libs = %{version}-%{release}
 %endif
 
 %description clm-server
+The OpenSAF implementation of the SAF-AIS-CLM Service. This daemon must be
+running on the System Controller nodes only.
 
 %package clm-nodeagent
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description clm-nodeagent
+The OpenSAF implementation of the SAF-AIS-CLM Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %if %is_ais_evt
 
@@ -180,15 +200,17 @@ a cluster-wide entity named event channel.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-EVT Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-evt-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description evt-server
+The OpenSAF implementation of the SAF-AIS-EVT Service. This daemon must be
+running on the System Controller nodes only.
 
 %endif
-
 
 %package imm-libs
 Group: System Environment/Libraries
@@ -207,23 +229,28 @@ various objects of the SA Forum Information Model.
 %package imm-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
-#BuildRequires: libxml2-devel
-#Requires: libxml2
+BuildRequires: libxml2-devel
+Requires: libxml2
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description imm-director
+The OpenSAF implementation of the SAF-AIS-IMM Service. This daemon must be
+running on the System Controller nodes only.
 
 %package imm-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description imm-nodedirector
-
+The OpenSAF implementation of the SAF-AIS-IMM Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %if %is_ais_lck
 
@@ -244,23 +271,28 @@ access to a shared resource.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-lck-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description lck-director
+The OpenSAF implementation of the SAF-AIS-LCK Service. This daemon must be
+running on the System Controller nodes only.
 
 %package lck-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-lck-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description lck-nodedirector
+The OpenSAF implementation of the SAF-AIS-LCK Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %endif
-
 
 %package log-libs
 Group: System Environment/Libraries
@@ -281,11 +313,13 @@ disconnects and unavailable resources.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LOG Service
 Requires: /lib/lsb/init-functions
-Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description log-server
+The OpenSAF implementation of the SAF-AIS-LOG Service. This daemon must be
+running on the System Controller nodes only.
 
 %if %is_ais_plm
 
@@ -317,8 +351,11 @@ Requires: %{name}-plm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-plm-coordinator = %{version}-%{release}
 
 %description plm-server
+The OpenSAF implementation of the SAF-AIS-PLM Service. This daemon must be
+running on the System Controller nodes only.
 
 %package plm-coordinator
 Group: System Environment/Daemons
@@ -327,6 +364,8 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 %description plm-coordinator
+The OpenSAF implementation of the SAF-AIS-PLM Service. This daemon must be
+running on any nodes that need Execution Environment (EE) integration with PLM.
 
 %package plm-hpi
 Group: System Environment/Libraries
@@ -338,6 +377,8 @@ Requires: openhpi
 Requires: %{name}-plm-server = %{version}-%{release}
 
 %description plm-hpi
+The OpenSAF implementation of the SAF-AIS-PLM Service. This provides the HPI
+integration support to PLM.
 
 %endif
 
@@ -363,22 +404,28 @@ have not yet been consumed when the message queue is closed.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-msg-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description msg-director
+The OpenSAF implementation of the SAF-AIS-MSG Service. This daemon must be
+running on the System Controller nodes only.
 
 %package msg-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-msg-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description msg-nodedirector
+The OpenSAF implementation of the SAF-AIS-MSG Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %endif
 
@@ -405,13 +452,14 @@ managers are used in the definition of the current notification standard.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-NTF Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
-Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
 
 %description ntf-server
-
+The OpenSAF implementation of the SAF-AIS-NTF Service. This daemon must be
+running on the System Controller nodes only.
 
 %if %is_ais_smf
 
@@ -420,7 +468,6 @@ Group: System Environment/Libraries
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
-Requires: %{name}-libs = %{version}-%{release}
 Obsoletes: %{name}-smf-libs < %{version}-%{release}
 
 %description smf-libs
@@ -434,9 +481,10 @@ changes cause no (or only minimal) loss of service.
 %package smf-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
-#BuildRequires: libxml2-devel
-#Requires: libxml2
+BuildRequires: libxml2-devel
+Requires: libxml2
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -444,18 +492,22 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
 
 %description smf-director
+The OpenSAF implementation of the SAF-AIS-SMF Service. This daemon must be
+running on the System Controller nodes only.
 
 %package smf-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
 Requires: /lib/lsb/init-functions
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description smf-nodedirector
+The OpenSAF implementation of the SAF-AIS-SMF Service. This daemon must be
+running on both the System Controller nodes and the Payload nodes.
 
 %endif
-
 
 %package controller
 Group: System Environment/Daemons
@@ -477,36 +529,6 @@ Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-log-server = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
 Requires: %{name}-ntf-server = %{version}-%{release}
-%if %is_ais_plm
-Requires: %{name}-plm-libs = %{version}-%{release}
-Requires: %{name}-plm-server = %{version}-%{release}
-Requires: %{name}-plm-coordinator = %{version}-%{release}
-Requires: %{name}-plm-hpi = %{version}-%{release}
-%endif
-%if %is_ais_ckpt
-Requires: %{name}-ckpt-libs = %{version}-%{release}
-Requires: %{name}-ckpt-director = %{version}-%{release}
-Requires: %{name}-ckpt-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_evt
-Requires: %{name}-evt-libs = %{version}-%{release}
-Requires: %{name}-evt-server = %{version}-%{release}
-%endif
-%if %is_ais_lck
-Requires: %{name}-lck-libs = %{version}-%{release}
-Requires: %{name}-lck-director = %{version}-%{release}
-Requires: %{name}-lck-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_msg
-Requires: %{name}-msg-libs = %{version}-%{release}
-Requires: %{name}-msg-director = %{version}-%{release}
-Requires: %{name}-msg-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_smf
-Requires: %{name}-smf-libs = %{version}-%{release}
-Requires: %{name}-smf-director = %{version}-%{release}
-Requires: %{name}-smf-nodedirector = %{version}-%{release}
-%endif
 
 %description controller
 
@@ -527,29 +549,6 @@ Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-imm-nodedirector = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
-%if %is_ais_plm
-Requires: %{name}-plm-libs = %{version}-%{release}
-Requires: %{name}-plm-coordinator = %{version}-%{release}
-%endif
-%if %is_ais_ckpt
-Requires: %{name}-ckpt-libs = %{version}-%{release}
-Requires: %{name}-ckpt-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_evt
-Requires: %{name}-evt-libs = %{version}-%{release}
-%endif
-%if %is_ais_lck
-Requires: %{name}-lck-libs = %{version}-%{release}
-Requires: %{name}-lck-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_msg
-Requires: %{name}-msg-libs = %{version}-%{release}
-Requires: %{name}-msg-nodedirector = %{version}-%{release}
-%endif
-%if %is_ais_smf
-Requires: %{name}-smf-libs = %{version}-%{release}
-Requires: %{name}-smf-nodedirector = %{version}-%{release}
-%endif
 
 %description payload
 
@@ -575,6 +574,7 @@ Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
 %if %is_ais_plm
 Requires: %{name}-plm-libs = %{version}-%{release}
+Requires: %{name}-plm-coordinator = %{version}-%{release}
 %endif
 %if %is_ais_ckpt
 Requires: %{name}-ckpt-libs = %{version}-%{release}
