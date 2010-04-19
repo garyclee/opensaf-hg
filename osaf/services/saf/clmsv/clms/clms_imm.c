@@ -1733,7 +1733,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			(void)immutil_saImmOiAdminOperationResult(clms_cb->immOiHandle, nodeop->curr_admin_inv,
 								  SA_AIS_OK);
 
-			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_NODE_SHUTDOWN);
+			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_node_admin_state_change_ntf failed %u", rc);
 			}
