@@ -307,8 +307,9 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 	}
 	
 	/* If not forced lock, check the feasibility. */
-	if (0 != (strcmp(evt->req_evt.admin_op.option,
-					SA_PLM_ADMIN_LOCK_OPTION_FORCED))){
+	if ( (0 == (strcmp(evt->req_evt.admin_op.option,
+	SA_PLM_ADMIN_LOCK_OPTION_TRYLOCK))) || 
+	('\0' == evt->req_evt.admin_op.option[0])){
 		/* If I am OOS, then I am the only affected entity.*/
 		if ((SA_PLM_READINESS_OUT_OF_SERVICE ==
 		ent->entity.he_entity.saPlmHEReadinessState)){ 
@@ -378,7 +379,8 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 
 		}
 	/* If forced lock.*/	
-	}else{
+	}else if (0 == (strcmp(evt->req_evt.admin_op.option,
+	SA_PLM_ADMIN_LOCK_OPTION_FORCED))) {  
 		/* If I am aff, then I should be in adm context, otherwise
 		reject the forced lock.*/
 		if (ent->am_i_aff_ent && !(ent->adm_op_in_progress)){
@@ -446,6 +448,12 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 			TRACE_LEAVE2("ret_err: %d",ret_err);
 			return ret_err;
 		}
+	}else{/* Invalid lock option.*/
+		LOG_ER("Invalid Lock option: %s",evt->req_evt.admin_op.option);	
+		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,evt->req_evt.admin_op.inv_id,
+		SA_AIS_ERR_INVALID_PARAM);
+		TRACE_LEAVE2("ret_err: %d",ret_err);
+		return ret_err;
 	}
 	
 	if(0 == (strcmp(evt->req_evt.admin_op.option,
@@ -1554,8 +1562,9 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 	}
 	
 	/* If not forced lock, check the feasibility. */
-	if (0 != (strcmp(evt->req_evt.admin_op.option,
-					SA_PLM_ADMIN_LOCK_OPTION_FORCED))){
+	if ( (0 == (strcmp(evt->req_evt.admin_op.option,
+	SA_PLM_ADMIN_LOCK_OPTION_TRYLOCK))) || 
+	('\0' == evt->req_evt.admin_op.option[0])){
 		/* If I am OOS, then I am the only affected entity.*/
 		if ((SA_PLM_READINESS_OUT_OF_SERVICE ==
 		ent->entity.ee_entity.saPlmEEReadinessState)){
@@ -1627,7 +1636,8 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 			}
 		}
 	/* If forced lock.*/	
-	}else{
+	}else if (0 == (strcmp(evt->req_evt.admin_op.option,
+	SA_PLM_ADMIN_LOCK_OPTION_FORCED))) {  
 		/* If I am aff, then I should be in admin context,
 		otherwise reject the forced lock.*/
 		if (ent->am_i_aff_ent && !(ent->adm_op_in_progress)){
@@ -1691,6 +1701,12 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 			TRACE_LEAVE2("ret_err: %d",ret_err);
 			return ret_err;
 		}
+	}else{/* Invalid lock option.*/
+		LOG_ER("Invalid Lock option: %s",evt->req_evt.admin_op.option);	
+		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,evt->req_evt.admin_op.inv_id,
+		SA_AIS_ERR_INVALID_PARAM);
+		TRACE_LEAVE2("ret_err: %d",ret_err);
+		return ret_err;
 	}
 	
 	if(0 == (strcmp(evt->req_evt.admin_op.option,
@@ -2311,6 +2327,15 @@ SaUint32T plms_EE_adm_restart( PLMS_EVT *evt)
 		return ret_err;
 	}
 	
+	if( (0 != strcmp(evt->req_evt.admin_op.option,
+		SA_PLM_ADMIN_RESTART_OPTION_ABRUPT)) && 
+		('\0' != evt->req_evt.admin_op.option[0])){
+		LOG_ER("Invalid restart type: %s",evt->req_evt.admin_op.option);
+		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,evt->req_evt.admin_op.inv_id,
+		SA_AIS_ERR_INVALID_PARAM);
+		TRACE_LEAVE2("ret_err: %d",ret_err);
+		return ret_err;
+	}
 	/* If the presence state is not instantiated, return.*/
 	if ( SA_PLM_EE_PRESENCE_INSTANTIATED != 
 		ent->entity.ee_entity.saPlmEEPresenceState){
