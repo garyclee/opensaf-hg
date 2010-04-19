@@ -246,7 +246,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 		goto done;
 	}
 
-	if (immutil_getAttr("saAmfSgtDefSuRestartMax", attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
+	if (immutil_getAttr("saAmfSgtDefSuRestartMax", attributes, 0, &sgt->saAmfSgtDefSuRestartMax) != SA_AIS_OK) {
 		LOG_ER("Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn->value);
 		goto done;
 	}
