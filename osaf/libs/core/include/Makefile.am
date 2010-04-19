@@ -25,7 +25,6 @@ noinst_HEADERS = \
 	ip_defs.h \
 	mbcsv_papi.h \
 	mds_papi.h \
-	ncs_dl.h \
 	ncs_edu_pub.h \
 	ncsencdec_pub.h \
 	ncsgl_defs.h \

@@ -235,7 +235,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 #define m_NCSSOCK_SENDTO                    m_NCS_TS_SOCK_SENDTO
 #define m_NCSSOCK_SEND                      m_NCS_TS_SOCK_SEND
 #define m_NCSSOCK_CLOSE                     m_NCS_TS_SOCK_CLOSE
-#define m_NCSSOCK_ERROR                     m_NCS_TS_SOCK_ERROR
 #define m_NCSSOCK_IOCTL                     m_NCS_TS_SOCK_IOCTL
 #define m_NCSSOCK_FIONBIO                   m_NCS_TS_SOCK_FIONBIO
 #define m_NCSSOCK_FIONREAD                  m_NCS_TS_SOCK_FIONREAD

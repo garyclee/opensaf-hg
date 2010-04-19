@@ -209,10 +209,6 @@ extern "C" {
 #define m_NCS_TS_SOCK_CLOSE                   close
 #endif
 
-#ifndef m_NCS_TS_SOCK_ERROR
-#define m_NCS_TS_SOCK_ERROR                   ncs_bsd_sock_error()
-#endif
-
 #ifndef m_NCS_TS_SOCK_IOCTL
 #define m_NCS_TS_SOCK_IOCTL(s,c,m)            ioctl(s,c,m)
 #endif

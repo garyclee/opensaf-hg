@@ -47,7 +47,6 @@
 #define SYSF_IP_MAX_CLIENT_HANDLE_LEN   (sizeof(void *))
 
 /* Used to set IP Errors to Common Socket Errror as defined in file below */
-#include "ncs_dl.h"
 #include "ncs_iplib.h"
 #include "ncsencdec_pub.h"
 
