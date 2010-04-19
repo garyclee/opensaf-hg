@@ -219,14 +219,10 @@ rpm: prep-rpm-dir
 
 endif
 
-update-ldconfig:
-	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-	$(INSTALL_DATA) $(top_builddir)/osaf/libs/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-
 all-local:
 	echo "$(pkglibdir)" > $(top_builddir)/osaf/libs/$(PACKAGE_NAME)-$(host_cpu).conf
 
-install-data-local: update-ldconfig
+install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
 	$(mkinstalldirs) $(DESTDIR)$(lockdir)

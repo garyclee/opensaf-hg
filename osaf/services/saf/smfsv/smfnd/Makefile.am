@@ -30,9 +30,7 @@ noinst_HEADERS = \
 osafsmfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
-	-I$(top_srcdir)/osaf/libs/core/common/include \
-	-I$(top_srcdir)/osaf/libs/core/include
+	-I$(top_srcdir)/osaf/libs/common/smfsv/include
 
 osafsmfnd_SOURCES = \
 	smfnd_amf.c \
@@ -42,5 +40,4 @@ osafsmfnd_SOURCES = \
 
 osafsmfnd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la
