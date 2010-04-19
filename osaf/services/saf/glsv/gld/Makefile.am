@@ -47,7 +47,6 @@ osaflckd_SOURCES = \
 	gld_tmr.c
 
 osaflckd_LDADD =  \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaLck/libSaLck.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \

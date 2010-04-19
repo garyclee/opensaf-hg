@@ -30,5 +30,4 @@ osafamfwd_SOURCES = \
 	amf_wdog.c
 
 osafamfwd_LDADD = \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

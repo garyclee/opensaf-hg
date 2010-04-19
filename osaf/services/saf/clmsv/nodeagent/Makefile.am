@@ -30,5 +30,4 @@ osafnoded_SOURCES = \
 	clms_nodeagent.c
 
 osafnoded_LDADD = \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la 

@@ -640,6 +640,8 @@ Requires: %{name}-controller = %{version}-%{release}
 %{__rm} -rf $RPM_BUILD_ROOT
 %{__make} install DESTDIR=$RPM_BUILD_ROOT
 %{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/*.la
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/libopensaf_core.so
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/libopensaf_core.a
 %{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.la
 %{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.a
 %{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.so
@@ -1093,8 +1095,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files libs
 %defattr(-,root,root)
-%{_sysconfdir}/ld.so.conf.d/%{name}-%{_host_cpu}.conf
-%{_pkglibdir}/libopensaf_core.so.*
+%{_libdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
@@ -1107,8 +1108,10 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_javadocdir}/%{name}/*
 %endif
 %{_libdir}/pkgconfig/*.pc
-%{_libdir}/*.so
-%{_libdir}/*.a
+%{_libdir}/libplmc_utils.so
+%{_libdir}/libplmc_utils.a
+%{_libdir}/libSa*.so
+%{_libdir}/libSa*.a
 %{_includedir}/saAis.h
 %{_includedir}/saAmf.h
 %{_includedir}/saCkpt.h
