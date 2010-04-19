@@ -43,6 +43,15 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 			}
 
 		}
+		for (i = 0; i < trackedEntities->numberOfEntities; i++) {
+			node = clms_node_get_by_eename(&trackedEntities->entities[i].entityName);
+			if (node == NULL) {
+				TRACE("node not in database");
+				assert(0);
+			}
+			node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
+		}
+
 		goto done;
 	}
 
