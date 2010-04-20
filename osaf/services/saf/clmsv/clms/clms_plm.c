@@ -262,7 +262,7 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 
 	memset(trackedEntities, 0, (entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT)));
 
-	rc = saPlmReadinessTrack(cb->ent_group_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES | SA_TRACK_START_STEP | SA_TRACK_VALIDATE_STEP), 1, trackedEntities);	/* trackCookie TBD */
+	rc = saPlmReadinessTrack(cb->ent_group_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES_ONLY | SA_TRACK_START_STEP | SA_TRACK_VALIDATE_STEP), 1, trackedEntities);	/* trackCookie TBD */
 
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saPlmReadinessTrack FAILED rc = %d", rc);
