@@ -19,7 +19,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>xxCLCCLIDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">

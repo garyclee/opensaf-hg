@@ -96,6 +96,7 @@ configmake.h: Makefile
 	echo '#define PKGCONFDIR "$(pkgconfigdir)"'; \
 	echo '#define PKGIMMXMLDIR "$(pkgimmxmldir)"'; \
 	echo '#define PKGIMMXMLSVCDIR "$(pkgimmxml_svcdir)"'; \
+	echo '#define PKGCLCCLIDIR "$(pkgclcclidir)"'; \
 	echo '#define JAVADIR "$(javadir)"'; \
 	echo '#define JAVADOCDIR "$(javadocdir)"'; \
 	echo '#define LSBINITDIR "$(lsbinitdir)"'; \
@@ -227,12 +228,14 @@ install-data-local:
 	cp -R samples/ $(DESTDIR)$(pkgdatadir)
 
 install-data-hook:
-	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
+	@for i in $$(grep -lr -e 'xxLIBDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
+		sed -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
 	done
-	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' $(DESTDIR)$(pkgsysconfdir)/*) ; do \
+	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxCLCCLIDIRxx' $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
+		sed -i 's|xxCLCCLIDIRxx|$(pkgclcclidir)|g' "$$i"; \
 	done
 
 uninstall-hook:

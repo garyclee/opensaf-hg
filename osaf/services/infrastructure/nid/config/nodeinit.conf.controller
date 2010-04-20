@@ -54,15 +54,15 @@
 #############################################################################
 
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
-xxLIBDIRxx/osaf-rded:RDE:S:xxLIBDIRxx/osaf-rded:12000:-6:2:1:start:stop
-xxLIBDIRxx/osaf-dtd:DTSV:S:xxLIBDIRxx/osaf-dtd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-fmd:HLFM:S:xxLIBDIRxx/osaf-fmd:12000:-6:2:1:start:stop
-xxLIBDIRxx/osaf-immd:IMMD:S:xxLIBDIRxx/osaf-immd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-immnd:IMMND:S:xxLIBDIRxx/osaf-immnd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-logd:LOGD:S:xxLIBDIRxx/osaf-logd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-ntfd:NTFD:S:xxLIBDIRxx/osaf-ntfd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-plmd:PLMD:S:xxLIBDIRxx/osaf-plmd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-clmd:CLMD:S:xxLIBDIRxx/osaf-clmd:4000:4:2:1:start:stop
-xxLIBDIRxx/osaf-noded:CLMNA:S:xxLIBDIRxx/osaf-noded:4000::2:1:start:stop
-xxLIBDIRxx/osaf-amfd:AMFD:S:xxLIBDIRxx/osaf-amfd:192000:-6:0:1:start:stop
-xxLIBDIRxx/osaf-amfnd:AMFND:S:xxLIBDIRxx/osaf-amfnd:192000::0:1:start:stop
+xxCLCCLIDIRxx/osaf-rded:RDE:S:xxCLCCLIDIRxx/osaf-rded:12000:-6:2:1:start:stop
+xxCLCCLIDIRxx/osaf-dtd:DTSV:S:xxCLCCLIDIRxx/osaf-dtd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-fmd:HLFM:S:xxCLCCLIDIRxx/osaf-fmd:12000:-6:2:1:start:stop
+xxCLCCLIDIRxx/osaf-immd:IMMD:S:xxCLCCLIDIRxx/osaf-immd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-immnd:IMMND:S:xxCLCCLIDIRxx/osaf-immnd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-logd:LOGD:S:xxCLCCLIDIRxx/osaf-logd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-ntfd:NTFD:S:xxCLCCLIDIRxx/osaf-ntfd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-plmd:PLMD:S:xxCLCCLIDIRxx/osaf-plmd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-clmd:CLMD:S:xxCLCCLIDIRxx/osaf-clmd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-noded:CLMNA:S:xxCLCCLIDIRxx/osaf-noded:4000::2:1:start:stop
+xxCLCCLIDIRxx/osaf-amfd:AMFD:S:xxCLCCLIDIRxx/osaf-amfd:192000:-6:0:1:start:stop
+xxCLCCLIDIRxx/osaf-amfnd:AMFND:S:xxCLCCLIDIRxx/osaf-amfnd:192000::0:1:start:stop

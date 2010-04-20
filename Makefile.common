@@ -33,6 +33,7 @@ pkglogdir = $(localstatedir)/log/$(PACKAGE_NAME)
 pkgconfigdir = $(libdir)/pkgconfig
 pkgimmxmldir = $(pkgdatadir)/immxml
 pkgimmxml_svcdir = $(pkgimmxmldir)/services
+pkgclcclidir = $(pkglibdir)/clc-cli
 docdir = $(datadir)/doc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)
 javadir = $(datadir)/java
 javadocdir = $(datadir)/javadoc
