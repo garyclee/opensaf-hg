@@ -45,8 +45,6 @@ extern void tet_cpsv_startup() ;
 #ifdef TET_MDS_TDS 
 extern void    tet_mds_tds_startup ();
 #endif
-void tware_mem_ign(void);
-void tware_mem_dump(void);
 int fill_syncparameters(int vote);
 
 
@@ -567,18 +565,6 @@ void tware_ncs_end()
 {
 
     tet_infoline(" Ending the agony.. ");
-    return;
-}
-
-void tware_mem_ign(void)
-{
-    ncs_mem_ignore(1);
-    return;
-}
-
-void tware_mem_dump(void)
-{
-    ncs_mem_whatsout_dump();
     return;
 }
 

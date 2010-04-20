@@ -8,8 +8,6 @@
 #include "ncssysf_tmr.h"
 void tet_mds_tds_startup(void);
 void tet_mds_tds_cleanup(void);
-void tware_mem_ign();
-void tware_mem_dump();
 extern void tet_sender_startup(int);
 extern void tet_receiver_startup(int);
 void tet_sender_cleanup(void);
@@ -80,7 +78,7 @@ void  tet_svc_install_tp(int choice)
   tet_printf("\t\t\t tet_svc_install_tp");
   /*start up*/
   tet_printf("\tCreating a MxN VDEST with id =2000");
-  if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,2000)!=NCSCC_RC_SUCCESS)
+  if(create_vdest(NCS_VDEST_TYPE_MxN,2000)!=NCSCC_RC_SUCCESS)
     FAIL=1;
   switch(choice)
     {
@@ -337,7 +335,7 @@ sub-part versions on the same pwe handle, must fail");
     case 13:
       tet_printf("Case 13: \tInstall a service with _mds_svc_pvt_ver = 0\
                       i_mds_svc_pvt_ver =  255 and i_mds_svc_pvt_ver = A random value, which is >0 and <255");
-      if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+      if(adest_get_handle()!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -389,7 +387,7 @@ sub-part versions on the same pwe handle, must fail");
     case 14:
       tet_printf("Case 14: Install a service with \
                       i_fail_no_active_sends = 0 and i_fail_no_active_sends = 1");
-      if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+      if(adest_get_handle()!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -535,7 +533,7 @@ void tet_svc_install_upto_MAX()
   tet_printf("\t\t\ttet_svc_install_upto_MAX");
   /*start up*/
   tet_printf("\tCreating a N-way VDEST with id =1001");
-  if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1001)!=NCSCC_RC_SUCCESS)
+  if(create_vdest(NCS_VDEST_TYPE_MxN,1001)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -604,7 +602,7 @@ void tet_svc_unstall_tp(int choice)
   tet_printf("\t\t\t tet_svc_unstall_tp");
   /*start up*/
   tet_printf("\tCreating a N-way VDEST with id =1001");
-  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,1001)!=
+  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,1001)!=
      NCSCC_RC_SUCCESS)
     {      tet_infoline("Fail");FAIL=1;    }  
   switch(choice)
@@ -811,7 +809,7 @@ void tet_svc_subscr_VDEST(int choice)
   tet_printf("\t\t\t tet_svc_subscr_VDEST");
   /*start up*/
   tet_printf("\tCreating a N-way VDEST with id =1001");
-  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,1001)!=
+  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,1001)!=
      NCSCC_RC_SUCCESS)
     {    tet_printf("Fail");FAIL=1;  }  
   
@@ -1005,7 +1003,7 @@ Subscription scope");
       tet_printf("Case 10: \t Cross check whether i_rem_svc_pvt_ver returned in service \
 event callback, matches the service private sub-part version of the remote service (subscribee)");
       tet_printf("\tGetting an ADEST handle");
-      if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+      if(adest_get_handle()!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1134,7 +1132,7 @@ event callback, matches the service private sub-part version of the remote servi
       tet_printf("Case 11: \tWhen the Subscribee comes again with different sub-part version,\
  cross check these changes are properly returned in the service event callback");
       tet_printf("\tGetting an ADEST handle");
-      if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+      if(adest_get_handle()!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1263,7 +1261,7 @@ event callback, matches the service private sub-part version of the remote servi
       tet_printf("Case 13: \tIn the NO_ACTIVE event notification,\
  the remote service subpart version is set to the last active instance.s remote-service sub-part version");
       tet_printf("\tGetting an ADEST handle");
-      if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+      if(adest_get_handle()!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1271,7 +1269,7 @@ event callback, matches the service private sub-part version of the remote servi
 
       gl_tet_adest.svc_count=0; /*fix for blocking regression*/
       tet_printf("\tCreating a N-way VDEST with id =1001");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,1002)!=
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,1002)!=
          NCSCC_RC_SUCCESS)
         {    tet_printf("Fail");FAIL=1;  }
 
@@ -1441,7 +1439,7 @@ void tet_svc_subscr_ADEST(int choice)
   tet_printf("\t\t\t tet_svc_subscr_ADEST");
   /*start up*/
   tet_printf("\tGetting an ADEST handle");
-  if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+  if(adest_get_handle()!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -1855,14 +1853,14 @@ uns32 tet_initialise_setup(NCS_BOOL fail_no_active_sends)
  on ADEST,Install INTMIN,EXTMIN services on ADEST's PWE=2,\n\tCreate VDEST 100\
  and VDEST 200,Change the role of VDEST 200 to ACTIVE, \n\tInstall EXTMIN \
  service on VDEST 100,Install INTMIN, EXTMIN services on VDEST 200 ");
-  adest_get_handle(FALSE);
+  adest_get_handle();
   
-  if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,100)!=NCSCC_RC_SUCCESS)
+  if(create_vdest(NCS_VDEST_TYPE_MxN,100)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
-  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                   200)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
@@ -1876,7 +1874,7 @@ uns32 tet_initialise_setup(NCS_BOOL fail_no_active_sends)
       FAIL=1; 
     }
   
-  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2,FALSE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -7942,14 +7940,14 @@ void tet_destroy_PWE_ADEST_twice_tp()
     
     
   tet_printf("Getting an ADEST handle");
-  if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+  if(adest_get_handle()!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
     
   tet_printf("Creating a PWE=2 on this ADEST");
-  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2,TRUE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -7985,21 +7983,21 @@ void tet_create_PWE_ADEST_twice_tp()
     
     
   tet_printf("Getting an ADEST handle");
-  if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+  if(adest_get_handle()!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
     
   tet_printf("Creating a PWE=2 on this ADEST");
-  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2,FALSE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
     
   tet_printf("Able Create ALREADY created PWE=2 on this ADEST");
-  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2,FALSE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,2)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -8031,14 +8029,14 @@ void tet_create_default_PWE_ADEST_tp()
   memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
-  if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+  if(adest_get_handle()!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
     
   tet_printf("Able to Create a DEFUALT PWE=1 on this ADEST");
-  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,1,FALSE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,1)!=NCSCC_RC_SUCCESS)
     {      tet_printf("Fail");
     FAIL=1;
     }
@@ -8068,7 +8066,7 @@ void tet_create_PWE_upto_MAX_tp()
   memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
-  if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
+  if(adest_get_handle()!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -8079,7 +8077,7 @@ void tet_create_PWE_upto_MAX_tp()
   tet_printf("Creating PWEs with pwe_id from 2 to 1999");
   for(id=2;id<=NCSMDS_MAX_PWES;id++)
     {
-      create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,id,FALSE);
+      create_pwe_on_adest(gl_tet_adest.mds_adest_hdl,id);
     }
   printf("\n\t No. of PWEs = %d \t",gl_tet_adest.pwe_count);
   fflush(stdout);sleep(1);
@@ -8123,7 +8121,7 @@ void tet_create_MxN_VDEST(int choice)
     {
     case 1:
       tet_printf("Creating a VDEST in MXN model with MIN vdest_id\n");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_MxN,
                       NCSVDA_EXTERNAL_UNNAMED_MIN)==NCSCC_RC_SUCCESS)
         {
           if(destroy_vdest(NCSVDA_EXTERNAL_UNNAMED_MIN)!=NCSCC_RC_SUCCESS)
@@ -8141,7 +8139,7 @@ void tet_create_MxN_VDEST(int choice)
     case 2:   
       tet_printf("Not able to create a VDEST with vdest_id above the \
  MAX RANGE");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_MxN,
                       NCSVDA_EXTERNAL_UNNAMED_MAX+1)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8150,7 +8148,7 @@ void tet_create_MxN_VDEST(int choice)
       break;   
     case 3:
       tet_printf("Not able to create a VDEST with vdest_id = 0");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,0)==NCSCC_RC_SUCCESS)
+      if(create_vdest(NCS_VDEST_TYPE_MxN,0)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8158,7 +8156,7 @@ void tet_create_MxN_VDEST(int choice)
       break;   
     case 4:
       tet_printf("Create a VDEST with vdest_id below the MIN RANGE");   
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_MxN,
                       NCSVDA_EXTERNAL_UNNAMED_MIN-1)==NCSCC_RC_SUCCESS)
         {
           if(destroy_vdest(NCSVDA_EXTERNAL_UNNAMED_MIN-1)!=NCSCC_RC_SUCCESS)
@@ -8193,7 +8191,7 @@ void tet_create_Nway_VDEST(int choice)
     {
     case 1:
       tet_printf("Creating a VDEST in N-way model with MAX vdest_id\n");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       NCSVDA_EXTERNAL_UNNAMED_MAX)==NCSCC_RC_SUCCESS)
         {
           if(destroy_vdest(NCSVDA_EXTERNAL_UNNAMED_MAX)!=NCSCC_RC_SUCCESS)
@@ -8211,7 +8209,7 @@ void tet_create_Nway_VDEST(int choice)
     case 2:   
       tet_printf("Not able to create a VDEST with vdest_id above the \
  MAX RANGE");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       NCSVDA_EXTERNAL_UNNAMED_MAX+1)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8220,7 +8218,7 @@ void tet_create_Nway_VDEST(int choice)
       break;
     case 3:
       tet_printf("Not able to create a VDEST with vdest_id = 0");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       0)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8229,7 +8227,7 @@ void tet_create_Nway_VDEST(int choice)
       break;
     case 4:
       tet_printf("Create a VDEST with vdest_id below the MIN RANGE");   
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       NCSVDA_EXTERNAL_UNNAMED_MIN-1)==NCSCC_RC_SUCCESS)
         {
           if(destroy_vdest(NCSVDA_EXTERNAL_UNNAMED_MIN-1)!=NCSCC_RC_SUCCESS)
@@ -8263,7 +8261,7 @@ void tet_create_OAC_VDEST_tp(int choice)
     {
     case 1:
       tet_printf("Creating a OAC service on VDEST in MXN model\n");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,TRUE,
+      if(create_vdest(NCS_VDEST_TYPE_MxN,
                       NCSVDA_EXTERNAL_UNNAMED_MIN)==NCSCC_RC_SUCCESS)
         {
           sleep(2);/*Introduced in Build 12*/
@@ -8279,7 +8277,7 @@ void tet_create_OAC_VDEST_tp(int choice)
       break;
     case 2:
       tet_printf("Creating a a OAC service on VDEST in N-way model\n");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,TRUE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       NCSVDA_EXTERNAL_UNNAMED_MAX)==NCSCC_RC_SUCCESS)
         {
           sleep(2);/*Introduced in Build 12*/
@@ -8312,7 +8310,7 @@ void tet_destroy_VDEST_twice_tp(int choice)
     {
     case 1:
       tet_printf("Creating a VDEST in N-WAY model");
-      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                       NCSVDA_EXTERNAL_UNNAMED_MIN)!=NCSCC_RC_SUCCESS)
         {      tet_printf("Fail");FAIL=1;    }
   
@@ -8350,7 +8348,7 @@ void tet_destroy_ACTIVE_MxN_VDEST_tp(int choice)
     case 1:
       tet_printf("                  tet_destroy_ACTIVE_MxN_VDEST_tp");
       tet_printf("Creating a VDEST in MxN model");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1400)!=NCSCC_RC_SUCCESS)
+      if(create_vdest(NCS_VDEST_TYPE_MxN,1400)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8365,7 +8363,7 @@ void tet_destroy_ACTIVE_MxN_VDEST_tp(int choice)
     case 2:
       tet_printf("                  tet_destroy_QUIESCED_MxN_VDEST_tp");
       tet_printf("Creating a VDEST in MxN model");
-      if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1400)!=NCSCC_RC_SUCCESS)
+      if(create_vdest(NCS_VDEST_TYPE_MxN,1400)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8406,7 +8404,7 @@ void tet_chg_standby_to_queisced_tp(int choice)
   /*Start UP*/
   memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   tet_printf("Creating a VDEST in N-way model");
-  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                   1200)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
@@ -8491,7 +8489,7 @@ void tet_create_named_VDEST(int choice)
     case 1:
       tet_printf("Not able to Create a Named VDEST in MxN model with \
  Persistence Flag=TRUE");
-      if(create_named_vdest(TRUE,NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_named_vdest(TRUE,NCS_VDEST_TYPE_MxN,
                             vname)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8503,7 +8501,7 @@ void tet_create_named_VDEST(int choice)
     case 2:
       tet_printf("Not able to Create a Named VDEST in N-Way model with\
  Persistence Flag=TRUE");
-      if(create_named_vdest(TRUE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_named_vdest(TRUE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8515,7 +8513,7 @@ void tet_create_named_VDEST(int choice)
     case 3:
       tet_printf("Able to Create a Named VDEST in MxN model with Persistence\
  Flag=FALSE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8542,7 +8540,7 @@ void tet_create_named_VDEST(int choice)
     case 4:
       tet_printf("Able to Create a Named VDEST in MxN model with OAC \
  Flag=TRUE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,TRUE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8569,7 +8567,7 @@ void tet_create_named_VDEST(int choice)
     case 5:
       tet_printf("Able to Create a Named VDEST in N-Way model with \
   Persistence Flag=FALSE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8596,7 +8594,7 @@ void tet_create_named_VDEST(int choice)
     case 6:
       tet_printf("Able to Create a Named VDEST in N-Way model with OAC \
  Flag=TRUE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,TRUE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8623,7 +8621,7 @@ void tet_create_named_VDEST(int choice)
     case 7:
       tet_printf("Check the vdest_id returned: if we Create a Named VDEST in\
  N-Way model for the second time");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8631,7 +8629,7 @@ void tet_create_named_VDEST(int choice)
         }
       vdest_id=vdest_lookup(vname);
       tet_printf("First time : Named VDEST= %s : %d Vdest id",vname,vdest_id); 
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8669,7 +8667,7 @@ void tet_create_named_VDEST(int choice)
     case 9:
       tet_printf("Not able to Create a Named VDEST in MxN model with NULL\
  name");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
                             NULL)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8696,7 +8694,7 @@ void tet_test_PWE_VDEST_tp(int choice)
   memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
-  if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1250)!=NCSCC_RC_SUCCESS)
+  if(create_vdest(NCS_VDEST_TYPE_MxN,1250)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -8705,8 +8703,7 @@ void tet_test_PWE_VDEST_tp(int choice)
     {
     case 1: 
       tet_printf("Creating a PWE with MAX PWE_id= 2000 on this VDEST");
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,NCSMDS_MAX_PWES,
-                             FALSE)==NCSCC_RC_SUCCESS)
+      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,NCSMDS_MAX_PWES)==NCSCC_RC_SUCCESS)
         {
           destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl);
         } 
@@ -8719,8 +8716,7 @@ void tet_test_PWE_VDEST_tp(int choice)
     case 2:
       tet_printf("Not able to Create a PWE with PWE_id > MAX i.e > 2000 on \
  this VDEST");
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,NCSMDS_MAX_PWES+1,
-                             FALSE)==NCSCC_RC_SUCCESS)
+      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,NCSMDS_MAX_PWES+1)==NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");FAIL=1;
           destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl);
@@ -8729,8 +8725,7 @@ void tet_test_PWE_VDEST_tp(int choice)
     case 3: 
       tet_printf("Not able to Create a PWE with Invalid PWE_id = 0 on this \
  VDEST");
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,0,
-                             FALSE)==NCSCC_RC_SUCCESS)
+      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,0)==NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");FAIL=1;
           if(destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl)
@@ -8741,40 +8736,9 @@ void tet_test_PWE_VDEST_tp(int choice)
             }
         } 
       break;   
-#if 0   
-      tet_printf("Not able to Create an Already existing PWE on this VDEST");
-        
-      printf("\n\t\t vdest count %d  : pwe count = %d \n\n",
-             gl_vdest_indx,gl_tet_vdest[0].pwe_count);
-        
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,
-                             NCSMDS_SVC_ID_INTERNAL_MIN,
-                             FALSE)!=NCSCC_RC_SUCCESS)
-        {    
-          tet_printf("Fail");
-          FAIL=1; 
-        }
-        
-      printf("\n\t\tAfter vdest count %d :  pwe count = %d \n\n",
-             gl_vdest_indx,gl_tet_vdest[0].pwe_count);
-        
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,
-                             NCSMDS_SVC_ID_INTERNAL_MIN,
-                             FALSE)==NCSCC_RC_SUCCESS)
-        {
-          destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl);
-          tet_printf("Fail");
-          FAIL=1;
-        } 
-      destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl);
-        
-      printf("\n\t\tat the end vdest count = %d :  pwe count = %d \n\n",
-             gl_vdest_indx,gl_tet_vdest[0].pwe_count);
-#endif
     case 4:
       tet_printf("Creating a PWE with PWE_id= 10 on this VDEST");
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,10,
-                             FALSE)!=NCSCC_RC_SUCCESS)
+      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,10)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8800,8 +8764,7 @@ void tet_test_PWE_VDEST_tp(int choice)
     case 6:   
       tet_printf("Creating a PWE with PWE_id= 20 and OAC service on this \
  VDEST");
-      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,20,
-                             TRUE)==NCSCC_RC_SUCCESS)
+      if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,20)==NCSCC_RC_SUCCESS)
         {
           sleep(2);
           destroy_pwe_on_vdest(gl_tet_vdest[0].pwe[0].mds_pwe_hdl);
@@ -8838,7 +8801,7 @@ void tet_create_PWE_upto_MAX_VDEST()
   memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
-  if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1200)!=NCSCC_RC_SUCCESS)
+  if(create_vdest(NCS_VDEST_TYPE_MxN,1200)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -8851,7 +8814,7 @@ void tet_create_PWE_upto_MAX_VDEST()
   sleep(1);
   for(id=2;id<=NCSMDS_MAX_PWES;id++)
     {
-      create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,id,FALSE);
+      create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,id);
       printf("\tpwe_count = %d\t",gl_tet_vdest[0].pwe_count);
     }   
   fflush(stdout);sleep(1);
@@ -8890,15 +8853,14 @@ void tet_create_default_PWE_VDEST_tp()
   memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in N-WAY model");
-  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
+  if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                   2000)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
   tet_printf("Creating DEFAULT  PWE=1 on this VDEST");
-  if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,1,
-                         FALSE)!=NCSCC_RC_SUCCESS)
+  if(create_pwe_on_vdest(gl_tet_vdest[0].mds_vdest_hdl,1)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -8960,7 +8922,7 @@ void tet_VDS(int choice)
   tet_printf("Creating a Named VDEST in MxN model");
   for(j=0;j<5;j++)
     {
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,FALSE,
+      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
                             vname[j])!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");

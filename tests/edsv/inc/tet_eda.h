@@ -110,8 +110,6 @@ void tet_run_edsv_app(void);
 void gl_defs(void);
 
 void select_call(void);      
-void tware_mem_ign(void);
-void tware_mem_dump(void);
 
 void var_initialize(void);
 void eda_selection_thread(void);

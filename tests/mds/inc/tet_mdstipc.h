@@ -53,19 +53,14 @@ typedef struct tet_svc{
 typedef struct tet_pwe{
   MDS_HDL     mds_dest_hdl; /* can be mds_adest_hdl or mds_vdest_hdl */
   PW_ENV_ID   pwe_id;
-  NCS_BOOL    create_oac;
-  /*return values*/
-  uns32       pwe_oac_hdl;
   /* to b passed to the Service API's*/
   MDS_HDL  mds_pwe_hdl;
 }TET_PWE;
 
 typedef struct tet_adest{
   
-  NCS_BOOL    create_oac;
   /*return values*/
   MDS_DEST    adest;
-  uns32       pwe1_oac_hdl;
   /*to be passed to Service API's*/
   MDS_HDL  mds_pwe1_hdl;
   MDS_HDL  mds_adest_hdl;
@@ -79,11 +74,9 @@ typedef struct tet_adest{
 typedef struct tet_vdest{
   NCS_BOOL       persistent;
   NCS_VDEST_TYPE policy;
-  NCS_BOOL       create_oac;
   SaNameT        name;
   /*return values*/
   MDS_DEST       vdest;
-  uns32          pwe1_oac_hdl;
   /*to be passed to Service API's*/
   MDS_HDL     mds_pwe1_hdl;
   MDS_HDL     mds_vdest_hdl;
@@ -181,16 +174,16 @@ uns32 tet_cleanup_setup(void);
 
 /***************  USER DEFINED WRAPPERS FOR MDS DEST APIs     *************/
 
-uns32 adest_get_handle(NCS_BOOL);
-uns32 create_pwe_on_adest(MDS_HDL,PW_ENV_ID,NCS_BOOL);
+uns32 adest_get_handle(void);
+uns32 create_pwe_on_adest(MDS_HDL,PW_ENV_ID);
 uns32 destroy_pwe_on_adest(MDS_HDL);
-uns32 create_vdest(NCS_VDEST_TYPE,NCS_BOOL,MDS_DEST);
-uns32 create_named_vdest(NCS_BOOL,NCS_VDEST_TYPE,NCS_BOOL,char *);
+uns32 create_vdest(NCS_VDEST_TYPE,MDS_DEST);
+uns32 create_named_vdest(NCS_BOOL,NCS_VDEST_TYPE,char *);
 MDS_DEST vdest_lookup(char *);
 uns32 vdest_change_role(MDS_DEST ,V_DEST_RL);
 uns32 destroy_vdest(MDS_DEST);
 uns32 destroy_named_vdest(NCS_BOOL,MDS_DEST,char *);
-uns32 create_pwe_on_vdest(MDS_HDL,PW_ENV_ID,NCS_BOOL);
+uns32 create_pwe_on_vdest(MDS_HDL,PW_ENV_ID);
 uns32 destroy_pwe_on_vdest(MDS_HDL);
 
 

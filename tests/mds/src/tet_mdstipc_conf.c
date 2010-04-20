@@ -4,25 +4,18 @@
 #include "tet_mdstipc.h"
 extern int fill_syncparameters(int);
 /****************** ADEST WRAPPERS ***********************/
-uns32 adest_get_handle(NCS_BOOL create_oac)
+uns32 adest_get_handle(void)
 {
   memset(&ada_info,'\0', sizeof(ada_info));
   memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest));
 
   ada_info.req=NCSADA_GET_HDLS;    
 
-  ada_info.info.adest_get_hdls.i_create_oac = create_oac; 
-
   if(ncsada_api(&ada_info)==NCSCC_RC_SUCCESS)
     {
 
       gl_tet_adest.adest=ada_info.info.adest_get_hdls.o_adest; 
       printf("\nADEST <%llx > : GET_HDLS is SUCCESSFUL",gl_tet_adest.adest);
-      if(ada_info.info.adest_get_hdls.i_create_oac)
-        {
-          gl_tet_adest.pwe1_oac_hdl=
-            ada_info.info.adest_get_hdls.o_pwe1_oac_hdl;
-        }     
       gl_tet_adest.mds_pwe1_hdl=ada_info.info.adest_get_hdls.o_mds_pwe1_hdl; 
       gl_tet_adest.mds_adest_hdl=ada_info.info.adest_get_hdls.o_mds_adest_hdl;
       return NCSCC_RC_SUCCESS;
@@ -35,24 +28,17 @@ uns32 adest_get_handle(NCS_BOOL create_oac)
 }
 
 uns32 create_pwe_on_adest(MDS_HDL mds_adest_hdl,
-                          PW_ENV_ID  pwe_id,
-                          NCS_BOOL   create_oac)
+                          PW_ENV_ID  pwe_id)
 {
   ada_info.req=NCSADA_PWE_CREATE;
 
   ada_info.info.pwe_create.i_mds_adest_hdl=mds_adest_hdl;
   ada_info.info.pwe_create.i_pwe_id=pwe_id;      
-  ada_info.info.pwe_create.i_create_oac = create_oac; 
 
   if(ncsada_api(&ada_info)==NCSCC_RC_SUCCESS)
     {
 
       printf("\nPWE_CREATE is SUCCESSFUL : PWE = %d",pwe_id);
-      if(ada_info.info.pwe_create.i_create_oac)
-        {
-          gl_tet_adest.pwe[gl_tet_adest.pwe_count].pwe_oac_hdl=
-            ada_info.info.pwe_create.o_pwe_oac_hdl;
-        }     
       gl_tet_adest.pwe[gl_tet_adest.pwe_count].pwe_id=pwe_id;
       gl_tet_adest.pwe[gl_tet_adest.pwe_count].mds_pwe_hdl=
         ada_info.info.pwe_create.o_mds_pwe_hdl;
@@ -89,7 +75,6 @@ uns32 destroy_pwe_on_adest(MDS_HDL mds_pwe_hdl)
 /*********************** VDEST WRAPPERS **********************/
 
 uns32 create_vdest(NCS_VDEST_TYPE policy,
-                   NCS_BOOL create_oac,
                    MDS_DEST vdest)
 {
   memset(&vda_info,'\0', sizeof(vda_info));
@@ -98,7 +83,6 @@ uns32 create_vdest(NCS_VDEST_TYPE policy,
   vda_info.req=NCSVDA_VDEST_CREATE;  
 
   vda_info.info.vdest_create.i_policy=policy;
-  vda_info.info.vdest_create.i_create_oac=create_oac;
   vda_info.info.vdest_create.i_create_type=NCSVDA_VDEST_CREATE_SPECIFIC;
   vda_info.info.vdest_create.info.specified.i_vdest=
     gl_tet_vdest[gl_vdest_indx].vdest=vdest;
@@ -108,11 +92,6 @@ uns32 create_vdest(NCS_VDEST_TYPE policy,
 
       printf("\n %lld : VDEST_CREATE is SUCCESSFUL", vdest);
       fflush(stdout);
-      if(create_oac)
-        {
-          gl_tet_vdest[gl_vdest_indx].pwe1_oac_hdl=
-            vda_info.info.vdest_create.o_pwe1_oac_hdl;
-        }    
       gl_tet_vdest[gl_vdest_indx].mds_pwe1_hdl=
         vda_info.info.vdest_create.o_mds_pwe1_hdl;
       gl_tet_vdest[gl_vdest_indx].mds_vdest_hdl=
@@ -152,7 +131,6 @@ uns32 destroy_vdest(MDS_DEST vdest)
 
 uns32 create_named_vdest(NCS_BOOL persistent,
                          NCS_VDEST_TYPE policy,
-                         NCS_BOOL create_oac,
                          char *vname)
 {
   memset(&vda_info,'\0', sizeof(vda_info));
@@ -163,7 +141,6 @@ uns32 create_named_vdest(NCS_BOOL persistent,
 
   vda_info.info.vdest_create.i_persistent=persistent;
   vda_info.info.vdest_create.i_policy=policy;
-  vda_info.info.vdest_create.i_create_oac=create_oac;
   vda_info.info.vdest_create.i_create_type=NCSVDA_VDEST_CREATE_NAMED; 
   if(vname)
     {
@@ -187,11 +164,6 @@ uns32 create_named_vdest(NCS_BOOL persistent,
     {
 
       printf("\nNAMED VDEST_CREATE is SUCCESSFULL\n");
-      if(create_oac)
-        {
-          gl_tet_vdest[gl_vdest_indx].pwe1_oac_hdl=
-            vda_info.info.vdest_create.o_pwe1_oac_hdl;
-        }    
       gl_tet_vdest[gl_vdest_indx].vdest=
         vda_info.info.vdest_create.info.named.o_vdest; 
       gl_tet_vdest[gl_vdest_indx].mds_pwe1_hdl=
@@ -288,8 +260,7 @@ uns32 vdest_change_role(MDS_DEST vdest,
 }
 
 uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
-                          PW_ENV_ID pwe_id,
-                          NCS_BOOL create_oac)
+                          PW_ENV_ID pwe_id)
 {
   int i;
   memset(&vda_info,'\0', sizeof(vda_info));
@@ -298,7 +269,6 @@ uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
 
   vda_info.info.pwe_create.i_mds_vdest_hdl=mds_vdest_hdl;
   vda_info.info.pwe_create.i_pwe_id=pwe_id;
-  vda_info.info.pwe_create.i_create_oac=create_oac;
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
@@ -311,9 +281,6 @@ uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
               gl_tet_vdest[i].pwe[gl_tet_vdest[i].pwe_count].pwe_id=pwe_id;
               gl_tet_vdest[i].pwe[gl_tet_vdest[i].pwe_count].mds_pwe_hdl=
                 vda_info.info.pwe_create.o_mds_pwe_hdl;
-              if(create_oac)
-                gl_tet_vdest[i].pwe[gl_tet_vdest[i].pwe_count].pwe_oac_hdl=
-                  vda_info.info.pwe_create.o_pwe_oac_hdl;
               gl_tet_vdest[i].pwe_count++; 
             }
         }

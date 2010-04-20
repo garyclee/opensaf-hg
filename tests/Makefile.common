@@ -102,8 +102,7 @@ LIBSUBDIR := opensaf
 
 LIBDIR := $(LIB_BASEDIR)/$(LIBSUBDIR)
 
-LDLIBS := -lopensaf_core \
-	$(TET_HOME)/lib/tet3/tcm.o \
+LDLIBS := $(TET_HOME)/lib/tet3/tcm.o \
 	$(TET_HOME)/lib/tet3/libapi.a \
 	$(TET_HOME)/lib/tet3/libtcm_s.a \
 	-lpthread -ldl -lm -lc -lrt

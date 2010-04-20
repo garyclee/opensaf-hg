@@ -626,9 +626,7 @@ void tet_run_cpsv_app()
   tet_cpsv_fill_inputs(&inst);
 
 #if (TET_PATCH==1)
-  tware_mem_ign();
   tet_run_cpsv_instance(&inst);
-  tware_mem_dump();
   sleep(5);
   tet_test_cleanup();
 #endif

@@ -1216,11 +1216,8 @@ void tet_mds_tds_startup(void)
           if(SERV_SUIT)
             {
               /*Starting Service related test cases*/
-              tware_mem_ign();  
               tet_test_start(test_case,svc_testlist);
-              tware_mem_dump();
               sleep(1);
-              tware_mem_dump();
               ncs_tmr_whatsout();
             }
         }

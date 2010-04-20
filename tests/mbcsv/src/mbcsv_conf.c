@@ -37,8 +37,6 @@ MDS_DEST get_vdest_anchor()
   memset(&ada_info,'\0', sizeof(ada_info));
   /*request*/
   ada_info.req=NCSADA_GET_HDLS;    
-  /*input*/
-  ada_info.info.adest_get_hdls.i_create_oac = FALSE; 
   /*api call*/
   if(ncsada_api(&ada_info)==NCSCC_RC_SUCCESS)
     {

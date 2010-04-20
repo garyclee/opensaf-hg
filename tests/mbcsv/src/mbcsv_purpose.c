@@ -1,8 +1,6 @@
 /* include files */
 #include "mbcsv_api.h"
 #include "tet_api.h"
-void tware_mem_ign();
-void tware_mem_dump();
 /*Non distributed test purposes*/
 void tet_mbcsv_initialize(int);
 void tet_mbcsv_open_close(int);

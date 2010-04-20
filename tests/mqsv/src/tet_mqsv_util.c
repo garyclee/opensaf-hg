@@ -440,17 +440,13 @@ void tet_run_mqsv_app()
 #if (TET_PATCH==1)
 #ifndef TET_ALL 
 
-   tware_mem_ign();
-
    tet_mqsv_start_instance(&inst);
 
    m_TET_MQSV_PRINTF("\n ##### End of Testlist #####\n");
    printf("\n MEM DUMP\n");
 
    ncs_tmr_whatsout();
-   tware_mem_dump();
    sleep(5);
-   tware_mem_dump();
 
    tet_test_cleanup();
 

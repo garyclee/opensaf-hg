@@ -56,12 +56,6 @@ void tet_create_gld()
             tet_destroy_gld();
             exit(1);
             break;
-         case 'm':
-            tware_mem_dump();
-            break;
-         case 'i':
-            tware_mem_ign();
-            break;
 
          default:
             printf("enter appropriate code,codes supported are glnd-n,rsc-r,end-e...\n");
