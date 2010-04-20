@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,29 +11,23 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Wind River Systems 
 #
 
-PROG = amf_demo
+include $(top_srcdir)/Makefile.common
 
-SRCS = amf_demo.c
-OBJS = amf_demo.o
+MAINTAINERCLEANFILES = Makefile.in
 
-CC = gcc
-CFLAGS = -g -O2 -Wall -fPIC
-INCLUDES = -I. -I/usr/include/opensaf
-LDFLAGS = -lSaAmf
+bin_PROGRAMS = lck_demo
 
-all: $(PROG)
+lck_demo_CPPFLAGS = \
+	-DNCS_SAF=1 \
+	$(AM_CPPFLAGS)
 
-$(PROG): $(OBJS)
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LDFLAGS}
+lck_demo_SOURCES = \
+	glsv_demo_app1.c \
+	glsv_main_app1.c \
+	glsv_test_app.c
 
-.c.o:
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -c $<
-
-depend:
-	makedepend ${INCLUDES} ${SRCS}
-
-clean:
-	rm -f *.o core *~ $(PROG) *.tgz
+lck_demo_LDADD = \
+	@SAF_AIS_LCK_LIBS@

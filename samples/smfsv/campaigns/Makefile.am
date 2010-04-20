@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,30 +11,19 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Wind River Systems 
 #
 
-PROG = edsv_demo
+include $(top_srcdir)/Makefile.common
 
-SRCS = edsv_demo_app.c edsv_demo_main.c
-OBJS = edsv_demo_app.o edsv_demo_main.o
+MAINTAINERCLEANFILES = Makefile.in
 
-CC = gcc
-CFLAGS = -g -O2 -Wall -fPIC
-INCLUDES = -I. -I/usr/include/opensaf
-CPPFLAGS = -DNCS_SAF=1
-LDFLAGS = -lSaAmf -lSaEvt
-
-all: $(PROG)
-
-$(PROG): $(OBJS)
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LDFLAGS}
-
-.c.o:
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -c $<
-
-depend:
-	makedepend ${INCLUDES} ${SRCS}
-
-clean:
-	rm -f *.o core *~ $(PROG)
+EXTRA_DIST = \
+	campaign_install_demoapp.xml \
+	campaign_rolling_nodes_os_installremove.xml \
+	campaign_rolling_nodes.xml \
+	campaign_rolling_su.xml \
+	campaign_single_comp.xml \
+	install_bundles_testcampaign.xml \
+	README \
+	remove_bundles_testcampaign.xml
