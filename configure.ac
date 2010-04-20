@@ -586,7 +586,7 @@ AC_CONFIG_FILES([
         osaf/libs/agents/saf/plma/Makefile
         osaf/libs/agents/saf/lga/Makefile
         osaf/libs/agents/saf/ntfa/Makefile
-	osaf/libs/agents/saf/clma/Makefile
+        osaf/libs/agents/saf/clma/Makefile
         osaf/libs/agents/saf/cpa/Makefile
         osaf/libs/agents/saf/eda/Makefile
         osaf/libs/agents/saf/gla/Makefile
@@ -623,7 +623,7 @@ AC_CONFIG_FILES([
         osaf/libs/common/ntfsv/include/Makefile
         osaf/libs/common/smfsv/Makefile
         osaf/libs/common/smfsv/include/Makefile
-	osaf/libs/common/clmsv/Makefile
+        osaf/libs/common/clmsv/Makefile
         osaf/libs/common/clmsv/include/Makefile
         osaf/libs/saf/Makefile
         osaf/libs/saf/include/Makefile
@@ -709,7 +709,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/plmsv/plms/Makefile
         osaf/services/saf/plmsv/plms/hpi_intf/Makefile
         osaf/services/saf/plmsv/plms/scripts/Makefile
-	osaf/services/saf/plmsv/plms/scripts/osaf-plmd
+        osaf/services/saf/plmsv/plms/scripts/osaf-plmd
         osaf/services/saf/logsv/Makefile
         osaf/services/saf/logsv/config/Makefile
         osaf/services/saf/logsv/lgs/Makefile
@@ -720,14 +720,14 @@ AC_CONFIG_FILES([
         osaf/services/saf/ntfsv/ntfs/Makefile
         osaf/services/saf/ntfsv/ntfs/scripts/Makefile
         osaf/services/saf/ntfsv/ntfs/scripts/osaf-ntfd
-	osaf/services/saf/clmsv/Makefile
-	osaf/services/saf/clmsv/config/Makefile
-	osaf/services/saf/clmsv/nodeagent/Makefile
-	osaf/services/saf/clmsv/clms/Makefile
-	osaf/services/saf/clmsv/clms/scripts/Makefile
-	osaf/services/saf/clmsv/clms/scripts/osaf-clmd
-	osaf/services/saf/clmsv/nodeagent/scripts/Makefile
-	osaf/services/saf/clmsv/nodeagent/scripts/osaf-noded
+        osaf/services/saf/clmsv/Makefile
+        osaf/services/saf/clmsv/config/Makefile
+        osaf/services/saf/clmsv/nodeagent/Makefile
+        osaf/services/saf/clmsv/clms/Makefile
+        osaf/services/saf/clmsv/clms/scripts/Makefile
+        osaf/services/saf/clmsv/clms/scripts/osaf-clmd
+        osaf/services/saf/clmsv/nodeagent/scripts/Makefile
+        osaf/services/saf/clmsv/nodeagent/scripts/osaf-noded
         osaf/services/saf/cpsv/Makefile
         osaf/services/saf/cpsv/config/Makefile
         osaf/services/saf/cpsv/logstr/Makefile
@@ -761,7 +761,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/mqsv/mqd/scripts/osaf-msgd
         osaf/services/saf/mqsv/mqnd/scripts/Makefile
         osaf/services/saf/mqsv/mqnd/scripts/osaf-msgnd
-	osaf/services/saf/smfsv/Makefile
+        osaf/services/saf/smfsv/Makefile
         osaf/services/saf/smfsv/config/Makefile
         osaf/services/saf/smfsv/scripts/Makefile
         osaf/services/saf/smfsv/smfd/Makefile
@@ -788,13 +788,13 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/ntfsubscribe/Makefile
         pkgconfig/Makefile
         pkgconfig/opensaf.pc
-	tests/immsv/implementer/Makefile
-	tests/immsv/management/Makefile
-	tests/logsv/Makefile
-	tests/clmsv/Makefile
-	tests/ntfsv/Makefile
-	tests/plmsv/plms/Makefile
-	tests/plmsv/Makefile])
+        tests/immsv/implementer/Makefile
+        tests/immsv/management/Makefile
+        tests/logsv/Makefile
+        tests/clmsv/Makefile
+        tests/ntfsv/Makefile
+        tests/plmsv/plms/Makefile
+        tests/plmsv/Makefile])
 
 AC_CONFIG_SUBDIRS([contrib/plmc])
 

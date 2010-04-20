@@ -1,8 +1,6 @@
-#!/bin/bash
-#
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -13,25 +11,22 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Erisson
+# Author(s): Wind River Systems 
 #
 
-progname=`basename $0`
+include $(top_srcdir)/Makefile.common
 
-case "$1" in
-	instantiate)
-		logger -t $progname "instantiate $SA_AMF_COMPONENT_NAME"
-		;;
-	cleanup)
-		logger -t $progname "cleanup $SA_AMF_COMPONENT_NAME"
-		;;
-	terminate)
-		logger -t $progname "terminate $SA_AMF_COMPONENT_NAME"
-		;;
-	*)
-		echo "Usage: $0 {instantiate|cleanup|terminate}"
-		exit 1
-esac
+MAINTAINERCLEANFILES = Makefile.in
 
-exit 0
+bin_PROGRAMS = msg_demo
 
+msg_demo_CPPFLAGS = \
+	-DNCS_SAF=1 \
+	$(AM_CPPFLAGS)
+
+msg_demo_SOURCES = \
+	mqsv_demo_app.c \
+	mqsv_main_app.c
+
+msg_demo_LDADD = \
+	@SAF_AIS_MSG_LIBS@

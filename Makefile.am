@@ -39,7 +39,6 @@ CLEANFILES = \
 	osafdir.conf-t
 
 include $(top_srcdir)/Makefile.common
-include $(top_srcdir)/samples/samples.mk
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -130,10 +129,6 @@ dist_doc_DATA = \
 	$(top_srcdir)/00-README.samples \
 	$(top_srcdir)/00-README.debug
 
-dist_pkgdata_DATA = 
-
-nobase_dist_pkgdata_DATA = $(samples_sources)
-
 if ENABLE_AIS_PLM
 
 SUBDIRS = contrib/plmc osaf pkgconfig
@@ -150,9 +145,11 @@ SUBDIRS += java
 
 endif
 
+EXTRA_DIST = samples
+
 if ENABLE_TESTS
 
-EXTRA_DIST = tests
+EXTRA_DIST += tests
 
 SUBDIRS += \
 	tests/logsv \
@@ -227,6 +224,7 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
 	$(mkinstalldirs) $(DESTDIR)$(lockdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkglocalstatedir)
+	cp -R samples/ $(DESTDIR)$(pkgdatadir)
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
@@ -246,7 +244,6 @@ uninstall-hook:
 	-rm -rf $(DESTDIR)$(pkglocalstatedir)
 	-rm -rf $(DESTDIR)$(pkglogdir)
 	-rm -rf $(DESTDIR)$(pkgpiddir)
-	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 
 docs:
 	doxygen
