@@ -18,5 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-nodist_pkglib_SCRIPTS = \
+nodist_pkgclccli_SCRIPTS = \
 	$(top_builddir)/osaf/services/saf/plmsv/plms/scripts/osaf-plmd
