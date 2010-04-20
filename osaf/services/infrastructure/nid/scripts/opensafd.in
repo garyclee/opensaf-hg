@@ -42,10 +42,9 @@ unload_tipc() {
 
   	# Unload TIPC if already loaded
 	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
-		modprobe -r tipc
-		RETVAL=$?
-		if [ $RETVAL -eq 1 ]; then
-			logger -t $prog "TIPC module unloading failed"
+		modprobe -r tipc >/dev/null 2>&1
+		if [ $? -eq 1 ]; then
+			logger -s -t $prog "TIPC module unloading failed"
 		fi
 	fi
 }
@@ -54,7 +53,7 @@ check_tipc() {
 	# Exit if tipc-config is not installed
 	if [ ! -x /sbin/tipc-config ]; then
 		if [ which tipc-config >/dev/null 2>&1 ]; then
-			logger -t $prog "Can't find tipc-config in the PATH, exiting."
+			logger -s -t $prog "Can't find tipc-config in the PATH, exiting."
 			exit 5
 		fi
 	fi
@@ -65,7 +64,7 @@ check_tipc() {
 check_env() {
 	# Make sure this kernel has POSIX shared memory configured
 	if [ ! -d /dev/shm ]; then
-		logger -t $prog "POSIX shared memory (/dev/shm) not enabled, exiting."
+		logger -s -t $prog "POSIX shared memory (/dev/shm) not enabled, exiting."
 		exit 6
 	fi
 	if [ ! -d /dev/shm/opensaf ]; then
@@ -155,6 +154,8 @@ stop() {
 			timeout=$((timeout-1))
 		done
 		[ -d /proc/$amfpid ] && RETVAL=1
+	else
+		pkill -9 osaf*
 	fi
 
 	final_clean
