@@ -1560,7 +1560,8 @@ SaUint32T plms_no_aff_ent_in_grp_get(PLMS_ENTITY_GROUP_INFO *grp,
 void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 				PLMS_ENTITY_GROUP_INFO *grp,
 				PLMS_GROUP_ENTITY *aff_ent_list,
-				SaPlmGroupChangesT grp_op)
+				SaPlmGroupChangesT grp_op,
+				SaPlmChangeStepT change_step)
 {
 	int count=0;
 	PLMS_GROUP_ENTITY_ROOT_LIST *head;
@@ -1624,8 +1625,6 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 			This has to be the ntf-id */		
 			ent[count].plmNotificationId = 
 					SA_NTF_IDENTIFIER_UNUSED;
-			ent[count].expectedReadinessStatus = 
-				head->plm_entity->exp_readiness_status; 
 			if (PLMS_HE_ENTITY == head->plm_entity->
 							entity_type){
 					
@@ -1648,6 +1647,11 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 				readinessFlags =  
 				head->plm_entity->entity.ee_entity.
 						saPlmEEReadinessFlags;
+			}
+			if (SA_PLM_CHANGE_COMPLETED == change_step){
+				ent[count].expectedReadinessStatus = ent[count].currentReadinessStatus;
+			}else{
+				ent[count].expectedReadinessStatus = head->plm_entity->exp_readiness_status; 
 			}
 		count++;
 		head = head->next;

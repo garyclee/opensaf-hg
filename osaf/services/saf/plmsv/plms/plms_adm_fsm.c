@@ -4545,7 +4545,7 @@ SaUint32T plms_cbk_call(PLMS_TRACK_INFO *trk_info,SaUint8T add_root)
 		plms_grp_aff_ent_fill(agent_evt.req_evt.agent_track.
 			track_cbk.tracked_entities.entities, 
 			grp_list->ent_grp_inf,trk_info->aff_ent_list,
-			trk_info->grp_op);
+			trk_info->grp_op,trk_info->change_step);
 
 		if ((NULL != trk_info->root_entity) && add_root){
 			plms_ent_from_ent_list_rem(trk_info->root_entity,
