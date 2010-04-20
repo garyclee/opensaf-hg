@@ -712,6 +712,7 @@ send_resp:
 			grp_info_node->next = NULL;
 			trk_info.group_info_list = grp_info_node;
 			trk_info.aff_ent_list = plm_get_aff_ent_list(grp_info->plm_entity_list); 
+			trk_info.grp_op = SA_PLM_GROUP_NO_CHANGE;
 			proc_rc = plms_cbk_call(&trk_info, 1);
 			free_aff_ent_list(trk_info.aff_ent_list);
 			

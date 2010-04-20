@@ -74,7 +74,7 @@ PLMS_INVOCATION_TO_TRACK_INFO * plms_inv_to_cbk_in_grp_find(
 				PLMS_INVOCATION_TO_TRACK_INFO *,SaInvocationT);
 void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *, 
 				PLMS_ENTITY_GROUP_INFO *,PLMS_GROUP_ENTITY *,
-				SaPlmGroupChangesT);
+				SaPlmGroupChangesT,SaPlmChangeStepT);
 void plms_aff_ent_grp_exp_rdness_state_mark(PLMS_ENTITY_GROUP_INFO_LIST *,
 				SaPlmHEAdminStateT,SaPlmReadinessFlagsT);
 void plms_aff_ent_exp_rdness_state_mark(PLMS_GROUP_ENTITY *,SaPlmHEAdminStateT,

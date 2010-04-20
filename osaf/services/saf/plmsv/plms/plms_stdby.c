@@ -458,7 +458,8 @@ static SaUint32T plms_perform_pending_admin_clbk(
                 /* Pack the affected entities.*/
                 plms_grp_aff_ent_fill(agent_evt.req_evt.agent_track.
                         track_cbk.tracked_entities.entities,
-                        grp_list->ent_grp_inf,aff_ent_list,FALSE);
+                        grp_list->ent_grp_inf,aff_ent_list,FALSE,
+			agent_evt.req_evt.agent_track.track_cbk.change_step);
 
                 /* Send the message to PLMA. */
 		ret_err = plms_mds_normal_send(cb->mds_hdl,
