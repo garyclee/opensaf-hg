@@ -76,7 +76,7 @@ extern SaAisErrorT log_stream_open(log_stream_t *stream);
 
 extern int log_stream_close(log_stream_t **stream);
 extern int log_stream_file_close(log_stream_t *stream);
-extern int log_stream_write(log_stream_t *stream, const char *buf);
+extern int log_stream_write(log_stream_t *stream, const char *buf, size_t count);
 extern void log_stream_id_print(void);
 extern int log_stream_config_change(log_stream_t *stream, const char *current_file_name);
 

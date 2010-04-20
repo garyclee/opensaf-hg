@@ -149,6 +149,7 @@ typedef enum {
 } logStreamTypeT;
 
 extern SaBoolT lgs_is_valid_format_expression(const SaStringT, logStreamTypeT, SaBoolT *);
-extern SaAisErrorT lgs_format_log_record(SaLogRecordT *, const SaStringT, const SaUint16T, SaStringT, SaUint32T);
+extern int lgs_format_log_record(SaLogRecordT *, const SaStringT, SaUint16T fixedLogRecordSize,
+	size_t dest_size, char *dest, SaUint32T);
 
 #endif

@@ -86,6 +86,7 @@ typedef struct lgs_cb {
 	LGA_DOWN_LIST *lga_down_list_tail;
 
 	char *logsv_root_dir;	/* Root directory for log files */
+	unsigned int max_logrecsize;
 } lgs_cb_t;
 
 extern uns32 lgs_cb_init(lgs_cb_t *);

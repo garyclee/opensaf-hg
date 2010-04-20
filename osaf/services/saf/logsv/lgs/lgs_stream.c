@@ -744,12 +744,14 @@ static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file)
  * log_stream_write will write a number of bytes to the associated file. If
  * the file size gets too big, the file is closed, renamed and a new file is
  * opened. If there are too many files, the oldest file will be deleted.
+ * 
  * @param stream
  * @param buf
+ * @param count
  * 
  * @return int -1 on error, 0 otherwise
  */
-int log_stream_write(log_stream_t *stream, const char *buf)
+int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
 {
 	int rc, bytes_written = 0;
 
@@ -763,7 +765,7 @@ int log_stream_write(log_stream_t *stream, const char *buf)
 	}
 
  retry:
-	rc = write(stream->fd, &buf[bytes_written], stream->fixedLogRecordSize - bytes_written);
+	rc = write(stream->fd, &buf[bytes_written], count - bytes_written);
 	if (rc == -1) {
 		if (errno == EINTR)
 			goto retry;
@@ -778,9 +780,9 @@ int log_stream_write(log_stream_t *stream, const char *buf)
 	}
 
 	rc = 0;
-	stream->curFileSize += stream->fixedLogRecordSize;
+	stream->curFileSize += count;
 
-	if ((stream->curFileSize + stream->fixedLogRecordSize) > stream->maxLogFileSize) {
+	if ((stream->curFileSize + count) > stream->maxLogFileSize) {
 		char *current_time = lgs_get_time();
 
 		if ((rc = fileclose(stream->fd)) == -1) {
