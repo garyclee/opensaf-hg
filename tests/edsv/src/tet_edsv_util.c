@@ -30,6 +30,8 @@ void tet_edsv_end(void);
 void (*tet_startup)()=tet_edsv_startup;
 void (*tet_cleanup)()=tet_edsv_end;
 
+extern void tet_saEvtLimitGetCases(int iOption);
+
 #if (TET_PATCH==1)
 struct tet_testlist edsv_test[]=
   {
@@ -354,7 +356,6 @@ void tet_run_edsv_app()
 #if 1 
 #ifndef TET_ALL
 
-  tware_mem_ign();
   for(iterCount=1;iterCount<=gl_iteration;iterCount++)
     {
       printf("\n---------------- ITERATION : %d --------------\n",iterCount);

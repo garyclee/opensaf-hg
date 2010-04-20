@@ -377,9 +377,6 @@ extern const char *glsv_saf_error_string[];
 
 extern void glsv_fill_lck_version(SaVersionT *version,SaUint8T rel_code,SaUint8T mjr_ver,SaUint8T mnr_ver);
 
-void tware_mem_ign();
-void tware_mem_dump();
-
  void glsv_it_init_01(void);
  void glsv_it_init_02(void);
  void glsv_it_init_03(void);

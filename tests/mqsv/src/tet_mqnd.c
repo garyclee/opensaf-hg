@@ -29,14 +29,8 @@ void tet_create_mqnd()
             mqnd_lib_req(&lib_destroy);
             exit(1);
             break;
-         case 'm':
-            tware_mem_dump();
-            break;
-         case 'i':
-            tware_mem_ign();
-            break;
          default:
-            m_TET_MQSV_PRINTF("Codes supported are \n\tm - mem,\n\ti - ignore\n\te - exit...\n");
+            m_TET_MQSV_PRINTF("Codes supported are \n\te - exit...\n");
             break;
       }
       if (c=='e') break;

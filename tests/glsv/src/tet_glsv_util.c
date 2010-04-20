@@ -527,7 +527,6 @@ void tet_run_glsv_app()
 #ifdef TET_SMOKE_TEST
 #endif
 
-   tware_mem_ign();
 
    tet_glsv_start_instance(&inst);
 
@@ -535,9 +534,7 @@ void tet_run_glsv_app()
    printf("\n PRESS ENTER TO GET THE MEM DUMP\n");
    getchar();
 
-   tware_mem_dump();
    sleep(5);
-   tware_mem_dump();
 
    tet_test_cleanup();
 

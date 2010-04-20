@@ -25,7 +25,7 @@ OBJECTS := $(patsubst %.c,%.o,$(SRCS))
 
 CPPFLAGS += -DTET_MBCSV=1
 
-LDLIBS += -lmbca
+LDLIBS += -lSaAmf
 ifeq "$(OS)" "SunOS"
 LDLIBS += -lsocket -lnsl
 endif

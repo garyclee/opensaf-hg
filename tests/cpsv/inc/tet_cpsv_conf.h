@@ -166,8 +166,6 @@ extern void fill_ckpt_attri(SaCkptCheckpointCreationAttributesT *cr_attr,SaCkptC
 extern void fill_write_iovec(SaCkptIOVectorElementT *iovec,SaCkptSectionIdT sec,char *buf,SaSizeT size,SaOffsetT offset,SaSizeT read_size);
 extern void fill_read_iovec(SaCkptIOVectorElementT *iovec,SaCkptSectionIdT sec,char *buf,SaSizeT size,SaOffsetT offset,SaSizeT read_size);
 
-extern void tware_mem_dump();
-extern void tware_mem_ign();
 extern void cpsv_it_expset_02();
 extern void cpsv_redundancy_func(RED_FLAG i);
 extern SaAisErrorT ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT lckHandle,ncsCkptCkptArrivalCallbackT arrivalCallbck);

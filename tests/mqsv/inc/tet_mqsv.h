@@ -720,8 +720,6 @@ extern void mqsv_fill_grp_notif_buffer(SaMsgQueueGroupNotificationBufferT *buffe
 extern void mqsv_fill_msg_version(SaVersionT *version,SaUint8T rel_code,SaUint8T mjr_ver,SaUint8T mnr_ver);
 extern void mqsv_fill_rcv_message(SaMsgMessageT *msg,void *data,SaSizeT size,SaNameT *sndr_name);
 
-void tware_mem_ign(void);
-void tware_mem_dump(void);
 void copy_notif_buffer(SaMsgQueueGroupNotificationBufferT *buffer);
 void App_saMsgQueueOpenCallback(SaInvocationT invocation,
                                 SaMsgQueueHandleT queueHandle,
