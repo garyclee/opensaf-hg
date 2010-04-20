@@ -40,6 +40,7 @@
 /*************************************************/
 
 #include "saAis.h"
+#include "saNtf.h"
 
 #ifdef  __cplusplus
 extern "C" {
