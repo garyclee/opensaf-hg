@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <assert.h>
-
+#include <logtrace.h>
 #include "lgs_fmt.h"
 
 /**
@@ -1071,19 +1071,19 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
 
 /**
  * Format and write a log record
+ * 
  * @param logRecord
- * @param formatExpression
- * @param fixedLogRecordSize
- * @param dest
+ * @param formatExpression format string
+ * @param fixedLogRecordSize if 0 do not pad
+ * @param dest_size size of dest
+ * @param dest write at most dest_size bytes to dest
  * @param logRecordIdCounter
  * 
- * @return SaAisErrorT
+ * @return int number of bytes written to dest
  */
-SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
-				  const SaStringT formatExpression,
-				  SaUint16T dest_size, const SaStringT dest, SaUint32T logRecordIdCounter)
+int lgs_format_log_record(SaLogRecordT *logRecord, const SaStringT formatExpression,
+	SaUint16T fixedLogRecordSize, size_t dest_size, char *dest, SaUint32T logRecordIdCounter)
 {
-	SaAisErrorT error = SA_AIS_OK;
 	SaStringT fmtExpPtr = &formatExpression[0];
 	SaStringT fmtExpPtrSnabel = &formatExpression[1];
 	SaTimeT totalTime;
@@ -1138,7 +1138,8 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 				break;
 
 			default:
-				error = SA_AIS_ERR_INVALID_PARAM;
+				TRACE("Invalid token %u", *(fmtExpPtrSnabel - 1));
+				i = 0;
 				goto error_exit;
 
 			}
@@ -1168,9 +1169,10 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 	}			/* for ( ; ; ) */
 
 	/* Pad log record to fixed log record fieldSize */
-	if (i < dest_size) {
-		memset(&dest[i], ' ', dest_size - i);
-		dest[dest_size - 1] = '\n';
+	if ((fixedLogRecordSize > 0) && (i < fixedLogRecordSize)) {
+		memset(&dest[i], ' ', fixedLogRecordSize - i);
+		dest[fixedLogRecordSize - 1] = '\n';
+		i = fixedLogRecordSize;
 	} else {
 		dest[i - 1] = '\n';
 	}
@@ -1180,5 +1182,5 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 	}
 
  error_exit:
-	return error;
+	return i;
 }

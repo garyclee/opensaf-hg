@@ -25,6 +25,10 @@
 			<name>saLogStreamSeverityFilter</name>
 			<value>127</value>
 		</attr>
+		<attr>
+			<name>saLogStreamFixedLogRecordSize</name>
+			<value>200</value>
+		</attr>
 	</object>
 	<object class="SaLogStreamConfig">
 		<dn>safLgStrCfg=saLogNotification,safApp=safLogService</dn>
@@ -44,6 +48,10 @@
 			<name>saLogStreamSeverityFilter</name>
 			<value>127</value>
 		</attr>
+		<attr>
+			<name>saLogStreamFixedLogRecordSize</name>
+			<value>200</value>
+		</attr>
 	</object>
 	<object class="SaLogStreamConfig">
 		<dn>safLgStrCfg=saLogSystem,safApp=safLogService</dn>
@@ -62,6 +70,10 @@
 		<attr>
 			<name>saLogStreamSeverityFilter</name>
 			<value>127</value>
+		</attr>
+		<attr>
+			<name>saLogStreamFixedLogRecordSize</name>
+			<value>200</value>
 		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">

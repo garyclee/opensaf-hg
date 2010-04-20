@@ -25,6 +25,9 @@
 #include "lgs_util.h"
 #include "lgs_fmt.h"
 
+/* used when fixed log record size is zero */
+#define LOG_MAX_LOGRECSIZE 1024
+
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
    ( (ver->releaseCode == LOG_RELEASE_CODE) && \
@@ -517,6 +520,8 @@ done:
 uns32 lgs_cb_init(lgs_cb_t *lgs_cb)
 {
 	NCS_PATRICIA_PARAMS reg_param;
+	char *val;
+	unsigned int max_logrecsize;
 
 	TRACE_ENTER();
 
@@ -532,6 +537,17 @@ uns32 lgs_cb_init(lgs_cb_t *lgs_cb)
 	lgs_cb->log_version.releaseCode = LOG_RELEASE_CODE;
 	lgs_cb->log_version.majorVersion = LOG_MAJOR_VERSION;
 	lgs_cb->log_version.minorVersion = LOG_MINOR_VERSION;
+
+	lgs_cb->max_logrecsize = LOG_MAX_LOGRECSIZE;
+
+	if ((val = getenv("LOGSV_MAX_LOGRECSIZE")) != NULL) {
+		max_logrecsize = strtol(val, NULL, 0);
+		if (max_logrecsize >= 256)
+			lgs_cb->max_logrecsize = max_logrecsize;
+		else
+			LOG_NO("Too low LOGSV_MAX_LOGRECSIZE (%u), using default (%u)",
+				max_logrecsize, lgs_cb->max_logrecsize);
+	}
 
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&lgs_cb->client_tree, &reg_param))
@@ -998,6 +1014,8 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	log_stream_t *stream;
 	SaAisErrorT error = SA_AIS_OK;
 	SaStringT logOutputString = NULL;
+	SaUint32T buf_size;
+	int n;
 
 	TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
 
@@ -1020,22 +1038,25 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		goto done;
 	}
 
-	logOutputString = calloc(1, stream->fixedLogRecordSize + 1);
+	/*
+	** To avoid truncation we support fixedLogRecordSize==0. We then allocate an
+	** a buffer with an implementation defined size instead. We also do not pad in this mode.
+	*/
+	buf_size = stream->fixedLogRecordSize == 0 ? lgs_cb->max_logrecsize : stream->fixedLogRecordSize;
+	logOutputString = calloc(1, buf_size);
 	if (logOutputString == NULL) {
 		LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
 		error = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
 
-	if (lgs_format_log_record(param->logRecord,
-				  stream->logFileFormat,
-				  stream->fixedLogRecordSize,
-				  logOutputString, ++stream->logRecordId) != SA_AIS_OK) {
-		error = SA_AIS_ERR_INVALID_PARAM;	/* FIX? */
+	if ((n = lgs_format_log_record(param->logRecord, stream->logFileFormat,
+		stream->fixedLogRecordSize, buf_size, logOutputString, ++stream->logRecordId)) == 0) {
+		error = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
-	if (log_stream_write(stream, logOutputString) == -1) {
+	if (log_stream_write(stream, logOutputString, n) == -1) {
 		error = SA_AIS_ERR_NO_RESOURCES;
 		goto done;
 	}
