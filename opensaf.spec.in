@@ -1108,8 +1108,10 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_javadocdir}/%{name}/*
 %endif
 %{_libdir}/pkgconfig/*.pc
+%if %is_ais_plm
 %{_libdir}/libplmc_utils.so
 %{_libdir}/libplmc_utils.a
+%endif
 %{_libdir}/libSa*.so
 %{_libdir}/libSa*.a
 %{_includedir}/saAis.h
