@@ -199,10 +199,12 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			clm_node_left(notifItem->clusterNode.nodeId);	
 		}
 		else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
-			/* update the local node info */
-			memcpy(&(avnd_cb->node_info),
-			       &(notifItem->clusterNode),
-			        sizeof(SaClmClusterNodeT_4));
+			if (avnd_cb->node_info.nodeId == notifItem->clusterNode.nodeId) {
+				TRACE("local CLM node reconfigured");
+				/* update the local node info */
+				memcpy(&(avnd_cb->node_info), &(notifItem->clusterNode),
+					sizeof(SaClmClusterNodeT_4));
+			}
 		}
 		else if(notifItem->clusterChange == SA_CLM_NODE_JOINED  ||
 		        notifItem->clusterChange == SA_CLM_NODE_NO_CHANGE) {
