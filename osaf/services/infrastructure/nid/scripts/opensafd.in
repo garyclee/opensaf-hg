@@ -155,7 +155,7 @@ stop() {
 		done
 		[ -d /proc/$amfpid ] && RETVAL=1
 	else
-		pkill -9 osaf*
+		pkill -9 osaf* >/dev/null 2>&1
 	fi
 
 	final_clean
