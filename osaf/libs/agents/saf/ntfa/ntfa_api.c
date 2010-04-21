@@ -2759,6 +2759,12 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 
 	TRACE_ENTER();
 
+	if(searchDirection < SA_NTF_SEARCH_OLDER || searchDirection > SA_NTF_SEARCH_YOUNGER) {
+		TRACE_1("search direction is not in a valid range");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
 	if (notification == NULL) {
 		TRACE_1("notification is NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
