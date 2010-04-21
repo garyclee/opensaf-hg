@@ -1,8 +1,0 @@
-# Symbol scoping for libSaLog.so
-{
-	global:
-		saLog*;
-
-	local:
-		lga*;
-};
