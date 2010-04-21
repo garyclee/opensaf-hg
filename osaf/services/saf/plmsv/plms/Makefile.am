@@ -51,8 +51,8 @@ osafplmd_SOURCES = \
 osafplmd_LDADD = \
 	@HPI_LIBS@ \
 	$(top_builddir)/contrib/plmc/lib/plmc/libplmc.la \
+	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
-	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
