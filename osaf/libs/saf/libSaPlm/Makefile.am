@@ -11,12 +11,15 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson 
+# Author(s): Emerson Network Power 
+#            Wind River Systems
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
+
+EXTRA_DIST = libSaPlm.map
 
 LIB_VERSION = 0:0:0
 
@@ -29,7 +32,14 @@ libSaPlm_la_SOURCES =
 libSaPlm_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-libSaPlm_la_LDFLAGS = -version-info $(LIB_VERSION)
+if HAVE_LD_VERSION_SCRIPT
+libSaPlm_la_LDFLAGS = \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaPlm/libSaPlm.map \
+	-version-number $(LIB_VERSION)
+else
+libSaPlm_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
 libSaPlm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
