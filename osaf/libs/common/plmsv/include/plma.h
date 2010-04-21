@@ -73,6 +73,7 @@ typedef  struct plma_entity_group_info
 	SaUint32T		  trk_strt_stop;		
 	PLMA_CLIENT_INFO          *client_info;   
 	PLMA_RDNS_TRK_MEM_LIST	  *rdns_trk_mem_list;
+	SaUint32T		  is_trk_enabled;
 } PLMA_ENTITY_GROUP_INFO;
 
 /* Data structure to group entity list per client */
