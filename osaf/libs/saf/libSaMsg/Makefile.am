@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = libSaMsg.map
+
 LIB_VERSION = 1:0:1
 
 SUBDIRS = pkgconfig
@@ -29,7 +31,14 @@ libSaMsg_la_SOURCES =
 libSaMsg_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-libSaMsg_la_LDFLAGS = -version-info $(LIB_VERSION)
+if HAVE_LD_VERSION_SCRIPT
+libSaMsg_la_LDFLAGS = \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaMsg/libSaMsg.map \
+	-version-number $(LIB_VERSION)
+else
+libSaMsg_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
 libSaMsg_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
