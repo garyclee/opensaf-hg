@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 			}
 
 			if (rc == SA_AIS_OK)
-				LOG_ER("Node : %s has Joined the cluster",
+				LOG_NO("Node : %s has Joined the cluster",
 				       o_msg->info.api_resp_info.param.node_name.value);
 
 			break;	/*get out of while loop */

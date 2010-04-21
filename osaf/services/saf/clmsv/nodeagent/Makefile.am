@@ -20,14 +20,14 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = osafnoded
+pkglib_PROGRAMS = osafclmna
 
-osafnoded_CPPFLAGS = \
+osafclmna_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/clmsv/include
 
-osafnoded_SOURCES = \
+osafclmna_SOURCES = \
 	clms_nodeagent.c
 
-osafnoded_LDADD = \
+osafclmna_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la 

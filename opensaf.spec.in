@@ -862,7 +862,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files clm-nodeagent
 %defattr(-,root,root)
-%{_pkglibdir}/osafnoded
+%{_pkglibdir}/osafclmna
 %{_pkgclcclidir}/osaf-noded
 
 
