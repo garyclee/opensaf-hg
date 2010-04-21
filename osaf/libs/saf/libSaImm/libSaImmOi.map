@@ -1,0 +1,13 @@
+# Version and symbol export for libSaImmOi.so
+
+# FIXME: Will need to be changed in the future, when ABI compatibility
+# will be broken by another major change, removing the version symbol
+# would break ABI for now.
+
+OPENSAF_IMM_A.02.01 {
+	global:
+		saImmOi*;
+
+	local:
+		*;
+};
