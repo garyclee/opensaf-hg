@@ -1319,20 +1319,38 @@ static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 	
 }
 /******************************************************************************
-@brief 		: TODO: Error callback. Not implemented. At this point of time,
-		PLMS does not feel like handling the mentioned errors reported
-		through error callback. Only error, PLMS interested is
-		tcp-disconnect but PLMS is dependend on connect callback for
-		this.
+@brief 		: There are five actions taken by plmc-lib on encountering 
+		different kind of error. These are mentioned nelow.
+		
+		#define PLMC_LIBACT_UNDEFINED           0
+		#define PLMC_LIBACT_CLOSE_SOCKET        1
+		#define PLMC_LIBACT_EXIT_THREAD         2
+		#define PLMC_LIBACT_DESTROY_LIBRARY     3
+		#define PLMC_LIBACT_IGNORING            4
+
+		At this point of time, PLMC_LIBACT_CLOSE_SOCKET is handled
+		through tcp callback.
+		PLMC_LIBACT_UNDEFINED and PLMC_LIBACT_IGNORING are not handled.
+		
+		PLMC_LIBACT_EXIT_THREAD and PLMC_LIBACT_DESTROY_LIBRARY are handled
+		in this function. As the action is exit(0), no need to process these
+		events in PLMS MBX context. If situation arises for any other errors,
+		it will be taken care then.
 ******************************************************************************/
 int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 {
-	TRACE_ENTER2("Not implemented");
+	TRACE_ENTER2("Cmd: %d, ee_id: %s, err_msg: %s, err_act: %s",
+	msg->cmd_enum,msg->ee_id,msg->errormsg,msg->action);
 
-	TRACE("Error cbk received. cmd: %d, ee_id: %s, err_msg: %s, err_act: %s",
-	msg->cmd_enum,msg->ee_id,msg->errormsg,msg->action);	
-
-	TRACE_LEAVE2("Not implemented");
+	/* Only the action in which plmc-lib is destroyed, is
+	handled. PLMS exits in this case an hence it makes no sense
+	to put in the mailbox.*/
+	
+	if ( (PLMC_LIBACT_EXIT_THREAD == msg->acode) || (PLMC_LIBACT_DESTROY_LIBRARY == msg->acode)){
+		LOG_ER("PLMS EXIT !!!!!! PLMC lib destroyed, I am helpless. PLMc act: %s",msg->action);
+		exit(0);
+	}
+	TRACE_LEAVE2("Return Val: %d",TRUE);
 	return 0;
 }
 /******************************************************************************
