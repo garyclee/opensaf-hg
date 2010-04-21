@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,14 +11,15 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s):  Emerson Network Power
+# Author(s): Emerson Network Power
+#            Wind River Systems
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-EXTRA_DIST = libSaClm.version
+EXTRA_DIST = libSaClm.map
 
 LIB_VERSION = 0:0:0
 
@@ -31,9 +32,14 @@ libSaClm_la_SOURCES =
 libSaClm_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
+if HAVE_LD_VERSION_SCRIPT
 libSaClm_la_LDFLAGS = \
-	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaClm/libSaClm.version \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaClm/libSaClm.map \
 	-version-number $(LIB_VERSION)
+else
+libSaClm_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
 libSaClm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
