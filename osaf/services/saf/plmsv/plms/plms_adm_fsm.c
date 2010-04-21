@@ -3614,20 +3614,25 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 		head = head->next;
 	 }
 
+	 /* Send completed callback for insvc to stopping change.*/
+	 /****************************************************************/
+	 trk_info->aff_ent_list = aff_ent_list;
+	 trk_info->imm_adm_opr_id = evt->req_evt.admin_op.operation_id;
+	 trk_info->inv_id = evt->req_evt.admin_op.inv_id;
+	 trk_info->change_step = SA_PLM_CHANGE_COMPLETED;
+	 trk_info->track_cause = SA_PLM_CAUSE_SHUTDOWN;
+	 trk_info->root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	 trk_info->grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
+	 trk_info->root_entity = ent;
+	 plms_cbk_call(trk_info,1);
+	/*******************************************************************/
+
 	/* Expected readiness state to OOS and set dependency flag.*/
 	plms_aff_ent_exp_rdness_state_mark(aff_ent_list,
 		SA_PLM_READINESS_OUT_OF_SERVICE,SA_PLM_RF_DEPENDENCY);
 
 	/* Populate trk_info. */
-	trk_info->aff_ent_list = aff_ent_list;
-	trk_info->imm_adm_opr_id = evt->req_evt.admin_op.operation_id; 
-	trk_info->inv_id = evt->req_evt.admin_op.inv_id;
 	trk_info->change_step = SA_PLM_CHANGE_START;
-	trk_info->track_cause = SA_PLM_CAUSE_SHUTDOWN;
-	trk_info->root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
-	trk_info->grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
-	trk_info->root_entity = ent;
-	
 	/* Ask the agent to call start cbk.*/
 	plms_cbk_call(trk_info,1);
 	
