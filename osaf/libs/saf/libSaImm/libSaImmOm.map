@@ -1,0 +1,15 @@
+# Version and symbol export for libSaImmOm.so
+
+# FIXME: Will need to be changed in the future, when ABI compatibility
+# will be broken by another major change, removing the version symbol
+# would break ABI for now.
+
+OPENSAF_IMM_A.02.01 {
+	global:
+		saImmOm*;
+		immsv_finalize_sync;	# FIXME immsv* should be in libimmsv_common.so
+		immsv_sync;
+
+	local:
+		*;
+};
