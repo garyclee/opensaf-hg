@@ -1,0 +1,9 @@
+# Version and symbol export for libSaCkpt.so
+
+{
+	global:
+		saCkpt*;
+
+	local:
+		*;
+};
