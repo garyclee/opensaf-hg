@@ -63,7 +63,7 @@ static SaAisErrorT checkAttributeChangeFilterParameters(ntfa_filter_hdl_rec_t *a
 		if (attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
 		    sourceIndicators[i] < SA_NTF_OBJECT_OPERATION
 		    || attributeChangeFilterData->notificationFilter.attributeChangeNotificationfilter.
-		    sourceIndicators[i] > SA_NTF_MANAGEMENT_OPERATION) {
+		    sourceIndicators[i] > SA_NTF_UNKNOWN_OPERATION) {
 			TRACE_1("Invalid eventType value = %d",
 				(int)attributeChangeFilterData->notificationFilter.
 				attributeChangeNotificationfilter.sourceIndicators[i]);
@@ -102,7 +102,7 @@ static SaAisErrorT checkObjectCreateDeleteFilterParameters(ntfa_filter_hdl_rec_t
 		if (objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
 		    sourceIndicators[i] < SA_NTF_OBJECT_OPERATION
 		    || objectCreateDeleteFilterData->notificationFilter.objectCreateDeleteNotificationfilter.
-		    sourceIndicators[i] > SA_NTF_MANAGEMENT_OPERATION) {
+		    sourceIndicators[i] > SA_NTF_UNKNOWN_OPERATION) {
 			TRACE_1("Invalid eventType value = %d",
 				(int)objectCreateDeleteFilterData->notificationFilter.
 				objectCreateDeleteNotificationfilter.sourceIndicators[i]);
@@ -139,7 +139,7 @@ static SaAisErrorT checkStateChangeFilterParameters(ntfa_filter_hdl_rec_t *state
 		if (stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.sourceIndicators[i] <
 		    SA_NTF_OBJECT_OPERATION
 		    || stateChangeFilterData->notificationFilter.stateChangeNotificationfilter.sourceIndicators[i] >
-		    SA_NTF_MANAGEMENT_OPERATION) {
+		    SA_NTF_UNKNOWN_OPERATION) {
 			TRACE_1("Invalid eventType value = %d",
 				(int)stateChangeFilterData->notificationFilter.
 				stateChangeNotificationfilter.sourceIndicators[i]);
