@@ -446,6 +446,7 @@ uns32 avsv_edp_ckpt_msg_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SI *)0)->saAmfSINumCurrActiveAssignments, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SI *)0)->saAmfSINumCurrStandbyAssignments, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_SI *)0)->si_switch, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_SI *)0)->saAmfSIProtectedbySG, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
