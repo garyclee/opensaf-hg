@@ -19,7 +19,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-EXTRA_DIST = libSaLog.version
+EXTRA_DIST = libSaLog.map
 
 LIB_VERSION=1:0:1
 
@@ -32,9 +32,14 @@ libSaLog_la_SOURCES =
 libSaLog_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
+if HAVE_LD_VERSION_SCRIPT
 libSaLog_la_LDFLAGS = \
-	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaLog/libSaLog.version \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaLog/libSaLog.map \
 	-version-number $(LIB_VERSION)
+else
+libSaLog_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
 libSaLog_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
