@@ -41,6 +41,6 @@ osafckptnd_SOURCES = \
 	cpnd_tmr.c
 
 osafckptnd_LDADD = \
+	$(top_builddir)/osaf/libs/common/cpsv/libcpsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
-	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
-	$(top_builddir)/osaf/libs/saf/libSaCkpt/libSaCkpt.la
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
