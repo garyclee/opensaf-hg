@@ -46,10 +46,10 @@ AC_ARG_ENABLE([rpath],
 	[AC_HELP_STRING([--disable-rpath],
 		[Patches libtool to not use rpath in the libraries produced.])],
 	[],
-	[osaf_cv_rpath=yes])
+	[osaf_cv_rpath=no])
 AC_MSG_RESULT([$osaf_cv_rpath])
 
-# Patch libtool to not use rpath if requested.
+# Patch libtool to not use rpath if requested [default].
 if test "$osaf_cv_rpath" = "no"; then
 	AC_MSG_RESULT([Patching libtool to not use rpath.])
 	sed < libtool > libtool-2 \
