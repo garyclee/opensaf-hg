@@ -1,10 +1,9 @@
 # Version and symbol export for libSaNtf.so
 
-# Symbol scoping for libSaNtf.so
 {
 	global:
 		saNtf*;
 
 	local:
-		ntfa*;
+		*;
 };
