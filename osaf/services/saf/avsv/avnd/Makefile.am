@@ -69,7 +69,7 @@ osafamfnd_SOURCES = \
 	avnd_proxydb.c
 
 osafamfnd_LDADD = \
-	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
