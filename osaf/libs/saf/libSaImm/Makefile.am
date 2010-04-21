@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-EXTRA_DIST = libSaImmOi.map libSaImmOm.version
+EXTRA_DIST = libSaImmOi.map libSaImmOm.map
 
 OILIB_VERSION = 0:1:4
 OMLIB_VERSION = 0:1:4
@@ -52,9 +52,14 @@ libSaImmOm_la_SOURCES =
 libSaImmOm_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
+if HAVE_LD_VERSION_SCRIPT
 libSaImmOm_la_LDFLAGS = \
-	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.version \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.map \
 	-version-number $(OMLIB_VERSION)
+else
+libSaImmOm_la_LDFLAGS = \
+	-version-number $(OMLIB_VERSION)
+endif
 
 libSaImmOm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
