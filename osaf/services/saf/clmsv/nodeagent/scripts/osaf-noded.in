@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 ### BEGIN INIT INFO
-# Provides: osafnoded
+# Provides: osafclmna
 # Required-Start: $local_fs $remote_fs $network $syslog
 # Required-Stop: $local_fs $remote_fs $network $syslog
 # Should-Start: 
@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
-prog="osafnoded"
+prog="osafclmna"
 initscript=`basename $0`
 
 # Source LSB functions library
