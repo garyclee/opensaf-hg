@@ -1508,8 +1508,11 @@ SaAisErrorT saPlmEntityGroupDelete(SaPlmEntityGroupHandleT entityGroupHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
-
-
+	if (group_info->is_trk_enabled){
+ 		LOG_ER("PLMA: Track stop is not yet called. Can not delete the group.");
+ 		rc = SA_AIS_ERR_BUSY;
+ 		goto end;
+ 	}
 	memset(&plm_in_evt, 0, sizeof(PLMS_EVT));
 	plm_in_evt.req_res = PLMS_REQ;
 	plm_in_evt.req_evt.req_type = PLMS_AGENT_GRP_OP_EVT_T;
@@ -1737,7 +1740,6 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 			rc = SA_AIS_ERR_INIT;
 			goto end;
 		}
-		group_info->trk_strt_stop = 1;	
 	}
 
 	if (m_PLM_IS_SA_TRACK_CURRENT_SET(trackFlags) && (!trackedEntities)){
@@ -1795,8 +1797,12 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 		if (NCSCC_RC_SUCCESS != proc_rc){
 			LOG_ER("PLMA: plms_mds_normal_send FOR READINESS TRACK REQUEST FAILED");
 			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto end;
 		}
 		group_info->trk_strt_stop = 1;	
+		if (!m_PLM_IS_SA_TRACK_CURRENT_SET(trackFlags)){
+			group_info->is_trk_enabled = 1;
+		}
 		goto end;
 		
 	}
@@ -2026,7 +2032,8 @@ SaAisErrorT saPlmReadinessTrackStop(SaPlmEntityGroupHandleT entityGroupHandle)
 		goto end;
 	}
 	/** clear the flag so, all the pending call backs can be removed */ 
-	group_info->trk_strt_stop = 0;	
+	group_info->trk_strt_stop = 0;
+	group_info->is_trk_enabled = 0;
 end:
 	if(plm_out_res){
 		plms_free_evt(plm_out_res);
