@@ -170,8 +170,9 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 				return rc;
 			}
 			/* Immsv Runtime Object Create  */
-			error = mqnd_create_runtime_MsgQobject((char *)qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
-				cb->immOiHandle);
+			error =
+			    mqnd_create_runtime_MsgQobject((char *)qnode->qinfo.queueName.value,
+							   qnode->qinfo.creationTime, qnode, cb->immOiHandle);
 
 			if (error != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);
@@ -179,7 +180,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 			}
 
 			error = mqnd_create_runtime_MsgQPriorityobject((char *)qnode->qinfo.queueName.value, qnode,
-				cb->immOiHandle);
+								       cb->immOiHandle);
 
 			if (error != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);
@@ -1018,7 +1019,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 		    (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))) {
 			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED",
-					 qnode->qinfo.queueName.value);
+					    qnode->qinfo.queueName.value);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -1232,8 +1233,13 @@ void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificat
 				if (notificationBuffer->notification[counter].clusterChange == SA_CLM_NODE_LEFT) {
 					mqnd_proc_ckpt_clm_node_left(cb);
 					cb->clm_node_joined = 0;
-				} else if (notificationBuffer->notification[counter].clusterChange ==
-					   (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED)) {
+				} else
+				    if ((notificationBuffer->notification[counter].clusterChange ==
+					 SA_CLM_NODE_NO_CHANGE)
+					|| (notificationBuffer->notification[counter].clusterChange ==
+					    SA_CLM_NODE_JOINED)
+					|| (notificationBuffer->notification[counter].clusterChange ==
+					    SA_CLM_NODE_RECONFIGURED)) {
 					mqnd_proc_ckpt_clm_node_joined(cb);
 					cb->clm_node_joined = 1;
 				}
