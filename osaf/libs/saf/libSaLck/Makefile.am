@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = libSaLck.map
+
 LIB_VERSION = 0:0:0
 
 SUBDIRS = pkgconfig
@@ -29,7 +31,14 @@ libSaLck_la_SOURCES =
 libSaLck_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-libSaLck_la_LDFLAGS = -version-info $(LIB_VERSION)
+if HAVE_LD_VERSION_SCRIPT
+libSaLck_la_LDFLAGS = \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaLck/libSaLck.map \
+	-version-number $(LIB_VERSION)
+else
+libSaLck_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
 libSaLck_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
