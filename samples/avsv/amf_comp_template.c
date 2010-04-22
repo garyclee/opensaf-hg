@@ -81,6 +81,7 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 	SaAmfHAStateT ha_state, SaAmfCSIDescriptorT  csi_desc)
 {
 	SaAisErrorT rc;
+	SaAmfHAStateT my_ha_state;
 
 	syslog(LOG_INFO, " Dispatched 'CSI Set' in '%s' CSIName: '%s' HAState: %s CSIFlags: %s", 
 		comp_name->value, csi_desc.csiName.value, ha_state_str[ha_state],
@@ -101,6 +102,24 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 			attr = &csi_desc.csiAttr.attr[i];
 			syslog(LOG_DEBUG, "\tname: %s, value: %s", attr->attrName, attr->attrValue);
 		}
+	}
+
+	if (ha_state == SA_AMF_HA_QUIESCING) {
+		/* "gracefully quiescing CSI work assignment" */
+		sleep(1);
+		rc = saAmfCSIQuiescingComplete(gl_amf_hdl, inv, SA_AIS_OK);
+		if ( SA_AIS_OK != rc ) {
+			syslog(LOG_ERR, "saAmfCSIQuiescingComplete FAILED - %u", rc);
+			exit(1);
+		}
+
+		rc = saAmfHAStateGet(gl_amf_hdl, &gl_comp_name, &csi_desc.csiName, &my_ha_state);
+		if ( SA_AIS_OK != rc ) {
+			syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u", rc);
+			exit(1);
+		}
+
+		syslog(LOG_INFO, "My HA state is %s", ha_state_str[my_ha_state]);
 	}
 }
 
