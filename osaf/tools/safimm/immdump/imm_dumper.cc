@@ -108,11 +108,11 @@ int main(int argc, char* argv[])
     std::string filename;
     const char* defaultLog = "immdump_trace";
     const char* logPath;
+    unsigned int category_mask = 0;
     bool pbeDumpCase = false;
     bool pbeDaemonCase = false;
     void* dbHandle=NULL;
     const char* dump_trace_label = "imm_dump";
-    const char* pbe_dump_trace_label = "imm_pbe_dump";
     const char* pbe_daemon_trace_label = "imm_pbe";
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
@@ -145,7 +145,6 @@ int main(int argc, char* argv[])
 
                 case 'p':
                     pbeDumpCase = true;
-                    trace_label = pbe_dump_trace_label;
                     break;
 
                 default:
@@ -157,12 +156,14 @@ int main(int argc, char* argv[])
     }
 
 
-    if ((logPath = getenv("IMMND_TRACE_PATHNAME")) == NULL)
+    if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
     {
+        category_mask = 0xffffffff; /* TODO: set using -t flag ? */
+    } else {
         logPath = defaultLog;
     }
 
-    if (logtrace_init(trace_label, logPath, 0) == -1)
+    if (logtrace_init(trace_label, logPath, category_mask) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");

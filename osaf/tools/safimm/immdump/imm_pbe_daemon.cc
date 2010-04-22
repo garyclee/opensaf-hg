@@ -257,8 +257,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		TRACE("COMMIT TRANSACTION %llu FAILED rc:%u", ccbId, rc);
 	}
 
-	/* Fault injection. */
+	/* Fault injection.
 	if(ccbId == 3) { exit(1);} 
+	*/
        
  done:
 	TRACE_LEAVE();
