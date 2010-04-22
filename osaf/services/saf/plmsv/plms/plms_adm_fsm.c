@@ -1845,7 +1845,7 @@ SaUint32T plms_EE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
-	TRACE_ENTER2("Entity: %s. Lock to unlock.",tmp);
+	TRACE_ENTER2("Entity: %s. Lock to lock.",tmp);
 
 	ret_err = plms_ent_locked_to_lock(evt);	
 	if (NCSCC_RC_SUCCESS != ret_err){
@@ -3747,9 +3747,7 @@ static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *evt)
 		 * is in progress, lock option is TRY/DEFAULT. */
 		if (ent->adm_op_in_progress){
 
-			LOG_ER("Operation can not be performed. Check the\
-			operation in progress and the requested operation.\
-			op_in_progress: %d, lock_option: %s",
+			LOG_ER("Operation can not be performed. cur_track_cause: %d, req_lock_option: %s",
 			ent->adm_op_in_progress,evt->req_evt.admin_op.option);
 		
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
@@ -3889,9 +3887,7 @@ static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 		 */
 		if (ent->adm_op_in_progress){
 			
-			LOG_ER("Operation can not be performed. Check the\
-			operation in progress and the requested operation.\
-			op_in_progress: %d, requested_op: %d",
+			LOG_ER("Operation can not be performed. cur_track_change: %d, requested_op: %d",
 			ent->adm_op_in_progress,evt->req_evt.admin_op.operation_id);
 		
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
@@ -4048,9 +4044,8 @@ static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
 	}else {
 		/* I have to be in lock admin context.*/
 		if (ent->adm_op_in_progress){
-			LOG_ER("Operation can not be performed. Check the\
-			operation in progress and the requested operation.\
-			op_in_progress: %d, requested_op: %d",
+			
+			LOG_ER("Operation can not be performed. prev_track_cause: %d, requested_op: %d",
 			ent->adm_op_in_progress,evt->req_evt.admin_op.operation_id);
 		
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
