@@ -537,14 +537,15 @@ static void plms_get_objects_from_imm (SaInt8T *rdn_attr_name, SaInt8T obj_type)
 	do {
 		error = saImmOmSearchNext_2(search_hdl, &obj_name, &attrs);
 		if (error != SA_AIS_OK) {
-			LOG_ER("OmSearchNext returned error %u", error);
+			TRACE_2("OmSearchNext returned error %u", error);
 			if (error == SA_AIS_ERR_NOT_EXIST) {
 				TRACE_2("All objects matching search criteria \
 				were returned");
 				break;
 			}
 			if (error != SA_AIS_ERR_TRY_AGAIN) {
-				LOG_CR("asserting here");
+				LOG_CR("saImmOmSearchNext_2 returned error %d,\
+					calling assert", error);
 				assert(0);
 			}
 			else { /* try_again */
@@ -1031,7 +1032,7 @@ static SaAisErrorT plms_imm_ccb_obj_modify_cbk(SaImmOiHandleT imm_oi_hdl,
 	if (memcmp(obj_name->value, "safHEType", 9)==0) {
 		/* No writable attributes in this obj, cannot be modified */
 		/* IMM does not take care of this..? */
-		LOG_ER("HEBaseType object cannot be modified");
+		TRACE_2("HEBaseType object cannot be modified");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 	else if (memcmp(obj_name->value, "safHE", 5) == 0) {
@@ -1078,7 +1079,7 @@ static SaAisErrorT plms_imm_ccb_obj_modify_cbk(SaImmOiHandleT imm_oi_hdl,
 	else if (memcmp(obj_name->value, "safEEType", 9)==0) {
 		/* No writable attributes in this obj, cannot be modified */
 		/* IMM does not take care of this..? */
-		LOG_ER("EEBaseType object cannot be modified");
+		TRACE_2("EEBaseType object cannot be modified");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 	else if (memcmp(obj_name->value, "safEE", 5) == 0) {
@@ -1337,7 +1338,7 @@ static void plms_imm_ccb_abort_cbk(SaImmOiHandleT imm_oi_hdl,
 	/* find and free the ccb util data */
 	ccb_data = ccbutil_findCcbData(ccb_id);
 	if (ccb_data == NULL) {
-		LOG_ER("ccb_data is not found");
+		TRACE_2("ccb_data is not found");
 		TRACE_LEAVE();
 		return;
 	}
