@@ -110,6 +110,25 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 	IMMA_CB *cb = &imma_cb;
 	uns32 rc;
 
+
+	char *value;
+
+	/* Initialize trace system early  so we can see what is going on. 
+	   This logic was moved away from a constructor to this initialization
+	   routine because we want to avoid initializing the trace library for
+	   processes that suck in the IMMA libraries as a side effect of the
+	   build system, but actually never use it. 
+	 */
+	if ((value = getenv("IMMA_TRACE_PATHNAME")) && !trace_category_get()) {
+		/* IMMA_TRACE_PATHNAME is defined and trace is not already initialized. */
+		if (logtrace_init("imma", value, CATEGORY_ALL) != 0) {
+			LOG_WA("Failed to initialize trace to %s in IMMA "
+				"library", value);
+			/* error, we cannot do anything */
+		}
+		LOG_NO("IMMA library initialize done pid:%u svid:%u file:%s", getpid(), sv_id, value);
+	}
+
 	/* get the process id */
 	cb->process_id = getpid();
 
@@ -561,19 +580,3 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 	return retVal;
 }
 
-/*
- * Enable tracing early in saImmOmInitialize or saImmOiInitialize using 
- * a GCC constructor.
- */
-__attribute__ ((constructor))
-static void imma_logtrace_init(void)
-{
-	char *value;
-
-	/* Initialize trace system first of all so we can see what is going. */
-	if ((value = getenv("IMMA_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init("imma", value, CATEGORY_ALL) != 0)
-			/* error, we cannot do anything */
-			return;
-	}
-}

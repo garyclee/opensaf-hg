@@ -236,13 +236,13 @@ int main(int argc, char *argv[])
 			params, &operationReturnValue, SA_TIME_ONE_SECOND * 60);
 
 		if (error != SA_AIS_OK) {
-			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 returned: %s\n",
+			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s\n",
 				saf_error(error));
 			exit(EXIT_FAILURE);
 		}
 
 		if (operationReturnValue != SA_AIS_OK) {
-			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 RETURNED: %s\n",
+			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 admin-op RETURNED: %s\n",
 				saf_error(operationReturnValue));
 			exit(EXIT_FAILURE);
 		}

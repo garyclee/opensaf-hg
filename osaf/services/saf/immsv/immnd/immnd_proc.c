@@ -1351,7 +1351,10 @@ uns32 immnd_proc_server(uns32 *timeout)
 				LOG_IN("Still waiting for existing Ccbs to terminate "
 				       "after %u seconds. Aborting this sync attempt", cb->mTimer / 10);
 				immnd_abortSync(cb);
-				assert(cb->syncPid == 0);
+				if(cb->syncPid != 0) {
+					LOG_NO("STOPPING sync process.");
+					kill(cb->syncPid, SIGTERM);
+				}
 				cb->mTimer = 0;
 				cb->mState = IMM_SERVER_READY;
 				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");

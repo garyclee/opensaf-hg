@@ -7363,23 +7363,27 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 object->mAttrValueMap.find(attrName);
             
             if (i5 == object->mAttrValueMap.end()) {
-                assert(!doIt);
                 TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
-                break; //out of for-loop
+                assert(!doIt);
+                break; //out of while-loop
             }
             
             ImmAttrValue* attrValue = i5->second;
             
             i4 = classInfo->mAttrMap.find(attrName);
-            assert(i4!=classInfo->mAttrMap.end());
+            if(i4==classInfo->mAttrMap.end()) {
+                LOG_ER("i4==classInfo->mAttrMap.end())");
+                assert(i4!=classInfo->mAttrMap.end());
+            }
+
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != (unsigned int) p->attrValue.attrValueType) {
-                assert(!doIt);
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
-                break; //out of for-loop
+                assert(!doIt);
+                break; //out of while-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_CONFIG) {
@@ -7387,15 +7391,15 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is a config attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
-                break; //out of for-loop
+                break; //out of while-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_RDN) {
-                assert(!doIt);
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is the RDN attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
-                break; //out of for-loop
+                assert(!doIt);
+                break; //out of while-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_CACHED || 
@@ -7409,14 +7413,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     //during sync
                     err = SA_AIS_ERR_TRY_AGAIN;
                     TRACE_5("IMM not writable => Cant update cahced rtattrs");
-                    break;
+                    break;//out of while-loop
                 }
 
                 if(attr->mFlags & SA_IMM_ATTR_PERSISTENT) {
                     if(immNotPbeWritable()) {
                         err = SA_AIS_ERR_TRY_AGAIN;
                         LOG_NO("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent rtattrs");
-                        break;
+                        break;//out of while-loop
                     }
 
                     if(doIt && !wasLocal) {
@@ -7462,7 +7466,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         LOG_NO("ERR_INVALID_PARAM: Empty value used for adding to attribute %s",
                             attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
-                        break;
+                        break;//out of switch
                     }
                     
                     eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
@@ -7539,7 +7543,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         LOG_NO("ERR_INVALID_PARAM: Empty value used for deleting from "
                             "attribute %s", attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
-                        break;
+                        break; //out of switch
                     }
                     
                     if(!attrValue->empty()) {
@@ -7577,10 +7581,11 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             }
             
             if(err != SA_AIS_OK) {
-                break; //out of for-loop
+                break; //out of while-loop
             }
             p = p->next;
         }//while(p)
+	//err!=OK => breaks out of for loop
     }//for(int doIt...
  rtObjectUpdateExit:
     TRACE_5("isPureLocal: %u when leaving", *isPureLocal);

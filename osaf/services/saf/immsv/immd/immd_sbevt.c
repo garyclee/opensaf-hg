@@ -132,7 +132,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->rulingEpoch, ctrl->pbeEnabled);
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
 		cb->mRulingEpoch = ctrl->rulingEpoch;
-		LOG_IN("Ruling epoch changed to:%u on IMMD standby", cb->mRulingEpoch);
+		LOG_IN("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
 	}
 
 	assert(cb->is_immnd_tree_up);
@@ -164,7 +164,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 			immnd_info_node->syncStarted = ctrl->syncStarted;
 			cb->mRim = (ctrl->pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
 			if(cb->mRim != oldRim) {
-				LOG_NO("SaImmRepositoryInitModeT changed to '%s'",
+				LOG_NO("SaImmRepositoryInitModeT noted as '%s' at IMMD standby",
 					(ctrl->pbeEnabled)?
 					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 			}			

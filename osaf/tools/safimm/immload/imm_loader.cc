@@ -2061,8 +2061,9 @@ int immsync(void)
  */
 int main(int argc, char* argv[])
 {
-    const char* defaultLog = PKGLOGDIR "/osafimmnd.log";
+    const char* defaultLog = PKGLOGDIR "/osafimmnd";
     const char* logPath;
+    unsigned int category_mask = 0;
     void* pbeHandle=NULL;
     const char* pbe_file;
 
@@ -2072,10 +2073,12 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    if ((logPath = getenv("IMMND_TRACE_PATHNAME")) == NULL)
+    if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
     {
+        category_mask = 0xffffffff; /* TODO: set using env variable ? */
+    } else {
         logPath = defaultLog;
-    }
+    } 
 
     std::string xmldir(argv[1]);
     std::string xml_file(argv[2]);
@@ -2085,8 +2088,7 @@ int main(int argc, char* argv[])
         std::string syncMarker("sync");
         if (syncMarker == std::string(argv[3]))
         {
-
-            if (logtrace_init("immsync", logPath, 0) == -1)
+            if (logtrace_init("immsync", logPath, category_mask) == -1)
             {
                 syslog(LOG_ERR, "logtrace_init FAILED");
                 /* We allow the sync to execute anyway. */
@@ -2106,7 +2108,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (logtrace_init("immload", logPath, 0) == -1)
+    if (logtrace_init("immload", logPath, category_mask) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
