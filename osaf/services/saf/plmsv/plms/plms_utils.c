@@ -2342,7 +2342,7 @@ SaNtfIdentifierT plms_op_state_set(PLMS_ENTITY *ent,
 	
 	if (ntf){
 		ntf_state.next = NULL;
-		ntf_state.state.stateId = SA_PLM_READINESS_STATE;
+		ntf_state.state.stateId = SA_PLM_OPERATIONAL_STATE;
 		ntf_state.state.oldStatePresent = TRUE;
 		ntf_state.state.oldState = old_state;
 		ntf_state.state.newState = state;

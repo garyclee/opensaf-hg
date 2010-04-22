@@ -3891,8 +3891,8 @@ static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 			
 			LOG_ER("Operation can not be performed. Check the\
 			operation in progress and the requested operation.\
-			op_in_progress: %d, requested_op: %s",
-			ent->adm_op_in_progress,evt->req_evt.admin_op.option);
+			op_in_progress: %d, requested_op: %d",
+			ent->adm_op_in_progress,evt->req_evt.admin_op.operation_id);
 		
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
 			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_BAD_OPERATION);
@@ -4050,8 +4050,8 @@ static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
 		if (ent->adm_op_in_progress){
 			LOG_ER("Operation can not be performed. Check the\
 			operation in progress and the requested operation.\
-			op_in_progress: %d, requested_op: %s",
-			ent->adm_op_in_progress,evt->req_evt.admin_op.option);
+			op_in_progress: %d, requested_op: %d",
+			ent->adm_op_in_progress,evt->req_evt.admin_op.operation_id);
 		
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
 			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_BAD_OPERATION);
