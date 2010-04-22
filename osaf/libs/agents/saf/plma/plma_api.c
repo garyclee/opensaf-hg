@@ -966,7 +966,7 @@ SaAisErrorT saPlmEntityGroupCreate(SaPlmHandleT plmHandle,
 	}
 	
 	group_info = (PLMA_ENTITY_GROUP_INFO *)
-				malloc(sizeof(PLMA_ENTITY_GROUP_INFO));
+				calloc(1,sizeof(PLMA_ENTITY_GROUP_INFO));
 	if (!group_info){
 		LOG_CR("PLMA: PLMA_ENTITY_GROUP_INFO memory alloc failed," 
 					"error val:%s",strerror(errno));
@@ -1777,7 +1777,11 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto end;
 		}
-		
+		if ((m_PLM_IS_SA_TRACK_CHANGES_SET(trackFlags) || 
+			m_PLM_IS_SA_TRACK_CHANGES_ONLY_SET(trackFlags))){ 
+			group_info->trk_strt_stop = 1;
+			group_info->is_trk_enabled = 1;
+		}
 		/** Verify if the response if ok */
 		if (!plm_out_res){
 			LOG_ER("PLMA:INVALID RESPONSE FOR READINESS TRACK REQUEST");
