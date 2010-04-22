@@ -221,6 +221,8 @@ uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
 		}		/*end of else */
 	}
 
+	m_DTA_UNLK(&inst->lock);
+
 	/* Uninstall DTA from MDS */
 	if (dta_mds_uninstall() != NCSCC_RC_SUCCESS) {
 		retval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: MDS uninstall failed.");
@@ -228,7 +230,6 @@ uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
 
 	inst->created = FALSE;
 
-	m_DTA_UNLK(&inst->lock);
 	m_DTA_LK_DLT(&inst->lock);
 
 	return retval;
