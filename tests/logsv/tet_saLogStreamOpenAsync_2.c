@@ -19,7 +19,7 @@
 
 void saLogStreamOpenAsync_2_01(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpenAsync_2(logHandle, &systemStreamName, NULL, 0, invocation);
