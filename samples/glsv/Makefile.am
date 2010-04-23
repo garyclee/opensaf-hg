@@ -25,9 +25,8 @@ lck_demo_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 lck_demo_SOURCES = \
-	glsv_demo_app1.c \
-	glsv_main_app1.c \
-	glsv_test_app.c
+	glsv_main_app.c \
+	glsv_demo_app.c
 
 lck_demo_LDADD = \
 	@SAF_AIS_LCK_LIBS@

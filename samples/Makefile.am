@@ -46,8 +46,7 @@ EXTRA_DIST = \
 
 ACLOCAL_AMFLAGS = -I m4
 
-#SUBDIRS = avsv cpsv edsv glsv mqsv smfsv
-SUBDIRS = avsv cpsv edsv mqsv smfsv
+SUBDIRS = avsv cpsv edsv glsv mqsv smfsv
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz

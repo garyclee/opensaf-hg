@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   
    if (argc != 2)
    {
-      printf("\nWrong Arguments USAGE: <cpsv_demo><1(Writer)/0(Reader)>\n");
+      printf("\nWrong Arguments USAGE: <ckpt_demo><1(Writer)/0(Reader)>\n");
       return -1;
    }
 
