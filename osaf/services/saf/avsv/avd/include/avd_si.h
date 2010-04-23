@@ -146,12 +146,6 @@ si->si_switch = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_SWITCH);\
 }
 
-#define m_AVD_SET_SI_ADMIN(cb,si,state) {\
-si->saAmfSIAdminState = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_ADMIN_STATE);\
-avd_gen_si_admin_state_chg_ntf(cb,si);\
-}
-
 extern void avd_si_add_csi(struct avd_csi_tag* csi);
 extern void avd_si_remove_csi(struct avd_csi_tag *csi);
 extern AVD_SI *avd_si_new(const SaNameT *dn);
@@ -173,5 +167,6 @@ extern void avd_si_inc_curr_act_ass(AVD_SI *si);
 extern void avd_si_dec_curr_act_ass(AVD_SI *si);
 extern void avd_si_inc_curr_stdby_ass(AVD_SI *si);
 extern void avd_si_dec_curr_stdby_ass(AVD_SI *si);
+extern void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state);
 
 #endif

@@ -525,7 +525,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 				if (avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
+					avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nacvred_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -534,7 +534,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 				if (avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
+					avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nway_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -543,7 +543,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 			case SA_AMF_NPM_REDUNDANCY_MODEL:
 				if (avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
+					avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_npm_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -553,7 +553,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			case SA_AMF_NO_REDUNDANCY_MODEL:
 			default:
 				if (avd_sg_nored_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
+					avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nored_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -598,7 +598,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-			m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
+			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 			LOG_WA("SI has no assignments");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -627,12 +627,12 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		back_val = si->saAmfSIAdminState;
-		m_AVD_SET_SI_ADMIN(avd_cb, si, (adm_state));
+		avd_si_admin_state_set(si, (adm_state));
 
 		switch (si->sg_of_si->sg_redundancy_model) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
 			if (avd_sg_2n_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
+				avd_si_admin_state_set(si, back_val);
 				LOG_ER("avd_sg_2n_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -641,7 +641,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 			if (avd_sg_nway_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
+				avd_si_admin_state_set(si, back_val);
 				LOG_ER("avd_sg_nway_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -650,7 +650,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 			if (avd_sg_nacvred_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
+				avd_si_admin_state_set(si, back_val);
 				LOG_ER("avd_sg_nacvred_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -659,7 +659,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		case SA_AMF_NPM_REDUNDANCY_MODEL:
 			if (avd_sg_npm_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
+				avd_si_admin_state_set(si, back_val);
 				LOG_ER("avd_sg_npm_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -669,7 +669,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		case SA_AMF_NO_REDUNDANCY_MODEL:
 		default:
 			if (avd_sg_nored_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
+				avd_si_admin_state_set(si, back_val);
 				LOG_ER("avd_sg_nored_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -962,5 +962,19 @@ void avd_si_constructor(void)
 	patricia_params.key_size = sizeof(SaNameT);
 	assert(ncs_patricia_tree_init(&si_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	avd_class_impl_set("SaAmfSI", si_rt_attr_cb, si_admin_op_cb, si_ccb_completed_cb, si_ccb_apply_cb);
+}
+
+void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
+{
+       assert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+       TRACE_ENTER2("%s AdmState %s => %s", si->name.value,
+                  avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
+       saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", si->name.value,
+                  avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
+       si->saAmfSIAdminState = state;
+       avd_saImmOiRtObjectUpdate(&si->name,
+               "saAmfSIAdminState", SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAdminState);
+       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ADMIN_STATE);
+       avd_gen_si_admin_state_chg_ntf(avd_cb, si);
 }
 
