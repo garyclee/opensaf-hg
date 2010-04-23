@@ -158,7 +158,7 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 
 	while (client != NULL) {
 	/** Store the client_id for get Next  */
-		client_id = client->client_id;
+		client_id = m_NCS_OS_HTONL(client->client_id);
 		if (m_NCS_MDS_DEST_EQUAL(&client->mds_dest, &mds_dest))
 			rc = clms_client_delete(client->client_id);
 
@@ -390,6 +390,9 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	node->nodeup = 0;
 	TRACE_ENTER2("MDS Down nodeup info %d", node->nodeup);
 
+	if(node->member == SA_FALSE)
+		goto done;
+
 	/*Irrespective of plm in system or not,toggle the membership status for MDS NODE DOWN*/
 	node->member = SA_FALSE;
 	--(osaf_cluster->num_nodes);
@@ -414,6 +417,7 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	/*For the NODE DOWN, boottimestamp will not be updated */
 
 	/* Delete the node reference from the nodeid database */
+done:
 	if (clms_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
 		LOG_ER("CLMS node delete by nodeid failed");
 	}
