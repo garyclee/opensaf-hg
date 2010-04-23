@@ -781,7 +781,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				m_AVD_SET_SI_ADMIN(cb, (su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, FALSE);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
@@ -814,7 +814,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_AVD_SET_SI_ADMIN(cb, (su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_si_del_snd(cb, su);
 				avd_sg_su_oper_list_add(cb, su, FALSE);
@@ -850,7 +850,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_AVD_SET_SI_ADMIN(cb, (su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			avd_sg_su_si_del_snd(cb, su);
 			avd_sg_su_oper_list_add(cb, su, FALSE);
@@ -1785,7 +1785,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_AVD_SET_SI_ADMIN(cb, (susi->si), SA_AMF_ADMIN_LOCKED);
+			avd_si_admin_state_set((susi->si), SA_AMF_ADMIN_LOCKED);
 
 			avd_sg_su_oper_list_add(cb, susi->su, FALSE);
 
@@ -2410,7 +2410,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_AVD_SET_SI_ADMIN(cb, (susi->si), SA_AMF_ADMIN_LOCKED);
+			avd_si_admin_state_set((susi->si), SA_AMF_ADMIN_LOCKED);
 
 			avd_sg_su_oper_list_add(cb, susi->su, FALSE);
 
@@ -3025,12 +3025,12 @@ static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 				}
 
-				m_AVD_SET_SI_ADMIN(cb, (su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
+				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
 			else {
-				m_AVD_SET_SI_ADMIN(cb, (su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
+				avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
