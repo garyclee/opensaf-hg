@@ -34,7 +34,7 @@ int main(int argc, char*argv[])
 
    if (argc != 1)
    {
-      printf("\n INCORRECT ARGUMENTS:\n USAGE: <edsv_demo>\n");
+      printf("\n INCORRECT ARGUMENTS:\n USAGE: <evt_demo>\n");
       return 1;
    }
 

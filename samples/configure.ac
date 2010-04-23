@@ -51,7 +51,7 @@ AC_TYPE_SIZE_T
 PKG_CHECK_MODULES([SAF_AIS_AMF], [opensaf-amf])
 PKG_CHECK_MODULES([SAF_AIS_CKPT], [opensaf-ckpt])
 PKG_CHECK_MODULES([SAF_AIS_EVT], [opensaf-evt])
-#PKG_CHECK_MODULES([SAF_AIS_LCK], [opensaf-lck])
+PKG_CHECK_MODULES([SAF_AIS_LCK], [opensaf-lck])
 PKG_CHECK_MODULES([SAF_AIS_MSG], [opensaf-msg])
 
 #
@@ -63,6 +63,7 @@ AC_CONFIG_FILES([ \
         avsv/comp_local/Makefile \
         cpsv/Makefile \
         edsv/Makefile \
+	glsv/Makefile \
         mqsv/Makefile \
         smfsv/Makefile
         smfsv/campaigns/Makefile])

@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
    if (argc != 2)
    {
-      printf("\nWrong Arguments USAGE: <mqsv_demo><1(Sender)/0(Receiver)>\n");
+      printf("\nWrong Arguments USAGE: <msg_demo><1(Sender)/0(Receiver)>\n");
       return -1;
    }
 
