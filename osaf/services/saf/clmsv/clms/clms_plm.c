@@ -123,57 +123,55 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 			node->plm_invid = 0;	/* No resp */
 			node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
 
-			if (node->nodeup &&
-			   trackedEntities->entities[i].currentReadinessStatus.readinessState  ==
-			    SA_PLM_READINESS_OUT_OF_SERVICE) {
+			if(node->nodeup) {
+				if(trackedEntities->entities[i].currentReadinessStatus.readinessState  ==
+						SA_PLM_READINESS_OUT_OF_SERVICE) {
 
-				if (node->member == SA_TRUE) {
-					node->admin_op = PLM;
-					node->stat_change = SA_TRUE;
+					if (node->member == SA_TRUE) {
+						node->admin_op = PLM;
+						node->stat_change = SA_TRUE;
 
-					node->change = SA_CLM_NODE_LEFT;
-					node->admin_state = SA_CLM_ADMIN_LOCKED;
-					++(clms_cb->cluster_view_num);
-					--(osaf_cluster->num_nodes);
-					node->member = SA_FALSE;
-					rc = clms_node_exit_ntf(clms_cb, node);
-					if (rc != SA_AIS_OK) {
-						TRACE("clms_node_exit_ntf failed %u", rc);
-						/*goto done; */
+						node->change = SA_CLM_NODE_LEFT;
+						++(clms_cb->cluster_view_num);
+						--(osaf_cluster->num_nodes);
+						node->member = SA_FALSE;
+						rc = clms_node_exit_ntf(clms_cb, node);
+						if (rc != SA_AIS_OK) {
+							TRACE("clms_node_exit_ntf failed %u", rc);
+							/*goto done; */
+						}
+
+						/*Update the admin_state change to IMMSv */
+						clms_admin_state_update_rattr(node);
+					} else {
+						node->change = SA_CLM_NODE_NO_CHANGE;
 					}
+				}else if(trackedEntities->entities[i].currentReadinessStatus.readinessState ==
+						SA_PLM_READINESS_IN_SERVICE) {
 
-					/*Update the admin_state change to IMMSv */
-					clms_admin_state_update_rattr(node);
-				} else {
-					node->change = SA_CLM_NODE_NO_CHANGE;
-				}
-			} else if (node->nodeup &&
-				   (trackedEntities->entities[i].currentReadinessStatus.readinessState ==
-				    SA_PLM_READINESS_IN_SERVICE)) {
-
-				if (node->member == SA_FALSE) {
-					node->admin_op = PLM;
-					node->stat_change = SA_TRUE;
-					++(osaf_cluster->num_nodes);
-					node->init_view = (++(clms_cb->cluster_view_num));
-					node->member = SA_TRUE;
-					node->change = SA_CLM_NODE_JOINED;
-					node->admin_state = SA_CLM_ADMIN_UNLOCKED;
-					rc = clms_node_join_ntf(clms_cb, node);
-					if (rc != SA_AIS_OK) {
-						TRACE("clms_node_join_ntf failed %u", rc);
-						/*goto done; */
+					if (node->member == SA_FALSE) {
+						node->admin_op = PLM;
+						node->stat_change = SA_TRUE;
+						++(osaf_cluster->num_nodes);
+						node->init_view = (++(clms_cb->cluster_view_num));
+						node->member = SA_TRUE;
+						node->change = SA_CLM_NODE_JOINED;
+						rc = clms_node_join_ntf(clms_cb, node);
+						if (rc != SA_AIS_OK) {
+							TRACE("clms_node_join_ntf failed %u", rc);
+							/*goto done; */
+						}
+						/*Update the admin_state change to IMMSv */
+						clms_admin_state_update_rattr(node);
+					} else {
+						node->change = SA_CLM_NODE_NO_CHANGE;
 					}
-					/*Update the admin_state change to IMMSv */
-					clms_admin_state_update_rattr(node);
-				} else {
-					node->change = SA_CLM_NODE_NO_CHANGE;
 				}
+				clms_node_update_rattr(node);
+				/* Checkpoint node and cluster data */
+				ckpt_node_rec(node);
+				ckpt_cluster_rec();
 			}
-			clms_node_update_rattr(node);
-			/* Checkpoint node and cluster data */
-			ckpt_node_rec(node);
-			ckpt_cluster_rec();
 		}
 
 	}
@@ -193,8 +191,10 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 		}
 	}
 
-	clms_send_track(clms_cb, node, step);	/*dude you need to checkpoint admin_op admin_state when track is complete or not decide */
-	clms_cluster_update_rattr(osaf_cluster);
+	if(node->nodeup) {
+		clms_send_track(clms_cb, node, step);	/*dude you need to checkpoint admin_op admin_state when track is complete or not decide */
+		clms_cluster_update_rattr(osaf_cluster);
+	}
 
 	/* Clear admin_op and stat_change for the completed step */
 	if ((step == SA_PLM_CHANGE_COMPLETED) || (step == SA_PLM_CHANGE_ABORTED))
