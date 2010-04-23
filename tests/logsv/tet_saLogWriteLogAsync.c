@@ -22,7 +22,7 @@
 
 void saLogWriteLogAsync_01(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -37,7 +37,7 @@ void saLogWriteLogAsync_01(void)
 
 void saLogWriteLogAsync_02(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
     SaLogRecordT ntfLogRecord;
     SaNtfIdentifierT notificationId = random();
     SaNtfClassIdT notificationClassId;
@@ -69,7 +69,7 @@ void saLogWriteLogAsync_02(void)
 
 void saLogWriteLogAsync_03(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
     SaLogRecordT ntfLogRecord;
     SaNtfIdentifierT notificationId = random();
     SaNtfClassIdT notificationClassId;
@@ -101,7 +101,7 @@ void saLogWriteLogAsync_03(void)
 
 void saLogWriteLogAsync_04(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -116,7 +116,7 @@ void saLogWriteLogAsync_04(void)
 
 void saLogWriteLogAsync_05(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -131,7 +131,7 @@ void saLogWriteLogAsync_05(void)
 
 void saLogWriteLogAsync_06(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -146,7 +146,7 @@ void saLogWriteLogAsync_06(void)
 
 void saLogWriteLogAsync_07(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -161,7 +161,7 @@ void saLogWriteLogAsync_07(void)
 
 void saLogWriteLogAsync_09(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -177,7 +177,7 @@ void saLogWriteLogAsync_09(void)
 
 void saLogWriteLogAsync_10(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     assert(setenv("SA_AMF_COMPONENT_NAME", "safComp=CompT_test_svc", 1) == 0);
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
@@ -194,7 +194,7 @@ void saLogWriteLogAsync_10(void)
 void saLogWriteLogAsync_11(void)
 {
     struct timeval currentTime;
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -215,7 +215,7 @@ void saLogWriteLogAsync_11(void)
 
 void saLogWriteLogAsync_12(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -240,7 +240,7 @@ void saLogWriteLogAsync_13(void)
         .maxFilesRotated = DEFAULT_MAX_FILE_ROTATED,
         .logFileFmt = DEFAULT_FORMAT_EXPRESSION
     };
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
     SaNameT appStreamName = {
         .value = "safLgStr=ticket203",
         .length = sizeof(appStreamName.value)
@@ -260,7 +260,7 @@ void saLogWriteLogAsync_13(void)
 
 void saLogWriteLogAsync_14(void)
 {
-    SaInvocationT invocation;
+    SaInvocationT invocation = 0;
 
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
