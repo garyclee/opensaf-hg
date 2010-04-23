@@ -479,43 +479,44 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_SI *avd_si;
+	AVD_SI *si;
 	SaAmfAdminStateT adm_state = 0;
 	SaAmfAdminStateT back_val;
 
-	avd_si = avd_si_get(objectName);
+	TRACE_ENTER2("%s op=%llu", objectName->value, operationId);
 
-	if (NULL == avd_si) {
-		LOG_ER("Si not Found");
+	si = avd_si_get(objectName);
+	
+	if ((operationId != SA_AMF_ADMIN_SI_SWAP) && (si->sg_of_si->sg_ncs_spec == SA_TRUE)) {
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
+		LOG_WA("Admin operation %llu on MW SI is not allowed", operationId);
 		goto done;
 	}
-	
 
 	switch (operationId) {
 	case SA_AMF_ADMIN_UNLOCK:
-		if (SA_AMF_ADMIN_UNLOCKED == avd_si->saAmfSIAdminState) {
+		if (SA_AMF_ADMIN_UNLOCKED == si->saAmfSIAdminState) {
 			LOG_ER("already unlocked");
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
-		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState) {
+		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == si->saAmfSIAdminState) {
 			LOG_ER("locked instantiation");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 
-		if (avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 			LOG_ER("SG of SI is not in stable state");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 
-		if (avd_si->max_num_csi == avd_si->num_csi) {
-			switch (avd_si->sg_of_si->sg_redundancy_model) {
+		if (si->max_num_csi == si->num_csi) {
+			switch (si->sg_of_si->sg_redundancy_model) {
 			case SA_AMF_2N_REDUNDANCY_MODEL:
-				if (avd_sg_2n_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				if (avd_sg_2n_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
 					LOG_ER("avd_sg_2n_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -523,8 +524,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				break;
 
 			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				if (avd_sg_nacvred_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+				if (avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nacvred_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -532,8 +533,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				break;
 
 			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				if (avd_sg_nway_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+				if (avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nway_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -541,8 +542,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				break;
 
 			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				if (avd_sg_npm_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+				if (avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_npm_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -551,8 +552,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 			case SA_AMF_NO_REDUNDANCY_MODEL:
 			default:
-				if (avd_sg_nored_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+				if (avd_sg_nored_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
 					LOG_ER("avd_sg_nored_si_func failed");
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -564,14 +565,14 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 
 	case SA_AMF_ADMIN_SHUTDOWN:
-		if (SA_AMF_ADMIN_SHUTTING_DOWN == avd_si->saAmfSIAdminState) {
+		if (SA_AMF_ADMIN_SHUTTING_DOWN == si->saAmfSIAdminState) {
 			LOG_ER("already shutting down");
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
-		if ((SA_AMF_ADMIN_LOCKED == avd_si->saAmfSIAdminState) ||
-		    (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState)) {
+		if ((SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) ||
+		    (SA_AMF_ADMIN_LOCKED_INSTANTIATION == si->saAmfSIAdminState)) {
 			LOG_ER("is locked (instantiation)");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -584,20 +585,20 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		if (0 == adm_state)
 			adm_state = SA_AMF_ADMIN_LOCKED;
 
-		if (SA_AMF_ADMIN_LOCKED == avd_si->saAmfSIAdminState) {
+		if (SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) {
 			LOG_ER("already locked");
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
-		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState) {
+		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == si->saAmfSIAdminState) {
 			LOG_ER("locked instantiation");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 
-		if (avd_si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-			m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
+			m_AVD_SET_SI_ADMIN(avd_cb, si, SA_AMF_ADMIN_LOCKED);
 			LOG_WA("SI has no assignments");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -605,7 +606,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		/* SI lock should not be done, this SI is been DISABLED because
 		   of SI-SI dependency */
-		if ((avd_si->si_dep_state != AVD_SI_ASSIGNED) && (avd_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
+		if ((si->si_dep_state != AVD_SI_ASSIGNED) && (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
 			LOG_WA("DISABLED because of SI-SI dependency");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -614,10 +615,10 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		/* Check if other semantics are happening for other SUs. If yes
 		 * return an error.
 		 */
-		if (avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 			LOG_WA("'%s' SG is not STABLE", objectName->value);
-			if ((avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
-			    (avd_si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
+			if ((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
+			    (si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
 			    (adm_state != SA_AMF_ADMIN_LOCKED)) {
 				LOG_WA("'%s' other semantics...", objectName->value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
@@ -625,13 +626,13 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			}
 		}
 
-		back_val = avd_si->saAmfSIAdminState;
-		m_AVD_SET_SI_ADMIN(avd_cb, avd_si, (adm_state));
+		back_val = si->saAmfSIAdminState;
+		m_AVD_SET_SI_ADMIN(avd_cb, si, (adm_state));
 
-		switch (avd_si->sg_of_si->sg_redundancy_model) {
+		switch (si->sg_of_si->sg_redundancy_model) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
-			if (avd_sg_2n_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+			if (avd_sg_2n_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
 				LOG_ER("avd_sg_2n_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -639,8 +640,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			break;
 
 		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			if (avd_sg_nway_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+			if (avd_sg_nway_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
 				LOG_ER("avd_sg_nway_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -648,8 +649,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			break;
 
 		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			if (avd_sg_nacvred_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+			if (avd_sg_nacvred_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
 				LOG_ER("avd_sg_nacvred_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -657,8 +658,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			break;
 
 		case SA_AMF_NPM_REDUNDANCY_MODEL:
-			if (avd_sg_npm_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+			if (avd_sg_npm_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
 				LOG_ER("avd_sg_npm_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -667,8 +668,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		case SA_AMF_NO_REDUNDANCY_MODEL:
 		default:
-			if (avd_sg_nored_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+			if (avd_sg_nored_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, si, back_val);
 				LOG_ER("avd_sg_nored_si_admin_down failed");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -681,13 +682,13 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			AVD_SU *local_su = NULL, *i_su;
 
 			/* Check if the si swap is already in progress */
-			if (avd_si->si_swap_in_progress == SA_TRUE) {
+			if (si->si_swap_in_progress == SA_TRUE) {
 				LOG_ER("SI SWAP Already in Progress");
 				rc = SA_AIS_ERR_TRY_AGAIN;
 				goto done;
 			}
 
-			i_su= avd_si->sg_of_si->list_of_su;
+			i_su= si->sg_of_si->list_of_su;
 
 			while (NULL != i_su) {
 				if (i_su->su_on_node->node_info.nodeId == avd_cb->node_id_avd) {
@@ -700,17 +701,17 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				i_su = i_su->sg_list_su_next;
 			}
 
-			switch (avd_si->sg_of_si->sg_redundancy_model) {
+			switch (si->sg_of_si->sg_redundancy_model) {
 			
 			case SA_AMF_2N_REDUNDANCY_MODEL:
 				{
-					avd_si->si_swap_in_progress = SA_TRUE;
-					avd_si->invocation = invocation;
+					si->si_swap_in_progress = SA_TRUE;
+					si->invocation = invocation;
 					m_AVD_SET_SU_SWITCH(avd_cb,local_su,AVSV_SI_TOGGLE_SWITCH);
 					if (avd_sg_2n_siswitch_func(avd_cb, local_su) != NCSCC_RC_SUCCESS) {
 						LOG_ER("avd_sg_2n_suswitch_func failed in SI SWAP");
 						rc = SA_AIS_ERR_BAD_OPERATION;
-						avd_si->si_swap_in_progress = SA_FALSE;         
+						si->si_swap_in_progress = SA_FALSE;         
 						goto done;
 					} else {
 						/* Response will be sent when the response comes for the si switch */
@@ -729,7 +730,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			case SA_AMF_NO_REDUNDANCY_MODEL:
 			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 			default:
-				LOG_ER("Si SWAP not Supported on redundancy model=%d",avd_si->sg_of_si->sg_redundancy_model);
+				LOG_ER("Si SWAP not Supported on redundancy model=%d",si->sg_of_si->sg_redundancy_model);
 				rc = SA_AIS_ERR_NOT_SUPPORTED;
 				goto done;
 				break;
@@ -741,12 +742,14 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
+		LOG_WA("Admin operation %llu on SI not supported", operationId);
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		break;
 	}
 
 done:
 	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	TRACE_LEAVE();
 }
 
 static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
