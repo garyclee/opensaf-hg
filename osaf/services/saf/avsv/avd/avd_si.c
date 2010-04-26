@@ -820,6 +820,7 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
  */
 static void si_update_ass_state(AVD_SI *si)
 {
+	SaAmfAssignmentStateT oldState = si->saAmfSIAssignmentState;
 	SaAmfAssignmentStateT newState;
 
 	if (si->saAmfSINumCurrActiveAssignments == 0)
@@ -860,9 +861,19 @@ static void si_update_ass_state(AVD_SI *si)
 	}
 
 	if (newState != si->saAmfSIAssignmentState) {
+		TRACE("'%s' %s => %s", si->name.value,
+				   avd_ass_state[si->saAmfSIAssignmentState], avd_ass_state[newState]);
 		saflog(LOG_NOTICE, amfSvcUsrName, "%s AssignmentState %s => %s", si->name.value,
 			   avd_ass_state[si->saAmfSIAssignmentState], avd_ass_state[newState]);
+		
 		si->saAmfSIAssignmentState = newState;
+
+		/* alarm & notifications */
+		if(si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED)
+			avd_send_si_unassigned_alarm(&si->name);
+		else
+			avd_send_si_assigned_ntf(&si->name, oldState, si->saAmfSIAssignmentState);
+
 		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 								  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ASSIGNMENT_STATE);
@@ -914,6 +925,8 @@ void avd_si_constructor(void)
 
 void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
 {
+	   SaAmfAdminStateT old_state = si->saAmfSIAdminState;
+	
        assert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
        TRACE_ENTER2("%s AdmState %s => %s", si->name.value,
                   avd_adm_state_name[si->saAmfSIAdminState], avd_adm_state_name[state]);
@@ -923,6 +936,6 @@ void avd_si_admin_state_set(AVD_SI* si, SaAmfAdminStateT state)
        avd_saImmOiRtObjectUpdate(&si->name,
                "saAmfSIAdminState", SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAdminState);
        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ADMIN_STATE);
-       avd_gen_si_admin_state_chg_ntf(avd_cb, si);
+       avd_send_admin_state_chg_ntf(&si->name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, si->saAmfSIAdminState);
 }
 

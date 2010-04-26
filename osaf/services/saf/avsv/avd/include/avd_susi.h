@@ -128,13 +128,8 @@ typedef struct avd_sus_per_si_rank_tag {
 
 #define m_AVD_SU_SI_TRG_DEL(cb,susi) \
 {\
-   AVD_SI *l_si=susi->si;\
    m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, susi, AVSV_CKPT_AVD_SI_ASS);\
    avd_susi_delete(cb,susi,FALSE);\
-   if ((l_si != AVD_SI_NULL) && (l_si->list_of_sisu == AVD_SU_SI_REL_NULL))\
-   {\
-      avd_gen_si_unassigned_ntf(cb,l_si);\
-   }\
 }
 
 EXTERN_C AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, NCS_BOOL ckpt);
@@ -149,5 +144,7 @@ extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
 extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
 extern void avd_sirankedsu_constructor(void);
+extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
+EXTERN_C uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
 
 #endif

@@ -31,51 +31,31 @@
 #include <avd_comp.h>
 #include <avd_susi.h>
 
-#define ADDITION_TEXT_LENGTH 256
+#define ADDITION_TEXT_LENGTH 320
 #define AMF_NTF_SENDER "safApp=safAmfService"
 
 /* Alarms */
-EXTERN_C uns32 avd_gen_comp_inst_failed_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp);
-EXTERN_C uns32 avd_gen_comp_clean_failed_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp);
-EXTERN_C uns32 avd_gen_cluster_reset_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp);
-EXTERN_C uns32 avd_gen_si_unassigned_ntf(AVD_CL_CB *avd_cb, AVD_SI *si);
-EXTERN_C uns32 avd_gen_comp_proxy_status_unproxied_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp);
+EXTERN_C void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
+EXTERN_C void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
+EXTERN_C void avd_send_cluster_reset_alarm(const SaNameT *comp_name);
+EXTERN_C void avd_send_si_unassigned_alarm(const SaNameT *si_name);
+EXTERN_C void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name);
 
 /* Notifications */
-
-/*Administrative State Change Notify */
-EXTERN_C uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node);
-EXTERN_C uns32 avd_gen_su_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU *su);
-EXTERN_C uns32 avd_gen_sg_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SG *sg);
-EXTERN_C uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si);
-/* cluster is missing - AMF B04.01 */
-/* application is missing - AMF B04.01 */
-
-/* Operational State Change Notify */
-EXTERN_C uns32 avd_gen_su_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SU *su);
-/* node is missing - AMF B04.01 */
-
-/* Presence state change */
-EXTERN_C uns32 avd_gen_su_pres_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SU *su);
-
-
-EXTERN_C uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
-/* "HA Readiness state change notify" missing - AMF B04.01 */
-
-EXTERN_C uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
-
-EXTERN_C uns32 avd_gen_comp_proxy_status_proxied_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp);
-
-/* other alarms/notifications */
-EXTERN_C uns32 avd_clm_alarm_service_impaired_ntf(AVD_CL_CB *avd_cb, SaAisErrorT err);
-
-EXTERN_C uns32 avd_clm_node_join_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node);
-
-EXTERN_C uns32 avd_clm_node_exit_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node);
-
-EXTERN_C uns32 avd_clm_node_reconfiured_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node);
-
-EXTERN_C uns32 avd_node_shutdown_failure_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 errcode);
+EXTERN_C void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id,
+					SaAmfAdminStateT old_state, SaAmfAdminStateT new_state);
+EXTERN_C void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id, 
+					SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state);
+EXTERN_C void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name, SaAmfPresenceStateT old_state,
+					SaAmfPresenceStateT new_state);
+EXTERN_C void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
+					SaAmfHAStateT old_state, SaAmfHAStateT new_state);
+EXTERN_C void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
+					SaAmfHAReadinessStateT old_state, SaAmfHAReadinessStateT new_state);
+EXTERN_C void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_state,
+					SaAmfAssignmentStateT new_state);
+EXTERN_C void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
+					SaAmfProxyStatusT old_state, SaAmfProxyStatusT new_state);
 
 /* general functions */
 EXTERN_C void fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,

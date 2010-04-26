@@ -517,3 +517,38 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	return NCSCC_RC_SUCCESS;
 }
 
+void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
+{
+	SaAmfHAStateT old_state = susi->state;
+
+	assert(ha_state <= SA_AMF_HA_QUIESCING);
+	TRACE_ENTER2("'%s' %s => %s", susi->si->name.value, avd_ha_state[susi->state],
+			avd_ha_state[ha_state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s HA State %s => %s", susi->si->name.value,
+			avd_ha_state[susi->state], avd_ha_state[ha_state]);
+
+	susi->state = ha_state;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+
+	/* alarm & notifications */
+	avd_send_su_ha_state_chg_ntf(&susi->su->name, &susi->si->name, old_state, susi->state);
+}
+
+/* This function serves as a wrapper. avd_susi_ha_state_set should be used for state 
+ * changes and ntf but introducing avd_susi_ha_state_set and removing 
+ * avd_gen_su_ha_state_changed_ntf (155 occurrences!) have big impact on the code.
+ * */
+uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
+{
+	uns32 status = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER2("'%s' assigned to '%s' HA state UNKNOWN => %s", susi->si->name.value, 
+			susi->su->name.value, avd_ha_state[susi->state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s assigned to %s HA State UNKNOWN => %s", 
+			susi->si->name.value, susi->su->name.value, avd_ha_state[susi->state]);
+
+	/* alarm & notifications */
+	avd_send_su_ha_state_chg_ntf(&susi->su->name, &susi->si->name, SA_FALSE, susi->state); /*old state not known*/
+	
+	return status;
+}

@@ -881,9 +881,9 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		adm_state = sg->saAmfSGAdminState;
-		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_UNLOCKED);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_UNLOCKED);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			avd_sg_admin_state_set(sg, adm_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -903,9 +903,9 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		adm_state = sg->saAmfSGAdminState;
-		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_LOCKED);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			avd_sg_admin_state_set(sg, adm_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -926,9 +926,9 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		adm_state = sg->saAmfSGAdminState;
-		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_SHUTTING_DOWN);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_SHUTTING_DOWN);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			avd_sg_admin_state_set(sg, adm_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -947,9 +947,9 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		adm_state = sg->saAmfSGAdminState;
-		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 		if (sg_app_sg_admin_lock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			avd_sg_admin_state_set(sg, adm_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -969,9 +969,9 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		adm_state = sg->saAmfSGAdminState;
-		m_AVD_SET_SG_ADMIN(avd_cb, sg, SA_AMF_ADMIN_LOCKED);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		if (sg_app_sg_admin_unlock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-			m_AVD_SET_SG_ADMIN(avd_cb, sg, adm_state);
+			avd_sg_admin_state_set(sg, adm_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -1152,4 +1152,25 @@ void avd_sg_constructor(void)
 	assert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
 	avd_class_impl_set("SaAmfSG", sg_rt_attr_cb, sg_admin_op_cb, sg_ccb_completed_cb, sg_ccb_apply_cb);
+}
+
+void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state)
+{
+	SaAmfAdminStateT old_state = sg->saAmfSGAdminState;
+	
+	assert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_ENTER2("%s AdmState %s => %s", sg->name.value,
+			avd_adm_state_name[old_state], avd_adm_state_name[state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", sg->name.value,
+                  avd_adm_state_name[old_state], avd_adm_state_name[state]);      
+	sg->saAmfSGAdminState = state;
+	avd_saImmOiRtObjectUpdate(&sg->name,
+			"saAmfSGAdminState", SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_SG_ADMIN_STATE);
+
+	/* Notification */ 
+	avd_send_admin_state_chg_ntf(&sg->name,
+					SA_AMF_NTFID_SG_ADMIN_STATE,
+					old_state,
+					sg->saAmfSGAdminState);
 }

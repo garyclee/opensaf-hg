@@ -1012,7 +1012,7 @@ uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					}
 					a_su = a_su->sg_list_su_next;
 				}
-				m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				if (o_susi != AVD_SU_SI_REL_NULL)
 					avd_sg_su_si_del_snd(cb, o_susi->su);
 			} /* if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) */
@@ -2159,7 +2159,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 				if (s_susi != AVD_SU_SI_REL_NULL) {
 					avd_sg_su_si_del_snd(cb, s_susi->su);
 				}
-				m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				a_su = su->sg_of_su->list_of_su;
 				while (a_su != NULL) {
 					avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -2520,7 +2520,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 			if (s_susi != AVD_SU_SI_REL_NULL) {
 				avd_sg_su_si_del_snd(cb, su);
 			}
-			m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+			avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 			a_su = su->sg_of_su->list_of_su;
 			while (a_su != NULL) {
 				avd_su_readiness_state_set(a_su, SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -3291,7 +3291,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				}
 
 				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
-				m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 
 				i_su = su->sg_of_su->list_of_su;
 				while (i_su != NULL) {
@@ -3665,7 +3665,7 @@ uns32 avd_sg_2n_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	case AVD_SG_FSM_STABLE:
 		a_susi = avd_sg_2n_act_susi(cb, sg, &s_susi);
 		if (a_susi == AVD_SU_SI_REL_NULL) {
-			m_AVD_SET_SG_ADMIN(cb, sg, SA_AMF_ADMIN_LOCKED);
+			avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 			return NCSCC_RC_SUCCESS;
 		}

@@ -368,6 +368,8 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 {
 	if (node->saAmfNodeOperState == oper_state)
 		return;
+	
+	SaAmfOperationalStateT old_state = node->saAmfNodeOperState;
 
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", node->name.value,
@@ -376,6 +378,12 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_OPER_STATE);
+	
+	/* notification */
+	avd_send_oper_chg_ntf(&node->name,
+				SA_AMF_NTFID_NODE_OP_STATE,
+				old_state,
+				node->saAmfNodeOperState);
 }
 
 /*****************************************************************************
@@ -628,6 +636,8 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
  */
 void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 {
+	SaAmfAdminStateT old_state  = node->saAmfNodeAdminState;
+	
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	TRACE_ENTER2("%s AdmState %s => %s", node->name.value,
 		avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
@@ -638,7 +648,7 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
-	avd_gen_node_admin_state_changed_ntf(avd_cb, node);
+	avd_send_admin_state_chg_ntf(&node->name, SA_AMF_NTFID_NODE_ADMIN_STATE, old_state, node->saAmfNodeAdminState);
 	TRACE_LEAVE();
 }
 

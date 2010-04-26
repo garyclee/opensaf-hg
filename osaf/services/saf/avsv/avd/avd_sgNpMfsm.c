@@ -2300,7 +2300,7 @@ uns32 avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 			avd_sg_su_oper_list_del(cb, su, FALSE);
 			if (su->sg_of_su->su_oper_list.su == NULL) {
-				m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 			}
@@ -3553,7 +3553,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 		if (su->sg_of_su->su_oper_list.su == NULL) {
 			if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_SET_SG_ADMIN(cb, (su->sg_of_su), SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 			}
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
