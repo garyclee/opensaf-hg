@@ -117,6 +117,14 @@ final_clean() {
 }
 
 start() {
+        pidofproc -p $amfnd_pid $amfnd_bin > /dev/null 2>&1
+	lsb_status=$?
+	if [ $lsb_status -eq 0 ]; then
+       		RETVAL=0
+		log_success_msg
+		return $RETVAL
+	fi
+
 	logger -t $prog "Starting the OpenSAF HA Framework"
 
 	[ -x $daemon ] || exit 5
