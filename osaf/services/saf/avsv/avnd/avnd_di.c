@@ -574,6 +574,7 @@ uns32 avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_PG_TRACK_ACT_MSG;
+		msg.info.avd->msg_info.n2d_pg_trk_act.msg_id = ++(cb->snd_msg_id);
 		msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_pg_trk_act.csi_name = *csi_name;
 		msg.info.avd->msg_info.n2d_pg_trk_act.actn = actn;

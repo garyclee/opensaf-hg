@@ -72,6 +72,8 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		info->msg_id)) == NULL)
 		goto done;
 
+	node->rcv_msg_id = info->msg_id;
+
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		goto done;
