@@ -1055,9 +1055,6 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				susi->fsm = AVD_SU_SI_STATE_ASGND;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
-				/* generate the susi ha state change trap */
-				avd_gen_su_si_assigned_ntf(cb, susi);
-
 				/* trigger pg upd */
 				avd_pg_susi_chg_prc(cb, susi);
 			}
@@ -1114,9 +1111,6 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					susi->fsm = AVD_SU_SI_STATE_ASGND;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				}
-
-				/* generate the susi ha state change trap */
-				avd_gen_su_si_assigned_ntf(cb, susi);
 
 				/* trigger pg upd */
 				avd_pg_susi_chg_prc(cb, susi);
@@ -2163,9 +2157,6 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 					avd_gen_su_ha_state_changed_ntf(cb, i_susi);
 
-					/* generate the susi ha state change trap */
-					avd_gen_su_si_assigned_ntf(cb, i_susi);
-
 					/* trigger pg upd */
 					avd_pg_susi_chg_prc(cb, i_susi);
 
@@ -2179,9 +2170,6 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 				if (i_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
 					i_susi->fsm = AVD_SU_SI_STATE_ASGND;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-
-					/* generate the susi ha state change trap */
-					avd_gen_su_si_assigned_ntf(cb, i_susi);
 
 					/* trigger pg upd */
 					avd_pg_susi_chg_prc(cb, i_susi);

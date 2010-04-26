@@ -1056,7 +1056,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 
 			/* if sg is still in stable state, lock it */
 			if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) {
-				m_AVD_SET_SG_ADMIN(cb, sg, SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 			}
 		}
 		break;
@@ -2901,7 +2901,7 @@ uns32 avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 
 			/* if oper list is empty, transition the sg back to stable state */
 			if (!sg->su_oper_list.su) {
-				m_AVD_SET_SG_ADMIN(cb, sg, SA_AMF_ADMIN_LOCKED);
+				avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 			}
 		}
@@ -3378,7 +3378,7 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 	avd_sg_su_oper_list_del(cb, su, FALSE);
 
 	if (!sg->su_oper_list.su) {
-		m_AVD_SET_SG_ADMIN(cb, sg, SA_AMF_ADMIN_LOCKED);
+		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 	}
 

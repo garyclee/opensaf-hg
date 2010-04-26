@@ -84,8 +84,6 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_pres_state_name[comp->saAmfCompPresenceState],
 		avd_pres_state_name[pres_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s", comp->comp_info.name.value,
-		   avd_pres_state_name[comp->saAmfCompPresenceState], avd_pres_state_name[pres_state]);
 
 	comp->saAmfCompPresenceState = pres_state;
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
@@ -94,9 +92,9 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 
 	/* alarm & notifications */
 	if(comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-		avd_gen_comp_inst_failed_ntf(avd_cb, comp);
+		avd_send_comp_inst_failed_alarm(&comp->comp_info.name, &comp->su->su_on_node->name);
 	else if(comp->saAmfCompPresenceState ==  SA_AMF_PRESENCE_TERMINATION_FAILED)
-		avd_gen_comp_clean_failed_ntf(avd_cb, comp);
+		avd_send_comp_clean_failed_alarm(&comp->comp_info.name, &comp->su->su_on_node->name);
 }
 
 void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
@@ -104,8 +102,6 @@ void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	TRACE_ENTER2("'%s' %s => %s",
 		comp->comp_info.name.value, avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", comp->comp_info.name.value,
-		   avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
 
 	comp->saAmfCompOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
@@ -132,13 +128,16 @@ void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status
 {
 	assert(proxy_status <= SA_AMF_PROXY_STATUS_PROXIED);
 	TRACE_ENTER2("'%s' ProxyStatus is now %s", comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s ProxyStatus is now %s", comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s ProxyStatus is now %s", 
+			comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
 
 	/* alarm & notifications */
 	if(proxy_status == SA_AMF_PROXY_STATUS_UNPROXIED)
-		avd_gen_comp_proxy_status_unproxied_ntf(avd_cb, comp);
+		avd_send_comp_proxy_status_unproxied_alarm(&comp->comp_info.name);
 	else if(proxy_status == SA_AMF_PROXY_STATUS_PROXIED)
-		avd_gen_comp_proxy_status_proxied_ntf(avd_cb, comp);
+		avd_send_comp_proxy_status_proxied_ntf(&comp->comp_info.name, 
+		                                       SA_AMF_PROXY_STATUS_UNPROXIED, 
+		                                       SA_AMF_PROXY_STATUS_PROXIED);
 
 }
 

@@ -209,12 +209,6 @@ typedef struct avd_amf_sg_type_tag {
 
 } AVD_AMF_SG_TYPE;
 
-#define m_AVD_SET_SG_ADMIN(cb,sg,state) {\
-sg->saAmfSGAdminState = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADMIN_STATE);\
-avd_gen_sg_admin_state_changed_ntf(cb, sg);\
-}
-
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
 sg->adjust_state = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADJUST_STATE);\
@@ -300,5 +294,6 @@ extern AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
 extern void avd_sgtype_add_sg(AVD_SG *sg);
 extern void avd_sgtype_remove_sg(AVD_SG *sg);
 extern void avd_sgtype_constructor(void);
+extern void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state);
 
 #endif

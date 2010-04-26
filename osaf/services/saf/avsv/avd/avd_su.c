@@ -654,7 +654,7 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 			   avd_pres_state_name[old_state], avd_pres_state_name[su->saAmfSUPresenceState]);
 
 		/* alarm & notifications */
-		avd_gen_su_pres_state_chg_ntf(avd_cb, su);
+		avd_send_su_pres_state_chg_ntf(&su->name, old_state, su->saAmfSUPresenceState);
 	}
 	avd_saImmOiRtObjectUpdate(&su->name,
 				 "saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
@@ -663,10 +663,13 @@ void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state)
 
 void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 {
+	SaAmfOperationalStateT old_state = su->saAmfSUOperState;
+	
 	if (su->saAmfSUOperState == oper_state)
 		return;
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
-	TRACE_ENTER2("'%s' %s", su->name.value, avd_oper_state_name[oper_state]);
+	TRACE_ENTER2("'%s' %s => %s", su->name.value, avd_oper_state_name[su->saAmfSUOperState], 
+			avd_oper_state_name[oper_state]);
 
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s OperState %s => %s", su->name.value,
 		   avd_oper_state_name[su->saAmfSUOperState], avd_oper_state_name[oper_state]);
@@ -674,7 +677,7 @@ void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state)
 	su->saAmfSUOperState = oper_state;
 
 	/* alarm & notifications */
-	avd_gen_su_oper_state_chg_ntf(avd_cb, su);
+	avd_send_oper_chg_ntf(&su->name, SA_AMF_NTFID_SU_OP_STATE, old_state, su->saAmfSUOperState);
 
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
@@ -720,15 +723,17 @@ void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state
 
 void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 {
+	SaAmfAdminStateT old_state = su->saAmfSUAdminState;
+	
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("'%s' %s", su->name.value, avd_adm_state_name[admin_state]);
+	TRACE_ENTER2("'%s' %s => %s", su->name.value, avd_adm_state_name[old_state], avd_adm_state_name[admin_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", su->name.value,
 		   avd_adm_state_name[su->saAmfSUAdminState], avd_adm_state_name[admin_state]);
 	su->saAmfSUAdminState = admin_state;
 	avd_saImmOiRtObjectUpdate(&su->name,
 		"saAmfSUAdminState", SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_OPER_STATE);
-	avd_gen_su_admin_state_changed_ntf(avd_cb, su);
+	avd_send_admin_state_chg_ntf(&su->name, SA_AMF_NTFID_SU_ADMIN_STATE, old_state, su->saAmfSUAdminState);
 }
 
 /**
