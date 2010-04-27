@@ -37,6 +37,7 @@
 
 #include <saAis.h>
 #include <saAmf.h>
+#include <saClm.h>
 #include <saNtf.h>
 #include <ntfclient.h>
 
@@ -250,27 +251,56 @@ static const char *sa_amf_state_list[] = {
 
 static const char *sa_amf_pres_state_list[] = {
 	"",
-    "SA_AMF_PRESENCE_UNINSTANTIATED",
-    "SA_AMF_PRESENCE_INSTANTIATING",
-    "SA_AMF_PRESENCE_INSTANTIATED",
-    "SA_AMF_PRESENCE_TERMINATING",
-    "SA_AMF_PRESENCE_RESTARTING",
-    "SA_AMF_PRESENCE_INSTANTIATION_FAILED",
-    "SA_AMF_PRESENCE_TERMINATION_FAILED"
+	"SA_AMF_PRESENCE_UNINSTANTIATED",
+	"SA_AMF_PRESENCE_INSTANTIATING",
+	"SA_AMF_PRESENCE_INSTANTIATED",
+	"SA_AMF_PRESENCE_TERMINATING",
+	"SA_AMF_PRESENCE_RESTARTING",
+	"SA_AMF_PRESENCE_INSTANTIATION_FAILED",
+	"SA_AMF_PRESENCE_TERMINATION_FAILED"
 };
 
 static const char *sa_amf_op_state_list[] = {
 	"",
-    "SA_AMF_OPERATIONAL_ENABLED",
-    "SA_AMF_OPERATIONAL_DISABLED"
+	"SA_AMF_OPERATIONAL_ENABLED",
+	"SA_AMF_OPERATIONAL_DISABLED"
 };
 
 static const char *sa_amf_ha_state_list[] = {
 	"",
-    "SA_AMF_HA_ACTIVE",
-    "SA_AMF_HA_STANDBY",
-    "SA_AMF_HA_QUIESCED",
-    "SA_AMF_HA_QUIESCING"
+	"SA_AMF_HA_ACTIVE",
+	"SA_AMF_HA_STANDBY",
+	"SA_AMF_HA_QUIESCED",
+	"SA_AMF_HA_QUIESCING"
+};
+
+static const char *sa_amf_adm_state_list[] = {
+	"",
+	"SA_AMF_ADMIN_UNLOCKED",
+	"SA_AMF_ADMIN_LOCKED",
+	"SA_AMF_ADMIN_LOCKED_INSTANTIATION",
+	"SA_AMF_ADMIN_SHUTTING_DOWN"
+};
+
+static const char *sa_amf_ass_state_list[] = {
+	"",
+	"SA_AMF_ASSIGNMENT_UNASSIGNED",
+	"SA_AMF_ASSIGNMENT_FULLY_ASSIGNED",
+	"SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED"
+};
+
+static const char *sa_clm_state_list[] = {
+	"",
+	"SA_CLM_CLUSTER_CHANGE_STATUS",
+	"SA_CLM_ADMIN_STATE"
+};
+
+static const char *sa_clm_change_state_list[] = {
+	"",
+	"SA_CLM_NODE_NO_CHANGE",
+	"SA_CLM_NODE_JOINED",
+	"SA_CLM_NODE_LEFT",
+	"SA_CLM_NODE_RECONFIGURED"
 };
 
 static char *error_output(SaAisErrorT result)
@@ -377,6 +407,7 @@ static void print_change_states(SaNtfClassIdT *notificationClassId, SaNtfStateCh
 {
 	if ((notificationClassId->vendorId == SA_NTF_VENDOR_ID_SAF) &&
 		(notificationClassId->majorId == SA_SVC_AMF)) {
+
 		assert(SA_AMF_READINESS_STATE <= input->stateId && input->stateId <= SA_AMF_HA_READINESS_STATE);
 		printf("State = %s\n", sa_amf_state_list[input->stateId]);
 
@@ -396,10 +427,40 @@ static void print_change_states(SaNtfClassIdT *notificationClassId, SaNtfStateCh
 				printf("Old State: %s\n", sa_amf_op_state_list[input->oldState]);
 			printf("New State: %s\n", sa_amf_op_state_list[input->newState]);
 			break;
+		case SA_AMF_ADMIN_STATE:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_amf_adm_state_list[input->oldState]);
+			printf("New State: %s\n", sa_amf_adm_state_list[input->newState]);
+			break;
+		case SA_AMF_ASSIGNMENT_STATE:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_amf_ass_state_list[input->oldState]);
+			printf("New State: %s\n", sa_amf_ass_state_list[input->newState]);
+			break;
 		default:
+			if (input->oldStatePresent)
+				printf("Old State: %u\n", input->oldState);
+			printf("New State: %u\n", input->newState);
 			break;
 		}
+	} else if ((notificationClassId->vendorId == SA_NTF_VENDOR_ID_SAF) &&
+		(notificationClassId->majorId == SA_SVC_CLM)) {
 
+		assert(SA_AMF_READINESS_STATE <= input->stateId && input->stateId <= SA_AMF_HA_READINESS_STATE);
+		printf("State = %s\n", sa_clm_state_list[input->stateId]);
+
+		switch (input->stateId) {
+		case SA_CLM_CLUSTER_CHANGE_STATUS:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_clm_change_state_list[input->oldState]);
+			printf("New State: %s\n", sa_clm_change_state_list[input->newState]);
+			break;
+		default:
+			if (input->oldStatePresent)
+				printf("Old State: %u\n", input->oldState);
+			printf("New State: %u\n", input->newState);
+			break;
+		}
 	} else {
 		printf("- State ID: %u -\n", input->stateId);
 
