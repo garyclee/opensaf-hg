@@ -983,7 +983,7 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 		client_id = rec->client_id;
 		TRACE("Client ID %d ,track_flags=%d", rec->client_id, rec->track_flags);
 
-		if (rec->track_flags & (SA_TRACK_START_STEP)) {
+		if (rec->track_flags) {
 			rec->inv_id = 0;
 
 			if (rec->track_flags & SA_TRACK_CHANGES_ONLY) {
