@@ -30,6 +30,8 @@ class Options(BaseOptions):
     ignoreMissingClass = False
     grep_class = None
     grep_dn = None
+    negateGrep_class = False
+    negateGrep_dn = False
     sort = False
     outputFilename = None
     stdout = True
@@ -39,7 +41,7 @@ class Options(BaseOptions):
     
     @staticmethod
     def printOptionSettings():
-        return BaseOptions.printOptionSettings()+' keepCommentElements: %s \n ignoreVariants: %s \n grep_class: %s\n grep_dn: %s\n sort:%s\n outputFilename: %s\n schemaFilename: %s\n' % (Options.keepCommentElements, Options.ignoreVariants, Options.grep_class, Options.grep_dn ,Options.sort, Options.outputFilename, Options.schemaFilename)
+        return BaseOptions.printOptionSettings()+' keepCommentElements: %s \n ignoreVariants: %s \n grep_class: %s\n grep_dn: %s\n negateGrep_dn: %s\n negateGrep_class: %s \n sort:%s\n outputFilename: %s\n schemaFilename: %s\n' % (Options.keepCommentElements, Options.ignoreVariants, Options.grep_class, Options.grep_dn , Options.negateGrep_dn, Options.negateGrep_class, Options.sort, Options.outputFilename, Options.schemaFilename)
 
         
 
@@ -100,8 +102,13 @@ class MergedImmDocument(BaseImmDocument):
         if self.regexpObj != None:
             trace ("Check if class %s match pattern %s", className, Options.grep_class)            
             if re.search(self.regexpObj, className) == None:
-                trace ("Class %s does not match pattern %s", className, Options.grep_class)
+                if Options.negateGrep_class == False:
+                    trace ("Class %s does not match pattern %s", className, Options.grep_class)
+                    return
+            elif Options.negateGrep_class:
+                trace ("Class %s does not match negated pattern %s", className, Options.grep_class)
                 return
+        trace("match ok :%s", className);
         
         # check if class exist in dictionary map
         if className in self.classDict:
@@ -155,7 +162,11 @@ class MergedImmDocument(BaseImmDocument):
         if self.dn_regexpObj != None:
             trace ("grep_dn check if object dn %s match pattern %s", objectDnName, Options.grep_dn)            
             if re.search(self.dn_regexpObj, objectDnName) == None:
-                trace ("Object dn %s does not match pattern %s", objectDnName, Options.grep_dn)
+                if Options.negateGrep_dn == False:
+                    trace ("Object dn %s does not match pattern %s", objectDnName, Options.grep_dn)
+                    return
+            elif Options.negateGrep_dn:
+                trace ("Object dn %s does not match negated pattern %s", objectDnName, Options.grep_dn)
                 return
         trace("match ok :%s", objectDnName);
             
@@ -267,11 +278,11 @@ class MergedImmDocument(BaseImmDocument):
     def saveResult(self):
         trace("")
         
-        if len(self.classList) < 1 and Options.grep_class != None:
-            exit_script("No classes matches pattern %s specified with --grep-class. No document is saved. Exiting!", Options.grep_class)
+        #if len(self.classList) < 1 and Options.grep_class != None:
+        #    exit_script("No classes matches pattern %s specified with --grep-class. No document is saved. Exiting!", Options.grep_class)
 
-        if len(self.objectList) < 1 and Options.grep_dn != None:
-            exit_script("No objects matches pattern %s specified with --grep-dn. No document is saved. Exiting!", Options.grep_dn)
+        #if len(self.objectList) < 1 and Options.grep_dn != None:
+        #    exit_script("No objects matches pattern %s specified with --grep-dn. No document is saved. Exiting!", Options.grep_dn)
 
         # Use a temp file when output file is not specified. When this script finishes it prints the file to stdout
         # and removes the file 
@@ -333,9 +344,8 @@ class MergedImmDocument(BaseImmDocument):
         
         diff_classes = self.classes_parsed-len(self.classList)
         diff_objects = self.objects_parsed-len(self.objectList)
-        if diff_classes != 0:
+        if diff_classes != 0 or diff_objects != 0:
             print_info_stderr("Note! Merge ignored %d classes (parsed:%d stored:%d)", diff_classes, self.classes_parsed, len(self.classList) )
-        if diff_objects != 0:
             print_info_stderr("Note! Merge ignored %d objects (parsed:%d stored:%d)", diff_objects, self.objects_parsed, len(self.objectList) )
         
         
@@ -356,14 +366,16 @@ def printUsage():
   print """
   -o, --output            specified outputfile 
                           (if option is omitted stdout is used)
-  --grep-class=PATTERN    pattern match the class names in source file(s)
+  --grep-class PATTERN    pattern match the class names in source file(s)
                           (This option also sets disableParentDnValidation)
                           At end of processing a summary of processed/ignored
                           classes/objects is listed.
-  --grep-dn=PATTERN       pattern match the object dn names in source file(s)
+  --grep-v-class PATTERN  negated pattern matching. Similar to "grep -v PATTERN"
+  --grep-dn PATTERN       pattern match the object dn names in source file(s)
                           (This option also sets disableParentDnValidation)
                           At end of processing a summary of processed/ignored
                           classes/objects is listed.
+  --grep-v-dn PATTERN     negated pattern matching. Similar to "grep -v PATTERN"
   --ignore-variants       when merge tool finds several definitions of same 
                           class or object the default behaviour is to abort the
                           merge processing and print out which class/object is 
@@ -396,14 +408,16 @@ def printVersion():
 
 def main(argv):    
     try:
-        opts, args = getopt.getopt(argv, "thvso:", ["trace", "keep-comment-elements", "ignore-variants", "ignore-missing-class", "help", "version", "sort", "grep-class=", "grep-dn=", "output=", "schema="])
+        opts, args = getopt.getopt(argv, "thvso:", ["trace", "keep-comment-elements", "ignore-variants", "ignore-missing-class", "help", "version", "sort", "grep-class=", "grep-v-class=", "grep-dn=", "grep-v-dn=", "output=", "schema="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print_info_stderr("%s", str(err))
         printUsage()
         sys.exit(2)
     
-    
+    foundGrep_dn = False
+    foundGrep_class = False
+
     for o, v in opts:
         if o in ["-t", "--trace"]:
             BaseOptions.traceOn = True
@@ -414,9 +428,29 @@ def main(argv):
         if o in ["--ignore-missing-class"]:
         	Options.ignoreMissingClass = True
         if o in ["--grep-class"]:
+            if foundGrep_class:
+                abort_script("Only one --grep-v-class or --grep-class option may be specified")
+            foundGrep_class = True
             Options.grep_class = v
             Options.disableParentDnValidation = True            
+        if o in ["--grep-v-class"]:
+            if foundGrep_class:
+                abort_script("Only one --grep-v-class or --grep-class option may be specified")
+            foundGrep_class = True
+            Options.negateGrep_class = True
+            Options.grep_class = v
+            Options.disableParentDnValidation = True            
+        if o in ["--grep-v-dn"]:
+            if foundGrep_dn:
+                abort_script("Only one --grep-v-dn or --grep-dn option may be specified")
+            foundGrep_dn = True
+            Options.negateGrep_dn = True
+            Options.grep_dn = v
+            Options.disableParentDnValidation = True            
         if o in ["--grep-dn"]:
+            if foundGrep_dn:
+                abort_script("Only one --grep-v-dn or --grep-dn option may be specified")
+            foundGrep_dn = True
             Options.grep_dn = v
             Options.disableParentDnValidation = True            
         if o in ("-o", "--output"):
