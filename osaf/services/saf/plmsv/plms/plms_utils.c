@@ -919,32 +919,30 @@ void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 		/* The dep-imminet-failure flag is not set, then return.*/
 		if (!plms_rdness_flag_is_set(ent,
 			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)){
+			
+			plms_aff_chld_list_imnt_failure_get(root_ent,ent->leftmost_child,
+			mark_unmark,aff_ent_list);
 			return;
 		}
 		
 		/* If the min dep criteria is met, then have to clear the
 		dep-imminet-failure flag.*/
 		head = ent->dependency_list;
-		while (head){
-			if (((!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)) && 
-			(!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_IMMINENT_FAILURE))) && 
-			(!plms_is_ent_in_ent_list(*aff_ent_list,
-			head->plm_entity)) && (0!=strcmp(root_ent->dn_name_str,
-			head->plm_entity->dn_name_str)) &&
+		while(head){
 			
-			(((PLMS_HE_ENTITY == head->plm_entity->entity_type) &&
-			(SA_PLM_OPERATIONAL_ENABLED ==
-			head->plm_entity->entity.he_entity.
-			saPlmHEOperationalState)) ||((PLMS_EE_ENTITY == 
-			head->plm_entity->entity_type) && 
-			(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.
-			ee_entity.saPlmEEOperationalState))) ){
-				
-				count++;
+			if ( ((PLMS_HE_ENTITY == head->plm_entity->entity_type) && 
+			(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.he_entity.saPlmHEOperationalState)) || 
+			((PLMS_EE_ENTITY == head->plm_entity->entity_type) && 
+			SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.ee_entity.saPlmEEOperationalState)){
+
+				if (!plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE) &&
+				!(plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_IMMINENT_FAILURE))){
+					count++;
+				}else if (plms_is_ent_in_ent_list(*aff_ent_list,head->plm_entity) || 
+				(0==strcmp(root_ent->dn_name_str,head->plm_entity->dn_name_str))){
+					count++;
+				}
 			}
-			
 			head = head->next;
 		}
 		if (count >= ent->min_no_dep){
@@ -970,6 +968,8 @@ void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 		((PLMS_EE_ENTITY == ent->entity_type) &&
 		(SA_PLM_OPERATIONAL_DISABLED ==
 		ent->entity.ee_entity.saPlmEEOperationalState))) {
+			plms_aff_chld_list_imnt_failure_get(root_ent,ent->leftmost_child,
+			mark_unmark,aff_ent_list);
 			return;
 		}
 		/* If the dep-imminent failure is set for the entity then,
@@ -1049,22 +1049,19 @@ void plms_aff_dep_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 		/* Check for min dep criteria.*/
 		head = ent->plm_entity->dependency_list;
 		while(head){
-			if (((!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)) && 
-			(!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_IMMINENT_FAILURE))) && 
-			(!plms_is_ent_in_ent_list(*aff_ent_list,
-			head->plm_entity)) && (0!=strcmp(root_ent->dn_name_str,
-			head->plm_entity->dn_name_str)) &&
 			
-			( ((PLMS_HE_ENTITY == head->plm_entity->entity_type) &&
-			(SA_PLM_OPERATIONAL_ENABLED ==
-			head->plm_entity->entity.he_entity.
-			saPlmHEOperationalState)) ||((PLMS_EE_ENTITY == 
-			head->plm_entity->entity_type) && 
-			(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.
-			ee_entity.saPlmEEOperationalState))) ){
-				count++;
+			if ( ((PLMS_HE_ENTITY == head->plm_entity->entity_type) && 
+			(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.he_entity.saPlmHEOperationalState)) || 
+			((PLMS_EE_ENTITY == head->plm_entity->entity_type) && 
+			SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.ee_entity.saPlmEEOperationalState)){
+
+				if (!plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE) &&
+				!(plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_IMMINENT_FAILURE))){
+					count++;
+				}else if (plms_is_ent_in_ent_list(*aff_ent_list,head->plm_entity) || 
+				(0==strcmp(root_ent->dn_name_str,head->plm_entity->dn_name_str))){
+					count++;
+				}
 			}
 			head = head->next;
 		}
@@ -3332,6 +3329,28 @@ SaUint32T plms_rdness_imminent_failure_process(PLMS_ENTITY *ent,
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
 		return NCSCC_RC_SUCCESS;
 	}
+	/* If operational state is disabled, then return.*/
+	if ( ((PLMS_HE_ENTITY == ent->entity_type) && 
+	(SA_PLM_OPERATIONAL_DISABLED == ent->entity.he_entity.saPlmHEOperationalState)) ||
+	((PLMS_EE_ENTITY == ent->entity_type) &&
+	(SA_PLM_OPERATIONAL_DISABLED == ent->entity.ee_entity.saPlmEEOperationalState))) {
+
+		TRACE("Operational state is disabled. Ent: %s",
+		ent->dn_name_str);
+
+		evt.req_res = PLMS_RES;
+		evt.res_evt.res_type = PLMS_AGENT_TRACK_READINESS_IMPACT_RES;
+		evt.res_evt.ntf_id = ntf_id;
+		evt.res_evt.error = SA_AIS_OK;
+		ret_err = plm_send_mds_rsp(cb->mds_hdl,NCSMDS_SVC_ID_PLMS,
+		snd_info,&evt);
+		if(NCSCC_RC_SUCCESS != ret_err){
+			LOG_ER("Sync resp to PLMA for readiness impact fault\
+			clear FAILED. ret_val = %d",ret_err);
+		}
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
+		return NCSCC_RC_SUCCESS;
+	}
 	
 	plms_aff_ent_list_imnt_failure_get(ent,&aff_ent_list,1/* mark */);
 	TRACE("Affected entities for ent %s: ", ent->dn_name_str);
@@ -3604,6 +3623,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 	PLMS_GROUP_ENTITY *aff_ent_list_flag = NULL;
 	PLMS_GROUP_ENTITY *aff_ent_list_state = NULL;
 	SaNtfIdentifierT ntf_id = SA_NTF_IDENTIFIER_UNUSED;
+	SaUint32T is_flag = 0;	
 
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	memset(&trk_info,0,sizeof(PLMS_TRACK_INFO));
@@ -3638,6 +3658,8 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 	}
 
 	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_IMMINENT_FAILURE)){
+
+		is_flag = 1;
 		/* Find out the entities whose imminent dependency flag 
 	 	* was set because of this entity.*/
 		plms_aff_ent_list_imnt_failure_get(ent, &aff_ent_list_flag,
@@ -3676,6 +3698,29 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		/* Fault is happened, clear imminent failure flag if set. */	
 		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_IMMINENT_FAILURE,
 		0,NULL,SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		/* Also clear dep-imminet-failure flag is set.*/
+		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE,
+		0,NULL,SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		head = aff_ent_list_flag;
+		while(head){
+			plms_readiness_flag_mark_unmark(head->plm_entity,
+			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE,0/*unmark*/,
+			ent,SA_NTF_OBJECT_OPERATION,
+			SA_PLM_NTFID_STATE_CHANGE_DEP);
+			
+			head = head->next;
+		}
+	}else if (plms_rdness_flag_is_set(ent,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)){
+		
+		is_flag = 1;
+		
+		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE,
+		0,NULL,SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		plms_aff_dep_list_imnt_failure_get(ent,ent->rev_dep_list,
+						0,&aff_ent_list_flag);
 		
 		head = aff_ent_list_flag;
 		while(head){
@@ -3726,6 +3771,53 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		/* Isolate the entity.*/
 		ret_err = plms_ent_isolate(ent,FALSE,TRUE);
 
+		/* Check if we need to call any callback.*/
+		if (is_flag){
+			/* Overwrite the expected readiness status with the current.*/
+			plms_aff_ent_exp_rdness_state_ow(aff_ent_list_flag);
+			
+			/* Overwrite the expected readiness state and flag of the 
+			root entity.*/
+			plms_ent_exp_rdness_state_ow(ent);
+			
+			trk_info.aff_ent_list = aff_ent_list_flag;	
+			trk_info.group_info_list = NULL;
+			
+			/* Add the groups, root entity(ent) belong to.*/
+			plms_ent_grp_list_add(ent,&(trk_info.group_info_list));
+			
+			/* Find out all the groups, all affected entities belong to and add 
+			the groups to trk_info->group_info_list.
+			*/
+			if (NULL != aff_ent_list_flag){
+				plms_ent_list_grp_list_add(aff_ent_list,
+				&(trk_info.group_info_list));	
+			}
+
+			TRACE("Affected groups for ent %s: ",ent->dn_name_str);
+			log_head_grp = trk_info.group_info_list;
+			while(log_head_grp){
+				TRACE("%llu,",log_head_grp->ent_grp_inf->entity_grp_hdl);
+				log_head_grp = log_head_grp->next;
+			}
+			
+			trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
+			trk_info.track_cause = SA_PLM_CAUSE_FAILURE;
+			trk_info.root_correlation_id = ntf_id;
+			trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
+			trk_info.root_entity = ent;
+
+			plms_cbk_call(&trk_info,1);
+			
+			plms_ent_exp_rdness_status_clear(ent);
+			plms_aff_ent_exp_rdness_status_clear(aff_ent_list_flag);
+			
+			plms_ent_list_free(aff_ent_list_flag);
+			trk_info.aff_ent_list = NULL;
+			plms_ent_grp_list_free(trk_info.group_info_list);
+			trk_info.group_info_list = NULL;
+		}
+
 		/* Resp to PLMA.*/
 		evt.req_res = PLMS_RES;
 		evt.res_evt.res_type = PLMS_AGENT_TRACK_READINESS_IMPACT_RES;
@@ -3774,7 +3866,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		
 		/* Mark the operational state of the faulty entity to 
 		disabled. */  
-		plms_op_state_set(ent,SA_PLM_OPERATIONAL_DISABLED,NULL,
+		ntf_id = plms_op_state_set(ent,SA_PLM_OPERATIONAL_DISABLED,NULL,
 		SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 		head = aff_ent_list_state;
@@ -4429,6 +4521,11 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 					
 				plms_readiness_flag_mark_unmark(ent,
 				SA_PLM_RF_ISOLATE_PENDING,1,NULL,
+				SA_NTF_OBJECT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+				plms_readiness_flag_mark_unmark(ent,
+				SA_PLM_RF_MANAGEMENT_LOST,1,NULL,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
