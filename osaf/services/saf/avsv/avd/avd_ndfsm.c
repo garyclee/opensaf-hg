@@ -494,6 +494,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 		 * be sent with new send ID.
 		 */
 		avnd->snd_msg_id = 0;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 	}
 }
 
