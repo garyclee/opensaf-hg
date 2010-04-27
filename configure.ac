@@ -30,8 +30,11 @@ AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
 # (patch version) = (second number)
 OPENSAF_LIB_VERSION=0:0:0
 AC_SUBST([OPENSAF_LIB_VERSION])
-m4_include([m4/linker-script.m4])
-gl_LINKER_SCRIPT
+
+# FIXME: Until the m4 macro gets cleaned for DSO symbol tests and not executable
+AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "yes" = "yes")
+#m4_include([m4/linker-script.m4])
+#gl_LINKER_SCRIPT
 
 OPENSAF_RELEASE=$PACKAGE_VERSION
 OPENSAF_BUGREPORT=$PACKAGE_BUGREPORT
