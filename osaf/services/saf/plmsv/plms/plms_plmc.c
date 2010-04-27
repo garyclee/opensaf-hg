@@ -2369,7 +2369,7 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 		/* EEs parent is domain*/
 		LOG_ER("EE`s direct parent is Domain or parent not configured.\
 		, hence the EE cannot be isolated.");
-		
+#if 0		
 		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,
 		1,NULL, SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
@@ -2379,6 +2379,7 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 		plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
 		
 		return NCSCC_RC_FAILURE;
+#endif		
 	}
 	if (can_isolate){
 		/* assert reset state on parent HE,
