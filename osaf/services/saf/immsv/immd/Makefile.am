@@ -46,6 +46,7 @@ osafimmd_SOURCES = \
 	immd_sbevt.c
 
 osafimmd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
