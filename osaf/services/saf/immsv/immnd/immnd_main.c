@@ -58,7 +58,10 @@ static void sigusr1_handler(int sig)
 	(void)sig;
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(immnd_cb->usr1_sel_obj);
-	TRACE("Got USR1 signal");
+	/* Do not use trace in the signal handler
+	   It can apparently cause the main thread
+	   to spin or deadlock. See ticket #1173.
+	 */
 }
 
 /****************************************************************************
