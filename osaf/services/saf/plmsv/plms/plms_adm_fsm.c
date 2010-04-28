@@ -2758,7 +2758,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL,*head,*log_head;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
-	SaPlmTrackCauseT trk_cause;
+	SaPlmTrackCauseT trk_cause = 0;
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
 	TRACE_ENTER2("Entity: %s. Admin repair.",tmp);
