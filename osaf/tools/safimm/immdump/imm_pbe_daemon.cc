@@ -133,7 +133,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	   If successfull, a recovery protocol can be executed to determine the 
 	   outcome of any ccb-id.
 
-	   The second way is for the IMMSv to overrule the PBE by discardign the entire
+	   The second way is for the IMMSv to overrule the PBE by discarding the entire
 	   pbe file rep. This is done by just restarting the pbe in a normal way which
 	   will cause it to dump the current contents of the immsv, ignoring any previous
 	   disk rep. Discarding ccbs that could have been commited to disk may seem wrong,
@@ -150,6 +150,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("Failed to find CCB object for %llu", ccbId);
+		/* ABT TODO Here check outcome against repository. */
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
@@ -173,7 +174,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 					objectToPBE(std::string((const char *) ccbUtilOperationData->objectName.value), 
 						ccbUtilOperationData->param.create.attrValues,
 						sClassIdMap, sDbHandle, ++sObjCount,
-						ccbUtilOperationData->param.create.className);
+						ccbUtilOperationData->param.create.className, ccbId);
 				} while (0);
 				break;
 
@@ -207,7 +208,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 					switch(attMod->modType) {
 						case SA_IMM_ATTR_VALUES_REPLACE:
 							objectModifyDiscardAllValuesOfAttrToPBE(sDbHandle, objName,
-								&(attMod->modAttr));
+								&(attMod->modAttr), ccbId);
 
 							if(attMod->modAttr.attrValuesNumber == 0) {
 								continue; //Ok to replace with nothing
@@ -219,11 +220,11 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 								LOG_ER("Empty value used for adding to attribute %s",
 									attMod->modAttr.attrName);
 								rc = SA_AIS_ERR_BAD_OPERATION;
-								goto done;
+								goto abort;
 							}
 							
 							objectModifyAddValuesOfAttrToPBE(sDbHandle, objName,
-								&(attMod->modAttr));
+								&(attMod->modAttr), ccbId);
 							
 							break;
 
@@ -232,10 +233,10 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 								LOG_ER("Empty value used for deleting from attribute %s",
 									attMod->modAttr.attrName);
 								rc = SA_AIS_ERR_BAD_OPERATION;
-								goto done;
+								goto abort;
 							}
 							objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, objName,
-								&(attMod->modAttr));
+								&(attMod->modAttr), ccbId);
 
 							break;
 						default: assert(0);
@@ -249,7 +250,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
-	rc =  pbeCommitTrans(sDbHandle);
+	rc =  pbeCommitTrans(sDbHandle, ccbId, 0/* TODO get epoch. */);
 	if(rc == SA_AIS_OK) {
 		TRACE("COMMIT PBE TRANSACTION for ccb %llu OK", ccbId);
 		/* Use ccbUtilCcbData->userData to record ccb outcome, verify in ccbApply/ccbAbort */
@@ -260,7 +261,10 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	/* Fault injection.
 	if(ccbId == 3) { exit(1);} 
 	*/
-       
+	goto done;
+
+ abort:	
+	pbeAbortTrans(sDbHandle);
  done:
 	TRACE_LEAVE();
 	return rc;

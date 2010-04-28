@@ -2498,7 +2498,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				send_evt.info.imma.info.ccbCompl.implId = pbeId;
 				send_evt.info.imma.info.ccbCompl.invocation = pbeCtn;
 
-				TRACE_2("MAKING IMPLEMENTER CCB COMPLETED upcall");
+				TRACE_2("MAKING PBE-IMPLEMENTER CCB COMPLETED upcall");
 				if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 					    oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("CCB COMPLETED UPCALL SEND TO PBE FAILED");
@@ -4416,7 +4416,7 @@ TRACE("ABT procc_ccb_apply pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
 					send_evt.info.imma.info.ccbCompl.implId = pbeId;
 					send_evt.info.imma.info.ccbCompl.invocation = pbeCtn;
 
-					TRACE_2("MAKING IMPLEMENTER CCB COMPLETED upcall");
+					TRACE_2("MAKING PBE-IMPLEMENTER CCB COMPLETED upcall");
 					if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 						   oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 						LOG_ER("CCB COMPLETED UPCALL SEND TO PBE FAILED");

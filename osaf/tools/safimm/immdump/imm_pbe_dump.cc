@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -144,7 +145,7 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 		 "real_dflt real, blob_dflt blob)",
 		 "CREATE UNIQUE INDEX attr_dflt_idx on attr_dflt (class_id, attr_name)",
 
-		 "CREATE TABLE objects (obj_id integer primary key, class_id integer, dn text)",
+		 "CREATE TABLE objects (obj_id integer primary key, class_id integer, dn text, last_ccb integer)",
 		 "CREATE UNIQUE INDEX objects_idx on objects (dn)",
 
 		 "CREATE TABLE objects_int_multi (obj_id integer, attr_name text, int_val integer, tuple_id integer primary key)",
@@ -158,6 +159,9 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 
 		 "CREATE TABLE objects_blob_multi (obj_id integer, attr_name text, blob_val blob, tuple_id integer primary key)",
 		 "CREATE INDEX objects_blob_multi_idx on objects_blob_multi (obj_id, attr_name)",
+
+		 "CREATE TABLE ccb_commits(ccb_id integer primary key, epoch integer, commit_time integer)",
+
 		 "COMMIT TRANSACTION",
 		 NULL
 		};
@@ -168,6 +172,7 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 	/* Create the Pbe-repository by dumping current imm contents to a fresh DB. */
 
 	/* Check if db-file already exists and if so mv it to a backup copy. */
+	/* TODO reverse this, dump to tmp file, then copy oldfile, then mv tmp to file (atomic)*/
 	fd = open(filePath, O_RDWR);
 	if(fd != (-1)) {
 		close(fd);
@@ -491,8 +496,35 @@ static ClassInfo* classToPBE(std::string classNameString,
 	exit(1);
 }
 
+void stampObjectWithCcbId(void* db_handle, const char* object_id,  SaUint64T ccb_id)
+{
+	int rc=0;
+	char *execErr=NULL;
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string stampObj("UPDATE objects SET last_ccb = ");
+	unsigned int strint_bsz=32;
+	char ccbIdStr[strint_bsz];
+
+	TRACE_ENTER();
+	snprintf(ccbIdStr, strint_bsz, "%llu", ccb_id);
+	stampObj.append(ccbIdStr);
+	stampObj.append(" WHERE obj_id = ");
+	stampObj.append(object_id);
+
+	TRACE("GENERATED STAMP-OBJ:%s", stampObj.c_str());
+
+	rc = sqlite3_exec(dbHandle, stampObj.c_str(), NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", 
+			stampObj.c_str(), execErr);
+		sqlite3_free(execErr);
+		exit(1);
+	}
+	TRACE_LEAVE();
+}
+
 void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	std::string sql1("select obj_id,class_id from objects where dn = '");
@@ -509,6 +541,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	const char* class_name=NULL;
 	SaImmValueTypeT attr_type;
 	SaImmAttrFlagsT attr_flags;
+	unsigned int rowsModified=0;
 	TRACE_ENTER();
 	assert(dbHandle);
 
@@ -606,7 +639,8 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 			sqlite3_free(zErr);
 			goto bailout;
 		}
-		TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+		rowsModified = sqlite3_changes(dbHandle);
+		TRACE("Deleted %u values", rowsModified);
 	} else {
 		/* Assign the null value to the single valued attribute. */
 		std::string sql22("update ");
@@ -648,10 +682,14 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 			sqlite3_free(zErr);
 			goto bailout;
 		}
-		TRACE("Update %u values", sqlite3_changes(dbHandle));
+		rowsModified = sqlite3_changes(dbHandle);
+		TRACE("Update %u values", rowsModified);
 	}
 
+	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
+	/* Warning function call on line above refers to >>result<< via object_id */
 	sqlite3_free_table(result);
+
 	TRACE_LEAVE();
 	return;
 
@@ -661,8 +699,10 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	exit(1);
 }
 
+
+
 void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	std::string sql1("select obj_id,class_id from objects where dn = '");
@@ -680,6 +720,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 	SaImmValueTypeT attr_type;
 	SaImmAttrFlagsT attr_flags;
 	bool text_val = false;
+	unsigned int rowsModified=0;
 
 	TRACE_ENTER();
 	assert(dbHandle);
@@ -788,7 +829,8 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 				sqlite3_free(zErr);
 				goto bailout;
 			}
-			TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+			rowsModified=sqlite3_changes(dbHandle);
+			TRACE("Deleted %u values", rowsModified);
 		}
 	} else {
 		/* Assign the null value to the single valued attribute IFF
@@ -847,11 +889,14 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 				sqlite3_free(zErr);
 				goto bailout;
 			}
-			TRACE("Update %u values", sqlite3_changes(dbHandle));
+			rowsModified=sqlite3_changes(dbHandle);
+			TRACE("Update %u values", rowsModified);
 		}
 	}
 
-	sqlite3_free_table(result);
+	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
+	/* Warning function call on line above refers to >>result<< via object_id */
+	sqlite3_free_table(result); 
 	TRACE_LEAVE();
 	return;
 
@@ -862,7 +907,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 }
 
 void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	std::string sql1("select obj_id,class_id from objects where dn = '");
@@ -879,6 +924,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	const char* class_name=NULL;
 	SaImmValueTypeT attr_type;
 	SaImmAttrFlagsT attr_flags;
+	unsigned int rowsModified=0;
 	TRACE_ENTER();
 	assert(dbHandle);
 
@@ -938,6 +984,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		TRACE("Add to multivalued attribute.");
 	        valuesToPBE(attrValue, attr_flags, object_id, dbHandle);
+		++rowsModified;/* Not a correct count, just for stampObjectWithCcbId */
 	} else {
 		/* Add value to single valued */
 		std::string sql22("update ");
@@ -983,10 +1030,14 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 			sqlite3_free(zErr);
 			goto bailout;
 		}
-		TRACE("Updated %u values", sqlite3_changes(dbHandle));
+		rowsModified = sqlite3_changes(dbHandle);
+		TRACE("Updated %u values", rowsModified);
 	}
 
+	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
+	/* Warning function call on line above refers to >>result<< via object_id */
 	sqlite3_free_table(result);
+
 	TRACE_LEAVE();
 	return;
 
@@ -1158,20 +1209,22 @@ void objectToPBE(std::string objectNameString,
 	ClassMap *classIdMap,
 	void* db_handle,
 	unsigned int object_id,
-	SaImmClassNameT className)
+	SaImmClassNameT className,
+	SaUint64T ccb_id)
 {
 	std::string valueString;
 	std::string classNameString;
-	unsigned int strint_bsz=16;
+	unsigned int strint_bsz=32;
 	char objIdStr[strint_bsz];
 	char classIdStr[strint_bsz];
 	unsigned int class_id=0;
+	char ccbIdStr[strint_bsz];
 	ClassInfo* classInfo=NULL;
 	int rc=0;
 	char *execErr=NULL;
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 
-	std::string sqlE("INSERT INTO objects (obj_id, class_id, dn) values('");
+	std::string sqlE("INSERT INTO objects (obj_id, class_id, dn, last_ccb) values('");
 	std::string sqlF("INSERT INTO ");
 	std::string sqlF1(" (obj_id ");
 	std::string sqlF2(" values('");
@@ -1193,12 +1246,15 @@ void objectToPBE(std::string objectNameString,
 	class_id = classInfo->mClassId;
 	snprintf(classIdStr, strint_bsz, "%u", class_id);
 	snprintf(objIdStr, strint_bsz, "%u", object_id);
+	snprintf(ccbIdStr, strint_bsz, "%llu", ccb_id);
 
 	sqlE.append(objIdStr);
 	sqlE.append("', '");
 	sqlE.append(classIdStr);
 	sqlE.append("', '");
 	sqlE.append(objectNameString);
+	sqlE.append("', '");
+	sqlE.append(ccbIdStr);
 	sqlE.append("')");
 	TRACE("GENERATED E:%s", sqlE.c_str());
 	rc = sqlite3_exec(dbHandle, sqlE.c_str(), NULL, NULL, &execErr);
@@ -1400,7 +1456,7 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 		}
 
 		objectToPBE(std::string((char*)objectName.value, objectName.length),
-			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, NULL);
+			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, NULL, 0);
 	} while (true);
 
 	if (SA_AIS_ERR_NOT_EXIST != errorCode)
@@ -1443,11 +1499,44 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	return SA_AIS_OK;
 }
 
-SaAisErrorT pbeCommitTrans(void* db_handle)
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	char *execErr=NULL;
 	int rc=0;
+	unsigned int commitTime=0;
+	unsigned int strint_bsz=32;
+	char ccbIdStr[strint_bsz];
+	char epochStr[strint_bsz];
+	char commitTimeStr[strint_bsz];
+	time_t now = time(NULL);
+
+	commitTime = (unsigned int) now;
+	TRACE("ABT time sizeof %u to int %u", sizeof(now), sizeof(commitTime));
+
+	std::string sqlCcb("INSERT INTO ccb_commits (ccb_id, epoch, commit_time) VALUES('");
+
+	snprintf(ccbIdStr, strint_bsz, "%llu", ccbId);
+	snprintf(epochStr, strint_bsz, "%u", epoch);
+	snprintf(commitTimeStr, strint_bsz, "%u", commitTime);
+
+	sqlCcb.append(ccbIdStr);
+	sqlCcb.append("','");
+	sqlCcb.append(epochStr);
+	sqlCcb.append("','");
+	sqlCcb.append(commitTimeStr);
+	sqlCcb.append("')");
+
+	TRACE("GENERATED CCB:%s", sqlCcb.c_str());
+
+	rc = sqlite3_exec(dbHandle, sqlCcb.c_str(), NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlCcb.c_str(),
+			execErr);
+		sqlite3_free(execErr);
+		pbeAbortTrans(db_handle);
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
 
 	sqlite3_exec(dbHandle, "COMMIT TRANSACTION", NULL, NULL, &execErr);
 	if(rc != SQLITE_OK) {
@@ -1457,6 +1546,20 @@ SaAisErrorT pbeCommitTrans(void* db_handle)
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 	return SA_AIS_OK;
+}
+
+void pbeAbortTrans(void* db_handle)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	char *execErr=NULL;
+	int rc=0;
+
+	sqlite3_exec(dbHandle, "ABORT TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('ABORT TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+	}
 }
 
 
@@ -1489,9 +1592,14 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	return SA_AIS_ERR_NO_RESOURCES;
 }
 
-SaAisErrorT pbeCommitTrans(void* db_handle)
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
 {
 	return SA_AIS_ERR_NO_RESOURCES;
+}
+
+void pbeAbortTrans(void* db_handle)
+{
+	assert(0);
 }
 
 void objectDeleteToPBE(std::string objectNameString, void* db_handle)
@@ -1500,19 +1608,19 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 }
 
 void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	assert(0);
 }
 
 void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	assert(0);
 }
 
 void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string objName, 
-	const SaImmAttrValuesT_2* attrValue)
+	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
 	assert(0);
 }
@@ -1522,7 +1630,8 @@ void objectToPBE(std::string objectNameString,
 	ClassMap *classIdMap,
 	void* db_handle,
 	unsigned int object_id,
-	SaImmClassNameT className)
+	SaImmClassNameT className,
+	SaUint64T ccb_id)
 {
 	assert(0);
 }
