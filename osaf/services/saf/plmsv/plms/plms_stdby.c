@@ -259,8 +259,29 @@ SaUint32T plms_build_ent_grp_tree()
 			grp_entity_list->next = grp_info->plm_entity_list;
 			grp_info->plm_entity_list = grp_entity_list;
 
+			/* Update part_of_entity_groups list of entity */
+			PLMS_ENTITY_GROUP_INFO_LIST *egrp_list = plm_entity->part_of_entity_groups;
+			PLMS_ENTITY_GROUP_INFO_LIST *new = (PLMS_ENTITY_GROUP_INFO_LIST *)
+							malloc(sizeof(PLMS_ENTITY_GROUP_INFO_LIST));
+			if(!new){
+				LOG_CR("PLMS : PLMS_ENTITY_GROUP_INFO_LIST memory alloc failed, error val:%s",
+											strerror(errno));
+				assert(0);
+			}
+			memset(new,0,sizeof(PLMS_ENTITY_GROUP_INFO_LIST));
+			new->ent_grp_inf = grp_info;
+			new->next = NULL;
+			if(egrp_list == NULL){
+				plm_entity->part_of_entity_groups = new;
+			}else{
+				while(egrp_list->next){
+					egrp_list = egrp_list->next;
+				}
+				egrp_list->next = new;
+			}
 			entity_list  = entity_list->next;
 		}
+					
 		ckpt_grp_info = ckpt_grp_info->next;
 	}
 
