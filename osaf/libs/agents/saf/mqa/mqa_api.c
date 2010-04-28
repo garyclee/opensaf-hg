@@ -721,6 +721,12 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 	m_MQSV_SET_SANAMET(queueName);
 
+	if (strncmp((char *)queueName->value,"safMq=",6)) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+                m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+                return rc;
+	}
+
 	if (m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -1003,6 +1009,12 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 	}
 
 	m_MQSV_SET_SANAMET(queueName);
+
+	if (strncmp((char *)queueName->value,"safMq=",6)) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+                m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+                return rc;
+	}
 
 	if (openFlags != 0) {
 		if (!(openFlags & (SA_MSG_QUEUE_CREATE | SA_MSG_QUEUE_RECEIVE_CALLBACK | SA_MSG_QUEUE_EMPTY))) {
@@ -4348,6 +4360,12 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle, const SaNameT *queueGroupName, SaM
 			     __FILE__, __LINE__);
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
+
+	if (strncmp((char *)queueGroupName->value,"safMqg=",7)) {
+		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
+                             __FILE__, __LINE__);
+                return SA_AIS_ERR_INVALID_PARAM;
+        }
 
 	if ((queueGroupPolicy < SA_MSG_QUEUE_GROUP_ROUND_ROBIN) || (queueGroupPolicy > SA_MSG_QUEUE_GROUP_BROADCAST)) {
 		m_LOG_MQSV_A(MQA_INVALID_GROUP_POLICY, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
