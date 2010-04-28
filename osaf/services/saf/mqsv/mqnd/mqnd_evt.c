@@ -1679,7 +1679,7 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 
 		offset = qnode->qinfo.shm_queue_index;
 		mqnd_dump_queue_status(cb, &qnode->qinfo.queueStatus, offset);
-		printf("\n\n Queue Total Size          : %u\n", qnode->qinfo.totalQueueSize);
+		printf("\n\n Queue Total Size          : %llu\n", qnode->qinfo.totalQueueSize);
 		printf(" Queue Total Used Size     : %llu\n", shm_base_addr[offset].QueueStatsShm.totalQueueUsed);
 		printf(" Queue Total No of Messages: %u\n", shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
 		printf("\n~~~~~~~~~~ Queue Info ~~~~~~~~~~\n");

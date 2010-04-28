@@ -15,7 +15,6 @@
  *
  */
 
-
 #include "mqnd.h"
 #include "mqnd_imm.h"
 
@@ -84,23 +83,6 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	qnode->qinfo.listenerHandle = 0;
 	qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
 	qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
-
-	/* Immsv Runtime Object Create  */
-	error = mqnd_create_runtime_MsgQobject((char *)qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
-		cb->immOiHandle);
-
-	if (error != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);   
-		return NCSCC_RC_FAILURE; 
-	}
-
-	error = mqnd_create_runtime_MsgQPriorityobject((char *)qnode->qinfo.queueName.value, qnode,
-		cb->immOiHandle);
-
-	if (error != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);     
-		return NCSCC_RC_FAILURE;
-	}
 
 	/* Open the Message Queue */
 	rc = mqnd_mq_create(&qnode->qinfo);
@@ -175,6 +157,23 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 			      __LINE__);
 		goto qname_destroy;
 	}
+
+	/* Immsv Runtime Object Create  */
+	error = mqnd_create_runtime_MsgQobject((char *)qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
+					       cb->immOiHandle);
+
+	if (error != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);
+		return NCSCC_RC_FAILURE;
+	}
+
+	error = mqnd_create_runtime_MsgQPriorityobject((char *)qnode->qinfo.queueName.value, qnode, cb->immOiHandle);
+
+	if (error != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);
+		return NCSCC_RC_FAILURE;
+	}
+
 	*qhdl = qnode->qinfo.queueHandle;
 	m_LOG_MQSV_ND(MQND_QUEUE_CREATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 	return NCSCC_RC_SUCCESS;

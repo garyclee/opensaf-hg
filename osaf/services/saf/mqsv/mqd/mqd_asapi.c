@@ -509,6 +509,14 @@ uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_IN
 
 				/* Remove the Queue from the Group */
 				pQGelm = ncs_remove_item(&pOelm->pObject->ilist, &dereg->queue, mqd_obj_cmp);
+
+				/* Update Runtime Attribute to IMMSV */
+				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
+					immutil_update_one_rattr(pMqd->immOiHandle, (char *)pOelm->pObject->name.value,
+								 "saMsgQueueGroupNumQueues", SA_IMM_ATTR_SAUINT32T,
+								 &pOelm->pObject->ilist.count);
+				}
+
 				if (pQGelm)
 					m_MMGR_FREE_MQD_OBJECT_ELEM(pQGelm);
 

@@ -303,9 +303,9 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	arr5[0] = &create_time;
 
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN)
-		open = 1;
+		open = 0;
 	else
-		open = 2;
+		open = 1;
 	arr6[0] = &open;
 
 	attr_mqrsc.attrName = "safMq";
