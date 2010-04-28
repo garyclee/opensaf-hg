@@ -711,10 +711,11 @@ uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ 
 
 	/* Change the queue owner from orphan to owned */
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN) {
+		NCS_BOOL isQueueOpen = TRUE;
 		qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
 		/*update the Message Queue Owner update to IMMSV */
 		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
-					 "saMsgQueueIsOpened", SA_IMM_ATTR_SAUINT32T, &qnode->qinfo.owner_flag);
+					 "saMsgQueueIsOpened", SA_IMM_ATTR_SAUINT32T, &isQueueOpen);
 		qnode->qinfo.rcvr_mqa = sinfo->dest;
 		qnode->qinfo.msgHandle = open->msgHandle;
 	}
@@ -952,6 +953,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 	*err = SA_AIS_OK;
 	SaMsgQueueHandleT listenerHandle;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
+	NCS_BOOL isQueueOpen = 0;
 
 	if (qnode == NULL) {
 		*err = SA_AIS_ERR_NO_RESOURCES;
@@ -1149,6 +1151,10 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 			*err = SA_AIS_ERR_NO_RESOURCES;
 			return NCSCC_RC_FAILURE;
 		}
+
+		/*update the Message Queue Owner update to IMMSV */
+		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
+					 "saMsgQueueIsOpened", SA_IMM_ATTR_SAUINT32T, &isQueueOpen);
 
 		/* start retention timer */
 		if (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT)) {
