@@ -160,9 +160,6 @@ static void clm_node_exit_complete(SaClmNodeIdT nodeId)
 
 	node->node_info.member = SA_FALSE;
 
-	/* Don't want leave for myself... */
-	assert(node->node_info.nodeId != avd_cb->node_id_avd);
-
 	avd_node_mark_absent(node);
 	avd_node_susi_fail_func(avd_cb, node);
 
@@ -220,6 +217,10 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				/* invocation to be used by pending clm response */ 
 				node->clm_pend_inv = invocation;
 				clm_node_exit_start(node, notifItem->clusterChange);
+				if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
+					/* We need to differentiate between CLM lock and error scenario.*/
+					node->clm_change_start_preceded = TRUE;
+				}
 			}
 			else
 				LOG_ER("Invalid Cluster change in START step");
@@ -228,7 +229,39 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		case SA_CLM_CHANGE_COMPLETED:
 			if( (notifItem->clusterChange == SA_CLM_NODE_LEFT)||
 			    (notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN)) {
-				clm_node_exit_complete(notifItem->clusterNode.nodeId);
+				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
+				if (node == NULL) {
+					LOG_ER("Node not a member");
+					goto done;
+				}
+				TRACE(" Node Left: rootCauseEntity %s for node %u", rootCauseEntity->value, 
+						notifItem->clusterNode.nodeId);
+				if(strncmp((char *)rootCauseEntity->value, "safEE=", 6) == 0) {
+					/* This callback is because of operation on PLM, so we need to mark the node
+					   absent, because PLCD will anyway call opensafd stop.*/
+					clm_node_exit_complete(notifItem->clusterNode.nodeId);
+				} else if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
+					/* This callback is because of operation on CLM.*/
+					if(TRUE == node->clm_change_start_preceded) {
+						/* We have got a completed callback with start cbk step before, so 
+						   already locking applications might have been done. So, no action
+						   is needed.*/
+						node->clm_change_start_preceded = FALSE; 
+					}
+					else
+					{
+						/* We have encountered a completed callback without start step, there
+						   seems error condition, node would have gone down suddenly. */
+						clm_node_exit_complete(notifItem->clusterNode.nodeId);
+					}
+
+
+				}
+				else {
+					/* We shouldn't get into this situation.*/
+					LOG_ER("Wrong rootCauseEntity %s",rootCauseEntity->value);
+					assert(0);
+				}
 			}
 			else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
 				/* delete, reconfigure, re-add to the node-id db
@@ -267,7 +300,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				}
 
 				node->node_info.member = SA_TRUE;
-
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 				if (node->node_state == AVD_AVND_STATE_PRESENT) {
 					TRACE("Node already up and configured");
 					/* now try to instantiate all the SUs that need to be */
@@ -320,7 +353,7 @@ done:
 SaAisErrorT avd_clm_track_start(void)
 {
         SaAisErrorT error = SA_AIS_OK;
-	SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY|SA_TRACK_VALIDATE_STEP; 
+	SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY|SA_TRACK_VALIDATE_STEP|SA_TRACK_START_STEP; 
         
 	TRACE_ENTER();
 	error = saClmClusterTrack_4(avd_cb->clmHandle, trackFlags, NULL);

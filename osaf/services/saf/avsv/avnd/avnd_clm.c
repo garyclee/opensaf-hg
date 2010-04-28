@@ -193,10 +193,19 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
                 notifItem = &notificationBuffer->notification[i];
 		if( (notifItem->clusterChange == SA_CLM_NODE_LEFT)||
 		    (notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN)) {
-			TRACE("Node has left the cluster '%s'",
-					notifItem->clusterNode.nodeName.value);
-			/* you received clm node left indication process accordingly */
-			clm_node_left(notifItem->clusterNode.nodeId);	
+                      
+			TRACE("Node has left the cluster '%s', avnd_cb->first_time_up %u," 
+					"notifItem->clusterNode.nodeId %u, avnd_cb->node_info.nodeId %u",
+					notifItem->clusterNode.nodeName.value,avnd_cb->first_time_up,
+					notifItem->clusterNode.nodeId,avnd_cb->node_info.nodeId);
+			if(SA_FALSE == avnd_cb->first_time_up) {
+				/* When node reboots, we will get an exit cbk, so ignore if avnd_cb->first_time_up
+				   is false. */
+				if(notifItem->clusterNode.nodeId == avnd_cb->node_info.nodeId) {
+					clm_node_left(notifItem->clusterNode.nodeId);	
+				}
+			}
+
 		}
 		else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
 			if (avnd_cb->node_info.nodeId == notifItem->clusterNode.nodeId) {

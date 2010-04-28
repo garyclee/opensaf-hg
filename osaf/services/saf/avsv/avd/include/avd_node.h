@@ -139,6 +139,7 @@ typedef struct avd_avnd_tag {
 	struct avd_avnd_tag *cluster_list_node_next;
 	struct avd_cluster_tag *cluster;
 	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
+	bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
 } AVD_AVND;
 
 typedef struct avd_ng_tag {
