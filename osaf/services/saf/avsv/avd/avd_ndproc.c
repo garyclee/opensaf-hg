@@ -511,12 +511,12 @@ static void clm_pend_response(AVD_SU *su, SaAmfPresenceStateT pres)
 		su->su_on_node->su_cnt_admin_oper--;
 		if (su->su_on_node->su_cnt_admin_oper == 0) {
 			/* if this is the last SU then send out the pending callback */
-			saClmResponse_4(avd_cb->immOiHandle, su->su_on_node->clm_pend_inv,
+			saClmResponse_4(avd_cb->clmHandle, su->su_on_node->clm_pend_inv,
 							   SA_CLM_CALLBACK_RESPONSE_OK);
 			su->su_on_node->clm_pend_inv = 0;
 		}
 	} else if (pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
-		saClmResponse_4(avd_cb->immOiHandle, su->su_on_node->clm_pend_inv,
+		saClmResponse_4(avd_cb->clmHandle, su->su_on_node->clm_pend_inv,
 							   SA_CLM_CALLBACK_RESPONSE_ERROR);
 		su->su_on_node->clm_pend_inv = 0;
 		su->su_on_node->su_cnt_admin_oper = 0;
