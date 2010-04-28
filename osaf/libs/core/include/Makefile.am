@@ -18,8 +18,10 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+pkginclude_HEADERS = \
+	cpsv_papi.h
+
 noinst_HEADERS = \
-	cpsv_papi.h \
 	dta_papi.h \
 	dts_papi.h \
 	ip_defs.h \
