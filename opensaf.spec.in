@@ -1115,6 +1115,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %endif
 %{_libdir}/libSa*.so
 %{_libdir}/libSa*.a
+%{_includedir}/%{name}/cpsv_papi.h
 %{_includedir}/saAis.h
 %{_includedir}/saAmf.h
 %{_includedir}/saCkpt.h
