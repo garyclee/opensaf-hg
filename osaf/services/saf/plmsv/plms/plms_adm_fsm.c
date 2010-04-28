@@ -2758,6 +2758,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL,*head,*log_head;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
+	SaPlmTrackCauseT trk_cause;
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
 	TRACE_ENTER2("Entity: %s. Admin repair.",tmp);
@@ -2888,6 +2889,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 			head = head->next;
 		}
+		trk_cause = SA_PLM_CAUSE_IMMINENT_FAILURE_CLEARED;
 
 	/* If the operational state is disabled, means imminent failure flag
 	 * no set. Hence 
@@ -2947,6 +2949,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("Enabling the ent %s FAILED.",ent->dn_name_str);
 		}
+		trk_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
 
 	}
 
@@ -2977,7 +2980,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 	trk_info.imm_adm_opr_id = evt->req_evt.admin_op.operation_id; 
 	trk_info.inv_id = evt->req_evt.admin_op.inv_id;
 	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
-	trk_info.track_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
+	trk_info.track_cause = trk_cause;
 	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
 	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
 	trk_info.root_entity = ent;
