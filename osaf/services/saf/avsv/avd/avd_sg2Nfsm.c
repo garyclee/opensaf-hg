@@ -1402,6 +1402,12 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 		} /* if (act == AVSV_SUSI_ACT_DEL) */
 		else if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_ACTIVE) || (state == SA_AMF_HA_STANDBY))) {
+			/* Update IMM and send notification */
+			for (i_susi = su->list_of_susi; i_susi != NULL; i_susi = i_susi->su_next) {
+				avd_susi_update(state, &i_susi->si->name, &i_susi->su->name);
+				avd_gen_su_ha_state_changed_ntf(cb, i_susi);
+			}
+
 			/* active all or standby all. Remove the SU from the operation list. */
 			if (avd_sg_su_oper_list_del(cb, su, FALSE) != NCSCC_RC_SUCCESS)
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
@@ -1542,7 +1548,7 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
-	AVD_SU_SI_REL *s_susi, *a_susi;
+	AVD_SU_SI_REL *s_susi, *a_susi, *l_susi;
 	AVD_SU *l_su;
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
@@ -1570,6 +1576,17 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)s_susi->su));
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(s_susi->su->name.value, s_susi->su->name.length);
 				return NCSCC_RC_FAILURE;
+			}
+
+			/*
+			** Update IMM and send notification. Skip if we are executing controller
+			** switch over. We currently have no active servers.
+			*/
+			if (!su->sg_of_su->sg_ncs_spec) {
+				for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
+					avd_susi_update(state, &l_susi->si->name, &su->name);
+					avd_gen_su_ha_state_changed_ntf(cb, l_susi);
+				}
 			}
 		} else {
 
@@ -1599,6 +1616,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 			}
 		}
 	} else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
+
 		/* The message is assign active all */
 		if (su->sg_of_su->su_oper_list.su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
 			/* the SU in the operation list has admin operation switch Send a 
@@ -1612,6 +1630,12 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
+			}
+
+			/* Update IMM and send notification */
+			for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
+				avd_susi_update(state, &l_susi->si->name, &su->name);
+				avd_gen_su_ha_state_changed_ntf(cb, l_susi);
 			}
 		} else {
 			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the
@@ -1629,6 +1653,12 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 		}
 	} else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_STANDBY) &&
 		   (su->sg_of_su->su_oper_list.su == su)) {
+
+		/* Update IMM and send notification */
+		for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
+			avd_susi_update(state, &l_susi->si->name, &su->name);
+			avd_gen_su_ha_state_changed_ntf(cb, l_susi);
+		}
 
 		/* Finish the SI SWAP admin operation */
 		m_AVD_SET_SU_SWITCH(cb, su->sg_of_su->su_oper_list.su, AVSV_SI_TOGGLE_STABLE);
