@@ -1404,7 +1404,7 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 		else if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_ACTIVE) || (state == SA_AMF_HA_STANDBY))) {
 			/* Update IMM and send notification */
 			for (i_susi = su->list_of_susi; i_susi != NULL; i_susi = i_susi->su_next) {
-				avd_susi_update(state, &i_susi->si->name, &i_susi->su->name);
+				avd_susi_update(i_susi, state);
 				avd_gen_su_ha_state_changed_ntf(cb, i_susi);
 			}
 
@@ -1584,7 +1584,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 			*/
 			if (!su->sg_of_su->sg_ncs_spec) {
 				for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
-					avd_susi_update(state, &l_susi->si->name, &su->name);
+					avd_susi_update(l_susi, state);
 					avd_gen_su_ha_state_changed_ntf(cb, l_susi);
 				}
 			}
@@ -1634,7 +1634,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 			/* Update IMM and send notification */
 			for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
-				avd_susi_update(state, &l_susi->si->name, &su->name);
+				avd_susi_update(l_susi, state);
 				avd_gen_su_ha_state_changed_ntf(cb, l_susi);
 			}
 		} else {
@@ -1656,7 +1656,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 		/* Update IMM and send notification */
 		for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
-			avd_susi_update(state, &l_susi->si->name, &su->name);
+			avd_susi_update(l_susi, state);
 			avd_gen_su_ha_state_changed_ntf(cb, l_susi);
 		}
 

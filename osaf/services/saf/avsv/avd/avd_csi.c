@@ -532,6 +532,7 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
 
        avsv_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
 
+       TRACE("Adding %s", dn.value);
        if ((rc = avd_saImmOiRtObjectCreate("SaAmfCSIAssignment", csi_dn, attrValues)) != SA_AIS_OK)
            LOG_ER("rc=%u, '%s'", rc, dn.value);
 }
@@ -541,9 +542,16 @@ AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 {
 	AVD_COMP_CSI_REL *compcsi;
 
+	TRACE_ENTER();
 	if ((csi == NULL) && (comp == NULL)) {
 		LOG_ER("Either csi or comp is NULL");
                 return NULL;
+	}
+
+	/* do not add if already in there */
+	for (compcsi = susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
+		if ((compcsi->comp == comp) && (compcsi->csi == csi))
+			goto done;
 	}
 
 	if ((compcsi = calloc(1, sizeof(AVD_COMP_CSI_REL))) == NULL) {
@@ -574,7 +582,8 @@ AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 
 	if (create_in_imm)
 		avd_create_csiassignment_in_imm(susi->state, &csi->name, &comp->comp_info.name);
-
+done:
+	TRACE_LEAVE();
 	return compcsi;
 }
 
@@ -592,6 +601,7 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
                return;
 
        avsv_create_association_class_dn(comp_dn, csi_dn, "safCSIComp", &dn);
+       TRACE("Deleting %s", dn.value);
 
        if ((rc = avd_saImmOiRtObjectDelete(&dn)) != SA_AIS_OK)
                LOG_ER("rc=%u, '%s'", rc, dn.value);
@@ -619,6 +629,7 @@ uns32 avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	AVD_COMP_CSI_REL *lcomp_csi;
 	AVD_COMP_CSI_REL *i_compcsi, *prev_compcsi = NULL;
 
+	TRACE_ENTER();
 	while (susi->list_of_csicomp != NULL) {
 		lcomp_csi = susi->list_of_csicomp;
 
@@ -652,6 +663,7 @@ uns32 avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

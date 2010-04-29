@@ -113,22 +113,33 @@ static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT
  * @param si_dn
  * @param su_dn
  */
-void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT *su_dn)
+void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 {
        SaAisErrorT rc;
        SaNameT dn;
+       AVD_COMP_CSI_REL *compcsi;
 
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 	       return;
 
-       avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
+       avsv_create_association_class_dn(&susi->su->name, &susi->si->name, "safSISU", &dn);
 
-       TRACE("HA State %s of %s for %s", avd_ha_state[ha_state], su_dn->value, si_dn->value);
+       TRACE("HA State %s of %s for %s", avd_ha_state[ha_state],
+	       susi->su->name.value, susi->si->name.value);
        saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
-	       avd_ha_state[ha_state], su_dn->value, si_dn->value);
+	       avd_ha_state[ha_state], susi->su->name.value, susi->si->name.value);
 
        if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
 	       LOG_ER("rc=%u, '%s'", rc, dn.value);
+
+       /* Update all CSI assignments */
+       for (compcsi = susi->list_of_csicomp; compcsi != NULL; compcsi = compcsi->susi_csicomp_next) {
+	       avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
+		       &compcsi->csi->name, "safCSIComp", &dn);
+
+	       if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfCSICompHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
+		       LOG_ER("rc=%u, '%s'", rc, dn.value);
+       }
 }
 
 /*****************************************************************************
@@ -441,9 +452,6 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 
 	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
 	m_AVD_GET_SU_NODE_PTR(cb, susi->su, avnd);
-
-	/* delete the comp-csi rels */
-	avd_compcsi_delete(cb, susi, ckpt);
 
 	/* check the SU list to get the prev pointer */
 	i_su_si = susi->su->list_of_susi;
