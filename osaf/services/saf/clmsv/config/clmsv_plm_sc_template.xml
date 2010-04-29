@@ -12,10 +12,12 @@
 	</object>
 	<object class="SaClmNode">
                 <dn>safNode=CLM_TOKEN,safCluster=myClmCluster</dn>
-                <attr>
+<!-- By default, no SaClmNode is mapped to SaPlmEE. If this mapping is needed then uncomment the following lines -->
+<!--                <attr>
                         <name>saClmNodeEE</name>
                         <value>safEE=SC_2_1,safDomain=domain_1</value>
                 </attr>
+-->
                 <attr>
                         <name>saClmNodeLockCallbackTimeout</name>
                         <value>50000000000</value>
