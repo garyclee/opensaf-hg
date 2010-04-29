@@ -1290,7 +1290,7 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	SaAmfHAStateT old_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%s, sg_fsm_state=%u", su->name.value, su->sg_of_su->sg_fsm_state);
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
@@ -1478,7 +1478,7 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		break;
 	}			/* switch(su->sg_of_su->sg_fsm_state) */
 
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

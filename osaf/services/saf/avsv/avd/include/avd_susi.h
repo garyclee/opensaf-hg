@@ -134,7 +134,7 @@ typedef struct avd_sus_per_si_rank_tag {
 
 EXTERN_C AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, NCS_BOOL ckpt);
 EXTERN_C AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaNameT *si_name);
-extern void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT *su_dn);
+extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 EXTERN_C AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
 EXTERN_C AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name);

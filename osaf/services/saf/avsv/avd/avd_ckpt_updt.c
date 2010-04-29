@@ -496,6 +496,7 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		if (NULL != su_si_rel_ptr) {
+			avd_compcsi_delete(cb, su_si_rel_ptr, TRUE);
 			avd_susi_delete(cb, su_si_rel_ptr, TRUE);
 		} else {
 			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
