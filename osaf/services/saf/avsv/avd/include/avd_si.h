@@ -107,7 +107,6 @@ typedef struct avd_si_tag {
 	struct avd_si_tag *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 
-	SaBoolT  si_swap_in_progress;
 	SaInvocationT invocation;
 } AVD_SI;
 

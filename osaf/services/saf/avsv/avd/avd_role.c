@@ -602,15 +602,16 @@ void amfd_switch(AVD_CL_CB *cb)
 
 	/* First check if there are any other SI's that are any other active */
 	/* get the avnd from node_id */
-	avnd = avd_node_find_nodeid (cb->node_id_avd);
+	avnd = avd_node_find_nodeid(cb->node_id_avd);
 
 	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 		if ((i_su->list_of_susi != 0) &&
-			(i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
-				(i_su->list_of_susi->state == SA_AMF_HA_ACTIVE)) {
-				/* Still some SI on the local SU are ACTIVE, Dont switch the AMFD */
-				return;
-			}
+		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
+		    (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE)) {
+
+			/* Still some SI on the local SU are ACTIVE, Dont switch the AMFD */
+			return;
+		}
 	}
 
 	cb->swap_switch = SA_TRUE;
@@ -883,6 +884,8 @@ uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 	}
 
 	cb->avail_state_avd = SA_AMF_HA_STANDBY;
+	LOG_NO("Controller switch over done");
+	saflog(LOG_NOTICE, amfSvcUsrName, "Controller switch over done at %x", cb->node_id_avd);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -991,6 +994,9 @@ uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 	/* Send the message to other avd for role change rsp as success */
 	avd_d2d_chg_role_rsp(cb, NCSCC_RC_SUCCESS, SA_AMF_HA_ACTIVE);
+
+	LOG_NO("Controller switch over done");
+	saflog(LOG_NOTICE, amfSvcUsrName, "Controller switch over done at %x", cb->node_id_avd);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
