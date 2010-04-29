@@ -1117,6 +1117,7 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 	NCS_BOOL flag = FALSE;
 	SaNameT ckpt_name;
 	uns32 phy_slot_sub_slot;
+	NCS_BOOL add_flag = TRUE;
 
 	memset(&ckpt_name, 0, sizeof(SaNameT));
 	mds_info = &evt->info.mds_info;
@@ -1140,6 +1141,36 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 						cb->is_rem_cpnd_up = TRUE;
 						cb->rem_cpnd_dest = node_info->cpnd_dest;
 						/* Break out of while-1. We found */
+							if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+								cpd_ckpt_node_getnext(&cb->ckpt_tree, NULL, &ckpt_node);
+								while (ckpt_node) {
+									prev_ckpt_hdl = ckpt_node->ckpt_id;
+									if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)) {
+										nref_info = ckpt_node->node_list;
+										while (nref_info) {
+											if (m_CPD_IS_LOCAL_NODE
+													(cb->cpd_remote_id,
+													 cpd_get_slot_sub_id_from_mds_dest
+													 (nref_info->dest))) {
+												flag = TRUE;
+											}
+											nref_info = nref_info->next;
+										}
+										if (flag == FALSE) {
+											cpd_ckpt_map_node_get(&cb->ckpt_map_tree,
+													&ckpt_node->ckpt_name, &map_info);
+											if (map_info) {
+												cpd_noncolloc_ckpt_rep_create(cb,
+														&cb->
+														rem_cpnd_dest,
+														ckpt_node,
+														map_info);
+											}
+										}
+									}
+									cpd_ckpt_node_getnext(&cb->ckpt_tree, &prev_ckpt_hdl, &ckpt_node);
+								}
+							}
 						break;
 					}
 					tmpDest = node_info->cpnd_dest;
@@ -1245,6 +1276,7 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 				cpd_cpnd_info_node_get(&cb->cpnd_tree, &mds_info->dest, &node_info);
 				if (!node_info) {
+					cpd_cpnd_info_node_find_add(&cb->cpnd_tree, &mds_info->dest, &node_info, &add_flag);
 					/* No Checkpoints on this node, */
 					return NCSCC_RC_SUCCESS;
 				} else {
@@ -1255,6 +1287,7 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 			if (cb->ha_state == SA_AMF_HA_STANDBY) {
 				cpd_cpnd_info_node_get(&cb->cpnd_tree, &mds_info->dest, &node_info);
 				if (!node_info) {
+					cpd_cpnd_info_node_find_add(&cb->cpnd_tree, &mds_info->dest, &node_info, &add_flag);
 					/* No Checkpoints on this node, */
 					return NCSCC_RC_SUCCESS;
 				} else {
@@ -1295,6 +1328,9 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 				if (!node_info) {
 					/* No Checkpoints on this node, */
 					return NCSCC_RC_SUCCESS;
+				} else if (node_info && (node_info->ckpt_ref_list == NULL)) {
+					cpd_cpnd_info_node_delete(cb, node_info);
+					return NCSCC_RC_SUCCESS;
 				} else
 					cpnd_down_process(cb, mds_info, node_info);
 			}
@@ -1304,10 +1340,15 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 					/* No Checkpoints on this node, */
 					return NCSCC_RC_SUCCESS;
 				}
-				node_info->timer_state = 1;
-				node_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
-				node_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
-				cpd_tmr_start(&node_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
+				else if (node_info && (node_info->ckpt_ref_list == NULL)) {
+					cpd_cpnd_info_node_delete(cb, node_info);
+					return NCSCC_RC_SUCCESS;
+				} else {
+					node_info->timer_state = 1;
+					node_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
+					node_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
+					cpd_tmr_start(&node_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
+				}
 			}
 		}
 		break;
