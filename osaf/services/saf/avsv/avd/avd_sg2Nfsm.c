@@ -16,47 +16,17 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This file is part of the SG processing module. It contains
   the SG state machine, for processing the events related to SG for 2N
   redundancy model.
 
-..............................................................................
-
-  FUNCTIONS INCLUDED in this file:
-
-  avd_sg_2n_act_susi - Finds SUSIs belonging to a SI which has active
-                       and standby asssignments. 
-  avd_sg_2n_su_chose_asgn - Choose and assign SIs to SUs.
-  avd_sg_2n_si_func - Function to process the new complete SI in the SG.
-  avd_sg_2n_suswitch_func - function called when a operator does a SU switch.
-  avd_sg_2n_siswitch_func - function called when a operator does a SI switch.
-  avd_sg_2n_su_fault_func - function is called when a SU failed and switchover
-                            needs to be done.
-  avd_sg_2n_su_insvc_func - function is called when a SU readiness state changes
-                            to inservice from out of service
-  avd_sg_2n_susi_sucss_func - processes successful SUSI assignment. 
-  avd_sg_2n_susi_fail_func - processes failure of SUSI assignment.
-  avd_sg_2n_realign_func - function called when SG operation is done or cluster
-                           timer expires.
-  avd_sg_2n_node_fail_func - function is called when the node has already failed and
-                             the SIs have to be failed over.
-  avd_sg_2n_su_admin_fail -  function is called when SU is LOCKED/SHUTDOWN.  
-  avd_sg_2n_si_admin_down - function is called when SIs is LOCKED/SHUTDOWN.
-  avd_sg_2n_sg_admin_down - function is called when SGs is LOCKED/SHUTDOWN.
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
+******************************************************************************/
 
 #include <logtrace.h>
-
+#include <immutil.h>
 #include <avd.h>
+#include <avd_clm.h>
 
 /*****************************************************************************
  * Function: avd_sg_2n_act_susi
@@ -375,7 +345,7 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
 }
 
 /*****************************************************************************
- * Function: avd_sg_2n_siswitch_func
+ * Function: avd_sg_2n_suswitch_func
  *
  * Purpose:  This function is called when a operator does a SI switch on
  * a SU that belongs to 2N redundancy model SG. 
@@ -392,7 +362,7 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_siswitch_func(AVD_CL_CB *cb, AVD_SU *su)
+uns32 avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 
 	TRACE_ENTER();
@@ -432,6 +402,92 @@ uns32 avd_sg_2n_siswitch_func(AVD_CL_CB *cb, AVD_SU *su)
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * This function is called when a operator does a SI swap admin operation on
+ * an SU that belongs to 2N redundancy model SG. The 2N redundancy model requires
+ * that all SIs assigned to this SU are swapped at the same time.
+ * 
+ * @param si
+ * @param invocation
+ * 
+ * @return SaAisErrorT
+ */
+SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
+{
+	AVD_SU_SI_REL *susi;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	TRACE_ENTER2("%s sg_fsm_state=%u", si->name.value, si->sg_of_si->sg_fsm_state);
+
+	if (si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
+		LOG_ER("%s SWAP failed - wrong admin state=%u", si->name.value,
+			si->saAmfSIAdminState);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (avd_cb->init_state != AVD_APP_STATE) {
+		LOG_ER("%s SWAP failed - not in app state (%u)", si->name.value,
+			avd_cb->init_state);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		LOG_ER("%s SWAP failed - SG not stable (%u)", si->name.value,
+			si->sg_of_si->sg_fsm_state);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (si->list_of_sisu == NULL) {
+		LOG_ER("%s SWAP failed - no assignments to swap", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	
+	if (si->list_of_sisu->si_next == NULL) {
+		LOG_ER("%s SWAP failed - only one assignment", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	/* Identify the active susi rel */
+	if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
+		susi = si->list_of_sisu;
+	} else if (si->list_of_sisu->si_next->state == SA_AMF_HA_ACTIVE) {
+		susi = si->list_of_sisu->si_next;
+	} else {
+		LOG_ER("%s SWAP failed - no active assignment", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if (avd_sg_su_si_mod_snd(avd_cb, susi->su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
+		LOG_ER("%s SWAP failed - avd_sg_su_si_mod_snd failed", si->name.value);
+		goto done;
+	}
+
+	/* Add the SU to the operation list and change the SG state to SU_operation. */
+	avd_sg_su_oper_list_add(avd_cb, susi->su, FALSE);
+	m_AVD_SET_SG_FSM(avd_cb, susi->su->sg_of_su, AVD_SG_FSM_SU_OPER);
+	m_AVD_SET_SU_SWITCH(avd_cb, susi->su, AVSV_SI_TOGGLE_SWITCH);
+	si->invocation = invocation;
+
+	LOG_NO("%s Swap initiated", susi->si->name.value);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s Swap initiated", susi->si->name.value);
+
+	if (susi->si->sg_of_si->sg_ncs_spec) {
+		LOG_NO("Controller switch over initiated");
+		saflog(LOG_NOTICE, amfSvcUsrName, "Controller switch over initiated");
+		avd_cb->swap_switch = SA_TRUE;
+	}
+
+done:
+	TRACE_LEAVE2("sg_fsm_state=%u", si->sg_of_si->sg_fsm_state);
+	return rc;
 }
 
  /*****************************************************************************
@@ -1132,6 +1188,7 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 	AVD_SU *o_su, *l_su;
 	NCS_BOOL flag, as_flag;
 
+	TRACE_ENTER2("%s act=%u, state=%u", su->name.value, act, state);
 	m_AVD_CHK_OPLIST(su, flag);
 
 	if (flag == FALSE) {
@@ -1357,9 +1414,13 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				/* Add the SU to the list  */
 				avd_sg_su_oper_list_add(cb, l_su, FALSE);
 			}
-		}		/* if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_ACTIVE) ||
-				   (state == SA_AMF_HA_STANDBY))) */
-		else {
+
+			if ((state == SA_AMF_HA_ACTIVE) && (su->su_on_node->type == AVSV_AVND_CARD_SYS_CON) &&
+			    (cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
+				/* This is as a result of failover, start CLM tracking*/
+				(void) avd_clm_track_start();
+			}
+		} else {
 			/* Log a fatal error */
 			m_AVD_LOG_INVALID_VAL_FATAL(act);
 			m_AVD_LOG_INVALID_VAL_FATAL(state);
@@ -1454,8 +1515,8 @@ static uns32 avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 	}			/* else (susi == AVD_SU_SI_REL_NULL) */
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
  /*****************************************************************************
@@ -1486,11 +1547,15 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
+	TRACE_ENTER2("%s act=%u, state=%u", su->name.value, act, state);
+
+	assert(susi == NULL);
+
 	if (su->list_of_susi == AVD_SU_SI_REL_NULL)
 		return NCSCC_RC_SUCCESS;
 
-	if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-	    (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->su_oper_list.su == su)) {
+	if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED) &&
+	    (su->sg_of_su->su_oper_list.su == su)) {
 		/* quiesced all and SU is in the operation list */
 
 		avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
@@ -1506,8 +1571,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(s_susi->su->name.value, s_susi->su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-
-		} else {	/* if ((s_susi != AVD_SU_SI_REL_NULL) && (s_susi->su->readiness_state == NCS_IN_SERVICE)) */
+		} else {
 
 			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the SU. 
 			 * Change state to SG_realign
@@ -1522,7 +1586,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
-		}		/* else ((s_susi != AVD_SU_SI_REL_NULL) && (s_susi->su->readiness_state == NCS_IN_SERVICE)) */
+		}
 
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 		/* the admin state of the SU is shutdown change it to lock. */
@@ -1534,20 +1598,58 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 			}
 		}
+	} else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
+		/* The message is assign active all */
+		if (su->sg_of_su->su_oper_list.su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
+			/* the SU in the operation list has admin operation switch Send a 
+			 * D2N-INFO_SU_SI_ASSIGN with modify all standby to the SU in
+			 * operation list, Change the switch state to false for the SU.
+			 * Change the state to SG_realign.
+			 */
+			if (avd_sg_su_si_mod_snd(cb, su->sg_of_su->su_oper_list.su, SA_AMF_HA_STANDBY)
+			    == NCSCC_RC_FAILURE) {
+				/* log fatal error */
+				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+				return NCSCC_RC_FAILURE;
+			}
+		} else {
+			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the
+			 * SU in operation list. Change the state to SG_realign.
+			 */
+			if (avd_sg_su_si_del_snd(cb, su->sg_of_su->su_oper_list.su) == NCSCC_RC_FAILURE) {
+				/* log fatal error */
+				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+				return NCSCC_RC_FAILURE;
+			}
 
-	}			/* if ((susi == AVD_SU_SI_REL_NULL) && 
-				   (su->list_of_susi->state == SA_AMF_HA_QUIESCED) &&
-				   (su->sg_of_su->su_oper_list.su == su)) */
-	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su != su)) {
+			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+		}
+	} else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_STANDBY) &&
+		   (su->sg_of_su->su_oper_list.su == su)) {
+
+		/* Finish the SI SWAP admin operation */
+		m_AVD_SET_SU_SWITCH(cb, su->sg_of_su->su_oper_list.su, AVSV_SI_TOGGLE_STABLE);
+		avd_sg_su_oper_list_del(cb, su->sg_of_su->su_oper_list.su, FALSE);
+		m_AVD_SET_SG_FSM(cb, su->sg_of_su, AVD_SG_FSM_STABLE);
+		immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->list_of_susi->si->invocation, SA_AIS_OK);
+		su->list_of_susi->si->invocation = 0;
+		LOG_NO("%s Swap done", su->list_of_susi->si->name.value);
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s Swap done", su->list_of_susi->si->name.value);
+
+		if (su->sg_of_su->sg_ncs_spec)
+			amfd_switch(avd_cb);
+
+	} else if ((act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su != su)) {
 		/* delete all and SU is not in the operation list. Free the SUSI 
 		 * relationships for the SU. 
 		 */
 
 		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 
-	}			/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && 
-				   (su->sg_of_su->su_oper_list.su != su)) */
-	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su == su)) {
+	} else if ((act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su == su)) {
 		/*remove all and SU is in the operation list */
 
 		a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
@@ -1649,45 +1751,11 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 		}
 
-	}			/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && 
-				   (su->sg_of_su->su_oper_list.su == su)) */
-	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
-		/* The message is assign active all */
+	} else
+		LOG_WA("%s: Unhandled case, %s act=%u, state=%u",
+			__FUNCTION__, su->name.value, act, state);
 
-		if (su->sg_of_su->su_oper_list.su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
-			/* the SU in the operation list has admin operation switch Send a 
-			 * D2N-INFO_SU_SI_ASSIGN with modify all standby to the SU in
-			 * operation list, Change the switch state to false for the SU.
-			 * Change the state to SG_realign.
-			 */
-			if (avd_sg_su_si_mod_snd(cb, su->sg_of_su->su_oper_list.su, SA_AMF_HA_STANDBY)
-			    == NCSCC_RC_FAILURE) {
-				/* log fatal error */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-				return NCSCC_RC_FAILURE;
-			}
-			m_AVD_SET_SU_SWITCH(cb, (su->sg_of_su->su_oper_list.su), AVSV_SI_TOGGLE_STABLE);
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
-		} else {
-			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the
-			 * SU in operation list. Change the state to SG_realign.
-			 */
-			if (avd_sg_su_si_del_snd(cb, su->sg_of_su->su_oper_list.su) == NCSCC_RC_FAILURE) {
-				/* log fatal error */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-				return NCSCC_RC_FAILURE;
-			}
-
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
-		}
-	}
-	/* if((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-	   (state == SA_AMF_HA_ACTIVE)) */
+	TRACE_LEAVE2("sg_fsm_state=%u", su->sg_of_su->sg_fsm_state);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2062,10 +2130,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 	AVD_SU_SI_REL *s_susi;
 	AVD_SU *i_su, *a_su;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)susi));
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%s act=%u, hastate=%u, sg_fsm_state=%u", su->name.value, act, state, su->sg_of_su->sg_fsm_state);
 
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
@@ -2230,10 +2295,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 	NCS_BOOL flag;
 	AVD_AVND *su_node_ptr = NULL;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)susi));
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%s act=%u, hastate=%u, sg_fsm_state=%u", su->name.value, act, state, su->sg_of_su->sg_fsm_state);
 
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
@@ -2294,10 +2356,11 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 			m_AVD_SET_SU_SWITCH(cb, su, AVSV_SI_TOGGLE_STABLE);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
-		}		/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
-				   (state == SA_AMF_HA_QUIESCED) && (su->su_switch == AVSV_SI_TOGGLE_SWITCH)
-				   (su->sg_of_su->su_oper_list.su == su)) */
-		else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle,
+				su->list_of_susi->si->invocation, SA_AIS_ERR_BAD_OPERATION);
+			su->list_of_susi->si->invocation = 0;
+
+		} else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 			 ((state == SA_AMF_HA_QUIESCED) || (state == SA_AMF_HA_QUIESCING)) &&
 			 (su->sg_of_su->su_oper_list.su == su)) {
 			/* quiesced/quiescing all and SU is in the operation list and the 
@@ -2327,11 +2390,17 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 				   ((state == SA_AMF_HA_QUIESCED) || (state == SA_AMF_HA_QUIESCING)) &&
 				   (su->sg_of_su->su_oper_list.su == su)) */
 		else {
+			/* respond failed operation to IMM */
+			if (su->list_of_susi->si->invocation != 0) {
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle,
+					su->list_of_susi->si->invocation, SA_AIS_ERR_BAD_OPERATION);
+				su->list_of_susi->si->invocation = 0;
+			}
+
 			/* Other cases log a informational message. AvND would treat that as
 			 * a operation disable for the SU and cause the SU to go OOS, which
 			 * will trigger the FSM.
 			 */
-
 			m_AVD_LOG_RCVD_VAL(((long)su));
 		}
 
@@ -2548,8 +2617,8 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, A
 		break;
 	}			/* switch(su->sg_of_su->sg_fsm_state) */
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
  /*****************************************************************************

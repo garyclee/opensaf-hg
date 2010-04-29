@@ -58,7 +58,8 @@ EXTERN_C void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU
 /* The following are for 2N redundancy model */
 EXTERN_C uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si);
 EXTERN_C uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su);
-EXTERN_C uns32 avd_sg_2n_siswitch_func(AVD_CL_CB *cb, AVD_SU *su);
+EXTERN_C uns32 avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su);
+extern SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation);
 EXTERN_C uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su);
 EXTERN_C uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					 AVSV_SUSI_ACT act, SaAmfHAStateT state);

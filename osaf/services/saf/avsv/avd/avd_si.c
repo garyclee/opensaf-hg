@@ -575,8 +575,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		/* SI lock should not be done, this SI is been DISABLED because
 		   of SI-SI dependency */
 		if ((si->si_dep_state != AVD_SI_ASSIGNED) && (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
-			LOG_WA("SI lock of %s failed, DISABLED because of SI-SI dependency",
-				objectName->value);
+			LOG_WA("SI lock of %s failed, DISABLED because of SI-SI dependency (%u)",
+				objectName->value, si->si_dep_state);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -626,77 +626,40 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		break;
 
-	case SA_AMF_ADMIN_SI_SWAP: {
-			AVD_SU *local_su = NULL, *i_su;
-
-			/* Check if the si swap is already in progress */
-			if (si->si_swap_in_progress == SA_TRUE) {
-				LOG_WA("SI SWAP of %s failed, already in progress", objectName->value);
-				rc = SA_AIS_ERR_TRY_AGAIN;
-				goto done;
-			}
-
-			i_su= si->sg_of_si->list_of_su;
-
-			while (NULL != i_su) {
-				if (i_su->su_on_node->node_info.nodeId == avd_cb->node_id_avd) {
-					local_su = i_su;
-					if (i_su->list_of_susi->state == SA_AMF_HA_STANDBY) {
-						rc = SA_AIS_OK;
-						goto done;
-					}
-				}
-				i_su = i_su->sg_list_su_next;
-			}
-
-			switch (si->sg_of_si->sg_redundancy_model) {
+	case SA_AMF_ADMIN_SI_SWAP:
+		switch (si->sg_of_si->sg_redundancy_model) {
+		case SA_AMF_2N_REDUNDANCY_MODEL:
+			rc = avd_sg_2n_siswap_func(si, invocation);
+			break;
+		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+		case SA_AMF_NPM_REDUNDANCY_MODEL:
+			/* TODO , Will be done when the SI SWAP is implemented */
+			rc = SA_AIS_ERR_NOT_SUPPORTED;
+			goto done;
+			break;
 			
-			case SA_AMF_2N_REDUNDANCY_MODEL:
-				{
-					si->si_swap_in_progress = SA_TRUE;
-					si->invocation = invocation;
-					m_AVD_SET_SU_SWITCH(avd_cb,local_su,AVSV_SI_TOGGLE_SWITCH);
-					if (avd_sg_2n_siswitch_func(avd_cb, local_su) != NCSCC_RC_SUCCESS) {
-						LOG_ER("avd_sg_2n_suswitch_func failed in SI SWAP");
-						rc = SA_AIS_ERR_BAD_OPERATION;
-						si->si_swap_in_progress = SA_FALSE;         
-						goto done;
-					} else {
-						/* Response will be sent when the response comes for the si switch */
-						return;
-					}
-				}
-				break;
-
-			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				/* TODO , Will be done when the SI SWAP is implemented */
-				rc = SA_AIS_ERR_NOT_SUPPORTED;
-				goto done;
-				break;
-
-			case SA_AMF_NO_REDUNDANCY_MODEL:
-			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-			default:
-				LOG_ER("Si SWAP not Supported on redundancy model=%d",si->sg_of_si->sg_redundancy_model);
-				rc = SA_AIS_ERR_NOT_SUPPORTED;
-				goto done;
-				break;
-			}
+		case SA_AMF_NO_REDUNDANCY_MODEL:
+		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+		default:
+			LOG_WA("SI lock of %s failed, SI SWAP not Supported on redundancy model=%u",
+				objectName->value, si->sg_of_si->sg_redundancy_model);
+			rc = SA_AIS_ERR_NOT_SUPPORTED;
+			goto done;
+			break;
 		}
 		break;
-
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		LOG_WA("Admin operation %llu on SI not supported", operationId);
+		LOG_WA("SI Admin operation %llu not supported", operationId);
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		break;
 	}
 
 done:
-	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	if ((operationId != SA_AMF_ADMIN_SI_SWAP) || (rc != SA_AIS_OK))
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 	TRACE_LEAVE();
 }
 
