@@ -2121,11 +2121,11 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 
 				/* update the si counters */
 				if (SA_AMF_HA_ACTIVE == i_susi->state) {
-					avd_si_inc_curr_act_ass(i_susi->si);
 					avd_si_dec_curr_stdby_ass(i_susi->si);
+					avd_si_inc_curr_act_ass(i_susi->si);
 				} else if (SA_AMF_HA_STANDBY == i_susi->state) {
-					avd_si_inc_curr_stdby_ass(i_susi->si);
 					avd_si_dec_curr_act_ass(i_susi->si);
+					avd_si_inc_curr_stdby_ass(i_susi->si);
 				}
 
 				i_susi = i_susi->su_next;
@@ -2183,8 +2183,6 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 		i_susi->state = state;
 		i_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-		avd_susi_update(state, &i_susi->si->name, &i_susi->su->name);
-		avd_gen_su_ha_state_changed_ntf(cb, i_susi);
 		i_susi = i_susi->su_next;
 	}
 
@@ -2205,7 +2203,6 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 			i_susi->state = old_ha_state;
 			i_susi->fsm = old_state;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
-			avd_gen_su_ha_state_changed_ntf(cb, i_susi);
 			i_susi = i_susi->su_next;
 		}
 

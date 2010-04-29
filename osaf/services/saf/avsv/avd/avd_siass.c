@@ -123,10 +123,11 @@ void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT
 
        avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
 
-	   saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
-			  avd_ha_state[ha_state], su_dn->value, si_dn->value);
+       TRACE("HA State %s of %s for %s", avd_ha_state[ha_state], su_dn->value, si_dn->value);
+       saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
+	       avd_ha_state[ha_state], su_dn->value, si_dn->value);
 
-	   if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
+       if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
 	       LOG_ER("rc=%u, '%s'", rc, dn.value);
 }
 
