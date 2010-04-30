@@ -1597,12 +1597,14 @@ static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
 static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt)
 {
     SaUint32T clientHigh = evt->info.initReq.client_pid;
-        TRACE_2("Client high after restarted IMMND: %x", clientHigh);
+        TRACE_2("Client high received: %x", clientHigh);
 
     if((cb->cli_id_gen <= clientHigh) &&
         (clientHigh < 0x000f0000))
     {
         cb->cli_id_gen = evt->info.initReq.client_pid+1;
+        TRACE_2("Client high bumped up to: %x, IMMND just restarted?", 
+		cb->cli_id_gen);
     }
 
     return NCSCC_RC_SUCCESS;
@@ -2525,11 +2527,18 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			if(immModel_ccbCommit(cb, evt->info.ccbUpcallRsp.ccbId, &arrSize, &implConnArr)) {
 				SaImmRepositoryInitModeT oldRim = cb->mRim;
 				cb->mRim = immModel_getRepositoryInitMode(cb);
-				if((oldRim != cb->mRim) && cb->mIsCoord) {
+				if(oldRim != cb->mRim) {
+					/* Reset mPbeVeteran to force re-generation of db-file
+					   when mRim is changed again.
+					   We can not continue using any existing db-file because
+					   we would get a gap in the persistent history.
+					 */
+					cb->mPbeVeteran = SA_FALSE; 
+					
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
 						"INIT_FROM_FILE":"KEEP_REPOSITORY");
-					if(cb->mPbeFile && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
+					if(cb->mIsCoord && cb->mPbeFile && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
 						immnd_announceDump(cb); 
 						/* Communicates RIM to IMMD. Needed to decide if reload
 						   must cause cluster restart. 
@@ -4334,7 +4343,6 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 		abort();
 	}
 #endif
-TRACE("ABT procc_ccb_apply pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
 	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
 		pbeNodeIdPtr = &pbeNodeId;
 		TRACE("We expect there to be a PBE");
@@ -4461,14 +4469,23 @@ TRACE("ABT procc_ccb_apply pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
 			if(immModel_ccbCommit(cb, evt->info.ccbId, &arrSize, &implConnArr)) {
 				SaImmRepositoryInitModeT oldRim = cb->mRim;
 				cb->mRim = immModel_getRepositoryInitMode(cb);
-				if((oldRim != cb->mRim) && cb->mIsCoord) {
+				if(oldRim != cb->mRim) {
+					/* Reset mPbeVeteran to force re-generation of db-file
+					   when mRim is changed again.
+					   We can not continue using any existing db-file
+					   because we would get a gap in the persistent
+					   history.
+					 */
+					cb->mPbeVeteran = SA_FALSE; 
+
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
 						"INIT_FROM_FILE":"KEEP_REPOSITORY");
-					if(cb->mPbeFile && (cb->mRim == SA_IMM_INIT_FROM_FILE)) {
+					if(cb->mIsCoord && cb->mPbeFile &&
+						(cb->mRim == SA_IMM_INIT_FROM_FILE)) {
 						immnd_announceDump(cb); 
-						/* Communicates RIM to IMMD. Needed to decide if reload
-						   must cause cluster restart. 
+						/* Communicates RIM to IMMD. Needed to decide
+						   if reload must cause cluster restart. 
 						*/
 					}
 				}

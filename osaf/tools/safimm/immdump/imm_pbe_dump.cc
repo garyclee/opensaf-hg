@@ -255,7 +255,7 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 		LOG_WA("SaImmMngt has %u tuples, should only be one - using first tuple", nrows);
 	}
 
-	rpi = (SaImmRepositoryInitModeT) atoi(result[1]);
+	rpi = (SaImmRepositoryInitModeT) strtoul(result[1], NULL, 0);
 
 	if( rpi == SA_IMM_KEEP_REPOSITORY) {
 		LOG_IN("saImmRepositoryInit: SA_IMM_KEEP_REPOSITORY - attaching to repository");
@@ -294,7 +294,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 	SaImmAttrDefinitionT_2 **attrDefinitions;
 	SaAisErrorT errorCode;
 	bool class_is_pure_runtime=true; /* true => no persistent rtattrs. */
-	unsigned int strint_bsz=16;
+	unsigned int strint_bsz=32;
 	char classIdStr[strint_bsz];
 	char attrPropStr[strint_bsz];
 	int rc=0;
@@ -338,7 +338,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 		sqlA.append("1');");
 		class_is_pure_runtime=false; /* true => no persistent rtattrs. */
 	} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
-		TRACE("ABT RUNTIME CLASS %s", (char*)classNameString.c_str());
+		TRACE("RUNTIME CLASS %s", (char*)classNameString.c_str());
 		sqlA.append("2');");
 	} else {
 		LOG_ER("Class category %u for class %s is neither CONFIG nor RUNTIME",
@@ -371,6 +371,8 @@ static ClassInfo* classToPBE(std::string classNameString,
 		std::string sqlC2(sqlC);
 
 		classInfo->mAttrMap[(*p)->attrName] = (*p)->attrFlags;
+		TRACE("DUMPED Class %s Attr%s Flags %llx", classNameString.c_str(),
+			(*p)->attrName, (*p)->attrFlags);
 
 		if ((*p)->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if((*p)->attrFlags & SA_IMM_ATTR_PERSISTENT) {
@@ -466,7 +468,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 
 	sqlB.append(")");
 	if(class_is_pure_runtime) {
-		TRACE_2("ABT Class %s is pure runtime, no create of instance table",
+		TRACE_2("Class %s is pure runtime, no create of instance table",
 			classNameString.c_str());
 	} else {
 		TRACE("GENERATED B: (%s)", sqlB.c_str());
@@ -486,6 +488,80 @@ static ClassInfo* classToPBE(std::string classNameString,
 			classNameString.c_str(), errorCode);
 		goto bailout;
 	}
+	TRACE_LEAVE();
+	return classInfo;
+
+ bailout:
+	sqlite3_close((sqlite3 *) dbHandle);
+	delete classInfo;
+	/* TODO remove imm.db file */
+	exit(1);
+}
+
+static ClassInfo* verifyClassPBE(std::string classNameString,
+	SaImmHandleT immHandle,
+	void* db_handle)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	int rc=0;
+	char **result=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	unsigned int class_id=0;
+	ClassInfo* classInfo = NULL;
+
+	SaImmClassCategoryT classCategory;
+	SaImmAttrDefinitionT_2 **attrDefinitions;
+	SaAisErrorT errorCode;
+	/*
+	  This function does very little verification right now. It should do more.
+	  Reason is we are re-attaching to a DB file after a gap during which we do not know
+	  what has happened to that file. We shoul at least verify that the number of classes 
+	  and number of objects match. Each object should really have a checksum.
+	  Verification of objects should be a separate function verifyObjectPBE.
+	*/
+
+	TRACE_ENTER();
+
+	std::string sqlZ("select class_id from classes where class_name = '");
+	sqlZ.append(classNameString.c_str());
+	sqlZ.append("'");
+
+	TRACE("GENERATED Z:%s", sqlZ.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sqlZ.c_str(), &result, &nrows, &ncols, &zErr);
+
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlZ.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+
+	
+        class_id = strtoul(result[ncols], NULL, 0);
+	classInfo = new ClassInfo(class_id);
+	TRACE("ClassId:%u", class_id);
+
+	/* Get the class description */
+	errorCode = saImmOmClassDescriptionGet_2(immHandle,
+		(char*)classNameString.c_str(),
+		&classCategory,
+		&attrDefinitions);
+
+	for (SaImmAttrDefinitionT_2** p = attrDefinitions; *p != NULL; p++)
+	{
+	
+		classInfo->mAttrMap[(*p)->attrName] = (*p)->attrFlags;
+		TRACE("VERIFIED Class %s Attr%s Flags %llx", classNameString.c_str(),
+			(*p)->attrName, (*p)->attrFlags);
+	}
+
 	TRACE_LEAVE();
 	return classInfo;
 
@@ -1381,6 +1457,51 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	exit(1);	
 }
 
+void verifyClassesInPbe(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
+{
+	/* Function used only when re-connecting to an already existing DB file. */
+	std::list<std::string> classNameList;
+	std::list<std::string>::iterator it;
+	int rc=0;
+	char *execErr=NULL;	
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	TRACE_ENTER();
+
+	classNameList = getClassNames(immHandle);
+	it = classNameList.begin();
+
+	sqlite3_exec(dbHandle, "BEGIN EXCLUSIVE TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('BEGIN EXCLUSIVE TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
+	while (it != classNameList.end())
+	{
+		(*classIdMap)[(*it)] = 
+			verifyClassPBE((*it), immHandle, dbHandle);
+		it++;
+	}
+
+	sqlite3_exec(dbHandle, "ABORT TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('ABORT TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
+	TRACE_LEAVE();
+	return;
+
+ bailout:
+	sqlite3_close(dbHandle);
+	TRACE_LEAVE();
+	exit(1);	
+}
+
 unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle)
 {
@@ -1450,7 +1571,7 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 
 		if (attrs[0] == NULL)
 		{
-			TRACE_2("ABT Skipping object %s because no attributes from searchNext",
+			TRACE_2("Skipping object %s because no attributes from searchNext",
 				(char *) objectName.value);
 			continue;
 		}

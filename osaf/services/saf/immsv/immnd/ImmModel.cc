@@ -462,6 +462,15 @@ immModel_getOldCriticalCcbs(IMMND_CB *cb,
 }
 
 SaBoolT
+immModel_pbeOiExists(IMMND_CB *cb)
+{
+	SaUint32T pbeConn=0;
+	unsigned int pbeNode=0;
+	return (ImmModel::instance(&cb->immModel)->getPbeOi(&pbeConn, &pbeNode)) ? 
+		SA_TRUE : SA_FALSE;
+}
+
+SaBoolT
 immModel_cleanTheBasement(IMMND_CB *cb, 
     SaUint32T seconds,
     SaInvocationT** admReqArr,
