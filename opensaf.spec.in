@@ -11,8 +11,9 @@
 %define _pkglibdir %{_libdir}/%{name}
 %define _pkgsysconfdir %{_sysconfdir}/%{name}
 %define _initddir @initscriptdir@
-%define _pkgimmxmldir %{_datadir}/opensaf/immxml
-%define _pkgimmxml_svcdir %{_datadir}/opensaf/immxml/services
+%define _pkgdatadir %{_datadir}/%{name}
+%define _pkgimmxmldir %{_datadir}/%{name}/immxml
+%define _pkgimmxml_svcdir %{_datadir}/%{name}/immxml/services
 %define _pkgclcclidir %{_pkglibdir}/clc-cli
 
 Summary: OpenSAF is an open source implementation of the SAF AIS specification
@@ -792,6 +793,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files amf-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/amfd.conf
 %{_bindir}/amf-adm
 %{_bindir}/amf-find
@@ -807,6 +814,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files amf-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/amfnd.conf
 %config(noreplace) %{_pkgsysconfdir}/amfwdog.conf
 %{_pkglibdir}/osafamfnd
@@ -823,6 +833,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ckpt-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/ckptd.conf
 %{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/osafckptd
@@ -834,6 +850,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ckpt-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/ckptnd.conf
 %{_pkglibdir}/osafckptnd
 %{_pkgclcclidir}/osaf-ckptnd
@@ -847,6 +866,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files clm-server
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/clmd.conf
 %{_pkglibdir}/osafclmd
 %{_pkgclcclidir}/osaf-clmd
@@ -862,6 +887,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files clm-nodeagent
 %defattr(-,root,root)
+%dir %{_pkgclcclidir}
+%dir %{_pkglibdir}
 %{_pkglibdir}/osafclmna
 %{_pkgclcclidir}/osaf-noded
 
@@ -874,6 +901,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files evt-server
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/evtd.conf
 %{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/osafevtd
@@ -892,6 +925,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files imm-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/immd.conf
 %{_bindir}/immadm
 %{_bindir}/immcfg
@@ -918,6 +957,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files imm-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/immnd.conf
 %{_pkglibdir}/osafimmnd
 %{_pkgclcclidir}/osaf-immnd
@@ -931,6 +973,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files plm-server
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/plmd.conf
 %{_pkglibdir}/osafplmd
 %{_pkgclcclidir}/osaf-plmd
@@ -949,6 +997,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files plm-hpi
 %defattr(-,root,root)
+%dir %{_pkglibdir}
 %{_pkglibdir}/libplms_hpi.so.*
 
 %endif
@@ -962,6 +1011,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files lck-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/lckd.conf
 %{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/osaflckd
@@ -973,6 +1028,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files lck-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/lcknd.conf
 %{_pkglibdir}/osaflcknd
 %{_pkgclcclidir}/osaf-lcknd
@@ -987,6 +1045,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files log-server
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/logd.conf
 %{_pkglibdir}/osaflogd
 %{_pkgclcclidir}/osaf-logd
@@ -1003,6 +1067,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files msg-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/msgd.conf
 %{_pkglibdir}/libmqsv_logstr.so.*
 %{_pkglibdir}/osafmsgd
@@ -1014,6 +1084,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files msg-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/msgnd.conf
 %{_pkglibdir}/osafmsgnd
 %{_pkgclcclidir}/osaf-msgnd
@@ -1029,6 +1102,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ntf-server
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/ntfd.conf
 %{_pkglibdir}/osafntfd
 %{_pkgclcclidir}/osaf-ntfd
@@ -1040,10 +1119,17 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files smf-libs
 %defattr(-,root,root)
+%dir %{_pkglibdir}
 %{_pkglibdir}/libsmfsv_common.so.*
 
 %files smf-director
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/smfd.conf
 %{_pkglibdir}/smf-backup-create
 %{_pkglibdir}/smf-bundle-check
@@ -1059,6 +1145,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files smf-nodedirector
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/smfnd.conf
 %{_pkglibdir}/osafsmfnd
 %{_pkgclcclidir}/osaf-smfnd
@@ -1068,6 +1157,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files controller
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
+%dir %{_pkglibdir}
+%dir %{_pkgclcclidir}
+%dir %{_pkgimmxml_svcdir}
+%dir %{_pkgimmxmldir}
+%dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/dtsv.conf
 %config(noreplace) %{_pkgsysconfdir}/fmd.conf
 %config(noreplace) %{_pkgsysconfdir}/rde.conf
@@ -1091,11 +1186,13 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files payload
 %defattr(-,root,root)
+%dir %{_pkgsysconfdir}
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
 
 
 %files libs
 %defattr(-,root,root)
+%dir %{_pkglibdir}
 %{_libdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libdts_logstr.so.*
@@ -1104,15 +1201,16 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files devel
 %defattr(-,root,root)
+%dir %{_includedir}/%{name}
 %if %is_java
 %dir %{_javadocdir}/%{name}
 %{_javadocdir}/%{name}/*
 %endif
-%{_libdir}/pkgconfig/*.pc
 %if %is_ais_plm
 %{_libdir}/libplmc_utils.so
 %{_libdir}/libplmc_utils.a
 %endif
+%{_libdir}/pkgconfig/*.pc
 %{_libdir}/libSa*.so
 %{_libdir}/libSa*.a
 %{_includedir}/%{name}/cpsv_papi.h
@@ -1136,12 +1234,13 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files samples
 %defattr(-,root,root)
 %doc 00-README.samples
-%dir %{_datadir}/%{name}/samples
-%{_datadir}/%{name}/samples/*
+%dir %{_pkgdatadir}/samples
+%dir %{_pkgdatadir}
+%{_pkgdatadir}/samples/*
 
 
-%if %is_tests
 #TODO: Is it going out of the main opensaf repo?
+%if %is_tests
 %files tests
 %defattr(-,root,root)
 %{_bindir}/immomtest
@@ -1150,15 +1249,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_bindir}/ntftest
 %{_bindir}/clmtest
 %{_bindir}/plmtest
-
 %endif
 
 
 %if %is_java
-
 %files java
 %defattr(-,root,root)
 %{_libdir}/libjava_ais_api_native.so.*
 %{_javadir}/opensaf_ais_api.jar
-
 %endif
