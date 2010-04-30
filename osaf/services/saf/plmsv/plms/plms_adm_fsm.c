@@ -3585,17 +3585,6 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 			SA_PLM_READINESS_STOPPING,NULL,
 			SA_NTF_MANAGEMENT_OPERATION,
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	/* Mark the expected readiness state of the root entity.*/
-	ent->exp_readiness_status.readinessState = 
-				SA_PLM_READINESS_OUT_OF_SERVICE; 
-	
-	if (PLMS_HE_ENTITY == ent->entity_type){			
-		ent->exp_readiness_status.readinessFlags = 
-		ent->entity.he_entity.saPlmHEReadinessFlags;
-	}else{
-		ent->exp_readiness_status.readinessFlags = 
-		ent->entity.ee_entity.saPlmEEReadinessFlags;
-	}
 	
 	/* Readiness state of all the affected entities to stopping.*/
 	head = aff_ent_list;
@@ -3629,6 +3618,18 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	 trk_info->root_entity = ent;
 	 plms_cbk_call(trk_info,1);
 	/*******************************************************************/
+	
+	/* Mark the expected readiness state of the root entity.*/
+	ent->exp_readiness_status.readinessState = 
+				SA_PLM_READINESS_OUT_OF_SERVICE; 
+	
+	if (PLMS_HE_ENTITY == ent->entity_type){			
+		ent->exp_readiness_status.readinessFlags = 
+		ent->entity.he_entity.saPlmHEReadinessFlags;
+	}else{
+		ent->exp_readiness_status.readinessFlags = 
+		ent->entity.ee_entity.saPlmEEReadinessFlags;
+	}
 
 	/* Expected readiness state to OOS and set dependency flag.*/
 	plms_aff_ent_exp_rdness_state_mark(aff_ent_list,
