@@ -409,7 +409,7 @@ static void print_change_states(SaNtfClassIdT *notificationClassId, SaNtfStateCh
 		(notificationClassId->majorId == SA_SVC_AMF)) {
 
 		assert(SA_AMF_READINESS_STATE <= input->stateId && input->stateId <= SA_AMF_HA_READINESS_STATE);
-		printf("State = %s\n", sa_amf_state_list[input->stateId]);
+		printf("State ID = %s\n", sa_amf_state_list[input->stateId]);
 
 		switch (input->stateId) {
 		case SA_AMF_HA_STATE:
@@ -447,7 +447,7 @@ static void print_change_states(SaNtfClassIdT *notificationClassId, SaNtfStateCh
 		(notificationClassId->majorId == SA_SVC_CLM)) {
 
 		assert(SA_AMF_READINESS_STATE <= input->stateId && input->stateId <= SA_AMF_HA_READINESS_STATE);
-		printf("State = %s\n", sa_clm_state_list[input->stateId]);
+		printf("State ID = %s\n", sa_clm_state_list[input->stateId]);
 
 		switch (input->stateId) {
 		case SA_CLM_CLUSTER_CHANGE_STATUS:
@@ -528,11 +528,11 @@ static void print_header(const SaNtfNotificationHeaderT *notificationHeader,
 	if (verbose) {
 		printf("notificationID = %d\n", (int)*(notificationHeader->notificationId));
 		printf("subscriptionId = %u\n", (unsigned int)subscriptionId);
-
-		/* Event type */
-		printf("eventType = ");
-		print_event_type(*notificationHeader->eventType, notificationType);
 	}
+
+	/* Event type */
+	printf("eventType = ");
+	print_event_type(*notificationHeader->eventType, notificationType);
 
 	if (verbose)
 		printf("notificationObject.length = %u\n", notificationHeader->notificationObject->length);
