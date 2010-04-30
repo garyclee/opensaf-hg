@@ -330,7 +330,7 @@ unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attri
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceSeverityBitMap_ID;
-			service->svc_policy.severity_bit_map = *(uns16 *)&value;
+			service->svc_policy.severity_bit_map = *(uns8 *)&value;
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap = %d\n", service->svc_policy.severity_bit_map);
 		} else if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
 			dts_log(NCSFL_SEV_DEBUG, "RDN = %s\n", (char *)value);
@@ -614,8 +614,8 @@ unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData
 				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-			if (inst->g_policy.g_policy.severity_bit_map != *(uns16 *)&value) {
-				inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
+			if (inst->g_policy.g_policy.severity_bit_map != *(uns8 *)&value) {
+				inst->g_policy.g_policy.severity_bit_map = *(uns8 *)&value;
 				/* Smik - update the cli_bit_map field in DTS_CB */
 				inst->cli_bit_map = osafDtsvGlobalSeverityBitMap_ID;
 				if (NCSCC_RC_SUCCESS !=
