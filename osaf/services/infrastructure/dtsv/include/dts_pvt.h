@@ -132,7 +132,7 @@ extern uns32 gl_severity_filter;	/* To allow manipulat at init-time */
 #define DTS_ASCII_SPEC_CONFIG_FILE PKGSYSCONFDIR "/dts_ascii_spec_config"
 
 /* define for checking log device SET values */
-#define       DTS_LOG_DEV_VAL_MAX   32
+#define       DTS_LOG_DEV_VAL_MAX   224
 
 /* Versioning support - define for current DTS log version */
 #define       DTS_LOG_VERSION    2
