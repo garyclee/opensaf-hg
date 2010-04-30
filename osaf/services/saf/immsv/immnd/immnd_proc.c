@@ -681,6 +681,13 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	SaBoolT ccbsStuckInCritical=SA_FALSE;
 	/*TRACE_ENTER(); */
 
+	if((cb->mRim == SA_IMM_KEEP_REPOSITORY) && !(cb->mPbeVeteran)) {
+		cb->mPbeVeteran = immModel_pbeOiExists(cb);
+		if(cb->mPbeVeteran && cb->mCanBeCoord) {
+			LOG_IN("PBE-OI established dumping incrementally to file %s", cb->mPbeFile);
+		}
+	}
+
 	if (!immnd_is_immd_up(cb)) {
 		return;
 	}
@@ -1049,20 +1056,34 @@ static int immnd_forkPbe(IMMND_CB *cb)
 
 	if (pid == 0) {		/*child */
 		/* TODO: Should close file-descriptors ... */
-		/*char * const pbeArgs[5] = { (char *) pbeBase, "--daemon", "--pbe", pbePath, 0 };*/
-		char * pbeArgs[5];
+		/*char * const pbeArgs[5] = { (char *) pbeBase, "--daemon", "--pbe", pbePath, "--recover", 0 };*/
+		char * pbeArgs[6];
 		pbeArgs[0] = (char *) pbeBase;
 		pbeArgs[1] =  "--daemon";
-		pbeArgs[2] = "--pbe";
-		pbeArgs[3] = pbePath;
-		pbeArgs[4] =  0;
+		if(cb->mPbeVeteran) {
+			pbeArgs[2] =  "--recover";
+			pbeArgs[3] = "--pbe";
+			pbeArgs[4] = pbePath;
+			pbeArgs[5] =  0;
+			LOG_IN("Trying to exec: %s %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3], pbeArgs[4]);
+		} else {
+			pbeArgs[2] = "--pbe";
+			pbeArgs[3] = pbePath;
+			pbeArgs[4] =  0;
+			LOG_IN("Trying to exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
+		}
 
-		LOG_IN("Trying to exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
 		execvp(pbeBase, pbeArgs);
 		LOG_ER("%s failed to exec '%s -pbe', error %u", base, pbeBase, errno);
 		exit(1);
 	}
 	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, pbePath, pid);
+	if(cb->mPbeVeteran) {
+		cb->mPbeVeteran = SA_FALSE;
+		/* If pbe crashes again before succeeding to attach as PBE implementer
+		   then dont try to re-attach the DB file, instead regenerate it.
+		 */
+	}
 	TRACE_LEAVE();
 	return pid;
 }
@@ -1463,7 +1484,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			/* Independently of aborting or coordinating sync, 
 			   check if we should be starting/stopping persistent back-end.*/
 			if (cb->mPbeFile) {/* Pbe configured */
-				if (cb->pbePid == 0) { /* Pbe is NOT running */
+				if (cb->pbePid <= 0) { /* Pbe is NOT running */
 					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
 						LOG_NO("STARTING persistent back end process.");
 						cb->pbePid = immnd_forkPbe(cb);

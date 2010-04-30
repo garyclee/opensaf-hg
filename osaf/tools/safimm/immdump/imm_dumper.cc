@@ -65,6 +65,21 @@ static void usage(const char *progname)
     printf("\timmdump /tmp/imm.xml\n");
 }
 
+/*
+  Hidden arguments, only intended to be used when immdump is forked by immnd.
+   --daemon
+   Tells immdump that it will be running as a slave daemon to the coord immnd.
+   The immdump process will try to connect back to the coord immnd.
+
+   --recover
+   If immdump is running as daemon then the recover argument tells immdump
+   NOT to initialize the db file from scratch. Instead it will try to
+   recover based on an existing db file. 
+   The --recover argument overrides the --pbe argument as far as generating
+   an initial dump, but the --pbe <file> argument still needs to be supplied
+   by immnd because the name for the db file is obtained this way. 
+*/
+
 static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
     SaAisErrorT operationReturnValue,
     SaAisErrorT)
@@ -85,6 +100,7 @@ int main(int argc, char* argv[])
         {"help", no_argument, 0, 'h'},
         {"daemon", no_argument, 0, 'd'},
         {"pbe", required_argument, 0, 'p'},
+        {"recover", no_argument, 0, 'r'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
@@ -111,9 +127,10 @@ int main(int argc, char* argv[])
     unsigned int category_mask = 0;
     bool pbeDumpCase = false;
     bool pbeDaemonCase = false;
+    bool pbeRecoverFile = false;
     void* dbHandle=NULL;
-    const char* dump_trace_label = "imm_dump";
-    const char* pbe_daemon_trace_label = "imm_pbe";
+    const char* dump_trace_label = "immdump";
+    const char* pbe_daemon_trace_label = "immpbe";
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
     unsigned int objCount=0;
@@ -122,14 +139,32 @@ int main(int argc, char* argv[])
     unsigned int           maxTries = 15;          /* 15 times == max 15 secs */
     unsigned int           tryCount=0;
 
-    if ((argc < 2) || (argc > 4))
+    if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
+    {
+        category_mask = 0xffffffff; /* TODO: set using -t flag ? */
+    } else {
+        logPath = defaultLog;
+    }
+
+    if (logtrace_init(trace_label, logPath, category_mask) == -1)
+    {
+        printf("logtrace_init FAILED\n");
+        syslog(LOG_ERR, "logtrace_init FAILED");
+        /* We allow the dump to execute anyway. */
+    }
+
+    for(c=0;c<argc;++c) {
+	    TRACE("ABT arg%d is %s", c, argv[c]);
+    }
+
+    if ((argc < 2) || (argc > 5))
     {
         printf("Usage: %s <xmldumpfile>\n", argv[0]);
         exit(1);
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hdp:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hdrp:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -144,7 +179,17 @@ int main(int argc, char* argv[])
                     break;
 
                 case 'p':
-                    pbeDumpCase = true;
+		    if(!pbeRecoverFile) {
+			    pbeDumpCase = true;
+		    }
+
+		    //filename.append(argv[3]);
+		    filename.append(optarg);
+                    break;
+
+                case 'r':
+		    pbeDumpCase = false;
+		    pbeRecoverFile = true;
                     break;
 
                 default:
@@ -153,21 +198,6 @@ int main(int argc, char* argv[])
                     exit(EXIT_FAILURE);
                     break;
         }
-    }
-
-
-    if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
-    {
-        category_mask = 0xffffffff; /* TODO: set using -t flag ? */
-    } else {
-        logPath = defaultLog;
-    }
-
-    if (logtrace_init(trace_label, logPath, category_mask) == -1)
-    {
-        printf("logtrace_init FAILED\n");
-        syslog(LOG_ERR, "logtrace_init FAILED");
-        /* We allow the dump to execute anyway. */
     }
 
     version.releaseCode = RELEASE_CODE;
@@ -188,19 +218,32 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    /*TODO if(pbeDaemonCase && !pbeDumpCase !pbeFileExists) pbeDumpCase = true;*/
+    if(pbeDaemonCase && !pbeDumpCase && pbeRecoverFile) {
+        /* This is the re-attachement case. 
+	   The PBE has crashed, 
+	   or the IMMND-coord has crashed which will force the PBE to terminate,
+	   or the entire node on which immnd-coord and pbe was running has crashed.
+	   Try to re-attach to the db file and avoid regenerating it. 
+	*/
+        dbHandle = pbeRepositoryInit(filename.c_str(), false);
+	/* getClassIdMap */
+        if(!dbHandle) {
+            LOG_WA("Pbe: Failed to recover db file %s - regenerating db file",
+		    filename.c_str());
+            pbeDumpCase = true;
+        }
 
-    /*printf("argv[0]:%s argv[1]:%s argv[2]:%s argv[3]:%s\n", 
-      argv[0], argv[1], argv[2], argv[3]);*/
-    
+	verifyClassesInPbe(immHandle, &classIdMap, dbHandle);
+        TRACE("Classes Verified");
+
+    }    
 
     if(pbeDumpCase) {
-        filename.append(argv[3]);
         if(pbeDaemonCase) {
-            LOG_IN("Populating Pbe from current IMM state to %s", filename.c_str());
+            LOG_IN("Generating DB file from current IMM state. File: %s", filename.c_str());
         } else {
             std::cout << 
-                "Populating Pbe from current IMM state to " << filename << 
+                "Generating DB file from current IMM state. File: " << filename << 
                  std::endl;
         }
 
@@ -217,6 +260,34 @@ int main(int argc, char* argv[])
             }
             exit(1);
         }
+
+        dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
+        TRACE("Dump classes OK");
+
+        objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
+        TRACE("Dump objects OK");
+
+        if(!pbeDaemonCase) {
+            pbeRepositoryClose(dbHandle);
+            exit(0);
+        }
+        /* Else the pbe dump was needed to get the initial pbe-file
+           to be used by the pbeDaemon.
+         */
+    }
+
+
+    if(pbeDaemonCase) {
+
+        if(!dbHandle) {
+            dbHandle = pbeRepositoryInit(filename.c_str(), false);
+            if(!dbHandle) {
+                LOG_WA("immdump: pbe intialize failed - exiting");
+                exit(1);
+                /* TODO SYNC with pbe-file AND with IMMSv */
+            }
+        }
+
 
         /* Creating an admin owner with release on finalize set.
            This makes the handle non resurrectable, allowing us
@@ -249,32 +320,6 @@ int main(int argc, char* argv[])
         errorCode = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
         */
 
-        dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
-        TRACE("Dump classes OK");
-
-        objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
-        TRACE("Dump objects OK");
-
-        if(!pbeDaemonCase) {
-            pbeRepositoryClose(dbHandle);
-            exit(0);
-        }
-        /* Else the pbe dump was needed to get the initial pbe-file
-           to be used by the pbeDaemon.
-         */
-    }
-
-
-    if(pbeDaemonCase) {
-
-        if(!dbHandle) {
-            dbHandle = pbeRepositoryInit(filename.c_str(), false);
-            if(!dbHandle) {
-                LOG_WA("immdump: pbe intialize failed - exiting");
-                exit(1);
-                /* TODO SYNC with pbe-file AND with IMMSv */
-            }
-        }
 	
 	/* If we allow pbe without prior dump we need to fix classIdMap. */
 	assert(classIdMap.size());

@@ -224,7 +224,7 @@ extern "C" {
 
 	void immModel_setLoader(IMMND_CB *cb, SaInt32T loaderPid);
 
-	void immModel_setPbe(IMMND_CB *cb, SaInt32T pbePid);
+	SaBoolT immModel_pbeOiExists(IMMND_CB *cb);
 
 	void immModel_recognizedIsolated(IMMND_CB *cb);
 

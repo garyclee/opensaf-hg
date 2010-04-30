@@ -143,6 +143,7 @@ static uns32 immnd_initialize(char *progname)
 	}
 
 	immnd_cb->mRim = SA_IMM_INIT_FROM_FILE;
+	immnd_cb->mPbeVeteran = SA_FALSE;
 
 	if (immnd_cb->mDir == NULL) {
 		LOG_ER("Env var IMMSV_ROOT_DIRECTORY missing");

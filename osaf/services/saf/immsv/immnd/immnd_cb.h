@@ -108,10 +108,11 @@ typedef struct immnd_cb_tag {
 	SaUint32T mRulingEpoch;
 	uns8 mAccepted;		//Should all fevs messages be processed?
 	uns8 mIntroduced;	//Ack received on introduce message
+	uns8 mSyncRequested;	//true=> I am coord, other req sync
+	uns8 mPendSync;		//1=>sync announced but not received.
 	uns8 mSync;		//true => this node is being synced (client).
 	uns8 mCanBeCoord;
 	uns8 mIsCoord;
-	uns8 mSyncRequested;	//true=> I am coord, other req sync
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;
@@ -138,7 +139,7 @@ typedef struct immnd_cb_tag {
 	uns8 mExpectedNodes;
 	uns8 mWaitSecs;
 	uns8 mNumNodes;
-	uns8 mPendSync;		//1=>sync announced but not received.
+	uns8 mPbeVeteran;       //false => generate. true => re-attach db-file
 
 	SaAmfHAStateT ha_state;	// present AMF HA state of the component
 	EDU_HDL immnd_edu_hdl;	// edu handle, obscurely needed by mds.
