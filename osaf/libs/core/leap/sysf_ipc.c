@@ -364,8 +364,8 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 			inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(ncs_ipc->sel_obj, TRUE, TRUE);
 			if (inds_rmvd != 0) {
 				/* Should never reach here */
+				assert(0);
 				m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-
 				ncshm_give_hdl((uns32)*mbx);
 				m_LEAP_DBG_SINK(0);
 				return NULL;
@@ -401,6 +401,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 				}
 			}
 			/* We should never reach here. */
+			assert(0);
 			m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 			ncshm_give_hdl((uns32)*mbx);
 			m_LEAP_DBG_SINK(NULL);
@@ -434,6 +435,7 @@ static uns32 ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_num
 		   on the "sel_obj".  */
 		if (m_NCS_SEL_OBJ_IND(ncs_ipc->sel_obj) != NCSCC_RC_SUCCESS) {
 			/* We would never reach here! */
+			assert(0);
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
 	}
@@ -511,13 +513,6 @@ uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 
 	queue_number = NCS_IPC_PRIO_LEVELS - prio;
 
-	if (ipc_enqueue_ind_processing(ncs_ipc, queue_number) != NCSCC_RC_SUCCESS) {
-		/* Should never reach here */
-		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uns32)*mbx);
-		return NCSCC_RC_FAILURE;
-	}
-
 	/* Priority 4 goes into 4-4 = 0th queue, priority 3 goes into
 	   4-3 = 1st queue, etc. 
 	 */
@@ -530,6 +525,15 @@ uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 	msg->next = NULL;
 	m_NCS_SM_IPC_ELEM_CUR_DEPTH_INC(ncs_ipc);
 	m_NCS_SET_ST_QLAT();
+
+	if (ipc_enqueue_ind_processing(ncs_ipc, queue_number) != NCSCC_RC_SUCCESS) {
+		/* Should never reach here */
+		assert(0);
+		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl((uns32)*mbx);
+		return NCSCC_RC_FAILURE;
+	}
+
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
 	/* unblock receiver... */
