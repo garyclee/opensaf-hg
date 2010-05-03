@@ -45,6 +45,7 @@ static nfds_t nfds = 2;
 static void* sDbHandle=NULL;
 static ClassMap* sClassIdMap=NULL;
 static unsigned int sObjCount=0;
+static unsigned int sEpoch=0;
 
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 					  SaInvocationT invocation,
@@ -131,15 +132,19 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	   The first way is for the IMMSv to restart the PBE with argument -restart.
 	   The restarted PBE will then try to reconnect to the existing pbe file.
 	   If successfull, a recovery protocol can be executed to determine the 
-	   outcome of any ccb-id.
+	   outcome of any ccb-id. This is the primary solution and is done by
+	   getCcbOutcomeFromPbe below.
+	   
 
 	   The second way is for the IMMSv to overrule the PBE by discarding the entire
-	   pbe file rep. This is done by just restarting the pbe in a normal way which
+	   pbe file. This is done by just restarting the pbe in a normal way which
 	   will cause it to dump the current contents of the immsv, ignoring any previous
 	   disk rep. Discarding ccbs that could have been commited to disk may seem wrong,
 	   but as long as no client of the imsmv has seen the result of the ccb as commited,
 	   there is no problem. But care should be taken to discard the old disk rep so
 	   that it is not re-used later to see an alternative history.
+	   If the first solution fails then this solution will be used as fallback.
+	   getCcbOutcomeFromPbe will then return BAD_OPERATION i.e. presumed abort.
 	 */
 
 	SaAisErrorT rc = SA_AIS_OK;
@@ -149,9 +154,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	TRACE_ENTER2("Completed callback for CCB:%llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		LOG_ER("Failed to find CCB object for %llu", ccbId);
-		/* ABT TODO Here check outcome against repository. */
-		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_WA("Failed to find CCB object for %llu - checking DB file for outcome", ccbId);
+		rc = getCcbOutcomeFromPbe(sDbHandle, ccbId, sEpoch);/* rc=BAD_OPERATION or OK */
+		(void) ccbutil_getCcbData(ccbId); /*generate an empty record*/
 		goto done;
 	}
 
@@ -250,12 +255,12 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
-	rc =  pbeCommitTrans(sDbHandle, ccbId, 0/* TODO get epoch. */);
+	rc =  pbeCommitTrans(sDbHandle, ccbId, sEpoch);
 	if(rc == SA_AIS_OK) {
-		TRACE("COMMIT PBE TRANSACTION for ccb %llu OK", ccbId);
+		TRACE("COMMIT PBE TRANSACTION for ccb %llu epoch:%u OK", ccbId, sEpoch);
 		/* Use ccbUtilCcbData->userData to record ccb outcome, verify in ccbApply/ccbAbort */
 	} else {
-		TRACE("COMMIT TRANSACTION %llu FAILED rc:%u", ccbId, rc);
+		TRACE("COMMIT TRANSACTION %llu epoch%u FAILED rc:%u", ccbId, sEpoch, rc);
 	}
 
 	/* Fault injection.
@@ -279,7 +284,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 	TRACE_ENTER2("PBE APPLY CALLBACK cleanup CCB:%llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		LOG_ER("Failed to find CCB object for %llu", ccbId);
+		LOG_WA("Failed to find CCB object for %llu - PBE restarted recently?", ccbId);
 		goto done;
 	}
 

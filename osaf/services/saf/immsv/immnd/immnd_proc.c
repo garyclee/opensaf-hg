@@ -684,7 +684,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	if((cb->mRim == SA_IMM_KEEP_REPOSITORY) && !(cb->mPbeVeteran)) {
 		cb->mPbeVeteran = immModel_pbeOiExists(cb);
 		if(cb->mPbeVeteran && cb->mCanBeCoord) {
-			LOG_IN("PBE-OI established dumping incrementally to file %s", cb->mPbeFile);
+			LOG_IN("PBE-OI established. Dumping incrementally to file %s", cb->mPbeFile);
 		}
 	}
 
