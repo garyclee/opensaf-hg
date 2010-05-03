@@ -2544,6 +2544,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 			curr_susi->state = SA_AMF_HA_ACTIVE;
 			curr_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
+			avd_susi_update(curr_susi, state);
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
@@ -2587,6 +2588,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 	} else if (susi && (SA_AMF_HA_ACTIVE == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		/* => single active assignment success */
 
+		avd_susi_update(susi, state);
 		/* determine if all the standby sus are engaged */
 		m_AVD_SG_NWAY_ARE_STDBY_SUS_ENGAGED(sg->su_oper_list.su, 0, is_eng);
 		if (TRUE == is_eng) {
