@@ -82,3 +82,4 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* dbHandle,
 void stampObjectWithCcbId(void* db_handle, const char* object_id, 
 	SaUint64T ccb_id);
 	
+SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch);

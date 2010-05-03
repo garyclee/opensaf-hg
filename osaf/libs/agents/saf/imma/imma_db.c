@@ -199,21 +199,37 @@ struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, S
 	return tmp;
 }
 
+int imma_oi_ccb_record_exists(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	return (imma_oi_ccb_record_find(cl_node, ccbId) != NULL);
+}
+
 void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, SaUint32T inv)
 {
 	TRACE_ENTER();
 	struct imma_oi_ccb_record *new_ccb = imma_oi_ccb_record_find(cl_node, ccbId);
-	if(new_ccb) {
+	if(new_ccb) { /* actually old/existing ccb if we found it. */
 		if(!inv) {
 			new_ccb->opCount++;
 			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
+			if(!(cl_node->isPbe)) {
+				LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is FALSE!");
+				assert(cl_node->isPbe);
+			}
 		}
 		return;
 	}
 
 	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
-	new_ccb->opCount = inv?0:1; /* zero inv =>PBE => count ops. */
+	if(!inv) {/* zero inv =>PBE => count ops. */
+		new_ccb->opCount = 1; 
+		TRACE_2("Zero inv => PBE initialized opcount to 1");
+		if(!(cl_node->isPbe)) {
+			LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is FALSE!");
+			assert(cl_node->isPbe);
+		}
+	}
 	new_ccb->next = cl_node->activeOiCcbs;
 	cl_node->activeOiCcbs = new_ccb;
 	TRACE("Record for ccbid:%u handle:%llx client:%p opCount:%d added", 
@@ -277,8 +293,14 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, 
 		tmp->isCritical = 1;
 		rs = 1;
 		if(tmp->opCount) {
+			if(!(cl_node->isPbe)) {
+				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is FALSE!");
+				assert(cl_node->isPbe);
+			}
+
 			if(tmp->opCount != inv) {
-				LOG_ER("Mismatch in PBE op-count %u should be %u", tmp->opCount, inv);
+				LOG_ER("Mismatch in PBE op-count %u should be %u. (isPbe:%u)", 
+					tmp->opCount, inv, cl_node->isPbe);
 				rs = 0;
 			} else {
 				TRACE_5("op-count matches with inv:%u", inv);

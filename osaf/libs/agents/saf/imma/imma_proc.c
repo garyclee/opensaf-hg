@@ -786,6 +786,12 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
+	if(cl_node->isPbe && (evt->info.ccbCompl.invocation==0) && 
+		!(imma_oi_ccb_record_exists(cl_node, evt->info.ccbCompl.ccbId))) {
+		TRACE("Faking Ccb record in ccb completed upcall => PBE recovery,");
+		imma_oi_ccb_record_add(cl_node, evt->info.ccbCompl.ccbId, 1/* Hack! Op was initialized to 1*/);
+	} 
+
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
@@ -2021,6 +2027,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
 				/* callback->inv == 0 means PBE create upcall, no reply. */
+				assert(cl_node->isPbe);
 				
 			}
 
@@ -2088,7 +2095,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
 
-			if(callback->inv) { /* callback->inv == 0 means PBE modify upcall, no reply. */
+			if(callback->inv) { 
 				memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
 				ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
 				ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP;
@@ -2102,7 +2109,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				locked = TRUE;
 				/*async  fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			} else {
+				/* callback->inv == 0 means PBE delete upcall, no reply. */
+				assert(cl_node->isPbe);
 			}
+
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = FALSE;
@@ -2252,7 +2263,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 				/*Change to BAD_OP if only aborting modify and not ccb. */
 			}
-			if(callback->inv) { /* callback->inv == 0 means PBE modify upcall, no reply. */
+			if(callback->inv) { 
 				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = TRUE;
 				memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
@@ -2265,7 +2276,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				/*async fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			} else {
+				/* callback->inv == 0 means PBE modify upcall, no reply. */
+				assert(cl_node->isPbe);
 			}
+
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = FALSE;

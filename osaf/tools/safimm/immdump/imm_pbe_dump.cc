@@ -30,6 +30,9 @@
 #ifdef HAVE_IMM_PBE
 
 #include <sqlite3.h> 
+#define STRINT_BSZ 32
+
+
 
 static void typeToPBE(SaImmAttrDefinitionT_2* p, 
 	void* dbHandle, std::string * table_def)
@@ -294,9 +297,8 @@ static ClassInfo* classToPBE(std::string classNameString,
 	SaImmAttrDefinitionT_2 **attrDefinitions;
 	SaAisErrorT errorCode;
 	bool class_is_pure_runtime=true; /* true => no persistent rtattrs. */
-	unsigned int strint_bsz=32;
-	char classIdStr[strint_bsz];
-	char attrPropStr[strint_bsz];
+	char classIdStr[STRINT_BSZ];
+	char attrPropStr[STRINT_BSZ];
 	int rc=0;
 	char *execErr=NULL;
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
@@ -329,7 +331,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 		exit(1);
 	}
 
-	snprintf(classIdStr, strint_bsz, "%u", class_id);
+	snprintf(classIdStr, STRINT_BSZ, "%u", class_id);
 	sqlA.append(classIdStr);
 	sqlA.append("', '");
 	sqlA.append(classNameString);
@@ -398,10 +400,10 @@ static ClassInfo* classToPBE(std::string classNameString,
 		sqlC2.append((*p)->attrName);
 		sqlC2.append("', '");
 
-		snprintf(attrPropStr, strint_bsz, "%u", (*p)->attrValueType);
+		snprintf(attrPropStr, STRINT_BSZ, "%u", (*p)->attrValueType);
 		sqlC2.append(attrPropStr);
 		sqlC2.append("', '");
-		snprintf(attrPropStr, strint_bsz, "%u", (unsigned int) (*p)->attrFlags);
+		snprintf(attrPropStr, STRINT_BSZ, "%u", (unsigned int) (*p)->attrFlags);
 		sqlC2.append(attrPropStr);		
 		sqlC2.append("' )");
 		TRACE("GENERATED C2: (%s)", sqlC2.c_str());
@@ -524,7 +526,7 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 
 	TRACE_ENTER();
 
-	std::string sqlZ("select class_id from classes where class_name = '");
+	std::string sqlZ("SELECT class_id FROM classes WHERE class_name = '");
 	sqlZ.append(classNameString.c_str());
 	sqlZ.append("'");
 
@@ -546,6 +548,7 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 	
         class_id = strtoul(result[ncols], NULL, 0);
 	classInfo = new ClassInfo(class_id);
+	sqlite3_free_table(result);
 	TRACE("ClassId:%u", class_id);
 
 	/* Get the class description */
@@ -560,6 +563,14 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 		classInfo->mAttrMap[(*p)->attrName] = (*p)->attrFlags;
 		TRACE("VERIFIED Class %s Attr%s Flags %llx", classNameString.c_str(),
 			(*p)->attrName, (*p)->attrFlags);
+	}
+
+	errorCode = saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+	if (SA_AIS_OK != errorCode)
+	{
+		TRACE_4("Failed to free the description of class %s error:%u",
+			classNameString.c_str(), errorCode);
+		goto bailout;
 	}
 
 	TRACE_LEAVE();
@@ -578,11 +589,10 @@ void stampObjectWithCcbId(void* db_handle, const char* object_id,  SaUint64T ccb
 	char *execErr=NULL;
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	std::string stampObj("UPDATE objects SET last_ccb = ");
-	unsigned int strint_bsz=32;
-	char ccbIdStr[strint_bsz];
+	char ccbIdStr[STRINT_BSZ];
 
 	TRACE_ENTER();
-	snprintf(ccbIdStr, strint_bsz, "%llu", ccb_id);
+	snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccb_id);
 	stampObj.append(ccbIdStr);
 	stampObj.append(" WHERE obj_id = ");
 	stampObj.append(object_id);
@@ -1290,11 +1300,10 @@ void objectToPBE(std::string objectNameString,
 {
 	std::string valueString;
 	std::string classNameString;
-	unsigned int strint_bsz=32;
-	char objIdStr[strint_bsz];
-	char classIdStr[strint_bsz];
+	char objIdStr[STRINT_BSZ];
+	char classIdStr[STRINT_BSZ];
 	unsigned int class_id=0;
-	char ccbIdStr[strint_bsz];
+	char ccbIdStr[STRINT_BSZ];
 	ClassInfo* classInfo=NULL;
 	int rc=0;
 	char *execErr=NULL;
@@ -1320,9 +1329,9 @@ void objectToPBE(std::string objectNameString,
 		goto bailout;
 	}
 	class_id = classInfo->mClassId;
-	snprintf(classIdStr, strint_bsz, "%u", class_id);
-	snprintf(objIdStr, strint_bsz, "%u", object_id);
-	snprintf(ccbIdStr, strint_bsz, "%llu", ccb_id);
+	snprintf(classIdStr, STRINT_BSZ, "%u", class_id);
+	snprintf(objIdStr, STRINT_BSZ, "%u", object_id);
+	snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccb_id);
 
 	sqlE.append(objIdStr);
 	sqlE.append("', '");
@@ -1620,16 +1629,15 @@ SaAisErrorT pbeBeginTrans(void* db_handle)
 	return SA_AIS_OK;
 }
 
-SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
+SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEpoch)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	char *execErr=NULL;
 	int rc=0;
 	unsigned int commitTime=0;
-	unsigned int strint_bsz=32;
-	char ccbIdStr[strint_bsz];
-	char epochStr[strint_bsz];
-	char commitTimeStr[strint_bsz];
+	char ccbIdStr[STRINT_BSZ];
+	char epochStr[STRINT_BSZ];
+	char commitTimeStr[STRINT_BSZ];
 	time_t now = time(NULL);
 
 	commitTime = (unsigned int) now;
@@ -1637,9 +1645,9 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
 
 	std::string sqlCcb("INSERT INTO ccb_commits (ccb_id, epoch, commit_time) VALUES('");
 
-	snprintf(ccbIdStr, strint_bsz, "%llu", ccbId);
-	snprintf(epochStr, strint_bsz, "%u", epoch);
-	snprintf(commitTimeStr, strint_bsz, "%u", commitTime);
+	snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccbId);
+	snprintf(epochStr, STRINT_BSZ, "%u", currentEpoch);
+	snprintf(commitTimeStr, STRINT_BSZ, "%u", commitTime);
 
 	sqlCcb.append(ccbIdStr);
 	sqlCcb.append("','");
@@ -1681,6 +1689,60 @@ void pbeAbortTrans(void* db_handle)
 			execErr);
 		sqlite3_free(execErr);
 	}
+}
+
+SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T currentEpoch)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	int rc=0;
+	char **result=NULL;
+	char *yErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	SaAisErrorT err = SA_AIS_ERR_BAD_OPERATION;
+	char ccbIdStr[STRINT_BSZ];
+	std::string sqlY("SELECT  epoch, commit_time FROM ccb_commits WHERE ccb_id = ");
+
+	TRACE_ENTER2("get Outcome for ccb:%llu", ccbId);
+	snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccbId);
+	sqlY.append(ccbIdStr);
+	TRACE("GENERATED Y:%s", sqlY.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sqlY.c_str(), &result, &nrows, &ncols, &yErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlY.c_str(), yErr);
+		sqlite3_free(yErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		if(nrows > 1) {
+			LOG_ER("Expected 1 row got %u rows", nrows);
+			goto bailout;
+		}
+		LOG_NO("getCcbOutcomeFromPbe: Could not find ccb %llu presume ABORT", ccbId);
+		err = SA_AIS_ERR_BAD_OPERATION;
+	} else {
+		unsigned int commitTime=0;
+		unsigned int ccbEpoch=0;
+		ccbEpoch = strtoul(result[ncols], NULL, 0);
+		commitTime = strtoul(result[ncols+1], NULL, 0);
+		LOG_NO("getCcbOutcomeFromPbe: Found ccb %llu epoch %u time:%u => COMMIT",
+			ccbId, ccbEpoch, commitTime);
+		if(ccbEpoch > currentEpoch) {
+			LOG_ER("Recovered CCB has higher epoch (%u) than current epoch (%u) not allowed.",
+				ccbEpoch, currentEpoch);
+			exit(1);
+		}
+		err = SA_AIS_OK;
+	}
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return err;
+ bailout:
+	sqlite3_close((sqlite3 *) dbHandle);
+	exit(1);
 }
 
 
@@ -1756,4 +1818,10 @@ void objectToPBE(std::string objectNameString,
 {
 	assert(0);
 }
+
+SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
+{
+	return SA_AIS_ERR_LIBRARY;
+}
+
 #endif

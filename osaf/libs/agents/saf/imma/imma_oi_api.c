@@ -1045,6 +1045,10 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 				cl_node->mImplementerId = out_evt->info.imma.info.implSetRsp.implId;
 				cl_node->mImplementerName = calloc(1, nameLen);
 				strncpy(cl_node->mImplementerName, implementerName, nameLen);
+				if(strncmp(implementerName, OPENSAF_IMM_PBE_IMPL_NAME, nameLen) == 0) {
+					TRACE("Special implementer %s detected and noted.", OPENSAF_IMM_PBE_IMPL_NAME);
+					cl_node->isPbe = 0x1;
+				}
 			}
 		}
 	}
