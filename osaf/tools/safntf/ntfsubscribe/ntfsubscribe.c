@@ -341,7 +341,7 @@ static void print_event_type(SaNtfEventTypeT input, SaNtfNotificationTypeT notif
 			EXIT_IF_FALSE(input >= SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START);
 			EXIT_IF_FALSE(input <= SA_NTF_HPI_EVENT_OTHER);
 			
-			printf("%s\n", (char *)sa_miscellaneous_event_type_list[listIndex]);			  
+			printf("%s\n", (char *)sa_miscellaneous_event_type_list[listIndex]);
 		} else if (input >= (int)SA_NTF_STATE_CHANGE_NOTIFICATIONS_START) {
 			listIndex = (int)input - (int)SA_NTF_TYPE_STATE_CHANGE;
 			  
@@ -574,7 +574,7 @@ static void print_header(const SaNtfNotificationHeaderT *notificationHeader,
 }
 
 static void print_additional_info(SaNtfNotificationHandleT notificationHandle,
-								  const SaNtfNotificationHeaderT *notificationHeader)
+				  const SaNtfNotificationHeaderT *notificationHeader)
 {
 	if (notificationHeader->additionalInfo != NULL) {
 		switch (notificationHeader->additionalInfo[0].infoType) {
