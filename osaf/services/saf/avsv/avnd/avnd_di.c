@@ -341,7 +341,8 @@ done:
   Name          : avnd_evt_mds_avd_up
  
   Description   : This routine processes the AvD up event from MDS. It sends 
-                  the node-up message to AvD.
+                  the node-up message to AvD. it also starts AvD supervision
+		  we are on a controller and the up event is for our node.
  
   Arguments     : cb  - ptr to the AvND control block
                   evt - ptr to the AvND event
@@ -353,19 +354,32 @@ done:
 uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER2("%llx", evt->info.mds.mds_dest);
+	
+	/* Validate whether this is a ADEST or VDEST */
+	if (m_MDS_DEST_IS_AN_ADEST(evt->info.mds.mds_dest)) {
+		NCS_NODE_ID node_id, my_node_id = ncs_get_node_id();
+		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.mds.mds_dest);
 
-	/* Avd is already UP, reboot the node */
-	if (m_AVND_CB_IS_AVD_UP(cb)) {
-		ncs_reboot("AVD already up");
-		goto done;
+		if ((node_id == my_node_id) && (cb->type == AVSV_AVND_CARD_SYS_CON)) {
+			TRACE("Starting hb supervision of local avd");
+			avnd_stop_tmr(cb, &cb->hb_duration_tmr);
+			avnd_start_tmr(cb, &cb->hb_duration_tmr,
+				AVND_TMR_HB_DURATION, cb->hb_duration, 0);
+		}
+	} else {
+		/* Avd is already UP, reboot the node */
+		if (m_AVND_CB_IS_AVD_UP(cb)) {
+			ncs_reboot("AVD already up");
+			goto done;
+		}
+
+		m_AVND_CB_AVD_UP_SET(cb);
+
+		/* store the AVD MDS address */
+		cb->avd_dest = evt->info.mds.mds_dest;
+
+		avnd_send_node_up_msg();
 	}
-
-	m_AVND_CB_AVD_UP_SET(cb);
-
-	/* store the AVD MDS address */
-	cb->avd_dest = evt->info.mds.mds_dest;
-
-	avnd_send_node_up_msg();
 
 done:
 	TRACE_LEAVE();
@@ -1097,4 +1111,33 @@ void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
 
  done:
 	return;
+}
+
+/**
+ * Handle a received heart beat message, just reset the duration timer.
+ * @param cb
+ * @param evt
+ * 
+ * @return uns32
+ */
+uns32 avnd_evt_avd_hb_evh(AVND_CB *cb, AVND_EVT *evt)
+{
+	TRACE_ENTER2("%u", evt->info.avd->msg_info.d2n_hb_info.seq_id);
+	avnd_stop_tmr(cb, &cb->hb_duration_tmr);
+	avnd_start_tmr(cb, &cb->hb_duration_tmr, AVND_TMR_HB_DURATION, cb->hb_duration, 0);
+	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * The heart beat duration timer expired. Reboot this node.
+ * @param cb
+ * @param evt
+ * 
+ * @return uns32
+ */
+uns32 avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
+{
+	TRACE_ENTER();
+	ncs_reboot("AMF director heart beat timeout");
+	return NCSCC_RC_SUCCESS;
 }

@@ -434,12 +434,16 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			cb->active_avd_adest = rcv_info->i_fr_dest;
 		}
 
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd = (AVSV_DND_MSG *)rcv_info->i_msg;
+
 		/*
 		 * Validate the anchor value received with 
 		 * the message with Anchor of Active. Don't accept message 
-		 * from any other anchor than Active. 
+		 * from any other anchor than Active (except for HB message).
 		 */
-		if (rcv_info->i_fr_dest != cb->active_avd_adest) 
+		if ((rcv_info->i_fr_dest != cb->active_avd_adest) &&
+		    (msg.info.avd->msg_type != AVSV_D2N_HEARTBEAT_MSG))
 		{
 			m_AVND_AVND_DEBUG_LOG("avnd_mds_rcv():rcv_info->i_fr_dest and cb->active_avd_adest mismatch",
 					      NULL, rcv_info->i_fr_dest, cb->active_avd_adest,((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type, 0);
@@ -447,8 +451,6 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			rcv_info->i_msg = 0;
 			return NCSCC_RC_SUCCESS;
 		}
-		msg.type = AVND_MSG_AVD;
-		msg.info.avd = (AVSV_DND_MSG *)rcv_info->i_msg;
 		break;
 
 	case NCSMDS_SVC_ID_AVA:
@@ -587,15 +589,10 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 	switch (evt_info->i_change) {
 	case NCSMDS_UP:
 		switch (evt_info->i_svc_id) {
-		case NCSMDS_SVC_ID_AVD:	{
-			/* Validate whether this is a ADEST or VDEST */
-			if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
-				return rc;
-
+		case NCSMDS_SVC_ID_AVD:
 			/* create the mds event */
 			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
 			break;
-		}
 
 		case NCSMDS_SVC_ID_AVA:
 			/*  New AvA has come up. Dont do anything now */

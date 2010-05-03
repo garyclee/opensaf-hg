@@ -403,6 +403,16 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
+			if (evt_info->i_node_id == cb->node_id_avd) {
+				AVD_EVT *evt = calloc(1, sizeof(AVD_EVT));
+				assert(evt);
+				evt->rcv_evt = AVD_EVT_MDS_AVND_UP;
+				cb->local_avnd_adest = evt_info->i_dest;
+				if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+					LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
+					free(evt);
+				}
+			}
 			break;
 
 		default:
@@ -578,5 +588,25 @@ void avd_mds_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
         TRACE_ENTER();
+}
+
+uns32 avd_mds_send(MDS_SVC_ID i_to_svc, MDS_DEST i_to_dest, NCSCONTEXT i_msg)
+{
+	uns32 rc;
+	NCSMDS_INFO snd_mds = {0};
+
+	snd_mds.i_mds_hdl = avd_cb->adest_hdl;
+	snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
+	snd_mds.i_op = MDS_SEND;
+	snd_mds.info.svc_send.i_msg = i_msg;
+	snd_mds.info.svc_send.i_to_svc = i_to_svc;
+	snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+	snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+	snd_mds.info.svc_send.info.snd.i_to_dest = i_to_dest;
+
+	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS)
+		LOG_WA("%s: failed %u, to %u@%llx", __FUNCTION__, rc, i_to_svc, i_to_dest);
+
+	return rc;
 }
 

@@ -54,6 +54,12 @@
 /* Max value for a handle given by avsv to APP */
 #define AVSV_UNS32_HDL_MAX 0xffffffff
 
+/* Default Heart beat period */
+#define AVSV_DEF_HB_PERIOD (2 * SA_TIME_ONE_SECOND)
+
+/* Default Heart beat duration */
+#define AVSV_DEF_HB_DURATION (2 * AVSV_DEF_HB_PERIOD + SA_TIME_ONE_SECOND)
+
 typedef enum {
 	AVSV_COMP_TYPE_INVALID,
 	AVSV_COMP_TYPE_SA_AWARE,

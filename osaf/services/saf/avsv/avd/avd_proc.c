@@ -67,6 +67,7 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
+	avd_tmr_snd_hb_evh,       /* AVD_EVT_TMR_SND_HB */
 	avd_cluster_tmr_init_evh, /* AVD_EVT_TMR_CL_INIT */
 	avd_tmr_si_dep_tol_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
@@ -104,6 +105,7 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	avd_standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* standby AvD timer events processing */
+	avd_tmr_snd_hb_evh,           /* AVD_EVT_TMR_SND_HB */
 	avd_standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
 	avd_standby_invalid_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
 
@@ -142,6 +144,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
 
 	/* active AvD timer events processing */
+	avd_tmr_snd_hb_evh,     /* AVD_EVT_TMR_SND_HB */
 	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
 	avd_qsd_ignore_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
 

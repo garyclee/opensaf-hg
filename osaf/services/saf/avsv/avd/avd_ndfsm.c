@@ -373,8 +373,8 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 /*****************************************************************************
  * Function: avd_mds_avnd_up_func
  *
- * Purpose:  This function is the handler for the AvND up event from
- * mds. The function right now is just a place holder.
+ * Purpose:  This function is the handler for the local AvND up event from
+ * MDS. 
  *
  * Input: 
  *
@@ -387,7 +387,8 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 void avd_mds_avnd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	TRACE_ENTER();
+	TRACE("Local node director is up, start sending heart beats to %llx", cb->local_avnd_adest);
+	avd_tmr_snd_hb_evh(cb, evt);
 }
 
 /*****************************************************************************
@@ -940,6 +941,32 @@ void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
+	TRACE_LEAVE();
+}
+
+/**
+ * Send heart beat to node local node director
+ * @param cb
+ * @param evt
+ */
+void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	AVD_DND_MSG *msg;
+	static uns32 seq_id;
+
+	TRACE_ENTER2("seq_id=%u", seq_id);
+
+	msg = calloc(1, sizeof(*msg));
+	assert(msg);
+	msg->msg_type = AVSV_D2N_HEARTBEAT_MSG;
+	msg->msg_info.d2n_hb_info.seq_id = seq_id++;
+	if (avd_mds_send(NCSMDS_SVC_ID_AVND, cb->local_avnd_adest, msg) != NCSCC_RC_SUCCESS) {
+		LOG_WA("%s failed to send HB msg", __FUNCTION__);
+		free(msg);
+	}
+
+	avd_stop_tmr(cb, &cb->heartbeat_tmr);
+	avd_start_tmr(cb, &cb->heartbeat_tmr, cb->heartbeat_tmr_period);
 	TRACE_LEAVE();
 }
 

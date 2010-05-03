@@ -112,4 +112,7 @@ EXTERN_C uns32 avnd_destroy(void);
 EXTERN_C uns32 avnd_evt_avnd_avnd_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_ha_state_change(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_admin_op_req_msg (struct avnd_cb_tag *, struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_avd_hb_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_tmr_avd_hb_duration_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+
 #endif

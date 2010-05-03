@@ -368,20 +368,8 @@ uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 		   send role change message to older version Controller AvND. */
 		cb->peer_msg_fmt_ver = msg_fmt_ver;
 	}
-	evt->rcv_evt = (rcv_msg->msg_type - AVSV_N2D_CLM_NODE_UP_MSG)
-	    + AVD_EVT_NODE_UP_MSG;
-	if (rcv_msg->msg_type >= AVSV_N2D_COMP_VALIDATION_MSG) {
-		/* This is for Backward compatibility. If there has been more 
-		   messages added in the end of AVSV_DND_MSG_TYPE then we can 
-		   map them manually. */
-		switch (rcv_msg->msg_type) {
-		case AVSV_N2D_COMP_VALIDATION_MSG:
-			evt->rcv_evt = AVD_EVT_COMP_VALIDATION_MSG;
-			break;
-		default:
-			break;
-		}
-	}
+
+	evt->rcv_evt = (rcv_msg->msg_type - AVSV_N2D_CLM_NODE_UP_MSG) + AVD_EVT_NODE_UP_MSG;
 	evt->info.avnd_msg = rcv_msg;
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
