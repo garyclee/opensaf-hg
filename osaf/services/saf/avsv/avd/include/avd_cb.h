@@ -157,8 +157,8 @@ typedef struct cl_cb_tag {
 				 */
 	MDS_DEST vaddr;		/* vcard address of the this AvD
 				 */
-	MDS_DEST other_avd_adest;	/* ADEST of  other AvD
-					 */
+	MDS_DEST other_avd_adest;	/* ADEST of other AvD */
+	MDS_DEST local_avnd_adest;	/* ADEST of local AvND */
 
 	/*
 	 * Message queue to hold messages to be sent to the ND.
@@ -200,6 +200,9 @@ typedef struct cl_cb_tag {
 					 * nodes on f-over.
 					 */
 	AVD_TMR amf_init_tmr;	/* The timer for amf initialisation. */
+	AVD_TMR heartbeat_tmr;	/* The timer for sending heart beats to nd. */
+	SaTimeT heartbeat_tmr_period;
+
 	uns32 nodes_exit_cnt;	/* The counter to identifies the number
 				   of nodes that have exited the membership
 				   since the cluster boot time */

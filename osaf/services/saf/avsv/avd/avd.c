@@ -119,6 +119,7 @@ uns32 avd_initialize(void)
 	int rc = NCSCC_RC_FAILURE;
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaAmfHAStateT role;
+	char *val;
 
 	TRACE_ENTER();
 
@@ -169,6 +170,20 @@ uns32 avd_initialize(void)
 	cb->swap_switch = SA_FALSE;
 	cb->stby_sync_state = AVD_STBY_IN_SYNC;
 	cb->sync_required = TRUE;
+	
+	cb->heartbeat_tmr.is_active = FALSE;
+	cb->heartbeat_tmr.type = AVD_TMR_SND_HB;
+	cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
+
+	if ((val = getenv("AVSV_HB_PERIOD")) != NULL) {
+		SaTimeT heartbeat_tmr_period = strtoll(val, NULL, 0);
+		if ((heartbeat_tmr_period < 100 * SA_TIME_ONE_MILLISECOND) ||
+		    (heartbeat_tmr_period > 100 * SA_TIME_ONE_SECOND)) {
+			LOG_WA("Value of AVSV_HB_PERIOD unreasonable (%llu), using default (%llu)",
+				heartbeat_tmr_period, cb->heartbeat_tmr_period);
+		} else
+			cb->heartbeat_tmr_period = heartbeat_tmr_period;
+	}
 
 	patricia_params.key_size = sizeof(SaClmNodeIdT);
 	if (ncs_patricia_tree_init(&cb->node_list, &patricia_params) != NCSCC_RC_SUCCESS) {

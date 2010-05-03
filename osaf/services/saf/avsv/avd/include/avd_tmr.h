@@ -38,6 +38,7 @@
 
 /* timer type enums */
 typedef enum avd_tmr_type {
+	AVD_TMR_SND_HB,		/* heart beat send timer */ 
 	AVD_TMR_CL_INIT,	/* This is the AvD initialisation 
 				 * timer after which AvD will assign
 				 * SIs to application SU. */

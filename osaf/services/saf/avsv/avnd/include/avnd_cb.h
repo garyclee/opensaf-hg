@@ -70,6 +70,9 @@ typedef struct avnd_cb_tag {
 	SaTimeT cbk_resp_intv;	/* callback response interval */
 	SaTimeT msg_resp_intv;	/* AvD message response interval */
 
+	SaTimeT hb_duration;     /* AVD heart beat duration */
+	AVND_TMR hb_duration_tmr; /* The timer for supervision of heart beats from avd. */
+
 	/* error recovery escalation params */
 	AVND_ERR_ESC_LEVEL node_err_esc_level;	/* curr escalation level of this node */
 	SaTimeT su_failover_prob;	/* su failover probation period (config) */

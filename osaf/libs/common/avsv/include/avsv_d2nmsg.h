@@ -66,6 +66,7 @@ typedef enum {
 	AVSV_N2D_DATA_REQUEST_MSG,
 	AVSV_N2D_SHUTDOWN_APP_SU_MSG,
 	AVSV_N2D_VERIFY_ACK_NACK_MSG,
+	AVSV_N2D_COMP_VALIDATION_MSG,
 	AVSV_D2N_CLM_NODE_UP_MSG,
 	AVSV_D2N_REG_SU_MSG,
 	AVSV_D2N_REG_COMP_MSG,
@@ -81,7 +82,7 @@ typedef enum {
 	AVSV_D2N_COMP_VALIDATION_RESP_MSG,
 	AVSV_D2N_ROLE_CHANGE_MSG,
 	AVSV_D2N_ADMIN_OP_REQ_MSG,
-	AVSV_N2D_COMP_VALIDATION_MSG,
+	AVSV_D2N_HEARTBEAT_MSG,
 	AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -538,6 +539,10 @@ typedef struct avsv_d2n_admin_op_req_msg_info_tag {
 	SaAmfAdminOperationIdT  oper_id;
 } AVSV_D2N_ADMIN_OP_REQ_MSG_INFO;
 
+typedef struct avsv_d2n_hb_msg_tag {
+	uns32 seq_id;
+} AVSV_D2N_HB_MSG_INFO;
+
 typedef struct avsv_d2n_comp_validation_resp_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
@@ -564,6 +569,7 @@ typedef struct avsv_dnd_msg {
 		AVSV_N2D_DATA_REQUEST_MSG_INFO n2d_data_req;
 		AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
 		AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
+		AVSV_N2D_COMP_VALIDATION_INFO n2d_comp_valid_info;
 		AVSV_D2N_CLM_NODE_UP_MSG_INFO d2n_clm_node_up;
 		AVSV_D2N_REG_SU_MSG_INFO d2n_reg_su;
 		AVSV_D2N_REG_COMP_MSG_INFO d2n_reg_comp;
@@ -578,8 +584,8 @@ typedef struct avsv_dnd_msg {
 		AVSV_D2N_SET_LEDS_MSG_INFO d2n_set_leds;
 		AVSV_D2N_COMP_VALIDATION_RESP_INFO d2n_comp_valid_resp_info;
 		AVSV_D2N_ROLE_CHANGE_INFO d2n_role_change_info;
-		AVSV_D2N_ADMIN_OP_REQ_MSG_INFO       d2n_admin_op_req_info;
-		AVSV_N2D_COMP_VALIDATION_INFO n2d_comp_valid_info;
+		AVSV_D2N_ADMIN_OP_REQ_MSG_INFO d2n_admin_op_req_info;
+		AVSV_D2N_HB_MSG_INFO d2n_hb_info;
 	} msg_info;
 } AVSV_DND_MSG;
 

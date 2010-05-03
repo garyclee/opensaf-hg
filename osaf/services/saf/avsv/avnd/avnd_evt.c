@@ -92,6 +92,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
 	case AVND_EVT_AVD_ROLE_CHANGE_MSG:
 	case AVND_EVT_AVD_ADMIN_OP_REQ_MSG:
+	case AVND_EVT_AVD_HEARTBEAT_MSG:
 		evt->info.avd = (AVSV_DND_MSG *)info;
 		break;
 
@@ -124,6 +125,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_TMR_NODE_ERR_ESC:
 	case AVND_EVT_TMR_CLC_PXIED_COMP_INST:
 	case AVND_EVT_TMR_CLC_PXIED_COMP_REG:
+	case AVND_EVT_TMR_HB_DURATION:
 		evt->priority = NCS_IPC_PRIORITY_HIGH;	/* bump up the priority */
 		evt->info.tmr.opq_hdl = *(uns32 *)info;
 		break;
@@ -220,6 +222,7 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
 	case AVND_EVT_AVD_ROLE_CHANGE_MSG:
 	case AVND_EVT_AVD_ADMIN_OP_REQ_MSG:
+	case AVND_EVT_AVD_HEARTBEAT_MSG:
 		if (evt->info.avd)
 			avsv_dnd_msg_free(evt->info.avd);
 		break;
@@ -257,6 +260,7 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_TMR_NODE_ERR_ESC:
 	case AVND_EVT_TMR_CLC_PXIED_COMP_INST:
 	case AVND_EVT_TMR_CLC_PXIED_COMP_REG:
+	case AVND_EVT_TMR_HB_DURATION:
 		break;
 
 		/* mds event types */
@@ -286,7 +290,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 		/* PID exist event */
 	case AVND_EVT_PID_EXIT:
 		break;
-
 	default:
 		assert(0);
 	}

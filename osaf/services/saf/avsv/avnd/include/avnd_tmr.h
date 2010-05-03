@@ -44,6 +44,7 @@ typedef enum avnd_tmr_type {
 	AVND_TMR_NODE_ERR_ESC,	/* node error escalation timer */
 	AVND_TMR_CLC_PXIED_COMP_INST,	/* proxied inst timer */
 	AVND_TMR_CLC_PXIED_COMP_REG,	/* proxied orphan timer */
+	AVND_TMR_HB_DURATION,
 	AVND_TMR_MAX
 } AVND_TMR_TYPE;
 

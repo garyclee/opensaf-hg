@@ -52,5 +52,6 @@ EXTERN_C uns32 avd_avnd_mds_send(struct cl_cb_tag *cb, AVD_AVND *nd_node, AVD_DN
 extern void avd_mds_avd_up_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_mds_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt);
+extern uns32 avd_mds_send(MDS_SVC_ID i_to_svc, MDS_DEST i_to_dest, NCSCONTEXT i_msg);
 
 #endif

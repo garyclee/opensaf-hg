@@ -225,6 +225,7 @@ AVND_CB *avnd_cb_create()
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 	SaVersionT immVersion = { 'A', 2, 1 };
+	char *val;
 
 	m_AVND_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
@@ -240,6 +241,20 @@ AVND_CB *avnd_cb_create()
 
 	/* assign the default timeout values (in nsec) */
 	cb->msg_resp_intv = AVND_AVD_MSG_RESP_TIME * 1000000;
+
+	cb->hb_duration_tmr.is_active = FALSE;
+	cb->hb_duration_tmr.type = AVND_TMR_HB_DURATION;
+	cb->hb_duration = AVSV_DEF_HB_DURATION;
+
+	if ((val = getenv("AVSV_HB_DURATION")) != NULL) {
+		SaTimeT heartbeat_duration = strtoll(val, NULL, 0);
+		if ((heartbeat_duration < 100 * SA_TIME_ONE_MILLISECOND) ||
+		    (heartbeat_duration > 100 * SA_TIME_ONE_SECOND)) {
+			LOG_WA("Value of AVSV_HB_DURATION unreasonable (%llu), using default (%llu)",
+				heartbeat_duration, cb->hb_duration);
+		} else
+			cb->hb_duration = heartbeat_duration;
+	}
 
 	/* initialize the AvND cb lock */
 	m_NCS_LOCK_INIT(&cb->lock);

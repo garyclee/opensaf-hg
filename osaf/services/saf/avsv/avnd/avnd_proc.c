@@ -68,6 +68,7 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG",
 	"AVND_EVT_AVD_ROLE_CHANGE_MSG",
 	"AVND_EVT_AVD_ADMIN_OP_REQ_MSG",
+	"AVND_EVT_AVD_HEARTBEAT_MSG",
 	"AVND_EVT_AVA_FINALIZE",
 	"AVND_EVT_AVA_COMP_REG",
 	"AVND_EVT_AVA_COMP_UNREG",
@@ -130,7 +131,8 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_avd_set_leds_msg,	/* AVND_EVT_AVD_SET_LEDS_MSG */
 	avnd_evt_avd_comp_validation_resp_msg,	/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
 	avnd_evt_avd_role_change_msg,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
-	avnd_evt_avd_admin_op_req_msg,       /*  AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
+	avnd_evt_avd_admin_op_req_msg,  /* AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
+	avnd_evt_avd_hb_evh,            /* AVND_EVT_AVD_HEARTBEAT_MSG */
 
 	/* AvA event types */
 	avnd_evt_ava_finalize,	/* AVND_EVT_AVA_AMF_FINALIZE */
@@ -158,6 +160,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_tmr_node_err_esc,	/* AVND_EVT_TMR_NODE_ERR_ESC */
 	avnd_evt_tmr_clc_pxied_comp_inst,	/* AVND_EVT_TMR_CLC_PXIED_COMP_INST */
 	avnd_evt_tmr_clc_pxied_comp_reg,	/* AVND_EVT_TMR_CLC_PXIED_COMP_REG */
+	avnd_evt_tmr_avd_hb_duration_evh,
 
 	/* mds event types */
 	avnd_evt_mds_avd_up,	/* AVND_EVT_MDS_AVD_UP */
