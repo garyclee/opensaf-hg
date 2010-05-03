@@ -2281,7 +2281,7 @@ SaUint32T plms_EE_adm_lckinst_state_lckinst_op(  PLMS_EVT *evt)
 
 	LOG_ER("Bad Admin Op, lckinst to lckinst. Ent: %s",tmp);
 	ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_BAD_OPERATION);  
+			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_NO_OP);  
 	if (SA_AIS_OK != ret_err) {
 		LOG_ER("Sending response to IMM failed. Ent: %s, \
 		Operations: lckinst, ret_err: %d",tmp,ret_err);
