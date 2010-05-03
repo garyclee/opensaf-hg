@@ -35,6 +35,7 @@ static SaUint32T plms_ee_verify(PLMS_ENTITY *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_os_info_parse(SaInt8T *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *, PLMS_TRACK_INFO *);
 void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *);
+static SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *);
 
 static SaUint32T plms_ee_terminated_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *);
@@ -66,11 +67,11 @@ SaUint32T plms_plmc_instantiating_process(PLMS_ENTITY *ent,
 
 	/* If the admin state of the ent is lckinst, then ignore the 
 	state as we cannot terminate the entity at this point of time.*/
-	if (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == 
-		ent->entity.ee_entity.saPlmEEAdminState){
+	if ( (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == ent->entity.ee_entity.saPlmEEAdminState) || 
+	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE))) || 
+	(!plms_min_dep_is_ok(ent))){
 		
-		LOG_ER("EE insting ignored, as the admin state is lckinst.%s",
-		ent->dn_name_str);
+		LOG_ER("EE insting ignored, as its state or parent/dep state not proper:%s", ent->dn_name_str);
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE; 	
 	}
@@ -140,11 +141,11 @@ SaUint32T plms_plmc_instantiated_process(PLMS_ENTITY *ent,
 	
 	/* If the admin state of the ent is lckinst, then ignore the 
 	state as we cannot terminate the entity at this point of time.*/
-	if (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == 
-		ent->entity.ee_entity.saPlmEEAdminState){
+	if ( (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == ent->entity.ee_entity.saPlmEEAdminState) || 
+	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE))) || 
+	(!plms_min_dep_is_ok(ent))){
 		
-		LOG_ER("EE insting ignored, as the admin state is lckinst.%s",
-		ent->dn_name_str);
+		LOG_ER("EE insted ignored, as its state or parent/dep state not proper:%s", ent->dn_name_str);
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE; 	
 	}
@@ -317,7 +318,8 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 	/* If the admin state of the ent is lckinst, terminate the EE. 
 	OH, if my parent is in OOS, then also terminate the EE.*/ 
 	if ( (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == ent->entity.ee_entity.saPlmEEAdminState) || 
-	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE)))){
+	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE))) || 
+	(!plms_min_dep_is_ok(ent))){
 		
 		LOG_ER("Term the entity, as the admin state is lckinst or parent is in OOS. Ent: %s",
 		ent->dn_name_str);
@@ -399,7 +401,13 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 					SA_PLM_EE_PRESENCE_INSTANTIATED,
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
 	}
+
+	plms_op_state_set(ent,SA_PLM_OPERATIONAL_ENABLED,NULL,
+	SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+			
+	ent->iso_method = PLMS_ISO_DEFAULT;
 
 	/* Handle the admin operation for which this ent is restarted.*/
 	if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
@@ -585,7 +593,6 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 
 		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
-		trk_info.track_cause = SA_PLM_CAUSE_EE_UNINSTANTIATED;
 		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
 		
 		if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_EE_RESTART
@@ -848,6 +855,11 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 					SA_PLM_EE_PRESENCE_INSTANTIATED,
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+			
+			plms_op_state_set(ent,SA_PLM_OPERATIONAL_ENABLED,NULL,
+			SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+			ent->iso_method = PLMS_ISO_DEFAULT;
 
 			/* Handle the admin operation for which this ent is 
 			restarted.*/
@@ -2250,9 +2262,9 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 ******************************************************************************/
 SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 {
-	PLMS_GROUP_ENTITY *head;
 	PLMS_CB *cb = plms_cb;
-	SaUint32T ret_err;
+	SaUint32T ret_err = NCSCC_RC_SUCCESS;
+	PLMS_GROUP_ENTITY *head = NULL;
 
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	
@@ -2275,15 +2287,6 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 			NULL,SA_NTF_OBJECT_OPERATION,
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	
-	/* Take the ent to uninstantiated state (isolating the EE).*/
-	plms_presence_state_set(ent,
-				SA_PLM_EE_PRESENCE_UNINSTANTIATED,
-				NULL,SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	
-	/* Mark the isolation method.*/
-	ent->iso_method = PLMS_ISO_EE_TERMINATED;
-
 	if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_EE_RESTART == 
 	ent->trk_info->root_entity->adm_op_in_progress)){
 		
@@ -2304,9 +2307,13 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 		
 		plms_trk_info_free(ent->trk_info);
 	}
-				
-	TRACE_LEAVE2("eturn Val: %d",NCSCC_RC_SUCCESS);
-	return NCSCC_RC_SUCCESS;	
+	
+	/* Isolate the EE by "assert reset state on parent HE" or taking the
+	"paretn HE to inactive".*/
+	ret_err = plms_inst_term_failed_isolate(ent);
+
+	TRACE_LEAVE2("Return Val: %d",ret_err);
+	return ret_err;	
 }
 /******************************************************************************
 @brief		: Process termination failed timer expiry. 
@@ -2322,8 +2329,9 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 ******************************************************************************/
 SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 {
-	SaUint32T can_isolate = 1,ret_err = NCSCC_RC_SUCCESS;
-	PLMS_GROUP_ENTITY *chld_list = NULL,*head;
+	SaUint32T ret_err = NCSCC_RC_SUCCESS;
+	PLMS_GROUP_ENTITY *head = NULL, *aff_ent_list = NULL;
+	PLMS_TRACK_INFO trk_info;
 
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	
@@ -2343,6 +2351,94 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 			NULL,SA_NTF_OBJECT_OPERATION,
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
+	/* If the EE is already in OOS, then nothing to do.*/
+	if (SA_PLM_READINESS_OUT_OF_SERVICE == 
+		ent->entity.ee_entity.saPlmEEReadinessState){
+		TRACE("Entity %s is already in OOS.",ent->dn_name_str);
+	
+	}else{ /* If the entity is in insvc, then got to make the entity 
+		to move to OOS.*/
+		/* Get all the affected entities.*/ 
+		plms_affected_ent_list_get(ent,&aff_ent_list,0);
+		
+		plms_readiness_state_set(ent,SA_PLM_READINESS_OUT_OF_SERVICE,
+					NULL,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		/* Mark the readiness state and expected readiness state  
+		of all the affected entities to OOS and set the dependency 
+		flag.*/
+		head = aff_ent_list;
+		while (head){
+			plms_readiness_state_set(head->plm_entity,
+					SA_PLM_READINESS_OUT_OF_SERVICE,
+					ent,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);
+			plms_readiness_flag_mark_unmark(head->plm_entity,
+					SA_PLM_RF_DEPENDENCY,TRUE,
+					ent,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);
+			
+			/* Terminate all the dependent EEs.*/
+			if (NCSCC_RC_SUCCESS != 
+					plms_is_chld(ent,head->plm_entity)){
+				ret_err = plms_ee_term(head->plm_entity,
+							FALSE,TRUE/*mngt_cbk*/);
+				if (NCSCC_RC_SUCCESS != ret_err){
+					LOG_ER("Request for EE %s termination \
+					FAILED",head->plm_entity->dn_name_str);
+				}
+			}	
+
+			head = head->next;
+		}
+		
+		plms_aff_ent_exp_rdness_state_ow(aff_ent_list);
+		plms_ent_exp_rdness_state_ow(ent);
+
+		memset(&trk_info,0,sizeof(PLMS_TRACK_INFO));
+		trk_info.aff_ent_list = aff_ent_list;
+		trk_info.group_info_list = NULL;
+		/* Add the groups, root entity(ent) belong to.*/
+		plms_ent_grp_list_add(ent, &(trk_info.group_info_list));
+	
+		/* Find out all the groups, all affected entities 
+		 * belong to and add the groups to trk_info->group_info_list.*/ 
+		plms_ent_list_grp_list_add(trk_info.aff_ent_list,
+					&(trk_info.group_info_list));	
+
+		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
+		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+		trk_info.track_cause = SA_PLM_CAUSE_FAILURE;
+		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
+		trk_info.root_entity = ent;
+
+		plms_cbk_call(&trk_info,1);
+	
+		plms_ent_exp_rdness_status_clear(ent);
+		plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
+		
+		plms_ent_list_free(trk_info.aff_ent_list);
+		trk_info.aff_ent_list = NULL;
+		plms_ent_grp_list_free(trk_info.group_info_list);
+		trk_info.group_info_list = NULL;
+	}
+	
+	/* Isolate the entity if possible. */
+	ret_err = plms_inst_term_failed_isolate(ent);
+
+	TRACE_LEAVE2("Return Val: %d",ret_err);
+	return ret_err;
+}
+/******************************************************************************
+@brief		: Isolate the entity which fails to instantiate or terminate 
+@param[in]	: ent - EE.
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+******************************************************************************/
+SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *ent)
+{
+	SaUint32T ret_err = NCSCC_RC_SUCCESS, can_isolate = 1;
+	PLMS_GROUP_ENTITY *head = NULL, *chld_list = NULL;
 	/* Isolate the EE by "assert reset state on parent HE" or taking the
 	"paretn HE to inactive".*/
 
@@ -2369,88 +2465,72 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 		/* EEs parent is domain*/
 		LOG_ER("EE`s direct parent is Domain or parent not configured.\
 		, hence the EE cannot be isolated.");
-#if 0		
-		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,
-		1,NULL, SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_EE_TERM;
-		
-		/* Call management lost callback for ent.*/
-		plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
 		
 		return NCSCC_RC_FAILURE;
-#endif		
 	}
 	if (can_isolate){
 		/* assert reset state on parent HE,
 		(parent is HE as no virtualization). */
-		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,
-		0/*mngt_cbk*/, SAHPI_RESET_ASSERT);
+		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,1/*mngt_cbk*/, SAHPI_RESET_ASSERT);
 		if( NCSCC_RC_SUCCESS != ret_err){
 			/* Deactivate the HE.*/
-			ret_err = plms_he_deactivate(ent->parent,
-			FALSE/*adm_op*/,TRUE/*mngt_cbk*/);
+			ret_err = plms_he_deactivate(ent->parent,FALSE/*adm_op*/,TRUE/*mngt_cbk*/);
 			if(NCSCC_RC_SUCCESS != ret_err){
 				/* Isolation failed.*/
 				can_isolate = 0;
-				LOG_ER("EE %s Isolation FAILED.",
-				ent->dn_name_str);
+				LOG_ER("EE %s Isolation FAILED.", ent->dn_name_str);
 			}else{
-				ent->iso_method = 
-				PLMS_ISO_HE_DEACTIVATED;
-				
-				TRACE("Isolated the ent %s, Deactivate\
-				parent HE successfull.",
-				ent->dn_name_str);
-						
-				/* Clear admin pending for HE.*/	
-				plms_readiness_flag_mark_unmark(
-					ent->parent,
-					SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
-					NULL, SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-					
-				/* Clear management lost for HE.*/
-				plms_readiness_flag_mark_unmark(
-					ent->parent,
-					SA_PLM_RF_MANAGEMENT_LOST,0,
-					NULL, SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				TRACE("Isolated the ent %s, Deactivate parent HE successfull.",ent->dn_name_str);
+				ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
 			}
 		}else{
-			TRACE("Isolate the ent %s, Reset assert\
-			parent HE successfull.",ent->dn_name_str);
+			TRACE("Isolate the ent %s, Reset assert parent HE successfull.",ent->dn_name_str);
 			ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
 		}
+	}else {
+		LOG_ER("EE's siblings are insvc and, hence the EE cannot be isolated.");
+		return NCSCC_RC_FAILURE;
 	}
 	if(!can_isolate){
 		/* Set isolate pending flag. Set management lost flag.*/
-		plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_ISOLATE_PENDING,1,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-		plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_MANAGEMENT_LOST,1, 
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ISOLATE_PENDING,1, NULL,
+		SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,1, 
+		NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
 		/* ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
 		ent->mngt_lost_tri = PLMS_MNGT_EE_TERM;
 		
 		/* Call management lost callback for ent.*/
 		plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
-	}else{
-		/* EE is isolated. Mark the presence state to uninstantiated.*/
-		plms_presence_state_set(ent,
-					SA_PLM_EE_PRESENCE_UNINSTANTIATED,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	}
-	
-	TRACE_LEAVE2("Return Val: %d",ret_err);
-	return ret_err;
-}
 
+		return NCSCC_RC_FAILURE;
+	}else{
+		if ( plms_rdness_flag_is_set (ent,SA_PLM_RF_MANAGEMENT_LOST)){
+		
+			plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+			NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+			/* Clear admin pending */	
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+			NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+			/* Clear management lost.*/
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+			SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+			/* Call management lost callback for ent.*/
+			plms_mngt_lost_clear_cbk_call(ent,0/*cleared*/);
+		}
+		
+		/* EE is isolated. Mark the presence state to uninstantiated.*/
+		plms_presence_state_set(ent,SA_PLM_EE_PRESENCE_UNINSTANTIATED,
+		NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
 /******************************************************************************
 @brief		: Handle tmr events in MBX.
 @param[in]	: evt - PLMS_EVT representing timer expiry events.
@@ -2550,7 +2630,7 @@ static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *ent)
 static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
+#if 0
 	/* If isolate pending flag is set then isolate the entity and return
 	from here.*/
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
@@ -2560,7 +2640,7 @@ static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
 		else
 			return NCSCC_RC_SUCCESS;
 	}
-	
+#endif	
 	TRACE("Clear management lost flag. Reason:%d, ent: %s",
 	ent->mngt_lost_tri,ent->dn_name_str);
 
@@ -2574,8 +2654,14 @@ static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
 	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
 	NULL, SA_NTF_OBJECT_OPERATION,
 	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ISOLATE_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	ent->iso_method = PLMS_ISO_DEFAULT;
 	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }
@@ -2725,13 +2811,14 @@ static SaUint32T plms_restart_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
+#if 0
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
 		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
 			return NCSCC_RC_FAILURE;
 		else
 			return NCSCC_RC_SUCCESS;
 	}
+#endif	
 	TRACE("Clear management lost flag. Reason:%d, ent: %s",
 	ent->mngt_lost_tri,ent->dn_name_str);
 
@@ -2745,8 +2832,14 @@ static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
 	NULL, SA_NTF_OBJECT_OPERATION,
 	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ISOLATE_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	ent->iso_method = PLMS_ISO_DEFAULT;
 	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }

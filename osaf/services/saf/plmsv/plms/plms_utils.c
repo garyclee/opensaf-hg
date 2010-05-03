@@ -4388,13 +4388,11 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 		ret_err = plms_ee_term(ent,adm_op,0);
 		/* If termination fails, then reset assert the parent HE.*/
 		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("EE Isolation(term) FAILED. Try reset assert of\
-			parent.Ent: %s",ent->dn_name_str);
+			LOG_ER("EE Isolation(term) FAILED. Try reset assert of parent.Ent: %s",ent->dn_name_str);
 			/* See any other children of the HE other than myself, 
 			 * is insvc.*/
 			if (ent->parent){
-				plms_chld_get(ent->parent->leftmost_child,
-								&chld_list);
+				plms_chld_get(ent->parent->leftmost_child, &chld_list);
 				head = chld_list;
 				while(head){
 					if ( 0 == strcmp(head->plm_entity->dn_name_str,ent->dn_name_str)){
@@ -4408,13 +4406,11 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 					head = head->next;
 				}
 				if(!can_isolate){
-					LOG_ER("Not attemptimg EE isolation \
-					as dep/child is insvc. Ent: %s", 
+					LOG_ER("Not attemptimg EE isolation as dep/child is insvc. Ent: %s", 
 					ent->dn_name_str);
 				}
 			}else{
-				LOG_ER("EE can not be isolated. Parent is \
-				domain.  Ent: %s",ent->dn_name_str);
+				LOG_ER("EE can not be isolated. Parent is domain.  Ent: %s",ent->dn_name_str);
 				/* EEs parent is domain. No other means of 
 				 * isolation.*/
 				can_isolate = 0;
@@ -4426,108 +4422,72 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 			if (can_isolate){
 				/* assert reset state on parent HE,
 				(parent is HE as no virtualization). */
-				ret_err = plms_he_reset(ent->parent,0,
-				1,SAHPI_RESET_ASSERT);
+				ret_err = plms_he_reset(ent->parent,0, 1,SAHPI_RESET_ASSERT);
 
 				if( NCSCC_RC_SUCCESS != ret_err){
-					LOG_ER("EE isolation (Reset assert \
-					of parent HE) FAILED. Deactivate the \
+					LOG_ER("EE isolation (Reset assert of parent HE) FAILED. Deactivate the \
 					parent HE.  Ent: %s",ent->dn_name_str);
 
 					/* Deactivate the HE.*/
-					ret_err = plms_he_deactivate(
-					ent->parent,0,1);
+					ret_err = plms_he_deactivate(ent->parent,0,1);
 
 					if(NCSCC_RC_SUCCESS != ret_err){
 						/* Isolation failed.*/
-						LOG_ER("Deactivation of parent\
-						HE FAILED ==> Isolation of the\
+						LOG_ER("Deactivation of parent HE FAILED ==> Isolation of the\
 						EE failed. Ent: %s",
 						ent->dn_name_str);
 
-						plms_readiness_flag_mark_unmark(
-						ent,SA_PLM_RF_MANAGEMENT_LOST,1,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,1,
+						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-						plms_readiness_flag_mark_unmark(
-						ent,SA_PLM_RF_ISOLATE_PENDING,1,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,1,
+						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 						
 						if (mngt_cbk)
 							plms_mngt_lost_clear_cbk_call(ent, 1);
-						/* ent->mngt_lost_tri = 
-							PLMS_MNGT_EE_ISOLATE; */
+						/* ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
 								
 					}else{
-						TRACE("EE isolation (deactivate\
-						the parent) SUCCESSFUL. Ent: %s\
-						",ent->dn_name_str);
+						TRACE("EE isolation (deactivate the parent) SUCCESSFUL. Ent: %s",
+						ent->dn_name_str);
 
-						ent->iso_method = 
-						PLMS_ISO_HE_DEACTIVATED;
+						ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+						
+						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-						/* Clear admin pending  for 
-						the EE.*/	
-						plms_readiness_flag_mark_unmark(
-						ent,SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
-						NULL, SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						/* Clear admin pending  for the EE.*/	
+						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ADMIN_OPERATION_PENDING,
+						0, NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					
-						/* Clear management lost for 
-						the EE.*/
-						plms_readiness_flag_mark_unmark(
-						ent,SA_PLM_RF_MANAGEMENT_LOST,0,
-						NULL, SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-						/* Clear admin pending for 
-						HE.*/	
-						plms_readiness_flag_mark_unmark(
-						ent->parent,
-						SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
-						NULL, SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-					
-						/* Clear management lost for 
-						HE.*/
-						plms_readiness_flag_mark_unmark(
-						ent->parent,
-						SA_PLM_RF_MANAGEMENT_LOST,0,
-						NULL, SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						/* Clear management lost for the EE.*/
+						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_MANAGEMENT_LOST,0,
+						NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					}
 				}else{
-					TRACE("EE isolation(reset assert of \
-					parent) SUCCESSFUL. Ent: %s",\
+					TRACE("EE isolation(reset assert of parent) SUCCESSFUL. Ent: %s",
 					ent->dn_name_str);
 					ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+					/* Clear isolate pending flag.*/
+					plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+					NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
 					/* Clear admin pending */	
-					plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
-					NULL, SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+					NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					
 					/* Clear management lost.*/
-					plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
-					SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+					SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				}
 			}else{
-				LOG_ER("EE isolation FAILED. Ent: %s",
-				ent->dn_name_str);
+				LOG_ER("EE isolation FAILED. Ent: %s", ent->dn_name_str);
 					
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_ISOLATE_PENDING,1,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ISOLATE_PENDING,1,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_MANAGEMENT_LOST,1,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,1,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 				if (mngt_cbk)
 					plms_mngt_lost_clear_cbk_call(ent, 1);
@@ -4535,30 +4495,39 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 				/*ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
 			}
 		}else{
-			TRACE(" EE isolation(terminated) SUCCESSFUL. Ent: %s",
-			ent->dn_name_str);
+			TRACE(" EE isolation(terminated) SUCCESSFUL. Ent: %s", ent->dn_name_str);
 			/* Mark the isolation method.*/
 			ent->iso_method = PLMS_ISO_EE_TERMINATED;
+			
+			/* Clear isolate pending flag.*/
+			plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+			NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+			/* Clear admin pending */	
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+			NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+			/* Clear management lost.*/
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+			SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		}
 	}else{
 		ret_err = plms_he_deactivate(ent,adm_op,1);
 		
 		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("HE isolation(deact) FAILED. Try reset\
-			assert. Ent: %s",ent->dn_name_str);
-			ret_err = plms_he_reset(ent,adm_op,1,
-			SAHPI_RESET_ASSERT);
+			LOG_ER("HE isolation(deact) FAILED. Try reset assert. Ent: %s",ent->dn_name_str);
+			ret_err = plms_he_reset(ent,adm_op,1, SAHPI_RESET_ASSERT);
 			
 			if (NCSCC_RC_SUCCESS != ret_err){
 				/* Can not isolate.*/
-				LOG_ER("HE isolation(reset assert)\
-				FAILED, ISOLATION FAILED. Ent: %s",
+				LOG_ER("HE isolation(reset assert) FAILED, ISOLATION FAILED. Ent: %s",
 				ent->dn_name_str);
 
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_ISOLATE_PENDING,1,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ISOLATE_PENDING,1,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,1,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				
 				if (mngt_cbk)
 					plms_mngt_lost_clear_cbk_call(ent, 1);
@@ -4566,23 +4535,32 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 				/*ent->mngt_lost_tri = PLMS_MNGT_HE_ISOLATE;*/
 				
 			}else{
-				TRACE("HE isolation (reset assert)\
-				SUCCESSFUL.");
+				TRACE("HE isolation (reset assert) SUCCESSFUL.");
 				ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+				
+				/* Clear isolate pending flag.*/
+				plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+				NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				/* Clear admin pending */	
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				/* Clear management lost.*/
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+				SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			}
 		}else{
 			TRACE("HE isolation (deact) SUCCESSFUL.");
 			ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+			
+			/* Clear isolate pending flag.*/
+			plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+			NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+			/* Clear admin pending */	
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
+			SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+			/* Clear management lost.*/
+			plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+			SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		}
 	}
 
