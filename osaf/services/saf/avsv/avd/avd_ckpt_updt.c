@@ -323,6 +323,7 @@ uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 		si->max_num_csi = ckpt_si->max_num_csi;
 		si->si_switch = ckpt_si->si_switch;
 		si->saAmfSIAdminState = ckpt_si->saAmfSIAdminState;
+		si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;
 		si->saAmfSIProtectedbySG = ckpt_si->saAmfSIProtectedbySG;
 		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
 		break;
