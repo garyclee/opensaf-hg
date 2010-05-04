@@ -721,10 +721,10 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 	m_MQSV_SET_SANAMET(queueName);
 
-	if (strncmp((char *)queueName->value,"safMq=",6)) {
+	if (strncmp((char *)queueName->value, "safMq=", 6)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-                m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-                return rc;
+		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return rc;
 	}
 
 	if (m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE) {
@@ -1010,10 +1010,10 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 
 	m_MQSV_SET_SANAMET(queueName);
 
-	if (strncmp((char *)queueName->value,"safMq=",6)) {
+	if (strncmp((char *)queueName->value, "safMq=", 6)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-                m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-                return rc;
+		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return rc;
 	}
 
 	if (openFlags != 0) {
@@ -1238,7 +1238,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 
 	if (queue_node->client_info->version.majorVersion == MQA_MAJOR_VERSION
 	    && queue_node->client_info->version.minorVersion == MQA_MINOR_VERSION) {
-		if (!mqa_cb->clm_node_joined) {
+		if ((!mqa_cb->clm_node_joined) && (!queue_node->client_info->finalize)) {
 			rc = SA_AIS_ERR_UNAVAILABLE;
 			m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -4361,11 +4361,11 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle, const SaNameT *queueGroupName, SaM
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if (strncmp((char *)queueGroupName->value,"safMqg=",7)) {
+	if (strncmp((char *)queueGroupName->value, "safMqg=", 7)) {
 		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
-                             __FILE__, __LINE__);
-                return SA_AIS_ERR_INVALID_PARAM;
-        }
+			     __FILE__, __LINE__);
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
 
 	if ((queueGroupPolicy < SA_MSG_QUEUE_GROUP_ROUND_ROBIN) || (queueGroupPolicy > SA_MSG_QUEUE_GROUP_BROADCAST)) {
 		m_LOG_MQSV_A(MQA_INVALID_GROUP_POLICY, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
