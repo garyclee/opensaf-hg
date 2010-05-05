@@ -667,7 +667,7 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 		/* Decode Request from MBCSv */
 		rc = ckpt_decode_cbk_handler(arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			LOG_ER("ckpt_decode_cbk_handler FAILED");
+			TRACE("ckpt_decode_cbk_handler FAILED");
 		break;
 	case NCS_MBCSV_CBOP_PEER:
 		/* CLMS Peer info from MBCSv */

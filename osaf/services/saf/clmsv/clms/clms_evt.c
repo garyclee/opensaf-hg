@@ -431,8 +431,12 @@ done:
 static uns32 proc_rda_evt(CLMSV_CLMS_EVT * evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAmfHAStateT prev_haState;
+	NCS_BOOL role_change = TRUE;
 
 	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
+
+	prev_haState = clms_cb->ha_state;
 
 	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
 		LOG_NO("ACTIVE request");
@@ -444,16 +448,25 @@ static uns32 proc_rda_evt(CLMSV_CLMS_EVT * evt)
 		if (osaf_cluster->init_time == 0)
 			osaf_cluster->init_time = clms_get_SaTime();
 
-		/* fail over, become implementer */
-		clms_imm_impl_set(clms_cb);
+		/* Handle active to active role change. */
+		if ((prev_haState == SA_AMF_HA_ACTIVE) && (clms_cb->ha_state == SA_AMF_HA_ACTIVE))
+			role_change = FALSE;
 
-		if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
-			LOG_ER("clms_mds_change_role FAILED %u", rc);
-			goto done;
+		if (role_change == TRUE){
+
+			/* fail over, become implementer */
+			clms_imm_impl_set(clms_cb);
+
+
+
+			if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
+				LOG_ER("clms_mds_change_role FAILED %u", rc);
+				goto done;
+			}
+
+			if (NCSCC_RC_SUCCESS != clms_mbcsv_change_HA_state(clms_cb))
+				goto done;
 		}
-
-		if (NCSCC_RC_SUCCESS != clms_mbcsv_change_HA_state(clms_cb))
-			goto done;
 
 	}
 	clms_process_clma_down_list();
