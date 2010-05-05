@@ -116,7 +116,6 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 void avd_sg_delete(AVD_SG **sg)
 {
 	sg_remove_from_model(*sg);
-	avd_sg_db_remove(*sg);
 	free(*sg);
 	*sg = NULL;
 }

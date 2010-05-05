@@ -30,7 +30,9 @@
 #include <saImmOi.h>
 #include <immutil.h>
 #include <logtrace.h>
+#include <saflog.h>
 
+#include <avd_util.h>
 #include <avd_cb.h>
 #include <avsv_defs.h>
 #include <avd_dblog.h>
@@ -540,6 +542,20 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 		/* Base types will not have an apply callback, skip empty ones */
 		if (ccb_apply_callback[type] != NULL)
 			ccb_apply_callback[type](opdata);
+
+		switch (opdata->operationType) {
+		case CCBUTIL_CREATE:
+			saflog(LOG_NOTICE, amfSvcUsrName, "Created %s", opdata->objectName.value);
+			break;
+		case CCBUTIL_MODIFY:
+			saflog(LOG_NOTICE, amfSvcUsrName, "Modified %s", opdata->objectName.value);
+			break;
+		case CCBUTIL_DELETE:
+			saflog(LOG_NOTICE, amfSvcUsrName, "Deleted %s", opdata->objectName.value);
+			break;
+		default:
+			assert(0);
+		}
 	}
 
 	/* Return CCB container memory */
