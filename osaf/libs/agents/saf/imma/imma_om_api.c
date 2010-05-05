@@ -3663,6 +3663,8 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	SaTimeT timeout = IMMSV_WAIT_TIME;
 	IMMSV_ATTR_DEF_LIST *sysattr = NULL;
+	const SaImmAttrDefinitionT_2 *attr;
+	int i = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -3672,6 +3674,14 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	if ((className == NULL) || (attrDefinitions == NULL)) {
 		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	attr = attrDefinitions[0];
+	for (; attr != 0; attr = attrDefinitions[++i]) {
+		if (attr->attrName == NULL)  {
+			TRACE("NULL attrName , not allowed.");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
 	}
 
 	if (cb->is_immnd_up == FALSE) {
@@ -3737,9 +3747,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	evt.info.immnd.info.classDescr.classCategory = classCategory;
 	TRACE("name: %s category:%u", className, classCategory);
-	const SaImmAttrDefinitionT_2 *attr;
 	int persistent = 0;
-	int i = 0;
 	attr = attrDefinitions[0];
 	int attrClNameExist = 0;
 	int attrAdmNameExist = 0;
