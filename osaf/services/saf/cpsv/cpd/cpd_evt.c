@@ -97,7 +97,7 @@ void cpd_process_evt(CPSV_EVT *evt)
 		return;
 	}
 #if ( CPSV_DEBUG == 1)
-	printf("%s\n", cpd_evt_str[evt->info.cpd.type]);
+	TRACE("%s", cpd_evt_str[evt->info.cpd.type]);
 #endif
 
 	switch (evt->info.cpd.type) {

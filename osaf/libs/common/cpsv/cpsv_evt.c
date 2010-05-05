@@ -1247,10 +1247,10 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 
 uns32 cpsv_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 {
-	printf("In file %s at line %d ", f, l);
+	TRACE("In file %s at line %d ", f, l);
 
 	if (NULL != str)
-		printf("Reason : %s \n", str);
+		TRACE("Reason : %s ", str);
 
 	return code;
 }

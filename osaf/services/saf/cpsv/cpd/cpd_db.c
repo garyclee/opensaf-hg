@@ -310,11 +310,11 @@ uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb)
 	/*  param.key_size = 2 *sizeof(SaNameT); */
 	param.key_size = sizeof(CPD_REP_KEY_INFO);
 	if (ncs_patricia_tree_init(&cb->ckpt_reploc_tree, &param) != NCSCC_RC_SUCCESS) {
-		printf("CPD_CKPT_REPLOC_TREE_INIT FAILED\n");
+		TRACE("CPD_CKPT_REPLOC_TREE_INIT FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 	cb->is_ckpt_reploc_up = TRUE;
-	printf("CPD_CKPT_REPLOC_TREE_INIT SUCCESS\n");
+	TRACE("CPD_CKPT_REPLOC_TREE_INIT SUCCESS");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1027,7 +1027,6 @@ void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 		}
 
 		node_info->ckpt_cnt--;
-		/*    printf("cpnd_node ckpt_reference %d \n",node_info->ckpt_cnt);  */
 		m_MMGR_FREE_CPD_CKPT_REF_INFO(cref);
 	}
 
@@ -1056,7 +1055,6 @@ void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 	nref_info->next = ckpt_node->node_list;
 	ckpt_node->node_list = nref_info;
 	ckpt_node->dest_cnt++;
-	/*  printf("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
 
 	return;
 }
@@ -1090,7 +1088,6 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 			nref_prev->next = nref->next;
 		}
 		ckpt_node->dest_cnt--;
-		/*  printf("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
 		m_MMGR_FREE_CPD_NODE_REF_INFO(nref);
 	}
 

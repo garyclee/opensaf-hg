@@ -300,7 +300,7 @@ static uns32 cpa_destroy(NCS_LIB_DESTROY *destroy_info)
 unsigned int ncs_cpa_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
-
+        char *value;
 	m_CPA_AGENT_LOCK;
 
 	if (cpa_use_count > 0) {
@@ -310,7 +310,7 @@ unsigned int ncs_cpa_startup(void)
 		return NCSCC_RC_SUCCESS;
 	}
 
-   /*** Init CPA ***/
+        /*** Init CPA ***/
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (cpa_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
@@ -322,6 +322,12 @@ unsigned int ncs_cpa_startup(void)
 	}
 
 	m_CPA_AGENT_UNLOCK;
+
+       /* Initialize trace system first of all so we can see what is going. */
+       if ((value = getenv("CPA_TRACE_PATHNAME")) != NULL) {
+              logtrace_init("cpa", value, CATEGORY_ALL);
+
+       }
 
 	return NCSCC_RC_SUCCESS;
 }

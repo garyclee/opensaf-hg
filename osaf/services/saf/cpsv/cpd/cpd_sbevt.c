@@ -622,7 +622,7 @@ uns32 cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 uns32 cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CPND_INFO_NODE *cpnd_info = NULL;
-	printf("THIS IS IN DEST DOWN OF NODE 1\n");
+	TRACE("THIS IS IN DEST DOWN OF NODE 1");
 	cpd_cpnd_info_node_get(&cb->cpnd_tree, &msg->info.dest_down.mds_dest, &cpnd_info);
 	if (cpnd_info) {
 		cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;

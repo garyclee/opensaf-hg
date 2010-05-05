@@ -1440,18 +1440,18 @@ void cpa_cb_dump(void)
 		return;
 	}
 
-	printf("*****************Printing CPA CB Dump******************");
-	printf("\n MDS Handle:             %x", cb->cpa_mds_hdl);
-	printf("\n Handle Manager Pool ID: %d", cb->pool_id);
-	printf("\n Handle Manager Handle:  %d", cb->agent_handle_id);
+	TRACE("*****************Printing CPA CB Dump******************");
+	TRACE(" MDS Handle:             %x", cb->cpa_mds_hdl);
+	TRACE(" Handle Manager Pool ID: %d", cb->pool_id);
+	TRACE(" Handle Manager Handle:  %d", cb->agent_handle_id);
 	if (cb->is_cpnd_up) {
-		printf("\n CPND UP, Node ID = %d", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mds_dest));
+		TRACE(" CPND UP, Node ID = %d", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mds_dest));
 	} else
-		printf("\n CPND DOWN");
+		TRACE(" CPND DOWN");
 
 	if (cb->is_client_tree_up) {
-		printf("\n+++++++++++++Client Tree is UP+++++++++++++++++++++++++++");
-		printf("\nNumber of nodes in ClientTree:  %d", cb->client_tree.n_nodes);
+		TRACE("+++++++++++++Client Tree is UP+++++++++++++++++++++++++++");
+		TRACE("Number of nodes in ClientTree:  %d", cb->client_tree.n_nodes);
 
 		/* Print the Client tree Details */
 		{
@@ -1467,18 +1467,18 @@ void cpa_cb_dump(void)
 				/* delete the client info */
 				temp_hdl = clnode->cl_hdl;
 
-				printf("\n------------------------------------------------------");
-				printf("\n CLient Handle   = %d", (uns32)clnode->cl_hdl);
+				TRACE("------------------------------------------------------");
+				TRACE(" CLient Handle   = %d", (uns32)clnode->cl_hdl);
 			}
-			printf("\n End of Info for this client");
+			TRACE(" End of Info for this client");
 		}
-		printf("\n End of Client info nodes ");
+		TRACE(" End of Client info nodes ");
 	}
 
 	/* Print the Lcl Checkpoint Details */
 	if (cb->is_lcl_ckpt_tree_up) {
-		printf("\n+++++++++++++Lcl CKPT Tree is UP+++++++++++++++++++++++++++");
-		printf("\nNumber of nodes in Lcl CKPT Tree:  %d", cb->lcl_ckpt_tree.n_nodes);
+		TRACE("+++++++++++++Lcl CKPT Tree is UP+++++++++++++++++++++++++++");
+		TRACE("Number of nodes in Lcl CKPT Tree:  %d", cb->lcl_ckpt_tree.n_nodes);
 
 		/* Print the Lcl CKPT Details */
 		{
@@ -1492,30 +1492,30 @@ void cpa_cb_dump(void)
 			while (lc_node) {
 				prev_ckpt_id = lc_node->lcl_ckpt_hdl;
 
-				printf("\n------------------------------------------------------");
-				printf("\n Lcl CKPT Hdl:  = %d", (uns32)lc_node->lcl_ckpt_hdl);
-				printf("\n Client CKPT Hdl:  = %d", (uns32)lc_node->cl_hdl);
-				printf("\n Global CKPT Hdl:  = %d", (uns32)lc_node->gbl_ckpt_hdl);
-				printf("\n Open Flags:  = %d", (uns32)lc_node->open_flags);
+				TRACE("------------------------------------------------------");
+				TRACE(" Lcl CKPT Hdl:  = %d", (uns32)lc_node->lcl_ckpt_hdl);
+				TRACE(" Client CKPT Hdl:  = %d", (uns32)lc_node->cl_hdl);
+				TRACE(" Global CKPT Hdl:  = %d", (uns32)lc_node->gbl_ckpt_hdl);
+				TRACE(" Open Flags:  = %d", (uns32)lc_node->open_flags);
 				if (lc_node->async_req_tmr.is_active)
-					printf("\nTimer Type %d is active", lc_node->async_req_tmr.type);
+					TRACE("Timer Type %d is active", lc_node->async_req_tmr.type);
 				else
-					printf("\n Timer is not active");
+					TRACE(" Timer is not active");
 
-				printf("\n End of Local CKPT Info");
+				TRACE(" End of Local CKPT Info");
 
 				lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
 											   (uns8 *)&prev_ckpt_id);
 			}
-			printf("\n End of Local CKPT nodes information ");
+			TRACE(" End of Local CKPT nodes information ");
 		}
 
 	}
 
 	/* Print the Global Checkpoint Details */
 	if (cb->is_gbl_ckpt_tree_up) {
-		printf("\n+++++++++++++Global CKPT Tree is UP+++++++++++++++++++++++++++");
-		printf("\nNumber of nodes in Global CKPT Tree:  %d", cb->gbl_ckpt_tree.n_nodes);
+		TRACE("+++++++++++++Global CKPT Tree is UP+++++++++++++++++++++++++++");
+		TRACE("Number of nodes in Global CKPT Tree:  %d", cb->gbl_ckpt_tree.n_nodes);
 
 		/* Print the Gbl CKPT Details */
 		{
@@ -1529,20 +1529,20 @@ void cpa_cb_dump(void)
 			while (gc_node) {
 				prev_ckpt_id = gc_node->gbl_ckpt_hdl;
 
-				printf("\n------------------------------------------------------");
-				printf("\n Lcl CKPT Hdl:  = %d", (uns32)gc_node->gbl_ckpt_hdl);
-				printf("\n No of Clients = %d", gc_node->ref_cnt);
+				TRACE("------------------------------------------------------");
+				TRACE(" Lcl CKPT Hdl:  = %d", (uns32)gc_node->gbl_ckpt_hdl);
+				TRACE(" No of Clients = %d", gc_node->ref_cnt);
 
-				printf("\n End of Local CKPT Info");
+				TRACE(" End of Local CKPT Info");
 
 				gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
 											    (uns8 *)&prev_ckpt_id);
 			}
 
-			printf("\n End of Local CKPT nodes information ");
+			TRACE(" End of Local CKPT nodes information ");
 		}
 	}
-	printf("*****************End of CPD CB Dump******************");
+	TRACE("*****************End of CPD CB Dump******************");
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	m_CPA_GIVEUP_CB;

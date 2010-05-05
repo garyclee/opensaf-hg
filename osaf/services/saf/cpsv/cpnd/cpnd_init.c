@@ -180,7 +180,6 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	if (cb == NULL) {
 		m_LOG_CPND_CL(CPND_CB_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CB ALLOCATION FAILED IN CPND_INIT\n");
 		rc = NCSCC_RC_OUT_OF_MEM;
 		goto cpnd_cb_alloc_fail;
 	}
@@ -192,13 +191,11 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	if ((rc = cpnd_cb_db_init(cb)) == NCSCC_RC_FAILURE) {
 		m_LOG_CPND_CL(CPND_CB_DB_INIT_FAILED, CPND_FC_API, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_CB_DB_INNIT FAILED\n");
 		goto cpnd_cb_init_fail;
 	}
 
 	if ((cb->cpnd_cb_hdl_id = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CPND, (NCSCONTEXT)cb)) == 0) {
 		m_LOG_CPND_CL(CPND_CB_HDL_CREATE_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_CB_HDL_CREATE_FAILED\n");
 		rc = NCSCC_RC_FAILURE;
 		goto cpnd_hdl_fail;
 	}
@@ -209,14 +206,12 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_IPC_CREATE_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_IPC_CREATE_FAIL IN CPND_INIT\n");
 		goto cpnd_ipc_create_fail;
 	}
 
 	/* Attach the IPC to mail box */
 	if ((rc = m_NCS_IPC_ATTACH(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_IPC_ATTACH_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_IPC_ATTACH_FAIL IN CPND_INIT\n");
 		goto cpnd_ipc_att_fail;
 	}
 	gen_cbk.saClmClusterNodeGetCallback = NULL;
@@ -224,39 +219,33 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 	rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
 	if (rc != SA_AIS_OK) {
 		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("saClmInitialize Failed %d\n", rc);
 		goto cpnd_clm_init_fail;
 	}
 	cb->clm_hdl = clmHandle;
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, NCS_SAF_ACCEPT_TIME, &cluster_node);
 	if (rc != SA_AIS_OK) {
 		m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("saClmClusterNodeGet Failed %d\n", rc);
 		goto cpnd_clm_fail;
 	}
 	cb->nodeid = cluster_node.nodeId;
 	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK) {
 		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("saClmClusterTrack Failed\n");
 		goto cpnd_clm_fail;
 	}
 	if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
 		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CLM Selection Object Get failed\n");
 		return rc;
 	}
 	/* Initialise with the AMF service */
 	if (cpnd_amf_init(cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_AMF_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND AMF INIT FAILED : ERROR RETURNED BY AMF_INITIALIZE\n");
 		goto amf_init_err;
 	}
 
 	/* register with the AMF service */
 	if (cpnd_amf_register(cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_AMF_REGISTER_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND AMF REGISTER FAILED\n");
 		goto amf_reg_err;
 	}
 
@@ -265,14 +254,12 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 				    (NCSCONTEXT)cb, m_CPND_TASKNAME, m_CPND_TASK_PRI,
 				    m_CPND_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_TASK_CREATE_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_TASK_CREATE_FAILED\n");
 		goto cpnd_task_create_fail;
 	}
 
 	if ((rc = m_NCS_TASK_START(cb->task_hdl))
 	    != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_TASK_START_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND_TASK_START_FAILED\n");
 		goto cpnd_task_start_fail;
 	}
 
@@ -289,7 +276,6 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	if ((rc = cpnd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPND_CL(CPND_MDS_REGISTER_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPND MDS REGISTER FAILED %d\n", rc);
 		goto cpnd_mds_fail;
 	}
 
@@ -565,7 +551,6 @@ static void cpnd_main_process(NCSCONTEXT info)
 			if (clm_error != SA_AIS_OK) {
 				m_LOG_CPND_CL(CPND_AMF_DISPATCH_FAILURE, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
 					      __LINE__);
-				printf("CLM Clm Dispatch failed\n");
 			}
 		}
 		/* process the CPND Mail box */

@@ -238,7 +238,7 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST 
 	cpd_msg.info.dest_down.ckpt_id = ckpt_node->ckpt_id;
 	cpd_msg.info.dest_down.mds_dest = *dest;
 
-	printf("CPND 1 IS IN RESTART NOW \n");
+	TRACE("CPND 1 IS IN RESTART NOW ");
 
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
