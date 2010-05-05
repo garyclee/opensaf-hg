@@ -551,34 +551,32 @@ FUNC_DECLARATION(DS)
 	NCS_ENC_DEC_DECLARATION(DS);
 	NCS_ENC_DEC_ARRAY(DS) {
 
-		{
-		EDU_START, FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP), 0, 0, 0, sizeof(DS), 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->type, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->num_of_elmts, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->error, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->size, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->ckpt_id, 0, NULL}, {
-		EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS *) 0)->from_svc, 0, NULL}, {
-		EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->type, 0,
-			    (void *)TEST_FUNC(CPSV_ND2A_DATA_ACCESS_RSP)}, {
-		EDU_EXEC, FUNC_NAME(CPSV_ND2A_READ_MAP), EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-			    (long)&((DS *) 0)->info.read_mapping, (long)&((DS *) 0)->size, NULL}, {
-		EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA /* Svc-ID */ , NULL, EDU_EXIT, 0 /* Sub-ID */ , 0, NULL},
-		{
-		EDU_EXEC, FUNC_NAME(CPSV_ND2A_READ_DATA), EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-			    (long)&((DS *) 0)->info.read_data, (long)&((DS *) 0)->size, NULL}, {
-		EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA /* Svc-ID */ , NULL, EDU_EXIT,
-			    CPSV_SVC_SUB_ID_CPSV_ND2A_READ_DATA /* Sub-ID */ , 0, NULL},
-		{
-		EDU_EXEC, ncs_edp_uns32, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-			    (long)&((DS *) 0)->info.write_err_index, (long)&((DS *) 0)->size, NULL}, {
-		EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA /* Svc-ID */ , NULL, EDU_EXIT,
-			    CPSV_SVC_SUB_ID_CPSV_SaUint32T /* Sub-ID */ , 0, NULL},
-		{
-		EDU_EXEC, FUNC_NAME(CPSV_SAERR_INFO), 0, 0, EDU_EXIT, (long)&((DS *) 0)->info.ovwrite_error, 0, NULL},
-		{
-	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
-	NCS_ENC_DEC_REM_FLOW(DS)
+      {EDU_START,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->num_of_elmts, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->size, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error_index, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->from_svc, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, (void *)TEST_FUNC(CPSV_ND2A_DATA_ACCESS_RSP)},
+
+
+      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_MAP),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0,(long)&((DS*)0)->info.read_mapping,(long)&((DS*)0)->size, NULL},
+      {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, 0 /* Sub-ID */, 0, NULL},
+
+      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_DATA),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (long)&((DS*)0)->info.read_data,(long)&((DS*)0)->size, NULL},
+      {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, CPSV_SVC_SUB_ID_CPSV_ND2A_READ_DATA/* Sub-ID */, 0, NULL},
+
+      {EDU_EXEC,ncs_edp_uns32,EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (long)&((DS*)0)->info.write_err_index,(long)&((DS*)0)->size, NULL},
+      {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, CPSV_SVC_SUB_ID_CPSV_SaUint32T /* Sub-ID */, 0, NULL},
+
+      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO), 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ovwrite_error, 0, NULL},
+
+      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+
+    };
+    NCS_ENC_DEC_REM_FLOW(DS)
 }
 
 #undef DS

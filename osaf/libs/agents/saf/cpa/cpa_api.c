@@ -3356,43 +3356,43 @@ SaAisErrorT saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
 #else
 	proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), &evt, &out_evt, CPSV_WAIT_TIME);
 #endif
-	/* Generate rc from proc_rc */
-	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-				 "CkptWrite:MDS", __FILE__, __LINE__, proc_rc, checkpointHandle, cb->cpnd_mds_dest);
-		goto fail1;
-	default:
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-				 "CkptWrite:MDS", __FILE__, __LINE__, proc_rc, checkpointHandle, cb->cpnd_mds_dest);
-		goto fail1;
-	}
-
-	if (out_evt) {
-		erroneousVectorIndex = out_evt->info.cpa.info.sec_data_rsp.info.write_err_index;
-		if (out_evt->info.cpa.info.sec_data_rsp.num_of_elmts == -1) {
-			rc = out_evt->info.cpa.info.sec_data_rsp.error;
-			m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-					"CkptWrite", __FILE__, __LINE__, rc, checkpointHandle);
-		} else {
-			if (out_evt->info.cpa.info.sec_data_rsp.info.write_err_index) {
-				m_MMGR_FREE_CPSV_SaUint32T(out_evt->info.cpa.info.sec_data_rsp.info.write_err_index,
-							   NCS_SERVICE_ID_CPA);
-			}
-		}
-		out_evt->info.cpa.info.sec_data_rsp.info.write_err_index = NULL;
-		m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
-		m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-				"CkptWrite", __FILE__, __LINE__, SA_AIS_OK, checkpointHandle);
-	} else {
-		rc = SA_AIS_ERR_NO_RESOURCES;
-		m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-				"CkptWrite", __FILE__, __LINE__, rc, checkpointHandle);
-	}
+   /* Generate rc from proc_rc */
+   switch (proc_rc)
+   {
+       case NCSCC_RC_SUCCESS: 
+           break;
+       case NCSCC_RC_REQ_TIMOUT:
+           rc = SA_AIS_ERR_TIMEOUT;
+           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                    "CkptWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
+           goto fail1;
+       default:
+           rc = SA_AIS_ERR_TRY_AGAIN;
+           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                    "CkptWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
+           goto fail1;
+   }
+   
+   if(out_evt)
+   {
+      erroneousVectorIndex=&out_evt->info.cpa.info.sec_data_rsp.error_index;
+      if (out_evt->info.cpa.info.sec_data_rsp.num_of_elmts == -1)
+      {
+         rc=out_evt->info.cpa.info.sec_data_rsp.error;
+         m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                             "CkptWrite", __FILE__ ,__LINE__, rc, checkpointHandle);
+      }
+      m_MMGR_FREE_CPSV_EVT(out_evt,NCS_SERVICE_ID_CPA);
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
+                             "CkptWrite", __FILE__ ,__LINE__, SA_AIS_OK, checkpointHandle);
+   }
+   else
+   {
+      rc = SA_AIS_ERR_NO_RESOURCES;
+      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                             "CkptWrite", __FILE__ ,__LINE__, rc, checkpointHandle);
+   }
+      
 
 	goto end;
 
@@ -3772,28 +3772,33 @@ SaAisErrorT saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
 
 	}
 
-	/* Generate rc from proc_rc */
-	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-				 "CkptRead:MDS", __FILE__, __LINE__, proc_rc, checkpointHandle, cb->cpnd_mds_dest);
-		goto fail1;
-	default:
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-				 "CkptRead:MDS", __FILE__, __LINE__, proc_rc, checkpointHandle, cb->cpnd_mds_dest);
-		goto fail1;
-	}
-
-	if (out_evt) {
-		if (out_evt->info.cpa.info.sec_data_rsp.num_of_elmts == -1) {
-			erroneousVectorIndex = out_evt->info.cpa.info.sec_data_rsp.info.write_err_index;
-			rc = out_evt->info.cpa.info.sec_data_rsp.error;
-		} else {
-			/* IF the buffer = NULL then CPSv allocates memory and user has to free this memory */
+   /* Generate rc from proc_rc */
+   switch (proc_rc)
+   {
+      case NCSCC_RC_SUCCESS:
+         break;
+      case NCSCC_RC_REQ_TIMOUT:
+         rc = SA_AIS_ERR_TIMEOUT;
+         m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                    "CkptRead:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
+         goto fail1;
+      default:
+         rc = SA_AIS_ERR_TRY_AGAIN;
+         m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                    "CkptRead:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
+         goto fail1;
+   }
+   
+   if(out_evt)
+   {
+      if(out_evt->info.cpa.info.sec_data_rsp.num_of_elmts == -1)
+      {
+         erroneousVectorIndex=&out_evt->info.cpa.info.sec_data_rsp.error_index;
+         rc=out_evt->info.cpa.info.sec_data_rsp.error;
+      }
+      else 
+      {
+                        /* IF the buffer = NULL then CPSv allocates memory and user has to free this memory */
 
 			proc_rc = cpa_proc_rmt_replica_read(numberOfElements,
 							    ioVector,
