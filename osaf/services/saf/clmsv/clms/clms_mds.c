@@ -698,6 +698,8 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 		case CLMSV_CLUSTER_JOIN_RESP:
 			total_bytes += clmsv_encodeSaNameT(uba, &(msg->info.api_resp_info.param.node_name));
 			break;
+		case CLMSV_RESPONSE_RESP:
+			break;
 		default:
 			TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
 			goto err;
