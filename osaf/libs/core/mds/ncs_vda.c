@@ -213,7 +213,14 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		memset(&spir_req, 0, sizeof(spir_req));
 		spir_req.i_environment_id = 1;
 		/* Release the handle to that PWE */
-		/* NOTE : Some of the SPIR fields already set above */
+		if (m_MDS_GET_VDEST_ID_FROM_MDS_DEST(vda_info->info.vdest_destroy.i_vdest)
+				> NCSVDA_UNNAMED_MAX) {
+			return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+
+		m_MDS_FIXED_VDEST_TO_INST_NAME(m_MDS_GET_VDEST_ID_FROM_MDS_DEST
+				(vda_info->info.vdest_destroy.i_vdest),
+				&spir_req.i_instance_name);
 		spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
 		spir_req.type = NCS_SPIR_REQ_REL_INST;
 		spir_req.info.rel_inst = 0;	/* Dummy unused value */
@@ -249,7 +256,8 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		spir_req.i_environment_id = m_MDS_GET_PWE_ID_FROM_PWE_HDL(vda_info->info.pwe_destroy.i_mds_pwe_hdl);
 		/* Release the handle to that PWE */
 
-		/* NOTE : Some of the SPIR fields already set above */
+		m_MDS_FIXED_VDEST_TO_INST_NAME(m_MDS_GET_VDEST_ID_FROM_PWE_HDL
+				(vda_info->info.pwe_destroy.i_mds_pwe_hdl), &spir_req.i_instance_name);
 		spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
 		spir_req.type = NCS_SPIR_REQ_REL_INST;
 		spir_req.info.rel_inst = 0;	/* Dummy unused value */
