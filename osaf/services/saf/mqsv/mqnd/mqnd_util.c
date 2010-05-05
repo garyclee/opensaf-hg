@@ -291,9 +291,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
 		   whether previous request has been served or not and Return TRY_AGAIN to MQA in Both cases */
 
 		if (!is_q_reopen) {
-#ifdef NCS_MQND
-			printf("QUEUE OPEN TIMEOUT :DEREG  \n");
-#endif
+			TRACE("QUEUE OPEN TIMEOUT :DEREG  ");
 			opr.info.msg.req.msgtype = ASAPi_MSG_DEREG;
 			opr.info.msg.req.info.dereg.objtype = ASAPi_OBJ_QUEUE;
 			opr.info.msg.req.info.dereg.queue = qnode->qinfo.queueName;
@@ -306,9 +304,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
 				*err = SA_AIS_ERR_TRY_AGAIN;
 			return NCSCC_RC_FAILURE;
 		} else {
-#ifdef NCS_MQND
-			printf("QUEUE REOPEN TIMEOUT :REG TO ORPHAN\n");
-#endif
+			TRACE("QUEUE REOPEN TIMEOUT :REG TO ORPHAN");
 			opr.info.msg.req.msgtype = ASAPi_MSG_REG;
 			opr.info.msg.req.info.reg.objtype = ASAPi_OBJ_QUEUE;
 			opr.info.msg.req.info.reg.queue.name = qnode->qinfo.queueName;

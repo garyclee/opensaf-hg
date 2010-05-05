@@ -279,14 +279,10 @@ static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	MQD_ND_DB_NODE *pNdNode = 0;
 	/*Update the node info structure and start the expiry timer for MQND */
-#ifdef NCS_MQD
-	printf("mqd_process_a2s_mqnd_status_req \n");
-#endif
+	TRACE("mqd_process_a2s_mqnd_status_req ");
 	if (msg.type == MQD_A2S_MSG_TYPE_MQND_STATEVT) {
 		if (!msg.info.nd_stat_evt.is_restarting) {
-#ifdef NCS_MQD
-			printf("A2S DOWN EVT PROCESSED\n");
-#endif
+			TRACE("A2S DOWN EVT PROCESSED");
 		} else {
 			pNdNode =
 			    (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db,
@@ -295,9 +291,7 @@ static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 				mqd_tmr_stop(&pNdNode->info.timer);
 				mqd_red_db_node_del(pMqd, pNdNode);
 
-#ifdef NCS_MQD
-				printf("A2S UP EVT PROCESSED\n");
-#endif
+				TRACE("A2S UP EVT PROCESSED");
 			}
 		}
 	}
@@ -327,14 +321,10 @@ static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG m
 	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)&msg.info.nd_tmr_exp_evt.nodeid);
 
 	if (pNdNode) {
-#ifdef NCS_MQD
-		printf("mqd_process_a2s_mqnd_timer_expiry_event, pNdNode found\n");
-#endif
+		TRACE("mqd_process_a2s_mqnd_timer_expiry_event, pNdNode found");
 		mqd_tmr_stop(&pNdNode->info.timer);
 		mqd_red_db_node_del(pMqd, pNdNode);
 	}
-#ifdef NCS_MQD
-	printf("A2S TIMER EXPIRY EVT PROCESSED \n");
-#endif
+	TRACE("A2S TIMER EXPIRY EVT PROCESSED");
 	return rc;
 }

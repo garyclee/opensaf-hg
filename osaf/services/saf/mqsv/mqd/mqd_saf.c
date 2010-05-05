@@ -191,15 +191,11 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 			nodeid = pNdNode->info.nodeid;
 			/* Post the event to MQD Thread */
 			if (pNdNode->info.timer.is_expired == TRUE) {
-#ifdef NCS_MQD
-				printf("NODE FOUND FOR CLEAN UP:CSI CALLBACK (TIMER EXPIRY CASE)\n");
-#endif
+				TRACE("NODE FOUND FOR CLEAN UP:CSI CALLBACK (TIMER EXPIRY CASE)");
 				mqd_timer_expiry_evt_process(pMqd, &nodeid);
 			} else {
 				if (pNdNode->info.is_restarted == TRUE) {
-#ifdef NCS_MQD
-					printf("NODE FOUND FOR CLEAN:CSI CALLBACK (MDS UP CASE)\n");
-#endif
+					TRACE("NODE FOUND FOR CLEAN:CSI CALLBACK (MDS UP CASE)");
 					pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 					if (pEvt) {
 						memset(pEvt, 0, sizeof(MQSV_EVT));

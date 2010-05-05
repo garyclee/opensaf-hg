@@ -297,14 +297,14 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	rc = saClmInitialize(&cb->clm_hdl, &clm_cbk, &clm_version);
 	if (rc != SA_AIS_OK) {
 		m_LOG_MQSV_ND(MQND_CLM_INIT_FAILED, MQND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		printf("saClmInitialize Failed %d\n", rc);
+		TRACE("saClmInitialize Failed %d", rc);
 		goto mqnd_mds_fail;
 	}
 
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, MQND_SAF_ACCEPT_TIME, &cluster_node);
 	if (rc != SA_AIS_OK) {
 		m_LOG_MQSV_ND(MQND_CLM_NODE_GET_FAILED, MQND_FC_HDLN, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		printf("saClmClusterNodeGet Failed %d\n", rc);
+		TRACE("saClmClusterNodeGet Failed %d", rc);
 		goto mqnd_clm_fail;
 	}
 
@@ -312,7 +312,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK) {
-		printf("saClmClusterTrack Failed\n");
+		TRACE("saClmClusterTrack Failed");
 		goto mqnd_clm_fail;
 	}
 
@@ -773,7 +773,7 @@ static void mqnd_main_process(NCSCONTEXT info)
 	m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, err, __FILE__, __LINE__);
 
 	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
-		printf("CLM Selection Object Get failed\n");
+		TRACE("CLM Selection Object Get failed");
 		return;
 	}
 
@@ -792,7 +792,7 @@ static void mqnd_main_process(NCSCONTEXT info)
 			if (errno == EINTR)
 				continue;
 
-			mqnd_genlog(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			mqnd_genlog(NCSFL_SEV_ERROR, "poll failed - %s\n", strerror(errno));
 			break;
 		}
 
@@ -804,7 +804,7 @@ static void mqnd_main_process(NCSCONTEXT info)
 						      err, __FILE__, __LINE__);
 				}
 			} else
-				mqnd_genlog(NCSFL_SEV_ERROR, "cb->amf_hdl == 0");
+				mqnd_genlog(NCSFL_SEV_ERROR, "cb->amf_hdl == 0\n");
 		}
 
 		if (fds[FD_CLM].revents & POLLIN) {
