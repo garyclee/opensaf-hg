@@ -155,7 +155,6 @@ uns32 cpnd_amf_register(CPND_CB *cpnd_cb)
 	/* get the component name */
 	error = saAmfComponentNameGet(cpnd_cb->amf_hdl, &cpnd_cb->comp_name);
 	if (error != SA_AIS_OK) {
-		printf("AMFComponentNameGet Failed in amf register\n");
 		m_LOG_CPND_CL(CPND_AMF_COMP_NAME_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
@@ -163,7 +162,6 @@ uns32 cpnd_amf_register(CPND_CB *cpnd_cb)
 	if (saAmfComponentRegister(cpnd_cb->amf_hdl, &cpnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else {
-		printf("saAmfComponentRegister Failed in amf register\n");
 		m_LOG_CPND_CL(CPND_AMF_COMP_REG_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
@@ -240,7 +238,7 @@ void cpnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
 	sleep(1);
 	exit(0);
 
-	printf("THIS IS IN TERMINATE CALL BACK\n");
+	TRACE("THIS IS IN TERMINATE CALL BACK");
 
 	return;
 }
@@ -270,7 +268,7 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
 
 	m_LOG_CPND_CL(CPND_CSI_RMV_CB_INVOKED, CPND_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
-	printf("THIS IS IN RMV CALLBACK\n");
+	TRACE("THIS IS IN RMV CALLBACK");
 	return;
 }
 

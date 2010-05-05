@@ -174,7 +174,7 @@ void cpnd_process_evt(CPSV_EVT *evt)
 		return;
 	}
 #if (CPSV_DEBUG == 1)
-	printf("%s\n", cpnd_evt_str[evt->info.cpnd.type]);
+	TRACE("%s", cpnd_evt_str[evt->info.cpnd.type]);
 #endif
 
 	switch (evt->info.cpnd.type) {

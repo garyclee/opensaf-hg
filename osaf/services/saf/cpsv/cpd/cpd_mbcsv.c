@@ -339,7 +339,7 @@ uns32 cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/*  Increment the async update count cb->cpd_sync_cnt     */
 	cb->cpd_sync_cnt++;
 
-	/*  printf("ENC ASYNC COUNT %d\n",cb->cpd_sync_cnt);  */
+	  TRACE("ENC ASYNC COUNT %d",cb->cpd_sync_cnt);  
 
 	cpd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
 	if (cpd_type_ptr == NULL) {
@@ -718,7 +718,7 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/* To store the value of Async Update received */
 	cb->cpd_sync_cnt++;
 
-	/*  printf("DEC ASYNC UPDATE %d\n",cb->sync_upd_cnt); */
+	  TRACE("DEC ASYNC UPDATE %d",cb->sync_upd_cnt); 
 
 	/* in the decode.i_uba , the 1st parameter is the Type , so first decode only the first field and based on the type then decode the entire message */
 
@@ -1043,7 +1043,7 @@ uns32 cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 
 		case NCS_MBCSV_MSG_COLD_SYNC_REQ:
 			cb->cold_or_warm_sync_on = TRUE;
-			printf("Cold sync started\n");
+			TRACE("Cold sync started");
 			break;
 
 		case NCS_MBCSV_MSG_COLD_SYNC_RESP:
@@ -1053,7 +1053,7 @@ uns32 cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 			if (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
 				if (status == NCSCC_RC_SUCCESS) {
 					cb->cold_or_warm_sync_on = FALSE;
-					printf("Cold sync completed\n");
+					TRACE("Cold sync completed");
 				}
 
 				ncshm_give_hdl(cb->cpd_hdl);
@@ -1078,7 +1078,7 @@ uns32 cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 			if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type) {
 				if (status == NCSCC_RC_SUCCESS) {
 					cb->cold_or_warm_sync_on = FALSE;
-					printf("Warm sync completed\n");
+					TRACE("Warm sync completed");
 				}
 			}
 			break;

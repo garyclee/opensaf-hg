@@ -188,13 +188,12 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
 	if ((rc = cpd_cb_db_init(cb)) == NCSCC_RC_FAILURE) {
-		printf("CPD_CB_DB_INIT FAILED\n");
+		TRACE("CPD_CB_DB_INIT FAILED");
 		goto cpd_cb_init_fail;
 	}
 
 	if ((cb->cpd_hdl = ncshm_create_hdl(cb->hm_poolid, NCS_SERVICE_ID_CPD, (NCSCONTEXT)cb)) == 0) {
 		m_LOG_CPD_CL(CPD_CB_HDL_CREATE_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_CB_HDL_CREATE_FAILED\n");
 		rc = NCSCC_RC_FAILURE;
 		goto cpd_hdl_fail;
 	}
@@ -205,27 +204,23 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_IPC_CREATE_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_IPC_CREATE_FAIL\n");
 		goto cpd_ipc_create_fail;
 	}
 
 	/* Attach the IPC to mail box */
 	if ((rc = m_NCS_IPC_ATTACH(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_IPC_ATTACH_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_IPC_ATTACH_FAILED\n");
 		goto cpd_ipc_att_fail;
 	}
 
 	if ((rc = cpd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_MDS_REGISTER_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_MDS_REGISTER_FAILED %d\n", rc);
 		goto cpd_mds_fail;
 	}
 
 	/* Initialise with the AMF service */
 	if (cpd_amf_init(cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_AMF_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_AMF_INIT_FAILED %d\n", rc);
 		goto amf_init_err;
 	}
 
@@ -234,14 +229,12 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	/* register with the AMF service */
 	if (cpd_amf_register(cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_AMF_REGISTER_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_AMF_REGISTER_FAILED\n");
 		goto amf_reg_err;
 	}
 
 	/*   Initialise with the MBCSV service  */
 	if (cpd_mbcsv_register(cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_MBCSV_INIT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_MBCSV_INIT_FAILED\n");
 		goto mbcsv_reg_err;
 	}
 
@@ -250,13 +243,11 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 
 	if (saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version) != SA_AIS_OK) {
 		m_LOG_CPD_CL(CPD_CLM_REGISTER_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_CLM_REGISTER_FAIL\n");
 		goto cpd_clm_fail;
 	}
 
 	if (saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL) != SA_AIS_OK) {
 		m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_CLM_CLUSTER_TRACK_FAIL \n");
 		goto cpd_clm_fail;
 	}
 
@@ -270,14 +261,12 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 				    (NCSCONTEXT)cb, m_CPD_TASKNAME, m_CPD_TASK_PRI,
 				    m_CPD_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_TASK_CREATE_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_TASK_CREATE_FAIL\n");
 		goto cpd_task_create_fail;
 	}
 
 	if ((rc = m_NCS_TASK_START(cb->task_hdl))
 	    != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_CL(CPD_TASK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_TASK_START_FAIL\n");
 		goto cpd_task_start_fail;
 	}
 
@@ -478,7 +467,6 @@ static void cpd_main_process(NCSCONTEXT info)
 	}
 	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
 		m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CLM Selection Object Get failed\n");
 		return;
 	}
 

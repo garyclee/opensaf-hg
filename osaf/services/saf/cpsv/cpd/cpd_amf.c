@@ -131,7 +131,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
 		if ((cb->ha_state == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_ACTIVE)) {
 			if (cb->cold_or_warm_sync_on == TRUE) {
-				printf("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+				TRACE("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE ");
 				saErr = SA_AIS_ERR_TRY_AGAIN;
 				saAmfResponse(cb->amf_hdl, invocation, saErr);
 				ncshm_give_hdl(cb->cpd_hdl);
@@ -145,7 +145,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
 		if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
 			if (cb->cold_or_warm_sync_on == TRUE) {
-				printf("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+				TRACE("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE ");
 			}
 
 			/* Give up our IMM OI implementer role */
@@ -163,7 +163,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
 		if (SA_AMF_HA_ACTIVE == cb->ha_state) {
 			mds_role = V_DEST_RL_ACTIVE;
-			printf("ACTIVE STATE\n");
+			TRACE("ACTIVE STATE");
 
 			/* If this is the active server, become implementer again. */
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -194,7 +194,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			return;
 		} else {
 			mds_role = V_DEST_RL_STANDBY;
-			printf("STANDBY STATE\n");
+			TRACE("STANDBY STATE");
 			/*   anchor   = cb->cpd_anc; */
 		}
 		memset(&vda_info, 0, sizeof(vda_info));
@@ -207,12 +207,10 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		if (NCSCC_RC_SUCCESS != rc) {
 			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-			printf("NCSVDA_API RETURNED FAILOVER CHG ROLE %d\n", rc);
 			ncshm_give_hdl(cb->cpd_hdl);
 			return;
 		}
 		if (cpd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
-			printf("CPD_MBCSV_CHGROLE_FAILED\n");
 			m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		}
 
@@ -226,8 +224,8 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			while (node_info) {
 				prev_dest = node_info->cpnd_dest;
 				if (node_info->timer_state == 2) {
-					printf
-					    ("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE\n");
+				TRACE	
+					    ("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE");
 					cpd_process_cpnd_down(cb, &node_info->cpnd_dest);
 				}
 				cpd_cpnd_info_node_getnext(&cb->cpnd_tree, &prev_dest, &node_info);
