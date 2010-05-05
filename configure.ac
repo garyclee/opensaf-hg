@@ -214,21 +214,6 @@ AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
 
 
 #
-# Enable a build to fit the payload deployment model
-#
-AC_MSG_CHECKING([whether to build for a payload deployment model])
-AC_ARG_ENABLE([payload-build],
-	[AS_HELP_STRING([--enable-payload-build],
-		[set the build type for a payload deployment model [default=no]])],
-	[],
-	[enable_payload_build=no])
-AC_MSG_RESULT([$enable_payload_build])
-
-AM_CONDITIONAL([ENABLE_PAYLOAD_BUILD], [test "$enable_payload_build" = yes])
-AC_SUBST([PAYLOAD_BUILD_ENABLED], ["$enable_payload_build"])
-
-
-#
 # Enable/disable IMM Persistent Backend
 #
 AC_MSG_CHECKING([whether to use the IMM persistent backend])
