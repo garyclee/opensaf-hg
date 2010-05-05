@@ -587,33 +587,32 @@ void gld_dump_cb()
 
 	memset(&mds_dest_id, 0, sizeof(MDS_DEST));
 
-	printf("************ GLD CB info *************** \n");
+	TRACE("************ GLD CB info *************** ");
 	/* print Amf Info */
-	printf("AMF HA state : %d \n", gld_cb->ha_state);
+	TRACE("AMF HA state : %d ", gld_cb->ha_state);
 	/* print the Node details */
-	printf("GLND info :\n");
+	TRACE("GLND info :");
 	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,
 										  (uns8 *)&node_id))) {
 		node_id = node_details->node_id;
-		printf("Node Id - :%d \n", node_details->node_id);
+		TRACE("Node Id - :%d ", node_details->node_id);
 	}
 
 	/* print the Resource details */
 	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uns8 *)&rsc_id))) {
 		GLSV_NODE_LIST *list;
 		rsc_id = rsc_info->rsc_id;
-		printf("\nResource Id - : %d  Resource Name - %.10s \n",
+		TRACE("Resource Id - : %d  Resource Name - %.10s ",
 		       (uns32)rsc_info->rsc_id, rsc_info->lck_name.value);
-		printf("Can Orphan - %d Mode - %d \n", rsc_info->can_orphan, (uns32)rsc_info->orphan_lck_mode);
+		TRACE("Can Orphan - %d Mode - %d ", rsc_info->can_orphan, (uns32)rsc_info->orphan_lck_mode);
 		list = rsc_info->node_list;
-		printf("List of Nodes :");
+		TRACE("List of Nodes :");
 		while (list != NULL) {
-			printf("%d    ", m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
+			TRACE("%d    ", m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
 			list = list->next;
 		}
-		printf("\n");
 	}
 	ncshm_give_hdl(gl_gld_hdl);
-	printf("************************************************** \n");
+	TRACE("************************************************** ");
 
 }
