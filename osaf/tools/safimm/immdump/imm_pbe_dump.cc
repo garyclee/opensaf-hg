@@ -1466,7 +1466,7 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	exit(1);	
 }
 
-void verifyClassesInPbe(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
+unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
 {
 	/* Function used only when re-connecting to an already existing DB file. */
 	std::list<std::string> classNameList;
@@ -1474,6 +1474,12 @@ void verifyClassesInPbe(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_h
 	int rc=0;
 	char *execErr=NULL;	
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sqlQ("SELECT MAX(obj_id) FROM objects");
+	unsigned int obj_count;
+	char **result=NULL;
+	char *qErr=NULL;
+	int nrows=0;
+	int ncols=0;
 	TRACE_ENTER();
 
 	classNameList = getClassNames(immHandle);
@@ -1502,8 +1508,23 @@ void verifyClassesInPbe(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_h
 		goto bailout;
 	}
 
+	rc = sqlite3_get_table(dbHandle, sqlQ.c_str(), &result, &nrows, &ncols, &qErr);
+
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlQ.c_str(), qErr);
+		sqlite3_free(qErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+
+	obj_count = strtoul(result[ncols], NULL, 0);
+	TRACE("verifPbeState: obj_count:%u", obj_count);
 	TRACE_LEAVE();
-	return;
+	return obj_count;
 
  bailout:
 	sqlite3_close(dbHandle);
@@ -1749,7 +1770,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 #else
 void* pbeRepositoryInit(const char* filePath, bool create)
 {
-	LOG_WA("immdump not built with Pbe option.");
+	LOG_WA("immdump not built with the --enable-imm-pbe option.");
 	return NULL;
 }
 
@@ -1822,6 +1843,11 @@ void objectToPBE(std::string objectNameString,
 SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
 {
 	return SA_AIS_ERR_LIBRARY;
+}
+
+unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
+{
+	assert(0);
 }
 
 #endif

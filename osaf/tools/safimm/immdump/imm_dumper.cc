@@ -64,7 +64,6 @@ static void usage(const char *progname)
     printf("\nEXAMPLE\n");
     printf("\timmdump /tmp/imm.xml\n");
 }
-
 /*
   Hidden arguments, only intended to be used when immdump is forked by immnd.
    --daemon
@@ -80,11 +79,12 @@ static void usage(const char *progname)
    by immnd because the name for the db file is obtained this way. 
 */
 
+
 static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
     SaAisErrorT operationReturnValue,
     SaAisErrorT)
 {
-    LOG_ER("Unexpected asyn admin-op reaply callback invocation:%llx", invocation);
+    LOG_ER("Unexpected async admin-op callback invocation:%llx", invocation);
 }
 
 static const SaImmCallbacksT callbacks = {
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
             pbeDumpCase = true;
         }
 
-	verifyClassesInPbe(immHandle, &classIdMap, dbHandle);
+	objCount = verifyPbeState(immHandle, &classIdMap, dbHandle);
         TRACE("Classes Verified");
 
     }    
