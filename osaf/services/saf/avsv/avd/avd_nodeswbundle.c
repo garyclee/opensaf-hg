@@ -75,23 +75,24 @@ static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
 	const AVD_COMP *comp;
 	SaNameT bundle_dn;
 
-	su = su_list;
-	while (su != NULL) {
-		comp = su->list_of_comp;
-		while (comp != NULL) {
+	for (su = su_list; su != NULL; su = su->avnd_list_su_next) {
+		for (comp = su->list_of_comp; comp != NULL; comp = comp->su_comp_next) {
 			avsv_create_association_class_dn(&comp->comp_type->saAmfCtSwBundle, 
 				node_dn, "safInstalledSwBundle", &bundle_dn);
 
 			if (memcmp(bundle_dn_to_delete, &bundle_dn, sizeof(SaNameT)) == 0) {
-				LOG_ER("Deletion of '%s' not allowed", bundle_dn_to_delete->value);
-				LOG_ER("Referenced by (at least) '%s'", comp->comp_info.name.value);
-				return 0;
+				if ((su->sg_of_su->sg_ncs_spec &&
+				     (su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)) ||
+				    (!su->sg_of_su->sg_ncs_spec &&
+				     (comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION))) {
+					continue;
+				} else {
+					LOG_ER("Deletion of '%s' not allowed", bundle_dn_to_delete->value);
+					LOG_ER("'%s' admin state is not locked instantiaion", su->name.value);
+					return 0;
+				}
 			}
-
-			comp = comp->su_comp_next;
 		}
-
-		su = su->avnd_list_su_next;
 	}
 
 	return 1;
