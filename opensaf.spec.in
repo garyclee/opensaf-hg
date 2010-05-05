@@ -158,6 +158,7 @@ configured nodes, each with a unique node name.
 %package clm-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
@@ -175,6 +176,7 @@ running on the System Controller nodes only.
 %package clm-nodeagent
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 
@@ -348,6 +350,7 @@ Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
 BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
+Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-plm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
@@ -364,6 +367,7 @@ Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
+Requires: /lib/lsb/init-functions
 
 %description plm-coordinator
 The OpenSAF implementation of the SAF-AIS-PLM Service. This daemon must be
