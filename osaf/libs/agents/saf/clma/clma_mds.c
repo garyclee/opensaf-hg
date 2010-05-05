@@ -750,6 +750,8 @@ static uns32 clma_mds_dec(struct ncsmds_callback_info *info)
 				if (msg->info.api_resp_info.rc == SA_AIS_OK)
 					total_bytes += clma_dec_node_get_rsp_msg(uba, msg);
 				break;
+			case CLMSV_RESPONSE_RESP:
+				break;
 			default:
 				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
 				free(msg);
