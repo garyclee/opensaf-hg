@@ -35,12 +35,12 @@ static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
 static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
 static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns32 sync_resp,
 				     MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt,
-				     CLMS_CLIENT_INFO * client, SaAisErrorT ais_rc);
+				     uns32 client_id, SaAisErrorT ais_rc);
 static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem,
 				       SaClmClusterNotificationT_4 * notify, MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt);
 static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem,
 					    SaClmClusterNotificationT_4 * notify, MDS_DEST *dest,
-					    CLMS_CLIENT_INFO * client);
+					    uns32 client_id);
 
 static const CLMSV_CLMS_EVT_HANDLER clms_clmsv_top_level_evt_dispatch_tbl[] = {
 	process_api_evt,
@@ -739,7 +739,7 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	if (param->flags & SA_TRACK_LOCAL) {
 
 		TRACE("Send track response for the local node");
-		rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt, client, ais_rc);
+		rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt, param->client_id, ais_rc);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE("Sending response for TRACK_LOCAL failed %u", (unsigned int)rc);
 			goto done;
@@ -751,11 +751,11 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 			if (node->member == SA_FALSE) {
 				TRACE("Send reponse when the node is not a cluster member");
 				rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt,
-							     client, ais_rc);
+							     param->client_id, ais_rc);
 			} else {
 				TRACE("Send response for the node being cluster member");
 				rc = clms_track_current_resp(cb, NULL, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt,
-							     client, ais_rc);
+							     param->client_id, ais_rc);
 			}
 		}
 
@@ -1276,7 +1276,7 @@ static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmC
 * @return             void 	
 */
 static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmClusterNotificationT_4 * notify,
-					    MDS_DEST *dest, CLMS_CLIENT_INFO * client)
+					    MDS_DEST *dest, uns32 client_id)
 {
 	TRACE_ENTER();
 	CLMSV_MSG msg;
@@ -1285,7 +1285,7 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, S
 	memset(&msg, 0, sizeof(CLMSV_MSG));
 
 	msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
-	msg.info.cbk_info.client_id = client->client_id;
+	msg.info.cbk_info.client_id = client_id;
 	msg.info.cbk_info.type = CLMSV_TRACK_CBK;
 	msg.info.cbk_info.param.track.mem_num = (osaf_cluster->num_nodes);
 	msg.info.cbk_info.param.track.err = ais_rc;
@@ -1326,7 +1326,7 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, S
  *		   	    NCSCC_RC_SUCCESS	
  */
 static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns32 sync_resp, MDS_DEST *dest,
-				     MDS_SYNC_SND_CTXT *ctxt, CLMS_CLIENT_INFO * client, SaAisErrorT ais_rc)
+				     MDS_SYNC_SND_CTXT *ctxt, uns32 client_id, SaAisErrorT ais_rc)
 {
 
 	SaClmClusterNotificationT_4 *notify = NULL;
@@ -1420,7 +1420,7 @@ static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns
 		clms_track_current_apiresp(ais_rc, num_mem, notify, dest, ctxt);
 	} else {
 		TRACE("Callback response");
-		clms_send_track_current_cbkresp(ais_rc, num_mem, notify, dest, client);
+		clms_send_track_current_cbkresp(ais_rc, num_mem, notify, dest, client_id);
 	}
 
 	if (notify)
