@@ -52,9 +52,7 @@ uns32 mqnd_restart_init(MQND_CB *cb)
 		m_LOG_MQSV_ND(MQND_RESTART_INIT_OPEN_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, SA_AIS_OK, __FILE__,
 			      __LINE__);
 		rc = mqnd_build_database_from_shm(cb);
-#ifdef NCS_MQND
-		printf("\nAfter Building database\n");
-#endif
+		TRACE("After Building database");
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_ND(MQND_RESTART_BUILD_DB_FROM_CKPTSVC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 				      rc, __FILE__, __LINE__);
@@ -147,9 +145,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
-#ifdef NCS_MQND
-	printf("\nBuilding Database\n");
-#endif
+	TRACE("Building Database");
 
 	for (i = 0; i < cb->mqnd_shm.max_open_queues; i++) {
 		if (shm_base_addr[i].valid == SHM_QUEUE_INFO_VALID) {

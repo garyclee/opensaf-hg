@@ -31,7 +31,7 @@
 #include "mqa.h"
 
 /* global cb handle */
- uns32 gl_mqa_hdl = 0;
+uns32 gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
 static uns32 mqa_use_count = 0;
 /* MQA Agent creation specific LOCK */
@@ -951,6 +951,7 @@ uns32 mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
 unsigned int ncs_mqa_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+	char *value = NULL;
 
 	m_MQA_AGENT_LOCK;
 	if (mqa_use_count > 0) {
@@ -969,6 +970,11 @@ unsigned int ncs_mqa_startup(void)
 	} else {
 		m_NCS_DBG_PRINTF("\nMQSV:MQA:ON");
 		mqa_use_count = 1;
+	}
+
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("MQA_TRACE_PATHNAME")) != NULL) {
+		logtrace_init("mqa", value, CATEGORY_ALL);
 	}
 
 	m_MQA_AGENT_UNLOCK;

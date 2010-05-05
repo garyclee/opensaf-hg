@@ -427,7 +427,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	else
 		/* delete Message Queue Objetc at IMMSV */
 	if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-		mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s", qnode->qinfo.queueName.value);
+		mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s \n", qnode->qinfo.queueName.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -987,9 +987,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 				   to compensate for the lost request we send an async request to MQD to process it once again to be 
 				   in sync with database at MQND */
 				/* Deregister the Queue with ASAPi */
-#ifdef NCS_MQND
-				printf("CLOSE TIMEOUT:ASYNC DEREG TO DELETE QUEUE\n");
-#endif
+				TRACE("CLOSE TIMEOUT:ASYNC DEREG TO DELETE QUEUE");
 				memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
 				opr.type = ASAPi_OPR_MSG;
 				opr.info.msg.opr = ASAPi_MSG_SEND;
@@ -1020,7 +1018,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 		if ((timeout == 0) && qnode && (qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) &&
 		    (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))) {
 			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-				mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED",
+				mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED \n",
 					    qnode->qinfo.queueName.value);
 				return NCSCC_RC_FAILURE;
 			}
@@ -1091,9 +1089,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 			   to compensate for the lost request we send an async request to MQD to process it once again to be
 			   in sync with database at MQND */
 			/* Deregister the Queue with ASAPi */
-#ifdef NCS_MQND
-			printf("CLOSE TIMEOUT:ASYNC REG:OWNED TO ORPHAN \n");
-#endif
+			TRACE("CLOSE TIMEOUT:ASYNC REG:OWNED TO ORPHAN ");
 			memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
 			opr.type = ASAPi_OPR_MSG;
 			opr.info.msg.opr = ASAPi_MSG_SEND;

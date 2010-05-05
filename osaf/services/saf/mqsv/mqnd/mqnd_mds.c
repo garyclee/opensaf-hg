@@ -335,7 +335,7 @@ static uns32 mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		/* Drop The Message */
 		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 			      enc_info->o_msg_fmt_ver, __FILE__, __LINE__);
-		printf("mqnd_mds_enc:INVALID MSG FORMAT %d\n", enc_info->o_msg_fmt_ver);
+		TRACE("mqnd_mds_enc:INVALID MSG FORMAT %d", enc_info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -407,7 +407,7 @@ static uns32 mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		/* Drop The Message */
 		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 			      is_valid_msg_fmt, __FILE__, __LINE__);
-		printf("mqnd_mds_dec:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
+		TRACE("mqnd_mds_dec:INVALID MSG FORMAT %d", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -472,7 +472,7 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
 		/* Drop The Message */
 		m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 			      is_valid_msg_fmt, __FILE__, __LINE__);
-		printf("mqnd_mds_direct_rcv:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
+		TRACE("mqnd_mds_direct_rcv:INVALID MSG FORMAT %d", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 
