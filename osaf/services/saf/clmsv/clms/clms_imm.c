@@ -844,7 +844,7 @@ uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIE
 	else
 		msg->info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
 
-	msg->info.cbk_info.param.track.buf_info.viewNumber = node->init_view;
+	msg->info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
 
 	if (client->track_flags & SA_TRACK_CHANGES_ONLY)
 		msg->info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(0);
