@@ -281,11 +281,6 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		app = avd_app_get(&opdata->objectName);
-		if (app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			LOG_ER("Wrong admin state (%u) for delete of '%s'",
-				app->saAmfApplicationAdminState, app->name.value);
-			goto done;
-		}
 		if ((app->list_of_sg != NULL) || (app->list_of_si != NULL)) {
 			LOG_ER("Application still has SGs or SIs");
 			goto done;
@@ -339,7 +334,8 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 	case CCBUTIL_DELETE:
-		avd_app_delete(opdata->userData);
+		app = opdata->userData;
+		avd_app_delete(&app);
 		break;
 	default:
 		assert(0);

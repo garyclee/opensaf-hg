@@ -1703,7 +1703,6 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		comp_ccb_apply_delete_hdlr(opdata);
-		LOG_IN("Deleted '%s'", opdata->objectName.value);
 		break;
 	default:
 		assert(0);

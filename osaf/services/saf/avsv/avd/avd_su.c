@@ -1338,7 +1338,6 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 
 	avd_su_delete(&su);
-	LOG_IN("Deleted '%s'", opdata->objectName.value);
 
 	TRACE_LEAVE();
 }
