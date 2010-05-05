@@ -630,7 +630,9 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	CLMS_CLUSTER_NODE *op_node = NULL;
 	CLMS_TRACK_INFO *trkrec = NULL;
 	SaUint32T nodeid;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	uns32 rc = NCSCC_RC_SUCCESS, mds_rc = NCSCC_RC_SUCCESS;
+	CLMSV_MSG msg;
 
 	TRACE_ENTER2("param->resp %d", param->resp);
 
@@ -638,8 +640,8 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	op_node = clms_node_get_by_id(nodeid);
 
 	if (op_node == NULL) {
-		LOG_ER("Invalid Operation");
-		rc = NCSCC_RC_FAILURE;
+		LOG_ER("Invalid Invocation Id in saClmResponse");
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
@@ -650,6 +652,12 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 
 	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_get(&op_node->trackresp, (uns8 *)&param->inv);
 
+	if (trkrec == NULL) {
+		LOG_ER("Invalid Invocation Id in saClmResponse");
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
 	switch (param->resp) {
 
 	case SA_CLM_CALLBACK_RESPONSE_ERROR:
@@ -658,7 +666,6 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_clmresp_error Failed");
 		}
-		return rc;
 		break;
 
 	case SA_CLM_CALLBACK_RESPONSE_REJECTED:
@@ -667,8 +674,6 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_clmresp_rejected failed");
 		}
-
-		return rc;
 		break;
 	case SA_CLM_CALLBACK_RESPONSE_OK:
 		TRACE("CLM Client responded OK");
@@ -679,7 +684,15 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		break;
 	}
 
- done:
+done:
+	msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+	msg.info.api_resp_info.type = CLMSV_RESPONSE_RESP;
+	msg.info.api_resp_info.rc = ais_rc;
+	mds_rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
+	if (mds_rc != NCSCC_RC_SUCCESS) {
+		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)mds_rc);
+		return mds_rc;
+	}
 
 	TRACE_LEAVE();
 	return rc;
@@ -1092,7 +1105,7 @@ static uns32 proc_finalize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)rc);
-		return NCSCC_RC_SUCCESS;
+		return rc;
 	}
 
 	/* Checkpoint the client data */

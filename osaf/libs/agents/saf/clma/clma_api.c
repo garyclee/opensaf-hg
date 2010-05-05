@@ -1448,7 +1448,7 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, SaClmResponseT response)
 {
 	clma_client_hdl_rec_t *hdl_rec;
-	CLMSV_MSG msg;
+	CLMSV_MSG i_msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 	uns32 mds_rc;
 
@@ -1485,14 +1485,14 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
         ** and make sure the finalize from the server
         ** end returned before deleting the local records.
         **/
-	memset(&msg, 0, sizeof(CLMSV_MSG));
-	msg.evt_type = CLMSV_CLMA_TO_CLMS_API_MSG;
-	msg.info.api_info.type = CLMSV_RESPONSE_REQ;
-	msg.info.api_info.param.clm_resp.client_id = hdl_rec->clms_client_id;
-	msg.info.api_info.param.clm_resp.inv = invocation;
-	msg.info.api_info.param.clm_resp.resp = response;
+	memset(&i_msg, 0, sizeof(CLMSV_MSG));
+	i_msg.evt_type = CLMSV_CLMA_TO_CLMS_API_MSG;
+	i_msg.info.api_info.type = CLMSV_RESPONSE_REQ;
+	i_msg.info.api_info.param.clm_resp.client_id = hdl_rec->clms_client_id;
+	i_msg.info.api_info.param.clm_resp.inv = invocation;
+	i_msg.info.api_info.param.clm_resp.resp = response;
 
-	mds_rc = clma_mds_msg_async_send(&clma_cb, &msg, MDS_SEND_PRIORITY_HIGH);	/* fix me ?? */
+	mds_rc = clma_mds_msg_sync_send(&clma_cb, &i_msg, &o_msg, CLMS_WAIT_TIME);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1505,6 +1505,12 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 		rc = SA_AIS_ERR_NO_RESOURCES;
 		goto done_give_hdl;
 	}
+
+	if (o_msg != NULL) {
+		rc = o_msg->info.api_resp_info.rc;
+		clma_msg_destroy(o_msg);
+	} else
+		rc = SA_AIS_ERR_NO_RESOURCES;
 
  done_give_hdl:
 	ncshm_give_hdl(clmHandle);
