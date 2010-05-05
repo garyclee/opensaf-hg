@@ -966,56 +966,66 @@ uns32 cpnd_ckpt_read_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACC
 			continue;
 		}
 
-		if (data->dataOffset > sec_info->sec_size) {
-			m_LOG_CPND_CL(CPND_SECTION_BOUNDARY_VIOLATION, CPND_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
-				      __LINE__);
-			evt->info.cpa.info.sec_data_rsp.num_of_elmts = -1;
-			evt->info.cpa.info.sec_data_rsp.info.write_err_index = &i;
-			evt->info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_INVALID_PARAM;
-			for (j = 0; j < i; j++) {
-				if (ptr_read_data[j].data != NULL) {
-					m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[j].data);
-					ptr_read_data[j].data = NULL;
-					ptr_read_data[j].read_size = 0;
-				}
-			}
-			rc = NCSCC_RC_FAILURE;
-			break;
-		}
 
-		/* If dataSize == 0 then it means that dataBuffer is NULL */
-		if (data->dataSize == 0) {
-			read_size = sec_info->sec_size - data->dataOffset;
-		} else {
-			if ((data->dataOffset + data->dataSize) >= sec_info->sec_size)
-				read_size = sec_info->sec_size - data->dataOffset;
-			else
-				read_size = data->dataSize;
-		}
-
-		if (!read_size) {
-			if (ptr_read_data[i].data != NULL)
-				m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[i].data);
-			ptr_read_data[i].data = NULL;
-			ptr_read_data[i].read_size = 0;
-			continue;
-		}
-
-		ptr_read_data[i].data = m_MMGR_ALLOC_CPND_DEFAULT(read_size);
-		if (ptr_read_data[i].data == NULL) {
-			ptr_read_data[i].err = 1;
-			continue;
-		}
-		rc = cpnd_ckpt_sec_read(cp_node, sec_info, ptr_read_data[i].data, read_size, data->dataOffset);
-		if (rc == NCSCC_RC_FAILURE) {
-			ptr_read_data[i].err = 1;
-			m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[i].data);
-			ptr_read_data[i].data = NULL;
-			continue;
-		}
-		ptr_read_data[i].read_size = read_size;
-	}
-	return rc;
+      if(data->dataOffset > sec_info->sec_size)
+      {
+         m_LOG_CPND_CL(CPND_SECTION_BOUNDARY_VIOLATION,CPND_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+         evt->info.cpa.info.sec_data_rsp.num_of_elmts=-1;
+         evt->info.cpa.info.sec_data_rsp.error_index = i; /** Error index updated **/
+         evt->info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_INVALID_PARAM;
+         for(j=0;j<i;j++)
+         {
+            if(ptr_read_data[j].data != NULL)   
+            { 
+               m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[j].data);
+               ptr_read_data[j].data=NULL; 
+               ptr_read_data[j].read_size=0; 
+            }
+          }
+          rc = NCSCC_RC_FAILURE;
+          break;
+       }
+         
+      /* If dataSize == 0 then it means that dataBuffer is NULL */
+       if(data->dataSize == 0)
+       {
+         read_size = sec_info->sec_size - data->dataOffset;
+       }
+       else
+       {
+         if ( (data->dataOffset + data->dataSize) >= sec_info->sec_size )
+           read_size=sec_info->sec_size - data->dataOffset;
+         else 
+           read_size=data->dataSize;
+       }
+   
+       if(!read_size) 
+        { 
+         if(ptr_read_data[i].data != NULL)
+           m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[i].data);
+         ptr_read_data[i].data=NULL;
+         ptr_read_data[i].read_size=0;
+         continue;
+        }
+  
+       ptr_read_data[i].data =m_MMGR_ALLOC_CPND_DEFAULT(read_size);
+       if (ptr_read_data[i].data == NULL)
+       {
+          ptr_read_data[i].err=1;
+          continue;
+       }
+       rc=cpnd_ckpt_sec_read(cp_node,sec_info,ptr_read_data[i].data,read_size,\
+                        data->dataOffset);
+       if ( rc == NCSCC_RC_FAILURE) 
+       {
+         ptr_read_data[i].err=1;
+         m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[i].data);
+         ptr_read_data[i].data=NULL;
+         continue;
+       }
+       ptr_read_data[i].read_size=read_size;
+   }
+   return rc;
 }
 
 /****************************************************************************

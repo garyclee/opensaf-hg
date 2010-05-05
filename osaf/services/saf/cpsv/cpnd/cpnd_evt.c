@@ -160,11 +160,12 @@ void cpnd_process_evt(CPSV_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	CPND_SYNC_SEND_NODE *node = NULL;
 
-	if (evt->type != CPSV_EVT_TYPE_CPND) {
-		m_LOG_CPND_CL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		cpnd_evt_destroy(evt);
-		return;
-	}
+   if(evt->type != CPSV_EVT_TYPE_CPND)
+   {
+      m_LOG_CPND_CL(CPND_EVT_UNKNOWN, CPND_FC_EVT,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      cpnd_evt_destroy(evt);
+      return;
+   }
 
 	/* Get the CB from the handle */
 	cb = m_CPND_TAKE_CPND_CB;
@@ -2810,27 +2811,32 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO
 		goto agent_rsp;
 	}
 
-	rc = cpnd_ckpt_update_replica(cb, cp_node, &evt->info.ckpt_write,
-				      evt->info.ckpt_write.type, &err_flag, &errflag);
-	if (rc == NCSCC_RC_FAILURE) {
-		send_evt.type = CPSV_EVT_TYPE_CPA;
-		send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_DATA_RSP;
-		switch (evt->info.ckpt_write.type) {
-		case CPSV_CKPT_ACCESS_WRITE:
-			send_evt.info.cpa.info.sec_data_rsp.info.write_err_index = &errflag;
-			send_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_WRITE_RSP;
-			send_evt.info.cpa.info.sec_data_rsp.num_of_elmts = -1;
-			if (err_flag == CKPT_UPDATE_REPLICA_RES_ERR)
-				send_evt.info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_NO_RESOURCES;
-			else
-				send_evt.info.cpa.info.sec_data_rsp.error = SA_AIS_ERR_NOT_EXIST;
-			break;
+         rc=cpnd_ckpt_update_replica(cb,cp_node,&evt->info.ckpt_write,\
+                 evt->info.ckpt_write.type,&err_flag,&errflag);
+         if (rc == NCSCC_RC_FAILURE)
+         {
+            send_evt.type=CPSV_EVT_TYPE_CPA;
+            send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
+            switch(evt->info.ckpt_write.type)
+            {
+               case CPSV_CKPT_ACCESS_WRITE:
+                  send_evt.info.cpa.info.sec_data_rsp.error_index = errflag; 
+                  send_evt.info.cpa.info.sec_data_rsp.type= \
+                        CPSV_DATA_ACCESS_WRITE_RSP;
+                  send_evt.info.cpa.info.sec_data_rsp.num_of_elmts=-1;
+                  if ( err_flag ==  CKPT_UPDATE_REPLICA_RES_ERR )
+                     send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NO_RESOURCES;
+                  else
+                     send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NOT_EXIST;
+                  break;
 
-		case CPSV_CKPT_ACCESS_OVWRITE:
-			send_evt.info.cpa.info.sec_data_rsp.info.write_err_index = &errflag;
-			send_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_OVWRITE_RSP;
-			send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error = SA_AIS_ERR_NOT_EXIST;
-			break;
+               case CPSV_CKPT_ACCESS_OVWRITE:
+                  send_evt.info.cpa.info.sec_data_rsp.error_index = errflag; 
+                  send_evt.info.cpa.info.sec_data_rsp.type= \
+                      CPSV_DATA_ACCESS_OVWRITE_RSP;
+                  send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error= \
+                             SA_AIS_ERR_NOT_EXIST;
+                  break;
 
 		default:
 			m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT, NCSFL_SEV_ERROR, evt->info.ckpt_write.type,

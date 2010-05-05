@@ -481,18 +481,22 @@ typedef struct cpsv_nd2a_read_data {
 #define CPSV_DATA_ACCESS_WRITE_RSP       0x3
 #define CPSV_DATA_ACCESS_OVWRITE_RSP    0x4
 
-typedef struct cpsv_nd2a_read_rsp {
-	SaUint32T type;		/* 1-read_lcl,2-read_rmt,3-write and 4-ovwrite rsps */
-	SaUint32T num_of_elmts;
-	SaUint32T size;
-	SaAisErrorT error;
-	SaCkptCheckpointHandleT ckpt_id;	/* index for identifying the checkpoint */
-	MDS_DEST from_svc;
-	union {
-		SaUint32T *write_err_index;
-		CPSV_ND2A_READ_MAP *read_mapping;
-		CPSV_ND2A_READ_DATA *read_data;
-		CPSV_SAERR_INFO ovwrite_error;
+
+
+typedef struct cpsv_nd2a_read_rsp
+{
+   SaUint32T type; /* 1-read_lcl,2-read_rmt,3-write and 4-ovwrite rsps */
+   SaUint32T num_of_elmts;
+   SaUint32T size;
+   SaAisErrorT error;
+   SaCkptCheckpointHandleT   ckpt_id;   /* index for identifying the checkpoint */
+   SaUint32T error_index;
+   MDS_DEST from_svc;
+   union {
+     SaUint32T *write_err_index;
+     CPSV_ND2A_READ_MAP *read_mapping;
+     CPSV_ND2A_READ_DATA *read_data;
+     CPSV_SAERR_INFO     ovwrite_error;
 
 	} info;
 
