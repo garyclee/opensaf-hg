@@ -80,6 +80,9 @@ check_env() {
 	fi
 
 	rm -f $pkglogdir/nid.log
+
+	short_hostname=`hostname -s`
+	echo $short_hostname > $pkgsysconfdir/node_name
 }
 
 clean_shm() {
