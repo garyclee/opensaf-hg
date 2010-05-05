@@ -256,6 +256,10 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 		role_change = FALSE;
 
 	if (role_change == TRUE) {
+
+		if(clms_cb->ha_state == SA_AMF_HA_ACTIVE)
+			clms_imm_impl_set(clms_cb);
+
 		if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
