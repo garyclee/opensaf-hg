@@ -174,7 +174,6 @@ static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		ccb_apply_delete_hdlr(opdata);
-		LOG_IN("Deleted '%s'", opdata->objectName.value);
 		break;
 	case CCBUTIL_MODIFY:
 		ccb_apply_modify_hdlr(opdata);
