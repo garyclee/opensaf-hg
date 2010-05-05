@@ -635,7 +635,7 @@ Requires: %{name}-controller = %{version}-%{release}
 
 %build
 %configure @ac_configure_args@
-%{__make} %{_smp_mflags}
+%{__make} %{?_smp_mflags}
 
 
 %install
