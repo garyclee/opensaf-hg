@@ -309,23 +309,9 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 			return NCSCC_RC_FAILURE;
 		}
 
-#if 0
-		/*  Now the PWE-ID is available */
-		/* STEP : If there is an OAA for this PWE, then destroy it */
-		spir_req.i_environment_id = mds_info.info.query_pwe.o_pwe_id;
-		spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-		spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-		spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-
-		if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
-			spir_req.type = NCS_SPIR_REQ_REL_INST;
-			spir_req.info.rel_inst = 0;	/* Dummy unsued value */
-			ncs_spir_api(&spir_req);	/* We discard the return value */
-		}
-#endif
-
 		/* Release the handle to that PWE */
-		/* NOTE : Some of the SPIR fields already set above */
+		spir_req.i_environment_id = mds_info.info.query_pwe.o_pwe_id;
+		spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
 		spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
 		spir_req.type = NCS_SPIR_REQ_REL_INST;
 		spir_req.info.rel_inst = 0;	/* Dummy unused value */
