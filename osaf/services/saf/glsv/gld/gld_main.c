@@ -36,7 +36,7 @@ static int __init_gld(void)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	/* Init GLD */
-	m_NCS_DBG_PRINTF("\nGLSV:GLD:ON");
+	TRACE("GLSV:GLD:ON");
 	if (gld_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "gld_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

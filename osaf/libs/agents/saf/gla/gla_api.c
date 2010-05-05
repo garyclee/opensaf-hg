@@ -559,7 +559,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 
-	TRACE("\n saLckResourceOpen Called with Handle %llu and Name %.7s", (uns64)lckHandle, lockResourceName->value);
+	TRACE("saLckResourceOpen Called with Handle %llu and Name %.7s", (uns64)lckHandle, lockResourceName->value);
 
 	/* retrieve GLA CB */
 	gla_cb = (GLA_CB *)m_GLSV_GLA_RETRIEVE_GLA_CB;

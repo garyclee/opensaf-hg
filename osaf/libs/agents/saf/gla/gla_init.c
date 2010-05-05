@@ -1126,6 +1126,7 @@ void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO 
 unsigned int ncs_gla_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+	char *value = NULL;
 
 	m_GLA_AGENT_LOCK;
 	if (gla_use_count > 0) {
@@ -1142,8 +1143,13 @@ unsigned int ncs_gla_startup(void)
 		m_GLA_AGENT_UNLOCK;
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	} else {
-		m_NCS_DBG_PRINTF("\nGLSV:GLA:ON");
+		TRACE("GLSV:GLA:ON");
 		gla_use_count = 1;
+	}
+
+        /* Initialize trace system first of all so we can see what is going. */
+        if ((value = getenv("GLA_TRACE_PATHNAME")) != NULL) {
+               logtrace_init("gla", value, CATEGORY_ALL);
 	}
 
 	m_GLA_AGENT_UNLOCK;

@@ -387,7 +387,6 @@ static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 
 	if (!info->o_msg_fmt_ver) {	/* Drop The Message */
 		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("glnd_mds_enc:INVALID MSG FORMAT %d\n", info->o_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 	return NCSCC_RC_FAILURE;
@@ -512,7 +511,6 @@ static uns32 glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	} else {
 		/* Drop The Message */
 		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("glnd_mds_dec:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -689,7 +687,6 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	} else {
 		/* Drop The Message */
 		m_LOG_GLND_HEADLINE(GLND_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("glnd_mds_dec_flat:INVALID MSG FORMAT %d\n", is_valid_msg_fmt);
 		return NCSCC_RC_FAILURE;
 	}
 }
