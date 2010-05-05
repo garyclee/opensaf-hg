@@ -242,7 +242,6 @@ uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * no
 
 	TRACE_ENTER2("admin state change for node name %s", node->node_name.value);
 
-	assert(newState < SA_CLM_ADMIN_SHUTTING_DOWN);
 	saflog(LOG_NOTICE, clmSvcUsrName, "%s Admin State Changed, new state=%s",
 		   node->node_name.value, clm_adm_state_name[newState]);
 
