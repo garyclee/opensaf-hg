@@ -519,12 +519,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (avd_comptype_get(&aname) == NULL) {
 		/* Comp type does not exist in current model, check CCB */
 		if (opdata == NULL) {
-			LOG_ER("Comp type '%s' does not exist in model", aname.value);
+			LOG_ER("'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("Comp type '%s' does not exist in existing model or in CCB", aname.value);
+			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}

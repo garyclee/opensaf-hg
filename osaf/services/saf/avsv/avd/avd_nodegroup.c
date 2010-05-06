@@ -73,17 +73,17 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	assert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		AVD_AVND *node = avd_node_get((SaNameT *)attr->attrValues[j]);
+		SaNameT *name = (SaNameT *)attr->attrValues[j];
+		AVD_AVND *node = avd_node_get(name);
 		if (node == NULL) {
 			if (opdata == NULL) {
-				LOG_ER("Node '%s' does not exist in model", dn->value);
+				LOG_ER("'%s' does not exist in model", name->value);
 				return 0;
 			}
 
 			/* Node does not exist in current model, check CCB */
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)attr->attrValues[j]) == NULL) {
-				LOG_ER("Node '%s' does not exist either in model or CCB",
-					((SaNameT *)attr->attrValues[j])->value);
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
+				LOG_ER("'%s' does not exist either in model or CCB", name->value);
 				return SA_AIS_ERR_BAD_OPERATION;
 			}
 		}
@@ -263,7 +263,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if ((node == NULL) &&
 					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == NULL)) {
 
-					LOG_ER("Node '%s' does not exist in model or CCB",
+					LOG_ER("'%s' does not exist in model or CCB",
 						((SaNameT *)mod->modAttr.attrValues[j])->value);
 					goto done;
 				}
