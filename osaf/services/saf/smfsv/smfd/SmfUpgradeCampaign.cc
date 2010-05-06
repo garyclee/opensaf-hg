@@ -265,10 +265,21 @@ SmfUpgradeCampaign::setCampState(SaSmfCmpgStateT i_state)
 //------------------------------------------------------------------------------
 // addUpgradeProcedure()
 //------------------------------------------------------------------------------
-void 
+bool 
 SmfUpgradeCampaign::addUpgradeProcedure(SmfUpgradeProcedure * i_procedure)
 {
+	std::vector < SmfUpgradeProcedure * >::iterator iter;
+ 
+        iter = this->m_procedure.begin();
+        while (iter != this->m_procedure.end()) {
+                if (!strcmp((*iter)->getProcName().c_str(), i_procedure->getProcName().c_str())){
+                        LOG_ER("CAMP: Procedure %s is already present, invalid upgrade campaign", i_procedure->getProcName().c_str());
+                        return false;
+                }
+                iter++;
+        }
 	m_procedure.push_back(i_procedure);
+	return true;
 }
 
 //------------------------------------------------------------------------------

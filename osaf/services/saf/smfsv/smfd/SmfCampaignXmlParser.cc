@@ -200,7 +200,11 @@ SmfCampaignXmlParser::parseCampaignXml(std::string i_file)
 			assert(up != NULL);
 
 			parseUpgradeProcedure(up, cur);
-			campaign->addUpgradeProcedure(up);
+			if(!campaign->addUpgradeProcedure(up))
+			{
+				LOG_ER("SmfCampaignXmlParser::parseCampaignXml, addUpgradeProcedure failed");
+				goto error_exit;
+			}
 		} else if ((!strcmp((char *)cur->name, "campaignWrapup"))
 			   && (cur->ns == ns)) {
 			TRACE("xmlTag campaignWrapup found\n");

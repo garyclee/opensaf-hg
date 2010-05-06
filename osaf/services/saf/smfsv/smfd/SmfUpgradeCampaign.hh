@@ -149,7 +149,7 @@ class SmfUpgradeCampaign {
 /// @param   i_procedure A pointer to a (filled in) SmfUpgradeProcedure object that should be added.
 /// @return  None.
 ///
-	void addUpgradeProcedure(SmfUpgradeProcedure * i_procedure);
+	bool addUpgradeProcedure(SmfUpgradeProcedure * i_procedure);
 
 ///
 /// Purpose: Get pointers to the upgrade procedures.
