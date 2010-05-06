@@ -1,0 +1,11 @@
+This is the README file for the PLMc config directory.
+
+This directory consists of the following files:
+
+plmcd.conf
+  A sample plmcd.conf file.  A custom version of this file needs to be
+  installed in $sysconf, or the PLMc environment variables need
+  to be set.  See the PLMc scripts directory for details.  Please note 
+  well: The plmcd.conf file has a tag for the ee_id.  This ee_id must be 
+  unique for the given cluster node.  If the ee_id value is duplicated across 
+  cluster nodes, the PLMc library will not function correctly.

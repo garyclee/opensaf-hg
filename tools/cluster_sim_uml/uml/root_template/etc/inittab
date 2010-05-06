@@ -1,0 +1,7 @@
+::sysinit:/etc/init.d/rcS
+##::askfirst:/bin/sh (hangs "init" until keypress!)
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r
+::restart:/sbin/init
+##tty0::respawn:/sbin/getty 38400 tty0
+tty0::respawn:/bin/env ENV=/etc/profile /bin/ash

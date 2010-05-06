@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+
+NODE_CFG_FILE=./nodes.cfg
+
+
+trace () {
+  if [ ! -z "$TRACE_ENABLED" ]; then
+     echo -e "trace: $1" >&2
+     #         ^^^ to stderr
+  fi
+}
+
+script_error () {
+   echo "error: $1" >&2
+   #         ^^^ to stderr
+}
+
+info () {
+   echo "$1" >&2
+   #         ^^^ to stderr
+}
+
+validate_options()
+{
+   trace "SC_COUNT:$SC_COUNT PL_COUNT:$PL_COUNT"
+
+   if [ -z "$PL_COUNT" -o  -z "$SC_COUNT" ] ; then
+      echo -e $USAGE ; exit 1
+   fi
+
+   if [ $SC_COUNT -lt 1 -o $SC_COUNT -gt 2 ] ; then
+      script_error "One or two SC's must be specified!. Exiting!"
+      exit 1
+   fi
+
+   if [ $SC_COUNT -lt 2 -a $PL_COUNT -gt 0 ] ; then
+      script_error "Two SC's is required for clusters with payloads. Exiting!"
+      exit 1
+   fi
+}
+
+USAGE="Usage: immxml-clustersize\n\
+\t  [-s|--sc-count count]\n\
+\t  [-p|--pl-count count]\n\
+\t  [-h|--help]\n\
+\n\
+This command generates a default nodes.cfg file which is used as input\n
+to immxml-configure to generate the final imm.xml file.\n"
+
+TEMP=`getopt -o s:p:ht --long help,trace,pl-count:,sc-count: \
+     -- "$@"`
+if [ $? != 0 ] ; then 
+   script_error "Failed to process command options. Terminating..."
+   exit 1 ; 
+fi
+eval set -- "$TEMP"
+
+PL_COUNT=0  # default value
+
+while true ; do
+	case "$1" in
+		-p|--pl-count) PL_COUNT=$2; trace "Option --pl-count, argument \`$PL_COUNT'" ; shift 2 ;;
+		-s|--sc-count) SC_COUNT=$2; trace "Option --sc-count, argument \`$SC_COUNT'" ; shift 2 ;;
+		-h|--help) echo -e $USAGE ; exit 1 ;;
+		-t|--trace) TRACE_ENABLED=on ; shift 1 ;;
+		--) shift ; break ;;
+		*) script_error "Internal error!" ; exit 1 ;;
+	esac
+done
+
+# validate SC/PL count
+validate_options
+
+# first truncate existing nodes.cfg file (if any)
+>$NODE_CFG_FILE
+
+for (( i=1; i <= $SC_COUNT; i++ ))
+do
+	echo "SC SC-$i SC-$i" >>$NODE_CFG_FILE
+done
+
+PL_MAX=$(($PL_COUNT+$i))
+for (( i=$i; i < $PL_MAX; i++ ))
+do
+	echo "PL PL-$i PL-$i" >>$NODE_CFG_FILE
+done
+
+info "Successful, result stored in the file $NODE_CFG_FILE"
+exit 0

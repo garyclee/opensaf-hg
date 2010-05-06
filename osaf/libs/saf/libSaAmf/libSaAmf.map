@@ -1,0 +1,10 @@
+# Version and symbol export for libSaAmf.so
+
+{
+	global:
+		saAmf*;
+		ava_install_amf_down_cb;	# FIXME ava* should be local-only
+
+	local:
+		*;
+};

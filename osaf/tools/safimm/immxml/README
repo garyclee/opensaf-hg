@@ -1,0 +1,19 @@
+This file documents how to generate the imm.xml file.
+
+After installing opensaf follow this process to generate imm.xml:
+
+$ cd /usr/local/share/opensaf/immxml
+
+# generate a config file (nodes.cfg) for a 8 node cluster
+immxml-clustersize -s 2 -p 6
+
+# if needed edit the nodes.cfg (e.g. using non-standard hostnames etc TBD)
+# This is not needed for now....
+$ vi ./nodes.cfg 
+
+# generate the imm.xml
+$ immxml-configure
+
+# copy the generated imm.xml file to the location of imm loader 
+cp imm.xml.20100217_2201 /etc/opensaf/imm.xml
+

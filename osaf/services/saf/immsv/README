@@ -1,0 +1,557 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+
+This directory (services/immsv) contains an implementation of the SAF IMM 
+service version A.02.01.
+
+Application programmers intending to interface with immsv should primarily read
+the document "OpenSAF IMM Service Release 3 Programmer's Reference" and of
+course the IMM standard (SAI-AIS-IMM-A.02.01).
+
+This document provides an overview of the design and internals of the immsv. 
+It is intended for maintainers or trouble-shooters of the immsv in OpenSAF.
+Familiarity with the IMM standard is obviously also helpful in understanding
+this document. 
+
+The IMM service follows the three tier OpenSAF "Service Director" framework
+(see OpenSAF Overview User's Guide). As such, the process structure consists of:
+
+        * The IMM Director process type (IMMD).
+        * The IMM Node Director process type (IMMND).
+        * The application procesesses linked with the IMM Agent library (IMMA).
+
+IMMD
+====
+The IMMD is implemented as a server process executing on the controllers using
+a 2N redundancy model. The IMMD on the active controller can be seen as the 
+"central master" of the IMM service. The standby IMMD is kept up-to-date by the
+active IMMD using the message based checkpointing service. If the active 
+controller goes down, the standby controller becomes active by order from the
+AMF. A crash of any director process, such as the IMMD, will escalate to a
+restart of the active controller, which of course implies a fail-over of the
+directors for all services.
+
+The active IMMD tracks the cluster membership (using MDS/tipc) and controls 
+which nodes/IMMNDs currently can provide access to the IMM service. 
+Note: the current implementation of IMM does not use the SAF CLM service. 
+That service is only at the node level. The cluster that is tracked by the IMMD
+will loose and gain membership not only when nodes leave and join, but also when
+IMMND processes crash and restart. The crash of an IMMND process does *not*
+imply the restart of the node where it executes. 
+
+The set of IMMNDs known by the IMMD is the basis for the two main functions of
+the IMMD:
+
+        * FEVS, a reliable multicast between IMMNDs.
+        * Election of IMMND coordinator.
+
+To understand the current implementation of the IMM service, it helps to know
+that it was first developed in a different context. That context used Extended
+Virtual Synchrony (EVS) as the basic cluster communication protocol.
+It had only one server process type implementing the IMM service and it executed
+symmetrically, one server process on each node. That implementation has now been 
+ported to the OpenSAF middle-ware. The single symmetrically distributed process
+now corresponds to the IMMND process type. The IMMD provides a replacement for
+EVS that we call FEVS. 
+
+FEVS (Fake EVS) is so named because it roughly emulates the semantics (but not
+the API) of EVS. That is, FEVS tries to provide a reliable multicast over a set 
+of members plus control over changes of membership. By "reliable" we mean that
+any FEVS message arriving at a member, must arrive at all current members and 
+in the same order. Thus it provides non-loss and uniform ordering of messages.
+In addition, when a member joins or leaves, the other members see that join or
+leave at the same point in the FEVS message sequence. 
+
+The other function of the IMMD, election of IMMND coordinator, concerns a minor
+asymmetry between the IMMNDs. One of the current IMMND members has to take on 
+the role of IMMND coordinator. Exactly what this means is explained in the next
+section. Here it suffices to say that it does not matter which one of the 
+current IMMND members takes on this role, only that one and only one of the
+IMMNDs has this role at all times. The IMMD will always decide which IMMND is
+the current coordinator. 
+
+The IMMD is quite lean, simple and small in its functionality. It is almost not 
+imm service specific at all. This increases the probability that it is robust
+and stays so. This is good given the serious escalation caused by the failure
+of any director process, in OpenSAF.
+
+
+IMMND
+=====
+The IMMND is implemented as a server process executing on all nodes (both 
+controllers and payloads) according to the "No Redundancy" model. Each IMMND
+handles all connections made by clients to the IMM service, at that node.
+This off-loads the central IMMD server from handling any client related data.
+In fact, an IMMD fail-over will not impact any clients, except the clients at
+the active controller itself which has to restart. 
+
+The IMMND process is the "real" IMM server. It contains the IMM data model,
+which holds the configuration and runtime objects that is the core of the 
+IMM service. It also has information about all implementers, admin-owners and 
+CCBs currently registered. In the current implementation, this repository is 
+symmetrically replicated over the IMMND at all processors. This will optimise 
+for read access, since all such accesses can be kept purely node-local.
+
+Updates on the other hand, must be replicated to all IMMNDs. To ensure that all
+IMMNDs are kept consistent and complete, the IMM service uses the FEVS protocol
+provided by the IMMD. When a client issues a request that implies a mutation of
+the IMM repository, the local IMMND that receives the request does not
+immediately apply the request. Instead it FEVS forwards the request to the IMMD.
+The IMMD in turn will add a sequence number to the message and then forward the
+message to all IMMNDs (including the originating IMMND), using MDS broadcast.
+
+Since all such messages pass through the single active IMMD process, a total
+order is enforced. The sequence number added by the IMMD is only used as a
+redundant check for completeness (non-loss). Any IMMND that receives an
+out-of-sequence message will not apply that message. Instead it will either
+restart and request a "sync"; or it may request a resend from the IMMD of the
+missing message(s). [The resend variant is not yet fully implemented.]
+
+The IMMND processes are in essence symmetrically equivalent. But there are a few
+important exceptions. First, the details of connections are maintained only at
+the local IMMND. Other IMMNDs will, for example, know which node an attached 
+implementer resides on, but not the exact connection for a remote implementer.
+Any need to reach a remote implementer is solved by communicating with the 
+IMMND at that node. Second, at all times when the IMM service is operational,
+one and only one of the IMMNDs is designated the IMMND-coordinator. The IMMND 
+that is currently the coordinator will take on the task of conducting a few
+cluster global operations when needed:
+
+        * Initial loading; 
+        * Sync of restarted IMMNDs; 
+        * Aborting CCBs waiting on apparently hung implementors. 
+
+A very good question here is: why not move the IMMND coordinator role to the 
+active IMMD? This is indeed possible to do, but there are at least a few 
+arguments against it. 
+
+First, these three tasks depend on knowledge of the current state of CCBs.
+At the start of a sync, there is a period of grace where the IMMSv will not
+accept new CCBs, but will allow already started CCBs to complete. A CCB can not
+be aborted if it is in the critical phase of distributed commit. Loading also 
+has to be coordinated with sync, because the loading is often followed
+immediately by a sync of any straggler nodes that missed the start of the
+loading sequence. The dependency on CCB state could be solved by involving the
+IMMD in the CCB life cycle. But since all IMMNDs are already involved in the CCB
+handling and sync, there is no real simplification in also involving the IMMD.
+The only way to really simplify would be to move the entire repository to the
+IMMD, converting to the "Service Server" framework, or possibly keeping the
+IMMNDs but only for client connection management. Indeed, we may end up there in
+the future.
+
+Second, there is a strong argument for keeping the IMMDs simple and by
+implication robust. A crash of an IMMD causes a controller fail-over, but a
+crash of an IMMND, even on the active controller, only causes a restart of the
+IMMND. 
+
+Finally, another reason why the IMMND coordinator role does not reside with the 
+active IMMD is historical, that it was ported from an EVS based implementation.
+
+The coordinator IMMND can theoretically be any IMMND in the system. In the
+current implementation we have restricted it to reside on a controller node.
+The only reason for this restriction is that the task of loading requires
+access to the file system and we do not wish to assume that payloads have such
+access. In the future we may enhance the reliability of the IMM service by
+allowing any IMMND to become coordinator once the IMMNDs have loaded. 
+
+The current limitation, that the IMMND coordinator must reside on a controller,
+has a downside.  If the IMMNDs at both controllers fail, the IMMD can not elect
+any coordinator. Instead the IMMD has to order all IMMNDs to restart, which 
+currently causes a reload of the entire IMMSv from the current imm.xml file. 
+Such a cluster restart of the IMM service, without a cluster restart of the 
+entire cluster, or at least a restart of components dependent on the immsv,
+is an anomaly. We hope to resolve this anomaly in the near future by a proper
+escalation, by the AMF, when the IMMSv needs to restart. The degree of
+persistence supported is central to this problem.   
+
+
+IMMA
+====
+
+The client interface conforms to the OpenSAF agent library framework. The IMMA
+library (libSaImmOm.so and libSaImmOi.so) only communicate with the node local
+IMMND process. As explained previously, all read accesses made by the client
+are kept node-local. In addition, the values for basic immsv handles:
+
+        SaImmHandleT
+        SaImmSearchHanldeT
+        SaImmAccessorHandleT
+        SaImmOiHandleT
+
+are all set by the local IMMND without going remote to the IMMD or other IMMNDs. 
+The following handles are related to resource allocation, need global validity
+and therefore are initialised over FEVS.
+
+        SaImmAdminOwnerHandleT (linked to SaImmHandleT)
+        SaImmCcbHandleT        (linked to SaImmAdminOwnerHandleT & SaImmHandleT)
+        SaImmOiImplemenerNameT (linked to SaImmOiHandleT).
+
+Because the basic handles are allocated and known only by the local IMMND, a
+crash or termination of that IMMND will cause the IMMA library instantiations
+at the node to mark all its handles as stale. Even global handles allocated via
+the crashed IMMND are effectively stale because they depend on the local handles. 
+
+The restart of an IMMND should still usually be transparent to the clients 
+at that node. The IMMA library tries to resurrect the handles once the IMMND
+at the node has restarted. In some cases the IMMA will not be able to 
+resurrect the handle. One example is if the handle is related to an admin-owner
+handle with the 'release-on-finalize' option set ot true. 
+Some clients may then get their handles invalidated. Any attempt by a client
+to use such a stale and unsuccessfully resurected handle will result in a
+reply of SA_AIS_ERR_INVALID_HANDLE. 
+
+Note that it is at least not necessary for the client applications to restart.
+They may reconnect by simply allocating a new handle. Of course, CCBs that
+originated at the node and that where not applied, are aborted. Implementers
+need to re-attach. Admin-ownership needs to be reclaimed etc, if you have
+allocated a new handle to replace a stale one.
+
+From the perspective of the other nodes, the termination of a remote IMMND is
+handled in the same way as if the node it executed on terminated, i.e. the
+resources allocated by any client at that node are released. Note however that
+such a release of resources by the other IMMNDs is not done immediately or
+autonomously by each node. Instead a release order is sent over FEVS. 
+The actual release is done when the FEVS message arrives at the IMMNDs,
+ensuring that all IMMNDs release the resource at the same point in the FEVS
+message sequence.
+
+
+PERSISTENCE
+The IMM standard mandates that configuration attributes and persistent runtime
+attributes shall be persistent in the sense that such values must survive a
+cluster restart and that this must hold for every applied CCB. The current
+implementation of the IMMSv in OpenSAF does not fully support persistence at the
+CCB granularity. Instead it supports persistence at the coarse granularity of
+dump/backup. Thus the user must ensure that the IMM is dumped after important
+changes are made to such data. The configuration data and persistent runtime
+data will survive cluster restart, but only the latest dumped version will be
+recovered.
+
+To fully replace the MASv/PSSv as repository for the AMF, the IMMSv should
+provide the same degree of persistence. So we clearly have the intention of 
+fixing this one way or another.
+
+
+-----------------------------------------------
+Note March 4 2010: 
+Third drop of IMM Persistent Back-End (IMM_PBE) has been made based on 
+sqlite.
+
+This drop allows the user to: 
+	* dump imm contents to an sqlite3 database file.
+	* load the imm-service from an sqlite3 database file
+	(generated by a dump).
+	* Enable and Disable the PBE feature at runtime.
+        * Restart of a crashed PBE will restart and re-generate disk-rep.
+	* CCBs commits are persistified by the PBE as part of the commit
+	protocol.
+
+Still to implement:
+	* Persistification of persistent runtime attributes.
+        * Escalation of immsv reload to cluster restart when PBE is
+	not enabled.
+
+
+The IMM-PBE feature is intended to be an optional feature.
+To enable this feature the folowing three steps are needed. 
+
+	1) ++++++BUILD WITH PBE+++++++
+
+	In the configure step for OpenSAF enable the pbe:
+
+	./configure --enable-imm-pbe
+
+	You may of course also give other options to configure at the saem time.
+
+	Ensure that OpenSAF builds without problems. In particular that it finds
+	the sqlite3 include files and the sqlite3 library.
+
+	2) ++++++CONFIGURE PBE DEPLOYMENT+++++++++
+
+	Edit 'osaf/services/saf/immsv/config/imm.conf' or in the 
+	deployed system typically '/etc/opensaf/imm.conf'.
+
+	Ensure the IMMSV_ROOT_DIRECTORY points to a shared file system,
+	the sqlite3 database file has to be accessible from both controllers!
+	In deployment the IMMSV_ROOT_DIRECTORY would typically be set to
+	'/var/lib/opensaf/immsv_store'. In the UML simulated deployment,
+	this is normally linked symbolically to 'hostfs/repl-opensaf/immsv_store'.
+
+	Define IMMSV_PBE_FILE to the file name of the sqlite3 database file,
+	normally 'imm.db'. 
+	Note that IMMSV_LOAD_FILE must still also be defined. Even with PBE
+	enabled, you typically initial start from an imm.xml file.
+
+	Initial start the system.
+	Ensure that it comes up (that the immsv loads properly from imm.xml).
+
+	3) +++++ENABLE PBE++++++++
+
+	On one of the nodes execute:
+
+	immcfg -m -a saImmRepositoryInit=1 \
+	   safRdn=immManagement,safApp=safImmService
+
+	This sets the saImmRepositoryInit attribute in the IMM service
+	object to SA_IMM_KEP_RESPOSITORY (1).
+
+	If this immcfg command succeeds, the pbe is runtime enabled and the 
+	pbe-daemon process should have started and it should have generated
+	the first dump to the pbe-file.
+	A 'ps' on the controller where the IMMND coord currently resides 
+	should show something like:
+
+        618 root 22320 S N  /usr/local/bin/immdump --daemon --pbe /var/lib/..
+
+	The PBE feature can at any time be disabled by:
+
+	immcfg -m -a saImmRepositoryInit=2 \
+	   safRdn=immManagement,safApp=safImmService
+
+---------------------
+
+
+DEPENDENCIES
+
+immsv depends of the following other services:
+- NID
+- MBCSV
+- MDS
+- LEAP
+- AvSv
+- logtrace
+- libxml2
+
+
+DIRECTORY STRUCTURE
+
+include                 Standard public header files:saImm.h saImmOi.h saImmOm.h
+config	                The imm.xml default start file, the imm.conf
+                        deployment file
+services/immsv/inc      Common header files used by imma, immd and immnd
+services/immsv/common   Common code (msg encode/decode) used by imma, immd and
+                        immnd
+services/immsv/imma     IMM library implementation, both OM and OI
+services/immsv/immd     IMM Director implementation
+services/immsv/immnd    IMM Node Director implementation
+services/immsv/utils    Code for the immload, immdump, immfind, immlist, immcfg,
+                        immadm
+lib/lib_SaImm           IMM library staging: libSaImmOm & libSaImmOi
+scripts                 opensaf_imm.in source start script
+tests/immsv/            Function tests for IMM-OM and IMM-OI
+
+
+DATA STRUCTURES
+
+The most important data structures for the IMMD process type are:
+
+ IMMD_CB:               The "control block" for the IMMD, a singleton
+ IMMD_IMMND_INFO_NODE:  Information about one IMMND
+ IMMD_CB.immnd_tree:    Collection of IMMD_IMMND_INFO_NODEs
+
+
+The most important data structures for the IMMND process type are:
+
+ IMMND_CB:                              The "control block" for the IMMND, a 
+                                        singleton
+ IMMND_IMM_CLIENT_NODE:                 Information about one client connection
+ IMMND_IMM_CLIENT_NODE.client_info_db:  Collection of IMMND_IMM_CLIENT_NODEs
+ IMMND_IMM_CLIENT_NDOE.immModel:        Pointer to the core Imm model,
+                                        a singleton. The ImmModel code is found
+                                        in ImmModel.[hh|cc]
+
+The most important data structures for the IMMA library are:
+
+ IMMA_CB:                       The "control block" for the IMMA, a singleton
+ IMMA_CLIENT_NODE:              Information about one OM or OI connection
+ IMMA_CB.client_tree:           Collection of IMMA_CLIENT_NODEs
+ IMMA_ADMIN_OWNER_NODE:         Information about one admin-owner registration
+ IMMA_CB.admin_owner_tree:      Collection of IMMA_ADMIN_OWNER_NODEs
+ IMMA_CCB_NODE:                 Information about one initialised CCB
+ IMMA_CB.ccb_tree:              Collection of IMMA_CCB_NODEs
+ IMMA_SEARCH_NODE:              Information about one initialised search
+ IMMA_CB.search_tree:           Collection of IMMA_SEARCH_NODEs
+ IMMA_CONTINUATION_RECORD:      Information about one invoked asynchronous
+                                admin-op
+ IMMA_CB.imma_continuations:    Collection of IMMA_CONTINUATION_RECORDs
+
+Common message types and message layouts are found under services/immsv/inc/
+in the files immsv_evt.h and immsv_evt_model.h
+
+
+STATE MACHINES
+
+There are two state machines that control important aspects of the IMMND
+behaviour.
+
+The ImmNodeState in immModel.cc governs the accessibility of the data model of
+the IMM at each node.
+
+    typedef enum {
+
+        IMM_NODE_UNKNOWN = 0,         /*Initial state */
+        IMM_NODE_LOADING = 1,         /* Participating in a cluster restart */
+        IMM_NODE_FULLY_AVAILABLE = 2, /* Normal fully available state */
+        IMM_NODE_ISOLATED = 3,        /* Trying to join an established cluster*/
+        IMM_NODE_W_AVAILABLE = 4,     /* We are being synced, No model reads
+                                         allowed */
+        IMM_NODE_R_AVAILABLE = 5      /* Write locked while other nodes are
+                                         being synced. No model writes allowed*/
+    } ImmNodeState;
+
+  Transitions:
+
+    IMM_NODE_UNKNOWN -(StartLoading)-> IMM_NODE_LOADING
+    IMM_NODE_LOADING -(LoadingSuccess)->IMM_NODE_FULLY_AVAILABLE
+    IMM_NODE_UNKNOWN -(MissedLoading)-> IMM_NODE_ISOLATED
+    IMM_NODE_ISOLATED-(StartSync)->IMM_NODE_W_AVAILABLE
+    IMM_NODE_W_AVAILABLE-(SyncSuccess)->IMM_NODE_FULLY_AVAILABLE
+    IMM_NODE_FULLY_AVAILABLE->(StartSync)->IMM_NODE_R_AVAILABLE
+    IMM_NODE_R_AVAILABLE->(SyncTerminate)->IMM_NODE_FULLY_AVAILABLE
+
+
+The IMMND_SERVER_STATE in immnd_cb.h and immnd_proc.c governs the progress of
+cluster level tasks. In particular the behaviour of the coordinator, and
+non-coordinators during loading and sync.
+
+    typedef enum immnd_server_state {
+
+        IMM_SERVER_UNKNOWN         = 0, /* Not allowed. Not used */
+        IMM_SERVER_ANONYMOUS       = 1, /* Initial state */
+        IMM_SERVER_CLUSTER_WAITING = 2, /* Waiting for expected #nodes */
+        IMM_SERVER_LOADING_PENDING = 3, /* Waiting for loading to start */
+        IMM_SERVER_LOADING_SERVER  = 4, /* Coord is executing loading */
+        IMM_SERVER_LOADING_CLIENT  = 5, /* Not coord, receive loading */
+        IMM_SERVER_SYNC_PENDING    = 6, /* Not coord, load impossible, wait for
+                                           sync*/
+        IMM_SERVER_SYNC_CLIENT     = 7, /* Not coord, this node is being
+                                           synced */
+        IMM_SERVER_SYNC_SERVER     = 8, /* Coord, executing sync */
+        IMM_SERVER_DUMP            = 9, /* Not used */
+        IMM_SERVER_READY           = 10 /* Coord & Not coord. Normal idle
+                                           state.*/
+
+    }IMMND_SERVER_STATE;
+
+  Transitions:
+
+    IMM_SERVER_ANONYMOUS-(IMMD is up, intro sent)->IMM_SERVER_CLUSTER_WAITING
+    IMM_SERVER_CLUSTER_WAITING-(requisite nodes, timeout)->
+                                                      IMM_SERVER_LOADING_PENDING
+    IMM_SERVER_LOADING_PENDING-(coord and loading possible)->
+                                                       IMM_SERVER_LOADING_SERVER
+    IMM_SERVER_LOADING_PENDING-(non coord and loading possible)->
+                                                       IMM_SERVER_LOADING_CLIENT
+    IMM_SERVER_LOADING_PENDING-(non coord and loading impossible)->
+                                                         IMM_SERVER_SYNC_PENDING
+    IMM_SERVER_LOADING_SERVER-(loading succeeded)->IMM_SERVER_READY
+    IMM_SERVER_LOADING_CLIENT-(loading succeeded)->IMM_SERVER_READY
+    IMM_SERVER_SYNC_PENDING-(sync request accepted)->IMM_SERVER_SYNC_CLIENT	
+    IMM_SERVER_READY-(coord and accept sync request)->IMM_SERVER_SYNC_SERVER
+    IMM_SERVER_SYNC_CLIENT-(sync succeeded)->IMM_SERVER_READY
+    IMM_SERVER_SYNC_SERVER-(sync terminated)->IMM_SERVER_READY
+
+
+OTHER IMPLEMENTATION POINTS
+
+There is an epoch-count maintained by the IMMD. The epoch count is incremented
+cluster-wide by the coordinator after important events such as: loading 
+completed, sync completed and dump completed. The epoch count is stored
+persistently in every dump so that a re-load using that dump will be starting
+from the saved epoch. 
+
+The central data model of the IMMND is implemented in C++ and uses STL (Standard
+Template Library) collections to represent the data model. 
+Other parts of IMMND are implemented in C.
+
+The immload and immdump programs are implemented in C++. These programs 
+communicate with the IMMSv using the IMM-OM API. They use libxml2 to parse and
+generate the imm.xml format. 
+
+The IMMA library is implemented in C.
+
+The IMMD is implemented in C.
+
+
+
+CONFIGURATION
+
+See OpenSAF_IMMSv_PR.
+
+COMMAND LINE INTERFACE
+
+See OpenSAF_IMMSv_PR.
+
+DEBUG
+
+To enable/disable immd/immnd trace in a running system, send signal USR1 to the
+immd/immnd process. Each signal send toggles the trace.
+Trace default is disabled.
+
+Traces are written to the file configured in immd.conf and immnd.conf
+
+To enable traces from the very start, uncomment:
+
+        #args="--tracemask=0xffffffff"
+
+in imm.conf and restart the cluster.
+
+Errors, warnings and notice level messages are logged to the syslog.
+
+
+To enable traces in the IMM library, export the variable IMMA_TRACE_PATHNAME
+with a valid pathname before starting the application using the IMM library.
+
+For example:
+
+$ export IMMA_TRACE_PATHNAME=/tmp/imm.trace
+$ ./immomtest
+$ cat /tmp/imm.trace
+
+
+TEST
+
+Currently a "tetware like" test suite can be found in 'tests/immsv/'. 
+See tests/immsv/README for instructions.
+
+
+TODO
+
+- Revisit MDS reliability, implement FEVS re-send by IMMD.
+- Provide CCB level persistence.
+- Review HA state handling, possibly simplify.
+- Implement version handling for MDS messages.
+- Revisit escalation problem.
+- Implement missing API functions:
+	saImmOmAdminOperationContinue()
+	saImmOmAdminOperationContinueAsync()
+	saImmOmAdminOperationContinueClear()
+- Cleanup "TODO" comments
+- Revisit trace statements, cleanup
+- Implement "7 IMM Service Administration API"
+- Distributed testing, samples/immsv.
+
+
+CONTRIBUTORS/MAINTAINERS
+
+Anders Bjornerstedt <Anders.Bjornerstedt@ericsson.com>
+Hans Feldt <Hans.Feldt@ericsson.com>
+
+The IMM service OpenSAF framework was originally cloned from the OpenSAF
+check-point service. 

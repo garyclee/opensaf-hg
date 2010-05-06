@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfComp">
+		<dn>safComp=SMF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMF-OpenSAF,safComp=SMF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+</imm:IMM-contents>

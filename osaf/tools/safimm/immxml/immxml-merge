@@ -1,0 +1,519 @@
+#! /usr/bin/env python
+
+'''
+      -*- OpenSAF  -*-
+
+ (C) Copyright 2009 The OpenSAF Foundation
+
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ under the GNU Lesser General Public License Version 2.1, February 1999.
+ The complete license can be accessed from the following location:
+ http://opensource.org/licenses/lgpl-license.php
+ See the Copying file included with the OpenSAF distribution for full
+ licensing terms.
+
+ Author(s): Ericsson AB
+'''
+
+import re,  sys, getopt, shutil
+import xml.dom.minidom
+from baseimm import *           # Base class and functions for Merge and validation utils
+from subprocess import call
+
+  
+class Options(BaseOptions):
+    #traceOn = False
+    keepCommentElements = False
+    ignoreVariants = False
+    ignoreMissingClass = False
+    grep_class = None
+    grep_dn = None
+    negateGrep_class = False
+    negateGrep_dn = False
+    sort = False
+    outputFilename = None
+    stdout = True
+    schemaFilename = None
+    isXmlLintFound = True
+    disableParentDnValidation = False
+    
+    @staticmethod
+    def printOptionSettings():
+        return BaseOptions.printOptionSettings()+' keepCommentElements: %s \n ignoreVariants: %s \n grep_class: %s\n grep_dn: %s\n negateGrep_dn: %s\n negateGrep_class: %s \n sort:%s\n outputFilename: %s\n schemaFilename: %s\n' % (Options.keepCommentElements, Options.ignoreVariants, Options.grep_class, Options.grep_dn , Options.negateGrep_dn, Options.negateGrep_class, Options.sort, Options.outputFilename, Options.schemaFilename)
+
+        
+
+class MergedImmDocument(BaseImmDocument):
+    def __init__(self):
+        self.isResultDocInitialized = False
+        self.document = xml.dom.minidom.Document()
+        self.imm_content_element = None
+        self.classList = []
+        self.classDict = {}
+        self.regexpObj = None
+        self.dn_regexpObj = None
+        self.firstSourceDoc = None
+        self.objectList = []
+        self.objectDnNameDict = {}
+        self.classes_parsed=0
+        self.objects_parsed=0
+        
+
+    def initialize(self):
+        if Options.grep_class:
+            trace("matching classes with pattern:%s", Options.grep_class)
+            self.regexpObj = re.compile(Options.grep_class)
+
+        if Options.grep_dn:
+            trace("grep_dn matching dn with pattern:%s", Options.grep_dn)
+            self.dn_regexpObj = re.compile(Options.grep_dn)
+     
+    def initResultDocument(self, doc): 
+        if self.isResultDocInitialized:
+            return
+        
+        trace("Copy elements from first source document file")
+        for element in doc.childNodes:
+            trace("nodeType:*%d*" ,element.nodeType)
+            trace("nodeValue:*%s*" , element.nodeValue)
+            trace("nodeName:*%s*" , element.nodeName)
+            trace("parent:*%s*", element.parentNode.nodeName)
+            clone = element.cloneNode(False)
+            self.document.appendChild(clone)
+            if (element.nodeName == self.imm_content_element_name):
+                self.imm_content_element = clone                
+                break            
+            
+        if self.imm_content_element == None:
+            abort_script("did not find <imm:IMM-contents element in first source file")
+
+        self.firstSourceDoc = doc   
+        self.isResultDocInitialized = True
+        trace("Done copying elements from first source document.")
+        
+
+    def addClass(self, classElement, otherNodes):
+        className = classElement.getAttribute("name")
+        self.classes_parsed=self.classes_parsed+1
+        trace("className: %s nodeType:%d nodeName:%s", className, classElement.nodeType, classElement.nodeName)
+        
+        if self.regexpObj != None:
+            trace ("Check if class %s match pattern %s", className, Options.grep_class)            
+            if re.search(self.regexpObj, className) == None:
+                if Options.negateGrep_class == False:
+                    trace ("Class %s does not match pattern %s", className, Options.grep_class)
+                    return
+            elif Options.negateGrep_class:
+                trace ("Class %s does not match negated pattern %s", className, Options.grep_class)
+                return
+        trace("match ok :%s", className);
+        
+        # check if class exist in dictionary map
+        if className in self.classDict:
+            # check if class clash is "acceptable"
+            # i.e. should we bail out or not??
+            if self.checkClassClashAcceptable(classElement, className):
+                trace("Ignore class definition duplicate %s. (Class is compatible)", className)
+        else: 
+            self.classDict[className] = classElement
+            # add to ordered list
+            self.classList.append((className, (otherNodes, classElement)))
+
+
+    def addObject(self, objectElement, otherNodes):
+        className = objectElement.getAttribute("class")
+        trace("DUMPING Object with className: %s \n %s", className, objectElement.toxml())
+        self.objects_parsed=self.objects_parsed+1
+                
+        objectDnElement = None
+        ## find "dn" childnode
+        for childNode in objectElement.childNodes:
+            if childNode.nodeName == "dn":
+                objectDnElement = childNode
+                break
+            
+        if objectDnElement == None or className == None or objectDnElement.firstChild == None:
+            abort_script("Failed to find classname or the dn childnode in object:%s. " ,objectElement.toxml())
+        
+        
+        # objectDnName = objectDnElement.nodeValue
+        ### NOTE dn name should be the nodeValue of objectDnName...
+        ## however minidom probably gets confused by the equal sign in dn value
+        # so it ends up adding a text node as a child......   
+        objectDnName = objectDnElement.firstChild.nodeValue
+        trace("objectDn key: %s", objectDnName)
+        
+        trace("objectDnElement: %s", objectDnElement.toxml())
+        
+        # classname must exist in dictionary map (unless --ignore-noclass is specified)
+        if className not in self.classDict:
+            if Options.ignoreMissingClass == False:
+                if Options.grep_class != None:                
+                    trace("ignoring object with class not matching pattern classname:%s", className)
+                    return
+                else:
+                    abort_script("failed to find class referred in: \n %s", objectElement.toxml())
+                trace("zzz")
+            else:
+                trace("Continue processing object with missing class (--ignore-missing-class)")
+
+        if self.dn_regexpObj != None:
+            trace ("grep_dn check if object dn %s match pattern %s", objectDnName, Options.grep_dn)            
+            if re.search(self.dn_regexpObj, objectDnName) == None:
+                if Options.negateGrep_dn == False:
+                    trace ("Object dn %s does not match pattern %s", objectDnName, Options.grep_dn)
+                    return
+            elif Options.negateGrep_dn:
+                trace ("Object dn %s does not match negated pattern %s", objectDnName, Options.grep_dn)
+                return
+        trace("match ok :%s", objectDnName);
+            
+        if objectDnName in self.objectDnNameDict:
+            if self.checkObjectClashAcceptable(objectDnName):
+                trace("ignore duplicate object: %s with dn: %s", className, objectDnName)
+            return
+            # TODO add code to check if this is valid clash
+
+        #self.validateAndStoreDn(objectDnName, objectDnElement)
+        self.objectDnNameDict[objectDnName] = objectDnElement
+                    
+        # add to the complete object to ordered list (keyed by classname for sorting)
+        #self.objectList.append((className+objectDnName, objectElement))
+        objectListKey = objectDnName # anything goes, its not used...
+        if Options.sort == True:
+            objectListKeyList = [self.getDnSortPrefix(objectDnName)]
+            objectListKeyList.append(className)
+            objectListKeyList.append(objectDnName)
+            objectListKey = ''.join(objectListKeyList)
+            #objectListKey = self.getDnSortPrefix(objectDnName)+className
+            trace("Object sort order key: %s", objectListKey)
+            
+        self.objectList.append((objectListKey, (otherNodes, objectElement)))
+
+    def getDnSortPrefix(self, objectDnName):                
+        sortKeyList = [ "A" ]
+        depth = 1
+        maxDepth = 10
+        # search for all unescaped comma (if any)
+        for i in range(0, len(objectDnName)):
+            if objectDnName[i] == ',':
+                if i > 1 and objectDnName[i-1] != '\\':
+                    sortKeyList.append(",A") 
+                    depth = depth +1
+        
+        if depth >= maxDepth:
+            excStr = "Object reference depth is higher than expected (maximum %d)" % maxDepth
+            raise Exception(excStr)
+        
+        for i in range(depth+1, maxDepth):
+           sortKeyList.append("  ") 
+        
+        #sortKeyList.append("#")
+        key = ''.join(sortKeyList)
+        trace("getDnSortPrefix: %s", key)
+        return key
+           
+
+    def checkClassClashAcceptable(self, classElement, className):
+        # previousClassValue = self.classDict.get(className)
+        # TODO deep verify class Element clash is acceptable or not ?????
+        
+        if Options.ignoreVariants == False:
+            abort_script("failed to merge input files class with name:%s exists in multiple input files (use --ignore-variants to override)", className)
+        
+        return True 
+
+    def checkObjectClashAcceptable(self, objectDn):
+        if Options.ignoreVariants == False:
+            abort_script("failed to merge input files object with dn :%s exists in multiple input files (use --ignore-variants to override)", objectDn)
+        return True   
+
+        
+    def processInputfile(self, filename):
+        trace("")
+        trace("processInputfile in file:%s", filename)
+        
+        if Options.isXmlLintFound and Options.schemaFilename != None:
+            if self.validateXmlFileWithSchema(filename, Options.schemaFilename) != 0:
+                abort_script("failed to validate input file %s:", filename)
+        else:
+            self.verifyInputXmlDocumentFileIsParsable(filename)
+
+        doc = xml.dom.minidom.parse(filename)
+        #doc = self.openXmlDocumentFileAndCheckNamespace(filename)
+        
+        if self.isResultDocInitialized == False:
+            self.initResultDocument(doc)
+        
+                
+        ## Fast forward to imm:contents element
+        for element in doc.childNodes:
+            otherNodes = []
+            if (element.nodeName == self.imm_content_element_name):
+                for childElement in element.childNodes:
+                    trace("imm:contents loop..... Nodename:%s NodeValue%s", childElement.nodeName, childElement.nodeValue)
+                    if (childElement.nodeName == "class"):
+                        self.addClass(childElement, otherNodes)
+                        #for otherNode in :
+                        #    trace("OtherNode: %s", otherNode.toxml())
+                        otherNodes = []
+                    elif (childElement.nodeName == "object"):
+                        self.addObject(childElement, otherNodes)
+                        #for otherNode in otherNodes:
+                        #    trace("OtherNode: %s", otherNode.toxml())
+                        otherNodes = []
+                    else:
+                        # probably text nodes....ignore if whitespace only
+                        childElementStr = childElement.nodeValue.lstrip().rstrip()
+                        #if len(childElementStr) > 1:
+                            #otherNodes.append(childElement)
+                        otherNodes.append(childElement)
+
+        
+        return 0
+            
+
+    def saveResult(self):
+        trace("")
+        
+        #if len(self.classList) < 1 and Options.grep_class != None:
+        #    exit_script("No classes matches pattern %s specified with --grep-class. No document is saved. Exiting!", Options.grep_class)
+
+        #if len(self.objectList) < 1 and Options.grep_dn != None:
+        #    exit_script("No objects matches pattern %s specified with --grep-dn. No document is saved. Exiting!", Options.grep_dn)
+
+        # Use a temp file when output file is not specified. When this script finishes it prints the file to stdout
+        # and removes the file 
+        if Options.stdout:
+            Options.outputFilename = "/tmp/merge_result.xml"
+
+        if Options.sort == True:
+            trace("sorting the classes & objects in resulting xml document")
+            self.classList.sort()
+            self.objectList.sort()
+        
+        trace("Number of classes in resulting xml document:%d", len(self.classList))        
+            
+        # iterate over all objects again to validate again when all objects are parsed from inputfiles
+        #if Options.disableParentDnValidation==False:
+        #    self.postValidateObjectList()
+        #### I think there should not be imm validation functionality in merge tool (use validate_immfile instead)
+        
+        for class_element_tuple in self.classList:
+            if (Options.keepCommentElements):
+                for textNode in class_element_tuple[1][0]:
+                    self.imm_content_element.appendChild(textNode) 
+            self.imm_content_element.appendChild(class_element_tuple[1][1])
+
+        for object_element_tuple in self.objectList:
+            if (Options.keepCommentElements):
+                for textNode in object_element_tuple[1][0]:
+                    self.imm_content_element.appendChild(textNode) 
+            self.imm_content_element.appendChild(object_element_tuple[1][1])
+        
+        tmpOutputFilename = Options.outputFilename+".tmp"
+        file_object = open(tmpOutputFilename, "w")
+            
+        ## FIX for minidom problem with lost encoding info in saved xml document
+        trace("encoding in first source xml document:%s", self.firstSourceDoc.encoding)
+        if self.firstSourceDoc.encoding == "utf-8":
+            xml_as_string = self.document.toxml("utf-8")
+            #xml_as_string = self.document.toprettyxml("", "", "utf-8")
+        else:
+            xml_as_string = self.document.toxml()
+            
+        file_object.write(xml_as_string)
+        file_object.close()
+        trace("Stored resulting xml document in tmp file: %s", tmpOutputFilename)
+        
+        if Options.isXmlLintFound:
+            #command = "/bin/sh -c 'XMLLINT_INDENT=\"    \" ; export XMLLINT_INDENT; /usr/bin/xmllint --format "+tmpOutputFilename+" --output "+Options.outputFilename +"'"
+            if self.formatXmlFileWithXmlLint(tmpOutputFilename, Options.outputFilename) != 0:
+                abort_script("failed to validate input file %s:", tmpOutputFilename)
+            trace("delete the tmp file: %s", tmpOutputFilename)
+            os.remove(tmpOutputFilename) 
+        else:
+            # at least we should move file to its real name
+            trace("shutil.move(%s, %s)", tmpOutputFilename, Options.outputFilename)
+            shutil.move(tmpOutputFilename, Options.outputFilename) 
+
+        trace("Number of classes parsed:%d stored:%d", self.classes_parsed, len(self.classList))
+        trace("Number of objects parsed:%d stored:%d", self.objects_parsed, len(self.objectList))
+        
+        diff_classes = self.classes_parsed-len(self.classList)
+        diff_objects = self.objects_parsed-len(self.objectList)
+        if diff_classes != 0 or diff_objects != 0:
+            print_info_stderr("Note! Merge ignored %d classes (parsed:%d stored:%d)", diff_classes, self.classes_parsed, len(self.classList) )
+            print_info_stderr("Note! Merge ignored %d objects (parsed:%d stored:%d)", diff_objects, self.objects_parsed, len(self.objectList) )
+        
+        
+        trace("Stored formatted xml document in file: %s", Options.outputFilename)
+        
+        if Options.isXmlLintFound and Options.schemaFilename != None:
+            self.validateXmlFileWithSchema(Options.outputFilename, Options.schemaFilename)
+
+        if Options.stdout:
+            self.printToStdoutAndRemoveTmpFile(Options.outputFilename)
+        
+#### end of class ResultImmDocument
+
+
+
+def printUsage():
+  print "usage: immxml-merge [options] filename[s]"
+  print """
+  -o, --output            specified outputfile 
+                          (if option is omitted stdout is used)
+  --grep-class PATTERN    pattern match the class names in source file(s)
+                          (This option also sets disableParentDnValidation)
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --grep-v-class PATTERN  negated pattern matching. Similar to "grep -v PATTERN"
+  --grep-dn PATTERN       pattern match the object dn names in source file(s)
+                          (This option also sets disableParentDnValidation)
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --grep-v-dn PATTERN     negated pattern matching. Similar to "grep -v PATTERN"
+  --ignore-variants       when merge tool finds several definitions of same 
+                          class or object the default behaviour is to abort the
+                          merge processing and print out which class/object is 
+                          duplicated. With this option it is possible to
+                          continue merge, keeping the first instance of a class 
+                          or object definition and ignore the other.
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --ignore-missing-class  do not require class definitions referred by an object
+                          to exist in source file(s) (Is required by default)
+  --keepCommentElements   keep embedded comment elements
+                          (experimental support: associates comment elements 
+                           with subsequent class or object element which may be 
+                           correct association....)
+  --schema                validate inputfiles and output(file) with the supplied
+                          xsd schema file
+  -s, --sort              sort the merged class and object names
+  -t, --trace             print trace information to stderr
+  -v, --version           print version information and exit
+  -h, --help              display this help and exit
+ 
+   See http://devel.opensaf.org/ for information and updates.
+"""
+ 
+def printVersion():
+  print "immxml-merge version 0.5.1"
+
+
+
+
+def main(argv):    
+    try:
+        opts, args = getopt.getopt(argv, "thvso:", ["trace", "keep-comment-elements", "ignore-variants", "ignore-missing-class", "help", "version", "sort", "grep-class=", "grep-v-class=", "grep-dn=", "grep-v-dn=", "output=", "schema="])
+    except getopt.GetoptError, err:
+        # print help information and exit:
+        print_info_stderr("%s", str(err))
+        printUsage()
+        sys.exit(2)
+    
+    foundGrep_dn = False
+    foundGrep_class = False
+
+    for o, v in opts:
+        if o in ["-t", "--trace"]:
+            BaseOptions.traceOn = True
+        if o in ["--keep-comment-elements"]:
+            Options.keepCommentElements = True
+        if o in ["--ignore-variants"]:
+            Options.ignoreVariants = True
+        if o in ["--ignore-missing-class"]:
+        	Options.ignoreMissingClass = True
+        if o in ["--grep-class"]:
+            if foundGrep_class:
+                abort_script("Only one --grep-v-class or --grep-class option may be specified")
+            foundGrep_class = True
+            Options.grep_class = v
+            Options.disableParentDnValidation = True            
+        if o in ["--grep-v-class"]:
+            if foundGrep_class:
+                abort_script("Only one --grep-v-class or --grep-class option may be specified")
+            foundGrep_class = True
+            Options.negateGrep_class = True
+            Options.grep_class = v
+            Options.disableParentDnValidation = True            
+        if o in ["--grep-v-dn"]:
+            if foundGrep_dn:
+                abort_script("Only one --grep-v-dn or --grep-dn option may be specified")
+            foundGrep_dn = True
+            Options.negateGrep_dn = True
+            Options.grep_dn = v
+            Options.disableParentDnValidation = True            
+        if o in ["--grep-dn"]:
+            if foundGrep_dn:
+                abort_script("Only one --grep-v-dn or --grep-dn option may be specified")
+            foundGrep_dn = True
+            Options.grep_dn = v
+            Options.disableParentDnValidation = True            
+        if o in ("-o", "--output"):
+            Options.stdout = False
+            Options.outputFilename = v
+        if o in ("--schema"):
+            Options.schemaFilename = v
+        if o in ["-s", "--sort"]:
+            Options.sort = True
+        
+        if o in ["-v", "--version"]:
+            printVersion()
+            sys.exit(0)
+        elif o in ["-h", "--help"]:
+            printUsage()
+            sys.exit(0)
+ 
+    # cannot trace these until -t, Options.traceOn is effective (or not)
+    trace("opts:%s", opts)
+    trace("args:%s", args)
+    trace("sys.path:%s", sys.path)
+     
+    if len(args) == 0:
+        # print "Stdin processing not yet supported! (if ever!)"
+        printUsage()
+        sys.exit(2)
+    
+            
+    trace("Option object: \n %s", Options.printOptionSettings())
+    
+    
+    if os.path.exists('/usr/bin/xmllint') == False:
+        if (Options.schemaFilename == None ):
+            # It is possible to continue without xmllint (limited w.r.t formatting)
+            print_info_stderr("")
+            print_info_stderr("Cannot find the linux command /usr/bin/xmllint which is required for formatting!")
+            print_info_stderr("Script continues but the result file may for example lack linefeed characters.")
+            print_info_stderr("")
+            Options.isXmlLintFound = False
+        else:
+            abort_script("Cannot find the required linux command /usr/bin/xmllint. --schema option requires xmllint, Exiting!")
+
+                
+        
+    fileList = retrieveFilenames(args)
+    
+    trace("starting to process files::\n")
+    ## Create an Object to store classes and objects during process of input files 
+    mergedDoc = MergedImmDocument()
+    mergedDoc.initialize();
+   
+    for fileName in fileList:
+        verifyInputFileReadAcess(fileName)
+        mergedDoc.processInputfile(fileName)
+        trace("Done with file:%s", fileName)
+             
+    ## store the resulting document with collected class and objects elements
+    mergedDoc.saveResult()
+    print_info_stderr("Successfully merged input files!")
+    return 0
+
+
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<class name="SaEvtChannel">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safChnl</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saEvtChannelCreationTimeStamp</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saEvtChannelNumOpeners</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saEvtChannelNumSubscribers</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saEvtChannelNumPublishers</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saEvtChannelNumRetainedEvents</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saEvtChannelLostEventsEventCount</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+	</class>
+</imm:IMM-contents>

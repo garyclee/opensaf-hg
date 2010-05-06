@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeAMFWDOG</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeAMFWDOG</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>osaf-amfwd</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>start</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>osaf-amfwd</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>stop</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeAMFWDOG</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>6000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeAMFWDOG,safVersion=4.0.0,safSuType=OpenSafSuTypeND</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=AMFWDOG-OpenSAF,safVersion=4.0.0,safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AMFWDOG-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeAMFWDOG</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=AMFWDOG-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=AMFWDOG-OpenSAF</dn>
+	</object>
+</imm:IMM-contents>
+

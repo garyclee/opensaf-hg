@@ -1,0 +1,358 @@
+#! /bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008-2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+#
+
+##
+## build_uml --
+##   Build script for the User Mode Linux (UML) for OpenSAF.
+##
+##   Files such as the Linux kernel archive will be downloaded
+##   automatically with "wget". The files will be stored in the
+##   directory defined by the $ARCHIVE variable.
+##
+## Syntax:
+##
+##   build_uml <sub-command> [options...]
+##
+## Environment:
+##
+##   All environment settings are optional.
+##
+##   $ARCHIVE - Should point to a directory where dowloaded files are
+##              stored.
+##   $CONFIGD - Contains configurations for different kernel and
+##              busybox versions (default ./config).
+##   $KVER -    The Linux kernel version to use.
+##   $BBVER -   The BusyBox version to use.
+##   $TIPCUTILSVER - The TIPC Util version to use.
+##
+## Sub-commands:
+##
+
+pgm=`basename $0`
+dir=`dirname $0`; dir=`cd $dir; pwd`
+tmp=/tmp/${pgm}$$
+
+die() {
+    echo "ERROR: $*" >&2
+    rm -rf $tmp
+    exit 1
+}
+help() {
+    grep '^##' $0 | cut -c3-
+    exit 0
+}
+test -n "$1" || help
+cd $dir
+archive=${ARCHIVE:-$dir/archive}
+configd=${CONFIGD:-$dir/config}
+
+kver=${KVER:-2.6.31}
+kurlbase=${KURLBASE:-"http://www.kernel.org/pub/linux/kernel/v2.6"}
+if echo $kver | grep -q -e '^2\.6\.[0-9]\+\.[0-9]\+$'; then
+    kbase=$(echo $kver | grep -o '2.6.[0-9]\+')
+    kurl="http://www.kernel.org/pub/linux/kernel/v2.6/linux-$kbase.tar.bz2"
+    purl="http://www.kernel.org/pub/linux/kernel/v2.6/patch-$kver.bz2"
+else
+    kurl="http://www.kernel.org/pub/linux/kernel/v2.6/linux-$kver.tar.bz2"
+fi
+tipcutilsver=${TIPCUTILSVER:-1.0.4}
+tipcutilsurl="http://prdownloads.sourceforge.net/tipc/tipcutils-$tipcutilsver.tar.gz"
+
+bbver=${BBVER:-1.15.2}
+bburl="http://busybox.net/downloads/busybox-$bbver.tar.bz2"
+umlutilsver=20070815
+umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
+
+arch=$(uname -m)
+gid=$(id -g)
+
+if [ $arch = x86_64 ]; then
+    lib_dir=lib64
+else
+    lib_dir=lib
+fi
+
+##   info
+##     Printout general info.
+##
+cmd_info() {
+    echo "Base dir: $dir"
+    echo "Archive: $archive"
+    echo "Linux kernel $kver:"
+    f=$archive/$(basename $kurl)
+    test -r $f && exists="(exists)"
+    echo "    $f $exists"
+    echo "    $kurl"
+    if test -n "$purl"; then
+	f=$archive/$(basename $purl)
+	test -r $f && exists="(exists)"
+	echo "    $f $exists"
+	echo "    $purl"
+    fi
+    echo "BusyBox $bbver:"
+    f=$archive/$(basename $bburl)
+    test -r $f && exists="(exists)"
+    echo "    $f $exists"
+    echo "    $bburl"
+    echo "TIPC Utils $tipcutilsver:"
+    f=$archive/$(basename $tipcutilsurl)
+    test -r $f && exists="(exists)"
+    echo "    $f $exists"
+    echo "    $tipcutilsurl"
+    echo "UML Utils $umlutilsver:"
+    f=$archive/$(basename $umlutilsurl)
+    test -r $f && exists="(exists)"
+    echo "    $f $exists"
+    echo "    $umlutilsurl"
+}
+
+##   download
+##     Download all necessary packaget from the net using "wget". Make
+##     sure that your proxy-settings are correct.
+##
+cmd_download() {
+    mkdir -p $archive
+    for a in $kurl $purl $bburl $umlutilsurl $tipcutilsurl; do
+	f=$(basename $a)
+	if test -r $archive/$f; then
+	    echo "Already downloaded [$f]"
+	    continue
+	fi
+	wget -O $archive/$f $a || die "Download failed [$a]"
+    done
+}
+
+##   extract_kernel
+##     Unpack the Linux kernel.
+##     Prerequisite: Kernel and patch archives must have been downloaded.
+##
+cmd_extract_kernel() {
+    if test -d linux-$kver; then
+	echo "Already extracted [linux-$kver]"
+	return 0
+    fi
+    f=$archive/$(basename $kurl)
+    test -r $f || die "Not readable [$f]"
+    tar xjf $f
+    if ! test -d "linux-$kver"; then
+	mv linux-$kbase linux-$kver
+	f=$archive/$(basename $purl)
+	test -r $f || die "Not readable [$f]"
+	cd linux-$kver
+	bzcat $f | patch -p1 > /dev/null 2>&1
+	cd -
+    fi
+}
+
+##   refresh_root
+##     Update the root/ directory, for instance when the root_template
+##     is altered.
+##
+cmd_refresh_root() {
+    rm -rf root
+    cmd_create_initramfs
+
+    # Install modules into initramfs and rebuild Linux kernel
+    INSTALL_MOD_PATH=$dir/root make -C linux-$kver ARCH=um modules_install
+    rm -f root/$lib_dir/modules/$kver/build \
+        root/$lib_dir/modules/$kver/source \
+        linux-$kver/initramfs_list
+    ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
+        $dir/root $dir/root/dev/initramfs_list \
+        > linux-$kver/initramfs_list
+    rm -f linux-$kver/usr/initramfs_data.cpio.gz
+    make -C linux-$kver -j4 ARCH=um
+
+    cp linux-$kver/vmlinux bin/linux
+    strip bin/linux
+}
+
+cmd_patch_tipc_tolerance() {
+    tipc_cfg=$dir/linux-$kver/include/linux/tipc_config.h
+    grep -q 'TIPC_DEF_LINK_TOL 1500' $tipc_cfg || return 0
+    mv -f $tipc_cfg $tipc_cfg.orig
+    sed -e 's,TIPC_DEF_LINK_TOL 1500,TIPC_DEF_LINK_TOL 3500,' \
+	< $tipc_cfg.orig > $tipc_cfg
+    echo "Patched TIPC_DEF_LINK_TOL 3500"
+    return 0
+}
+
+##   build_linux
+##     Build the UML kernel.
+##
+cmd_build_linux()
+{
+    if test -x bin/linux; then
+	echo "Already built [bin/linux]"
+        return 0
+    fi
+    test -r $dir/root/dev/initramfs_list || die "Root-fs not built"
+
+    cfg=$configd/linux-$kver-$arch
+    test -r $cfg || cfg=config/linux-config-$arch
+    cp -L $cfg linux-$kver/.config
+    chmod +x linux-$kver/scripts/gen_initramfs_list.sh
+    ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
+        $dir/root $dir/root/dev/initramfs_list \
+        > linux-$kver/initramfs_list
+
+    cmd_patch_tipc_tolerance
+    make -C linux-$kver -j3 ARCH=um oldconfig
+    make -C linux-$kver -j4 ARCH=um
+    cmd_refresh_root
+}
+
+##   build_busybox
+##     Extract and buuild busybox.
+##
+cmd_build_busybox()
+{
+    if test -e bin/busybox; then
+	echo "Already built [bin/busybox]"
+        return
+    fi
+
+    f=$archive/$(basename $bburl)
+    test -r $f || die "Not downloaded [$f]"
+    rm -rf busybox-$bbver
+    tar xjf $f
+
+    mkdir -p bin
+    cfg=$configd/busybox-$bbver
+    test -r $cfg || cfg=config/busybox-config
+    cp -L $cfg busybox-$bbver/.config
+    make -C busybox-$bbver
+    cp busybox-$bbver/busybox bin
+}
+
+##   create_initramfs
+##     Build an incomplete ramfs; kernel modules are missing
+##     Dependent on busybox and tipc-utils.
+##
+cmd_create_initramfs()
+{
+    if test -d root; then
+	echo "Already created [root/]"
+        return 0
+    fi
+
+    rm -rf root
+    cp -rL root_template root
+    if [ $(uname -m) = x86_64 ]; then
+      rm -Rf root/lib
+      ln -s lib64 root/lib
+    fi
+    cp -L bin/tipc-config root/sbin
+    cp -L bin/busybox root/bin
+    for n in bin/sh sbin/init; do
+        ln -fs /bin/busybox root/$n
+    done
+    cp -L `ldd ./bin/busybox | tr -s ' \t' '\n' | grep /lib | sed -e 's,/tls,,'` root/$lib_dir
+    cp -L /$lib_dir/libnss_files.so.? /$lib_dir/libpthread.so.? /$lib_dir/libm.so.? root/$lib_dir
+    chown -hR $UID:$gid root
+}
+
+##   build_umlutils
+##     Extract and build the UML tools.
+##
+cmd_build_umlutils()
+{
+    if test -e bin/uml_mconsole; then
+	echo "Already built [bin/uml_mconsole]"
+        return 0
+    fi
+
+    f=$archive/$(basename $umlutilsurl)
+    test -r $f || die "Not downloaded [$f]"
+    rm -rf tools-$umlutilsver
+    tar xjf $f
+
+    make -C tools-$umlutilsver/lib
+    make -C tools-$umlutilsver/uml_switch
+    cp tools-${umlutilsver}/uml_switch/uml_switch bin
+    make -C tools-$umlutilsver/port-helper
+    cp tools-${umlutilsver}/port-helper/port-helper bin
+    make -C tools-$umlutilsver/tunctl
+    cp tools-${umlutilsver}/tunctl/tunctl bin
+    make -C tools-$umlutilsver/mconsole
+    cp tools-${umlutilsver}/mconsole/uml_mconsole bin
+    make -C tools-$umlutilsver/uml_net
+    cp tools-${umlutilsver}/uml_net/uml_net bin
+}
+
+##   build_tipcutils
+##     Extract and build tipcutils.
+##
+cmd_build_tipcutils()
+{
+    if test -e bin/tipc-config; then
+	echo "Already built [bin/tipc-config]"
+        return 0
+    fi
+    f=$archive/$(basename $tipcutilsurl)
+    test -r $f || die "Not downloaded [$f]"
+    rm -rf tipcutils-$tipcutilsver
+    tar xzf $f
+
+    # Different build for older/newer kernels;
+    if ! make KERNELDIR=$dir/linux-$kver -C tipcutils-$tipcutilsver \
+	>/dev/null 2>&1; then
+	archd=$dir/linux-$kver/arch/x86
+	test "$(arch)" = "x86_64" && archd=$dir/linux-$kver/arch/ia64
+	make KERNELDIR="$dir/linux-$kver/include -I$archd" \
+	    -C tipcutils-$tipcutilsver || die "Build failed"
+    fi
+    cp tipcutils-$tipcutilsver/tipc-config bin
+}
+
+##   clean
+##     Cleanup. Downloaded files are *not* removed.
+##
+cmd_clean() {
+    rm -rf linux-$kver busybox-$bbver root tipcutils-$tipcutilsver\
+        tools-$umlutilsver
+    for n in busybox tipc-config uml_mconsole uml_switch\
+        linux port-helper tunctl; do
+	rm -f bin/$n
+    done
+}
+
+##   all
+##     Dowload/extract/build everything.
+##     This corresponds to the old "./build_uml" without parameters.
+##
+cmd_all() {
+    cmd_download
+    cmd_extract_kernel
+    cmd_build_tipcutils
+    cmd_build_busybox
+    cmd_create_initramfs
+    cmd_build_linux
+    cmd_build_umlutils
+}
+
+cmd=$1; shift
+grep -q cmd_$cmd $dir/$pgm || die "Invalid command [$cmd]"
+trap "die Interrupted" INT TERM
+mkdir -p $tmp
+cmd_$cmd "$@"
+rc=$?
+rm -rf $tmp
+exit $rc
+
