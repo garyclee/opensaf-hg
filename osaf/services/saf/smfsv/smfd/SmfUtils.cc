@@ -456,6 +456,8 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 		LOG_ER("SmfImmUtils::callAdminOperation: admin operation %u on %s returned %u", i_operationId, i_dn.c_str(),
 		       returnValue);
 	}
+	
+	rc = returnValue;
 
 done:
 	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
