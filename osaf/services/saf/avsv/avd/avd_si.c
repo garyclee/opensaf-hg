@@ -164,6 +164,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 	si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
 	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
 	si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
+	si->alarm_sent = FALSE;
 
 	return si;
 }
@@ -832,13 +833,26 @@ static void si_update_ass_state(AVD_SI *si)
 		si->saAmfSIAssignmentState = newState;
 
 		/* alarm & notifications */
-		if(si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED)
+		if (si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
 			avd_send_si_unassigned_alarm(&si->name);
-		else
+			si->alarm_sent = TRUE;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ALARM_SENT);
+		}
+		else {
 			avd_send_si_assigned_ntf(&si->name, oldState, si->saAmfSIAssignmentState);
+			
+			/* Clear of alarm */
+			if ((oldState == SA_AMF_ASSIGNMENT_UNASSIGNED) && si->alarm_sent) {
+				avd_alarm_clear(&si->name, SA_AMF_NTFID_SI_UNASSIGNED, SA_NTF_SOFTWARE_ERROR);
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ALARM_SENT);
+			}
+
+			/* always reset in case the SI has been recycled */
+			si->alarm_sent = FALSE;
+		}
 
 		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
-								  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ASSIGNMENT_STATE);
 	}
 }

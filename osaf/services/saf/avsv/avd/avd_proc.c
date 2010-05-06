@@ -478,6 +478,10 @@ void avd_main_proc(void)
 		if (fds[FD_CLM].revents & POLLIN) {
 			TRACE("CLM event rec");
 			saClmDispatch(cb->clmHandle, SA_DISPATCH_ALL);
+
+			/* commit async updated possibly sent in the callback */
+			m_AVSV_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);
+
 			/* flush messages possibly queued in the callback */
 			avd_d2n_msg_dequeue(cb);
 		}

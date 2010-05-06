@@ -83,4 +83,7 @@ EXTERN_C uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaUint16T stateId,
 					      SaUint16T newState);
 
+/* Clearing of alarms */
+EXTERN_C void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause);
+
 #endif

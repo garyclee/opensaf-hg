@@ -108,6 +108,8 @@ typedef struct avd_si_tag {
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 
 	SaInvocationT invocation;
+	
+	uns32 alarm_sent; /* SI unassigned alarm has been sent */
 } AVD_SI;
 
 typedef struct avd_amf_svc_type_tag {
