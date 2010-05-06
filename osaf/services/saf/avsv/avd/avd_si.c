@@ -573,15 +573,6 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			goto done;
 		}
 
-		/* SI lock should not be done, this SI is been DISABLED because
-		   of SI-SI dependency */
-		if ((si->si_dep_state != AVD_SI_ASSIGNED) && (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
-			LOG_WA("SI lock of %s failed, DISABLED because of SI-SI dependency (%u)",
-				objectName->value, si->si_dep_state);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-
 		/* Check if other semantics are happening for other SUs. If yes
 		 * return an error.
 		 */
