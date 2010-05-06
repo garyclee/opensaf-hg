@@ -16,33 +16,50 @@
 # Author(s): Emerson Network Power
 #
 
-#This script will be customized/replaced accordingly when there's no CLM node to EE mapping in the imm.xml 
+. /etc/opensaf/osafdir.conf
+
+#NOTE: This script will be customized/replaced accordingly when there's no CLM node to EE mapping in the imm.xml 
 #In such cases rebooting would be done through proprietary mechanisms, i.e. not through PLM.
 #Node_id is (the only entity) at the disposal of any proprietary mechanism.
 
+NODE_ID_FILE=$pkglocalstatedir/node_id
 node_id=$1
 ee_name=$2
 
 #If no plm in the system,old reboot mechanism is maintained.
 opensaf_reboot_no_plm()
 {
-test -x /sbin/shutdown && \
-    /sbin/shutdown -r now "OpenSAF requested system reboot"
+	if [ "$self_node_id" == "$node_id" ];then
+		test -x /sbin/shutdown && \
+			/sbin/shutdown -r now "OpenSAF requested system reboot"
 
-/sbin/reboot
-exit 0
+		/sbin/reboot
+	else
+		logger -t "opensaf_reboot" "Rebooting remote node in the absence of PLM is outside the scope of OpenSAF"
+	fi
+
+	exit 0
 }
 
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
 {
-immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name
+	immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name
 
 #Note: Operation Id SA_PLM_ADMIN_RESTART=7 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
 }
 
+
+if ! test -f "$NODE_ID_FILE"; then
+	logger -t "opensaf_reboot" "$NODE_ID_FILE doesnt exists,reboot failed "
+	exit 1
+fi
+
+self_node_id=`cat "$NODE_ID_FILE"`
+
+
 if [ ":$ee_name" == ":" ]; then
-        opensaf_reboot_no_plm
+	opensaf_reboot_no_plm
 else
-        opensaf_reboot_with_plm
+	opensaf_reboot_with_plm
 fi
