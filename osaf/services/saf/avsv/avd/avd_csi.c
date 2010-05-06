@@ -151,12 +151,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (avd_cstype_get(&aname) == NULL) {
 		/* CS type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("CS type '%s' does not exist in model", aname.value);
+			LOG_ER("'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
-			LOG_ER("CS type '%s' does not exist in existing model or in CCB", aname.value);
+			LOG_ER("'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
@@ -173,8 +173,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 			avsv_create_association_class_dn(&aname, &si->saAmfSvcType,
 				"safMemberCSType", &svctypecstype_name);
 		} else {
+			if (opdata == NULL) {
+				LOG_ER("'%s' does not exist in model", si_name.value);
+				return 0;
+			}
+
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
-				LOG_ER("SI '%s' does not exist in existing model or in CCB", si_name.value);
+				LOG_ER("'%s' does not exist in existing model or in CCB", si_name.value);
 				return 0;
 			}
 		}

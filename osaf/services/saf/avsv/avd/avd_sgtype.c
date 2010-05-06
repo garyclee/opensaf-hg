@@ -142,17 +142,17 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	assert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		sut = avd_sutype_get((SaNameT *)attr->attrValues[j]);
+		SaNameT *name = (SaNameT *)attr->attrValues[j];
+		sut = avd_sutype_get(name);
 		if (sut == NULL) {
 			if (opdata == NULL) {
-				LOG_ER("SU type '%s' does not exist in model", ((SaNameT *)attr->attrValues[j])->value);
+				LOG_ER("'%s' does not exist in model", name->value);
 				return 0;
 			}
 			
 			/* SG type does not exist in current model, check CCB */
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)attr->attrValues[j]) == NULL) {
-				LOG_ER("SU type '%s' does not exist either in model or CCB",
-					((SaNameT *)attr->attrValues[j])->value);
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
+				LOG_ER("'%s' does not exist either in model or CCB", name->value);
 				return 0;
 			}
 		}

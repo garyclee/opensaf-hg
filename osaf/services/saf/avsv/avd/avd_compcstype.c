@@ -179,11 +179,16 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	if (comp != NULL)
 		comptype_name = &comp->saAmfCompType;
 	else {
-		CcbUtilOperationData_t *tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp_name);
+		CcbUtilOperationData_t *tmp;
 
-		if (tmp == NULL) {
+		if (opdata == NULL) {
+			LOG_ER("'%s' does not exist in model", comp_name.value);
+			return 0;
+		}
+
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp_name)) == NULL) {
 			assert(0);
-			LOG_ER("Comp '%s'(%u) does not exist in existing model or in CCB", comp_name.value, comp_name.length);
+			LOG_ER("'%s'does not exist in existing model or in CCB", comp_name.value);
 			return 0;
 		}
 
@@ -199,12 +204,12 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	if (avd_ctcstype_get(&ctcstype_name) == NULL) {
 		if (opdata == NULL) {
-			LOG_ER("SaAmfCtCsType '%s' does not exist in model", ctcstype_name.value);
+			LOG_ER("'%s' does not exist in model", ctcstype_name.value);
 			return 0;
 		}
 
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &ctcstype_name) == NULL) {
-			LOG_ER("SaAmfCtCsType '%s' does not exist in existing model or in CCB", ctcstype_name.value);
+			LOG_ER("'%s' does not exist in existing model or in CCB", ctcstype_name.value);
 			return 0;
 		}
 	}

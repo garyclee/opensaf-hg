@@ -208,12 +208,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	} else {
 		/* SU type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("SU type '%s' does not exist in model", saAmfSUType.value);
+			LOG_ER("'%s' does not exist in model", saAmfSUType.value);
 			return 0;
 		}
 
 		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUType)) == NULL) {
-			LOG_ER("SU type '%s' does not exist in existing model or in CCB",
+			LOG_ER("'%s' does not exist in existing model or in CCB",
 				saAmfSUType.value);
 			return 0;
 		}
@@ -225,17 +225,29 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	/* Validate that a configured node or node group exist */
 	if (immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) {
 		if (strncmp((char*)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=", 11) == 0) {
-			if ((avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
-				(ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL)) {
-				LOG_ER("Node '%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
-				return 0;
+			if (avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL) {
+				if (opdata == NULL) {
+					LOG_ER("'%s' does not exist in model", saAmfSUHostNodeOrNodeGroup.value);
+					return 0;
+				}
+
+				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL) {
+					LOG_ER("'%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+					return 0;
+				}
 			}
 		}
 		else {
-			if ((avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
-				(ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL)) {
-				LOG_ER("Nodegroup '%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
-				return 0;
+			if (avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) {
+				if (opdata == NULL) {
+					LOG_ER("'%s' does not exist in model", saAmfSUHostNodeOrNodeGroup.value);
+					return 0;
+				}
+
+				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL) {
+					LOG_ER("'%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+					return 0;
+				}
 			}
 		}
 	}
@@ -246,6 +258,11 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if (sg) {
 		saAmfSGSuHostNodeGroup = sg->saAmfSGSuHostNodeGroup;
 	} else {
+		if (opdata == NULL) {
+			LOG_ER("SG '%s' does not exist in model", sg_name.value);
+			return 0;
+		}
+
 		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg_name)) == NULL) {
 			LOG_ER("SG '%s' does not exist in existing model or in CCB", sg_name.value);
 			return 0;
