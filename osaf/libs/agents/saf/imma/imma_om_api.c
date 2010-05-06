@@ -3664,7 +3664,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	SaTimeT timeout = IMMSV_WAIT_TIME;
 	IMMSV_ATTR_DEF_LIST *sysattr = NULL;
 	const SaImmAttrDefinitionT_2 *attr;
-	int i = 0;
+	int i;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -3677,7 +3677,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	}
 
 	attr = attrDefinitions[0];
-	for (; attr != 0; attr = attrDefinitions[++i]) {
+	for (i = 0; attr != 0; attr = attrDefinitions[++i]) {
 		if (attr->attrName == NULL)  {
 			TRACE("NULL attrName , not allowed.");
 			return SA_AIS_ERR_INVALID_PARAM;
@@ -3752,7 +3752,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	int attrClNameExist = 0;
 	int attrAdmNameExist = 0;
 	int attrImplNameExist = 0;
-	for (; attr != 0; attr = attrDefinitions[++i]) {
+	for (i = 0; attr != 0; attr = attrDefinitions[++i]) {
 		/* Ignore system attribute definitions that are
 		   loaded since they are indistinguishable from being set
 		   by the user. Better that they are redefined below each 
