@@ -35,7 +35,7 @@
                    node_name - Pointer to the DN of node on which the component 
                                is hosted.
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -66,7 +66,7 @@ void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *no
                    node_name - Pointer to the DN of node on which the component 
                                is hosted.
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -99,7 +99,7 @@ void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *n
                    node_name - Pointer to the DN of node on which the component 
                                is hosted.
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -128,7 +128,7 @@ void avd_send_cluster_reset_alarm(const SaNameT *comp_name)
 
   Arguments     :  si_name - Pointer to the SI DN
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -158,7 +158,7 @@ void avd_send_si_unassigned_alarm(const SaNameT *si_name)
 
   Arguments     :  comp_name - Pointer to the Component DN
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -190,7 +190,7 @@ void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name)
                    old_state - Previous Administrative State
                    new_state - Present Administrative State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -224,7 +224,7 @@ void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT
                    old_state - Previous Operational State
                    new_state - Present Operational State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -256,7 +256,7 @@ void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_
                    old_state - Previous Presence State
                    new_state - Present Presence State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -291,7 +291,7 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
                    old_state - Previous HA State
                    new_state - Present HA State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :  
 *****************************************************************************/
@@ -329,7 +329,7 @@ void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name,
                    old_state - Previous HA Readiness State
                    new_state - Present HA Readiness State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :  
 *****************************************************************************/
@@ -364,7 +364,7 @@ void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaName
                    old_state - Previous Assignment State
                    new_state - Present Assignment State
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :  
 *****************************************************************************/
@@ -398,7 +398,7 @@ void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_
                    old_status - Previous  proxy status
                    new_status - Present proxy status
 
-  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+  Return Values :
 
   Notes         :
 *****************************************************************************/
@@ -421,6 +421,36 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 					new_status);
 					/*TODO: old_state*/
 
+}
+
+/*****************************************************************************
+  Name          :  avd_alarm_clear
+
+  Description   :  This function sends a alarm clear for a specific previous 
+                   sent alarm.
+
+  Arguments     :  name - Pointer to the specific DN
+                   minor_id - Notification Class Identifier
+                   probableCause - same as cause for original alarm
+
+  Return Values :
+
+  Notes         :
+*****************************************************************************/
+void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause)
+{
+       char add_text[SA_MAX_NAME_LENGTH];
+
+       TRACE_ENTER();
+       snprintf(add_text, ADDITION_TEXT_LENGTH, "Previous raised alarm of %s is now cleared", name->value);
+
+       sendAlarmNotificationAvd(avd_cb,
+	       *name,
+	       (SaUint8T*)add_text,
+	       SA_SVC_AMF,
+	       minorId,
+	       probableCause,
+	       SA_NTF_SEVERITY_CLEARED);
 }
 
 void fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeader,

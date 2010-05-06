@@ -95,6 +95,7 @@ typedef enum avsv_ckpt_msg_reo_type {
 	AVSV_CKPT_SI_SU_CURR_ACTIVE,
 	AVSV_CKPT_SI_SU_CURR_STBY,
 	AVSV_CKPT_SI_SWITCH,
+	AVSV_CKPT_SI_ALARM_SENT,
 
 	/* COMP Async Update messages */
 	AVSV_CKPT_COMP_CURR_PROXY_NAME,
