@@ -524,12 +524,22 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 
 	/* first time open? */
 	if (stream->numOpeners == 0) {
+		
+		char command[PATH_MAX + 16];
+		
 		/* Delete to get counting right. It might not exist. */
 		(void)delete_config_file(stream);
 
 		/* Remove files from a previous life if needed */
 		if (rotate_if_needed(stream) == -1)
 			goto done;
+
+		sprintf(command, "mkdir -p %s/%s", lgs_cb->logsv_root_dir, stream->pathName);  
+		if (system(command) != 0){
+			LOG_ER("mkdir '%s' failed", stream->pathName);
+			rc = SA_AIS_ERR_INVALID_PARAM;  
+			goto done;   
+		}
 
 		if (lgs_create_config_file(stream) != 0)
 			goto done;
