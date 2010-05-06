@@ -344,13 +344,14 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 					fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
 				} else {
 					fm_cb->role = PCS_RDA_ACTIVE;
+					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
+						"Received Node Down for Active peer");
 					fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
 				}
 			}
 		} else if (fm_cb->role == PCS_RDA_ACTIVE) {
-			if (fm_cb->peer_node_name.length != 0)
 				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
-					       "Received Node Down for standby peer");
+					"Received Node Down for standby peer");
 		}
 		break;
 	case FM_EVT_PEER_UP:
