@@ -681,6 +681,7 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 	SaClmClusterNotificationT_4 *notify_changes = NULL;
 	SaClmClusterNotificationT_4 *notify_changes_only = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaUint32T node_id;
 
 	TRACE_ENTER2("step: %d", step);
 
@@ -700,6 +701,7 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 
 	while ((rec = clms_client_getnext_by_id(client_id)) != NULL) {
 		client_id = rec->client_id;
+		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->mds_dest);
 		if (step == SA_CLM_CHANGE_START) {
 
 			if (rec->track_flags & (SA_TRACK_START_STEP)) {
@@ -707,12 +709,29 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 				rec->inv_id = m_CLMSV_PACK_INV((cb->curr_invid)++, node->node_id);
 				TRACE("rec->inv_id %llu", rec->inv_id);
 
-				if (rec->track_flags & SA_TRACK_CHANGES_ONLY)
-					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_START,
+				if (rec->track_flags & SA_TRACK_CHANGES_ONLY){
+					if(rec->track_flags & SA_TRACK_LOCAL){
+						if(node_id == node->node_id){
+							/*Implies the change is on this local node */
+							rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_START);	
+						}
+
+					} else
+						rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_START,
 								      notify_changes_only);
-				else if (rec->track_flags & SA_TRACK_CHANGES)
-					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_START,
+
+				} else if (rec->track_flags & SA_TRACK_CHANGES){
+					if(rec->track_flags & SA_TRACK_LOCAL){
+						if(node_id == node->node_id){
+							/*Implies the change is on this local node */
+							rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_START);
+						}
+
+					} else
+						rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_START,
 								      notify_changes);
+
+				}
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					TRACE("Sending track callback failed for SA_CLM_CHANGE_START");
@@ -726,12 +745,28 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 				/*Create the inv-id */
 				rec->inv_id = m_CLMSV_PACK_INV((cb->curr_invid)++, node->node_id);
 
-				if (rec->track_flags & SA_TRACK_CHANGES_ONLY)
-					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_VALIDATE,
+				if (rec->track_flags & SA_TRACK_CHANGES_ONLY){
+					if(rec->track_flags & SA_TRACK_LOCAL){
+						if(node_id == node->node_id){
+							/*Implies the change is on this local node */
+							rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_VALIDATE);
+						}
+
+					} else
+						rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_VALIDATE,
 								      notify_changes_only);
-				else if (rec->track_flags & SA_TRACK_CHANGES)
-					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_VALIDATE,
+
+				} else if (rec->track_flags & SA_TRACK_CHANGES){
+					if(rec->track_flags & SA_TRACK_LOCAL){
+						if(node_id == node->node_id){
+							/*Implies the change is on this local node */
+							rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_VALIDATE);
+						}
+
+					} else
+						rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_VALIDATE,
 								      notify_changes);
+				}
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					TRACE("Sending track callback failed for SA_CLM_CHANGE_VALIDATE");
@@ -745,11 +780,24 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 
 			rec->inv_id = 0;	/*No resp for Completed Step */
 
-			if (rec->track_flags & SA_TRACK_CHANGES_ONLY)
-				rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_COMPLETED,
+			if (rec->track_flags & SA_TRACK_CHANGES_ONLY){
+				if(rec->track_flags & SA_TRACK_LOCAL){
+					if(node_id == node->node_id){
+						/*Implies the change is on this local node */
+						rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_COMPLETED);
+					}
+				} else
+					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_COMPLETED,
 							      notify_changes_only);
-			else if (rec->track_flags & SA_TRACK_CHANGES)
-				rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_COMPLETED, notify_changes);
+			}else if (rec->track_flags & SA_TRACK_CHANGES){
+				if(rec->track_flags & SA_TRACK_LOCAL){
+					if(node_id == node->node_id){
+						/*Implies the change is on this local node */
+						rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_COMPLETED);
+					}       
+				} else
+					rc = clms_prep_and_send_track(cb, node, rec, SA_CLM_CHANGE_COMPLETED, notify_changes);
+			}
 
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("Sending track callback failed for SA_CLM_CHANGE_COMPLETED");
@@ -792,6 +840,114 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 	}
 	TRACE_LEAVE();
 }
+
+/**
+* Prepares the CLMSV msg to send to clma
+* @param[in] node       
+* @param[in] client
+* @param[in] step       
+*/
+uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step)
+{
+	CLMSV_MSG *msg = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+
+	msg = (CLMSV_MSG *) malloc(sizeof(CLMSV_MSG));
+	if (!msg) {
+		LOG_ER("Malloc failed for CLMSV_MSG");
+		assert(0);
+	}
+
+	/* stick the notification buffer into the message */
+	memset(msg, 0, sizeof(CLMSV_MSG));
+
+	/* Fill the msg */
+	msg->evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
+	msg->info.cbk_info.client_id = client->client_id;
+	msg->info.cbk_info.type = CLMSV_TRACK_CBK;
+	msg->info.cbk_info.param.track.mem_num = osaf_cluster->num_nodes;
+	msg->info.cbk_info.param.track.err = SA_AIS_OK;
+	msg->info.cbk_info.param.track.inv = client->inv_id;
+
+	msg->info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
+
+	if (node->admin_op != PLM) {
+		msg->info.cbk_info.param.track.root_cause_ent->length = node->node_name.length;
+		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->node_name.value,
+		       node->node_name.length);
+	} else {
+		msg->info.cbk_info.param.track.root_cause_ent->length = node->ee_name.length;
+		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->ee_name.value, node->ee_name.length);
+	}
+
+	msg->info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));	/*Not Supported as of now */
+	msg->info.cbk_info.param.track.step = step;
+
+	if (step == SA_CLM_CHANGE_START)
+		msg->info.cbk_info.param.track.time_super = node->lck_cbk_timeout;
+	else
+		msg->info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
+
+	msg->info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
+
+	if (client->track_flags & SA_TRACK_CHANGES_ONLY){
+		msg->info.cbk_info.param.track.buf_info.numberOfItems = 1;
+		msg->info.cbk_info.param.track.buf_info.notification = (SaClmClusterNotificationT_4 *) malloc(
+                                                   sizeof(SaClmClusterNotificationT_4));
+
+		if (!msg->info.cbk_info.param.track.buf_info.notification) {
+			LOG_ER("Malloc failed for notification");
+			assert(0);
+		}
+
+		memset(msg->info.cbk_info.param.track.buf_info.notification, 0, sizeof(SaClmClusterNotificationT_4));
+
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeId = node->node_id;
+
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.family = node->node_addr.family;
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length = node->node_addr.length;
+                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.value, node->node_addr.value,
+                       msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length);
+
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.length = node->node_name.length;
+                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.value, node->node_name.value, msg->info.cbk_info.param.track.buf_info                   .notification->clusterNode.nodeName.length);
+
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length = node->ee_name.length;
+                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.value, node->ee_name.value,
+                       msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length);
+
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.member = node->member;
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.bootTimestamp = node->boot_time;
+                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.initialViewNumber = node->init_view;
+
+                if (node->member == SA_FALSE)
+                        msg->info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_LEFT;
+                else
+                        msg->info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_NO_CHANGE;
+
+	} else if (client->track_flags & SA_TRACK_CHANGES){
+		msg->info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
+		msg->info.cbk_info.param.track.buf_info.notification =
+			(SaClmClusterNotificationT_4 *) malloc(msg->info.cbk_info.param.track.buf_info.numberOfItems *
+							sizeof(SaClmClusterNotificationT_4));
+		if (!msg->info.cbk_info.param.track.buf_info.notification) {
+			LOG_ER("Malloc failed for notification");
+			assert(0);
+		}
+		msg->info.cbk_info.param.track.buf_info.notification = clms_notbuffer_changes(step);
+	}
+
+	rc = clms_mds_msg_send(clms_cb, msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
+
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("callback msg send to clma  failed");
+	}
+	TRACE_LEAVE();
+	return rc;
+}
+
 
 /**
 * Prepares the CLMSV msg to send to clma

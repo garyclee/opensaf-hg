@@ -968,6 +968,8 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	uns32 client_id = 0;
 	SaClmChangeStepT step = SA_CLM_CHANGE_COMPLETED;
+	SaUint32T node_id;
+
 
 	TRACE_ENTER();
 
@@ -981,24 +983,39 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 
 	while (NULL != (rec = clms_client_getnext_by_id(client_id))) {
 		client_id = rec->client_id;
+		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->mds_dest);
 		TRACE("Client ID %d ,track_flags=%d", rec->client_id, rec->track_flags);
 
 		if (rec->track_flags) {
 			rec->inv_id = 0;
 
 			if (rec->track_flags & SA_TRACK_CHANGES_ONLY) {
-				if (notify_changes_only != NULL) {
-					rc = clms_prep_and_send_track(cb, node, rec, step, notify_changes_only);
-				} else {
-					LOG_ER
-					    ("Inconsistent node db,Unable to send track callback for SA_TRACK_CHANGES_ONLY clients");
+				if(rec->track_flags & SA_TRACK_LOCAL){
+					if(node_id == node->node_id){
+						/*Implies the change is on this local node */
+						rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_COMPLETED);
+					}
+				}else {
+					if (notify_changes_only != NULL) {
+						rc = clms_prep_and_send_track(cb, node, rec, step, notify_changes_only);
+					} else {
+						LOG_ER
+							("Inconsistent node db,Unable to send track callback for SA_TRACK_CHANGES_ONLY clients");
+					}
 				}
 			} else if (rec->track_flags & SA_TRACK_CHANGES) {
-				if (notify_changes != NULL) {
-					rc = clms_prep_and_send_track(cb, node, rec, step, notify_changes);
+				if(rec->track_flags & SA_TRACK_LOCAL){
+					if(node_id == node->node_id){
+						/*Implies the change is on this local node */
+						rc = clms_send_track_local(node,rec,SA_CLM_CHANGE_COMPLETED);
+					}
 				} else {
-					LOG_ER
-					    ("Inconsistent node db,Unable to send track callback for SA_TRACK_CHANGES clients");
+					if (notify_changes != NULL) {
+						rc = clms_prep_and_send_track(cb, node, rec, step, notify_changes);
+					} else {
+						LOG_ER
+							("Inconsistent node db,Unable to send track callback for SA_TRACK_CHANGES clients");
+					}
 				}
 			}
 
