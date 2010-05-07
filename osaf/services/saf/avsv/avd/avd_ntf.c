@@ -439,7 +439,7 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 *****************************************************************************/
 void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause)
 {
-       char add_text[SA_MAX_NAME_LENGTH];
+       char add_text[ADDITION_TEXT_LENGTH];
 
        TRACE_ENTER();
        snprintf(add_text, ADDITION_TEXT_LENGTH, "Previous raised alarm of %s is now cleared", name->value);
