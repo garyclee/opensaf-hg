@@ -41,5 +41,7 @@ extern CLMS_CLUSTER_NODE *clms_node_get_by_eename(SaNameT *name);
 extern uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node,
 				      CLMS_CLIENT_INFO * client, SaClmChangeStepT step,
 				      SaClmClusterNotificationT_4 * notify);
+extern uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, 
+				     SaClmChangeStepT step);
 
 #endif

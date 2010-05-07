@@ -736,7 +736,7 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	}
 
 	/*Send only the local node data */
-	if (param->flags & SA_TRACK_LOCAL) {
+	if ((param->flags & SA_TRACK_LOCAL) && (param->flags & SA_TRACK_CURRENT)) {
 
 		TRACE("Send track response for the local node");
 		rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt, param->client_id, ais_rc);
