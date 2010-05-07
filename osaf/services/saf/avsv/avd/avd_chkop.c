@@ -766,8 +766,6 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	TRACE_ENTER();
-
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
@@ -875,6 +873,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	case AVSV_CKPT_SI_SU_CURR_STBY:
 	case AVSV_CKPT_SI_SWITCH:
 	case AVSV_CKPT_SI_ADMIN_STATE:
+	case AVSV_CKPT_SI_ALARM_SENT:
 		cb->async_updt_cnt.si_updt++;
 		break;
 
@@ -1028,7 +1027,6 @@ static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 {
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
-	TRACE_ENTER();
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
@@ -1071,7 +1069,7 @@ uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%u", pr_or_fr);
 
 	/*
 	 * This is a FIFO queue. Remove first message first entered in the 
@@ -1207,6 +1205,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	case AVSV_CKPT_SI_SU_CURR_STBY:
 	case AVSV_CKPT_SI_SWITCH:
 	case AVSV_CKPT_SI_ADMIN_STATE:
+	case AVSV_CKPT_SI_ALARM_SENT:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;

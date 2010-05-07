@@ -610,6 +610,7 @@ void SmfCampaignThread::main(void)
 		/* Mark the thread terminated */
 		sem_post(&m_semaphore);
 	} else {
+		sem_post(&m_semaphore);
 		LOG_ER("init failed");
 	}
 
