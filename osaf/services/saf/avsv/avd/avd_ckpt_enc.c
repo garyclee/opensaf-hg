@@ -66,6 +66,7 @@ static uns32 avsv_encode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 static uns32 avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uns32 avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
@@ -151,6 +152,7 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 	avsv_encode_ckpt_si_su_curr_active,
 	avsv_encode_ckpt_si_su_curr_stby,
 	avsv_encode_ckpt_si_switch,
+	avsv_encode_ckpt_si_alarm_sent,
 
 	/* COMP Async Update messages */
 	avsv_encode_ckpt_comp_proxy_comp_name,
@@ -1522,6 +1524,35 @@ static uns32 avsv_encode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
 		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
 		&ederror, enc->i_peer_version, 2, 1, 6);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_encode_ckpt_si_alarm_sent
+ *
+ * Purpose:  Encode SI alarm sent
+ *
+ * Input: cb - CB pointer.
+ *        enc - Encode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_encode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	EDU_ERR ederror = 0;
+
+	assert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+	status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
+		EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+		&ederror, enc->i_peer_version, 2, 1, 8);
 
 	assert(status == NCSCC_RC_SUCCESS);
 

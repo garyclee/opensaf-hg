@@ -95,8 +95,6 @@ void log_mds_critical(char *fmt, ...)
 	vsnprintf(str + i, sizeof(str) - i, fmt, ap);
 	va_end(ap);
 	log_mds(str);
-	/* Print Critical Logs on console */
-	fprintf(stderr, "MDS:%s\n", str);
 }
 
 /*******************************************************************************
@@ -118,8 +116,6 @@ void log_mds_err(char *fmt, ...)
 	vsnprintf(str + i, sizeof(str) - i, fmt, ap);
 	va_end(ap);
 	log_mds(str);
-	/* Print Error Logs on console */
-	fprintf(stderr, "MDS:%s\n", str);
 }
 
 /*******************************************************************************

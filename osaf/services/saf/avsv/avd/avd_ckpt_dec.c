@@ -65,6 +65,7 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
@@ -150,6 +151,7 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
 	avsv_decode_ckpt_si_su_curr_active,
 	avsv_decode_ckpt_si_su_curr_stby,
 	avsv_decode_ckpt_si_switch,
+	avsv_decode_ckpt_si_alarm_sent,
 
 	/* COMP Async Update messages */
 	avsv_decode_ckpt_comp_proxy_comp_name,
@@ -1895,8 +1897,6 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	EDU_ERR ederror = 0;
 	AVD_SI *si;
 
-	TRACE_ENTER();
-
 	si_ptr_dec = &dec_si;
 
 	/* 
@@ -1912,7 +1912,7 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	/* Update the fields received in this checkpoint message */
 	si->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
-	TRACE("%s (%u)", si->name.value, si->saAmfSINumCurrActiveAssignments);
+	TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 
@@ -1941,8 +1941,6 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_SI *si;
 
-	TRACE_ENTER();
-
 	si_ptr_dec = &dec_si;
 
 	/* 
@@ -1958,7 +1956,7 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	/* Update the fields received in this checkpoint message */
 	si->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
-	TRACE("%s (%u)", si->name.value, si->saAmfSINumCurrStandbyAssignments);
+	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 
@@ -2010,6 +2008,49 @@ static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_si_alarm_sent
+ *
+ * Purpose:  Decode SI alarm sent.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SI *si_ptr_dec;
+	AVD_SI dec_si;
+	EDU_ERR ederror = 0;
+	AVD_SI *si_struct;
+
+	si_ptr_dec = &dec_si;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 8);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	si_struct->alarm_sent = si_ptr_dec->alarm_sent;
+	TRACE("%s alarm_sent=%d", si_ptr_dec->name.value, si_struct->alarm_sent);
+
+	cb->async_updt_cnt.si_updt++;
+
+	return status;
+}
 /****************************************************************************\
  * Function: avsv_decode_ckpt_comp_proxy_comp_name
  *
