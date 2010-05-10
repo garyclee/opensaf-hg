@@ -316,7 +316,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 	if (immutil_getAttr("saAmfSGMaxStandbySIsperSUs", attributes, 0, &sg->saAmfSGMaxStandbySIsperSUs) != SA_AIS_OK) {
 		/* empty => assign magic number for no limit */
-		sg->saAmfSGMaxActiveSIsperSUs = -1;
+		sg->saAmfSGMaxStandbySIsperSUs = -1;
 	}
 
 	if (immutil_getAttr("saAmfSGAutoAdjustProb", attributes, 0, &sg->saAmfSGAutoAdjustProb) != SA_AIS_OK) {
