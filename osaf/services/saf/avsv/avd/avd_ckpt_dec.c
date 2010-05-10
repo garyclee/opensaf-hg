@@ -2957,6 +2957,8 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 * Stanby AVD is unavailable for failure */
 
 		cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
+                /* We need to figure out when there is out of sync, later on we have to remove it. */
+		assert(0);
 
 		/*
 		 * Remove All data structures from the standby. We will get them again

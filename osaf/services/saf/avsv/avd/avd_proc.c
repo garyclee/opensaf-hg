@@ -523,6 +523,8 @@ void avd_main_proc(void)
 				break;
 			}
 			else {
+				/* commit async updated possibly sent in the callback */
+				m_AVSV_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);
 				/* flush messages possibly queued in the callback */
 				avd_d2n_msg_dequeue(cb);
 			}
@@ -570,6 +572,12 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_STANDBY) {
 		/* if standby call g_avd_stndby_list functions */
 		g_avd_stndby_list[evt->rcv_evt] (cb_now, evt);
+
+		/* Now it might have become standby to active in avd_role_change_evh() during switchover, 
+		   so just sent updates to quisced */
+                if ((cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) && (cb_now->sync_required == TRUE))
+                        m_AVSV_SEND_CKPT_UPDT_SYNC(cb_now, NCS_MBCSV_ACT_UPDATE, 0);
+
 		avd_d2n_msg_dequeue(cb_now);
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_QUIESCED) {
 		/* if quiesced call g_avd_quiesc_list functions */
