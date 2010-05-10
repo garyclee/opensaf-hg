@@ -4009,6 +4009,7 @@ SaAisErrorT saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandle
 	}
 	if (gc_node->is_restart) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
 				"CkptSynchronize", __FILE__, __LINE__, rc, checkpointHandle);
 		goto fail1;
@@ -4203,6 +4204,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 	}
 	if (gc_node->is_restart) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
 				"CkptSynchronizeAsync", __FILE__, __LINE__, rc, checkpointHandle);
 		goto fail1;
@@ -4232,6 +4234,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 								     NCS_SERVICE_ID_CPA,
 								     (NCSCONTEXT)&lc_node->async_req_tmr))) {
 			rc = SA_AIS_ERR_LIBRARY;
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
 					"CkptSynchronizeAsync", __FILE__, __LINE__, rc, checkpointHandle);
 			goto hm_create_fail;

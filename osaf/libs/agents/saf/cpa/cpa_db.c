@@ -255,7 +255,7 @@ uns32 cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node)
 
 	/* Remove the Node from the client tree */
 	if (ncs_patricia_tree_del(&cb->lcl_ckpt_tree, &lc_node->patnode) != NCSCC_RC_SUCCESS) {
-		rc = NCSCC_RC_FAILURE;
+		return NCSCC_RC_FAILURE;
 	}
 
 	/* Free the Client Node */
