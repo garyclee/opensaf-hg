@@ -1349,9 +1349,11 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	CLMS_CLUSTER_NODE *node;
 	CLMS_CKPT_REC ckpt;
+#ifdef ENABLE_AIS_PLM
 	SaNameT eename;
 	SaNameT *entityNames = NULL;
 	SaUint32T i = 0, entityNamesNumber = 0;
+#endif
 
 	TRACE_ENTER2("%s, %llu", opdata->objectName.value, opdata->ccbId);
 
@@ -1362,6 +1364,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		/*clms_cluster_update_rattr(osaf_cluster); */
 		/*Checkpointing also need to be done */
 		/* Add to the plm entity group */
+#ifdef ENABLE_AIS_PLM
 		entityNamesNumber = ncs_patricia_tree_size(&clms_cb->nodes_db);
 
 		memset(&eename, 0, sizeof(SaNameT));
@@ -1374,7 +1377,6 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 			node = clms_node_get_by_eename(&node->ee_name);
 			i++;
 		}
-#ifdef ENABLE_AIS_PLM
 		if(clms_cb->reg_with_plm == SA_TRUE) {
 			rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
 					SA_PLM_GROUP_SINGLE_ENTITY);
@@ -1430,32 +1432,20 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		clms_node_delete(node, 0);
 		clms_node_delete(node, 1);
 		clms_node_delete(node, 2);
-		free(node);
-		node = NULL;
 		clms_cluster_update_rattr(osaf_cluster);
-		entityNamesNumber = (SaUint32T)ncs_patricia_tree_size(&clms_cb->nodes_db);
 
-		/*Delete it from the plm entity group */
-		memset(&eename, 0, sizeof(SaNameT));
-		entityNames = (SaNameT *)malloc(sizeof(SaNameT) * entityNamesNumber);
-		node = clms_node_get_by_eename(&eename);
-
-		while (node != NULL) {
-			entityNames[i].length = node->ee_name.length;
-			(void)memcpy(entityNames[i].value, node->ee_name.value, entityNames[i].length);
-			node = clms_node_get_by_eename(&node->ee_name);
-			i++;
-		}
 #ifdef ENABLE_AIS_PLM
+		/*Delete it from the plm entity group */
+		entityNames = &node->ee_name;
 		if(clms_cb->reg_with_plm == SA_TRUE) {
-			rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
-					SA_PLM_GROUP_SINGLE_ENTITY);
+			rc = saPlmEntityGroupRemove(clms_cb->ent_group_hdl, entityNames,1);
 			if (rc != SA_AIS_OK) {
 				LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
 				return rc;
 			}
 		}
 #endif
+		free(node);
 
 		/*Checkpointing also need to be done */
 		if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {

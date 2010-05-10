@@ -225,9 +225,11 @@ uns32 clms_node_delete(CLMS_CLUSTER_NODE * nd, int i)
 	switch (i) {
 
 	case 0:
-		if ((rc = ncs_patricia_tree_del(&clms_cb->id_lookup, &nd->pat_node_id)) != NCSCC_RC_SUCCESS) {
-			LOG_WA("ncs_patricia_tree_del FAILED for nodename %s rc %u", nd->node_name.value, rc);
-			goto done;
+		if (nd->node_id != 0){
+			if ((rc = ncs_patricia_tree_del(&clms_cb->id_lookup, &nd->pat_node_id)) != NCSCC_RC_SUCCESS) {
+				LOG_WA("ncs_patricia_tree_del FAILED for nodename %s rc %u", nd->node_name.value, rc);
+				goto done;
+			}	
 		}
 		break;
 	case 1:
