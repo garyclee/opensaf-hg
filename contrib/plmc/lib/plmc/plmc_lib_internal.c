@@ -263,6 +263,8 @@ int delete_thread_entry(char *ee_id) {
 /* delete all thread entries */
 void delete_all_thread_entries() {
 	thread_entry *curr_entry, *next_entry = NULL;
+	int sockfd;
+	char result[PLMC_MAX_TCP_DATA_LEN];
 	
 	#ifdef PLMC_LIB_DEBUG
 	fprintf(plmc_lib_debug, "delete_all_thread_entries was called\n");
@@ -278,10 +280,21 @@ void delete_all_thread_entries() {
 
 	curr_entry = HEAD;
 	while(curr_entry != NULL) {
+		sockfd = curr_entry->thread_d.socketfd;
 		next_entry = curr_entry->next;
 		pthread_mutex_destroy(&(curr_entry->thread_d.td_lock));
 		if(curr_entry->thread_d.td_id != 0)
 			pthread_cancel(curr_entry->thread_d.td_id);
+		if (sockfd != 0 && recv(sockfd, result, PLMC_MAX_TCP_DATA_LEN, 
+					MSG_PEEK | MSG_DONTWAIT) != 0) {
+			close(sockfd);
+			#ifdef PLMC_LIB_DEBUG
+			fprintf(plmc_lib_debug, "delete_all_thread_entries "
+							"closed socket\n");
+			fflush(plmc_lib_debug);
+			#endif
+		}
+
 		free(curr_entry);
 		curr_entry = next_entry;
 	}
