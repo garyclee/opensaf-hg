@@ -44,9 +44,11 @@ opensaf_reboot_no_plm()
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
 {
-	immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name
+	immadm -o 7 $ee_name
 
-#Note: Operation Id SA_PLM_ADMIN_RESTART=7 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
+#Note: Operation Id SA_PLM_ADMIN_RESTART=7
+#No Parameter option specified, which signifies gracefull reboot
+#In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
 }
 
 
