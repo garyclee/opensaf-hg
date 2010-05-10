@@ -1115,6 +1115,107 @@ done:
 }
 
 //------------------------------------------------------------------------------
+// callActivationCmd()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::callActivationCmd(const std::string & i_node)
+{
+	std::list < SmfBundleRef >::const_iterator bundleit;
+	bool result = true;
+	SaTimeT timeout = smfd_cb->cliTimeout;              /* Default timeout */
+	std::string actCommand = smfd_cb->nodeBundleActCmd; /* The configured activation command */
+	SmfImmUtils immUtil;
+
+	TRACE_ENTER();
+
+	if (i_node.length() == 0) {
+
+		/* In the single-step upgrade the nodes for
+		   the bundle is provided in the m_swNodeList
+		   and the PlmExecEnv list. The step itself is
+		   not bound to a particular node, so the
+		   "i_node" will be empty. */
+
+		std::list<SmfPlmExecEnv> plmExecEnvList; //The resulting PLM env list
+
+		//Find out which nodes was addressed for installation and removal
+		for (bundleit = m_swRemoveList.begin(); bundleit != m_swRemoveList.end(); ++bundleit) {
+			std::list<SmfPlmExecEnv> tmp = bundleit->getPlmExecEnvList();
+			std::list<SmfPlmExecEnv>::iterator it;
+			for (it = tmp.begin(); it != tmp.end(); ++it) {
+				plmExecEnvList.push_back(*it);
+			}
+		}
+
+		for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
+			std::list<SmfPlmExecEnv> tmp = bundleit->getPlmExecEnvList();
+			std::list<SmfPlmExecEnv>::iterator it;
+			for (it = tmp.begin(); it != tmp.end(); ++it) {
+				plmExecEnvList.push_back(*it);
+			}
+		}
+
+		//Translate the PLM exec env to AMF nodes
+		//Duplicates are removed in the calculateSingleStepNodes method
+		std::list<std::string> swNodeList;
+		if (!calculateSingleStepNodes(plmExecEnvList, swNodeList)) {
+			result = false;
+			goto done;					
+		}
+
+		std::list<std::string>::const_iterator n;
+		for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+			char const* nodeName = n->c_str();
+			TRACE("Executing activation command '%s' on node '%s' (single-step)", 
+			      actCommand.c_str(), nodeName);
+			MDS_DEST nodeDest = getNodeDestination(*n);
+			if (nodeDest == 0) {
+				LOG_ER("no node destination found for node [%s]", nodeName);
+				result = false;
+				goto done;
+			}
+			int rc = smfnd_remote_cmd(actCommand.c_str(), nodeDest, timeout / 10000000);
+			if (rc != 0) {
+				LOG_ER("executing activation command '%s' on node '%s' failed with rc %d", 
+				       actCommand.c_str(), nodeName, rc);
+				result = false;
+				goto done;
+			}
+		}
+
+	} else {
+
+		TRACE("Executing  activation command '%s' on node '%s'", 
+		      actCommand.c_str(), i_node.c_str());
+		TRACE("Get node destination for %s", i_node.c_str());
+
+		MDS_DEST nodeDest = getNodeDestination(i_node);
+		if (nodeDest == 0) {
+			LOG_ER("no node destination found for node %s", i_node.c_str());
+			result = false;
+			goto done;
+		}
+
+		/* TODO : how to handle the case where the cmd is an URI */
+		/* First fetch the script using e.g. wget etc */
+
+		/* Execute the bundle script remote on node */
+		int rc = smfnd_remote_cmd(actCommand.c_str(), nodeDest, timeout / 10000000);
+		/* convert ns to 10 ms cliTimeouttimeout */
+		if (rc != 0) {
+			LOG_ER("executing activation command '%s' on node '%s' failed with rc %d", 
+			       actCommand.c_str(), i_node.c_str(), rc);
+			result = false;
+			goto done;
+		}
+	}
+done:
+
+	TRACE_LEAVE();
+	return result;
+}
+
+//------------------------------------------------------------------------------
 // callBundleScript()
 //------------------------------------------------------------------------------
 bool 
