@@ -22,6 +22,7 @@ typedef enum clms_msg_type {
 	CLMSV_CLMA_TO_CLMS_API_MSG = 0,
 	CLMSV_CLMS_TO_CLMA_CBK_MSG,
 	CLMSV_CLMS_TO_CLMA_API_RESP_MSG,
+	CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG,
 	CLMSV_MSG_MAX
 } CLMSV_MSG_TYPE;
 
@@ -167,6 +168,12 @@ typedef struct clmsv_api_resp_info_t {
 	} param;
 } CLMSV_API_RESP_INFO;
 
+typedef struct clmsv_is_member_info_t {
+	SaBoolT is_member;
+	SaBoolT is_configured;
+	SaUint32T client_id;
+}CLMSV_IS_MEMBER_INFO;
+
 /* Top Level CLMSv MDS message structure for use between CLMS-> CLMA && CLMA -> CLMS */
 typedef struct clmsv_msg_t {
 	struct clmsv_msg_t *next;	/* Mailbox processing */
@@ -175,6 +182,7 @@ typedef struct clmsv_msg_t {
 		CLMSV_API_INFO api_info;	/* Messages Between CLA to CLMS */
 		CLMSV_CBK_INFO cbk_info;	/* Callback Messages from CLMS to CLA */
 		CLMSV_API_RESP_INFO api_resp_info;	/* Response Messages from CLMS to CLA */
+		CLMSV_IS_MEMBER_INFO is_member_info;	/*Is node member or not Message from CLMS to CLA*/
 	} info;
 } CLMSV_MSG;
 

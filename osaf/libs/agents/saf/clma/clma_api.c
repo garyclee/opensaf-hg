@@ -692,12 +692,19 @@ SaAisErrorT saClmSelectionObjectGet(SaClmHandleT clmHandle, SaSelectionObjectT *
 		goto done;
 	}
 
+	if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+		TRACE("Node is unconfigured");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
+
 	/* Obtain the selection object from the IPC queue */
 	sel_obj = m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->mbx);
 
 	/* everything's fine.. pass the sel fd to the appl */
 	*selectionObject = (SaSelectionObjectT)m_GET_FD_FROM_SEL_OBJ(sel_obj);
 
+done_give_hdl:
 	/* return hdl rec */
 	ncshm_give_hdl(clmHandle);
 
@@ -742,9 +749,16 @@ SaAisErrorT saClmDispatch(SaClmHandleT clmHandle, SaDispatchFlagsT dispatchFlags
 		goto done;
 	}
 
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
+
 	if ((rc = clma_hdl_cbk_dispatch(&clma_cb, hdl_rec, dispatchFlags)) != SA_AIS_OK)	/*need to do */
 		TRACE("CLMA_DISPATCH_FAILURE");
 
+done_give_hdl:
 	ncshm_give_hdl(clmHandle);
 
  done:
@@ -969,6 +983,12 @@ static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
 			goto done_give_hdl;
 	}
 
+	if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+		TRACE("Node is unconfigured");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl; 
+	}
+
 	TRACE("RC after validate flagsTrack %d", rc);
 	/* Populate the message to be sent to the CLMS */
 	memset(&i_msg, 0, sizeof(CLMSV_MSG));
@@ -1029,6 +1049,12 @@ SaAisErrorT saClmClusterTrackStop(SaClmHandleT clmHandle)
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done_give_hdl;
 	}
+
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
 
 	/** populate & send the finalize message
         ** and make sure the finalize from the server
@@ -1241,6 +1267,17 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		}
 	}
 
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
+
+	if((hdl_rec->is_member == FALSE) && (!clma_validate_version(hdl_rec->version))) { 
+		TRACE("Node is not a member");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	/** populate & send the finalize message
         ** and make sure the finalize from the server
         ** end returned before deleting the local records.
@@ -1345,6 +1382,18 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
 			goto done_give_hdl;
 		}
 	}
+
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
+
+        if((hdl_rec->is_member == FALSE) && (!clma_validate_version(hdl_rec->version))) {     
+                TRACE("Node is not a member");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl;
+        }
 	/** populate & send the finalize message
         ** and make sure the finalize from the server
         ** end returned before deleting the local records.
@@ -1419,6 +1468,12 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 		goto done_give_hdl;
 	}
 
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
+
 	free(notification);
 
  done_give_hdl:
@@ -1481,6 +1536,11 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 		goto done;
 	}
 
+        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+                TRACE("Node is unconfigured");
+                rc = SA_AIS_ERR_UNAVAILABLE;
+                goto done_give_hdl; 
+        }
 	/** populate & send the finalize message
         ** and make sure the finalize from the server
         ** end returned before deleting the local records.

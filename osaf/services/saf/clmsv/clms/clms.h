@@ -116,5 +116,6 @@ extern void ckpt_node_rec(CLMS_CLUSTER_NODE * node);
 extern void ckpt_node_down_rec(CLMS_CLUSTER_NODE * node);
 extern void ckpt_cluster_rec(void);
 extern void clms_cb_dump(void);
+extern uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured);
 
 #endif   /* ifndef CLMS_H */

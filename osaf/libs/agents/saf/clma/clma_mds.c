@@ -790,6 +790,17 @@ static uns32 clma_mds_dec(struct ncsmds_callback_info *info)
 			}
 		}
 		break;
+	case CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG:
+		{
+			TRACE_2("CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG");
+			p8 = ncs_dec_flatten_space(uba, local_data, 12);
+			msg->info.is_member_info.is_member = ncs_decode_32bit(&p8);
+			msg->info.is_member_info.is_configured = ncs_decode_32bit(&p8);
+			msg->info.is_member_info.client_id = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 12);
+			total_bytes += 12;
+		}
+		break;
 	default:
 		TRACE("Unknown MSG type %d", msg->evt_type);
 		free(msg);
@@ -854,6 +865,21 @@ uns32 clma_clms_msg_proc(clma_cb_t * cb, CLMSV_MSG * clmsv_msg, MDS_SEND_PRIORIT
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 			break;
+		}
+		break;
+	case CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG:
+		{
+			clma_client_hdl_rec_t *clma_hdl_rec;
+			TRACE_2("CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG: " " client_id = %d", (int)clmsv_msg->info.is_member_info.client_id);
+			/** Lookup the hdl rec by client_id  **/
+			if (NULL == (clma_hdl_rec =
+						clma_find_hdl_rec_by_client_id(cb, clmsv_msg->info.is_member_info.client_id))) {
+				TRACE("client_id not found");
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
+			}
+			clma_hdl_rec->is_member = clmsv_msg->info.is_member_info.is_member;
+			clma_hdl_rec->is_configured = clmsv_msg->info.is_member_info.is_configured;
 		}
 		break;
 	default:

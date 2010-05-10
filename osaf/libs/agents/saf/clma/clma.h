@@ -65,6 +65,8 @@ typedef struct clma_client_hdl_rec {
 		SaClmCallbacksT reg_cbk;
 	} cbk_param;
 	SYSF_MBX mbx;		/* priority q mbx b/w MDS & Library */
+	SaBoolT is_member;
+	SaBoolT is_configured;
 	struct clma_client_hdl_rec *next;	/* next pointer for the list in clma_cb_t */
 } clma_client_hdl_rec_t;
 
