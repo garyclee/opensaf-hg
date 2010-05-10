@@ -434,7 +434,7 @@ SmfUpgradeCampaign::createCampRestartInfo()
 
 	SmfImmRTCreateOperation icoCampRestartInfo;
 
-	icoCampRestartInfo.setClassName("SmfCampRestartInfo");
+	icoCampRestartInfo.setClassName("OpenSafSmfCampRestartInfo");
 	icoCampRestartInfo.setParentDn(SmfCampaignThread::instance()->campaign()->getDn());
 	icoCampRestartInfo.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
 
