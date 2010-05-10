@@ -1048,6 +1048,14 @@ static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		return rc;
 	}
 
+	if(node->member == FALSE) {
+		rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+		if (rc != NCSCC_RC_SUCCESS) {
+			TRACE("clms_send_is_member_info %u", rc);
+			return rc;
+		}
+	}
+
 	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (ais_rc == SA_AIS_OK)) {
 
 		memset(&ckpt, 0, sizeof(CLMS_CKPT_REC));

@@ -140,6 +140,12 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 							TRACE("clms_node_exit_ntf failed %u", rc);
 							/*goto done; */
 						}
+					
+						rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+						if (rc != NCSCC_RC_SUCCESS) {
+							TRACE("clms_send_is_member_info failed %u", rc);
+							goto done;
+						}
 
 						/*Update the admin_state change to IMMSv */
 						clms_admin_state_update_rattr(node);
@@ -161,6 +167,13 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 							TRACE("clms_node_join_ntf failed %u", rc);
 							/*goto done; */
 						}
+
+						rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+						if (rc != NCSCC_RC_SUCCESS) {
+							TRACE("clms_send_is_member_info failed %u", rc);
+							goto done;
+						}
+
 						/*Update the admin_state change to IMMSv */
 						clms_admin_state_update_rattr(node);
 					} else {

@@ -265,6 +265,8 @@ clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *r
 	/** Associate with the client_id obtained from CLMS
      	**/
 	rec->clms_client_id = client_id;
+	rec->is_member = SA_TRUE;	
+	rec->is_configured = SA_TRUE;
 
 	/** Initialize and attach the IPC/Priority queue
      	**/

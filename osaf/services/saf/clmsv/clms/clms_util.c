@@ -803,7 +803,6 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			++(cb->cluster_view_num);
 			op_node->admin_state = SA_CLM_ADMIN_LOCKED;
 			op_node->member = SA_FALSE;
-
 			/* Send track callback to all start client */
 			clms_send_cbk_start_sub(cb, op_node);
 
@@ -823,6 +822,12 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			op_node->admin_op = 0;
 			op_node->stat_change = SA_FALSE;
 			(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, op_node->curr_admin_inv, SA_AIS_OK);
+
+			rc = clms_send_is_member_info(clms_cb, op_node->node_id, op_node->member, TRUE);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("clms_send_is_member_info failed %u", rc);
+				goto done;
+			}
 		}
 	}
 	/*Update the runtime change to IMMSv */
@@ -1027,6 +1032,43 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 
 		}
 	}
+	TRACE_LEAVE();
+	return rc;
+}
+
+/*walk though client list, from client mds_dest extract node_id,
+if node is match send mds msg to that client*/
+
+uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured)
+{
+	CLMS_CLIENT_INFO *client = NULL;
+	CLMSV_MSG msg;
+	SaClmNodeIdT local_node_id;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	
+	TRACE_ENTER();
+	
+	client = clms_client_getnext_by_id(0);
+	while(client != NULL) {
+
+		local_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(client->mds_dest);
+
+		if(local_node_id == node_id) {
+			msg.evt_type = CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG; 
+			msg.info.is_member_info.is_member = member;
+			msg.info.is_member_info.is_configured = is_configured;
+			msg.info.is_member_info.client_id = client->client_id;
+			rc = clms_mds_msg_send(cb, &msg, &client->mds_dest, 0,
+						MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)rc);
+				return rc;
+			}
+		}
+
+		client = clms_client_getnext_by_id(client->client_id);
+	}
+
 	TRACE_LEAVE();
 	return rc;
 }

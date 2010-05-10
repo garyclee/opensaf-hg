@@ -731,6 +731,18 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 			TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
 			goto err;
 		}
+	} else if(CLMSV_CLMS_TO_CLMA_IS_MEMBER_MSG == msg->evt_type) {
+
+		p8 = ncs_enc_reserve_space(uba, 12);
+		if(!p8) {
+			TRACE("ncs_enc_reserve_space Failed");
+			goto err;
+		}
+		ncs_encode_32bit(&p8, msg->info.is_member_info.is_member);
+		ncs_encode_32bit(&p8, msg->info.is_member_info.is_configured);
+		ncs_encode_32bit(&p8, msg->info.is_member_info.client_id);
+		ncs_enc_claim_space(uba, 12);
+		total_bytes += 12;
 	} else {
 		TRACE("unknown msg type %d", msg->evt_type);
 		goto err;

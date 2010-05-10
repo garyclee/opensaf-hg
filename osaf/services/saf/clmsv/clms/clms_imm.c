@@ -1429,6 +1429,13 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		saflog(LOG_NOTICE, clmSvcUsrName, "%s DELETED", opdata->objectName.value);
 		if ((node = clms_node_get_by_name(&opdata->objectName)) == NULL)
 			goto done;
+	
+		rc = clms_send_is_member_info(clms_cb, node->node_id, FALSE, FALSE);
+		if(rc != NCSCC_RC_SUCCESS) {
+			TRACE("clms_send_is_member_info FAILED rc = %u", (unsigned int)rc);
+			goto done;
+		}
+
 		clms_node_delete(node, 0);
 		clms_node_delete(node, 1);
 		clms_node_delete(node, 2);
@@ -1662,6 +1669,10 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 		goto done;
 	}
 
+	rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("clms_send_is_member_info %u", rc);
+	}
  done:
 	TRACE_LEAVE();
 	return rc;
@@ -1775,6 +1786,12 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 					TRACE("clms_node_join_ntf failed %u", rc);
 					goto done;
 				}
+
+				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+				if(rc != NCSCC_RC_SUCCESS) {
+					TRACE("clms_send_is_member_info failed %u", rc);
+					goto done;
+				}
 			}
 		} else {
 #ifdef ENABLE_AIS_PLM
@@ -1797,10 +1814,17 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 					goto done;
 				}
 
+				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+				if(rc != NCSCC_RC_SUCCESS) {
+					TRACE("clms_send_is_member_info failed %u", rc);
+					goto done;
+				}
+
 			} else if (nodeop->ee_red_state != SA_PLM_READINESS_IN_SERVICE) {
 
 				nodeop->member = SA_FALSE;
 				nodeop->admin_state = SA_CLM_ADMIN_UNLOCKED;
+				/*clms_send_is_member_info should not be called, node is down*/
 
 			}
 #endif
@@ -1866,6 +1890,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 		} else {
 			nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 			nodeop->stat_change = SA_TRUE;
+			nodeop->member = SA_FALSE;
 			nodeop->change = SA_CLM_NODE_SHUTDOWN;
 			++(clms_cb->cluster_view_num);
 			--(osaf_cluster->num_nodes);
@@ -1882,6 +1907,12 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_node_admin_state_change_ntf failed %u", rc);
+			}
+
+			rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("clms_send_is_member_info failed %u", rc);
+				goto done;
 			}
 			clms_admin_state_update_rattr(nodeop);
 		}
