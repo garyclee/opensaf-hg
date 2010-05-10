@@ -566,7 +566,7 @@ SmfStepStateExecuting::executeSwInstallAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
-	if (i_step->executeRemoteCmd(smfd_cb->nodeBundleActCmd, i_step->getSwNode()) == false){
+	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
@@ -785,7 +785,7 @@ SmfStepStateExecuting::executeAuLockAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
-	if (i_step->executeRemoteCmd(smfd_cb->nodeBundleActCmd, i_step->getSwNode()) == false){
+	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
@@ -938,7 +938,7 @@ SmfStepStateExecuting::executeAuRestartAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
-	if (i_step->executeRemoteCmd(smfd_cb->nodeBundleActCmd, i_step->getSwNode()) == false){
+	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;

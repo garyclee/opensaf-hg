@@ -500,6 +500,13 @@ class SmfUpgradeStep {
 			       const std::string & i_node);
 
 ///
+/// Purpose:  Call activation command on remote node
+/// @param    -
+/// @return   -
+///
+	bool callActivationCmd(const std::string & i_node);
+
+///
 /// Purpose:  Call bundle script on remote node
 /// @param    -
 /// @return   -
