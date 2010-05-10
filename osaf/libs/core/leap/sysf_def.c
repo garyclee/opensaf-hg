@@ -404,8 +404,7 @@ void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reason)
 	char str[256];
 	memset(str,0,256);
 
-	/* Here if ee is NULL, we could put some def. value on to sprintf.TBD */
-	snprintf(str,255,PKGLIBDIR"/opensaf_reboot %d %s\n",node_id,ee_name); 
+	snprintf(str,255,PKGLIBDIR"/opensaf_reboot %d %s\n",node_id,((ee_name == NULL)?"":ee_name));
 	syslog(LOG_CRIT,"Rebooting OpenSAF NodeId = %d EE Name = %s, Reason: %s\n",node_id,((ee_name == NULL)? "No EE Mapped":ee_name),reason);
 	if(system(str) == -1){
         	syslog(LOG_CRIT, "node reboot failure!");
