@@ -52,6 +52,12 @@
  * Function declarations
  *************************************************************************/
 
+extern jstring JNU_NewStringNative(
+    JNIEnv *env,
+    const char *str);
+extern char *JNU_GetStringNativeChars(
+    JNIEnv *env,
+    jstring jstr);
 extern void JNU_throwNewByName(
     JNIEnv* jniEnv,
     const char* className,
