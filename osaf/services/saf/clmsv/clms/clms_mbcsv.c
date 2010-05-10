@@ -268,6 +268,22 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 					LOG_ER("Patricia add failed");
 				}
 		}
+	} else {
+		node = (CLMS_CLUSTER_NODE *)malloc(sizeof(CLMS_CLUSTER_NODE));
+		if (node == NULL){
+			LOG_ER("Malloc failed for cluster node");
+			assert(0);
+		}
+		memset(node,0,sizeof(CLMS_CLUSTER_NODE));
+		prepare_cluster_node(node, param);      
+		clms_node_add_to_model(node);
+		if (node->node_id != 0) {
+			tmp_node = clms_node_get_by_id(node->node_id);
+			if (tmp_node == NULL)
+				if (NCSCC_RC_SUCCESS != (rc = clms_node_add(node, 0))) {
+					LOG_ER("Patricia add failed");
+				}
+		}
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -448,12 +464,15 @@ static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 		node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
 #endif
 
-	if (NULL == (tmp_node = clms_node_get_by_id(node->node_id))) {
+	if (node->node_id != 0){
+		if (NULL == (tmp_node = clms_node_get_by_id(node->node_id))) {
 
-		if (clms_node_add(node, 0) != NCSCC_RC_SUCCESS) {
-			LOG_ER("Patricia tree add failed");
+			if (clms_node_add(node, 0) != NCSCC_RC_SUCCESS) {
+				LOG_ER("Patricia tree add failed");
+			}
 		}
 	}
+
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
