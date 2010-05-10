@@ -111,6 +111,10 @@ void cpa_tmr_stop(CPA_TMR *tmr)
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		tmr->is_active = FALSE;
 	}
+	else {
+		return;
+	}	
+	
 	if (tmr->tmr_id != TMR_T_NULL) {
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
