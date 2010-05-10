@@ -310,6 +310,101 @@ JNIEXPORT jint JNICALL JNI_OnLoad(
     return JNI_VERSION_1_2;
 }
 
+/**************************************************************************
+ * FUNCTION:      JNU_NewStringNative
+ * TYPE:          internal function
+ * OVERVIEW:      Creates a jstring from the given native string.
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     none
+ * NOTE:
+ *************************************************************************/
+jstring JNU_NewStringNative(JNIEnv *env, const char *str)
+{
+    // VARIABLES
+    int len;
+
+    // JNI
+    jstring result;
+    jbyteArray bytes = 0;
+
+    // BODY
+    if ( (*env)->EnsureLocalCapacity( env, 2 ) < 0 ) {
+        return NULL; /* out of memory error */
+    }
+
+    len = strlen( str );
+    bytes = (*env)->NewByteArray( env, len );
+
+    if ( bytes != NULL ) {
+        jclass Class_java_lang_String;
+        jmethodID MID_String_init;
+
+        Class_java_lang_String = (*env)->FindClass( env, "java/lang/String" );
+        MID_String_init = (*env)->GetMethodID( env, Class_java_lang_String, "<init>", "([B)V" );
+        (*env)->SetByteArrayRegion( env, bytes, 0, len,
+                                   (jbyte *)str );
+        result = (*env)->NewObject( env, Class_java_lang_String,
+                                   MID_String_init, bytes );
+        (*env)->DeleteLocalRef( env, bytes );
+        return result;
+    } /* else fall through */
+
+    return NULL;
+}
+
+/**************************************************************************
+ * FUNCTION:      JNU_GetStringNativeChars
+ * TYPE:          internal function
+ * OVERVIEW:      Returns a char pointer to the chars in the given jstring.
+ *                The string must be freed by the caller.
+ * INTERFACE:
+ *   parameters:  TODO
+ *   returns:     none
+ * NOTE:
+ *************************************************************************/
+char *JNU_GetStringNativeChars(JNIEnv *env, jstring jstr)
+{
+    // VARIABLES
+    char *result = 0;
+
+    //JNI
+    jbyteArray bytes = 0;
+    jthrowable exc;
+    jclass Class_java_lang_String;
+    jmethodID MID_String_getBytes;
+
+    //BODY
+    if ( (*env)->EnsureLocalCapacity( env, 2 ) < 0 ) {
+        return 0; /* out of memory error */
+    }
+
+    Class_java_lang_String = (*env)->FindClass( env, "java/lang/String" );
+    MID_String_getBytes = (*env)->GetMethodID( env, Class_java_lang_String, "getBytes", "()[B" );
+
+    bytes = (*env)->CallObjectMethod( env, jstr, MID_String_getBytes );
+    exc = (*env)->ExceptionOccurred( env );
+
+    if ( !exc ) {
+        jint len;
+
+        len = (*env)->GetArrayLength( env, bytes );
+        result = (char *)malloc( len + 1 );
+
+        if ( result == 0 ) {
+            JNU_ThrowByName( env, "java/lang/OutOfMemoryError", 0 );
+            (*env)->DeleteLocalRef( env, bytes );
+            return 0;
+        }
+
+        (*env)->GetByteArrayRegion( env, bytes, 0, len, (jbyte *)result );
+        result[len] = 0; /* NULL-terminate */
+    } else {
+        (*env)->DeleteLocalRef( env, exc );
+    }
+    (*env)->DeleteLocalRef( env, bytes );
+    return result;
+}
 
 /**************************************************************************
  * FUNCTION:      JNU_throwNewByName
