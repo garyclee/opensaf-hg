@@ -19,7 +19,7 @@ usage()
 	echo ""
 	echo "usage: `basename $0` <class name> [state name] [DN]"
 	echo ""
-	echo "	class names: app|comp|csiass|comp|node|sg|si|siass|su"
+	echo "	class names: app|comp|csiass|node|sg|si|siass|su"
 	echo "	state names: adm|all|ass|ha|har|oper|pres|readi"
 }
 
@@ -104,10 +104,10 @@ ha_state()
 		echo "STANDBY(2)"
 	elif [ $val -eq 3 ]; then
 		echo "QUIESCED(3)"
-	elif [ $val -eq 3 ]; then
+	elif [ $val -eq 4 ]; then
 		echo "QUIESCING(4)"
 	else
-		echo "UNKNOWN($hastate)"
+		echo "UNKNOWN($val)"
 	fi
 }
 
