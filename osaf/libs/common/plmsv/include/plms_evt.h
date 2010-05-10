@@ -86,7 +86,8 @@ typedef enum {
 	PLMS_PLMC_OSAF_STOP_RESP,
 	PLMS_PLMC_PLMD_RESTART_RESP,
 	PLMS_PLMC_EE_ID_RESP,
-	PLMS_PLMC_EE_RESTART_RESP
+	PLMS_PLMC_EE_RESTART_RESP,
+	PLMS_PLMC_ERR_CBK
 }PLMS_PLMC_EVT_TYPE;
  
 typedef enum {
@@ -193,15 +194,20 @@ typedef struct plms_plmc_EE_os_info{
 	SaInt8T *vendor;
 	SaInt8T *release;
 }PLMS_PLMC_EE_OS_INFO;
+typedef struct plms_plmc_err{
+	int acode;
+	int ecode;
+	int cmd;
+}PLMS_PLMC_ERR;
 
-typedef struct plms_plmc_evt
-{
+typedef struct plms_plmc_evt{
 	PLMS_PLMC_EVT_TYPE plmc_evt_type;
 	SaNameT ee_id;
 	union {
 		PLMS_PLMC_EE_OS_INFO ee_os_info;
 		SaUint8T *ee_ver;
 		PLMS_PLMC_RESP_RES resp;
+		PLMS_PLMC_ERR err_info;
 	};
 }PLMS_PLMC_EVT;
 
