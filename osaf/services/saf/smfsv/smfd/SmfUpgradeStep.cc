@@ -950,7 +950,7 @@ SmfUpgradeStep::setSingleStepRebootInfo(int i_rebootInfo)
 
 		SmfImmRTCreateOperation icoSingleStepInfo;
 
-		icoSingleStepInfo.setClassName("SmfSingleStepInfo");
+		icoSingleStepInfo.setClassName("OpenSafSmfSingleStepInfo");
 		icoSingleStepInfo.setParentDn(parent);
 		icoSingleStepInfo.setImmHandle(getProcedure()->getProcThread()->getImmHandle());
 

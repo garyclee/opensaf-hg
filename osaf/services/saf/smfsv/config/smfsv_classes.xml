@@ -328,7 +328,7 @@
 			<flag>SA_MULTI_VALUE</flag>
 		</attr>
 	</class>
-	<class name="SmfConfig">
+	<class name="OpenSafSmfConfig">
 		<category>SA_CONFIG</category>
 		<rdn>
 			<name>smfConfig</name>
@@ -390,7 +390,7 @@
 			<category>SA_CONFIG</category>
 		</attr>
 	</class>
-	<class name="SmfCampRestartInfo">
+	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>
 		<rdn>
 			<name>smfRestartInfo</name>
@@ -407,7 +407,7 @@
 			<flag>SA_CACHED</flag>
 		</attr>
 	</class>
-	<class name="SmfSingleStepInfo">
+	<class name="OpenSafSmfSingleStepInfo">
 		<category>SA_RUNTIME</category>
 		<rdn>
 			<name>smfSingleStepInfo</name>

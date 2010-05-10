@@ -568,7 +568,7 @@ SmfProcStateExecutionCompleted::commit(SmfUpgradeProcedure * i_proc)
 	   -SaSmfActivationUnit, 
 	   -SaSmfDeactivationUnit 
 	   -SaSmfImageNodes 
-	   -SmfSingleStepInfo
+	   -OpenSafSmfSingleStepInfo
 	*/
 
 	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;

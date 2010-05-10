@@ -10,7 +10,7 @@
 	<object class="OpenSafRepository">
 		<dn>safRepository=smfRepository,safApp=safSmfService</dn>
 	</object>
-	<object class="SmfConfig">
+	<object class="OpenSafSmfConfig">
 		<dn>smfConfig=1,safApp=safSmfService</dn>
 		<attr>
 			<name>smfBackupCreateCmd</name>
