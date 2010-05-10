@@ -25,6 +25,7 @@
  *************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include "j_utilsPrint.h"
 
@@ -373,6 +374,10 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_AmfHandleImpl_invokeSaAmfInitial
     jchar _releaseCode;
     jshort _majorVersion;
     jshort _minorVersion;
+    jclass _classSystem;
+    jstring _componentName;
+    jstring _componentNameProperty;
+    jmethodID MID_getSystemProperty;
 
 	// BODY
 
@@ -380,6 +385,69 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_AmfHandleImpl_invokeSaAmfInitial
     // TODO assert for sVersion
 	_TRACE2( "NATIVE: Executing Java_org_opensaf_ais_amf_AmfHandleImpl_invokeSaAmfInitialize(...)\n" );
 
+    // check if the java system property org.saforum.ais.amf.component-name is set
+
+    // get the java.lang.System class
+    _classSystem = (*jniEnv)->FindClass(jniEnv, "java/lang/System");
+    if( _classSystem == NULL ){
+
+        _TRACE2( "NATIVE ERROR: _classSystem is NULL\n" );
+
+        return; // EXIT POINT! Exception pending...
+    }
+
+    // Get a jstring with the name of the component name property
+    _componentNameProperty = JNU_NewStringNative( jniEnv, "org.saforum.ais.amf.component-name" );
+    if( _componentNameProperty == NULL ){
+
+        _TRACE2( "NATIVE ERROR: _componentNameProperty is NULL\n" );
+
+        return; // EXIT POINT! Exception pending...
+    }
+
+    // Get the getProperty method
+    MID_getSystemProperty = (*jniEnv)->GetStaticMethodID(
+                                                         jniEnv,
+                                                         _classSystem,
+                                                         "getProperty",
+                                                         "(Ljava/lang/String;)Ljava/lang/String;" );
+    if( MID_getSystemProperty == NULL ){
+
+        _TRACE2( "NATIVE ERROR: MID_getSystemProperty is NULL\n" );
+
+        return; // EXIT POINT! Exception pending...
+    }
+
+    // Invoke the getProperty method
+    _componentName = (*jniEnv)->CallStaticObjectMethod(
+                                                       jniEnv,
+                                                       _classSystem,
+                                                       MID_getSystemProperty,
+                                                       _componentNameProperty );
+
+    // If the property was set, set the component name environment variable to its value
+    if ( _componentName != NULL ) {
+        int result;
+        char* componentNameChars;
+
+        componentNameChars = JNU_GetStringNativeChars( jniEnv, _componentName );
+
+        result = setenv( "SA_AMF_COMPONENT_NAME", componentNameChars, 1 );
+
+        // Return and throw an exception if the setenv call failed
+        if ( 1 != result ) {
+            _TRACE2( 
+                    "NATIVE ERROR: failed to set the SA_AMF_COMPONENT_NAME env variable to %s. Error %i\n", 
+                     _componentName,
+                    result );
+            JNU_throwNewByName( jniEnv,
+                                "org/saforum/ais/AisTryAgainException",
+                                AIS_ERR_TRY_AGAIN_MSG );
+            return; // EXIT POINT! Exception thrown...
+        }
+
+        free( componentNameChars );
+    }
 
 	// create callback struct
     //  healthcheck cb
