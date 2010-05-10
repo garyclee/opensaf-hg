@@ -314,6 +314,12 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		if( NCSCC_RC_SUCCESS != plms_tcp_connect_mngt_flag_clear(ent))
 			return NCSCC_RC_FAILURE;
 	}
+	/* Socket flip-flop. No need to process, return from here.*/
+	if (ent->ee_sock_ff){
+		TRACE("Socket connection Restored. EE: %s",ent->dn_name_str);
+		ent->ee_sock_ff = FALSE;
+		return NCSCC_RC_SUCCESS;
+	}
 	
 	/* If the admin state of the ent is lckinst, terminate the EE. 
 	OH, if my parent is in OOS, then also terminate the EE.*/ 
@@ -499,7 +505,9 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 		(PLMS_TMR_EE_TERMINATING == ent->tmr.tmr_type)) {
 		plms_timer_stop(ent);
 	}
-
+	/* Clear socket flip-flop flag.*/
+	ent->ee_sock_ff = FALSE;
+	
 	if ( SA_PLM_EE_PRESENCE_UNINSTANTIATED != 
 			ent->entity.ee_entity.saPlmEEPresenceState){
 		TRACE("PLMS has not yet received uninstantiated for the entity.\
@@ -802,6 +810,40 @@ SaUint32T plms_plmc_restart_response(PLMS_ENTITY *ent,SaUint32T restart_rc)
 
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
+}
+/******************************************************************************
+@brief		: Process the error reported by PLMC.
+@param[in]	: ent - EE
+@param[in]	: err_info - PLMC reported error.  
+@return		: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+******************************************************************************/
+SaUint32T plms_plmc_err_cbk_proc(PLMS_ENTITY *ent,PLMS_PLMC_ERR err_info)
+{
+	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
+	/* This is the case when plmcd is killed. No need to process this
+	as we are expecting tcp callback.*/
+	if (PLMC_LIBACT_CLOSE_SOCKET == err_info.acode){
+		if (PLMC_LIBERR_LOST_CONNECTION == err_info.ecode){
+			return NCSCC_RC_SUCCESS;
+		}else{
+			/* Case of flip-flop. Mark the flag. If the conntection is
+			restored or the EE is terminated, clear this flag.*/
+			ent->ee_sock_ff = TRUE;
+		}
+	}
+	
+	/* For any other error, set management lost flag. Admin pending flag is
+	not set, as PLMS is not in admin context.*/
+	if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){ 
+		/*Set management lost flag. */
+		plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,
+		TRUE,NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		/* Call the callback.*/
+		plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
+	}
+	TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
 @brief		:Process get_prot_ver response.
@@ -1351,17 +1393,54 @@ static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 ******************************************************************************/
 int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 {
+	PLMS_EVT *evt;
+	PLMS_CB *cb = plms_cb;
+	SaUint32T len = 0;
+	
 	TRACE_ENTER2("Cmd: %d, ee_id: %s, err_msg: %s, err_act: %s",
 	msg->cmd_enum,msg->ee_id,msg->errormsg,msg->action);
-
+	
 	/* Only the action in which plmc-lib is destroyed, is
 	handled. PLMS exits in this case an hence it makes no sense
 	to put in the mailbox.*/
 	
-	if ( (PLMC_LIBACT_EXIT_THREAD == msg->acode) || (PLMC_LIBACT_DESTROY_LIBRARY == msg->acode)){
+	if (PLMC_LIBACT_DESTROY_LIBRARY == msg->acode){
 		LOG_ER("PLMS EXIT !!!!!! PLMC lib destroyed, I am helpless. PLMc act: %s",msg->action);
 		exit(0);
 	}
+	if (NULL == msg->ee_id){
+		TRACE("Not posting to MBX, as no ee_id. PLMS can not handle it.");
+		TRACE_LEAVE2("Return Val: %d",TRUE);
+		return 0;
+	}
+	/* For others put the msg to MBX.*/
+	evt = (PLMS_EVT *)calloc(1,sizeof(PLMS_EVT));
+	if(NULL == evt){
+		LOG_CR("err_cbk, calloc FAILED. Err no: %s", strerror(errno));
+		assert(0);
+	}
+	
+	evt->req_res = PLMS_REQ;
+	evt->req_evt.req_type = PLMS_PLMC_EVT_T;
+	evt->req_evt.plms_plmc_evt.plmc_evt_type = PLMS_PLMC_ERR_CBK;
+
+	/* Fill the EE-id.*/			
+	len = strlen(msg->ee_id);
+	evt->req_evt.plms_plmc_evt.ee_id.length = len;
+	memcpy(evt->req_evt.plms_plmc_evt.ee_id.value,msg->ee_id,len);
+
+	evt->req_evt.plms_plmc_evt.err_info.acode = msg->acode;
+	evt->req_evt.plms_plmc_evt.err_info.ecode = msg->ecode;
+	evt->req_evt.plms_plmc_evt.err_info.cmd = msg->cmd_enum; 
+	
+	/* Post the evt to the PLMSv MBX. */
+	if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&cb->mbx,evt,NCS_IPC_PRIORITY_HIGH))	{
+		LOG_ER("Posting to MBX FAILED, ent: %s", msg->ee_id);
+		TRACE_LEAVE2("Return Val: %d",FALSE);
+		return 1;
+	}
+	TRACE("Posted to MBX SUCCESSFUL, ent: %s.", msg->ee_id);
+
 	TRACE_LEAVE2("Return Val: %d",TRUE);
 	return 0;
 }
@@ -1467,6 +1546,9 @@ SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *evt)
 	case PLMS_PLMC_EE_RESTART_RESP:
 		ret_err = plms_plmc_restart_response(ent,
 		evt->req_evt.plms_plmc_evt.resp);
+		break;
+	case PLMS_PLMC_ERR_CBK:
+		ret_err = plms_plmc_err_cbk_proc(ent,evt->req_evt.plms_plmc_evt.err_info);
 		break;
 	default:
 		break;

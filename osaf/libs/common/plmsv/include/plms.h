@@ -520,6 +520,7 @@ struct  plms_entity
 	PLMS_MNGT_LOST_TRIGGER  mngt_lost_tri;
 	SaUint32T               deact_in_pro;
 	SaUint32T               act_in_pro;
+	SaUint32T		ee_sock_ff;
 
 	/* parent-Child entity pointers to store the containment hierarchy */
 	struct  plms_entity     *parent;
