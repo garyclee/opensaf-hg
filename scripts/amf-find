@@ -15,7 +15,7 @@
 #
 
 if [ $# -eq 0 ]; then
-	echo "usage: `basename $0` <app|comp|csi|csiass|comp|node|sg|si|siass|su>"
+	echo "usage: `basename $0` <app|comp|csi|csiass|node|sg|si|siass|su>"
 	exit 1
 fi
 
