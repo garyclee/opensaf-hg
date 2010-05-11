@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <assert.h>
 #include "j_utilsPrint.h"
 
@@ -435,13 +436,13 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_AmfHandleImpl_invokeSaAmfInitial
         result = setenv( "SA_AMF_COMPONENT_NAME", componentNameChars, 1 );
 
         // Return and throw an exception if the setenv call failed
-        if ( 1 != result ) {
+        if ( -1 == result ) {
             _TRACE2( 
                     "NATIVE ERROR: failed to set the SA_AMF_COMPONENT_NAME env variable to %s. Error %i\n", 
                      _componentName,
-                    result );
+                    errno );
             JNU_throwNewByName( jniEnv,
-                                "org/saforum/ais/AisTryAgainException",
+                                "org/saforum/ais/AisErrorLibraryException",
                                 AIS_ERR_TRY_AGAIN_MSG );
             return; // EXIT POINT! Exception thrown...
         }
