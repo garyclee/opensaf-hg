@@ -72,7 +72,8 @@ static void usage(const char *progname)
 	       "\t\t\tSA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
 
 	printf("\nEXAMPLE\n");
-	printf("\timmadm -o 1 -p saAmfNodeSuFailoverMax:SA_INT32_T:7 safAmfNode=Node01,safAmfCluster=1\n");
+	printf("\timmadm -o 2 safAmfNode=SC-2,safAmfCluster=myAmfCluster\n");
+	printf("\timmadm -o 1 -p SA_PLM_ADMIN_LOCK_OPTION:SA_STRING_T:trylock  safEE=SC-1,safDomain=domain_1\n");
 }
 
 static SaImmValueTypeT str2_saImmValueTypeT(const char *str)
