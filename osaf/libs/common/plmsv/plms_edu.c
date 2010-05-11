@@ -225,8 +225,8 @@ uns32 plms_edp_readiness_tracked_entity(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCO
 		 {EDU_START, plms_edp_readiness_tracked_entity, 0, 0, 0, sizeof(SaPlmReadinessTrackedEntityT), 0, NULL},
 		 {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->change, 0, NULL},
 		 {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->entityName, 0, NULL},
-		 {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->currentReadinessStatus, 0, NULL},
-		 {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->expectedReadinessStatus, 0, NULL},
+		 {EDU_EXEC, plms_edp_readiness_status, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->currentReadinessStatus, 0, NULL},
+		 {EDU_EXEC, plms_edp_readiness_status, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->expectedReadinessStatus, 0, NULL},
 		 {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((SaPlmReadinessTrackedEntityT *)0)->plmNotificationId, 0, NULL},
 		 {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
