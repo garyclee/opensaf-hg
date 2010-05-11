@@ -60,7 +60,7 @@ static void usage(const char *progname)
 	printf("\t-p, --pretty-print=<yes|no> - select pretty print, default yes\n");
 
 	printf("\nEXAMPLE\n");
-	printf("\timmlist -a saAmfSUPresenceState safApp=OpenSAF\n");
+	printf("\timmlist -a saAmfApplicationAdminState safApp=OpenSAF\n");
 	printf("\timmlist safApp=myApp1 safApp=myApp2\n");
 	printf("\timmlist --pretty-print=no saAmfSUPresenceState safApp=OpenSAF\n");
 }
