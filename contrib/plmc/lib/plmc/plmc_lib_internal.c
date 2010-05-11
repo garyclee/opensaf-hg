@@ -283,8 +283,14 @@ void delete_all_thread_entries() {
 		sockfd = curr_entry->thread_d.socketfd;
 		next_entry = curr_entry->next;
 		pthread_mutex_destroy(&(curr_entry->thread_d.td_lock));
-		if(curr_entry->thread_d.td_id != 0)
+		if(curr_entry->thread_d.td_id != 0) {
 			pthread_cancel(curr_entry->thread_d.td_id);
+			#ifdef PLMC_LIB_DEBUG
+			fprintf(plmc_lib_debug, "delete_all_thread_entries "
+						"killed a client_mgr thread\n");
+			fflush(plmc_lib_debug);
+			#endif
+		}
 		if (sockfd != 0 && recv(sockfd, result, PLMC_MAX_TCP_DATA_LEN, 
 					MSG_PEEK | MSG_DONTWAIT) != 0) {
 			close(sockfd);
@@ -471,9 +477,8 @@ int parse_udp (udp_msg *parsed, char *incoming)
 
 /***************************************************************
 *	This is a thread cleanup function for the listerner
-*	This guy will just call the delete_all_thread_entries, 
-*	which in turn will call pthreat_cancel on all threads
-*	He will also close the main socket
+*	This guy will close the main socket and then call
+* 	pthread_cancel on the plmc_connection_mgr thread
 *
 *	Parameters:
 *	arg - a pointer to the socket file descriptor
@@ -493,6 +498,33 @@ void tcp_listener_cleaner(void *arg)
 
 	/* Close socket so no more connection can happen */
 	close_socket(socket);
+	if (pthread_cancel(plmc_connection_mgr_id) != 0) {
+		syslog(LOG_ERR, "plmc_lib: tcp_listener_cleaner "
+			"encountered an error canceling a thread");
+        }
+}
+
+/***************************************************************
+*	This is a thread cleanup function for the connection
+*	mgr. This guy will just call the 
+* 	delete_all_thread_entries, 
+*	which in turn will call pthreat_cancel on all threads
+*
+*	Parameters:
+*	arg - NULL
+*
+*	Returns:
+*	This function doesn't return anything
+***************************************************************/
+
+void connection_mgr_cleaner(void *arg)
+{
+	#ifdef PLMC_LIB_DEBUG
+	fprintf(plmc_lib_debug, "connection_mgr_cleaner was called\n");
+	fflush(plmc_lib_debug);
+	#endif
+
+	/* Delete all entries */
         delete_all_thread_entries();
 }
 
@@ -654,11 +686,11 @@ void *plmc_connection_mgr(void *arguments)
 	PLMC_cmd_idx cmd_enum;
 	int sockfd, o_state, kill;
 
+	pthread_cleanup_push(connection_mgr_cleaner, NULL);	
 	#ifdef PLMC_LIB_DEBUG
 	fprintf(plmc_lib_debug, "plmc_connection_mgr started up\n");
 	fflush(plmc_lib_debug);
 	#endif 
-
 	while (1) {
 		/* Start by sleeping 5 seconds */
 		sleep(5); /* Perhaps a definition in a header file */
@@ -783,6 +815,7 @@ void *plmc_connection_mgr(void *arguments)
 	fprintf(plmc_lib_debug, "plmc_connection_mgr: I am exiting\n");
 	fflush(plmc_lib_debug);
 	#endif 
+	pthread_cleanup_pop(0);
 	pthread_exit((void *)NULL);
 }
 
