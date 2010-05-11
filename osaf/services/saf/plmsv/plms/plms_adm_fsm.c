@@ -3597,12 +3597,11 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 				SA_PLM_READINESS_STOPPING,
 				ent,SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
-		
-			plms_readiness_flag_mark_unmark(head->plm_entity,
+		}
+		plms_readiness_flag_mark_unmark(head->plm_entity,
 				SA_PLM_RF_DEPENDENCY,TRUE,ent,
 				SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
-		}
 		head = head->next;
 	 }
 

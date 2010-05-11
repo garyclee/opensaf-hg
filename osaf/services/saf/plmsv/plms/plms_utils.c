@@ -1575,8 +1575,6 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 				This has to be the ntf-id */		
 				ent[count].plmNotificationId = 
 						SA_NTF_IDENTIFIER_UNUSED; 
-				ent[count].expectedReadinessStatus = 
-					head->plm_entity->exp_readiness_status; 
 				if (PLMS_HE_ENTITY == head->plm_entity->
 								entity_type){
 				
@@ -1600,6 +1598,11 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 					head->plm_entity->entity.ee_entity.
 							saPlmEEReadinessFlags;
 				
+				}
+				if (SA_PLM_CHANGE_COMPLETED == change_step){
+					ent[count].expectedReadinessStatus = ent[count].currentReadinessStatus;
+				}else{
+					ent[count].expectedReadinessStatus = head->plm_entity->exp_readiness_status; 
 				}
 			count++;
 			}
