@@ -408,15 +408,12 @@ int plmc_plmcd_restart(char *ee_id, int( *cb)(tcp_msg  *))
 int plmc_destroy()
 {
 	int i=0;
-	if (pthread_cancel(plmc_connection_mgr_id) != 0) {
-		i=1;
-	}
 	if (pthread_cancel(udp_listener_id) != 0) {
 		i=1;
 	}
 	if (pthread_cancel(tcp_listener_id) != 0) {
 		i=1;
-	 }
+	}
 #ifdef PLMC_LIB_DEBUG
 	fprintf(plmc_lib_debug, "Closing the debug file\n");
 	/* Close the debug file */
