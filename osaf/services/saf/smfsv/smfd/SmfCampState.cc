@@ -652,6 +652,65 @@ void SmfCampStateExecCompleted::toString(std::string & io_str) const
 }
 
 //------------------------------------------------------------------------------
+// execute()
+//------------------------------------------------------------------------------
+void 
+SmfCampStateExecCompleted::execute(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+
+	TRACE("SmfCampStateExecuting::execute, Do some checking");
+
+	/* Check if the campaign have been restarted to many times */
+	bool o_result;
+	if (i_camp->tooManyRestarts(&o_result) == SA_AIS_OK){
+		if (o_result == true) {
+			LOG_ER("The campaign have been restarted to many times");
+			std::string cnt = getenv("CAMP_MAX_RESTART");
+			std::string error = "To many campaign restarts, max " + cnt;
+			SmfCampaignThread::instance()->campaign()->setError(error);
+			changeState(i_camp, SmfCampStateExecFailed::instance());
+			TRACE_LEAVE();
+			return;
+		}
+	} else {
+		LOG_ER("toManyRestarts() fails");
+		std::string error = "Restart number check fails";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
+	}
+
+	std::vector < SmfUpgradeProcedure * >::iterator iter;
+
+	//Set the DN of the procedures
+	iter = i_camp->m_procedure.begin();
+	while (iter != i_camp->m_procedure.end()) {
+		//Set the DN of the procedure
+		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
+		(*iter)->setDn(dn);
+
+		iter++;
+	}
+
+	//Start procedure threads
+	TRACE("SmfCampStateExecuting::execute, start procedure threads and set initial state");
+	iter = i_camp->m_procedure.begin();
+	while (iter != i_camp->m_procedure.end()) {
+		SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
+		(*iter)->setProcThread(procThread);
+
+		TRACE("SmfCampStateExecuting::executeProc, Starting procedure %s", (*iter)->getProcName().c_str());
+		procThread->start();
+
+		iter++;
+	}
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
 // commit()
 //------------------------------------------------------------------------------
 void 

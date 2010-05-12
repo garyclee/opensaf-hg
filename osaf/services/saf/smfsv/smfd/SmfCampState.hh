@@ -142,6 +142,8 @@ class SmfCampStateExecCompleted:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
+	virtual void execute(SmfUpgradeCampaign * i_camp);
+
 	virtual void commit(SmfUpgradeCampaign * i_camp);
 
 	virtual SaSmfCmpgStateT getState() const {

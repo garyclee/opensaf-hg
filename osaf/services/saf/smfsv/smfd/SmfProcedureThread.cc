@@ -83,8 +83,9 @@ SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
 SmfProcedureThread::~SmfProcedureThread()
 {
 	TRACE_ENTER();
+
 	//Delete the IMM handler
-//	deleteImmHandle();
+	deleteImmHandle();
 
 	TRACE_LEAVE();
 }
@@ -132,9 +133,6 @@ SmfProcedureThread::stop(void)
 {
 	TRACE_ENTER();
 	TRACE("Stopping procedure thread %s", m_procedure->getDn().c_str());
-
-	//Delete the IMM handler
-	deleteImmHandle();
 
 	/* send a message to the thread to make it terminate */
 	PROCEDURE_EVT *evt = new PROCEDURE_EVT();
@@ -220,6 +218,8 @@ SaAisErrorT
 SmfProcedureThread::createImmHandle(SmfUpgradeProcedure * procedure)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	int existCnt = 0;
+
 	SaVersionT immVersion = { 'A', 2, 1 };
 	const char *procDn = procedure->getDn().c_str();
 
@@ -238,17 +238,20 @@ SmfProcedureThread::createImmHandle(SmfUpgradeProcedure * procedure)
 		goto done;
 	}
 
-#if 0
-	rc = immutil_saImmOiSelectionObjectGet(m_procOiHandle, &m_procSelectionObject);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet fails rc=%d", rc);
-		goto done;
-	}
-#endif
 	TRACE("saImmOiImplementerSet DN=%s", procDn);
 
+	//SA_AIS_ERR_TRY_AGAIN can proceed forever
+	//SA_AIS_ERR_EXIST is limited to 60 seconds (for the other side to release the handle)
 	rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
-	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) {
+		if(rc == SA_AIS_ERR_EXIST) 
+			existCnt++;
+		if(existCnt > 60) {
+			TRACE("immutil_saImmOiImplementerSet rc = SA_AIS_ERR_EXIST for 60 sec, giving up ");
+			goto done;
+		}
+
+		TRACE("immutil_saImmOiImplementerSet rc = %d, wait 1 sec and retry", rc);
 		sleep(1);
 		rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
 	}

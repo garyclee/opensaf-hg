@@ -196,6 +196,8 @@ SmfUpgradeCampaign::setConfigurationBase(const std::string & i_confbase)
 void 
 SmfUpgradeCampaign::setCampState(SaSmfCmpgStateT i_state)
 {
+	TRACE_ENTER();
+
 	switch (i_state) {
 	case SA_SMF_CMPG_INITIAL:
 		{
