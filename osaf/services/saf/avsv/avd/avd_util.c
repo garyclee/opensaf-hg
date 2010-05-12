@@ -246,13 +246,13 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	}
 
 	/* prepare the message */
-	d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UP_MSG;
-	d2n_msg->msg_info.d2n_clm_node_up.node_id = avnd->node_info.nodeId;
-	d2n_msg->msg_info.d2n_clm_node_up.node_type = avnd->type;
-	d2n_msg->msg_info.d2n_clm_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
-	d2n_msg->msg_info.d2n_clm_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
+	d2n_msg->msg_type = AVSV_D2N_NODE_UP_MSG;
+	d2n_msg->msg_info.d2n_node_up.node_id = avnd->node_info.nodeId;
+	d2n_msg->msg_info.d2n_node_up.node_type = avnd->type;
+	d2n_msg->msg_info.d2n_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
+	d2n_msg->msg_info.d2n_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_CLM_NODE_UP_MSG, avnd->node_info.nodeId);
+	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_NODE_UP_MSG, avnd->node_info.nodeId);
 
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {

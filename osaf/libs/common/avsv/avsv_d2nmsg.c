@@ -457,7 +457,7 @@ uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 {
 	/* array of free function pointers */
-	AVSV_FREE_DND_MSG_INFO avsv_dnd_msg_free_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_CLM_NODE_UP_MSG) + 1] = {
+	AVSV_FREE_DND_MSG_INFO avsv_dnd_msg_free_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_NODE_UP_MSG) + 1] = {
 		/* AVSV_D2N_CLM_NODE_UP_MSG */
 		avsv_free_d2n_node_up_msg_info,
 		/* AVSV_D2N_REG_SU_MSG */
@@ -473,11 +473,11 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 	if (msg == NULL)
 		return;
 
-	if ((msg->msg_type <= AVSV_D2N_PG_TRACK_ACT_RSP_MSG) && (msg->msg_type >= AVSV_D2N_CLM_NODE_UP_MSG)) {
+	if ((msg->msg_type <= AVSV_D2N_PG_TRACK_ACT_RSP_MSG) && (msg->msg_type >= AVSV_D2N_NODE_UP_MSG)) {
 		/* these messages have information list in them free them
 		 * first by calling the corresponding free routine.
 		 */
-		avsv_dnd_msg_free_ptr[msg->msg_type - AVSV_D2N_CLM_NODE_UP_MSG] (msg);
+		avsv_dnd_msg_free_ptr[msg->msg_type - AVSV_D2N_NODE_UP_MSG] (msg);
 	}
 
 	/* free the message */
@@ -506,7 +506,7 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 {
 	/* array of copy function pointers */
-	AVSV_COPY_DND_MSG avsv_dnd_msg_cpy_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_CLM_NODE_UP_MSG) + 1] = {
+	AVSV_COPY_DND_MSG avsv_dnd_msg_cpy_ptr[(AVSV_D2N_PG_TRACK_ACT_RSP_MSG - AVSV_D2N_NODE_UP_MSG) + 1] = {
 		/* AVSV_D2N_CLM_NODE_UP_MSG */
 		avsv_cpy_d2n_node_up_msg,
 		/* AVSV_D2N_REG_SU_MSG */
@@ -523,11 +523,11 @@ uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if ((smsg->msg_type <= AVSV_D2N_PG_TRACK_ACT_RSP_MSG) && (smsg->msg_type >= AVSV_D2N_CLM_NODE_UP_MSG)) {
+	if ((smsg->msg_type <= AVSV_D2N_PG_TRACK_ACT_RSP_MSG) && (smsg->msg_type >= AVSV_D2N_NODE_UP_MSG)) {
 		/* these messages have information list in them copy them
 		 * along with copying the contents.
 		 */
-		return avsv_dnd_msg_cpy_ptr[smsg->msg_type - AVSV_D2N_CLM_NODE_UP_MSG] (dmsg, smsg);
+		return avsv_dnd_msg_cpy_ptr[smsg->msg_type - AVSV_D2N_NODE_UP_MSG] (dmsg, smsg);
 	} else {
 		/* copy only the contents */
 		memcpy(dmsg, smsg, sizeof(AVSV_DND_MSG));

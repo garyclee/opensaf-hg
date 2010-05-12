@@ -52,11 +52,11 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	NCS_BOOL comp_sent;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_clm_node_up.node_id);
+	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
 
 	/* Cannot use avd_msg_sanity_chk here since this is a special case */
-	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_clm_node_up.node_id)) == NULL) {
-		TRACE("invalid node ID (%x)", n2d_msg->msg_info.n2d_clm_node_up.node_id);
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_up.node_id)) == NULL) {
+		TRACE("invalid node ID (%x)", n2d_msg->msg_info.n2d_node_up.node_id);
 		goto done;
 	}
 
@@ -64,21 +64,21 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * APP init state for all nodes except the primary system controller
 	 * whose node up is accepted in config done state.
 	 */
-	if ((n2d_msg->msg_info.n2d_clm_node_up.node_id != cb->node_id_avd) && (cb->init_state < AVD_INIT_DONE)) {
+	if ((n2d_msg->msg_info.n2d_node_up.node_id != cb->node_id_avd) && (cb->init_state < AVD_INIT_DONE)) {
 		TRACE("invalid init state (%u), node %x",
-			cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
+			cb->init_state, n2d_msg->msg_info.n2d_node_up.node_id);
 		goto done;
 	}
 
 	if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
 		LOG_WA("invalid node state %u for node %x",
-			avnd->node_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
+			avnd->node_state, n2d_msg->msg_info.n2d_node_up.node_id);
 		goto done;
 	}
 
 	/* Retrive the information from the message */
-	avnd->adest = n2d_msg->msg_info.n2d_clm_node_up.adest_address;
-	avnd->rcv_msg_id = n2d_msg->msg_info.n2d_clm_node_up.msg_id;
+	avnd->adest = n2d_msg->msg_info.n2d_node_up.adest_address;
+	avnd->rcv_msg_id = n2d_msg->msg_info.n2d_node_up.msg_id;
 
 	if (avnd->node_info.member != SA_TRUE) {
 		LOG_WA("Not a Cluster Member dropping the msg");
@@ -193,10 +193,6 @@ done:
 void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *ncs_su;
-	struct {
-		uns32 seconds;
-		uns32 millisecs;
-	} boot_timestamp;
 
 	TRACE_ENTER();
 
@@ -215,11 +211,7 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 		if (avnd->node_info.nodeId == cb->node_id_avd) {
 			cb->init_state = AVD_INIT_DONE;
-			/* Note the current time for cluster boottime */
-			m_GET_MSEC_TIME_STAMP(&boot_timestamp.seconds, &boot_timestamp.millisecs);
-			cb->cluster_init_time = ((uns64)boot_timestamp.seconds *
-						 (uns64)(AVSV_NANOSEC_TO_LEAPTM) * (uns64)100)
-			    + ((uns64)boot_timestamp.millisecs * (uns64)(AVSV_NANOSEC_TO_LEAPTM / 10));
+
 			/* start the cluster init timer. */
 			m_AVD_CLINIT_TMR_START(cb);
 		}
@@ -276,10 +268,6 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *ncs_su, *su;
-	struct {
-		uns32 seconds;
-		uns32 millisecs;
-	} boot_timestamp;
 
 	TRACE_ENTER();
 
@@ -318,11 +306,6 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 		if (avnd->node_info.nodeId == cb->node_id_avd) {
 			cb->init_state = AVD_INIT_DONE;
-			/* Note the current time for cluster boottime */
-			m_GET_MSEC_TIME_STAMP(&boot_timestamp.seconds, &boot_timestamp.millisecs);
-			cb->cluster_init_time = ((uns64)boot_timestamp.seconds *
-						 (uns64)(AVSV_NANOSEC_TO_LEAPTM) * (uns64)100)
-			    + ((uns64)boot_timestamp.millisecs * (uns64)(AVSV_NANOSEC_TO_LEAPTM / 10));
 
 			/* start the cluster init timer. */
 			m_AVD_CLINIT_TMR_START(cb);

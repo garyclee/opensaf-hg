@@ -56,7 +56,7 @@ typedef enum {
 } AVSV_COMP_VALIDATION_RESULT_TYPE;
 
 typedef enum {
-	AVSV_N2D_CLM_NODE_UP_MSG = 1,
+	AVSV_N2D_NODE_UP_MSG = 1,
 	AVSV_N2D_REG_SU_MSG,
 	AVSV_N2D_REG_COMP_MSG,
 	AVSV_N2D_OPERATION_STATE_MSG,
@@ -67,7 +67,7 @@ typedef enum {
 	AVSV_N2D_SHUTDOWN_APP_SU_MSG,
 	AVSV_N2D_VERIFY_ACK_NACK_MSG,
 	AVSV_N2D_COMP_VALIDATION_MSG,
-	AVSV_D2N_CLM_NODE_UP_MSG,
+	AVSV_D2N_NODE_UP_MSG,
 	AVSV_D2N_REG_SU_MSG,
 	AVSV_D2N_REG_COMP_MSG,
 	AVSV_D2N_INFO_SU_SI_ASSIGN_MSG,
@@ -85,22 +85,6 @@ typedef enum {
 	AVSV_D2N_HEARTBEAT_MSG,
 	AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
-
-typedef struct avsv_clm_info {
-	SaClmNodeIdT node_id;	/* node id */
-	SaClmNodeAddressT node_address;	/* node address */
-	SaNameT node_name;	/* node name */
-	SaBoolT member;		/* indicates if node is a 
-				   member of the cluster */
-	SaTimeT boot_timestamp;	/* node boot timestamp  */
-	SaUint64T view_number;	/* view number when the node 
-				   joined/left the cluster */
-} AVSV_CLM_INFO;
-
-typedef struct avsv_clm_info_msg {
-	AVSV_CLM_INFO clm_info;
-	struct avsv_clm_info_msg *next;
-} AVSV_CLM_INFO_MSG;
 
 typedef struct avsv_hlt_key_tag {
 	SaNameT comp_name;
@@ -342,11 +326,11 @@ typedef enum {
 	AVSV_AVND_CARD_SYS_CON
 } AVSV_AVND_CARD;
 
-typedef struct avsv_n2d_clm_node_up_msg_info_tag {
+typedef struct avsv_n2d_node_up_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
 	MDS_DEST adest_address;
-} AVSV_N2D_CLM_NODE_UP_MSG_INFO;
+} AVSV_N2D_NODE_UP_MSG_INFO;
 
 typedef struct avsv_n2d_comp_validation_msg_info_tag {
 	uns32 msg_id;
@@ -429,12 +413,12 @@ typedef struct avsv_n2d_verify_ack_nack_msg_info {
 	NCS_BOOL ack;
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
 
-typedef struct avsv_d2n_clm_node_up_msg_info_tag {
+typedef struct avsv_d2n_node_up_msg_info_tag {
 	SaClmNodeIdT node_id;
 	AVSV_AVND_CARD node_type;
 	SaTimeT su_failover_prob;
 	uns32 su_failover_max;
-} AVSV_D2N_CLM_NODE_UP_MSG_INFO;
+} AVSV_D2N_NODE_UP_MSG_INFO;
 
 typedef struct avsv_d2n_reg_su_msg_info_tag {
 	uns32 msg_id;
@@ -559,7 +543,7 @@ typedef struct avsv_d2n_role_change_info_tag {
 typedef struct avsv_dnd_msg {
 	AVSV_DND_MSG_TYPE msg_type;
 	union {
-		AVSV_N2D_CLM_NODE_UP_MSG_INFO n2d_clm_node_up;
+		AVSV_N2D_NODE_UP_MSG_INFO n2d_node_up;
 		AVSV_N2D_REG_SU_MSG_INFO n2d_reg_su;
 		AVSV_N2D_REG_COMP_MSG_INFO n2d_reg_comp;
 		AVSV_N2D_OPERATION_STATE_MSG_INFO n2d_opr_state;
@@ -570,7 +554,7 @@ typedef struct avsv_dnd_msg {
 		AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
 		AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
 		AVSV_N2D_COMP_VALIDATION_INFO n2d_comp_valid_info;
-		AVSV_D2N_CLM_NODE_UP_MSG_INFO d2n_clm_node_up;
+		AVSV_D2N_NODE_UP_MSG_INFO d2n_node_up;
 		AVSV_D2N_REG_SU_MSG_INFO d2n_reg_su;
 		AVSV_D2N_REG_COMP_MSG_INFO d2n_reg_comp;
 		AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO d2n_su_si_assign;

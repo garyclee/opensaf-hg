@@ -429,7 +429,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		 * Set the Active Anchor value, if the message is Verify message or Node up
 		 * message, to the Anchor of the received message.
 		 */
-		if ((AVSV_D2N_CLM_NODE_UP_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type) ||
+		if ((AVSV_D2N_NODE_UP_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type) ||
 		    (AVSV_D2N_DATA_VERIFY_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type)) {
 			cb->active_avd_adest = rcv_info->i_fr_dest;
 		}
@@ -476,7 +476,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* determine the event type */
 	switch (msg.type) {
 	case AVND_MSG_AVD:
-		type = (msg.info.avd->msg_type - AVSV_D2N_CLM_NODE_UP_MSG) + AVND_EVT_AVD_NODE_UP_MSG;
+		type = (msg.info.avd->msg_type - AVSV_D2N_NODE_UP_MSG) + AVND_EVT_AVD_NODE_UP_MSG;
 
 		break;
 
