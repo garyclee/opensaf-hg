@@ -1312,7 +1312,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			if ((i_su->num_of_comp == i_su->curr_num_comp) &&
 			    (i_su->term_state == FALSE) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
-			    (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED)) {
+			    (i_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 				if (i_su->saAmfSUPreInstantiable == TRUE) {
 					/* instantiate all the pre-instatiable SUs */
 					avd_snd_presence_msg(cb, i_su, FALSE);
@@ -1391,7 +1391,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			num_insvc_su++;
 			if ((i_su->list_of_susi == AVD_SU_SI_REL_NULL) &&
 			    (i_su->saAmfSUPreInstantiable == TRUE) &&
-			    (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+			    (i_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 			    (sg->saAmfSGNumPrefInserviceSUs < (num_insvc_su + num_try_insvc_su))) {
 				/* enough inservice SUs are already there terminate this
 				 * SU.
