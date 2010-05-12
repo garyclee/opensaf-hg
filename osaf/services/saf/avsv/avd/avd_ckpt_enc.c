@@ -766,7 +766,7 @@ static uns32 avsv_encode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
 						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 8);
+						&ederror, enc->i_peer_version, 2, 3, 8);
 
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
@@ -802,7 +802,7 @@ static uns32 avsv_encode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
 						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 9);
+						&ederror, enc->i_peer_version, 2, 3, 9);
 
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
@@ -838,7 +838,7 @@ static uns32 avsv_encode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
 						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 10);
+						&ederror, enc->i_peer_version, 2, 3, 10);
 
 		if (status != NCSCC_RC_SUCCESS)
 			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);

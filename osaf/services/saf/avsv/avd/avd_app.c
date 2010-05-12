@@ -54,12 +54,13 @@ AVD_APP *avd_app_new(const SaNameT *dn)
 	return app;
 }
 
-void avd_app_delete(AVD_APP **app)
+void avd_app_delete(AVD_APP *app)
 {
-	unsigned int rc = ncs_patricia_tree_del(&app_db, &(*app)->tree_node);
+	unsigned int rc = ncs_patricia_tree_del(&app_db, &app->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
-	avd_apptype_remove_app(*app);
-	free(*app);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+	avd_apptype_remove_app(app);
+	free(app);
 }
 
 AVD_APP *avd_app_get(const SaNameT *dn)
@@ -115,6 +116,9 @@ void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
 	AVD_SI *i_si;
 	AVD_SI *prev_si = NULL;
 
+	if (!app)
+		return;
+
 	i_si = app->list_of_si;
 
 	while ((i_si != NULL) && (i_si != si)) {
@@ -149,6 +153,9 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 {
 	AVD_SG *i_sg;
 	AVD_SG *prev_sg = NULL;
+
+	if (!app)
+		return;
 
 	i_sg = app->list_of_sg;
 
@@ -242,8 +249,10 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	rc = 0;
 
 done:
-	if (rc != 0)
-		avd_app_delete(&app);
+	if (rc != 0) {
+		avd_app_delete(app);
+		app = NULL;
+	}
 
 	return app;
 }
@@ -333,8 +342,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 	case CCBUTIL_DELETE:
-		app = opdata->userData;
-		avd_app_delete(&app);
+		avd_app_delete(opdata->userData);
 		break;
 	default:
 		assert(0);

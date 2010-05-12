@@ -864,12 +864,12 @@ static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 8);
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 8);
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -911,7 +911,7 @@ static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 9);
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 9);
 
 	assert(status == NCSCC_RC_SUCCESS);
 
@@ -958,7 +958,7 @@ static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 10);
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 10);
 
 	assert(status == NCSCC_RC_SUCCESS);
 

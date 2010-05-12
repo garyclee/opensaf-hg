@@ -161,13 +161,13 @@ AVD_COMP *avd_comp_getnext(const SaNameT *dn)
 	return (AVD_COMP *)ncs_patricia_tree_getnext(&comp_db, (uns8 *)&tmp);
 }
 
-void avd_comp_delete(AVD_COMP **comp)
+void avd_comp_delete(AVD_COMP *comp)
 {
-	avd_su_remove_comp(*comp);
-	avd_comptype_remove_comp(*comp);
-	(void)ncs_patricia_tree_del(&comp_db, &(*comp)->tree_node);
-	free(*comp);
-	*comp = NULL;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
+	avd_su_remove_comp(comp);
+	avd_comptype_remove_comp(comp);
+	(void)ncs_patricia_tree_del(&comp_db, &comp->tree_node);
+	free(comp);
 }
 
 /*****************************************************************************
@@ -809,8 +809,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 
 	rc = 0;
 done:
-	if (rc != 0)
-		avd_comp_delete(&comp);
+	if (rc != 0) {
+		avd_comp_delete(comp);
+		comp = NULL;
+	}
 
 	return comp;
 }
@@ -1681,7 +1683,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
-	avd_comp_delete(&comp);
+	avd_comp_delete(comp);
 done:
 	TRACE_LEAVE();
 }

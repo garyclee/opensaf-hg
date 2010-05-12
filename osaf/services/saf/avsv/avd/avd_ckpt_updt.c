@@ -78,10 +78,11 @@ uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE actio
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		if (NULL == (node = avd_node_get(&ckpt_node->name))) {
+			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_node->name.value);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		avd_node_delete(&node);
+		avd_node_delete(node);
 		break;
 	default:
 		assert(0);
@@ -134,10 +135,11 @@ uns32 avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		if (NULL == (app = avd_app_get(&ckpt_app->name))) {
+			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_app->name.value);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		avd_app_delete(&app);
+		avd_app_delete(app);
 		break;
 	default:
 		assert(0);
@@ -195,11 +197,11 @@ uns32 avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
-			LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
+			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_sg->name.value);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		avd_sg_delete(&sg);
+		avd_sg_delete(sg);
 		break;
 	}
 	default:
@@ -268,11 +270,11 @@ uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 	}
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (su = avd_su_get(&ckpt_su->name))) {
-			LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
+			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_su->name.value);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		avd_su_delete(&su);
+		avd_su_delete(su);
 		break;
 	}
 	default:
@@ -330,10 +332,11 @@ uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
-			LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
+			LOG_ER("%s: %s does not exist", __FUNCTION__, ckpt_si->name.value);
+			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		avd_si_delete(&si);
+		avd_si_delete(si);
 		break;
 	}
 	default:
@@ -501,7 +504,8 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 			avd_compcsi_delete(cb, su_si_rel_ptr, TRUE);
 			avd_susi_delete(cb, su_si_rel_ptr, TRUE);
 		} else {
-			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
+			LOG_ER("%s: %s %s does not exist", __FUNCTION__,
+				su_si_ckpt->su_name.value, su_si_ckpt->si_name.value);
 			return NCSCC_RC_FAILURE;
 		}
 		break;
@@ -553,10 +557,10 @@ uns32 avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE actio
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (comp = avd_comp_get(dn))) {
-			LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
+			LOG_ER("%s: %s does not exist", __FUNCTION__, dn->value);
 			goto done;
 		}
-		avd_comp_delete(&comp);
+		avd_comp_delete(comp);
 		break;
 	}
 	default:
@@ -609,7 +613,7 @@ uns32 avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NCS_M
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (ccst = avd_compcstype_get(dn))) {
-			LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
+			LOG_ER("%s: %s does not exist", __FUNCTION__, dn->value);
 			goto done;
 		}
 		avd_compcstype_delete(&ccst);

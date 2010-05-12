@@ -204,7 +204,7 @@ extern void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy
 extern void avd_comp_db_add(AVD_COMP *comp);
 
 extern AVD_COMP *avd_comp_new(const SaNameT *dn);
-extern void avd_comp_delete(AVD_COMP **comp);
+extern void avd_comp_delete(AVD_COMP *comp);
 extern AVD_COMP *avd_comp_get(const SaNameT *comp_name);
 extern AVD_COMP *avd_comp_getnext(const SaNameT *comp_name);
 extern void avd_su_remove_comp(AVD_COMP* comp);

@@ -150,7 +150,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_SWITCH);\
 extern void avd_si_add_csi(struct avd_csi_tag* csi);
 extern void avd_si_remove_csi(struct avd_csi_tag *csi);
 extern AVD_SI *avd_si_new(const SaNameT *dn);
-extern void avd_si_delete(AVD_SI **si);
+extern void avd_si_delete(AVD_SI *si);
 extern void avd_si_db_add(AVD_SI *si);
 extern AVD_SI *avd_si_get(const SaNameT *si_name);
 extern AVD_SI *avd_si_getnext(const SaNameT *si_name);

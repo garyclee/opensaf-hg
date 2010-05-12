@@ -85,15 +85,14 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 	return node;
 }
 
-void avd_node_delete(AVD_AVND **node)
+void avd_node_delete(AVD_AVND *node)
 {
-	assert((*node)->pg_csi_list.n_nodes == 0);
-	if ((*node)->node_info.nodeId)
-		avd_node_delete_nodeid(*node);
+	assert(node->pg_csi_list.n_nodes == 0);
+	if (node->node_info.nodeId)
+		avd_node_delete_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
-	ncs_patricia_tree_del(&node_name_db, &(*node)->tree_node_name_node);
-	free(*node);
-	*node = NULL;
+	ncs_patricia_tree_del(&node_name_db, &node->tree_node_name_node);
+	free(node);
 }
 
 static void node_add_to_model(AVD_AVND *node)
@@ -280,8 +279,10 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	rc = 0;
 
 done:
-	if (rc != 0)
-		avd_node_delete(&node);
+	if (rc != 0) {
+		avd_node_delete(node);
+		node = NULL;
+	}
 
 	TRACE_LEAVE();
 	return node;
@@ -396,7 +397,7 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
  * Returns: None.
  *
  ****************************************************************************/
-static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdata)
+static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_AVND *node = avd_node_get(&opdata->objectName);
@@ -425,6 +426,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdat
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
+	opdata->userData = node;
 	TRACE_LEAVE();
 	return rc;
 }
@@ -507,17 +509,11 @@ static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
-static void node_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_delete_hdlr(AVD_AVND *node)
 {
-	AVD_AVND *node = avd_node_get(&opdata->objectName);
-
 	TRACE_ENTER2("'%s'", node->name.value);
-
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
-
 	avd_node_delete_nodeid(node);
-	avd_node_delete(&node);
-
+	avd_node_delete(node);
 	TRACE_LEAVE();
 }
 
@@ -618,7 +614,7 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		node_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		node_ccb_apply_delete_hdlr(opdata);
+		node_ccb_apply_delete_hdlr(opdata->userData);
 		break;
 	default:
 		assert(0);
