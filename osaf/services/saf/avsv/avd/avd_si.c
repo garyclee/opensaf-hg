@@ -695,7 +695,7 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		si = avd_si_get(&opdata->objectName);
-		if ((NULL != si->list_of_csi) || (NULL != si->list_of_csi)) {
+		if (NULL != si->list_of_csi) {
 			LOG_ER("SaAmfSI is in use");
 			goto done;
 		}
