@@ -237,7 +237,18 @@ static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
+}
+
+static void csiattr_create_apply(CcbUtilOperationData_t *opdata)
+{
+	AVD_CSI_ATTR *csiattr;
+	AVD_CSI *csi;
+
+	csiattr = csiattr_create(&opdata->objectName, opdata->param.create.attrValues);
+	csi = avd_csi_get(opdata->param.create.parentName);
+	avd_csi_add_csiattr(csi, csiattr);
 }
 
 static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
@@ -248,15 +259,8 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 	char *p1, *p2;
 	int i;
 	AVD_CSI *csi;
-	SaNameT csi_dn;
 
-	/* get the parent csi dn */
-	strncpy((char *)&csi_dn.value, 
-			strstr((char *)&opdata->objectName.value, "safCsi="),
-			SA_MAX_NAME_LENGTH); 
-	csi_dn.length = strlen((char *)&csi_dn.value);
-
-	assert (NULL != (csi = avd_csi_get(&csi_dn)));
+	csi = avd_csi_get(opdata->param.create.parentName);
 
 	attr_mod = opdata->param.modify.attrMods[0];
 	attribute = &attr_mod->modAttr;
@@ -267,8 +271,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 	p1++;
 
 	/* create new name-value pairs for the modified csi attribute */
-	for (i = 0; i < attribute->attrValuesNumber; i++)
-	{
+	for (i = 0; i < attribute->attrValuesNumber; i++) {
 		char *value = attribute->attrValues[i++];
 		if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
 			LOG_ER("%s:calloc FAILED", __FUNCTION__);
@@ -294,6 +297,7 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
+		csiattr_create_apply(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		break;
@@ -304,6 +308,8 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		assert(0);
 		break;
 	}
+
+	TRACE_LEAVE();
 }
 
 void avd_csiattr_constructor(void)

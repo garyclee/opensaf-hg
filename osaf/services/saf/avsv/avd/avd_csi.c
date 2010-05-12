@@ -406,6 +406,7 @@ static SaAisErrorT csi_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	}
 
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -490,6 +491,8 @@ static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		assert(0);
 		break;
 	}
+
+	TRACE_LEAVE();
 }
 
 /**
