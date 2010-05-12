@@ -1271,6 +1271,7 @@ static void clms_track_current_apiresp(SaAisErrorT ais_rc, uns32 num_mem, SaClmC
 		TRACE("clms_mds_msg_send failed");
 	}
 
+	free(msg.info.api_resp_info.param.track.notify_info);
 	TRACE_LEAVE();
 }
 
@@ -1318,6 +1319,8 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc, uns32 num_mem, S
 		TRACE("clms_mds_msg_send failed rc = %d", rc);
 	}
 
+	free(msg.info.cbk_info.param.track.root_cause_ent);
+	free(msg.info.cbk_info.param.track.cor_ids);
 	TRACE_LEAVE();
 }
 
