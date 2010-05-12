@@ -148,7 +148,8 @@ extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn,
 extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
 	SaNameT *dn, const char *needle, const char *parent);
 
-extern int comp_admin_op_snd_msg(struct avd_comp_tag *comp, SaAmfAdminOperationIdT opId);
+extern int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
+	SaAmfAdminOperationIdT opId, struct avd_avnd_tag *node);
 extern const char* avd_getparent(const char* dn);
 extern void amfd_switch(AVD_CL_CB *cb);
 extern uns32 avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role);

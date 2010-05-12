@@ -92,6 +92,7 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_TMR_NODE_ERR_ESC",
 	"AVND_EVT_TMR_CLC_PXIED_COMP_INST",
 	"AVND_EVT_TMR_CLC_PXIED_COMP_REG",
+	"AVND_EVT_TMR_HB_DURATION",
 	"AVND_EVT_MDS_AVD_UP",
 	"AVND_EVT_MDS_AVD_DN",
 	"AVND_EVT_MDS_AVA_DN",
@@ -383,3 +384,4 @@ static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt)
 	LOG_NO("avnd_evt_invalid_func: %u", evt->type);
 	return NCSCC_RC_SUCCESS;
 }
+

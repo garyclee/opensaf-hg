@@ -917,7 +917,8 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		}
 		else {
 			/* prepare the admin op req message and queue it */
-			if (comp_admin_op_snd_msg(comp, opId) == NCSCC_RC_SUCCESS) {
+			if (avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
+				opId, comp->su->su_on_node) == NCSCC_RC_SUCCESS) {
 				comp->admin_pend_cbk.admin_oper = opId;
 				comp->admin_pend_cbk.invocation = invocation;
 				rc = SA_AIS_OK;

@@ -387,3 +387,35 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
  done:
 	return rc;
 }
+
+/**
+ * Process SU admin operation request from director
+ *
+ * @param cb
+ * @param evt
+ */
+uns32 avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
+{
+	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
+	AVND_SU *su;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
+
+	assert( info->msg_id == cb->rcv_msg_id+1 );
+	cb->rcv_msg_id = info->msg_id;
+
+	su = m_AVND_SUDB_REC_GET(cb->sudb, info->dn);
+	assert(su != NULL);
+
+	switch(info->oper_id) {
+	default:
+		LOG_NO("%s: unsupported adm op %u", __FUNCTION__, info->oper_id);
+		rc = NCSCC_RC_FAILURE;
+		break;
+	}
+
+	TRACE_LEAVE();
+	return rc;   
+}
+

@@ -384,5 +384,6 @@ EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
 EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
 					    AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec);
 EXTERN_C uns32 avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
+extern uns32 avnd_evt_su_admin_op_req(struct avnd_cb_tag *cb, struct avnd_evt_tag  *evt);
 
 #endif

@@ -518,9 +518,9 @@ typedef struct avsv_d2n_set_leds_msg_info_tag {
 
 typedef struct avsv_d2n_admin_op_req_msg_info_tag {
 	uns32         msg_id;
-	SaClmNodeIdT  node_id;
-	SaNameT       comp_name;
-	SaAmfAdminOperationIdT  oper_id;
+	SaNameT       dn;
+	uns32         class_id; /* value from enum AVSV_AMF_CLASS_ID */
+	SaAmfAdminOperationIdT oper_id;
 } AVSV_D2N_ADMIN_OP_REQ_MSG_INFO;
 
 typedef struct avsv_d2n_hb_msg_tag {
