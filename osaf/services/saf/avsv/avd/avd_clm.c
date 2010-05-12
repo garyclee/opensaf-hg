@@ -86,6 +86,16 @@ static void clm_node_exit_validate(AVD_AVND *node)
 	SaBoolT reject = SA_FALSE;
 	SaAisErrorT rc = SA_AIS_OK;
 
+	/*
+	 * Reject validate step on self node as this is active controller 
+	 */
+	if (node->node_info.nodeId == avd_cb->node_id_avd) {
+		reject = SA_TRUE;
+		LOG_NO("Validate Step on Active Controller %d",
+				avd_cb->node_id_avd);
+		goto done;
+	}
+
 	/* now go through each SU to determine whether
 	 any SI assigned becomes unassigned due to node exit*/
 	su = node->list_of_su;
