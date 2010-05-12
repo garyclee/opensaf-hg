@@ -66,7 +66,9 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	su->term_state = FALSE;
 	su->su_switch = AVSV_SI_TOGGLE_STABLE;
 	su->saAmfSUPreInstantiable = TRUE;
-	su->saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
+	/* saAmfSUOperState is set when the SU is added to model depending on
+	 * node state. Initialized to invalid due to filtering in avd_su_oper_state_set. */
+	su->saAmfSUOperState = 0;
 	su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
 	su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 	su->su_act_state = AVD_SU_NO_STATE;
