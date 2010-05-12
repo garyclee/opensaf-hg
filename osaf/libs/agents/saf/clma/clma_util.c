@@ -658,11 +658,16 @@ void clma_msg_destroy(CLMSV_MSG * msg)
 		if (msg->info.api_resp_info.type == CLMSV_TRACK_CURRENT_RESP) {
 			if (msg->info.api_resp_info.param.track.notify_info->numberOfItems)
 				free(msg->info.api_resp_info.param.track.notify_info->notification);
+
+			free(msg->info.api_resp_info.param.track.notify_info);
 		}
 	} else if (msg->evt_type == CLMSV_CLMS_TO_CLMA_CBK_MSG) {
 		if (msg->info.cbk_info.type == CLMSV_TRACK_CBK) {
 			if (msg->info.cbk_info.param.track.buf_info.numberOfItems)
 				free(msg->info.cbk_info.param.track.buf_info.notification);
+
+			free(msg->info.cbk_info.param.track.root_cause_ent);
+			free(msg->info.cbk_info.param.track.cor_ids);
 		}
 	}
 

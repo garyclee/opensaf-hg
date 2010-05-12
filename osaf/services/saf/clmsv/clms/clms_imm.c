@@ -944,6 +944,12 @@ uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("callback msg send to clma  failed");
 	}
+
+	if(msg->info.cbk_info.param.track.buf_info.notification)
+		free(msg->info.cbk_info.param.track.buf_info.notification);
+	free(msg->info.cbk_info.param.track.root_cause_ent);
+	free(msg->info.cbk_info.param.track.cor_ids);
+	
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1025,6 +1031,12 @@ uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIE
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("callback msg send to clma  failed");
 	}
+
+	if(msg->info.cbk_info.param.track.buf_info.notification)
+		free(msg->info.cbk_info.param.track.buf_info.notification);
+	free(msg->info.cbk_info.param.track.root_cause_ent);
+	free(msg->info.cbk_info.param.track.cor_ids);
+
 	TRACE_LEAVE();
 	return rc;
 }
