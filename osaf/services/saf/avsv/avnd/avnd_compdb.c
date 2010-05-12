@@ -34,6 +34,8 @@
 ******************************************************************************
 */
 
+#include <stdbool.h>
+
 #include <saImmOm.h>
 #include <avsv_util.h>
 #include <immutil.h>
@@ -1094,40 +1096,18 @@ done:
 }
 
 /**
- * Initialize the members of the comp object with the configuration attributes from IMM.
+ * Initialize the bundle dependent attributes in comp. Especially the CLC-CLI commands.
  * @param comp
+ * @param comptype
+ * @param path_prefix
  * @param attributes
- * 
- * @return int
  */
-static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
+static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_type_t *comptype,
+	const char *path_prefix, const SaImmAttrValuesT_2 **attributes)
 {
-	int i, j, res = -1;
+	int i, j;
 	AVND_COMP_CLC_CMD_PARAM *cmd;
-	amf_comp_type_t *comptype;
-	SaNameT nodeswbundle_name;
 	const char *argv;
-	SaBoolT disable_restart;
-	char *path_prefix = NULL;
-
-	TRACE_ENTER2("%s", comp->name.value);
-
-	if ((comptype = avnd_comptype_create(&comp->saAmfCompType)) == NULL) {
-		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
-			comp->saAmfCompType.value);
-		goto done;
-	}
-
-	avsv_create_association_class_dn(&comptype->saAmfCtSwBundle,
-		&avnd_cb->amf_nodeName, "safInstalledSwBundle", &nodeswbundle_name);
-
-	res = get_string_attr_from_imm(avnd_cb->immOmHandle, "saAmfNodeSwBundlePathPrefix",
-		&nodeswbundle_name, &path_prefix);
-	if (res != 0) {
-		LOG_NO("%s: '%s'", __FUNCTION__, comp->name.value);
-		LOG_ER("%s: FAILED to read '%s'", __FUNCTION__, nodeswbundle_name.value);
-		goto done;
-	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1];
 	if (comptype->saAmfCtRelPathInstantiateCmd != NULL) {
@@ -1150,28 +1130,6 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
-	if (immutil_getAttr("saAmfCompInstantiateTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK) {
-		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
-	}
-
-	if (immutil_getAttr("saAmfCompInstantiateLevel", attributes, 0, &comp->inst_level) != SA_AIS_OK)
-		comp->inst_level = comptype->saAmfCtDefInstantiationLevel;
-
-	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithoutDelay", attributes,
-			    0, &comp->clc_info.inst_retry_max) != SA_AIS_OK)
-		comp->clc_info.inst_retry_max = comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay;
-
-#if 0
-	//  TODO
-	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithDelay", attributes,
-			    0, &comp->max_num_inst_delay) != SA_AIS_OK)
-		comp->comp_info.max_num_inst = comp_global_attrs.saAmfNumMaxInstantiateWithDelay;
-
-	if (immutil_getAttr("saAmfCompDelayBetweenInstantiateAttempts", attributes,
-			    0, &comp->inst_retry_delay) != SA_AIS_OK)
-		comp->inst_retry_delay = comp_global_attrs.saAmfDelayBetweenInstantiateAttempts;
-#endif
-
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1];
 	if (comptype->saAmfCtRelPathTerminateCmd != NULL) {
 		i = 0;
@@ -1193,9 +1151,6 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
-	if (immutil_getAttr("saAmfCompTerminateTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
-		cmd->timeout = comptype->saAmfCtDefCallbackTimeout;
-
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1];
 	if (comptype->saAmfCtRelPathCleanupCmd != NULL) {
 		i = 0;
@@ -1216,9 +1171,6 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
-
-	if (immutil_getAttr("saAmfCompCleanupTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
-		cmd->timeout = comptype->saAmfCtDefCallbackTimeout;
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1];
 	if (comptype->saAmfCtRelPathAmStartCmd != NULL) {
@@ -1243,13 +1195,6 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		TRACE("cmd=%s", cmd->cmd);
 	}
 
-	if (immutil_getAttr("saAmfCompAmStartTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
-		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
-
-	if (immutil_getAttr("saAmfCompNumMaxAmStartAttempts", attributes,
-			    0, &comp->clc_info.am_start_retry_max) != SA_AIS_OK)
-		comp->clc_info.am_start_retry_max = comp_global_attrs.saAmfNumMaxAmStartAttempts;
-
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1];
 	if (comptype->saAmfCtRelPathAmStopCmd != NULL) {
 		i = 0;
@@ -1270,7 +1215,96 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
+}
 
+/**
+ * Initialize the members of the comp object with the configuration attributes from IMM.
+ * 
+ * @param comp
+ * @param attributes
+ * @param bundle_missing_is_error if true skip further initialization and return error code.
+ * if false continue initialization to get most attributes correct.
+ * 
+ * @return int
+ */
+static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
+	bool bundle_missing_is_error)
+{
+	int res = -1;
+	AVND_COMP_CLC_CMD_PARAM *cmd;
+	amf_comp_type_t *comptype;
+	SaNameT nodeswbundle_name;
+	SaBoolT disable_restart;
+	char *path_prefix = NULL;
+
+	TRACE_ENTER2("%s", comp->name.value);
+
+	if ((comptype = avnd_comptype_create(&comp->saAmfCompType)) == NULL) {
+		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
+			comp->saAmfCompType.value);
+		goto done;
+	}
+
+	avsv_create_association_class_dn(&comptype->saAmfCtSwBundle,
+		&avnd_cb->amf_nodeName, "safInstalledSwBundle", &nodeswbundle_name);
+
+	res = get_string_attr_from_imm(avnd_cb->immOmHandle, "saAmfNodeSwBundlePathPrefix",
+		&nodeswbundle_name, &path_prefix);
+
+	if (res == 0) {
+		init_bundle_dependent_attributes(comp, comptype, path_prefix, attributes);
+	} else {
+		if (bundle_missing_is_error) {
+			LOG_NO("%s: '%s'", __FUNCTION__, comp->name.value);
+			LOG_ER("%s: FAILED to read '%s'", __FUNCTION__, nodeswbundle_name.value);
+			goto done;
+		} else {
+			TRACE("%s is missing, will refresh attributes later", nodeswbundle_name.value);
+			/* Continue initialization to get the correct type set. Especially
+			 * pre-instantiable or not is important when instantion request comes. */
+		}
+	}
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1];
+	if (immutil_getAttr("saAmfCompInstantiateTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK) {
+		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
+	}
+
+	if (immutil_getAttr("saAmfCompInstantiateLevel", attributes, 0, &comp->inst_level) != SA_AIS_OK)
+		comp->inst_level = comptype->saAmfCtDefInstantiationLevel;
+
+	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithoutDelay", attributes,
+			    0, &comp->clc_info.inst_retry_max) != SA_AIS_OK)
+		comp->clc_info.inst_retry_max = comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay;
+
+#if 0
+	//  TODO
+	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithDelay", attributes,
+			    0, &comp->max_num_inst_delay) != SA_AIS_OK)
+		comp->comp_info.max_num_inst = comp_global_attrs.saAmfNumMaxInstantiateWithDelay;
+
+	if (immutil_getAttr("saAmfCompDelayBetweenInstantiateAttempts", attributes,
+			    0, &comp->inst_retry_delay) != SA_AIS_OK)
+		comp->inst_retry_delay = comp_global_attrs.saAmfDelayBetweenInstantiateAttempts;
+#endif
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1];
+	if (immutil_getAttr("saAmfCompTerminateTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
+		cmd->timeout = comptype->saAmfCtDefCallbackTimeout;
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1];
+	if (immutil_getAttr("saAmfCompCleanupTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
+		cmd->timeout = comptype->saAmfCtDefCallbackTimeout;
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1];
+	if (immutil_getAttr("saAmfCompAmStartTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
+		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
+
+	if (immutil_getAttr("saAmfCompNumMaxAmStartAttempts", attributes,
+			    0, &comp->clc_info.am_start_retry_max) != SA_AIS_OK)
+		comp->clc_info.am_start_retry_max = comp_global_attrs.saAmfNumMaxAmStartAttempts;
+
+	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1];
 	if (immutil_getAttr("saAmfCompAmStopTimeout", attributes, 0, &cmd->timeout) != SA_AIS_OK)
 		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
 
@@ -1305,7 +1339,11 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	else
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 
-	comp->config_is_valid = 1;
+	/* if we are missing path_prefix we need to refresh the config later */
+	if (path_prefix != NULL)
+		comp->config_is_valid = 1;
+
+	res = 0;
 
 done:
 	free(path_prefix);
@@ -1344,7 +1382,8 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
 	assert(error == SA_AIS_OK);
 
-	comp_init(comp, attributes);
+	if (comp_init(comp, attributes, false) != 0)
+		goto done;
 
 	/* create the association with hdl-mngr */
 	comp->comp_hdl = ncshm_create_hdl(avnd_cb->pool_id, NCS_SERVICE_ID_AVND, comp);
@@ -1504,7 +1543,7 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 		goto done;
 	}
 
-	res = comp_init(comp, attributes);
+	res = comp_init(comp, attributes, true);
 	if (res == 0)
 		TRACE("'%s' configuration reread from IMM", comp->name.value);
 
