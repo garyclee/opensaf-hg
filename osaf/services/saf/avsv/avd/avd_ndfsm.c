@@ -275,7 +275,7 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	AVD_SU *ncs_su;
+	AVD_SU *ncs_su, *su;
 	struct {
 		uns32 seconds;
 		uns32 millisecs;
@@ -305,6 +305,10 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (avnd->node_state != AVD_AVND_STATE_PRESENT) {
 		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
 		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
+
+		/* Make application SUs operational state ENABLED */
+		for (su = avnd->list_of_su; su != NULL; su = su->avnd_list_su_next)
+			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
 
 		/* We can now set the LEDS */
 		avd_snd_set_leds_msg(cb, avnd);
