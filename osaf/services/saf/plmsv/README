@@ -66,9 +66,12 @@ The OpenSAF implementation of PLMSv provides the following functionality:
 * Manage all the state information of HE objects defined by PLM state model ( 
   Presence, Administrative, Operational, Readiness states and Readiness flags )
 * Allow Administrative operations on hardware at granularity of HE Objects.
-* Implement and support only two kinds of dependencies 
+* Implement and support all kinds of dependencies 
 	* On-the-parent  dependency 
 	* One-on-one dependency
+	* One-of-a-group dependency
+	* All-of-a-group dependency
+	* N-of-a-group dependency
 * Model EE directly running on an HE as child of the HE in containment tree 
   using SAF IMM model.
 * Manage all the state information of EE objects defined by PLM state model ( 
