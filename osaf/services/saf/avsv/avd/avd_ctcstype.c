@@ -178,6 +178,7 @@ static SaAisErrorT ctcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfCtCsType not supported");
 		break;
 	case CCBUTIL_DELETE:
+		rc = SA_AIS_OK;
 		break;
 	default:
 		assert(0);
@@ -201,7 +202,8 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ctcstype_db_add(ctcstype);
 		break;
 	case CCBUTIL_DELETE:
-		ctcstype_delete(opdata->userData);
+		ctcstype = avd_ctcstype_get(&opdata->objectName);
+		ctcstype_delete(ctcstype);
 		break;
 	default:
 		assert(0);

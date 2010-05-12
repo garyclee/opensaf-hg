@@ -354,6 +354,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
+		opdata->userData = comp_type;
 		rc = SA_AIS_OK;
 		break;
 	default:
