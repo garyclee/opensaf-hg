@@ -95,6 +95,33 @@ done:
 	return rc;
 }
 
+/**
+ * Process Node admin operation request from director
+ *
+ * @param cb
+ * @param evt
+ */
+static uns32 avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
+{
+	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
+
+	assert( info->msg_id == cb->rcv_msg_id+1 );
+	cb->rcv_msg_id = info->msg_id;
+
+	switch(info->oper_id) {
+	default:
+		LOG_NO("%s: unsupported adm op %u", __FUNCTION__, info->oper_id);
+		rc = NCSCC_RC_FAILURE;
+		break;
+	}
+
+	TRACE_LEAVE();
+	return rc;   
+}
+
 static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
@@ -1112,6 +1139,40 @@ void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
  done:
 	return;
 }
+
+/**
+ * Dispatch admin operation requests to the real handler
+ * @param cb
+ * @param evt
+ * 
+ * @return uns32
+ */
+uns32 avnd_evt_avd_admin_op_req_msg(AVND_CB *cb, AVND_EVT *evt)
+{
+	uns32 rc = NCSCC_RC_FAILURE;
+	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
+
+	TRACE_ENTER2("%u", info->class_id);
+
+	switch (info->class_id) {
+	case AVSV_SA_AMF_NODE:
+		rc = avnd_evt_node_admin_op_req(cb, evt);
+		break;
+	case AVSV_SA_AMF_COMP:
+		rc = avnd_evt_comp_admin_op_req(cb, evt);
+		break;
+	case AVSV_SA_AMF_SU:
+		rc = avnd_evt_su_admin_op_req(cb, evt);
+		break;
+	default:
+		LOG_NO("%s: unsupported adm op for class %u", __FUNCTION__, info->class_id);
+		break;
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
 
 /**
  * Handle a received heart beat message, just reset the duration timer.

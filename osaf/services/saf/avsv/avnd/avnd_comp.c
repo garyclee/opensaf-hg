@@ -2604,24 +2604,23 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 }
 
 /**
- * To process admin operation request from avnd
+ * Process component admin operation request from director
  *
  * @param cb
  * @param evt
  */
-uns32 avnd_evt_avd_admin_op_req_msg (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
-	AVND_COMP *comp = NULL;
+	AVND_COMP *comp;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb)) goto done;
+	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
 
 	assert( info->msg_id == cb->rcv_msg_id+1 );
 	cb->rcv_msg_id = info->msg_id;
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, info->comp_name);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, info->dn);
 	assert( comp != NULL);
 
 	switch(info->oper_id) {
@@ -2629,19 +2628,22 @@ uns32 avnd_evt_avd_admin_op_req_msg (AVND_CB *cb, AVND_EVT *evt)
 		if (comp->pres == SA_AMF_PRESENCE_INSTANTIATED) {
 			/* Now trigger the component admin restart */  
 			comp->admin_oper = SA_TRUE;
-			avnd_log(NCSFL_SEV_NOTICE,"Admin restart requested for '%s'", info->comp_name.value);
+			LOG_NO("Admin restart requested for '%s'", info->dn.value);
 			rc = avnd_err_rcvr_comp_restart(cb, comp);
 		}
 		else {
-			avnd_log(NCSFL_SEV_NOTICE,"Admin restart failed '%s' Presence state '%d'", info->comp_name.value, comp->pres);
+			LOG_NO("Admin restart failed '%s' Presence state '%d'", info->dn.value, comp->pres);
 		}
 		break;
 	case SA_AMF_ADMIN_EAM_START:
 	case SA_AMF_ADMIN_EAM_STOP:
 	default:
-		assert(0);
+		LOG_NO("%s: unsupported adm op %u", __FUNCTION__, info->oper_id);
+		rc = NCSCC_RC_FAILURE;
 		break;
 	}
-done:
+
+	TRACE_LEAVE();
 	return rc;   
 }
+

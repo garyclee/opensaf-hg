@@ -334,10 +334,10 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		/* 108 AVSV_D2N_ADMIN_OP_REQ_MSG, LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG */
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
 		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.msg_id, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0, 
-		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.node_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.class_id, 0, NULL},
 		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0, 
-		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.comp_name, 0, NULL},
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.dn, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
 		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.oper_id, 0, NULL},
 
