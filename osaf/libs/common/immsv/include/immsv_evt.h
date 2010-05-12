@@ -168,6 +168,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_ND2ND_SYNC_FINALIZE_2 = 70,	/* Sync finalize from coord over fevs version 2*/
 	IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME = 71,/* Fetch ccb outcome OK/FAILED_OP given ccb-id. */
 	IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP = 72,/* Response on PBE OI PRT OBJ CREATE. */
+	IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS = 73,/* Purge all unack'ed PRT OBJ changes */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -200,6 +201,9 @@ typedef enum immd_evt_type {
 	IMMD_EVT_CB_DUMP = 18,
 	IMMD_EVT_MDS_QUIESCED_ACK_RSP = 19,
 	IMMD_EVT_LGA_CB = 20,
+
+	IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS = 21, /* Broadcast for cleanup*/
+
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMD_EVT_TYPE enum. */

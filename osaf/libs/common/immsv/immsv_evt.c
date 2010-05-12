@@ -53,6 +53,7 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_ADMO_HARD_FINALIZE",
 	"IMMD_EVT_CB_DUMP",
 	"IMMD_EVT_MDS_QUIESCED_ACK_RSP",
+	"IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS",
 	"IMMD_EVT_LGA_CB"
 };
 
@@ -133,12 +134,13 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_D2ND_DISCARD_NODE",	/* Crashed IMMND or node, broadcast to NDs */
 	"IMMND_EVT_D2ND_RESET",	/* Restart all IMMNDs. */
 	"IMMND_EVT_CB_DUMP",
-    "IMMND_EVT_A2ND_IMM_OM_RESURRECT",
-    "IMMND_EVT_A2ND_IMM_OI_RESURRECT",
-    "IMMND_EVT_A2ND_IMM_CLIENTHIGH",
+	"IMMND_EVT_A2ND_IMM_OM_RESURRECT",
+	"IMMND_EVT_A2ND_IMM_OI_RESURRECT",
+	"IMMND_EVT_A2ND_IMM_CLIENTHIGH",
 	"IMMND_EVT_ND2ND_SYNC_FINALIZE_2",
 	"IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME",
-	"IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP"
+	"IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP",
+	"IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -2371,6 +2373,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMD_EVT_ND2D_ANNOUNCE_DUMP:	/*Dump/backup invoked */
 		case IMMD_EVT_ND2D_SYNC_START:	/*Coordinator wants to start sync. */
 		case IMMD_EVT_ND2D_SYNC_ABORT:	/*Coordinator wants to abort sync. */
+		case IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS: /*Coordinator wants to purge rt obj mutations */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.ndExecPid);
 			ncs_enc_claim_space(o_ub, 4);
@@ -3071,6 +3074,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_D2ND_SYNC_ABORT:
 		case IMMND_EVT_D2ND_DUMP_OK:
 		case IMMND_EVT_D2ND_DISCARD_NODE:	/* Crashed IMMND or node, bcast to NDs */
+		case IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS:
 
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.ctrl.nodeId);
@@ -3527,6 +3531,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMD_EVT_ND2D_ANNOUNCE_DUMP:	/*Dump/backup invoked */
 		case IMMD_EVT_ND2D_SYNC_START:	/*Coordinator wants to start sync. */
 		case IMMD_EVT_ND2D_SYNC_ABORT:	/*Coordinator wants to abort sync. */
+		case IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS: /*Coordinator wants to purge rt obj mutations */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immdevt->info.ctrl_msg.ndExecPid = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -4269,6 +4274,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_D2ND_SYNC_ABORT:
 		case IMMND_EVT_D2ND_DUMP_OK:
 		case IMMND_EVT_D2ND_DISCARD_NODE:	/* Crashed IMMND or node, bcast to NDs */
+		case IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS:
 
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.ctrl.nodeId = ncs_decode_32bit(&p8);

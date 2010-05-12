@@ -38,6 +38,8 @@ static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 
 static uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
+static uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
 static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -109,6 +111,10 @@ void immd_process_evt(void)
 		break;
 	case IMMD_EVT_ND2D_SYNC_ABORT:
 		rc = immd_evt_proc_immnd_abort_sync(cb, &evt->info.immd, &evt->sinfo);
+		break;
+	case IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS:
+		rc = immd_evt_proc_immnd_prto_purge_mutations(cb, &evt->info.immd,
+			&evt->sinfo);
 		break;
 	case IMMD_EVT_ND2D_ANNOUNCE_DUMP:
 		rc = immd_evt_proc_immnd_announce_dump(cb, &evt->info.immd, &evt->sinfo);
@@ -391,6 +397,37 @@ static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	}
 
 	immd_cb_dump();
+	TRACE_LEAVE();
+}
+
+static void immd_prto_purge_mutations(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
+{
+	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT sync_evt;
+	TRACE_ENTER();
+
+	memset(&sync_evt, 0, sizeof(IMMSV_EVT));
+
+	sync_evt.type = IMMSV_EVT_TYPE_IMMND;
+	sync_evt.info.immnd.type = IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS;
+	sync_evt.info.immnd.info.ctrl.nodeId = node_info->immnd_key;
+	sync_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
+	sync_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+	sync_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
+	sync_evt.info.immnd.info.ctrl.canBeCoord = node_info->isOnController;
+	sync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
+	sync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
+	sync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	sync_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
+
+	/* Nothing to checkpoint to sby for this message. */
+	proc_rc = immd_mds_bcast_send(cb, &sync_evt, NCSMDS_SVC_ID_IMMND);
+
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		TRACE_5("failed to send message to IMMNDs");
+	}
+
 	TRACE_LEAVE();
 }
 
@@ -820,6 +857,63 @@ uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
 	}
 	TRACE_LEAVE();
 	return proc_rc;
+}
+
+/****************************************************************************
+ * Name          : immd_evt_proc_immnd_prto_purge_mutations
+ *
+ * Description   : Function to process the IMMD_EVT_ND2D_PRTO_PURGE_MUTATIONS event
+ *                 Persistent runtime objects (PRTOs) are persistified via the PBE.
+ *                 Each mutation (create/delete/update) leaves a record in ImmModel
+ *                 which is removed when we receive an ack from PBE that the mutaton
+ *                 has been persistified. If the PBE crashes or in general needs 
+ *                 restarting, then old mutation records are discarded. This also
+ *                 implies that the PBE has to be restarted without the --restore flag,
+ *                 forcing a complete regeneration of the DB file based on current 
+ *                 ImmModel contents. In essense we drop the unack'ed mutations, violating
+ *                 the persistency requirement. But the regeneration of the DB file
+ *                 compensates for this. 
+ * Arguments     : IMMD_CB *cb - IMMD CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ ****************************************************************************/
+uns32 immd_evt_proc_immnd_prto_purge_mutations(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	IMMD_IMMND_INFO_NODE *node_info = NULL;
+	TRACE_ENTER();
+	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
+	if (node_info) {
+		if (node_info->immnd_execPid != evt->info.ctrl_msg.ndExecPid) {
+			LOG_ER("Prto purge mutations: wrong PID %u != %u",
+			       node_info->immnd_execPid, evt->info.ctrl_msg.ndExecPid);
+			proc_rc = NCSCC_RC_FAILURE;
+		}
+
+		if (node_info->immnd_key != cb->immnd_coord) {
+			LOG_ER("Prto purge mutations: not Coord! %x != %x", node_info->immnd_key, cb->immnd_coord);
+			proc_rc = NCSCC_RC_FAILURE;
+		}
+
+		if (node_info->epoch > cb->mRulingEpoch) {
+			LOG_ER("Prto purge mutations: wrong Epoch %u != %u", node_info->epoch, cb->mRulingEpoch);
+			proc_rc = NCSCC_RC_FAILURE;
+		}
+
+		if (proc_rc == NCSCC_RC_SUCCESS) {
+			immd_prto_purge_mutations(cb, node_info);
+
+			LOG_IN("Purge prto mutations broadcast. Epoch:%u", cb->mRulingEpoch);
+		}
+	} else {
+		LOG_ER("Node not found %llu", sinfo->dest);
+		proc_rc = NCSCC_RC_FAILURE;
+	}
+	TRACE_LEAVE();
+	return proc_rc;
+
 }
 
 /****************************************************************************

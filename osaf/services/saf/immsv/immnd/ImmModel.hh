@@ -304,6 +304,7 @@ public:
     void              recognizedIsolated();
     bool              syncComplete(bool isJoining);
     void              abortSync();
+    void              pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector);
     SaAisErrorT       ccbResult(SaUint32T ccbId);
     bool              ccbsTerminated();
     bool              pbeIsInSync();
@@ -337,6 +338,7 @@ public:
                                        InvocVector& admReqs,
                                        InvocVector& searchReqs,
                                        IdVector& ccbs,
+				       IdVector& pbePrtoReqs,
                                        bool iAmCoord);
     
     void              fetchAdmImplContinuation(

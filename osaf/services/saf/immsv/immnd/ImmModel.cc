@@ -285,6 +285,23 @@ immModel_abortSync(IMMND_CB *cb)
     ImmModel::instance(&cb->immModel)->abortSync();
 }
 
+void
+immModel_pbePrtoPurgeMutations(IMMND_CB *cb, SaUint32T nodeId, SaUint32T *reqArrSize,
+    SaUint32T **reqConnArr)
+{
+    ConnVector cv;
+    ConnVector::iterator cvi;
+    unsigned int ix = 0;
+    ImmModel::instance(&cb->immModel)->pbePrtoPurgeMutations(nodeId, cv);
+    *reqArrSize = cv.size();
+    if(*reqArrSize) {
+            *reqConnArr = (SaUint32T *) malloc((*reqArrSize)* sizeof(SaUint32T));
+             for(cvi = cv.begin(); cvi!= cv.end();++cvi,++ix) {
+                 (*reqConnArr)[ix] = (*cvi);
+             }
+    }
+}
+
 SaAisErrorT
 immModel_adminOwnerCreate(IMMND_CB *cb, 
     const ImmsvOmAdminOwnerInitialize* req,
@@ -478,12 +495,15 @@ immModel_cleanTheBasement(IMMND_CB *cb,
     SaUint32T* searchReqArrSize,
     SaUint32T** ccbIdArr,
     SaUint32T* ccbIdArrSize,
+    SaUint32T** pbePrtoReqArr,
+    SaUint32T* pbePrtoReqArrSize,
     SaBoolT iAmCoordNow)
 {
     InvocVector admReqs;
     InvocVector searchReqs;
     InvocVector::iterator ix1;
     IdVector ccbs;
+    IdVector pbePrtoReqs;
     IdVector::iterator ix2;
     unsigned int ix;
     
@@ -492,6 +512,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
         admReqs, 
         searchReqs, 
         ccbs,
+        pbePrtoReqs,
         iAmCoordNow);
 
     *admReqArrSize = admReqs.size();
@@ -529,6 +550,20 @@ immModel_cleanTheBasement(IMMND_CB *cb,
         }
         assert(ix==(*ccbIdArrSize));
     }
+
+    *pbePrtoReqArrSize = pbePrtoReqs.size();
+    if(*pbePrtoReqArrSize) {
+        *pbePrtoReqArr = (SaUint32T *) 
+            malloc((*pbePrtoReqArrSize) * sizeof(SaUint32T));
+        
+        for(ix2=pbePrtoReqs.begin(), ix=0;
+            ix2!=pbePrtoReqs.end();
+            ++ix2, ++ix) {
+            (*pbePrtoReqArr)[ix] = (*ix2);
+        }
+        assert(ix==(*pbePrtoReqArrSize));
+    }
+
     return ccbsStuck;
 }
 
@@ -1071,6 +1106,12 @@ immModel_immNotWritable(IMMND_CB *cb)
     return (SaBoolT) ImmModel::instance(&cb->immModel)->immNotWritable();
 }
 
+SaBoolT
+immModel_pbeIsInSync(IMMND_CB *cb)
+{
+    return (SaBoolT) ImmModel::instance(&cb->immModel)->pbeIsInSync();
+}
+
 SaImmRepositoryInitModeT
 immModel_getRepositoryInitMode(IMMND_CB *cb)
 {
@@ -1332,6 +1373,59 @@ ImmModel::syncComplete(bool isJoining)
     //Dont need the isJoining argument for now.
     
     return sImmNodeState == IMM_NODE_FULLY_AVAILABLE;
+}
+
+void
+ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
+{
+    ObjectMutationMap::iterator omuti;
+    ObjectMap::iterator oi;
+    SaInvocationT inv;
+    ContinuationMap2::iterator ci;
+    TRACE_ENTER();
+
+    for(omuti=sPbeRtMutations.begin(); 
+        omuti!=sPbeRtMutations.end(); ++omuti) {
+        ObjectMutation* oMut = omuti->second;
+        oi = sObjectMap.find(omuti->first);
+        assert(oi != sObjectMap.end());
+        assert(oi->second == oMut->mAfterImage);
+        inv = m_IMMSV_PACK_HANDLE(oMut->mContinuationId, nodeId);
+        ci = sPbeRtReqContinuationMap.find(inv);
+
+        if(ci != sPbeRtReqContinuationMap.end()) {
+            connVector.push_back(ci->second.mConn);
+            sPbeRtReqContinuationMap.erase(ci);
+        }
+
+        switch(oMut->mOpType) {
+            case IMM_CREATE:
+                /* Fall forward. */
+                oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
+                oMut->mAfterImage = NULL;
+                LOG_IN("Create of PERSISTENT runtime object '%s' REVERTED ",
+                    omuti->first.c_str());
+                assert(deleteRtObject(oi, true, NULL) == SA_AIS_OK);
+                
+                break;
+
+            case IMM_DELETE:
+
+                break;
+
+            case IMM_MODIFY:
+                break;
+
+            default:
+                assert(0);
+        }
+
+        delete oMut;
+    }
+
+    sPbeRtMutations.clear();
+    sPbeRtReqContinuationMap.clear();
+    TRACE_LEAVE();
 }
 
 void
@@ -4157,7 +4251,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 err = SA_AIS_ERR_TRY_AGAIN;
             }
         } else {
-                TRACE_7("ABT PbeConn: %u PbeNode:%u", *pbeConnPtr, *pbeNodeIdPtr);
+                TRACE_7("PbeConn: %u PbeNode:%u assigned", *pbeConnPtr, *pbeNodeIdPtr);
         }
     }
     
@@ -5988,7 +6082,7 @@ ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
 
 bool
 ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
-    InvocVector& searchReqs, IdVector& ccbs,
+    InvocVector& searchReqs, IdVector& ccbs, IdVector& pbePrtoReqs,
     bool iAmCoord)
 {
     time_t now = time(NULL);
@@ -6089,21 +6183,19 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
         TRACE("After delete");
     }
 
-    /*
-      ImplementerVector::iterator i;
-      for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
-      ImplementerInfo* info = (*i);
-      TRACE_7("Implementer id:%u name:%s node:%x conn:%u mDying:%s "
-      "mMds_dest:%llu AdminOpBusy:%u",
-      info->mId,
-      info->mImplementerName.c_str(),
-      info->mNodeId,
-      info->mConn,
-      (info->mDying)?"TRUE":"FALSE",
-      info->mMds_dest,
-      info->mAdminOpBusy);
-      }
-    */
+    ci2=sPbeRtReqContinuationMap.begin(); 
+    while(ci2!=sPbeRtReqContinuationMap.end()) {
+        //TODO the timeout should not be hardwired, but for now it is.
+        if(now - ci2->second.mCreateTime >= DEFAULT_TIMEOUT_SEC) {
+            TRACE_5("Timeout on PbeRtReqContinuation %llu", ci2->first);
+            pbePrtoReqs.push_back(ci2->second.mConn);
+            sPbeRtReqContinuationMap.erase(ci2);
+            ci2=sPbeRtReqContinuationMap.begin();
+        } else {
+            ++ci2;
+        }
+    }
+
     return ccbsStuck;
 }
 
@@ -6186,12 +6278,10 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
             CcbInfo* ccb = (*i);
             if(ccb->mState == IMM_CCB_CRITICAL) {
-                TRACE("ABT ccId:%u", ccb->mId);
                 CcbImplementerMap::iterator isi;
                 for(isi = ccb->mImplementers.begin();
                     isi != ccb->mImplementers.end(); ++isi) {
                     ImplementerCcbAssociation* oldImplAssoc = isi->second;
-                    TRACE("ABT ccbid:%u assocImpl:%u", ccb->mId, isi->first);
                     if(oldImplAssoc->mWaitForImplAck && oldImplAssoc->mImplementer) {
                         ImplementerInfo* impInfo = oldImplAssoc->mImplementer;
                         if(impInfo->mImplementerName == implName) {
@@ -7334,9 +7424,11 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
     ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
     if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
         *reqConn = ci->second.mConn;
         sPbeRtReqContinuationMap.erase(ci);
-    }
+    } 
 
     ObjectMutationMap::iterator i2;
     for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
@@ -7359,8 +7451,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     if(error == SA_AIS_OK) {
         LOG_IN("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
     } else {
-        ObjectMap::iterator oi;
-        oi = sObjectMap.find(i2->first);
+        ObjectMap::iterator oi = sObjectMap.find(i2->first);
         assert(oi != sObjectMap.end());
         assert(deleteRtObject(oi, true, NULL) == SA_AIS_OK);
         LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
@@ -7370,6 +7461,11 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     sPbeRtMutations.erase(i2);
     delete oMut;
     TRACE_LEAVE();
+}
+
+bool ImmModel::pbeIsInSync()
+{
+    return sPbeRtMutations.empty();
 }
 
 /** 
@@ -8251,7 +8347,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
         for(i=sOwnerVector.begin(); i!=sOwnerVector.end();) {
             if((*i)->mDying) {
                 LOG_WA("Removing admin owner %u %s which is in demise, before "
-                    "generatinc sync message", (*i)->mId,
+                    "generating sync message", (*i)->mId,
                     (*i)->mAdminOwnerName.c_str());
                 assert(adminOwnerDelete((*i)->mId, true) == SA_AIS_OK);
                 //Above does a lookup of admin owner again.
