@@ -311,14 +311,14 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 		/* empty => later assign to saAmfSGNumPrefInserviceSUs */
 	}
 
-	if (immutil_getAttr("saAmfSGMaxActiveSIsperSUs", attributes, 0, &sg->saAmfSGMaxActiveSIsperSUs) != SA_AIS_OK) {
+	if (immutil_getAttr("saAmfSGMaxActiveSIsperSU", attributes, 0, &sg->saAmfSGMaxActiveSIsperSU) != SA_AIS_OK) {
 		/* empty => assign magic number for no limit */
-		sg->saAmfSGMaxActiveSIsperSUs = -1;
+		sg->saAmfSGMaxActiveSIsperSU = -1;
 	}
 
-	if (immutil_getAttr("saAmfSGMaxStandbySIsperSUs", attributes, 0, &sg->saAmfSGMaxStandbySIsperSUs) != SA_AIS_OK) {
+	if (immutil_getAttr("saAmfSGMaxStandbySIsperSU", attributes, 0, &sg->saAmfSGMaxStandbySIsperSU) != SA_AIS_OK) {
 		/* empty => assign magic number for no limit */
-		sg->saAmfSGMaxStandbySIsperSUs = -1;
+		sg->saAmfSGMaxStandbySIsperSU = -1;
 	}
 
 	if (immutil_getAttr("saAmfSGAutoAdjustProb", attributes, 0, &sg->saAmfSGAutoAdjustProb) != SA_AIS_OK) {
@@ -450,8 +450,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 					goto done;
 				}
 
-			} else if (!strcmp(attribute->attrName, "saAmfSGHostNodeGroup")) {
-				LOG_ER("%s: Attribute saAmfSGHostNodeGroup cannot be modified", __FUNCTION__);
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
+				LOG_ER("%s: Attribute saAmfSGSuHostNodeGroup cannot be modified", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
@@ -460,8 +460,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefAssignedSUs")) {
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSUs")) {
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSU")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartMax")) {
@@ -481,8 +481,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				LOG_ER("%s: Attribute saAmfSGType cannot be modified when SG is not in locked instantion", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
-			} else if (!strcmp(attribute->attrName, "saAmfSGHostNodeGroup")) {
-				LOG_ER("%s: Attribute saAmfSGHostNodeGroup cannot be modified when SG is unlocked", __FUNCTION__);
+			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
+				LOG_ER("%s: Attribute saAmfSGSuHostNodeGroup cannot be modified when SG is unlocked", __FUNCTION__);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoRepair")) {
@@ -491,8 +491,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefStandbySUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefInserviceSUs")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefAssignedSUs")) {
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSUs")) {
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSUs")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSU")) {
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartProb")) {
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartMax")) {
@@ -685,10 +685,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				avd_sg->saAmfSGNumPrefInserviceSUs = *((SaUint32T *)value);
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefAssignedSUs")) {
 				avd_sg->saAmfSGNumPrefAssignedSUs = *((SaUint32T *)value);
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSUs")) {
-				avd_sg->saAmfSGMaxActiveSIsperSUs = *((SaUint32T *)value);
-			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSUs")) {
-				avd_sg->saAmfSGMaxStandbySIsperSUs = *((SaUint32T *)value);
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxActiveSIsperSU")) {
+				avd_sg->saAmfSGMaxActiveSIsperSU = *((SaUint32T *)value);
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
+				avd_sg->saAmfSGMaxStandbySIsperSU = *((SaUint32T *)value);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
 				avd_sg->saAmfSGAutoAdjustProb = *((SaTimeT *)value);
 			} else if (!strcmp(attribute->attrName, "SaAmfSGCompRestartProb")) {

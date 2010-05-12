@@ -100,11 +100,11 @@
 			<value>10</value>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxActiveSIsperSUs</name>
+			<name>saAmfSGMaxActiveSIsperSU</name>
 			<value>1</value>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxStandbySIsperSUs</name>
+			<name>saAmfSGMaxStandbySIsperSU</name>
 			<value>1</value>
 		</attr>
 	</object>
@@ -169,11 +169,11 @@
 			<value>10</value>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxActiveSIsperSUs</name>
+			<name>saAmfSGMaxActiveSIsperSU</name>
 			<value>1</value>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxStandbySIsperSUs</name>
+			<name>saAmfSGMaxStandbySIsperSU</name>
 			<value>1</value>
 		</attr>
 		<attr>

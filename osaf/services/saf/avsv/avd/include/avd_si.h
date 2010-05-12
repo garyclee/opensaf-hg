@@ -126,7 +126,7 @@ typedef struct avd_amf_svc_type_tag {
 typedef struct {
 	NCS_PATRICIA_NODE tree_node;	/* key is name */
 	SaNameT name;
-	SaUint32T saAmfSvcMaxNumCSIs;
+	SaUint32T saAmfSvctMaxNumCSIs;
 
 	SaUint32T curr_num_csis;
 

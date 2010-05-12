@@ -248,13 +248,13 @@
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxActiveSIsperSUs</name>
+			<name>saAmfSGMaxActiveSIsperSU</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>saAmfSGMaxStandbySIsperSUs</name>
+			<name>saAmfSGMaxStandbySIsperSU</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
@@ -266,13 +266,13 @@
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>SaAmfSGCompRestartProb</name>
+			<name>saAmfSGCompRestartProb</name>
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>SaAmfSGCompRestartMax</name>
+			<name>saAmfSGCompRestartMax</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
@@ -1072,7 +1072,7 @@
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>saAmfCompNumMaxAmStartAttempt</name>
+			<name>saAmfCompNumMaxAmStartAttempts</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
@@ -1091,7 +1091,7 @@
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
-			<name>saAmfCompNumMaxAmStopAttempt</name>
+			<name>saAmfCompNumMaxAmStopAttempts</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>

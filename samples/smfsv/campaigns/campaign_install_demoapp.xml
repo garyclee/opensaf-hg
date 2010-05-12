@@ -179,10 +179,10 @@
           <attribute name="saAmfSGNumPrefActiveSUs" type="SA_IMM_ATTR_SAUINT32T">
             <value>1</value>
           </attribute>
-          <attribute name="saAmfSGMaxStandbySIsperSUs" type="SA_IMM_ATTR_SAUINT32T">
+          <attribute name="saAmfSGMaxStandbySIsperSU" type="SA_IMM_ATTR_SAUINT32T">
             <value>1</value>
           </attribute>
-          <attribute name="saAmfSGMaxActiveSIsperSUs" type="SA_IMM_ATTR_SAUINT32T">
+          <attribute name="saAmfSGMaxActiveSIsperSU" type="SA_IMM_ATTR_SAUINT32T">
             <value>1</value>
           </attribute>
           <attribute name="saAmfSGAutoRepair" type="SA_IMM_ATTR_SAUINT32T">

@@ -1178,8 +1178,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 
 			if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 			    (curr_su->saAmfSUNumCurrActiveSIs < curr_su->si_max_active) &&
-			    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSUs == 0) ||
-			     (curr_su->saAmfSUNumCurrActiveSIs < curr_su->sg_of_su->saAmfSGMaxActiveSIsperSUs)))
+			    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+			     (curr_su->saAmfSUNumCurrActiveSIs < curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU)))
 				break;
 
 			/* reset the curr-su ptr */
@@ -1192,9 +1192,9 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				if (SA_AMF_READINESS_IN_SERVICE == curr_su->saAmfSuReadinessState) {
 					is_all_su_oos = FALSE;
 					if ((curr_su->saAmfSUNumCurrActiveSIs < curr_su->si_max_active) &&
-					    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSUs == 0) ||
+					    ((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
 					     (curr_su->saAmfSUNumCurrActiveSIs <
-					      curr_su->sg_of_su->saAmfSGMaxActiveSIsperSUs)))
+					      curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU)))
 						break;
 				}
 			}
@@ -1250,8 +1250,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			/* verify if this su can take the standby assignment */
 			if (!curr_su || (curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->si_max_standby) ||
-			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSUs != 0) &&
-			     (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSUs)))
+			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&
+			     (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)))
 				continue;
 
 			/* verify if this su does not have this assignment */
@@ -1285,8 +1285,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			/* verify if this su can take the standby assignment */
 			if (!curr_su || (curr_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->si_max_standby) ||
-			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSUs != 0) &&
-			     (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSUs)))
+			    ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU != 0) &&
+			     (curr_su->saAmfSUNumCurrStandbySIs >= curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)))
 				continue;
 
 			l_flag = TRUE;
