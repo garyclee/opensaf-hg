@@ -81,22 +81,21 @@ AVD_SU *avd_su_new(const SaNameT *dn)
  * 
  * @param i_su
  */
-void avd_su_delete(AVD_SU **i_su)
+void avd_su_delete(AVD_SU *su)
 {
-	AVD_SU *su = *i_su;
 	AVD_COMP *comp;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	while ((comp = su->list_of_comp) != NULL)
-		avd_comp_delete(&comp);
+		avd_comp_delete(comp);
 
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 	avd_node_remove_su(su);
 	avd_sutype_remove_su(su);
 	avd_su_db_remove(su);
 	avd_sg_remove_su(su);
 	free(su);
-	*i_su = NULL;
 
 	TRACE_LEAVE();
 }
@@ -1349,12 +1348,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
-	/* check point to the standby AVD that this
-	 * record need to be deleted
-	 */
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-
-	avd_su_delete(&su);
+	avd_su_delete(su);
 
 	TRACE_LEAVE();
 }

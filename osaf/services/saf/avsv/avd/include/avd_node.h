@@ -183,7 +183,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
 
 /* AMF Node */
 extern AVD_AVND *avd_node_new(const SaNameT *dn);
-extern void avd_node_delete(AVD_AVND **avnd);
+extern void avd_node_delete(AVD_AVND *avnd);
 extern void avd_node_db_add(AVD_AVND *node);
 extern AVD_AVND *avd_node_get(const SaNameT *node_name);
 extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);

@@ -173,10 +173,10 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
 extern AVD_SU *avd_su_new(const SaNameT *dn);
 
 /**
- * Free SU memory and set SU ptr to NULL
+ * Free SU memory
  * @param su
  */
-extern void avd_su_delete(AVD_SU **su);
+extern void avd_su_delete(AVD_SU *su);
 
 /**
  * Add SU to SU DB.

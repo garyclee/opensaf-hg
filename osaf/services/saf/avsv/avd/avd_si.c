@@ -169,19 +169,18 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 	return si;
 }
 
-void avd_si_delete(AVD_SI **si)
+void avd_si_delete(AVD_SI *si)
 {
 	unsigned int rc;
 
-	TRACE_ENTER2("%s", (*si)->name.value);
-	avd_svctype_remove_si(*si);
-	avd_app_remove_si((*si)->app, *si);
-	avd_sg_remove_si((*si)->sg_of_si, *si);
-	rc = ncs_patricia_tree_del(&si_db, &(*si)->tree_node);
+	TRACE_ENTER2("%s", si->name.value);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+	avd_svctype_remove_si(si);
+	avd_app_remove_si(si->app, si);
+	avd_sg_remove_si(si->sg_of_si, si);
+	rc = ncs_patricia_tree_del(&si_db, &si->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, *si, AVSV_CKPT_AVD_SI_CONFIG);
-	free(*si);
-	*si = NULL;
+	free(si);
 }
 
 void avd_si_db_add(AVD_SI *si)
@@ -384,8 +383,10 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	rc = 0;
 
 done:
-	if (rc != 0)
-		avd_si_delete(&si);
+	if (rc != 0) {
+		avd_si_delete(si);
+		si = NULL;
+	}
 
 	return si;
 }
@@ -753,8 +754,7 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		si_add_to_model(si);
 		break;
 	case CCBUTIL_DELETE:
-		si = opdata->userData;
-		avd_si_delete(&si);
+		avd_si_delete(opdata->userData);
 		break;
 	case CCBUTIL_MODIFY:
 		si_ccb_apply_modify_hdlr(opdata);

@@ -56,7 +56,7 @@ typedef struct avd_app_tag {
 
 extern void avd_app_db_add(AVD_APP *app);
 extern AVD_APP *avd_app_new(const SaNameT *dn);
-extern void avd_app_delete(AVD_APP **app);
+extern void avd_app_delete(AVD_APP *app);
 extern AVD_APP *avd_app_get(const SaNameT *app_name);
 extern AVD_APP *avd_app_getnext(const SaNameT *app_name);
 

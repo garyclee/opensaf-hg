@@ -275,7 +275,7 @@ sg->admin_si = AVD_SI_NULL;\
 }
 
 extern AVD_SG *avd_sg_new(const SaNameT *dn);
-extern void avd_sg_delete(AVD_SG **sg);
+extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
 extern AVD_SG *avd_sg_get(const SaNameT *sg_name);

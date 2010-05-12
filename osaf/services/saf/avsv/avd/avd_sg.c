@@ -113,11 +113,10 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 	return sg;
 }
 
-void avd_sg_delete(AVD_SG **sg)
+void avd_sg_delete(AVD_SG *sg)
 {
-	sg_remove_from_model(*sg);
-	free(*sg);
-	*sg = NULL;
+	sg_remove_from_model(sg);
+	free(sg);
 }
 
 void avd_sg_add_si(AVD_SG *sg, AVD_SI* si)
@@ -145,6 +144,9 @@ void avd_sg_remove_si(AVD_SG *sg, AVD_SI* si)
 {
 	AVD_SI *i_si = NULL;
 	AVD_SI *prev_si = NULL;
+
+	if (!sg)
+		return;
 
 	if (sg->list_of_si != NULL) {
 		i_si = sg->list_of_si;
@@ -349,8 +351,10 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	rc = 0;
 
 done:
-	if (rc != 0)
-		avd_sg_delete(&sg);
+	if (rc != 0) {
+		avd_sg_delete(sg);
+		sg = NULL;
+	}
 
 	return sg;
 }
@@ -415,15 +419,6 @@ done2:
 done1:
 	TRACE_LEAVE2("%u", error);
 	return error;
-}
-
-static void sg_ccb_apply_delete_hdlr(AVD_SG *sg)
-{
-	TRACE_ENTER2("'%s'", sg->name.value);
-
-	/* check point to the standby AVD that this record need to be deleted */
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
-	avd_sg_delete(&sg);
 }
 
 static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
@@ -1078,7 +1073,7 @@ static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sg_add_to_model(sg);
 		break;
 	case CCBUTIL_DELETE:
-		sg_ccb_apply_delete_hdlr(opdata->userData);
+		avd_sg_delete(opdata->userData);
 		break;
 	case CCBUTIL_MODIFY:
 		ccb_apply_modify_hdlr(opdata);
