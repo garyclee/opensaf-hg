@@ -938,15 +938,16 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                         LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
                                                         return false;
 						}
+						TRACE("SU %s hosted by %s, add to list", (*objit).c_str(), (char *)hostedByNode->value);
                                                 if (o_nodeList == NULL) {
                                                         std::list < std::string >::const_iterator it;
                                                         for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
                                                                 if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
                                                                         /* The SU is hosted by the node */
-                                                                        TRACE("SU %s hosted by %s, add to list", (*objit).c_str(), (char *)hostedByNode->value);
+									TRACE("SU %s is hosted on node within the targetNodeTemplate, add to list", (*objit).c_str());
                                                                         o_actDeactUnits.push_back(*objit);
                                                                         break;
-                                                                }
+                                                                } 
                                                         }
                                                 } else {
 							o_actDeactUnits.push_back(*objit);
@@ -989,12 +990,14 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 								LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
 								return false;
 							}
-                                                        if (o_nodeList == NULL) {
+
+							TRACE("Component %s hosted by %s", (*objit).c_str(), (char *)hostedByNode->value);
+							if (o_nodeList == NULL) {
                                                                 std::list < std::string >::const_iterator it;
                                                                 for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
                                                                         if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
                                                                                 /* The SU is hosted by the node */
-                                                                                TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:Component %s hosted by %s, add to list", (*objit).c_str(), (char *)hostedByNode->value);
+                                                                                TRACE("Component %s is hosted on node within the targetNodeTemplate, add to list", (*objit).c_str());
                                                                                 o_actDeactUnits.push_back(*objit);
                                                                                 break;
                                                                         }
@@ -1036,12 +1039,15 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                         LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
                                         return false;
 				}
+
+				TRACE("SU %s is hosted by %s", (*objit).c_str(), (char *)hostedByNode->value);
                                 if (o_nodeList == NULL) {
                                         std::list < std::string >::const_iterator it;
+					TRACE("Check if node is within the the targetNodeTemplate");
                                         for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {                                                
 						if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
                                                         /* The SU is hosted by the node */
-                                                        TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:SU %s hosted by %s, add to list", (*objit).c_str(), (char *)hostedByNode->value);
+                                                        TRACE("SU %s is hosted on node within the targetNodeTemplate, add to list", (*objit).c_str());
                                                         o_actDeactUnits.push_back(*objit);
                                                         break;
                                                 }
