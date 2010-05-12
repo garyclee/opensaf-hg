@@ -318,10 +318,10 @@ void avnd_send_node_up_msg(void)
 
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
-		msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
-		msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->node_info.nodeId;
-		msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
+		msg.info.avd->msg_type = AVSV_N2D_NODE_UP_MSG;
+		msg.info.avd->msg_info.n2d_node_up.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_node_up.node_id = cb->node_info.nodeId;
+		msg.info.avd->msg_info.n2d_node_up.adest_address = cb->avnd_dest;
 
 		rc = avnd_di_msg_send(cb, &msg);
 		if (NCSCC_RC_SUCCESS == rc)
@@ -939,7 +939,7 @@ uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 
 	/* start the msg response timer */
 	if (NCSCC_RC_SUCCESS == rc) {
-		if (rec->msg.info.avd->msg_type == AVSV_N2D_CLM_NODE_UP_MSG)
+		if (rec->msg.info.avd->msg_type == AVSV_N2D_NODE_UP_MSG)
 			m_AVND_TMR_MSG_RESP_START(cb, *rec, rc);
 		msg.info.avd = 0;
 	}

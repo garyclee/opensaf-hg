@@ -156,10 +156,10 @@ done:
 ******************************************************************************/
 uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 {
-	AVSV_D2N_CLM_NODE_UP_MSG_INFO *info;
+	AVSV_D2N_NODE_UP_MSG_INFO *info;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	info = &evt->info.avd->msg_info.d2n_clm_node_up;
+	info = &evt->info.avd->msg_info.d2n_node_up;
 
 	/*** update this node with the supplied parameters ***/
 	cb->type = info->node_type;

@@ -66,13 +66,13 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_DND_MSG *)0)->msg_type, 0,
 		 avsv_dnd_msg_test_type_fnc},
 
-		/* 1 AVSV_N2D_CLM_NODE_UP_MSG_INFO */
+		/* 1 AVSV_N2D_NODE_UP_MSG_INFO */
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_clm_node_up.msg_id, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.msg_id, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_clm_node_up.node_id, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.node_id, 0, NULL},
 		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_clm_node_up.adest_address, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.adest_address, 0, NULL},
 
 		/* 4 AVSV_N2D_REG_SU_MSG_INFO */
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -170,13 +170,13 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		/* 42 AVSV_D2N_CLM_NODE_UP_MSG_INFO */
 		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_clm_node_up.node_id, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_node_up.node_id, 0, NULL},
 		{EDU_EXEC, ncs_edp_int, 0, 0, 0,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_clm_node_up.node_type, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_node_up.node_type, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_clm_node_up.su_failover_prob, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_node_up.su_failover_prob, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_clm_node_up.su_failover_max, 0, NULL},
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_node_up.su_failover_max, 0, NULL},
 
 		/* 46 AVSV_D2N_REG_SU_MSG_INFO */
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -383,7 +383,7 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 {
 	typedef enum {
-		LCL_JMP_OFFSET_AVSV_N2D_CLM_NODE_UP_MSG = 1,
+		LCL_JMP_OFFSET_AVSV_N2D_NODE_UP_MSG = 1,
 		LCL_JMP_OFFSET_AVSV_N2D_REG_SU_MSG = 4,
 		LCL_JMP_OFFSET_AVSV_N2D_REG_COMP_MSG = 8,
 		LCL_JMP_OFFSET_AVSV_N2D_OPERATION_STATE_MSG = 12,
@@ -419,8 +419,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 	type = *(AVSV_DND_MSG_TYPE *)arg;
 
 	switch (type) {
-	case AVSV_N2D_CLM_NODE_UP_MSG:
-		return LCL_JMP_OFFSET_AVSV_N2D_CLM_NODE_UP_MSG;
+	case AVSV_N2D_NODE_UP_MSG:
+		return LCL_JMP_OFFSET_AVSV_N2D_NODE_UP_MSG;
 	case AVSV_N2D_REG_SU_MSG:
 		return LCL_JMP_OFFSET_AVSV_N2D_REG_SU_MSG;
 	case AVSV_N2D_REG_COMP_MSG:
@@ -439,7 +439,7 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_N2D_SHUTDOWN_APP_SU_MSG;
 	case AVSV_N2D_VERIFY_ACK_NACK_MSG:
 		return LCL_JMP_OFFSET_AVSV_N2D_VERIFY_ACK_NACK_MSG;
-	case AVSV_D2N_CLM_NODE_UP_MSG:
+	case AVSV_D2N_NODE_UP_MSG:
 		return LCL_JMP_OFFSET_AVSV_D2N_CLM_NODE_UP_MSG;
 	case AVSV_D2N_REG_SU_MSG:
 		return LCL_JMP_OFFSET_AVSV_D2N_REG_SU_MSG;
