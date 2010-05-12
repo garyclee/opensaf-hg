@@ -159,6 +159,8 @@ extern void avd_si_constructor(void);
 
 extern AVD_SVC_TYPE *avd_svctype_get(const SaNameT *dn);
 extern SaAisErrorT avd_svctype_config_get(void);
+extern void avd_svctype_add_si(AVD_SI *si);
+extern void avd_svctype_remove_si(AVD_SI *si);
 extern void avd_svctype_constructor(void);
 
 extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);

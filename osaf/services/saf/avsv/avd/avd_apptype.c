@@ -186,7 +186,8 @@ static void apptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		apptype_add_to_model(app_type);
 		break;
 	case CCBUTIL_DELETE:
-		apptype_delete(opdata->userData);
+		app_type = opdata->userData;
+		apptype_delete(&app_type);
 		break;
 	default:
 		assert(0);

@@ -173,11 +173,13 @@ void avd_si_delete(AVD_SI **si)
 {
 	unsigned int rc;
 
+	TRACE_ENTER2("%s", (*si)->name.value);
+	avd_svctype_remove_si(*si);
 	avd_app_remove_si((*si)->app, *si);
 	avd_sg_remove_si((*si)->sg_of_si, *si);
 	rc = ncs_patricia_tree_del(&si_db, &(*si)->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, *si, AVSV_CKPT_AVD_SI_CONFIG);
 	free(*si);
 	*si = NULL;
 }
@@ -234,10 +236,7 @@ static void si_add_to_model(AVD_SI *si)
 	if (si->saAmfSIProtectedbySG.length > 0)
 		si->sg_of_si = avd_sg_get(&si->saAmfSIProtectedbySG);
 
-	/* Add SI to SvcType */
-	si->si_list_svc_type_next = si->svc_type->list_of_si;
-	si->svc_type->list_of_si = si;
-
+	avd_svctype_add_si(si);
 	avd_app_add_si(si->app, si);
 	avd_sg_add_si(si->sg_of_si, si);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);

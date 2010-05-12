@@ -226,6 +226,43 @@ SaAisErrorT avd_svctype_config_get(void)
 	return error;
 }
 
+void avd_svctype_add_si(AVD_SI *si)
+{
+	si->si_list_svc_type_next = si->svc_type->list_of_si;
+	si->svc_type->list_of_si = si;
+}
+
+void avd_svctype_remove_si(AVD_SI *si)
+{
+	AVD_SI *i_si = NULL;
+	AVD_SI *prev_si = NULL;
+
+	if (!si)
+		return;
+
+	if (si->svc_type != NULL) {
+		i_si = si->svc_type->list_of_si;
+
+		while ((i_si != NULL) && (i_si != si)) {
+			prev_si = i_si;
+			i_si = i_si->si_list_svc_type_next;
+		}
+
+		if (i_si != si) {
+			assert(0);
+		} else {
+			if (prev_si == NULL) {
+				si->svc_type->list_of_si = si->si_list_svc_type_next;
+			} else {
+				prev_si->si_list_svc_type_next = si->si_list_svc_type_next;
+			}
+		}
+
+		si->si_list_svc_type_next = NULL;
+		si->svc_type = NULL;
+	}
+}
+
 void avd_svctype_constructor(void)
 {
 	NCS_PATRICIA_PARAMS patricia_params;

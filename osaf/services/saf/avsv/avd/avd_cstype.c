@@ -71,8 +71,10 @@ static void cstype_delete(avd_cstype_t *cst)
 	rc = ncs_patricia_tree_del(&cstype_db, &cst->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
 
-	while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
-		free(p);
+	if (cst->saAmfCSAttrName != NULL) {
+		while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
+			free(p);
+		}
 	}
 
 	free(cst->saAmfCSAttrName);
