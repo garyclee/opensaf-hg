@@ -692,7 +692,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	if (immutil_getAttr("saAmfCompInstantiateTimeout", attributes, 0, &comp->comp_info.init_time) != SA_AIS_OK)
 		comp->comp_info.init_time = comptype->saAmfCtDefClcCliTimeout;
 
-	if (immutil_getAttr("saAmfCompInstantiateLevel", attributes, 0, &comp->comp_info.inst_level) != SA_AIS_OK)
+	if (immutil_getAttr("saAmfCompInstantiationLevel", attributes, 0, &comp->comp_info.inst_level) != SA_AIS_OK)
 		comp->comp_info.inst_level = comptype->saAmfCtDefInstantiationLevel;
 
 	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithoutDelay", attributes,

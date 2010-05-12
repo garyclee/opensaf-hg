@@ -94,13 +94,13 @@ typedef struct avd_sg_tag {
 						 * Checkpointing - Sent as a one time update.
 						 */
 
-	SaUint32T saAmfSGMaxActiveSIsperSUs;	/* The maximum number of active 
+	SaUint32T saAmfSGMaxActiveSIsperSU;	/* The maximum number of active 
 						 * instance of Sis that can be 
 						 * assigned to an SU.
 						 * Checkpointing - Sent as a one time update.
 						 */
 
-	SaUint32T saAmfSGMaxStandbySIsperSUs;	/* The maximum number of standby 
+	SaUint32T saAmfSGMaxStandbySIsperSU;	/* The maximum number of standby 
 						 * instance of Sis that can be
 						 * assigned to an SU.
 						 * Checkpointing - Sent as a one time update.

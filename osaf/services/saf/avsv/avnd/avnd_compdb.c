@@ -87,7 +87,7 @@ static SaImmAttrNameT compConfigAttributes[] = {
 	"saAmfCompCmdEnv",
 	"saAmfCompInstantiateCmdArgv",
 	"saAmfCompInstantiateTimeout",
-	"saAmfCompInstantiateLevel",
+	"saAmfCompInstantiationLevel",
 	"saAmfCompNumMaxInstantiateWithoutDelay",
 	"saAmfCompNumMaxInstantiateWithDelay",
 	"saAmfCompDelayBetweenInstantiateAttempts",
@@ -1270,7 +1270,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
 		cmd->timeout = comptype->saAmfCtDefClcCliTimeout;
 	}
 
-	if (immutil_getAttr("saAmfCompInstantiateLevel", attributes, 0, &comp->inst_level) != SA_AIS_OK)
+	if (immutil_getAttr("saAmfCompInstantiationLevel", attributes, 0, &comp->inst_level) != SA_AIS_OK)
 		comp->inst_level = comptype->saAmfCtDefInstantiationLevel;
 
 	if (immutil_getAttr("saAmfCompNumMaxInstantiateWithoutDelay", attributes,

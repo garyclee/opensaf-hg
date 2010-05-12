@@ -190,7 +190,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 			return -1;
 		}
 
-		if (svctypecstype->curr_num_csis == svctypecstype->saAmfSvcMaxNumCSIs) {
+		if (svctypecstype->curr_num_csis == svctypecstype->saAmfSvctMaxNumCSIs) {
 			LOG_ER("SI '%s' cannot contain more CSIs of this type '%s*",
 				csi->si->name.value, csi->saAmfCSType.value);
 			return -1;

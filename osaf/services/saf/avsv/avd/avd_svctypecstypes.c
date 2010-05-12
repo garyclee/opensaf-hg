@@ -44,8 +44,8 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 	svctypecstype->name.length = dn->length;
 	svctypecstype->tree_node.key_info = (uns8 *)&(svctypecstype->name);
 
-	if (immutil_getAttr("saAmfSvcMaxNumCSIs", attributes, 0, &svctypecstype->saAmfSvcMaxNumCSIs) != SA_AIS_OK)
-		svctypecstype->saAmfSvcMaxNumCSIs = -1; /* no limit */
+	if (immutil_getAttr("saAmfSvctMaxNumCSIs", attributes, 0, &svctypecstype->saAmfSvctMaxNumCSIs) != SA_AIS_OK)
+		svctypecstype->saAmfSvctMaxNumCSIs = -1; /* no limit */
 
 	return svctypecstype;
 }

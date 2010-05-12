@@ -250,8 +250,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* check if we already have a SU in hand that can take active assignments. */
 		if (i_su != NULL) {
 			if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs == 0) ||
-			     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs > i_su->saAmfSUNumCurrActiveSIs))) {
+			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+			     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
 				/* found the SU assign the SI to the SU as active */
 				su_found = TRUE;
 
@@ -273,8 +273,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						if (i_su != NULL) {
 							cnt++;
 							if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-							    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs == 0) ||
-							     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs >
+							    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+							     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU >
 							      i_su->saAmfSUNumCurrActiveSIs))) {
 								/* Found the next assigning SU that can take SI. */
 								su_found = TRUE;
@@ -342,8 +342,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				cnt++;
 
 				if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
-				    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs == 0) ||
-				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSUs > i_su->saAmfSUNumCurrActiveSIs))) {
+				    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
+				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
 					/* Found the next assigning SU that can take SI. */
 					su_found = TRUE;
 				} else if (cnt < sg->saAmfSGNumPrefActiveSUs) {
@@ -471,8 +471,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		if (o_susi != AVD_SU_SI_REL_NULL) {
 			i_su = o_susi->su;
 			if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-			    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs == 0) ||
-			     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs > i_su->saAmfSUNumCurrStandbySIs))) {
+			    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+			     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU > i_su->saAmfSUNumCurrStandbySIs))) {
 				/* found the SU assign the SI to the SU as standby */
 				su_found = TRUE;
 
@@ -481,8 +481,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 			if (l_su != NULL) {
 				if ((l_su->si_max_standby > l_su->saAmfSUNumCurrStandbySIs) &&
-				    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs == 0) ||
-				     (l_su->sg_of_su->saAmfSGMaxStandbySIsperSUs > l_su->saAmfSUNumCurrStandbySIs))) {
+				    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+				     (l_su->sg_of_su->saAmfSGMaxStandbySIsperSU > l_su->saAmfSUNumCurrStandbySIs))) {
 					/* found the SU assign the SI to the SU as standby */
 					su_found = TRUE;
 					i_su = l_su;
@@ -513,8 +513,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						while ((i_su != NULL) && (su_found == FALSE)) {
 							cnt++;
 							if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-							    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs == 0) ||
-							     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs >
+							    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+							     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
 							      i_su->saAmfSUNumCurrStandbySIs)))
 								/* Found the next assigning SU that can take SI. */
 								su_found = TRUE;
@@ -573,8 +573,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				while ((i_su != NULL) && (su_found == FALSE)) {
 					cnt++;
 					if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
-					    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs == 0) ||
-					     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSUs >
+					    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
+					     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
 					      i_su->saAmfSUNumCurrStandbySIs)))
 						/* Found the next assigning SU that can take SI. */
 						su_found = TRUE;
