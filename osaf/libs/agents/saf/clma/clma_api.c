@@ -66,8 +66,8 @@ static SaAisErrorT clma_validate_flags_buf(clma_client_hdl_rec_t * hdl_rec, SaUi
 					   SaClmClusterNotificationBufferT *buf);
 static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t * hdl_rec, SaUint8T flags,
 					     SaClmClusterNotificationBufferT_4 * buf);
-static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf, CLMSV_MSG * msg_rsp);
-static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 * buf_4, CLMSV_MSG * msg_rsp);
+static SaAisErrorT clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf, CLMSV_MSG * msg_rsp);
+static SaAisErrorT clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 * buf_4, CLMSV_MSG * msg_rsp);
 static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t * hdl_rec,
 								SaUint8T flags,
 								CLMSV_MSG i_msg, SaClmClusterNotificationBufferT *buf);
@@ -181,10 +181,10 @@ static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t * hdl_rec, Sa
 * Check the number of items and num fields.
 */
 
-static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf, CLMSV_MSG * msg_rsp)
+static SaAisErrorT clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf, CLMSV_MSG * msg_rsp)
 {
 	if (msg_rsp->info.api_resp_info.param.track.notify_info == NULL)
-		return;
+		return SA_AIS_ERR_NO_MEMORY;
 
 	if (buf->notification != NULL &&
 	    (buf->numberOfItems >= msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
@@ -194,6 +194,9 @@ static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT 
 
 		memset(buf->notification, 0, sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 		clma_fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
+	}else if(buf->notification != NULL &&
+		(buf->numberOfItems < msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
+		return SA_AIS_ERR_NO_SPACE;
 	} else {
 		/* we need to ignore the numberOfItems and allocate the space
 		 ** This memory will be freed by the application */
@@ -204,6 +207,7 @@ static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT 
 		memset(buf->notification, 0, sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 		clma_fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
 	}
+	return SA_AIS_OK;
 }
 
 /* Copy the cluster node info into buf 
@@ -214,10 +218,10 @@ static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT 
 * Check the number of items and num fields.
 */
 
-static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 * buf_4, CLMSV_MSG * msg_rsp)
+static SaAisErrorT clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 * buf_4, CLMSV_MSG * msg_rsp)
 {
 	if (msg_rsp->info.api_resp_info.param.track.notify_info == NULL)
-		return;
+		return SA_AIS_ERR_NO_MEMORY;
 
 	if (buf_4->notification != NULL &&
 	    (buf_4->numberOfItems >= msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
@@ -228,6 +232,9 @@ static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT
 		memset(buf_4->notification, 0, sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 		memcpy(buf_4->notification, msg_rsp->info.api_resp_info.param.track.notify_info->notification,
 		       sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
+        } else if(buf_4->notification != NULL &&
+		(buf_4->numberOfItems < msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
+		return SA_AIS_ERR_NO_SPACE;
 	} else {
 		/* we need to ignore the numberOfItems and allocate the space
 		 ** This memory will be freed by the application */
@@ -240,6 +247,7 @@ static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT
 		       sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 
 	}
+	return SA_AIS_OK;
 }
 
 static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t * hdl_rec,
@@ -308,7 +316,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_
 		}
 
 		if (rc == SA_AIS_OK) {
-			clma_fill_cluster_ntf_buf_from_omsg(buf, o_msg);
+			rc = clma_fill_cluster_ntf_buf_from_omsg(buf, o_msg);
 			/* destroy o_msg */
 			clma_msg_destroy(o_msg);
 			goto done;
@@ -408,7 +416,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hd
 		}
 
 		if (rc == SA_AIS_OK) {
-			clma_fill_cluster_ntf_buf4_from_omsg(buf_4, o_msg);
+			rc = clma_fill_cluster_ntf_buf4_from_omsg(buf_4, o_msg);
 			/* destroy o_msg */
 			clma_msg_destroy(o_msg);
 			goto done;
