@@ -1877,7 +1877,7 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 		new_trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 		new_trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
 		new_trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
-		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_RESET == 
+		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_ACTIVATED == 
 		trk_info->track_cause)){
 			plms_ent_to_ent_list_add(ent,&(new_trk_info.aff_ent_list));
 			new_trk_info.track_cause = trk_info->track_cause;
@@ -1918,7 +1918,7 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 		new_trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
 	
 		/* For */
-		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_RESET == 
+		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_ACTIVATED == 
 		trk_info->track_cause)){
 			plms_ent_to_ent_list_add(ent,&(new_trk_info.aff_ent_list));
 			new_trk_info.track_cause = trk_info->track_cause;
