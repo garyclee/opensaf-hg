@@ -133,20 +133,19 @@ SmfCampaignThread::~SmfCampaignThread()
 		LOG_ER("Failed to finalize NTF handle %u", rc);
 	}
 
-	//Delete the IMM handler
-	deleteImmHandle();
-
         //The temporary m_tmpSmfUpgradeCampaign is used because the Campaign
         //object may be deleted (the m_campaign variable become empty), by the campaignThread 
 	//cleanup function before the SmfCampaignThread destructor is executed.
 
-//	SmfUpgradeCampaign *upgradeCampaign = m_campaign->getUpgradeCampaign();
 	SmfUpgradeCampaign *upgradeCampaign = m_tmpSmfUpgradeCampaign;
 
 	if (upgradeCampaign != NULL) {
 		m_campaign->setUpgradeCampaign(NULL);
 		delete upgradeCampaign;
 	}
+
+	//Delete the IMM handler
+	deleteImmHandle();
 
 	TRACE_LEAVE();
 }
@@ -294,6 +293,8 @@ SaAisErrorT
 SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	int existCnt = 0;
+
 	SaVersionT immVersion = { 'A', 2, 1 };
         const char *campDn = i_campaign->getDn().c_str();
 
@@ -311,18 +312,21 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
 		goto done;
 	}
-#if 0
-	rc = immutil_saImmOiSelectionObjectGet(m_campOiHandle, &m_campSelectionObject);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet fails rc=%d", rc);
-		goto done;
-	}
-#endif
 
 	TRACE("saImmOiImplementerSet DN=%s", campDn);
 
+	//SA_AIS_ERR_TRY_AGAIN can proceed forever
+	//SA_AIS_ERR_EXIST is limited to 20 seconds (for the other side to release the handle)
 	rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);
-	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) {
+		if(rc == SA_AIS_ERR_EXIST) 
+			existCnt++;
+		if(existCnt > 20) {
+			TRACE("immutil_saImmOiImplementerSet rc = SA_AIS_ERR_EXIST for 20 sec, giving up ");
+			goto done;
+		}
+
+		TRACE("immutil_saImmOiImplementerSet rc = %d, wait 1 sec and retry", rc);
 		sleep(1);
 		rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);	
 	}
