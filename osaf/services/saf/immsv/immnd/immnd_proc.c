@@ -661,6 +661,54 @@ static void immnd_abortSync(IMMND_CB *cb)
 	TRACE_LEAVE();
 }
 
+static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
+{
+	/* Cleanup before restarting PBE. Send purge message.
+	   Set veteran to false.
+	   On receipt, clean-up. 
+	*/
+	uns32 rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT send_evt;
+	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+	TRACE_ENTER();
+	assert(cb->mIsCoord);
+	if(!immnd_is_immd_up(cb)) {
+		TRACE("IMMD is DOWN postponing pbePrtoCleanup");
+		return;
+	}
+
+	if(cb->pbePid) {
+		LOG_WA("PBE appears to be still executing pid %u."
+			"Can not purge prto mutations.", cb->pbePid);
+		return;
+	}
+
+	if(cb->mPbeVeteran) {
+		/* Currently we can not recover results for PRTO create/delete/updates
+		   from restarted PBE. 
+		   If we have non completed PRTO ops toward PBE when it needs to
+		   be restarted, then we are forced to restart with regeneration
+		   of the DB file and abortion of the non completed PRTO ops.
+		 */
+		cb->mPbeVeteran = SA_FALSE;
+	}
+
+
+	send_evt.type = IMMSV_EVT_TYPE_IMMD;
+	send_evt.info.immd.type = IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS;
+	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
+	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+
+	LOG_IN("Coord broadcasting PBE_PRTO_PURGE_MUTATIONS, epoch:%u", cb->mRulingEpoch);
+	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Coord failed to send PBE_PRTO_PURGE_MUTATIONS over MDS err:%u", rc);
+	}
+	TRACE_LEAVE();
+}
+
 static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 {
 	SaInvocationT *admReqArr = NULL;
@@ -669,6 +717,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	SaUint32T searchReqArrSize = 0;
 	SaUint32T *ccbIdArr = NULL;
 	SaUint32T ccbIdArrSize = 0;
+	SaUint32T *pbePrtoReqArr = NULL;
+	SaUint32T pbePrtoReqArrSize = 0;
 
 	SaInvocationT inv;
 	SaUint32T reqConn = 0;
@@ -682,9 +732,10 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	/*TRACE_ENTER(); */
 
 	if((cb->mRim == SA_IMM_KEEP_REPOSITORY) && !(cb->mPbeVeteran)) {
-		cb->mPbeVeteran = immModel_pbeOiExists(cb);
-		if(cb->mPbeVeteran && cb->mCanBeCoord) {
-			LOG_IN("PBE-OI established. Dumping incrementally to file %s", cb->mPbeFile);
+		cb->mPbeVeteran = immModel_pbeOiExists(cb) && immModel_pbeIsInSync(cb);
+		if(cb->mPbeVeteran && cb->mCanBeCoord) {		       
+			LOG_IN("PBE-OI established on %s SC. Dumping incrementally to file %s", 
+				(cb->mIsCoord)?"this":"other", 	cb->mPbeFile);
 		}
 	}
 
@@ -701,10 +752,16 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	}
 
 	ccbsStuckInCritical = immModel_cleanTheBasement(cb,
-				  cb->mTimer,
-				  &admReqArr,
-				  &admReqArrSize,
-				  &searchReqArr, &searchReqArrSize, &ccbIdArr, &ccbIdArrSize, iAmCoordNow);
+		cb->mTimer,
+		&admReqArr,
+		&admReqArrSize,
+		&searchReqArr, 
+		&searchReqArrSize,
+		&ccbIdArr,
+		&ccbIdArrSize,
+		&pbePrtoReqArr,
+		&pbePrtoReqArrSize,
+		iAmCoordNow);
 
 	if (admReqArrSize) {
 		/* TODO: Correct for explicit continuation handling in the 
@@ -878,6 +935,36 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		free(ccbIdArr);
 	}
 
+	if (pbePrtoReqArrSize) {
+		IMMSV_EVT reply;
+		memset(&reply, 0, sizeof(IMMSV_EVT));
+		reply.type = IMMSV_EVT_TYPE_IMMA;
+		reply.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		reply.info.imma.info.errRsp.error = SA_AIS_ERR_TIMEOUT;
+
+		for (ix = 0; ix < pbePrtoReqArrSize; ++ix) {
+			IMMSV_SEND_INFO *sinfo = NULL; 
+			SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(pbePrtoReqArr[ix],
+				cb->node_id);
+			immnd_client_node_get(cb, tmp_hdl, &cl_node);
+			if (cl_node == NULL || cl_node->mIsStale) {
+				LOG_WA("IMMND - Client %u went down so no response",
+					pbePrtoReqArr[ix]);
+				continue;
+			}
+			LOG_WA("Timeout on Persistent runtime Object Mutation, waiting on PBE");
+			sinfo = &cl_node->tmpSinfo;
+			assert(sinfo);
+			assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+			rc = immnd_mds_send_rsp(cb, sinfo, &reply);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("Failed to send response to agent/client "
+					"over MDS rc:%u", rc);
+			}
+		}
+		free(pbePrtoReqArr);
+	}
+
 	/*TRACE_LEAVE(); */
 }
 
@@ -903,11 +990,30 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 		return SA_FALSE;
 	}
 
-	if (immModel_ccbsTerminated(cb)) {
+	SaBoolT ccbsTerminated = immModel_ccbsTerminated(cb);
+	SaBoolT pbeIsInSync = immModel_pbeIsInSync(cb);
+	
+
+	if (ccbsTerminated && pbeIsInSync) {
 		return SA_TRUE;
 	}
 
-	if (!(step % 50)) {	//Preemtively abort non critical Ccbs. 
+	if(!(step % 20) && !pbeIsInSync) { /* Every two seconds check on pbe */
+		if(cb->pbePid) {
+			LOG_WA("Persistent back end process appears hung, restarting it.");
+			kill(cb->pbePid, SIGTERM);
+			/* Forces PBE to restart which forces syncronization. */
+		} else {
+			/* Purge old Prto mutations before restarting PBE */
+			immnd_pbePrtoPurgeMutations(cb);
+		}
+	}
+
+	if (step % 50) {/* Wait 5 secs for non critical ccbs to terminate */
+		return SA_FALSE;
+	}
+
+	if(!ccbsTerminated) {//Preemtively abort non critical Ccbs. 
 		IMMSV_EVT send_evt;	//One try should be enough.
 		SaUint32T *ccbIdArr = NULL;
 		SaUint32T ccbIdArrSize = 0;
@@ -921,9 +1027,11 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 			send_evt.info.immd.info.ccbId = ccbIdArr[ix];
 			LOG_WA("Aborting ccbId  %u to start sync", ccbIdArr[ix]);
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
-					       &send_evt) != NCSCC_RC_SUCCESS) {
-				LOG_ER("Failure to broadcast abort Ccb for ccbId:%u", ccbIdArr[ix]);
-				break;	/* out of forloop to free ccbIdArr & return SA_FALSE */
+				    &send_evt) != NCSCC_RC_SUCCESS) {
+				LOG_ER("Failure to broadcast abort Ccb for ccbId:%u",
+					ccbIdArr[ix]);
+				break;	/* out of forloop to free ccbIdArr & 
+					   return SA_FALSE */
 			}
 		}
 		free(ccbIdArr);
@@ -1048,6 +1156,16 @@ static int immnd_forkPbe(IMMND_CB *cb)
 
 	TRACE("pbe-file-path:%s", pbePath);
 
+	if(cb->mPbeVeteran && !immModel_pbeIsInSync(cb)) {
+		/* Currently we can not recover results for PRTO create/delete/updates
+		   from restarted PBE. 
+		   If we have non completed PRTO ops toward PBE when it needs to
+		   be restarted, then we are forced to restart with regeneration
+		   of the DB file and abortion of the non completed PRTO ops.
+		 */
+		cb->mPbeVeteran = SA_FALSE;
+	}
+
 	pid = fork();		/*posix fork */
 	if (pid == (-1)) {
 		LOG_ER("%s failed to fork, error %u", base, errno);
@@ -1065,12 +1183,12 @@ static int immnd_forkPbe(IMMND_CB *cb)
 			pbeArgs[3] = "--pbe";
 			pbeArgs[4] = pbePath;
 			pbeArgs[5] =  0;
-			LOG_IN("Trying to exec: %s %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3], pbeArgs[4]);
+			LOG_IN("Exec: %s %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3], pbeArgs[4]);
 		} else {
 			pbeArgs[2] = "--pbe";
 			pbeArgs[3] = pbePath;
 			pbeArgs[4] =  0;
-			LOG_IN("Trying to exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
+			LOG_IN("Exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
 		}
 
 		execvp(pbeBase, pbeArgs);
@@ -1109,10 +1227,10 @@ uns32 immnd_proc_server(uns32 *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mTimer % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u cord:%u rim:%s",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u cord:%u rim:%s vet:%u",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
 			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-			"KEEP_REPO":"FROM_FILE");
+			"KEEP_REPO":"FROM_FILE", cb->mPbeVeteran);
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1380,6 +1498,18 @@ uns32 immnd_proc_server(uns32 *timeout)
 				cb->mState = IMM_SERVER_READY;
 				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 			}
+
+			/* PBE may intentionally be restarted by sync. Catch this here. */
+			if (cb->pbePid > 0) {
+				int status = 0;
+				if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
+					LOG_WA("Persistent back-end process has apparently died.");
+					cb->pbePid = 0;
+					if(!immModel_pbeIsInSync(cb)) {
+						immnd_pbePrtoPurgeMutations(cb);
+					}
+				}
+			}
 		} else {
 			/*Phase 2 */
 			if (cb->syncPid <= 0) {
@@ -1448,6 +1578,9 @@ uns32 immnd_proc_server(uns32 *timeout)
 			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
 				LOG_WA("Persistent back-end process has apparently died.");
 				cb->pbePid = 0;
+				if(!immModel_pbeIsInSync(cb)) {
+					immnd_pbePrtoPurgeMutations(cb);
+				}
 			}
 		}
 
@@ -1486,11 +1619,15 @@ uns32 immnd_proc_server(uns32 *timeout)
 			if (cb->mPbeFile) {/* Pbe configured */
 				if (cb->pbePid <= 0) { /* Pbe is NOT running */
 					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
-						LOG_NO("STARTING persistent back end process.");
-						cb->pbePid = immnd_forkPbe(cb);
+						if(immModel_pbeIsInSync(cb)) {
+							LOG_NO("STARTING persistent back end process.");
+							cb->pbePid = immnd_forkPbe(cb);
+						} else {
+							immnd_pbePrtoPurgeMutations(cb);
+						}
 					}
-				} else {
-					assert(cb->pbePid > 0); /* Pbe is running. */
+				} else { /* Pbe is running. */
+					assert(cb->pbePid > 0); 
 					if (cb->mRim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
 						LOG_NO("STOPPING persistent back end process.");
 						kill(cb->pbePid, SIGTERM);

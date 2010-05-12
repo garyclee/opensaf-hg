@@ -172,6 +172,8 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INF
 static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uns32 immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt, 
+	IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_class_desc_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -561,6 +563,10 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_D2ND_SYNC_ABORT:
 		rc = immnd_evt_proc_abort_sync(cb, &evt->info.immnd, &evt->sinfo);
+		break;
+
+		case IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS:
+		rc = immnd_evt_proc_pbe_prto_purge_mutations(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
 	case IMMND_EVT_D2ND_GLOB_FEVS_REQ:
@@ -5010,6 +5016,83 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *s
 		}
 		immModel_abortSync(cb);
 	}
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_pbe_prto_purge_mutations
+ *
+ * Description   : Function to remove un-ack'ed mutation records for 
+ *                 persistent runtime objects (prtos). This is needed if
+ *                 the PBE process hangs and needs to be restarted.
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *                 IMMSV_SEND_INFO *sinfo - Sender MDS information.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ *****************************************************************************/
+uns32 immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt, 
+	IMMSV_SEND_INFO *sinfo)
+{
+	SaUint32T reqConnArrSize = 0;
+	SaUint32T *reqConnArr = NULL;
+	TRACE_ENTER();
+	assert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
+	cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
+
+	LOG_WA("Global PURGE PERSISTENT RTO mutations received in epoch %u", cb->mRulingEpoch);
+
+	if (cb->mIsCoord) {	/* coord should already be up to date. */
+		assert(cb->mMyEpoch == cb->mRulingEpoch);
+	} 
+
+	immModel_pbePrtoPurgeMutations(cb, cb->node_id, &reqConnArrSize, &reqConnArr);
+
+	if(cb->mPbeVeteran) {
+		/* This should be redundant at coord. It is mainly for the 
+		   noncoord immnd, in case it gets elected coord later.
+		*/
+		cb->mPbeVeteran = SA_FALSE;
+	}
+
+	if(reqConnArrSize) {
+		uns32 rc = NCSCC_RC_SUCCESS;
+		IMMSV_EVT send_evt;
+		IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+		IMMSV_SEND_INFO *sinfo = NULL;
+		int ix = 0;
+		assert(reqConnArr);
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TRY_AGAIN; /* Fall back assumed. */
+
+		for(; ix < reqConnArrSize;++ix) {
+			SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConnArr[ix], 
+				cb->node_id);
+			immnd_client_node_get(cb, tmp_hdl, &cl_node);
+			if (cl_node == NULL || cl_node->mIsStale) {
+				LOG_WA("IMMND - Client went down so no response");
+				continue;
+			}
+			sinfo = &cl_node->tmpSinfo;
+			assert(sinfo);
+			assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+			TRACE("Sending TRY_AGAIN reply to connection %u", reqConnArr[ix]);
+			rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("Failed to send response to agent/client "
+					"over MDS rc:%u", rc);
+			}
+
+		}
+
+		free(reqConnArr);
+	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

@@ -64,10 +64,13 @@ void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId);
 extern "C" {
 #endif
 
-	/* These are functions that bridge from the C world of hte OpenSaf framework
-	   to the C++ world of the IMM server model ported from OpenAis */
+	/* These are functions that bridge from the C world of the OpenSaf framework
+	   to the C++ world of the IMM server model. */
 
 	void immModel_abortSync(IMMND_CB *cb);
+
+	void immModel_pbePrtoPurgeMutations(IMMND_CB *cb, unsigned int nodeId, SaUint32T *reqArrSize,
+		SaUint32T **reqConArr);
 
 	SaAisErrorT
 	    immModel_adminOwnerCreate(IMMND_CB *cb,
@@ -96,12 +99,16 @@ extern "C" {
 	    immModel_classDescriptionGet(IMMND_CB *cb, const IMMSV_OCTET_STRING *clName, struct ImmsvOmClassDescr *res);
 
 	SaBoolT immModel_cleanTheBasement(IMMND_CB *cb,
-				       SaUint32T seconds,
-				       SaInvocationT **admReqArr,
-				       SaUint32T *admReqArrSize,
-				       SaInvocationT **searchReqArr,
-				       SaUint32T *searchReqArrSize,
-				       SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize, SaBoolT iAmCoordNow);
+		SaUint32T seconds,
+		SaInvocationT **admReqArr,
+		SaUint32T *admReqArrSize,
+		SaInvocationT **searchReqArr,
+		SaUint32T *searchReqArrSize,
+		SaUint32T **ccbIdArr,
+		SaUint32T *ccbIdArrSize, 
+		SaUint32T **pbePrtoReqIdArr,
+		SaUint32T *pbePrtoReqArrSize, 
+		SaBoolT iAmCoordNow);
 
 	void immModel_getNonCriticalCcbs(IMMND_CB *cb, SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize);
 
