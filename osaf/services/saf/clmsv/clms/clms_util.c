@@ -806,18 +806,15 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			/* Send track callback to all start client */
 			clms_send_cbk_start_sub(cb, op_node);
 
-			if (op_node->change == SA_CLM_NODE_LEFT) {
-				rc = clms_node_exit_ntf(cb, op_node);
-				if (rc != NCSCC_RC_SUCCESS) {
-					TRACE("clms_node_exit_ntf failed %u", rc);
-					goto done;
-				}
-			} else if (op_node->change == SA_CLM_NODE_SHUTDOWN) {
-				rc = clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_ADMIN_SHUTTING_DOWN);
-				if (rc != NCSCC_RC_SUCCESS) {
-					TRACE("clms_node_admin_state_change_ntf failed %d", rc);
-					goto done;
-				}
+			rc = clms_node_exit_ntf(cb, op_node);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("clms_node_exit_ntf failed %u", rc);
+				goto done;
+			}
+			rc = clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_ADMIN_LOCKED);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("clms_node_admin_state_change_ntf failed %d", rc);
+				goto done;
 			}
 			op_node->admin_op = 0;
 			op_node->stat_change = SA_FALSE;
