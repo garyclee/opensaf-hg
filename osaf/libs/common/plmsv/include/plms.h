@@ -644,4 +644,6 @@ EXTERN_C void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 EXTERN_C SaUint32T plms_tmr_handler_install();
 EXTERN_C SaUint32T plms_hsm_hrb_init();
 
+EXTERN_C SaUint64T  plm_handle_pool;
+EXTERN_C SaUint64T  entity_grp_hdl_pool;
 #endif   /* PLMS_H */

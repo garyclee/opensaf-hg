@@ -2167,6 +2167,10 @@ SaUint32T plms_mbcsv_add_client_info(PLMS_MBCSV_MSG *msg)
 		LOG_ER("Memory Allocation failed");
 		assert(0);
 	}
+	
+	if(msg->info.client_info.plm_handle > plm_handle_pool )
+		plm_handle_pool = msg->info.client_info.plm_handle;
+
 	memset(client_info,0,sizeof(PLMS_CLIENT_INFO));
 	client_info->plm_handle = msg->info.client_info.plm_handle;
 	client_info->mdest_id = msg->info.client_info.mdest_id; 
