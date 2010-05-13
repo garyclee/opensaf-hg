@@ -373,8 +373,10 @@ static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto done;
 	clms_clmresp_error_timeout(clms_cb, op_node);
+
 	/*you have to reboot the node in case of imm */
-	opensaf_reboot(op_node->node_id, (char *)op_node->ee_name.value, "Rebooting, timer expired");
+	if (clms_cb->reg_with_plm == SA_TRUE)
+		opensaf_reboot(op_node->node_id, (char *)op_node->ee_name.value, "Rebooting, timer expired");
 
 	/*Checkpoint */
 
