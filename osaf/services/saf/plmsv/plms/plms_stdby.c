@@ -158,6 +158,10 @@ SaUint32T plms_build_ent_grp_tree()
 		if (!grp_info){
 			TRACE("Creating entity_grp_info hdl:%qu",
 					ckpt_grp_info->entity_group_handle);
+			
+			if(ckpt_grp_info->entity_group_handle > entity_grp_hdl_pool)
+				entity_grp_hdl_pool = ckpt_grp_info->entity_group_handle; 
+
 			/* Entity_grp_create operation */
 			grp_info =(PLMS_ENTITY_GROUP_INFO *)malloc(
 			                      sizeof(PLMS_ENTITY_GROUP_INFO));

@@ -33,8 +33,8 @@
 
 
 
-static SaUint64T  plm_handle_pool;
-static SaUint64T  entity_grp_hdl_pool;
+SaUint64T  plm_handle_pool;
+SaUint64T  entity_grp_hdl_pool;
 
 
 
