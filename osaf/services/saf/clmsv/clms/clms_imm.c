@@ -1899,6 +1899,12 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			nodeop->stat_change = SA_TRUE;
 			nodeop->change = SA_CLM_NODE_SHUTDOWN;
 			clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_START);
+
+			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
+                        if (rc != NCSCC_RC_SUCCESS) {
+                                TRACE("clms_node_admin_state_change_ntf failed %u", rc);
+                        }
+
 		} else {
 			nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 			nodeop->stat_change = SA_TRUE;
@@ -1916,7 +1922,12 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			(void)immutil_saImmOiAdminOperationResult(clms_cb->immOiHandle, nodeop->curr_admin_inv,
 								  SA_AIS_OK);
 
-			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
+			rc = clms_node_exit_ntf(clms_cb, nodeop);
+			if (rc != NCSCC_RC_SUCCESS) {
+				TRACE("clms_node_exit_ntf failed %u", rc);
+			}
+
+			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_node_admin_state_change_ntf failed %u", rc);
 			}
