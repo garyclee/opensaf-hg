@@ -239,6 +239,7 @@ static uns32 mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, S
 
 	pMqd->invocation = invocation;
 	pMqd->is_quisced_set = TRUE;
+	pMqd->ha_state = haState;
 	memset(&vda_info, 0, sizeof(vda_info));
 
 	mds_role = V_DEST_RL_QUIESCED;
