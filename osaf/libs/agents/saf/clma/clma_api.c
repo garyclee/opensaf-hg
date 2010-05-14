@@ -582,7 +582,7 @@ static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT
 				  const SaClmCallbacksT_4 * reg_cbks_4, SaVersionT *version)
 {
 	clma_client_hdl_rec_t *clma_hdl_rec;
-	CLMSV_MSG i_msg, *o_msg;
+	CLMSV_MSG i_msg, *o_msg = NULL;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	uns32 client_id, rc;
 
