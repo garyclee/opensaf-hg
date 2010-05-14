@@ -392,8 +392,10 @@ int main(int argc, char *argv[])
 	fds[FD_IMM].events = POLLIN;
 
 #ifdef ENABLE_AIS_PLM
-	fds[FD_PLM].fd = clms_cb->plm_sel_obj;
-	fds[FD_PLM].events = POLLIN;
+	if (clms_cb->reg_with_plm == SA_TRUE){
+		fds[FD_PLM].fd = clms_cb->plm_sel_obj;
+		fds[FD_PLM].events = POLLIN;
+	}
 #endif
 
 	while (1) {

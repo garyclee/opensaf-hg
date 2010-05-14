@@ -892,6 +892,8 @@ void ckpt_node_rec(CLMS_CLUSTER_NODE * node)
 		ckpt.param.node_rec.admin_state = node->admin_state;
 		ckpt.param.node_rec.admin_op = node->admin_op;
 		ckpt.param.node_rec.change = node->change;
+		ckpt.param.node_rec.nodeup = node->nodeup;
+		
 		async_rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 		if (async_rc != NCSCC_RC_SUCCESS)
 			TRACE("send_async_update FAILED");
