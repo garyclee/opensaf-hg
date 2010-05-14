@@ -85,7 +85,9 @@ uns32 mqd_evt_process(MQSV_EVT *pEvt)
 	/* Get the Event Handler */
 	hdlr = mqd_evt_tbl[pEvt->type - 1];
 	if (hdlr) {
-		if (SA_AMF_HA_ACTIVE == pMqd->ha_state) {
+		if ((pEvt->type == MQSV_EVT_MQD_CTRL) && (SA_AMF_HA_QUIESCED == pMqd->ha_state)) {
+			rc = hdlr(pEvt, pMqd);
+		} else if (SA_AMF_HA_ACTIVE == pMqd->ha_state) {
 			rc = hdlr(pEvt, pMqd);
 		} else
 		    if (SA_AMF_HA_STANDBY == pMqd->ha_state &&
@@ -630,7 +632,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 		TRACE(" Retention Time is : %llu ", qnode->oinfo.info.q.retentionTime);
 		TRACE(" MDS Destination is :%llu ", qnode->oinfo.info.q.dest);
 		TRACE(" Node id from the MDS Destination of the queue is :%u ",
-		       m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
+			m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
 		switch (qnode->oinfo.info.q.owner) {
 		case MQSV_QUEUE_OWN_STATE_ORPHAN:
 			TRACE(" Ownership is: MQSV_QUEUE_OWN_STATE_ORPHAN ");
@@ -667,7 +669,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
 		TRACE(" To service is :%u ", pTrack->to_svc);
 		TRACE(" The MDSdest destination of the track subscibed element is: %llu ", pTrack->dest);
 		TRACE(" The Nodeid from MDSdest of the track subscibed element is: %u ",
-		       m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
+			m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
 	}
 	TRACE("********** End of the track list************* ");
 
