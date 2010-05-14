@@ -58,6 +58,7 @@ typedef struct clms_ckpt_node_rec {
 	SaClmAdminStateT admin_state;
 	ADMIN_OP admin_op;	/*plm or clm operation */
 	SaClmClusterChangesT change;
+	SaBoolT nodeup;         /*Check for the connectivity */
 } CLMSV_CKPT_NODE_RUNTIME_INFO;
 
 typedef struct clms_ckpt_node_down_rec {
