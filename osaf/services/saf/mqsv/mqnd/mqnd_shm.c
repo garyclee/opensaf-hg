@@ -36,35 +36,6 @@
 
 #include "mqnd.h"
 
-static uns32 mqnd_kernel_msgparams(void);
-/**************************************************************************************************************
- * Name           : mqnd_kernel_msgparams
- *
- * Description    : To obtain the value of kernel parameter which stores the 
-                    maximum number of queues opened by a system
- *
- * Arguments      : NONE
- *
- * Return Values  : Maximum number of queues opened simultaneously by a system
- * Notes          : None
-**************************************************************************************************************/
-
-static uns32 mqnd_kernel_msgparams(void)
-{
-	int name[] = { CTL_KERN, KERN_MSGMNI };
-	int namelen = 2;
-	int oldval[1];
-	size_t len = sizeof(oldval);
-	int error;
-
-	error = sysctl(name, namelen, (void *)oldval, &len, NULL, 0);
-
-	if (error)
-		return NCSCC_RC_FAILURE;
-	else
-		return oldval[0];
-}
-
 /**************************************************************************************************************
  * Name           : mqnd_shm_create
  *
@@ -83,8 +54,7 @@ uns32 mqnd_shm_create(MQND_CB *cb)
 	char shm_name[] = SHM_NAME;
 	MQND_SHM_VERSION mqnd_shm_version;
 
-	if ((cb->mqnd_shm.max_open_queues = mqnd_kernel_msgparams()) == NCSCC_RC_FAILURE)
-		return NCSCC_RC_FAILURE;
+	cb->mqnd_shm.max_open_queues = cb->gl_msg_max_no_of_q;
 
 	memset(&mqnd_open_req, '\0', sizeof(mqnd_open_req));
 
