@@ -308,6 +308,7 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 			LOG_ER("Patricia tree add failed:crosscheck " PKGSYSCONFDIR "/node_name configuration");
 		}
 	}
+	node->boot_time = clms_get_SaTime();
 
 	/*When plm not in model,membership status depends only on the nodeup */
 	if (node->admin_state == SA_CLM_ADMIN_UNLOCKED) {
@@ -322,7 +323,6 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 #endif
 
 		if (node->member == SA_TRUE) {
-			node->boot_time = clms_get_SaTime();
 			++(osaf_cluster->num_nodes);
 			node->stat_change = SA_TRUE;
 			node->init_view = ++(clms_cb->cluster_view_num);
