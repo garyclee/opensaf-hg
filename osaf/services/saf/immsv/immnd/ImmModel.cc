@@ -3898,7 +3898,6 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         }
     }//for (p = ....)
     
-#ifdef HAVE_IMM_PBE
     // Prepare for call on PersistentBackEnd
     if((err == SA_AIS_OK) && pbeNodeIdPtr) {
         void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
@@ -3916,7 +3915,6 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             }
         }
     }
-#endif
 
     // Prepare for call on object implementer 
     // and add implementer to ccb.
@@ -4407,7 +4405,6 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         return false;
     }
 
-#ifdef HAVE_IMM_PBE
     if(((*err) == SA_AIS_OK) && pbeNodeIdPtr) {
         /* There should be a PBE */
         ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(pbeConnPtr, pbeNodeIdPtr);
@@ -4445,7 +4442,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
                            "ccb %u is aborted", ccbId);
         }
     }
-#endif
+
     TRACE_LEAVE();
     return false; /* nobody to wait for */
 }
