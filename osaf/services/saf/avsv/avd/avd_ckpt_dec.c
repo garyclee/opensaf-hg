@@ -915,8 +915,8 @@ static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -962,8 +962,8 @@ static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
