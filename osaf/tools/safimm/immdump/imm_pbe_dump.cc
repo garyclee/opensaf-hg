@@ -1662,7 +1662,6 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEp
 	time_t now = time(NULL);
 
 	commitTime = (unsigned int) now;
-	TRACE("ABT time sizeof %lu to int %lu", sizeof(now), sizeof(commitTime));
 
 	std::string sqlCcb("INSERT INTO ccb_commits (ccb_id, epoch, commit_time) VALUES('");
 
