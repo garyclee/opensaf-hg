@@ -589,7 +589,7 @@ SaUint32T saPlmSelectionObjectGet(SaPlmHandleT plmHandle,
 	TRACE_ENTER();
 	/** See if the service is already finalized */
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -669,7 +669,7 @@ SaAisErrorT saPlmDispatch(SaPlmHandleT plmHandle,
 	TRACE_ENTER();
 	/** See if the service is already finalized */
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -779,7 +779,7 @@ SaAisErrorT saPlmFinalize(SaPlmHandleT plmHandle)
 	
 	/** See if the service is already finalized */
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -945,7 +945,7 @@ SaAisErrorT saPlmEntityGroupCreate(SaPlmHandleT plmHandle,
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1105,7 +1105,7 @@ SaAisErrorT saPlmEntityGroupAdd(SaPlmEntityGroupHandleT entityGroupHandle,
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1270,7 +1270,7 @@ SaAisErrorT saPlmEntityGroupRemove(SaPlmEntityGroupHandleT entityGroupHandle,
 	
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1468,7 +1468,7 @@ SaAisErrorT saPlmEntityGroupDelete(SaPlmEntityGroupHandleT entityGroupHandle)
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1649,7 +1649,7 @@ SaAisErrorT saPlmReadinessTrack(SaPlmEntityGroupHandleT entityGroupHandle,
 	
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1868,7 +1868,7 @@ SaAisErrorT saPlmReadinessTrackResponse(SaPlmEntityGroupHandleT entityGrpHdl,
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -1962,7 +1962,7 @@ SaAisErrorT saPlmReadinessTrackStop(SaPlmEntityGroupHandleT entityGroupHandle)
 	
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -2116,7 +2116,7 @@ SaAisErrorT saPlmReadinessNotificationFree(
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
@@ -2188,13 +2188,13 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 	PLMA_CB                  *plma_cb = plma_ctrlblk;
 	PLMA_CLIENT_INFO         *client_info;
 	PLMS_EVT                 plm_in_evt;
-	PLMS_EVT                 *plm_out_res;
+	PLMS_EVT                 *plm_out_res = NULL;
 	SaAisErrorT              rc = SA_AIS_OK;
 	uns32			 proc_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	if(!plma_cb){
-		LOG_ER("PLMA : PLM SERVICE ALREADY FINALIZED");
+		LOG_ER("PLMA : PLMA INITIALIZE IS NOT DONE");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto end;
 	}
