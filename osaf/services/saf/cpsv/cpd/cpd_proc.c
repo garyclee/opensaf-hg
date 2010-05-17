@@ -232,7 +232,10 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 					reploc_info->rep_type = REP_NOTACTIVE;
 			}
 		} else {
-			reploc_info->rep_key.ckpt_name = ckpt_name;
+			if (ckpt_create != NULL)                    
+				reploc_info->rep_key.ckpt_name = ckpt_create->ckpt_name;
+			else
+				reploc_info->rep_key.ckpt_name = ckpt_name;
 
 			if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&(*io_map_info)->attributes))
 				reploc_info->rep_type = REP_NONCOLL;
@@ -266,6 +269,13 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 		}
 
 		*o_ckpt_node = ckpt_node;
+               	if (reploc_info && create_reploc_node) {
+			proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+                       	if (proc_rc != NCSCC_RC_SUCCESS) {
+                             /* goto reploc_node_add_fail; */
+                             m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+                       	}
+                }
 	} else {
 		/* Fill the Map Info */
 		memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));

@@ -38,6 +38,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
 static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
 static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
+static char* ckpt_replica_extract_node_name(char *src,char *key);
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -65,6 +66,7 @@ SaImmOiCallbacksT_2 oi_cbks = {
 static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
+	
 	int i = 0, attr_count = 0;
 	CPD_CB *cb = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
@@ -78,13 +80,13 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	const SaImmAttrModificationT_2 *attrMods[10];
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 	CPD_REP_KEY_INFO key_info;
-	CPD_CPND_INFO_NODE *cpnd_info_node;
-	SaNameT replica_dn, ckptName, clm_node_name;
-	char *ckpt_name;
+	SaNameT replica_dn, ckptName, clm_node_name, nodeName;
+	char *ckpt_name, *node_name;
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 
 	memset(&replica_dn, 0, sizeof(SaNameT));
 	memset(&ckptName, 0, sizeof(ckptName));
+	memset(&nodeName, 0, sizeof(SaNameT));
 	strcpy((char *)ckptName.value, (char *)objectName->value);
 	ckptName.length = objectName->length;
 
@@ -118,6 +120,14 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 				ckptName.length = strlen(ckpt_name);
 			}
 		}
+	node_name = (char*)malloc((objectName->length-ckptName.length)*sizeof(char));
+	memset(node_name,0,(objectName->length-ckptName.length));
+	node_name = (char*)memcpy(node_name,(char*)objectName->value,objectName->length-ckptName.length-1);
+
+	node_name = ckpt_replica_extract_node_name(node_name,"\\");
+	node_name = node_name + 11;	
+	strcpy((char*)nodeName.value, node_name);
+	nodeName.length = strlen(node_name);
 	}
 
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckptName, &map_info);
@@ -127,17 +137,11 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id, &ckpt_node);
 
 		if (ckpt_node) {
-
-			if (ckpt_node->is_active_exists) {
-				cpd_cpnd_info_node_get(&cb->cpnd_tree, &ckpt_node->active_dest, &cpnd_info_node);
-				if (cpnd_info_node) {
-					key_info.ckpt_name = ckpt_node->ckpt_name;
-					key_info.node_name = cpnd_info_node->node_name;
-					cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
-				}
-			}
-
-			if (rep_info) {
+				key_info.ckpt_name = ckpt_node->ckpt_name;
+				key_info.node_name = nodeName;
+				cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
+	                
+             		if (rep_info) {
 				clm_node_name.length = m_NCS_OS_NTOHS(rep_info->rep_key.node_name.length);
 				strncpy((char *)clm_node_name.value, (char *)rep_info->rep_key.node_name.value,
 					clm_node_name.length);
@@ -616,4 +620,24 @@ static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 
  done:
 	return rc;
+}
+
+
+
+static char *ckpt_replica_extract_node_name(char *src,char *key)
+{
+	char *dest = NULL;
+	SaUint32T len_src = 0, len_key = 0;
+	SaUint32T i = 0, k = 0;
+	len_src = strlen( src );
+	len_key = strlen( key );
+	dest = (char *) malloc( sizeof( char ) * len_src + 1 );
+	memset( dest, 0, sizeof( char ) * len_src + 1 );
+	for ( i = 0; i < len_src; i++ ) {
+                if ( src[i] != '\\' ) {
+                        dest[k] = src[i];
+                        k++;
+                }
+	}
+	return dest;
 }
