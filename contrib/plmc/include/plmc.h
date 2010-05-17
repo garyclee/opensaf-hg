@@ -32,6 +32,13 @@
 #define PLMC_EXIT_SUCCESS	0
 #define PLMC_EXIT_FAILURE	1
 
+/* Socket timeout values */
+#define SOCK_KEEPALIVE 	0
+#define KEEPIDLE_TIME	7200
+#define KEEPALIVE_INTVL 75
+#define KEEPALIVE_PROBES 9
+
+
 /* Tag value and message data lengths. */
 #define PLMC_MAX_TAG_LEN	256
 #define PLMC_MAX_PID_LEN	128
@@ -84,6 +91,10 @@ typedef enum
     PLMC_CMD_TIMEOUT_SECS,
     PLMC_OS_REBOOT_CMD,
     PLMC_OS_SHUTDOWN_CMD,
+    SKEEPALIVE,
+    TCP_KEEPIDLE_TIME,
+    TCP_KEEPALIVE_INTVL,
+    TCP_KEEPALIVE_PROBES,
 } PLMC_config_tags;
 
 /* This struct holds the contents of the plmcd.conf configuration file. */
@@ -102,6 +113,10 @@ typedef struct {
     int  plmc_cmd_timeout_secs;
     char os_reboot_cmd[PLMC_MAX_TAG_LEN];
     char os_shutdown_cmd[PLMC_MAX_TAG_LEN];
+    int so_keepalive;
+    int tcp_keepidle_time;
+    int tcp_keepalive_intvl;
+    int tcp_keepalive_probes;
 } PLMC_config_data;
 
 /* The PLMC daemon command numerical index. */

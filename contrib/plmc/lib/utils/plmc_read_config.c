@@ -76,6 +76,14 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 	int num_services = 0;
 
 	memset(config, 0, sizeof(PLMC_config_data));
+	/*
+	* Initialize the socket timeout values in case they are not
+	* set in the plmcd.conf file
+	*/
+	config->so_keepalive = SOCK_KEEPALIVE;
+	config->tcp_keepidle_time = KEEPIDLE_TIME;
+	config->tcp_keepalive_intvl = KEEPALIVE_INTVL;
+	config->tcp_keepalive_probes = KEEPALIVE_PROBES;
 
 	/* 
 	* Set timeout to a negative value so we can detect if the value 
@@ -146,6 +154,14 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 				tag = PLMC_OS_REBOOT_CMD;
 			if (strcmp(line, "[os_shutdown_cmd]") == 0)
 				tag = PLMC_OS_SHUTDOWN_CMD;
+			if (strcmp(line, "[so_keepalive]") == 0)
+				tag = SKEEPALIVE;
+			if (strcmp(line, "[tcp_keepidle_time]") == 0)
+				tag = TCP_KEEPIDLE_TIME;
+			if (strcmp(line, "[tcp_keepalive_intvl]") == 0)
+				tag = TCP_KEEPALIVE_INTVL;
+			if (strcmp(line, "[tcp_keepalive_probes]") == 0)
+				tag = TCP_KEEPALIVE_PROBES;
 		}
 		else {
 			/* Set the value of the tag in config data structure. */
@@ -226,6 +242,13 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 				case PLMC_CMD_TIMEOUT_SECS:
 					config->plmc_cmd_timeout_secs = 
 								atoi(line);
+					if (config->plmc_cmd_timeout_secs 
+									< 1 ) {
+						syslog(LOG_ERR, 
+							"plmc_cmd_timeout_secs "
+						"must be a positive integer");
+						return -1;
+					}
 					tag = 0;
 					break;
 				case PLMC_OS_REBOOT_CMD:
@@ -250,6 +273,46 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config)
 					}
 					strncpy(config->os_shutdown_cmd, line, 
 							PLMC_MAX_TAG_LEN -1);
+					tag = 0;
+					break;
+				case SKEEPALIVE:
+					config-> so_keepalive = atoi(line);
+					if (config->so_keepalive < 0 || 
+						config->so_keepalive > 1) {
+						syslog(LOG_ERR, "so_keepalive "
+							"needs to be 0 or 1");
+						return -1;
+					}
+					tag = 0;
+					break;
+				case TCP_KEEPIDLE_TIME:
+					config-> tcp_keepidle_time = atoi(line);
+					if (config->tcp_keepidle_time < 1 ) {
+						syslog(LOG_ERR, 
+							"tcp_keepidle_time "
+						"must be a positive integer");
+						return -1;
+					}
+					tag = 0;
+					break;
+				case TCP_KEEPALIVE_INTVL:
+					config-> tcp_keepalive_intvl = atoi(line);
+					if (config->tcp_keepalive_intvl < 1 ) {
+						syslog(LOG_ERR, 
+							"tcp_keepalive_intvl "
+						"must be a positive integer");
+						return -1;
+					}
+					tag = 0;
+					break;
+				case TCP_KEEPALIVE_PROBES:
+					config-> tcp_keepalive_probes = atoi(line);
+					if (config->tcp_keepalive_probes < 1 ) {
+						syslog(LOG_ERR, 
+							"tcp_keepalive_probes "
+						"must be a positive integer");
+						return -1;
+					}
 					tag = 0;
 					break;
 				default:
