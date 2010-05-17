@@ -671,8 +671,8 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	if (sync_pid && (cl_node->client_pid == sync_pid)) {
 		TRACE_2("Sync agent attached, pid: %u", sync_pid);
 		cl_node->mIsSync = 1;
-	} else 	if (pbe_pid && (cl_node->client_pid == pbe_pid)) {
-		LOG_IN("Persistent Back End attached, pid: %u", pbe_pid);
+	} else 	if (pbe_pid && (cl_node->client_pid == pbe_pid) && !isOm) {
+		LOG_IN("Persistent Back End OI attached, pid: %u", pbe_pid);
 		cl_node->mIsPbe = 1;
 	}
 	       
@@ -2344,9 +2344,9 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 		}
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
-		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
 
-		rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
+		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
 		}
@@ -2627,6 +2627,68 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 	TRACE_LEAVE();
 }
 
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_rt_obj_create_rsp
+ *
+ * Description   : Function to process the reply from the 
+ *                 SaImmOiCcbObjectCreateCallbackT upcall. 
+ *                 Note this call arrived over fevs, to ALL IMMNDs.
+ *                 This is because ALL must receive ACK/NACK from EACH 
+ *                 implementer.
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : None.
+ *
+ *****************************************************************************/
+static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
+	IMMND_EVT *evt,
+	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT send_evt;
+	SaUint32T reqConn = 0;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMSV_SEND_INFO *sinfo = NULL;
+	TRACE_ENTER();
+
+	immModel_pbePrtObjCreateContinuation(cb, evt->info.ccbUpcallRsp.inv,
+		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn);
+	TRACE("Returned from pbePrtObjCreateContinuation err: %u reqConn:%x", 
+		evt->info.ccbUpcallRsp.result, reqConn);
+
+	if (reqConn) {
+		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
+
+		immnd_client_node_get(cb, tmp_hdl, &cl_node);
+		if (cl_node == NULL || cl_node->mIsStale) {
+			LOG_WA("IMMND - Client went down so no response");
+			TRACE_LEAVE();
+			return;	/*Note, this means that regardles of ccb outcome, 
+				   we can not reply to the process that started the ccb. */
+		}
+
+		sinfo = &cl_node->tmpSinfo;
+
+		TRACE_2("SENDRSP %u", evt->info.ccbUpcallRsp.result);
+
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
+		assert(sinfo);
+		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+
+		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
+		}
+	}
+
+	TRACE_LEAVE();
+}
 
 /****************************************************************************
  * Name          : immnd_evt_proc_rt_update_pull
@@ -3391,17 +3453,85 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 	IMMSV_EVT send_evt;
 	IMMSV_SEND_INFO *sinfo = NULL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMND_IMM_CLIENT_NODE *pbe_cl_node = NULL;
+	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
+	SaBoolT delayedReply = SA_FALSE;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaUint32T continuationId = 0;
 	TRACE_ENTER();
 
-	if (originatedAtThisNd) {
-		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), reqConn, nodeId);
-	} else {
-		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), 0, nodeId);
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		TRACE("We expect there to be a PBE");
+		/* If pbeNodeIdPtr is NULL then rtObjectCreate skips the lookup
+		   of the pbe implementer.
+		 */
 	}
 
 	if (originatedAtThisNd) {
+		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), reqConn, nodeId,
+			&continuationId, &pbeConn, pbeNodeIdPtr);
+	} else {
+		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), 0, nodeId,
+			&continuationId, &pbeConn, pbeNodeIdPtr);
+	}
+
+	if(pbeNodeId && err == SA_AIS_OK) {
+		/*The persistent back-end is present => wait for reply. */		
+		delayedReply = SA_TRUE; 
+		if(pbeConn) {
+			/*The persistent back-end is executing at THIS node. */
+			assert(cb->mIsCoord);
+			assert(pbeNodeId);
+			assert(pbeNodeId == cb->node_id);
+			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+			/*Fetch client node for PBE */
+			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
+			assert(pbe_cl_node);
+			if (pbe_cl_node->mIsStale) {
+				LOG_WA("PBE is down => persistify of rtObj create id delayed!");
+				/* ****
+				   The RtObj create has aleady been done by the IMMNDs
+				   of the cluster. If we replied OK here it means the user
+				   will get the premature impression that results have been
+				   persistified. Instead we drop the reply probably causing
+				   an ERR_TIMEOUT towards the user. 
+				   The situation may get salvaged by a retry towards PBE 
+				   based on continuation.
+				*/
+			} else {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
+				send_evt.info.imma.info.objCreate = evt->info.objCreate;
+				send_evt.info.imma.info.objCreate.adminOwnerId = 
+					continuationId;
+				/*We re-use the adminOwner member of the ccbCreate message
+				  to hold the continuation id. */
+				send_evt.info.imma.info.objCreate.immHandle = implHandle;
+				assert(evt->info.objCreate.ccbId == 0);
+
+				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ CREATE upcall");
+				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					    pbe_cl_node->agent_mds_dest, &send_evt) != 
+					NCSCC_RC_SUCCESS) 
+				{
+					LOG_WA("Upcall over MDS for persistent rt obj create "
+						"to PBE failed!");
+					/* See comment **** above. */
+				}
+			}
+			implHandle = 0LL;
+			pbe_cl_node = NULL;
+		}
+	}
+
+	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
@@ -3526,7 +3656,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			TRACE_2("MAKING PBE-IMPLEMENTER OBJ CREATE upcall");
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 				    oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
-				LOG_ER("Upcall over MDS for ccbObjectCreate failed "
+				LOG_ER("Upcall over MDS for ccbObjectCreate "
 				       "to PBE failed! - aborting");
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				immnd_proc_global_abort_ccb(cb, evt->info.objCreate.ccbId);
@@ -4759,6 +4889,10 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP:
 		immnd_evt_proc_ccb_obj_delete_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
+	case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP:
+		immnd_evt_pbe_rt_obj_create_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	default:

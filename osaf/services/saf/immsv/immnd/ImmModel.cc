@@ -176,9 +176,7 @@ struct ObjectMutation
     ~ObjectMutation() { assert(mAfterImage == NULL);}
     
     ImmMutationType mOpType; 
-    //ObjectInfo* mBeforeImage;
     ObjectInfo* mAfterImage;
-    //State for this object.
     bool mWaitForImplAck;  //ack required from implementer for THIS object
     SaUint32T mContinuationId;//used to identify related pending msg replies.
 };
@@ -256,10 +254,11 @@ static ContinuationMap2  sAdmReqContinuationMap;
 static ContinuationMap3  sAdmImplContinuationMap;
 static ContinuationMap2  sSearchReqContinuationMap;  
 static ContinuationMap3  sSearchImplContinuationMap; 
-//static ContinuationMap3  sCcbObjDelImplContinuationMap;
-//static ContinuationMap3  sCcbCompletedImplContinuationMap;
-//static ContinuationMap3  sCcbObjCreateImplContinuationMap;
-//static ContinuationMap   sCcbObjModifyImplContinuationMap;
+static ContinuationMap2  sPbeRtReqContinuationMap;
+static ObjectMutationMap sPbeRtMutations; /* Persistent Runtime Mutations 
+                                              At most one mutating op per Prto 
+                                              is allowed. Entry removed on on 
+                                              ack from PBE. */
 
 static SaUint32T        sLastContinuationId = 0;
 
@@ -464,10 +463,10 @@ immModel_getOldCriticalCcbs(IMMND_CB *cb,
 SaBoolT
 immModel_pbeOiExists(IMMND_CB *cb)
 {
-	SaUint32T pbeConn=0;
-	unsigned int pbeNode=0;
-	return (ImmModel::instance(&cb->immModel)->getPbeOi(&pbeConn, &pbeNode)) ? 
-		SA_TRUE : SA_FALSE;
+    SaUint32T pbeConn=0;
+    unsigned int pbeNode=0;
+    return (ImmModel::instance(&cb->immModel)->getPbeOi(&pbeConn, &pbeNode)) ? 
+        SA_TRUE : SA_FALSE;
 }
 
 SaBoolT
@@ -963,6 +962,15 @@ immModel_ccbObjCreateContinuation(IMMND_CB *cb,
         error,
         reqConn);
 }
+
+void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaAisErrorT err,
+        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+{
+    ImmModel::instance(&cb->immModel)->pbePrtObjCreateContinuation(
+        invocation, err, nodeId, reqConn);
+}
+
 void
 immModel_ccbObjModifyContinuation(IMMND_CB *cb,
     SaUint32T ccbId, 
@@ -1117,10 +1125,15 @@ SaAisErrorT
 immModel_rtObjectCreate(IMMND_CB *cb, 
     const struct ImmsvOmCcbObjectCreate* req,
     SaUint32T implConn,
-    SaClmNodeIdT implNodeId)
+    SaClmNodeIdT implNodeId,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-        rtObjectCreate(req, implConn, (unsigned int) implNodeId);
+        rtObjectCreate(req, implConn, (unsigned int) implNodeId, continuationId, 
+            pbeConn, pbeNodeId);
+
 }
 
 SaAisErrorT
@@ -1213,7 +1226,8 @@ ImmModel::immNotPbeWritable()
         return false; /* Pbe IS present => writable. */
     }
 
-    return true; /* Persistent back end available or disabled. */
+    /* Pbe SHOULD be present but is NOT */
+    return true; 
 }
 
 
@@ -1501,7 +1515,6 @@ ImmModel::getRepositoryInitMode()
 void *
 ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
 {
-    TRACE_ENTER();
     std::string opensafClass(OPENSAF_IMM_CLASS_NAME);
     ClassMap::iterator ci = sClassMap.find(opensafClass);
     assert(ci!=sClassMap.end());
@@ -1515,7 +1528,6 @@ ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
     }
     *pbeConn = 0;
     *pbeNode = 0;
-    TRACE_LEAVE();
     return NULL;
 }
 
@@ -2382,31 +2394,41 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 ImplementerCcbAssociation* implAssoc = isi->second;
                 ImplementerInfo* impInfo = implAssoc->mImplementer;
                 assert(impInfo);
+                ++sLastContinuationId; 
+                if(sLastContinuationId >= 0xfffffffe) {
+                    sLastContinuationId = 1;
+                }
+                /* incremented sLastContinuationId unconditionally before
+                   check on impInfo->mDying because mDying is not purely
+                   fevs regulated => we could get discrepancy on sLastContinuationId.
+                   The locally lost implementer connection below may seem dangerous
+                   because we do an early abort of the apply attempt only on this node,
+                   but not globally. But the other nodes will sitll wait for a reply
+                   from the dead implementer, which they will never get, i.e. they
+                   will abort also. 
+                   Important though that the sLastContinuationId is in step.
+                 */
                 if(impInfo->mDying) {
                     LOG_WA("Lost connection with implementer %s, "
                         "refusing apply", impInfo->mImplementerName.c_str());
                     err = SA_AIS_ERR_FAILED_OPERATION;
-	            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                    ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
                     break;
                 }
                 //Wait for ack, possibly remote
                 implAssoc->mWaitForImplAck = true; 
-                implAssoc->mContinuationId = ++sLastContinuationId;
+                implAssoc->mContinuationId = sLastContinuationId;/* incremented above */
                 if(ccb->mWaitStartTime == 0) {
                     ccb->mWaitStartTime = time(NULL);
-		    TRACE("Wait timer for completed started for ccb:%u", 
-			    ccb->mId);
+                    TRACE("Wait timer for completed started for ccb:%u", 
+                        ccb->mId);
                 }
                 SaUint32T implConn = impInfo->mConn;
                 if(implConn) {
                     connVector.push_back(implConn);
                     implIds.push_back(impInfo->mId);
                     continuations.push_back(sLastContinuationId);
-                }
-                
-                if(sLastContinuationId >= 0xfffffffe) {
-                    sLastContinuationId = 1;
-                }
+                }                
             }
         }
     }
@@ -2692,9 +2714,8 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
                     impInfo->mImplementerName.c_str(), ccbId);
             } else {
                 connVector.push_back(implConn);
-		TRACE_5("Abort upcall for implemneter %u/%s", 
-			impInfo->mId,
-			impInfo->mImplementerName.c_str());
+                TRACE_5("Abort upcall for implementer %u/%s", 
+                    impInfo->mId, impInfo->mImplementerName.c_str());
             }
         }
         delete isi->second; //Should not affect the iteration
@@ -3437,6 +3458,9 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 
                 //Increment even if we dont invoke locally
                 oMut->mContinuationId = (++sLastContinuationId);
+                if(sLastContinuationId >= 0xfffffffe) 
+                {sLastContinuationId = 1;}
+
                 if(*implConn) {
                     if(object->mImplementer->mDying) {
                         LOG_WA("Lost connection with implementer %s in "
@@ -3452,8 +3476,6 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                         *continuationId = sLastContinuationId;
                     }
                 }
-                if(sLastContinuationId >= 0xfffffffe) 
-                {sLastContinuationId = 1;}
                 
                 TRACE_5("THERE IS AN IMPLEMENTER %u conn:%u node:%x name:%s\n",
                     object->mImplementer->mId, *implConn, *implNodeId,
@@ -3899,6 +3921,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }//for (p = ....)
     
     // Prepare for call on PersistentBackEnd
+
     if((err == SA_AIS_OK) && pbeNodeIdPtr) {
         void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
         if(!pbe) {
@@ -3947,6 +3970,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             
             //Increment even if we dont invoke locally
             oMut->mContinuationId = (++sLastContinuationId);
+            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
+
             if(*implConn) {
                 if(object->mImplementer->mDying) {
                     LOG_WA("Lost connection with implementer %s in "
@@ -3961,7 +3986,6 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     *continuationId = sLastContinuationId;
                 }
             }
-            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
             
             TRACE_5("THERE IS AN IMPLEMENTER %u conn:%u node:%x name:%s\n",
                 object->mImplementer->mId, *implConn, *implNodeId,
@@ -4263,6 +4287,8 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             oMut->mWaitForImplAck = true; //Wait for an ack from implementer
             //Increment even if we dont invoke locally
             oMut->mContinuationId = (++sLastContinuationId);
+            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
+
             SaUint32T implConn = oi->second->mImplementer->mConn;
             
             ccb->mWaitStartTime = time(NULL);
@@ -4290,8 +4316,6 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                     localImpl = true;
                 }
             } 
-
-            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
         } 
 
         if(pbeIsLocal && !localImpl) {
@@ -4731,8 +4755,8 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
         } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("ERR_NOT_EXIST: Object '%s' is being created, but ccb not yet applied", 
-                objectName.c_str());
+            TRACE_7("ERR_NOT_EXIST: Object '%s' is being created, but ccb "
+                    "or PRTO PBE, not yet applied", objectName.c_str());  
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
         }
@@ -4994,7 +5018,8 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
             goto searchInitializeExit;
         } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("ERR_NOT_EXIST: Root object '%s' is being created, "
-                "but ccb not yet applied", rootName.c_str());
+                     "but ccb or PRTO PBE not yet applied",
+                     rootName.c_str()); 
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
         }
@@ -5036,7 +5061,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     for (i = sObjectMap.begin(); 
          err==SA_AIS_OK && i != sObjectMap.end(); i++) {
         ObjectInfo* obj = i->second;
-        if(obj->mObjFlags & IMM_CREATE_LOCK) {continue;}
+        if(obj->mObjFlags & IMM_CREATE_LOCK) {continue;} /*Skip pending creates.*/
         std::string objectName = i->first;
         size_t rootlen = rootName.length();
         if (objectName.length() >= rootlen) {
@@ -5921,7 +5946,7 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
 
             if(!impInfo) {
                 LOG_IN("No PBE implementer registered at this time");
-                /* TODO###Should check rim if it was switched to  FROM_FILE
+                /* TODO: Should check rim if it was switched to  FROM_FILE
                    FROM_FILE indicates the pathological case of PBE switched off
                    accidentally leaving a ccb in critical state. 
                 */
@@ -6666,7 +6691,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                 if(i1 != sCcbVector.end() && (*i1)->isActive()) {
                     assert(!doIt);
                     LOG_IN("ERR_BUSY: ccb %u is active on object %s",
-			    obj->mCcbId, objectName.c_str());
+                        obj->mCcbId, objectName.c_str());
                     return SA_AIS_ERR_BUSY;
                 }
             }
@@ -6834,13 +6859,16 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
  */
 SaAisErrorT
 ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
-    SaUint32T conn,
-    unsigned int nodeId)
+    SaUint32T reqConn,
+    unsigned int nodeId,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr)
 {
-    TRACE_ENTER();
+    TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationId, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
     
-    if(immNotPbeWritable()) {
+    if(immNotWritable()) { /*Check for persistent RTO further down. */
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -6877,9 +6905,9 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         goto rtObjectCreateExit;
     } 
     
-    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+    if((info->mConn != reqConn) || (info->mNodeId != nodeId)) {
         LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
-            conn, nodeId);
+            reqConn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectCreateExit;
     }
@@ -6932,7 +6960,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             parent = i->second;
             if(parent->mObjFlags & IMM_CREATE_LOCK) {
                 TRACE_7("ERR_NOT_EXIST: parent object '%s' is being created "
-                    "in a ccb %u that has not yet been applied.", 
+                    "in a ccb %u or PRTO PBE that has not yet been applied.", 
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
                 goto rtObjectCreateExit;
@@ -6942,7 +6970,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 TRACE_7("ERR_NOT_EXIST: parent object '%s' is registered for delete in ccb: "
                     "%u. Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
-                err = SA_AIS_ERR_NOT_EXIST;
+                err = SA_AIS_ERR_NOT_EXIST; /* object is not deleted yet */
                 goto rtObjectCreateExit;
             }
             
@@ -6984,6 +7012,12 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
 
             if(i4->second->mFlags & SA_IMM_ATTR_PERSISTENT) {
                 isPersistent = true;
+
+                if(immNotPbeWritable()) {
+                    err = SA_AIS_ERR_TRY_AGAIN;
+                    TRACE_7("TRY_AGAIN: Can not create persistent RTO when PBE is unavailable");
+                    goto rtObjectCreateExit;
+                }
             }
             
             if(parent && 
@@ -7054,7 +7088,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     if((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("ERR_EXIST: object '%s' is already registered "
-                "for creation in a ccb, but not applied yet", 
+                "for creation in a ccb or PRTO PBE, but not applied yet", 
                 objectName.c_str());
         } else {
             TRACE_7("ERR_EXIST: Object '%s' already exists", objectName.c_str());
@@ -7064,6 +7098,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if(err == SA_AIS_OK) {
+        void* pbe = NULL;
         object = new ObjectInfo();
         object->mCcbId = 0;
         object->mClassInfo = classInfo;
@@ -7219,6 +7254,15 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             }
         }
         
+        if(isPersistent && (err == SA_AIS_OK) && pbeNodeIdPtr) {
+            /* PBE expected. */
+            pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+            if(!pbe) {
+                err = SA_AIS_ERR_TRY_AGAIN;
+                TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
+            } 
+        }
+
         if (err != SA_AIS_OK) {
             //Delete object and its attributes
             ImmAttrValueMap::iterator oavi;
@@ -7233,13 +7277,39 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             
             object->mImplementer=0;
             object->mClassInfo=0;
+            object->mCcbId=0;
             delete object; 
             goto rtObjectCreateExit;
         }
+
         if(isPersistent) {
-            LOG_IN("Create PERSISTENT runtime object '%s' by Impl id: %u",
-                objectName.c_str(), info->mId);
-        } else {
+            if(pbe) { /* Persistent back end is there. */
+
+                object->mObjFlags |= IMM_CREATE_LOCK;
+                /* Dont overwrite IMM_DN_INTERNAL_REP*/
+
+                *continuationId = ++sLastContinuationId;
+                if(sLastContinuationId >= 0xfffffffe)
+                {sLastContinuationId = 1;}
+
+                ObjectMutation* oMut = new ObjectMutation(IMM_CREATE);
+                oMut->mContinuationId = (*continuationId);
+                oMut->mAfterImage = object;
+                sPbeRtMutations[objectName] = oMut;
+                if(reqConn) {
+                    SaInvocationT tmp_hdl =
+                        m_IMMSV_PACK_HANDLE((*continuationId), nodeId);
+                    sPbeRtReqContinuationMap[tmp_hdl] = 
+                        ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+                }
+                TRACE_5("Tentative create of PERSISTENT runtime object '%s' "
+                    "by Impl %s pending PBE ack", objectName.c_str(),
+                         info->mImplementerName.c_str());
+            } else { /* No pbe and no pbe expected. */
+                       LOG_IN("Create of PERSISTENT runtime object '%s' by Impl %s",
+                           objectName.c_str(), info->mImplementerName.c_str());
+            }
+        } else {/* !isPersistent i.e. normal RTO */
             TRACE_7("Create runtime object '%s' by Impl id: %u",
                 objectName.c_str(), info->mId);
         }
@@ -7254,6 +7324,52 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
  rtObjectCreateExit:
     TRACE_LEAVE(); 
     return err;
+}
+
+void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+{
+    TRACE_ENTER();
+
+    SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    }
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+
+    if(i2 == sPbeRtMutations.end()) {
+        LOG_ER("PBE PRTO Create continuation missing! invoc:%u",
+            invocation);
+        return;
+    }
+
+    ObjectMutation* oMut = i2->second;
+
+    assert(oMut->mOpType == IMM_CREATE);
+
+    oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
+    oMut->mAfterImage = NULL;
+
+    if(error == SA_AIS_OK) {
+        LOG_IN("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
+    } else {
+        ObjectMap::iterator oi;
+        oi = sObjectMap.find(i2->first);
+        assert(oi != sObjectMap.end());
+        assert(deleteRtObject(oi, true, NULL) == SA_AIS_OK);
+        LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
+            i2->first.c_str(), error);
+    }
+
+    sPbeRtMutations.erase(i2);
+    delete oMut;
+    TRACE_LEAVE();
 }
 
 /** 
@@ -7300,6 +7416,11 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
         TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto rtObjectUpdateExit;
+    } else if(oi->second->mObjFlags & IMM_CREATE_LOCK) {
+        TRACE_7("ERR_NOT_EXIST: object '%s' registered for creation "
+            "but not yet applied (ccb or PRTO PBE)", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectUpdateExit;
     }
@@ -7428,7 +7549,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 if(attr->mFlags & SA_IMM_ATTR_PERSISTENT) {
                     if(immNotPbeWritable()) {
                         err = SA_AIS_ERR_TRY_AGAIN;
-                        LOG_NO("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent rtattrs");
+                        TRACE_7("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent RTO");
                         break;//out of while-loop
                     }
 
@@ -7594,7 +7715,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             }
             p = p->next;
         }//while(p)
-	//err!=OK => breaks out of for loop
+        //err!=OK => breaks out of for loop
     }//for(int doIt...
  rtObjectUpdateExit:
     TRACE_5("isPureLocal: %u when leaving", *isPureLocal);
@@ -7614,7 +7735,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     SaAisErrorT err = SA_AIS_OK;
     ImplementerInfo* info = NULL;
     
-    if(immNotPbeWritable()) {
+    if(immNotWritable()) { /*Check for persistent RTOs further down. */
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -7643,6 +7764,11 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
         TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto rtObjectDeleteExit;
+    } else if(oi->second->mObjFlags & IMM_CREATE_LOCK) {
+        TRACE_7("ERR_NOT_EXIST: object '%s' registered for creation "
+            "but not yet applied PRTO PBE ?", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectDeleteExit;
     }
@@ -7706,15 +7832,19 @@ SaAisErrorT
 ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt, 
     ImplementerInfo* info)
 {
-    /*TRACE_ENTER();*/
+    /* If param info==NULL then this is an immsv internal revert of
+       PRTO PBE create. See: ImmModel::pbePrtObjCreateContinuation.
+       Otherwise this is a normal RTO/PRTO delete.
+     */
     ObjectInfo* object = oi->second;
     assert(object);
     ClassInfo* classInfo = object->mClassInfo;
     assert(classInfo);
     bool isPersistent = false;
+    AttrMap::iterator i4;
+
     
-    if(!object->mImplementer ||
-        object->mImplementer != info) {
+    if(info && (!object->mImplementer || object->mImplementer != info)) {
         LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle "
             "or object %s is not handled by the provided implementer " 
             "named %s (!=%p <name:'%s' conn:%u, node:%x>)", 
@@ -7733,8 +7863,32 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         return SA_AIS_ERR_BAD_OPERATION;
     }
 
+    i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+        AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT));
+
+    isPersistent = i4 != classInfo->mAttrMap.end();
+
+    if(!info) {
+        //Revert of PRTO PBE CREATE.
+        assert(isPersistent);
+    } else if(isPersistent && immNotPbeWritable()) {
+        //"Normal" delete of PRTO
+        TRACE_7("ERR_TRY_AGAIN: Can not delete persistent RTO when "
+            "PBE is unavailable");
+        return SA_AIS_ERR_TRY_AGAIN;
+    }
+
+    if(object->mObjFlags & IMM_CREATE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: sub-object '%s' registered for creation "
+            "but not yet applied by PRTO PBE ?", oi->first.c_str());
+        /* Possibly we should return NOT_EXIST here, but the delete may
+           be recursive over a tree where only some subobject is being 
+           created. Returning NOT_EXIST could be very confusing here.
+         */
+        return SA_AIS_ERR_TRY_AGAIN; 
+    }
+        
     if(doIt) {
-        AttrMap::iterator i4;
         ImmAttrValueMap::iterator oavi;
         for(oavi = object->mAttrValueMap.begin();
             oavi != object->mAttrValueMap.end(); ++oavi) {
@@ -7749,14 +7903,14 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         object->mImplementer = 0;
         object->mObjFlags = 0;
 
-        i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
-            AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT));
-
-        isPersistent = i4 != classInfo->mAttrMap.end();
-        
         if(isPersistent) {
-            LOG_IN("Delete PERSISTENT runtime object '%s' by Impl-id: %u", 
-                oi->first.c_str(), info->mId);
+            if(info) {
+                LOG_IN("Delete of PERSISTENT runtime object '%s' by Impl: %s", 
+                oi->first.c_str(), info->mImplementerName.c_str());
+            } else {
+                TRACE_7("REVERT of create of PERSISTENT runtime object '%s'.", 
+                    oi->first.c_str());
+            }
         } else {
             TRACE_7("Delete runtime object '%s' by Impl-id: %u", 
                 oi->first.c_str(), info->mId);
@@ -7776,7 +7930,6 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         sObjectMap.erase(oi);
     }
     
-    /*TRACE_LEAVE();*/
     return SA_AIS_OK;
 }
 
@@ -7846,10 +7999,10 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("ERR_EXIST: object '%s' is already registered for "
+            LOG_ER("ERR_EXIST: synced object '%s' is already registered for "
             "creation in a ccb, but not applied yet", objectName.c_str());
         } else {
-            TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
+            LOG_ER("ERR_EXIST: synced object '%s' exists", objectName.c_str());
         }
         err = SA_AIS_ERR_EXIST;
         goto objectSyncExit;
@@ -8380,12 +8533,10 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     (unsigned int) req->lastContinuationId) {
                     sLastContinuationId = req->lastContinuationId;
                 } else {
-                    //We have a larger continuationId than the coordinator sent
-                    //We should broadcast this value. For now we will allow 
-                    //this discrepancy to pass because the continuationId 
-                    //should always be used in the context of the node where 
-                    //it was issued. This even if the value is transmitted in 
-                    //structures between nodes.
+                    LOG_ER("Continuation count is LARGER than coord - exiting");
+                    /* Could be a case of counter wrap arround on top of the 
+                       basic error of divergence. */
+                    exit(1);
                 }
             }
             

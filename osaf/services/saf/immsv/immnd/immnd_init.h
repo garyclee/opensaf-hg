@@ -245,8 +245,12 @@ extern "C" {
 	void immModel_getAdminOwnerIdsForCon(IMMND_CB *cb, SaUint32T conn, SaUint32T *arrSize, SaUint32T **ccbIdArr);
 
 	void immModel_ccbObjCreateContinuation(IMMND_CB *cb,
-					       SaUint32T ccbId,
-					       SaUint32T invocation, SaAisErrorT error, SaUint32T *reqConn);
+		SaUint32T ccbId, SaUint32T invocation,
+		SaAisErrorT error, SaUint32T *reqConn);
+
+	void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
+		SaUint32T invocation, SaAisErrorT err,
+		SaClmNodeIdT nodeId, SaUint32T *reqConn);
 
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,
 					       SaUint32T ccbId,
@@ -256,12 +260,16 @@ extern "C" {
 
 	SaBoolT immModel_immNotWritable(IMMND_CB *cb);
 
+	SaBoolT immModel_pbeIsInSync(IMMND_CB *cb);
+
 	SaImmRepositoryInitModeT immModel_getRepositoryInitMode(IMMND_CB *cb);
 
 	SaAisErrorT
 	    immModel_rtObjectCreate(IMMND_CB *cb,
-				    const struct ImmsvOmCcbObjectCreate *req,
-				    SaUint32T implConn, SaClmNodeIdT implNodeId);
+		    const struct ImmsvOmCcbObjectCreate *req,
+		    SaUint32T implConn, SaClmNodeIdT implNodeId,
+		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,
 				    const struct ImmsvOmCcbObjectDelete *req,

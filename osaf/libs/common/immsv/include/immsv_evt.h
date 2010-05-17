@@ -167,6 +167,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_IMM_CLIENTHIGH = 69,  /* Highest client id IMMA knows */
 	IMMND_EVT_ND2ND_SYNC_FINALIZE_2 = 70,	/* Sync finalize from coord over fevs version 2*/
 	IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME = 71,/* Fetch ccb outcome OK/FAILED_OP given ccb-id. */
+	IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP = 72,/* Response on PBE OI PRT OBJ CREATE. */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */

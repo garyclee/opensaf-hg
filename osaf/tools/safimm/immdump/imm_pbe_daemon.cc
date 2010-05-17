@@ -45,6 +45,7 @@ static nfds_t nfds = 2;
 static void* sDbHandle=NULL;
 static ClassMap* sClassIdMap=NULL;
 static unsigned int sObjCount=0;
+static unsigned int sClassCount=0;
 static unsigned int sEpoch=0;
 
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
@@ -354,34 +355,25 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	/* "memorize the creation request" */
 
 	operation = ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
-	TRACE("ABT after create add operation:%p", operation);
 	assert(operation);
 	/* Find the RDN attribute, construct the object DN and store it with the object. */
 	while((attrValue = attr[i++]) != NULL) {
 		std::string attName(attrValue->attrName);
-		TRACE("ABT2 attrName:%s", attName.c_str());
 		SaImmAttrFlagsT attrFlags = classInfo->mAttrMap[attName];
-		TRACE("ABT3 rdn?:%llu", (attrFlags & SA_IMM_ATTR_RDN));
 		if(attrFlags & SA_IMM_ATTR_RDN) {
 			rdnFound = true;
 			if(attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
-				TRACE("ABT4 RDN is SaStringT");
 				SaStringT rdnVal = *((SaStringT *) attrValue->attrValues[0]);
-				TRACE("ABT5 RDN is %s", rdnVal);
 				if((parentName==NULL) || (parentName->length == 0)) {
 					operation->objectName.length =
 						sprintf((char *) operation->objectName.value,
 							"%s", rdnVal);
-					TRACE("ABT6 EMPTY PARENT %s", operation->objectName.value);
-
 				} else {
-				TRACE("ABT66 NOT EMPTY PARENT !!!!!!");
 					operation->objectName.length = 
 						sprintf((char *) operation->objectName.value,
 							"%s,%s", rdnVal, parentName->value);
 				}
 			} else if(attrValue->attrValueType == SA_IMM_ATTR_SANAMET) {
-				TRACE("ABT7 RDN is SaNameT");
 				SaNameT *rdnVal = ((SaNameT *) attrValue->attrValues[0]);
 				if((parentName==NULL) || (parentName->length == 0)) {
 					operation->objectName.length =
@@ -409,6 +401,38 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	}
 
 	assert(operation->objectName.length > 0);
+
+	if(ccbId == 0) {
+		assert(operation);
+		TRACE("Create of PERSISTENT runtime object with DN: %s",
+			operation->objectName.value);
+		rc = pbeBeginTrans(sDbHandle);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to start transaction for PRTO create");
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			goto done;
+		}
+
+		TRACE("Begin PBE transaction for rt obj create OK");
+
+		objectToPBE(std::string((const char *) operation->objectName.value), 
+			operation->param.create.attrValues,
+			sClassIdMap, sDbHandle, ++sObjCount,
+			operation->param.create.className, ccbId);
+
+		ccbutil_deleteCcbData(ccbutil_findCcbData(0));
+
+		rc = pbeCommitTrans(sDbHandle, ccbId, sEpoch);
+
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to commit transaction for PRTO create");
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			goto done;
+		}
+		TRACE("Commit PBE transaction for rt obj create OK");
+	}
+
+
 
  done:
 	TRACE_LEAVE();
@@ -579,6 +603,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
 {
 
 	SaAisErrorT error = SA_AIS_OK;
+	ClassMap::iterator ci;
 
 	/* cbHandle, classIdMap and objCount are needed by the PBE OI upcalls.
 	   Make them available by assigning to module local static variables. 
@@ -586,6 +611,16 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
 	sDbHandle = dbHandle;
 	sClassIdMap = classIdMap;
 	sObjCount = objCount;
+
+	/* Restore also sClassCount. */
+	for(ci=sClassIdMap->begin(); ci!=sClassIdMap->end();++ci) {
+
+		if((ci)->second->mClassId > sClassCount) {
+			sClassCount = (ci)->second->mClassId;
+		}
+		TRACE("classID:%u sClassCount%u", (ci)->second->mClassId, 
+			sClassCount);
+	}
 
 	if (pbe_daemon_imm_init(immHandle) != SA_AIS_OK) {
 		exit(1);
