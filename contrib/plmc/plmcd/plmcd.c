@@ -65,12 +65,15 @@ static int plmc_send_udp_msg(char *msg);
 int sysexec(char *cmd, char *opt);
 static void usage(char *prog);
 int setsig(int sig, void (*hand)(int), int flags, sigset_t *mask);
-int nbconnect(int sockd, struct sockaddr_in *sin);
-int process_cmd(int sockd, char *msg);
+int nbconnect(struct sockaddr_in *sin);
+int process_cmd(char *msg);
 
 /* A variable to hold the PLMc config file data - used by parent */
 /* and child threads.                                            */
 static PLMC_config_data config;
+
+/* A global socket variable */
+int sockd = 0;
 
 /* A simple structure to provide mutex locking between the parent  */
 /* and child threads.  It also provides a flag telling the parent  */
@@ -269,7 +272,7 @@ char* plmc_start_child_thread(int plmc_cmd_i) {
 	return(th_data.child_retval);
 }
 
-void sndack(int sockd, int cmd, char *msg)
+void sndack(int cmd, char *msg)
 {
 	char buf[PLMC_MAX_TCP_DATA_LEN];
 	int ret;
@@ -282,7 +285,7 @@ void sndack(int sockd, int cmd, char *msg)
 	}
 }
 
-int process_cmd(int sockd, char *msg)
+int process_cmd(char *msg)
 {
 	int plmc_cmd; 
 	char *ret;
@@ -298,27 +301,27 @@ int process_cmd(int sockd, char *msg)
 	switch(plmc_cmd) {
 		case PLMC_NOOP_CMD:
 			/* Just send an acknowledgement. */
-			sndack(sockd, plmc_cmd, PLMC_ACK_MSG_RECD);
+			sndack(plmc_cmd, PLMC_ACK_MSG_RECD);
 			break;
 
 		case PLMC_GET_ID_CMD:
 			/* Send the ee_id in the acknowledgement. */
-			sndack(sockd, plmc_cmd, config.ee_id);
+			sndack(plmc_cmd, config.ee_id);
 			break;
 
 		case PLMC_GET_PROTOCOL_VER_CMD:
 			/* Send the msg_protocol_version in the acknowledgement. */
-			sndack(sockd, plmc_cmd, config.msg_protocol_version);
+			sndack(plmc_cmd, config.msg_protocol_version);
 			break;
 
 		case PLMC_GET_OSINFO_CMD:
 			/* Send the os_type in the acknowledgement. */
-			sndack(sockd, plmc_cmd, config.os_type);
+			sndack(plmc_cmd, config.os_type);
 			break;
 
 		case PLMC_SA_PLM_ADMIN_LOCK_INSTANTIATION_CMD:
 			/* Send PLMC_ACK_MSG_RECD in the acknowledgement - before executing command. */
-			sndack(sockd, plmc_cmd, PLMC_ACK_MSG_RECD);
+			sndack(plmc_cmd, PLMC_ACK_MSG_RECD);
 
 			/* Shutdown the OS. */
 			sysexec(config.os_shutdown_cmd, NULL);
@@ -326,7 +329,7 @@ int process_cmd(int sockd, char *msg)
 
 		case PLMC_SA_PLM_ADMIN_RESTART_CMD:
 			/* Send PLMC_ACK_MSG_RECD in the acknowledgement - before executing command. */
-			sndack(sockd, plmc_cmd, PLMC_ACK_MSG_RECD);
+			sndack(plmc_cmd, PLMC_ACK_MSG_RECD);
 
 			/* Reboot the OS */
 			sysexec(config.os_reboot_cmd, NULL);
@@ -334,7 +337,7 @@ int process_cmd(int sockd, char *msg)
 
 		case PLMC_PLMCD_RESTART_CMD:
 			/* Send PLMC_ACK_MSG_RECD in the acknowledgement - before executing command. */
-			sndack(sockd, plmc_cmd, PLMC_ACK_MSG_RECD);
+			sndack(plmc_cmd, PLMC_ACK_MSG_RECD);
 
 			/* Close the socket to force reconnect/restart */
 			close(sockd);
@@ -349,7 +352,7 @@ int process_cmd(int sockd, char *msg)
 			/* These are long-running commands - so create a child thread to handle this case. */
 			ret = plmc_start_child_thread(plmc_cmd);
 			/* Send the acknowledgement. */
-			sndack(sockd, plmc_cmd, ret);
+			sndack(plmc_cmd, ret);
 			break;
 	}
 
@@ -367,7 +370,7 @@ int process_cmd(int sockd, char *msg)
  *
  * \return < 0 on error, 0 on success
  */ 
-int nbconnect(int sockd, struct sockaddr_in *sin)
+int nbconnect(struct sockaddr_in *sin)
 {
 	fd_set wset; 
 	struct timeval tv; 
@@ -445,6 +448,8 @@ void plmc_termination_handler(int signum)
 {
 	/* Send EE_TERMINATING message, replace plmc_boot */
 	plmc_send_udp_msg(PLMC_D_STOP_MSG);
+	if (sockd != 0)
+		close(sockd);
 	unlink(PLMCD_PID);
 	exit(PLMC_EXIT_SUCCESS);
 }
@@ -481,13 +486,13 @@ int setsig(int sig, void (*handler)(int), int flags, sigset_t *mask)
  */
 static int plmc_send_udp_msg(char *msg)
 {
-	int sockd;
+	int udpsockfd;
 	struct sockaddr_in sin;
 	char send_msg[PLMC_MAX_TCP_DATA_LEN];
 
 	/* create an IPv4 UDP socket */
-	sockd = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sockd == -1)
+	udpsockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (udpsockfd == -1)
 	{
 		syslog(LOG_ERR, "Error socket:  %m");
 		return -1;
@@ -508,7 +513,7 @@ static int plmc_send_udp_msg(char *msg)
 			config.os_type);
 
 	/* Send UDP datagram to controller_1_ip. */
-	sendto(sockd, send_msg, strlen(send_msg), 0, (struct sockaddr *)&sin, sizeof(sin));
+	sendto(udpsockfd, send_msg, strlen(send_msg), 0, (struct sockaddr *)&sin, sizeof(sin));
 
 	/* Now send same UDP datagram to controller_2_ip. */
 	sin.sin_addr.s_addr=inet_addr(config.controller_2_ip);
@@ -517,10 +522,10 @@ static int plmc_send_udp_msg(char *msg)
 				config.controller_2_ip);
 		return -2;
 	}
-	sendto(sockd, send_msg, strlen(send_msg), 0, (struct sockaddr *)&sin, sizeof(sin));
+	sendto(udpsockfd, send_msg, strlen(send_msg), 0, (struct sockaddr *)&sin, sizeof(sin));
 
 	syslog(LOG_INFO, "%s", send_msg);
-	close(sockd);
+	close(udpsockfd);
 
 	return 0;
 }
@@ -617,7 +622,7 @@ int main(int argc, char** argv)
 {
 	char *plmc_config_file = NULL, msg[PLMC_MAX_TCP_DATA_LEN];
 	struct stat statbuf;
-	int ii, ret, sockd; 
+	int ii, ret; 
 	int controller = 1, time = 1, pid=0; 
 	struct sockaddr_in sin;
 	unsigned int option= 0x0;
@@ -774,7 +779,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		ret = nbconnect(sockd, &sin);
+		ret = nbconnect(&sin);
 		if (ret == 0){
 			syslog(LOG_ERR, "Connected to controller %d", controller % 2 ? 1 : 2);
 			time = 1;
@@ -787,7 +792,7 @@ int main(int argc, char** argv)
 				}
 
 				msg[ret] = '\0';
-				process_cmd(sockd, msg);
+				process_cmd(msg);
 			}
 
 		}
