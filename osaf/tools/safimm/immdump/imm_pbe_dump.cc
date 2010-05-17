@@ -1500,14 +1500,6 @@ unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* 
 		it++;
 	}
 
-	sqlite3_exec(dbHandle, "ABORT TRANSACTION", NULL, NULL, &execErr);
-	if(rc != SQLITE_OK) {
-		LOG_ER("SQL statement ('ABORT TRANSACTION') failed because:\n %s",
-			execErr);
-		sqlite3_free(execErr);
-		goto bailout;
-	}
-
 	rc = sqlite3_get_table(dbHandle, sqlQ.c_str(), &result, &nrows, &ncols, &qErr);
 
 	if(rc) {
@@ -1523,6 +1515,15 @@ unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* 
 
 	obj_count = strtoul(result[ncols], NULL, 0);
 	TRACE("verifPbeState: obj_count:%u", obj_count);
+
+	sqlite3_exec(dbHandle, "ABORT TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('ABORT TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
 	TRACE_LEAVE();
 	return obj_count;
 
@@ -1661,30 +1662,32 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEp
 	char commitTimeStr[STRINT_BSZ];
 	time_t now = time(NULL);
 
-	commitTime = (unsigned int) now;
+	if(ccbId) {
+		commitTime = (unsigned int) now;
 
-	std::string sqlCcb("INSERT INTO ccb_commits (ccb_id, epoch, commit_time) VALUES('");
+		std::string sqlCcb("INSERT INTO ccb_commits (ccb_id, epoch, commit_time) VALUES('");
 
-	snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccbId);
-	snprintf(epochStr, STRINT_BSZ, "%u", currentEpoch);
-	snprintf(commitTimeStr, STRINT_BSZ, "%u", commitTime);
+		snprintf(ccbIdStr, STRINT_BSZ, "%llu", ccbId);
+		snprintf(epochStr, STRINT_BSZ, "%u", currentEpoch);
+		snprintf(commitTimeStr, STRINT_BSZ, "%u", commitTime);
 
-	sqlCcb.append(ccbIdStr);
-	sqlCcb.append("','");
-	sqlCcb.append(epochStr);
-	sqlCcb.append("','");
-	sqlCcb.append(commitTimeStr);
-	sqlCcb.append("')");
+		sqlCcb.append(ccbIdStr);
+		sqlCcb.append("','");
+		sqlCcb.append(epochStr);
+		sqlCcb.append("','");
+		sqlCcb.append(commitTimeStr);
+		sqlCcb.append("')");
 
-	TRACE("GENERATED CCB:%s", sqlCcb.c_str());
+		TRACE("GENERATED CCB:%s", sqlCcb.c_str());
 
-	rc = sqlite3_exec(dbHandle, sqlCcb.c_str(), NULL, NULL, &execErr);
-	if(rc != SQLITE_OK) {
-		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlCcb.c_str(),
-			execErr);
-		sqlite3_free(execErr);
-		pbeAbortTrans(db_handle);
-		return SA_AIS_ERR_FAILED_OPERATION;
+		rc = sqlite3_exec(dbHandle, sqlCcb.c_str(), NULL, NULL, &execErr);
+		if(rc != SQLITE_OK) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sqlCcb.c_str(),
+				execErr);
+			sqlite3_free(execErr);
+			pbeAbortTrans(db_handle);
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
 	}
 
 	sqlite3_exec(dbHandle, "COMMIT TRANSACTION", NULL, NULL, &execErr);

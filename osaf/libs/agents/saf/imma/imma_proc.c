@@ -973,6 +973,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaBoolT isRtObj=(evt->info.objCreate.ccbId == 0);
 
 	SaImmOiHandleT implHandle = evt->info.objCreate.immHandle;
 
@@ -990,11 +991,24 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
+	if(isRtObj) {
+		if(cl_node->isPbe) {
+			TRACE_3("PBE-OI received runtime object create");
+		} else {
+			LOG_ER("Apparent runtime object create received at OI which is not PBE - ignoring");
+			return;
+		}
+	}
+
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
-		callback->type = IMMA_CALLBACK_OI_CCB_CREATE;
+		if(isRtObj) {
+			callback->type = IMMA_CALLBACK_PBE_PRT_OBJ_CREATE;
+		} else {
+			callback->type = IMMA_CALLBACK_OI_CCB_CREATE;
+		}
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.objCreate.ccbId;
 		callback->inv = evt->info.objCreate.adminOwnerId;	/*Actually continuationId */
@@ -1018,7 +1032,9 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
+		if(!isRtObj) {
+			imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
+		}
 	}
 
 	/* Release The Lock */
@@ -1692,6 +1708,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 #endif
 
 #ifdef IMMA_OI
+	SaBoolT isRtObj = SA_FALSE;
 	switch (callback->type) {
 	case IMMA_CALLBACK_OM_ADMIN_OP:
 #ifdef IMM_A_01_01
@@ -1867,8 +1884,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 		break;
 
+	case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
+		isRtObj = SA_TRUE;
+		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_CREATE:
-		TRACE("ccb-object-create op callback");
+		TRACE("%sobject-create callback", isRtObj?"Ccb-":"Pbe-RuntimeObj-");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjCrRpl;
@@ -2016,17 +2036,20 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				locked = TRUE;
 				memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
 				ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
-				ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
+				if(isRtObj) {
+					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP;
+				} else {
+					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
+					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+				}
 				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
 				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-
 				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
 				/*async fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
-				/* callback->inv == 0 means PBE create upcall, no reply. */
+				/* callback->inv == 0 means PBE CCB obj create upcall, no reply. */
 				assert(cl_node->isPbe);
 				
 			}

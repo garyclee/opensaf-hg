@@ -190,7 +190,13 @@ public:
                                                  SaUint32T invocation,
                                                  SaAisErrorT err,
                                                  SaUint32T* reqConn);
-    
+
+
+    void                 pbePrtObjCreateContinuation(
+						     SaUint32T invocation,
+						     SaAisErrorT error,
+						     unsigned int nodeId, 
+						     SaUint32T *reqConn);
     
     // Administrative operations
     SaAisErrorT         adminOperationInvoke(
@@ -254,7 +260,11 @@ public:
     SaAisErrorT         rtObjectCreate(
                                        const struct ImmsvOmCcbObjectCreate* req,
                                        SaUint32T conn,
-                                       unsigned int nodeId);
+                                       unsigned int nodeId,
+				       SaUint32T* continuationId,
+                                        SaUint32T* pbeConn,
+                                        unsigned int* pbeNodeId);
+
     
     SaAisErrorT         rtObjectUpdate(
                                        const ImmsvOmCcbObjectModify* req, //re-used struct
@@ -296,6 +306,7 @@ public:
     void              abortSync();
     SaAisErrorT       ccbResult(SaUint32T ccbId);
     bool              ccbsTerminated();
+    bool              pbeIsInSync();
     void              getNonCriticalCcbs(IdVector& cv);
     void              getOldCriticalCcbs(
 					 IdVector& cv, 
