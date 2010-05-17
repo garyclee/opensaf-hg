@@ -44,6 +44,7 @@
 #include <libgen.h>
 #include <limits.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -623,6 +624,9 @@ int main(int argc, char** argv)
 	char *plmc_config_file = NULL, msg[PLMC_MAX_TCP_DATA_LEN];
 	struct stat statbuf;
 	int ii, ret; 
+	int tcp_keepidle_time, tcp_keepalive_intvl, tcp_keepalive_probes;
+	int so_keepalive;
+	socklen_t optlen;
 	int controller = 1, time = 1, pid=0; 
 	struct sockaddr_in sin;
 	unsigned int option= 0x0;
@@ -744,12 +748,65 @@ int main(int argc, char** argv)
 	 * to controller 1 fails or times out try to connect to conrtoller 2. If
 	 * that fails or times out sleep then try again. Loop until a
 	 * connection is established. */
+
+	/* Start with setting the tcp keepalive stuff */
+	so_keepalive = config.so_keepalive;
+	tcp_keepidle_time = config.tcp_keepidle_time;
+	tcp_keepalive_intvl = config.tcp_keepalive_intvl;
+	tcp_keepalive_probes =  config.tcp_keepalive_probes;
+
 	while (1) {
 		/* create an IPv4 UDP socket */
 		sockd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockd == -1) {
 			syslog(LOG_ERR, "Error  socket:  %m");
 			exit(PLMC_EXIT_FAILURE);
+		}
+	
+		if (so_keepalive == 1) {
+			/* Set SO_KEEPALIVE */
+			optlen = sizeof(so_keepalive);
+			if(setsockopt(sockd, SOL_SOCKET, SO_KEEPALIVE, 
+						&so_keepalive, optlen) < 0){
+				syslog(LOG_ERR,"setsockopt SO_KEEPALIVE "
+					"failed error:%s",strerror(errno));
+				perror("setsockopt()");
+				close(sockd);
+				exit(PLMC_EXIT_FAILURE);
+			}
+
+			/* Set TCP_KEEPIDLE */
+			optlen = sizeof(tcp_keepidle_time);
+			if(setsockopt(sockd, SOL_TCP, TCP_KEEPIDLE, 
+					&tcp_keepidle_time, optlen) < 0){
+				syslog(LOG_ERR,"setsockopt TCP_KEEPIDLE "
+					"failed " "error:%s",strerror(errno));
+				perror("setsockopt()");
+				close(sockd);
+				exit(PLMC_EXIT_FAILURE);
+			}
+			
+			/* Set TCP_KEEPINTVL */
+			optlen = sizeof(tcp_keepalive_intvl);
+			if(setsockopt(sockd, SOL_TCP, TCP_KEEPINTVL, 
+					&tcp_keepalive_intvl, optlen) < 0){
+				syslog(LOG_ERR,"setsockopt TCP_KEEPINTVL failed"
+						" error:%s",strerror(errno));
+				perror("setsockopt()");
+				close(sockd);
+				exit(PLMC_EXIT_FAILURE);
+			}
+
+			/* Set TCP_KEEPCNT */
+			optlen = sizeof(tcp_keepalive_probes);
+			if(setsockopt(sockd, SOL_TCP, TCP_KEEPCNT, 
+					&tcp_keepalive_probes, optlen) < 0){
+				syslog(LOG_ERR,"setsockopt TCP_KEEPCNT  failed"
+						" error:%s",strerror(errno));
+				perror("setsockopt()");
+				close(sockd);
+				exit(PLMC_EXIT_FAILURE);
+			}
 		}
 
 		if ((setsockopt(sockd, SOL_SOCKET, SO_REUSEADDR, (void *)&ret, sizeof(ret)) == -1)) {
