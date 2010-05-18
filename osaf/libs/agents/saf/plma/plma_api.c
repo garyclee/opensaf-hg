@@ -148,7 +148,8 @@ uns32 plm_process_single_dispatch(PLMA_CLIENT_INFO *client_info)
 			msg->req_evt.agent_track.track_cbk.track_cookie,
 			msg->req_evt.agent_track.track_cbk.invocation_id,
 			msg->req_evt.agent_track.track_cbk.track_cause,
-			&msg->req_evt.agent_track.track_cbk.root_cause_entity,
+			msg->req_evt.agent_track.track_cbk.root_cause_entity.length ? 
+                        &msg->req_evt.agent_track.track_cbk.root_cause_entity : NULL,
 			msg->req_evt.agent_track.track_cbk.root_correlation_id,
 			&msg->req_evt.agent_track.track_cbk.tracked_entities,
 			msg->req_evt.agent_track.track_cbk.change_step,
@@ -221,7 +222,8 @@ uns32 plm_process_dispatch_all(PLMA_CLIENT_INFO *client_info)
 			msg->req_evt.agent_track.track_cbk.track_cookie,
 			msg->req_evt.agent_track.track_cbk.invocation_id,
 			msg->req_evt.agent_track.track_cbk.track_cause,
-			&msg->req_evt.agent_track.track_cbk.root_cause_entity,
+                        msg->req_evt.agent_track.track_cbk.root_cause_entity.length ?
+			&msg->req_evt.agent_track.track_cbk.root_cause_entity : NULL,
 			msg->req_evt.agent_track.track_cbk.root_correlation_id,
 			&msg->req_evt.agent_track.track_cbk.tracked_entities,
 			msg->req_evt.agent_track.track_cbk.change_step,
@@ -289,7 +291,8 @@ uns32 plm_process_blocking_dispatch(PLMA_CLIENT_INFO *client_info)
 			msg->req_evt.agent_track.track_cbk.track_cookie,
 			msg->req_evt.agent_track.track_cbk.invocation_id,
 			msg->req_evt.agent_track.track_cbk.track_cause,
-			&msg->req_evt.agent_track.track_cbk.root_cause_entity,
+                        msg->req_evt.agent_track.track_cbk.root_cause_entity.length ?
+			&msg->req_evt.agent_track.track_cbk.root_cause_entity : NULL,
 			msg->req_evt.agent_track.track_cbk.root_correlation_id,
 			&msg->req_evt.agent_track.track_cbk.tracked_entities,
 			msg->req_evt.agent_track.track_cbk.change_step,
