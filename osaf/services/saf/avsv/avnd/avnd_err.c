@@ -332,8 +332,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		syslog(LOG_ERR, "%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 		/* do the local node reboot for node_failfast or ncs component failure*/
-		opensaf_reboot(cb->node_info.nodeId, (char*)cb->node_info.executionEnvironment.value,
-				"Component faulted: recovery is node failfast" );
+		avsv_reboot_local_node("Component faulted: recovery is node failfast" );
 	}
 
 	/* execute the recovery */

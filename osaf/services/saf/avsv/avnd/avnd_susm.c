@@ -1681,7 +1681,7 @@ uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 	if (TRUE == su->is_ncs) {
 		char reason[SA_MAX_NAME_LENGTH + 64];
 		snprintf(reason, sizeof(reason) - 1, "SU '%s' Termination-failed", su->name.value);
-		ncs_reboot(reason);
+		avsv_reboot_local_node(reason);
 	}
 
 	/* Now check if in the context of shutdown all app SUs 

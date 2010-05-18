@@ -372,28 +372,6 @@ uns32 leap_env_destroy()
 	return NCSCC_RC_SUCCESS;
 }
 
-
-/* TBD : This function should be removed after the fm and avsv changes comes in place*/
-/**
- * Print message and reboot the system
- * @param reason
- */
-void ncs_reboot(const char *reason)
-{
-        struct timeval tv;
-        char time_str[128];
-
-        gettimeofday(&tv, NULL);
-        strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
-        fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
-        syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
-
-        if(system(PKGLIBDIR "/opensaf_reboot") == -1){
-        	syslog(LOG_CRIT, "node reboot failure!");
-	}
-}
-  	
-
 /**
  * 
  * @param reason

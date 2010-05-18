@@ -77,12 +77,12 @@ static void avnd_last_step_clean(AVND_CB *cb)
 			*/
 			if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
 				LOG_ER("%s in termination failed state", comp->name.value);
-				ncs_reboot("Stopping OpenSAF failed");
+				avsv_reboot_local_node("Stopping OpenSAF failed");
 			}
 
 			if (comp->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) {
 				LOG_ER("%s in instantiation failed state", comp->name.value);
-				ncs_reboot("Stopping OpenSAF failed");
+				avsv_reboot_local_node("Stopping OpenSAF failed");
 			}
 
 			avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
