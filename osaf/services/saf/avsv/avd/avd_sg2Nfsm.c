@@ -418,6 +418,7 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 {
 	AVD_SU_SI_REL *susi;
 	SaAisErrorT rc = SA_AIS_OK;
+        AVD_AVND *node;
 
 	TRACE_ENTER2("%s sg_fsm_state=%u", si->name.value, si->sg_of_si->sg_fsm_state);
 
@@ -454,6 +455,22 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 		goto done;
 	}
 
+        /* Since middleware components can still have si->list_of_sisu->si_next as not NULL, but we need to check
+           whether it is unlocked. We need to reject si_swap on controllers when stdby controller is locked. */
+	if (si->sg_of_si->sg_ncs_spec) {
+		/* Check if the Standby is there in unlocked state. */
+		node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
+		if (node == NULL) {
+			LOG_IN("Node %x is not available", avd_cb->node_id_avd_other);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+		if (SA_FALSE == node->node_info.member) {
+			LOG_IN("Node %x is locked state", avd_cb->node_id_avd_other);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+	}
 	/* Identify the active susi rel */
 	if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
 		susi = si->list_of_sisu;

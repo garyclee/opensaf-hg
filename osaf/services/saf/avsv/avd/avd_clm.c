@@ -257,6 +257,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 						   already locking applications might have been done. So, no action
 						   is needed.*/
 						node->clm_change_start_preceded = FALSE; 
+						node->node_info.member = SA_FALSE;
 					}
 					else
 					{
