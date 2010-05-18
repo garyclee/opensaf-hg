@@ -45,7 +45,17 @@ opensaf_reboot_no_plm()
 opensaf_reboot_with_plm()
 {
 	immadm -o 7 $ee_name
-
+	retval=$?
+	if [ $retval != 0 ]; then
+		if [ "$self_node_id" == "$node_id" ];then
+			test -x /sbin/shutdown && \
+				/sbin/shutdown -r now "OpenSAF requested system reboot"
+			/sbin/reboot
+		else
+			logger -t "opensaf_reboot" "Rebooting remote node failed"
+			exit 1
+		fi
+	fi 
 #Note: Operation Id SA_PLM_ADMIN_RESTART=7
 #No Parameter option specified, which signifies gracefull reboot
 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
@@ -57,8 +67,9 @@ if ! test -f "$NODE_ID_FILE"; then
 	exit 1
 fi
 
-self_node_id=`cat "$NODE_ID_FILE"`
-
+temp_node_id=`cat "$NODE_ID_FILE"`
+temp_node_id=`echo "$temp_node_id" |sed -e 's:^0[bBxX]::'| sed -e 's:^:0x:'`
+self_node_id=`printf "%d" $temp_node_id`
 
 if [ ":$ee_name" == ":" ]; then
 	opensaf_reboot_no_plm
