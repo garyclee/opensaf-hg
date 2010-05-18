@@ -141,7 +141,6 @@ extern "C" {
 #define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
 
-extern void ncs_reboot(const char *reason);
 extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reason);
 
 /*****************************************************************************

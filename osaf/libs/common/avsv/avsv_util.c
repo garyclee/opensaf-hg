@@ -416,3 +416,17 @@ AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(saAmfCompCategoryT saf_c
 	return avsv_comp_type;
 }
 
+/**
+ * Print message and reboot the system (local node)
+ * @param reason
+ */
+void avsv_reboot_local_node(const char *reason)
+{
+	int status;
+
+	syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
+
+	if ((status = system("shutdown -r now")) == -1)
+		syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
+}
+

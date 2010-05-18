@@ -74,5 +74,6 @@ extern void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNa
 extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle);
 
 extern AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(saAmfCompCategoryT saf_comp_category);
+extern void avsv_reboot_local_node(const char *reason);
 
 #endif   /* !AVSV_UTIL_H */

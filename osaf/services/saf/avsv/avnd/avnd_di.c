@@ -396,7 +396,7 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 	} else {
 		/* Avd is already UP, reboot the node */
 		if (m_AVND_CB_IS_AVD_UP(cb)) {
-			ncs_reboot("AVD already up");
+			avsv_reboot_local_node("AVD already up");
 			goto done;
 		}
 
@@ -429,7 +429,7 @@ uns32 avnd_evt_mds_avd_dn(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	ncs_reboot("MDS down received for AVD");
+	avsv_reboot_local_node("MDS down received for AVD");
 
 	return rc;
 }
@@ -1199,6 +1199,6 @@ uns32 avnd_evt_avd_hb_evh(AVND_CB *cb, AVND_EVT *evt)
 uns32 avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER();
-	ncs_reboot("AMF director heart beat timeout");
+	avsv_reboot_local_node("AMF director heart beat timeout");
 	return NCSCC_RC_SUCCESS;
 }

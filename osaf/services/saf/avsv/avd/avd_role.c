@@ -303,7 +303,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 done:
 	if (NCSCC_RC_SUCCESS != status)
-		ncs_reboot("FAILOVER failed");
+		avsv_reboot_local_node("FAILOVER failed");
 
 	TRACE_LEAVE();
 	return status;

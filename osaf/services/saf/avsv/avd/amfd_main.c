@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	/* should never return */
 	avd_main_proc();
 
-	ncs_reboot("avd_main_proc exited");
+	avsv_reboot_local_node("avd_main_proc exited");
 	exit(1);
 
 done:
