@@ -128,6 +128,13 @@ SmfUpgradeStep::init(const SaImmAttrValuesT_2 ** attrValues)
 		} else if (strcmp((*attribute)->attrName, "saSmfStepState") == 0) {
 			unsigned int state = *((unsigned int *)value);
 
+			//In case of failover, the step may has been left in executing state
+			//Reset the state to initial for the step to make it me re-executed
+			if (state == SA_SMF_STEP_EXECUTING) {
+				state = SA_SMF_STEP_INITIAL;
+				LOG_NO("STEP: Step number %s, state has been reset to SA_SMF_STEP_INITIAL for re-execution", m_rdn.c_str());
+			}
+
 			if ((state >= SA_SMF_STEP_INITIAL) && (state <= SA_SMF_STEP_ROLLBACK_FAILED)) {
 				setStepState((SaSmfStepStateT) state);
 			} else {
@@ -1390,18 +1397,67 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 {
 	std::list < std::string >::const_iterator dnit;
 	SmfImmUtils immUtil;
+	bool result = true;
 
 	TRACE_ENTER();
 
 	for (dnit = i_dnList.begin(); dnit != i_dnList.end(); ++dnit) {
-		if (immUtil.callAdminOperation((*dnit), i_operation, i_params, smfd_cb->adminOpTimeout) != SA_AIS_OK) {
-			LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
-			return false;
+		SaAisErrorT rc = immUtil.callAdminOperation((*dnit), i_operation, i_params, smfd_cb->adminOpTimeout);
+
+		//In case the upgrade step is re-executed the operation may result in the followng result codes
+		//depending on the state of the entity
+		// SA_AIS_ERR_NO_OP, in case the operation is already performed
+		// SA_AIS_ERR_BAD_OPERATION, in case the entity is already in loacked-instantiation admin state
+		switch (i_operation) {
+		case SA_AMF_ADMIN_LOCK:
+			if(rc == SA_AIS_ERR_NO_OP) {
+				TRACE("Entity %s already in state LOCKED, continue", (*dnit).c_str());
+			} else if (rc == SA_AIS_ERR_BAD_OPERATION) {
+				TRACE("Entity %s already in state LOCKED-INSTANTIATION, continue", (*dnit).c_str());
+			} else if (rc != SA_AIS_OK) {
+				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				result = false;
+			}
+			break;
+		case SA_AMF_ADMIN_UNLOCK:
+			if(rc == SA_AIS_ERR_NO_OP) {
+				TRACE("Entity %s already in state UNLOCKED, continue", (*dnit).c_str());
+			} else if (rc != SA_AIS_OK) {
+				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				result = false;
+			}
+			break;
+		case SA_AMF_ADMIN_LOCK_INSTANTIATION:
+			if(rc == SA_AIS_ERR_NO_OP) {
+				TRACE("Entity %s already in state LOCKED-INSTANTIATED, continue", (*dnit).c_str());
+			} else if (rc != SA_AIS_OK) {
+				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				result = false;
+			}
+			break;
+		case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
+			if(rc == SA_AIS_ERR_NO_OP) {
+				TRACE("Entity %s already in state UNLOCKED-INSTANTIATED, continue", (*dnit).c_str());
+			} else if (rc != SA_AIS_OK) {
+				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				result = false;
+			}
+			break;
+		case SA_AMF_ADMIN_RESTART:
+			if (rc != SA_AIS_OK) {
+				LOG_ER("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				result = false;
+			}
+			break;
+		default:
+			LOG_ER("Unknown admin operation %u on %s", i_operation, (*dnit).c_str());
+			result = false;
+			break;
 		}
 	}
 
 	TRACE_LEAVE();
-	return true;
+	return result;
 }
 
 //------------------------------------------------------------------------------

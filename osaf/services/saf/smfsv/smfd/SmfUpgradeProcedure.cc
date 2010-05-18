@@ -1848,14 +1848,15 @@ SmfUpgradeProcedure::getImmStepsRolling()
 
 		SmfUpgradeStep *newStep = new SmfUpgradeStep();
 
-//TODO: Shall the executing step be initiated to initial in case of failover during a step??
+		// The init method will reset step in state Executing to state Init to be able to
+		// re-execute the unfinished step in case of a failover
 		if (newStep->init((const SaImmAttrValuesT_2 **)attributes) != SA_AIS_OK) {
 			LOG_ER("SmfUpgradeProcedure::getImmSteps: Initialization failed for step %s", (*stepit).c_str());
 			delete newStep;
 			rc = SA_AIS_ERR_INIT;
 			goto done;
 		}
-		
+
 		newStep->setDn((*stepit));
 		newStep->setProcedure(this);
 
@@ -1871,7 +1872,6 @@ SmfUpgradeProcedure::getImmStepsRolling()
                    (newStep->getState() == SA_SMF_STEP_EXECUTING)) {
 			TRACE("Step found in state SA_SMF_STEP_INITIAL or SA_SMF_STEP_EXECUTING %s", getDn().c_str());
 
-//Is set in init	newStep->setRdn("safSmfStep=" + ost.str());
 		        newStep->setDn(newStep->getRdn() + "," + getDn());
 
 			SmfUpgradeMethod *upgradeMethod = getUpgradeMethod();

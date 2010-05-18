@@ -453,8 +453,8 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	}
        
 	if ((returnValue != SA_AIS_OK ) && (returnValue != SA_AIS_ERR_REPAIR_PENDING)) {
-		LOG_ER("SmfImmUtils::callAdminOperation: admin operation %u on %s returned %u", i_operationId, i_dn.c_str(),
-		       returnValue);
+		TRACE("SmfImmUtils::callAdminOperation: admin operation %u on %s returned %u", i_operationId, i_dn.c_str(),
+		      returnValue);
 	}
 	
 	rc = returnValue;
