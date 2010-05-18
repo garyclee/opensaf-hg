@@ -1638,6 +1638,11 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				avd_gen_su_ha_state_changed_ntf(cb, l_susi);
 			}
 		} else {
+			/* Update IMM and send notification */
+			for (l_susi = su->list_of_susi; l_susi != NULL; l_susi = l_susi->su_next) {
+				avd_susi_update(l_susi, state);
+				avd_gen_su_ha_state_changed_ntf(cb, l_susi);
+			}
 			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the
 			 * SU in operation list. Change the state to SG_realign.
 			 */
