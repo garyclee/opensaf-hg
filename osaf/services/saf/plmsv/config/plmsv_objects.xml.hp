@@ -32,7 +32,7 @@
                 <dn>safVersion=4.0.0,safCompType=OpenSafCompTypePLMS</dn>
                 <attr>
                         <name>saAmfCtSwBundle</name>
-                        <value>safBundle=OpenSAF</value>
+                        <value>safSmfBundle=OpenSAF</value>
                 </attr>
                 <attr>
                         <name>saAmfCtCompCategory</name>

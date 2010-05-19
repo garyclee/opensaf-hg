@@ -1385,7 +1385,7 @@ SmfCampaignXmlParser::parseSoftwareBundle(SmfImmCreateOperation * i_createOper, 
  		TRACE("SoftwareBundle: parent = %s ,rdn = %s\n", parent.c_str(), rdn.c_str());
                 i_createOper->setParentDn(parent);
 
-		attr.setName("safBundle");
+		attr.setName("safSmfBundle");
 		attr.setType("SA_IMM_ATTR_SASTRINGT");
 		attr.addValue(rdn);
 		i_createOper->addValue(attr);

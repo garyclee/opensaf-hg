@@ -297,7 +297,7 @@
         <campInitAction>
             <immCCB ccbFlags="0">
                 <create objectClassName="SaSmfSwBundle" parentObjectDN="safRepository=smfRepository,safApp=safSmfService">
-                    <attribute name="safBundle" type="SA_IMM_ATTR_SASTRINGT">
+                    <attribute name="safSmfBundle" type="SA_IMM_ATTR_SASTRINGT">
                         <value>safSwBundle=myAddedBundle</value>
                     </attribute>
                     <attribute name="saSmfBundleRemoveOfflineCmdUri" type="SA_IMM_ATTR_SASTRINGT">

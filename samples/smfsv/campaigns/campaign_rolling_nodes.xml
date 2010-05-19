@@ -28,7 +28,7 @@
 
     Expected outcome;
     =================
-    immlist safBundle=bundleA,safRepository=smfRepository,safApp=safSmfServic
+    immlist safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfServic
         # The new bundle object should exist
     immlist safVersion=5.5.5,safCompType=AmfDemoCompType
         # The new component type should exist
@@ -55,8 +55,8 @@
 	</campaignInfo>
 	<campaignInitialization>
 		<addToImm>
-			<!--softwareBundle name="safBundle=bundleA"-->
-			<softwareBundle name="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
+			<!--softwareBundle name="safSmfBundle=bundleA"-->
+			<softwareBundle name="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
 				<removal>
 					<offline command="/hostfs/offline_remove.sh" args="bundleA" saSmfBundleRemoveOfflineScope="4"></offline>
 					<online command="/hostfs/online_remove.sh" args="bundleA"></online>
@@ -79,7 +79,7 @@
 						<cleanupCmd saAmfCtRelPathCleanupCmd="amf_demo_script">
 							<cmdArgv>cleanup</cmdArgv>
 						</cleanupCmd>
-						<swBundle saAmfCtSwBundle="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" />
+						<swBundle saAmfCtSwBundle="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" />
 					</CompType>
 				</CompBaseType>
 			</amfEntityTypes>
@@ -112,7 +112,7 @@
 				<upgradeScope>
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster">
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
@@ -140,7 +140,7 @@
 				<upgradeScope>
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster">
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
@@ -168,7 +168,7 @@
 				<upgradeScope>
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfCluster=myAmfCluster">
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>

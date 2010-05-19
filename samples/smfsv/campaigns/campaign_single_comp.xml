@@ -20,7 +20,7 @@
 
     Expected outcome;
     =================
-    immlist safBundle=bundleA
+    immlist safSmfBundle=bundleA
         # The new bundle object should exist
     immlist safVersion=5.5.5,safCompType=AmfDemoCompType
         # The new component type should exist
@@ -46,7 +46,7 @@
   </campaignInfo>
   <campaignInitialization>
     <addToImm>
-      <softwareBundle name="safBundle=bundleA">
+      <softwareBundle name="safSmfBundle=bundleA">
         <removal>
           <offline command="/bin/logger" args="-t SMF bundleA removal offline" 
             saSmfBundleRemoveOfflineScope="1"/>
@@ -81,7 +81,7 @@
               safHealthcheckKey="safHealthcheckKey=AmfDemo"
               saAmfHealthcheckPeriod="10000000000"
               saAmfHealthcheckMaxDuration="6000000000"/>
-            <swBundle saAmfCtSwBundle="safBundle=bundleA"/>
+            <swBundle saAmfCtSwBundle="safSmfBundle=bundleA"/>
           </CompType>
         </CompBaseType>
       </amfEntityTypes>
@@ -104,8 +104,8 @@
                   <type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"/>
                 </byTemplate>
               </actedOn>
-              <!-- swRemove bundleDN="safBundle=AmfDemo" pathnamePrefix="/opt/amf_demo"/ -->
-              <swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo"/>
+              <!-- swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo"/ -->
+              <swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo"/>
             </activationUnit>
             <targetEntityTemplate>
               <type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"/>

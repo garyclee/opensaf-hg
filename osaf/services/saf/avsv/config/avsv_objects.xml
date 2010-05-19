@@ -241,6 +241,6 @@
 		</attr>
 	</object>
 	<object class="SaSmfSwBundle">
-		<dn>safBundle=OpenSAF</dn>
+		<dn>safSmfBundle=OpenSAF</dn>
 	</object>
 </imm:IMM-contents>

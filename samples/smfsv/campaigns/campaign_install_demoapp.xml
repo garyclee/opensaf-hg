@@ -50,7 +50,7 @@
   </campaignInfo>
   <campaignInitialization>
     <addToImm>
-      <softwareBundle name="safBundle=AmfDemo">
+      <softwareBundle name="safSmfBundle=AmfDemo">
         <removal>
           <offline command="/bin/logger" args="-t SMF AmfDemo removal offline" 
             saSmfBundleRemoveOfflineScope="1"/>
@@ -102,7 +102,7 @@
               <cmdArgv>cleanup</cmdArgv>
             </cleanupCmd>
             <healthCheck safHealthcheckKey="safHealthcheckKey=AmfDemo" saAmfHealthcheckPeriod="10000000000" saAmfHealthcheckMaxDuration="6000000000"/>
-            <swBundle saAmfCtSwBundle="safBundle=AmfDemo"/>
+            <swBundle saAmfCtSwBundle="safSmfBundle=AmfDemo"/>
           </CompType>
         </CompBaseType>
         <CSBaseType safCSType="safCSType=AmfDemo1">
@@ -127,7 +127,7 @@
       <immCCB ccbFlags="0">
         <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC-1,safAmfCluster=myAmfCluster">
           <attribute name="safInstalledSwBundle" type="SA_IMM_ATTR_SANAMET">
-            <value>safInstalledSwBundle=safBundle=AmfDemo</value>
+            <value>safInstalledSwBundle=safSmfBundle=AmfDemo</value>
           </attribute>
           <attribute name="saAmfNodeSwBundlePathPrefix" type="SA_IMM_ATTR_SASTRINGT">
             <value>/opt/amf_demo</value>
@@ -135,7 +135,7 @@
         </create>
         <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC-2,safAmfCluster=myAmfCluster">
           <attribute name="safInstalledSwBundle" type="SA_IMM_ATTR_SANAMET">
-            <value>safInstalledSwBundle=safBundle=AmfDemo</value>
+            <value>safInstalledSwBundle=safSmfBundle=AmfDemo</value>
           </attribute>
           <attribute name="saAmfNodeSwBundlePathPrefix" type="SA_IMM_ATTR_SASTRINGT">
             <value>/opt/amf_demo</value>
@@ -300,7 +300,7 @@
                 <byName objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
                 <byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
               </actedOn>
-              <swAdd bundleDN="safBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
+              <swAdd bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
                 <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
                 <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
               </swAdd>

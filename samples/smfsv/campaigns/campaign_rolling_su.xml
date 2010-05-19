@@ -31,7 +31,7 @@
 
     Expected outcome;
     =================
-    immlist safBundle=bundleA,safRepository=smfRepository,safApp=safSmfServic
+    immlist safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfServic
         # The new bundle object should exist
     immlist safVersion=5.5.5,safCompType=AmfDemoCompType
         # The new component type should exist
@@ -58,8 +58,8 @@
 	</campaignInfo>
 	<campaignInitialization>
 		<addToImm>
-			<!--softwareBundle name="safBundle=bundleA"-->
-			<softwareBundle name="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
+			<!--softwareBundle name="safSmfBundle=bundleA"-->
+			<softwareBundle name="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
 				<removal>
 					<offline command="/hostfs/offline_remove.sh" args="bundleA" saSmfBundleRemoveOfflineScope="1"></offline>
 					<online command="/hostfs/online_remove.sh" args="bundleA"></online>
@@ -82,8 +82,8 @@
 						<cleanupCmd saAmfCtRelPathCleanupCmd="amf_demo_script">
 							<cmdArgv>cleanup</cmdArgv>
 						</cleanupCmd>
-						<!--swBundle saAmfCtSwBundle="safBundle=AmfDemo1" /-->
-						<swBundle saAmfCtSwBundle="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" />
+						<!--swBundle saAmfCtSwBundle="safSmfBundle=AmfDemo1" /-->
+						<swBundle saAmfCtSwBundle="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" />
 					</CompType>
 				</CompBaseType>
 			</amfEntityTypes>
@@ -120,9 +120,9 @@
 								<!--parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent-->
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 							</activationUnitTemplate>
-							<!--swRemove bundleDN="safBundle=AmfDemo1"/-->
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
-							<!--swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo1"/-->
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<!--swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
@@ -155,9 +155,9 @@
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 								<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
 							</activationUnitTemplate>
-							<!--swRemove bundleDN="safBundle=AmfDemo1"/-->
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
-							<!--swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo1"/-->
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<!--swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
@@ -191,9 +191,9 @@
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 								<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
 							</activationUnitTemplate>
-							<!--swRemove bundleDN="safBundle=AmfDemo1"/-->
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
-							<!--swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo1"/-->
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<!--swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
@@ -224,9 +224,9 @@
 							<activationUnitTemplate>
 								<parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent>
 							</activationUnitTemplate>
-							<!--swRemove bundleDN="safBundle=AmfDemo1"/-->
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
-							<!--swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo1"/-->
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<!--swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
@@ -257,9 +257,9 @@
 							<activationUnitTemplate>
 								<parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent>
 							</activationUnitTemplate>
-							<!--swRemove bundleDN="safBundle=AmfDemo1"/-->
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
-							<!--swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo1"/-->
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<!--swAdd bundleDN="safSmfBundle=bundleA" pathnamePrefix="/opt/amf_demo" /-->
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>

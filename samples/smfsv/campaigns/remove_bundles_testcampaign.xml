@@ -47,21 +47,21 @@
                 <upgradeScope>
                     <forAddRemove>
                         <deactivationUnit>
-                          <swRemove bundleDN="safBundle=TestBundle1">
+                          <swRemove bundleDN="safSmfBundle=TestBundle1">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swRemove>
-                          <swRemove bundleDN="safBundle=TestBundle2">
+                          <swRemove bundleDN="safSmfBundle=TestBundle2">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swRemove>
-                          <swRemove bundleDN="safBundle=TestBundle3">
+                          <swRemove bundleDN="safSmfBundle=TestBundle3">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
@@ -80,9 +80,9 @@
         <waitToCommit/>
         <waitToAllowNewCampaign/>
         <removeFromImm>
-          <softwareBundleDN bundleDN="safBundle=TestBundle1"/>
-          <softwareBundleDN bundleDN="safBundle=TestBundle2"/>
-          <softwareBundleDN bundleDN="safBundle=TestBundle3"/>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle1"/>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle2"/>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle3"/>
         </removeFromImm>
     </campaignWrapup>
 </upgradeCampaign>

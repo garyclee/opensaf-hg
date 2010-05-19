@@ -31,7 +31,7 @@
     </campaignInfo>
     <campaignInitialization>
       <addToImm>
-        <softwareBundle name="safBundle=TestBundle1">
+        <softwareBundle name="safSmfBundle=TestBundle1">
           <removal>
             <offline saSmfBundleRemoveOfflineScope="0"
               command="/bin/logger"
@@ -50,7 +50,7 @@
           </installation>
           <defaultCliTimeout/>
         </softwareBundle>
-        <softwareBundle name="safBundle=TestBundle2">
+        <softwareBundle name="safSmfBundle=TestBundle2">
           <removal>
             <offline saSmfBundleRemoveOfflineScope="0"
               command="/bin/logger"
@@ -69,7 +69,7 @@
           </installation>
           <defaultCliTimeout/>
         </softwareBundle>
-        <softwareBundle name="safBundle=TestBundle3">
+        <softwareBundle name="safSmfBundle=TestBundle3">
           <removal>
             <offline saSmfBundleRemoveOfflineScope="0"
               command="/bin/logger"
@@ -103,21 +103,21 @@
                     <forAddRemove>
                         <deactivationUnit/>
                         <activationUnit>
-                          <swAdd bundleDN="safBundle=TestBundle1" pathnamePrefix="/home/saf/TestBundle1">
+                          <swAdd bundleDN="safSmfBundle=TestBundle1" pathnamePrefix="/home/saf/TestBundle1">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swAdd>
-                          <swAdd bundleDN="safBundle=TestBundle2" pathnamePrefix="/home/saf/TestBundle2">
+                          <swAdd bundleDN="safSmfBundle=TestBundle2" pathnamePrefix="/home/saf/TestBundle2">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swAdd>
-                          <swAdd bundleDN="safBundle=TestBundle3" pathnamePrefix="/home/saf/TestBundle3">
+                          <swAdd bundleDN="safSmfBundle=TestBundle3" pathnamePrefix="/home/saf/TestBundle3">
                             <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
                             <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>

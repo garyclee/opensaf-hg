@@ -14,7 +14,7 @@
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeIMMD</dn>
 		<attr>
 			<name>saAmfCtSwBundle</name>
-			<value>safBundle=OpenSAF</value>
+			<value>safSmfBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -60,7 +60,7 @@
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeIMMND</dn>
 		<attr>
 			<name>saAmfCtSwBundle</name>
-			<value>safBundle=OpenSAF</value>
+			<value>safSmfBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
