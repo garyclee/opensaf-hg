@@ -621,7 +621,8 @@ static void clms_imm_admin_op_callback(SaImmOiHandleT immOiHandle,
 		break;
 	default:
 		TRACE("Admin operation not supported");
-		assert(0);
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED);
+		goto done;
 	}
 
 	clms_node_update_rattr(nodeop);
