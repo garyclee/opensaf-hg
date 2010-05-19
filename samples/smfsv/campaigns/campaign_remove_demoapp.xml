@@ -61,7 +61,7 @@
 								<byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1" />
 								<byName objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1" />
 							</actedOn>
-							<swRemove bundleDN="safBundle=AmfDemo">
+							<swRemove bundleDN="safSmfBundle=AmfDemo">
 								<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster" />
 								<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster" />
 								<plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster" />
@@ -116,7 +116,7 @@
 			<amfEntityTypeDN objectDN="safCSType=AmfDemo1"/>
 			<amfEntityTypeDN objectDN="safVersion=4.0.0,safSvcType=AmfDemo1"/>
 			<amfEntityTypeDN objectDN="safSvcType=AmfDemo1"/>
-			<softwareBundleDN bundleDN="safBundle=AmfDemo"/>
+			<softwareBundleDN bundleDN="safSmfBundle=AmfDemo"/>
 		</removeFromImm>
 	</campaignWrapup>
 </upgradeCampaign>

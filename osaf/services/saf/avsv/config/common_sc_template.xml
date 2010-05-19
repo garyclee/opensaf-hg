@@ -16,7 +16,7 @@
 		</attr>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safSmfBundle=OpenSAF,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>xxCLCCLIDIRxx</value>

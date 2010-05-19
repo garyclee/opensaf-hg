@@ -9,8 +9,8 @@
 	2) amfClusterProcRemoveSW,      exec level 3  //node group
 
 	The procedures iterates over PLs node group.
-	The first procedure adds the SW bundle safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService
-	The second procedure removes the SW bundle safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService
+	The first procedure adds the SW bundle safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService
+	The second procedure removes the SW bundle safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService
 	
     Prerequisites;
     ==============
@@ -45,7 +45,7 @@
 	</campaignInfo>
 	<campaignInitialization>
 		<addToImm>
-			<softwareBundle name="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
+			<softwareBundle name="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
 				<removal>
 					<offline command="" saSmfBundleRemoveOfflineScope="4"></offline>
 					<online command="/hostfs/online_remove.sh" args="bundleA"></online>
@@ -70,7 +70,7 @@
 				<upgradeScope>
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster">
-							<swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo"/>
+							<swAdd bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo"/>
 						</targetNodeTemplate>
 					</byTemplate>
 				</upgradeScope>
@@ -90,7 +90,7 @@
 				<upgradeScope>
 					<byTemplate>
 						<targetNodeTemplate objectDN="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster">
-							<swRemove bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService"/>
+							<swRemove bundleDN="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService"/>
 						</targetNodeTemplate>
 					</byTemplate>
 				</upgradeScope>
