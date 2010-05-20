@@ -893,6 +893,9 @@ void ckpt_node_rec(CLMS_CLUSTER_NODE * node)
 		ckpt.param.node_rec.admin_op = node->admin_op;
 		ckpt.param.node_rec.change = node->change;
 		ckpt.param.node_rec.nodeup = node->nodeup;
+#ifdef ENABLE_AIS_PLM
+		ckpt.param.node_rec.ee_red_state = node->ee_red_state;
+#endif
 		
 		async_rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 		if (async_rc != NCSCC_RC_SUCCESS)

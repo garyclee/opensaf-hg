@@ -459,10 +459,7 @@ static uns32 ckpt_proc_node_rec(CLMS_CB * cb, CLMS_CKPT_REC * data)
 	node->nodeup = param->nodeup;
 
 #ifdef ENABLE_AIS_PLM
-	if (node->member)
-		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;
-	else
-		node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
+	node->ee_red_state = param->ee_red_state;
 #endif
 
 	if (node->node_id != 0){
@@ -1291,6 +1288,9 @@ static uns32 ckpt_encode_async_update(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_a
 		ckpt_node_rec.admin_op = data->param.node_rec.admin_op;
 		ckpt_node_rec.change = data->param.node_rec.change;
 		ckpt_node_rec.nodeup = data->param.node_rec.nodeup;
+#ifdef ENABLE_AIS_PLM
+		ckpt_node_rec.ee_red_state = data->param.node_rec.ee_red_state;
+#endif
 
 		num_bytes = enc_mbcsv_node_rec_msg(uba, &ckpt_node_rec);
 		if (num_bytes == 0) {
@@ -1676,6 +1676,17 @@ uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * para
 	ncs_encode_32bit(&p8, param->nodeup);
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
+
+#ifdef ENABLE_AIS_PLM
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("NULL pointer");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->ee_red_state);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+#endif
 
 	TRACE_LEAVE();
 	return total_bytes;
@@ -2447,6 +2458,13 @@ static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO * 
 	param->nodeup = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 	total_bytes += 4;
+
+#ifdef ENABLE_AIS_PLM
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->ee_red_state = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+#endif
 
 	TRACE_8("decode_node_rec_msg");
 	return total_bytes;
