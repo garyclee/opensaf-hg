@@ -90,25 +90,25 @@ extern "C" {
 #define V_DEST_QA_2 (V_DEST_QA)mds_fetch_qa()	/* For backward compatibility */
 
 	typedef enum {
-		NCSMDS_NONE,	/* Null change. An application will never see it */
+		NCSMDS_NONE = 0,	/* Null change. An application will never see it */
 
 		/* Events specific to simple subscription */
-		NCSMDS_NO_ACTIVE,	/* The only active has disappeared. Awaiting a new one */
-		NCSMDS_NEW_ACTIVE,	/* A new ACTIVE has appeared                     */
+		NCSMDS_NO_ACTIVE = 1,	/* The only active has disappeared. Awaiting a new one */
+		NCSMDS_NEW_ACTIVE = 2,	/* A new ACTIVE has appeared                     */
 
 		/* Events applicable to simple as well as redundant view but with
 		   different interpretation. 
 		 */
-		NCSMDS_UP,
-		NCSMDS_DOWN,
+		NCSMDS_UP = 3,
+		NCSMDS_DOWN = 4,
 		NCSMDS_GONE = NCSMDS_DOWN,
 
-		NCSMDS_RED_UP,
-		NCSMDS_RED_DOWN,
+		NCSMDS_RED_UP = 5,
+		NCSMDS_RED_DOWN = 6,
 		/* Events applicable to simple as well as redundant view but with
 		   identical interpretation.
 		 */
-		NCSMDS_CHG_ROLE,	/* Destination just changed role (A->S) | (A->S)) */
+		NCSMDS_CHG_ROLE = 7,	/* Destination just changed role (A->S) | (A->S)) */
 	} NCSMDS_CHG;
 	
 	typedef enum {
@@ -146,60 +146,45 @@ extern "C" {
 	typedef enum ncsmds_svc_id {
 		NCSMDS_SVC_ID_NCSMIN = 1,
 		/* BEGIN: These are NCS internal use service-id definitions */
-		NCSMDS_SVC_ID_OAC = NCSMDS_SVC_ID_NCSMIN,
-		NCSMDS_SVC_ID_MAS,
-		NCSMDS_SVC_ID_MAC,
-		NCSMDS_SVC_ID_DTS,
-		NCSMDS_SVC_ID_DTA,
-		NCSMDS_SVC_ID_GLA,
-		NCSMDS_SVC_ID_GLND,
-		NCSMDS_SVC_ID_GLD,
-		NCSMDS_SVC_ID_SPA_OBSOLETE,
-		NCSMDS_SVC_ID_SPND_OBSOLETE,
-		NCSMDS_SVC_ID_SPD_OBSOLETE,
-		NCSMDS_SVC_ID_VDS,
-		NCSMDS_SVC_ID_VDA,
-		NCSMDS_SVC_ID_EDS,
-		NCSMDS_SVC_ID_EDA,
-		NCSMDS_SVC_ID_PSS,
-		NCSMDS_SVC_ID_MQA,
-		NCSMDS_SVC_ID_MQND,
-		NCSMDS_SVC_ID_MQD,
-		NCSMDS_SVC_ID_HPL,
-		NCSMDS_SVC_ID_HCD,
-		NCSMDS_SVC_ID_AVD,
-		NCSMDS_SVC_ID_AVND,
-		NCSMDS_SVC_ID_AVA,
-		NCSMDS_SVC_ID_BAM,
-		NCSMDS_SVC_ID_AVM,
-		NCSMDS_SVC_ID_CLA,
-		NCSMDS_SVC_ID_CPD,
-		NCSMDS_SVC_ID_CPND,
-		NCSMDS_SVC_ID_CPA,
-		NCSMDS_SVC_ID_MBCSV,
-		NCSMDS_SVC_ID_LFM,
-		NCSMDS_SVC_ID_SUND,
-		NCSMDS_SVC_ID_LGS,
-		NCSMDS_SVC_ID_LGA,
-		NCSMDS_SVC_ID_AVND_CNTLR,
-		NCSMDS_SVC_ID_FMA,
-		NCSMDS_SVC_ID_GFM,
-		NCSMDS_SVC_ID_IMMD,
-		NCSMDS_SVC_ID_IMMND,
-		NCSMDS_SVC_ID_IMMA_OM,
-		NCSMDS_SVC_ID_IMMA_OI,
-		NCSMDS_SVC_ID_NTFS,
-		NCSMDS_SVC_ID_NTFA,
-    		NCSMDS_SVC_ID_SMFD,
-    		NCSMDS_SVC_ID_SMFND,
-    		NCSMDS_SVC_ID_SMFA,
-    		NCSMDS_SVC_ID_RDE,
- 		NCSMDS_SVC_ID_CLMS,
-                NCSMDS_SVC_ID_CLMA,
-                NCSMDS_SVC_ID_CLMNA,
-		NCSMDS_SVC_ID_PLMS,
-		NCSMDS_SVC_ID_PLMS_HRB,
-		NCSMDS_SVC_ID_PLMA,
+		NCSMDS_SVC_ID_DTS = NCSMDS_SVC_ID_NCSMIN,
+		NCSMDS_SVC_ID_DTA = 2,
+		NCSMDS_SVC_ID_GLA = 3,
+		NCSMDS_SVC_ID_GLND = 4,
+		NCSMDS_SVC_ID_GLD = 5,
+		NCSMDS_SVC_ID_VDA = 6,
+		NCSMDS_SVC_ID_EDS = 7,
+		NCSMDS_SVC_ID_EDA = 8,
+		NCSMDS_SVC_ID_MQA = 9,
+		NCSMDS_SVC_ID_MQND = 10,
+		NCSMDS_SVC_ID_MQD = 11,
+		NCSMDS_SVC_ID_AVD = 12,
+		NCSMDS_SVC_ID_AVND = 13,
+		NCSMDS_SVC_ID_AVA = 14,
+		NCSMDS_SVC_ID_CLA = 15,
+		NCSMDS_SVC_ID_CPD = 16,
+		NCSMDS_SVC_ID_CPND = 17,
+		NCSMDS_SVC_ID_CPA = 18,
+		NCSMDS_SVC_ID_MBCSV = 19,
+		NCSMDS_SVC_ID_LGS = 20,
+		NCSMDS_SVC_ID_LGA = 21,
+		NCSMDS_SVC_ID_AVND_CNTLR = 22,
+		NCSMDS_SVC_ID_GFM = 23,
+		NCSMDS_SVC_ID_IMMD = 24,
+		NCSMDS_SVC_ID_IMMND = 25,
+		NCSMDS_SVC_ID_IMMA_OM = 26,
+		NCSMDS_SVC_ID_IMMA_OI = 27,
+		NCSMDS_SVC_ID_NTFS = 28,
+		NCSMDS_SVC_ID_NTFA = 29,
+    		NCSMDS_SVC_ID_SMFD = 30,
+    		NCSMDS_SVC_ID_SMFND = 31,
+    		NCSMDS_SVC_ID_SMFA = 32,
+    		NCSMDS_SVC_ID_RDE = 33,
+ 		NCSMDS_SVC_ID_CLMS = 34,
+                NCSMDS_SVC_ID_CLMA = 35,
+                NCSMDS_SVC_ID_CLMNA = 36,
+		NCSMDS_SVC_ID_PLMS = 37,
+		NCSMDS_SVC_ID_PLMS_HRB = 38,
+		NCSMDS_SVC_ID_PLMA = 39,
 		NCSMDS_SVC_ID_NCSMAX,	/* This mnemonic always last */
 		/* END: These are NCS internal use service-id definitions */
 
@@ -237,10 +222,10 @@ extern "C" {
  ************************************************************************/
 	typedef enum ncsmds_scopes {
 		NCSMDS_SCOPE_INTRAPCON = 1,	/* For intra-process-constellation events. */
-		NCSMDS_SCOPE_INTRANODE,	/* For intra-node events. */
+		NCSMDS_SCOPE_INTRANODE = 2,	/* For intra-node events. */
 		/* INTRACHASSIS Scope Not supported as of now */
-		NCSMDS_SCOPE_INTRACHASSIS,	/* For intra-chassis scoping. */
-		NCSMDS_SCOPE_NONE,
+		NCSMDS_SCOPE_INTRACHASSIS = 3,	/* For intra-chassis scoping. */
+		NCSMDS_SCOPE_NONE = 4,
 	} NCSMDS_SCOPE_TYPE;
 
 /*************************************************************************
@@ -324,18 +309,18 @@ extern "C" {
 	} MDS_SENDTYPE_RBCAST_INFO;
 
 	typedef enum {
-		MDS_SENDTYPE_SND,	/* Simply send a message and forget about it           */
-		MDS_SENDTYPE_SNDRSP,	/* Send a message and wait for the response or timeout */
-		MDS_SENDTYPE_SNDRACK,	/* Send a response and wait for the ack or timeout     */
-		MDS_SENDTYPE_SNDACK,	/* Send a message and wait for the ack or timeout      */
-		MDS_SENDTYPE_RSP,	/* Send a response to the message received thro SNDRSP */
-		MDS_SENDTYPE_RED,	/* Simply send a message and forget about it           */
-		MDS_SENDTYPE_REDRSP,	/* Send a message and wait for the response or timeout */
-		MDS_SENDTYPE_REDRACK,	/* Send a response and wait for the ack or timeout     */
-		MDS_SENDTYPE_REDACK,	/* Send a message and wait for the ack or timeout      */
-		MDS_SENDTYPE_RRSP,	/* Send a response to the message received thro REDRSP */
-		MDS_SENDTYPE_BCAST,	/* Send a broadcast message to all primaries           */
-		MDS_SENDTYPE_RBCAST	/* Send a broadcast message to both anchors            */
+		MDS_SENDTYPE_SND = 0,	/* Simply send a message and forget about it           */
+		MDS_SENDTYPE_SNDRSP = 1,	/* Send a message and wait for the response or timeout */
+		MDS_SENDTYPE_SNDRACK = 2,	/* Send a response and wait for the ack or timeout     */
+		MDS_SENDTYPE_SNDACK = 3,	/* Send a message and wait for the ack or timeout      */
+		MDS_SENDTYPE_RSP = 4,	/* Send a response to the message received thro SNDRSP */
+		MDS_SENDTYPE_RED = 5,	/* Simply send a message and forget about it           */
+		MDS_SENDTYPE_REDRSP = 6,	/* Send a message and wait for the response or timeout */
+		MDS_SENDTYPE_REDRACK = 7,	/* Send a response and wait for the ack or timeout     */
+		MDS_SENDTYPE_REDACK = 8,	/* Send a message and wait for the ack or timeout      */
+		MDS_SENDTYPE_RRSP = 9,	/* Send a response to the message received thro REDRSP */
+		MDS_SENDTYPE_BCAST = 10,	/* Send a broadcast message to all primaries           */
+		MDS_SENDTYPE_RBCAST = 11,	/* Send a broadcast message to both anchors            */
 	} MDS_SENDTYPES;
 
 	typedef enum {
@@ -354,20 +339,20 @@ extern "C" {
     2) SVC APIs into MDS   (requests into MDS by Services(clients) )
 *************************************************************************/
 	typedef enum {
-		MDS_INSTALL,
-		MDS_UNINSTALL,
-		MDS_SUBSCRIBE,	/* For subscribing under a simple-view    */
-		MDS_RED_SUBSCRIBE,	/* For subscribing under a redundant-view */
-		MDS_CANCEL,
-		MDS_SYS_SUBSCRIBE,	/* subscribe to system events: node up/down */
-		MDS_SEND,
-		MDS_DIRECT_SEND,
-		MDS_RETRIEVE,
-		MDS_CHG_ROLE,	/* Changes role service's underlying VDEST  */
-		MDS_QUERY_DEST,
-		MDS_QUERY_PWE,
-		MDS_NODE_SUBSCRIBE,
-		MDS_NODE_UNSUBSCRIBE,
+		MDS_INSTALL = 0,
+		MDS_UNINSTALL = 1,
+		MDS_SUBSCRIBE = 2,	/* For subscribing under a simple-view    */
+		MDS_RED_SUBSCRIBE = 3,	/* For subscribing under a redundant-view */
+		MDS_CANCEL = 4,
+		MDS_SYS_SUBSCRIBE = 5,	/* subscribe to system events: node up/down */
+		MDS_SEND = 6,
+		MDS_DIRECT_SEND = 7,
+		MDS_RETRIEVE = 8,
+		MDS_CHG_ROLE = 9,	/* Changes role service's underlying VDEST  */
+		MDS_QUERY_DEST = 10,
+		MDS_QUERY_PWE = 11,
+		MDS_NODE_SUBSCRIBE = 12,
+		MDS_NODE_UNSUBSCRIBE = 13,
 	} NCSMDS_TYPE;
 
 	typedef struct mds_install_info {
@@ -627,17 +612,17 @@ extern "C" {
 *************************************************************************/
 
 	typedef enum {
-		MDS_CALLBACK_COPY,
-		MDS_CALLBACK_ENC,
-		MDS_CALLBACK_DEC,
-		MDS_CALLBACK_ENC_FLAT,
-		MDS_CALLBACK_DEC_FLAT,
-		MDS_CALLBACK_RECEIVE,
-		MDS_CALLBACK_SVC_EVENT,
-		MDS_CALLBACK_SYS_EVENT,
-		MDS_CALLBACK_QUIESCED_ACK,	/* Acknowledgement of quiesced action */
-		MDS_CALLBACK_DIRECT_RECEIVE,
-		MDS_CALLBACK_NODE_EVENT,
+		MDS_CALLBACK_COPY = 0,
+		MDS_CALLBACK_ENC = 1,
+		MDS_CALLBACK_DEC = 2,
+		MDS_CALLBACK_ENC_FLAT = 3,
+		MDS_CALLBACK_DEC_FLAT = 4,
+		MDS_CALLBACK_RECEIVE = 5,
+		MDS_CALLBACK_SVC_EVENT = 6,
+		MDS_CALLBACK_SYS_EVENT = 7,
+		MDS_CALLBACK_QUIESCED_ACK = 8,	/* Acknowledgement of quiesced action */
+		MDS_CALLBACK_DIRECT_RECEIVE = 9,
+		MDS_CALLBACK_NODE_EVENT = 10,
 
 		MDS_CALLBACK_SVC_MAX
 	} NCSMDS_CALLBACK_TYPE;
