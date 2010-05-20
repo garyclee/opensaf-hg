@@ -593,6 +593,7 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 	PLMS_TRACK_INFO trk_info;
 	SaUint32T no_of_ent_recd;
 	SaUint32T no_of_ent_in_grp = 0;
+	PLMS_MBCSV_MSG mbcsv_msg;
 
 	TRACE_ENTER();
 	
@@ -645,6 +646,23 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 		grp_info->track_flags = track_flags & (~SA_TRACK_CURRENT);
 		grp_info->track_cookie = plm_evt->req_evt.agent_track.track_start.track_cookie;
 
+	}
+	if (cb->ha_state == SA_AMF_HA_ACTIVE)
+	{
+		/* Update same to standby */
+		memset(&mbcsv_msg, 0, sizeof(PLMS_MBCSV_MSG));
+		mbcsv_msg.header.msg_type = PLMS_A2S_MSG_ENT_GRP_INFO;
+		mbcsv_msg.header.num_records = 1; /* Since async */
+		mbcsv_msg.info.ent_grp_info.entity_group_handle = grp_info->entity_grp_hdl; 
+		mbcsv_msg.info.ent_grp_info.agent_mdest_id = plm_evt->sinfo.dest;
+		mbcsv_msg.info.ent_grp_info.track_flags = grp_info->track_flags;
+		mbcsv_msg.info.ent_grp_info.track_cookie = grp_info->track_cookie; 
+		
+		proc_rc =  plms_mbcsv_send_async_update(&mbcsv_msg, NCS_MBCSV_ACT_UPDATE);
+		if (proc_rc != NCSCC_RC_SUCCESS)
+		{
+			LOG_ER("Async update to stdby failed");
+		}
 	}
 
 	/**
@@ -740,6 +758,8 @@ void plms_process_trk_stop_evt(PLMS_EVT *plm_evt)
 	PLMS_EVT plm_resp;
 	SaUint32T rc = SA_AIS_OK;
 	PLMS_INVOCATION_TO_TRACK_INFO *invocation_list, *next_inv_node;
+	PLMS_MBCSV_MSG mbcsv_msg;
+
 	TRACE_ENTER();
 	
 	/** get the entity group info node from the grp hdl */
@@ -783,6 +803,21 @@ void plms_process_trk_stop_evt(PLMS_EVT *plm_evt)
 	/** clear the track flags and cookie */
 	grp_info->track_flags = 0; 
 	grp_info->track_cookie = 0;
+	if (cb->ha_state == SA_AMF_HA_ACTIVE)
+	{
+		/* Checkpointing with track_flags & cookie as NULL, so that on Standy it will be set to 0 */
+		memset(&mbcsv_msg, 0, sizeof(PLMS_MBCSV_MSG));
+		mbcsv_msg.header.msg_type = PLMS_A2S_MSG_ENT_GRP_INFO;
+		mbcsv_msg.header.num_records = 1; /* Since async */
+		mbcsv_msg.info.ent_grp_info.entity_group_handle = grp_info->entity_grp_hdl; 
+		mbcsv_msg.info.ent_grp_info.agent_mdest_id = plm_evt->sinfo.dest;
+		
+		rc =  plms_mbcsv_send_async_update(&mbcsv_msg, NCS_MBCSV_ACT_UPDATE);
+		if (rc != NCSCC_RC_SUCCESS)
+		{
+			LOG_ER("Async update to stdby failed");
+		}
+	}
 send_resp:	
 	
 	memset(&plm_resp, 0, sizeof(PLMS_EVT));
