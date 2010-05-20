@@ -1905,7 +1905,6 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 	/* Since the same function is used for cold sync add and async update, first we see if the entity grp info already exist. if exists, modify the existing record, if not, create a new record and add it to the list */
 	
 	/* Traverse the list and find out the right group */
-	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 	ptr = cb->ckpt_entity_grp_info;
 	while(ptr)
 	{
@@ -1916,6 +1915,7 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 	
 			while (msg_list_ptr)
 			{
+				if(msg->info.ent_grp_info.track_cookie)
 			
 				/* First allocate mem for entity list and add it to group info */
 				cur_list_ptr = (PLMS_CKPT_ENTITY_LIST *)malloc(sizeof(PLMS_CKPT_ENTITY_LIST));
@@ -1967,7 +1967,10 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 				}
 				msg_list_ptr = msg_list_ptr->next;
 			} /* End of while (msg_list_ptr) */
-			m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
+			ptr->track_flags = msg->info.ent_grp_info.track_flags;
+			ptr->track_cookie = msg->info.ent_grp_info.track_cookie;
+
+			TRACE_LEAVE();
 			return NCSCC_RC_SUCCESS;
 		} /* end of comparing group handles */
 		
@@ -2057,7 +2060,6 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 		}
 
 	} 
-	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 		 		

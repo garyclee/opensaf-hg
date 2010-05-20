@@ -425,6 +425,7 @@ static SaUint32T plms_perform_pending_admin_clbk(
 					PLMS_CKPT_TRACK_STEP_INFO *track_step)
 {
 	PLMS_CB       *cb = plms_cb;
+	PLMS_ENTITY   *ent = NULL;
 	SaInvocationT inv_id = 0;
         PLMS_EVT agent_evt;
 	SaUint32T ret_err = NCSCC_RC_FAILURE;
@@ -434,6 +435,17 @@ static SaUint32T plms_perform_pending_admin_clbk(
 
 	if(NULL == grp_list || NULL == track_step)
 		return NCSCC_RC_FAILURE;
+	
+	ent = (PLMS_ENTITY *)ncs_patricia_tree_get(&(cb->entity_info),
+                           (SaUint8T *)&(track_step->dn_name));
+        if (NULL == ent) {
+
+                LOG_ER("plms_imm_adm_op_req_process:\
+                        Ent not found for in patricia tree. dn_name: %s",track_step->dn_name);
+                TRACE_LEAVE2("ret_err: %d",ret_err);
+                return ret_err;
+        }
+
 	
 	while(grp_list){
 		 /* Populate the callback event to be sent to PLMA */
@@ -466,6 +478,9 @@ static SaUint32T plms_perform_pending_admin_clbk(
                 				SA_PLM_CHANGE_COMPLETED;
                 agent_evt.req_evt.agent_track.track_cbk.error = SA_AIS_OK;
 
+		/* Add root as part of aff ent. */
+		plms_ent_to_ent_list_add(ent,&aff_ent_list);
+
 		/* Find no of affected entities.*/
                 cnt = plms_no_aff_ent_in_grp_get(grp_list->ent_grp_inf,
                                         aff_ent_list);
@@ -480,6 +495,10 @@ static SaUint32T plms_perform_pending_admin_clbk(
                 tracked_entities.entities =
                 (SaPlmReadinessTrackedEntityT*)malloc
                         (cnt * sizeof(SaPlmReadinessTrackedEntityT));
+		if(NULL == agent_evt.req_evt.agent_track.track_cbk.tracked_entities.entities){
+                        LOG_CR("cbk_call, calloc failed. Error: %s",strerror(errno));
+                        assert(0);
+                }
                 /* Pack the affected entities.*/
                 plms_grp_aff_ent_fill(agent_evt.req_evt.agent_track.
                         track_cbk.tracked_entities.entities,
