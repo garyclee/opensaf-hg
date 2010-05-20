@@ -1895,9 +1895,9 @@ SaUint32T plms_mbcsv_rem_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 {
 	PLMS_CB * cb = plms_cb;
-	PLMS_CKPT_ENTITY_GROUP_INFO *ptr,*prev = NULL,*tmp;
-	PLMS_CKPT_ENTITY_LIST       *cur_list_ptr,*prev_list_ptr = NULL,
-					*msg_list_ptr,*tmp_list_ptr;
+	PLMS_CKPT_ENTITY_GROUP_INFO *ptr = NULL,*prev = NULL,*tmp = NULL;
+	PLMS_CKPT_ENTITY_LIST       *cur_list_ptr = NULL,*prev_list_ptr = NULL,
+					*msg_list_ptr= NULL,*tmp_list_ptr = NULL;
 	SaInt8T                         str[256];				
 
 	TRACE_ENTER();
