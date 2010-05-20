@@ -972,6 +972,8 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
 		/* instantiating -> inst-failed */
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)) {
 			/* send the su-oper state msg (to indicate that instantiation failed) */
+			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
+			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
