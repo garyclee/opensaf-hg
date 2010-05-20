@@ -41,7 +41,7 @@ verifyExitCode()
     if [ $1 -ne 0 ]
     then
        script_error "$2 failed. Aborting script! exitCode: $1"
-       exit $?
+       exit $1
     fi
 }
 
@@ -407,14 +407,13 @@ determine_cluster_modification()
     s/safAmfNode=//g
     s/,safAmfCluster=myAmfCluster//g
     s/:/ /g
-    " | sed "s/ /\n/g" | sort --key=1.2`
+    " | sed "s/ /\n/g" | sort -n --key=1.4`
 
     verifyExitCode $? "determine_cluster_modification(): immlist -a saAmfNGNodeList safAmfNodeGroup=AllNodes ....."
 
 
     trace "CURRENT_NODES: $CURRENT_NODES"
 
-    NODE_CFG_FILE=./nodes.cfg
     NEW_NODECONFIG=`cat $NODE_CFG_FILE | awk '{ print $2 }'|xargs`
     NEW_PL_COUNT=`cat $NODE_CFG_FILE |grep "^PL " | wc -l`
     trace "NEW_NODECONFIG: $NEW_NODECONFIG"
@@ -447,6 +446,10 @@ determine_cluster_modification()
 
     done
     trace "NODES_TO_REMOVE:$NODES_TO_REMOVE"
+
+    if [[ -z $NODES_TO_ADD ]] && [[ -z $NODES_TO_REMOVE ]] ; then
+        die "The configured clustersize is equal to requested size. Exiting!"
+    fi
 }
 
 test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
@@ -455,6 +458,7 @@ test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
 USAGE="Usage: $0\n\
 \t  [-c|--node-config node_config_file]\n\
 \t  [-d|--workdir directory]\n\
+\t  [-f|--fragmentdir directory]\n\
 \t  [-n|--dry-run]\n\
 \t  [-h|--help]\n\
 \t  [-t|--trace]\n\
@@ -463,7 +467,8 @@ Note. With no options given to script it will create and load imm objects for th
 not yet existing nodes thats exists in node config file (default: ./nodes.cfg).\n
 With --dry-run option it is possible to generate a file with additional node related objects as an imm.xml delta file and a command file (placed in working directory)."
 
-TEMP=`getopt -o d:s:p:c:htn --long dry-run,nodes-to-remove:,node-config:,workdir:,help,trace \
+SERVICESDIR=./services
+TEMP=`getopt -o d:f:s:p:c:htn --long dry-run,nodes-to-remove:,node-config:,workdir:,fragmentdir:,help,trace \
      -- "$@"`
 if [ $? != 0 ] ; then
    script_error "Failed to process command options. Terminating..."
@@ -476,6 +481,7 @@ while true ; do
         case "$1" in
                 -c|--node-config) NODE_CFG_FILE=$2; trace "Option --node-config , argument \`$NODE_CFG_FILE'" ; shift 2 ;;
                 -d|--workdir) WORK_ROOTDIR=$2; trace "Option $1 , argument \`$WORK_ROOTDIR'" ; shift 2 ;;
+                -f|--fragmentdir) SERVICESDIR=$2; trace "Option $1 , argument \`$2'" ; shift 2 ;;
                 -h|--help) echo -e $USAGE ; exit 1 ;;
                 -n|--dry-run) DRYRUN=on ; shift 1 ;;
                 -t|--trace) TRACE_ENABLED=on ; TRACE_OPTION="-t"; shift 1 ;;
@@ -490,8 +496,8 @@ fi
 
 if [ -z $WORK_ROOTDIR ] ; then
    WORK_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
-   WORKDIR_SPECIFIED=true
 else
+   WORKDIR_SPECIFIED=true
    rm -rf $WORK_ROOTDIR
    mkdir -p $WORK_ROOTDIR
 fi
@@ -499,7 +505,6 @@ trace "WORK_ROOTDIR: $WORK_ROOTDIR"
 
 set -o pipefail
 
-SERVICESDIR=./services
 TEMPLATE_TMPDIR=$WORK_ROOTDIR/templatedir
 TMPDIR=$WORK_ROOTDIR/intermediatefiles
 NODE_TMPDIR=$WORK_ROOTDIR/nodes
@@ -532,8 +537,6 @@ elif [[ -n $NODES_TO_ADD ]] && [[ -z $NODES_TO_REMOVE ]] ; then
     trace "Cluster expansion"
     verify_expansion_prereq
     cluster_expansion
-else
-    script_error "This type of cluster modification not supported, added nodes:$NODES_TO_ADD removed nodes:$NODES_TO_REMOVE"
 fi
 
 info "Successfully resized cluster configuration resident in IMM, consider generating an updated version of /etc/opensaf/imm.xml"
@@ -541,6 +544,6 @@ info "Successfully resized cluster configuration resident in IMM, consider gener
 
 if [ -z "$WORKDIR_SPECIFIED" ] ; then
    # clean up only if workdir was not specified
-   rm -rf $WORK_ROOT_DIR
+   rm -rf $WORK_ROOTDIR
 fi
 
