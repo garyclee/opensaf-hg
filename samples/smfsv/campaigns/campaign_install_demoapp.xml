@@ -94,7 +94,7 @@
               saAmfCtDefDisableRestart="0" 
               saAmfCtDefClcCliTimeout="10000000000" 
               saAmfCtDefCallbackTimeout="10000000000" 
-              saAmfCtDefRecoveryOnError="5"/>
+              saAmfCtDefRecoveryOnError="2"/>
             <instantiateCmd saAmfCtRelPathInstantiateCmd="amf_demo_script">
               <cmdArgv>instantiate</cmdArgv>
             </instantiateCmd>
