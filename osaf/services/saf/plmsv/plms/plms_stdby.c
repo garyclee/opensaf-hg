@@ -441,7 +441,7 @@ static SaUint32T plms_perform_pending_admin_clbk(
         if (NULL == ent) {
 
                 LOG_ER("plms_imm_adm_op_req_process:\
-                        Ent not found for in patricia tree. dn_name: %s",track_step->dn_name);
+                        Ent not found for in patricia tree. dn_name: %s",track_step->dn_name.value);
                 TRACE_LEAVE2("ret_err: %d",ret_err);
                 return ret_err;
         }
