@@ -260,13 +260,11 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 #endif
 	if (tipc_cb.Dsock < 0) {
 		syslog(LOG_ERR, "MDS:MDTM: Dsock Socket creation failed in MDTM_INIT\n");
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 	tipc_cb.BSRsock = socket(AF_TIPC, SOCK_RDM, 0);
 	if (tipc_cb.BSRsock < 0) {
 		syslog(LOG_ERR, "MDS:MDTM: BSRsock Socket creation failed in MDTM_INIT\n");
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -275,14 +273,12 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 		syslog(LOG_ERR, "MDS:MDTM: Unable to get the CLOEXEC Flag on Dsock");
 		close(tipc_cb.Dsock);
 		close(tipc_cb.BSRsock);
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	} else {
 		if (fcntl(tipc_cb.Dsock, F_SETFD, (flags | FD_CLOEXEC)) == (-1)) {
 			syslog(LOG_ERR, "MDS:MDTM: Unable to set the CLOEXEC Flag on Dsock");
 			close(tipc_cb.Dsock);
 			close(tipc_cb.BSRsock);
-			assert(0);
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -292,14 +288,12 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 		syslog(LOG_ERR, "MDS:MDTM: Unable to get the CLOEXEC Flag on BSRsock");
 		close(tipc_cb.Dsock);
 		close(tipc_cb.BSRsock);
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	} else {
 		if (fcntl(tipc_cb.BSRsock, F_SETFD, (flags | FD_CLOEXEC)) == (-1)) {
 			syslog(LOG_ERR, "MDS:MDTM: Unable to set the CLOEXEC Flag on BSRsock");
 			close(tipc_cb.Dsock);
 			close(tipc_cb.BSRsock);
-			assert(0);
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -309,8 +303,9 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 	memset(&addr, 0, sizeof(addr));
 	if (0 > getsockname(tipc_cb.BSRsock, (struct sockaddr *)&addr, &sz)) {
 		syslog(LOG_ERR, "MDS:MDTM: Failed to get the BSR Sockname");
-		assert(0);
-		exit(1);
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
+		return NCSCC_RC_FAILURE;
 	}
 	*mds_tipc_ref = addr.addr.id.ref;
 
@@ -321,6 +316,13 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 #if MDS_TIPC_1_5
 	tipc_node_id = mdtm_tipc_own_node(tipc_cb.BSRsock);	/* This gets the tipc ownaddress */
 
+	if ( tipc_node_id == 0 ) {
+		syslog(LOG_ERR, "MDS:MDTM: Zero tipc_node_id ");
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
+		return NCSCC_RC_FAILURE;
+	}
+
 	/* Connect to the Topology Server */
 	memset(&topsrv, 0, sizeof(topsrv));
 	topsrv.family = AF_TIPC;
@@ -330,13 +332,16 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 
 	if (0 > connect(tipc_cb.Dsock, (struct sockaddr *)&topsrv, sizeof(topsrv))) {
 		syslog(LOG_ERR, "MDS:MDTM: Failed to connect to topology server");
-		assert(0);
-		exit(1);
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
+		return NCSCC_RC_FAILURE;
 	}
 #else
 	if (ioctl(tipc_cb.BSRsock, TIPC_OWN_NODE, &tipc_node_id)) {	/* This gets the tipc ownaddress */
 		syslog(LOG_ERR, "MDS:MDTM: Unable to get the TIPC Self NODE_ID");
-		assert(0);
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
+		return NCSCC_RC_FAILURE;
 	}
 #endif
 
@@ -345,7 +350,8 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 	if (m_NCS_IPC_CREATE(&tipc_cb.tmr_mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */
 		syslog(LOG_ERR, "MDS:MDTM: Tmr Mailbox Creation failed:\n");
-		assert(0);
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
 		return NCSCC_RC_FAILURE;
 	} else {
 
@@ -355,7 +361,8 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 		if (NCSCC_RC_SUCCESS != m_NCS_IPC_ATTACH(&tipc_cb.tmr_mbx)) {
 			m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, NULL);
 			syslog(LOG_ERR, "MDS:MDTM: Tmr Mailbox  Attach failed:\n");
-			assert(0);
+			close(tipc_cb.Dsock);
+			close(tipc_cb.BSRsock);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -371,7 +378,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 		close(tipc_cb.Dsock);
 		close(tipc_cb.BSRsock);
 		m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, NULL);
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -476,7 +482,7 @@ static uns32 mdtm_tipc_own_node(int fd)
 	memset(&addr, 0, sizeof(addr));
 	if (0 > getsockname(tipc_cb.Dsock, (struct sockaddr *)&addr, &sz)) {
 		m_MDS_LOG_ERR("MDTM: Failed to get Own Node Address");
-		assert(0);
+		return 0;
 	}
 	return addr.addr.id.node;
 }
@@ -506,7 +512,6 @@ static uns32 mdtm_create_rcv_task(int mdtm_hdle)
 			      NCS_MDTM_TASKNAME,
 			      NCS_MDTM_PRIORITY, NCS_MDTM_STACKSIZE, &tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Task Creation-failed:\n");
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -517,7 +522,6 @@ static uns32 mdtm_create_rcv_task(int mdtm_hdle)
 		m_MDS_LOG_ERR("MDTM: Start of the Created Task-failed:\n");
 		m_NCS_TASK_RELEASE(tipc_cb.mdtm_hdle_task);
 		m_MDS_LOG_ERR("MDTM: START of created task failed");
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 	/* return NCS success */
@@ -606,8 +610,7 @@ static uns32 mdtm_process_recv_events(void)
 #if MDS_TIPC_1_5
 			if (pfd[0].revents == POLLIN) {
 				if (recv(tipc_cb.Dsock, &event, sizeof(event), 0) != sizeof(event)) {
-					m_MDS_LOG_ERR("Unable to capture the recd event\n");
-					assert(0);
+					m_MDS_LOG_ERR("Unable to capture the recd event .. Continuing\n");
 					m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
 					continue;
 				} else {
@@ -635,15 +638,17 @@ static uns32 mdtm_process_recv_events(void)
 							       event.found_upper, event.port.node, event.port.ref);
 					} else {
 						m_MDS_LOG_ERR("MDTM: Unknown Event");
+						/* This should never come */
 						assert(0);
 					}
 				}
-			} else if (pfd[0].revents & POLLHUP) {	/* This value is returned when the number of subscriptions made cross the tipc max_subscr limit, so no more connection to the tipc topserver is present(viz no more up/down events), so assert and exit the process */
+			} else if (pfd[0].revents & POLLHUP) {	/* This value is returned when the number of subscriptions made cross the tipc max_subscr limit, so no more connection to the tipc topserver is present(viz no more up/down events), so abort and exit the process */
 				m_MDS_LOG_CRITICAL
 				    ("MDTM: POLLHUP returned on Discovery Socket, No. of subscriptions=%d",
 				     num_subscriptions);
-				assert(0);
-				exit(1);
+				abort(); /* This means, the process is use less as
+					    it has lost the connectivity with the topology server
+					    and will not be able to receive any UP/DOWN events */
 			}
 #else
 			if (pfd[0].revents & TIPC_TOPOLOGY_EVENT) {
@@ -651,7 +656,6 @@ static uns32 mdtm_process_recv_events(void)
 				m_MDS_LOG_INFO("MDTM: Topology Event: ");
 				if (ioctl(tipc_cb.Dsock, TIPC_GET_EVENT, &event)) {
 					m_MDS_LOG_ERR("Unable to capture the recd event\n");
-					assert(0);
 					m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
 					continue;
 				}
@@ -700,11 +704,10 @@ static uns32 mdtm_process_recv_events(void)
 						      (struct sockaddr *)&client_addr, &alen);
 
 #if MDS_TIPC_1_5
-				if (recd_bytes == 0) {	/* As we had disabled the feature of receving the bounced messages, recd_bytes==0 indicates a fatal condition so assert and exit */
+				if (recd_bytes == 0) {	/* As we had disabled the feature of receving the bounced messages, recd_bytes==0 indicates a fatal condition so abort */
 					m_MDS_LOG_CRITICAL
 					    ("MDTM: recd bytes=0 on receive sock, fatal condition. Exiting the process");
-					assert(0);
-					exit(1);
+					abort();
 				}
 #endif
 				data = inbuf;
@@ -745,8 +748,7 @@ static uns32 mdtm_process_recv_events(void)
 												     id.node),
 							     client_addr.addr.id.ref);
 							mds_buff_dump(inbuf, recd_bytes, 100);
-							assert(0);
-							exit(1);
+							abort();
 							m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
 							continue;
 						}
@@ -948,7 +950,6 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 				scope = NCSMDS_SCOPE_INTRACHASSIS;
 			else {
 				m_MDS_LOG_ERR("MDTM: SVC Scope Not supported");
-				assert(0);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -3417,7 +3418,6 @@ uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
 	if ((m_NCS_IPC_SEND(&tipc_cb.tmr_mbx, mbx_evt_info, NCS_IPC_PRIORITY_HIGH)) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: DESTROY post to Mailbox Failed\n");
 		m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
-		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
 	m_MDS_LOG_INFO("MDTM: DESTROY post to Mailbox Success\n");
@@ -3451,7 +3451,6 @@ uns32 mds_tmr_callback(NCSCONTEXT tmr_info_hdl)
 		/* Do we need to free the UB also??? */
 		m_MDS_LOG_ERR("MDTM: Tmr Mailbox IPC_SEND Failed\n");
 		m_MMGR_FREE_MBX_EVT_INFO(mbx_tmr_info);
-		assert(0);
 		m_MDS_LOG_ERR("Tmr Mailbox IPC_SEND Failed\n");
 		return NCSCC_RC_FAILURE;
 	} else {
