@@ -269,11 +269,13 @@ static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			TRACE_5("Received NCSMDS_NEW_ACTIVE for PLMS");
 		case NCSMDS_UP:
 			TRACE_5("Received MDSUP EVT for PLMS");
+                        m_NCS_LOCK(&plma_cb->cb_lock, NCS_LOCK_WRITE);
 			plma_cb->plms_mdest_id = svc_evt->i_dest;
 			plma_cb->plms_svc_up = TRUE;
 			if (plma_cb->plms_sync_awaited == TRUE) {
 				m_NCS_SEL_OBJ_IND(plma_cb->sel_obj);
 			}
+                        m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_WRITE);
 			break;
 		case NCSMDS_NO_ACTIVE:
 			TRACE_5("Received NCSMDS_NO_ACTIVE for PLMS");
