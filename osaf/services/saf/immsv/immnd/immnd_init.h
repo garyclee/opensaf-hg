@@ -259,6 +259,10 @@ extern "C" {
 		SaUint32T invocation, SaAisErrorT err,
 		SaClmNodeIdT nodeId, SaUint32T *reqConn);
 
+	void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
+		SaUint32T invocation, SaAisErrorT err,
+		SaClmNodeIdT nodeId, SaUint32T *reqConn);
+
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,
 					       SaUint32T ccbId,
 					       SaUint32T invocation, SaAisErrorT error, SaUint32T *reqConn);
@@ -279,8 +283,12 @@ extern "C" {
 
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,
-				    const struct ImmsvOmCcbObjectDelete *req,
-				    SaUint32T implConn, SaClmNodeIdT implNodeId);
+		    const struct ImmsvOmCcbObjectDelete *req,
+		    SaUint32T implConn, SaClmNodeIdT implNodeId,
+		    SaUint32T *continuationId, SaUint32T *pbeConn,
+		    SaClmNodeIdT *pbeNodeId, SaStringT **objNameArr,
+		    SaUint32T* arrSize);
+
 	SaAisErrorT
 	    immModel_rtObjectUpdate(IMMND_CB *cb,
 				    const struct ImmsvOmCcbObjectModify *req,

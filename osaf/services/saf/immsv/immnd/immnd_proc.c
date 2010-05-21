@@ -1005,6 +1005,8 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 			/* Forces PBE to restart which forces syncronization. */
 		} else {
 			/* Purge old Prto mutations before restarting PBE */
+			TRACE_5("immnd_ccbsTerminated coord/sync invoking "
+				"immnd_pbePrtoPurgeMutations");
 			immnd_pbePrtoPurgeMutations(cb);
 		}
 	}
@@ -1491,7 +1493,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				       "after %u seconds. Aborting this sync attempt", cb->mTimer / 10);
 				immnd_abortSync(cb);
 				if(cb->syncPid != 0) {
-					LOG_NO("STOPPING sync process.");
+					LOG_NO("STOPPING sync process pid %u", cb->syncPid);
 					kill(cb->syncPid, SIGTERM);
 				}
 				cb->mTimer = 0;
@@ -1506,6 +1508,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 					LOG_WA("Persistent back-end process has apparently died.");
 					cb->pbePid = 0;
 					if(!immModel_pbeIsInSync(cb)) {
+						TRACE_5("Sync-server/coord invoking "
+							"immnd_pbePrtoPurgeMutations");
 						immnd_pbePrtoPurgeMutations(cb);
 					}
 				}
@@ -1579,6 +1583,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 				LOG_WA("Persistent back-end process has apparently died.");
 				cb->pbePid = 0;
 				if(!immModel_pbeIsInSync(cb)) {
+					TRACE_5("Server-ready/coord invoking "
+						"immnd_pbePrtoPurgeMutations");
 					immnd_pbePrtoPurgeMutations(cb);
 				}
 			}
@@ -1623,6 +1629,9 @@ uns32 immnd_proc_server(uns32 *timeout)
 							LOG_NO("STARTING persistent back end process.");
 							cb->pbePid = immnd_forkPbe(cb);
 						} else {
+							/* ABT Probably remove this one. */
+							TRACE_5("Sync-server/coord invoking "
+								"immnd_pbePrtoPurgeMutations");
 							immnd_pbePrtoPurgeMutations(cb);
 						}
 					}

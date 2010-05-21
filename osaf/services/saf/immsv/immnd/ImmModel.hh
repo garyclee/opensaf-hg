@@ -198,6 +198,12 @@ public:
 						     unsigned int nodeId, 
 						     SaUint32T *reqConn);
     
+    void                 pbePrtObjDeletesContinuation(
+						     SaUint32T invocation,
+						     SaAisErrorT error,
+						     unsigned int nodeId, 
+						     SaUint32T *reqConn);
+    
     // Administrative operations
     SaAisErrorT         adminOperationInvoke(
                                              const ImmsvOmAdminOperationInvoke* req,
@@ -275,12 +281,17 @@ public:
     SaAisErrorT         rtObjectDelete(
                                        const ImmsvOmCcbObjectDelete* req, //re-used struct
                                        SaUint32T conn,
-                                       unsigned int nodeId);
+                                       unsigned int nodeId,
+				       SaUint32T* continuationId,
+				       SaUint32T* pbeConnPtr,
+				       unsigned int* pbeNodeIdPtr,
+				       ObjectNameVector& objNameVector);
     
     SaAisErrorT         deleteRtObject(
                                        ObjectMap::iterator& oi,
                                        bool doIt,
-                                       ImplementerInfo* info);
+                                       ImplementerInfo* info,
+				       bool& subTreeHasPersistent);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
 
