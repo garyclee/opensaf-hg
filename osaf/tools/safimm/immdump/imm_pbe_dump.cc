@@ -497,6 +497,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 	sqlite3_close((sqlite3 *) dbHandle);
 	delete classInfo;
 	/* TODO remove imm.db file */
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -580,6 +581,7 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 	sqlite3_close((sqlite3 *) dbHandle);
 	delete classInfo;
 	/* TODO remove imm.db file */
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -782,6 +784,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
  bailout:
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -989,6 +992,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
  bailout:
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -1129,7 +1133,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
-	TRACE_LEAVE();
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -1285,6 +1289,7 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
+	LOG_ER("Exiting");
 	exit(1);
 }
 
@@ -1414,7 +1419,7 @@ void objectToPBE(std::string objectNameString,
 	return;
  bailout:
 	sqlite3_close(dbHandle);
-	TRACE_LEAVE();
+	LOG_ER("Exiting");
 	/* TODO remove imm.db file */
 	exit(1);
 }
@@ -1462,7 +1467,7 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
-	TRACE_LEAVE();
+	LOG_ER("Exiting");
 	exit(1);	
 }
 
@@ -1529,7 +1534,7 @@ unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* 
 
  bailout:
 	sqlite3_close(dbHandle);
-	TRACE_LEAVE();
+	LOG_ER("Exiting");
 	exit(1);	
 }
 
@@ -1632,6 +1637,7 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
+	LOG_ER("Exiting");
 	exit(1);	
 }
 
@@ -1765,6 +1771,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 	return err;
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
+	LOG_ER("Exiting");
 	exit(1);
 }
 

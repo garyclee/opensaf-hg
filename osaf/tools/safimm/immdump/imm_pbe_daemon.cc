@@ -201,7 +201,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 				   represenation of the immsv data. 
 				   This is not the only way to solve this. In fact the current solution is
 				   very unoptimal since it generates possibly several sql commands for what
-				   could be one. The advantag with the current solution is that it follows
+				   could be one. The advantage with the current solution is that it follows
 				   the logic of the ImmModel and can do so using the data provided by the
 				   unmodified ccbObjectModify upcall.
 				 */

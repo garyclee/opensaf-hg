@@ -135,6 +135,14 @@ typedef SaUint32T ImmObjectFlags;
 //in external rep have been replaced by an escape hash "\#" in internal rep;
 //Escape hash in external rep are not allowed, will be rejected in create.
 
+#define IMM_PRTO_FLAG 0x00000008
+//Flag indicates that the object is a persistent runtime object.
+//Note that this flag is no reliably set in general. I.e. it should
+//not (yet) be used in general to test if the object is a PRTO.
+//If the flag is set then it implies the object is a PRTO.
+//If the flag is not set the object could still be a PRTO.
+//It is currently only used in rtObjectDelete & deleteRtObject
+
 struct ObjectInfo  
 {
     void             getAdminOwnerName(std::string *str) const;
@@ -1006,6 +1014,14 @@ void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
         invocation, err, nodeId, reqConn);
 }
 
+void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaAisErrorT err,
+        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+{
+    ImmModel::instance(&cb->immModel)->pbePrtObjDeletesContinuation(
+        invocation, err, nodeId, reqConn);
+}
+
 void
 immModel_ccbObjModifyContinuation(IMMND_CB *cb,
     SaUint32T ccbId, 
@@ -1181,10 +1197,35 @@ SaAisErrorT
 immModel_rtObjectDelete(IMMND_CB *cb, 
     const struct ImmsvOmCcbObjectDelete* req,
     SaUint32T implConn,
-    SaClmNodeIdT implNodeId)
+    SaClmNodeIdT implNodeId,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId,
+    SaStringT **objNameArr,
+    SaUint32T* arrSizePtr)
 {
-    return ImmModel::instance(&cb->immModel)->
-        rtObjectDelete(req, implConn, (unsigned int) implNodeId);
+    ObjectNameVector ov;
+    ObjectNameVector::iterator oni;
+    unsigned int ix = 0;
+    assert(arrSizePtr);
+
+    SaAisErrorT err = ImmModel::instance(&cb->immModel)->
+        rtObjectDelete(req, implConn, (unsigned int) implNodeId,
+            continuationId, pbeConn, pbeNodeId, ov);
+
+    (*arrSizePtr) = ov.size();
+    TRACE("ov.size():%u", ov.size());
+    if((err == SA_AIS_OK) && (*arrSizePtr)) {
+       *objNameArr = (SaStringT *) malloc((*arrSizePtr)* sizeof(SaStringT));
+
+       for(oni=ov.begin(); oni != ov.end(); ++oni, ++ix) {
+           std::string delObjName = (*oni);
+           (*objNameArr)[ix] = (SaStringT) malloc(delObjName.size() + 1);
+           strncpy((*objNameArr)[ix], delObjName.c_str(), delObjName.size()+1);
+       }
+    }
+    assert(ix==(*arrSizePtr));
+    return err;
 }
 
 SaAisErrorT
@@ -1383,6 +1424,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
     SaInvocationT inv;
     ContinuationMap2::iterator ci;
     TRACE_ENTER();
+    bool dummy=false;
 
     for(omuti=sPbeRtMutations.begin(); 
         omuti!=sPbeRtMutations.end(); ++omuti) {
@@ -1398,19 +1440,25 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
             sPbeRtReqContinuationMap.erase(ci);
         }
 
+        /* Fall back. */
         switch(oMut->mOpType) {
             case IMM_CREATE:
-                /* Fall forward. */
                 oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
                 oMut->mAfterImage = NULL;
                 LOG_IN("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
-                assert(deleteRtObject(oi, true, NULL) == SA_AIS_OK);
-                
-                break;
+                assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+            break;
 
             case IMM_DELETE:
-
+                    oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
+                    oMut->mAfterImage = NULL;
+                    /* A delete may delete a tree including both persistent
+                       and non persistent RTOs. The roll back here has to
+                       revert all the deletes, not just the persistent RTOs.
+                    */
+                    LOG_IN("Delete of runtime object '%s' REVERTED ",
+                        omuti->first.c_str());
                 break;
 
             case IMM_MODIFY:
@@ -2640,6 +2688,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     TRACE_ENTER();
     CcbVector::iterator i;
     bool pbeModeChange = false;
+    bool ccbNotEmpty = false;
 
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     assert(i != sCcbVector.end());
@@ -2657,6 +2706,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     //Do the actual commit!
     ObjectMutationMap::iterator omit;
     for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit){
+        ccbNotEmpty=true;
         ObjectMutation* omut = omit->second;
         assert(!omut->mWaitForImplAck);
         switch(omut->mOpType){
@@ -2690,6 +2740,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     for(isi = ccb->mImplementers.begin();
         isi != ccb->mImplementers.end();
         ++isi) {
+        ccbNotEmpty = true;
         ImplementerCcbAssociation* implAssoc = isi->second;
         assert(!(implAssoc->mWaitForImplAck));
         ImplementerInfo* impInfo = implAssoc->mImplementer;
@@ -2715,7 +2766,9 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     //We do not wait for replies from peer imm-server-nodes or from
     //implementers on the apply callback (no return code).
     ccb->mState = IMM_CCB_COMMITTED;
-    LOG_NO("Ccb %u COMMITTED", ccb->mId);
+    if(ccbNotEmpty) {
+        LOG_IN("Ccb %u COMMITTED", ccb->mId);
+    }
     return pbeModeChange;
 }
 
@@ -7451,15 +7504,69 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     if(error == SA_AIS_OK) {
         LOG_IN("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
     } else {
+        bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
         assert(oi != sObjectMap.end());
-        assert(deleteRtObject(oi, true, NULL) == SA_AIS_OK);
+        assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
             i2->first.c_str(), error);
     }
 
     sPbeRtMutations.erase(i2);
     delete oMut;
+    TRACE_LEAVE();
+}
+
+void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+{
+    TRACE_ENTER();
+    unsigned int nrofDeletes=0;
+    SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    } 
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ) {
+        if(i2->second->mContinuationId != invocation) {
+            ++i2;
+            continue;
+        }
+
+        ++nrofDeletes;
+        ObjectMutation* oMut = i2->second;
+        assert(oMut->mOpType == IMM_DELETE);
+
+        oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
+        oMut->mAfterImage = NULL;
+
+        if(error == SA_AIS_OK) {
+            LOG_IN("Delete of runtime object '%s'.", i2->first.c_str());
+            bool dummy=false;
+            ObjectMap::iterator oi = sObjectMap.find(i2->first);
+            assert(oi != sObjectMap.end());
+            assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
+        } else {
+            LOG_WA("Delete of runtime object '%s' REVERTED. PBE rc:%u", 
+                i2->first.c_str(), error);
+        }
+
+        delete oMut;
+        sPbeRtMutations.erase(i2);
+        i2 = sPbeRtMutations.begin();
+    } //for
+
+    if(nrofDeletes == 0) {
+        LOG_ER("PBE PRTO Deletes continuation missing! invoc:%u",
+            invocation);
+    } else {
+        TRACE("PBE PRTO Deleted %u RT Objects", nrofDeletes);    
+    }
     TRACE_LEAVE();
 }
 
@@ -7518,6 +7625,11 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         TRACE_7("ERR_NOT_EXIST: object '%s' registered for creation "
             "but not yet applied (ccb or PRTO PBE)", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
+        goto rtObjectUpdateExit;
+    } else if(oi->second->mObjFlags & IMM_DELETE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: object '%s' registered for delete "
+            "but not yet applied (PRTO PBE)", objectName.c_str());
+        err = SA_AIS_ERR_TRY_AGAIN;
         goto rtObjectUpdateExit;
     }
     
@@ -7824,13 +7936,27 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
  */
 SaAisErrorT
 ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
-    SaUint32T conn,
-    unsigned int nodeId)
+        SaUint32T reqConn, 
+        unsigned int nodeId,
+        SaUint32T* continuationIdPtr,
+        SaUint32T* pbeConnPtr,
+        unsigned int* pbeNodeIdPtr,
+        ObjectNameVector& objNameVector)
 {
-    TRACE_ENTER();
+    bool subTreeHasPersistent = false;
+
+    TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr,
+        pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
     ImplementerInfo* info = NULL;
-    
+    if(pbeNodeIdPtr) {
+        (*pbeNodeIdPtr) = 0;
+        assert(continuationIdPtr);
+        (*continuationIdPtr) = 0;
+        assert(pbeConnPtr);
+        (*pbeConnPtr) = 0;
+    }
+
     if(immNotWritable()) { /*Check for persistent RTOs further down. */
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
@@ -7840,7 +7966,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         (size_t)req->objectName.size);
     std::string objectName((const char*)req->objectName.buf, sz);
     
-    TRACE_2("Delete runtime object objectName:%s and all subobjects\n", 
+    TRACE_2("Delete runtime object '%s' and all subobjects\n", 
         objectName.c_str());
     
     ObjectMap::iterator oi, oi2;
@@ -7879,21 +8005,84 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
         goto rtObjectDeleteExit;
     } 
     
-    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+    if((info->mConn != reqConn) || (info->mNodeId != nodeId)) {
         LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
             "not correspond to the actual connection <%u, %x> != <%u, %x>",
-            req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
+            req->adminOwnerId, info->mConn, info->mNodeId, reqConn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;
         goto rtObjectDeleteExit;
     }
-    //conn is NULL on all nodes except primary.
+    //reqConn is NULL on all nodes except primary.
     //At these other nodes the only info on implementer existence is that
     //the nodeId is non-zero. The nodeId is the nodeId of the node where
     //the implementer resides.
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
-        err = deleteRtObject(oi, doIt, info);
-        
+        void* pbe = NULL;
+        if(doIt && pbeNodeIdPtr && subTreeHasPersistent) {
+            TRACE("PRTO DELETE case, deferred deletes until ACK from PBE");
+            /* We expect a PBE and the recursive RTO delete includes
+               some PERSISETENT RTOs, then dont delete the RTOs now,
+               instead flag each object with a DELETE_LOCK and postpone
+               the actual deletes pending an ack from PBE. Note that
+               even non persistent RTOs that happen to be included
+               in the subtree to be deleted, will be flag'ed with
+               DELETE_LOCK and wait for the PBE ack. The reason is that
+               the *entire* subtree delete must be atomic. If the PBE
+               has problems, the recursive delete may get reverted. This
+               reversion has to include non persistent RTOs. 
+            */
+            pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+            if(!pbe) {
+                LOG_ER("ERR_TRY_AGAIN: Persistent back end is down - unexpected here");
+                err = SA_AIS_ERR_TRY_AGAIN;
+                goto rtObjectDeleteExit;
+                /* We have already checked for PbeWritable with success inside
+                   deleteRtObject. Why do we fail in obtaining the PBE data now??
+                   We could have an assert here, but since we have not done any
+                   mutations yet (doit just turned true), we can get away with a
+                   TRY_AGAIN.
+                */
+            }
+
+            /* If the subtree to delete includes PRTOs then we use a continuationId
+               as a common pseudo ccbId for all the RTOs in the subtree.
+            */
+            *continuationIdPtr = ++sLastContinuationId;
+            if(sLastContinuationId >= 0xfffffffe)
+            {sLastContinuationId = 1;}
+            TRACE("continuation generated: %u", *continuationIdPtr);
+
+            if(reqConn) {
+                SaInvocationT tmp_hdl = m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
+                sPbeRtReqContinuationMap[tmp_hdl] =
+                    ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+            }
+
+            TRACE_5("Tentative delete of runtime object '%s' "
+                "by Impl %s pending PBE ack", oi->first.c_str(),
+                info->mImplementerName.c_str());
+
+            oi->second->mObjFlags |= IMM_DELETE_LOCK;
+            /* Dont overwrite IMM_DN_INTERNAL_REP */
+            ObjectMutation* oMut = new ObjectMutation(IMM_DELETE);
+            oMut->mContinuationId = (*continuationIdPtr);
+            oMut->mAfterImage = oi->second;
+            sPbeRtMutations[oi->first] = oMut;
+           if(oi->second->mObjFlags & IMM_PRTO_FLAG) {
+                TRACE("PRTO flag was set for root");
+                if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                    std::string tmpName(oi->first);
+                    nameToExternal(tmpName);
+                    objNameVector.push_back(tmpName);
+                } else {
+                    objNameVector.push_back(oi->first);
+                }
+            }
+        } else {
+            err = deleteRtObject(oi, doIt, info, subTreeHasPersistent);
+        }
+
         //Find all sub objects to the deleted object and delete them 
         for(oi2 = sObjectMap.begin(); 
             oi2 != sObjectMap.end() && err == SA_AIS_OK;) {
@@ -7903,10 +8092,34 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 size_t pos = subObjName.length() - objectName.length();
                 if((subObjName.rfind(objectName, pos) == pos) &&
                     (subObjName[pos-1] == ',')) {
-                    err = deleteRtObject(oi2, doIt, info);
-                    if(doIt && err == SA_AIS_OK) {
-                        deleted = true;
-                    }//if
+                    if(doIt && pbeNodeIdPtr && subTreeHasPersistent) {
+                        TRACE_5("Tentative delete of runtime object '%s' "
+                            "by Impl %s pending PBE ack", subObjName.c_str(),
+                            info->mImplementerName.c_str());
+
+                        oi2->second->mObjFlags |= IMM_DELETE_LOCK;
+                        /* Dont overwrite IMM_DN_INTERNAL_REP */
+                        ObjectMutation* oMut = new ObjectMutation(IMM_DELETE);
+                        oMut->mContinuationId = (*continuationIdPtr);
+                        oMut->mAfterImage = oi2->second;
+                        sPbeRtMutations[subObjName] = oMut;
+                        if(oi2->second->mObjFlags & IMM_PRTO_FLAG) {
+                            TRACE("PRTO flag was set for subobj");
+                            if(oi2->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                                std::string tmpName(subObjName);
+                                nameToExternal(tmpName);
+                                objNameVector.push_back(tmpName);
+                            } else {
+                                objNameVector.push_back(subObjName);
+                            }
+                        }
+                    } else {
+                        /* Normal non persistent RTO delete case */
+                        err = deleteRtObject(oi2, doIt, info, subTreeHasPersistent);
+                        if(doIt && err == SA_AIS_OK) {
+                            deleted = true;
+                        }
+                    }//else
                 }//if
             }//if
             if(deleted) {
@@ -7926,19 +8139,22 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
 
 SaAisErrorT
 ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt, 
-    ImplementerInfo* info)
+    ImplementerInfo* info, bool& subTreeHasPersistent)
 {
-    /* If param info==NULL then this is an immsv internal revert of
-       PRTO PBE create. See: ImmModel::pbePrtObjCreateContinuation.
-       Otherwise this is a normal RTO/PRTO delete.
+    TRACE_ENTER();
+    /* If param info!=NULL then this is a normal RTO delete.
+       If param info==NULL then this is an immsv internal delete.
+       Either a revert of PRTO PBE create due to NACK from PBE.
+       OR materialization of a delete duw to ACK from PBE.
+       See: ImmModel::pbePrtObjCreateContinuation and
+       ImmModl:pbePrtoObjDeletesContinuation.
      */
     ObjectInfo* object = oi->second;
     assert(object);
     ClassInfo* classInfo = object->mClassInfo;
     assert(classInfo);
-    bool isPersistent = false;
-    AttrMap::iterator i4;
 
+    AttrMap::iterator i4;
     
     if(info && (!object->mImplementer || object->mImplementer != info)) {
         LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle "
@@ -7962,16 +8178,37 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
         AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT));
 
-    isPersistent = i4 != classInfo->mAttrMap.end();
+    bool isPersistent = i4 != classInfo->mAttrMap.end();
+
+    if(isPersistent) {
+        object->mObjFlags |= IMM_PRTO_FLAG;
+    }
 
     if(!info) {
-        //Revert of PRTO PBE CREATE.
-        assert(isPersistent);
-    } else if(isPersistent && immNotPbeWritable()) {
-        //"Normal" delete of PRTO
-        TRACE_7("ERR_TRY_AGAIN: Can not delete persistent RTO when "
-            "PBE is unavailable");
-        return SA_AIS_ERR_TRY_AGAIN;
+        if(isPersistent) {
+            TRACE_7("Exotic deleteRtObj for PERSISTENT rto, "
+                "revert on create or ack on delete from PBE");
+        } else {
+            TRACE_7("Exotic deleteRtObj for regular rto, "
+                "revert on create or ack on delete from PBE");
+        }
+    } else if(isPersistent && !doIt) {
+        if(!subTreeHasPersistent && immNotPbeWritable()) {
+            /* Clarification of if statement: We are about to set 
+               subTreeHasPersistent to true. 
+               Why the condition "!subTreeHasPersistent" ? 
+               It is just to avoid repeated execution of immNotPbeWritable
+               for every object in the subtree. We only need to check
+               immNotPbeWritable once in this job, so we do it the first time
+               when we are about to set subTreeHasPersistent,
+            */
+            TRACE_7("TRY_AGAIN: Can not create persistent RTO when PBE is unavailable");
+            return SA_AIS_ERR_TRY_AGAIN;
+        }
+
+        subTreeHasPersistent = true;
+        TRACE("Detected persistent object %s in subtree to be deleted",
+            oi->first.c_str());
     }
 
     if(object->mObjFlags & IMM_CREATE_LOCK) {
@@ -7981,9 +8218,21 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
            be recursive over a tree where only some subobject is being 
            created. Returning NOT_EXIST could be very confusing here.
          */
+        TRACE("ERR_TRY_AGAIN CREATE LOCK WAS SET");
         return SA_AIS_ERR_TRY_AGAIN; 
     }
-        
+
+    if(object->mObjFlags & IMM_DELETE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: sub-object '%s' already registered for delete "
+            "but not yet applied by PRTO PBE ?", oi->first.c_str());
+        /* Possibly we should return NOT_EXIST here, but the delete may
+           be recursive over a tree where only some subobject is being 
+           deleted. Returning NOT_EXIST could be very confusing here.
+         */
+        TRACE("ERR_TRY_AGAIN DELETE LOCK WAS SET");
+        return SA_AIS_ERR_TRY_AGAIN; 
+    }    
+
     if(doIt) {
         ImmAttrValueMap::iterator oavi;
         for(oavi = object->mAttrValueMap.begin();
@@ -8004,12 +8253,12 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
                 LOG_IN("Delete of PERSISTENT runtime object '%s' by Impl: %s", 
                 oi->first.c_str(), info->mImplementerName.c_str());
             } else {
-                TRACE_7("REVERT of create of PERSISTENT runtime object '%s'.", 
-                    oi->first.c_str());
+                TRACE_7("REVERT of create OR ack from PBE on delete of PERSISTENT "
+                    "runtime object '%s'", oi->first.c_str());
             }
         } else {
             TRACE_7("Delete runtime object '%s' by Impl-id: %u", 
-                oi->first.c_str(), info->mId);
+                oi->first.c_str(), info?(info->mId):0);
         }
 
         AdminOwnerVector::iterator i2;

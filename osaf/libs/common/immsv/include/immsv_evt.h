@@ -169,6 +169,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME = 71,/* Fetch ccb outcome OK/FAILED_OP given ccb-id. */
 	IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP = 72,/* Response on PBE OI PRT OBJ CREATE. */
 	IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS = 73,/* Purge all unack'ed PRT OBJ changes */
+	IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP = 74,/*Resp on PBE OI PRTO deletes */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
