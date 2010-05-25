@@ -106,6 +106,8 @@ typedef struct imma_cb {
 	MDS_DEST imma_mds_dest;
 	NCSMDS_SVC_ID sv_id;
 	NCS_LOCK cb_lock;
+	uns32 pend_dis;		/* Number of pending dispaches */
+	uns32 pend_fin;		/* Number of pending agent destroy */
 	EDU_HDL edu_hdl;	/* edu handle obscurely needed by mds */
 
 	/* Information about IMMND */
