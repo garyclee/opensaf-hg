@@ -485,6 +485,8 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = FALSE;
+	uns32 pend_fin = 0;
+   	uns32 pend_dis = 0;
     TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -566,7 +568,9 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	}
     cl_node = NULL; /* Prevent unsafe use.*/
     /* unlocked */
-
+	
+  	/* Increment Dispatch usgae count */
+   	cb->pend_dis++;
 
 	switch (dispatchFlags) {
 	case SA_DISPATCH_ONE:
@@ -586,9 +590,25 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 		break;
 	}			/* switch */
 
+	/* Decrement Dispatch usage count */
+   	cb->pend_dis--;
+
+	/* can't use cb after we do agent shutdown, so copy all counts */
+   	pend_dis = cb->pend_dis;
+   	pend_fin = cb->pend_fin;
+
  fail:
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	/* see if we are still in any dispact context */ 
+	if(pend_dis == 0)
+     	while(pend_fin != 0)
+     	{
+       		/* call agent shutdown,for each finalize done before */
+		cb->pend_fin --;
+      		imma_shutdown(NCSMDS_SVC_ID_IMMA_OM);
+       		pend_fin--;
+     	}
 
     TRACE_LEAVE();
 	return rc;
@@ -616,6 +636,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	IMMA_CLIENT_NODE *cl_node = 0;
 	uns32 proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
+	NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -740,6 +761,11 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 
 		imma_proc_decrement_pending_reply(cl_node); 
 		imma_finalize_client(cb, cl_node);
+		/* Fialize the environment */  
+		 if ( cb->pend_dis == 0)
+		     agent_flag = TRUE;
+		 else if(cb->pend_dis > 0)
+		     cb->pend_fin++;
 	}
 
  lock_fail1:
@@ -749,6 +775,8 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
+    /* we are not in any dispatch context, we can do agent shutdown */
+  	if(agent_flag == TRUE) 
 	if (rc == SA_AIS_OK) {
 		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OM)) {
             TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed");
