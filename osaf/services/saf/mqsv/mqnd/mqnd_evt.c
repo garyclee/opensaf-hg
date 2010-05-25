@@ -754,13 +754,6 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 				goto send_rsp;
 			}
 		}
-		if (qnode) {
-			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-				mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
-					    qnode->qinfo.queueName.value);
-				return NCSCC_RC_FAILURE;
-			}
-		}
 
 		/* Delete the mapping entry from the qname database */
 		memset(&qname, 0, sizeof(SaNameT));
