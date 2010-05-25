@@ -515,6 +515,7 @@ static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			if (avd_sirankedsu_ccb_complete_delete_hdlr(opdata))
 				rc = SA_AIS_OK;
 		}
+		break;
 	default:
 		assert(0);
 		break;
