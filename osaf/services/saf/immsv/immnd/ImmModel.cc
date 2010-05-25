@@ -1214,7 +1214,6 @@ immModel_rtObjectDelete(IMMND_CB *cb,
             continuationId, pbeConn, pbeNodeId, ov);
 
     (*arrSizePtr) = ov.size();
-    TRACE("ov.size():%u", ov.size());
     if((err == SA_AIS_OK) && (*arrSizePtr)) {
        *objNameArr = (SaStringT *) malloc((*arrSizePtr)* sizeof(SaStringT));
 
