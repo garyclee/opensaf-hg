@@ -1015,14 +1015,6 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 			if (opr.info.msg.resp)
 				asapi_msg_free(&opr.info.msg.resp);
 		}
-		if ((timeout == 0) && qnode && (qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) &&
-		    (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))) {
-			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
-				mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED \n",
-					    qnode->qinfo.queueName.value);
-				return NCSCC_RC_FAILURE;
-			}
-		}
 
 		/* Delete the mapping entry from the qname database */
 		memset(&qname, 0, sizeof(SaNameT));
@@ -1045,6 +1037,12 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 
 		/* Delete the Queue Node */
 		mqnd_queue_node_del(cb, qnode);
+
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qname) != SA_AIS_OK) {
+			mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED \n",
+					    qnode->qinfo.queueName.value);
+			return NCSCC_RC_FAILURE;
+		}
 
 		/* Free the Queue Node */
 		m_MMGR_FREE_MQND_QUEUE_NODE(qnode);
