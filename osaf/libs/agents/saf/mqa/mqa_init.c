@@ -333,6 +333,17 @@ static uns32 mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 	if (!cb)
 		return NCSCC_RC_FAILURE;
 
+	/* return MQA CB */
+	ncshm_give_hdl(gl_mqa_hdl);
+
+	/* remove the association with hdl-mngr */
+	ncshm_destroy_hdl(NCS_SERVICE_ID_MQA, cb->agent_handle_id);
+
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)	{
+		TRACE("mqa_destroy Failed to acquire lock");
+		return NCSCC_RC_FAILURE;
+	}
+
 	mqa_timer_table_destroy(cb);
 
 	/* Unregister with ASAPi */
@@ -348,14 +359,10 @@ static uns32 mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 	/* delete all the client info */
 	mqa_client_tree_destroy(cb);
 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
-
-	/* return MQA CB */
-	ncshm_give_hdl(gl_mqa_hdl);
-
-	/* remove the association with hdl-mngr */
-	ncshm_destroy_hdl(NCS_SERVICE_ID_MQA, cb->agent_handle_id);
 
 	/* de register with the flex log */
 	mqa_flx_log_dereg();
