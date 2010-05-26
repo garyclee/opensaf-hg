@@ -335,6 +335,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaNameT su_name;
 	SaNameT si_name;
         uns32 rank = 0;
+	AVD_SUS_PER_SI_RANK_INDX indx;
 
         memset(&su_name, 0, sizeof(SaNameT));
         memset(&si_name, 0, sizeof(SaNameT));
@@ -358,6 +359,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if (immutil_getAttr("saAmfRank", attributes, 0, &rank) != SA_AIS_OK) {
 		LOG_ER("saAmfRank not found for %s", dn->value);
+		return 0;  
+	}
+
+	indx.si_name = si_name;
+	indx.su_rank = rank;
+	if ((avd_sirankedsu_find(avd_cb, indx)) != NULL ) {
+		LOG_ER("saAmfRankedSu exists %s", dn->value);
 		return 0;  
 	}
 
