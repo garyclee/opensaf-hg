@@ -2751,11 +2751,12 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 SaUint32T plms_adm_repair( PLMS_EVT *evt)
 {
 	
-	SaUint32T ret_err = NCSCC_RC_FAILURE;
+	SaUint32T ret_err = NCSCC_RC_FAILURE,is_set = 0;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL,*head,*log_head;
+	PLMS_GROUP_ENTITY *aff_ent_list_flag = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
 	SaPlmTrackCauseT trk_cause = 0;
@@ -2931,6 +2932,9 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 				SA_PLM_RF_ISOLATE_PENDING,0/* unmark*/,
 				NULL,SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		/* Check is the imminet-failure flag of the entity can be set.*/
+		plms_dep_immi_flag_check_and_set(ent,&aff_ent_list_flag,&is_set);
 #if 0			
 		/* Operational state of the root entity was disabled.
 		 * Hence imminent-failure flag would have ben cleared. 
@@ -2952,7 +2956,14 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 		trk_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
 
 	}
-
+	/* Join the two aff ent list.*/
+	if (NULL != aff_ent_list_flag){
+		head = aff_ent_list_flag;
+		while (head){
+			plms_ent_to_ent_list_add(head->plm_entity,&aff_ent_list);
+			head = head->next;
+		}
+	}
 	plms_aff_ent_exp_rdness_state_ow(aff_ent_list);
 	plms_ent_exp_rdness_state_ow(ent);
 	

@@ -33,7 +33,7 @@
 static int32  plms_plmc_tcp_cbk(tcp_msg *);
 static SaUint32T plms_ee_verify(PLMS_ENTITY *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_os_info_parse(SaInt8T *, PLMS_PLMC_EE_OS_INFO *);
-static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *, PLMS_TRACK_INFO *);
+static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *, PLMS_TRACK_INFO *,PLMS_GROUP_ENTITY *,SaUint32T);
 void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *);
 
@@ -45,6 +45,8 @@ static SaUint32T plms_lck_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *);
+
+static void plms_insted_dep_immi_failure_cbk_call(PLMS_ENTITY *, PLMS_GROUP_ENTITY *);
 /******************************************************************************
 @brief		: Process instantiating event from PLMC.
 		  1. Do the OS verification irrespective of previous state.
@@ -297,8 +299,9 @@ SaUint32T plms_plmc_terminated_process(PLMS_ENTITY *ent)
 SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-	SaUint32T prev_adm_op = 0;
+	SaUint32T prev_adm_op = 0,is_set = 0;
 	PLMS_TRACK_INFO *trk_info = NULL;
+	PLMS_GROUP_ENTITY *aff_ent_list_flag = NULL;
 	PLMS_CB *cb = plms_cb; 
 
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
@@ -415,6 +418,9 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 			
 	ent->iso_method = PLMS_ISO_DEFAULT;
 
+	/* Set the dep-imminet-failure flag if required.*/
+	plms_dep_immi_flag_check_and_set(ent,&aff_ent_list_flag,&is_set);
+
 	/* Handle the admin operation for which this ent is restarted.*/
 	if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
 		
@@ -463,6 +469,10 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		if ( prev_adm_op && !(trk_info->track_count))
 			plms_trk_info_free(trk_info);
 
+		if (is_set){
+			plms_insted_dep_immi_failure_cbk_call(ent,aff_ent_list_flag);
+		}
+
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return NCSCC_RC_SUCCESS;
 	}else{
@@ -478,7 +488,7 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 
 		/* Make an attempt to make the readiness state
 		to insvc.*/
-		ret_err = plms_plmc_unlck_insvc(ent,trk_info);
+		ret_err = plms_plmc_unlck_insvc(ent,trk_info,aff_ent_list_flag,is_set);
 	}
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
@@ -868,8 +878,9 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 			PLMS_PLMC_EE_OS_INFO *os_info)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-	SaUint32T prev_adm_op = 0;
+	SaUint32T prev_adm_op = 0,is_set = 0;
 	PLMS_TRACK_INFO *trk_info = NULL;
+	PLMS_GROUP_ENTITY *aff_ent_list_flag = NULL;
 	PLMS_CB *cb = plms_cb;	
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
@@ -902,6 +913,10 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 			SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 			ent->iso_method = PLMS_ISO_DEFAULT;
+			
+			/* Set the dep-imminet-failure flag if required.*/
+			plms_dep_immi_flag_check_and_set(ent,&aff_ent_list_flag,&is_set);
+
 
 			/* Handle the admin operation for which this ent is 
 			restarted.*/
@@ -957,6 +972,11 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 				
 				if ( prev_adm_op && !(trk_info->track_count))
 					plms_trk_info_free(trk_info);
+				
+				if (is_set){
+					plms_insted_dep_immi_failure_cbk_call(ent,aff_ent_list_flag);
+				}
+
 				TRACE_LEAVE2("Return Val: %d",ret_err);
 				return NCSCC_RC_SUCCESS;
 			}else{
@@ -971,7 +991,7 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 					%s SUCCESSFUL", ent->dn_name_str);
 				/* Make an attempt to make the readiness state
 				to insvc.*/
-				ret_err = plms_plmc_unlck_insvc(ent,trk_info);
+				ret_err = plms_plmc_unlck_insvc(ent,trk_info,aff_ent_list_flag,is_set);
 			}
 
 		}
@@ -1822,7 +1842,7 @@ void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *os_info)
 @return 	: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 ******************************************************************************/
 static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
-				PLMS_TRACK_INFO *trk_info)
+PLMS_TRACK_INFO *trk_info,PLMS_GROUP_ENTITY *aff_ent_list_flag,SaUint32T is_set)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
@@ -1843,7 +1863,15 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 		dependency flag.*/
 		plms_move_dep_ent_to_insvc(ent->rev_dep_list,
 		&aff_ent_list,1);
-
+		
+		/* Merger aff_ent_list*/
+		if (NULL != aff_ent_list_flag){
+			log_head = aff_ent_list_flag;
+			while (log_head){
+				plms_ent_to_ent_list_add(log_head->plm_entity,&aff_ent_list);
+				log_head = log_head->next;
+			}
+		}
 		TRACE("Affected entities for ent %s: ",ent->dn_name_str);
 		log_head = aff_ent_list;
 		while(log_head){
@@ -1903,7 +1931,13 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 		
 		memset(&new_trk_info,0,sizeof(PLMS_TRACK_INFO));
 		new_trk_info.group_info_list = NULL;
-	
+		new_trk_info.aff_ent_list = NULL;
+		
+		if (NULL != aff_ent_list_flag){
+			new_trk_info.aff_ent_list = aff_ent_list_flag;
+			plms_ent_list_grp_list_add(aff_ent_list_flag,&(new_trk_info.group_info_list));
+			plms_aff_ent_exp_rdness_state_ow(aff_ent_list_flag);
+		}
 		/* Add the groups, root entity(ent) belong to.*/
 		plms_ent_grp_list_add(ent, &(new_trk_info.group_info_list));
 	
@@ -1931,10 +1965,14 @@ static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *ent,
 		}
 
 		plms_ent_exp_rdness_status_clear(ent);
+		plms_aff_ent_exp_rdness_status_clear(aff_ent_list_flag);
 		
 		plms_ent_grp_list_free(new_trk_info.group_info_list);
 		new_trk_info.group_info_list = NULL;
+		plms_ent_list_free(aff_ent_list_flag);
 		
+	}else if (is_set){
+		plms_insted_dep_immi_failure_cbk_call(ent,aff_ent_list_flag);
 	}
 	/* Free the trk_info corresponding to the last admin operation
 	if count is zero.*/
@@ -2980,4 +3018,44 @@ SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *ent)
 		ent->dn_name_str);
 	}
 	return ret_err;
+}
+
+/******************************************************************************
+@brief		: Call readiness callback when dep-imminet-flag is set for an
+		Entity, when that entity is enabled after instantiation.
+@param[in]	: ent - Entity.
+		  aff_ent_list - Affected entity list.
+@return		: None.
+******************************************************************************/
+void plms_insted_dep_immi_failure_cbk_call(PLMS_ENTITY *ent, PLMS_GROUP_ENTITY *aff_ent_list)
+{
+	PLMS_TRACK_INFO trk_info;
+	
+	
+	memset(&trk_info,0,sizeof(PLMS_TRACK_INFO));
+	trk_info.aff_ent_list = NULL;
+	trk_info.group_info_list = NULL;
+	
+	plms_ent_grp_list_add(ent,&(trk_info.group_info_list));
+	plms_ent_exp_rdness_state_ow(ent);
+	if (NULL != aff_ent_list){
+		trk_info.aff_ent_list = aff_ent_list;
+		plms_ent_list_grp_list_add(aff_ent_list,&(trk_info.group_info_list));
+		plms_aff_ent_exp_rdness_state_ow(aff_ent_list);
+	}
+	
+	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
+	trk_info.track_cause = SA_PLM_CAUSE_IMMINENT_FAILURE;
+	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
+	trk_info.root_entity = ent;
+	plms_cbk_call(&trk_info,1);
+
+	/* *Callback is called. Clean up job.*/
+	plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
+	plms_ent_exp_rdness_status_clear(ent);
+	plms_ent_grp_list_free(trk_info.group_info_list);
+	plms_ent_list_free(trk_info.aff_ent_list);
+
+	return;
 }
