@@ -1636,6 +1636,16 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 
 		/* The message is assign active all */
 		if (su->sg_of_su->su_oper_list.su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
+			/* If we are doing a controller switch over, send the quiesced 
+			 * notification now that we have a new active.
+			 */
+			if (su->sg_of_su->sg_ncs_spec) {
+				for (l_susi = su->sg_of_su->su_oper_list.su->list_of_susi;
+				      l_susi != NULL; l_susi = l_susi->su_next) {
+					avd_gen_su_ha_state_changed_ntf(cb, l_susi);
+				}
+			}
+
 			/* the SU in the operation list has admin operation switch Send a 
 			 * D2N-INFO_SU_SI_ASSIGN with modify all standby to the SU in
 			 * operation list, Change the switch state to false for the SU.
