@@ -916,7 +916,7 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 	if (immutil_getAttr("saAmfCtCompCategory", attributes, 0, &compt->saAmfCtCompCategory) != SA_AIS_OK)
 		assert(0);
 
-	if (!IS_COMP_PROXIED(compt->saAmfCtCompCategory) && IS_COMP_LOCAL(compt->saAmfCtCompCategory) && 
+	if (IS_COMP_LOCAL(compt->saAmfCtCompCategory) && 
 	    immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle) != SA_AIS_OK) {
 		assert(0);
 		return NULL;	
