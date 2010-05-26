@@ -109,6 +109,8 @@ fi
 
 printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
 
+chmod 744 $pkglocalstatedir/node_id
+
 if [ "$USE_SUBSLOT_ID" = "YES" ]; then
     TIPC_NODEID=$(($SLOT_ID << $SHIFT4))
     TIPC_NODEID=$(($TIPC_NODEID + $SUBSLOT_ID))
