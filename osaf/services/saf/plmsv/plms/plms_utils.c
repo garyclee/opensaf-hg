@@ -3793,7 +3793,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 			the groups to trk_info->group_info_list.
 			*/
 			if (NULL != aff_ent_list_flag){
-				plms_ent_list_grp_list_add(aff_ent_list,
+				plms_ent_list_grp_list_add(aff_ent_list_flag,
 				&(trk_info.group_info_list));	
 			}
 
@@ -3997,11 +3997,12 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 			PLMS_SEND_INFO *snd_info,SaNtfCorrelationIdsT *cor_ids)
 {
-	SaUint32T ret_err;
+	SaUint32T ret_err,is_set = 0;
 	SaNtfIdentifierT ntf_id = SA_NTF_IDENTIFIER_UNUSED;
 	PLMS_EVT evt;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
+	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
 	PLMS_CB *cb = plms_cb;
 
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
@@ -4094,6 +4095,9 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 			NULL,SA_NTF_OBJECT_OPERATION,
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
+	/* Check is the imminet-failure flag of the entity can be set.*/
+	plms_dep_immi_flag_check_and_set(ent,&aff_ent_list,&is_set);
+
 	/* TODO: If the entity is already in active/instantiated state,
 	then we need to move the ent to insvc, but then if the opetaional
 	state is disable ==> the ent must be in inactive/uninstantiated
@@ -4110,13 +4114,23 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	/* Overwrite the expected readiness state and flag of the 
 	root entity.*/
 	plms_ent_exp_rdness_state_ow(ent);
+	
+	/* Overwrite the expected readiness status with the current.*/
+	plms_aff_ent_exp_rdness_state_ow(aff_ent_list);
 
 	/* Fill the track info.*/
-	trk_info.aff_ent_list = NULL;
 	trk_info.group_info_list = NULL;
 	
 	/* Add the groups, root entity(ent) belong to.*/
 	plms_ent_grp_list_add(ent,&(trk_info.group_info_list));
+	
+	/* Find out all the groups, all affected entities belong to and add 
+	the groups to trk_info->group_info_list.
+	*/
+	if (NULL != aff_ent_list){
+		trk_info.aff_ent_list = aff_ent_list;
+		plms_ent_list_grp_list_add(aff_ent_list,&(trk_info.group_info_list));	
+	}
 	
 	TRACE("Affected groups for ent %s: ",ent->dn_name_str);
 	log_head_grp = trk_info.group_info_list;
@@ -4856,6 +4870,77 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 
 	ent->deact_in_pro = FALSE;
 	ent->act_in_pro = FALSE;
+
+	return;
+}
+/******************************************************************************
+@brief		: Check if the dep-imminet-failure flag can be set when the 
+		operational state is marked to enabled.
+@param[in]	: ent - Entity.
+@param[out]	: aff_ent_list - List of affected entities.
+@param[out]	: is_set - If the flag is set.
+******************************************************************************/
+void plms_dep_immi_flag_check_and_set(PLMS_ENTITY *ent, PLMS_GROUP_ENTITY **aff_ent_list,SaUint32T *is_set)
+{
+	PLMS_GROUP_ENTITY *head = NULL;
+	PLMS_ENTITY *anc = NULL;
+	SaUint32T count = 0, to_b_set = 0;
+	
+	*is_set = to_b_set;
+	/* If the min dep criteria is met, then have to clear the
+	dep-imminet-failure flag.*/
+	head = ent->dependency_list;
+	while(head){
+		
+		if ( ((PLMS_HE_ENTITY == head->plm_entity->entity_type) && 
+		(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.he_entity.saPlmHEOperationalState)) || 
+		((PLMS_EE_ENTITY == head->plm_entity->entity_type) && 
+		SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.ee_entity.saPlmEEOperationalState)){
+
+			if (!plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE) &&
+			!(plms_rdness_flag_is_set(head->plm_entity,SA_PLM_RF_IMMINENT_FAILURE))){
+				count++;
+			}
+		}
+		head = head->next;
+	}
+	if (count >= ent->min_no_dep){
+		/* Min dependency is OK. Check for ancestors.*/
+		anc = ent->parent;
+		while (anc){
+			if ( plms_rdness_flag_is_set(anc,SA_PLM_RF_IMMINENT_FAILURE) || 
+			plms_rdness_flag_is_set(anc,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)){
+				to_b_set = 1;
+				break;
+			}
+			anc = anc->parent;
+		}
+	}else{
+		to_b_set = 1;
+	}
+	
+	if (to_b_set){
+		
+		if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)){
+			
+			*is_set = to_b_set;
+			
+			plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE,
+					1/*mark*/,NULL,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+			plms_aff_dep_list_imnt_failure_get(ent,ent->rev_dep_list,1,aff_ent_list);
+
+			head = *aff_ent_list;
+			while (head){
+				plms_readiness_flag_mark_unmark(head->plm_entity,
+					SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE,
+					1/*mark*/,ent,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);
+				head = head->next;
+			}
+		}
+	}
 
 	return;
 }

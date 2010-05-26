@@ -96,5 +96,6 @@ SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *,SaInt8T *,SaStringT,
 SaImmAttrModificationTypeT);
 SaUint32T plms_attr_saname_imm_update(PLMS_ENTITY *,SaInt8T *,SaNameT,
 SaImmAttrModificationTypeT);
+void plms_dep_immi_flag_check_and_set(PLMS_ENTITY *, PLMS_GROUP_ENTITY **,SaUint32T *);
 #endif
 
