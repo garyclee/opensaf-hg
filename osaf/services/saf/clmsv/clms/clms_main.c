@@ -173,6 +173,7 @@ static uns32 clms_self_node_info(void)
 
 	if (node->admin_state == SA_CLM_ADMIN_UNLOCKED) {
 		node->member = SA_TRUE;
+		++(osaf_cluster->num_nodes);
 		node->boot_time = clms_get_SaTime();
 #ifdef ENABLE_AIS_PLM
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;	/*TBD : changed when plm scripts are added to rc scripts */

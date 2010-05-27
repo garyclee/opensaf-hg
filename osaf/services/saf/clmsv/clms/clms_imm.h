@@ -34,6 +34,7 @@ extern SaClmClusterNotificationT_4 *clms_notbuffer_changes_only(SaClmChangeStepT
 extern SaClmClusterNotificationT_4 *clms_notbuffer_changes(SaClmChangeStepT step);
 extern uns32 clms_node_delete(CLMS_CLUSTER_NODE * nd, int i);
 extern uns32 clms_nodedb_lookup(int i);
+extern uns32 clms_num_mem_node(void);
 extern SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata);
 extern void clms_lock_timer_exp(int signo, siginfo_t *info, void *context);
 extern SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata);
