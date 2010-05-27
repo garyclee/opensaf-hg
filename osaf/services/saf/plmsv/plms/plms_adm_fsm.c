@@ -3440,7 +3440,7 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
-	PLMS_GROUP_ENTITY *aff_ent_list=NULL,*head;
+	PLMS_GROUP_ENTITY *aff_ent_list=NULL,*head,*to_be_rmv = NULL;
 	PLMS_TRACK_INFO *trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
@@ -3608,6 +3608,8 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 				SA_PLM_READINESS_STOPPING,
 				ent,SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
+		}else{/* This entity is not part of affected entity anymore.*/
+			plms_ent_to_ent_list_add(head->plm_entity,&to_be_rmv);	
 		}
 		plms_readiness_flag_mark_unmark(head->plm_entity,
 				SA_PLM_RF_DEPENDENCY,TRUE,ent,
@@ -3628,6 +3630,31 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	 trk_info->root_entity = ent;
 	 plms_cbk_call(trk_info,1);
 	/*******************************************************************/
+	/* Clean up the redundant entities and groups.*/
+	if (NULL != to_be_rmv){
+		plms_aff_ent_flag_mark_unmark(to_be_rmv,FALSE);
+		plms_aff_ent_exp_rdness_status_clear(to_be_rmv);
+		head = to_be_rmv;
+		while (head){
+			plms_ent_from_ent_list_rem(head->plm_entity,&aff_ent_list);
+			head = head->next;
+		}
+		
+		plms_ent_grp_list_free(trk_info->group_info_list);
+		trk_info->group_info_list = NULL;	
+		plms_ent_grp_list_add(ent,&(trk_info->group_info_list));
+		plms_ent_list_grp_list_add(aff_ent_list,&(trk_info->group_info_list));
+
+		TRACE("Affected groups for ent %s: ",ent->dn_name_str);
+		log_head_grp = trk_info->group_info_list;
+		while(log_head_grp){
+			TRACE("%llu,",log_head_grp->ent_grp_inf->entity_grp_hdl);
+			log_head_grp = log_head_grp->next;
+		}
+
+		trk_info->aff_ent_list = aff_ent_list;
+		plms_ent_list_free(to_be_rmv);
+	}
 	
 	/* Mark the expected readiness state of the root entity.*/
 	ent->exp_readiness_status.readinessState = 

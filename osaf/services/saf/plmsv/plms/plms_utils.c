@@ -1651,7 +1651,11 @@ void plms_grp_aff_ent_fill(SaPlmReadinessTrackedEntityT *ent,
 			if (SA_PLM_CHANGE_COMPLETED == change_step){
 				ent[count].expectedReadinessStatus = ent[count].currentReadinessStatus;
 			}else{
-				ent[count].expectedReadinessStatus = head->plm_entity->exp_readiness_status; 
+				if (SA_PLM_GROUP_NO_CHANGE == ent[count].change ){
+					ent[count].expectedReadinessStatus = ent[count].currentReadinessStatus;
+				}else{
+					ent[count].expectedReadinessStatus = head->plm_entity->exp_readiness_status; 
+				}
 			}
 		count++;
 		head = head->next;
