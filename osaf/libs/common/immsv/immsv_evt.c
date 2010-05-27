@@ -141,7 +141,8 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME",
 	"IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP",
 	"IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS",
-	"IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP"
+	"IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP",
+	"IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -2932,6 +2933,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP:	/*CcbObjDelete local Reply */
 		case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP: /* Pbe OI rt obj create response */
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
+		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
 
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.ccbUpcallRsp.oi_client_hdl);
@@ -4114,6 +4116,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP:	/*CcbObjDelete local Reply */
 		case IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP: /* Pbe OI rt obj create response */
 		case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:/*Pbe PRTO deletes done */
+		case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:/* Pbe OI rt attr update response*/
 
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 			immndevt->info.ccbUpcallRsp.oi_client_hdl = ncs_decode_64bit(&p8);

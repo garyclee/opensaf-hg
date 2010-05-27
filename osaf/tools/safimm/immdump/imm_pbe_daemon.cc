@@ -79,7 +79,8 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 						  const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	struct CcbUtilCcbData *ccbUtilCcbData;
+	struct CcbUtilCcbData *ccbUtilCcbData = NULL;
+	struct CcbUtilOperationData  *operation = NULL;
 
 	TRACE_ENTER2("Modify callback for CCB:%llu object:%s", ccbId, objectName->value);
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
@@ -98,8 +99,96 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 		 */
 	} else {
 		/* "memorize the modification request" */
-		ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
+		assert(ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods) == 0);
 	}
+
+	if(ccbId == 0) {
+		const SaImmAttrModificationT_2 *attMod = NULL;
+		int ix=0;
+		std::string objName;
+		operation = ccbutil_getNextCcbOp(0, NULL);
+		assert(operation);
+		
+		TRACE("Update of PERSISTENT runtime attributes in object with DN: %s",
+			operation->objectName.value);
+
+		rc = pbeBeginTrans(sDbHandle);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to start transaction for PRT attr update");
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			goto done;
+		}
+		TRACE("Begin PBE transaction for rt obj update OK");
+
+
+		/* Note: it is important that the code in this update case follow
+		   the same logic as performed by ImmModel::rtObjectUpdate()
+		   We DO NOT want the PBE repository to diverge from the main memory
+		   represenation of the immsv data. 
+		   This is not the only way to solve this. In fact the current solution is
+		   very unoptimal since it generates possibly several sql commands for what
+		   could be one. The advantage with the current solution is that it follows
+		   the logic of the ImmModel and can do so using the data provided by the
+		   unmodified rtObjectUpdate upcall.
+		*/
+		TRACE("Update of object with DN: %s", operation->param.modify.objectName->value);
+		attrMods = operation->param.modify.attrMods;
+		while((attMod = attrMods[ix++]) != NULL) {
+			objName.append((const char *) operation->param.modify.objectName->value);
+			switch(attMod->modType) {
+				case SA_IMM_ATTR_VALUES_REPLACE:
+					objectModifyDiscardAllValuesOfAttrToPBE(sDbHandle, objName,
+						&(attMod->modAttr), ccbId);
+
+					if(attMod->modAttr.attrValuesNumber == 0) {
+						continue; //Ok to replace with nothing
+					}
+					//else intentional fall through
+
+				case SA_IMM_ATTR_VALUES_ADD:
+					if(attMod->modAttr.attrValuesNumber == 0) {
+						LOG_ER("Empty value used for adding to attribute %s",
+							attMod->modAttr.attrName);
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto abort;
+					}
+					
+					objectModifyAddValuesOfAttrToPBE(sDbHandle, objName,
+						&(attMod->modAttr), ccbId);
+							
+					break;
+
+				case SA_IMM_ATTR_VALUES_DELETE:
+					if(attMod->modAttr.attrValuesNumber == 0) {
+						LOG_ER("Empty value used for deleting from attribute %s",
+							attMod->modAttr.attrName);
+						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto abort;
+					}
+
+					objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, objName,
+						&(attMod->modAttr), ccbId);
+					
+					break;
+				default: assert(0);
+			}
+		}
+
+
+		ccbutil_deleteCcbData(ccbutil_findCcbData(0));
+
+		rc = pbeCommitTrans(sDbHandle, ccbId, sEpoch);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to commit transaction for PRT attr update");
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			goto done;
+		}
+		TRACE("Commit PBE transaction for rt attr update OK");
+	}
+
+	goto done;
+ abort:
+	pbeAbortTrans(sDbHandle);
  done:
 	TRACE_LEAVE();
 	return rc;
@@ -195,7 +284,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 			
 			case CCBUTIL_MODIFY:
-				/* Note: it is impprtant that the code in this MODIFY case follow
+				/* Note: it is important that the code in this MODIFY case follow
 				   the same logic as performed by ImmModel::ccbObjectModify()
 				   We DO NOT want the PBE repository to diverge from the main memory
 				   represenation of the immsv data. 
@@ -618,8 +707,6 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
 		if((ci)->second->mClassId > sClassCount) {
 			sClassCount = (ci)->second->mClassId;
 		}
-		TRACE("classID:%u sClassCount%u", (ci)->second->mClassId, 
-			sClassCount);
 	}
 
 	if (pbe_daemon_imm_init(immHandle) != SA_AIS_OK) {

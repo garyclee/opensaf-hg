@@ -204,6 +204,12 @@ public:
 						     unsigned int nodeId, 
 						     SaUint32T *reqConn);
     
+    void                 pbePrtAttrUpdateContinuation(
+						     SaUint32T invocation,
+						     SaAisErrorT error,
+						     unsigned int nodeId, 
+						     SaUint32T *reqConn);
+    
     // Administrative operations
     SaAisErrorT         adminOperationInvoke(
                                              const ImmsvOmAdminOperationInvoke* req,
@@ -276,7 +282,10 @@ public:
                                        const ImmsvOmCcbObjectModify* req, //re-used struct
                                        SaUint32T conn,
                                        unsigned int nodeId,
-                                       bool* isPureLocal);
+                                       bool* isPureLocal,
+				       SaUint32T* continuationId,
+				       SaUint32T* pbeConn,
+				       unsigned int* pbeNodeId);
     
     SaAisErrorT         rtObjectDelete(
                                        const ImmsvOmCcbObjectDelete* req, //re-used struct

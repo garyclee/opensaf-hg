@@ -121,6 +121,10 @@ typedef SaUint32T ImmObjectFlags;
 //from other Ccb's. Creates of subobjects in the same ccb must be allowed. 
 //Deletes from other ccbs need not test on ths lock because they will conflict
 //on the ccbId of the object anyway. 
+//The lock is also used during creates of persistent runtime objects (PRTOs).
+//If the Persistent Back End (PBE) is enabled, then the create of the PRTO
+//has to wait on ack from the PBE before being released to the client. 
+//During the wait, the create lock is set on the object.
 
 #define IMM_DELETE_LOCK 0x00000002
 //If the delete-lock is on, it signifies that a ccb has registered a delete
@@ -128,6 +132,11 @@ typedef SaUint32T ImmObjectFlags;
 //is to prevent the creates of subobjects to this object in any ccb.
 //Even in the SAME ccb it is not allowed to create subobject to a registered
 //delete. 
+//The lock is also used during deletes of persistent runtime objects (PRTOs).
+//If the Persistent Back End (PBE) is enabled, then the deletes of a subtree,
+//which may include both PRTOs and RTOs, has to wait on ack from the PBE,
+//before being released to the client. 
+//During the wait, the delete lock is set on the object.
 
 #define IMM_DN_INTERNAL_REP 0x00000004
 //If this flag is set it indicates that the DN has been changed in rep
@@ -136,12 +145,20 @@ typedef SaUint32T ImmObjectFlags;
 //Escape hash in external rep are not allowed, will be rejected in create.
 
 #define IMM_PRTO_FLAG 0x00000008
-//Flag indicates that the object is a persistent runtime object.
-//Note that this flag is no reliably set in general. I.e. it should
-//not (yet) be used in general to test if the object is a PRTO.
-//If the flag is set then it implies the object is a PRTO.
-//If the flag is not set the object could still be a PRTO.
-//It is currently only used in rtObjectDelete & deleteRtObject
+//Flag indicates that the object is a persistent runtime object (PRTO).
+//This flag is not reliably set in general. I.e. it can not (yet) be
+//used in general to test if the object is a PRTO.
+//If the flag is set then the object must be a PRTO.
+//If the flag is not set, the object could still be a PRTO.
+//It is currently only used in rtObjectDelete() and deleteRtObject()
+
+#define IMM_RT_UPDATE_LOCK 0x00000010
+//This is only set by rtObjectUpdate() when the update includes persistent
+//runtime attributes PRTAs. The PRTAs may belong to either a runtime object
+//or a configureation object. If the PBE is enabled, then the updates of
+//cached RTAs (peristent or just cached) included in the call, has to wait
+//for ack from the PBE on the perisistification of the PRTAs. 
+//The lock must be inspected/read by both ccb calls and RT calls.
 
 struct ObjectInfo  
 {
@@ -1022,6 +1039,14 @@ void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         invocation, err, nodeId, reqConn);
 }
 
+void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaAisErrorT err,
+        SaClmNodeIdT nodeId, SaUint32T *reqConn)
+{
+    ImmModel::instance(&cb->immModel)->pbePrtAttrUpdateContinuation(
+        invocation, err, nodeId, reqConn);
+}
+
 void
 immModel_ccbObjModifyContinuation(IMMND_CB *cb,
     SaUint32T ccbId, 
@@ -1232,14 +1257,18 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     const struct ImmsvOmCcbObjectModify* req,
     SaUint32T implConn,
     SaClmNodeIdT implNodeId,
-    unsigned int* isPureLocal)
+    unsigned int* isPureLocal,
+    SaUint32T *continuationId,
+    SaUint32T *pbeConn,
+    SaClmNodeIdT *pbeNodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
     bool isPl = *isPureLocal;
     TRACE_5("on enter isPl:%u", isPl);
     err =  ImmModel::instance(&cb->immModel)->
-        rtObjectUpdate(req, implConn, (unsigned int) implNodeId, &isPl);
+        rtObjectUpdate(req, implConn, (unsigned int) implNodeId, &isPl,
+            continuationId, pbeConn, pbeNodeId);
     TRACE_5("on leave isPl:%u", isPl);
     *isPureLocal = isPl;
     TRACE_LEAVE();
@@ -1422,6 +1451,8 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
     ObjectMap::iterator oi;
     SaInvocationT inv;
     ContinuationMap2::iterator ci;
+    ImmAttrValueMap::iterator oavi;
+    ObjectInfo *afim = NULL;
     TRACE_ENTER();
     bool dummy=false;
 
@@ -1430,7 +1461,6 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         ObjectMutation* oMut = omuti->second;
         oi = sObjectMap.find(omuti->first);
         assert(oi != sObjectMap.end());
-        assert(oi->second == oMut->mAfterImage);
         inv = m_IMMSV_PACK_HANDLE(oMut->mContinuationId, nodeId);
         ci = sPbeRtReqContinuationMap.find(inv);
 
@@ -1442,31 +1472,49 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         /* Fall back. */
         switch(oMut->mOpType) {
             case IMM_CREATE:
+                assert(oi->second == oMut->mAfterImage);
+
                 oMut->mAfterImage->mObjFlags &= ~IMM_CREATE_LOCK;
                 oMut->mAfterImage = NULL;
-                LOG_IN("Create of PERSISTENT runtime object '%s' REVERTED ",
+                LOG_WA("Create of PERSISTENT runtime object '%s' REVERTED ",
                     omuti->first.c_str());
                 assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
             break;
 
             case IMM_DELETE:
+                    assert(oi->second == oMut->mAfterImage);
+
                     oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
                     oMut->mAfterImage = NULL;
                     /* A delete may delete a tree including both persistent
                        and non persistent RTOs. The roll back here has to
                        revert all the deletes, not just the persistent RTOs.
                     */
-                    LOG_IN("Delete of runtime object '%s' REVERTED ",
+                    LOG_WA("Delete of runtime object '%s' REVERTED ",
                         omuti->first.c_str());
                 break;
 
             case IMM_MODIFY:
+                    assert(oi->second != oMut->mAfterImage);/* NOT equal */
+                    oi->second->mObjFlags &= ~IMM_RT_UPDATE_LOCK;
+                    afim =  oMut->mAfterImage;
+                    for(oavi =  afim->mAttrValueMap.begin(); 
+                        oavi != afim->mAttrValueMap.end(); ++oavi) {
+                            delete oavi->second;
+                    }
+                    afim->mAttrValueMap.clear(); 
+                    afim->mAdminOwnerAttrVal=0;
+                    afim->mClassInfo=0;
+                    afim->mImplementer=0;
+                    delete afim;
+                    oMut->mAfterImage = NULL;
+                    LOG_WA("update of PERSISTENT runtime attributes in object '%s' REVERTED.",
+                        omuti->first.c_str());
                 break;
 
             default:
                 assert(0);
         }
-
         delete oMut;
     }
 
@@ -2411,9 +2459,9 @@ SaAisErrorT
 ImmModel::ccbResult(SaUint32T ccbId)
 {
     SaAisErrorT err = SA_AIS_OK;
-	CcbVector::iterator i;
-	i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-	if(i == sCcbVector.end()) {
+    CcbVector::iterator i;
+    i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+    if(i == sCcbVector.end()) {
         LOG_WA("CCB %u does not exist- probably removed already", ccbId);
         err = SA_AIS_ERR_NO_RESOURCES;
     } else {
@@ -3824,6 +3872,16 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         }
     }
 
+    if(object->mObjFlags & IMM_RT_UPDATE_LOCK) {
+        /* Sorry but any ongoing PRTO update will interfere with additional
+           ccb ops on the object because the PRTO update has to be reversible.
+        */
+        LOG_IN("ERR_TRY_AGAIN: Object '%s' already subject of a persistent runtime "
+                 "attribute update", objectName.c_str());    
+        err = SA_AIS_ERR_TRY_AGAIN;
+        goto ccbObjectModifyExit;
+    }
+
     classInfo = object->mClassInfo;
     assert(classInfo);
     
@@ -4393,7 +4451,13 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             "currently", oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
-    
+
+    if(oi->second->mObjFlags & IMM_RT_UPDATE_LOCK) {
+        LOG_IN("ERR_TRY_AGAIN: Object '%s' already subject of a persistent runtime "
+            "attribute update", oi->first.c_str());
+        return SA_AIS_ERR_TRY_AGAIN;
+    }
+
     if(doIt) {
         bool localImpl = false;
         oi->second->mCcbId = ccb->mId; //Overwrite any old obsolete ccb id.
@@ -4893,7 +4957,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     "or PRTO PBE, not yet applied", objectName.c_str());  
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
-        }
+        } 
     }
     
     // Validate scope
@@ -7530,19 +7594,28 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
         assert(oMut->mOpType == IMM_DELETE);
 
         oMut->mAfterImage->mObjFlags &= ~IMM_DELETE_LOCK;
-        oMut->mAfterImage = NULL;
 
         if(error == SA_AIS_OK) {
-            LOG_IN("Delete of runtime object '%s'.", i2->first.c_str());
+            if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
+                LOG_IN("Delete of PERSISTENT runtime object '%s'.", i2->first.c_str());
+            } else {
+                LOG_IN("Delete of runtime object '%s'.", i2->first.c_str());
+            }
             bool dummy=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
             assert(oi != sObjectMap.end());
             assert(deleteRtObject(oi, true, NULL, dummy) == SA_AIS_OK);
         } else {
-            LOG_WA("Delete of runtime object '%s' REVERTED. PBE rc:%u", 
-                i2->first.c_str(), error);
+            if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
+                LOG_WA("Delete of PERSISTENT runtime object '%s' REVERTED. PBE rc:%u", 
+                    i2->first.c_str(), error);
+            } else {
+                LOG_WA("Delete of cached runtime object '%s' REVERTED. PBE rc:%u", 
+                    i2->first.c_str(), error);
+            }
         }
 
+        oMut->mAfterImage = NULL;
         delete oMut;
         sPbeRtMutations.erase(i2);
         i2 = sPbeRtMutations.begin();
@@ -7554,6 +7627,87 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
     } else {
         TRACE("PBE PRTO Deleted %u RT Objects", nrofDeletes);    
     }
+    TRACE_LEAVE();
+}
+
+void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
+    SaAisErrorT error, unsigned int nodeId, SaUint32T *reqConn)
+{
+    TRACE_ENTER();
+    SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    } 
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+
+    if(i2 == sPbeRtMutations.end()) {
+        LOG_ER("PBE PRTAttrs Update continuation missing! invoc:%u",
+            invocation);
+        return;
+    }
+
+    ObjectMutation* oMut = i2->second;
+    std::string objName(i2->first);
+
+    assert(oMut->mOpType == IMM_MODIFY);
+    ObjectInfo *afim =  oMut->mAfterImage;
+    assert(afim);
+    oMut->mAfterImage = NULL;
+
+    sPbeRtMutations.erase(i2);
+    delete oMut; oMut=NULL;
+
+    ObjectMap::iterator oi = sObjectMap.find(objName);
+    assert(oi != sObjectMap.end());
+    ObjectInfo* beforeImage = oi->second;
+    beforeImage->mObjFlags &= ~IMM_RT_UPDATE_LOCK;
+
+    ImmAttrValueMap::iterator oavi;
+
+    if(error == SA_AIS_OK) {
+        LOG_IN("Update of PERSISTENT runtime attributes in object '%s'.", 
+            objName.c_str());
+
+        /* Discard beforeimage attr values. */
+        for(oavi =  beforeImage->mAttrValueMap.begin();
+            oavi != beforeImage->mAttrValueMap.end(); ++oavi) {
+            delete oavi->second;
+        }
+        beforeImage->mAttrValueMap.clear(); 
+
+        for(oavi = afim->mAttrValueMap.begin(); oavi != afim->mAttrValueMap.end(); ++oavi) {
+            beforeImage->mAttrValueMap[oavi->first] = oavi->second;
+            if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                beforeImage->mAdminOwnerAttrVal = oavi->second;
+            }
+        }
+        afim->mAttrValueMap.clear();
+        delete afim;
+    } else {
+        LOG_WA("update of PERSISTENT runtime attributes in object '%s' REVERTED. "
+            "PBE rc:%u", objName.c_str(), error);
+
+        /*Discard afterimage */
+        for(oavi =  afim->mAttrValueMap.begin(); oavi != afim->mAttrValueMap.end(); ++oavi) {
+            delete oavi->second;
+        }
+        //Empty the collection, probably not necessary (as the
+        //ObjectInfo record is deleted below), but does not hurt.
+        afim->mAttrValueMap.clear(); 
+        afim->mAdminOwnerAttrVal=0;
+        afim->mClassInfo=0;
+        afim->mImplementer=0;
+        delete afim;
+    }
+
     TRACE_LEAVE();
 }
 
@@ -7569,9 +7723,12 @@ SaAisErrorT
 ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     SaUint32T conn,
     unsigned int nodeId,
-    bool* isPureLocal)
+    bool* isPureLocal,
+    SaUint32T* continuationIdPtr,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr)
 {
-    TRACE_ENTER();
+    TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
     
     //Even if Imm is not writable (sync is on-going) we must allow
@@ -7583,7 +7740,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     
     ClassInfo* classInfo = 0;
     ObjectInfo* object = 0;
-    
+    bool isPersistent = false;
     AttrMap::iterator i4;
     ObjectMap::iterator oi;
     ImmAttrValueMap::iterator oavi;
@@ -7618,8 +7775,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             "but not yet applied (PRTO PBE)", objectName.c_str());
         err = SA_AIS_ERR_TRY_AGAIN;
         goto rtObjectUpdateExit;
-    }
-    
+    } 
+
     /*Prevent abuse from wrong implementer.*/
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
@@ -7675,8 +7832,90 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     TRACE_5("Update runtime attributes in object '%s'", objectName.c_str());
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
-        immsv_attr_mods_list* p = req->attrMods;
         TRACE_5("update rt attributes doit: %u", doIt);
+        void* pbe = NULL;
+        ImmAttrValueMap::iterator oavi;
+        if(doIt && pbeNodeIdPtr && isPersistent && !wasLocal)
+        {
+            ObjectInfo* afim = 0;
+            ImmAttrValueMap::iterator oavi;
+            ObjectMutation* oMut = 0;
+
+            TRACE("PRT ATTRs UPDATE case, defer updates of cached attrs, until ACK from PBE");
+            /* 
+               We expect a PBE and the list of cached attributes to update includes
+               some PERSISTENT ATTRs, then dont update any cached RTattrs now,
+               instead flag the object (can be a config object) and create a 
+               an afterimage mutation to hold the updates. Postpone the updates
+               until we get an ack from PBE. Note that even non persistent but
+               cached rtattr updates included are not updated untile after the ack,
+               because we may need to revert the entire operation. 
+            */
+            pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+            if(!pbe) {
+                LOG_ER("ERR_TRY_AGAIN: Persistent back end is down - unexpected here");
+                err = SA_AIS_ERR_TRY_AGAIN;
+                goto rtObjectUpdateExit;
+                /* We have already checked for PbeWritable with success inside
+                   deleteRtObject. Why do we fail in obtaining the PBE data now??
+                   We could have an assert here, but since we have not done any
+                   mutations yet (doit just turned true), we can get away with a
+                   TRY_AGAIN.
+                */
+            }
+            *continuationIdPtr = ++sLastContinuationId;
+            if(sLastContinuationId >= 0xfffffffe)
+            {sLastContinuationId = 1;}
+            TRACE("continuation generated: %u", *continuationIdPtr);
+
+            if(conn) {
+                SaInvocationT tmp_hdl = m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
+                sPbeRtReqContinuationMap[tmp_hdl] =
+                    ContinuationInfo2(conn, DEFAULT_TIMEOUT_SEC);
+            }
+
+            TRACE_5("Tentative update of cached runtime attribute(s) for "
+                "object '%s' by Impl %s pending PBE ack", oi->first.c_str(),
+                info->mImplementerName.c_str());
+
+            object->mObjFlags |= IMM_RT_UPDATE_LOCK;
+            
+            afim = new ObjectInfo();
+            afim->mCcbId = 0;
+            afim->mClassInfo = object->mClassInfo;
+            afim->mImplementer = object->mImplementer;
+            afim->mObjFlags = object->mObjFlags;
+            // Copy attribute values from existing object version to afim
+            for(oavi = object->mAttrValueMap.begin(); 
+                oavi != object->mAttrValueMap.end();
+                oavi++) {
+                ImmAttrValue* oldValue = oavi->second;
+                ImmAttrValue* newValue = NULL;
+
+                if(oldValue->isMultiValued()) {
+                    newValue = new ImmAttrMultiValue(*((ImmAttrMultiValue *) oldValue));
+                } else {
+                    newValue = new ImmAttrValue(*oldValue);
+                }
+
+                //Set admin owner as a regular attribute and then also a pointer
+                //to the attrValue for efficient access.
+                if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                    afim->mAdminOwnerAttrVal = newValue;
+                }
+                afim->mAttrValueMap[oavi->first] = newValue;
+            }
+
+            oMut = new ObjectMutation(IMM_MODIFY);
+            oMut->mAfterImage = afim;
+            oMut->mContinuationId = (*continuationIdPtr);
+            sPbeRtMutations[objectName] = oMut;
+
+            object = afim; /* Rest of the code below updates the afim and not 
+                              the master object.*/
+        }
+
+        immsv_attr_mods_list* p = req->attrMods;
         while(p && (err == SA_AIS_OK)) {
             sz = strnlen((char *) p->attrValue.attrName.buf,
                 (size_t) p->attrValue.attrName.size);
@@ -7736,20 +7975,49 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 if(immNotWritable()) {
                     //Dont allow writes to cached or persistent rt-attrs 
                     //during sync
+                    assert(!doIt);
                     err = SA_AIS_ERR_TRY_AGAIN;
                     TRACE_5("IMM not writable => Cant update cahced rtattrs");
                     break;//out of while-loop
                 }
 
+                if(!doIt && (object->mObjFlags & IMM_RT_UPDATE_LOCK)) {
+                    err = SA_AIS_ERR_TRY_AGAIN;
+                   /* Sorry but any ongoing PRTO update will interfere with additional
+                       updates of cached RTOs because the PRTO update has to be reversible.
+                    */
+                    LOG_IN("ERR_TRY_AGAIN: Object '%s' already subject of a persistent runtime "
+                        "attribute update", objectName.c_str());
+                    break;//out of while-loop
+                }
+
                 if(attr->mFlags & SA_IMM_ATTR_PERSISTENT) {
+                    isPersistent = true;
                     if(immNotPbeWritable()) {
                         err = SA_AIS_ERR_TRY_AGAIN;
-                        TRACE_7("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent RTO");
+                        TRACE_5("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent RTO");
                         break;//out of while-loop
                     }
 
+                    /* Check for ccb interference if it is a config object */
+                    if(classInfo->mCategory == SA_IMM_CLASS_CONFIG &&
+                        object->mCcbId) {
+                        CcbVector::iterator ci = std::find_if(sCcbVector.begin(),
+                            sCcbVector.end(), CcbIdIs(object->mCcbId));
+                        if((ci != sCcbVector.end()) && ((*ci)->isActive())) {
+                            assert(!doIt);
+                            LOG_IN("ERR_TRY_AGAIN: Object %s is part of active ccb %u, can not "
+                                "allow PRT attr updates", objectName.c_str(), object->mCcbId);
+                            err = SA_AIS_ERR_TRY_AGAIN; 
+                            break;//out of while-loop
+                            /* ERR_BAD_OPERATION would be more appropriate, but standard does
+                               not allow it.
+                            */
+                        }
+                    }
+
                     if(doIt && !wasLocal) {
-                        LOG_IN("Update of PERSISTENT runtime attr %s in object %s",
+                        TRACE_5("Update of PERSISTENT runtime attr %s in object %s",
                             attrName.c_str(), objectName.c_str());
                     }
                 }
@@ -7758,14 +8026,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 if(wasLocal) {
                     p = p->next;
                     continue;
-                } //skip non-locals, when invocation was local,
+                } //skip non-locals (cached), on first and local invocation.
                 //will be set over fevs.
             } else {
                 // A local runtime attribute.
                 if(!wasLocal) {
                     p = p->next;
                     continue;
-                } //skip locals when invocation was not local.
+                } //skip pure locals when invocation was not local.
             }
             
             IMMSV_OCTET_STRING tmpos; //temporary octet string
@@ -7980,6 +8248,16 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
             "but not yet applied PRTO PBE ?", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectDeleteExit;
+    } else if(oi->second->mObjFlags & IMM_DELETE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: object '%s' registered for deletion "
+            "but not yet applied PRTO PBE ?", objectName.c_str());
+        err = SA_AIS_ERR_TRY_AGAIN;
+        goto rtObjectDeleteExit;
+    } else if(oi->second->mObjFlags & IMM_RT_UPDATE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: Object '%s' already subject of a persistent runtime "
+                "attribute update", objectName.c_str());
+        err = SA_AIS_ERR_TRY_AGAIN;
+        goto rtObjectDeleteExit;
     }
     
     /*Prevent abuse from wrong implementer.*/
@@ -8057,7 +8335,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
             oMut->mAfterImage = oi->second;
             sPbeRtMutations[oi->first] = oMut;
            if(oi->second->mObjFlags & IMM_PRTO_FLAG) {
-                TRACE("PRTO flag was set for root");
+                TRACE("PRTO flag was set for root of subtree to delete");
                 if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                     std::string tmpName(oi->first);
                     nameToExternal(tmpName);
@@ -8189,7 +8467,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
                immNotPbeWritable once in this job, so we do it the first time
                when we are about to set subTreeHasPersistent,
             */
-            TRACE_7("TRY_AGAIN: Can not create persistent RTO when PBE is unavailable");
+            TRACE_7("TRY_AGAIN: Can not delete persistent RTO when PBE is unavailable");
             return SA_AIS_ERR_TRY_AGAIN;
         }
 
@@ -8218,7 +8496,13 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
          */
         TRACE("ERR_TRY_AGAIN DELETE LOCK WAS SET");
         return SA_AIS_ERR_TRY_AGAIN; 
-    }    
+    }
+
+    if(object->mObjFlags & IMM_RT_UPDATE_LOCK) {
+        TRACE_7("ERR_TRY_AGAIN: Object '%s' already subject of a persistent runtime "
+                "attribute update", oi->first.c_str());
+        return SA_AIS_ERR_TRY_AGAIN;
+    }
 
     if(doIt) {
         ImmAttrValueMap::iterator oavi;

@@ -263,6 +263,11 @@ extern "C" {
 		SaUint32T invocation, SaAisErrorT err,
 		SaClmNodeIdT nodeId, SaUint32T *reqConn);
 
+	void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
+		SaUint32T invocation, SaAisErrorT err,
+		SaClmNodeIdT nodeId, SaUint32T *reqConn);
+
+
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,
 					       SaUint32T ccbId,
 					       SaUint32T invocation, SaAisErrorT error, SaUint32T *reqConn);
@@ -291,8 +296,10 @@ extern "C" {
 
 	SaAisErrorT
 	    immModel_rtObjectUpdate(IMMND_CB *cb,
-				    const struct ImmsvOmCcbObjectModify *req,
-				    SaUint32T implConn, SaClmNodeIdT implNodeId, unsigned int *isPureLocal);
+		    const struct ImmsvOmCcbObjectModify *req,
+		    SaUint32T implConn, SaClmNodeIdT implNodeId, 
+		    unsigned int *isPureLocal, 
+		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
 

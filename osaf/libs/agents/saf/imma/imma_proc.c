@@ -1084,6 +1084,8 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaBoolT isPrtAttrs=(evt->info.objCreate.ccbId == 0);
+	/* Can be a PRTO or a config obj with PRTAttrs. */
 	TRACE_ENTER();
 
 	SaImmOiHandleT implHandle = evt->info.objModify.immHandle;
@@ -1104,11 +1106,25 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
+	if(isPrtAttrs) {
+		if(cl_node->isPbe) {
+			TRACE_3("PBE-OI received runtime attributes update");
+		} else {
+			LOG_ER("Apparent runtime attributes update received at OI which is not PBE - ignoring");
+			return;
+		}
+	}
+
+
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
-		callback->type = IMMA_CALLBACK_OI_CCB_MODIFY;
+		if(isPrtAttrs) {
+			callback->type = IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE;
+		} else {
+			callback->type = IMMA_CALLBACK_OI_CCB_MODIFY;
+		}
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.objModify.ccbId;
 		callback->inv = evt->info.objModify.adminOwnerId;
@@ -1128,7 +1144,9 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
-		imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
+		if(!isPrtAttrs) {
+			imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
+		}
 	}
 
 	/* Release The Lock */
@@ -2189,7 +2207,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				/*async  fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
-				/* callback->inv == 0 means PBE delete upcall, no reply. */
+				/* callback->inv == 0 means PBE (CCB or PRTO) delete upcall, no reply. */
 				assert(cl_node->isPbe);
 			}
 
@@ -2205,8 +2223,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 		break;
 
+	case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
+		isPrtObj = SA_TRUE; /*Actually isPrtAttr would be better name here. */
+		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_MODIFY:
-		TRACE("ccb-object-modify op callback");
+		TRACE("%s op callback", isPrtObj?"Pbe-runtime update":"ccb");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjModRpl;
@@ -2347,16 +2368,20 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				locked = TRUE;
 				memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
 				ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
-				ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
+				if(isPrtObj) {
+					ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP;
+                               } else {
+				       ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
+				       ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+			       }
 				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
 				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
 				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
 				/*async fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
-				/* callback->inv == 0 means PBE modify upcall, no reply. */
+				/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
 				assert(cl_node->isPbe);
 			}
 
