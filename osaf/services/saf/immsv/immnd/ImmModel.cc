@@ -1800,18 +1800,6 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                 if(attr->attrFlags & SA_IMM_ATTR_RDN) {
                     ++rdns;
                     
-                    if(!(attr->attrValueType & SA_IMM_ATTR_SANAMET ||
-                           attr->attrValueType & SA_IMM_ATTR_SASTRINGT)) {
-                         LOG_NO("ERR_INVALID_PARAM: RDN '%s' must be of type SaNameT or SaStringT", attNm);
-                        illegal = 1;
-                    }
-
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_MULTI_VALUE) {
-                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' can not be multivalued", attNm);
-                        illegal = 1;
-                    }
-                    
                     if((req->classCategory == SA_IMM_CLASS_CONFIG) &&
                         (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
                         LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a configuration object "

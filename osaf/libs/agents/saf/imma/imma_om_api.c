@@ -3697,10 +3697,12 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		TRACE_LEAVE();
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
 	if ((className == NULL) || (attrDefinitions == NULL)) {
+		TRACE_LEAVE();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -3708,12 +3710,29 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	for (i = 0; attr != 0; attr = attrDefinitions[++i]) {
 		if (attr->attrName == NULL)  {
 			TRACE("NULL attrName , not allowed.");
+                	TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
+		}
+
+		if(attr->attrFlags & SA_IMM_ATTR_RDN) {
+			if(((attr->attrValueType != SA_IMM_ATTR_SANAMET ) && 
+						(attr->attrValueType != SA_IMM_ATTR_SASTRINGT))) {
+				TRACE("ERR_INVALID_PARAM: RDN '%s' must be of type SaNameT or SaStringT", attr->attrName);
+                		TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+
+			if(attr->attrFlags & SA_IMM_ATTR_MULTI_VALUE) {
+				TRACE("ERR_INVALID_PARAM: RDN '%s' can not be multivalued", attr->attrName);
+				TRACE_LEAVE();
+                       		 return SA_AIS_ERR_INVALID_PARAM;
+    			}
 		}
 	}
 
 	if (cb->is_immnd_up == FALSE) {
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+                TRACE_LEAVE();
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
