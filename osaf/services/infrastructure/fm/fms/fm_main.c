@@ -29,6 +29,8 @@ This file contains the main() routine for FM.
 #include <nid_api.h>
 #include "fm.h"
 
+
+FM_CB *fm_cb = NULL;
 char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 	"ASSERTING", "YIELDING", "UNDEFINED"
 };
@@ -59,7 +61,6 @@ DESCRIPTION:          Main routine for FM
 *****************************************************************************/
 int main(int argc, char *argv[])
 {
-	FM_CB *fm_cb = NULL;
 	NCS_SEL_OBJ mbx_sel_obj, pipe_sel_obj, highest_sel_obj;
 	NCS_SEL_OBJ amf_sel_obj = {0, 0};
 	NCS_SEL_OBJ_SET sel_obj_set;
@@ -338,7 +339,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 		if ((fm_cb->role == PCS_RDA_STANDBY)||(fm_cb->role == PCS_RDA_QUIESCED)) {
 			if ((fm_mbx_evt->node_id == fm_cb->peer_node_id)) {
 /* Start Promote active timer */
-				if (fm_cb->peer_node_name.length != 0) {
+				if ((fm_cb->peer_node_name.length != 0) && (fm_cb->role != PCS_RDA_QUIESCED)) {
 
 					LOG_IN("Promote active timer started");
 					fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);

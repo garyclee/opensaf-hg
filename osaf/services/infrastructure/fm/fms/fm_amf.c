@@ -128,6 +128,7 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
 	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s", compName->value, ha_role_string[haState - 1]);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
+		fm_cb->role = haState;
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
 	}
 	fm_amf_give_hdl();

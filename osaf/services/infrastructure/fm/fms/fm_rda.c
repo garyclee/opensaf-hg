@@ -64,22 +64,8 @@ uns32 fm_rda_init(FM_CB *fm_cb)
 		syslog(LOG_ERR, "RDA role is neither Active nor Standby");
 		goto rda_lib_destroy;
 	}
-
-	/* subscribe callback */
-	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
-	rda_req.req_type = PCS_RDA_REGISTER_CALLBACK;
-	rda_req.callback_handle = gl_fm_hdl;
-	rda_req.info.call_back = fm_rda_callback;
-	rc = pcs_rda_request(&rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		/* set the error code to be returned */
-		status = NCSCC_RC_FAILURE;
-		syslog(LOG_ERR, "RDA callback subscription failed");
-		/* finalize */
-		goto rda_lib_destroy;
-	}
-
-	return status;
+	 
+	return status; 
 
 	/* finalize the library */
  rda_lib_destroy:
@@ -122,44 +108,6 @@ uns32 fm_rda_finalize(FM_CB *fm_cb)
 	}
 
 	return status;
-}
-
-/****************************************************************************
- * Name          : fm_rda_callback
- *
- * Description   :  Callback for role change indication.
- *
- * Arguments     :  Callback Handle, Pointer to Callback information, Error Code.
- *
- * Return Values : None.
- * 
- * Notes         : None. 
- *****************************************************************************/
-void fm_rda_callback(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
-{
-	FM_CB *fm_cb = NULL;
-
-	/* Take handle */
-	fm_cb = ncshm_take_hdl(NCS_SERVICE_ID_GFM, cb_hdl);
-
-	if (NULL == fm_cb)
-		return;
-
-	if (cb_info->cb_type == PCS_RDA_ROLE_CHG_IND) {
-		syslog(LOG_INFO,
-		       "fm_rda_callback(): CurrentState: %s, NewState: %s",
-		       role_string[fm_cb->role], role_string[cb_info->info.io_role]);
-		if ((cb_info->info.io_role == PCS_RDA_ACTIVE) || (cb_info->info.io_role == PCS_RDA_STANDBY) || (cb_info->info.io_role == PCS_RDA_QUIESCED)) {
-			/* Update local role */
-			fm_cb->role = cb_info->info.io_role;
-		}
-	}
-
-	/* Release handle */
-	ncshm_give_hdl(cb_hdl);
-	fm_cb = NULL;
-
-	return;
 }
 
 /****************************************************************************

@@ -70,13 +70,13 @@ typedef struct fm_cb {
 } FM_CB;
 
 extern char *role_string[];
+extern FM_CB *fm_cb;
 
 /*****************************************************************
 *         Prototypes for extern functions                       *
 *****************************************************************/
 EXTERN_C uns32 fm_rda_init(FM_CB *);
 EXTERN_C uns32 fm_rda_finalize(FM_CB *);
-EXTERN_C void fm_rda_callback(uns32, PCS_RDA_CB_INFO *, PCSRDA_RETURN_CODE);
 EXTERN_C uns32 fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
 
 #endif
