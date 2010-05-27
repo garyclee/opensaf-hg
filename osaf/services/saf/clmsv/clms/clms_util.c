@@ -580,9 +580,11 @@ void clms_clear_node_dep_list(CLMS_CLUSTER_NODE * node)
 void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 {
 	node->admin_state = SA_CLM_ADMIN_LOCKED;
+	if (node->member == SA_TRUE){
+		--(osaf_cluster->num_nodes);
+	}
 	node->member = SA_FALSE;
 	node->change = SA_CLM_NODE_LEFT;
-	--(osaf_cluster->num_nodes);
 	++(cb->cluster_view_num);
 	clms_send_track(clms_cb, node, SA_CLM_CHANGE_COMPLETED);
 
@@ -799,7 +801,9 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			} else if (op_node->admin_op == IMM_SHUTDOWN)
 				op_node->change = SA_CLM_NODE_SHUTDOWN;
 
-			--(osaf_cluster->num_nodes);
+			if (op_node->member == SA_TRUE){
+				--(osaf_cluster->num_nodes);
+			}
 			++(cb->cluster_view_num);
 			op_node->admin_state = SA_CLM_ADMIN_LOCKED;
 			op_node->member = SA_FALSE;
@@ -1073,4 +1077,22 @@ uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT memb
 
 	TRACE_LEAVE();
 	return rc;
+}
+
+/*Walk through the node db to know the number of member nodes*/
+uns32 clms_num_mem_node(void)
+{
+	SaUint32T node_id = 0;
+	SaUint32T i = 0;
+	CLMS_CLUSTER_NODE *rp = NULL;
+	
+	while ((rp = clms_node_getnext_by_id(node_id)) != NULL) {
+
+		node_id = rp->node_id;
+		if (rp->member == SA_TRUE) {
+			i++;
+		}
+	}
+
+	return i;
 }

@@ -258,6 +258,7 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaNameT node_name = { 0 };
 	CLMSV_MSG clm_msg;
+	SaBoolT check_member;
 
 	TRACE_ENTER2("Node up mesg for nodename length %d %s", nodeup_info->node_name.length,
 		     nodeup_info->node_name.value);
@@ -297,6 +298,8 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 
 	/* This has to be updated always */
 	node->nodeup = SA_TRUE;
+	check_member = node->member;
+	
 
 	/* Self Node needs to be added tp patricia tree before hand during init */
 	if (NULL == (node_tmp = clms_node_get_by_id(nodeid))) {
@@ -323,7 +326,9 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 #endif
 
 		if (node->member == SA_TRUE) {
-			++(osaf_cluster->num_nodes);
+			if(check_member == SA_FALSE){
+				++(osaf_cluster->num_nodes);
+			}
 			node->stat_change = SA_TRUE;
 			node->init_view = ++(clms_cb->cluster_view_num);
 			TRACE("node->init_view %llu", node->init_view);
@@ -395,9 +400,12 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	if(node->member == SA_FALSE)
 		goto done;
 
+	if(node->member == SA_TRUE){
+		--(osaf_cluster->num_nodes);
+	}
+
 	/*Irrespective of plm in system or not,toggle the membership status for MDS NODE DOWN*/
 	node->member = SA_FALSE;
-	--(osaf_cluster->num_nodes);
 	node->stat_change = SA_TRUE;
 	node->change = SA_CLM_NODE_LEFT;
 	++(clms_cb->cluster_view_num);
@@ -412,9 +420,12 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	/*Update IMMSV */
 	clms_node_update_rattr(node);
 	clms_cluster_update_rattr(osaf_cluster);
-	ckpt_node_rec(node);
-	ckpt_node_down_rec(node);
-	ckpt_cluster_rec();
+
+	if(clms_cb->ha_state == SA_AMF_HA_ACTIVE){
+		ckpt_node_rec(node);
+		ckpt_node_down_rec(node);
+		ckpt_cluster_rec();
+	}
 
 	/*For the NODE DOWN, boottimestamp will not be updated */
 
@@ -499,7 +510,7 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT * evt)
 		goto done;
 	}
 
-	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
+	if ((clms_cb->ha_state == SA_AMF_HA_ACTIVE) ||(clms_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		clms_track_send_node_down(node);
 
 	} else if (clms_cb->ha_state == SA_AMF_HA_STANDBY) {
@@ -1356,7 +1367,7 @@ static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns
 		goto snd_rsp;
 
 	if (!node) {
-		num_mem = osaf_cluster->num_nodes;
+		num_mem = clms_num_mem_node();
 		notify = (SaClmClusterNotificationT_4 *) malloc(num_mem * sizeof(SaClmClusterNotificationT_4));
 
 		if (!notify) {
@@ -1435,7 +1446,7 @@ static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns
 		clms_track_current_apiresp(ais_rc, num_mem, notify, dest, ctxt);
 	} else {
 		TRACE("Callback response");
-		clms_send_track_current_cbkresp(ais_rc, num_mem, notify, dest, client_id);
+		clms_send_track_current_cbkresp(ais_rc,num_mem, notify, dest, client_id);
 	}
 
 	if (notify)

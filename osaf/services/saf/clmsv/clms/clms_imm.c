@@ -1655,11 +1655,14 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 
 	TRACE_ENTER();
 	nodeop->change = SA_CLM_NODE_LEFT;
+	if(nodeop->member == SA_TRUE){
+		--(osaf_cluster->num_nodes);
+	}
+
 	nodeop->member = SA_FALSE;
 	nodeop->stat_change = SA_TRUE;
 	nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 	++(clms_cb->cluster_view_num);
-	--(osaf_cluster->num_nodes);
 
 	clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
 
@@ -1782,13 +1785,16 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 		if (clms_cb->reg_with_plm == SA_FALSE) {
 			if (nodeop->nodeup == SA_TRUE) {
 
+				if (nodeop->member == SA_FALSE){
+					++(osaf_cluster->num_nodes);
+				}
+
 				/* nodeup true  ==> cluster member */
 				nodeop->member = SA_TRUE;
 				nodeop->admin_state = SA_CLM_ADMIN_UNLOCKED;
 				nodeop->init_view = ++(clms_cb->cluster_view_num);
 				nodeop->stat_change = SA_TRUE;
 				nodeop->change = SA_CLM_NODE_JOINED;
-				++(osaf_cluster->num_nodes);
 
 				/*Send Callback to its clienst */
 				clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
@@ -1809,13 +1815,15 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 		} else {
 #ifdef ENABLE_AIS_PLM
 			if ((nodeop->ee_red_state == SA_PLM_READINESS_IN_SERVICE) && (nodeop->nodeup == SA_TRUE)) {
+				if (nodeop->member == SA_FALSE){
+					++(osaf_cluster->num_nodes);
+				}
 				/* SA_PLM_READINESS_IN_SERVICE ==> cluster member */
 				nodeop->member = SA_TRUE;
 				nodeop->admin_state = SA_CLM_ADMIN_UNLOCKED;
 				nodeop->init_view = ++(clms_cb->cluster_view_num);
 				nodeop->stat_change = SA_TRUE;
 				nodeop->change = SA_CLM_NODE_JOINED;
-				++(osaf_cluster->num_nodes);
 
 				/*Send Callback to its clients */
 				clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
@@ -1909,10 +1917,12 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 		} else {
 			nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 			nodeop->stat_change = SA_TRUE;
+			if (nodeop->member == SA_TRUE){
+				--(osaf_cluster->num_nodes);
+			}
 			nodeop->member = SA_FALSE;
 			nodeop->change = SA_CLM_NODE_SHUTDOWN;
 			++(clms_cb->cluster_view_num);
-			--(osaf_cluster->num_nodes);
 
 			clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
 
