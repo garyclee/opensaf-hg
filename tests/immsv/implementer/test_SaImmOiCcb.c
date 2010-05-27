@@ -20,7 +20,10 @@
 #include <pthread.h>
 #include "immtest.h"
 
-static const SaImmClassNameT testConfigClassName = __FILE__;
+/*static const SaImmClassNameT testConfigClassName = __FILE__;*/
+/* Special characters like '.' not allowed in classnames */
+static const SaImmClassNameT testConfigClassName = "test_SaImmOiCcb";
+
 static const SaNameT parentName = 
     {sizeof("opensafImm=opensafImm,safApp=safImmService"), 
      "opensafImm=opensafImm,safApp=safImmService"};
