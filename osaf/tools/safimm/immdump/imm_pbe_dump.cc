@@ -686,6 +686,17 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	attr_flags = atol(result2[ncols+1]);
 	sqlite3_free_table(result2);
 
+	if(ccb_id == 0) { /* PRTAttr case */
+		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
+			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
+				attrValue->attrName);
+			goto done;
+		} else {
+			TRACE_2("PERSISTENT RUNTIME ATTRIBUTE %s UPDATE",
+				attrValue->attrName);
+		}
+	}
+
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		TRACE_3("COMPONENT TEST BRANCH 1");
 		/* Remove all values. */
@@ -774,6 +785,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 		TRACE("Update %u values", rowsModified);
 	}
 
+ done:
 	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
 	/* Warning function call on line above refers to >>result<< via object_id */
 	sqlite3_free_table(result);
@@ -865,6 +877,17 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 	assert(attr_type == attrValue->attrValueType);
 	attr_flags = atol(result2[ncols+1]);
 	sqlite3_free_table(result2);
+
+	if(ccb_id == 0) { /* PRTAttr case */
+		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
+			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
+				attrValue->attrName);
+			goto done;
+		} else {
+			TRACE_2("PERSISTENT RUNTIME ATTRIBUTE %s UPDATE",
+				attrValue->attrName);
+		}
+	}
 
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		/* Remove all matching values. */
@@ -982,7 +1005,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 			TRACE("Update %u values", rowsModified);
 		}
 	}
-
+ done:
 	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
 	/* Warning function call on line above refers to >>result<< via object_id */
 	sqlite3_free_table(result); 
@@ -1071,6 +1094,17 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	attr_flags = atol(result2[ncols+1]);
 	sqlite3_free_table(result2);
 
+	if(ccb_id == 0) { /* PRTAttr case */
+		if(!(attr_flags & SA_IMM_ATTR_PERSISTENT)) {
+			TRACE_2("PRTAttr updates skipping non persistent RTAttr %s",
+				attrValue->attrName);
+			goto done;
+		} else {
+			TRACE_2("PERSISTENT RUNTIME ATTRIBUTE %s UPDATE",
+				attrValue->attrName);
+		}
+	}
+
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		TRACE("Add to multivalued attribute.");
 	        valuesToPBE(attrValue, attr_flags, object_id, dbHandle);
@@ -1123,7 +1157,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 		rowsModified = sqlite3_changes(dbHandle);
 		TRACE("Updated %u values", rowsModified);
 	}
-
+ done:
 	if(rowsModified) stampObjectWithCcbId(db_handle, object_id, ccb_id);
 	/* Warning function call on line above refers to >>result<< via object_id */
 	sqlite3_free_table(result);

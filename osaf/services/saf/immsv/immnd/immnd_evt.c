@@ -1951,7 +1951,9 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
  * Name          : immnd_evt_proc_rt_update
  *
  * Description   : Function to process the saImmOiRtObjectUpdate/_2
- *                 from local agent.
+ *                 from local agent. Only pure local rtattrs are 
+ *                 updated here. Cached and Persistent rtattrs are first
+ *                 forwarded over fevs. 
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
@@ -1970,6 +1972,9 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 	SaImmHandleT client_hdl;
 	SaUint32T clientId;
 	SaUint32T clientNode;
+	SaUint32T dummyPbeConn = 0;
+	NCS_NODE_ID *dummyPbeNodeIdPtr = NULL;
+	SaUint32T dummyContinuationId = 0;
 	TRACE_ENTER();
 	unsigned int isPureLocal = 1;
 
@@ -2001,7 +2006,10 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 	clientId = m_IMMSV_UNPACK_HANDLE_HIGH(client_hdl);
 	clientNode = m_IMMSV_UNPACK_HANDLE_LOW(client_hdl);
 
-	err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), clientId, clientNode, &isPureLocal);
+	err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), clientId, clientNode, &isPureLocal,
+		&dummyContinuationId, &dummyPbeConn, dummyPbeNodeIdPtr);
+
+	assert(!dummyContinuationId && !dummyPbeConn);/* Only used in the fevs variant*/
 
 	if (!isPureLocal && (err == SA_AIS_OK)) {
 		TRACE_2("immnd_evt_proc_rt_update was not pure local, i.e. cached RT attrs");
@@ -2697,10 +2705,72 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 }
 
 /****************************************************************************
+ * Name          : immnd_evt_pbe_rt_attr_update_rsp
+ *
+ * Description   : Function to process the reply from the 
+ *                 SaImmOiCcbObjectModifyCallbackT upcall for the PRT attr case.
+ *                 Note this call arrived over fevs, to ALL IMMNDs.
+ *                 This is because ALL must receive ACK/NACK from EACH 
+ *                 implementer.
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : None.
+ *
+ *****************************************************************************/
+static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
+	IMMND_EVT *evt,
+	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	IMMSV_EVT send_evt;
+	SaUint32T reqConn = 0;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMSV_SEND_INFO *sinfo = NULL;
+	TRACE_ENTER();
+
+	immModel_pbePrtAttrUpdateContinuation(cb, evt->info.ccbUpcallRsp.inv,
+		evt->info.ccbUpcallRsp.result, cb->node_id, &reqConn);
+	TRACE("Returned from pbePrtAttrUpdateContinuation err: %u reqConn:%x", 
+		evt->info.ccbUpcallRsp.result, reqConn);
+
+	if (reqConn) {
+		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
+
+		immnd_client_node_get(cb, tmp_hdl, &cl_node);
+		if (cl_node == NULL || cl_node->mIsStale) {
+			LOG_WA("IMMND - Client went down so no response");
+			TRACE_LEAVE();
+			return;	/*Note, this means that regardles of ccb outcome, 
+				   we can not reply to the process that started the ccb. */
+		}
+
+		sinfo = &cl_node->tmpSinfo;
+
+		TRACE_2("SENDRSP %u", evt->info.ccbUpcallRsp.result);
+
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
+		assert(sinfo);
+		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+
+		rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to send response to agent/client over MDS rc:%u", rc);
+		}
+	}
+
+	TRACE_LEAVE();
+}
+
+/****************************************************************************
  * Name          : immnd_evt_pbe_rt_obj_deletes_rsp 
  *
  * Description   : Function to process the reply from the 
- *                 deeltes completed upcall for the special PRTO deletes case.
+ *                 deletes completed upcall for the special PRTO deletes case.
  *                 Note this call arrived over fevs, to ALL IMMNDs.
  *                 This is because ALL must receive ACK/NACK from EACH 
  *                 implementer.
@@ -3564,13 +3634,11 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => persistify of rtObj create is delayed!");
 				/* ****
-				   The RtObj create has aleady been done by the IMMNDs
-				   of the cluster. If we replied OK here it means the user
-				   will get the premature impression that results have been
-				   persistified. Instead we drop the reply probably causing
-				   an ERR_TIMEOUT towards the user. 
-				   The situation may get salvaged by a retry towards PBE 
-				   based on continuation.
+				   TODO: send a fevs faked reply from PBE indicating
+				   failure to update. This will rollback the rtObjCreate.
+				   Currently it should get cleaned up by cleanTheBasement,
+				   but that will typically lead to ERR_TIMEOUT for the 
+				   OI client.
 				*/
 			} else {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -4006,8 +4074,15 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	IMMSV_EVT send_evt;
 	IMMSV_SEND_INFO *sinfo = NULL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMND_IMM_CLIENT_NODE *pbe_cl_node = NULL;
+	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
+	SaBoolT delayedReply = SA_FALSE;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaUint32T continuationId = 0;
 	TRACE_ENTER();
 
 #if 0				/*DEBUG PRINTOUTS START */
@@ -4027,22 +4102,84 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	}
 #endif   /*DEBUG PRINTOUTS STOP */
 
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		TRACE("We expect there to be a PBE");
+		/* If pbeNodeIdPtr is NULL then rtObjectUpdate skips the lookup
+		   of the pbe implementer.
+		 */
+	}
+
 	unsigned int isLocal = 0;
 
 	if (originatedAtThisNd) {
-		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), reqConn, nodeId, &isLocal);
+		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), reqConn, nodeId, &isLocal,
+			&continuationId, &pbeConn, pbeNodeIdPtr);
 	} else {
-		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), 0, nodeId, &isLocal);
+		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), 0, nodeId, &isLocal,
+			&continuationId, &pbeConn, pbeNodeIdPtr);
 	}
 
-	/* Persistent or cached rt-attributes are updated everywhere. */
-	/* Non cached and non persistent attributes only updated locally.  */
-	/* This implementation is not very efficient if the majority of  */
-	/* th rt-updates are local only. The broadcast is then wasted.  */
-	/* The solution is simpler though since otherwise the message has  */
-	/* to be analyzed by the local server and then possibly forwarded. */
+	/* Non cached attributes only updated locally, see immnd_ect_proc_rt_update. 
+	   Cached rt-attributes are updated everywhere and this is handled here.
+	   But if there are also one or more PERSISTENT RT attributes included in 
+	   the set to be updated, then immModel_rtObjectUpdat above only did checks.
+	   The actual updates of the cahced and the persistent&cached attributes is
+	   postponed until we get a reply from PBE.
+	*/
 
-	if (originatedAtThisNd) {
+
+	if(pbeNodeId && err == SA_AIS_OK) {
+		/*The persistent back-end is present => wait for reply. */		
+		delayedReply = SA_TRUE; 
+		if(pbeConn) {
+			/*The persistent back-end is executing at THIS node. */
+			assert(cb->mIsCoord);
+			assert(pbeNodeId);
+			assert(pbeNodeId == cb->node_id);
+			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+			/*Fetch client node for PBE */
+			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
+			assert(pbe_cl_node);
+			if (pbe_cl_node->mIsStale) {
+				LOG_WA("PBE is down => persistify of rtAttr is aborted!");
+				/* ****
+				   TODO: send a fevs faked reply from PBE indicating
+				   failure to update. This will rollback the rtObjCreate.
+				   Currently it should get cleaned up by cleanTheBasement,
+				   but that will typically lead to ERR_TIMEOUT for the 
+				   OI client.
+				*/
+			} else {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
+				send_evt.info.imma.info.objModify = evt->info.objModify;
+				send_evt.info.imma.info.objModify.adminOwnerId = 
+					continuationId;
+				/*We re-use the adminOwner member of the ccbmodify message
+				  to hold the continuation id. */
+				send_evt.info.imma.info.objModify.immHandle = implHandle;
+				assert(evt->info.objModify.ccbId == 0);
+
+				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ CREATE upcall");
+				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					    pbe_cl_node->agent_mds_dest, &send_evt) != 
+					NCSCC_RC_SUCCESS) 
+				{
+					LOG_WA("Upcall over MDS for persistent rt attr update "
+						"to PBE failed!");
+					/* See comment **** above. */
+				}
+			}
+			implHandle = 0LL;
+			pbe_cl_node = NULL;
+		}
+	}
+
+
+	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
@@ -4445,16 +4582,11 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 			assert(pbe_cl_node);
 			if (pbe_cl_node->mIsStale) {
 				LOG_WA("PBE is down => persistify of rtObj delete is dropped!");
-				/* ****
-				   The RtObj delete has aleady been done by the IMMNDs
-				   of the cluster. If we replied OK here it means the user
-				   will get the premature impression that results have been
-				   persistified. Instead we drop the reply probably causing
-				   an ERR_TIMEOUT towards the user. 
-				   The situation may get salvaged by a retry towards PBE 
-				   based on continuation.
+				/* 
+				 TODO: send a fevs faked reply from PBE indicating
+				 failure to update. This will rollback the rtObjDeletes.
+				 Currently it will be cleaned up by cleanTheBasement. 
 				*/
-				/* TODO: we could actually revert the delete here an return TRY_AGAIN*/
 				goto done;
 			} else {
 				/* We have obtained PBE handle & dest info for PBE. 
@@ -4475,7 +4607,13 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 						LOG_WA("Upcall over MDS for persistent rt obj delete "
 							"to PBE failed!");
 						/* See comment **** above. */
-						/* TODO: we could actually revert the delete here an return TRY_AGAIN*/
+						/* TODO: we could possibly revert the delete
+						   here an return TRY_AGAIN. We may have
+						   succeeded in sending some deletes, but
+						   since we did not send the completed,
+						   the PRTO deletes will not be commited 
+						   by the PBE.
+						 */
 						goto done;
 					}
 				}
@@ -5077,6 +5215,10 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	case IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP:
 		immnd_evt_pbe_rt_obj_deletes_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
+	case IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP:
+		immnd_evt_pbe_rt_attr_update_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	default:
