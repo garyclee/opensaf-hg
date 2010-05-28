@@ -1353,8 +1353,63 @@ static void plms_imm_admin_op_cbk (SaImmOiHandleT imm_oi_hdl,
 				const SaImmAdminOperationParamsT_2 **params)
 {
 	PLMS_EVT *plms_evt;
-	SaUint32T rc;
+	SaUint32T rc, rej_admin_op = FALSE;
 	TRACE_ENTER2("Invocation-Id: %llu, Operation-Id: %llu", inv_id, op_id);
+	if ((op_id != SA_PLM_ADMIN_LOCK) && (op_id != SA_PLM_ADMIN_RESTART)) {
+		if (params[0] != NULL) {
+			/* There are no parameter options applicable for admin
+			   operations other than lock and restart. Hence reject
+			   this operation. */
+			rej_admin_op = TRUE;
+		}
+	}
+	else {
+		if (params[0] != NULL) {
+			if (params[1] != NULL) {
+				/* Both LOCK and RESTART admin operations 
+				   take only one parameter. Hence reject 
+				   this operation */
+				rej_admin_op = TRUE;
+			}
+			else if (op_id == SA_PLM_ADMIN_LOCK) {
+				if ((strcmp(params[0]->paramName, 
+					"lockOption") != 0)
+				|| (params[0]->paramType != 
+					SA_IMM_ATTR_SASTRINGT)
+				|| ((strcmp(*(SaStringT *)
+				(params[0]->paramBuffer), "trylock") != 0)
+				&& (strcmp(*(SaStringT *)
+				(params[0]->paramBuffer), "forced") != 0))) {
+					/* param name or type or value not set
+					   correctly. Reject this operation */
+					rej_admin_op = TRUE;
+				}
+			}
+			else { /* (op_id == SA_PLM_ADMIN_RESTART) */
+				if ((strcmp(params[0]->paramName, 
+					"restartOption") != 0)
+				|| (params[0]->paramType != 
+					SA_IMM_ATTR_SASTRINGT)
+				 || (strcmp(*(SaStringT *)
+				(params[0]->paramBuffer),"abrupt") != 0)) {
+					/* param name or type or value not set
+					   correctly. Reject this operation */
+					rej_admin_op = TRUE;
+				}
+			}
+		}
+	}
+	if (rej_admin_op == TRUE) {
+		LOG_ER("Rejecting admin op:%llu with invalid parameter error", 
+			op_id);
+		rc = saImmOiAdminOperationResult(plms_cb->oi_hdl, inv_id, 
+			SA_AIS_ERR_INVALID_PARAM);
+		if (SA_AIS_OK != rc) {
+			LOG_ER("Sending response to IMM failed with error:%d", 
+				rc);
+		}
+		return;
+	}
 	plms_evt = calloc(1, sizeof(PLMS_EVT));
 	if (plms_evt == NULL) {
 		LOG_CR("memory allocation failed for plms_evt, calling \
