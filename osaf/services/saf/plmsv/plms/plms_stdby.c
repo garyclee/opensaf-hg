@@ -541,38 +541,14 @@ static SaUint32T plms_perform_pending_admin_clbk(
  *
 ***********************************************************************/
 SaUint32T plms_perform_pending_admin_shutdown(
-				PLMS_CKPT_TRACK_STEP_INFO  *tack_step,
+				PLMS_CKPT_TRACK_STEP_INFO  *track_step,
 				PLMS_ENTITY   *ent)
 {
         uns32 ret_err;
         PLMS_GROUP_ENTITY *aff_ent_list = NULL, *head = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list;
 
-	/* If it is not in Unlock state return */
-	 if( ((PLMS_HE_ENTITY == ent->entity_type) &&
-		(SA_PLM_HE_ADMIN_UNLOCKED != 
-		ent->entity.he_entity.saPlmHEAdminState)) ||
-	  	((PLMS_EE_ENTITY == ent->entity_type) &&
-		(SA_PLM_HE_ADMIN_UNLOCKED != 
-		ent->entity.ee_entity.saPlmEEAdminState))){
-		LOG_ER("The entity is not in Unlocked state");
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* If the readiness state of the HE/EE is OOS,
-           Set the admin state to LOCKED */
-     	if ( ((PLMS_HE_ENTITY == ent->entity_type)&&
-		(SA_PLM_READINESS_OUT_OF_SERVICE ==
-		ent->entity.he_entity.saPlmHEReadinessState)) ||
-		((PLMS_EE_ENTITY == ent->entity_type) &&
-		(SA_PLM_READINESS_OUT_OF_SERVICE ==
-		ent->entity.he_entity.saPlmHEReadinessState))){
-
-		ent->entity.he_entity.saPlmHEAdminState =
-                                                SA_PLM_HE_ADMIN_LOCKED;
-		return NCSCC_RC_SUCCESS;
-
-	}
+	TRACE_ENTER2("Entity:%s",ent->dn_name_str);
 
 	/* Get all the affected entities.*/
 	plms_affected_ent_list_get(ent,&aff_ent_list,0);
@@ -634,6 +610,23 @@ SaUint32T plms_perform_pending_admin_shutdown(
 			readiness state, I hope no. */
 		}
 	}
+
+	/* Mark the expected readiness state of the root entity.*/
+	ent->exp_readiness_status.readinessState = SA_PLM_READINESS_OUT_OF_SERVICE;
+	
+	if (PLMS_HE_ENTITY == ent->entity_type){
+		ent->exp_readiness_status.readinessFlags = ent->entity.he_entity.saPlmHEReadinessFlags;
+	}else{
+		ent->exp_readiness_status.readinessFlags = ent->entity.ee_entity.saPlmEEReadinessFlags;
+	}
+
+	plms_perform_pending_admin_clbk(group_info_list, aff_ent_list,track_step); 
+
+	/* Clear the expected readines state */
+	plms_ent_exp_rdness_status_clear(ent);
+	plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
+
+	TRACE_LEAVE2("ret_err: %d",ret_err);
 	return NCSCC_RC_SUCCESS;
 }
 
