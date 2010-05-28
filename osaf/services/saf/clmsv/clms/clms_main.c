@@ -322,11 +322,10 @@ static uns32 clms_init(void)
 		goto done;
 	}
 #ifdef ENABLE_AIS_PLM
-	if(clms_cb->reg_with_plm == SA_TRUE)
-		if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK) {
-			LOG_ER("clms_plm_init FAILED");
-			goto done;
-		}
+	if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK) {
+		LOG_ER("clms_plm_init FAILED");
+		goto done;
+	}
 #endif
 
 	/*Self Node update */
@@ -393,10 +392,8 @@ int main(int argc, char *argv[])
 	fds[FD_IMM].events = POLLIN;
 
 #ifdef ENABLE_AIS_PLM
-	if (clms_cb->reg_with_plm == SA_TRUE){
-		fds[FD_PLM].fd = clms_cb->plm_sel_obj;
-		fds[FD_PLM].events = POLLIN;
-	}
+	fds[FD_PLM].fd = clms_cb->plm_sel_obj;
+	fds[FD_PLM].events = POLLIN;
 #endif
 
 	while (1) {
