@@ -4675,8 +4675,6 @@ void plms_timer_handler(int sig, siginfo_t *info,void *r_cnxt)
 	
 	evt = (PLMS_EVT *)calloc(1,sizeof(PLMS_EVT));
 	 if(NULL == evt){
-		 LOG_CR("timer_handler, calloc FAILED. Err no: %s",
-		 					strerror(errno));
 		 assert(0);
 	 }
 
@@ -4686,14 +4684,8 @@ void plms_timer_handler(int sig, siginfo_t *info,void *r_cnxt)
 	 evt->req_evt.plm_tmr.tmr_type = ent->tmr.tmr_type;
 	 evt->req_evt.plm_tmr.context_info = (void *)ent;
 	 
-	 if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&cb->mbx,evt,
-		 				NCS_IPC_PRIORITY_HIGH)){
-		 LOG_ER("Posting(tmr) to MBX FAILED, ent: %s, tmr_type: %d",
-		 			ent->dn_name_str,ent->tmr.tmr_type);
-	 }
-
-	TRACE("Tmr evt posted to MBX.  ent: %s, tmr_type: %d",
-					ent->dn_name_str,ent->tmr.tmr_type);
+	 m_NCS_IPC_SEND(&cb->mbx,evt,NCS_IPC_PRIORITY_HIGH);
+	 
 	return;
 }
 

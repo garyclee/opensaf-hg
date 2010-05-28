@@ -72,7 +72,6 @@ static void sigusr1_handler(int sig)
         (void)sig;
         signal(SIGUSR1, SIG_IGN);
         ncs_sel_obj_ind(plms_cb->usr1_sel_obj);
-        TRACE("Got USR1 signal");
 }
 
 static void usr2_sig_handler(int sig)
@@ -84,7 +83,6 @@ static void usr2_sig_handler(int sig)
 	evt->req_res = PLMS_REQ;
 	evt->req_evt.req_type = PLMS_DUMP_CB_EVT_T;
 	(void)sig;
-	TRACE("Got USR2 Signal");
 	/* Put it in PLMS's Event Queue */
 	m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);
 	signal(SIGUSR2,usr2_sig_handler);
