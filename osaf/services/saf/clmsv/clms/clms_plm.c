@@ -228,7 +228,7 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 	SaNameT *entityNames;
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaNameT nodename;
-	SaUint32T i = 0, entityNamesNumber = ncs_patricia_tree_size(&clms_cb->nodes_db);
+	SaUint32T i = 0, entityNamesNumber = ncs_patricia_tree_size(&clms_cb->ee_lookup);
 	SaPlmReadinessTrackedEntitiesT *trackedEntities;
 
 	TRACE_ENTER();
@@ -244,54 +244,59 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 		LOG_ER("saPlmSelectionObjectGet FAILED rc = %d", rc);
 		return rc;
 	}
-
-	rc = saPlmEntityGroupCreate(cb->plm_hdl, &cb->ent_group_hdl);
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saPlmEntityGroupCreate FAILED rc = %d", rc);
-		return rc;
-	}
-
-	memset(&nodename, '\0', sizeof(SaNameT));
-	entityNames = (SaNameT *)malloc(sizeof(SaNameT) * entityNamesNumber);
-
-	TRACE("entityNamesNumber %d", entityNamesNumber);
-
-	while ((node = clms_node_getnext_by_name(&nodename)) != NULL) {
-		memcpy(&nodename, &node->node_name, sizeof(SaNameT));
-		entityNames[i].length = node->ee_name.length;
-		(void)memcpy(entityNames[i].value, node->ee_name.value, entityNames[i].length);
-		i++;
-	}
-
-	rc = saPlmEntityGroupAdd(cb->ent_group_hdl, entityNames, entityNamesNumber, SA_PLM_GROUP_SINGLE_ENTITY);
-
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
-		return rc;
-	}
-
-	trackedEntities = (SaPlmReadinessTrackedEntitiesT *)
-	    malloc(entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT));
-
-	memset(trackedEntities, 0, (entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT)));
-
-	rc = saPlmReadinessTrack(cb->ent_group_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES_ONLY | SA_TRACK_START_STEP | SA_TRACK_VALIDATE_STEP), 1, trackedEntities);	/* trackCookie TBD */
-
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saPlmReadinessTrack FAILED rc = %d", rc);
-		return rc;
-	}
-
-	TRACE("trackedEntities->numberOfEntities %d", trackedEntities->numberOfEntities);
-
-	for (i = 0; i < trackedEntities->numberOfEntities; i++) {
-		node = clms_node_get_by_eename(&trackedEntities->entities[i].entityName);
-		if (node != NULL) {
-			node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
-			node->change = trackedEntities->entities[i].change;
-			TRACE("node->ee_red_state %d", node->ee_red_state);
+	
+	if (clms_cb->reg_with_plm == SA_TRUE){
+	
+		rc = saPlmEntityGroupCreate(cb->plm_hdl, &cb->ent_group_hdl);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("saPlmEntityGroupCreate FAILED rc = %d", rc);
+			return rc;
 		}
 
+		memset(&nodename, '\0', sizeof(SaNameT));
+		entityNames = (SaNameT *)malloc(sizeof(SaNameT) * entityNamesNumber);
+
+		TRACE("entityNamesNumber %d", entityNamesNumber);
+
+		while ((node = clms_node_getnext_by_name(&nodename)) != NULL) {
+			memcpy(&nodename, &node->node_name, sizeof(SaNameT));
+			if (node->ee_name.length != 0){
+				entityNames[i].length = node->ee_name.length;
+				(void)memcpy(entityNames[i].value, node->ee_name.value, entityNames[i].length);
+				i++;
+			}
+		}
+
+		rc = saPlmEntityGroupAdd(cb->ent_group_hdl, entityNames, entityNamesNumber, SA_PLM_GROUP_SINGLE_ENTITY);
+
+		if (rc != SA_AIS_OK) {
+			LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
+			return rc;
+		}
+
+		trackedEntities = (SaPlmReadinessTrackedEntitiesT *)
+			malloc(entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT));
+
+		memset(trackedEntities, 0, (entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT)));
+
+		rc = saPlmReadinessTrack(cb->ent_group_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES_ONLY | SA_TRACK_START_STEP | SA_TRACK_VALIDATE_STEP), 1, trackedEntities);	/* trackCookie TBD */
+
+		if (rc != SA_AIS_OK) {
+			LOG_ER("saPlmReadinessTrack FAILED rc = %d", rc);
+			return rc;
+		}
+
+		TRACE("trackedEntities->numberOfEntities %d", trackedEntities->numberOfEntities);
+
+		for (i = 0; i < trackedEntities->numberOfEntities; i++) {
+			node = clms_node_get_by_eename(&trackedEntities->entities[i].entityName);
+			if (node != NULL) {
+				node->ee_red_state = trackedEntities->entities[i].currentReadinessStatus.readinessState;
+				node->change = trackedEntities->entities[i].change;
+				TRACE("node->ee_red_state %d", node->ee_red_state);
+			}
+
+		}
 	}
 
 	TRACE_LEAVE();

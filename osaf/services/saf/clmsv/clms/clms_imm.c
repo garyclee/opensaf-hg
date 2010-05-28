@@ -207,9 +207,16 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 			TRACE("saClmNodeEE attribute name's length %d", name->length);
 
 			if (name->length != 0) {
+				if (((ncs_patricia_tree_size(&clms_cb->ee_lookup)) >= 1) && (clms_cb->reg_with_plm == SA_FALSE))
+					LOG_ER("Incomplete Configuration: EE attribute is not specified for some CLM nodes");
 				clms_cb->reg_with_plm = SA_TRUE;
 				memcpy(node->ee_name.value, name->value, name->length);
 				node->ee_name.length = name->length;
+			}
+			else {
+				if (clms_cb->reg_with_plm == SA_TRUE) {
+					LOG_ER("Incomplete Configuration: EE attribute is empty for CLM node = %s",node->node_name.value);
+				}
 			}
 		}
 
@@ -270,7 +277,8 @@ SaAisErrorT clms_node_create_config(void)
 		clms_node_add_to_model(node);
 
 	}
-
+	if ((ncs_patricia_tree_size(&clms_cb->nodes_db) != ncs_patricia_tree_size(&clms_cb->ee_lookup)) && (clms_cb->reg_with_plm == TRUE))
+		LOG_ER("Incomplete Configuration: EE attribute is not specified for some CLM nodes");
 	rc = SA_AIS_OK;
  done2:
 
@@ -1526,12 +1534,14 @@ void clms_node_add_to_model(CLMS_CLUSTER_NODE * node)
 	CLMS_CLUSTER_NODE *tmp_node = NULL;
 
 	assert(node != NULL);
-
-	/*If the Node is already added to patricia tree;then ignore it */
-	if ((tmp_node = clms_node_get_by_eename(&node->ee_name)) == NULL) {
-		if (clms_cb->reg_with_plm == SA_TRUE) {
-			if (clms_node_add(node, 1) != NCSCC_RC_SUCCESS) {
-				assert(0);
+	if (node->ee_name.length != 0)
+	{
+		/*If the Node is already added to patricia tree;then ignore it */
+		if ((tmp_node = clms_node_get_by_eename(&node->ee_name)) == NULL) {
+			if (clms_cb->reg_with_plm == SA_TRUE) {
+				if (clms_node_add(node, 1) != NCSCC_RC_SUCCESS) {
+					assert(0);
+				}
 			}
 		}
 	}
