@@ -20,7 +20,6 @@
 #include "saImm.h"
 #include "mqd.h"
 
-void mqd_imm_declare_implementer(MQD_CB *cb);
 SaAisErrorT mqd_imm_initialize(MQD_CB *cb);
 SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immOiHandle);
 void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode);

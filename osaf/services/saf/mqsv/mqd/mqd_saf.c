@@ -163,8 +163,12 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 
       /** Change the MDS role **/
 		if (SA_AMF_HA_ACTIVE == pMqd->ha_state) {
+			const SaImmOiImplementerNameT implementer_name = (SaImmOiImplementerNameT) "safMsgGrpService";
 			/* If this is the active Director, become implementer */
-			mqd_imm_declare_implementer(pMqd);
+			saErr = immutil_saImmOiImplementerSet(pMqd->immOiHandle, implementer_name);
+			if (saErr != SA_AIS_OK){
+				mqd_genlog(NCSFL_SEV_ERROR, "mqd_imm_declare_implementer failed: err = %u \n", saErr);
+			}
 			mds_role = V_DEST_RL_ACTIVE;
 		} else {
 			mds_role = V_DEST_RL_STANDBY;

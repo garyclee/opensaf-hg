@@ -18,7 +18,6 @@
 #include "mqd_imm.h"
 
 #define QUEUE_MEMS 100
-#define MQD_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safMsgGrpService"
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -30,8 +29,6 @@ SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiCcbObjectModifyCallback = NULL,
 	.saImmOiRtAttrUpdateCallback = NULL
 };
-
-static const SaImmOiImplementerNameT implementer_name = MQD_IMM_IMPLEMENTER_NAME;
 
 /* IMMSv Defs */
 #define MQD_IMM_RELEASE_CODE 'A'
@@ -193,59 +190,4 @@ SaAisErrorT mqd_imm_initialize(MQD_CB *cb)
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
 	}
 	return rc;
-}
-
-/****************************************************************************
- * Name          : _mqd_imm_declare_implementer
- *
- * Description   : Become a OI implementer  
- *
- * Arguments     : cb - MQD Control Block pointer            
- *
- * Return Values : None 
- *
- * Notes         : None.
- *****************************************************************************/
-void *_mqd_imm_declare_implementer(void *cb)
-{
-	SaAisErrorT error = SA_AIS_OK;
-	MQD_CB *mqd_cb = (MQD_CB *)cb;
-	error = saImmOiImplementerSet(mqd_cb->immOiHandle, implementer_name);
-	unsigned int nTries = 1;
-	while (error == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
-		usleep(400 * 1000);
-		error = saImmOiImplementerSet(mqd_cb->immOiHandle, implementer_name);
-		nTries++;
-	}
-	if (error != SA_AIS_OK) {
-		mqd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED: %u \n", error);
-		exit(EXIT_FAILURE);
-	}
-
-	return NULL;
-}
-
-/****************************************************************************
- * Name          : mqd_imm_declare_implementer
- *      
- * Description   : Become a OI implementer  
- *
- * Arguments     : cb - MQD Control Block pointer            
- *
- * Return Values : None 
- *      
- * Notes         : None.
- *****************************************************************************/
-void mqd_imm_declare_implementer(MQD_CB *cb)
-{
-	pthread_t thread;
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	if (pthread_create(&thread, NULL, _mqd_imm_declare_implementer, cb) != 0) {
-		mqd_genlog(NCSFL_SEV_ERROR, "pthread_create FAILED:%s \n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	pthread_attr_destroy(&attr);
 }
