@@ -4611,7 +4611,7 @@ SaUint32T plms_peer_async_send(PLMS_ENTITY *ent,SaPlmChangeStepT step,
 	/* TODO: Not using root-cor-id.*/
 	msg.info.step_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
 	
-	if( SA_PLM_CHANGE_VALIDATE == step ){
+	if( (SA_PLM_CHANGE_VALIDATE == step) || ( (SA_PLM_CHANGE_START == step) && (SA_PLM_CAUSE_SHUTDOWN == ope_id))){
 		ret_err = plms_mbcsv_send_async_update(&msg,NCS_MBCSV_ACT_ADD);
 	}else if ( SA_PLM_CHANGE_START == step){
 		ret_err = plms_mbcsv_send_async_update(&msg,
