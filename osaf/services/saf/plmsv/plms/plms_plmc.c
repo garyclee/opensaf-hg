@@ -1487,9 +1487,6 @@ SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *evt)
 			LOG_ER (" Entity not found for PLMC event. ee_id: %s \
 			,evt_type: %d",
 			tmp,evt->req_evt.plms_plmc_evt.plmc_evt_type);
-			
-			plms_os_info_free(&(evt->req_evt.plms_plmc_evt.ee_os_info));
-
 			return ret_err;
 		}
 	}
