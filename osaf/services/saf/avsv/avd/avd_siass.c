@@ -501,7 +501,10 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	}
 
 	if (ckpt == FALSE) {
-		if (SA_AMF_HA_STANDBY == susi->state) {
+		if (susi->fsm == AVD_SU_SI_STATE_MODIFY) {
+			/* Dont delete here, if i am in modify state. 
+			   only happens when active -> qsd and standby rebooted */
+		} else if (SA_AMF_HA_STANDBY == susi->state) {
 			avd_su_dec_curr_stdby_si(susi->su);
 			avd_si_dec_curr_stdby_ass(susi->si);
 		} else {
