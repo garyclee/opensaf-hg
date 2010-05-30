@@ -200,6 +200,53 @@ static AVND_COMP_CLC_FSM_FN avnd_comp_clc_fsm[][AVND_COMP_CLC_PRES_FSM_EV_MAX - 
 
 };
 
+/**
+ * Convert NCS_OS_PROC_EXEC_STATUS to a string
+ * @param status
+ * 
+ * @return const char*
+ */
+static const char *str_exec_status(NCS_OS_PROC_EXEC_STATUS status)
+{
+	switch (status) {
+	case NCS_OS_PROC_EXEC_FAIL:
+		return "Exec of script failed (script not readable or path wrong)";
+	case NCS_OS_PROC_EXIT_NORMAL:
+		return "Exec of script success, and script exits with status zero";
+	case NCS_OS_PROC_EXIT_WAIT_TIMEOUT:
+		return "Script did not exit within time";
+	case NCS_OS_PROC_EXIT_WITH_CODE:
+		return "Exec of script success, but script exits with non-zero status";
+	case NCS_OS_PROC_EXIT_ON_SIGNAL:
+		return "Exec of script success, but script exits due to a signal";
+	default:
+		return "unknown";
+	}
+}
+
+/**
+ * Log detailed cause of failed exec
+ * @param exec_stat
+ * @param comp
+ * @param exec_cmd
+ */
+static void log_failed_exec(NCS_OS_PROC_EXEC_STATUS_INFO *exec_stat,
+	AVND_COMP *comp, AVND_COMP_CLC_CMD_TYPE exec_cmd)
+{
+	assert(exec_cmd <= AVND_COMP_CLC_CMD_TYPE_MAX);
+
+	LOG_NO("Reason: %s", str_exec_status(exec_stat->value));
+
+	if (NCS_OS_PROC_EXIT_WITH_CODE == exec_stat->value)
+		LOG_NO("Exit code: %u", exec_stat->info.exit_with_code.exit_code);
+
+	if (NCS_OS_PROC_EXEC_FAIL == exec_stat->value)
+		LOG_NO("CLC CLI script: %s", comp->clc_info.cmds[exec_cmd-1].cmd);
+
+	if (NCS_OS_PROC_EXIT_ON_SIGNAL == exec_stat->value)
+		LOG_NO("Signal: %u", exec_stat->info.exit_on_signal.signal_num);
+}
+
 /****************************************************************************
   Name          : avnd_evt_clc_resp
  
@@ -216,13 +263,15 @@ static AVND_COMP_CLC_FSM_FN avnd_comp_clc_fsm[][AVND_COMP_CLC_PRES_FSM_EV_MAX - 
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_clc_resp(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_COMP_CLC_PRES_FSM_EV ev = AVND_COMP_CLC_PRES_FSM_EV_MAX;
 	AVND_CLC_EVT *clc_evt = &evt->info.clc;
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	uns32 amcmd = 0;
+
+	TRACE_ENTER();
 
 	/* get the comp */
 	if (clc_evt->exec_ctxt) {
@@ -280,30 +329,41 @@ uns32 avnd_evt_clc_resp(AVND_CB *cb, AVND_EVT *evt)
 					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 				}
 			} else {
+				ev = AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL;
+
 				if (NCS_OS_PROC_EXIT_WITH_CODE == clc_evt->exec_stat.value) {
 					comp->clc_info.inst_code_rcvd =
 					    clc_evt->exec_stat.info.exit_with_code.exit_code;
 					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CODE_RCVD);
 				}
 
-				ev = AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL;
+				LOG_NO("Instantiation of '%s' failed", comp->name.value);
+				log_failed_exec(&clc_evt->exec_stat, comp, comp->clc_info.exec_cmd);
 			}
 			break;
 
 		case AVND_COMP_CLC_CMD_TYPE_TERMINATE:
 
-			if (NCS_OS_PROC_EXIT_NORMAL != clc_evt->exec_stat.value) {
+			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value)
+				ev = AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC;
+			else {
+				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP;
 				m_AVND_COMP_TERM_FAIL_SET(comp);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
+				LOG_NO("Termination of '%s' failed", comp->name.value);
+				log_failed_exec(&clc_evt->exec_stat, comp, comp->clc_info.exec_cmd);
 			}
 
-			ev = (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) ?
-			    AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC : AVND_COMP_CLC_PRES_FSM_EV_CLEANUP;
 			break;
 
 		case AVND_COMP_CLC_CMD_TYPE_CLEANUP:
-			ev = (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) ?
-			    AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC : AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL;
+			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) {
+				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC;
+			} else {
+				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL;
+				LOG_NO("Cleanup of '%s' failed", comp->name.value);
+				log_failed_exec(&clc_evt->exec_stat, comp, comp->clc_info.exec_cmd);
+			}
 			break;
 
 		default:
@@ -321,7 +381,8 @@ uns32 avnd_evt_clc_resp(AVND_CB *cb, AVND_EVT *evt)
 	if (AVND_COMP_CLC_PRES_FSM_EV_MAX != ev)
 		rc = avnd_comp_clc_fsm_run(cb, comp, ev);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -338,11 +399,13 @@ uns32 avnd_evt_clc_resp(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_comp_pres_fsm_ev(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_comp_pres_fsm_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_COMP_FSM_EVT *comp_fsm_evt = &evt->info.comp_fsm;
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* get the comp */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_fsm_evt->comp_name);
@@ -353,7 +416,8 @@ uns32 avnd_evt_comp_pres_fsm_ev(AVND_CB *cb, AVND_EVT *evt)
 	if (AVND_COMP_CLC_PRES_FSM_EV_MAX != comp_fsm_evt->ev)
 		rc = avnd_comp_clc_fsm_run(cb, comp, comp_fsm_evt->ev);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -371,11 +435,13 @@ uns32 avnd_evt_comp_pres_fsm_ev(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_clc_comp_reg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_clc_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve the comp */
 	comp = (AVND_COMP *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl);
@@ -387,12 +453,16 @@ uns32 avnd_evt_tmr_clc_comp_reg(AVND_CB *cb, AVND_EVT *evt)
 
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 
+	LOG_NO("Instantiation of '%s' failed", comp->name.value);
+	LOG_NO("Reason: component registration timer expired");
+
 	/* trigger the fsm with inst-fail event */
 	rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL);
 
- done:
+done:
 	if (comp)
 		ncshm_give_hdl(tmr->opq_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -412,11 +482,13 @@ uns32 avnd_evt_tmr_clc_comp_reg(AVND_CB *cb, AVND_EVT *evt)
                   tries to instantiate a proxied component and no component has
                   registered "to proxy" this particular proxied.
 ******************************************************************************/
-uns32 avnd_evt_tmr_clc_pxied_comp_inst(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_clc_pxied_comp_inst_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve the comp */
 	comp = (AVND_COMP *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl);
@@ -431,9 +503,10 @@ uns32 avnd_evt_tmr_clc_pxied_comp_inst(AVND_CB *cb, AVND_EVT *evt)
 	/* trigger the fsm with inst-fail event */
 	rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL);
 
- done:
+done:
 	if (comp)
 		ncshm_give_hdl(tmr->opq_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -455,12 +528,14 @@ uns32 avnd_evt_tmr_clc_pxied_comp_inst(AVND_CB *cb, AVND_EVT *evt)
                   anymore. It can be triggered by a proxy when it unregisters a 
                   proxied. It can also be triggered when AMF detects proxy failure.
 ******************************************************************************/
-uns32 avnd_evt_tmr_clc_pxied_comp_reg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_clc_pxied_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP *comp = 0;
 	AVND_ERR_INFO err_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve the comp */
 	comp = (AVND_COMP *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl);
@@ -477,10 +552,11 @@ uns32 avnd_evt_tmr_clc_pxied_comp_reg(AVND_CB *cb, AVND_EVT *evt)
 	err_info.rcvr = SA_AMF_COMPONENT_FAILOVER;
 	rc = avnd_err_process(cb, comp, &err_info);
 
- done:
+done:
 	if (comp)
 		ncshm_give_hdl(tmr->opq_hdl);
 	return rc;
+	TRACE_LEAVE();
 }
 
 /****************************************************************************

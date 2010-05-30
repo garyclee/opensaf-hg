@@ -410,11 +410,13 @@ void avnd_mon_process(void *arg)
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_pid_exit_evt(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_pid_exit_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_COMP_PM_REC *pm_rec;
 	AVND_COMP *comp;
 	AVND_ERR_INFO err;
+
+	TRACE_ENTER();
 
 	pm_rec = evt->info.pm_evt.pm_rec;
 	if (!pm_rec)
@@ -431,5 +433,6 @@ uns32 avnd_evt_pid_exit_evt(AVND_CB *cb, AVND_EVT *evt)
 	/*** process the error ***/
 	avnd_err_process(cb, comp, &err);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

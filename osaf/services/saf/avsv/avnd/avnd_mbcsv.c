@@ -1277,12 +1277,14 @@ static uns32 avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type)
 
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avd_role_change_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_ROLE_CHANGE_INFO *info = NULL;
 	V_DEST_RL mds_role;
 	SaAmfHAStateT prev_ha_state;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -1354,6 +1356,7 @@ uns32 avnd_evt_avd_role_change_msg(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1542,15 +1545,12 @@ uns32 avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uns32 reo_type)
  *
  * 
 \**************************************************************************/
-uns32 avnd_evt_ha_state_change(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_HA_STATE_CHANGE_EVT *ha_state_event = NULL;
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_ha_state_change", NULL, 0, 0, 0, 0);
-
-	if (NULL == evt)
-		return rc;
+	TRACE_ENTER();
 
 	ha_state_event = &evt->info.ha_state_change;
 
@@ -1572,10 +1572,11 @@ uns32 avnd_evt_ha_state_change(AVND_CB *cb, AVND_EVT *evt)
 		return rc;
 	}
 
- error:
+error:
 	m_AVND_AVND_ERR_LOG("avnd_evt_ha_state_change:evt_type,ha_state,cb->is_quisced_set,rc are", NULL,
 			    evt->type, ha_state_event->ha_state, cb->is_quisced_set, rc);
 
+	TRACE_LEAVE();
 	return rc;
 }
 

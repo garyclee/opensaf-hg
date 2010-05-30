@@ -388,7 +388,7 @@ NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_RE
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PM_START_PARAM *pm_start = &api_info->param.pm_start;
@@ -396,6 +396,8 @@ uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -428,6 +430,7 @@ uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
 				    pm_start->desc_tree_depth, pm_start->pm_err);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -444,7 +447,7 @@ uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_stop(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PM_STOP_PARAM *pm_stop = &api_info->param.pm_stop;
@@ -453,6 +456,8 @@ uns32 avnd_evt_ava_pm_stop(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -485,6 +490,7 @@ uns32 avnd_evt_ava_pm_stop(AVND_CB *cb, AVND_EVT *evt)
 				    pm_stop->stop_qual, pm_stop->pm_err);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 

@@ -128,11 +128,13 @@ done:
                   However, it doesnt matter coz this is during the last step
                   and NID script will timeout and kill anyway.
 ******************************************************************************/
-uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
 	NCS_BOOL empty_sulist = TRUE;
+
+	TRACE_ENTER();
 
 	if (cb->term_state != AVND_TERM_STATE_SHUTTING_NCS_SI) {
 		avnd_last_step_clean(cb);
@@ -186,6 +188,7 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -259,10 +262,12 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
  
   Notes         : 
 ******************************************************************************/
-uns32 avnd_evt_avd_set_leds_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_set_leds_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_SET_LEDS_MSG_INFO *info = &evt->info.avd->msg_info.d2n_set_leds;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
@@ -284,6 +289,7 @@ uns32 avnd_evt_avd_set_leds_msg(AVND_CB *cb, AVND_EVT *evt)
 	/* Notify the NIS script/deamon that we have fully come up */
 	nid_notify("AMFND", NCSCC_RC_SUCCESS, NULL);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }

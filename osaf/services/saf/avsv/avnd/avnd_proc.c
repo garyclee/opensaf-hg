@@ -51,138 +51,83 @@
 #define FD_CLM   2 
 #define FD_MBCSV 3
 
-char *avnd_evt_type_name[] = {
-	"AVND_EVT_INVALID",
-	"AVND_EVT_AVD_NODE_UP_MSG",
-	"AVND_EVT_AVD_REG_SU_MSG",
-	"AVND_EVT_AVD_REG_COMP_MSG",
-	"AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG",
-	"AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG",
-	"AVND_EVT_AVD_PG_UPD_MSG",
-	"AVND_EVT_AVD_OPERATION_REQUEST_MSG",
-	"AVND_EVT_AVD_SU_PRES_MSG",
-	"AVND_EVT_AVD_VERIFY_MSG",
-	"AVND_EVT_AVD_ACK_MSG",
-	"AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG",
-	"AVND_EVT_AVD_SET_LEDS_MSG",
-	"AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG",
-	"AVND_EVT_AVD_ROLE_CHANGE_MSG",
-	"AVND_EVT_AVD_ADMIN_OP_REQ_MSG",
-	"AVND_EVT_AVD_HEARTBEAT_MSG",
-	"AVND_EVT_AVA_FINALIZE",
-	"AVND_EVT_AVA_COMP_REG",
-	"AVND_EVT_AVA_COMP_UNREG",
-	"AVND_EVT_AVA_PM_START",
-	"AVND_EVT_AVA_PM_STOP",
-	"AVND_EVT_AVA_HC_START",
-	"AVND_EVT_AVA_HC_STOP",
-	"AVND_EVT_AVA_HC_CONFIRM",
-	"AVND_EVT_AVA_CSI_QUIESCING_COMPL",
-	"AVND_EVT_AVA_HA_GET",
-	"AVND_EVT_AVA_PG_START",
-	"AVND_EVT_AVA_PG_STOP",
-	"AVND_EVT_AVA_ERR_REP",
-	"AVND_EVT_AVA_ERR_CLEAR",
-	"AVND_EVT_AVA_RESP",
-	"AVND_EVT_TMR_HC",
-	"AVND_EVT_TMR_CBK_RESP",
-	"AVND_EVT_TMR_RCV_MSG_RSP",
-	"AVND_EVT_TMR_CLC_COMP_REG",
-	"AVND_EVT_TMR_SU_ERR_ESC",
-	"AVND_EVT_TMR_NODE_ERR_ESC",
-	"AVND_EVT_TMR_CLC_PXIED_COMP_INST",
-	"AVND_EVT_TMR_CLC_PXIED_COMP_REG",
-	"AVND_EVT_TMR_HB_DURATION",
-	"AVND_EVT_MDS_AVD_UP",
-	"AVND_EVT_MDS_AVD_DN",
-	"AVND_EVT_MDS_AVA_DN",
-	"AVND_EVT_MDS_AVND_DN",
-	"AVND_EVT_MDS_AVND_UP",
-	"AVND_EVT_HA_STATE_CHANGE",
-	"AVND_EVT_CLC_RESP",
-	"AVND_EVT_AVND_AVND_MSG",
-	"AVND_EVT_COMP_PRES_FSM_EV",
-	"AVND_EVT_LAST_STEP_TERM",
-	"AVND_EVT_PID_EXIT",
-};
-
 static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
 static void avnd_evt_process(AVND_EVT *);
 
-static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt);
+static uns32 avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt);
 
 /* list of all the function pointers related to handling the events
 */
 const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
-	avnd_evt_invalid_func,	/* AVND_EVT_INVALID */
+	avnd_evt_invalid_evh,	/* AVND_EVT_INVALID */
 
 	/* AvD message event types */
-	avnd_evt_avd_node_up_msg,	/* AVND_EVT_AVD_NODE_UP_MSG */
-	avnd_evt_avd_reg_su_msg,	/* AVND_EVT_AVD_REG_SU_MSG */
-	avnd_evt_avd_reg_comp_msg,	/* AVND_EVT_AVD_REG_COMP_MSG */
-	avnd_evt_avd_info_su_si_assign_msg,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
-	avnd_evt_avd_pg_track_act_rsp_msg,	/* AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG */
-	avnd_evt_avd_pg_upd_msg,	/* AVND_EVT_AVD_PG_UPD_MSG */
-	avnd_evt_avd_operation_request_msg,	/* AVND_EVT_AVD_OPERATION_REQUEST_MSG */
-	avnd_evt_avd_su_pres_msg,	/* AVND_EVT_AVD_SU_PRES_MSG */
-	avnd_evt_avd_verify_message,	/* AVND_EVT_AVD_VERIFY_MSG */
-	avnd_evt_avd_ack_message,	/* AVND_EVT_AVD_ACK_MSG */
-	avnd_evt_avd_shutdown_app_su_msg,	/* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
-	avnd_evt_avd_set_leds_msg,	/* AVND_EVT_AVD_SET_LEDS_MSG */
-	avnd_evt_avd_comp_validation_resp_msg,	/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
-	avnd_evt_avd_role_change_msg,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
-	avnd_evt_avd_admin_op_req_msg,  /* AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
+	avnd_evt_avd_node_up_evh,	/* AVND_EVT_AVD_NODE_UP_MSG */
+	avnd_evt_avd_reg_su_evh,	/* AVND_EVT_AVD_REG_SU_MSG */
+	avnd_evt_avd_reg_comp_evh,	/* AVND_EVT_AVD_REG_COMP_MSG */
+	avnd_evt_avd_info_su_si_assign_evh,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
+	avnd_evt_avd_pg_track_act_rsp_evh,	/* AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG */
+	avnd_evt_avd_pg_upd_evh,	/* AVND_EVT_AVD_PG_UPD_MSG */
+	avnd_evt_avd_operation_request_evh,	/* AVND_EVT_AVD_OPERATION_REQUEST_MSG */
+	avnd_evt_avd_su_pres_evh,	/* AVND_EVT_AVD_SU_PRES_MSG */
+	avnd_evt_avd_verify_evh,	/* AVND_EVT_AVD_VERIFY_MSG */
+	avnd_evt_avd_ack_evh,	/* AVND_EVT_AVD_ACK_MSG */
+	avnd_evt_avd_shutdown_app_su_evh,	/* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
+	avnd_evt_avd_set_leds_evh,	/* AVND_EVT_AVD_SET_LEDS_MSG */
+	avnd_evt_avd_comp_validation_resp_evh,	/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
+	avnd_evt_avd_role_change_evh,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
+	avnd_evt_avd_admin_op_req_evh,  /* AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
 	avnd_evt_avd_hb_evh,            /* AVND_EVT_AVD_HEARTBEAT_MSG */
 
 	/* AvA event types */
-	avnd_evt_ava_finalize,	/* AVND_EVT_AVA_AMF_FINALIZE */
-	avnd_evt_ava_comp_reg,	/* AVND_EVT_AVA_COMP_REG */
-	avnd_evt_ava_comp_unreg,	/* AVND_EVT_AVA_COMP_UNREG */
-	avnd_evt_ava_pm_start,	/* AVND_EVT_AVA_PM_START */
-	avnd_evt_ava_pm_stop,	/* AVND_EVT_AVA_PM_STOP */
-	avnd_evt_ava_hc_start,	/* AVND_EVT_AVA_HC_START */
-	avnd_evt_ava_hc_stop,	/* AVND_EVT_AVA_HC_STOP */
-	avnd_evt_ava_hc_confirm,	/* AVND_EVT_AVA_HC_CONFIRM */
-	avnd_evt_ava_csi_quiescing_compl,	/* AVND_EVT_AVA_CSI_QUIESCING_COMPL */
-	avnd_evt_ava_ha_get,	/* AVND_EVT_AVA_HA_GET */
-	avnd_evt_ava_pg_start,	/* AVND_EVT_AVA_PG_START */
-	avnd_evt_ava_pg_stop,	/* AVND_EVT_AVA_PG_STOP */
-	avnd_evt_ava_err_rep,	/* AVND_EVT_AVA_ERR_REP */
-	avnd_evt_ava_err_clear,	/* AVND_EVT_AVA_ERR_CLEAR */
-	avnd_evt_ava_resp,	/* AVND_EVT_AVA_RESP */
+	avnd_evt_ava_finalize_evh,	/* AVND_EVT_AVA_AMF_FINALIZE */
+	avnd_evt_ava_comp_reg_evh,	/* AVND_EVT_AVA_COMP_REG */
+	avnd_evt_ava_comp_unreg_evh,	/* AVND_EVT_AVA_COMP_UNREG */
+	avnd_evt_ava_pm_start_evh,	/* AVND_EVT_AVA_PM_START */
+	avnd_evt_ava_pm_stop_evh,	/* AVND_EVT_AVA_PM_STOP */
+	avnd_evt_ava_hc_start_evh,	/* AVND_EVT_AVA_HC_START */
+	avnd_evt_ava_hc_stop_evh,	/* AVND_EVT_AVA_HC_STOP */
+	avnd_evt_ava_hc_confirm_evh,	/* AVND_EVT_AVA_HC_CONFIRM */
+	avnd_evt_ava_csi_quiescing_compl_evh,	/* AVND_EVT_AVA_CSI_QUIESCING_COMPL */
+	avnd_evt_ava_ha_get_evh,	/* AVND_EVT_AVA_HA_GET */
+	avnd_evt_ava_pg_start_evh,	/* AVND_EVT_AVA_PG_START */
+	avnd_evt_ava_pg_stop_evh,	/* AVND_EVT_AVA_PG_STOP */
+	avnd_evt_ava_err_rep_evh,	/* AVND_EVT_AVA_ERR_REP */
+	avnd_evt_ava_err_clear_evh,	/* AVND_EVT_AVA_ERR_CLEAR */
+	avnd_evt_ava_resp_evh,	/* AVND_EVT_AVA_RESP */
 
 	/* timer event types */
-	avnd_evt_tmr_hc,	/* AVND_EVT_TMR_HC */
-	avnd_evt_tmr_cbk_resp,	/* AVND_EVT_TMR_CBK_RESP */
-	avnd_evt_tmr_rcv_msg_rsp,	/* AVND_EVT_TMR_RCV_MSG_RSP */
-	avnd_evt_tmr_clc_comp_reg,	/* AVND_EVT_TMR_CLC_COMP_REG */
-	avnd_evt_tmr_su_err_esc,	/* AVND_EVT_TMR_SU_ERR_ESC */
-	avnd_evt_tmr_node_err_esc,	/* AVND_EVT_TMR_NODE_ERR_ESC */
-	avnd_evt_tmr_clc_pxied_comp_inst,	/* AVND_EVT_TMR_CLC_PXIED_COMP_INST */
-	avnd_evt_tmr_clc_pxied_comp_reg,	/* AVND_EVT_TMR_CLC_PXIED_COMP_REG */
+	avnd_evt_tmr_hc_evh,	/* AVND_EVT_TMR_HC */
+	avnd_evt_tmr_cbk_resp_evh,	/* AVND_EVT_TMR_CBK_RESP */
+	avnd_evt_tmr_rcv_msg_rsp_evh,	/* AVND_EVT_TMR_RCV_MSG_RSP */
+	avnd_evt_tmr_clc_comp_reg_evh,	/* AVND_EVT_TMR_CLC_COMP_REG */
+	avnd_evt_tmr_su_err_esc_evh,	/* AVND_EVT_TMR_SU_ERR_ESC */
+	avnd_evt_tmr_node_err_esc_evh,	/* AVND_EVT_TMR_NODE_ERR_ESC */
+	avnd_evt_tmr_clc_pxied_comp_inst_evh,	/* AVND_EVT_TMR_CLC_PXIED_COMP_INST */
+	avnd_evt_tmr_clc_pxied_comp_reg_evh,	/* AVND_EVT_TMR_CLC_PXIED_COMP_REG */
 	avnd_evt_tmr_avd_hb_duration_evh,
 
 	/* mds event types */
-	avnd_evt_mds_avd_up,	/* AVND_EVT_MDS_AVD_UP */
-	avnd_evt_mds_avd_dn,	/* AVND_EVT_MDS_AVD_DN */
-	avnd_evt_mds_ava_dn,	/* AVND_EVT_MDS_AVA_DN */
-	avnd_evt_mds_avnd_dn,	/* AVND_EVT_MDS_AVND_DN */
-	avnd_evt_mds_avnd_up,	/* AVND_EVT_MDS_AVND_UP */
+	avnd_evt_mds_avd_up_evh,	/* AVND_EVT_MDS_AVD_UP */
+	avnd_evt_mds_avd_dn_evh,	/* AVND_EVT_MDS_AVD_DN */
+	avnd_evt_mds_ava_dn_evh,	/* AVND_EVT_MDS_AVA_DN */
+	avnd_evt_mds_avnd_dn_evh,	/* AVND_EVT_MDS_AVND_DN */
+	avnd_evt_mds_avnd_up_evh,	/* AVND_EVT_MDS_AVND_UP */
 
 	/* HA State Change event types */
-	avnd_evt_ha_state_change,	/* AVND_EVT_HA_STATE_CHANGE */
+	avnd_evt_ha_state_change_evh,	/* AVND_EVT_HA_STATE_CHANGE */
 
 	/* clc event types */
-	avnd_evt_clc_resp,	/* AVND_EVT_CLC_RESP */
+	avnd_evt_clc_resp_evh,	/* AVND_EVT_CLC_RESP */
 
 	/* AvND to AvND Events. */
-	avnd_evt_avnd_avnd_msg,	/* AVND_EVT_AVND_AVND_MSG */
+	avnd_evt_avnd_avnd_evh,	/* AVND_EVT_AVND_AVND_MSG */
 
 	/* internal event types */
-	avnd_evt_comp_pres_fsm_ev,	/* AVND_EVT_COMP_PRES_FSM_EV */
-	avnd_evt_last_step_term,	/* AVND_EVT_LAST_STEP_TERM */
-	avnd_evt_pid_exit_evt	/* AVND_EVT_PID_EXIT */
+	avnd_evt_comp_pres_fsm_evh,	/* AVND_EVT_COMP_PRES_FSM_EV */
+	avnd_evt_last_step_term_evh,	/* AVND_EVT_LAST_STEP_TERM */
+	avnd_evt_pid_exit_evh	/* AVND_EVT_PID_EXIT */
 };
 
 /**
@@ -320,15 +265,9 @@ void avnd_evt_process(AVND_EVT *evt)
 	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	/* nothing to process */
-	if (!evt)
-		goto done;
-
-	TRACE_ENTER2("%s", avnd_evt_type_name[evt->type]);
-
 	/* validate the event type */
 	if ((evt->type <= AVND_EVT_INVALID) || (evt->type >= AVND_EVT_MAX)) {
-		/* log */
+		LOG_ER("Unknown event %u", evt->type);
 		goto done;
 	}
 
@@ -357,15 +296,12 @@ void avnd_evt_process(AVND_EVT *evt)
 		       (rc == NCSCC_RC_SUCCESS) ? AVND_LOG_EVT_SUCCESS : AVND_LOG_EVT_FAILURE, NCSFL_SEV_INFO);
 
 done:
-	TRACE_LEAVE2("%s", avnd_evt_type_name[evt->type]);
-
-	/* free the event */
 	if (evt)
 		avnd_evt_destroy(evt);
 }
 
 /*****************************************************************************
- * Function: avnd_evt_invalid_func
+ * Function: avnd_evt_invalid_evh
  *
  * Purpose:  This function is the handler for invalid events. It just
  * dumps the event to the debug log and returns.
@@ -379,7 +315,7 @@ done:
  * 
  **************************************************************************/
 
-static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt)
+static uns32 avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	LOG_NO("avnd_evt_invalid_func: %u", evt->type);
 	return NCSCC_RC_SUCCESS;

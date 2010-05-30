@@ -41,13 +41,14 @@ static uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avnd_avnd_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_avnd_msg = evt->info.avnd;
 	AVSV_ND2ND_AVA_MSG *msg = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avnd_avnd_msg(): Msg Type is ", NULL, avnd_avnd_msg->type, 0, 0, 0);
+	TRACE_ENTER2("%u", avnd_avnd_msg->type);
+
 	if (AVND_AVND_CBK_DEL == avnd_avnd_msg->type) {
 		/* This is a Callback Del message */
 		AVSV_ND2ND_CBK_DEL *del_cbk = NULL;
@@ -86,14 +87,14 @@ uns32 avnd_evt_avnd_avnd_msg(AVND_CB *cb, AVND_EVT *evt)
 		res = NCSCC_RC_FAILURE;
 	}
 
- done:
-
+done:
 	if (NCSCC_RC_SUCCESS != res) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_avnd_avnd_msg:failure:Msg Type and res are",
 				    NULL, avnd_avnd_msg->type, res, 0, 0);
 	}
-	return res;
 
+	TRACE_LEAVE();
+	return res;
 }
 
 /******************************************************************************

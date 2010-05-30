@@ -57,7 +57,7 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt);
 AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name, NODE_ID node_id, uns32 *rc, NCS_BOOL,
 				   NCS_BOOL);
 uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name_net);
-uns32 avnd_evt_mds_avnd_up(AVND_CB *cb, AVND_EVT *evt);
-uns32 avnd_evt_mds_avnd_dn(AVND_CB *cb, AVND_EVT *evt);
+uns32 avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt);
+uns32 avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt);
 
 #endif

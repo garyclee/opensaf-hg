@@ -33,8 +33,6 @@
 
 #include "avnd.h"
 
-extern char *avnd_evt_type_name[];
-
 /****************************************************************************
   Name          : avnd_evt_create
  

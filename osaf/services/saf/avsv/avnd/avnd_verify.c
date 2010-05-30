@@ -80,13 +80,15 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_verify_message(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_DND_LIST *list = &((cb)->dnd_list);
 	AVND_DND_MSG_LIST *rec = 0, t_rec;
 	AVSV_D2N_DATA_VERIFY_MSG_INFO *info;
 	uns32 rcv_id;
 	NCS_BOOL msg_found = FALSE;
+
+	TRACE_ENTER();
 
 	info = &evt->info.avd->msg_info.d2n_data_verify;
 
@@ -173,5 +175,6 @@ uns32 avnd_evt_avd_verify_message(AVND_CB *cb, AVND_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

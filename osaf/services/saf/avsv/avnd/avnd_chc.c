@@ -70,7 +70,7 @@ static uns32 avnd_comp_hc_rec_tmr_exp(AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_start(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_START_PARAM *hc_start = &api_info->param.hc_start;
@@ -79,6 +79,8 @@ uns32 avnd_evt_ava_hc_start(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -113,6 +115,7 @@ uns32 avnd_evt_ava_hc_start(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_start():Comp,Hdl,InvType and Err Rcvr are",
 				    &hc_start->comp_name, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr, 0);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -129,7 +132,7 @@ uns32 avnd_evt_ava_hc_start(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_stop(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_STOP_PARAM *hc_stop = &api_info->param.hc_stop;
@@ -138,6 +141,8 @@ uns32 avnd_evt_ava_hc_stop(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -168,6 +173,8 @@ uns32 avnd_evt_ava_hc_stop(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_stop():Comp and Hdl are",
 				    &hc_stop->comp_name, hc_stop->hdl, 0, 0, 0);
 	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -184,7 +191,7 @@ uns32 avnd_evt_ava_hc_stop(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_hc_confirm(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HC_CONFIRM_PARAM *hc_confirm = &api_info->param.hc_confirm;
@@ -193,6 +200,8 @@ uns32 avnd_evt_ava_hc_confirm(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -224,6 +233,8 @@ uns32 avnd_evt_ava_hc_confirm(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_confirm():Comp, Hdl and hc_res are",
 				    &hc_confirm->comp_name, hc_confirm->hdl, hc_confirm->hc_res, 0, 0);
 	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -239,11 +250,13 @@ uns32 avnd_evt_ava_hc_confirm(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_hc(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_hc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP_HC_REC *rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve the healthcheck record */
 	if ((0 == (rec = (AVND_COMP_HC_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl))))
@@ -263,7 +276,8 @@ uns32 avnd_evt_tmr_hc(AVND_CB *cb, AVND_EVT *evt)
 	/* process the timer expiry */
 	rc = avnd_comp_hc_rec_process(cb, rec->comp, rec, AVND_COMP_HC_TMR_EXP, 0);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 

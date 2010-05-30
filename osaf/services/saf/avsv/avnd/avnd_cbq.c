@@ -50,7 +50,7 @@ AVND_COMP_CBK *avnd_comp_cbq_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_CBK_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_csi_quiescing_compl(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_CSI_QUIESCING_COMPL_PARAM *qsc = &api_info->param.csiq_compl;
@@ -61,6 +61,8 @@ uns32 avnd_evt_ava_csi_quiescing_compl(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 	SaAisErrorT amf_rc = SA_AIS_OK;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -163,8 +165,8 @@ uns32 avnd_evt_ava_csi_quiescing_compl(AVND_CB *cb, AVND_EVT *evt)
 			goto done;
 	}
 
- done:
-
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -180,7 +182,7 @@ uns32 avnd_evt_ava_csi_quiescing_compl(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_RESP_PARAM *resp = &api_info->param.resp;
@@ -192,6 +194,8 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 	SaAisErrorT amf_rc = SA_AIS_OK;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -455,8 +459,8 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
 		assert(0);
 	}			/* switch */
 
- done:
-
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -472,7 +476,7 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_COMP_CBK *rec = 0;
@@ -480,6 +484,8 @@ uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
 	AVND_ERR_INFO err_info;
 	AVND_COMP_CSI_REC *csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve callback record */
 	rec = (AVND_COMP_CBK *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl);
@@ -501,9 +507,7 @@ uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
 		/* => quiesced assignment failed.. process it */
 		csi = m_AVND_COMPDB_REC_CSI_GET(*(rec->comp), rec->cbk_info->param.csi_set.csi_desc.csiName);
 
-		if (rec->comp->su->is_ncs == TRUE) {
-			syslog(LOG_ERR, "%s got qsd cbk timeout", rec->comp->name.value);
-		}
+		syslog(LOG_ERR, "%s got qsd cbk timeout", rec->comp->name.value);
 
 		rc = avnd_comp_csi_qscd_assign_fail_prc(cb, rec->comp, csi);
 	} else if (AVSV_AMF_PXIED_COMP_INST == rec->cbk_info->type) {
@@ -546,7 +550,8 @@ uns32 avnd_evt_tmr_cbk_resp(AVND_CB *cb, AVND_EVT *evt)
 		rc = avnd_err_process(cb, rec->comp, &err_info);
 	}
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
