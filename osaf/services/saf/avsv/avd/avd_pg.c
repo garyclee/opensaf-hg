@@ -102,7 +102,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* send back the response */
 	if (NCSCC_RC_SUCCESS != avd_snd_pg_resp_msg(cb, node, csi, info))
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 
 done:
 	avsv_dnd_msg_free(evt->info.avnd_msg);
@@ -196,11 +196,8 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	/* alloc the pg-csi-node & pg-node-csi recs */
 	pg_csi_node = calloc(1, sizeof(AVD_PG_CSI_NODE));
 	pg_node_csi = calloc(1, sizeof(AVD_PG_NODE_CSI));
-	if (!pg_csi_node || !pg_node_csi) {
-		if (!pg_csi_node)
-			m_AVD_LOG_MEM_FAIL(AVD_PG_CSI_NODE_ALLOC_FAILED);
-		if (!pg_node_csi)
-			m_AVD_LOG_MEM_FAIL(AVD_PG_NODE_CSI_ALLOC_FAILED);
+	if (!pg_node_csi || !pg_node_csi) {
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 

@@ -210,29 +210,31 @@ typedef struct avd_amf_sg_type_tag {
 } AVD_AMF_SG_TYPE;
 
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
-sg->adjust_state = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADJUST_STATE);\
+	TRACE("adjust_state %u => %u", sg->adjust_state, state); \
+	sg->adjust_state = state;\
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADJUST_STATE);\
 }
 
 #define m_AVD_SET_SG_FSM(cb,sg,state) {\
-if (sg->sg_fsm_state != state) \
-{ \
-  sg->sg_fsm_state = state;\
-  m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_FSM_STATE);\
-}\
+	if (sg->sg_fsm_state != state) { \
+		TRACE("sg_fsm_state %u => %u", sg->sg_fsm_state, state); \
+		sg->sg_fsm_state = state;\
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_FSM_STATE);\
+	}\
 }
 
 #define m_AVD_SET_SG_ADMIN_SI(cb,si) {\
-si->sg_of_si->admin_si = si;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, (si->sg_of_si), AVSV_CKPT_AVD_SG_ADMIN_SI);\
+	TRACE("admin_si set to %s", si->name.value); \
+	si->sg_of_si->admin_si = si;\
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, (si->sg_of_si), AVSV_CKPT_AVD_SG_ADMIN_SI);\
 }
 
 #define m_AVD_CLEAR_SG_ADMIN_SI(cb,sg) {\
-if (sg->admin_si != AVD_SI_NULL)\
-{\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, sg, AVSV_CKPT_AVD_SG_ADMIN_SI);\
-sg->admin_si = AVD_SI_NULL;\
-}\
+	if (sg->admin_si != AVD_SI_NULL) {\
+		TRACE("admin_si cleared"); \
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, sg, AVSV_CKPT_AVD_SG_ADMIN_SI);\
+		sg->admin_si = AVD_SI_NULL;\
+	}\
 }
 
 /*****************************************************************************

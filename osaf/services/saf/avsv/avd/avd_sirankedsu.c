@@ -32,7 +32,6 @@
 #include <avd_susi.h>
 #include <immutil.h>
 #include <avd_imm.h>
-#include <avd_dblog.h>
 #include <avd_csi.h>
 #include <logtrace.h>
 

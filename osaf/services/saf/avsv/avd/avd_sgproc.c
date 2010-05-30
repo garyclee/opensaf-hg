@@ -613,9 +613,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 				/* We need to send the role to AvND. */
 				rc = avd_avnd_send_role_change(cb, cb->node_id_avd, SA_AMF_HA_QUIESCED);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_PXY_PXD_ERR_LOG
-					    ("avd_role_switch_actv_qsd: role sent failed. Node Id and role are", NULL,
-					     cb->node_id_avd, cb->avail_state_avd, 0, 0);
+					LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 				} else {
 					/* we should send the above data verify msg right now */
 					avd_d2n_msg_dequeue(cb);

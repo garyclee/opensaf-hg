@@ -93,7 +93,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* send the node up message to the node. */
 	if (avd_snd_node_up_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		/* free the node up message */
 
 		/* call the routine to failover all the effected nodes
@@ -107,7 +107,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* send the Ack message to the node. */
 	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 
 		/* call the routine to failover all the effected nodes
 		 * due to restarting this node
@@ -121,8 +121,8 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Here obviously the role will be ACT. */
 		rc = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change failed. Node Id is",
-					      NULL, cb->node_id_avd, 0, 0, 0);
+			LOG_ER("%s: avd_avnd_send_role_change failed to %x",
+				   __FUNCTION__, cb->node_id_avd);
 		}
 	}
 	/* Send role change to this controller AvND */
@@ -133,13 +133,13 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		   have been updated. */
 		rc = avd_avnd_send_role_change(cb, cb->node_id_avd_other, SA_AMF_HA_STANDBY);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change failed. Peer AvND Node Id is",
-					      NULL, cb->node_id_avd, 0, 0, 0);
+			LOG_ER("%s: avd_avnd_send_role_change failed to peer %x",
+				   __FUNCTION__, cb->node_id_avd);
 		}
 	}
 
 	if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, FALSE) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		/* we are in a bad shape. Restart the node for recovery */
 
 		/* call the routine to failover all the effected nodes
@@ -559,7 +559,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (FALSE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
 		if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, TRUE) != NCSCC_RC_SUCCESS) {
-			m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+			LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 			/* we are in a bad shape. Restart the node for recovery */
 
 			/* call the routine to failover all the effected nodes
@@ -582,9 +582,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					continue;
 
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
-					/* log a fatal error that a message couldn't be sent */
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su_ptr->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}
 			}
@@ -620,9 +618,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					continue;
 
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
-					/* log a fatal error that a message couldn't be sent */
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su_ptr->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}
 			}
@@ -657,13 +653,13 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 
 	if ((avnd = avd_node_find_nodeid(node_id)) == NULL) {
 		/* log error that the node id is invalid */
-		m_AVD_LOG_INVALID_VAL_FATAL(node_id);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node_id);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) || (avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		/* log information error that the node is in invalid state */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_state);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -720,7 +716,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 	NCS_BOOL assign_list_empty = TRUE;
 
 	if (avnd == NULL) {
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, 0);
 		return;
 	}
 
@@ -744,7 +740,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 			case SA_AMF_2N_REDUNDANCY_MODEL:
 				if (avd_sg_2n_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value,
 									     i_su->name.length);
 					return;
 				}
@@ -753,7 +749,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 				if (avd_sg_nway_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value,
 									     i_su->name.length);
 					return;
 				}
@@ -762,7 +758,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 				if (avd_sg_nacvred_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value,
 									     i_su->name.length);
 					return;
 				}
@@ -771,7 +767,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 			case SA_AMF_NPM_REDUNDANCY_MODEL:
 				if (avd_sg_npm_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value,
 									     i_su->name.length);
 					return;
 				}
@@ -781,7 +777,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 			default:
 				if (avd_sg_nored_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value,
 									     i_su->name.length);
 					return;
 				}
@@ -905,7 +901,7 @@ void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == NULL) {
 		/* log error that the node id is invalid */
-		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 		return;
@@ -921,7 +917,7 @@ void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 	}
 
 	avd_handle_nd_failover_shutdown(cb, avnd, SA_TRUE);

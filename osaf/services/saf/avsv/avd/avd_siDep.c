@@ -41,7 +41,6 @@
 #include <immutil.h>
 #include <logtrace.h>
 
-#include <avd_dblog.h>
 #include <avd_imm.h>
 #include <avd_si_dep.h>
 #include <avd_susi.h>
@@ -460,8 +459,8 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 	TRACE_ENTER();
 
 	evt = calloc(1, sizeof(AVD_EVT));
-	if (evt == AVD_EVT_NULL) {
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
+	if (evt == NULL) {
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -481,12 +480,10 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 		memcpy(evt->info.tmr.spons_si_name.value, si->name.value, si->name.length);
 	}
 
-	m_AVD_LOG_RCVD_VAL(((long)evt));
-	m_AVD_LOG_EVT_INFO(AVD_RCVD_EVENT, evt->rcv_evt);
+	TRACE("%u", evt->rcv_evt);
 
-	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
-	    != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
+	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: ipc send %u failed", __FUNCTION__, evt->rcv_evt);
 		free(evt);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1022,9 +1019,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	/* Allocate a new block structure for imm rec now */
 	if ((rec = calloc(1, sizeof(AVD_SI_SI_DEP))) == NULL) {
-		/* log an error 
-		   m_AVD_LOG_MEM_FAIL(AVD_SI_SI_DEP_ALLOC_FAILED);
-		 */
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NULL;
 	}
 
@@ -1050,16 +1045,14 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	rec->tree_node.left = NCS_PATRICIA_NODE_NULL;
 	rec->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
-	if (ncs_patricia_tree_add(&si_dep.spons_anchor, &rec->tree_node_imm)
-	    != NCSCC_RC_SUCCESS) {
-		/* log an error */
+	if (ncs_patricia_tree_add(&si_dep.spons_anchor, &rec->tree_node_imm) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: ncs_patricia_tree_add failed", __FUNCTION__);
 		free(rec);
 		return NULL;
 	}
 
-	if (ncs_patricia_tree_add(&si_dep.dep_anchor, &rec->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log an error */
+	if (ncs_patricia_tree_add(&si_dep.dep_anchor, &rec->tree_node) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: ncs_patricia_tree_add failed", __FUNCTION__);
 		ncs_patricia_tree_del(&si_dep.spons_anchor, &rec->tree_node_imm);
 		free(rec);
 		return NULL;

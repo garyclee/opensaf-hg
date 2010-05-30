@@ -33,7 +33,6 @@
 #include <logtrace.h>
 #include <avsv_util.h>
 #include <avd_util.h>
-#include <avd_dblog.h>
 #include <avd_comp.h>
 #include <avd_imm.h>
 #include <avd_node.h>
@@ -217,7 +216,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 
 		/* log an fatal error as normally this shouldnt happen.
 		 */
-		m_AVD_LOG_INVALID_VAL_ERROR(ack_msg->msg_info.n2d_reg_comp.error);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ack_msg->msg_info.n2d_reg_comp.error);
 
 		/* Make the row status as not in service to indicate that. It is
 		 * not active.

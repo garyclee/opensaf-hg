@@ -63,13 +63,12 @@ uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 {
 	uns32 tmr_period;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(tmr->type);
+	TRACE_ENTER2("%u", tmr->type);
 
 	tmr_period = (uns32)(period / AVSV_NANOSEC_TO_LEAPTM);
 
 	if (AVD_TMR_MAX <= tmr->type) {
-		m_AVD_LOG_INVALID_VAL_FATAL(tmr->type);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -89,7 +88,6 @@ uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 		return NCSCC_RC_FAILURE;
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /*****************************************************************************
@@ -105,13 +103,11 @@ uns32 avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 *****************************************************************************/
 void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 {
-
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(tmr->type);
+	TRACE_ENTER2("%u", tmr->type);
 
 	/* If timer type is invalid just return */
 	if (AVD_TMR_MAX <= tmr->type) {
-		m_AVD_LOG_INVALID_VAL_FATAL(tmr->type);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
 		return;
 	}
 
@@ -126,8 +122,6 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
 	}
-
-	return;
 }
 
 /*****************************************************************************

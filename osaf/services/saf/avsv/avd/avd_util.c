@@ -125,7 +125,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 	TRACE("Send ack msg to %x", avnd->node_info.nodeId);
 
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -163,15 +163,14 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 
 		/* Log a fatal error that node record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -183,16 +182,11 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	d2n_msg->msg_info.d2n_data_verify.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 	d2n_msg->msg_info.d2n_data_verify.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_DATA_VERIFY_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_DATA_VERIFY_MSG, avnd->node_info.nodeId);
 
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-
-		/* free the node up message */
-
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -233,15 +227,14 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 		 */
 
 		/* Log a fatal error that node record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -252,16 +245,11 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	d2n_msg->msg_info.d2n_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 	d2n_msg->msg_info.d2n_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_NODE_UP_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_NODE_UP_MSG, avnd->node_info.nodeId);
 
 	/* Now send the message to the node director */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-
-		/* free the node up message */
-
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -301,16 +289,15 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 		 */
 
 		/* Log a fatal error that AvND record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* prepare the node operation state ack message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -318,15 +305,11 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id_ack;
 	d2n_msg->msg_info.d2n_ack_info.node_id = avnd->node_info.nodeId;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_DATA_ACK_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_DATA_ACK_MSG, avnd->node_info.nodeId);
 
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the operation state message */
-
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -357,9 +340,9 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *node = NULL;
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 
 	TRACE_ENTER2("%s '%s'", (term_state == TRUE) ? "Terminate" : "Instantiate", su->name.value);
 
@@ -372,22 +355,22 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 
 	/* prepare the SU presence state change notification message */
 	d2n_msg->msg_type = AVSV_D2N_PRESENCE_SU_MSG;
-	d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(su_node_ptr->snd_msg_id);
-	d2n_msg->msg_info.d2n_prsc_su.node_id = su_node_ptr->node_info.nodeId;
+	d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(node->snd_msg_id);
+	d2n_msg->msg_info.d2n_prsc_su.node_id = node->node_info.nodeId;
 	d2n_msg->msg_info.d2n_prsc_su.su_name = su->name;
 	d2n_msg->msg_info.d2n_prsc_su.term_state = term_state;
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PRESENCE_SU_MSG, su_node_ptr->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_PRESENCE_SU_MSG, node->node_info.nodeId);
 
 	/* send the message */
-	if (avd_d2n_msg_snd(cb, su_node_ptr, d2n_msg) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: avd_d2n_msg_snd FAILED", __FUNCTION__);
+	if (avd_d2n_msg_snd(cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
-		--(su_node_ptr->snd_msg_id);
+		--(node->snd_msg_id);
 		goto done;
 	}
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (node), AVSV_CKPT_AVND_SND_MSG_ID);
 	rc = NCSCC_RC_SUCCESS;
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -459,7 +442,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 
 	/* send the operation request message to the node. */
 	if ((rc = avd_d2n_msg_snd(cb, avnd, op_req_msg)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
 	}
 
@@ -495,7 +478,7 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 
 	su_info = calloc(1, sizeof(AVSV_SU_INFO_MSG));
 	if (su_info == NULL) {
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -546,8 +529,7 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp
 
 	comp_info = calloc(1, sizeof(AVSV_COMP_INFO_MSG));
 	if (comp_info == NULL) {
-		/* log that the avD is in degraded state */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -595,20 +577,17 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 
 	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (su_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
 	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (comp_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 
 		/* free all the messages and return error */
-
 		free(su_msg);
 		return NCSCC_RC_FAILURE;
 
@@ -656,7 +635,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 				/* Free all the messages and return error */
 				avsv_dnd_msg_free(su_msg);
 				avsv_dnd_msg_free(comp_msg);
-				m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -694,21 +673,16 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 	 * free messages and return error.
 	 */
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_SU_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_REG_SU_MSG, avnd->node_info.nodeId);
 
 	if (avd_d2n_msg_snd(cb, avnd, su_msg) == NCSCC_RC_FAILURE) {
-		/* Free all the messages and return error */
 		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, su_msg, sizeof(AVD_DND_MSG), su_msg);
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(su_msg);
 		avsv_dnd_msg_free(comp_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* free the SU message */
-	/*m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,su_msg,sizeof(AVD_DND_MSG),su_msg);
-	   avsv_dnd_msg_free(su_msg); */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 
 	/* check if atleast one component data is being sent. If not 
@@ -725,13 +699,11 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 	/* send the component message to the node if return value is failure
 	 * free messages and return error.
 	 */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_COMP_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_REG_COMP_MSG, avnd->node_info.nodeId);
 
 	if (avd_d2n_msg_snd(cb, avnd, comp_msg) == NCSCC_RC_FAILURE) {
-		/* Free  the message and return error */
 		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, comp_msg, sizeof(AVD_DND_MSG), comp_msg);
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(comp_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -764,7 +736,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_DND_MSG *su_msg;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *node = NULL;
 
 	TRACE_ENTER();
 
@@ -774,17 +746,16 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 		 */
 
 		/* Log a fatal error that su can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 
 	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (su_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -792,36 +763,33 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
 
-	su_msg->msg_info.d2n_reg_su.nodeid = su_node_ptr->node_info.nodeId;
+	su_msg->msg_info.d2n_reg_su.nodeid = node->node_info.nodeId;
 
 	/* Add information about this SU to the message */
 	if (avd_prep_su_info(cb, su, su_msg) == NCSCC_RC_FAILURE) {
 		/* Free the messages and return error */
-		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 		free(su_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
-	su_msg->msg_info.d2n_reg_su.msg_id = ++(su_node_ptr->snd_msg_id);
+	su_msg->msg_info.d2n_reg_su.msg_id = ++(node->snd_msg_id);
 
 	/* send the SU message to the node if return value is failure
 	 * free messages and return error.
 	 */
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_SU_MSG, su_node_ptr->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_REG_SU_MSG, node->node_info.nodeId);
 
-	if (avd_d2n_msg_snd(cb, su_node_ptr, su_msg) == NCSCC_RC_FAILURE) {
-		/* Free all the messages and return error */
-		--(su_node_ptr->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, su_msg, sizeof(AVD_DND_MSG), su_msg);
+	if (avd_d2n_msg_snd(cb, node, su_msg) == NCSCC_RC_FAILURE) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
+		--(node->snd_msg_id);
 		avsv_dnd_msg_free(su_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (node), AVSV_CKPT_AVND_SND_MSG_ID);
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /*****************************************************************************
@@ -844,7 +812,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 {
 	AVD_DND_MSG *comp_msg;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *node = NULL;
 
 	TRACE_ENTER();
 
@@ -854,52 +822,48 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 		 */
 
 		/* Log a fatal error that su can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVD_GET_SU_NODE_PTR(cb, comp->su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(cb, comp->su, node);
 
 	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (comp_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 
 	}
 
 	/* prepare the Component messages. */
 	comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
-	comp_msg->msg_info.d2n_reg_comp.node_id = su_node_ptr->node_info.nodeId;
+	comp_msg->msg_info.d2n_reg_comp.node_id = node->node_info.nodeId;
 
 	/* Add information about this comp to the message */
 	if (avd_prep_comp_info(cb, comp, comp_msg) == NCSCC_RC_FAILURE) {
 		/* Free all the messages and return error */
 		free(comp_msg);
-		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
-	comp_msg->msg_info.d2n_reg_comp.msg_id = ++(su_node_ptr->snd_msg_id);
+	comp_msg->msg_info.d2n_reg_comp.msg_id = ++(node->snd_msg_id);
 
 	/* send the component message to the node if return value is failure
 	 * free message and return error.
 	 */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_COMP_MSG, su_node_ptr->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_REG_COMP_MSG, node->node_info.nodeId);
 
-	if (avd_d2n_msg_snd(cb, su_node_ptr, comp_msg) == NCSCC_RC_FAILURE) {
-		/* Free  the message and return error */
-		--(su_node_ptr->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, comp_msg, sizeof(AVD_DND_MSG), comp_msg);
+	if (avd_d2n_msg_snd(cb, node, comp_msg) == NCSCC_RC_FAILURE) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
+		--(node->snd_msg_id);
 		avsv_dnd_msg_free(comp_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (node), AVSV_CKPT_AVND_SND_MSG_ID);
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /*****************************************************************************
@@ -937,8 +901,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
 
 	compcsi_info->attrs.list = calloc(1, compcsi->csi->num_attributes * sizeof(AVSV_ATTR_NAME_VAL));
 	if (compcsi_info->attrs.list == NULL) {
-		/* log that the avD is in degraded state */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1062,7 +1025,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 				/* log fatal error. This call for assignments has to be
 				 * called with a valid SU SI relationship value.
 				 */
-				m_AVD_LOG_INVALID_VAL_FATAL(0);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 				/* free the SUSI message */
 				avsv_dnd_msg_free(susi_msg);
 				return NCSCC_RC_FAILURE;
@@ -1092,7 +1055,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			/* log fatal error. This call for assignments has to be
 			 * called with a valid SU SI relationship value.
 			 */
-			m_AVD_LOG_INVALID_VAL_FATAL(0);
+			LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 			/* free the SUSI message */
 			avsv_dnd_msg_free(susi_msg);
 			return NCSCC_RC_FAILURE;
@@ -1118,7 +1081,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		 */
 
 		/* Log a fatal error that it is an invalid action */
-		m_AVD_LOG_INVALID_VAL_FATAL(actn);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, actn);
 		avsv_dnd_msg_free(susi_msg);
 		return NCSCC_RC_FAILURE;
 		break;
@@ -1159,9 +1122,8 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		while (l_compcsi != NULL) {
 			compcsi_info = calloc(1, sizeof(AVSV_SUSI_ASGN));
 			if (compcsi_info == NULL) {
-				/* log error that the director is in degraded situation */
-				m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
-				m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+				LOG_ER("%s: calloc failed", __FUNCTION__);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 				avsv_dnd_msg_free(susi_msg);
 				return NCSCC_RC_FAILURE;
 			}
@@ -1175,7 +1137,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			if (actn == AVSV_SUSI_ACT_ASGN) {
 				if (avd_prep_csi_attr_info(cb, compcsi_info, l_compcsi)
 				    == NCSCC_RC_FAILURE) {
-					m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+					LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 					avsv_dnd_msg_free(susi_msg);
 					return NCSCC_RC_FAILURE;
 				}
@@ -1222,14 +1184,11 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	susi_msg->msg_info.d2n_su_si_assign.msg_id = ++(avnd->snd_msg_id);
 
 	/* send the SU SI message */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_INFO_SU_SI_ASSIGN_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_INFO_SU_SI_ASSIGN_MSG, avnd->node_info.nodeId);
 
 	if (avd_d2n_msg_snd(cb, avnd, susi_msg) != NCSCC_RC_SUCCESS) {
-
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, susi_msg, sizeof(AVD_DND_MSG), susi_msg);
-		/* free the SU SI message */
 		avsv_dnd_msg_free(susi_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1267,16 +1226,15 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 
 		/* Log a fatal error that AvND record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* prepare the node operation state ack message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1284,16 +1242,12 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	d2n_msg->msg_info.d2n_shutdown_app_su.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_shutdown_app_su.msg_id = ++(avnd->snd_msg_id);
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_SHUTDOWN_APP_SU_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_SHUTDOWN_APP_SU_MSG, avnd->node_info.nodeId);
 
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the shutdown message */
-
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1332,7 +1286,7 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGr
 		/* alloc the memory for the notify buffer */
 		mem_list->notification = calloc(1, sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt);
 		if (!mem_list->notification) {
-			m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
+			LOG_ER("%s: calloc failed", __FUNCTION__);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1375,8 +1329,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 	/* alloc the response msg */
 	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (!pg_msg) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -1414,12 +1367,10 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 	}			/* switch */
 
 	/* send the msg to avnd */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PG_TRACK_ACT_RSP_MSG, n2d_msg->node_id);
+	TRACE("Sending %u to %x", AVSV_D2N_PG_TRACK_ACT_RSP_MSG, n2d_msg->node_id);
 
-	rc = avd_d2n_msg_snd(cb, node, pg_msg);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->node_id);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, pg_msg, sizeof(AVD_DND_MSG), pg_msg);
+	if (avd_d2n_msg_snd(cb, node, pg_msg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 	}
 
  done:
@@ -1458,8 +1409,7 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	/* alloc the update msg */
 	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (!pg_msg) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -1480,12 +1430,10 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 		pg_msg_info->csi_name = *csi_name;
 
 	/* send the msg to avnd */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PG_UPD_MSG, node->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_PG_UPD_MSG, node->node_info.nodeId);
 
-	rc = avd_d2n_msg_snd(cb, node, pg_msg);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, pg_msg, sizeof(AVD_DND_MSG), pg_msg);
+	if (avd_d2n_msg_snd(cb, node, pg_msg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 	}
 
  done:
@@ -1522,7 +1470,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		 */
 
 		/* Log a fatal error that AvND record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1536,9 +1484,8 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* prepare the message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1546,16 +1493,12 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	d2n_msg->msg_info.d2n_set_leds.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_set_leds.msg_id = ++(avnd->snd_msg_id);
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_SET_LEDS_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_SET_LEDS_MSG, avnd->node_info.nodeId);
 
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the message */
-
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1593,9 +1536,8 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 	/* prepare the component validation message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1629,15 +1571,11 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 		}
 	}
 
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_COMP_VALIDATION_RESP_MSG, avnd->node_info.nodeId);
+	TRACE("Sending %u to %x", AVSV_D2N_COMP_VALIDATION_RESP_MSG, avnd->node_info.nodeId);
 
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the message */
-
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1875,6 +1813,7 @@ int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 
 	rc = avd_d2n_msg_snd(cb, node, d2n_msg);
 	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		avsv_dnd_msg_free(d2n_msg);
 		--(node->snd_msg_id);
 	}
