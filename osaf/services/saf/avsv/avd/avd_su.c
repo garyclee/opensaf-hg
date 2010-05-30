@@ -24,7 +24,6 @@
 #include <avd_util.h>
 #include <avd_su.h>
 #include <avd_sutype.h>
-#include <avd_dblog.h>
 #include <avd_imm.h>
 #include <avd_ntf.h>
 #include <avd_proc.h>
@@ -549,12 +548,10 @@ static void su_add_to_model(AVD_SU *su)
 			avd_cb->ext_comp_info.local_avnd_node = avd_node_find_nodeid(avd_cb->node_id_avd);
 
 			if (NULL == avd_cb->ext_comp_info.local_avnd_node) {
-				m_AVD_PXY_PXD_ERR_LOG("sutableentry_set:Local node unavailable:SU Name,node id are",
-						      &su->name, avd_cb->node_id_avd, 0, 0, 0);
+				LOG_ER("%s: avd_node_find_nodeid failed %x", __FUNCTION__, avd_cb->node_id_avd);
 				avd_sg_remove_su(su);
 				LOG_ER("Avnd Lookup failure, node id %u", avd_cb->node_id_avd);
 			}
-
 		}
 
 		node = avd_cb->ext_comp_info.local_avnd_node;

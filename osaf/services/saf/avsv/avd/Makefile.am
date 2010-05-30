@@ -53,7 +53,6 @@ osafamfd_SOURCES = \
 	avd_csiattr.c \
 	avd_cstype.c \
 	avd_ctcstype.c \
-	avd_dblog.c \
 	avd_dmsg.c \
 	avd_hlt.c \
 	avd_hlttype.c \

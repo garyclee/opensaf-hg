@@ -58,7 +58,6 @@
 #include "avd_cb.h"
 #include "avd_pg.h"
 
-#include "avd_dblog.h"
 #include "avd_evt.h"
 #include "avd_proc.h"
 

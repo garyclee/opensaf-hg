@@ -765,6 +765,7 @@ static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
 uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc;
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -772,8 +773,8 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.dispatch.i_disp_flags = flag;
 
-	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_DISPATCH %u failed", flag);
+	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_DISPATCH %u failed", rc);
 		return NCSCC_RC_FAILURE;
 	}
 

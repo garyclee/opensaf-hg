@@ -125,7 +125,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 	}
 
 	/* check if this is a operator initiated update */
@@ -156,7 +156,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* log an error since this shouldn't happen */
 
-	m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_reg_su.error);
+	LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_reg_su.error);
 
 	/* call the routine to failover all the effected nodes
 	 * due to restarting this node
@@ -222,7 +222,7 @@ void avd_reg_comp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 	}
 
 	/* check if this is a operator initiated update */
@@ -250,7 +250,7 @@ void avd_reg_comp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* log an error since this shouldn't happen */
-	m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_reg_comp.error);
+	LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_reg_comp.error);
 
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
@@ -340,7 +340,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 	}
 
 	/* check the ack message for errors. If error stop and free all the
@@ -577,13 +577,13 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, node->node_info.nodeId);
 	}
 
 	/* Verify that operation is only modification. */
 	if (n2d_msg->msg_info.n2d_data_req.param_info.act != AVSV_OBJ_OPR_MOD) {
 		/* log error that a the table value is invalid */
-		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.act);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.act);
 		goto done;
 	}
 
@@ -619,7 +619,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					avd_comp_readiness_state_set(comp, saAmfCompReadinessState);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
 								    value_len);
 				}
 				break;
@@ -634,7 +634,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					avd_comp_pres_state_set(comp, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
 								    value_len);
 				}
 				break;
@@ -649,7 +649,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								  &comp->saAmfCompRestartCount);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
 								    value_len);
 				}
 				break;
@@ -669,7 +669,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 								  &comp->saAmfCompCurrProxyName);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
 								    value_len);
 				}
 				break;
@@ -680,13 +680,13 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					avd_comp_proxy_status_change(comp, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
-								    value_len);
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
+									value_len);
 				}
 				break;
 			default:
 				/* log error that a the object value is invalid */
-				m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.attr_id);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.attr_id);
 				break;
 			}	/* switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id) */
 
@@ -719,13 +719,13 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						clm_pend_response(su, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
-					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.
+					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
 								    value_len);
 				}
 				break;
 			default:
 				/* log error that a the object value is invalid */
-				m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.attr_id);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.attr_id);
 				break;
 			}	/* switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id) */
 
@@ -733,7 +733,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	default:
 		/* log error that a the table value is invalid */
-		m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.class_id);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.class_id);
 		goto done;
 		break;
 	}			/* switch(n2d_msg->msg_info.n2d_data_req.param_info.table_id) */
@@ -802,9 +802,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if (NCSCC_RC_FAILURE == res) {
-		m_AVD_PXY_PXD_ERR_LOG("avd_comp_validation_func:failure:Comp,MsgId,NodeId,hdl and mds_dest are",
-				      &valid_info->comp_name, valid_info->msg_id, valid_info->node_id,
-				      valid_info->hdl, valid_info->mds_dest);
+		LOG_ER("%s: avd_snd_comp_validation_resp to %x failed", __FUNCTION__, valid_info->node_id);
 	}
 
 	avsv_dnd_msg_free(n2d_msg);

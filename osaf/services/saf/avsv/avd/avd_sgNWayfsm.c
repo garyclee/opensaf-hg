@@ -122,24 +122,17 @@ uns32 avd_sg_nway_si_func(AVD_CL_CB *cb, AVD_SI *si)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)si));
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
-
 	/* If the SG FSM state is not stable just return success. */
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)
 		return rc;
 
 	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE)) {
-		m_AVD_LOG_INVALID_VAL_ERROR(si->sg_of_si->sg_ncs_spec);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, si->sg_of_si->sg_ncs_spec);
 		return rc;
 	}
 
 	/* assign the si to the appropriate su */
 	rc = avd_sg_nway_si_assign(cb, si->sg_of_si);
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
 
 	return rc;
 }
@@ -167,10 +160,7 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_STATE old_fsm_state;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)si));
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
+	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
 	/* Switch operation is not allowed on NCS SGs, when the AvD is not in
 	 * application state, if si has no SU assignments and If the SG FSM state is
@@ -191,9 +181,8 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	     curr_susi && (curr_susi->state != SA_AMF_HA_ACTIVE); curr_susi = curr_susi->si_next) ;
 
 	if (!curr_susi) {
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -206,10 +195,8 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 	rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 	if (NCSCC_RC_SUCCESS != rc) {
-		/* log a fatal error */
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 		curr_susi->state = old_state;
 		curr_susi->fsm = old_fsm_state;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -223,8 +210,6 @@ uns32 avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	/* Add the SI to the SG admin pointer and change the SG state to SI_operation. */
 	m_AVD_SET_SG_ADMIN_SI(cb, si);
 	m_AVD_SET_SG_FSM(cb, si->sg_of_si, AVD_SG_FSM_SI_OPER);
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
 
 	return rc;
 }
@@ -248,10 +233,7 @@ uns32 avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi)
 		return rc;
@@ -279,11 +261,9 @@ uns32 avd_sg_nway_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(su->sg_of_su->sg_fsm_state);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	return rc;
 }
@@ -312,7 +292,7 @@ uns32 avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN) {
-		m_AVD_LOG_INVALID_VAL_FATAL(su->sg_of_su->sg_fsm_state);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -328,8 +308,6 @@ uns32 avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	return rc;
 }
@@ -360,11 +338,7 @@ uns32 avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)susi));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	/* Do the functionality based on the current state. */
 	switch (su->sg_of_su->sg_fsm_state) {
@@ -385,11 +359,9 @@ uns32 avd_sg_nway_susi_sucss_func(AVD_CL_CB *cb,
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(su->sg_of_su->sg_fsm_state);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
@@ -432,11 +404,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	NCS_BOOL is_eng = FALSE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)susi));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_SU_OPER:
@@ -444,8 +412,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* send remove all msg for all sis for this su */
 			rc = avd_sg_su_si_del_snd(cb, susi->su);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi->su));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
 				return rc;
 			}
 		}
@@ -465,9 +432,8 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			avd_gen_su_ha_state_changed_ntf(cb, susi);
 			rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 				susi->state = old_state;
 				susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -508,8 +474,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					/* => now remove all can be sent */
 					rc = avd_sg_su_si_del_snd(cb, su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 						return rc;
 					}
 				}
@@ -528,9 +493,8 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			avd_gen_su_ha_state_changed_ntf(cb, susi);
 			rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 				susi->state = old_state;
 				susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -545,8 +509,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					/* send remove all msg for all sis for this su */
 					rc = avd_sg_su_si_del_snd(cb, susi->su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)susi->su));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value,
 										 susi->su->name.length);
 						return rc;
 					}
@@ -560,9 +523,8 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 					return rc;
@@ -572,13 +534,10 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
-		m_AVD_LOG_INVALID_VAL_FATAL(((uns32)su->sg_of_su->sg_fsm_state));
-		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	return rc;
 }
@@ -621,8 +580,6 @@ uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	/* initiate si assignments */
 	avd_sg_nway_si_assign(cb, sg);
 
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
-
 	if (sg->sg_fsm_state == AVD_SG_FSM_STABLE)
 		avd_sg_app_su_inst_func(cb, sg);
 
@@ -648,10 +605,7 @@ uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
  **************************************************************************/
 void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi)
 		return;
@@ -678,13 +632,10 @@ void avd_sg_nway_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
-		m_AVD_LOG_INVALID_VAL_FATAL(((uns32)su->sg_of_su->sg_fsm_state));
-		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
@@ -718,11 +669,7 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 	NCS_BOOL is_all_stdby = TRUE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)avnd));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE))
 		return NCSCC_RC_FAILURE;
@@ -755,10 +702,9 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -777,8 +723,7 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 			if (TRUE == is_all_stdby) {
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return rc;
 				}
 
@@ -814,10 +759,9 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -830,13 +774,10 @@ uns32 avd_sg_nway_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-		m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su->sg_of_su->sg_fsm_state));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)su->sg_of_su->sg_fsm_state));
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
 	return rc;
 }
@@ -863,10 +804,7 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 	SaAmfHAStateT old_state;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)si));
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
+	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (si->sg_of_si->sg_ncs_spec == SA_FALSE))
 		return NCSCC_RC_FAILURE;
@@ -884,9 +822,8 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			     curr_susi && (curr_susi->state != SA_AMF_HA_ACTIVE); curr_susi = curr_susi->si_next) ;
 
 			if (!curr_susi) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -900,10 +837,8 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				/* log a fatal error */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -925,9 +860,8 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			     curr_susi && (curr_susi->state != SA_AMF_HA_QUIESCING); curr_susi = curr_susi->si_next) ;
 
 			if (!curr_susi) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -940,10 +874,8 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				/* log a fatal error */
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -954,13 +886,10 @@ uns32 avd_sg_nway_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)si));
-		m_AVD_LOG_INVALID_VAL_ERROR(((uns32)si->sg_of_si->sg_fsm_state));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(si->name.value, si->name.length);
+		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uns32)si->sg_of_si->sg_fsm_state));
+		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
 
 	return rc;
 }
@@ -990,10 +919,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 	NCS_BOOL is_act_asgn;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
-	m_AVD_LOG_RCVD_VAL(((long)sg));
-
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
+	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE))
 		return NCSCC_RC_FAILURE;
@@ -1024,10 +950,9 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -1042,8 +967,7 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 					/* send remove all msg for all sis for this su */
 					rc = avd_sg_su_si_del_snd(cb, curr_su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_su));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value,
 										 curr_su->name.length);
 						return rc;
 					}
@@ -1079,10 +1003,9 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -1096,13 +1019,10 @@ uns32 avd_sg_nway_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(((long)sg));
-		m_AVD_LOG_INVALID_VAL_FATAL(((uns32)sg->sg_fsm_state));
-		m_AVD_LOG_INVALID_NAME_VAL_FATAL(sg->name.value, sg->name.length);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uns32)sg->sg_fsm_state));
+		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, sg->name.value, sg->name.length);
 		return NCSCC_RC_FAILURE;
 	}			/* switch */
-
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 
 	return rc;
 }
@@ -1214,8 +1134,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				avd_sg_su_oper_list_add(cb, curr_su, FALSE);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 			} else {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_si));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
 			}
 		} else
 			break;
@@ -1269,8 +1188,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
 					break;
 			} else {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_si));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
 			}
 		}
 
@@ -1306,8 +1224,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
 					break;
 			} else {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_si));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
 			}
 		}		/* for */
 	}			/* for */
@@ -1353,9 +1270,8 @@ uns32 avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
 		avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 		rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 			curr_susi->state = old_state;
 			curr_susi->fsm = old_fsm_state;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -1373,8 +1289,7 @@ uns32 avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
 	if (TRUE == is_all_stdby) {
 		rc = avd_sg_su_si_del_snd(cb, su);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 			return rc;
 		}
 
@@ -1448,10 +1363,9 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -1506,10 +1420,9 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 						avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 						rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 											 curr_susi->su->name.length);
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 											 curr_susi->si->name.length);
 							curr_susi->state = old_state;
 							curr_susi->fsm = old_fsm_state;
@@ -1538,10 +1451,9 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 						avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 						rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 											 curr_susi->su->name.length);
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 											 curr_susi->si->name.length);
 							curr_susi->state = old_state;
 							curr_susi->fsm = old_fsm_state;
@@ -1577,10 +1489,9 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 						avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 						rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 											 curr_susi->su->name.length);
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 											 curr_susi->si->name.length);
 							curr_susi->state = old_state;
 							curr_susi->fsm = old_fsm_state;
@@ -1668,10 +1579,9 @@ uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -1697,9 +1607,8 @@ uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -1713,8 +1622,7 @@ uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		if (TRUE == is_all_stdby) {
 			rc = avd_sg_su_si_del_snd(cb, su);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return rc;
 			}
 		}
@@ -1783,10 +1691,9 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -1828,10 +1735,9 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, susi);
 					rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value,
 										 susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value,
 										 susi->si->name.length);
 						susi->state = old_state;
 						susi->fsm = old_fsm_state;
@@ -1871,10 +1777,9 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -1915,10 +1820,9 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -1956,10 +1860,9 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, susi);
 					rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value,
 										 susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value,
 										 susi->si->name.length);
 						susi->state = old_state;
 						susi->fsm = old_fsm_state;
@@ -1999,9 +1902,8 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_gen_su_ha_state_changed_ntf(cb, susi);
 				rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->state = old_state;
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2032,9 +1934,8 @@ uns32 avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 		avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 		rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 			curr_susi->state = old_state;
 			curr_susi->fsm = old_fsm_state;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2085,9 +1986,8 @@ uns32 avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2150,10 +2050,9 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -2196,8 +2095,7 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 							/* send remove all msg for all sis for this su */
 							rc = avd_sg_su_si_del_snd(cb, curr_susi->su);
 							if (NCSCC_RC_SUCCESS != rc) {
-								m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi->su));
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.
+								LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.
 												 value,
 												 curr_susi->su->name.
 												 length);
@@ -2263,10 +2161,9 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -2281,9 +2178,8 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 					return rc;
@@ -2318,10 +2214,9 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -2336,8 +2231,7 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 						/* send remove all msg for all sis for this su */
 						rc = avd_sg_su_si_del_snd(cb, su);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value,
 											 su->name.length);
 							return rc;
 						}
@@ -2389,10 +2283,9 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 					avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 					rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 										 curr_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 										 curr_susi->si->name.length);
 						curr_susi->state = old_state;
 						curr_susi->fsm = old_fsm_state;
@@ -2434,10 +2327,9 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -2489,8 +2381,7 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 
 		/* remove the su from the su-oper list */
-		if (avd_sg_su_oper_list_del(cb, su, FALSE) != NCSCC_RC_SUCCESS)
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
+		avd_sg_su_oper_list_del(cb, su, FALSE);
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
 		if (!sg->admin_si && !sg->su_oper_list.su)
@@ -2548,9 +2439,8 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2564,8 +2454,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 				/* send remove all msg for all sis for this su */
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return rc;
 				}
 
@@ -2595,8 +2484,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 			/* send remove all msg for all sis for this su */
 			rc = avd_sg_su_si_del_snd(cb, sg->su_oper_list.su);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)sg->su_oper_list.su));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(sg->su_oper_list.su->name.value,
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, sg->su_oper_list.su->name.value,
 								 sg->su_oper_list.su->name.length);
 				return rc;
 			}
@@ -2644,10 +2532,9 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 									 curr_sisu->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 									 curr_sisu->si->name.length);
 					curr_sisu->state = old_state;
 					curr_sisu->fsm = old_fsm_state;
@@ -2702,9 +2589,8 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		if (sg->admin_si != susi->si) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -2719,10 +2605,9 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_DEL);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2757,10 +2642,9 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value,
 									 curr_susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value,
 									 curr_susi->si->name.length);
 					curr_susi->state = old_state;
 					curr_susi->fsm = old_fsm_state;
@@ -2782,9 +2666,8 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 				rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->state = old_state;
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2799,9 +2682,8 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 		}
 	} else if (susi && (SA_AMF_HA_ACTIVE == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		if ((sg->admin_si != susi->si) || (AVSV_SI_TOGGLE_SWITCH != susi->si->si_switch)) {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -2823,9 +2705,8 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			avd_gen_su_ha_state_changed_ntf(cb, curr_susi);
 			rc = avd_snd_susi_msg(cb, curr_susi->su, curr_susi, AVSV_SUSI_ACT_MOD);
 			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->su->name.value, curr_susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
 				curr_susi->state = old_state;
 				curr_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_susi, AVSV_CKPT_AVD_SI_ASS);
@@ -2837,9 +2718,8 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			avd_sg_su_oper_list_add(cb, curr_susi->su, FALSE);
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else {
-			m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
-			m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 		}
 	}
 
@@ -2885,8 +2765,7 @@ uns32 avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 				/* => now remove all can be sent */
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return rc;
 				}
 			}
@@ -2960,10 +2839,9 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 				avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 				rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 									 curr_sisu->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 									 curr_sisu->si->name.length);
 					curr_sisu->state = old_state;
 					curr_sisu->fsm = old_fsm_state;
@@ -3054,10 +2932,9 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 										 curr_sisu->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 										 curr_sisu->si->name.length);
 						curr_sisu->state = old_state;
 						curr_sisu->fsm = old_fsm_state;
@@ -3118,10 +2995,9 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 										 curr_sisu->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 										 curr_sisu->si->name.length);
 						curr_sisu->state = old_state;
 						curr_sisu->fsm = old_fsm_state;
@@ -3214,10 +3090,9 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 					rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 										 curr_sisu->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 										 curr_sisu->si->name.length);
 						curr_sisu->state = old_state;
 						curr_sisu->fsm = old_fsm_state;
@@ -3255,10 +3130,9 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 				rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 									 curr_sisu->su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 									 curr_sisu->si->name.length);
 					curr_sisu->state = old_state;
 					curr_sisu->fsm = old_fsm_state;
@@ -3325,10 +3199,9 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 						rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD);
 						if (NCSCC_RC_SUCCESS != rc) {
-							m_AVD_LOG_INVALID_VAL_ERROR(((long)curr_sisu));
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->su->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->su->name.value,
 											 curr_sisu->su->name.length);
-							m_AVD_LOG_INVALID_NAME_VAL_ERROR(curr_sisu->si->name.value,
+							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_sisu->si->name.value,
 											 curr_sisu->si->name.length);
 							curr_sisu->state = old_state;
 							curr_sisu->fsm = old_fsm_state;

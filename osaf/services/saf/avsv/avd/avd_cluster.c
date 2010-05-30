@@ -22,7 +22,6 @@
 
 #include <avd_util.h>
 #include <avd_cluster.h>
-#include <avd_dblog.h>
 #include <avd_imm.h>
 #include <avd_evt.h>
 #include <avd_proc.h>

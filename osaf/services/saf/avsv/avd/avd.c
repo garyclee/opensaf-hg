@@ -151,11 +151,6 @@ uns32 avd_initialize(void)
 	avd_su_constructor();
 	avd_sutype_constructor();
 
-	/* Register with Logging subsystem. This is an agent call and
-	 ** could succeed even if the DTS server is not available 
-	 */
-	avd_flx_log_reg();
-
 	if (ncs_ipc_create(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_ipc_create FAILED");
 		goto done;

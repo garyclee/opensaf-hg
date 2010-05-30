@@ -66,6 +66,7 @@ static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info);
 uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	NCSVDA_INFO vda_info;
+	uns32 rc;
 
 	memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
@@ -74,8 +75,8 @@ uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
 	vda_info.info.vdest_chg_role.i_new_role = role;
 	vda_info.info.vdest_chg_role.i_vdest = cb->vaddr;
 
-	if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncsvda_api NCSVDA_VDEST_CHG_ROLE failed");
+	if ((rc = ncsvda_api(&vda_info)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncsvda_api NCSVDA_VDEST_CHG_ROLE failed %u", rc);
 		return NCSCC_RC_FAILURE;
 	}
 

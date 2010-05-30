@@ -19,7 +19,6 @@
 #include <logtrace.h>
 
 #include <avd_si.h>
-#include <avd_dblog.h>
 #include <saImmOm.h>
 #include <immutil.h>
 #include <avd_app.h>

@@ -278,8 +278,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* We need to send the role to AvND. */
 	status = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 	if (NCSCC_RC_SUCCESS != status) {
-		m_AVD_PXY_PXD_ERR_LOG("avd_role_failover: role sent failed. Node Id and role are",
-				      NULL, cb->node_id_avd, cb->avail_state_avd, 0, 0);
+		LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 	} else {
 		avd_d2n_msg_dequeue(cb);
 	}
@@ -388,7 +387,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 				   do node down processing for other node */
 				avd_node_mark_absent(avnd_other);
 			} else {
-				m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+				LOG_EM("%s:%u: %u", __FILE__, __LINE__, NCSCC_RC_FAILURE);
 			}
 
 			return NCSCC_RC_SUCCESS;
@@ -415,9 +414,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Declare this standby as Active. Set Vdest role and MBCSv role */
 	if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, role))) {
-		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_VDEST_ROL);
-		m_AVD_LOG_INVALID_VAL_ERROR(role);
-		m_AVD_LOG_INVALID_VAL_ERROR(status);
+		LOG_ER("%s: avd_mds_set_vdest_role failed", __FUNCTION__);
 	}
 
 	/* Time to send fail-over messages to all the AVND's */
@@ -426,8 +423,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* We need to send the role to AvND. */
 	status = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 	if (NCSCC_RC_SUCCESS != status) {
-		m_AVD_PXY_PXD_ERR_LOG("avd_role_failover_qsd_actv: role sent failed. Node Id and role are",
-				      NULL, cb->node_id_avd, cb->avail_state_avd, 0, 0);
+		LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 	} else {
 		avd_d2n_msg_dequeue(cb);
 	}
@@ -435,30 +431,18 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* Post an evt on mailbox to set active role to all NCS SU */
 	/* create the message event */
 	evt = calloc(1, sizeof(AVD_EVT));
-	if (evt == AVD_EVT_NULL) {
-		/* log error */
-		LOG_ER("FAILOVER Quiesced --> Active FAILED, MEMALLOC FAILED");
+	if (evt == NULL) {
+		LOG_ER("%s: calloc failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
-
-	m_AVD_LOG_RCVD_VAL(((long)evt));
 
 	evt->rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
-	m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT, evt->rcv_evt);
-
-	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
-	    != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* log error */
-		/* free the event and return */
-		free(evt);
+	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED");
-
+		free(evt);
 		return NCSCC_RC_FAILURE;
 	}
-
-	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
 	/* We are successfully changed role to Active. Gen a reset 
 	 * responce for the other card. TODO */
@@ -499,7 +483,7 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* get the avnd from node_id */
 	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
-		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, cb->node_id_avd);
 		return;
 	}
 	other_avnd = avd_node_find_nodeid(cb->node_id_avd_other);
@@ -523,7 +507,6 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				avd_sg_su_oper_list_add(cb, i_su, FALSE);
 				m_AVD_SET_SU_SWITCH(cb, i_su, AVSV_SI_TOGGLE_SWITCH);
 				m_AVD_SET_SG_FSM(cb, (i_su->sg_of_su), AVD_SG_FSM_SU_OPER);
-				m_AVD_LOG_RCVD_VAL(i_su->sg_of_su->sg_fsm_state);
 			}
 		}
 	}
@@ -557,13 +540,12 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Now set the MBCSv role to quiesced, */
 	if (NCSCC_RC_SUCCESS != (status = avsv_set_ckpt_role(cb, SA_AMF_HA_QUIESCED))) {
 		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(status);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, status);
 	}
 
 	/* Now Dispatch all the messages from the MBCSv mail-box */
 	if (NCSCC_RC_SUCCESS != (rc = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
-		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
-		m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_NOTICE, rc);
+		LOG_EM("%s:%u: %u", __FILE__, __LINE__, cb->node_id_avd_other);
 		cb->swap_switch = SA_FALSE;
 		return;
 	}
@@ -814,8 +796,7 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	/* We need to send the role to AvND. */
 	rc = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVD_PXY_PXD_ERR_LOG("amfd_switch_actv_qsd: role sent failed. Node Id and role are",
-			      NULL, cb->node_id_avd, cb->avail_state_avd, 0, 0);
+		LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 	} else {
 		avd_d2n_msg_dequeue(cb);
 	}
@@ -967,8 +948,7 @@ uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	/* We need to send the role to AvND. */
 	status = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 	if (NCSCC_RC_SUCCESS != status) {
-		m_AVD_PXY_PXD_ERR_LOG("amfd_switch_stdby_actv: role sent failed. Node Id and role are",
-				NULL, cb->node_id_avd, cb->avail_state_avd, 0, 0);
+		LOG_ER("%s: avd_avnd_send_role_change failed", __FUNCTION__);
 	} else {
 		avd_d2n_msg_dequeue(cb);
 	}
