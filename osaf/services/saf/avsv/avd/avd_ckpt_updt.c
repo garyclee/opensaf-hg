@@ -470,17 +470,12 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		{
-			if (NULL == su_si_rel_ptr) {
-				if (NCSCC_RC_SUCCESS != avd_new_assgn_susi(cb, su_ptr, si_ptr_up,
-					su_si_ckpt->state, TRUE, &su_si_rel_ptr)) {
-
-					LOG_ER("%s: avd_new_assgn_susi failed", __FUNCTION__);
-					return NCSCC_RC_FAILURE;
-				}
-			} else {
-				LOG_ER("%s:%u", __FUNCTION__, __LINE__);
-				break;
+		if (NULL == su_si_rel_ptr) {
+			if (NCSCC_RC_SUCCESS != avd_new_assgn_susi(cb, su_ptr, si_ptr_up,
+				su_si_ckpt->state, TRUE, &su_si_rel_ptr)) {
+				
+				LOG_ER("%s: avd_new_assgn_susi failed", __FUNCTION__);
+				return NCSCC_RC_FAILURE;
 			}
 		}
 		/* 
@@ -489,14 +484,12 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 		 */
 
 	case NCS_MBCSV_ACT_UPDATE:
-		{
-			if (NULL != su_si_rel_ptr) {
-				su_si_rel_ptr->fsm = su_si_ckpt->fsm;
-				su_si_rel_ptr->state = su_si_ckpt->state;
-			} else {
-				LOG_ER("%s:%u", __FUNCTION__, __LINE__);
-				return NCSCC_RC_FAILURE;
-			}
+		if (NULL != su_si_rel_ptr) {
+			su_si_rel_ptr->fsm = su_si_ckpt->fsm;
+			su_si_rel_ptr->state = su_si_ckpt->state;
+		} else {
+			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
+			return NCSCC_RC_FAILURE;
 		}
 		break;
 	case NCS_MBCSV_ACT_RMV:

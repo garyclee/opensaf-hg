@@ -33,6 +33,7 @@
 ******************************************************************************
 */
 
+#include <stdbool.h>
 #include "avnd.h"
 
 /* static function declarations */
@@ -311,6 +312,8 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi = NULL;
 
+	TRACE_ENTER2("%s, act=%u, ha_state=%u", su->name.value, info->msg_act, info->ha_state);
+
 	/* we have started the su si msg processing */
 	m_AVND_SU_ASSIGN_PEND_SET(su);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
@@ -370,7 +373,94 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 		assert(0);
 	}			/* switch */
 
- done:
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Assign a SI to an SU
+ * @param si
+ * @param su
+ * @param single_csi if true just one CSI is assigned. if false all CSIs
+ *                   are assigned in one shot.
+ * 
+ * @return uns32
+ */
+static uns32 assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_COMP_CSI_REC *curr_csi;
+
+	TRACE_ENTER2("%s %s, single_csi=%u", si->name.value, su->name.value, single_csi);
+
+	/* initiate the si assignment for pi su */
+	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		uns32 rank;
+
+		if (SA_AMF_HA_ACTIVE == si->curr_state) {
+			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
+				 rank = curr_csi->rank;
+				  (curr_csi != NULL) && (curr_csi->rank == rank);
+				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
+
+				rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+				if (NCSCC_RC_SUCCESS != rc)
+					goto done;
+			}
+		} else {
+			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
+				 rank = curr_csi->rank;
+				  (curr_csi != NULL) && (curr_csi->rank == rank);
+				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
+
+				rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+				if (NCSCC_RC_SUCCESS != rc)
+					goto done;
+			}
+		}
+	}
+
+	/* initiate the si assignment for npi su */
+	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		NCS_BOOL npi_prv_inst = TRUE, npi_curr_inst = TRUE;
+		AVND_SU_PRES_FSM_EV su_ev = AVND_SU_PRES_FSM_EV_MAX;
+
+		/* determine the instantiation state of npi su */
+		if (SA_AMF_HA_ACTIVE != si->prv_state)
+			npi_prv_inst = FALSE;
+		if (SA_AMF_HA_ACTIVE != si->curr_state)
+			npi_curr_inst = FALSE;
+
+		/* Quiesced while Quiescing */
+		if (m_AVND_SU_SI_PRV_ASSIGN_STATE_IS_ASSIGNING(si) && (SA_AMF_HA_QUIESCING == si->prv_state))
+			npi_prv_inst = TRUE;
+
+		/* determine the event for the su fsm */
+		if (m_AVND_SU_IS_RESTART(su) && (TRUE == npi_curr_inst))
+			su_ev = AVND_SU_PRES_FSM_EV_RESTART;
+		else if (!m_AVND_SU_IS_RESTART(su) && (npi_prv_inst != npi_curr_inst))
+			su_ev = (TRUE == npi_curr_inst) ? AVND_SU_PRES_FSM_EV_INST : AVND_SU_PRES_FSM_EV_TERM;
+
+		/* we cant do anything on inst-failed SU, so just resp success for quiesced */
+		if (su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
+			su_ev = AVND_SU_PRES_FSM_EV_MAX;
+
+		/* trigger the su fsm */
+		if (AVND_SU_PRES_FSM_EV_MAX != su_ev) {
+			if (!si) {
+				m_AVND_SU_ALL_SI_SET(su);
+				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+			}
+			rc = avnd_su_pres_fsm_run(avnd_cb, su, 0, su_ev);
+		} else
+			rc = avnd_su_si_oper_done(avnd_cb, su, si);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto done;
+	}
+
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -403,82 +493,32 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 ******************************************************************************/
 uns32 avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
-	/* flags to indicate the prv & curr inst states of an NPI su */
-	NCS_BOOL npi_prv_inst = TRUE, npi_curr_inst = TRUE;
-	AVND_SU_PRES_FSM_EV su_ev = AVND_SU_PRES_FSM_EV_MAX;
-	AVND_COMP_CSI_REC *curr_csi = 0;
-	AVND_SU_SI_REC *curr_si = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_SU_SI_REC *curr_si;
 
-	/* mark the si(s) assigning */
+	TRACE_ENTER2("%s %p", su->name.value, si);
+
+	/* mark the si(s) assigning and assign to su */
 	if (si) {
 		m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si, AVND_SU_SI_ASSIGN_STATE_ASSIGNING);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
+		rc = assign_si_to_su(si, su, true);
 	} else {
+		/* if no si is specified, the action is aimed at all the sis... loop */
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		     curr_si; curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
+		     curr_si != NULL;
+			 curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
+
 			m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_ASSIGNING);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
-		}
-	}
 
-	/* if no si is specified, the action is aimed at all the sis... pick up any si */
-	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-	if (!curr_si)
-		goto done;
-
-	/* initiate the si assignment for pi su */
-	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		/* pick up the first/last csi */
-		if (SA_AMF_HA_ACTIVE == curr_si->curr_state)
-			curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_si->csi_list);
-		else
-			curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&curr_si->csi_list);
-
-		/* assign the csi */
-		if (curr_csi) {
-			rc = avnd_comp_csi_assign(cb, curr_csi->comp, (si) ? curr_csi : 0);
+			rc = assign_si_to_su(curr_si, su, false);
 			if (NCSCC_RC_SUCCESS != rc)
-				goto done;
+				break;
 		}
 	}
 
-	/* initiate the si assignment for npi su */
-	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		/* determine the instantiation state of npi su */
-		if (SA_AMF_HA_ACTIVE != curr_si->prv_state)
-			npi_prv_inst = FALSE;
-		if (SA_AMF_HA_ACTIVE != curr_si->curr_state)
-			npi_curr_inst = FALSE;
-
-		/* Quiesced while Quiescing */
-		if (m_AVND_SU_SI_PRV_ASSIGN_STATE_IS_ASSIGNING(curr_si) && (SA_AMF_HA_QUIESCING == curr_si->prv_state))
-			npi_prv_inst = TRUE;
-
-		/* determine the event for the su fsm */
-		if (m_AVND_SU_IS_RESTART(su) && (TRUE == npi_curr_inst))
-			su_ev = AVND_SU_PRES_FSM_EV_RESTART;
-		else if (!m_AVND_SU_IS_RESTART(su) && (npi_prv_inst != npi_curr_inst))
-			su_ev = (TRUE == npi_curr_inst) ? AVND_SU_PRES_FSM_EV_INST : AVND_SU_PRES_FSM_EV_TERM;
-
-		/* we cant do anything on inst-failed SU, so just resp success for quiesced */
-		if (su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-			su_ev = AVND_SU_PRES_FSM_EV_MAX;
-
-		/* trigger the su fsm */
-		if (AVND_SU_PRES_FSM_EV_MAX != su_ev) {
-			if (!si) {
-				m_AVND_SU_ALL_SI_SET(su);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
-			}
-			rc = avnd_su_pres_fsm_run(cb, su, 0, su_ev);
-		} else
-			rc = avnd_su_si_oper_done(cb, su, si);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto done;
-	}
-
- done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -577,6 +617,8 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	NCS_BOOL are_si_assigned;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s %p", su->name.value, si);
+
 	/* mark the individual sis */
 	for (curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	     curr_si; curr_si = (si) ? 0 : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
@@ -660,7 +702,8 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	/* finally initiate buffered assignments, if any */
 	rc = avnd_su_siq_prc(cb, su);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
