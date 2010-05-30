@@ -134,7 +134,7 @@ static uns32 avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_A
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pg_start(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PG_START_PARAM *pg_start = &api_info->param.pg_start;
@@ -143,6 +143,8 @@ uns32 avnd_evt_ava_pg_start(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG_TRK *pg_trk = 0;
 	NCS_BOOL is_fresh_pg = FALSE;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* 
 	 * Update pg db
@@ -200,6 +202,7 @@ uns32 avnd_evt_ava_pg_start(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -219,7 +222,7 @@ uns32 avnd_evt_ava_pg_start(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pg_stop(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PG_STOP_PARAM *pg_stop = &api_info->param.pg_stop;
@@ -228,6 +231,8 @@ uns32 avnd_evt_ava_pg_stop(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG_TRK *pg_trk = 0;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* populate the track key */
 	key.mds_dest = api_info->dest;
@@ -253,6 +258,7 @@ uns32 avnd_evt_ava_pg_stop(AVND_CB *cb, AVND_EVT *evt)
 			rc = avnd_pg_track_stop(cb, pg);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -366,11 +372,13 @@ static uns32 avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *pg,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_pg_track_act_rsp_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_track_act_rsp;
 	AVND_PG *pg = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -416,6 +424,7 @@ uns32 avnd_evt_avd_pg_track_act_rsp_msg(AVND_CB *cb, AVND_EVT *evt)
 		assert(0);
 	}			/* switch */
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -434,13 +443,15 @@ uns32 avnd_evt_avd_pg_track_act_rsp_msg(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_pg_upd_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PG_UPD_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_upd;
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *curr = 0;
 	AVND_PG_MEM *chg_mem = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -506,6 +517,7 @@ uns32 avnd_evt_avd_pg_upd_msg(AVND_CB *cb, AVND_EVT *evt)
 			free(chg_mem);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 

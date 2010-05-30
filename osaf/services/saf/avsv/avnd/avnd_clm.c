@@ -154,10 +154,12 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_node_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_NODE_UP_MSG_INFO *info;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	info = &evt->info.avd->msg_info.d2n_node_up;
 
@@ -166,6 +168,7 @@ uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;
 
+	TRACE_LEAVE();
 	return rc;
 }
 

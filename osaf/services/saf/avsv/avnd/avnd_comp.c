@@ -60,12 +60,16 @@ static void avnd_comp_hdl_finalize(AVND_CB *, AVND_COMP *, AVSV_AMF_FINALIZE_PAR
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_reg_comp_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_reg_comp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_REG_COMP_MSG_INFO *info = 0;
 	AVSV_COMP_INFO_MSG *comp_info = 0;
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -142,7 +146,8 @@ uns32 avnd_evt_avd_reg_comp_msg(AVND_CB *cb, AVND_EVT *evt)
    /*** send the response to AvD ***/
 	rc = avnd_di_reg_comp_rsp_snd(cb, &info->list->comp_info.name, rc);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -263,13 +268,15 @@ static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_finalize(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_FINALIZE_PARAM *fin = &api_info->param.finalize;
 	AVND_COMP *comp = 0;
 	AVND_COMP_PXIED_REC *rec = 0, *curr_rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* 
 	 * Get the comp. As comp-name is derived from the AvA lib, it's 
@@ -329,6 +336,7 @@ uns32 avnd_evt_ava_finalize(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_finalize():Comp and Hdl are", &fin->comp_name, fin->hdl, 0, 0, 0);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -345,7 +353,7 @@ uns32 avnd_evt_ava_finalize(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_comp_reg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_COMP_REG_PARAM *reg = &api_info->param.reg;
@@ -355,6 +363,8 @@ uns32 avnd_evt_ava_comp_reg(AVND_CB *cb, AVND_EVT *evt)
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp_flag = FALSE;
 	NODE_ID node_id;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -406,6 +416,8 @@ uns32 avnd_evt_ava_comp_reg(AVND_CB *cb, AVND_EVT *evt)
 	/* now register the component */
 	if ((SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc))
 		rc = avnd_comp_reg_prc(cb, comp, pxy_comp, reg, &api_info->dest);
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -422,7 +434,7 @@ uns32 avnd_evt_ava_comp_reg(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_comp_unreg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_COMP_UNREG_PARAM *unreg = &api_info->param.unreg;
@@ -431,6 +443,8 @@ uns32 avnd_evt_ava_comp_unreg(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -464,8 +478,8 @@ uns32 avnd_evt_ava_comp_unreg(AVND_CB *cb, AVND_EVT *evt)
 				    &unreg->comp_name, unreg->hdl, 0, 0, 0);
 	}
 
+	TRACE_LEAVE();
 	return rc;
-
 }
 
 /****************************************************************************
@@ -480,7 +494,7 @@ uns32 avnd_evt_ava_comp_unreg(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_ha_get(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_HA_GET_PARAM *ha_get = &api_info->param.ha_get;
@@ -489,6 +503,8 @@ uns32 avnd_evt_ava_ha_get(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -528,6 +544,7 @@ uns32 avnd_evt_ava_ha_get(AVND_CB *cb, AVND_EVT *evt)
 				    &ha_get->comp_name, ha_get->hdl, ha_get->ha, 0, 0);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -547,7 +564,7 @@ uns32 avnd_evt_ava_ha_get(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_mds_ava_dn(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_ava_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_MDS_EVT *mds_evt = &evt->info.mds;
 	AVND_ERR_INFO err_info;
@@ -555,6 +572,7 @@ uns32 avnd_evt_mds_ava_dn(AVND_CB *cb, AVND_EVT *evt)
 	SaNameT name;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	memset(&name, 0, sizeof(SaNameT));
 
 	/* get the matching registered comp (if any) */
@@ -579,6 +597,7 @@ uns32 avnd_evt_mds_ava_dn(AVND_CB *cb, AVND_EVT *evt)
 	/* pg tracking may be started by this ava... delete those traces */
 	avnd_pg_finalize(cb, 0, &mds_evt->mds_dest);
 
+	TRACE_LEAVE();
 	return rc;
 }
 

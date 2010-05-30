@@ -37,9 +37,11 @@ static uns32 avnd_int_ext_comp_val(AVND_CB *, SaNameT *, AVND_COMP **, SaAisErro
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_mds_avnd_up(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 res = 0;
+
+	TRACE_ENTER();
 
 	if (evt->type != AVND_EVT_MDS_AVND_UP) {
 		return NCSCC_RC_FAILURE;
@@ -48,8 +50,8 @@ uns32 avnd_evt_mds_avnd_up(AVND_CB *cb, AVND_EVT *evt)
 	/* Add node id to mds dest mapping in the data base. */
 	res = avnd_nodeid_mdsdest_rec_add(cb, evt->info.mds.mds_dest);
 
+	TRACE_LEAVE();
 	return res;
-
 }
 
 /******************************************************************************
@@ -64,9 +66,11 @@ uns32 avnd_evt_mds_avnd_up(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_mds_avnd_dn(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 res = 0;
+
+	TRACE_ENTER();
 
 	if (evt->type != AVND_EVT_MDS_AVND_DN) {
 		return NCSCC_RC_FAILURE;
@@ -75,8 +79,8 @@ uns32 avnd_evt_mds_avnd_dn(AVND_CB *cb, AVND_EVT *evt)
 	/* Delete node id to mds dest mapping in the data base. */
 	res = avnd_nodeid_mdsdest_rec_del(cb, evt->info.mds.mds_dest);
 
+	TRACE_LEAVE();
 	return res;
-
 }
 
 /******************************************************************************
@@ -163,7 +167,7 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_DND_MSG_LIST *rec = 0;
@@ -172,6 +176,8 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP *comp = NULL, *pxy_comp = NULL;
 	AVSV_N2D_COMP_VALIDATION_INFO comp_valid_info;
 	AVSV_AMF_API_INFO api_info;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -294,6 +300,7 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_AVND_ERR_LOG("avnd_evt_avd_comp_validation_resp_msg failed:Comp,MsgId,NodeId and result are",
 				    &info->comp_name, info->msg_id, info->node_id, info->result, 0);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 

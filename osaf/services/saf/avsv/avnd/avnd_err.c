@@ -121,7 +121,7 @@ static const char *g_comp_rcvr[] = {
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_ERR_REP_PARAM *err_rep = &api_info->param.err_rep;
@@ -130,6 +130,8 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -194,6 +196,7 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
 				    &err_rep->err_comp, err_rep->hdl, err_rep->rec_rcvr, 0, 0);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -210,7 +213,7 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_err_clear(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_ERR_CLEAR_PARAM *err_clear = &api_info->param.err_clear;
@@ -219,6 +222,8 @@ uns32 avnd_evt_ava_err_clear(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -262,6 +267,7 @@ uns32 avnd_evt_ava_err_clear(AVND_CB *cb, AVND_EVT *evt)
 				    &err_clear->comp_name, err_clear->hdl, 0, 0, 0);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1200,14 +1206,17 @@ AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_node_err_esc(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* reset all parameters */
 	cb->su_failover_cnt = 0;
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 
+	TRACE_LEAVE();
 	return rc;
 }
 

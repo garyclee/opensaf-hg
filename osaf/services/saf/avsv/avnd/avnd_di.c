@@ -193,7 +193,7 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_OPERATION_REQUEST_MSG_INFO *info;
 	AVSV_PARAM_INFO *param;
@@ -278,9 +278,11 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_ack_message(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_ack_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -289,7 +291,8 @@ uns32 avnd_evt_avd_ack_message(AVND_CB *cb, AVND_EVT *evt)
 	/* process the ack response */
 	avnd_di_msg_ack_process(cb, evt->info.avd->msg_info.d2n_ack_info.msg_id_ack);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -307,11 +310,13 @@ uns32 avnd_evt_avd_ack_message(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_rcv_msg_rsp(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_rcv_msg_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_DND_MSG_LIST *rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve the message record */
 	if ((0 == (rec = (AVND_DND_MSG_LIST *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl))))
@@ -321,7 +326,8 @@ uns32 avnd_evt_tmr_rcv_msg_rsp(AVND_CB *cb, AVND_EVT *evt)
 
 	ncshm_give_hdl(tmr->opq_hdl);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -378,7 +384,7 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER2("%llx", evt->info.mds.mds_dest);
 	
@@ -425,7 +431,7 @@ done:
  
   Notes         : What should be done? TBD.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_dn(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -989,13 +995,14 @@ uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_shutdown_app_su_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
 	NCS_BOOL empty_sulist = TRUE;
-
 	AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO *info = &evt->info.avd->msg_info.d2n_shutdown_app_su;
+
+	TRACE_ENTER();
 
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
@@ -1064,7 +1071,8 @@ uns32 avnd_evt_avd_shutdown_app_su_msg(AVND_CB *cb, AVND_EVT *evt)
 		avnd_snd_shutdown_app_su_msg(cb);
 	}
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1147,7 +1155,7 @@ void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
  * 
  * @return uns32
  */
-uns32 avnd_evt_avd_admin_op_req_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_admin_op_req_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;

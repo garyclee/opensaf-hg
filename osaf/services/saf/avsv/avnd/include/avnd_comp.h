@@ -839,8 +839,8 @@ extern uns32 avnd_comp_pmstart_modify(struct avnd_cb_tag *, AVSV_AMF_PM_START_PA
 extern AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_START_PARAM *,
 						  SaAisErrorT *);
 extern NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *);
-extern uns32 avnd_evt_ava_pm_start(struct avnd_cb_tag *, struct avnd_evt_tag *);
-extern uns32 avnd_evt_ava_pm_stop(struct avnd_cb_tag *, struct avnd_evt_tag *);
+extern uns32 avnd_evt_ava_pm_start_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+extern uns32 avnd_evt_ava_pm_stop_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 extern void avnd_comp_pm_param_val(struct avnd_cb_tag *, AVSV_AMF_API_TYPE, uns8 *, AVND_COMP **, AVND_COMP_PM_REC **,
 				     SaAisErrorT *);
 extern void avnd_comp_pm_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT);

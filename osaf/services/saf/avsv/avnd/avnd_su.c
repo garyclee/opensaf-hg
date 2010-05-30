@@ -50,12 +50,14 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_reg_su_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_REG_SU_MSG_INFO *info = 0;
 	AVSV_SU_INFO_MSG *su_info = 0;
 	AVND_SU *su = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -105,7 +107,8 @@ uns32 avnd_evt_avd_reg_su_msg(AVND_CB *cb, AVND_EVT *evt)
 	/*** send the response to AvD ***/
 	rc = avnd_di_reg_su_rsp_snd(cb, &info->su_list->name, rc);
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -216,12 +219,14 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_info_su_si_assign_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO *info = &evt->info.avd->msg_info.d2n_su_si_assign;
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU *su = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* get the su */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, info->su_name);
@@ -250,7 +255,9 @@ uns32 avnd_evt_avd_info_su_si_assign_msg(AVND_CB *cb, AVND_EVT *evt)
 
 	/* the msg isn't buffered, process it */
 	rc = avnd_su_si_msg_prc(cb, su, info);
- done:
+
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -268,10 +275,12 @@ uns32 avnd_evt_avd_info_su_si_assign_msg(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_su_err_esc(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve avnd cb */
 	if (0 == (su = (AVND_SU *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)evt->info.tmr.opq_hdl))) {
@@ -305,9 +314,11 @@ uns32 avnd_evt_tmr_su_err_esc(AVND_CB *cb, AVND_EVT *evt)
 		assert(0);
 	}
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
- done:
+
+done:
 	if (su)
 		ncshm_give_hdl((uns32)evt->info.tmr.opq_hdl);
+	TRACE_LEAVE();
 	return rc;
 }
 

@@ -753,11 +753,13 @@ uns32 avnd_su_si_rec_unmark(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_su_pres_msg(AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PRESENCE_SU_MSG_INFO *info = 0;
 	AVND_SU *su = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))
@@ -820,7 +822,8 @@ uns32 avnd_evt_avd_su_pres_msg(AVND_CB *cb, AVND_EVT *evt)
 		break;
 	}			/* switch */
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
