@@ -166,6 +166,7 @@ typedef struct avnd_comp_csi_rec {
 	NCS_DB_LINK_LIST_NODE si_dll_node;	/* node in the si dll */
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-csi dll */
 	SaNameT name;	/* csi name */
+	SaNameT saAmfCSType; /* cs type name */
 	uns32 rank;		/* csi rank */
 
 	/* state info */
