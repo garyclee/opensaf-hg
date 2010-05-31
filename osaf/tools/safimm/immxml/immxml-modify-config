@@ -467,6 +467,7 @@ Note. With no options given to script it will create and load imm objects for th
 not yet existing nodes thats exists in node config file (default: ./nodes.cfg).\n
 With --dry-run option it is possible to generate a file with additional node related objects as an imm.xml delta file and a command file (placed in working directory)."
 
+NODE_CFG_FILE=./nodes.cfg
 SERVICESDIR=./services
 TEMP=`getopt -o d:f:s:p:c:htn --long dry-run,nodes-to-remove:,node-config:,workdir:,fragmentdir:,help,trace \
      -- "$@"`
