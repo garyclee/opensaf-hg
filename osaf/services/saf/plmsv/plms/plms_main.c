@@ -179,6 +179,17 @@ SaUint32T plms_hsm_hrb_init()
 	SaUint32T (* hsm_init_func_ptr)(PLMS_HPI_CONFIG *hpi_cfg) = NULL;
 	SaUint32T (* hrb_init_func_ptr)() = NULL;
 	SaUint32T rc = NCSCC_RC_SUCCESS;
+	void    *hpi_intf_handle = NULL;
+
+	/* Load the HPI Interface library */
+	hpi_intf_handle = dlopen("libplms_hpi.so.0",RTLD_LAZY);
+	if( NULL == hpi_intf_handle ) {
+		LOG_ER("dlopen() to load libplms_hpi.so failed with error %s",
+								dlerror());
+		return NCSCC_RC_FAILURE;
+	}
+	TRACE("Successfully loaded libplms_hpi.so using dlopen");
+	cb->hpi_intf_hdl = hpi_intf_handle;
 
 	/* Get the hsm Init func ptr */
 	hsm_init_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hsm_initialize");
@@ -234,7 +245,6 @@ static uns32 plms_init()
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
-	void    *hpi_intf_handle = NULL;
 
 	TRACE_ENTER();
 	
@@ -316,17 +326,6 @@ static uns32 plms_init()
 	}
 
 	if( cb->hpi_cfg.hpi_support ) {
-		/* Load the HPI Interface library */
-		hpi_intf_handle = dlopen("libplms_hpi.so.0",RTLD_LAZY);
-		if( NULL == hpi_intf_handle ) {
-			LOG_ER("dlopen() to load libplms_hpi.so failed with error %s",
-									dlerror());
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		TRACE("Successfully loaded libplms_hpi.so using dlopen");
-		cb->hpi_intf_hdl = hpi_intf_handle;
-
 		if( cb->ha_state == SA_AMF_HA_ACTIVE ){
 			rc = plms_hsm_hrb_init();
 			if(NCSCC_RC_FAILURE == rc)
