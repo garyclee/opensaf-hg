@@ -532,6 +532,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
 //      Currently only one act/deact entity is specified for each step.
 
                 TRACE("Create steps for all found act/deac units calculated from templates");
+		std::list  < std::string > actDeactNodes; //Nodes pointed out by act/deact units
 		int stepCntr = 0;
 		std::list < std::string >::const_iterator itActDeact;
                 for (itActDeact = actDeactUnits.begin(); itActDeact != actDeactUnits.end(); ++itActDeact) {
@@ -557,6 +558,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
                                 return false;
                         }
                         newStep->setSwNode(node);
+			actDeactNodes.push_back(node);  //Used to detect uncovered nodes below
 
                         TRACE("SmfUpgradeProcedure::calculateRollingSteps:calculateRollingSteps new step added %s with activation/deactivation unit %s",
                               newStep->getRdn().c_str(), (*itActDeact).c_str());
@@ -568,6 +570,44 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
 
                         addProcStep(newStep);
                 }
+
+		//Check if there remain nodes in the nodelist which are not pointed out by the steps generated
+		//from the act/deact lista above.
+		//On such nodes only SW install/remove shall be executed.
+
+		//Match found step nodes with nodelist.
+		actDeactNodes.sort();
+		actDeactNodes.unique();
+		std::list < std::string >::iterator nodeIt;
+		for (nodeIt = actDeactNodes.begin(); nodeIt != actDeactNodes.end(); ++nodeIt) {
+			nodeList.remove(*nodeIt); //Reduce the nodelist with nodes found in act/deact steps
+		}
+
+		//Create SW install steps for the nodes not found in the created steps.
+		for (nodeIt = nodeList.begin(); nodeIt != nodeList.end(); ++nodeIt) {
+			std::ostringstream ost;
+			stepCntr++;
+			ost << stepCntr;
+
+			SmfUpgradeStep *newStep = new SmfUpgradeStep();
+			newStep->setRdn("safSmfStep=" + ost.str());
+			newStep->setDn(newStep->getRdn() + "," + getDn());
+			newStep->setMaxRetry(i_rollingUpgrade->getStepMaxRetryCount());
+			newStep->addSwRemove(nodeTemplate->getSwRemoveList());
+			newStep->addSwAdd(nodeTemplate->getSwInstallList());
+			newStep->setSwNode(*nodeIt);
+
+			TRACE("SmfUpgradeProcedure::calculateRollingSteps:calculateRollingSteps new SW install step added %s (with no act/deact unit) for node %s",
+			      newStep->getRdn().c_str(), (*nodeIt).c_str());
+
+			/* TODO: Update objects to be modified by step */
+			if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_AMF_NODE)){
+                                LOG_ER("SmfUpgradeProcedure::calculateRollingSteps:addStepModifications failed");
+                                return false;
+                        }
+
+			addProcStep(newStep);
+		}
 	}
 
         TRACE_LEAVE();
@@ -1919,7 +1959,12 @@ SmfUpgradeProcedure::getImmStepsRolling()
 				for(ix = 0; (au = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 								      "saSmfAuActedOn", ix)) != NULL; ix++) {
 					TRACE("addActivationUnit %s", (char *)au->value);
-					newStep->addActivationUnit((char *)au->value);
+					std::string str = (char *)au->value;
+					if(str != "") {
+						newStep->addActivationUnit((char *)au->value);
+					} else {
+						TRACE("No activation unit, must be SW install");
+					}
 				}
 
 				//For the SaAmfActivationUnit fetch the SaSmfImageNodes objects
@@ -1973,7 +2018,12 @@ SmfUpgradeProcedure::getImmStepsRolling()
 				for(ix = 0; (du = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 								      "saSmfDuActedOn", ix)) != NULL; ix++) {
 					TRACE("addDeactivationUnit %s", (char *)du->value);
-					newStep->addDeactivationUnit((char *)du->value);
+					std::string str = (char *)du->value;
+					if(str != "") {
+						newStep->addDeactivationUnit((char *)du->value);
+					} else {
+						TRACE("No deactivation unit, must be SW remove");
+					}
 				}
 
 				//For the SaAmfDeactivationUnit fetch the SaSmfImageNodes objects

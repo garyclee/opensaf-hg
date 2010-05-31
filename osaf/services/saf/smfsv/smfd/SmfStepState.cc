@@ -219,7 +219,7 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 			firstAuDu = i_step->getActivationUnitList().front();
 		} else {
 			//No activation/deactivation, just SW installation
-			className = "SaAmfNode";
+			className = "SwInstallNode"; //Fake name for SW installation only
 		}
 	}
 
@@ -238,8 +238,10 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 			return false;
 		}
 	}
-
-	if (className == "SaAmfNode") {
+	if (className == "SwInstallNode") {
+		i_step->setStepType(SMF_STEP_SW_INSTALL);
+	}
+	else if (className == "SaAmfNode") {
 		/* AU is AMF node */
 
 		if (rebootNeeded) {
@@ -566,6 +568,7 @@ SmfStepStateExecuting::executeSwInstallAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
+        LOG_NO("STEP: Activate installed software on node %s",i_step->getSwNode().c_str());
 	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
@@ -783,6 +786,7 @@ SmfStepStateExecuting::executeAuLockAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
+        LOG_NO("STEP: Activate installed software on node %s",i_step->getSwNode().c_str());
 	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
@@ -936,6 +940,7 @@ SmfStepStateExecuting::executeAuRestartAct(SmfUpgradeStep * i_step)
         }
 
         /* Activate the changes on the node */
+        LOG_NO("STEP: Activate installed software on node %s",i_step->getSwNode().c_str());
 	if (i_step->callActivationCmd(i_step->getSwNode()) == false){
                 LOG_ER("Failed to execute SW activate command");
                 changeState(i_step, SmfStepStateFailed::instance());
