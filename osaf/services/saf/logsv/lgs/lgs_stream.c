@@ -518,6 +518,7 @@ open_retry:
 SaAisErrorT log_stream_open(log_stream_t *stream)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	char command[PATH_MAX + 16];
 
 	assert(stream != NULL);
 	TRACE_ENTER2("%s", stream->name);
@@ -553,6 +554,16 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 		/* Second or more open on a stream */
 		stream->numOpeners++;
 	} else {
+		sprintf(command, "mkdir -p %s/%s", lgs_cb->logsv_root_dir, stream->pathName);
+		if (system(command) != 0) {
+			TRACE("mkdir '%s' failed", stream->pathName);
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (lgs_create_config_file(stream) != 0)
+			goto done;
+
 		/* Fail over, standby opens files when it becomes active */
 		stream->fd = log_file_open(stream);
 	}
