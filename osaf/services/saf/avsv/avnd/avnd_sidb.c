@@ -34,6 +34,7 @@
 */
 
 #include "avnd.h"
+#include <immutil.h>
 
 /* static function declarations */
 
@@ -209,6 +210,27 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	/* update the csi-name & csi-rank (keys to comp-csi & si-csi lists resp) */
 	memcpy(&csi_rec->name, &param->csi_name, sizeof(SaNameT));
 	csi_rec->rank = param->csi_rank;
+
+	{
+		/* Fill the cs type param from imm db, it will be used in finding comp capability */
+		SaAisErrorT error;
+		SaImmAccessorHandleT accessorHandle;
+		const SaImmAttrValuesT_2 **attributes;
+		SaImmAttrNameT attributeNames[2] = {"saAmfCSType", NULL};
+
+
+		immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+
+		if ((error = immutil_saImmOmAccessorGet_2(accessorHandle, &param->csi_name, attributeNames, 
+						(SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
+			LOG_ER("saImmOmAccessorGet FAILED %u for %s", error, param->csi_name.value);
+			assert(0);
+		}
+
+		if (immutil_getAttr("saAmfCSType", attributes, 0, &csi_rec->saAmfCSType) != SA_AIS_OK)
+			assert(0);
+		immutil_saImmOmAccessorFinalize(accessorHandle);
+	}
 
 	/* update the assignment related parameters */
 	memcpy(&csi_rec->act_comp_name, &param->active_comp_name, sizeof(SaNameT));
