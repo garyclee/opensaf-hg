@@ -9,10 +9,10 @@
 **   all the prototypes and type definitions required for SMF. 
 **   
 ** SPECIFICATION VERSION:
-**   SAI-AIS-SMF-A.01.01
+**   SAI-AIS-SMF-A.01.02
 **
 ** DATE: 
-**   Mon  Sept   5  2007
+**   Mon  May   31  2010
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS. 
