@@ -478,8 +478,6 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		rc = NCSCC_RC_SUCCESS;
 		arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 		cb->cold_or_warm_sync_on = FALSE;
-
-		return rc;
 	}
 
 	/* First reserve space to store the number of checkpoints that will be sent */
