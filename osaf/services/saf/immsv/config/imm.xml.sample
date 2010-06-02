@@ -2293,15 +2293,6 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 	</class>
-	<class name="OpenSafRepository">
-		<category>SA_CONFIG</category>
-		<rdn>
-			<name>repository</name>
-			<type>SA_STRING_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_INITIALIZED</flag>
-		</rdn>
-	</class>
 	<class name="SaSmfCampaign">
 		<category>SA_CONFIG</category>
 		<rdn>
@@ -5548,9 +5539,6 @@
 			<name>saAmfAppType</name>
 			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
 		</attr>
-	</object>
-	<object class="OpenSafRepository">
-		<dn>safRepository=smfRepository,safApp=safSmfService</dn>
 	</object>
 	<object class="SmfConfig">
 		<dn>smfConfig=1,safApp=safSmfService</dn>

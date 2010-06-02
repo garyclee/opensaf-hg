@@ -7,9 +7,6 @@
 			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
 		</attr>
 	</object>
-	<object class="OpenSafRepository">
-		<dn>safRepository=smfRepository,safApp=safSmfService</dn>
-	</object>
 	<object class="OpenSafSmfConfig">
 		<dn>smfConfig=1,safApp=safSmfService</dn>
 		<attr>
