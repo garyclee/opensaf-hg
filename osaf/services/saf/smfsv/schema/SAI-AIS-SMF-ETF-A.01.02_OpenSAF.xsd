@@ -1,0 +1,937 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2006 sp1 U (http://www.altova.com) by Maria Toeroe (Ericsson Canada/Open Systems Research) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<!--
+   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS
+
+   Copyright(c) 2009, Service Availability(TM) Forum. All rights reserved.
+
+   Permission to use, copy, modify, and distribute this software for any
+   purpose without fee is hereby granted, provided that this entire notice
+   is included in all copies of any software which is or includes a copy
+   or modification of this software and in all copies of the supporting
+   documentation for such software.
+  
+   THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+   WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+   REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+   OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+
+   Note: This is a modified schema.
+   ================================
+   The following modification is made:   
+   1) Cardinality of  AmfEntityType is changed       
+      from
+      <xs:element maxOccurs="unbounded" name="AmfEntityType">
+      to
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AmfEntityType">
+
+  -->
+	<xs:element name="entityTypesFile">
+		<xs:annotation>
+			<xs:documentation>Root of an entity types file. As attributes it requires a name as a string and a provider identified by a domain name.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="AmfEntityType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>AMF Entity Prototype</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:choice>
+							<xs:element name="CompType">
+								<xs:annotation>
+									<xs:documentation>Component Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="peerCompatibility" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Component types this type is capable of collaborating with in a redundancy scheme. Absence of the element means that there's no other component type that would be compatible with this. Used at configuartion and upgrade campaign generation.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attributeGroup ref="compType"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="providesCSType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>CSTypes the component type provides. Used at configuration.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:group ref="CompCapability">
+														<xs:annotation>
+															<xs:documentation>Component capability with respect to this CSType</xs:documentation>
+														</xs:annotation>
+													</xs:group>
+													<xs:element name="requiredCompType" minOccurs="0" maxOccurs="unbounded">
+														<xs:annotation>
+															<xs:documentation>To provide the CSType this component type is required in the same SU. Used at configuration.</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="withCSType" minOccurs="0">
+																	<xs:annotation>
+																		<xs:documentation>If the required CompType needs to be assigned a specific CSType to be able to provide the service. Used at configuration. If no CSType is specified, any CSType provided by the required CompType can fulfill the job. </xs:documentation>
+																	</xs:annotation>
+																	<xs:complexType>
+																		<xs:attributeGroup ref="csType"/>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+															<xs:attributeGroup ref="compType"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" type="CSTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+												<xs:attribute name="isContainer" type="xs:boolean" use="optional" default="false"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:choice>
+											<xs:annotation>
+												<xs:documentation>Component type's component category and the attributes that depend on the component category.</xs:documentation>
+											</xs:annotation>
+											<xs:element name="saAware">
+												<xs:annotation>
+													<xs:documentation>SA aware component type. The mandatory elements are the capability and the instantiate CLC-CLI command.</xs:documentation>
+												</xs:annotation>
+												<xs:complexType>
+													<xs:sequence>
+														<xs:element ref="healthCheck" minOccurs="0" maxOccurs="unbounded"/>
+														<xs:element ref="quiescingComplete" minOccurs="0"/>
+														<xs:choice>
+															<xs:element name="independent" minOccurs="0">
+																<xs:annotation>
+																	<xs:documentation>The components of this type are not contained components. Their life-cycle is managed by AMF via CLC-CLIs</xs:documentation>
+																</xs:annotation>
+																<xs:complexType>
+																	<xs:sequence>
+																		<xs:element ref="instantiateCmd">
+																			<xs:annotation>
+																				<xs:documentation>The instantiate CLC-CLI command. </xs:documentation>
+																			</xs:annotation>
+																		</xs:element>
+																		<xs:element name="cleanupCmd">
+																			<xs:annotation>
+																				<xs:documentation>The cleanup CLC-CLI command.</xs:documentation>
+																			</xs:annotation>
+																			<xs:complexType>
+																				<xs:sequence>
+																					<xs:group ref="CliParameters"/>
+																				</xs:sequence>
+																			</xs:complexType>
+																		</xs:element>
+																		<xs:element name="proxiedCompType" nillable="true" minOccurs="0" maxOccurs="unbounded">
+																			<xs:annotation>
+																				<xs:documentation>A list of proxied component types that this component type is capable of proxying and the CSType through which the proxying job should be assigned.</xs:documentation>
+																			</xs:annotation>
+																			<xs:complexType>
+																				<xs:sequence>
+																					<xs:element ref="healthCheck" minOccurs="0" maxOccurs="unbounded">
+																						<xs:annotation>
+																							<xs:documentation>If the proxy support any healthcheck type toward the proxied component type they need to be specified here at least by their keys. </xs:documentation>
+																						</xs:annotation>
+																					</xs:element>
+																				</xs:sequence>
+																				<xs:attributeGroup ref="compType"/>
+																				<xs:attributeGroup ref="csType"/>
+																			</xs:complexType>
+																		</xs:element>
+																	</xs:sequence>
+																</xs:complexType>
+															</xs:element>
+															<xs:element name="containerCompType" minOccurs="0">
+																<xs:annotation>
+																	<xs:documentation>A contained component type shall specify the container component type it requires and the container CSType that needs to be used. </xs:documentation>
+																</xs:annotation>
+																<xs:complexType>
+																	<xs:attributeGroup ref="compType"/>
+																	<xs:attributeGroup ref="csType"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:choice>
+													</xs:sequence>
+												</xs:complexType>
+											</xs:element>
+											<xs:element name="proxied">
+												<xs:annotation>
+													<xs:documentation>It's a proxied component type. There are no mandatory attributes.</xs:documentation>
+												</xs:annotation>
+												<xs:complexType>
+													<xs:sequence>
+														<xs:element ref="quiescingComplete" minOccurs="0">
+															<xs:annotation>
+																<xs:documentation>Time in nano-seconds as recommended default timeout for the quiescing complete callback.</xs:documentation>
+															</xs:annotation>
+														</xs:element>
+														<xs:element name="cleanupCmd" minOccurs="0">
+															<xs:annotation>
+																<xs:documentation>The cleanup CLC-CLI command. Required for the instances being local.</xs:documentation>
+															</xs:annotation>
+															<xs:complexType>
+																<xs:sequence>
+																	<xs:group ref="CliParameters"/>
+																</xs:sequence>
+															</xs:complexType>
+														</xs:element>
+													</xs:sequence>
+													<xs:attribute name="preinstantiable" type="xs:boolean" use="optional" default="false"/>
+												</xs:complexType>
+											</xs:element>
+											<xs:element name="unproxiedNonSaAware">
+												<xs:annotation>
+													<xs:documentation>Local unproxied non-SA-aware component type that requires the specification of the instantiate and the terminate commands. </xs:documentation>
+												</xs:annotation>
+												<xs:complexType>
+													<xs:sequence>
+														<xs:element ref="instantiateCmd">
+															<xs:annotation>
+																<xs:documentation>The instantiate CLC-CLI command </xs:documentation>
+															</xs:annotation>
+														</xs:element>
+														<xs:element name="terminateCmd">
+															<xs:annotation>
+																<xs:documentation>The trminate CLC-CLI command </xs:documentation>
+															</xs:annotation>
+															<xs:complexType>
+																<xs:group ref="CliParameters"/>
+															</xs:complexType>
+														</xs:element>
+														<xs:element name="cleanupCmd">
+															<xs:annotation>
+																<xs:documentation>The cleanup CLC-CLI command.</xs:documentation>
+															</xs:annotation>
+															<xs:complexType>
+																<xs:sequence>
+																	<xs:group ref="CliParameters"/>
+																</xs:sequence>
+															</xs:complexType>
+														</xs:element>
+													</xs:sequence>
+												</xs:complexType>
+											</xs:element>
+										</xs:choice>
+										<xs:group ref="CommonCompAttributes">
+											<xs:annotation>
+												<xs:documentation>Component type attributes that are common for all component categories. The only mandatory element is the clean up CLC-CLI command.</xs:documentation>
+											</xs:annotation>
+										</xs:group>
+										<xs:element name="bundleReference">
+											<xs:annotation>
+												<xs:documentation>Refrence to a software bundle description in the same Entity Types file that delivers this component type. </xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" type="SwBundleNameT"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="upgradeAware" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Whether the implementation is upgrade-aware.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="initCallback" type="callbackOptionsT" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The implementation interprets the specified label as the initiation of a new upgrade campaign.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:element name="backupCallback" type="callbackOptionsT" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The implementation interprets the specified labal as request to create an application level backup.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:element name="rollbackCallback" type="callbackOptionsT" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The implementation interprets the specified label as an indication for rolling back the campaign.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:element name="commitCallback" type="callbackOptionsT" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The implementation interprets the specified label that the campaign has been committed.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:element name="otherCallback" type="callbackOptionsT" minOccurs="0" maxOccurs="unbounded">
+														<xs:annotation>
+															<xs:documentation>Any other callback label interpreted by the implementation.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="CompTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="SUType">
+								<xs:annotation>
+									<xs:documentation>Service Unit Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="componentType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Component types the SU Type contains </xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element ref="numInstances" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The max number of member instances that may be included in an instance of this type. The absence of the maxValue means no limit. The absence of the element means a single component instance.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" type="CompTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="providesServiceType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Service Types the SU Type supports</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="requiredServiceType" minOccurs="0" maxOccurs="unbounded">
+														<xs:annotation>
+															<xs:documentation>Service Types the SU Type requires to be able to provide this Service Type. Used at configuration.</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="name" type="SrvTypeNameT" use="required"/>
+															<xs:attribute name="version" type="SaStringT" use="optional"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" type="SrvTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="suFailOver" default="true" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>If present, AMF should fail over all CSIs of all SIs for the SU of this type. Otherwise the failed components' CSIs are failed over, while the others are switched over.
+</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="SUTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="SGType">
+								<xs:annotation>
+									<xs:documentation>Service Group Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="suType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>The type of service units that can form an SG of this type.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" type="SUTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="redModel" type="RedModelT">
+											<xs:annotation>
+												<xs:documentation>Specifies the redundancy model of the service group type.</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="autoRepairOption" default="true" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>If element is present, AMF is permitted to initiate automatic repair actions within an SG of this type. </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="compProbation" type="ProbationT" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Vendor recommended component probation period and counter max</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="suProbation" type="ProbationT" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Vendor recommended SU probation period and counter max</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="autoAdjust" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Vendor recommendation for the auto adjust option: If the element is not present, it is not recommended. If it is present, the recomemnded probabtion period can be specified.  </xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="period" type="SaTimeT"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="SGTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="AppType">
+								<xs:annotation>
+									<xs:documentation>Application Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="serviceGroupType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Service Group Type the application consist of </xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" type="SGTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="AppTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="CSType">
+								<xs:annotation>
+									<xs:documentation>Component Service Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="csAttribute" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Attribute names of a component service type.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="valueRestriction" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>To help configuration the type and the value range can be specified. Since AMF passes all attributes as strings, it's not guaranteed that these restrictions are applied at runtime. </xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="type" type="xs:string" use="optional"/>
+															<xs:attributeGroup ref="valueRange"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" type="SaStringT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="CSTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ServiceType">
+								<xs:annotation>
+									<xs:documentation>Service Prototype</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="csType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Required CS type for this service type.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element ref="numInstances" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>The suggested default number of instances that should be included in the type. Absence of the element means a single CSI of the CS type per SI.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" type="CSTypeNameT" use="required"/>
+												<xs:attribute name="version" type="VersionT" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="name" type="SrvTypeNameT" use="required"/>
+									<xs:attribute name="version" type="VersionT" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:choice>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="swBundle" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Software bundle as defined by SMF</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="removal">
+								<xs:annotation>
+									<xs:documentation>CLI command that uninstalls the entiry software bundle</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="offline" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Offline removal may disrupt the operation of some entities in the system therefore those entities need to be taken offline while the software is being uninstalled. After the offline removal the software may require online removal as well, but this may not cause any disturbance in the system's operation.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:group ref="CliParameters"/>
+													<xs:group ref="ScopeOfImpact">
+														<xs:annotation>
+															<xs:documentation>The minimum scope of disruption. Needs to be adjusted to the particular system based on system features.</xs:documentation>
+														</xs:annotation>
+													</xs:group>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="online" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Online removal may not disrupt or alter the operation of any entity in the system during the process or after that. After online removal all the resources used by the SW must be freed.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:group ref="CliParameters"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="installation">
+								<xs:annotation>
+									<xs:documentation>CLI command that installs the entiry software bundle</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="offline" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Offline installation may disrupt the operation of some entities in the system therefore those entities need to be taken offline while the installation is performed. After the offline installation the software should be ready for deployment. </xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:group ref="CliParameters"/>
+													<xs:group ref="ScopeOfImpact"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="online" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Online installation may not disrupt or alter the operation of any entity in the system during the process of the installation and after up to the moment of offline installation or deployment.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:group ref="CliParameters"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" type="SwBundleNameT" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required"/>
+			<xs:attribute name="provider" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="quiescingComplete" type="BoundedTimeT">
+		<xs:annotation>
+			<xs:documentation>Time in nano-seconds as recommended default timeout for the quiescing complete callback.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="numInstances" type="UnsignedInt32T">
+		<xs:annotation>
+			<xs:documentation>The max number of instances of the member type that may be included in an instance of this type. The absence of the element means no limit.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="numMaxStandbyCsi" type="BoundedUInt32T">
+		<xs:annotation>
+			<xs:documentation>The value of Y. It denotes the maximum number of CSIs of the provided CSType that can be assigned as standby to a component of this type. If the element is not present the number of standby assignemts is unlimited.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="instantiateCmd">
+		<xs:annotation>
+			<xs:documentation>The instantiate CLC-CLI command.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:group ref="CliParameters"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="numMaxActiveCsi" type="BoundedUInt32T">
+		<xs:annotation>
+			<xs:documentation>The value of X. It denotes the maximum number of CSIs of the provided CSType that can be assigned as active to a component of this type. If the element is not present the number of active assignemts is unlimited.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="healthCheck">
+		<xs:annotation>
+			<xs:documentation>If the implementation support any healthcheck type they need to be specified here at least by their keys. Futher it could be spcified whether they are component or AMF invoked. If not specified both variants are supported. </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:annotation>
+					<xs:documentation>If there's any restriction with respect to the healthcheck configuration the appropriate attributes need to be specified as well.</xs:documentation>
+				</xs:annotation>
+				<xs:element name="period" type="BoundedTimeT" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>A healthcheck is run every "period" milliseconds. This attribue needs to be specified if there is any limitation on the frequency of healthchecks</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="maxDuration" type="BoundedTimeT" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Time in milliseconds during which the AMF expects the response to a healthcheck</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="key" type="SaStringT" use="required"/>
+			<xs:attribute name="variant" type="HealthcheckVariantT" use="optional"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:attributeGroup name="csType">
+		<xs:annotation>
+			<xs:documentation>attribute group for CS type with optional version</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="cstName" type="CSTypeNameT" use="required"/>
+		<xs:attribute name="cstVersion" type="VersionT" use="optional"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="compType">
+		<xs:annotation>
+			<xs:documentation>attribute group for Component type with optional version</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="ctName" type="CompTypeNameT" use="required"/>
+		<xs:attribute name="ctVersion" type="VersionT" use="optional"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="valueRange">
+		<xs:annotation>
+			<xs:documentation>Default and range attributes for any type. If lower and upper bounds are equal, the value is fixed.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="lowerBound" type="xs:anySimpleType" use="optional"/>
+		<xs:attribute name="upperBound" type="xs:anySimpleType" use="optional"/>
+		<xs:attribute name="default" type="xs:anySimpleType" use="optional"/>
+	</xs:attributeGroup>
+	<xs:group name="CompCapability">
+		<xs:annotation>
+			<xs:documentation>Component capability</xs:documentation>
+		</xs:annotation>
+		<xs:choice>
+			<xs:element name="xactiveandystandby">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="numMaxActiveCsi" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The value of X. It denotes the maximum number of CSIs of the provided CSType that can be assigned as active to a component of this type. If the element is not present the number of active assignemts is unlimited.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element ref="numMaxStandbyCsi" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The value of Y. It denotes the maximum number of CSIs of the provided CSType that can be assigned as standby to a component of this type. If the element is not present the number of standby assignemts is unlimited.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="xactiveorystandby">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="numMaxActiveCsi" minOccurs="0"/>
+						<xs:element ref="numMaxStandbyCsi" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="oneactiveorxstandby">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="numMaxStandbyCsi" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="oneactiveoronestandby"/>
+			<xs:element name="xactive">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="numMaxActiveCsi" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="oneactive">
+				<xs:annotation>
+					<xs:documentation>Non-SAaware and proxied non-preinstantiable componnet types can only have one active assignment.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+	<xs:group name="CompCallbackTimeouts">
+		<xs:annotation>
+			<xs:documentation>Implementation imposed callback timeout attributes restrictions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="terminateCallbackTimeOut" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds in which AMF expects an SaAmfResponse call from the component after a preceding callback to terminate the component. 
+If a component has not responded within terminateCallbackTimeOut milliseconds it will be shut down by executing the termination command.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="quiescingCompleteTimeout" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds in which AMF expects an saAmfCSIQuiescingComplete() call from the component after a preceding CSI set callback initiation from active->quiescing HA state. Note this is not a timeout for saAMFResponse().</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="csiSetCallbackTimeout" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds in which AMF expects and SaAmfResponse call from the component after a preceding CSI set callback initiation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="csiRmvCallbackTimeout" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds in which AMF expects an SaAmfResponse call from the component after a preceding CSI Remove callback initiation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="CliParameters">
+		<xs:annotation>
+			<xs:documentation>Parameters common to all CLI commands</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="command" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The actual CLI command string including relative path. Needs to be adjusted to the execution environment.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="args" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Arguments to the CLI command. Needs to be adjusted to the execution environment. </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="CommonCompAttributes">
+		<xs:annotation>
+			<xs:documentation>Attributes which can go into a component type</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="disableRestart" default="false" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>If element is present, a component of this type must not be restarted. </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="recoveryOnError" type="RecommendedRecoveryT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Recommended by the vendor recovery action to be taken by AMF in case of an error of a component of this type.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="defaultClcCliTimeOut" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds for the CLC-CLI commands if the implementation imposes any restriction. If there is a restriction, the vendor needs to provide a recommended default that AMF shall use for the CLC-CLI commands. </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="defaultCallbackTimeOut" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time in nano-seconds for the callbacks if the implementation imposes any restriction. If there is a restriction, the vendor needs to provide a recommended default that AMF shall use for the callbacks. </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:sequence minOccurs="0">
+				<xs:element name="amStartCmd">
+					<xs:annotation>
+						<xs:documentation>The active monitor start CLC-CLI command (AM_START).</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:group ref="CliParameters"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="amStopCmd">
+					<xs:annotation>
+						<xs:documentation>The active monitor stop CLC-CLI command (AM_STOP).</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:group ref="CliParameters"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="ScopeOfImpact">
+		<xs:annotation>
+			<xs:documentation>The minimum scope of disruption. Needs to be adjusted to the particular system based on system features.</xs:documentation>
+		</xs:annotation>
+		<xs:choice>
+			<xs:element name="serviceUnit">
+				<xs:annotation>
+					<xs:documentation>AMF SU is effected possibly because an SU lock and restart are required</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="amfNode">
+				<xs:annotation>
+					<xs:documentation>AMF node is effected possibly because an AMF node lock and restart are required</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="clmNode">
+				<xs:annotation>
+					<xs:documentation>All entities residing on the CLM node are effected possibly because an CLM node lock.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="executionEnvironment">
+				<xs:annotation>
+					<xs:documentation>All entities of the execution environment are effected possibly because of the reboot of the execution environment</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="hardwareElement">
+				<xs:annotation>
+					<xs:documentation>All entities residing on the hardware element are effected possibly because of a HW reboot</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+	<xs:simpleType name="SaTimeT">
+		<xs:annotation>
+			<xs:documentation>Time as defined by SAF</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:long"/>
+	</xs:simpleType>
+	<xs:simpleType name="SaStringT">
+		<xs:annotation>
+			<xs:documentation>String as defined by SAF</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="VersionT">
+		<xs:annotation>
+			<xs:documentation>SaString used where a version need to be specified</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safVersion=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SwBundleNameT">
+		<xs:annotation>
+			<xs:documentation>Name of a software bundle need to be unique only within the Entity Types file</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safSmfBundle=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CompTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Component Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safCompType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SUTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Service Unit Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safSuType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SGTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Service Group Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safSgType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="AppTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Application Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safAppType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CSTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Component Service Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safCSType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SrvTypeNameT">
+		<xs:annotation>
+			<xs:documentation>Service Type Name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="SaStringT">
+			<xs:pattern value="safSvcType=.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RecommendedRecoveryT">
+		<xs:annotation>
+			<xs:documentation>Recommended Error Recovery</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SA_AMF_NO_RECOMMENDATION"/>
+			<xs:enumeration value="SA_AMF_COMPONENT_RESTART"/>
+			<xs:enumeration value="SA_AMF_COMPONENT_FAILOVER"/>
+			<xs:enumeration value="SA_AMF_NODE_SWITCHOVER"/>
+			<xs:enumeration value="SA_AMF_NODE_FAILOVER"/>
+			<xs:enumeration value="SA_AMF_NODE_FAILFAST"/>
+			<xs:enumeration value="SA_AMF_CLUSTER_RESET"/>
+			<xs:enumeration value="SA_AMF_APPLICATION_RESTART"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="HealthcheckVariantT">
+		<xs:annotation>
+			<xs:documentation>Whether the component type can invoke healthchecks or AMF should do it</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SA_AMF_HEALTHCHECK_AMF_INVOKED"/>
+			<xs:enumeration value="SA_AMF_HEALTHCHECK_COMPONENT_INVOKED"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RedModelT">
+		<xs:annotation>
+			<xs:documentation>Enumeration of redundancy models</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SA_AMF_2N_REDUNDANCY_MODEL"/>
+			<xs:enumeration value="SA_AMF_NPM_REDUNDANCY_MODEL"/>
+			<xs:enumeration value="SA_AMF_N-WAY_REDUNDANCY_MODEL"/>
+			<xs:enumeration value="SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL"/>
+			<xs:enumeration value="SA_AMF_NO_REDUNDANCY_MODEL"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="UnsignedInt32T">
+		<xs:annotation>
+			<xs:documentation>Unsigned 32 bit integer value.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="minValue" type="xs:unsignedInt" use="optional" default="1"/>
+		<xs:attribute name="maxValue" type="xs:unsignedInt" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="BoundedUInt32T">
+		<xs:annotation>
+			<xs:documentation>Unsigned 32 bit integer with upper bound and default, lower bound is always 1.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="upperBound" type="xs:unsignedInt" use="required"/>
+		<xs:attribute name="default" type="xs:unsignedInt" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="BoundedTimeT">
+		<xs:annotation>
+			<xs:documentation>Duration with minimum and default, if such an attribute is present the minimum value is mandatory.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="lowerBound" type="SaTimeT" use="required"/>
+		<xs:attribute name="default" type="SaTimeT" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="callbackOptionsT">
+		<xs:annotation>
+			<xs:documentation>Type to specify supported callbacks</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="condition">
+					<xs:annotation>
+						<xs:documentation>The stringParam specifies the value passed as callback parameter to a registered process to indicate the condition described in this element. </xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="stringParam" type="SaStringT"/>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+			<xs:element name="timer" type="BoundedTimeT" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Whether SMF would need to wait for the response and how much waiting time is recommended by the vendor</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="label" type="SaStringT" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ProbationT">
+		<xs:annotation>
+			<xs:documentation>Probation period and counter maximum</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="period" type="SaTimeT"/>
+		<xs:attribute name="counterMax" type="xs:positiveInteger"/>
+	</xs:complexType>
+</xs:schema>

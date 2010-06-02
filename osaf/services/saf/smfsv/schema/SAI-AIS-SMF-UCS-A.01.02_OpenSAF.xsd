@@ -1,0 +1,1535 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com)-->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!--
+   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS
+
+   Copyright(c) 2009, Service Availability(TM) Forum. All rights reserved.
+
+   Permission to use, copy, modify, and distribute this software for any
+   purpose without fee is hereby granted, provided that this entire notice
+   is included in all copies of any software which is or includes a copy
+   or modification of this software and in all copies of the supporting
+   documentation for such software.
+  
+   THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+   WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+   REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+   OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+
+   Note: This is a modified schema.
+   ================================
+   The following modifications are made:   
+   1) SaNameT pattern value <!xs:pattern value="{Name}={Name}(,{Name})*" />
+      changed to
+      <xs:pattern value="[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*(,[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*)*" />
+      due to difficulties to find a xml-editor accepting the "Name" keyword.
+   2) Cardinality of targetEntity template in rolling upgrade changed from
+      <xs:element maxOccurs="unbounded" name="targetEntityTemplate">
+      to
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="targetEntityTemplate">
+
+  -->
+  <xs:element name="upgradeCampaign">
+    <xs:annotation>
+      <xs:documentation>Specification of an upgrade campaign. The name is a DN for the campaign object in IMM.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="campaignInfo">
+          <xs:annotation>
+            <xs:documentation>Information that describes the campaign to be started.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="campaignPeriod">
+                <xs:annotation>
+                  <xs:documentation>The estimated time requiered for the upgrade campaign. </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute name="saSmfCmpgExpectedTime" type="SaTimeT" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="configurationBase">
+                <xs:annotation>
+                  <xs:documentation>A reference to a given system configuration kept in IMM based on which this campaign was calculated. SMF does not proceed with the campaign if the current configuration does not match the reference configuration.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute name="saSmfCmpgConfigBase" type="SaTimeT" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="campaignInitialization">
+          <xs:annotation>
+            <xs:documentation>It is implementation specific how the common prerequisites are checked. This section provides information necessary to complete the check. The check must ensure that there is no obstacle that would geopardize the campaign success, i.e. the system and the SwMF is in sane state, all resources needed are available. Note however that this check does not guarantee the success by itself as failures may occur during execution. </xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="addToImm">
+                <xs:annotation>
+                  <xs:documentation>Objects that needs to be added to the information model managed by IMM.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="softwareBundle">
+                      <xs:annotation>
+                        <xs:documentation>Software that's required to enable the campaign and that is not in the software catalogue yet.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="removal">
+                            <xs:annotation>
+                              <xs:documentation>Online and offline uninstallation scripts for the bundle. saSmfBundleRemoveXXX attributes.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="0" name="offline">
+                                  <xs:annotation>
+                                    <xs:documentation>Offline removal may disrupt the operation of some entities in the system therefore those entities need to be taken offline while the software is being uninstalled. After the offline removal the software may require online removal as well, but this may not cause any disturbance in the system's operation.</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:complexContent mixed="false">
+                                      <xs:extension base="cliParametersT">
+                                        <xs:attribute name="saSmfBundleRemoveOfflineScope" type="SaUint32T" use="required" />
+                                      </xs:extension>
+                                    </xs:complexContent>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="online" type="cliParametersT">
+                                  <xs:annotation>
+                                    <xs:documentation>Online removal may not disrupt or alter the operation of any entity in the system during the process or after that. After online removal all the resources used by the SW must be freed.</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="installation">
+                            <xs:annotation>
+                              <xs:documentation>Online and offline installation scripts for the bundle. saSmfBundleInstallXXX attributes</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="0" name="offline">
+                                  <xs:annotation>
+                                    <xs:documentation>Offline installation may disrupt the operation of some entities in the system therefore those entities need to be taken offline while the installation is performed. After the offline installation the software should be ready for deployment. </xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:complexContent mixed="false">
+                                      <xs:extension base="cliParametersT">
+                                        <xs:attribute name="saSmfBundleInstallOfflineScope" type="SaUint32T" use="required" />
+                                      </xs:extension>
+                                    </xs:complexContent>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="online" type="cliParametersT">
+                                  <xs:annotation>
+                                    <xs:documentation>Online installation may not disrupt or alter the operation of any entity in the system during the process of the installation and after up to the moment of offline installation or deployment.</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="defaultCliTimeout">
+                            <xs:annotation>
+                              <xs:documentation>Default timeout for all (un)install operations</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:attribute name="saSmfBundleDefaultCmdTimeout" type="SaTimeT" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="SaSwBundleNameT" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="amfEntityTypes">
+                      <xs:annotation>
+                        <xs:documentation>Addition of AMF entity types if they are not present in the model. </xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:choice maxOccurs="unbounded">
+                          <xs:element name="CompBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Component Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="CompType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Component Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element maxOccurs="unbounded" name="providesCSType">
+                                        <xs:annotation>
+                                          <xs:documentation>CSTypes the component type provides. Used at configuration.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="safSupportedCsType" type="SaNameT" use="required" />
+                                          <xs:attributeGroup ref="compCapability" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="compTypeDefaults">
+                                        <xs:annotation>
+                                          <xs:documentation>Default timers for the component type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" name="cmdEnv" type="SaStringT">
+                                              <xs:annotation>
+                                                <xs:documentation>Default CLI command environment</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:element>
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtCompCategory" type="SaUint32T" use="required" />
+                                          <xs:attribute name="saAmfCtDefClcCliTimeout" type="SaTimeT" use="optional" />
+                                          <xs:attribute name="saAmfCtDefCallbackTimeout" type="SaTimeT" use="optional" />
+                                          <xs:attribute default="0" name="saAmfCtDefInstantiationLevel" type="SaUint32T" use="optional" />
+                                          <xs:attribute name="saAmfCtDefQuiescingCompleteTimeout" type="SaTimeT" use="optional" />
+                                          <xs:attribute name="saAmfCtDefRecoveryOnError" type="SaUint32T" use="required" />
+                                          <xs:attribute default="0" name="saAmfCtDefDisableRestart" type="SaUint32T" use="optional" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="instantiateCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The description of the instantiate CLC-CLI command.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv">
+                                              <xs:annotation>
+                                                <xs:documentation>Command agruments</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:element>
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtRelPathInstantiateCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="terminateCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The description of the terminate CLC-CLI command.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv" />
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtRelPathTerminateCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="cleanupCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The description of the cleanup CLC-CLI command.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv" />
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtRelPathCleanupCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="amStartCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The active monitor start CLC-CLI command (AM_START).</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv" />
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtRelPathAmStartCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="amStopCmd">
+                                        <xs:annotation>
+                                          <xs:documentation>The active monitor stop CLC-CLI command (AM_STOP).</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmdArgv" />
+                                          </xs:sequence>
+                                          <xs:attribute name="saAmfCtRelPathAmStopCmd" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" maxOccurs="unbounded" name="healthCheck">
+                                        <xs:annotation>
+                                          <xs:documentation>Healthcheck Attributes</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="safHealthcheckKey" type="SaStringT" use="required" />
+                                          <xs:attributeGroup ref="healthCheck" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="swBundle">
+                                        <xs:annotation>
+                                          <xs:documentation>Software bundle that delivered this component type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfCtSwBundle" type="SaSwBundleNameT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safCompType" type="CompTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="SUBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Service Unit Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="SUType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Service Unit Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="mandatoryAttrs">
+                                        <xs:annotation>
+                                          <xs:documentation>Attributes mandatory for all SU types.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSutIsExternal" type="SaUint32T" use="required" />
+                                          <xs:attribute name="saAmfSutDefSUFailover" type="SaUint32T" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element maxOccurs="unbounded" name="componentType">
+                                        <xs:annotation>
+                                          <xs:documentation>Component types the SU Type contains </xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="safMemberCompType" type="SaNameT" use="required" />
+                                          <xs:attribute name="saAmfSutMinNumComponents" type="SaUint32T" />
+                                          <xs:attribute name="saAmfSutMaxNumComponents" type="SaUint32T" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element maxOccurs="unbounded" name="supportedSvcType">
+                                        <xs:annotation>
+                                          <xs:documentation>Supported service types</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSutProvidesSvcType" type="SaNameT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safSuType" type="SUTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="SGBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Service Group Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="SGType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Service Group Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element maxOccurs="unbounded" name="suType">
+                                        <xs:annotation>
+                                          <xs:documentation>The type of service units that can form an SG of this type.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSgtValidSuTypes" type="SaNameT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="redundancy">
+                                        <xs:annotation>
+                                          <xs:documentation>The redundancy model of this SG type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSgtRedundancyModel" type="SaUint32T" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="compRestart">
+                                        <xs:annotation>
+                                          <xs:documentation>Component restart related attributes of the SG type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSgtDefCompRestartProb" type="SaTimeT" use="required" />
+                                          <xs:attribute name="saAmfSgtDefCompRestartMax" type="SaUint32T" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="suRestart">
+                                        <xs:annotation>
+                                          <xs:documentation>SU restart related attributes of the SG type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSgtDefSuRestartProb" type="SaTimeT" use="required" />
+                                          <xs:attribute name="saAmfSgtDefSuRestartMax" type="SaUint32T" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="autoAttrs">
+                                        <xs:annotation>
+                                          <xs:documentation>Auto adjust and auto repair related attributes of the SG type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute default="0" name="safAmfSgtDefAutoAdjust" type="SaUint32T" />
+                                          <xs:attribute default="1" name="safAmfSgtDefAutoRepair" type="SaUint32T" />
+                                          <xs:attribute name="saAmfSgtDefAutoAdjustProb" type="SaTimeT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safSgType" type="SGTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="AppBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Application Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="AppType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Application Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element maxOccurs="unbounded" name="serviceGroupType">
+                                        <xs:annotation>
+                                          <xs:documentation>Service Group Type the application consist of </xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfApptSGTypes" type="SaNameT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safAppType" type="AppTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="CSBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Component Service Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="CSType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Component Service Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element minOccurs="0" maxOccurs="unbounded" name="csAttribute">
+                                        <xs:annotation>
+                                          <xs:documentation>Attributes names of a component service type.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfCSAttrName" type="SaStringT" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safCSType" type="CSTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="ServiceBaseType">
+                            <xs:annotation>
+                              <xs:documentation>Service Base Type</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="ServiceType">
+                                  <xs:annotation>
+                                    <xs:documentation>(Versioned) Service Type</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element maxOccurs="unbounded" name="csType">
+                                        <xs:annotation>
+                                          <xs:documentation>Required CS type for this service type.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:attribute name="safMemberCSType" type="SaNameT" use="required" />
+                                          <xs:attribute name="saAmfSvctMaxNumCSIs" type="SaUint32T" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="defWeights">
+                                        <xs:complexType>
+                                          <xs:attribute name="saAmfSvcDefActiveWeight" type="SaStringT" />
+                                          <xs:attribute name="saAmfSvcDefStandbyWeight" type="SaStringT" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="safVersion" type="SaStringT" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="safSvcType" type="SrvTypeNameT" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:choice>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="callbackAtInit" type="callbackOptionsT">
+                <xs:annotation>
+                  <xs:documentation>Specifies the label, the timer and any parameter needed for the callbacks made at campaign initiation time. If omitted, no callback is given to any registered processes.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="callbackAtBackup" type="callbackOptionsT">
+                <xs:annotation>
+                  <xs:documentation>Specifies the label, the timer and any parameter needed for the callbacks made at backup time. If omitted, no callback is given to any users.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="callbackAtRollback" type="callbackOptionsT">
+                <xs:annotation>
+                  <xs:documentation>Specifies the label, the timer and any parameter needed for callbacks made if the campaign is rolled back. I,f omitted no callback is given to any users.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="campInitAction" type="actionT">
+                <xs:annotation>
+                  <xs:documentation>Any further action that is required at the campaign initialization.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="upgradeProcedure">
+          <xs:annotation>
+            <xs:documentation>Each procedure has a unique name within the campaign. It also has an execution level that determines the order among different procedures. A procedure of a higher execution level must not start until all procedures of lower execution level have completed successfully.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="outageInfo">
+                <xs:annotation>
+                  <xs:documentation>Provides info to estimate the expected service outage.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="acceptableServiceOutage">
+                      <xs:annotation>
+                        <xs:documentation>List of service instances this procedure is allowed to put into the unassigned state. If it is expected that the specified outage will be exceeded, the upgrade campaign should not start.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:choice>
+                          <xs:element name="all">
+                            <xs:annotation>
+                              <xs:documentation>All service instances can be dropped, i.e. mandatory upgrade. Synchronous upgrade of existing entities will proceed only with this option.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                          <xs:element name="none">
+                            <xs:annotation>
+                              <xs:documentation>No anticipated service outage is acceptable.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                          <xs:sequence>
+                            <xs:element minOccurs="0" name="max">
+                              <xs:annotation>
+                                <xs:documentation>Number of SIs that is allowed to be dropped.  Typically (but not necessarily) used with SIs of equal rank</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:attribute name="value" type="xs:nonNegativeInteger" />
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:choice minOccurs="0">
+                              <xs:element maxOccurs="unbounded" name="mayGoUnassignedSI">
+                                <xs:annotation>
+                                  <xs:documentation>The list of SIs that are allowed to go unassigned during the procedure.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                  <xs:attribute name="saSmfProcAcceptSIOutage" type="SaSiNameT" />
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element maxOccurs="unbounded" name="mustKeepAssignedSI">
+                                <xs:annotation>
+                                  <xs:documentation>The list of SIs that should not go unassigned due to the campaign. If it's expected that any of them will go unassigned,  the campaign must not start.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                  <xs:attribute name="saSmfProcMustKeepSIs" type="SaSiNameT" />
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:choice>
+                          </xs:sequence>
+                        </xs:choice>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="procedurePeriod">
+                      <xs:annotation>
+                        <xs:documentation>The estimated time for the execution of the upgrade procedure. </xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:attribute name="saSmfProcPeriod" type="SaTimeT" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="procInitAction" type="actionT">
+                <xs:annotation>
+                  <xs:documentation>Any initialization that the procedure may require. E.g. locking an SI. </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="upgradeMethod">
+                <xs:annotation>
+                  <xs:documentation>The upgrade method used by the procedure and the entities it applies.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:choice>
+                    <xs:element name="rollingUpgrade">
+                      <xs:annotation>
+                        <xs:documentation>A rolling upgrade is a sequence of upgrade steps each of which acts on a deactivation-activation unit-pair.  </xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="upgradeScope">
+                            <xs:annotation>
+                              <xs:documentation>The entities that are impacted during the upgrade and their organization into upgrade steps.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:choice>
+                                <xs:element name="byTemplate">
+                                  <xs:annotation>
+                                    <xs:documentation>The activation units and the target entities and their modifications are specified by some of their common features. Can only be used to scope existing entities for steps acting on symmetric activation units.</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="targetNodeTemplate">
+                                        <xs:annotation>
+                                          <xs:documentation>The AMF cluster or an AMF node group. The upgrade shall roll across the nodes of the group or the cluster and (un)install the bundles listed as appropriate.  If no activationUnitsParent or activationUnitType is specified, the node becomes the activation unit and the admin operations are applied to it.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:complexContent mixed="false">
+                                            <xs:extension base="immObjectT">
+                                              <xs:sequence>
+                                                <xs:element minOccurs="0" name="activationUnitTemplate" type="entityTemplateT">
+                                                  <xs:annotation>
+                                                    <xs:documentation>Reduces activation unit from AMF node to those matching the criteria if necessary. Parent may be service group. If specified, the SUs of only these SGs will be acted upon during the upgrade step when admin operations e.g. (un)lock is applied. Type may be service unit type or component type. Component type can only be used together with the RESTART option of the upgradeStep.  For a component type a parent can also be specified. </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="swRemove">
+                                                  <xs:annotation>
+                                                    <xs:documentation>During an upgrade step the remove action of each bundle is triggered once for each bundle. The offline command of each bundle is triggered while the deactivation unit is uninstantiated (lock-instantiation), but before the swAdd offline action of the activation unit. The online command is triggered when the activation unit has been unlocked or any time after. In case of rollback the bundles listed need to be reinstalled. </xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                    <xs:complexContent mixed="false">
+                                                      <xs:extension base="bundleRef" />
+                                                    </xs:complexContent>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="swAdd">
+                                                  <xs:annotation>
+                                                    <xs:documentation>During an upgrade step the add action is triggered for each bundle once. The online command of each bundle must be triggered the latest before the deactivation unit is locked and the offline is after the deactivation unit is locked for instantiation and any required swRemove  has been completed. The activation unit cannot be unlocked without completion of these. In case of rollback the same bundles must be removed.</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                    <xs:complexContent mixed="false">
+                                                      <xs:extension base="bundleRef" />
+                                                    </xs:complexContent>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                              </xs:sequence>
+                                            </xs:extension>
+                                          </xs:complexContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" maxOccurs="unbounded" name="targetEntityTemplate">
+                                        <xs:annotation>
+                                          <xs:documentation>Determines the entities that are being upgraded within the activation units. Must be less or equal to the activation unit. All entities identified that have a mainenance camapign attribute this attribute must be set to the DN of the campaign. If an entity does not have such an attribute, the attribute must be set for the closest encapsulating entity if applicable. E.g. for a component the attribute of the encapsulating SU is set.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:sequence minOccurs="0">
+                                              <xs:annotation>
+                                                <xs:documentation>It can be omitted if the target entity is the same as the activation unit. </xs:documentation>
+                                              </xs:annotation>
+                                              <xs:element minOccurs="0" name="parent" type="immObjectT">
+                                                <xs:annotation>
+                                                  <xs:documentation>The procedure shall upgrade the children of this service group according to the template. Entities may not be outside of the activation units if specified. </xs:documentation>
+                                                </xs:annotation>
+                                              </xs:element>
+                                              <xs:element minOccurs="0" name="type" type="immObjectT">
+                                                <xs:annotation>
+                                                  <xs:documentation>The update shall upgrade all the entities of this versioned type according to the template, e.g. component type. Only entities within the scope of the activation units are upgraded.</xs:documentation>
+                                                </xs:annotation>
+                                              </xs:element>
+                                            </xs:sequence>
+                                            <xs:element maxOccurs="unbounded" name="modifyOperation">
+                                              <xs:annotation>
+                                                <xs:documentation>The object RDN whose attributes are modified and the modification. The RDN is not required if it is the target entity.</xs:documentation>
+                                              </xs:annotation>
+                                              <xs:complexType>
+                                                <xs:complexContent mixed="false">
+                                                  <xs:extension base="immModifyT">
+                                                    <xs:attribute name="objectRDN" type="SaStringT" use="optional" />
+                                                  </xs:extension>
+                                                </xs:complexContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:choice>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="upgradeStep">
+                            <xs:annotation>
+                              <xs:documentation>The upgrade step is executed  for each activation unit. The restartOption=true is applied only iff there is no offline (un)installation defined for any software involved. When simultaneous execution is permitted SMF may initiate multiple steps of the procedure at the same time provided they does not cause an outage greater than acceptable. No synchronization is required between these steps.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                <xs:element name="customizationTime">
+                                  <xs:annotation>
+                                    <xs:documentation>The moment(s) within the procedure and its steps when the given customization is applied by SMF.</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="onStep" type="StepCountT">
+                                        <xs:annotation>
+                                          <xs:documentation>Identifies the step(s) of the procedure that is being customized.</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:element>
+                                      <xs:element ref="atAction">
+                                        <xs:annotation>
+                                          <xs:documentation>Identifies the action within the step at which the customization applies.</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element ref="callback" />
+                              </xs:sequence>
+                              <xs:attribute default="0" name="saSmfStepRestartOption" type="SaUint32T" />
+                              <xs:attribute default="1" name="saSmfStepMaxRetry" type="SaUint32T" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute default="1" name="saSmfProcDisableSimultanExec" type="SaUint32T" use="optional" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="singleStepUpgrade">
+                      <xs:annotation>
+                        <xs:documentation>Single-step upgrade defines only one upgrade step which acts on a single pair of deactivation and activation units.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="upgradeScope">
+                            <xs:annotation>
+                              <xs:documentation>The entities that are impacted during the upgrade and their organization into upgrade steps.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:choice>
+                                <xs:element name="forAddRemove" type="activationUnitPairT" />
+                                <xs:element name="forModify">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="activationUnit">
+                                        <xs:annotation>
+                                          <xs:documentation>Entities that are deactivated at the beginning of the upgrade step.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element minOccurs="0" name="actedOn" type="entityListT">
+                                              <xs:annotation>
+                                                <xs:documentation>The list of entities targeted by the admin operations. E.g. to lock the deactivation unit a lock admin operation is issued by SMF on each of these entities therefore admin operations must be available on the entity</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:element>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" name="swRemove">
+                                              <xs:annotation>
+                                                <xs:documentation>The software is removed from all nodes that host any of the actedOn entities. During an upgrade step the remove action of each bundle is triggered once for each bundle on all the nodes that host an entity in the acted on list. The offline command of each bundle is triggered while the deactivation unit is uninstantiated (lock-instantiation), but before the swAdd offline action of the activation unit. The online command is triggered when the activation unit has been unlocked or any time after. In case of rollback the bundles listed need to be reinstalled. </xs:documentation>
+                                              </xs:annotation>
+                                              <xs:complexType>
+                                                <xs:complexContent mixed="false">
+                                                  <xs:extension base="bundleRef" />
+                                                </xs:complexContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                            <xs:element minOccurs="0" maxOccurs="unbounded" name="swAdd">
+                                              <xs:annotation>
+                                                <xs:documentation>The softwasre is installed on all nodes hosting any of the actedOn entities. During an upgrade step the install action is triggered for each bundle once on all nodes that host an entity in the acted on list. The online command of each bundle must be triggered the latest before the deactivation unit is locked and the offline is after the deactivation unit is locked for instantiation and any required swRemove  has been completed. The activation unit cannot be unlocked without completion of these. In case of rollback the same bundles must be removed.</xs:documentation>
+                                              </xs:annotation>
+                                              <xs:complexType>
+                                                <xs:complexContent mixed="false">
+                                                  <xs:extension base="bundleRef" />
+                                                </xs:complexContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element maxOccurs="unbounded" name="targetEntityTemplate">
+                                        <xs:annotation>
+                                          <xs:documentation>Determines the entities that are being upgraded within the activation units. Must be less or equal to the activation unit. All entities identified that have a mainenance camapign attribute this attribute must be set to the DN of the campaign. If an entity does not have such an attribute, the attribute must be set for the closest encapsulating entity if applicable. E.g. for a component the attribute of the encapsulating SU is set.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:sequence minOccurs="0">
+                                              <xs:annotation>
+                                                <xs:documentation>It can be omitted if the target entity is the same as the activation unit. </xs:documentation>
+                                              </xs:annotation>
+                                              <xs:element minOccurs="0" name="parent" type="immObjectT">
+                                                <xs:annotation>
+                                                  <xs:documentation>The procedure shall upgrade the children of this service group according to the template. Entities may not be outside of the activation units if specified. </xs:documentation>
+                                                </xs:annotation>
+                                              </xs:element>
+                                              <xs:element minOccurs="0" name="type" type="immObjectT">
+                                                <xs:annotation>
+                                                  <xs:documentation>The update shall upgrade all the entities of this versioned type according to the template, e.g. component type. Only entities within the scope of the activation units are upgraded.</xs:documentation>
+                                                </xs:annotation>
+                                              </xs:element>
+                                            </xs:sequence>
+                                            <xs:element maxOccurs="unbounded" name="modifyOperation">
+                                              <xs:annotation>
+                                                <xs:documentation>The object RDN whose attributes are modified and the modification. The RDN is not required if it is the target entity.</xs:documentation>
+                                              </xs:annotation>
+                                              <xs:complexType>
+                                                <xs:complexContent mixed="false">
+                                                  <xs:extension base="immModifyT">
+                                                    <xs:attribute name="objectRDN" type="SaStringT" use="optional" />
+                                                  </xs:extension>
+                                                </xs:complexContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:choice>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="upgradeStep">
+                            <xs:annotation>
+                              <xs:documentation>The upgrade step is executed once for the entire scope.</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                <xs:element ref="atAction">
+                                  <xs:annotation>
+                                    <xs:documentation>Identifies the action within the step at which the customization applies.</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element ref="callback" />
+                              </xs:sequence>
+                              <xs:attribute default="0" name="saSmfStepRestartOption" type="SaUint32T" />
+                              <xs:attribute default="1" name="saSmfStepMaxRetry" type="SaUint32T" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="procWrapupAction" type="actionT">
+                <xs:annotation>
+                  <xs:documentation>Any procedure wrap-up action e.g. if some initialization action was performed that needs to be reversed or a procedure verification is required.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="safSmfProcedure" type="SaProcNameT" use="required" />
+            <xs:attribute default="0" name="saSmfExecLevel" type="SaUint32T" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="campaignWrapup">
+          <xs:annotation>
+            <xs:documentation>It is implementation specific what verification is done. At minimum it must be checked that all the entities of the system are in operational state and the registered users must be called.</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="campCompleteAction" type="actionT">
+                <xs:annotation>
+                  <xs:documentation>Any required wrap-up action that needs to be performed before the campaign is committed such as verification.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="waitToCommit">
+                <xs:annotation>
+                  <xs:documentation>After a successful system verification this time needs to pass with no failures to commit the campaign. After this also all checkpoints created by the system are flashed, the users are called back to do the same for the application.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute default="0" name="time" type="SaTimeT" use="optional" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="callbackAtCommit" type="callbackOptionsT">
+                <xs:annotation>
+                  <xs:documentation>Specifies the label, the timer and any parameter needed for the callbacks made when the campaign is committed by the administrator. If omitted no callback is given to any users.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="campWrapupAction" type="actionT">
+                <xs:annotation>
+                  <xs:documentation>Any required wrap-up action that needs to be performed before all the resource are freed.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="waitToAllowNewCampaign">
+                <xs:annotation>
+                  <xs:documentation>After commit this time needs to pass to allow the initiation of a new campaign. Particularly, during this period fallback still should restore the backup taken by this campaign.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:attribute default="0" name="time" type="SaTimeT" use="optional" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="removeFromImm">
+                <xs:annotation>
+                  <xs:documentation>SW bundles and versioned entity types to be removed from the system.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="amfEntityTypeDN" type="immObjectT">
+                      <xs:annotation>
+                        <xs:documentation>List of AMF entity types to be removed from IMM. No configured AMF entity may refer to them in the system.</xs:documentation>
+                      </xs:annotation>
+                    </xs:element>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="softwareBundleDN">
+                      <xs:annotation>
+                        <xs:documentation>List of software bundles to be removed from the system. They should not be in use by this time by any entity and should not require offline uninstallation. The online uninstallation may need to be executed, in which case the nodes need to be listed.</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:complexContent mixed="false">
+                          <xs:extension base="bundleRef">
+                            <xs:sequence>
+                              <xs:element minOccurs="0" maxOccurs="unbounded" ref="plmExecEnv" />
+                            </xs:sequence>
+                          </xs:extension>
+                        </xs:complexContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="safSmfCampaign" type="SaCmpgNameT" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="immCCB">
+    <xs:annotation>
+      <xs:documentation>A set of IMM OM operations that compose an IMM CCB</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="create" type="immCreateT">
+          <xs:annotation>
+            <xs:documentation>Create a new object of the given class by appending it to the parent object. The new object DN is the parent DN + RDN provided as the name attribute.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="delete" type="immDeleteT">
+          <xs:annotation>
+            <xs:documentation>Delete the object with the DN provided.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="modify">
+          <xs:annotation>
+            <xs:documentation>Modify the attributes of the object the name of which is given</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:complexContent mixed="false">
+              <xs:extension base="immModifyT">
+                <xs:attribute name="objectDN" type="SaNameT" use="required" />
+              </xs:extension>
+            </xs:complexContent>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+      <xs:attribute name="ccbFlags" type="SaUint64T" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="plmExecEnv">
+    <xs:annotation>
+      <xs:documentation>The PLM execution environment on which the command needs to be issued. It is identified by at least one the names:  the PLM EE name or a hosted CLM or AMF node name</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="plmExecEnviron" type="SaPlmEeNameT" use="optional" />
+      <xs:attribute name="clmNode" type="SaClmNodeNameT" use="optional" />
+      <xs:attribute name="amfNode" type="SaAmfNodeNameT" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cmdArgv" type="SaStringT">
+    <xs:annotation>
+      <xs:documentation>Command agruments</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="atAction" type="ActionCountT">
+    <xs:annotation>
+      <xs:documentation>Identifies the action within the step at which the callback must be made</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="callback">
+    <xs:annotation>
+      <xs:documentation>The callback label and the string that needs to be returned by SMF in the callback, and the waiting period for a response.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="callbackOptionsT" />
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="attribute">
+    <xs:annotation>
+      <xs:documentation>Specification of an attribute and its values</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence maxOccurs="unbounded">
+        <xs:element name="value" type="xs:anyType" />
+      </xs:sequence>
+      <xs:attribute name="name" type="SaStringT" use="required" />
+      <xs:attribute name="type" type="SaImmValueTypeT" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="adminOperation">
+    <xs:annotation>
+      <xs:documentation>Admin operation attributes</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="objectDN" type="SaNameT" />
+    <xs:attribute name="operationID" type="adminOperationIdT" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="compCapability">
+    <xs:annotation>
+      <xs:documentation>AMF component capability model related attributes</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="saAmfCtCompCapability" type="SaUint32T" use="required" />
+    <xs:attribute name="saAmfCtDefNumMaxActiveCsi" type="SaUint32T" use="optional" />
+    <xs:attribute name="saAmfCtDefNumMaxStandbyCsi" type="SaUint32T" use="optional" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="healthCheck">
+    <xs:annotation>
+      <xs:documentation>Healthcheck configuration attributes</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="saAmfHealthcheckPeriod" type="SaTimeT" use="required" />
+    <xs:attribute name="saAmfHealthcheckMaxDuration" type="SaTimeT" use="required" />
+  </xs:attributeGroup>
+  <xs:simpleType name="SaUint32T">
+    <xs:annotation>
+      <xs:documentation>Unsigned integer 32 as defined by SAF</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:nonNegativeInteger" />
+  </xs:simpleType>
+  <xs:simpleType name="SaUint64T">
+    <xs:annotation>
+      <xs:documentation>Unsigned integer 64 as defined by SAF</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:nonNegativeInteger" />
+  </xs:simpleType>
+  <xs:simpleType name="SaTimeT">
+    <xs:annotation>
+      <xs:documentation>Time as defined by SAF</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:long" />
+  </xs:simpleType>
+  <xs:simpleType name="SaNameT">
+    <xs:annotation>
+      <xs:documentation>An LDAP name as used in SAF</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="256" />
+      <xs:minLength value="1" />
+      <xs:whiteSpace value="collapse" />
+      <!--xs:pattern value="{Name}={Name}(,{Name})*" /-->
+      <xs:pattern value="[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*(,[a-zA-Z0-9_.\\=-]*=[a-zA-Z0-9_.\\=-]*)*" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SaStringT">
+    <xs:annotation>
+      <xs:documentation>String as defined by SAF</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:simpleType name="SaImmValueTypeT">
+    <xs:annotation>
+      <xs:documentation>Value types as defined by SAF IMM</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SA_IMM_ATTR_SAINT32T" />
+      <xs:enumeration value="SA_IMM_ATTR_SAUINT32T" />
+      <xs:enumeration value="SA_IMM_ATTR_SAINT64T" />
+      <xs:enumeration value="SA_IMM_ATTR_SAUINT64T" />
+      <xs:enumeration value="SA_IMM_ATTR_SATIMET" />
+      <xs:enumeration value="SA_IMM_ATTR_SANAMET" />
+      <xs:enumeration value="SA_IMM_ATTR_SAFLOATT" />
+      <xs:enumeration value="SA_IMM_ATTR_SADOUBLET" />
+      <xs:enumeration value="SA_IMM_ATTR_SASTRINGT" />
+      <xs:enumeration value="SA_IMM_ATTR_SAANYT" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SaSwBundleNameT">
+    <xs:annotation>
+      <xs:documentation>SAF software bundle DN </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SaSiNameT">
+    <xs:annotation>
+      <xs:documentation>SAF service Instance DN</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SaProcNameT">
+    <xs:annotation>
+      <xs:documentation>SAF SMF upgrade procedure RDN</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaStringT">
+      <xs:pattern value="safSmfProc=.+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SaCmpgNameT">
+    <xs:annotation>
+      <xs:documentation>SAF SMF upgrade campaign RDN</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaStringT">
+      <xs:pattern value="safSmfCampaign=.+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SaAmfNodeNameT">
+    <xs:annotation>
+      <xs:documentation>The DN of the AMF node</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SaClmNodeNameT">
+    <xs:annotation>
+      <xs:documentation>The DN of the CLM node</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SaPlmEeNameT">
+    <xs:annotation>
+      <xs:documentation>The DN of the PLM execution environment</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="adminOperationIdT">
+    <xs:annotation>
+      <xs:documentation>Union of admin operation IDs</xs:documentation>
+    </xs:annotation>
+    <xs:union memberTypes="saAmfAdminOperationIdT saClmAdminOperationIdT saSmfAdminOperationIdT saPlmAdminOperationIdT" />
+  </xs:simpleType>
+  <xs:simpleType name="saAmfAdminOperationIdT">
+    <xs:annotation>
+      <xs:documentation>Enumeration of AMF admin operation IDs</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="SA_AMF_ADMIN_UNLOCK" />
+      <xs:pattern value="SA_AMF_ADMIN_LOCK" />
+      <xs:pattern value="SA_AMF_ADMIN_LOCK_INSTANTIATION" />
+      <xs:pattern value="SA_AMF_ADMIN_UNLOCK_INSTANTIATION" />
+      <xs:pattern value="SA_AMF_ADMIN_SHUTDOWN" />
+      <xs:pattern value="SA_AMF_ADMIN_RESTART" />
+      <xs:pattern value="SA_AMF_ADMIN_SI_SWAP" />
+      <xs:pattern value="SA_AMF_ADMIN_SG_ADJUST" />
+      <xs:pattern value="SA_AMF_ADMIN_REPAIRED" />
+      <xs:pattern value="SA_AMF_ADMIN_EAM_START" />
+      <xs:pattern value="SA_AMF_ADMIN_EAM_STOP" />
+      <xs:enumeration value="SA_AMF_ADMIN_UNLOCK" />
+      <xs:enumeration value="SA_AMF_ADMIN_LOCK" />
+      <xs:enumeration value="SA_AMF_ADMIN_LOCK_INSTANTIATION" />
+      <xs:enumeration value="SA_AMF_ADMIN_UNLOCK_INSTANTIATION" />
+      <xs:enumeration value="SA_AMF_ADMIN_SHUT_DOWN" />
+      <xs:enumeration value="SA_AMF_ADMIN_RESTART" />
+      <xs:enumeration value="SA_AMF_ADMIN_SI_SWAP" />
+      <xs:enumeration value="SA_AMF_ADMIN_SG_ADJUST" />
+      <xs:enumeration value="SA_AMF_ADMIN_REPAIRED" />
+      <xs:enumeration value="SA_AMF_ADMIN_EAM_START" />
+      <xs:enumeration value="SA_AMF_ADMIN_EAM_STOP" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="saClmAdminOperationIdT">
+    <xs:annotation>
+      <xs:documentation>Enumeration of CLM admin operation IDs</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SA_CLM_ADMIN_LOCK" />
+      <xs:enumeration value="SA_CLM_ADMIN_UNLOCK" />
+      <xs:enumeration value="SA_CLM_ADMIN_SHUTDOWN" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="saSmfAdminOperationIdT">
+    <xs:annotation>
+      <xs:documentation>Enumeration of SMF admin operation IDs</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SA_SMF_CAMPAIGN_SUSPEND" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="saPlmAdminOperationIdT">
+    <xs:annotation>
+      <xs:documentation>Enumeration of PLM admin operation IDs</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="SA_AMF_ADMIN_UNLOCK" />
+      <xs:pattern value="SA_AMF_ADMIN_LOCK" />
+      <xs:pattern value="SA_AMF_ADMIN_LOCK_INSTANTIATION" />
+      <xs:pattern value="SA_AMF_ADMIN_UNLOCK_INSTANTIATION" />
+      <xs:pattern value="SA_AMF_ADMIN_SHUTDOWN" />
+      <xs:pattern value="SA_AMF_ADMIN_RESTART" />
+      <xs:pattern value="SA_AMF_ADMIN_SI_SWAP" />
+      <xs:pattern value="SA_AMF_ADMIN_SG_ADJUST" />
+      <xs:pattern value="SA_AMF_ADMIN_REPAIRED" />
+      <xs:pattern value="SA_AMF_ADMIN_EAM_START" />
+      <xs:pattern value="SA_AMF_ADMIN_EAM_STOP" />
+      <xs:enumeration value="SA_PLM_ADMIN_UNLOCK" />
+      <xs:enumeration value="SA_PLM_ADMIN_LOCK" />
+      <xs:enumeration value="SA_PLM_ADMIN_SHUT_DOWN" />
+      <xs:enumeration value="SA_PLM_ADMIN_LOCK_INSTANTIATION" />
+      <xs:enumeration value="SA_PLM_ADMIN_UNLOCK_INSTANTIATION" />
+      <xs:enumeration value="SA_PLM_ADMIN_RESTART" />
+      <xs:enumeration value="SA_PLM_ADMIN_DEACTIVATE" />
+      <xs:enumeration value="SA_PLM_ADMIN_ACTIVATE" />
+      <xs:enumeration value="SA_PLM_ADMIN_RESET" />
+      <xs:enumeration value="SA_PLM_ADMIN_REPAIRED" />
+      <xs:enumeration value="SA_PLM_ADMIN_REMOVED" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="modifyOperationT">
+    <xs:annotation>
+      <xs:documentation>Enumeration of IMM modify operations</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SA_IMM_ATTR_VALUES_ADD" />
+      <xs:enumeration value="SA_IMM_ATTR_VALUES_DELETE" />
+      <xs:enumeration value="SA_IMM_ATTR_VALUES_REPLACE" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="CompTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Component Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SUTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Service Unit Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SGTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Service Group Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="AppTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Application Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="CSTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Component Service Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:simpleType name="SrvTypeNameT">
+    <xs:annotation>
+      <xs:documentation>Service Base Type Name</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="SaNameT" />
+  </xs:simpleType>
+  <xs:complexType name="activationUnitPairT">
+    <xs:annotation>
+      <xs:documentation>An explicit sepcification of an activation and its replacement</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="deactivationUnit">
+        <xs:annotation>
+          <xs:documentation>Entities that are deactivated at the beginning of the upgrade step.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="actedOn" type="entityListT">
+              <xs:annotation>
+                <xs:documentation>The list of entities targeted by the admin operations. E.g. to lock the deactivation unit a lock admin operation is issued by SMF on each of these entities therefore admin operations must be available on the entity</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="removed" type="entityListT">
+              <xs:annotation>
+                <xs:documentation>The list of entities to be removed from the configuration if they are different from the actedOn list. The removed list is interpreted only within the actedOn list.</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" maxOccurs="unbounded" name="swRemove">
+              <xs:annotation>
+                <xs:documentation>During upgrade the remove action for the bundle is triggered on each of the listed EEs or if none is listed then on all EEs hosting an entity matching the actedOn criteria. The the offline command of the bundle is triggered after the deactivation unit is locked for instantiation and before the swAdd of the activation unit. The online command is triggered any time after the activation unit offline swAdd is completed. It may be postoned after the campaign, to avoid online install in case of rollback. At rollback the bundles must be restores </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:complexContent mixed="false">
+                  <xs:extension base="bundleRef">
+                    <xs:sequence>
+                      <xs:element minOccurs="0" maxOccurs="unbounded" ref="plmExecEnv" />
+                    </xs:sequence>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="activationUnit">
+        <xs:annotation>
+          <xs:documentation>Entities that are activated at the end of the upgrade step.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="actedOn" type="entityListT">
+              <xs:annotation>
+                <xs:documentation>The list of entities targeted by the AMF admin operations, e.g. to unlock the activation unit an unlock needs to be issued on each of these entities therefore admin operations must be available on the entity. Note that the actedOn entities may be added by the added element.</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" maxOccurs="unbounded" name="added" type="immCreateT">
+              <xs:annotation>
+                <xs:documentation>The list of entities to be added to the configuration. </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" maxOccurs="unbounded" name="swAdd">
+              <xs:annotation>
+                <xs:documentation>The software is installed on each EE specified or on each EE that hosts an entity in the actedOn list. During an upgrade step the add action is triggered for the bundle on each of the listed EEs or if none is listed on each EE hosting an entity of the actedOn list. The online command of the bundle is triggered the latest before the deactivation unit is locked and the offline is after the deactivation unit is locked for instantiation and any required offline swRemove has been completed for it. </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:complexContent mixed="false">
+                  <xs:extension base="bundleRef">
+                    <xs:sequence>
+                      <xs:element minOccurs="0" maxOccurs="unbounded" ref="plmExecEnv" />
+                    </xs:sequence>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="callbackOptionsT">
+    <xs:annotation>
+      <xs:documentation>Attributes related to SMF API callbacks</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="callbackLabel" type="SaStringT" use="required" />
+    <xs:attribute name="time" type="SaTimeT" use="optional" />
+    <xs:attribute name="stringToPass" type="SaStringT" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="immCreateT">
+    <xs:annotation>
+      <xs:documentation>Attributes to destribe a SAF IMM create operation</xs:documentation>
+    </xs:annotation>
+    <xs:sequence maxOccurs="unbounded">
+      <xs:annotation>
+        <xs:documentation>At least the name attribute needs to be given, which is the RND attribute of the class. </xs:documentation>
+      </xs:annotation>
+      <xs:element ref="attribute" />
+    </xs:sequence>
+    <xs:attribute name="objectClassName" type="SaStringT" use="required" />
+    <xs:attribute name="parentObjectDN" type="SaNameT" use="required" />
+  </xs:complexType>
+  <xs:complexType name="immDeleteT">
+    <xs:annotation>
+      <xs:documentation>Attributes to destribe a SAF IMM delete operation</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="objectDN" type="SaNameT" use="required" />
+  </xs:complexType>
+  <xs:complexType name="immModifyT">
+    <xs:annotation>
+      <xs:documentation>Attributes to destribe a SAF IMM modify operation</xs:documentation>
+    </xs:annotation>
+    <xs:sequence maxOccurs="unbounded">
+      <xs:element ref="attribute" />
+    </xs:sequence>
+    <xs:attribute name="operation" type="modifyOperationT" use="required" />
+  </xs:complexType>
+  <xs:complexType name="bundleRef">
+    <xs:annotation>
+      <xs:documentation>Reference to a software bundle. The DN and pathnamePrefix information is used to create the association objects providing the pathnamePrefix for the bundle on each node it is installed.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="bundleDN" type="SaSwBundleNameT" use="required" />
+    <xs:attribute name="pathnamePrefix" type="SaStringT" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="adminOperationT">
+    <xs:annotation>
+      <xs:documentation>Admin API call via IMM OM-API </xs:documentation>
+    </xs:annotation>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="param">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="value" type="xs:anyType" />
+          </xs:sequence>
+          <xs:attribute name="name" type="SaStringT" use="required" />
+          <xs:attribute name="type" type="SaImmValueTypeT" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attributeGroup ref="adminOperation" />
+  </xs:complexType>
+  <xs:complexType name="actionT">
+    <xs:annotation>
+      <xs:documentation>Type to describe custom actions within an upgrade campaign</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:sequence>
+        <xs:element name="doAdminOperation" type="adminOperationT">
+          <xs:annotation>
+            <xs:documentation>Administrative operation to be executed on the object named on the forward path of the campaign.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="undoAdminOperation" type="adminOperationT">
+          <xs:annotation>
+            <xs:documentation>Administrative operation to be executed on the object named in case the campaign is rolled back.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+      <xs:element ref="immCCB">
+        <xs:annotation>
+          <xs:documentation>A set of IMM OM operations that compose an IMM CCB. In case of a rollback the original IMM content needs to be restored therefore no explicit operations need to be specified.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:sequence>
+        <xs:element name="doCliCommand" type="cliParametersT">
+          <xs:annotation>
+            <xs:documentation>CLI command to be executed on the forward path of the campaign.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="undoCliCommand" type="cliParametersT">
+          <xs:annotation>
+            <xs:documentation>CLI command to be executed if the campaign is rolled back. </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" ref="plmExecEnv">
+          <xs:annotation>
+            <xs:documentation>The PLM execution environment on which the command needs to be issued</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+      <xs:element ref="callback">
+        <xs:annotation>
+          <xs:documentation>The callback label and the string that needs to be returned by SMF in the callback, and the waiting period for a response. The callback indicates whether it is made on the upgrade or the rollback pass.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="immObjectT">
+    <xs:annotation>
+      <xs:documentation>A DN of an object within the information model</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="objectDN" type="SaNameT" use="required" />
+  </xs:complexType>
+  <xs:complexType name="StepCountT">
+    <xs:annotation>
+      <xs:documentation>Type to identify step count values</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="onEveryStep">
+        <xs:annotation>
+          <xs:documentation>Note that the registered process must be able to distinguish the steps based on the IMM object referenced in the callback, as the same label is passed in each callback.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="onFirstStep" />
+      <xs:element name="onLastStep" />
+      <xs:element name="halfWay">
+        <xs:annotation>
+          <xs:documentation>half-way is counted as the integer part from the number of steps divided by two plus one.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="ActionCountT">
+    <xs:annotation>
+      <xs:documentation>Type to identify action count values</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="beforeLock">
+        <xs:annotation>
+          <xs:documentation>Callback is issued before the deactivation unit is locked. Not valid with restartOption</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="beforeTermination">
+        <xs:annotation>
+          <xs:documentation>Callback is issued before the deactivation unit is terminated. Not valid with restartOption</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="afterImmModification">
+        <xs:annotation>
+          <xs:documentation>Callback is issued after the information model has been modified. </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="afterInstantiation">
+        <xs:annotation>
+          <xs:documentation>Callback is issued after the activation unit is instantiated or restarted.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="afterUnlock">
+        <xs:annotation>
+          <xs:documentation>Callback is issued after the activation unit is unlocked. Not valid with restartOption</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="cliParametersT">
+    <xs:annotation>
+      <xs:documentation>Parameters common to all CLI commands</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="command" type="SaStringT" use="required" />
+    <xs:attribute name="args" type="SaStringT" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="entityTemplateT">
+    <xs:annotation>
+      <xs:documentation>Filter for selecting a set of entities based on their parents and/or type</xs:documentation>
+    </xs:annotation>
+    <xs:sequence maxOccurs="unbounded">
+      <xs:element minOccurs="0" name="parent">
+        <xs:annotation>
+          <xs:documentation>Selection of entities via their parent entity. Each child entity of this parent is selected.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:complexContent mixed="false">
+            <xs:extension base="immObjectT" />
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="type">
+        <xs:annotation>
+          <xs:documentation>Selection of entities based on thei types. Each entity of the type within the applicable scope is selected. If it is combined with the parent element, only children entities of this parent that are of the given type are selected.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:complexContent mixed="false">
+            <xs:extension base="immObjectT" />
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="entityListT">
+    <xs:annotation>
+      <xs:documentation>A list of entities</xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded">
+      <xs:element maxOccurs="unbounded" name="byName">
+        <xs:annotation>
+          <xs:documentation>Explicit list of the entities</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:complexContent mixed="false">
+            <xs:extension base="immObjectT" />
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="byTemplate" type="entityTemplateT">
+        <xs:annotation>
+          <xs:documentation>Any entity that matches the criteria expressed by the parent and/or type elements</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+</xs:schema>
