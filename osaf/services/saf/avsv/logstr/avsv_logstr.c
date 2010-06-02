@@ -39,7 +39,6 @@
 #include "dts_papi.h"
 #include "dta_papi.h"
 #include "avsv_log.h"
-#include "avd_logstr.h"
 #include "avnd_logstr.h"
 #include "ava_logstr.h"
 #include "avsv_logstr.h"
@@ -189,13 +188,11 @@ uns32 avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 	case NCS_LIB_REQ_CREATE:
 		res = ava_str_reg();
 		res = avnd_str_reg();
-		res = avd_reg_strings();
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
 		res = ava_str_unreg();
 		res = avnd_str_unreg();
-		res = avd_unreg_strings();
 		break;
 
 	default:

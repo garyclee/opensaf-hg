@@ -99,7 +99,6 @@
 #include "dts_dl_api.h"
 
 #if (NCS_AVSV_LOG == 1)
-#include "avd_logstr.h"
 #include "avnd_logstr.h"
 #include "ava_logstr.h"
 #endif
