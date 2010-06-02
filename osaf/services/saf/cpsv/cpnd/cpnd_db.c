@@ -1076,18 +1076,23 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 				}
 				TRACE("node_left -%d -%s line-%d clusterChange-%d", node_id, __FILE__, __LINE__,
 				       notificationBuffer->notification[counter].clusterChange);
-			} else if (notificationBuffer->notification[counter].clusterChange ==
-				   (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED)) {
-				node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
-				if (node_id == cb->nodeid) {
-					if (cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS) {
-						m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
-							      __FILE__, __LINE__);
+	                        } else
+                                    if ((notificationBuffer->notification[counter].clusterChange ==
+                                         SA_CLM_NODE_NO_CHANGE)
+                                        || (notificationBuffer->notification[counter].clusterChange ==
+                                            SA_CLM_NODE_JOINED)
+                                        || (notificationBuffer->notification[counter].clusterChange ==
+                                            SA_CLM_NODE_RECONFIGURED)) {
+					node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+					if (node_id == cb->nodeid) {
+						if (cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS) {
+							m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR,
+								      __FILE__, __LINE__);
+						}
 					}
+					TRACE("node_joined -%d -%s line-%d clusterChange-%d ", node_id, __FILE__, __LINE__,
+					       notificationBuffer->notification[counter].clusterChange);
 				}
-				TRACE("node_joined -%d -%s line-%d clusterChange-%d ", node_id, __FILE__, __LINE__,
-				       notificationBuffer->notification[counter].clusterChange);
-			}
 		}
 	m_CPND_GIVEUP_CB;
 	return;
