@@ -35,7 +35,6 @@ noinst_HEADERS = \
    avd.h \
    avd_hlt.h \
    avd_imm.h \
-   avd_logstr.h \
    avd_mds.h \
    avd_msg.h \
    avd_pg.h \
