@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
-	<class name="OpenSafRepository">
-		<category>SA_CONFIG</category>
-		<rdn>
-			<name>repository</name>
-			<type>SA_STRING_T</type>
-			<category>SA_CONFIG</category>
-			<flag>SA_INITIALIZED</flag>
-		</rdn>
-	</class>
 	<class name="SaSmfCampaign">
 		<category>SA_CONFIG</category>
 		<rdn>
