@@ -243,7 +243,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	rc = immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &uint32);
-	assert(rc = SA_AIS_OK);
+	assert(rc == SA_AIS_OK);
 
 	if (uint32 > SA_AMF_CONTAINER_RESTART) {
 		LOG_ER("Wrong saAmfCtDefRecoveryOnError value '%u'", uint32);
