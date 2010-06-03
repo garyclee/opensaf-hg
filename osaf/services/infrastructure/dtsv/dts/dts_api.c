@@ -202,7 +202,7 @@ uns32 dts_svc_create(DTS_CREATE *create)
 	}
 
 	strcpy(inst->log_path, getenv("DTSV_ROOT_DIRECTORY"));
-	printf("\nMy log directory path = %s\n", inst->log_path);
+	TRACE("\nMy log directory path = %s\n", inst->log_path);
 
 	inst->imm_init_done = FALSE;
 	m_DTS_UNLK(&inst->lock);

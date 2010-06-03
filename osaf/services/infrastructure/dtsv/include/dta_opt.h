@@ -91,12 +91,4 @@
 #define DTA_DEBUG                  0
 #endif
 
-#ifndef DTA_TRACE
-#define DTA_TRACE                  0
-#endif
-
-#ifndef DTA_TRACE2
-#define DTA_TRACE2                 0
-#endif
-
 #endif   /* #ifndef DTA_OPT_H */

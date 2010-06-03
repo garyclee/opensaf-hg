@@ -67,28 +67,6 @@ EXTERN_C uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
 #endif
 
 /*
- * m_DTS_DBG_TRACE
- *
- * This macro is invoked at significant DTS function entry and exit
- * points. It may facilitate the understanding in terms of how DTS 
- * works as well as a means to trace where errors may be occuring in code.
- *
- * If DTS_TRACE == 1, m_DTS_DBG_TRACE maps to (trace) functionality.
- *
- * If DTS_TRACE == 0, m_DTS_DBG_TRACE is benign and removed from executable.
- *
- * DTS_TRACE can be enabled in dts_opt,h
- */
-
-#if (DTS_TRACE == 1)
-
-#define m_DTS_DBG_TRACE(t) printf(t)
-#else
-
-#define m_DTS_DBG_TRACE(t)
-#endif
-
-/*
  * m_<DTS>_VALIDATE_HDL
  *
  * VALIDATE_HDL   : in the LM create service for DTS, they each

@@ -132,7 +132,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 			} else {
 				status = dts_amf_register(&dts_cb);
 				if (status == NCSCC_RC_SUCCESS) {
-					printf("AMF registration success\n");
+					TRACE("AMF registration success\n");
 					fds[FD_AMF].fd = dts_cb.dts_amf_sel_obj;
 				} else {
 					dts_log(NCSFL_SEV_ERROR, "AMF registration failed \n");
@@ -1162,7 +1162,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_t
 	    (msg->data.data.msg.log_msg.hdr.severity == NCSFL_SEV_EMERGENCY) ||
 	    (msg->data.data.msg.log_msg.hdr.severity == NCSFL_SEV_ALERT) ||
 	    (msg->data.data.msg.log_msg.hdr.severity == NCSFL_SEV_CRITICAL)) {
-		printf("%s", str);
+		TRACE("%s", str);
 		m_DTS_CONS_PRINT(cons_dev, msg, str, len);
 	}
 #else
@@ -2614,8 +2614,8 @@ void dts_print_reg_tbl_dbg(void)
 	DTS_CONS_LIST *cons_ptr;
 	SPEC_ENTRY *spec_entry = NULL;
 
-	printf("\n***Printing DTS svc_tbl Patricia tree***\n");
-	printf("\n--------------***-----------------\n");
+	TRACE("\n***Printing DTS svc_tbl Patricia tree***\n");
+	TRACE("\n--------------***-----------------\n");
 
 	m_DTS_LK(&cb->lock);
 	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)NULL);

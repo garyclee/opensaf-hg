@@ -86,7 +86,7 @@ SaAisErrorT dts_imm_initialize(DTS_CB *cb)
 	}
 
 	if (rc == SA_AIS_OK)
-		printf("imm initialization success\n");
+		TRACE("imm initialization success\n");
 
 	return rc;
 }
@@ -117,7 +117,7 @@ void *_dts_imm_declare_implementer(void *cb)
 		dts_log(NCSFL_SEV_ERROR, "ImplementerSet Failed: %u", error);
 		exit(1);
 	}
-	printf("imm implementer set success\n");
+	TRACE("imm implementer set success\n");
 
 	dts_saImmOiClassImplementerSet(dts_cb->immOiHandle, DTS_GLOBAL_CLASS_NAME);
 	dts_saImmOiClassImplementerSet(dts_cb->immOiHandle, DTS_NODE_CLASS_NAME);

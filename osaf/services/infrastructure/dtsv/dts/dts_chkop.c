@@ -201,7 +201,7 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 
 			/* get default global configuration from global policy object */
 			if (dts_configure_global_policy() == NCSCC_RC_FAILURE) {
-				printf("Failed to load global log policy object from IMMSv");
+				dts_log(NCSFL_SEV_ERROR, "Failed to load global log policy object from IMMSv");
 				exit(1);
 			}
 

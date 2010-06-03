@@ -188,7 +188,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 				/* If ASCII_SPEC table is versioning enabled, this means
 				 * service name & version specified was incorrect.
 				 */
-				printf("\n Service cribbing : %d\n", svc->my_key.ss_svc_id);
+				dts_log(NCSFL_SEV_ERROR, "\n Service cribbing : %d\n", svc->my_key.ss_svc_id);
 				fflush(stdout);
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					       "dtsv_ckpt_add_rmv_updt_dta_dest: ASCII_SPEC library couldn't be loaded. Check service name & version no. across ASCII_SPEC tables, registration parameters & library name.");
@@ -1015,7 +1015,7 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
 /*uns32 dts_data_clean_up(DTS_CB *cb)
 {
    uns32 status = NCSCC_RC_SUCCESS;
-   printf("\n***Inside dts_data_clean_up***\n"); 
+   TRACE("\n***Inside dts_data_clean_up***\n"); 
    m_DTS_LK(&cb->lock);
    dtsv_clear_registration_table(cb);
    status = dtsv_delete_asciispec_tree(cb);

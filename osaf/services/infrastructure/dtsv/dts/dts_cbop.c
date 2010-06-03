@@ -111,7 +111,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 		} else if (device == OUTPUT_CONSOLE) {
 			for (j = 0; j < cir_buff->buff_part[num].num_of_elements; j++) {
 				strcpy(str, (char *)ptr);
-				printf("%s", str);
+				TRACE("%s", str);
 				ptr += (strlen(str) + 1);
 			}
 		} else

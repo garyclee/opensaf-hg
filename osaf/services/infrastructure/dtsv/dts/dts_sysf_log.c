@@ -291,7 +291,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 		     (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree,
 							     (const uns8 *)lib_name)) != NULL) {
 			lib_entry->use_count++;
-			printf("\ndts_ascii_spec_load(): Library: %s already loaded\n", lib_name);
+			TRACE("\ndts_ascii_spec_load(): Library: %s already loaded\n", lib_name);
 			return lib_entry;
 		}
 	} else if (action == DTS_SPEC_UNLOAD) {
@@ -299,7 +299,6 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 		if ((lib_entry =
 		     (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree,
 							     (const uns8 *)lib_name)) == NULL) {
-			printf("\ndts_ascii_spec_load(): Library: %s not loaded in DTS\n", lib_name);
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Failed to unload library");
 			return NULL;
 		}
@@ -309,7 +308,6 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 	/*lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); */
 	lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, RTLD_LAZY);
 	if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
-		printf("\ndts_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n", lib_name);
 		/* log the error returned from dlopen() */
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Unable to load library.");
 		return NULL;
@@ -318,9 +316,6 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 	/* Load the symbols by using the entry fucntion */
 	reg_unreg_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name);
 	if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
-		printf
-		    ("\ndts_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
-		     lib_name, func_name, dl_error);
 		/* log the error returned from dlopen() */
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Unable to load symbol");
 		return NULL;
@@ -380,8 +375,6 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 					ncs_patricia_tree_del(&dts_cb.libname_asciispec_tree,
 							      (NCS_PATRICIA_NODE *)lib_entry);
 					m_MMGR_FREE_DTS_LIBNAME(lib_entry);
-					printf("\ndts_ascii_spec_load(): Library: %s unloaded successfully\n",
-					       lib_name);
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dts_ascii_spec_load: unloaded a ASCII_SPEC shared lib");
 				}
