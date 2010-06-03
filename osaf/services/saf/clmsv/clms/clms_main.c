@@ -39,18 +39,24 @@
  * ========================================================================
  */
 
+#ifdef ENABLE_AIS_PLM
 #define FD_USR1 0
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
-#define FD_IMM 3
-#define FD_PLM 4		/* Must be the last in the fds array */
-
-#ifdef ENABLE_AIS_PLM
+#define FD_PLM 3
+#define FD_IMM 4 		/* Must be the last in the fds array */
 #define NUM_FD 5
 #else
+#define FD_USR1 0
+#define FD_AMF 0
+#define FD_MBCSV 1
+#define FD_MBX 2
+#define FD_IMM 3 		/* Must be the last in the fds array */
 #define NUM_FD 4
 #endif
+
+
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -397,6 +403,15 @@ int main(int argc, char *argv[])
 #endif
 
 	while (1) {
+
+		if (clms_cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = clms_cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = NUM_FD;
+		} else {
+			nfds = NUM_FD - 1;
+		}
+
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -452,8 +467,31 @@ int main(int argc, char *argv[])
 
 		if (clms_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			if ((error = saImmOiDispatch(clms_cb->immOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-				LOG_ER("saImmOiDispatch failed: %u", error);
-				break;
+				if (error == SA_AIS_ERR_BAD_HANDLE) {
+					TRACE("main :saImmOiDispatch returned BAD_HANDLE");
+
+					/* 
+					 * Invalidate the IMM OI handle, this info is used in other
+					 * locations. E.g. giving TRY_AGAIN responses to a create and
+					 * close app stream requests. That is needed since the IMM OI
+					 * is used in context of these functions.
+					 * 
+					 * Also closing the handle. Finalize is ok with a bad handle
+					 * that is bad because it is stale and this actually clears
+					 * the handle from internal agent structures.  In any case
+					 * we ignore the return value from Finalize here.
+					 */
+					saImmOiFinalize(clms_cb->immOiHandle);
+					clms_cb->immOiHandle = 0;
+
+					/* Initiate IMM reinitializtion in the background */
+					clm_imm_reinit_bg(clms_cb);
+
+
+				} else if (error != SA_AIS_OK) {
+					LOG_ER("saImmOiDispatch FAILED: %u", error);
+					break;
+				}
 			}
 		}
 	}

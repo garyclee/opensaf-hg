@@ -787,6 +787,15 @@ static void mqnd_main_process(NCSCONTEXT info)
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+
+		if (cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+
 		int ret = poll(fds, nfds, -1);
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -840,16 +849,8 @@ static void mqnd_main_process(NCSCONTEXT info)
 				 ** is used in context of these functions.
 				 */
 				cb->immOiHandle = 0;
-				nfds = FD_IMM;
 				/* Reinitiate IMM */
-				err = mqnd_imm_initialize(cb);
-				if (err == SA_AIS_OK) {
-					/* If this is the active server, become implementer again. */
-					if (cb->ha_state == SA_AMF_HA_ACTIVE)
-						mqnd_imm_declare_implementer(cb);
-				}
-				fds[FD_IMM].fd = cb->imm_sel_obj;
-				nfds = FD_IMM + 1;
+				mqnd_imm_reinit_bg(cb);
 			} else if (err != SA_AIS_OK) {
 				mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED:%u  \n", err);
 				break;

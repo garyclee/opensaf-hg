@@ -1582,7 +1582,7 @@ uns32 clms_imm_init(CLMS_CB * cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-
+	immutilWrapperProfile.errorsAreFatal = 0;
 	TRACE_ENTER();
 	if ((ais_rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize_2 failed %u", rc);
@@ -2012,3 +2012,72 @@ static void clms_lock_send_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 	TRACE("Timer started");
 	TRACE_LEAVE();
 }
+
+/**
+ * Initialize the OI interface and get a selection object. 
+ * @param cb
+ * 
+ * @return SaAisErrorT
+ */
+static void  *clm_imm_reinit_thread(void * _cb)
+{
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	CLMS_CB *cb = (CLMS_CB *)_cb;
+
+	TRACE_ENTER();
+	if ((ais_rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion)) != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize_2 failed %u", ais_rc);
+		exit(EXIT_FAILURE);
+	}
+
+	if ((ais_rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet failed %u", ais_rc);
+		exit(EXIT_FAILURE);
+	}
+
+	if (cb->ha_state == SA_AMF_HA_ACTIVE){
+		/* Update IMM */
+		if ((ais_rc = immutil_saImmOiImplementerSet(cb->immOiHandle, IMPLEMENTER_NAME)) != SA_AIS_OK) {
+			LOG_ER("saImmOiImplementerSet failed %u", ais_rc);
+			exit(EXIT_FAILURE);
+		}
+
+		if ((ais_rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode")) != SA_AIS_OK) {
+			LOG_ER("saImmOiClassImplementerSet failed  for class SaClmNode%u", ais_rc);
+			exit(EXIT_FAILURE);
+		}
+
+		if ((ais_rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmCluster")) != SA_AIS_OK) {
+			LOG_ER("saImmOiClassImplementerSet failed  for class SaClmCluster%u", ais_rc);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	TRACE_LEAVE();
+	return NULL ;
+}
+
+
+
+/**
+ * Become object and class implementer, non-blocking.
+ * @param cb
+ */
+void clm_imm_reinit_bg(CLMS_CB * cb)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	TRACE_ENTER();
+
+	if (pthread_create(&thread, &attr, clm_imm_reinit_thread, cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+       pthread_attr_destroy(&attr);
+	TRACE_LEAVE();
+}
+
+

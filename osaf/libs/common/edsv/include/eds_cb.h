@@ -338,6 +338,7 @@ EXTERN_C NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
 
 EXTERN_C EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
 EXTERN_C SaAisErrorT eds_imm_init(EDS_CB *cb);
-EXTERN_C SaAisErrorT eds_imm_declare_implementer(SaImmOiHandleT OiHandle);
+EXTERN_C void eds_imm_reinit_bg(EDS_CB * cb);
+EXTERN_C void eds_imm_declare_implementer(SaImmOiHandleT *OiHandle);
 
 #endif

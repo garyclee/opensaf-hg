@@ -22,6 +22,7 @@
 #include <saImm.h>
 
 extern void mqnd_imm_declare_implementer(MQND_CB *cb);
+extern void mqnd_imm_reinit_bg(MQND_CB * cb);
 extern SaAisErrorT mqnd_imm_initialize(MQND_CB *cb);
 extern SaAisErrorT mqnd_create_runtime_MsgQobject(char *rname, SaTimeT time, MQND_QUEUE_NODE *qnode,
 					   SaImmOiHandleT immOiHandle);

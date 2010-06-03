@@ -173,11 +173,12 @@ void eds_main_process(SYSF_MBX *mbx)
 	/* Initialize with IMM */
 	if (eds_imm_init(eds_cb) == SA_AIS_OK) {
 		if (eds_cb->ha_state == SA_AMF_HA_ACTIVE) {
-			if (eds_imm_declare_implementer(eds_cb->immOiHandle) != SA_AIS_OK)
-				TRACE("Implementer Set Failed");
+			eds_imm_declare_implementer(&eds_cb->immOiHandle);
 		}
-	} else
+	} else {
 		TRACE("Imm Init Failed");
+		exit(EXIT_FAILURE);
+	}
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_AMF].fd = eds_cb->amfSelectionObject;
@@ -192,6 +193,15 @@ void eds_main_process(SYSF_MBX *mbx)
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+
+		if (eds_cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = eds_cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+		
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -260,23 +270,10 @@ void eds_main_process(SYSF_MBX *mbx)
 				TRACE("saImmOiDispatch returned BAD_HANDLE %u", error);
 
 				/* Invalidate the IMM OI handle. */
+				saImmOiFinalize(eds_cb->immOiHandle);
 				eds_cb->immOiHandle = 0;
-				/* 
-				 ** Skip the IMM file descriptor in next poll(), IMM fd must
-				 ** be the last in the fd array.
-				 */
-				nfds = FD_IMM;
-				/* Reinitiate IMM */
-				error = eds_imm_init(eds_cb);
-				if (error == SA_AIS_OK) {
-					/* If this is the active server, become implementer again. */
-					if (eds_cb->ha_state == SA_AMF_HA_ACTIVE)
-						eds_imm_declare_implementer(eds_cb->immOiHandle);
-					TRACE("eds_imm_init successful");
-				}
-			
-				fds[FD_IMM].fd = eds_cb->imm_sel_obj;
-				nfds = FD_IMM + 1;
+				eds_imm_reinit_bg(eds_cb);
+				
 			} else if (error != SA_AIS_OK) {
 				TRACE("saImmOiDispatch FAILED: %u", error);
 				break;

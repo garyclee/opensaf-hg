@@ -484,6 +484,14 @@ static void gld_main_process(SYSF_MBX *mbx)
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+		if (gld_cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = gld_cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+		
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -543,16 +551,7 @@ static void gld_main_process(SYSF_MBX *mbx)
 				 ** is used in context of these functions.
 				 */
 				gld_cb->immOiHandle = 0;
-				nfds = FD_IMM;
-				/* Reinitiate IMM */
-				error = gld_imm_init(gld_cb);
-				if (error == SA_AIS_OK) {
-					/* If this is the active server, become implementer again. */
-					if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
-						gld_imm_declare_implementer(gld_cb);
-				}
-				fds[FD_IMM].fd = gld_cb->imm_sel_obj;
-				nfds = FD_IMM + 1;
+				gld_imm_reinit_bg(gld_cb);
 			} else if (error != SA_AIS_OK) {
 				gld_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", error);
 				break;

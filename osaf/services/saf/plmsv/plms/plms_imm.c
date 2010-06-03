@@ -43,7 +43,7 @@ typedef enum {
 	PLMS_DEPENDENCY_OBJ_TYPE,
 }PLMS_OBJ_TYPE;
 
-#define PLMS_MAX_IMM_API_RETRY_CNT 5
+#define PLMS_MAX_IMM_API_RETRY_CNT 5 
 
 static const SaImmOiImplementerNameT impl_name =
 	(SaImmOiImplementerNameT)"safPlmService";
@@ -4183,3 +4183,76 @@ static void free_plms_group_entity_list(PLMS_GROUP_ENTITY_ROOT_LIST *grp_ent)
 	}
 	TRACE_LEAVE();
 }
+
+
+static void *plm_imm_reinit_thread(void *_cb)
+{
+	SaImmOiCallbacksT_2 imm_oi_cbks;
+	SaAisErrorT error=SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	imm_oi_cbks.saImmOiAdminOperationCallback = plms_imm_admin_op_cbk;
+	imm_oi_cbks.saImmOiCcbAbortCallback = plms_imm_ccb_abort_cbk;
+	imm_oi_cbks.saImmOiCcbApplyCallback = plms_imm_ccb_apply_cbk;
+	imm_oi_cbks.saImmOiCcbCompletedCallback = plms_imm_ccb_completed_cbk;
+	imm_oi_cbks.saImmOiCcbObjectCreateCallback= plms_imm_ccb_obj_create_cbk;
+	imm_oi_cbks.saImmOiCcbObjectDeleteCallback= plms_imm_ccb_obj_delete_cbk;
+	imm_oi_cbks.saImmOiCcbObjectModifyCallback= plms_imm_ccb_obj_modify_cbk;
+	imm_oi_cbks.saImmOiRtAttrUpdateCallback = NULL;
+
+
+	if ((error = immutil_saImmOiInitialize_2(&plms_cb->oi_hdl, &imm_oi_cbks, &imm_version)) != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize_2 failed %u", error);
+		exit(EXIT_FAILURE);
+	}
+
+	if ((error = immutil_saImmOiSelectionObjectGet(plms_cb->oi_hdl, &plms_cb->imm_sel_obj)) != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet failed %u", error);
+		exit(EXIT_FAILURE);
+	}
+	if (plms_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		/* Update IMM */
+		if ((error = immutil_saImmOiImplementerSet(plms_cb->oi_hdl,impl_name )) != SA_AIS_OK) {
+
+			LOG_ER("saImmOiImplementerSet failed %u", error);
+			exit(EXIT_FAILURE);
+		}
+
+		plms_oi_class_impl_set("SaPlmDomain");
+		plms_oi_class_impl_set("SaHpiConfig");
+		plms_oi_class_impl_set("SaPlmHEBaseType");
+		plms_oi_class_impl_set("SaPlmHEType");
+		plms_oi_class_impl_set("SaPlmHE");
+		plms_oi_class_impl_set("SaPlmEEBaseType");
+		plms_oi_class_impl_set("SaPlmEEType");
+		plms_oi_class_impl_set("SaPlmEE");
+		plms_oi_class_impl_set("SaPlmDependency");
+	}
+	TRACE_LEAVE();
+	return NULL;
+}	
+
+
+/**                     
+ * Start a background thread to do IMM reinitialization.
+ *      
+ * @param cb
+ */     
+void plm_imm_reinit_bg(PLMS_CB *cb)
+{               
+        pthread_t thread; 
+        pthread_attr_t attr;
+        pthread_attr_init(&attr); 
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+                                
+        TRACE_ENTER();  
+        if (pthread_create(&thread, &attr, plm_imm_reinit_thread, cb) != 0) {
+                LOG_ER("pthread_create FAILED: %s", strerror(errno));
+                exit(EXIT_FAILURE);
+        }       
+                
+        pthread_attr_destroy(&attr);
+                
+        TRACE_LEAVE();
+}               

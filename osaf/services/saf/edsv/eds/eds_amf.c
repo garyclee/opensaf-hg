@@ -269,8 +269,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 				 * Need to check for transition from QUEISCED back to ACTIVE 
 				 */
 				if (eds_cb->ha_state == SA_AMF_HA_ACTIVE) {
-					if (eds_imm_declare_implementer(eds_cb->immOiHandle) != SA_AIS_OK)
-						printf("ClassImplementer Set Failed\n");
+					eds_imm_declare_implementer(&eds_cb->immOiHandle);
 				}
 			}
 		}

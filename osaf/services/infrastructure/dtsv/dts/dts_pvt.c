@@ -59,7 +59,7 @@
 #define FD_MBX 2
 #define FD_IMM 3
 
-static nfds_t nfds = 3;
+static nfds_t nfds =  FD_IMM + 1;
 
 #define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "/dts_comp_name"
 
@@ -102,6 +102,14 @@ void dts_do_evts(SYSF_MBX *mbx)
 	fds[FD_MBCSV].events = POLLIN;
 
 	while (1) {
+
+		if (dts_cb.immOiHandle != 0) {
+			fds[FD_IMM].fd = dts_cb.imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
 
 		/* wait for the requests indefinitely */
 		int ret = poll(fds, nfds, -1);
@@ -146,7 +154,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 			status = dts_do_evt((DTSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, NULL));
 			if (status != NCSCC_RC_SUCCESS) {
 				/*m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-				   "dts_do_evts: Error received....debug!!"); */
+				  "dts_do_evts: Error received....debug!!"); */
 			}
 		}
 
@@ -154,9 +162,13 @@ void dts_do_evts(SYSF_MBX *mbx)
 			/* dispatch all the IMMSv pending callbacks */
 			saf_status = saImmOiDispatch(dts_cb.immOiHandle, SA_DISPATCH_ONE);
 			if (saf_status == SA_AIS_ERR_BAD_HANDLE) {
-				nfds = FD_IMM;
-				dts_cb.imm_init_done = FALSE;
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "IMMSv Dispatch failed");
+				dts_cb.imm_init_done = FALSE;
+				saImmOiFinalize(dts_cb.immOiHandle);
+				dts_cb.immOiHandle = 0;
+				dts_imm_reinit_bg(&dts_cb);
+			} else {
+				dts_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", saf_status);
 				break;
 			}
 		}

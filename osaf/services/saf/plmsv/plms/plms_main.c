@@ -485,9 +485,35 @@ int main(int argc, char *argv[])
 			if (fds[FD_IMM].revents & POLLIN) {
 				error = saImmOiDispatch(plms_cb->oi_hdl, 
 							SA_DISPATCH_ONE);
-				if (error != SA_AIS_OK) {
-					LOG_ER("PLMS saImmOiDispatch failed:%u",
-							 error);
+				if (error == SA_AIS_ERR_BAD_HANDLE) {
+					TRACE("main: saImmOiDispatch returned BAD_HANDLE");
+
+					/* 
+					 * Invalidate the IMM OI handle, this info is used in other
+					 * locations. E.g. giving TRY_AGAIN responses to a create and
+					 * close app stream requests. That is needed since the IMM OI
+					 * is used in context of these functions.
+					 * 
+					 * Also closing the handle. Finalize is ok with a bad handle
+					 * that is bad because it is stale and this actually clears
+					 * the handle from internal agent structures.  In any case
+					 * we ignore the return value from Finalize here.
+					 */
+					saImmOiFinalize(plms_cb->oi_hdl);
+					plms_cb->oi_hdl = 0;
+
+					/* 
+					 * Skip the IMM file descriptor in next poll(), IMM fd must
+					 * be the last in the fd array.
+					 */
+					num_fds--;
+
+					/* Initiate IMM reinitializtion in the background */
+					plm_imm_reinit_bg(plms_cb);
+
+					
+				} else if (error != SA_AIS_OK) {
+					LOG_ER("saImmOiDispatch FAILED: %u", error);
 					break;
 				}
 			}

@@ -325,15 +325,17 @@ static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
  **************************************************************************/
 static void *avd_imm_reinit_thread(void *_cb)
 {
+	SaAisErrorT rc = SA_AIS_OK;
 	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
 
 	/* If this is the active server, become implementer again. */
-	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE)
+	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		if ((rc = avd_imm_re_init(cb)) != SA_AIS_OK) {
+			LOG_ER("re-saImmOiInitialize failed %u", rc);
+			exit(1);
+		}
 		avd_imm_impl_set_task_create();
-
-	fds[FD_IMM].fd = cb->imm_sel_obj;
-	nfds = FD_IMM + 1;
-
+	}
 	return NULL;
 }
 
@@ -352,11 +354,17 @@ static void *avd_imm_reinit_thread(void *_cb)
 static void avd_imm_reinit_bg(AVD_CL_CB *cb)
 {
 	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
+	TRACE_ENTER();
 	if (pthread_create(&thread, NULL, avd_imm_reinit_thread, cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+	pthread_attr_destroy(&attr);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -405,6 +413,15 @@ void avd_main_proc(void)
 	LOG_NO("Started");
 
 	while (1) {
+		
+		if (cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+		
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -500,7 +517,7 @@ void avd_main_proc(void)
 			 ** cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				LOG_ER("main: saImmOiDispatch returned BAD_HANDLE");
+				TRACE("main: saImmOiDispatch returned BAD_HANDLE");
 
 				/*
 				 ** Invalidate the IMM OI handle, this info is used in other
@@ -508,13 +525,8 @@ void avd_main_proc(void)
 				 ** close app stream requests. That is needed since the IMM OI
 				 ** is used in context of these functions.
 				 */
+				saImmOiFinalize(cb->immOiHandle);
 				cb->immOiHandle = 0;
-
-				/*
-				 ** Skip the IMM file descriptor in next poll(), IMM fd must
-				 ** be the last in the fd array.
-				 */
-				nfds--;
 
 				/* Initiate IMM reinitializtion in the background */
 				avd_imm_reinit_bg(cb);

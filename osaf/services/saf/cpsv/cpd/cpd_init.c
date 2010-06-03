@@ -483,6 +483,15 @@ static void cpd_main_process(NCSCONTEXT info)
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+
+		if (cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = cb->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -553,17 +562,10 @@ static void cpd_main_process(NCSCONTEXT info)
 				 ** close resource requests. That is needed since the IMM OI
 				 ** is used in context of these functions.
 				 */
+				saImmOiFinalize(cb->immOiHandle);
 				cb->immOiHandle = 0;
-				nfds = FD_IMM;
-				/* Reinitiate IMM */
-				error = cpd_imm_init(cb);
-				if (error == SA_AIS_OK) {
-					/* If this is the active server, become implementer again. */
-					if (cb->ha_state == SA_AMF_HA_ACTIVE)
-						cpd_imm_declare_implementer(cb);
-				}
-				fds[FD_IMM].fd = cb->imm_sel_obj;
-				nfds = FD_IMM + 1;
+				cpd_imm_reinit_bg(cb);
+
 			} else if (error != SA_AIS_OK) {
 				cpd_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", error);
 				break;

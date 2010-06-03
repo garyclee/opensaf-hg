@@ -136,16 +136,52 @@ SaAisErrorT eds_imm_init(EDS_CB *cb)
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
-	if (rc == SA_AIS_OK)
-		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
+	if (rc == SA_AIS_OK) {
+		rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
+		if (rc != SA_AIS_OK)
+			LOG_ER("_eds_imm_saImmOiSelectionObjectGet failed - %d\n", rc);	
+	} else {
+		LOG_ER("_eds_imm_saImmOiInitialize_2 failed - %d\n", rc);
+	}	
 
 	return rc;
 }
 
-SaAisErrorT eds_imm_declare_implementer(SaImmOiHandleT immOiHandle)
+void * _eds_imm_declare_implementer(void *_immOiHandle)
 {
-	return (immutil_saImmOiImplementerSet(immOiHandle, implementer_name));
+	SaAisErrorT rc;
+	SaImmOiHandleT *immOiHandle = (SaImmOiHandleT *) _immOiHandle;
+	rc = immutil_saImmOiImplementerSet(*immOiHandle, implementer_name); 
+	if(rc != SA_AIS_OK) {
+		LOG_ER("_eds_imm_declare_implementer failed - %d\n", rc);
+		exit(EXIT_FAILURE);
+	}
+
+	return NULL;
 }
+
+/**************************************************************************\
+ Function: eds_imm_declare_implementer
+
+ Purpose:  creates a new thread for _eds_imm_declare_implementer
+        
+ Returns:  void
+
+ Notes:    If it fails it will exit the process
+\**************************************************************************/
+void eds_imm_declare_implementer(SaImmOiHandleT *immOiHandle)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	if (pthread_create(&thread, NULL, _eds_imm_declare_implementer, immOiHandle) != 0) {
+		LOG_ER("pthread create failed\n");
+		exit(EXIT_FAILURE);
+	}
+	pthread_attr_destroy(&attr);
+}
+
 
 EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 {
@@ -171,3 +207,54 @@ EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 	/* if we reached here, no channel by that name */
 	return ((EDS_WORKLIST *)NULL);
 }	/*End get_channel_from_worklist */
+
+
+/**
+ * Initialize the OI interface and get a selection object. 
+ * @param cb
+ * 
+ * @return SaAisErrorT
+ */
+static void  *eds_imm_reinit_thread(void * _cb)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	EDS_CB *cb = (EDS_CB *)_cb;
+	TRACE_ENTER();
+	/* Reinitiate IMM */
+	error = eds_imm_init(cb);
+	if (error == SA_AIS_OK) {
+		/* If this is the active server, become implementer again. */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+			_eds_imm_declare_implementer(&cb->immOiHandle);
+	}
+	else
+	{
+		LOG_ER("eds_imm_init FAILED: %s", strerror(error));
+
+	}
+	TRACE_LEAVE();
+	return NULL;
+}
+
+
+/**
+ * Become object and class implementer, non-blocking.
+ * @param cb
+ */
+void eds_imm_reinit_bg(EDS_CB * cb)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	TRACE_ENTER();
+
+	if (pthread_create(&thread, &attr, eds_imm_reinit_thread, cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	pthread_attr_destroy(&attr);
+	TRACE_LEAVE();
+}
+
