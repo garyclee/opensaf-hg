@@ -562,10 +562,12 @@ void clms_clear_node_dep_list(CLMS_CLUSTER_NODE * node)
 
 	node->admin_op = 0;
 	node->stat_change = SA_FALSE;
+	ckpt_node_rec(node);
 	while (node->dep_node_list != NULL) {
 		new_node = node->dep_node_list;
 		new_node->stat_change = SA_FALSE;
 		new_node->admin_op = 0;
+		ckpt_node_rec(new_node);
 		node->dep_node_list = node->dep_node_list->next;
 		new_node->next = NULL;
 	}

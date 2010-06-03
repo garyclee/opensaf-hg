@@ -210,8 +210,9 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 	}
 
 	/* Clear admin_op and stat_change for the completed step */
-	if ((step == SA_PLM_CHANGE_COMPLETED) || (step == SA_PLM_CHANGE_ABORTED))
+	if ((step == SA_PLM_CHANGE_COMPLETED) || (step == SA_PLM_CHANGE_ABORTED)){
 		clms_clear_node_dep_list(node);
+	}
 
  done:
 	TRACE_LEAVE();
