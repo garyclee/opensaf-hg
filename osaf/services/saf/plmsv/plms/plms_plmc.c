@@ -420,9 +420,19 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 
 	/* Set the dep-imminet-failure flag if required.*/
 	plms_dep_immi_flag_check_and_set(ent,&aff_ent_list_flag,&is_set);
-
-	/* Handle the admin operation for which this ent is restarted.*/
-	if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
+	
+	/* Fault clear case. Admin repair and readiness impact.*/
+	if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_FAILURE_CLEARED == ent->trk_info->track_cause)){
+		prev_adm_op = 1;
+		trk_info = ent->trk_info;
+		ent->trk_info = NULL;
+		if (SA_PLM_ADMIN_REPAIRED == trk_info->imm_adm_opr_id){
+			trk_info->root_entity->adm_op_in_progress = FALSE;
+			trk_info->root_entity->am_i_aff_ent = FALSE;
+			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,trk_info->inv_id, SA_AIS_OK);
+		}
+	/* Admin RESTART amd Admin RESET case.*/	
+	}else if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
 		
 		prev_adm_op = 1;
 		trk_info = ent->trk_info;
@@ -916,47 +926,44 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 			
 			/* Set the dep-imminet-failure flag if required.*/
 			plms_dep_immi_flag_check_and_set(ent,&aff_ent_list_flag,&is_set);
-
-
-			/* Handle the admin operation for which this ent is 
-			restarted.*/
-			if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
-				
+			
+			/* Fault clear case. Admin repair and readiness impact.*/
+			if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_FAILURE_CLEARED == ent->trk_info->track_cause)){
+				prev_adm_op = 1;
+				trk_info = ent->trk_info;
+				ent->trk_info = NULL;
+				if (SA_PLM_ADMIN_REPAIRED == trk_info->imm_adm_opr_id){
+					trk_info->root_entity->adm_op_in_progress = FALSE;
+					trk_info->root_entity->am_i_aff_ent = FALSE;
+					ret_err = saImmOiAdminOperationResult(cb->oi_hdl,trk_info->inv_id, SA_AIS_OK);
+				}
+			/* Admin RESTART amd Admin RESET case.*/	
+			}else if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
 				prev_adm_op = 1;
 				trk_info = ent->trk_info;
 				ent->trk_info = NULL;
 				trk_info->track_count--;
-				TRACE("Perform the in progress admin op for \
-				entity: %s, adm-op: %d",ent->dn_name_str, \
+				TRACE("Perform the in progress admin op for entity: %s, adm-op: %d",ent->dn_name_str,
 				trk_info->root_entity->adm_op_in_progress);
 				
 				if (!(trk_info->track_count)){
 					/* Clean up the trk_info.*/
-					trk_info->root_entity->
-						adm_op_in_progress = FALSE;
-					trk_info->root_entity->am_i_aff_ent 
-								= FALSE;
-					plms_aff_ent_flag_mark_unmark(
-					trk_info->aff_ent_list,FALSE);
+					trk_info->root_entity->adm_op_in_progress = FALSE;
+					trk_info->root_entity->am_i_aff_ent = FALSE;
+					plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
 					
-					plms_ent_list_free(
-						trk_info->aff_ent_list);	
+					plms_ent_list_free(trk_info->aff_ent_list);	
 					trk_info->aff_ent_list = NULL;
 					
 					/* Send response to IMM.
 					TODO: Am I sending this a bit earlier?
 					*/
-					ret_err = saImmOiAdminOperationResult( 
-						cb->oi_hdl, trk_info->inv_id, 
-						SA_AIS_OK);
+					ret_err = saImmOiAdminOperationResult(cb->oi_hdl,trk_info->inv_id,SA_AIS_OK);
 					if (NCSCC_RC_SUCCESS != ret_err){
-						LOG_ER("Adm operation result \
-						sending to IMM failed for ent: \
-						%s,imm-ret-val: %d",
-						ent->dn_name_str,ret_err);
+						LOG_ER("Adm operation result sending to IMM failed for ent:\
+						%s,imm-ret-val: %d", ent->dn_name_str,ret_err);
 					}
-					TRACE("Adm operation result sending to\
-					IMM successful for ent: %s",
+					TRACE("Adm operation result sending to IMM successful for ent: %s", 
 					ent->dn_name_str);
 				}
 			}
@@ -1902,8 +1909,8 @@ PLMS_TRACK_INFO *trk_info,PLMS_GROUP_ENTITY *aff_ent_list_flag,SaUint32T is_set)
 		new_trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 		new_trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
 		new_trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
-		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_ACTIVATED == 
-		trk_info->track_cause)){
+		if ((NULL != trk_info) && ((SA_PLM_CAUSE_HE_ACTIVATED == trk_info->track_cause) || 
+		(SA_PLM_CAUSE_FAILURE_CLEARED == trk_info->track_cause))){
 			plms_ent_to_ent_list_add(ent,&(new_trk_info.aff_ent_list));
 			new_trk_info.track_cause = trk_info->track_cause;
 			new_trk_info.root_entity = trk_info->root_entity;
@@ -1949,8 +1956,8 @@ PLMS_TRACK_INFO *trk_info,PLMS_GROUP_ENTITY *aff_ent_list_flag,SaUint32T is_set)
 		new_trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
 	
 		/* For */
-		if ((NULL != trk_info) && (SA_PLM_CAUSE_HE_ACTIVATED == 
-		trk_info->track_cause)){
+		if ((NULL != trk_info) && ((SA_PLM_CAUSE_HE_ACTIVATED == trk_info->track_cause) || 
+		(SA_PLM_CAUSE_FAILURE_CLEARED == trk_info->track_cause))){
 			plms_ent_to_ent_list_add(ent,&(new_trk_info.aff_ent_list));
 			new_trk_info.track_cause = trk_info->track_cause;
 			new_trk_info.root_entity = trk_info->root_entity;

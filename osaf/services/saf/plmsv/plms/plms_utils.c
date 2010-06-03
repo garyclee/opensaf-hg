@@ -4004,7 +4004,7 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	SaUint32T ret_err,is_set = 0;
 	SaNtfIdentifierT ntf_id = SA_NTF_IDENTIFIER_UNUSED;
 	PLMS_EVT evt;
-	PLMS_TRACK_INFO trk_info;
+	PLMS_TRACK_INFO trk_info,*trk_info_flt;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
 	PLMS_CB *cb = plms_cb;
@@ -4108,13 +4108,32 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	state. FIX this only if needed.*/
 	ret_err = plms_ent_enable(ent,FALSE,TRUE);
 	if(NCSCC_RC_SUCCESS != ret_err){
-		LOG_ER("Fault cleared but inst/act the entity %s FAILED.",
-		ent->dn_name_str);
-		
+		LOG_ER("Fault cleared but inst/act the entity %s FAILED.", ent->dn_name_str);
+	}else{
+		/* There is no change in readiness status in this context. Hence store the context,
+		and use the cause when the EE/HE is instantiated/activated.*/
+		trk_info_flt =(PLMS_TRACK_INFO *)calloc(1,sizeof(PLMS_TRACK_INFO));
+		if (NULL == trk_info_flt){
+			LOG_CR("Rdness Impact: calloc of track info failed.error: %s",strerror(errno));
+			assert(0);	
+		}
+		memset(trk_info_flt,0,sizeof(PLMS_TRACK_INFO));
+		trk_info_flt->imm_adm_opr_id = 0; 
+		trk_info_flt->track_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
+		trk_info_flt->root_entity = ent;
+		ent->trk_info = trk_info_flt;
 	}
-	/* TODO: Although there is no change in readiness status of the entity,
-	still calling the fault cleared callback. Refer spec: Page-65/66.*/ 
-
+	if (!is_set){
+		evt.req_res = PLMS_RES;
+		evt.res_evt.res_type = PLMS_AGENT_TRACK_READINESS_IMPACT_RES;
+		evt.res_evt.ntf_id = ntf_id;
+		evt.res_evt.error = SA_AIS_OK;
+		ret_err = plm_send_mds_rsp(cb->mds_hdl,NCSMDS_SVC_ID_PLMS,snd_info,&evt);
+		if(NCSCC_RC_SUCCESS != ret_err){
+			LOG_ER("Sync resp to PLMA for readiness impact fault clear FAILED.ret_val=%d",ret_err);
+		}
+		return ret_err;
+	}
 	/* Overwrite the expected readiness state and flag of the 
 	root entity.*/
 	plms_ent_exp_rdness_state_ow(ent);
@@ -4152,7 +4171,9 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	plms_cbk_call(&trk_info,1);
 	
 	plms_ent_exp_rdness_status_clear(ent);
+	plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
 	
+	plms_ent_list_free(aff_ent_list);
 	plms_ent_grp_list_free(trk_info.group_info_list);
 	
 	/* Resp to PLMA.*/

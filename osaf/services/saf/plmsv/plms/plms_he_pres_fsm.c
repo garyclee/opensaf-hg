@@ -2166,6 +2166,7 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 	PLMS_TRACK_INFO trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	SaUint8T is_flag_aff = 0;
+	PLMS_CB *cb = plms_cb;
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	
@@ -2222,17 +2223,27 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 			TRACE("%llu,",log_head_grp->ent_grp_inf->entity_grp_hdl);
 			log_head_grp = log_head_grp->next;
 		}
-
+		
 		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
-		trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
 		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
 		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED; 
-		trk_info.root_entity = ent;
-	
-		plms_cbk_call(&trk_info,1);
+		if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_FAILURE_CLEARED == ent->trk_info->track_cause)){
+			plms_ent_to_ent_list_add(ent,&(trk_info.aff_ent_list));
+			trk_info.track_cause = ent->trk_info->track_cause;
+			trk_info.root_entity = ent->trk_info->root_entity;
+			plms_cbk_call(&trk_info,0/* Dont add root*/);
+		}else{
+			trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
+			trk_info.root_entity = ent;
+			plms_cbk_call(&trk_info,1/* Add root*/);
+		}
+		
+		plms_ent_exp_rdness_status_clear(ent);
+		plms_aff_ent_exp_rdness_status_clear(act_aff_ent_list);
 		
 		plms_ent_list_free(trk_info.aff_ent_list);
 		trk_info.aff_ent_list = NULL;
+		
 		plms_ent_grp_list_free(trk_info.group_info_list);
 		trk_info.group_info_list = NULL;
 
@@ -2253,19 +2264,41 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 			TRACE("%llu,",log_head_grp->ent_grp_inf->entity_grp_hdl);
 			log_head_grp = log_head_grp->next;
 		}
-
 		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
-		trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
 		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
 		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED; 
-		trk_info.root_entity = ent;
-	
-		plms_cbk_call(&trk_info,1);
+		if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_FAILURE_CLEARED == ent->trk_info->track_cause)){
+			plms_ent_to_ent_list_add(ent,&(trk_info.aff_ent_list));
+			trk_info.track_cause = ent->trk_info->track_cause;
+			trk_info.root_entity = ent->trk_info->root_entity;
+			plms_cbk_call(&trk_info,0/* Dont add root*/);
+		}else{
+			trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
+			trk_info.root_entity = ent;
+			plms_cbk_call(&trk_info,1/* Add root*/);
+		}
 		
+		plms_ent_exp_rdness_status_clear(ent);
+		plms_aff_ent_exp_rdness_status_clear(trk_info.aff_ent_list);
+	
+		plms_ent_list_free(trk_info.aff_ent_list);
+		trk_info.aff_ent_list = NULL;
+
 		plms_ent_grp_list_free(trk_info.group_info_list);
 		trk_info.group_info_list = NULL;
 	}
 
+	if (NULL != ent->trk_info){
+		/* For admin repair, return to IMM.*/
+		if ( SA_PLM_ADMIN_REPAIRED == ent->trk_info->imm_adm_opr_id){
+			ent->trk_info->root_entity->am_i_aff_ent = FALSE;
+			ent->trk_info->root_entity->adm_op_in_progress = FALSE;
+			saImmOiAdminOperationResult(cb->oi_hdl,ent->trk_info->inv_id,SA_AIS_OK);
+		}
+
+		plms_trk_info_free(ent->trk_info);
+		ent->trk_info = NULL;
+	}
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
 
