@@ -2751,10 +2751,11 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 SaUint32T plms_adm_repair( PLMS_EVT *evt)
 {
 	
-	SaUint32T ret_err = NCSCC_RC_FAILURE,is_set = 0;
+	SaUint32T ret_err = NCSCC_RC_FAILURE,is_set = 0,is_enabled = 0;
 	PLMS_CB *cb = plms_cb;
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO trk_info;
+	PLMS_TRACK_INFO *trk_info_flt;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL,*head,*log_head;
 	PLMS_GROUP_ENTITY *aff_ent_list_flag = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
@@ -2949,11 +2950,46 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 		 * the ent. Taking the entity to insvc does not make much sence
 		 * here. Hence delay that until the ent is 
 		 * activated/instantiated.*/
-		ret_err = plms_ent_enable(ent,TRUE,FALSE);
-		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("Enabling the ent %s FAILED.",ent->dn_name_str);
-		}
 		trk_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
+		ret_err = plms_ent_enable(ent,TRUE,TRUE);
+		if (NCSCC_RC_SUCCESS != ret_err){
+			is_enabled = 0;
+			LOG_ER("Enabling the ent %s FAILED.",ent->dn_name_str);
+			if (!is_set){
+				/* I am done.*/
+				ret_err = saImmOiAdminOperationResult(cb->oi_hdl,evt->req_evt.admin_op.inv_id,
+				SA_AIS_OK);
+				if (NCSCC_RC_SUCCESS != ret_err){
+					LOG_ER("Sending admin response to IMM failed.IMM Ret code: %d",ret_err);
+				}else{
+					TRACE("Sending admin response to IMM successful.");
+				}
+				return ret_err;
+			}
+		}else {
+			is_enabled = 1;
+			/* There is no change in readiness status in this context. Hence store the context,
+			and use the cause when the EE/HE is instantiated/activated.*/
+			trk_info_flt =(PLMS_TRACK_INFO *)calloc(1,sizeof(PLMS_TRACK_INFO));
+			if (NULL == trk_info_flt){
+				LOG_CR("adm_repair, calloc of track info failed.error: %s",strerror(errno));
+				assert(0);	
+			}
+			memset(trk_info_flt,0,sizeof(PLMS_TRACK_INFO));
+			trk_info_flt->imm_adm_opr_id = evt->req_evt.admin_op.operation_id; 
+			trk_info_flt->inv_id = evt->req_evt.admin_op.inv_id;
+			trk_info_flt->track_cause = trk_cause;
+			trk_info_flt->root_entity = ent;
+			ent->trk_info = trk_info_flt;
+			
+			/* Admin operation started. */ 
+			ent->adm_op_in_progress = SA_PLM_CAUSE_FAILURE_CLEARED; 
+			ent->am_i_aff_ent = TRUE;
+			
+			if (!is_set){
+				return ret_err;
+			}
+		}
 
 	}
 	/* Join the two aff ent list.*/
@@ -3000,16 +3036,16 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 	plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
 	plms_ent_exp_rdness_status_clear(ent);
 
-	/* I am done.*/
-	ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			evt->req_evt.admin_op.inv_id,SA_AIS_OK);
-	if (NCSCC_RC_SUCCESS != ret_err){
-		LOG_ER("Sending admin response to IMM failed. \
-						IMM Ret code: %d",ret_err);
-	}else{
-		TRACE("Sending admin response to IMM successful.");
+	/* This will be hit only if is_set is 1.*/
+	if(!is_enabled){ 
+		/* I am done.*/
+		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,evt->req_evt.admin_op.inv_id,SA_AIS_OK);
+		if (NCSCC_RC_SUCCESS != ret_err){
+			LOG_ER("Sending admin response to IMM failed.IMM Ret code: %d",ret_err);
+		}else{
+			TRACE("Sending admin response to IMM successful.");
+		}
 	}
-	
 	plms_ent_list_free(aff_ent_list);
 	plms_ent_grp_list_free(trk_info.group_info_list);
 	trk_info.group_info_list = NULL;
