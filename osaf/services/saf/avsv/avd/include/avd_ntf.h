@@ -58,13 +58,15 @@ EXTERN_C void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 					SaAmfProxyStatusT old_state, SaAmfProxyStatusT new_state);
 
 /* general functions */
-EXTERN_C void fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
+EXTERN_C SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
 				   SaNtfEventTypeT eventType,
 				   SaNameT *comp_name,
 				   SaUint8T *add_text,
 				   SaUint16T majorId,
 				   SaUint16T minorId,
-				   SaInt8T *avnd_name);
+				   SaInt8T *avnd_name,
+				   NCSCONTEXT add_info,
+				   int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 EXTERN_C uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					SaNameT comp_name,
@@ -72,7 +74,9 @@ EXTERN_C uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					SaUint16T majorId,
 					SaUint16T minorId,
 					uns32 probableCause,
-					uns32 perceivedSeverity);
+					uns32 perceivedSeverity,
+					NCSCONTEXT add_info,
+					int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 EXTERN_C uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaNameT comp_name,
@@ -81,7 +85,9 @@ EXTERN_C uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaUint16T minorId,
 					      uns32 sourceIndicator,
 					      SaUint16T stateId,
-					      SaUint16T newState);
+					      SaUint16T newState,
+					      NCSCONTEXT add_info,
+					      int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 /* Clearing of alarms */
 EXTERN_C void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause);
