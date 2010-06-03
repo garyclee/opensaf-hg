@@ -923,3 +923,46 @@ void avd_imm_update_runtime_attrs(void)
 		si = avd_si_getnext(&si->name);
 	}
 }
+
+
+/*****************************************************************************
+ * Function: avd_imm_re-init
+ *
+ * Purpose: This function Initialize the OI interface and get a selection 
+ *          object.
+ *
+ * Input: cb  - AVD control block
+ * 
+ * Returns: Void pointer.
+ * 
+ * NOTES: None.
+ * 
+ **************************************************************************/
+
+SaAisErrorT avd_imm_re_init(void *avd_cb)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
+
+	TRACE_ENTER();
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+
+	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize failed %u", error);
+		goto done;
+	}
+
+
+	if ((error = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet failed %u", error);
+		goto done;
+	}
+
+	TRACE("Successfully initialized IMM");
+
+done:
+	TRACE_LEAVE();
+	return error;
+}
+

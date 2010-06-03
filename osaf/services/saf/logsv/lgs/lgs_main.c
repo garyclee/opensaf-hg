@@ -301,10 +301,6 @@ static void *imm_reinit_thread(void *_cb)
 	if (cb->ha_state == SA_AMF_HA_ACTIVE)
 		lgs_imm_impl_set(cb);
 
-	TRACE("New IMM fd: %llu", cb->immSelectionObject);
-	fds[FD_IMM].fd = cb->immSelectionObject;
-	nfds = FD_IMM + 1;
-
 	/* Wake up the main thread so it discovers the new imm descriptor. */
 	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));
 	assert(lgsv_evt);
@@ -381,6 +377,15 @@ int main(int argc, char *argv[])
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+
+		if (lgs_cb->immOiHandle != 0) {
+			fds[FD_IMM].fd = lgs_cb->immSelectionObject;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+		} else {
+			nfds = FD_IMM;
+		}
+
 		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
@@ -448,12 +453,6 @@ int main(int argc, char *argv[])
 				 */
 				saImmOiFinalize(lgs_cb->immOiHandle);
 				lgs_cb->immOiHandle = 0;
-
-				/* 
-				 * Skip the IMM file descriptor in next poll(), IMM fd must
-				 * be the last in the fd array.
-				 */
-				nfds = FD_MBX + 1;
 
 				/* Initiate IMM reinitializtion in the background */
 				imm_reinit_bg(lgs_cb);

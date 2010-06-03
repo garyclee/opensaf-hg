@@ -42,7 +42,7 @@
 #include "SmfCampState.hh"
 
 static SaVersionT immVersion = { 'A', 2, 1 };
-
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) "safSmfService";
 
 static const SaImmClassNameT campaignClassName = (SaImmClassNameT) "SaSmfCampaign";
@@ -518,7 +518,7 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 	SaImmAttrValuesT_2 **attributes;
 
 	TRACE_ENTER();
-
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->campaignOiHandle, &callbacks, &immVersion);
 	if (rc != SA_AIS_OK) {
 		return NCSCC_RC_FAILURE;
@@ -636,4 +636,65 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * Activate implementer for Campaign class.
+ * Retrieve the SaSmfCampaign configuration from IMM using the
+ * IMM-OM interface and initialize the corresponding information
+ * in the Campaign list.
+ */
+void* smfd_coi_reinit_thread(void * _cb)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
+	smfd_cb_t * cb = (smfd_cb_t *)_cb;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	rc = immutil_saImmOiInitialize_2(&cb->campaignOiHandle, &callbacks, &immVersion);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiInitialize_2 failed %u", rc);
+		exit(EXIT_FAILURE);
+	}
+
+	rc = immutil_saImmOiSelectionObjectGet(cb->campaignOiHandle, &cb->campaignSelectionObject);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiSelectionObjectGet failed %u", rc);
+		exit(EXIT_FAILURE);
+	}
+
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		rc = immutil_saImmOiImplementerSet(cb->campaignOiHandle, implementerName);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("immutil_saImmOiImplementerSet failed %u", rc);
+			exit(EXIT_FAILURE);
+		}
+
+		rc = immutil_saImmOiClassImplementerSet(cb->campaignOiHandle, campaignClassName);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("immutil_saImmOiClassImplementerSet failed %u", rc);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	TRACE_LEAVE();
+	return NULL;
+}
+
+void smfd_coi_reinit_bg(smfd_cb_t *cb)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	TRACE_ENTER();
+	if (pthread_create(&thread, &attr, smfd_coi_reinit_thread, cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	
+	pthread_attr_destroy(&attr);
+	
+	TRACE_LEAVE();
 }

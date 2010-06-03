@@ -187,7 +187,7 @@ typedef enum {
 } smfd_pollfd_t;
 
 struct pollfd fds[SMFD_MAX_FD];
-
+static nfds_t nfds =  SMFD_MAX_FD;
 /**
  * Restore USR1 signal handling.
  */
@@ -223,7 +223,16 @@ static void main_process(void)
 	fds[SMFD_COI_FD].events = POLLIN;
 
 	while (1) {
-		int ret = poll(fds, SMFD_MAX_FD, -1);
+
+		if (smfd_cb->campaignOiHandle != 0) {
+			fds[SMFD_COI_FD].fd = smfd_cb->campaignSelectionObject;
+			fds[SMFD_COI_FD].events = POLLIN;
+			nfds = SMFD_MAX_FD;
+		} else {
+			nfds = SMFD_MAX_FD -1 ;
+		}
+		
+		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -270,8 +279,35 @@ static void main_process(void)
 			if ((error =
 			     saImmOiDispatch(smfd_cb->campaignOiHandle,
 					     SA_DISPATCH_ALL)) != SA_AIS_OK) {
-				LOG_ER("saImmOiDispatch FAILED: %u", error);
-				break;
+				/*
+				 ** BAD_HANDLE is interpreted as an IMM service restart. Try
+				 ** reinitialize the IMM OI API in a background thread and let
+				 ** this thread do business as usual especially handling write
+				 ** requests.
+				 **
+				 ** All other errors are treated as non-recoverable (fatal) and will
+				 ** cause an exit of the process.
+				 */
+				if (error == SA_AIS_ERR_BAD_HANDLE) {
+					TRACE("main: saImmOiDispatch returned BAD_HANDLE");
+
+					/*
+					 ** Invalidate the IMM OI handle, this info is used in other
+					 ** locations. E.g. giving TRY_AGAIN responses to a create and
+					 ** close app stream requests. That is needed since the IMM OI
+					 ** is used in context of these functions.
+					 */
+					saImmOiFinalize(smfd_cb->campaignOiHandle );
+					smfd_cb->campaignOiHandle = 0;
+
+					/* Initiate IMM reinitializtion in the background */
+					smfd_coi_reinit_bg(smfd_cb);
+					
+
+				} else if (error != SA_AIS_OK) {
+					LOG_ER("main: saImmOiDispatch FAILED %u", error);
+					break;
+				}
 			}
 		}
 	}

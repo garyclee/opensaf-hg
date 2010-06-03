@@ -510,3 +510,53 @@ void mqnd_imm_declare_implementer(MQND_CB *cb)
 	}
 	pthread_attr_destroy(&attr);
 }
+
+/**
+ * Initialize the OI interface and get a selection object. 
+ * @param cb
+ * 
+ * @return SaAisErrorT
+ */
+static void  *mqnd_imm_reinit_thread(void * _cb)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	MQND_CB *cb = (MQND_CB *)_cb;
+	TRACE_ENTER();
+	/* Reinitiate IMM */
+	error = mqnd_imm_initialize(cb);
+	if (error == SA_AIS_OK) {
+		/* If this is the active server, become implementer again. */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+			_mqnd_imm_declare_implementer(cb);
+	}
+	else
+	{
+		LOG_ER("mqnd_imm_initialize FAILED: %s", strerror(error));
+		exit(EXIT_FAILURE);
+	}
+	TRACE_LEAVE();
+	return NULL;
+}
+
+
+/**
+ * Become object and class implementer, non-blocking.
+ * @param cb
+ */
+void mqnd_imm_reinit_bg(MQND_CB * cb)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	TRACE_ENTER();
+
+	if (pthread_create(&thread, &attr, mqnd_imm_reinit_thread, cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	pthread_attr_destroy(&attr);
+	TRACE_LEAVE();
+}
+

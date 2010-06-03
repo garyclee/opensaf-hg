@@ -40,7 +40,7 @@
 /* function prototypes */
 EXTERN_C void dts_imm_declare_implementer(DTS_CB *cb);
 EXTERN_C SaAisErrorT dts_imm_initialize(DTS_CB *cb);
-EXTERN_C SaAisErrorT dts_imm_initialize(DTS_CB *cb);
+EXTERN_C void dts_imm_reinit_bg(DTS_CB * cb);
 EXTERN_C SaAisErrorT dts_read_log_policies(char *className);
 EXTERN_C SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
 EXTERN_C unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
