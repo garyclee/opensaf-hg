@@ -30,6 +30,21 @@
   dta_lib_req                  - SE API to create DTA.
   dta_lib_init                 - Create DTA service.
   dta_lib_destroy              - Distroy DTA service.
+
+  TRACE GUIDE:
+  Policy is to not use logging/syslog from library code.
+  Only the trace part of logtrace is used from library. 
+ 
+  It is possible to turn on trace for the DTA library used
+  by an application process. This is done by the application 
+  defining the environment variable: DTA_TRACE_PATHNAME.
+  The trace will end up in the file defined by that variable.
+
+  TRACE   debug traces                 - aproximates DEBUG  
+  TRACE_1 normal but important events  - aproximates INFO.
+  TRACE_2 user errors with return code - aproximates NOTICE.
+  TRACE_3 unusual or strange events    - aproximates WARNING
+  TRACE_4 library errors ERR_LIBRARY   - aproximates ERROR
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
@@ -97,6 +112,12 @@ uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info)
 	DTA_LM_ARG arg;
 	NCSCONTEXT task_handle;
 	DTA_CB *inst = &dta_cb;
+	char *value = NULL;	
+	
+	 /* Initialize trace system first of all so we can see what is going. */
+        if ((value = getenv("DTA_TRACE_PATHNAME")) != NULL) {
+               logtrace_init("dta", value, CATEGORY_ALL);
+        }
 
 	memset(inst, 0, sizeof(DTA_CB));
 	/* Smik - Changes to create a task for DTA */

@@ -57,12 +57,12 @@
 uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 {
 #if (DTS_DEBUG == 1)
-	printf("IN DTS_DBG_SINK: line %d, file %s\n", l, f);
+	TRACE("IN DTS_DBG_SINK: line %d, file %s\n", l, f);
 #endif
 
 	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-		printf("Reason : %s \n", str);
+		TRACE("Reason : %s \n", str);
 #endif
 
 #if (DTS_LOG == 1)
@@ -76,12 +76,12 @@ uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
 {
 #if (DTS_DEBUG == 1)
-	printf("IN DTS_DBG_SINK: SVC = %d, line %d, file %s\n", svc, l, f);
+	TRACE("IN DTS_DBG_SINK: SVC = %d, line %d, file %s\n", svc, l, f);
 #endif
 
 	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-		printf("Reason : %s \n", str);
+		TRACE("Reason : %s \n", str);
 #endif
 
 #if (DTS_LOG == 1)
@@ -96,12 +96,12 @@ uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
 uns32 dts_dbg_sink_svc_name(uns32 l, char *f, uns32 code, char *str, char *svc)
 {
 #if (DTS_DEBUG == 1)
-	printf("IN DTS_DBG_SINK: SVC = %s, line %d, file %s\n", svc, l, f);
+	TRACE("IN DTS_DBG_SINK: SVC = %s, line %d, file %s\n", svc, l, f);
 #endif
 
 	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-		printf("Reason : %s \n", str);
+		TRACE("Reason : %s \n", str);
 #endif
 
 #if (DTS_LOG == 1)

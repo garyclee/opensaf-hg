@@ -91,12 +91,4 @@
 #define DTS_DEBUG                  0
 #endif
 
-#ifndef DTS_TRACE
-#define DTS_TRACE                  0
-#endif
-
-#ifndef DTS_TRACE2
-#define DTS_TRACE2                 0
-#endif
-
 #endif   /* #ifndef DTS_OPT_H */

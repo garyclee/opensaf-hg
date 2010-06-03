@@ -41,12 +41,12 @@ static int __init_dts(void)
 	env = getenv("DTS_LOG_ALL");
 	if (env != NULL) {
 		if (atoi(env)) {
-			m_NCS_DBG_PRINTF("\nINFO:DTS default service severity = ALL\n");
+			TRACE("\nINFO:DTS default service severity = ALL\n");
 			gl_severity_filter = GLOBAL_SEVERITY_FILTER_ALL;
 		}
 	}
 
-	m_NCS_DBG_PRINTF("\nDTSV:DTS:ON");
+	TRACE("\nDTSV:DTS:ON");
 	if (dts_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "dts_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

@@ -64,26 +64,4 @@ EXTERN_C uns32 dta_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
 #define m_DTA_DBG_SINK_VOID(r, s)
 #endif
 
-/*
- * m_DTA_DBG_TRACE
- *
- * This macro is invoked at segnificant DTA function entry and exit
- * points. It may facilitate the understanding in terms of how DTA 
- * works as well as a means to trace where errors may be occuring in code.
- *
- * If DTA_TRACE == 1, m_DTA_DBG_TRACE maps to (trace) functionality.
- *
- * If DTA_TRACE == 0, m_DTA_DBG_TRACE is benign and removed from executable.
- *
- * DTA_TRACE can be enabled in dta_opt,h
- */
-
-#if (DTA_TRACE == 1)
-
-#define m_DTA_DBG_TRACE(t) printf(t)
-#else
-
-#define m_DTA_DBG_TRACE(t)
-#endif
-
 #endif   /* DTA_TGT_H */

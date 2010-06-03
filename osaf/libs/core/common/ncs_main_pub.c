@@ -22,6 +22,20 @@
 
   DESCRIPTION:       Contains an API that agent starts up NCS.
 
+  TRACE GUIDE:
+  Policy is to not use logging/syslog from library code.
+  Only the trace part of logtrace is used from library. 
+
+  It is possible to turn on trace for the IMMA library used
+  by an application process. This is done by the application 
+  defining the environment variable: IMMA_TRACE_PATHNAME.
+  The trace will end up in the file defined by that variable.
+ 
+  TRACE   debug traces                 - aproximates DEBUG  
+  TRACE_1 normal but important events  - aproximates INFO.
+  TRACE_2 user errors with return code - aproximates NOTICE.
+  TRACE_3 unusual or strange events    - aproximates WARNING
+  TRACE_4 library errors ERR_LIBRARY   - aproximates ERROR
 ******************************************************************************
 */
 
@@ -159,24 +173,6 @@ static uns32 ncs_update_sys_param_args(void);
 
 static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 
-#ifndef NCSMAINPUB_TRACE_LEVEL
-#define NCSMAINPUB_TRACE_LEVEL 1
-#endif
-
-#if (NCSMAINPUB_TRACE_LEVEL == 1)
-#define NCSMAINPUB_TRACE1_ARG1(x)    printf(x)
-#define NCSMAINPUB_TRACE1_ARG2(x,y)  printf(x,y)
-
-#define NCSMAINPUB_DBG_TRACE1_ARG1(x)    m_NCS_DBG_PRINTF(x)
-#define NCSMAINPUB_DBG_TRACE1_ARG2(x,y)  m_NCS_DBG_PRINTF(x,y)
-#else
-#define NCSMAINPUB_TRACE1_ARG1(x)
-#define NCSMAINPUB_TRACE1_ARG2(x,y)
-
-#define NCSMAINPUB_DBG_TRACE1_ARG1(x)
-#define NCSMAINPUB_DBG_TRACE1_ARG2(x,y)
-#endif
-
 static NCS_MAIN_PUB_CB gl_ncs_main_pub_cb;
 
 /* Global argument definitions */
@@ -246,7 +242,7 @@ unsigned int ncs_leap_startup(void)
 
 	/* Print the process-id for information sakes */
 	gl_ncs_main_pub_cb.my_procid = (uns32)getpid();
-	NCSMAINPUB_DBG_TRACE1_ARG2("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
+	TRACE("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
 
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
@@ -255,13 +251,13 @@ unsigned int ncs_leap_startup(void)
 
    	/* Initalize basic services */
 	if (leap_env_init() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't initialised LEAP basic services \n");
+		TRACE_4("\nERROR: Couldn't initialised LEAP basic services \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (sprr_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("\nERROR: SPRR lib_req failed \n");
+		TRACE_4("\nERROR: SPRR lib_req failed \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -288,7 +284,7 @@ unsigned int ncs_mds_startup(void)
 	m_NCS_AGENT_LOCK;
 
 	if (!gl_ncs_main_pub_cb.leap_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nLEAP core not yet started.... \n");
+		TRACE_4("\nLEAP core not yet started.... \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -301,7 +297,7 @@ unsigned int ncs_mds_startup(void)
 
 	/* Get & Update system specific arguments */
 	if (ncs_update_sys_param_args() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: Update System Param args \n");
+		TRACE_4("ERROR: Update System Param args \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -313,14 +309,14 @@ unsigned int ncs_mds_startup(void)
 
 	/* STEP : Initialize the MDS layer */
 	if (mds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: MDS lib_req failed \n");
+		TRACE_4("ERROR: MDS lib_req failed \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* STEP : Initialize the ADA/VDA layer */
 	if (mda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: MDA lib_req failed \n");
+		TRACE_4("ERROR: MDA lib_req failed \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -344,13 +340,13 @@ unsigned int ncs_dta_startup(void)
 	m_NCS_AGENT_LOCK;
 
 	if (!gl_ncs_main_pub_cb.leap_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
+		TRACE_4("\nLEAP not yet started.... \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (!gl_ncs_main_pub_cb.mds_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
+		TRACE_4("\nMDS not yet started.... \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -368,7 +364,7 @@ unsigned int ncs_dta_startup(void)
 
 	/* STEP : Initialize the DTA layer */
 	if (dta_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA lib_req failed \n");
+		TRACE_4("ERROR: DTA lib_req failed \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
 	}
@@ -408,17 +404,17 @@ unsigned int ncs_core_agents_startup(void)
 	}
 
 	if (ncs_leap_startup() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: LEAP svcs startup failed \n");
+		TRACE_4("ERROR: LEAP svcs startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
 	if (ncs_mds_startup() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: MDS startup failed \n");
+		TRACE_4("ERROR: MDS startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
 	if (ncs_dta_startup() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA startup failed \n");
+		TRACE_4("ERROR: DTA startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -438,7 +434,7 @@ unsigned int ncs_mbca_startup(void)
 	NCS_LIB_REQ_INFO lib_create;
 
 	if (!gl_ncs_main_pub_cb.core_started) {
-		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		TRACE_4("\nNCS core not yet started.... \n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -459,13 +455,13 @@ unsigned int ncs_mbca_startup(void)
 		gl_ncs_main_pub_cb.mbca.lib_req =
 		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
 		if (gl_ncs_main_pub_cb.mbca.lib_req == NULL) {
-			NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:OFF");
+			TRACE_4("\nMBCSV:MBCA:OFF");
 		} else {
 			if ((*gl_ncs_main_pub_cb.mbca.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
 				m_NCS_AGENT_UNLOCK;
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			} else {
-				NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:ON");
+				TRACE("\nMBCSV:MBCA:ON");
 				gl_ncs_main_pub_cb.mbca.use_count = 1;
 			}
 		}
@@ -625,7 +621,7 @@ void ncs_dta_shutdown()
 unsigned int ncs_core_agents_shutdown()
 {
 	if (!gl_ncs_main_pub_cb.core_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		TRACE_4("\nNCS core not yet started.... \n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -718,7 +714,7 @@ uns32 mainget_node_id(uns32 *node_id)
 	{
 		char *tmp = getenv("NCS_SIM_NODE_ID");
 		if (tmp != NULL) {
-			m_NCS_DBG_PRINTF("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
+			TRACE("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
 			*node_id = atoi(tmp);
 			return NCSCC_RC_SUCCESS;
 		}
@@ -727,7 +723,7 @@ uns32 mainget_node_id(uns32 *node_id)
 	d_len = strlen(ncs_config_root);
 	f_len = strlen("/node_id");
 	if ((d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN) {
-		printf("\n Filename too long \n");
+		TRACE_4("\n Filename too long \n");
 		return NCSCC_RC_FAILURE;
 	}
 	/* Hack ncs_config_root to construct path */
@@ -783,7 +779,7 @@ uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
 
 	f_len = strlen("/chassis_type");
 	if ((d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN) {
-		printf("\n Filename too long \n");
+		TRACE_4("\n Filename too long \n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -791,13 +787,13 @@ uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
 	sprintf(temp_ncs_config_root + d_len, "%s", "/chassis_type");
 	fp = fopen(temp_ncs_config_root, "r");
 	if (fp == NULL) {
-		printf("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
+		TRACE_4("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* positions the file pointer to the end of the file */
 	if (0 != fseek(fp, 0L, SEEK_END)) {
-		printf("fseek call failed with errno  %d \n", errno);
+		TRACE_4("fseek call failed with errno  %d \n", errno);
 		fclose(fp);
 		return NCSCC_RC_FAILURE;
 	}
@@ -805,21 +801,21 @@ uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
 	/* gets the file pointer offset from the start of the file */
 	file_size = ftell(fp);
 	if (file_size == -1) {
-		printf("ftell call failed with errno %d \n", errno);
+		TRACE_4("ftell call failed with errno %d \n", errno);
 		fclose(fp);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* validating the file size */
 	if ((file_size > NCS_MAX_CHASSIS_TYPE_LEN + 1) || (file_size > i_max_len + 1) || (file_size == 0)) {
-		printf("Some thing wrong with chassis_type file \n");
+		TRACE_4("Some thing wrong with chassis_type file \n");
 		fclose(fp);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* positions the file pointer to the end of the file */
 	if (0 != fseek(fp, 0L, SEEK_SET)) {
-		printf("fseek call failed with errno  %d \n", errno);
+		TRACE_4("fseek call failed with errno  %d \n", errno);
 		fclose(fp);
 		return NCSCC_RC_FAILURE;
 	}
@@ -848,12 +844,12 @@ static uns32 ncs_set_config_root(void)
 	tmp = getenv("NCS_SIMULATION_CONFIG_ROOTDIR");
 	if (tmp != NULL) {
 		if (strlen(tmp) >= MAX_NCS_CONFIG_ROOTDIR_LEN) {
-			printf("Config directory root name too long\n");
+			TRACE_4("Config directory root name too long\n");
 			return NCSCC_RC_FAILURE;
 		}
 		sprintf(ncs_config_root, "%s", tmp);
 
-		m_NCS_DBG_PRINTF("\nNCS: Using %s as config directory root\n", ncs_config_root);
+		TRACE("\nNCS: Using %s as config directory root\n", ncs_config_root);
 	} else {
 		sprintf(ncs_config_root, "/%s", NCS_DEF_CONFIG_FILEPATH);
 	}
@@ -869,12 +865,12 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 	memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
 
 	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS) {
-		printf("Unable to set config root \n");
+		TRACE_4("Unable to set config root \n");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (mainget_node_id(&sys_params->node_id) != NCSCC_RC_SUCCESS) {
-		printf("Not able to get the NODE ID\n");
+		TRACE_4("Not able to get the NODE ID\n");
 		return (NCSCC_RC_FAILURE);
 	}
 
@@ -930,7 +926,7 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 	if ((ptr = getenv("NCS_ENV_NODE_ID")) != NULL)
 		sys_params->node_id = atoi(ptr);
 
-	m_NCS_DBG_PRINTF("NCS:NODE_ID=0x%08X\n", sys_params->node_id);
+	TRACE("NCS:NODE_ID=0x%08X\n", sys_params->node_id);
 
 	gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
 
