@@ -21,7 +21,7 @@
 #include "saImm.h"
 
 #define GLSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safLckService"
-
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
 	.saImmOiCcbAbortCallback = NULL,
@@ -203,6 +203,7 @@ SaAisErrorT create_runtime_object(SaStringT rname, SaTimeT create_time, SaImmOiH
 SaAisErrorT gld_imm_init(GLSV_GLD_CB *cb)
 {
 	SaAisErrorT rc;
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK)
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);

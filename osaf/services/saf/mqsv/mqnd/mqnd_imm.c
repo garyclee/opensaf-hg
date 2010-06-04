@@ -17,7 +17,7 @@
 /******************************************************************************/
 #include "mqnd.h"
 #include "mqnd_imm.h"
-
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static SaUint32T getdata_from_mqd(MQND_CB *, MQND_QUEUE_NODE *);
 static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT, const SaNameT *, const SaImmAttrNameT *);
 SaImmOiCallbacksT_2 oi_cbks = {
@@ -443,6 +443,7 @@ SaAisErrorT mqnd_create_runtime_MsgQPriorityobject(SaStringT rname, MQND_QUEUE_N
 SaAisErrorT mqnd_imm_initialize(MQND_CB *cb)
 {
 	SaAisErrorT rc;
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
