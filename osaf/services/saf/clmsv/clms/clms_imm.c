@@ -175,6 +175,8 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 	memcpy(node->node_name.value, name->value, name->length);
 	node->node_name.length = name->length;
 	node->node_addr.family = 1;
+	node->admin_state = SA_CLM_ADMIN_UNLOCKED;
+
 	TRACE("nodename %s", node->node_name.value);
 
 	while ((attr = attrs[i++]) != NULL) {
@@ -1030,6 +1032,10 @@ uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIE
 		LOG_ER("Malloc failed for notification");
 		assert(0);
 	}
+	
+	memset(msg->info.cbk_info.param.track.buf_info.notification,0,
+			(msg->info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
+
 	if (notify != NULL) {
 		memcpy(msg->info.cbk_info.param.track.buf_info.notification, notify,
 		       (msg->info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
@@ -1368,12 +1374,10 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	CLMS_CLUSTER_NODE *node;
+	CLMS_CLUSTER_NODE *node = NULL;
 	CLMS_CKPT_REC ckpt;
 #ifdef ENABLE_AIS_PLM
-	SaNameT eename;
 	SaNameT *entityNames = NULL;
-	SaUint32T i = 0, entityNamesNumber = 0;
 #endif
 
 	TRACE_ENTER2("%s, %llu", opdata->objectName.value, opdata->ccbId);
@@ -1386,24 +1390,25 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		/*Checkpointing also need to be done */
 		/* Add to the plm entity group */
 #ifdef ENABLE_AIS_PLM
-		entityNamesNumber = ncs_patricia_tree_size(&clms_cb->nodes_db);
 
-		memset(&eename, 0, sizeof(SaNameT));
-		entityNames = (SaNameT *)malloc(sizeof(SaNameT) * entityNamesNumber);
-		node = clms_node_get_by_eename(&eename);
+		node = (CLMS_CLUSTER_NODE *)opdata->userData;
 
-		while (node != NULL) {
-			entityNames[i].length = node->ee_name.length;
-			(void)memcpy(entityNames[i].value, node->ee_name.value, entityNames[i].length);
-			node = clms_node_get_by_eename(&node->ee_name);
-			i++;
-		}
 		if(clms_cb->reg_with_plm == SA_TRUE) {
-			rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, entityNamesNumber,
-					SA_PLM_GROUP_SINGLE_ENTITY);
-			if (rc != SA_AIS_OK) {
-				LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
-				return rc;
+
+			if (node->ee_name.length != 0){
+
+				entityNames = (SaNameT *)malloc(sizeof(SaNameT));
+				memset(entityNames,0,sizeof(SaNameT));
+				entityNames->length = node->ee_name.length;
+				(void)memcpy(entityNames->value, node->ee_name.value, entityNames->length);
+
+				rc = saPlmEntityGroupAdd(clms_cb->ent_group_hdl, entityNames, 1,
+						SA_PLM_GROUP_SINGLE_ENTITY);
+				if (rc != SA_AIS_OK) {
+					LOG_ER("saPlmEntityGroupAdd FAILED rc = %d", rc);
+					return rc;
+				}
+				free(entityNames);
 			}
 		}
 #endif
