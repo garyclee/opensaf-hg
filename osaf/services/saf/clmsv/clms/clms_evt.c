@@ -33,6 +33,7 @@ static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
 static uns32 proc_node_get_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
 static uns32 proc_node_get_async_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
 static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt);
+static uns32 clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc);
 static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns32 sync_resp,
 				     MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt,
 				     uns32 client_id, SaAisErrorT ais_rc);
@@ -632,7 +633,10 @@ static uns32 proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
 
 /**
  * This function is called on receiving clmresponse for clm track callback
- *
+ * clms_ack_to_response_msg is used to send ack to saClmResponse before 
+ * data processing at server, if clms_ack_to_response_msg fails,  
+ * we are tracing failure reason and moving forward
+ *	
  * @param evt  - Message that was posted to the CLMS Mail box.
  *
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
@@ -644,8 +648,7 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	CLMS_TRACK_INFO *trkrec = NULL;
 	SaUint32T nodeid;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS, mds_rc = NCSCC_RC_SUCCESS;
-	CLMSV_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("param->resp %d", param->resp);
 
@@ -655,11 +658,17 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	if (op_node == NULL) {
 		LOG_ER("Invalid Invocation Id in saClmResponse");
 		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
 		goto done;
 	}
 
 	if (ncs_patricia_tree_size(&op_node->trackresp) == 0) {
 		TRACE("Drop the clmresponse message on the new active");
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
 		goto done;
 	}
 
@@ -668,6 +677,9 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	if (trkrec == NULL) {
 		LOG_ER("Invalid Invocation Id in saClmResponse");
 		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
 		goto done;
 	}
 
@@ -675,6 +687,10 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 
 	case SA_CLM_CALLBACK_RESPONSE_ERROR:
 		TRACE("Clm Client responded with error");
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
+
 		rc = clms_clmresp_error(cb, op_node);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_clmresp_error Failed");
@@ -683,6 +699,10 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 
 	case SA_CLM_CALLBACK_RESPONSE_REJECTED:
 		TRACE("Clm Client rejected the operation");
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
+
 		rc = clms_clmresp_rejected(cb, op_node, trkrec);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_clmresp_rejected failed");
@@ -690,6 +710,10 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		break;
 	case SA_CLM_CALLBACK_RESPONSE_OK:
 		TRACE("CLM Client responded OK");
+		rc = clms_ack_to_response_msg(cb, evt, ais_rc);
+		if(rc != NCSCC_RC_SUCCESS)
+			TRACE("clms_ack_to_response_msg failed rc = %u", (unsigned int)rc);
+
 		rc = clms_clmresp_ok(cb, op_node, trkrec);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_clmresp_ok failed");
@@ -698,15 +722,6 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	}
 
 done:
-	msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
-	msg.info.api_resp_info.type = CLMSV_RESPONSE_RESP;
-	msg.info.api_resp_info.rc = ais_rc;
-	mds_rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
-	if (mds_rc != NCSCC_RC_SUCCESS) {
-		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)mds_rc);
-		return mds_rc;
-	}
-
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1560,4 +1575,28 @@ void clms_evt_destroy(CLMSV_CLMS_EVT * evt)
 		TRACE("not calloced in server code,don't free it here");
 	} else
 		free(evt);
+}
+
+/*clms ack to response msg from clma
+* This is used to avoid mds timeout of saClmResponse
+* @param[in] clms evt,cb,ais rc
+* @return uns32 
+*/
+
+static uns32 clms_ack_to_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt, SaAisErrorT ais_rc)
+{
+	uns32 mds_rc = NCSCC_RC_SUCCESS;
+	CLMSV_MSG msg;
+
+	TRACE_ENTER();
+
+	msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+	msg.info.api_resp_info.type = CLMSV_RESPONSE_RESP;
+	msg.info.api_resp_info.rc = ais_rc;
+	mds_rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
+	if (mds_rc != NCSCC_RC_SUCCESS) {
+		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u", (unsigned int)mds_rc);
+		return mds_rc;
+	}
+	return mds_rc;
 }
