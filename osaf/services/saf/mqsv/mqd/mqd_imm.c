@@ -17,6 +17,7 @@
 /******************************************************************************/
 #include "mqd_imm.h"
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define QUEUE_MEMS 100
 
 SaImmOiCallbacksT_2 oi_cbks = {
@@ -185,6 +186,7 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 SaAisErrorT mqd_imm_initialize(MQD_CB *cb)
 {
 	SaAisErrorT rc;
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
 		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);

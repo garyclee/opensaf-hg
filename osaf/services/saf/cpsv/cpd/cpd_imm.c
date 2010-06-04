@@ -21,6 +21,7 @@
 #include "saImm.h"
 #include "cpd_log.h"
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define CPSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safCheckPointService"
 /* IMMSv Defs */
 #define CPSV_IMM_RELEASE_CODE 'A'
@@ -458,6 +459,7 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 SaAisErrorT cpd_imm_init(CPD_CB *cb)
 {
 	SaAisErrorT rc;
+	immutilWrapperProfile.errorsAreFatal = 0;
 	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
 		rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
