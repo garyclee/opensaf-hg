@@ -1435,7 +1435,7 @@ int32 plms_plmc_error_cbk(plmc_lib_error *msg)
 		LOG_ER("PLMS EXIT !!!!!! PLMC lib destroyed, I am helpless. PLMc act: %s",msg->action);
 		exit(0);
 	}
-	if (NULL == msg->ee_id){
+	if ('\0' == msg->ee_id[0]){
 		TRACE("Not posting to MBX, as no ee_id. PLMS can not handle it.");
 		TRACE_LEAVE2("Return Val: %d",TRUE);
 		return 0;
