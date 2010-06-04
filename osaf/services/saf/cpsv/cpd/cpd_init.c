@@ -246,11 +246,6 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_clm_fail;
 	}
 
-	if (saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL) != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		goto cpd_clm_fail;
-	}
-
 	if (cpd_imm_init(cb) != SA_AIS_OK) {
 		m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto cpd_imm_fail;
@@ -469,6 +464,12 @@ static void cpd_main_process(NCSCONTEXT info)
 		m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
+	
+	 if (saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL) != SA_AIS_OK) {
+                m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+                return;
+        }
+
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_AMF].fd = amf_sel_obj;
