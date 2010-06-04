@@ -309,11 +309,9 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	}
 
 	cb->nodeid = cluster_node.nodeId;
-
-	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
-	if (rc != SA_AIS_OK) {
-		TRACE("saClmClusterTrack Failed");
-		goto mqnd_clm_fail;
+	if (cb->nodeid == 0) {
+		TRACE("CLUSTER NODE ID is getting 0");
+		assert(0);
 	}
 
 	cb->clm_node_joined = 1;
@@ -785,6 +783,12 @@ static void mqnd_main_process(NCSCONTEXT info)
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
+	
+        if (saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL) != SA_AIS_OK) {
+                TRACE("saClmClusterTrack Failed");
+                return;
+        }
+
 
 	while (1) {
 
