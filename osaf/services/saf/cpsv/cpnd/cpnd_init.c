@@ -222,20 +222,23 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 		goto cpnd_clm_init_fail;
 	}
 	cb->clm_hdl = clmHandle;
+
+        if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
+                m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+                return rc;
+        }
+
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, NCS_SAF_ACCEPT_TIME, &cluster_node);
 	if (rc != SA_AIS_OK) {
 		m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto cpnd_clm_fail;
 	}
 	cb->nodeid = cluster_node.nodeId;
+
 	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK) {
 		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto cpnd_clm_fail;
-	}
-	if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
-		m_LOG_CPND_CL(CPND_CLM_INIT_FAILED, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		return rc;
 	}
 	/* Initialise with the AMF service */
 	if (cpnd_amf_init(cb) != NCSCC_RC_SUCCESS) {
