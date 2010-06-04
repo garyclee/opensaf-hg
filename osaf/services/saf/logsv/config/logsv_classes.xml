@@ -77,7 +77,7 @@
 	<class name="SaLogStreamConfig">
 		<category>SA_CONFIG</category>
 		<rdn>
-			<name>safLgStr</name>
+			<name>safLgStrCfg</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
