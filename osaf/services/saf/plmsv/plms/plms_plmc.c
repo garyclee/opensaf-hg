@@ -47,6 +47,7 @@ static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *);
 
 static void plms_insted_dep_immi_failure_cbk_call(PLMS_ENTITY *, PLMS_GROUP_ENTITY *);
+static void plms_is_dep_set_cbk_call(PLMS_ENTITY *);
 /******************************************************************************
 @brief		: Process instantiating event from PLMC.
 		  1. Do the OS verification irrespective of previous state.
@@ -330,7 +331,11 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE))) || 
 	(!plms_min_dep_is_ok(ent))){
 		
-		LOG_ER("Term the entity, as the admin state is lckinst or parent is in OOS. Ent: %s",
+		/* Check if the dependency flag can be set. If yes then set the dependency flag and
+		call appropiate callback with cause as .*/
+		plms_is_dep_set_cbk_call(ent);
+
+		LOG_ER("Term the entity, as the admin state is lckinst or parent/dep is in OOS. Ent: %s",
 		ent->dn_name_str);
 		ret_err = plmc_sa_plm_admin_lock_instantiation(ent->dn_name_str,
 		plms_plmc_tcp_cbk);
@@ -3061,5 +3066,42 @@ void plms_insted_dep_immi_failure_cbk_call(PLMS_ENTITY *ent, PLMS_GROUP_ENTITY *
 	plms_ent_grp_list_free(trk_info.group_info_list);
 	plms_ent_list_free(trk_info.aff_ent_list);
 
+	return;
+}
+
+/******************************************************************************
+@brief		: Call readiness callback if dependency flag is set. 
+@param[in]	: ent - Entity.
+@return		: None.
+******************************************************************************/
+void plms_is_dep_set_cbk_call(PLMS_ENTITY *ent)
+{
+	PLMS_TRACK_INFO trk_info;
+	
+	memset(&trk_info,0,sizeof(PLMS_TRACK_INFO));
+	trk_info.aff_ent_list = NULL;
+	trk_info.group_info_list = NULL;
+	
+	if (((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE))) || 
+	(!plms_min_dep_is_ok(ent))){
+		if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_DEPENDENCY)){
+				
+			plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_DEPENDENCY,1/*mark*/,
+			NULL,SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+			plms_ent_grp_list_add(ent,&(trk_info.group_info_list));
+			plms_ent_exp_rdness_state_ow(ent);
+
+			trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
+			trk_info.track_cause = SA_PLM_CAUSE_EE_INSTANTIATED;
+			trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+			trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
+			trk_info.root_entity = ent;
+			plms_cbk_call(&trk_info,1);
+			/* Clean up part.*/
+			plms_ent_exp_rdness_status_clear(ent);
+			plms_ent_grp_list_free(trk_info.group_info_list);
+		}
+	}
 	return;
 }
