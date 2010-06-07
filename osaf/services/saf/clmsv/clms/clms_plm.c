@@ -113,9 +113,17 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 
 			node = clms_node_get_by_eename(&trackedEntities->entities[i].entityName);
 
-			if (node == NULL) {
-				TRACE("node not in database");
-				assert(0);
+			if (cause == SA_PLM_CAUSE_GROUP_CHANGE){
+				if (trackedEntities->entities[i].change == SA_PLM_GROUP_MEMBER_REMOVED){
+					if (node == NULL)
+						TRACE("Node removed from PLM Group,callback received for entity removal");
+						goto done;
+				}
+			} else {
+				if (node == NULL){
+					TRACE("node not in database");
+					assert(0);
+				}
 			}
 
 			TRACE("nodeup %d", node->nodeup);
