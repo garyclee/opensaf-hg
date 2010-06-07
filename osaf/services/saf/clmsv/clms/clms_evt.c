@@ -1392,7 +1392,7 @@ static uns32 clms_track_current_resp(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, uns
 		}
 		memset(notify, 0, num_mem * sizeof(SaClmClusterNotificationT_4));
 
-		while ((rp = clms_node_getnext_by_id(node_id)) != NULL) {
+		while (((rp = clms_node_getnext_by_id(node_id)) != NULL) && (i < num_mem)) {
 			node_id = rp->node_id;
 			if (rp->member == SA_TRUE) {
 				notify[i].clusterNode.nodeId = rp->node_id;

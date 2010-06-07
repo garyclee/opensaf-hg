@@ -234,11 +234,11 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaVersionT plmVersion = { 'A', 0x01, 0x01 };
-	SaNameT *entityNames;
+	SaNameT *entityNames = NULL;
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaNameT nodename;
 	SaUint32T i = 0, entityNamesNumber = ncs_patricia_tree_size(&clms_cb->ee_lookup);
-	SaPlmReadinessTrackedEntitiesT *trackedEntities;
+	SaPlmReadinessTrackedEntitiesT *trackedEntities = NULL;
 
 	TRACE_ENTER();
 
@@ -265,6 +265,11 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 		memset(&nodename, '\0', sizeof(SaNameT));
 		entityNames = (SaNameT *)malloc(sizeof(SaNameT) * entityNamesNumber);
 
+		if (!entityNames) {
+			LOG_ER("Malloc failed for entityNames");
+			assert(0);
+		}
+
 		TRACE("entityNamesNumber %d", entityNamesNumber);
 
 		while ((node = clms_node_getnext_by_name(&nodename)) != NULL) {
@@ -285,6 +290,11 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 
 		trackedEntities = (SaPlmReadinessTrackedEntitiesT *)
 			malloc(entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT));
+
+		if(!trackedEntities) {
+			LOG_ER("Malloc failed for trackedEntities");
+			assert(0);
+		}
 
 		memset(trackedEntities, 0, (entityNamesNumber * sizeof(SaPlmReadinessTrackedEntitiesT)));
 
@@ -307,6 +317,9 @@ SaAisErrorT clms_plm_init(CLMS_CB * cb)
 
 		}
 	}
+
+	free(entityNames);
+	free(trackedEntities);
 
 	TRACE_LEAVE();
 

@@ -948,6 +948,7 @@ uns32 encode_client_rec(NCS_UBAID *uba)
 	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
 	if (pheader == NULL) {
 		TRACE("  ncs_enc_reserve_space FAILED");
+		free(client);
 		return 0;
 	}
 	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
@@ -959,6 +960,7 @@ uns32 encode_client_rec(NCS_UBAID *uba)
 		client->track_flags = client_db->track_flags;
 		if (enc_mbcsv_client_rec_msg(uba, client) == 0) {
 			TRACE("ckpt client encode failed FAILED");
+			free(client);
 			return 0;
 		}
 		++count;
@@ -992,6 +994,7 @@ uns32 encode_node_rec(NCS_UBAID *uba)
 	pheader = ncs_enc_reserve_space(uba, sizeof(CLMSV_CKPT_HEADER));
 	if (pheader == NULL) {
 		TRACE("  ncs_enc_reserve_space FAILED");
+		free(node);
 		return 0;
 	}
 	ncs_enc_claim_space(uba, sizeof(CLMSV_CKPT_HEADER));
@@ -1001,6 +1004,7 @@ uns32 encode_node_rec(NCS_UBAID *uba)
 		prepare_ckpt_node(node, cluster_node);
 		if (enc_mbcsv_node_msg(uba, node) == 0) {
 			TRACE("ckpt node encode failed FAILED");
+			free(node);
 			return 0;
 		}
 		++count;
@@ -2132,17 +2136,17 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 static uns32 ckpt_decode_async_update(CLMS_CB * cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS, num_bytes = 0;
-	CLMS_CKPT_REC *ckpt_msg;
+	CLMS_CKPT_REC *ckpt_msg = NULL;
 	CLMSV_CKPT_HEADER *hdr = NULL;
-	CLMSV_CKPT_CLIENT_INFO *ckpt_client_rec;
-	CLMSV_CKPT_FINALIZE_INFO *ckpt_finalize_rec;
-	CLMSV_CKPT_NODE_RUNTIME_INFO *ckpt_node_rec;
-	CLMSV_CKPT_NODE *ckpt_csync_node_rec;
-	CLMSV_CKPT_NODE_CONFIG_REC *ckpt_node_config_rec;
-	CLMSV_CKPT_NODE_DEL_REC *ckpt_node_del_rec;
-	CLMSV_CKPT_AGENT_DOWN_REC *ckpt_agent_down;
-	CLMSV_CKPT_CLUSTER_INFO *ckpt_cluster_rec;
-	CLMSV_CKPT_NODE_DOWN_INFO *ckpt_node_down_rec;
+	CLMSV_CKPT_CLIENT_INFO *ckpt_client_rec = NULL;
+	CLMSV_CKPT_FINALIZE_INFO *ckpt_finalize_rec = NULL;
+	CLMSV_CKPT_NODE_RUNTIME_INFO *ckpt_node_rec = NULL;
+	CLMSV_CKPT_NODE *ckpt_csync_node_rec = NULL;
+	CLMSV_CKPT_NODE_CONFIG_REC *ckpt_node_config_rec = NULL;
+	CLMSV_CKPT_NODE_DEL_REC *ckpt_node_del_rec = NULL;
+	CLMSV_CKPT_AGENT_DOWN_REC *ckpt_agent_down = NULL;
+	CLMSV_CKPT_CLUSTER_INFO *ckpt_cluster_rec = NULL;
+	CLMSV_CKPT_NODE_DOWN_INFO *ckpt_node_down_rec = NULL;
 
 	TRACE_ENTER();
 
