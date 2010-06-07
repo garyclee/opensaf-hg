@@ -1040,6 +1040,9 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 
 		}
 	}
+
+	free(notify_changes_only);
+	free(notify_changes);
 	TRACE_LEAVE();
 	return rc;
 }

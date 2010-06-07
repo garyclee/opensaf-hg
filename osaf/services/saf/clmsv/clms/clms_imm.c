@@ -849,6 +849,8 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 
 		}
 	}
+	free(notify_changes_only);
+	free(notify_changes);
 	TRACE_LEAVE();
 }
 
@@ -860,106 +862,94 @@ void clms_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, SaClmChangeStepT st
 */
 uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step)
 {
-	CLMSV_MSG *msg = NULL;
+	CLMSV_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-	msg = (CLMSV_MSG *) malloc(sizeof(CLMSV_MSG));
-	if (!msg) {
-		LOG_ER("Malloc failed for CLMSV_MSG");
-		assert(0);
-	}
-
 	/* stick the notification buffer into the message */
-	memset(msg, 0, sizeof(CLMSV_MSG));
+	memset(&msg, 0, sizeof(CLMSV_MSG));
 
 	/* Fill the msg */
-	msg->evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
-	msg->info.cbk_info.client_id = client->client_id;
-	msg->info.cbk_info.type = CLMSV_TRACK_CBK;
-	msg->info.cbk_info.param.track.mem_num = osaf_cluster->num_nodes;
-	msg->info.cbk_info.param.track.err = SA_AIS_OK;
-	msg->info.cbk_info.param.track.inv = client->inv_id;
+	msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
+	msg.info.cbk_info.client_id = client->client_id;
+	msg.info.cbk_info.type = CLMSV_TRACK_CBK;
+	msg.info.cbk_info.param.track.mem_num = osaf_cluster->num_nodes;
+	msg.info.cbk_info.param.track.err = SA_AIS_OK;
+	msg.info.cbk_info.param.track.inv = client->inv_id;
 
-	msg->info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
+	msg.info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
 
 	if (node->admin_op != PLM) {
-		msg->info.cbk_info.param.track.root_cause_ent->length = node->node_name.length;
-		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->node_name.value,
+		msg.info.cbk_info.param.track.root_cause_ent->length = node->node_name.length;
+		memcpy(msg.info.cbk_info.param.track.root_cause_ent->value, node->node_name.value,
 		       node->node_name.length);
 	} else {
-		msg->info.cbk_info.param.track.root_cause_ent->length = node->ee_name.length;
-		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->ee_name.value, node->ee_name.length);
+		msg.info.cbk_info.param.track.root_cause_ent->length = node->ee_name.length;
+		memcpy(msg.info.cbk_info.param.track.root_cause_ent->value, node->ee_name.value, node->ee_name.length);
 	}
 
-	msg->info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));	/*Not Supported as of now */
-	msg->info.cbk_info.param.track.step = step;
+	msg.info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));	/*Not Supported as of now */
+	msg.info.cbk_info.param.track.step = step;
 
 	if (step == SA_CLM_CHANGE_START)
-		msg->info.cbk_info.param.track.time_super = node->lck_cbk_timeout;
+		msg.info.cbk_info.param.track.time_super = node->lck_cbk_timeout;
 	else
-		msg->info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
+		msg.info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
 
-	msg->info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
+	msg.info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
 
 	if (client->track_flags & SA_TRACK_CHANGES_ONLY){
-		msg->info.cbk_info.param.track.buf_info.numberOfItems = 1;
-		msg->info.cbk_info.param.track.buf_info.notification = (SaClmClusterNotificationT_4 *) malloc(
+		msg.info.cbk_info.param.track.buf_info.numberOfItems = 1;
+		msg.info.cbk_info.param.track.buf_info.notification = (SaClmClusterNotificationT_4 *) malloc(
                                                    sizeof(SaClmClusterNotificationT_4));
 
-		if (!msg->info.cbk_info.param.track.buf_info.notification) {
+		if (!msg.info.cbk_info.param.track.buf_info.notification) {
 			LOG_ER("Malloc failed for notification");
 			assert(0);
 		}
 
-		memset(msg->info.cbk_info.param.track.buf_info.notification, 0, sizeof(SaClmClusterNotificationT_4));
+		memset(msg.info.cbk_info.param.track.buf_info.notification, 0, sizeof(SaClmClusterNotificationT_4));
 
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeId = node->node_id;
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeId = node->node_id;
 
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.family = node->node_addr.family;
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length = node->node_addr.length;
-                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.value, node->node_addr.value,
-                       msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length);
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.family = node->node_addr.family;
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length = node->node_addr.length;
+                memcpy(msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.value, node->node_addr.value,
+                       msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeAddress.length);
 
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.length = node->node_name.length;
-                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.value, node->node_name.value, msg->info.cbk_info.param.track.buf_info                   .notification->clusterNode.nodeName.length);
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.length = node->node_name.length;
+                memcpy(msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.value, node->node_name.value,
+			msg.info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName.length);
 
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length = node->ee_name.length;
-                memcpy(msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.value, node->ee_name.value,
-                       msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length);
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length = node->ee_name.length;
+                memcpy(msg.info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.value, node->ee_name.value,
+                       msg.info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment.length);
 
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.member = node->member;
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.bootTimestamp = node->boot_time;
-                msg->info.cbk_info.param.track.buf_info.notification->clusterNode.initialViewNumber = node->init_view;
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.member = node->member;
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.bootTimestamp = node->boot_time;
+                msg.info.cbk_info.param.track.buf_info.notification->clusterNode.initialViewNumber = node->init_view;
 
                 if (node->member == SA_FALSE)
-                        msg->info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_LEFT;
+                        msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_LEFT;
                 else
-                        msg->info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_NO_CHANGE;
+                        msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_NO_CHANGE;
 
 	} else if (client->track_flags & SA_TRACK_CHANGES){
-		msg->info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
-		msg->info.cbk_info.param.track.buf_info.notification =
-			(SaClmClusterNotificationT_4 *) malloc(msg->info.cbk_info.param.track.buf_info.numberOfItems *
-							sizeof(SaClmClusterNotificationT_4));
-		if (!msg->info.cbk_info.param.track.buf_info.notification) {
-			LOG_ER("Malloc failed for notification");
-			assert(0);
-		}
-		msg->info.cbk_info.param.track.buf_info.notification = clms_notbuffer_changes(step);
+		msg.info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
+		msg.info.cbk_info.param.track.buf_info.notification = clms_notbuffer_changes(step);
 	}
 
-	rc = clms_mds_msg_send(clms_cb, msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
+	rc = clms_mds_msg_send(clms_cb, &msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("callback msg send to clma  failed");
 	}
 
-	if(msg->info.cbk_info.param.track.buf_info.notification)
-		free(msg->info.cbk_info.param.track.buf_info.notification);
-	free(msg->info.cbk_info.param.track.root_cause_ent);
-	free(msg->info.cbk_info.param.track.cor_ids);
+	if(msg.info.cbk_info.param.track.buf_info.notification)
+		free(msg.info.cbk_info.param.track.buf_info.notification);
+	free(msg.info.cbk_info.param.track.root_cause_ent);
+	free(msg.info.cbk_info.param.track.cor_ids);
 	
 	TRACE_LEAVE();
 	return rc;
@@ -976,81 +966,75 @@ uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
 uns32 clms_prep_and_send_track(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client, SaClmChangeStepT step,
 			       SaClmClusterNotificationT_4 * notify)
 {
-	CLMSV_MSG *msg = NULL;
+	CLMSV_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-	msg = (CLMSV_MSG *) malloc(sizeof(CLMSV_MSG));
-	if (!msg) {
-		LOG_ER("Malloc failed for CLMSV_MSG");
-		assert(0);
-	}
-
 	/* stick the notification buffer into the message */
-	memset(msg, 0, sizeof(CLMSV_MSG));
+	memset(&msg, 0, sizeof(CLMSV_MSG));
 
 	/* Fill the msg */
-	msg->evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
-	msg->info.cbk_info.client_id = client->client_id;
-	msg->info.cbk_info.type = CLMSV_TRACK_CBK;
-	msg->info.cbk_info.param.track.mem_num = osaf_cluster->num_nodes;
-	msg->info.cbk_info.param.track.err = SA_AIS_OK;
-	msg->info.cbk_info.param.track.inv = client->inv_id;
+	msg.evt_type = CLMSV_CLMS_TO_CLMA_CBK_MSG;
+	msg.info.cbk_info.client_id = client->client_id;
+	msg.info.cbk_info.type = CLMSV_TRACK_CBK;
+	msg.info.cbk_info.param.track.mem_num = osaf_cluster->num_nodes;
+	msg.info.cbk_info.param.track.err = SA_AIS_OK;
+	msg.info.cbk_info.param.track.inv = client->inv_id;
 
-	msg->info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
+	msg.info.cbk_info.param.track.root_cause_ent = (SaNameT *)malloc(sizeof(SaNameT));
 
 	if (node->admin_op != PLM) {
-		msg->info.cbk_info.param.track.root_cause_ent->length = node->node_name.length;
-		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->node_name.value,
+		msg.info.cbk_info.param.track.root_cause_ent->length = node->node_name.length;
+		memcpy(msg.info.cbk_info.param.track.root_cause_ent->value, node->node_name.value,
 		       node->node_name.length);
 	} else {
-		msg->info.cbk_info.param.track.root_cause_ent->length = node->ee_name.length;
-		memcpy(msg->info.cbk_info.param.track.root_cause_ent->value, node->ee_name.value, node->ee_name.length);
+		msg.info.cbk_info.param.track.root_cause_ent->length = node->ee_name.length;
+		memcpy(msg.info.cbk_info.param.track.root_cause_ent->value, node->ee_name.value, node->ee_name.length);
 	}
 
-	msg->info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));	/*Not Supported as of now */
-	msg->info.cbk_info.param.track.step = step;
+	msg.info.cbk_info.param.track.cor_ids = (SaNtfCorrelationIdsT *) malloc(sizeof(SaNtfCorrelationIdsT));	/*Not Supported as of now */
+	msg.info.cbk_info.param.track.step = step;
 
 	if (step == SA_CLM_CHANGE_START)
-		msg->info.cbk_info.param.track.time_super = node->lck_cbk_timeout;
+		msg.info.cbk_info.param.track.time_super = node->lck_cbk_timeout;
 	else
-		msg->info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
+		msg.info.cbk_info.param.track.time_super = (SaTimeT)SA_TIME_UNKNOWN;
 
-	msg->info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
+	msg.info.cbk_info.param.track.buf_info.viewNumber = clms_cb->cluster_view_num;
 
 	if (client->track_flags & SA_TRACK_CHANGES_ONLY)
-		msg->info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(0);
+		msg.info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(0);
 	else if (client->track_flags & SA_TRACK_CHANGES)
-		msg->info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
+		msg.info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
 
-	msg->info.cbk_info.param.track.buf_info.notification =
-	    (SaClmClusterNotificationT_4 *) malloc(msg->info.cbk_info.param.track.buf_info.numberOfItems *
+	msg.info.cbk_info.param.track.buf_info.notification =
+	    (SaClmClusterNotificationT_4 *) malloc(msg.info.cbk_info.param.track.buf_info.numberOfItems *
 						   sizeof(SaClmClusterNotificationT_4));
 
-	if (!msg->info.cbk_info.param.track.buf_info.notification) {
+	if (!msg.info.cbk_info.param.track.buf_info.notification) {
 		LOG_ER("Malloc failed for notification");
 		assert(0);
 	}
 	
-	memset(msg->info.cbk_info.param.track.buf_info.notification,0,
-			(msg->info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
+	memset(msg.info.cbk_info.param.track.buf_info.notification,0,
+			(msg.info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
 
 	if (notify != NULL) {
-		memcpy(msg->info.cbk_info.param.track.buf_info.notification, notify,
-		       (msg->info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
+		memcpy(msg.info.cbk_info.param.track.buf_info.notification, notify,
+		       (msg.info.cbk_info.param.track.buf_info.numberOfItems * sizeof(SaClmClusterNotificationT_4)));
 	}
 
-	rc = clms_mds_msg_send(cb, msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
+	rc = clms_mds_msg_send(cb, &msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("callback msg send to clma  failed");
 	}
 
-	if(msg->info.cbk_info.param.track.buf_info.notification)
-		free(msg->info.cbk_info.param.track.buf_info.notification);
-	free(msg->info.cbk_info.param.track.root_cause_ent);
-	free(msg->info.cbk_info.param.track.cor_ids);
+	if(msg.info.cbk_info.param.track.buf_info.notification)
+		free(msg.info.cbk_info.param.track.buf_info.notification);
+	free(msg.info.cbk_info.param.track.root_cause_ent);
+	free(msg.info.cbk_info.param.track.cor_ids);
 
 	TRACE_LEAVE();
 	return rc;

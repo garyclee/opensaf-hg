@@ -877,8 +877,9 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 	return NCSCC_RC_SUCCESS;
 
  err:
+	if(evt)
+		free(evt);
 	TRACE_LEAVE();
-	free(evt);
 	return NCSCC_RC_FAILURE;
 
 }
