@@ -875,6 +875,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	case AVSV_CKPT_SI_SWITCH:
 	case AVSV_CKPT_SI_ADMIN_STATE:
 	case AVSV_CKPT_SI_ALARM_SENT:
+	case AVSV_CKPT_SI_ASSIGNMENT_STATE:
 		cb->async_updt_cnt.si_updt++;
 		break;
 

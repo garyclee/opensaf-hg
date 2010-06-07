@@ -2099,6 +2099,7 @@ uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 comp_count = 0;
 
 	/* transition to inst-failed state */
 	m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
@@ -2119,6 +2120,7 @@ uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 			if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(curr_comp))
 				continue;
 
+			comp_count ++;
 			/* terminate the non-uninstantiated pi healthy comp && clean the faulty comps */
 			if ((!m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(curr_comp)) &&
 			    (!m_AVND_COMP_IS_FAILED(curr_comp))) {
@@ -2138,6 +2140,13 @@ uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 					goto done;
 			}
 		}		/* for */
+		if (1 == comp_count) {
+			/* If the componenet was alone then we need to set SU to term state and process the SUSI 
+			   assignment.*/
+			m_AVND_SU_ALL_TERM_SET(su);
+			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+			avnd_su_siq_prc(cb, su);
+		}
 	}
 
 	/* 
