@@ -1495,11 +1495,12 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 		(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
 		avnd_log(NCSFL_SEV_NOTICE, "'%s'", comp_name.value);
+		if(0 == m_AVND_COMPDB_REC_GET(avnd_cb->compdb, comp_name)) {
+			if ((comp = avnd_comp_create(&comp_name, attributes, su)) == NULL)
+				goto done2;
 
-		if ((comp = avnd_comp_create(&comp_name, attributes, su)) == NULL)
-			goto done2;
-
-		avnd_hc_config_get(comp);
+			avnd_hc_config_get(comp);
+		}
 	}
 
 	rc = NCSCC_RC_SUCCESS;
