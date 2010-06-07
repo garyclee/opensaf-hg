@@ -156,17 +156,29 @@ SmfCampaignWrapup::executeCampWrapup()
         const std::string campDn = SmfCampaignThread::instance()->campaign()->getDn();
         std::list < SmfImmOperation * > operations;
         std::list < std::string >::const_iterator suit;
+	SaImmAttrValuesT_2 **attributes;
+
         for (suit = objectList.begin(); suit != objectList.end(); ++suit) {
-                SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
-                assert(modop != 0);
-                modop->setDn(*suit);
-                modop->setOp("SA_IMM_ATTR_VALUES_DELETE");
-                SmfImmAttribute saAmfSUMaintenanceCampaign;
-                saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
-                saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
-                saAmfSUMaintenanceCampaign.addValue(campDn);
-                modop->addValue(saAmfSUMaintenanceCampaign);
-                operations.push_back(modop);
+
+		if (immUtil.getObject((*suit), &attributes) == true) {
+			const SaNameT *maintCamp =
+				immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+						    "saAmfSUMaintenanceCampaign",
+						    0);
+
+			if ((maintCamp != NULL) && (maintCamp->length > 0)) {
+				SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
+				assert(modop != 0);
+				modop->setDn(*suit);
+				modop->setOp("SA_IMM_ATTR_VALUES_DELETE");
+				SmfImmAttribute saAmfSUMaintenanceCampaign;
+				saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
+				saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
+				saAmfSUMaintenanceCampaign.addValue(campDn);
+				modop->addValue(saAmfSUMaintenanceCampaign);
+				operations.push_back(modop);
+			}
+		}
         }
 
         if (!immUtil.doImmOperations(operations)) {
