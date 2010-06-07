@@ -667,18 +667,40 @@ SmfUpgradeStep::setMaintenanceState()
         const std::string campDn = SmfCampaignThread::instance()->campaign()->getDn();
         std::list < SmfImmOperation * > operations;
 
-        //For all SUs, set saAmfSUMaintenanceCampaign attribute
+	//AMF will only accept the saAmfSUMaintenanceCampaign attribute to be set once
+	//for an SU. Since the same SU could be addressed multiple times a check must
+	//be made if the attribute is already set.
+        //For all SUs, set saAmfSUMaintenanceCampaign attribute (if not already set)
+	SaImmAttrValuesT_2 **attributes;
         for (it = suList.begin(); it != suList.end(); ++it) {
-                SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
-                assert(modop != 0);
-                modop->setDn(*it);
-                modop->setOp("SA_IMM_ATTR_VALUES_REPLACE");
-                SmfImmAttribute saAmfSUMaintenanceCampaign;
-                saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
-                saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
-                saAmfSUMaintenanceCampaign.addValue(campDn);
-                modop->addValue(saAmfSUMaintenanceCampaign);
-                operations.push_back(modop);
+		//Read the attribute
+		if (immUtil.getObject((*it), &attributes) == false) {
+			LOG_ER("SmfUpgradeStep::setMaintenanceState():failed to get imm object %s", (*it).c_str());
+			rc = false;
+			goto exit;
+		}
+                const SaNameT *saAmfSUMaintenanceCampaign = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+										"saAmfSUMaintenanceCampaign",
+										0);
+		//If a value is set, this shall be the current campaign DN
+		if(saAmfSUMaintenanceCampaign != NULL) {
+			if(strncmp((char *)saAmfSUMaintenanceCampaign->value, campDn.c_str(), saAmfSUMaintenanceCampaign->length) != 0){ //Exist, but no match
+				LOG_ER("saAmfSUMaintenanceCampaign already set to unknown campaign dn = %s", (char *)saAmfSUMaintenanceCampaign->value);
+				rc = false;
+				goto exit;
+			}
+		} else {
+			SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
+			assert(modop != 0);
+			modop->setDn(*it);
+			modop->setOp("SA_IMM_ATTR_VALUES_REPLACE");
+			SmfImmAttribute saAmfSUMaintenanceCampaign;
+			saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
+			saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
+			saAmfSUMaintenanceCampaign.addValue(campDn);
+			modop->addValue(saAmfSUMaintenanceCampaign);
+			operations.push_back(modop);
+		}
         }
         
         if (!immUtil.doImmOperations(operations)) {
@@ -686,6 +708,7 @@ SmfUpgradeStep::setMaintenanceState()
                 rc = false;
         }
 
+exit:
         //Delete the created SmfImmModifyOperation instances
         std::list < SmfImmOperation * > ::iterator operIter;
         for (operIter = operations.begin(); operIter != operations.end(); ++operIter) {

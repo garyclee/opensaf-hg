@@ -629,14 +629,13 @@ SmfStepStateExecuting::executeAuLock(SmfUpgradeStep * i_step)
 		changeState(i_step, SmfStepStateFailed::instance());
 		return false;
 	}
-//TODO: Remove comments when AMF is updated
-#if 0
+
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
 	}
-#endif
+
         /* Offline installation of new software */
         LOG_NO("STEP: Offline installation of new software");
         if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
@@ -743,14 +742,13 @@ SmfStepStateExecuting::executeAuLockAct(SmfUpgradeStep * i_step)
 		changeState(i_step, SmfStepStateFailed::instance());
 		return false;
 	}
-//TODO: Remove comments when AMF is updated
-#if 0
+
 	if (i_step->setMaintenanceState() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
 	}
-#endif
+
         /* Offline installation of new software */
         LOG_NO("STEP: Offline installation of new software");
         if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
@@ -1041,14 +1039,12 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 			return false;
 		}
 
-//TODO: Remove comments when AMF is updated
-#if 0
 		if (i_step->setMaintenanceState() == false) {
 			LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
 			changeState(i_step, SmfStepStateFailed::instance());
 			return false;
 		}
-#endif
+
 		/* The action below is an add on to SMF.---------------------------------------*/
 		/* See if any of the software bundles installed at online installation has the */
 		/* saSmfBundleInstallOfflineScope attribute set to SA_SMF_CMD_SCOPE_PLM_EE     */
@@ -1364,14 +1360,11 @@ SmfStepStateExecuting::executeNodeRebootAct(SmfUpgradeStep * i_step)
 			return false;
 		}
 
-//TODO: Remove comments when AMF is updated
-#if 0
 		if (i_step->setMaintenanceState() == false) {
 			LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
 			changeState(i_step, SmfStepStateFailed::instance());
 			return false;
 		}
-#endif
 
 		/* Offline installation of new software */
 		LOG_NO("STEP: Offline installation of new software");
