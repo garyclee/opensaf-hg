@@ -1570,17 +1570,24 @@ uns32 avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uns32 rank)
 {
 	AVND_COMP_CSI_REC *csi;
+	TRACE_ENTER2("%s rank=%u", si->name.value, rank);
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-		  csi != NULL;
-		  csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
+			csi != NULL;
+			csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
-		if ((csi->rank == rank) &&
-			(csi->curr_assign_state != AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED)) {
-			return false;
+		if ((csi->rank == rank) && (csi->curr_assign_state != AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED)) {
+			/* Ignore the case of failed component.  */
+			TRACE_ENTER2("Comp %s csi state=%u  flag %u", csi->comp->name.value, csi->curr_assign_state, csi->comp->flag);
+			if (m_AVND_COMP_IS_FAILED(csi->comp) && 
+					(AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED == csi->curr_assign_state)) {
+				TRACE_ENTER2("Ignoring Failed Comp %s csi state=%u  flag %u", csi->comp->name.value, csi->curr_assign_state, csi->comp->flag);
+			} else
+				return false;
 		}
 	}
 
+	TRACE_LEAVE();
 	return true;
 }
 

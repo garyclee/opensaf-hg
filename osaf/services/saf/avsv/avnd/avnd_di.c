@@ -519,6 +519,7 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	assert(curr_si);
 
+	TRACE_ENTER2("Sending Resp su=%s, si=%s, curr_state=%u, prv_state=%u", su->name.value, curr_si->name.value,curr_si->curr_state,curr_si->prv_state);
 	/* populate the susi resp msg */
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
@@ -552,6 +553,7 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
