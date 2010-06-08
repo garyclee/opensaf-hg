@@ -1312,7 +1312,6 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 
 	if (o_msg != NULL) {
 		rc = o_msg->info.api_resp_info.rc;
-		clma_msg_destroy(o_msg);	/*no need, will remove */
 	} else
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
@@ -1326,6 +1325,7 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 	}
 
  done_give_hdl:
+	clma_msg_destroy(o_msg);
 	ncshm_give_hdl(clmHandle);
 
  done:
