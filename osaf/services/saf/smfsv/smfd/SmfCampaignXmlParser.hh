@@ -20,6 +20,7 @@
 
 #define SMF_BUNDLE_CLASS_NAME "SaSmfSwBundle"
 #define SMF_BUNDLE_PARENT_DN  "safRepository=smfRepository,safApp=safSmfService"
+#define CAMPAIGN_ROOT_TAG     "$OSAFCAMPAIGNROOT"
 
 /* ========================================================================
  *   INCLUDE FILES
