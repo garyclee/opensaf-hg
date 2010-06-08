@@ -711,6 +711,15 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 			}
 			clms_clmresp_error_timeout(cb, node);
 
+			rc = clms_node_exit_ntf(cb, node);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("clms_node_exit_ntf failed %u", rc);
+			}
+			rc = clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
+			}
+
 			/*you have to reboot the node in case of imm */
 			if (clms_cb->reg_with_plm == SA_TRUE)
 				opensaf_reboot(node->node_id, (char *)node->ee_name.value,
@@ -720,6 +729,15 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 	case IMM_SHUTDOWN:
 		{
 			clms_clmresp_error_timeout(cb, node);
+
+			rc = clms_node_exit_ntf(cb, node);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("clms_node_exit_ntf failed %u", rc);
+			}
+			rc = clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
+			}
 
 			/*you have to reboot the node in case of imm */
 			if (clms_cb->reg_with_plm == SA_TRUE)
@@ -748,7 +766,6 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 		break;
 
 	}
-
  done:
 	TRACE_LEAVE();
 	return rc;

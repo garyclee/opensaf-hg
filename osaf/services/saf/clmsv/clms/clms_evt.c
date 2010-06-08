@@ -380,6 +380,15 @@ static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 		goto done;
 	clms_clmresp_error_timeout(clms_cb, op_node);
 
+	rc = clms_node_exit_ntf(clms_cb, op_node);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("clms_node_exit_ntf failed %u", rc);
+	}
+	rc = clms_node_admin_state_change_ntf(clms_cb, op_node, SA_CLM_ADMIN_LOCKED);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
+	}
+
 	/*you have to reboot the node in case of imm */
 	if (clms_cb->reg_with_plm == SA_TRUE)
 		opensaf_reboot(op_node->node_id, (char *)op_node->ee_name.value, "Rebooting, timer expired");
