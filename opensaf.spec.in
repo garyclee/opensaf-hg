@@ -662,14 +662,14 @@ Requires: %{name}-controller = %{version}-%{release}
 if [ "$1" = "2" ]; then
    /sbin/service opensafd try-restart >/dev/null 2>&1 || :
 else # If we're being installed
-   /usr/lib/lsb/install_initd opensafd
+   /usr/lib/lsb/install_initd %{_initddir}/opensafd
 fi
 
 %preun
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
     /sbin/service opensafd stop >/dev/null 2>&1 || :
-    /usr/lib/lsb/remove_initd opensafd
+    /usr/lib/lsb/remove_initd %{_initddir}/opensafd
 fi
 
 %post amf-libs -p /sbin/ldconfig
@@ -685,13 +685,13 @@ fi
 if [ "$1" = "2" ]; then
    echo "" >/dev/null 2>&1 || :
 else # If we're being installed
-   /usr/lib/lsb/install_initd plmcboot
+   /usr/lib/lsb/install_initd %{_initddir}/plmcboot
 fi
 
 %preun plm-coordinator
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
-    /usr/lib/lsb/remove_initd plmcboot
+    /usr/lib/lsb/remove_initd %{_initddir}/plmcboot
 fi
 %endif
 
