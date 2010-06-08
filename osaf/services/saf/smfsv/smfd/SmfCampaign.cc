@@ -14,6 +14,7 @@
  * Author(s): Ericsson AB
  *
  */
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <new>
 #include <vector>
@@ -43,7 +44,8 @@
 	m_cmpgExpectedTime(0),
 	m_cmpgElapsedTime(0),
 	m_cmpgState(SA_SMF_CMPG_INITIAL),
-	m_upgradeCampaign(NULL)
+	m_upgradeCampaign(NULL),
+	m_campaignXmlDir("")
 {
 	init(attrValues);
 	m_dn = m_cmpg;
@@ -445,6 +447,10 @@ SmfCampaign::adminOpExecute(void)
 			return SA_AIS_OK;
 		}
 
+		//The directory where the campaign.xml file is stored
+		std::string path = m_cmpgFileUri.substr( 0, m_cmpgFileUri.find_last_of( '/' ) + 1);
+		setCampaignXmlDir(path);
+
 		//Parse campaign file
 		SmfCampaignXmlParser parser;
 		SmfUpgradeCampaign *p_uc = parser.parseCampaignXml(m_cmpgFileUri);
@@ -608,6 +614,26 @@ SmfUpgradeCampaign *
 SmfCampaign::getUpgradeCampaign()
 {
 	return m_upgradeCampaign;
+}
+
+/** 
+ * setCampaignXmlDir
+ * Set the directory of the campaign.xml file used
+ */
+void 
+SmfCampaign::setCampaignXmlDir(std::string i_path)
+{
+	m_campaignXmlDir = i_path;
+}
+
+/** 
+ * getCampaignXmlDir
+ * Get the directory of the campaign.xml file used
+ */
+const std::string
+SmfCampaign::getCampaignXmlDir()
+{
+	return m_campaignXmlDir;
 }
 
 /*====================================================================*/

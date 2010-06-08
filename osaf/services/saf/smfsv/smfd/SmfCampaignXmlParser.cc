@@ -38,6 +38,9 @@
 #include "SmfImmOperation.hh"
 #include "SmfUpgradeAction.hh"
 
+#include "SmfCampaign.hh"
+#include "SmfCampaignThread.hh"
+
 #include "SmfCampaignXmlParser.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
@@ -2270,7 +2273,15 @@ SmfCampaignXmlParser::parseCliCommandAction(SmfCliCommandAction * i_cmdAction, x
 			TRACE("xmlTag doCliCommand found");
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"command"))) {
 				TRACE("command = %s", s);
-				i_cmdAction->setDoCmd(s);
+				std::string cmd(s);
+				if(CAMPAIGN_ROOT_TAG == cmd.substr(0, cmd.find_first_of('/'))) {
+					TRACE("Keyword %s found, add dir path", CAMPAIGN_ROOT_TAG);
+					std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
+					cmd.replace(cmd.find(CAMPAIGN_ROOT_TAG), sizeof(CAMPAIGN_ROOT_TAG), dirpath);
+					TRACE("command = %s", cmd.c_str());
+				}
+
+				i_cmdAction->setDoCmd(cmd);
 				xmlFree(s);
 			}
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"args"))) {
@@ -2284,7 +2295,15 @@ SmfCampaignXmlParser::parseCliCommandAction(SmfCliCommandAction * i_cmdAction, x
 			TRACE("xmlTag undoCliCommand found");
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"command"))) {
 				TRACE("command = %s", s);
-				i_cmdAction->setUndoCmd(s);
+				std::string cmd(s);
+				if(CAMPAIGN_ROOT_TAG == cmd.substr(0, cmd.find_first_of('/'))) {
+					TRACE("Keyword %s found, add dir path", CAMPAIGN_ROOT_TAG);
+					std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
+					cmd.replace(cmd.find(CAMPAIGN_ROOT_TAG), sizeof(CAMPAIGN_ROOT_TAG), dirpath);
+					TRACE("command = %s", cmd.c_str());
+				}
+
+				i_cmdAction->setUndoCmd(cmd);
 				xmlFree(s);
 			}
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"args"))) {

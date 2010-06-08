@@ -77,18 +77,21 @@ class SmfCampaign {
 	void setError(const std::string & error);
 	void setUpgradeCampaign(SmfUpgradeCampaign * i_campaign);
 	SmfUpgradeCampaign *getUpgradeCampaign();
+	void setCampaignXmlDir(std::string i_path);
+	const std::string getCampaignXmlDir();
 
  private:
 
-	 std::string m_dn;
-	 std::string m_cmpg;
-	 std::string m_cmpgFileUri;
+	std::string m_dn;
+	std::string m_cmpg;
+	std::string m_cmpgFileUri;
 	SaTimeT m_cmpgConfigBase;
 	SaTimeT m_cmpgExpectedTime;
 	SaTimeT m_cmpgElapsedTime;
 	SaSmfCmpgStateT m_cmpgState;
-	 std::string m_cmpgError;
+	std::string m_cmpgError;
 	SmfUpgradeCampaign *m_upgradeCampaign;
+	std::string m_campaignXmlDir;
 };
 
 ///
