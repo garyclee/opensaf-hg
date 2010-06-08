@@ -136,7 +136,7 @@ start() {
 	check_env
 
 	# Comment/Uncomment if you want cores disabled/enabled
-	enable_coredump
+	#enable_coredump
 
 	echo -n "Starting OpenSAF Services: "
 	start_daemon $binary $args
