@@ -83,7 +83,7 @@
 
 #define SA_PLM_ADMIN_LOCK_OPTION_DEFAULT "default"
 #define PLMS_READINESS_FLAG_RESET 0
-#define HPI_DN_NAME "HPI_DN_NAME" /* TODO: This needs to bedifned properly*/
+#define HPI_DN_NAME "safApp=safHpiService" 
 #define PLMS_HRB_MDS_TIMEOUT 1500 /* In 10 msec.*/
 
 /* 3OB Versioning */
