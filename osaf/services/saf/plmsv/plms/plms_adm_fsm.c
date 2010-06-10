@@ -88,7 +88,6 @@ SaUint32T plms_EE_adm_lckinst_state_lckinst_op(PLMS_EVT *);
 static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *);
 static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *);
 static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *);
-static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *);
 static SaUint32T plms_ent_locked_to_unlock( PLMS_EVT *);
 static SaUint32T plms_try_lock(PLMS_ENTITY *,PLMS_IMM_ADMIN_OP,
 					PLMS_GROUP_ENTITY *);
@@ -647,13 +646,17 @@ SaUint32T plms_HE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 	
 	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
+	PLMS_CB *cb = plms_cb;
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
-	TRACE_ENTER2("Entity: %s. Operation: lock to lock, Variant: %s",tmp,
+	TRACE_ENTER2("NO Operation performed. Entity: %s. Operation: lock to lock, Variant: %s",tmp,
 	evt->req_evt.admin_op.option);
 
-	ret_err = plms_ent_locked_to_lock(evt);
-	if (NCSCC_RC_SUCCESS != ret_err){
+	ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
+			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_NO_OP);  
+	if (SA_AIS_OK != ret_err) {
+		LOG_ER("Sending response to IMM failed. Ent: %s, \
+		Operation: lock to lock, ret_err: %d",tmp,ret_err);
 	}
 
 	TRACE_LEAVE2("ret_err: %d",ret_err);
@@ -1843,12 +1846,17 @@ SaUint32T plms_EE_adm_locked_state_lock_op(  PLMS_EVT *evt)
 {
 	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
+	PLMS_CB *cb = plms_cb;
 
 	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
-	TRACE_ENTER2("Entity: %s. Lock to lock.",tmp);
+	TRACE_ENTER2("NO Operation performed. Entity: %s. Operation: lock to lock, Variant: %s",tmp,
+	evt->req_evt.admin_op.option);
 
-	ret_err = plms_ent_locked_to_lock(evt);	
-	if (NCSCC_RC_SUCCESS != ret_err){
+	ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
+			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_NO_OP);  
+	if (SA_AIS_OK != ret_err) {
+		LOG_ER("Sending response to IMM failed. Ent: %s, \
+		Operation: lock to lock, ret_err: %d",tmp,ret_err);
 	}
 
 	TRACE_LEAVE2("ret_err: %d",ret_err);
@@ -3094,10 +3102,6 @@ static SaUint32T plms_try_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 		log_head_grp = log_head_grp->next;
 	}
 	
-	/* TODO: Fill the expected readiness status of the entity.
-	   Expected state should be OOS and dependency readiness flag should 
-	   be set as all affected entities are going OOS because of parent.
-	*/
 	plms_aff_ent_exp_rdness_state_mark(trk_info->aff_ent_list,
 		SA_PLM_READINESS_OUT_OF_SERVICE,SA_PLM_RF_DEPENDENCY);
 	
@@ -3159,7 +3163,6 @@ static SaUint32T plms_default_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 						PLMS_GROUP_ENTITY *aff_ent_list)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-	PLMS_GROUP_ENTITY *head;
 	PLMS_TRACK_INFO *trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	
@@ -3188,14 +3191,6 @@ static SaUint32T plms_default_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 		log_head_grp = log_head_grp->next;
 	}
 
-	plms_admin_state_set(ent, SA_PLM_HE_ADMIN_LOCKED,NULL,
-				SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	
-	plms_readiness_state_set(ent,
-				SA_PLM_READINESS_OUT_OF_SERVICE,NULL,
-				SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	/* Mark the expected readiness state of the root entity.*/
 	ent->exp_readiness_status.readinessState = 
 				SA_PLM_READINESS_OUT_OF_SERVICE;
@@ -3207,25 +3202,11 @@ static SaUint32T plms_default_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 		ent->exp_readiness_status.readinessFlags = 
 		ent->entity.ee_entity.saPlmEEReadinessFlags;
 	}
-
-	/* Mark the readiness state and expected readiness state of all the 
-	affected entities to OOS and set the dependency flag.*/
-	head = trk_info->aff_ent_list;
-	while (head){
-		plms_readiness_state_set(head->plm_entity,
-				SA_PLM_READINESS_OUT_OF_SERVICE,
-				ent,SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_DEP);
-		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
-				SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_DEP);
-
-		head = head->next;
-	}
 	
+	/* Update expected readiness state of the affected entities.*/
 	plms_aff_ent_exp_rdness_state_mark(trk_info->aff_ent_list,
 		SA_PLM_READINESS_OUT_OF_SERVICE,SA_PLM_RF_DEPENDENCY);
+
 	/* Populate trk_info. */
 	trk_info->imm_adm_opr_id = adm_op.operation_id; 
 	trk_info->inv_id = adm_op.inv_id;
@@ -4033,144 +4014,6 @@ static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 	plms_ent_list_free(aff_ent_list);
 	aff_ent_list = NULL;
 	
-	plms_trk_info_free(trk_info);
-
-	TRACE_LEAVE2("ret_err: %d",ret_err);
-	return ret_err;
-}
-/******************************************************************************
-@brief		: Common function to process lock to lock operation for 
-		both EE and HE.
-@param[in]	: evt - PLMS evt structure holding IMM admin operation info      
-@return		: NCSCC_RC_SUCCESS/SA_AIS_OK(1) - For success.
-		  NCSCC_RC_FAILURE(0) - For failure.
-		  others(SaAisErrorT) - For failure.
-******************************************************************************/
-static SaUint32T plms_ent_locked_to_lock( PLMS_EVT *evt)
-{
-	SaUint32T ret_err = NCSCC_RC_FAILURE;
-	PLMS_CB *cb = plms_cb;
-	PLMS_TRACK_INFO *trk_info;
-	PLMS_ENTITY_GROUP_INFO_LIST *grp_list_head;
-	PLMS_ENTITY *ent;
-	SaInt8T tmp[SA_MAX_NAME_LENGTH +1];
-
-	plms_get_str_from_dn_name(&(evt->req_evt.admin_op.dn_name),tmp);
-	TRACE_ENTER2("Entity: %s. locked to lock",tmp);
-
-	ent = (PLMS_ENTITY *)ncs_patricia_tree_get(&(cb->entity_info),
-			   (SaUint8T *)&(evt->req_evt.admin_op.dn_name));
-	if (NULL == ent) {
-		LOG_ER("locked_to_lock can not be performed as the ent is \
-		found in entity_info tree for the dn_name %s",tmp);
-		
-		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_NO_RESOURCES);  
-		
-		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("Sending admin response to IMM failed. \
-						IMM Ret code: %d",ret_err);
-		}else{
-			TRACE("Sending admin response to IMM successful.");
-		}
-		
-		TRACE_LEAVE2("ret_err: %d",ret_err);
-		return ret_err;
-	}
-	/* If the ent is in adm context of try or default lock(start callback 
-	 * is waiting for the response) and forced lock is issued, then
-	 * clean up the dynamic info before processing this lock operation.
-	*/
-	trk_info = ent->trk_info;
-	if (ent->adm_op_in_progress && (NULL != trk_info) && 
-		(SA_PLM_CAUSE_LOCK == trk_info->track_cause) && 
-		(0 == (strcmp(evt->req_evt.admin_op.option,
-		SA_PLM_ADMIN_LOCK_OPTION_FORCED)))){
-		
-		TRACE("Admin lock is in progress and lock \
-		is issued. Ent: %s",ent->dn_name_str);
-	
-		grp_list_head = trk_info->group_info_list;
-		while (grp_list_head){
-			/* Remove the inv_to_cbk nodes from the 
-			grp->innvocation list, if pointing to this trk_info.*/
-			plms_inv_to_cbk_in_grp_trk_rmv(grp_list_head->
-							ent_grp_inf,trk_info);
-			grp_list_head = grp_list_head->next;
-		}
-		
-		/* Response to IMM for the prev lock operation.
-		Return TIMEOUT.*/
-		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			trk_info->inv_id,SA_AIS_ERR_TIMEOUT);
-
-		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("Sending admin response to IMM failed. \
-						IMM Ret code: %d",ret_err);
-		}else{
-			TRACE("Sending admin response to IMM successful.");
-		}
-#if 0 /* TODO: If we are recalculating the new set of aff entities then 
-		merge the new list with old one.*/
-
-		/* Do not free the track info. But free the affected ent and 
-		grp list.*/
-		plms_ent_list_free(trk_info->aff_ent_list);
-		plms_ent_grp_list_free(trk_info->group_info_list);
-#endif
-	}else {
-		/* I have to be in lock admin context.*/
-		if (ent->adm_op_in_progress){
-			
-			LOG_ER("Operation can not be performed. prev_track_cause: %d, requested_op: %d",
-			ent->adm_op_in_progress,evt->req_evt.admin_op.operation_id);
-		
-			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_BAD_OPERATION);
-		
-			if (NCSCC_RC_SUCCESS != ret_err){
-				LOG_ER("Sending admin response to IMM failed. \
-				IMM Ret code: %d",ret_err);
-			}else{
-				TRACE("Sending admin response to IMM \
-				successful.");
-			}
-		}else {/* Entity is already in locked state and completed 
-			callback has been called.
-			*/
-			LOG_ER("Ent %s is not in admin operation context \
-			but still its admin state is locked and completed \
-			cbk already been called. Reject lock.",
-			ent->dn_name_str);
-
-			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
-			evt->req_evt.admin_op.inv_id,SA_AIS_ERR_NO_OP);
-		
-			if (NCSCC_RC_SUCCESS != ret_err){
-				LOG_ER("Sending admin response to IMM failed. \
-				IMM Ret code: %d",ret_err);
-			}else{
-				TRACE("Sending admin response to IMM \
-				successful.");
-			}
-		}
-		TRACE_LEAVE2("ret_err: %d",ret_err);
-		return ret_err;
-	}
-#if 0	
-	/* Get the fresh set of aff entities.*/
-	plms_affected_ent_list_get(ent, &(trk_info->aff_ent_list),0);
-#endif
-	ret_err = plms_forced_lock_cbk(ent,trk_info,evt->req_evt.admin_op,0,1);
-	if (NCSCC_RC_SUCCESS != ret_err){
-	}
-	
-	/* I am done with the admin operation.*/
-	ent->adm_op_in_progress = FALSE;
-	ent->am_i_aff_ent = FALSE;
-	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
-	
-	/* Free track info.*/
 	plms_trk_info_free(trk_info);
 
 	TRACE_LEAVE2("ret_err: %d",ret_err);
@@ -5097,32 +4940,6 @@ SaUint32T plms_imm_adm_op_req_process(PLMS_EVT *evt)
 ******************************************************************************/
 static void plms_lock_start_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 {
-	PLMS_GROUP_ENTITY *head = NULL;
-
-	/* Move the ent to OOS and LOCKED state.*/
-	plms_admin_state_set(ent,SA_PLM_HE_ADMIN_LOCKED,NULL,
-				SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	
-	plms_readiness_state_set(ent,
-			SA_PLM_READINESS_OUT_OF_SERVICE,NULL,
-			SA_NTF_MANAGEMENT_OPERATION,
-			SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-	head = trk_info->aff_ent_list;
-	while (head){
-		plms_readiness_state_set(head->plm_entity,
-				SA_PLM_READINESS_OUT_OF_SERVICE,
-				ent,SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_DEP);
-		
-		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
-				SA_NTF_MANAGEMENT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_DEP);
-		head = head->next;
-	}
-	
 	trk_info->change_step = SA_PLM_CHANGE_START;
 
 	/* Call start callback.*/
@@ -5142,8 +4959,26 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 	PLMS_CB *cb = plms_cb;
 	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	
+	plms_admin_state_set(ent, SA_PLM_HE_ADMIN_LOCKED,NULL,
+				SA_NTF_MANAGEMENT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	
+	plms_readiness_state_set(ent,
+				SA_PLM_READINESS_OUT_OF_SERVICE,NULL,
+				SA_NTF_MANAGEMENT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	/* Mark the readiness state and expected readiness state of all the 
+	affected entities to OOS and set the dependency flag.*/
 	head = trk_info->aff_ent_list;
 	while(head){
+	
+		plms_readiness_state_set(head->plm_entity, SA_PLM_READINESS_OUT_OF_SERVICE,
+		ent,SA_NTF_MANAGEMENT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_DEP);
+		
+		plms_readiness_flag_mark_unmark(head->plm_entity,SA_PLM_RF_DEPENDENCY,TRUE,ent,
+		SA_NTF_MANAGEMENT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_DEP);
+		
 		if (PLMS_EE_ENTITY == head->plm_entity->entity_type){
 			ret_err = plms_ee_term(head->plm_entity,FALSE,0);
 			if (NCSCC_RC_SUCCESS != ret_err){
