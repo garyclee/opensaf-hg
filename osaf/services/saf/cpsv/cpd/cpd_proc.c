@@ -771,6 +771,12 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 
 					}
 				}
+		                /* This is to delete the node from reploc_tree */
+                		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
+                		if (rep_info) {
+                        		cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
+                		}
+
 				m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
 				cref_info = cpnd_info->ckpt_ref_list;
 				continue;
