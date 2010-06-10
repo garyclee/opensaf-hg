@@ -775,7 +775,6 @@ uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 \*****************************************************************************/
 uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
 {
-   printf("ARPIT : cpsv_data_access_rsp_decode\n");
   
    uns8 local_data[1024];
    uns8* pstream;
