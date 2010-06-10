@@ -769,11 +769,20 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 	} else {
 		/*Update the client database for the current trackflags */
-		client->track_flags = param->flags;
+		if (client->track_flags == 0){
+			client->track_flags = param->flags; 
+		}else {
+			if((param->flags & SA_TRACK_CHANGES) || (param->flags & SA_TRACK_CHANGES_ONLY))
+				client->track_flags = param->flags;
+			else if ((param->flags & SA_TRACK_LOCAL) && (param->flags & SA_TRACK_CURRENT)) 
+				client->track_flags = (client->track_flags | SA_TRACK_LOCAL | SA_TRACK_CURRENT);
+			else if (param->flags & SA_TRACK_CURRENT)
+				client->track_flags = (client->track_flags | SA_TRACK_CURRENT);
+		}
 	}
 
 	/*Send only the local node data */
-	if ((param->flags & SA_TRACK_LOCAL) && (param->flags & SA_TRACK_CURRENT)) {
+	if ((client->track_flags & SA_TRACK_LOCAL) && (client->track_flags & SA_TRACK_CURRENT)) {
 
 		TRACE("Send track response for the local node");
 		rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt, param->client_id, ais_rc);
@@ -782,17 +791,17 @@ static uns32 proc_track_start_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 			goto done;
 		}
 
-	} else if (param->flags & SA_TRACK_CURRENT) {
+	} else if (client->track_flags & SA_TRACK_CURRENT) {
 		TRACE("Send response for SA_TRACK_CURRENT");
 		if (node != NULL) {
 			if (node->member == SA_FALSE) {
 				TRACE("Send reponse when the node is not a cluster member");
 				rc = clms_track_current_resp(cb, node, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt,
-							     param->client_id, ais_rc);
+						param->client_id, ais_rc);
 			} else {
 				TRACE("Send response for the node being cluster member");
 				rc = clms_track_current_resp(cb, NULL, param->sync_resp, &evt->fr_dest, &evt->mds_ctxt,
-							     param->client_id, ais_rc);
+						param->client_id, ais_rc);
 			}
 		}
 
