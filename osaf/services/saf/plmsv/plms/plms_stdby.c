@@ -377,6 +377,7 @@ void plms_perform_pending_admin_operation()
 		free(tmp_track_step);
 
 	}
+	cb->step_info = NULL;
 	TRACE_LEAVE();
 }
 /***********************************************************************
