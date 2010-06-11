@@ -44,7 +44,7 @@ unload_tipc() {
 	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
 		modprobe -r tipc >/dev/null 2>&1
 		if [ $? -eq 1 ]; then
-			logger -s -t $prog "TIPC module unloading failed"
+			logger -t $prog "warning: TIPC module unloading failed"
 		fi
 	fi
 }
@@ -80,9 +80,6 @@ check_env() {
 	fi
 
 	rm -f $pkglogdir/nid.log
-
-	short_hostname=`hostname -s`
-	echo $short_hostname > $pkgsysconfdir/node_name
 }
 
 clean_shm() {
