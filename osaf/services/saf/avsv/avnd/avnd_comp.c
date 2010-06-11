@@ -1352,6 +1352,7 @@ uns32 avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 	NCS_BOOL is_assigned = FALSE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s %p", comp->name.value, csi);
 	/* skip removal from failed / unregistered comp */
 	if (m_AVND_COMP_IS_FAILED(comp) || (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && ((!m_AVND_COMP_IS_REG(comp)
 											   &&
@@ -1453,6 +1454,7 @@ uns32 avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 	}
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1577,13 +1579,21 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uns32 rank)
 			csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
 		if ((csi->rank == rank) && (csi->curr_assign_state != AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED)) {
-			/* Ignore the case of failed component.  */
-			TRACE_ENTER2("Comp %s csi state=%u  flag %u", csi->comp->name.value, csi->curr_assign_state, csi->comp->flag);
-			if (m_AVND_COMP_IS_FAILED(csi->comp) && 
-					(AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED == csi->curr_assign_state)) {
-				TRACE_ENTER2("Ignoring Failed Comp %s csi state=%u  flag %u", csi->comp->name.value, csi->curr_assign_state, csi->comp->flag);
-			} else
+			/* Ignore the case of failed component/unregistered comp. */
+			if (!m_AVND_SU_IS_RESTART(csi->comp->su) && (m_AVND_COMP_IS_FAILED(csi->comp) || 
+						(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi->comp) && 
+						 ((!m_AVND_COMP_IS_REG(csi->comp) && 
+						   !m_AVND_COMP_PRES_STATE_IS_ORPHANED (csi->comp)) ||
+						  (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED (csi->comp) && 
+						   (csi->comp->su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) && 
+						   !m_AVND_COMP_PRES_STATE_IS_ORPHANED
+						   (csi->comp)))))) {
+
+				LOG_ER("Ignoring Failed/Unreg Comp %s, comp pres state=%u, comp flag %u, su pres state %u", 
+						csi->comp->name.value, csi->comp->pres, csi->comp->flag, csi->comp->su->pres);
+			} else {
 				return false;
+			}
 		}
 	}
 
@@ -1780,6 +1790,7 @@ uns32 avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s %p", comp->name.value, csi);
 	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_REMOVE, AVND_LOG_COMP_DB_SUCCESS,
 			   &comp->name, (csi) ? &csi->name : 0, NCSFL_SEV_INFO);
 
@@ -1855,6 +1866,7 @@ uns32 avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	}
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2018,6 +2030,7 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 	SaTimeT per = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s %u", comp->name.value, type);
 	/* 
 	 * callbacks are sent only to registered comps (healtcheck 
 	 * cbk is an exception) 
@@ -2162,6 +2175,7 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 	if ((NCSCC_RC_SUCCESS != rc) && cbk_info)
 		avsv_amf_cbk_free(cbk_info);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
