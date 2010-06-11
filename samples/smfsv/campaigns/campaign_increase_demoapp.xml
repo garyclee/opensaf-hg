@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd"
+  safSmfCampaign="safSmfCampaign=campaign_increase_demoapp">
+<!--
+
+    Installation campaign for the AmfDemo application.
+
+    Prerequisites;
+    ==============
+    - The campaign_demo_install.xml must have been successfully executed.
+   
+    Execution;
+    ==========
+    # Copy this file to the UML dir. Then in UML;
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_increase_demoapp.xml\
+      safSmfCampaign=campaign_increase_demoapp,safApp=safSmfService
+    immadm -o 1 safSmfCampaign=campaign_increase_demoapp,safApp=safSmfService
+    immlist safSmfCampaign=campaign_increase_demoapp,safApp=safSmfService
+    immadm -o 4 safSmfCampaign=campaign_increase_demoapp,safApp=safSmfService
+
+
+    Expected result;
+    ================
+    # On the PL-3
+    amf-state su
+        # The SU's in safSg=AmfDemo should be;
+        # UNLOCKED/ENABLED/INSTANTIATED/IN-SERVICE
+    ps
+        # /opt/amf_demo/amf_demo should be executing
+    # In the UML-dir;
+    grep SMF: rootfs/var/SC-*/log/messages
+        # Online/offline scripts should have been executed.
+
+  -->
+  <campaignInfo>
+    <campaignPeriod/>
+  </campaignInfo>
+  <campaignInitialization>
+    <addToImm/>
+  </campaignInitialization>
+  <upgradeProcedure safSmfProcedure="safSmfProc=InstallAmfDemo">
+    <outageInfo>
+      <acceptableServiceOutage>
+        <all/>
+      </acceptableServiceOutage>
+      <procedurePeriod saSmfProcPeriod="60000000000"/>
+    </outageInfo>
+    <procInitAction>
+      <immCCB ccbFlags="0">
+        <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=PL-3,safAmfCluster=myAmfCluster">
+          <attribute name="safInstalledSwBundle" type="SA_IMM_ATTR_SANAMET">
+            <value>safInstalledSwBundle=safSmfBundle=AmfDemo</value>
+          </attribute>
+          <attribute name="saAmfNodeSwBundlePathPrefix" type="SA_IMM_ATTR_SASTRINGT">
+            <value>/opt/amf_demo</value>
+          </attribute>
+        </create>
+      </immCCB>
+    </procInitAction>
+    <procInitAction>
+      <immCCB ccbFlags="0">
+         <create objectClassName="SaAmfSU" parentObjectDN="safSg=AmfDemo,safApp=AmfDemo1">
+          <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+            <value>safSu=SU3</value>
+          </attribute>
+          <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+            <value>safVersion=4.0.0,safSuType=AmfDemo1</value>
+          </attribute>
+          <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+            <value>safAmfNode=PL-3,safAmfCluster=myAmfCluster</value>
+          </attribute>
+          <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+            <value>3</value>
+          </attribute>
+        </create>
+        <create objectClassName="SaAmfComp" parentObjectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1">
+          <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
+            <value>safComp=AmfDemo</value>
+          </attribute>
+          <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
+            <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
+          </attribute>
+          <attribute name="saAmfCompInstantiateCmdArgv" type="SA_IMM_ATTR_SASTRINGT">
+            <value>comparg1</value>
+            <value>SC-1</value>
+          </attribute>
+          <attribute name="saAmfCompDisableRestart" type="SA_IMM_ATTR_SAUINT32T">
+            <value>0</value>
+          </attribute>
+        </create>
+        <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1">
+          <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
+            <value>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1</value>
+          </attribute>
+        </create>
+       </immCCB>
+    </procInitAction>
+    <upgradeMethod>
+      <singleStepUpgrade>
+        <upgradeScope>
+          <forAddRemove>
+            <deactivationUnit/>
+            <activationUnit>
+              <actedOn>
+                <byName objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+              </actedOn>
+              <swAdd bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
+                <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+              </swAdd>
+            </activationUnit>
+          </forAddRemove>
+        </upgradeScope>
+        <upgradeStep/>
+      </singleStepUpgrade>
+    </upgradeMethod>
+  </upgradeProcedure>
+  <campaignWrapup>
+    <waitToCommit/>
+    <waitToAllowNewCampaign/>
+    <removeFromImm/>
+  </campaignWrapup>
+</upgradeCampaign>

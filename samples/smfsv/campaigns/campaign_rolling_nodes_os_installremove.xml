@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=OpenSAFSampleCamp">
+  <!--
+    This campaign updates OS type software on the node group PLs nodes
+    in a rolling fashion.
+	The campaign consists of two procedures
+	1) amfClusterProcInstallSW,     exec level 2  //node group
+	2) amfClusterProcRemoveSW,      exec level 3  //node group
+
+	The procedures iterates over PLs node group.
+	The first procedure adds the SW bundle safSmfBundle=bundleA,safApp=safSmfService
+	The second procedure removes the SW bundle safSmfBundle=bundleA,safApp=safSmfService
+	
+    Prerequisites;
+    ==============
+    A cluster up and running.
+
+    Execution;
+    ==========
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_rolling_nodes_os_installremove.xml\
+      safSmfCampaign=campaign_rolling_nodes_os_installremove,safApp=safSmfService
+    immadm -o 1 safSmfCampaign=campaign_rolling_nodes_os_installremove,safApp=safSmfService
+    immlist safSmfCampaign=campaign_rolling_nodes_os_installremove,safApp=safSmfService
+    immadm -o 4 safSmfCampaign=campaign_rolling_nodes_os_installremove,safApp=safSmfService
+
+    Expected outcome;
+    =================
+
+    grep SMF: rootfs/var/SC_*/log/messages
+        # The "installation online" should have been executed
+        # The "removal online" should have been executed
+
+    immfind -c SaAmfNodeSwBundle
+        # The bundleA objects should not exist under the PL's.
+
+    Expected future outcome;
+    ========================
+    -
+
+  -->
+	<campaignInfo>
+		<campaignPeriod saSmfCmpgExpectedTime="123456789" />
+		<configurationBase saSmfCmpgConfigBase="9876543" />
+	</campaignInfo>
+	<campaignInitialization>
+		<addToImm>
+			<softwareBundle name="safSmfBundle=bundleA,safApp=safSmfService">
+				<removal>
+					<offline command="" saSmfBundleRemoveOfflineScope="4"></offline>
+					<online command="/hostfs/online_remove.sh" args="bundleA"></online>
+				</removal>
+				<installation>
+					<offline command="" saSmfBundleInstallOfflineScope="4"></offline>
+					<online command="/hostfs/online_install.sh" args="bundleA"></online>
+				</installation>
+				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
+			</softwareBundle>
+		</addToImm>
+	</campaignInitialization>
+	<upgradeProcedure safSmfProcedure="safSmfProc=amfClusterProcInstallSW" saSmfExecLevel="2">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="12345678" />
+		</outageInfo>
+		<upgradeMethod>
+			<rollingUpgrade>
+				<upgradeScope>
+					<byTemplate>
+						<targetNodeTemplate objectDN="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster">
+							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo"/>
+						</targetNodeTemplate>
+					</byTemplate>
+				</upgradeScope>
+				<upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8"/>
+			</rollingUpgrade>
+		</upgradeMethod>
+	</upgradeProcedure>
+	<upgradeProcedure safSmfProcedure="safSmfProc=amfClusterProcRemoveSW" saSmfExecLevel="3">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="12345678" />
+		</outageInfo>
+		<upgradeMethod>
+			<rollingUpgrade>
+				<upgradeScope>
+					<byTemplate>
+						<targetNodeTemplate objectDN="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster">
+							<swRemove bundleDN="safSmfBundle=bundleA,safApp=safSmfService"/>
+						</targetNodeTemplate>
+					</byTemplate>
+				</upgradeScope>
+				<upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8"/>
+			</rollingUpgrade>
+		</upgradeMethod>
+	</upgradeProcedure>
+	<campaignWrapup>
+		<waitToCommit time="123456" />
+		<waitToAllowNewCampaign time="10000"></waitToAllowNewCampaign>
+		<removeFromImm>
+        </removeFromImm>
+	</campaignWrapup>
+</upgradeCampaign>

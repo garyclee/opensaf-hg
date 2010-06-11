@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfComp">
+		<dn>safComp=GLND,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=GLND,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=GLND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=GLND-OpenSAF,safComp=GLND,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=Attr1,safCsi=GLND,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSIAttriValue</name>
+			<value>val1</value>
+			<value>val2</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=Attr2,safCsi=GLND,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+	</object>
+</imm:IMM-contents>

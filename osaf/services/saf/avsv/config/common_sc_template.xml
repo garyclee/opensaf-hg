@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfNode">
+		<dn>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSuFailoverMax</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfNodeSuFailOverProb</name>
+			<value>1000</value>
+		</attr>
+		<attr>
+			<name>saAmfNodeClmNode</name>
+			<value>safNode=CLM_TOKEN,safCluster=myClmCluster</value>
+		</attr>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=OpenSAF,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxCLCCLIDIRxx</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=4.0.0,safSuType=OpenSafSuTypeServer</value>
+		</attr>
+		<attr>
+			<name>saAmfSUHostNodeOrNodeGroup</name>
+			<value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSUFailover</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=4.0.0,safSuType=OpenSafSuTypeND</value>
+		</attr>
+		<attr>
+			<name>saAmfSUHostNodeOrNodeGroup</name>
+			<value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSUFailover</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfSI">
+		<dn>safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=4.0.0,safSvcType=NoRed-OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=NoRed,safApp=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfSIRank</name>
+			<value>1</value>
+		</attr>
+	</object>
+</imm:IMM-contents>

@@ -1,0 +1,66 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+# Default implementation of SMF cluster reboot
+
+# It is assumed that the SaAmfNode's have the real host-names in the
+# cluster, and that all nodes can be reached via IP using their names.
+# I.e. the resolver must be able to resolve the SaAmfNode names.
+
+# Further is is assumed that some remote shell program that does not
+# require password is usable inside the cluster. This program can be
+# specifies in the $RSH variable, or "rsh" is used by default.
+
+rsh=${RSH:-rsh}
+
+prg=`basename $0`
+
+die() {
+    echo "ERROR: $@" >&2
+    logger -t $prg -p user.err "ERROR ($cmd): $@"
+    exit 1
+}
+log() {
+    echo "$@"
+    logger -t $prg -p user.warning "$@"
+}
+
+get_nodes() {
+    for n in $(immfind -c SaAmfNode); do
+	echo $n | cut -d, -f1 | cut -d= -f2
+    done
+}
+
+smfrc=${SMFRC:-/hostfs/smf.rc}
+test -r $smfrc && . $smfrc
+
+rshx=$(which $rsh) || die "Not found [$rsh]"
+test -x $rshx || die "Not executable [$rshx]"
+
+log "Rebooting the cluster"
+me=$(hostname)
+for n in $(get_nodes); do
+    test "$n" = "$me" && continue
+    log "Rebooting [$n]"
+    $rsh $n reboot > /dev/null 2>&1 || log "Reboot [$n] failed"
+done
+
+# Re-boot myself last
+log "Rebooting myself [$me]"
+reboot
+exit 0
+

@@ -1,0 +1,7 @@
+|gets|
+|printf|
+|sprintf|
+|strcat|
+|strcpy|
+|strncpy|
+|vsprintf|

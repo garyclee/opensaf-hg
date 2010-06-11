@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio 6.1.15.0 - FREE Community Edition (http://www.liquid-technologies.com) -->
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=OpenSAFSampleCamp">
+    <campaignInfo>
+        <campaignPeriod saSmfCmpgExpectedTime="123456789"/>
+        <configurationBase saSmfCmpgConfigBase="9876543"/>
+    </campaignInfo>
+    <campaignInitialization>
+        <addToImm>
+            <softwareBundle name="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService">
+                <removal>
+                    <offline command="/hostfs/offline_remove.sh" args="bundleA" saSmfBundleRemoveOfflineScope="1"/>
+                    <online command="/hostfs/online_remove.sh" args="bundleA"/>
+                </removal>
+                <installation>
+                    <offline command="/hostfs/offline_install.sh" args="bundleA" saSmfBundleInstallOfflineScope="2"/>
+                    <online command="/hostfs/online_install.sh" args="bundleA"/>
+                </installation>
+                <defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000"/>
+            </softwareBundle>
+            <softwareBundle name="safSwBundle=bundleB,safRepository=smfRepository,safApp=safSmfService">
+                <removal>
+                    <offline command="/hostfs/offline_remove.sh" args="bundleB" saSmfBundleRemoveOfflineScope="1"/>
+                    <online command="/hostfs/online_remove.sh" args="bundleB"/>
+                </removal>
+                <installation>
+                    <offline command="/hostfs/offline_install.sh" args="bundleB" saSmfBundleInstallOfflineScope="2"/>
+                    <online command="/hostfs/online_install.sh" args="bundleB"/>
+                </installation>
+                <defaultCliTimeout saSmfBundleDefaultCmdTimeout="80000000000"/>
+            </softwareBundle>
+            <amfEntityTypes>
+                <ServiceBaseType safSvcType="safSvcType=helloSvcType">
+                    <ServiceType safVersion="safVersion=v1">
+                        <csType safMemberCSType="safMemberCSType=safVersion=v1\,safCsType=helloCSType"/>
+                    </ServiceType>
+                </ServiceBaseType>
+                <SUBaseType safSuType="safSuType=helloSuType">
+                    <SUType safVersion="safVersion=v1">
+                        <mandatoryAttrs saAmfSutIsExternal="0" saAmfSutDefSUFailover="0"/>
+                        <componentType safMemberCompType="safMemberCompType=safVersion=v1\,safCompType=helloCompType"/>
+                        <supportedSvcType saAmfSutProvidesSvcType="safVersion=v1,safSvcType=helloSvcType"/>
+                    </SUType>
+                </SUBaseType>
+                <CSBaseType safCSType="safCSType=helloCSType">
+                    <CSType safVersion="safVersion=v1"/>
+                </CSBaseType>
+                <SGBaseType safSgType="safSgType=helloSgType">
+                    <SGType safVersion="safVersion=v1">
+                        <suType saAmfSgtValidSuTypes="safVersion=v1,safSuType=helloSuType"/>
+                        <redundancy saAmfSgtRedundancyModel="2"/>
+                        <compRestart saAmfSgtDefCompRestartMax="2" saAmfSgtDefCompRestartProb="5000000"/>
+                        <suRestart saAmfSgtDefSuRestartMax="2" saAmfSgtDefSuRestartProb="50000000"/>
+                        <autoAttrs safAmfSgtDefAutoAdjust="1" safAmfSgtDefAutoRepair="1" saAmfSgtDefAutoAdjustProb="10000000"/>
+                    </SGType>
+                </SGBaseType>
+                <AppBaseType safAppType="safAppType=helloAppType">
+                    <AppType safVersion="safVersion=v1">
+                        <serviceGroupType saAmfApptSGTypes="safVersion=v1,safSgType=helloSgType"/>
+                    </AppType>
+                </AppBaseType>
+
+                <CompBaseType safCompType="safCompType=helloCompType">
+                    <CompType safVersion="safVersion=v1">
+                        <providesCSType safSupportedCsType="safSupportedCsType=safVersion=v1\,safCsType=helloCsType" saAmfCtCompCapability="4"/>
+                        <compTypeDefaults saAmfCtCompCategory="1"
+                               saAmfCtDefClcCliTimeout="50000" saAmfCtDefCallbackTimeout="30000" 
+                               saAmfCtDefInstantiationLevel="0" saAmfCtDefDisableRestart="0" 
+			       saAmfCtDefQuiescingCompleteTimeout="50000" saAmfCtDefRecoveryOnError="2"/>
+                        <instantiateCmd saAmfCtRelPathInstantiateCmd="bin/instantiate.sh">
+                            <cmdArgv>hello</cmdArgv>
+                        </instantiateCmd>
+                        <cleanupCmd saAmfCtRelPathCleanupCmd="bin/cleanup.sh">
+                            <cmdArgv>hello</cmdArgv>
+                        </cleanupCmd>
+                        <swBundle saAmfCtSwBundle="safSmfBundle=bundleA,safRepository=smfRepository,safApp=safSmfService"/>
+                    </CompType>
+                </CompBaseType>
+            </amfEntityTypes>
+        </addToImm>
+        <callbackAtInit callbackLabel="string"/>
+        <callbackAtInit callbackLabel="string" time="-9200"/>
+        <callbackAtBackup callbackLabel="string" time="-5147" stringToPass="string"/>
+        <callbackAtBackup callbackLabel="string" time="8846"/>
+        <callbackAtRollback callbackLabel="string" time="5257" stringToPass="string"/>
+        <callbackAtRollback callbackLabel="string"/>
+        <campInitAction>
+            <doCliCommand command="true" args="do"/>
+            <undoCliCommand command="true" args="undo"/>
+            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <create objectClassName="SmfTestClass" parentObjectDN="safAmfCluster=myAmfCluster">
+                    <attribute name="aName" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>myName=TestClass1</value>
+                    </attribute>
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>12345</value>
+                        <value>6</value>
+                        <value>7</value>
+                        <value>8</value>
+                        <value>9</value>
+                    </attribute>
+                    <attribute name="aStringT" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>myString=Hello1</value>
+                        <value>myString=Hello2</value>
+                        <value>myString=Hello3</value>
+                        <value>myString=Hello4</value>
+                    </attribute>
+                    <attribute name="aInt32T" type="SA_IMM_ATTR_SAINT32T">
+                        <value>1</value>
+                        <value>2</value>
+                        <value>3</value>
+                        <value>4</value>
+                    </attribute>
+                    <attribute name="aUint32T" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>20</value>
+                        <value>21</value>
+                        <value>22</value>
+                        <value>23</value>
+                        <value>24</value>
+                    </attribute>
+                    <attribute name="aInt64T" type="SA_IMM_ATTR_SAINT64T">
+                        <value>30</value>
+                        <value>31</value>
+                        <value>32</value>
+                        <value>33</value>
+                        <value>34</value>
+                    </attribute>
+                    <attribute name="aUint64T" type="SA_IMM_ATTR_SAUINT64T">
+                        <value>40</value>
+                        <value>41</value>
+                        <value>42</value>
+                        <value>43</value>
+                    </attribute>
+                    <attribute name="aNameT" type="SA_IMM_ATTR_SANAMET">
+                        <value>Hej hopp du glade</value>
+                        <value>Hej hopp du sure</value>
+                    </attribute>
+                    <attribute name="aFloatT" type="SA_IMM_ATTR_SAFLOATT">
+                        <value>5.0</value>
+                        <value>5.1</value>
+                        <value>5.2</value>
+                    </attribute>
+                    <attribute name="aDoubleT" type="SA_IMM_ATTR_SADOUBLET">
+                        <value>60</value>
+                        <value>61</value>
+                        <value>62</value>
+                        <value>63</value>
+                    </attribute>
+                    <attribute name="aAnyT" type="SA_IMM_ATTR_SAANYT">
+                        <value>xx</value>
+                        <value>yy</value>
+                    </attribute>
+                </create>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="myName=TestClass1,safAmfCluster=myAmfCluster" operation="SA_IMM_ATTR_VALUES_ADD">
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>8888</value>
+                        <value>9999</value>
+                    </attribute>
+                    <attribute name="aStringT" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>myString=Added1</value>
+                        <value>myString=Added2</value>
+                    </attribute>
+                    <attribute name="aInt32T" type="SA_IMM_ATTR_SAINT32T">
+                        <value>1111</value>
+                        <value>2222</value>
+                    </attribute>
+                    <attribute name="aUint32T" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>2000</value>
+                        <value>2100</value>
+                    </attribute>
+                    <attribute name="aInt64T" type="SA_IMM_ATTR_SAINT64T">
+                        <value>30888888</value>
+                        <value>31999999</value>
+                    </attribute>
+                    <attribute name="aUint64T" type="SA_IMM_ATTR_SAUINT64T">
+                        <value>40888888</value>
+                        <value>41999999</value>
+                    </attribute>
+                    <attribute name="aNameT" type="SA_IMM_ATTR_SANAMET">
+                        <value>Hej hopp du glade ADDED 1</value>
+                        <value>Hej hopp du sure  ADDED 2</value>
+                    </attribute>
+                    <attribute name="aFloatT" type="SA_IMM_ATTR_SAFLOATT">
+                        <value>5.0001</value>
+                        <value>5.1001</value>
+                    </attribute>
+                    <attribute name="aDoubleT" type="SA_IMM_ATTR_SADOUBLET">
+                        <value>600000</value>
+                        <value>610000</value>
+                    </attribute>
+                    <attribute name="aAnyT" type="SA_IMM_ATTR_SAANYT">
+                        <value>xxAdded</value>
+                        <value>yyAdded</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="myName=TestClass1,safAmfCluster=myAmfCluster" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>8888</value>
+                        <value>9999</value>
+                    </attribute>
+                    <attribute name="aStringT" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>myString=Added1</value>
+                        <value>myString=Added2</value>
+                    </attribute>
+                    <attribute name="aInt32T" type="SA_IMM_ATTR_SAINT32T">
+                        <value>1111</value>
+                        <value>2222</value>
+                    </attribute>
+                    <attribute name="aUint32T" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>2000</value>
+                        <value>2100</value>
+                    </attribute>
+                    <attribute name="aInt64T" type="SA_IMM_ATTR_SAINT64T">
+                        <value>30888888</value>
+                        <value>31999999</value>
+                    </attribute>
+                    <attribute name="aUint64T" type="SA_IMM_ATTR_SAUINT64T">
+                        <value>40888888</value>
+                        <value>41999999</value>
+                    </attribute>
+                    <attribute name="aNameT" type="SA_IMM_ATTR_SANAMET">
+                        <value>Hej hopp du glade ADDED 1</value>
+                        <value>Hej hopp du sure  ADDED 2</value>
+                    </attribute>
+                    <attribute name="aFloatT" type="SA_IMM_ATTR_SAFLOATT">
+                        <value>5.0001</value>
+                        <value>5.1001</value>
+                    </attribute>
+                    <attribute name="aDoubleT" type="SA_IMM_ATTR_SADOUBLET">
+                        <value>600000</value>
+                        <value>610000</value>
+                    </attribute>
+                    <attribute name="aAnyT" type="SA_IMM_ATTR_SAANYT">
+                        <value>xxAdded</value>
+                        <value>yyAdded</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="myName=TestClass1,safAmfCluster=myAmfCluster" operation="SA_IMM_ATTR_VALUES_DELETE">
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>8888</value>
+                        <value>9999</value>
+                    </attribute>
+                    <attribute name="aStringT" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>myString=Added1</value>
+                        <value>myString=Added2</value>
+                    </attribute>
+                    <attribute name="aInt32T" type="SA_IMM_ATTR_SAINT32T">
+                        <value>1111</value>
+                        <value>2222</value>
+                    </attribute>
+                    <attribute name="aUint32T" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>2000</value>
+                        <value>2100</value>
+                    </attribute>
+                    <attribute name="aInt64T" type="SA_IMM_ATTR_SAINT64T">
+                        <value>30888888</value>
+                        <value>31999999</value>
+                    </attribute>
+                    <attribute name="aUint64T" type="SA_IMM_ATTR_SAUINT64T">
+                        <value>40888888</value>
+                        <value>41999999</value>
+                    </attribute>
+                    <attribute name="aNameT" type="SA_IMM_ATTR_SANAMET">
+                        <value>Hej hopp du glade ADDED 1</value>
+                        <value>Hej hopp du sure  ADDED 2</value>
+                    </attribute>
+                    <attribute name="aFloatT" type="SA_IMM_ATTR_SAFLOATT">
+                        <value>5.0001</value>
+                        <value>5.1001</value>
+                    </attribute>
+                    <attribute name="aDoubleT" type="SA_IMM_ATTR_SADOUBLET">
+                        <value>600000</value>
+                        <value>610000</value>
+                    </attribute>
+                    <attribute name="aAnyT" type="SA_IMM_ATTR_SAANYT">
+                        <value>xxAdded</value>
+                        <value>yyAdded</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <create objectClassName="SaSmfSwBundle" parentObjectDN="safRepository=smfRepository,safApp=safSmfService">
+                    <attribute name="safSmfBundle" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>safSwBundle=myAddedBundle</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOfflineCmdUri" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>mySmfBundleRemoveOfflineCmdUri</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOfflineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>mySmfBundleRemoveOfflineCmdArgs</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOfflineScope" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>1</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOnlineCmdUri" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleRemoveOnlineCmdUri</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOnlineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleRemoveOnlineCmdArgs</value>
+                    </attribute>
+                    <attribute name="saSmfBundleRemoveOfflineCmdUri" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleRemoveOfflineCmdUri</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOfflineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleInstallOfflineCmdArgs</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOfflineScope" type="SA_IMM_ATTR_SAUINT32T">
+                        <value>2</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOnlineCmdUri" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleInstallOnlineCmdUri</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOnlineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>saSmfBundleInstallOnlineCmdArgs</value>
+                    </attribute>
+                    <attribute name="saSmfBundleDefaultCmdTimeout" type="SA_IMM_ATTR_SATIMET">
+                        <value>123456789</value>
+                    </attribute>
+                </create>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="safSwBundle=myAddedBundle,safRepository=smfRepository,safApp=safSmfService" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                    <attribute name="saSmfBundleDefaultCmdTimeout" type="SA_IMM_ATTR_SATIMET">
+                        <value>987654321</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOnlineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>ModifiedsaSmfBundleInstallOnlineCmdArgs</value>
+                    </attribute>
+                </modify>
+                <modify objectDN="safSwBundle=myAddedBundle,safRepository=smfRepository,safApp=safSmfService" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                    <attribute name="saSmfBundleDefaultCmdTimeout" type="SA_IMM_ATTR_SATIMET">
+                        <value>999999999</value>
+                    </attribute>
+                    <attribute name="saSmfBundleInstallOnlineCmdArgs" type="SA_IMM_ATTR_SASTRINGT">
+                        <value>ModifiedAsWellsaSmfBundleInstallOnlineCmdArgs</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <immCCB ccbFlags="0">
+                <delete objectDN="safSwBundle=myAddedBundle,safRepository=smfRepository,safApp=safSmfService"/>
+            </immCCB>
+        </campInitAction>
+        <campInitAction>
+            <doAdminOperation objectDN="safApp=safSmfServiceE" operationID="SA_AMF_ADMIN_LOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>2</value>
+                </param>
+            </doAdminOperation>
+            <undoAdminOperation objectDN="safApp=safSmfServiceE" operationID="SA_AMF_ADMIN_UNLOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>1</value>
+                </param>
+            </undoAdminOperation>
+        </campInitAction>
+    </campaignInitialization>
+    <upgradeProcedure safSmfProcedure="safSmfProc=amfClusterProc" saSmfExecLevel="2">
+        <outageInfo>
+            <acceptableServiceOutage>
+                <all/>
+            </acceptableServiceOutage>
+            <procedurePeriod saSmfProcPeriod="1234"/>
+        </outageInfo>
+        <procInitAction>
+            <doAdminOperation objectDN="safApp=safSmfServicePROCEDURE" operationID="SA_AMF_ADMIN_LOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>222</value>
+                </param>
+            </doAdminOperation>
+            <undoAdminOperation objectDN="safApp=safSmfServicePROCEDURE" operationID="SA_AMF_ADMIN_UNLOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>1111</value>
+                </param>
+                <param name="myAttrD" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>3333</value>
+                </param>
+            </undoAdminOperation>
+        </procInitAction>
+        <upgradeMethod>
+            <rollingUpgrade>
+                <upgradeScope>
+                    <byTemplate>
+                        <targetNodeTemplate objectDN="safAmfCluster=myAmfCluster">
+                            <activationUnitTemplate>
+							</activationUnitTemplate>
+                            <swRemove bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swRemove bundleDN="safSwBundle=bundleB,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swAdd bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swAdd bundleDN="safSwBundle=bundleB,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                        </targetNodeTemplate>
+                        <targetEntityTemplate>
+                            <parent objectDN="min=min,parent=parent,dn=dn"/>
+                            <type objectDN="min=min,type=type,dn=dn"/>
+                            <modifyOperation objectRDN="modRdn=modRdn" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>34</value>
+                                    <value>35</value>
+                                    <value>36</value>
+                                </attribute>
+                            </modifyOperation>
+                            <modifyOperation objectRDN="modRdn=modRdnTwo" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>45</value>
+                                </attribute>
+                            </modifyOperation>
+                        </targetEntityTemplate>
+                    </byTemplate>
+                </upgradeScope>
+                <upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8">
+                    <customizationTime>
+                        <onStep>
+                            <onEveryStep/>
+                        </onStep>
+                        <atAction>
+                            <beforeLock/>
+                        </atAction>
+                    </customizationTime>
+                    <callback callbackLabel="aa" time="23" stringToPass="kallestropp"/>
+                </upgradeStep>
+            </rollingUpgrade>
+        </upgradeMethod>
+    </upgradeProcedure>
+    <upgradeProcedure safSmfProcedure="safSmfProc=amfNodeGroupProc" saSmfExecLevel="3">
+        <outageInfo>
+            <acceptableServiceOutage>
+                <all/>
+            </acceptableServiceOutage>
+            <procedurePeriod saSmfProcPeriod="12345678"/>
+        </outageInfo>
+        <upgradeMethod>
+            <rollingUpgrade>
+                <upgradeScope>
+                    <byTemplate>
+                        <targetNodeTemplate objectDN="safAmfNodeGroup=PayloadNodes,safAmfCluster=myAmfCluster">
+                            <activationUnitTemplate>
+							</activationUnitTemplate>
+                            <swRemove bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swRemove bundleDN="safSwBundle=bundleB,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swAdd bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                            <swAdd bundleDN="safSwBundle=bundleB,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                        </targetNodeTemplate>
+                        <targetEntityTemplate>
+                            <parent objectDN="min=min,parent=parent,dn=dn"/>
+                            <type objectDN="min=min,type=type,dn=dn"/>
+                            <modifyOperation objectRDN="modRdn=modRdn" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>34</value>
+                                    <value>35</value>
+                                    <value>36</value>
+                                </attribute>
+                            </modifyOperation>
+                            <modifyOperation objectRDN="modRdn=modRdnTwo" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>45</value>
+                                </attribute>
+                            </modifyOperation>
+                        </targetEntityTemplate>
+                    </byTemplate>
+                </upgradeScope>
+                <upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8">
+                    <customizationTime>
+                        <onStep>
+                            <onEveryStep/>
+                        </onStep>
+                        <atAction>
+                            <beforeLock/>
+                        </atAction>
+                    </customizationTime>
+                    <callback callbackLabel="aa" time="23" stringToPass="kallestropp"/>
+                </upgradeStep>
+            </rollingUpgrade>
+        </upgradeMethod>
+    </upgradeProcedure>
+    <upgradeProcedure safSmfProcedure="safSmfProc=SingleStepProc" saSmfExecLevel="3">
+        <outageInfo>
+            <acceptableServiceOutage>
+                <all/>
+            </acceptableServiceOutage>
+            <procedurePeriod saSmfProcPeriod="12345678"/>
+        </outageInfo>
+        <upgradeMethod>
+            <singleStepUpgrade>
+                <upgradeScope>
+                    <forAddRemove>
+                        <deactivationUnit>
+                            <actedOn>
+                                <byName objectDN="dn=here"/>
+                                <byTemplate>
+                                    <parent objectDN="dn=here"/>
+                                    <type objectDN="dn=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <parent objectDN="dn2=here"/>
+                                    <type objectDN="dn2=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <parent objectDN="dn2=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <type objectDN="dn2=here"/>
+                                </byTemplate>
+                            </actedOn>
+                            <swRemove bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog">
+                                <plmExecEnv/>
+                            </swRemove>
+                        </deactivationUnit>
+                        <activationUnit>
+			    </activationUnit>
+                    </forAddRemove>
+                </upgradeScope>
+                <upgradeStep/>
+            </singleStepUpgrade>
+        </upgradeMethod>
+    </upgradeProcedure>
+    <upgradeProcedure safSmfProcedure="safSmfProc=SingleStepProcM" saSmfExecLevel="3">
+        <outageInfo>
+            <acceptableServiceOutage>
+                <all/>
+            </acceptableServiceOutage>
+            <procedurePeriod saSmfProcPeriod="12345678"/>
+        </outageInfo>
+        <upgradeMethod>
+            <singleStepUpgrade>
+                <upgradeScope>
+                    <forModify>
+                        <activationUnit>
+                            <actedOn>
+                                <byName objectDN="dn=here"/>
+                                <byTemplate>
+                                    <parent objectDN="dn1=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <parent objectDN="dn2=here"/>
+                                    <type objectDN="dn3=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <type objectDN="dn4=here"/>
+                                </byTemplate>
+                                <byTemplate>
+                                    <parent objectDN="dn5=here"/>
+                                    <type objectDN="dn6=here"/>
+                                </byTemplate>
+                            </actedOn>
+                            <swRemove bundleDN="safSwBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="detta/aer/en/katalog"/>
+                        </activationUnit>
+                        <targetEntityTemplate>
+                            <parent objectDN="min=min,parent=parent,dn=dn"/>
+                            <type objectDN="min=min,type=type,dn=dn"/>
+                            <modifyOperation objectRDN="modRdn=modRdn" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>34</value>
+                                    <value>35</value>
+                                    <value>36</value>
+                                </attribute>
+                            </modifyOperation>
+                            <modifyOperation objectRDN="modRdn=modRdnTwo" operation="SA_IMM_ATTR_VALUES_REPLACE">
+                                <attribute name="kalle" type="SA_IMM_ATTR_SAINT32T">
+                                    <value>45</value>
+                                </attribute>
+                            </modifyOperation>
+                        </targetEntityTemplate>
+                    </forModify>
+                </upgradeScope>
+                <upgradeStep>
+                    <atAction>
+                        <beforeLock/>
+                    </atAction>
+                    <callback callbackLabel="CalleCallback1"/>
+                    <atAction>
+                        <beforeTermination/>
+                    </atAction>
+                    <callback callbackLabel="CalleCallback2"/>
+                    <atAction>
+                        <afterImmModification/>
+                    </atAction>
+                    <callback callbackLabel="CalleCallback3"/>
+                    <atAction>
+                        <afterInstantiation/>
+                    </atAction>
+                    <callback callbackLabel="CalleCallback4"/>
+                    <atAction>
+                        <afterUnlock/>
+                    </atAction>
+                    <callback callbackLabel="CalleCallback5"/>
+                </upgradeStep>
+            </singleStepUpgrade>
+        </upgradeMethod>
+    </upgradeProcedure>
+    <campaignWrapup>
+        <campCompleteAction>
+            <doAdminOperation objectDN="safApp=safSmfService" operationID="SA_AMF_ADMIN_LOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>2</value>
+                </param>
+            </doAdminOperation>
+            <undoAdminOperation objectDN="safApp=safSmfService" operationID="SA_AMF_ADMIN_UNLOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>1</value>
+                </param>
+            </undoAdminOperation>
+        </campCompleteAction>
+        <campCompleteAction>
+            <doCliCommand command="true" args="do"/>
+            <undoCliCommand command="true" args="undo"/>
+            <plmExecEnv amfNode="safAmfNode=PL_2_3,safAmfCluster=myAmfCluster"/>
+            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
+        </campCompleteAction>
+        <campCompleteAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="myName=TestClass1,safAmfCluster=myAmfCluster" operation="SA_IMM_ATTR_VALUES_DELETE">
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>8888</value>
+                        <value>9999</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campCompleteAction>
+        <waitToCommit time="-4223"/>
+        <campWrapupAction>
+            <doAdminOperation objectDN="safApp=safSmfService" operationID="SA_AMF_ADMIN_LOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>2</value>
+                </param>
+            </doAdminOperation>
+            <undoAdminOperation objectDN="safApp=safSmfService" operationID="SA_AMF_ADMIN_UNLOCK">
+                <param name="myAttrC" type="SA_IMM_ATTR_SAUINT32T">
+                    <value>1</value>
+                </param>
+            </undoAdminOperation>
+        </campWrapupAction>
+        <campWrapupAction>
+            <immCCB ccbFlags="0">
+                <modify objectDN="myName=TestClass1,safAmfCluster=myAmfCluster" operation="SA_IMM_ATTR_VALUES_DELETE">
+                    <attribute name="aTimeT" type="SA_IMM_ATTR_SATIMET">
+                        <value>8888</value>
+                        <value>9999</value>
+                    </attribute>
+                </modify>
+            </immCCB>
+        </campWrapupAction>
+        <campWrapupAction>
+            <doCliCommand command="true" args="do"/>
+            <undoCliCommand command="true" args="undo"/>
+            <plmExecEnv amfNode="safAmfNode=PL_2_3,safAmfCluster=myAmfCluster"/>
+            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
+        </campWrapupAction>
+        <waitToAllowNewCampaign/>
+        <removeFromImm/>
+    </campaignWrapup>
+</upgradeCampaign>

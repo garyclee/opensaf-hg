@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="javah" basedir="..">
+
+	<property name="java_dir" value="ais_api_impl"/>
+	<property name="java_interface_dir" value="${basedir}${file.separator}ais_api${file.separator}bin"/>
+	<property name="java_package_dir" value="org${file.separator}opensaf${file.separator}ais"/>
+	<property name="java_bin_dir" value="${java_dir}${file.separator}bin"/>
+	<property name="java_ais_dir" value="${java_bin_dir}${file.separator}${java_package_dir}"/>
+	<property name="java_amf_dir" value="${java_ais_dir}${file.separator}amf"/>
+	<property name="java_ckpt_dir" value="${java_ais_dir}${file.separator}ckpt"/>
+	<property name="java_clm_dir" value="${java_ais_dir}${file.separator}clm"/>
+
+	<property name="native_dir" value="${ant.project.name}"/>
+	<property name="ais_header" value="${native_dir}${file.separator}jni_ais.h"/>
+	<property name="amf_header" value="${native_dir}${file.separator}jni_ais_amf.h"/>
+	<property name="clm_header" value="${native_dir}${file.separator}jni_ais_clm.h"/>
+	<property name="ckpt_header" value="${native_dir}${file.separator}jni_ais_ckpt.h"/>
+	<property name="msg_header" value="${native_dir}${file.separator}jni_ais_msg.h"/>
+	<property name="evt_header" value="${native_dir}${file.separator}jni_ais_evt.h"/>
+	<property name="lck_header" value="${native_dir}${file.separator}jni_ais_lck.h"/>
+
+    <!-- =================================
+          target: clean
+         ================================= -->
+    <target
+    	name="clean"
+		description="--> Cleans all existing c and header files">
+
+        <echo>Cleaning all existing c and header files</echo>
+		<!--delete dir="${native_dir}" failonerror="false"/-->
+    </target>
+
+    <!-- =================================
+          target: ais_clean
+         ================================= -->
+    <target
+    	name="ais_clean"
+		description="--> Cleans existing JNI header files of ais package (of AIS API)">
+
+        <echo>Cleaning JNI header files of ais package (of AIS API)</echo>
+		<delete file="${ais_header}" failonerror="false"/>
+    </target>
+
+    <!-- =================================
+          target: ais
+         ================================= -->
+    <target
+    	name="ais"
+    	depends="ais_clean"
+    	description="--> Creates JNI header files for ais package (of AIS API)">
+
+	    <echo>Creating JNI header files for ais package (of AIS API)</echo>
+
+    	<fileset id="aisClassFileSet" dir="${java_ais_dir}" casesensitive="yes">
+    	  <filename name="*.class"/>
+       	</fileset>
+
+    	<pathconvert pathsep="," property="aisClasses" refid="aisClassFileSet">
+    		<chainedmapper>
+ 				<globmapper from="${basedir}${file.separator}${java_dir}${file.separator}bin${file.separator}*" to="*"/>
+	    		<packagemapper from="*.class" to=""/>
+   			</chainedmapper>
+       	</pathconvert>
+
+		<javah class="${aisClasses}" classpath="${java_bin_dir}" outputfile="${ais_header}"/>
+
+    </target>
+
+    <!-- =================================
+          target: amf_clean
+         ================================= -->
+    <target
+    	name="amf_clean"
+		description="--> Cleans existing JNI header files of AMF API">
+
+        <echo>Cleaning JNI header files of AMF API</echo>
+		<delete file="${amf_header}" failonerror="false"/>
+    </target>
+
+    <!-- =================================
+          target: amf
+         ================================= -->
+    <target
+    	name="amf"
+    	depends="amf_clean"
+    	description="--> Creates JNI header files for AMF API">
+
+	    <echo>Creating JNI header files for AMF API</echo>
+
+    	<fileset id="amfClassFileSet" dir="${java_amf_dir}" casesensitive="yes">
+    	  <filename name="*.class"/>
+       	</fileset>
+
+    	<pathconvert pathsep="," property="amfClasses" refid="amfClassFileSet">
+    		<chainedmapper>
+ 				<globmapper from="${basedir}${file.separator}${java_dir}${file.separator}bin${file.separator}*" to="*"/>
+	    		<packagemapper from="*.class" to=""/>
+   			</chainedmapper>
+       	</pathconvert>
+
+		<javah class="${amfClasses}" classpath="${java_interface_dir}:${java_bin_dir}" outputfile="${amf_header}"/>
+
+    </target>
+
+    <!-- =================================
+          target: clm_clean
+         ================================= -->
+    <target
+    	name="clm_clean"
+		description="--> Cleans existing JNI header files of Cluster Membership Service API ">
+
+        <echo>Cleaning JNI header files of Cluster Membership Service API</echo>
+		<delete file="${clm_header}" failonerror="false"/>
+    </target>
+
+    <!-- =================================
+          target: clm
+         ================================= -->
+    <target
+    	name="clm"
+    	depends="clm_clean"
+    	description="--> Creates JNI header files for Cluster Membership Service API">
+
+	    <echo>Creating JNI header files for Cluster Membership Service API</echo>
+
+    	<fileset id="clmClassFileSet" dir="${java_clm_dir}" casesensitive="yes">
+    	  <filename name="*.class"/>
+       	</fileset>
+
+    	<pathconvert pathsep="," property="clmClasses" refid="clmClassFileSet">
+    		<chainedmapper>
+ 				<globmapper from="${basedir}${file.separator}${java_dir}${file.separator}bin${file.separator}*" to="*"/>
+	    		<packagemapper from="*.class" to=""/>
+   			</chainedmapper>
+       	</pathconvert>
+
+		<javah class="${clmClasses}" classpath="${java_interface_dir}:${java_bin_dir}" outputfile="${clm_header}"/>
+
+    </target>
+
+    <!-- =================================
+          target: ckpt_clean
+         ================================= -->
+    <target
+    	name="ckpt_clean"
+		description="--> Cleans existing JNI header files of Checkpoint Service API">
+
+        <echo>Cleaning JNI header files of Checkpoint Service API</echo>
+		<delete file="${ckpt_header}" failonerror="false"/>
+    </target>
+
+    <!-- =================================
+          target: ckpt
+         ================================= -->
+    <target
+    	name="ckpt"
+    	depends="ckpt_clean"
+    	description="--> Creates JNI header files for Checkpoint Service API">
+
+	    <echo>Creating JNI header files for Checkpoint Service API</echo>
+
+    	<fileset id="ckptClassFileSet" dir="${java_ckpt_dir}" casesensitive="yes">
+    	  <filename name="*.class"/>
+       	</fileset>
+
+    	<pathconvert pathsep="," property="ckptClasses" refid="ckptClassFileSet">
+    		<chainedmapper>
+ 				<globmapper from="${basedir}${file.separator}${java_dir}${file.separator}bin${file.separator}*" to="*"/>
+	    		<packagemapper from="*.class" to=""/>
+   			</chainedmapper>
+       	</pathconvert>
+
+		<javah class="${ckptClasses}" classpath="${java_interface_dir}:${java_bin_dir}" outputfile="${ckpt_header}"/>
+
+    </target>
+
+    <!-- =================================
+          target: javah
+         ================================= -->
+    <target
+    	name="javah"
+    	depends="ais, amf, clm"
+		description="--> Creates all Java AIS JNI header files">
+
+        <echo>Creating all Java AIS JNI header files</echo>
+
+    </target>
+
+</project>

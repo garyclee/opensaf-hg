@@ -1,0 +1,11 @@
+# Version and symbol export for libSaCkpt.so
+
+{
+	global:
+		saCkpt*;
+		# FIXME: Once adopted by SAF as an official API, remove from global
+		ncsCkptRegisterCkptArrivalCallback;
+
+	local:
+		*;
+};

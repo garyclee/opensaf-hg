@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:noNamespaceSchemaLocation="file:///home/uablrek/SMF/SAI-AIS-SMF-UCS-A.01.01.04_modified.xsd"
+  safSmfCampaign="safSmfCampaign=remove_bundles">
+  <!--
+    # Prerequisites;
+        The install_bundles_testcampaign.xml must have been executed and
+        committed.
+
+    # Execute;
+
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/remove_bundles_testcampaign.xml\
+      safSmfCampaign=remove_bundles_testcampaign,safApp=safSmfService
+    immadm -o 1 safSmfCampaign=remove_bundles_testcampaign,safApp=safSmfService
+    immlist safSmfCampaign=remove_bundles_testcampaign,safApp=safSmfService
+    immadm -o 4 safSmfCampaign=remove_bundles_testcampaign,safApp=safSmfService
+
+    # Expected outcome;
+
+    immfind -c SaSmfSwBundle
+        # TestBundle's should NOT exist
+
+    grep TestBundle rootfs/var/SC-?/log/messages
+    grep TestBundle rootfs/var/PL-?/log/messages
+        # First the "removal offline" then the "removal online"
+        # scripts should have been called for all TestBundle's on all nodes.
+
+    immfind -c SaAmfNodeSwBundle
+        # Relation objects should have been deleted under all AmfNode's.
+
+  -->
+    <campaignInfo>
+        <campaignPeriod/>
+    </campaignInfo>
+    <campaignInitialization>
+      <addToImm/>
+    </campaignInitialization>
+    <upgradeProcedure safSmfProcedure="safSmfProc=SingleStepProc">
+        <outageInfo>
+            <acceptableServiceOutage>
+                <all/>
+            </acceptableServiceOutage>
+            <procedurePeriod saSmfProcPeriod="60000000000"/>
+        </outageInfo>
+        <upgradeMethod>
+            <singleStepUpgrade>
+                <upgradeScope>
+                    <forAddRemove>
+                        <deactivationUnit>
+                          <swRemove bundleDN="safSmfBundle=TestBundle1">
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
+                          </swRemove>
+                          <swRemove bundleDN="safSmfBundle=TestBundle2">
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
+                          </swRemove>
+                          <swRemove bundleDN="safSmfBundle=TestBundle3">
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
+                          </swRemove>
+                        </deactivationUnit>
+                        <activationUnit/>
+                    </forAddRemove>
+                </upgradeScope>
+                <upgradeStep/>
+            </singleStepUpgrade>
+        </upgradeMethod>
+    </upgradeProcedure>
+    <campaignWrapup>
+        <waitToCommit/>
+        <waitToAllowNewCampaign/>
+        <removeFromImm>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle1"/>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle2"/>
+          <softwareBundleDN bundleDN="safSmfBundle=TestBundle3"/>
+        </removeFromImm>
+    </campaignWrapup>
+</upgradeCampaign>

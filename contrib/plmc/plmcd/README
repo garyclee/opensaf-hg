@@ -1,0 +1,54 @@
+This is the README file for the PLMc daemon directory.
+
+This directory consists of the following files:
+
+Makefile
+  A simple Makefile for making the PLMc daemon and test programs.
+  It includes the targets: all, clean.
+  Note: This Makefile does not provide an install target, as
+  the installation should be provided when PLMc is integrated
+  with an OpenSAF source repository. For manual installation, see
+  the note in the main README file in the above directory.
+
+  Also note: The plmcd daemon is built with DEBUG messages turned off:
+    CFLAGS=-Wall -fpic
+
+  If you want to turn on debug messages, use:
+    CFLAGS=-Wall -fpic -DPLMC_DEBUG
+  Additional debug messages will show up in syslog and STDOUT.
+
+  It is recommended that if you are running plmcd for the first time,
+  that you compile with PLMC_DEBUG turned turned on so that you can see
+  additional informational output on STDOUT, and in /var/log/messages.
+  Later, when you are familiar with the operation of plmcd, you can
+  recompile the daemon with PLMC_DEBUG turned off.
+
+plmcd.c
+  The source code for the plmcd daemon program.
+
+plmc_read_config.c
+  The source code for the PLMc function: plmc_read_config().
+
+plmc_get_listening_ip_addr.c
+  The source code for the PLMc function: plmc_get_listening_ip_addr(); 
+  This function looks at the available network interfaces and selects
+  the correct one to use for the tcp and udp listening threads.
+
+plmc_cmd_string_to_enum.c
+  The source code for the PLMc function: plmc_cmd_string_to_enum()
+  which converts the string version of a PLMc command to an enum value. 
+
+plmc_tcp_talker.c
+  A test program that allows a user to interactively exercise the
+  PLMc daemon without using the PLMc library.  Note: The 
+  plmc_tcp_talker program is limited to connecting to one PLMc
+  daemon at a time.  This program is good for testing one
+  connection to the PLMc daemon, and does not use the PLMc
+  library to exercise the daemon.  However, if you want to test
+  the PLMc library, use the test/test_lib program instead - which
+  allows connections to multiple PLMc daemons.  Also note: Do not run
+  the plmc_tcp_talker and test_lib at the same time - as they
+  both connect to the PLMc daemon on the same port number.  
+
+plmc_udp_listener.c
+  A test program that listens for PLMc UPD messages.

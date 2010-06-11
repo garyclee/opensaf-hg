@@ -1,0 +1,550 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+trace () {
+  if [ ! -z "$TRACE_ENABLED" ]; then
+     echo -e "trace: $1" >&2
+     #         ^^^ to stderr
+  fi
+}
+
+script_error () {
+   echo "error: $1" >&2
+   #         ^^^ to stderr
+}
+
+info () {
+   echo "$1" >&2
+   #         ^^^ to stderr
+}
+
+verifyExitCode()
+{
+    if [ $1 -ne 0 ]
+    then
+       script_error "$2 failed. Aborting script! exitCode: $1"
+       exit $1
+    fi
+}
+
+is_in_nodelist()
+{
+   local NODE="$1" element
+   shift
+
+   for element
+   do
+     #trace "is_in_list: $NODE element: $element "
+     [[ $element = $NODE ]] && return 0
+   done
+
+   return 1
+}
+
+is_number_in_list()
+{
+   local NODE="$1" element
+   shift
+
+   for element
+   do
+      #trace "is_in_list: $NODE element: $element "
+      [[ $element -eq $NODE ]] && return 0
+   done
+
+   return 1
+}
+
+eval_or_store()
+{
+    trace "eval_or_store():\n $*"
+    if [ -z "$DRYRUN" ]; then
+       echo -e "$*" >> $MANUAL_CMDFILE
+       eval $*
+    else
+       echo -e "$*" >> $MANUAL_CMDFILE
+    fi
+}
+
+do_delete()
+{
+    CMD="immcfg -d $*"
+    trace "\n${CMD}"
+
+    if [ -z "$DRYRUN" ]; then
+       TMPFILE=$WORK_ROOTDIR/last_cmd_file
+       echo -e "$CMD" > $TMPFILE
+       cat $TMPFILE >> $MANUAL_CMDFILE
+       sh $TMPFILE
+       verifyExitCode $? "The command $CMD"
+       #eval $CMD
+    else
+       echo -e "$CMD" >> $MANUAL_CMDFILE
+       echo -e "$*" >> $DEL_DN_FILE
+       verifyExitCode $? "Storing $CMD to command file"
+    fi
+}
+
+cluster_expansion()
+{
+   trace "::: Generate immxml node specific files into dir:$NODE_TMPDIR nodesToAdd:$NODES_TO_ADD :::"
+   ./immxml-nodegen "$TRACE_OPTION" --disable-si-replacement --disable-ng-gen --nodegen-dir $NODE_TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config $NODE_CFG_FILE --nodelist "$NODES_TO_ADD" >>$LOGFILE 2>&1
+   verifyExitCode $? "immxml-nodegen"
+
+   trace "::: Substitute Nored pattern in immxml node specific files :::"
+   ## substitute NoRed_TOKEN pattern in generated files
+   ## start with 1 to consider re-using gaps (if any)
+   SI_INDEX=1
+   CURRENT_SI_LIST=`immfind -c SaAmfSI |grep "^safSi=NoRed" | sed 's/safSi=NoRed\([0-9]*\),\(.*\)/\1/'|sort -n | xargs`
+   verifyExitCode $? "immfind -c SaAmfSI ..."
+   for node in $NODES_TO_ADD ; do
+      trace "Substitute NoRed_TOKEN for node: ${node}"
+      trace "try SI_INDEX: $SI_INDEX"
+      while is_number_in_list $SI_INDEX $CURRENT_SI_LIST ; do
+         SI_INDEX=$((SI_INDEX+1))
+      done
+      trace "Use SI_INDEX: $SI_INDEX for node: $node"
+      NODEFILE=$NODE_TMPDIR/imm_${node}.xml
+      mv $NODEFILE ${NODEFILE}.tmp
+      cat $NODEFILE.tmp | sed "s/NoRed_TOKEN/NoRed$SI_INDEX/g" > $NODEFILE
+      rm ${NODEFILE}.tmp
+      SI_INDEX=$((SI_INDEX+1)) # try next index for next node
+   done
+
+
+
+   FILES_TO_MERGE="$NODE_TMPDIR/*.xml"
+   trace "::: Create node expansion imm.xml by merging intermediate files: $FILES_TO_MERGE :::"
+   # merge all intermediate files to the node expansion file
+   ./immxml-merge --sort --ignore-missing-class -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
+   verifyExitCode $? "immxml-merge, merge of node specific files "
+
+
+   trace "Successfully generated the imm file: $RESULTFILE"
+
+   if [ -n "$TRACE_OPTION" ] ; then
+      cmd="immcfg -v -f $RESULTFILE"
+   else
+      cmd="immcfg -f $RESULTFILE"
+   fi
+   eval_or_store $cmd
+   verifyExitCode $? "load with immcfg -f"
+   trace "Successfully loaded the imm file: $RESULTFILE"
+
+
+   trace "::: modify nodegroups add '$NODES_TO_ADD' :::"
+   for node in $NODES_TO_ADD ; do
+      trace "node:$node"
+      cmd="immcfg -a saAmfNGNodeList+=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster"
+      eval_or_store $cmd
+      verifyExitCode $? "failed to eval/store $cmd"
+
+      trace "PL_NG_EXISTS:$PL_NG_EXISTS"
+      NODETYPE=${node:0:2}
+      if [[ $NODETYPE = "SC" ]] || [[ -n $PL_NG_EXISTS ]] ; then
+         cmd="immcfg -a saAmfNGNodeList+=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=${NODETYPE}s,safAmfCluster=myAmfCluster"
+      else
+         cmd="immcfg -c SaAmfNodeGroup -a saAmfNGNodeList=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster"
+         PL_NG_EXISTS=1
+      fi
+      eval_or_store $cmd
+      verifyExitCode $? "failed to eval/store $cmd"
+   done
+}
+
+recreate_current_nodeconfig()
+{
+    CURRENT_NODECFG=$WORK_ROOTDIR/current_nodes.cfg
+    trace "::: recreating a special node.cfg with current node configuration: $CURRENT_NODES to file: $CURRENT_NODECFG"
+
+    for node in $CURRENT_NODES ; do
+       trace "node:$node"
+       NODETYPE=${node:0:2}
+       CLM_NODE=`immlist -a saAmfNodeClmNode safAmfNode=$node,safAmfCluster=myAmfCluster|sed 's/saAmfNodeClmNode=safNode=\(.*\),\(.*\)/\1/'`
+       verifyExitCode $? "immlist -a saAmfNodeClmNode ..."
+       echo "$NODETYPE $node $CLM_NODE" >> $CURRENT_NODECFG
+    done
+}
+
+
+cluster_downsize()
+{
+    recreate_current_nodeconfig
+
+    trace "::: Generate immxml nodespecific files into dir:$NODE_TMPDIR :::"
+    ./immxml-nodegen "$TRACE_OPTION" --disable-si-replacement --disable-ng-gen --nodegen-dir $NODE_TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config $CURRENT_NODECFG  >>$LOGFILE 2>&1
+    verifyExitCode $? "immxml-nodegen selected"
+
+    # count number of nodes to remove
+    NUM_NODES_TO_REMOVE=0
+    for node in $NODES_TO_REMOVE ; do
+        NUM_NODES_TO_REMOVE=$((NUM_NODES_TO_REMOVE+1))
+    done
+    trace "NUM_NODES_TO_REMOVE: $NUM_NODES_TO_REMOVE"
+
+
+    trace "::: find removable SI's :::"
+    # find removable SI's starting from highest si number
+    MW_NODE_SIS=$(immfind -c SaAmfSI | grep "^safSi=NoRed\(.*\),safApp=OpenSAF" | sort -nr -t ',' --key 1.12)
+    verifyExitCode $? "immfind -c SaAmfSI ..."
+    trace "MW_NODE_SIS:$MW_NODE_SIS"
+    SI_ASSIGNMENTS=`immfind -c SaAmfSIAssignment|xargs`
+    verifyExitCode $? "immfind -c SaAmfSIAssignment ..."
+    NUM_UNASSIGNED_SUS=0
+    for si in `echo $MW_NODE_SIS |xargs` ; do
+        trace "MWSI:$si"
+        si_is_assigned=0
+        for assignment in $SI_ASSIGNMENTS ; do
+            assignment_si=`echo $assignment | sed 's/safSISU=safSu=\(.*\),safApp=OpenSAF,\(.*\)/\2/'`
+            if [ $assignment_si = $si ] ; then
+                trace "assignment:$assignment"
+                trace "assignment_si:$assignment_si"
+                si_is_assigned=1
+                break
+            fi
+        done
+        if [ $si_is_assigned -eq 0 ] ; then
+            sis_to_remove="$si $sis_to_remove"
+            NUM_UNASSIGNED_SUS=$((NUM_UNASSIGNED_SUS+1))
+
+            if [ $NUM_UNASSIGNED_SUS -ge $NUM_NODES_TO_REMOVE ] ; then
+                break;
+            fi
+        fi
+    done
+
+
+    trace "NUM_NODES_TO_REMOVE:$NUM_NODES_TO_REMOVE, NUM_UNASSIGNED_SUS:$NUM_UNASSIGNED_SUS sis_to_remove:$sis_to_remove"
+    if [ $NUM_NODES_TO_REMOVE -gt $NUM_UNASSIGNED_SUS ] ; then
+        script_error "not enough unassigned SU's ($NUM_NODES_TO_REMOVE is required) $sis_to_remove. Exiting!"
+        exit 2
+    fi
+
+    trace "::: modify nodegroups remove '$NODES_TO_REMOVE' :::"
+    for node in $NODES_TO_REMOVE ; do
+       trace "node:$node"
+
+       cmd="amf-adm lock safAmfNode=$node,safAmfCluster=myAmfCluster"
+       eval_or_store $cmd
+       verifyExitCode $? "failed to eval/store $cmd"
+       cmd="amf-adm lock-in safAmfNode=$node,safAmfCluster=myAmfCluster"
+       eval_or_store $cmd
+       verifyExitCode $? "failed to eval/store $cmd"
+       PLMNODE=`cat $CURRENT_NODECFG | grep ".. $node " | awk '{ print $ 3 }'`
+       trace "PLMNODE: $PLMNODE"
+       cmd="amf-adm lock safNode=$PLMNODE,safCluster=myClmCluster"
+       eval_or_store $cmd
+       verifyExitCode $? "failed to eval/store $cmd"
+
+
+       cmd="immcfg -a saAmfNGNodeList-=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster"
+       eval_or_store $cmd
+       verifyExitCode $? "failed to eval/store $cmd"
+
+       trace "PL_NG_REMOVED:$PL_NG_REMOVED"
+       if [ -z $PL_NG_REMOVED ] ; then
+           NODETYPE=${node:0:2}
+           if [[ $NODETYPE = "PL" ]] && [[ $NEW_PL_COUNT -eq 0 ]] ; then
+              cmd="safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster"
+              do_delete $cmd
+              PL_NG_REMOVED=1
+           else
+              cmd="immcfg -a saAmfNGNodeList-=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=${NODETYPE}s,safAmfCluster=myAmfCluster"
+              eval_or_store $cmd
+              verifyExitCode $? "failed to eval/store $cmd"
+           fi
+       fi
+    done
+
+
+    # remove some Si's...
+    trace ":::remove some unnasigned SI's:::"
+    for si in $sis_to_remove ; do
+        ## Currently there is no support for deleting the complete si with child objects
+        ## need to delete objects bottom up
+        trace "delete objects associated wih SI: '$si'"
+        immfind $si > $WORK_ROOTDIR/si_objects
+        CSIATT_OBJS=$(cat $WORK_ROOTDIR/si_objects | grep "^safCsiAttr=\(.*\),\(.*\),$si" )
+        cmd=""
+        for obj in $CSIATT_OBJS ; do
+            cmd=$(echo "$cmd \\\\\n\\t\"$obj\"")
+        done
+        # safCsiAttr is optional...
+        if [ -n "$cmd" ] ; then
+            do_delete $cmd
+        fi
+
+        CSI_OBJS=$(cat $WORK_ROOTDIR/si_objects | grep "^safCsi=\(.*\),$si" )
+        cmd=""
+        for obj in $CSI_OBJS ; do
+            cmd=$(echo "$cmd \\\\\n\\t\"$obj\"")
+        done
+        do_delete $cmd
+
+        cmd=$si
+        do_delete $cmd
+    done
+
+
+    trace ":::remove su and node related objects :::"
+    for node in $NODES_TO_REMOVE ; do
+        trace " Delete su and node objects for node: $node"
+        NODERELATED_OBJECTS_FILE=$WORK_ROOTDIR/${node}_object_dns
+        trace " Generate dn's of node: $node into $NODERELATED_OBJECTS_FILE"
+        cat $NODE_TMPDIR/imm_$node.xml | grep "<dn>" | sed 's/<dn>\(.*\)<\/dn>\(.*\)/\1/' | sed 's/^\S*\s*//' > $NODERELATED_OBJECTS_FILE
+
+        NODE_SUS=$(cat $NODERELATED_OBJECTS_FILE | grep "^safSu=" | xargs)
+        for su in $NODE_SUS ; do
+            trace "delete objects associated wih SU: '$su'"
+            ## Currently there is no support for deleting the complete su with child objects
+            ## need to delete objects bottom up
+
+            CSTYPE_OBJECTS=$(cat $NODERELATED_OBJECTS_FILE | grep "^safSupportedCsType=")
+            cmd=""
+            for obj in $CSTYPE_OBJECTS ; do
+                cmd=$(echo "$cmd \\\\\n\\t\"$obj\"")
+            done
+            do_delete $cmd
+
+            COMP_OBJECTS=$(cat $NODERELATED_OBJECTS_FILE | grep "^safComp=")
+            cmd=""
+            for obj in $COMP_OBJECTS ; do
+                cmd=$(echo "$cmd \\\\\n\\t\"$obj\"")
+            done
+            do_delete $cmd
+
+            cmd="$su"
+            do_delete $cmd
+        done
+
+        SWBUNDLE_OBJECTS=$(cat $NODERELATED_OBJECTS_FILE | grep "^safInstalledSwBundle=")
+        cmd=""
+        for obj in $SWBUNDLE_OBJECTS ; do
+            cmd=$(echo "$cmd \\\\\n\\t\"$obj\"")
+        done
+        do_delete $cmd
+
+        cmd="safAmfNode=$node,safAmfCluster=myAmfCluster"
+        do_delete $cmd
+
+        PLMNODE=`cat $CURRENT_NODECFG | grep ".. $node " | awk '{ print $ 3 }'`
+        trace "PLMNODE: $PLMNODE"
+        cmd="safNode=$PLMNODE,safCluster=myClmCluster"
+        do_delete $cmd
+    done
+
+
+    if [ -n "$DRYRUN" ]; then
+        SELNODEGENDIR=$WORK_ROOTDIR/selectedNodes
+        trace "In --dryrun mode to verify result,  immxml nodespecific files is generated into dir:$SELNODEGENDIR"
+        ./immxml-nodegen "$TRACE_OPTION" --nodegen-dir $SELNODEGENDIR --nodelist "$NODES_TO_REMOVE" --disable-ng-gen  --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config $CURRENT_NODECFG  >>$LOGFILE 2>&1
+        verifyExitCode $? "immxml-nodegen selected"
+
+        ALL_OBJECTS_FILE=$WORK_ROOTDIR/all_objects_for_nodes_to_remove.txt
+        cat $SELNODEGENDIR/*.xml |grep "<dn>" |sed 's/<dn>\(.*\)<\/dn>\(.*\)/\1/' |sed 's/^\S*\s*//' > $ALL_OBJECTS_FILE
+
+        DIFF_DN_FILE=$WORK_ROOTDIR/diff_dn.txt
+        sort $ALL_OBJECTS_FILE > $ALL_OBJECTS_FILE.sorted
+        grep -v "^.$" $DEL_DN_FILE | sed 's/^\t\"\(.*\)\".*/\1/' >$DEL_DN_FILE.tmp
+        sort ${DEL_DN_FILE}.tmp > ${DEL_DN_FILE}.sorted
+        trace "check the file $DIFF_DN_FILE for differences compared with simulated cluster expansion node generation"
+        diff ${ALL_OBJECTS_FILE}.sorted ${DEL_DN_FILE}.sorted > $DIFF_DN_FILE
+    fi
+}
+
+verify_downsize_prereq()
+{
+    for node in $NODES_TO_REMOVE ; do
+       trace "node:$node"
+        NODE_OPER_STATE=`immlist -a saAmfNodeOperState safAmfNode=$node,safAmfCluster=myAmfCluster|sed 's/saAmfNodeOperState=\(.*\)/\1/'`
+        verifyExitCode $? "verify_downsize_prereq(): immlist -a saAmfNodeOperState safAmfNode=$node,safAmfCluster=myAmfCluster ....."
+        if [ "$NODE_OPER_STATE" != "<Empty>" ] ; then
+            if [ "$NODE_OPER_STATE" -ne 2 ] ; then
+                script_error "$node has oper state $NODE_OPER_STATE. Opensaf must be stop'ed on all AmfNode's to be removed (saAmfNodeOperState=2). Exiting!"
+                exit 2
+            fi
+        fi
+    done
+}
+
+verify_expansion_prereq()
+{
+    for node in $CURRENT_NODES ; do
+       trace "node:$node"
+       NODE_OPER_STATE=`immlist -a saAmfNodeOperState safAmfNode=$node,safAmfCluster=myAmfCluster|sed 's/saAmfNodeOperState=\(.*\)/\1/'`
+       verifyExitCode $? "verify_expansion_prereq(): immlist -a saAmfNodeOperState safAmfNode=$node,safAmfCluster=myAmfCluster ....."
+       if [[ "$NODE_OPER_STATE" = "<Empty>" ]] || [[ "$NODE_OPER_STATE" -ne 1 ]] ; then
+           script_error "When expanding the cluster all existing nodes must be started (saAmfNodeOperState=1). Exiting!"
+           exit 2
+       fi
+    done
+}
+
+
+
+determine_cluster_modification()
+{
+    CURRENT_NODES=`immlist -a saAmfNGNodeList safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster | sed "
+    s/saAmfNGNodeList=//g
+    s/safAmfNode=//g
+    s/,safAmfCluster=myAmfCluster//g
+    s/:/ /g
+    " | sed "s/ /\n/g" | sort -n --key=1.4`
+
+    verifyExitCode $? "determine_cluster_modification(): immlist -a saAmfNGNodeList safAmfNodeGroup=AllNodes ....."
+
+
+    trace "CURRENT_NODES: $CURRENT_NODES"
+
+    NEW_NODECONFIG=`cat $NODE_CFG_FILE | awk '{ print $2 }'|xargs`
+    NEW_PL_COUNT=`cat $NODE_CFG_FILE |grep "^PL " | wc -l`
+    trace "NEW_NODECONFIG: $NEW_NODECONFIG"
+
+    # Look for nodes to be added
+    while read TYPE ID CLMID ; do
+       N=$((N+1))
+       trace "N:$N ID:$ID"
+
+       if ! is_in_nodelist $ID $CURRENT_NODES ; then
+           trace "New node to be added: $ID"
+           NODES_TO_ADD="$NODES_TO_ADD $ID"
+       fi
+    done < $NODE_CFG_FILE
+    trace "NODES_TO_ADD:$NODES_TO_ADD"
+
+    # Look for nodes to be removed
+    for node in $CURRENT_NODES ; do
+       trace "node:$node"
+       if ! is_in_nodelist $node $NEW_NODECONFIG ; then
+           trace "Node to be removed: $node"
+           NODES_TO_REMOVE="$NODES_TO_REMOVE $node"
+       fi
+
+       NODETYPE=${node:0:2}
+       if [[ $NODETYPE = "PL" ]] ; then
+           trace "found a PL node: $node, PL_NG_EXISTS=1"
+           PL_NG_EXISTS=1
+       fi
+
+    done
+    trace "NODES_TO_REMOVE:$NODES_TO_REMOVE"
+
+    if [[ -z $NODES_TO_ADD ]] && [[ -z $NODES_TO_REMOVE ]] ; then
+        die "The configured clustersize is equal to requested size. Exiting!"
+    fi
+}
+
+test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
+
+
+USAGE="Usage: $0\n\
+\t  [-c|--node-config node_config_file]\n\
+\t  [-d|--workdir directory]\n\
+\t  [-f|--fragmentdir directory]\n\
+\t  [-n|--dry-run]\n\
+\t  [-h|--help]\n\
+\t  [-t|--trace]\n\
+\n\
+Note. With no options given to script it will create and load imm objects for the \n
+not yet existing nodes thats exists in node config file (default: ./nodes.cfg).\n
+With --dry-run option it is possible to generate a file with additional node related objects as an imm.xml delta file and a command file (placed in working directory)."
+
+NODE_CFG_FILE=./nodes.cfg
+SERVICESDIR=./services
+TEMP=`getopt -o d:f:s:p:c:htn --long dry-run,nodes-to-remove:,node-config:,workdir:,fragmentdir:,help,trace \
+     -- "$@"`
+if [ $? != 0 ] ; then
+   script_error "Failed to process command options. Terminating..."
+   exit 1 ;
+fi
+
+eval set -- "$TEMP"
+
+while true ; do
+        case "$1" in
+                -c|--node-config) NODE_CFG_FILE=$2; trace "Option --node-config , argument \`$NODE_CFG_FILE'" ; shift 2 ;;
+                -d|--workdir) WORK_ROOTDIR=$2; trace "Option $1 , argument \`$WORK_ROOTDIR'" ; shift 2 ;;
+                -f|--fragmentdir) SERVICESDIR=$2; trace "Option $1 , argument \`$2'" ; shift 2 ;;
+                -h|--help) echo -e $USAGE ; exit 1 ;;
+                -n|--dry-run) DRYRUN=on ; shift 1 ;;
+                -t|--trace) TRACE_ENABLED=on ; TRACE_OPTION="-t"; shift 1 ;;
+                --) shift ; break ;;
+                *) script_error "Internal error!" ; exit 1 ;;
+        esac
+done
+
+if [[ -n "$DRYRUN" ]] && [[ -z $WORK_ROOTDIR ]] ; then
+   echo "Error: with --dryrun option it is also required to specify workdir (-d|--workdir)"
+fi
+
+if [ -z $WORK_ROOTDIR ] ; then
+   WORK_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
+else
+   WORKDIR_SPECIFIED=true
+   rm -rf $WORK_ROOTDIR
+   mkdir -p $WORK_ROOTDIR
+fi
+trace "WORK_ROOTDIR: $WORK_ROOTDIR"
+
+set -o pipefail
+
+TEMPLATE_TMPDIR=$WORK_ROOTDIR/templatedir
+TMPDIR=$WORK_ROOTDIR/intermediatefiles
+NODE_TMPDIR=$WORK_ROOTDIR/nodes
+LOGFILE=$WORK_ROOTDIR/$0.log
+RESULTFILE=$WORK_ROOTDIR/imm_increase_clustersize.xml
+MANUAL_CMDFILE=$WORK_ROOTDIR/manual_cmds.sh
+DEL_DN_FILE=$WORK_ROOTDIR/deleted_dns.txt
+
+mkdir -p $TMPDIR
+mkdir -p $TEMPLATE_TMPDIR
+mkdir -p $NODE_TMPDIR
+
+SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
+trace "merge SC templates to: $SC_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $SC_TEMPLATE `find $SERVICESDIR -name \*_sc_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge SC templates"
+
+PL_TEMPLATE=$TEMPLATE_TMPDIR/imm_pl_template.xml
+trace "merge PL templates to: $PL_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge PL templates"
+
+determine_cluster_modification
+
+if [[ -z $NODES_TO_ADD ]] && [[ -n $NODES_TO_REMOVE ]] ; then
+    trace "Cluster downsize"
+    verify_downsize_prereq
+    cluster_downsize
+elif [[ -n $NODES_TO_ADD ]] && [[ -z $NODES_TO_REMOVE ]] ; then
+    trace "Cluster expansion"
+    verify_expansion_prereq
+    cluster_expansion
+fi
+
+info "Successfully resized cluster configuration resident in IMM, consider generating an updated version of /etc/opensaf/imm.xml"
+
+
+if [ -z "$WORKDIR_SPECIFIED" ] ; then
+   # clean up only if workdir was not specified
+   rm -rf $WORK_ROOTDIR
+fi
+

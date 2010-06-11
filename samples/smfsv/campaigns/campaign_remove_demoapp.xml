@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=campaign_increase_demoapp">
+	<!--
+
+    Remove campaign for the AmfDemo application.
+	
+	NOTE:
+	This campaigm can not be executed until the following ticktes has beed corrected.
+	#1191 Not possible to remove SaAmfNodeSwBundle object
+	#1192 Node reboot when SaAmfSG object was deleted
+	#1193 Removal of SaAmfApplication object rejected
+	
+
+    Prerequisites;
+    ==============
+    - The campaign_increase_demoapp.xml must have been successfully executed.
+   
+    Execution;
+    ==========
+    # Copy this file to the UML dir. Then in UML;
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_remove_demoapp.xml\
+      safSmfCampaign=campaign_remove_demoapp,safApp=safSmfService
+    immadm -o 1 safSmfCampaign=campaign_remove_demoapp,safApp=safSmfService
+    immlist safSmfCampaign=campaign_remove_demoapp,safApp=safSmfService
+    immadm -o 4 safSmfCampaign=campaign_remove_demoapp,safApp=safSmfService
+
+
+    Expected result;
+    ================
+    # On all nodes
+    amf-state su
+        # The SU's in safSg=AmfDemo should NOT be present
+    ps
+        # /opt/amf_demo/amf_demo should NOT be seen
+    # In the UML-dir;
+    grep SMF: rootfs/var/SC-*/log/messages
+        # Online/offline scripts should have been executed.
+
+  -->
+	<campaignInfo>
+		<campaignPeriod />
+	</campaignInfo>
+	<campaignInitialization>
+		<addToImm />
+	</campaignInitialization>
+	<upgradeProcedure safSmfProcedure="safSmfProc=removeAmfDemo">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="60000000000" />
+		</outageInfo>
+		<upgradeMethod>
+			<singleStepUpgrade>
+				<upgradeScope>
+					<forAddRemove>
+						<deactivationUnit>
+							<actedOn>
+								<byName objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1" />
+								<byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1" />
+								<byName objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1" />
+							</actedOn>
+							<swRemove bundleDN="safSmfBundle=AmfDemo">
+								<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster" />
+								<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster" />
+								<plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster" />
+							</swRemove>
+						</deactivationUnit>
+						<activationUnit>
+						</activationUnit>
+					</forAddRemove>
+				</upgradeScope>
+				<upgradeStep />
+			</singleStepUpgrade>
+		</upgradeMethod>
+		<procWrapupAction>
+			<doAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK"/>
+			<undoAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK"/>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK_INSTANTIATION"/>
+			<undoAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK_INSTANTIATION"/>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
+				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSi=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safSg=AmfDemo,safApp=AmfDemo1"/>
+				<delete objectDN="safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+	</upgradeProcedure>
+	<campaignWrapup>
+		<waitToCommit />
+		<waitToAllowNewCampaign />
+		<removeFromImm>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safAppType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safAppType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safSgType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safSgType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safSuType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safSuType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safCompType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safCompType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safCSType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safCSType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safVersion=4.0.0,safSvcType=AmfDemo1"/>
+			<amfEntityTypeDN objectDN="safSvcType=AmfDemo1"/>
+			<softwareBundleDN bundleDN="safSmfBundle=AmfDemo"/>
+		</removeFromImm>
+	</campaignWrapup>
+</upgradeCampaign>

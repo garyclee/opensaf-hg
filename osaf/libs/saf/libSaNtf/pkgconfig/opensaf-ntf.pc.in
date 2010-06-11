@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenSAF NTF
+Description: Implementation of SA Forum AIS Notification Service
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lSaNtf
+Cflags: -I${includedir}

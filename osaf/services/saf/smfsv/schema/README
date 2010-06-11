@@ -1,0 +1,16 @@
+The OpenSAF Campaign and ETF schema files are modified for the following reasons:
+
+SAI-AIS-SMF-ETF-A.01.02_OpenSAF.xsd 
+------------------------------------------------------
+1) Allows software bundles without entity types.
+   This will make it possible to e.g. deliver OS-type SW which has no 
+   component representation in IMM.
+
+SAI-AIS-SMF-UCS-A.01.02_OpenSAF.xsd
+------------------------------------------------------
+1) Works with simpler XML editors which do not support the {name} rule.
+2) No targetEntity needed in the campaign. This allows e.g. installation 
+   of SW without changing any attributes in Comp/SU objects. Suitable for
+   OS-type software upgrade which has no Comp/SU representation in IMM.
+
+Detailed information is found in the beginning of each file.

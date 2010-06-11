@@ -1,0 +1,160 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+trace () {
+  if [ ! -z "$TRACE_ENABLED" ]; then
+     echo -e "trace: $1" >&2
+     #         ^^^ to stderr
+  fi
+}
+
+script_error () {
+   echo "error: $1" >&2
+   #         ^^^ to stderr
+}
+
+verifyExitCode()
+{
+    if [ $1 -ne 0 ]
+    then
+       script_error "$2 failed. Aborting script! exitCode: $1"
+       exit $1
+    fi
+}
+
+test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
+
+
+
+USAGE="Usage: $0\n\
+\t  [-c|--node-config node_config_file]\n\
+\t  [-d|--workdir directory]\n\
+\t  [-f|--fragmentdir directory]\n\
+\t  [-t|--trace]\n\
+\t  [-o|--output resultingXmlFile]\n\
+\t  [-h|--help]\n\
+\n\
+If no node config file is specified it will use the default (./nodes.cfg).\n\
+\n\
+The name of the resulting xmlfile can be given as first argument \n\
+($0 myimm.xml) or with the switches -o, --output\n\
+If no result file is specified it will generate a file in current directory.\n\
+\n\
+For more information about the immxml generation it is possible get trace \n\
+information (-t or --trace). Detailed error information is stored in a log \n\
+file which is placed in the working directory (immxml-configure.log). \n\
+\n\
+"
+
+NODE_CFG_FILE=./nodes.cfg
+SERVICESDIR=./services
+TEMP=`getopt -o c:d:f:o:ht --long output:,node-config:,workdir:,fragmentdir:,help,trace \
+     -- "$@"`
+if [ $? != 0 ] ; then
+   script_error "Failed to process command options. Terminating..."
+   exit 1 ;
+fi
+
+eval set -- "$TEMP"
+
+while true ; do
+        case "$1" in
+                -c|--node-config) NODE_CFG_FILE=$2; trace "Option --node-config , argument \`$NODE_CFG_FILE'" ; shift 2 ;;
+                -d|--workdir) WORK_ROOTDIR=$2; trace "Option $1 , argument \`$WORK_ROOTDIR'" ; shift 2 ;;
+                -f|--fragmentdir) SERVICESDIR=$2; trace "Option $1 , argument \`$2'" ; shift 2 ;;
+                -h|--help) echo -e $USAGE ; exit 1 ;;
+                -t|--trace) TRACE_ENABLED=on ; shift 1 ;;
+                -o|--output) RESULTFILE=$2; trace "Option $1 , argument \`$RESULTFILE'" ; shift 2 ;;
+                --) shift ; break ;;
+                *) script_error "Internal error!" ; exit 1 ;;
+        esac
+done
+
+trace "Remaining arguments:"
+for arg do trace '--> '"\`$arg'" ; done
+
+if [[ -n $1 ]] ; then
+   if [ -f $1 ] ; then
+      echo "The file $1 already exists"
+      exit 1
+   fi
+   RESULTFILE=$1
+elif [[ -z $1 ]] && [[ -z $RESULTFILE ]] ; then
+   RESULTFILE=./imm.xml.`date "+%Y%m%d_%H%M"`
+fi
+
+trace "Resulting file: $RESULTFILE"
+
+if [ -z $WORK_ROOTDIR ] ; then
+   WORK_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
+else
+   WORKDIR_SPECIFIED=true
+   rm -rf $WORK_ROOTDIR
+   mkdir -p $WORK_ROOTDIR
+fi
+trace "WORK_ROOTDIR: $WORK_ROOTDIR"
+
+
+TEMPLATE_TMPDIR=$WORK_ROOTDIR/templatedir
+TMPDIR=$WORK_ROOTDIR/intermediatefiles
+NODE_TMPDIR=$WORK_ROOTDIR/nodes
+LOGFILE=$WORK_ROOTDIR/$0.log
+
+mkdir -p $TMPDIR
+mkdir -p $TEMPLATE_TMPDIR
+mkdir -p $NODE_TMPDIR
+
+SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
+trace "merge SC templates to: $SC_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $SC_TEMPLATE `find $SERVICESDIR -name \*_sc_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge SC templates"
+
+PL_TEMPLATE=$TEMPLATE_TMPDIR/imm_pl_template.xml
+trace "merge PL templates to: $PL_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge PL templates"
+
+trace "Generate node specific immxml files into dir:$NODE_TMPDIR"
+./immxml-nodegen --nodegen-dir $NODE_TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config $NODE_CFG_FILE >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-nodegen"
+
+./immxml-merge -o $TMPDIR/imm_classes.xml `find $SERVICESDIR -name \*_classes.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge *_classes.xml"
+./immxml-merge --ignore-missing-class -o $TMPDIR/imm_objects.xml `find $SERVICESDIR -name \*_objects.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge *_objects.xml"
+
+# merge all intermediate files to the result file
+FILES_TO_MERGE="$SERVICESDIR/imm_copyright.xml $TMPDIR/imm_classes.xml $TMPDIR/imm_objects.xml $NODE_TMPDIR/*.xml"
+
+trace "\n Create resulting imm.xml by merging intermediate files :$FILES_TO_MERGE"
+./immxml-merge --sort -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge final  imm.xml file"
+
+./immxml-validate $RESULTFILE  >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-validate final  imm.xml file"
+
+if [ -z "$WORKDIR_SPECIFIED" ] ; then
+   # clean up only if workdir was not specified
+   rm -rf $WORK_ROOTDIR
+fi
+
+echo "Successfully generated the imm file: $RESULTFILE"
+

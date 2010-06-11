@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfApplication">
+		<dn>safApp=safLockService</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeGLD</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeGLD</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>osaf-lckd</value>
+		</attr>
+                <attr>
+                        <name>saAmfCtDefInstantiateCmdArgv</name>
+                        <value>start</value>
+                </attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>osaf-lckd</value>
+		</attr>
+                <attr>
+                        <name>saAmfCtDefCleanupCmdArgv</name>
+                        <value>stop</value>
+                </attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>5</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeGLND</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>osaf-lcknd</value>
+		</attr>
+                <attr>
+                        <name>saAmfCtDefInstantiateCmdArgv</name>
+                        <value>start</value>
+                </attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>osaf-lcknd</value>
+		</attr>
+                <attr>
+                        <name>saAmfCtDefCleanupCmdArgv</name>
+                        <value>stop</value>
+                </attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeGLD</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=GLD-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=GLD-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=GLD,safSi=SC-2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=GLD-OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCSIDependencies</name>
+			<value>safCsi=IMMD,safSi=SC-2N,safApp=OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeGLD,safVersion=4.0.0,safSuType=OpenSafSuTypeServer</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeGLND,safVersion=4.0.0,safSuType=OpenSafSuTypeND</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=GLND-OpenSAF,safVersion=4.0.0,safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=GLD-OpenSAF,safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=GLD-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeGLD</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=GLND-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=GLND-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=GLND-OpenSAF</dn>
+	</object>
+</imm:IMM-contents>

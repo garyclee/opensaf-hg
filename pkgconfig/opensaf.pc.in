@@ -1,0 +1,21 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+bindir=@bindir@
+libdir=@libdir@
+pkglibdir=@libdir@/@PACKAGE_NAME@
+sysconfdir=@sysconfdir@
+pkgsysconfdir=@sysconfdir@/@PACKAGE_NAME@
+localstatedir=@localstatedir@
+pkglocalstatedir=@localstatedir@/lib/@PACKAGE_NAME@
+pkglogdir=@localstatedir@/log/@PACKAGE_NAME@
+pkgpiddir=@localstatedir@/run/@PACKAGE_NAME@
+includedir=@includedir@
+pkgincludedir=@includedir@/@PACKAGE_NAME@
+datarootdir = @datarootdir@
+datadir=@datadir@
+pkgdatadir=@datadir@/@PACKAGE_NAME@
+docdir=@datadir@/doc/@PACKAGE_NAME@-@PACKAGE_VERSION@
+
+Name: OpenSAF
+Description: Implementation of SA Forum AIS Availability Management Framework
+Version: @VERSION@

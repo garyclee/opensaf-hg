@@ -1,0 +1,60 @@
+#! /bin/sh
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+if [ $# -eq 0 ]; then
+	echo "usage: `basename $0` <app|comp|csi|csiass|node|sg|si|siass|su>"
+	exit 1
+fi
+
+case "$1" in
+	app)
+		immfind -c SaAmfApplication
+		;;
+	comp)
+		immfind -c SaAmfComp
+		;;
+	csi)
+		immfind -c SaAmfCSI
+		;;
+	csiass)
+		immfind -c SaAmfCSIAssignment
+		;;
+	comp)
+		immfind -c SaAmfComp
+		;;
+	node)
+		immfind -c SaAmfNode
+		;;
+	sg)
+		immfind -c SaAmfSG
+		;;
+	si)
+		immfind -c SaAmfSI
+		;;
+	siass)
+		immfind -c SaAmfSIAssignment
+		;;
+	su)
+		immfind -c SaAmfSU
+		;;
+	*)
+		echo "unsupported type, trying anyway..."
+		immfind -c $*
+		;;
+esac
+
+exit $?
+

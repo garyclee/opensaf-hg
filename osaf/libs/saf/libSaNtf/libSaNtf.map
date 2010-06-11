@@ -1,0 +1,9 @@
+# Version and symbol export for libSaNtf.so
+
+{
+	global:
+		saNtf*;
+
+	local:
+		*;
+};

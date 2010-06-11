@@ -1,0 +1,26 @@
+This directory contains two different AMF component implementations:
+	1) amf_comp_template.c
+
+amf_comp_template.c contains a sample implementation of an AMF component.
+All required callbacks are implemented and responds OK when requested
+To be used with with any of the configuration files. Use this implementation
+if you are interested in what happens when you do admin operations such as
+lock, lock-instantiation etc on SU or any other level containing the component.
+
+amf_demo_script: This script is provided to control the CLC of the amf_demo
+application component. The path to amf_demo binary can be edited in this file.
+
+Appconfig-2N.xml: This file contains sample Application configuration for 
+2N redundancy model. By default the amf_demo is configured to run on
+the 2 controllers.
+ 
+Appconfig-nwayactive.xml: This contains sample Application configuration for
+NWayActive.
+
+To run the sample amf_demo,
+1) do make install to install the amf_demo binary.
+2) merge Appconfig-2N.xml with the main imm.xml using immxml-merge tool.
+3) bring up the cluster, then amf_demo components will come up on both
+   the controllers.
+
+amf_demo will output to /var/opt/amf_demo/amf_demo.log.

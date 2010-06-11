@@ -1,0 +1,9 @@
+# Version and symbol export for libSaClm.so
+
+{
+	global:
+		saClm*;
+
+	local:
+		*;
+};

@@ -1,0 +1,101 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+Running campaign in UML environment:
+===================================
+Prerequisites: 
+   -OpenSAF is configured and built.
+   -Define $INSTALL_TESTPROG to install the OpenSAF demo application
+    when the UML environment is built.
+   -$OPENSAFD points to your OpenSAF directory.
+
+1) Build the UML environment
+
+   # $OPENSAFD is supposed to point to your OpenSAF directory.
+   # $INSTALL_TESTPROG is supposed to be defined.
+   cd $OPENSAFD/tools/cluster_sim_uml
+   ./build_uml
+
+2) Copy the files 
+     - campaignRollingNodes.xml
+     - campaignRollingSU.xml
+     - offline_install.sh  
+     - offline_remove.sh
+     - online_install.sh
+     - online_remove.sh
+   to the directory $OPENSAFD/tools/cluster_sim_uml;
+
+   cp $OPENSAFD/samples/smfsv/*.sh $OPENSAFD/samples/smfsv/campaigns/*.xml \
+         $OPENSAFD/tools/cluster_sim_uml
+   chmod +x $OPENSAFD/tools/cluster_sim_uml/o*.sh
+
+3) Inhibit check-scripts (TEMPORARY)
+
+   Disable the check-scripts that are executed during a campaign;
+
+   echo "exit 0" > $OPENSAFD/tools/cluster_sim_uml/smf.rc
+
+4) Start a five node cluster:
+
+   cd $OPENSAFD/tools/cluster_sim_uml
+   ./opensaf start 5
+
+5) Start the campaign:
+
+   Alt 1:
+   In the samples/smfsv/campaigns directory sample campaigns are available. To run the campaigns
+   see the instruction in the beginning of each campaign.
+
+   Alt 2:
+   The SaSmfCampaign object defined in the sample configuration points to a campaign.xml file
+   with the full name /hostfs/campaign.xml.
+   Copy the selected upgrade campaign to rootfs/campaign.xml.
+   cd $OPENSAFD/tools/cluster_sim_uml
+   cp xxx.xml campaign.xml
+
+   Optional: change the saSmfCmpgFileUri attribute in the safSmfCampaign object.
+      In the shell window for UML processor SC_2_1 enter command:
+      # immcfg -m safSmfCampaign=Campaign_1,safApp=safSmfService -a saSmfCmpgFileUri=/hostfs/xxx.xml
+
+   In the shell window for UML processor SC_2_1 enter command:
+   # immadm -o 1 "safSmfCampaign=Campaign_1,safApp=safSmfService"
+
+   This command sends the admin operation SA_SMF_ADMIN_EXECUTE to the
+   IMM object with
+   DN="safSmfCampaign=Campaign_1,safApp=safSmfService", which happends
+   to be the upgrade campaign.
+
+   The following operations are supported:
+   immadm -o 1 "safSmfCampaign=Campaign_1,safApp=safSmfService"  //execute
+   immadm -o 3 "safSmfCampaign=Campaign_1,safApp=safSmfService"  //suspend
+   immadm -o 4 "safSmfCampaign=Campaign_1,safApp=safSmfService"  //commit
+
+Logging:
+-------
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-x/log/opensaf/osafsmfd.log
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-x/log/opensaf/osafsmfnd.log
+
+   Printouts from the delivered demo installation/removal scrips are
+   redirected to file;
+
+   $OPENSAFD/tools/cluster_sim_uml/upgradeInstallationRemoval.log
+
+Configuration
+-------------
+The configuration delivered in
+"$OPENSAFD/osaf/services/saf/immsv/config/imm.xml" contain information
+enough to be able to iterate over all nodes and over a payload and system controllers node group.

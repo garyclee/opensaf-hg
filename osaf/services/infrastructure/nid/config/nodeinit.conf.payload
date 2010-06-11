@@ -1,0 +1,59 @@
+#############################################################################
+#	Used By:	Nodeinit					    #
+#	Purpose:	Used by nodeinitd to get service info on scxb for   #
+#                       serialization                                       #
+#       Entry Format:   Entry Format For Executables and Daemons            #
+#                       ========================================            #
+#                       App-File:AppName:AppType:[CLeanup File]:Time-Out:   #
+#                       [Priority]:[n-rspawn]:[n-reset]:[App params]        #
+#                       :[Cleanup Parms]                                    #
+#                                                                           #
+#                       Entry Format For Scripts                            #
+#                       ========================                            #
+#                       App-File:AppName:AppType:CLeanup File:Time-Out:     #
+#                       [priority]:[n-rspawn]:[n-reset]:[App params]:       #
+#                       [Cleanup Parms]                                     #
+#                                                                           #
+#       App-File:       Absolute app file name starting from root dir not   #
+#                       exceeding 60 chars:                                 #
+#                       Ex:  /opt/opensaf/<app>/bin/hmpd -> Yes             #
+#                            opt/opensaf/<app>/bin/hpmd  -> No              #
+#       APP Name:       Application names.                                  #
+#       App Type:       Valid Application types follow:                     #
+#                       E -> Executable, spawned as a normal process        #
+#                       S -> Script, spawned with console initialized       #
+#                       D -> Daemonizes the given application               #
+#       CLeanup File    Cleanup script corresponding to initialization      #
+#                       script. This is compulsory for scripts and optional #
+#                       for executables or daemons                          #
+#       Time out:       Only numerical digits,Time out in 10milli sec units #
+#                       not to exceed more than 5 digits                    #
+#                       Ex: 12345 -> Yes;  12 34 -> No                      #
+#       Priority:       Linux prioriries ranges from -20 to +19             #
+#                       default priority will be 0                          #  
+#       Respawn count:  Only one neumerical digit: Ex: 3                    #
+#       Restart count:  0- ENABLE BMC-WDT, 1 - DISABLE BMC-WDT              #
+#       App params:     MAXLEN:50 chars:  Ex:  -p -j -k  /etc/something.cfg #
+#       Cleanup Parms:  Parameters for cleanup application                  #
+#                                                                           #
+#       Example:        /opt/opensaf/<app>/bin/hpm:HPM:D::1:3:1:-i -j:-k -l #
+#       IMP NOTE:       * Blank spaces before and after field are not       #
+#                       ignored.                                            #
+#                       Ex:-  ":    HPM   :" is not same as ":HPM:"         #
+#                                                                           #
+#                       * Total length of each entry cannot exceed 250      #
+#                       characters. In other words charecters from 251 will #
+#                       be considered as next entry.                        #
+#       NOTE:           NID passes ROLE and Service-code as extra arguments #
+#                       to all the services it spawns after RDF . These     # 
+#                       are appended at the end of user configred arguments.#
+#                       Ex: For executables: "ROLE=1" "NID_SVC_NAME=DRBD"   #
+#                           For scripts: "ROLE=ACTIVE" "NID_SVC_NAME=DRBD"  #
+#                       However it passes Service-code for all pre-RDF      #
+#                       processes.                                          #
+#############################################################################
+
+xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxCLCCLIDIRxx/osaf-noded:CLMNA:S:xxCLCCLIDIRxx/osaf-noded:4000::2:1:start:stop
+xxCLCCLIDIRxx/osaf-immnd:IMMND:S:xxCLCCLIDIRxx/osaf-immnd:4000:4:2:1:start:stop
+xxCLCCLIDIRxx/osaf-amfnd:AMFND:S:xxCLCCLIDIRxx/osaf-amfnd:99000::0:1:start:stop

@@ -1,0 +1,253 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: opensafd
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start and stop the OpenSAF node
+# Description: Start and stop the OpenSAF node
+### END INIT INFO
+
+osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+prog="opensafd"
+initscript=`basename $0`
+
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+if [ ! -r $osafdirfile ]; then
+	logger -t $prog "can't read $osafdirfile, exiting."
+	exit 6
+else
+	. $osafdirfile
+	. $pkgsysconfdir/nid.conf
+fi	
+
+binary=$pkglibdir/$prog
+lockfile=$lockdir/$initscript
+amfnd_bin=$pkglibdir/osafamfnd
+amfnd_pid=$pkgpiddir/osafamfnd.pid
+
+OPENSAF_MANAGE_TIPC="yes"
+RETVAL=0
+TERMTIMEOUT=60
+
+unload_tipc() {
+	# FIXME: Once tipc scripts are cleaned
+	pkill -9 nid_tipc*
+
+  	# Unload TIPC if already loaded
+	if [ $OPENSAF_MANAGE_TIPC = "yes" ] && grep tipc /proc/modules >/dev/null 2>&1; then
+		modprobe -r tipc >/dev/null 2>&1
+		if [ $? -eq 1 ]; then
+			logger -t $prog "warning: TIPC module unloading failed"
+		fi
+	fi
+}
+
+check_tipc() {
+	# Exit if tipc-config is not installed
+	if [ ! -x /sbin/tipc-config ]; then
+		if [ which tipc-config >/dev/null 2>&1 ]; then
+			logger -s -t $prog "Can't find tipc-config in the PATH, exiting."
+			exit 5
+		fi
+	fi
+
+	unload_tipc
+}
+
+check_env() {
+	# Make sure this kernel has POSIX shared memory configured
+	if [ ! -d /dev/shm ]; then
+		logger -s -t $prog "POSIX shared memory (/dev/shm) not enabled, exiting."
+		exit 6
+	fi
+	if [ ! -d /dev/shm/opensaf ]; then
+		mkdir -p /dev/shm/opensaf
+	fi
+
+	# Some distros store /var/lock, /var/run on tmpfs mounts and content gets cleaned
+	if [ ! -d $lockdir ]; then
+		mkdir -p $lockdir
+	fi
+	if [ ! -d $pkgpiddir ]; then
+		mkdir -p $pkgpiddir
+	fi
+
+	rm -f $pkglogdir/nid.log
+}
+
+clean_shm() {
+	# Remove shared memory files created by OpenSAF
+	if [ -d /dev/shm/opensaf ]; then
+		rm -rf /dev/shm/opensaf
+	fi
+}
+
+enable_coredump() {
+	core_size="unlimited"
+	core_pattern="/var/crash/opensaf/core_%t.%e.%p"
+
+	if [ ! -d /var/crash/opensaf ]; then
+		mkdir -p /var/crash/opensaf
+	fi
+
+	if [ `ulimit -c` = 0 ]; then
+		ulimit -c $core_size
+	fi
+	echo $core_pattern > /proc/sys/kernel/core_pattern
+}
+
+final_clean() {
+	# Loop throught all the OpenSAF LSB CLC-CLI scripts to clean staling pid/lock
+	for cmd in `ls $pkgclcclidir/osaf-*`; do
+		$cmd stop >/dev/null 2>&1
+	done
+
+	unload_tipc
+	clean_shm
+
+	rm -f $lockfile
+	rm -f $NIDFIFO
+}
+
+start() {
+        pidofproc -p $amfnd_pid $amfnd_bin > /dev/null 2>&1
+	lsb_status=$?
+	if [ $lsb_status -eq 0 ]; then
+       		RETVAL=0
+		log_success_msg
+		return $RETVAL
+	fi
+
+	logger -t $prog "Starting the OpenSAF HA Framework"
+
+	[ -x $daemon ] || exit 5
+
+	check_tipc
+	check_env
+
+	# Comment/Uncomment if you want cores disabled/enabled
+	#enable_coredump
+
+	echo -n "Starting OpenSAF Services: "
+	start_daemon $binary $args
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		touch $lockfile
+		log_success_msg
+	else
+		final_clean
+		log_failure_msg
+	fi
+	return $RETVAL
+}
+
+stop() {
+	logger -t $prog "Stopping the OpenSAF HA Framework"
+
+	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
+	echo -n "Stopping OpenSAF Services: "
+	if [ -n "$amfpid" ]; then
+		kill $amfpid
+		timeout=$TERMTIMEOUT
+		while [ $timeout -gt 0 ]; do
+			sleep 1
+			[ -d /proc/$amfpid ] || break
+			timeout=$((timeout-1))
+		done
+		[ -d /proc/$amfpid ] && RETVAL=1
+	else
+		pkill -9 osaf* >/dev/null 2>&1
+	fi
+
+	final_clean
+
+	if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	else
+		log_failure_msg
+		# If AMF fails to terminate its components,
+		# this system is out of control, reboot it now!
+		logger -t $prog "Stopping OpenSAF failed, rebooting..."
+		/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
+	fi
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+tryrestart() {
+	[ -e $lockfile ] && restart
+	return 0
+}
+
+reload() {
+	echo -n "Reloading $prog: "
+	log_warning_msg
+	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
+	return 3
+}
+
+forcereload() {
+	reload
+	restart
+	return 0
+}
+
+status() {
+	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
+	if [ -n "$amfpid" ]; then
+		amf-state siass ha
+		RETVAL=$?
+	else
+		echo "The OpenSAF HA Framework is not running"
+		RETVAL=3
+	fi
+
+	return $RETVAL
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
+	;;
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+	;;
+  force-reload)
+	forcereload
+	RETVAL=$?
+	;;
+  status)
+	status
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL

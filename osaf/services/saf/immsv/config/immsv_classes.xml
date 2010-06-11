@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<class name="SaImmMngt">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>safRdn</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>saImmRepositoryInit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>2</default-value>
+		</attr>
+		<attr>
+			<name>saImmLastUpdate</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saImmNumOis</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saImmNumAdminOwnedObjects</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saImmNumInitializedCcbs</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saImmExportFileUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saImmOiTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
+</imm:IMM-contents>
