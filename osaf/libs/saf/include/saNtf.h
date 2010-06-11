@@ -10,7 +10,8 @@
 **   for user API functions
 **   
 ** SPECIFICATION VERSION:
-**   SAI-AIS-NTF-A.03.01
+**   Generic SAF header file for versions upto: SAI-AIS-NTF-A.03.01
+**   OpenSAF suported version for this release: SAI-AIS-NTF-A.01.01
 **
 ** DATE: 
 **   Thu Jul 16 2009
