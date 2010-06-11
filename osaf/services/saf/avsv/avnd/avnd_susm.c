@@ -502,7 +502,6 @@ uns32 avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	if (si) {
 		m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si, AVND_SU_SI_ASSIGN_STATE_ASSIGNING);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
-		rc = assign_si_to_su(si, su, true);
 	} else {
 		/* if no si is specified, the action is aimed at all the sis... loop */
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -511,13 +510,16 @@ uns32 avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 			m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_ASSIGNING);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
-
-			rc = assign_si_to_su(curr_si, su, false);
-			if (NCSCC_RC_SUCCESS != rc)
-				break;
 		}
 	}
 
+	/* if no si is specified, the action is aimed at all the sis... pick up any si */
+	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
+	if (!curr_si)
+		goto done;
+
+	rc = assign_si_to_su(curr_si, su, ((si) ? true:false));
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -546,6 +548,8 @@ uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVND_SU_SI_REC *curr_si = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s %p", su->name.value, si);
 
 	/* mark the si(s) removing */
 	if (si) {
@@ -587,6 +591,7 @@ uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	}
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
