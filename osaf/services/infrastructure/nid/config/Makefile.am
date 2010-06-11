@@ -31,4 +31,7 @@ set-default-node-config:
 	echo "controller" > $(DESTDIR)$(pkgsysconfdir)/node_type
 
 install-data-hook: set-default-node-config
+if !ENABLE_AIS_PLM
+	sed -i '/plmd/d'  $(DESTDIR)$(pkgsysconfdir)/nodeinit.conf.controller
+endif
 	cd $(DESTDIR)$(pkgsysconfdir) && $(LN_S) -f nodeinit.conf.controller nodeinit.conf
