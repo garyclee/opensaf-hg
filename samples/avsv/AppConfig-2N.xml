@@ -234,7 +234,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 			<dn>safSmfBundle=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo1,safAmfNode=PL-3,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo1,safAmfNode=SC-1,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
@@ -248,7 +248,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 		<attr>
 			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=PL-3,safAmfCluster=myAmfCluster</value>
+			<value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSURank</name>
@@ -272,7 +272,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo1,safAmfNode=PL-4,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo1,safAmfNode=SC-2,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
@@ -286,7 +286,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 		<attr>
 			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=PL-4,safAmfCluster=myAmfCluster</value>
+			<value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSURank</name>

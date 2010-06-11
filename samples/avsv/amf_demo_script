@@ -22,7 +22,7 @@ CMD=$1
 
 LOGDIR=/var/opt/amf_demo
 RUNDIR=/var/run/amf_demo
-AMFDEMO=/opt/amf_demo/amf_demo
+AMFDEMO=amf_demo
 PIDFILE="/var/run/${SA_AMF_COMPONENT_NAME}".pid
 
 mkdir -p $RUNDIR
@@ -39,11 +39,6 @@ cleanup()
 
 instantiate()
 {
-	if [ ! -x $AMFDEMO ]; then
-		logger -s -t $0 "ERROR: File $AMFDEMO does not exist or is not executable"
-		exit 1
-	fi
-
 	cleanup
 
 	$AMFDEMO $* >> ${LOGDIR}/amf_demo.log 2>&1 &

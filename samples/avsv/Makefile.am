@@ -18,12 +18,9 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-#SUBDIRS = comp_local pxy_pxd_support
 SUBDIRS = comp_local
 
 EXTRA_DIST = \
-	amf_comp_template.c \
-	amf_demo_package \
 	amf_demo_script \
 	AppConfig-2N.xml \
 	AppConfig-nwayactive.xml \
@@ -36,7 +33,15 @@ amf_demo_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 amf_demo_SOURCES = \
-	amf_demo.c
+	amf_comp_template.c
 
 amf_demo_LDADD = \
 	@SAF_AIS_AMF_LIBS@
+
+install-data-hook:
+	mkdir -p /opt/amf_demo
+	cp -r amf_demo_script /opt/amf_demo
+
+uninstall-hook:
+	rm -rf /opt/amf_demo
+
