@@ -23,7 +23,7 @@ dist_pkgsysconf_DATA = \
 
 dist_pkgimmxml_svc_DATA = \
 	clmsv_classes.xml \
-	clmsv_objects.xml 
+	clmsv_objects.xml
 
 if ENABLE_AIS_PLM
 dist_pkgimmxml_svc_DATA += \
@@ -36,4 +36,7 @@ dist_pkgimmxml_svc_DATA += \
 endif
 
 install-data-hook:
-	echo "localhost" > $(DESTDIR)$(pkgsysconfdir)/node_name
+	hostname -s > $(DESTDIR)$(pkgsysconfdir)/node_name
+
+uninstall-hook:
+	rm -f $(DESTDIR)$(pkgsysconfdir)/node_name
