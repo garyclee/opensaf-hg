@@ -167,7 +167,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 				saImmOiFinalize(dts_cb.immOiHandle);
 				dts_cb.immOiHandle = 0;
 				dts_imm_reinit_bg(&dts_cb);
-			} else if (error != SA_AIS_OK) {
+			} else if (saf_status != SA_AIS_OK) {
 				dts_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", saf_status);
 				break;
 			}
