@@ -345,6 +345,12 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_hb_info.seq_id, 0, NULL},
 
+		/* 113 AVSV_D2N_REBOOT_MSG */
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.d2n_reboot_info.msg_id, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, EDU_EXIT,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.d2n_reboot_info.node_id, 0, NULL},
+
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -409,7 +415,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		LCL_JMP_OFFSET_AVSV_D2N_COMP_VALID_RESP_MSG = 101,
 		LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG = 105,
 		LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG = 108,
-		LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG = 112
+		LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG = 112,
+		LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG = 113
 	} LCL_JMP_OFFSET_;
 	AVSV_DND_MSG_TYPE type;
 
@@ -473,6 +480,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG;
 	case AVSV_D2N_HEARTBEAT_MSG:
 		return LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG;
+	case AVSV_D2N_REBOOT_MSG:
+		return LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG;
 	default:
 		break;
 	}
