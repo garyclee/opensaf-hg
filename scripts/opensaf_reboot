@@ -30,8 +30,8 @@ ee_name=$2
 opensaf_reboot_no_plm()
 {
 	if [ "$self_node_id" == "$node_id" ];then
-		test -x /sbin/shutdown && \
-			/sbin/shutdown -r now "OpenSAF requested system reboot"
+		test -x /sbin/reboot && \
+			/sbin/reboot -f now "OpenSAF requested system reboot"
 
 		/sbin/reboot
 	else
@@ -48,8 +48,8 @@ opensaf_reboot_with_plm()
 	retval=$?
 	if [ $retval != 0 ]; then
 		if [ "$self_node_id" == "$node_id" ];then
-			test -x /sbin/shutdown && \
-				/sbin/shutdown -r now "OpenSAF requested system reboot"
+			test -x /sbin/reboot && \
+				/sbin/reboot -f now "OpenSAF requested system reboot"
 			/sbin/reboot
 		else
 			logger -t "opensaf_reboot" "Rebooting remote node failed"
