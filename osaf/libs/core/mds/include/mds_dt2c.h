@@ -36,8 +36,6 @@
 
 /* Specification of the interface between MCM and MDTM */
 
-#define MDS_TIPC_1_5 1
-
 typedef uns8 MDS_SVC_ARCHWORD_TYPE;	/*MDS  app-svc arch and word_size combination */
 
 /* MDS_WORD_SIZE_TYPE and MDS_ARCH_TYPE are compile-time macros */
@@ -59,11 +57,7 @@ typedef enum {
 
 typedef uns16 MDS_PWE_ID;
 
-#if MDS_TIPC_1_5
 typedef uns64 MDS_SUBTN_REF_VAL;
-#else
-typedef uns32 MDS_SUBTN_REF_VAL;
-#endif
 
 typedef NCS_VDEST_TYPE MDS_POLICY;
 

@@ -104,6 +104,15 @@
 #define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
 #define m_MDS_CHECK_NCS_NODE_ID_RANGE(node) (((((node)<MDS_NCS_NODE_ID_MIN)||((node)>MDS_NCS_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
 
+
+/* Following is defined for use by MDS in TIPC 2.0 as TIPC 2.0 supports only network order */ 
+NCS_BOOL mds_use_network_order = 0;
+
+#define NTOHL(x) (mds_use_network_order?ntohl(x):x)
+#define HTONL(x) (mds_use_network_order?htonl(x):x)
+
+static uns32 mdtm_tipc_check_for_endianness(void);
+
 typedef struct mdtm_ref_hdl_list {
 	struct mdtm_ref_hdl_list *next;
 	MDS_SUBTN_REF_VAL ref_val;
@@ -192,23 +201,16 @@ typedef struct mdtm_tipc_cb {
 
 MDTM_TIPC_CB tipc_cb;
 
-#define MDS_TIPC_1_5 1
-#if MDS_TIPC_1_5
 static uns32 mdtm_tipc_own_node(int fd);
 
 struct sockaddr_tipc topsrv;
-#endif
 
 #define FOREVER ~0
 
 #define MAX_SUBSCRIPTIONS   200
 #define MAX_SUBSCRIPTIONS_RETURN_ERROR   500
 
-#if MDS_TIPC_1_5
 static MDS_SUBTN_REF_VAL handle;
-#else
-static uns8 handle;
-#endif
 static uns16 num_subscriptions;
 
 uns32 mdtm_global_frag_num;
@@ -253,11 +255,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 
 	/* Create the sockets required for Binding, Send, receive and Discovery */
 
-#if MDS_TIPC_1_5
 	tipc_cb.Dsock = socket(AF_TIPC, SOCK_SEQPACKET, 0);
-#else
-	tipc_cb.Dsock = socket(AF_TIPC, SOCK_RDM, 0);
-#endif
 	if (tipc_cb.Dsock < 0) {
 		syslog(LOG_ERR, "MDS:MDTM: Dsock Socket creation failed in MDTM_INIT\n");
 		return NCSCC_RC_FAILURE;
@@ -313,11 +311,18 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 	tipc_cb.adest |= addr.addr.id.ref;
 	tipc_cb.node_id = nodeid;
 
-#if MDS_TIPC_1_5
 	tipc_node_id = mdtm_tipc_own_node(tipc_cb.BSRsock);	/* This gets the tipc ownaddress */
 
 	if ( tipc_node_id == 0 ) {
 		syslog(LOG_ERR, "MDS:MDTM: Zero tipc_node_id ");
+		close(tipc_cb.Dsock);
+		close(tipc_cb.BSRsock);
+		return NCSCC_RC_FAILURE;
+	}
+
+	mds_use_network_order = mdtm_tipc_check_for_endianness();
+
+	if (mds_use_network_order == NCSCC_RC_FAILURE) {
 		close(tipc_cb.Dsock);
 		close(tipc_cb.BSRsock);
 		return NCSCC_RC_FAILURE;
@@ -336,14 +341,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 		close(tipc_cb.BSRsock);
 		return NCSCC_RC_FAILURE;
 	}
-#else
-	if (ioctl(tipc_cb.BSRsock, TIPC_OWN_NODE, &tipc_node_id)) {	/* This gets the tipc ownaddress */
-		syslog(LOG_ERR, "MDS:MDTM: Unable to get the TIPC Self NODE_ID");
-		close(tipc_cb.Dsock);
-		close(tipc_cb.BSRsock);
-		return NCSCC_RC_FAILURE;
-	}
-#endif
 
 	/* Code for Tmr Mailbox Creation used for Tmr Msg Retrival */
 
@@ -382,6 +379,65 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
 	}
 
 	return NCSCC_RC_SUCCESS;
+}
+
+/*********************************************************
+
+  Function NAME: mdtm_tipc_check_for_endianness
+
+  DESCRIPTION:
+
+  ARGUMENTS:
+
+  RETURNS:  0 - host order
+            1 - network order
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+static uns32 mdtm_tipc_check_for_endianness(void)
+{
+	struct sockaddr_tipc srv;
+	int d_fd;
+	struct tipc_event event;
+
+	struct tipc_subscr subs = {{0,0,~0},
+		~0,
+		TIPC_SUB_PORTS,
+		{2,2,2,2,2,2,2,2}};
+
+	/* Connect to the Topology Server */
+	d_fd= socket(AF_TIPC, SOCK_SEQPACKET, 0);
+
+	if (d_fd < 0) {
+		syslog(LOG_ERR, "MDS:MDTM: D Socket creation failed in mdtm_tipc_check_for_endianness\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	memset(&srv, 0, sizeof(srv));
+	srv.family = AF_TIPC;
+	srv.addrtype = TIPC_ADDR_NAME;
+	srv.addr.name.name.type = TIPC_TOP_SRV;
+	srv.addr.name.name.instance = TIPC_TOP_SRV;
+
+	if (0 > connect(d_fd, (struct sockaddr *)&srv, sizeof(srv))) {
+		syslog(LOG_ERR, "MDS:MDTM: Failed to connect to topology server in mdtm_check_for_endianness");
+		close(d_fd);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (send(d_fd,&subs,sizeof(subs),0) != sizeof(subs)) {
+		perror("failed to send subscription");
+		close(d_fd);
+		return NCSCC_RC_FAILURE;
+	}
+
+	while (recv(d_fd,&event,sizeof(event),0) == sizeof(event)) {
+		close(d_fd);
+		return 0;
+	}
+	close(d_fd);
+
+	return 1;
 }
 
 /*********************************************************
@@ -461,7 +517,6 @@ uns32 mdtm_tipc_destroy(void)
 	return NCSCC_RC_SUCCESS;
 }
 
-#if MDS_TIPC_1_5
 /*********************************************************
 
   Function NAME: mdtm_tipc_own_node
@@ -486,7 +541,6 @@ static uns32 mdtm_tipc_own_node(int fd)
 	}
 	return addr.addr.id.node;
 }
-#endif
 
 /*********************************************************
 
@@ -578,28 +632,14 @@ static uns32 mdtm_process_recv_events(void)
 		uint pollres;
 		struct pollfd pfd[3];
 		struct tipc_event event;
+
 		pfd[0].fd = tipc_cb.Dsock;
-
-#if MDS_TIPC_1_5
 		pfd[0].events = POLLIN;
-#else
-		pfd[0].events = TIPC_TOPOLOGY_EVENT;
-#endif
-
 		pfd[1].fd = tipc_cb.BSRsock;
-
-#if MDS_TIPC_1_5
 		pfd[1].events = POLLIN;
-#else
-		pfd[1].events = TIPC_MSG_PENDING;
-#endif
-
 		pfd[2].fd = tipc_cb.tmr_fd;
-#if 1
 		pfd[2].events = POLLIN;
-#else
-		pfd[2].events = TIPC_MSG_PENDING;
-#endif
+
 		pfd[0].revents = pfd[1].revents = pfd[2].revents = 0;
 
 		pollres = poll(pfd, 3, MDTM_TIPC_POLL_TIMEOUT);
@@ -607,35 +647,34 @@ static uns32 mdtm_process_recv_events(void)
 		if (pollres > 0) {	/* Check for EINTR and discard */
 			memset(&event, 0, sizeof(event));
 			m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-#if MDS_TIPC_1_5
 			if (pfd[0].revents == POLLIN) {
 				if (recv(tipc_cb.Dsock, &event, sizeof(event), 0) != sizeof(event)) {
 					m_MDS_LOG_ERR("Unable to capture the recd event .. Continuing\n");
 					m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
 					continue;
 				} else {
-					if (event.event == TIPC_PUBLISHED) {
+					if (NTOHL(event.event) == TIPC_PUBLISHED) {
 
 						m_MDS_LOG_INFO("MDTM: Published: ");
 						m_MDS_LOG_INFO("MDTM:  <%u,%u,%u> port id <0x%08x:%u>\n",
-							       event.s.seq.type, event.found_lower,
-							       event.found_upper, event.port.node, event.port.ref);
+							       NTOHL(event.s.seq.type), NTOHL(event.found_lower),
+							       NTOHL(event.found_upper), NTOHL(event.port.node), NTOHL(event.port.ref));
 
 						mdtm_process_discovery_events(TIPC_PUBLISHED, event);
-					} else if (event.event == TIPC_WITHDRAWN) {
+					} else if (NTOHL(event.event) == TIPC_WITHDRAWN) {
 						m_MDS_LOG_INFO("MDTM: Withdrawn: ");
 						m_MDS_LOG_INFO("MDTM:  <%u,%u,%u> port id <0x%08x:%u>\n",
-							       event.s.seq.type, event.found_lower,
-							       event.found_upper, event.port.node, event.port.ref);
+							       NTOHL(event.s.seq.type), NTOHL(event.found_lower),
+							       NTOHL(event.found_upper), NTOHL(event.port.node), NTOHL(event.port.ref));
 
 						mdtm_process_discovery_events(TIPC_WITHDRAWN, event);
-					} else if (event.event == TIPC_SUBSCR_TIMEOUT) {
+					} else if (NTOHL(event.event) == TIPC_SUBSCR_TIMEOUT) {
 						/* As the timeout passed in infinite, No need to check for the Timeout */
 						m_MDS_LOG_ERR("MDTM: Timeou Event");
 						m_MDS_LOG_INFO("MDTM: Timeou Event");
 						m_MDS_LOG_INFO("MDTM:  <%u,%u,%u> port id <0x%08x:%u>\n",
-							       event.s.seq.type, event.found_lower,
-							       event.found_upper, event.port.node, event.port.ref);
+							       NTOHL(event.s.seq.type), NTOHL(event.found_lower),
+							       NTOHL(event.found_upper), NTOHL(event.port.node), NTOHL(event.port.ref));
 					} else {
 						m_MDS_LOG_ERR("MDTM: Unknown Event");
 						/* This should never come */
@@ -649,42 +688,9 @@ static uns32 mdtm_process_recv_events(void)
 				abort(); /* This means, the process is use less as
 					    it has lost the connectivity with the topology server
 					    and will not be able to receive any UP/DOWN events */
-			}
-#else
-			if (pfd[0].revents & TIPC_TOPOLOGY_EVENT) {
-				/* Events Received */
-				m_MDS_LOG_INFO("MDTM: Topology Event: ");
-				if (ioctl(tipc_cb.Dsock, TIPC_GET_EVENT, &event)) {
-					m_MDS_LOG_ERR("Unable to capture the recd event\n");
-					m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
-					continue;
-				}
-				if (event.event == TIPC_PUBLISHED) {
-					m_MDS_LOG_INFO("MDTM: Published: ");
-					m_MDS_LOG_INFO("MDTM:  <%u,%u,%u> port id <0x%08x:%u>\n",
-						       event.s.seq.type, event.found_lower,
-						       event.found_upper, event.port.node, event.port.ref);
 
-					mdtm_process_discovery_events(TIPC_PUBLISHED, event);
-				} else if (event.event == TIPC_WITHDRAWN) {
-					m_MDS_LOG_INFO("MDTM: Withdrawn: ");
-					m_MDS_LOG_INFO("MDTM:  <%u,%u,%u> port id <0x%08x:%u>\n",
-						       event.s.seq.type, event.found_lower,
-						       event.found_upper, event.port.node, event.port.ref);
-
-					mdtm_process_discovery_events(TIPC_WITHDRAWN, event);
-				}
-/* As the timeout passed in infinite, No need to check for the Timeout*/
-
-			}
-#endif
-
-#if MDS_TIPC_1_5
-			else if (pfd[1].revents & POLLIN)
-#else
-			else if (pfd[1].revents & TIPC_MSG_PENDING)
-#endif
-			{
+			} else if (pfd[1].revents & POLLIN) {
+			
 				/* Data Received */
 
 				uns8 inbuf[MDTM_RECV_BUFFER_SIZE];
@@ -703,30 +709,19 @@ static uns32 mdtm_process_recv_events(void)
 				recd_bytes = recvfrom(tipc_cb.BSRsock, inbuf, sizeof(inbuf), 0,
 						      (struct sockaddr *)&client_addr, &alen);
 
-#if MDS_TIPC_1_5
 				if (recd_bytes == 0) {	/* As we had disabled the feature of receving the bounced messages, recd_bytes==0 indicates a fatal condition so abort */
 					m_MDS_LOG_CRITICAL
 					    ("MDTM: recd bytes=0 on receive sock, fatal condition. Exiting the process");
 					abort();
 				}
-#endif
 				data = inbuf;
 
 				recd_buf_len = ncs_decode_16bit(&data);
 
-#if MDS_TIPC_1_5
 				if (pfd[1].revents & POLLERR) {
 					m_MDS_LOG_ERR("MDTM: Error Recd:tipc_id=<0x%08x:%u>:errno=0x%08x",
 						      client_addr.addr.id.node, client_addr.addr.id.ref, errno);
 				}
-#else
-				/* Added for the rebounced message print */
-				if ((pfd[1].revents & TIPC_UNDELIVERED_MSG) == TIPC_UNDELIVERED_MSG) {
-					m_MDS_LOG_ERR
-					    ("MDTM: Recd the bounced message from:tipc_id=<0x%08x:%u>:errno=0x%08x",
-					     client_addr.addr.id.node, client_addr.addr.id.ref, errno);
-				}
-#endif
 				else if (recd_buf_len == recd_bytes) {
 					uns64 tipc_id = 0;
 					uns32 buff_dump = 0;
@@ -880,11 +875,18 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 	   }
 	   }
 	 */
-	uns32 inst_type = 0;
+	uns32 inst_type = 0 , type = 0, lower = 0, node = 0 , ref = 0;
 
 	MDS_DEST adest = 0;
+	MDS_SUBTN_REF_VAL subtn_ref_val;
+
+	type = NTOHL(event.s.seq.type);
+	lower = NTOHL(event.found_lower);
+	node = NTOHL(event.port.node);
+	ref = NTOHL(event.port.ref);
+	subtn_ref_val = *((uns64 *)(event.s.usr_handle));
         
-	inst_type = event.s.seq.type & 0x00ff0000;	/* To get which type event
+	inst_type = type & 0x00ff0000;	/* To get which type event
 							   either SVC,VDEST, PCON, NODE OR process */
 	switch (inst_type) {
 	case MDS_SVC_INST_TYPE:
@@ -894,7 +896,6 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 			V_DEST_RL role;
 			NCSMDS_SCOPE_TYPE scope;
 			MDS_VDEST_ID vdest;
-			MDS_SUBTN_REF_VAL subtn_ref_val;
 			NCS_VDEST_TYPE policy = 0;
 			MDS_SVC_HDL svc_hdl;
 
@@ -903,27 +904,26 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 
 			uns32 node_status = 0;
 
-			svc_id = (uns16)(event.s.seq.type & MDS_EVENT_MASK_FOR_SVCID);
-			vdest = (MDS_VDEST_ID)event.found_lower;
+			svc_id = (uns16)(type & MDS_EVENT_MASK_FOR_SVCID);
+			vdest = (MDS_VDEST_ID)(lower);
 			archword_type =
-			    (MDS_SVC_ARCHWORD_TYPE)((event.found_lower & MDS_ARCHWORD_MASK) >> (LEN_4_BYTES -
+			    (MDS_SVC_ARCHWORD_TYPE)((lower & MDS_ARCHWORD_MASK) >> (LEN_4_BYTES -
 												MDS_ARCHWORD_BITS_LEN));
 			svc_sub_part_ver =
-			    (MDS_SVC_PVT_SUB_PART_VER)((event.found_lower & MDS_VER_MASK) >> (LEN_4_BYTES -
+			    (MDS_SVC_PVT_SUB_PART_VER)((lower & MDS_VER_MASK) >> (LEN_4_BYTES -
 											      MDS_VER_BITS_LEN -
 											      MDS_ARCHWORD_BITS_LEN));
-			pwe_id = (event.s.seq.type >> MDS_EVENT_SHIFT_FOR_PWE) & MDS_EVENT_MASK_FOR_PWE;
+			pwe_id = (type >> MDS_EVENT_SHIFT_FOR_PWE) & MDS_EVENT_MASK_FOR_PWE;
 			policy =
-			    (event.found_lower & MDS_POLICY_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+			    (lower & MDS_POLICY_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
 								      MDS_VER_BITS_LEN - VDEST_POLICY_LEN);
 			role =
-			    (event.found_lower & MDS_ROLE_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+			    (lower & MDS_ROLE_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
 								    MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN);
 			scope =
-			    (event.found_lower & MDS_SCOPE_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
+			    (lower & MDS_SCOPE_MASK) >> (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN -
 								     MDS_VER_BITS_LEN - VDEST_POLICY_LEN -
 								     ACT_STBY_LEN - MDS_SCOPE_LEN);
-			subtn_ref_val = *((uns64 *)(event.s.usr_handle));
 
 			m_MDS_LOG_INFO("MDTM: Received SVC event");
 
@@ -953,16 +953,17 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 				return NCSCC_RC_FAILURE;
 			}
 
-			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(event.port.node);
+
+			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
 			if (NCSCC_RC_SUCCESS == node_status) {
 				adest =
-				    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(event.port.node))) << 32) |
-				     event.port.ref);
+				    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) |
+				     ref);
 			} else {
 				m_MDS_LOG_ERR
 				    ("MDTM: Dropping  the svc event for SVC id = %d, subscribed by SVC id = %d as the TIPC NODEid is not in the prescribed range=0x%08x, SVC Event type=%d",
-				     svc_id, m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), event.port.node, discovery_event);
+				     svc_id, m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), node, discovery_event);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1009,18 +1010,18 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 			MDS_VDEST_ID vdest_id;
 			uns32 node_status = 0;
 
-			vdest_id = (uns16)event.found_lower;
+			vdest_id = (uns16)lower;
 
-			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(event.port.node);
+			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
 			if (NCSCC_RC_SUCCESS == node_status) {
 				adest =
-				    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(event.port.node))) << 32) |
-				     event.port.ref);
+				    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node))) << 32) |
+				     ref);
 			} else {
 				m_MDS_LOG_ERR
 				    ("MDTM: Dropping  the vdest event, vdest id = %d, as the TIPC NODEid is not in the prescribed range=0x%08x,  Event type=%d",
-				     vdest_id, event.port.node, discovery_event);
+				     vdest_id, node, discovery_event);
 				return NCSCC_RC_FAILURE;
 			}
 			m_MDS_LOG_INFO("MDTM: Received VDEST event");
@@ -1051,26 +1052,23 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 
 	case MDS_NODE_INST_TYPE:
 		{
-			MDS_SUBTN_REF_VAL subtn_ref_val;
 			MDS_SVC_HDL svc_hdl;
 			uns32 node_status = 0;
 			NODE_ID node_id = 0;
 
 			m_MDS_LOG_INFO("MDTM: Received NODE event");
 
-			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(event.port.node);
+			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(node);
 
 			if (NCSCC_RC_SUCCESS == node_status) {
-				node_id = ((NODE_ID)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(event.port.node)));
+				node_id = ((NODE_ID)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node)));
 				    
 			} else {
 				m_MDS_LOG_ERR
 					("MDTM: Dropping  the node event,as the TIPC NODEid is not in the prescribed range=0x%08x,  Event type=%d",
-					event.port.node, discovery_event);
+					node, discovery_event);
 				return NCSCC_RC_FAILURE;
 			}
-			subtn_ref_val = *((uns64 *)(event.s.usr_handle));
-
 
 			if (NCSCC_RC_SUCCESS != mdtm_get_from_ref_tbl(subtn_ref_val, &svc_hdl)) {
 				m_MDS_LOG_INFO("MDTM: No entry in ref tbl so dropping the recd event");
@@ -2192,13 +2190,8 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	pwe_id = pwe_id << MDS_EVENT_SHIFT_FOR_PWE;
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
 
-#if MDS_TIPC_1_5
 	struct sockaddr_tipc server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
-#else
-	struct tipc_name_seq name_seq;
-	memset(&name_seq, 0, sizeof(name_seq));
-#endif
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
 	server_inst |= (uns32)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
@@ -2221,19 +2214,13 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 	if (install_scope == NCSMDS_SCOPE_NONE) {
 		install_scope = 0;
-#if MDS_TIPC_1_5
 		server_addr.scope = -TIPC_CLUSTER_SCOPE;
-#endif
 	} else if (install_scope == NCSMDS_SCOPE_INTRANODE) {
 		install_scope = 1;
-#if MDS_TIPC_1_5
 		server_addr.scope = -TIPC_NODE_SCOPE;
-#endif
 	} else if (install_scope == NCSMDS_SCOPE_INTRACHASSIS) {
 		install_scope = 3;
-#if MDS_TIPC_1_5
 		server_addr.scope = -TIPC_CLUSTER_SCOPE;
-#endif
 	}
 
 	server_inst |= (uns32)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
@@ -2242,7 +2229,6 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 	m_MDS_LOG_INFO("MDTM: uninstall_tipc : <%u,%u,%u>", server_type, server_inst, server_inst);
 
-#if MDS_TIPC_1_5
 	server_addr.family = AF_TIPC;
 	server_addr.addrtype = TIPC_ADDR_NAMESEQ;
 	server_addr.addr.nameseq.type = server_type;
@@ -2253,16 +2239,6 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 		m_MDS_LOG_ERR("MDTM: SVC-UNINSTALL Failure\n");
 		return NCSCC_RC_FAILURE;
 	}
-#else
-	name_seq.type = server_type;
-	name_seq.lower = server_inst;
-	name_seq.upper = server_inst;
-
-	if (0 != ioctl(tipc_cb.BSRsock, TIPC_UNBIND, &name_seq)) {
-		m_MDS_LOG_ERR("MDTM: SVC-UNINSTALL Failure\n");
-		return NCSCC_RC_FAILURE;
-	}
-#endif
 	m_MDS_LOG_INFO("MDTM: SVC-UNINSTALL Success\n");
 	return NCSCC_RC_SUCCESS;
 }
@@ -2311,13 +2287,12 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
 
-#if MDS_TIPC_1_5
 	memset(&subscr, 0, sizeof(subscr));
-	subscr.seq.type = server_type;
-	subscr.seq.lower = 0x00000000;
-	subscr.seq.upper = 0xffffffff;
-	subscr.timeout = FOREVER;
-	subscr.filter = TIPC_SUB_PORTS;
+	subscr.seq.type = HTONL(server_type);
+	subscr.seq.lower = HTONL(0x00000000);
+	subscr.seq.upper = HTONL(0xffffffff);
+	subscr.timeout = HTONL(FOREVER);
+	subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
 	*((uns64 *)subscr.usr_handle) = *subtn_ref_val;
@@ -2328,24 +2303,6 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	}
 
 	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
-#else
-	struct tipc_subscr subscr1 = { {server_type, inst_lower, inst_upper},
-	/*TIMEOUT,0,1, */
-	FOREVER, 0, 1,
-	{handle, handle, handle, handle, handle, handle, handle, handle}
-	};
-
-	if (0 != ioctl(tipc_cb.Dsock, TIPC_SUBSCRIBE, &subscr1)) {
-		m_MDS_LOG_ERR("MDTM: SVC-SUBSCRIBE Failure\n");
-		return NCSCC_RC_FAILURE;
-	}
-	m_MDS_LOG_INFO("MDTM: subscribe_tipc : Subtn Ref Hdl = %u", (uns32)subscr1.ref);
-
-	*subtn_ref_val = (uns32)subscr1.ref;
-
-	++handle;
-	status = mdtm_add_to_ref_tbl(svc_hdl, subscr.ref);
-#endif
 
 	++num_subscriptions;
 	m_MDS_LOG_INFO("MDTM: SVC-SUBSCRIBE Success\n");
@@ -2375,11 +2332,11 @@ uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn
 
 	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_subscribe_tipc\n");
 	memset(&net_subscr, 0, sizeof(net_subscr));
-	net_subscr.seq.type = 0;
-	net_subscr.seq.lower = 0;
-	net_subscr.seq.upper = ~0;
-	net_subscr.timeout = FOREVER;
-	net_subscr.filter = TIPC_SUB_PORTS;
+	net_subscr.seq.type = HTONL(0);
+	net_subscr.seq.lower = HTONL(0);
+	net_subscr.seq.upper = HTONL(~0);
+	net_subscr.timeout = HTONL(FOREVER);
+	net_subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
 	*((uns64 *)net_subscr.usr_handle) = *subtn_ref_val;
@@ -2551,24 +2508,9 @@ uns32 mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 	   STEP 1: Get ref_val and call the TIPC unsubscribe with the ref_val
 	 */
 
-#if MDS_TIPC_1_5
 	mdtm_del_from_ref_tbl(subtn_ref_val);
-#else
-	m_MDS_LOG_INFO("MDTM: unsubscribe_tipc : Subtn Ref Hdl = %u", (uns32)subtn_ref_val);
 
-	if (0 != ioctl(tipc_cb.Dsock, TIPC_UNSUBSCRIBE, (uns32)subtn_ref_val)) {
-		m_MDS_LOG_ERR("MDTM: SVC-UNSUBSCRIBE Failure\n");
-		return NCSCC_RC_FAILURE;
-	}
-	mdtm_del_from_ref_tbl(subtn_ref_val);
-#endif
-
-#if MDS_TIPC_1_5
 	/* Presently 1.5 doesnt supports the unsubscribe */
-#else
-	--num_subscriptions;
-#endif
-
 	m_MDS_LOG_INFO("MDTM: SVC-UNSUBSCRIBE Success\n");
 
 	return NCSCC_RC_SUCCESS;
@@ -2647,18 +2589,11 @@ uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
 	 */
 
 	uns32 server_inst = 0, server_type = 0;
-#if MDS_TIPC_1_5
 	struct sockaddr_tipc server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
-#else
-	struct tipc_name_seq name_seq;
-	memset(&name_seq, 0, sizeof(name_seq));
-#endif
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_VDEST_INST_TYPE;
 	server_inst |= vdest_id;
-
-#if MDS_TIPC_1_5
 
 	server_addr.family = AF_TIPC;
 	server_addr.addrtype = TIPC_ADDR_NAMESEQ;
@@ -2670,17 +2605,6 @@ uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
 		m_MDS_LOG_ERR("MDTM: VDEST-UNINSTALL Failure\n");
 		return NCSCC_RC_FAILURE;
 	}
-#else
-
-	name_seq.type = server_type;
-	name_seq.lower = server_inst;
-	name_seq.upper = server_inst;
-
-	if (0 != ioctl(tipc_cb.BSRsock, TIPC_UNBIND, &name_seq)) {
-		m_MDS_LOG_ERR("MDTM: VDEST-UNINSTALL Failure\n");
-		return NCSCC_RC_FAILURE;
-	}
-#endif
 
 	m_MDS_LOG_INFO("MDTM: VDEST-UNINSTALL Success\n");
 	return NCSCC_RC_SUCCESS;
@@ -2725,14 +2649,12 @@ uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *su
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_VDEST_INST_TYPE;
 	inst |= vdest_id;
-
-#if MDS_TIPC_1_5
 	memset(&subscr, 0, sizeof(subscr));
-	subscr.seq.type = server_type;
-	subscr.seq.lower = inst;
-	subscr.seq.upper = inst;
-	subscr.timeout = FOREVER;
-	subscr.filter = TIPC_SUB_PORTS;
+	subscr.seq.type = HTONL(server_type);
+	subscr.seq.lower = HTONL(inst);
+	subscr.seq.upper = HTONL(inst);
+	subscr.timeout = HTONL(FOREVER);
+	subscr.filter = HTONL(TIPC_SUB_PORTS);
 	*subtn_ref_val = 0;
 	*subtn_ref_val = ++handle;
 	*((uns64 *)subscr.usr_handle) = *subtn_ref_val;
@@ -2741,21 +2663,6 @@ uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *su
 		m_MDS_LOG_ERR("MDTM: VDEST-SUBSCRIBE Failure\n");
 		return NCSCC_RC_FAILURE;
 	}
-#else
-
-	struct tipc_subscr subscr1 = { {server_type, inst, inst},
-	/*TIMEOUT,0,1, */
-	FOREVER, 0, 1,
-	{handle, handle, handle, handle, handle, handle, handle, handle}
-	};
-
-	if (0 != ioctl(tipc_cb.Dsock, TIPC_SUBSCRIBE, &subscr1)) {
-		m_MDS_LOG_ERR("MDTM: VDEST-SUBSCRIBE Failure");
-		return NCSCC_RC_FAILURE;
-	}
-	*subtn_ref_val = (uns32)subscr1.ref;
-	++handle;
-#endif
 	++num_subscriptions;
 
 	m_MDS_LOG_INFO("MDTM: VDEST-SUBSCRIBE Success\n");
@@ -2781,21 +2688,8 @@ uns32 mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 	/*
 	   STEP 1: Get ref_val and call the TIPC unsubscribe with the ref_val
 	 */
-#if MDS_TIPC_1_5
 	/* Fix me, Presently unsupported */
-#else
-
-	if (0 != ioctl(tipc_cb.Dsock, TIPC_UNSUBSCRIBE, (uns32)subtn_ref_val)) {
-		m_MDS_LOG_ERR("MDTM: VDEST-UNSUBSCRIBE Failure\n");
-		return NCSCC_RC_FAILURE;
-	}
-#endif
-
-#if MDS_TIPC_1_5
 	/* Presently 1.5 doesnt supports the unsubscribe */
-#else
-	--num_subscriptions;
-#endif
 	m_MDS_LOG_INFO("MDTM: VDEST-UNSUBSCRIBE Success\n");
 
 	return NCSCC_RC_SUCCESS;
