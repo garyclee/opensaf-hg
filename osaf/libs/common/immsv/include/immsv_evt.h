@@ -77,6 +77,7 @@ typedef enum imma_evt_type {
 
 	IMMA_EVT_CB_DUMP = 22,
 	IMMA_EVT_ND2A_IMM_RESURRECT_RSP = 23,
+	IMMA_EVT_ND2A_PROC_STALE_CLIENTS = 24,
 
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
@@ -171,6 +172,8 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS = 73,/* Purge all unack'ed PRT OBJ changes */
 	IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP = 74,/*Resp on PBE OI PRTO deletes */
 	IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP = 75,/* Response on PBE OI PRT OBJ CREATE. */
+	IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH = 76,  /* Highest client id IMMA knows */
+	IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH = 77,  /* Highest client id IMMA knows */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */

@@ -450,7 +450,8 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
         /* Inform the IMMND of highest used client ID. */
         memset(&clientHigh_evt, 0, sizeof(IMMSV_EVT));
         clientHigh_evt.type = IMMSV_EVT_TYPE_IMMND;
-        clientHigh_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_CLIENTHIGH;
+        clientHigh_evt.info.immnd.type = (cb->sv_id == NCSMDS_SVC_ID_IMMA_OM)?
+		IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH;
         clientHigh_evt.info.immnd.info.initReq.client_pid = clientHigh;
         TRACE_1("ClientHigh message high %u", clientHigh);
         /* Unlock before MDS Send */
@@ -1281,6 +1282,11 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 		imma_proc_ccb_abort(cb, &evt->info.imma);
 		break;
 
+	case IMMA_EVT_ND2A_PROC_STALE_CLIENTS:
+		LOG_IN("Received PROC_STALE_CLIENTS");
+		imma_process_stale_clients(cb);
+		break;
+
 	default:
 		TRACE_4("Unknown event type %u", evt->info.imma.type);
 		break;
@@ -1345,8 +1351,8 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     IMMSV_EVT *out_evt=NULL;
     NCS_BOOL locked = FALSE;
     SaAisErrorT err;
-    unsigned int sleep_delay_ms = 800;
-    unsigned int max_waiting_time_ms = 6 * 1000; /* 6 secs */
+    unsigned int sleep_delay_ms = 500;
+    unsigned int max_waiting_time_ms = 2 * 1000; /* 2 secs */
     unsigned int msecs_waited = 0;
 
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
