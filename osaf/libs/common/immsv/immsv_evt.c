@@ -142,7 +142,9 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP",
 	"IMMND_EVT_D2ND_PBE_PRTO_PURGE_MUTATIONS",
 	"IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP",
-	"IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP"
+	"IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP",
+	"IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH",
+	"IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH",
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -2132,7 +2134,8 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMA_EVT_ND2A_IMM_FINALIZE_RSP:
 		case IMMA_EVT_ND2A_IMM_ERROR:
-        case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
+                case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
+		case IMMA_EVT_ND2A_PROC_STALE_CLIENTS: /* Really nothing to encode for this one */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immaevt->info.errRsp.error);
 			ncs_enc_claim_space(o_ub, 4);
@@ -2527,6 +2530,8 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		case IMMND_EVT_A2ND_IMM_INIT:	/* ImmOm Initialization */
 		case IMMND_EVT_A2ND_IMM_OI_INIT:	/* ImmOi Initialization */
         case IMMND_EVT_A2ND_IMM_CLIENTHIGH:  /* For client resurrections */
+        case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:  /* For client resurrections */
+        case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH:  /* For client resurrections */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.initReq.version.releaseCode);
 			ncs_enc_claim_space(o_ub, 4);
@@ -3274,7 +3279,8 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 		case IMMA_EVT_ND2A_IMM_FINALIZE_RSP:
 		case IMMA_EVT_ND2A_IMM_ERROR:	//Generic error reply
-        case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
+		case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
+		case IMMA_EVT_ND2A_PROC_STALE_CLIENTS: /* Really nothing to encode for this one */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immaevt->info.errRsp.error = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -3689,6 +3695,8 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		case IMMND_EVT_A2ND_IMM_INIT:	/* ImmOm Initialization */
 		case IMMND_EVT_A2ND_IMM_OI_INIT:	/* ImmOi Initialization */
         case IMMND_EVT_A2ND_IMM_CLIENTHIGH: /* For client resurrections */
+        case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH: /* For client resurrections */
+        case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH: /* For client resurrections */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.initReq.version.releaseCode = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
