@@ -930,10 +930,12 @@ uns32 clms_send_track_local(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
                 msg.info.cbk_info.param.track.buf_info.notification->clusterNode.bootTimestamp = node->boot_time;
                 msg.info.cbk_info.param.track.buf_info.notification->clusterNode.initialViewNumber = node->init_view;
 
-                if (node->member == SA_FALSE)
-                        msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_LEFT;
-                else
-                        msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_NO_CHANGE;
+               if (node->member == SA_FALSE)
+                       msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_LEFT;
+               else if(step == SA_CLM_CHANGE_COMPLETED)
+                       msg.info.cbk_info.param.track.buf_info.notification->clusterChange = node->change;
+               else
+                       msg.info.cbk_info.param.track.buf_info.notification->clusterChange = SA_CLM_NODE_NO_CHANGE;
 
 	} else if (client->track_flags & SA_TRACK_CHANGES){
 		msg.info.cbk_info.param.track.buf_info.numberOfItems = clms_nodedb_lookup(1);
@@ -1349,6 +1351,7 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	if (rc != SA_AIS_OK) {
 		TRACE("clms_node_reconfigured_ntf failed %u", rc);
 	}
+	node->change = SA_CLM_NODE_NO_CHANGE;
 
 	TRACE_LEAVE();
 	return rc;
