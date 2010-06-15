@@ -347,6 +347,7 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 			clms_cluster_update_rattr(osaf_cluster);
 			ckpt_node_rec(node);
 			ckpt_cluster_rec();
+			node->change = SA_CLM_NODE_NO_CHANGE;	
 		}
 	}
 
