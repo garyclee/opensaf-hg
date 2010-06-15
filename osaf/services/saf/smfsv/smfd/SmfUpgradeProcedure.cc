@@ -2349,13 +2349,24 @@ SmfSwapThread::main(void)
 	std::string si_name = getenv("SI_SWAP_SI");
 	admOp.setDoDn(si_name);
 	admOp.setDoId(SA_AMF_ADMIN_SI_SWAP);
-	if (admOp.execute() != SA_AIS_OK) {
-		LOG_ER("SmfSwapThread::main: SA_AMF_ADMIN_SI_SWAP fails");
-		CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
-		evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
-		evt->event.procResult.rc = PROCEDURE_FAILED;
-		evt->event.procResult.procedure = m_proc;
-		SmfCampaignThread::instance()->send(evt);
+	int max_swap_retry = atoi(getenv("SI_SWAP_MAX_RETRY"));
+	int retryCnt = 0;
+	int rc;
+	while((rc = admOp.execute()) != SA_AIS_OK) {
+		retryCnt++;
+		if(retryCnt > max_swap_retry) {
+			SmfProcStateExecFailed::instance()->changeState(m_proc, SmfProcStateExecFailed::instance());
+
+			LOG_ER("SmfSwapThread::main: SA_AMF_ADMIN_SI_SWAP giving up after %d retries", retryCnt);
+			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+			evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+			evt->event.procResult.rc = PROCEDURE_FAILED;
+			evt->event.procResult.procedure = m_proc;
+			SmfCampaignThread::instance()->send(evt);
+			break;
+		}
+		TRACE("SmfSwapThread::main: SI_AMF_ADMIN_SI_SWAP returns %d, wait 2 seconds and retry", rc);
+		sleep(2);
 	}
 
 	TRACE_LEAVE();
