@@ -1156,10 +1156,6 @@ static SaAisErrorT clms_imm_ccb_obj_modify_callback(SaImmOiHandleT immOiHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
-	clms_node_update_rattr(node);
-	ckpt_node_rec(node);
-	ckpt_cluster_rec();
-
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1357,9 +1353,12 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	}
 	node->change = SA_CLM_NODE_NO_CHANGE;
 
+	clms_node_update_rattr(node);
+	ckpt_node_rec(node);
+	ckpt_cluster_rec();
+
 	TRACE_LEAVE();
 	return rc;
-
 }
 
 SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
