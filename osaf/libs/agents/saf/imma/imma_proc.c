@@ -327,6 +327,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaBoolT isPbeAdmOp=(evt->type == IMMA_EVT_ND2A_IMM_PBE_ADMOP);
 
 	/*TODO: correct this, ugly use of continuationId */
 	SaImmOiHandleT implHandle = evt->info.admOpReq.continuationId;
@@ -345,11 +346,24 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
+	if(isPbeAdmOp) {
+		if(cl_node->isPbe) {
+			TRACE_3("PBE-OI received PBE class create");
+		} else {
+			LOG_ER("Apparent PBE class create received at OI which is not PBE- ignoring");
+			return;
+		}
+	}
+
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
-		callback->type = IMMA_CALLBACK_OM_ADMIN_OP;
+		if(isPbeAdmOp) {
+			callback->type = IMMA_CALLBACK_PBE_ADMIN_OP;
+		} else {
+			callback->type = IMMA_CALLBACK_OM_ADMIN_OP;
+		}
 		callback->lcl_imm_hdl = implHandle;
 
 		SaInvocationT saInv = m_IMMSV_PACK_HANDLE(evt->info.admOpReq.adminOwnerId,
@@ -1160,6 +1174,7 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 	TRACE_ENTER();
 	switch (evt->type) {
 	case IMMA_EVT_ND2A_IMM_ADMOP:
+	case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
 		/*TODO See TODO 12345 code repeated (almost) in imma_om_api.c
 		   free-1 */
 		if (evt->info.admOpReq.objectName.size) {
@@ -1246,6 +1261,7 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 {
 	TRACE("** Event type:%u", evt->info.imma.type);
 	switch (evt->info.imma.type) {
+	case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
 	case IMMA_EVT_ND2A_IMM_ADMOP:
 		imma_proc_admop(cb, &evt->info.imma);
 		break;
@@ -1763,8 +1779,12 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 #endif
 
 #ifdef IMMA_OI
-	SaBoolT isPrtObj = SA_FALSE;
+	SaBoolT isPbeOp = SA_FALSE;
 	switch (callback->type) {
+	case IMMA_CALLBACK_PBE_ADMIN_OP:
+		isPbeOp = SA_TRUE;
+		assert(cl_node->isPbe);
+		TRACE("PBE Admin OP callback");
 	case IMMA_CALLBACK_OM_ADMIN_OP:
 #ifdef IMM_A_01_01
 		TRACE("Admin op callback isOiA1:%u, iCallbk1:%p iCallbk:%p",
@@ -1808,10 +1828,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 		break;
 
 	case IMMA_CALLBACK_PBE_PRTO_DELETES_COMPLETED:
-		isPrtObj = SA_TRUE;
+		isPbeOp = SA_TRUE;
 		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_COMPLETED:
-		TRACE("%s-completed op callback", isPrtObj?"Pbe-Prto-Deletes":"ccb");
+		TRACE("%s-completed op callback", isPbeOp?"Pbe-Prto-Deletes":"ccb");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbCompletedRpl;
@@ -1825,7 +1845,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			{
 				SaImmOiCcbIdT ccbid = 0LL;
 
-				if(isPrtObj) {
+				if(isPbeOp) {
 					assert(callback->ccbID == 0);
 					/* Pseudo ccb towards PBE for PRTO deletes */
 					ccbid = callback->inv + 0x100000000LL;
@@ -1870,7 +1890,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 			memset(&ccbCompletedRpl, 0, sizeof(IMMSV_EVT));
 			ccbCompletedRpl.type = IMMSV_EVT_TYPE_IMMND;
-			if(isPrtObj) {
+			if(isPbeOp) {
 				ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP;
 			} else {
 				ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP;
@@ -1893,9 +1913,9 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				   Some OIs may not accept this and may reject overlapping CCBs, but we can not
 				   assume this in the IMMSv implementation. 
 				*/
-				if (isPrtObj || imma_oi_ccb_record_set_critical(cl_node, callback->ccbID, callback->inv)) {
+				if (isPbeOp || imma_oi_ccb_record_set_critical(cl_node, callback->ccbID, callback->inv)) {
 					TRACE_2("Sending normal OK response on completed for ccb %u. ", callback->ccbID);
-					if(!isPrtObj) {TRACE_2("The oi_ccb_record now marked as critical.");}
+					if(!isPbeOp) {TRACE_2("The oi_ccb_record now marked as critical.");}
 				} else {
 					LOG_ER("ERROR: CCB record for %u non existent - exiting", callback->ccbID);
 					assert(0);
@@ -1950,10 +1970,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 		break;
 
 	case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
-		isPrtObj = SA_TRUE;
+		isPbeOp = SA_TRUE;
 		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_CREATE:
-		TRACE("%sobject-create callback", isPrtObj?"Pbe-Runtime-":"Ccb-");
+		TRACE("%sobject-create callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjCrRpl;
@@ -2101,7 +2121,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				locked = TRUE;
 				memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
 				ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
-				if(isPrtObj) {
+				if(isPbeOp) {
 					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP;
 				} else {
 					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
@@ -2134,10 +2154,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 		break;
 
 	case IMMA_CALLBACK_PBE_PRT_OBJ_DELETE:
-		isPrtObj = SA_TRUE;
+		isPbeOp = SA_TRUE;
 		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_DELETE:
-		TRACE("%sobject-delete op callback", isPrtObj?"Pbe-Runtime-":"Ccb-");
+		TRACE("%sobject-delete op callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjDelRpl;
@@ -2150,7 +2170,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 #endif
 			{
 				SaImmOiCcbIdT ccbid = 0LL;
-				if(isPrtObj) {
+				if(isPbeOp) {
 					assert(callback->ccbID == 0);
 					/* Pseudo ccb towards PBE for PRTO deletes */
 					ccbid = callback->inv + 0x100000000LL;
@@ -2230,10 +2250,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 		break;
 
 	case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
-		isPrtObj = SA_TRUE; /*Actually isPrtAttr would be better name here. */
+		isPbeOp = SA_TRUE; /*Actually isPrtAttr would be better name here. */
 		assert(cl_node->isPbe);
 	case IMMA_CALLBACK_OI_CCB_MODIFY:
-		TRACE("%s op callback", isPrtObj?"Pbe-runtime update":"ccb");
+		TRACE("%s op callback", isPbeOp?"Pbe-runtime update":"ccb");
 		do {
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjModRpl;
@@ -2374,7 +2394,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				locked = TRUE;
 				memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
 				ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
-				if(isPrtObj) {
+				if(isPbeOp) {
 					ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP;
                                } else {
 				       ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;

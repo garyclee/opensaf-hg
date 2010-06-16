@@ -91,7 +91,13 @@ extern "C" {
 					  SaUint64T reply_dest,
 					  SaInvocationT inv, SaUint32T *implConn, SaClmNodeIdT *implNodeId);
 
-	SaAisErrorT immModel_classCreate(IMMND_CB *cb, const struct ImmsvOmClassDescr *req);
+	SaAisErrorT immModel_classCreate(IMMND_CB *cb, 
+		const struct ImmsvOmClassDescr *req,
+		SaUint32T reqConn,
+		SaUint32T nodeId,
+		SaUint32T* continuationId,
+		SaUint32T* pbeConn,
+		unsigned int* pbeNodeId);
 
 	SaAisErrorT immModel_classDelete(IMMND_CB *cb, const struct ImmsvOmClassDescr *req);
 
@@ -266,6 +272,9 @@ extern "C" {
 	void immModel_pbePrtAttrUpdateContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaAisErrorT err,
 		SaClmNodeIdT nodeId, SaUint32T *reqConn);
+
+	void immModel_pbeClassCreateContinuation(IMMND_CB *cb,
+		SaUint32T invocation, SaClmNodeIdT nodeId, SaUint32T *reqConn);
 
 
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,

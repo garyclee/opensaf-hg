@@ -145,6 +145,7 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP",
 	"IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH",
 	"IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH",
+	"IMMND_EVT_A2ND_PBE_ADMOP_RSP"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -1307,7 +1308,8 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.objDelete.objectName);
 			immsv_evt_enc_inline_string(o_ub, os);
-		} else if (i_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ADMOP) {
+		} else if ((i_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ADMOP) ||
+			(i_evt->info.imma.type == IMMA_EVT_ND2A_IMM_PBE_ADMOP)) {
 			int depth = 0;
 			/*Encode the objectName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.imma.info.admOpReq.objectName);
@@ -1766,7 +1768,8 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_OCTET_STRING *os = &(o_evt->info.imma.info.objDelete.objectName);
 			immsv_evt_dec_inline_string(i_ub, os);
 
-		} else if (o_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ADMOP) {
+		} else if ((o_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ADMOP) ||
+			(o_evt->info.imma.type == IMMA_EVT_ND2A_IMM_PBE_ADMOP)) {
 			/*Decode the objectName */
 			IMMSV_OCTET_STRING *os = &(o_evt->info.imma.info.admOpReq.objectName);
 			immsv_evt_dec_inline_string(i_ub, os);
@@ -2134,7 +2137,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMA_EVT_ND2A_IMM_FINALIZE_RSP:
 		case IMMA_EVT_ND2A_IMM_ERROR:
-                case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
+		case IMMA_EVT_ND2A_IMM_RESURRECT_RSP:
 		case IMMA_EVT_ND2A_PROC_STALE_CLIENTS: /* Really nothing to encode for this one */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immaevt->info.errRsp.error);
@@ -2152,6 +2155,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMA_EVT_ND2A_IMM_ADMOP:	//Admin-op OI callback
+		case IMMA_EVT_ND2A_IMM_PBE_ADMOP:	//Admin-op OI callback
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immaevt->info.admOpReq.adminOwnerId);
 			ncs_enc_claim_space(o_ub, 4);
@@ -2180,7 +2184,6 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMA_EVT_ND2A_ADMOP_RSP:	//Response from AdminOp to OM client
-
 			/*skip oi_client_hdl */
 
 			p8 = ncs_enc_reserve_space(o_ub, 8);
@@ -2529,9 +2532,9 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMND_EVT_A2ND_IMM_INIT:	/* ImmOm Initialization */
 		case IMMND_EVT_A2ND_IMM_OI_INIT:	/* ImmOi Initialization */
-        case IMMND_EVT_A2ND_IMM_CLIENTHIGH:  /* For client resurrections */
-        case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:  /* For client resurrections */
-        case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH:  /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_CLIENTHIGH:  /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:  /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH:  /* For client resurrections */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.initReq.version.releaseCode);
 			ncs_enc_claim_space(o_ub, 4);
@@ -2551,8 +2554,8 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMND_EVT_A2ND_IMM_FINALIZE:	  /* ImmOm finalization */
 		case IMMND_EVT_A2ND_IMM_OI_FINALIZE:  /* ImmOi finalization */
-        case IMMND_EVT_A2ND_IMM_OM_RESURRECT: /* ImmOm resurrect hdl */
-        case IMMND_EVT_A2ND_IMM_OI_RESURRECT: /* ImmOi resurrect hdl */
+		case IMMND_EVT_A2ND_IMM_OM_RESURRECT: /* ImmOm resurrect hdl */
+		case IMMND_EVT_A2ND_IMM_OI_RESURRECT: /* ImmOi resurrect hdl */
 		case IMMND_EVT_A2ND_SYNC_FINALIZE:	  /* immsv_finalize_sync */
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.finReq.client_hdl);
@@ -2696,6 +2699,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 			break;
 
+		case IMMND_EVT_A2ND_PBE_ADMOP_RSP: /* PBE AdminOperation fevs Reply */
 		case IMMND_EVT_A2ND_ADMOP_RSP:	/* AdminOperation sync local Reply */
 		case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP:	/* AdminOperation async local Reply */
 			p8 = ncs_enc_reserve_space(o_ub, 8);
@@ -3297,6 +3301,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMA_EVT_ND2A_IMM_ADMOP:	/*Admin-op OI callback */
+		case IMMA_EVT_ND2A_IMM_PBE_ADMOP:	/*PBE Admin-op callback */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immaevt->info.admOpReq.adminOwnerId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -3694,9 +3699,9 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			/* IMMA commincation to the local IMMND => should have been flat encode. */
 		case IMMND_EVT_A2ND_IMM_INIT:	/* ImmOm Initialization */
 		case IMMND_EVT_A2ND_IMM_OI_INIT:	/* ImmOi Initialization */
-        case IMMND_EVT_A2ND_IMM_CLIENTHIGH: /* For client resurrections */
-        case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH: /* For client resurrections */
-        case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH: /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_CLIENTHIGH: /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH: /* For client resurrections */
+		case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH: /* For client resurrections */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.initReq.version.releaseCode = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -3716,8 +3721,8 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 		case IMMND_EVT_A2ND_IMM_FINALIZE:	/* ImmOm finalization */
 		case IMMND_EVT_A2ND_IMM_OI_FINALIZE:	/* ImmOi finalization */
-        case IMMND_EVT_A2ND_IMM_OM_RESURRECT: /* ImmOm resurrect hdl*/
-        case IMMND_EVT_A2ND_IMM_OI_RESURRECT: /* ImmOi resurrect hdl*/
+		case IMMND_EVT_A2ND_IMM_OM_RESURRECT: /* ImmOm resurrect hdl*/
+		case IMMND_EVT_A2ND_IMM_OI_RESURRECT: /* ImmOi resurrect hdl*/
 		case IMMND_EVT_A2ND_SYNC_FINALIZE:	/* immsv_finalize_sync */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 			immndevt->info.finReq.client_hdl = ncs_decode_64bit(&p8);
@@ -3866,6 +3871,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 4);
 			break;
 
+		case IMMND_EVT_A2ND_PBE_ADMOP_RSP:	/* AdminOperation sync local Reply */
 		case IMMND_EVT_A2ND_ADMOP_RSP:	/* AdminOperation sync local Reply */
 		case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP:	/* AdminOperation async local Reply */
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);

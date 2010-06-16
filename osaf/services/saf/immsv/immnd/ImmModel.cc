@@ -188,7 +188,10 @@ ObjectInfo::getAdminOwnerName(std::string *str) const
 typedef enum {
     IMM_CREATE = 1,
     IMM_MODIFY = 2,
-    IMM_DELETE = 3
+    IMM_DELETE = 3,
+    IMM_CREATE_CLASS = 4,
+    IMM_DELETE_CLASS = 5
+
 } ImmMutationType;
 
 struct ObjectMutation
@@ -360,10 +363,15 @@ immModel_ccbCreate(IMMND_CB *cb,
 }
 
 SaAisErrorT
-immModel_classCreate(IMMND_CB *cb, const struct ImmsvOmClassDescr* req)
+immModel_classCreate(IMMND_CB *cb, const struct ImmsvOmClassDescr* req,
+    SaUint32T reqConn,
+    unsigned int nodeId,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    unsigned int* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-        classCreate(req);
+	    classCreate(req, reqConn, nodeId, continuationId, pbeConn, pbeNodeId);
 }
 
 SaAisErrorT
@@ -1031,6 +1039,13 @@ void immModel_pbePrtObjCreateContinuation(IMMND_CB *cb,
         invocation, err, nodeId, reqConn);
 }
 
+void immModel_pbeClassCreateContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaClmNodeIdT nodeId, SaUint32T *reqConn)
+{
+    ImmModel::instance(&cb->immModel)->pbeClassCreateContinuation(
+        invocation, nodeId, reqConn);
+}
+
 void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
         SaClmNodeIdT nodeId, SaUint32T *reqConn)
@@ -1460,12 +1475,27 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         omuti!=sPbeRtMutations.end(); ++omuti) {
         ObjectMutation* oMut = omuti->second;
         oi = sObjectMap.find(omuti->first);
-        assert(oi != sObjectMap.end());
+	assert(oi != sObjectMap.end() ||
+            (oMut->mOpType == IMM_CREATE_CLASS)||
+            (oMut->mOpType == IMM_DELETE_CLASS));
+
         inv = m_IMMSV_PACK_HANDLE(oMut->mContinuationId, nodeId);
         ci = sPbeRtReqContinuationMap.find(inv);
 
         if(ci != sPbeRtReqContinuationMap.end()) {
-            connVector.push_back(ci->second.mConn);
+            if(oi != sObjectMap.end()) {
+                /* Only reply the default reply of TRY_AGAIN on failed
+                   RTO ops, not failed class ops. The RTO ops are
+                   reverted on fauilure here, which is consistent with
+                   a reply of TRY_AGAIN. The class ops are NOT reverted,
+                   so a reply of TRY_AGAIN would be incorrect and a
+                   reply of OK would be premature. For class ops
+                   that have trouble with the PBE, ERR_TIMEOUT would
+                   be the only proper reply, so we let the client
+                   timeout by not replying.
+                */
+                connVector.push_back(ci->second.mConn);
+            }
             sPbeRtReqContinuationMap.erase(ci);
         }
 
@@ -1511,6 +1541,30 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                     LOG_WA("update of PERSISTENT runtime attributes in object '%s' REVERTED.",
                         omuti->first.c_str());
                 break;
+
+            case IMM_CREATE_CLASS:
+                    LOG_WA("PBE failed in persistification of class create %s",
+                        omuti->first.c_str());
+                    /* The PBE should have aborted when if this happened.
+                       The existence of this mutation would prevent a restart
+                       with --recover. Instead a restart will regenerate the
+                       PBE file, foercing it in line with the imms runtime
+                       state.
+                    */
+                break;
+
+            case IMM_DELETE_CLASS:
+                    LOG_WA("PBE failed in persistification of class delete %s",
+                        omuti->first.c_str());
+                    /* The PBE should have aborted when if this happened.
+                       The existence of this mutation would prevent a restart
+                       with --recover. Instead a restart will regenerate the
+                       PBE file, foercing it in line with the imms runtime
+                       state.
+                    */
+
+                break;
+
 
             default:
                 assert(0);
@@ -1739,11 +1793,15 @@ ImmModel::instance(void** sInstancep)
  * Creates a class. 
  */
 SaAisErrorT
-ImmModel::classCreate(const ImmsvOmClassDescr* req)
+ImmModel::classCreate(const ImmsvOmClassDescr* req,
+        SaUint32T reqConn,
+        unsigned int nodeId,
+        SaUint32T* continuationIdPtr,
+        SaUint32T* pbeConnPtr,
+        unsigned int* pbeNodeIdPtr)
 {
-    TRACE_ENTER();
-    size_t sz = strnlen((char *) req->className.buf, 
-        (size_t)req->className.size);
+    TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
+    size_t sz = strnlen((char *) req->className.buf, (size_t)req->className.size);
     
     std::string className((const char*)req->className.buf, sz);
     SaAisErrorT err = SA_AIS_OK;
@@ -1751,7 +1809,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
     if(immNotPbeWritable()) {
         return SA_AIS_ERR_TRY_AGAIN;
     }
-    
+
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
@@ -1925,6 +1983,42 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
             } else {
                 sClassMap[className] = classInfo;
                 updateImmObject(className);
+                if(pbeNodeIdPtr) {
+                    if(!getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
+                        LOG_ER("Pbe is not available, can not happen here");
+                        abort();
+                    }
+                    ++sLastContinuationId;
+                    if(sLastContinuationId >= 0xfffffffe) {
+                            sLastContinuationId = 1;
+                    }
+                    (*continuationIdPtr) = sLastContinuationId;
+                    /* There is a tiny risk here that there exists a PRTO with DN
+                       identical to the classname and that a PRTO operation on THIS
+                       object is performed concurrently with this class create!
+                    */
+                    ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
+                    if(i2 == sPbeRtMutations.end()) {
+                        /* Create "object" mutation to bar pbe restart --recover
+                           This is actually a class mutation, but lets keep the name.
+                        */
+                        ObjectMutation* oMut = new ObjectMutation(IMM_CREATE_CLASS);
+                        oMut->mContinuationId = (*continuationIdPtr);
+                        oMut->mAfterImage = NULL;
+                        sPbeRtMutations[className] = oMut;
+
+                        if(reqConn) {
+                            SaInvocationT tmp_hdl =
+                                m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
+                            sPbeRtReqContinuationMap[tmp_hdl] =
+                                ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+                        }
+                    } else {
+                        LOG_WA("PBE class create unprotected because of concurrent "
+                           "conflicting PRTO operation on same name '%s'",
+                           className.c_str());
+                    }
+                }
             }
         }
     }
@@ -5812,7 +5906,9 @@ ImmModel::updateImmObject(std::string newClassName,
         if(!valuep->hasExtraValueC_str(newClassName.c_str())) {
             TRACE_5("Adding new class %s", newClassName.c_str());
             valuep->setExtraValueC_str(newClassName.c_str());
-        }
+        } else {
+            TRACE_5("Class %s already existed", newClassName.c_str());
+	}
     }
     TRACE_LEAVE();
 }
@@ -7452,8 +7548,8 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             /* PBE expected. */
             pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
             if(!pbe) {
-                err = SA_AIS_ERR_TRY_AGAIN;
-                TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
+                LOG_ER("Pbe is not available, can not happen here");
+		abort();
             } 
         }
 
@@ -7708,6 +7804,42 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         delete afim;
     }
 
+    TRACE_LEAVE();
+}
+
+void ImmModel::pbeClassCreateContinuation(SaUint32T invocation,
+    unsigned int nodeId, SaUint32T *reqConn)
+{
+    TRACE_ENTER();
+
+    SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    }
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+
+    if(i2 == sPbeRtMutations.end()) {
+        LOG_ER("PBE Class Create continuation missing! invoc:%u",
+            invocation);
+        return;
+    }
+
+    ObjectMutation* oMut = i2->second;
+
+    assert(oMut->mOpType == IMM_CREATE_CLASS);
+
+    LOG_IN("Create of class %s is PERSISTENT.", i2->first.c_str());
+
+    sPbeRtMutations.erase(i2);
+    delete oMut;
     TRACE_LEAVE();
 }
 

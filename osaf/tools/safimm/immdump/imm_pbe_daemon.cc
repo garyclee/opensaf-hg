@@ -34,6 +34,7 @@ const unsigned int sleep_delay_ms = 500;
 const unsigned int max_waiting_time_ms = 5 * 1000;	/* 5 secs */
 /*static const SaImmClassNameT immServiceClassName = "SaImmMngt";*/
 
+static SaImmHandleT pbeOmHandle;
 static SaImmOiHandleT pbeOiHandle;
 static SaSelectionObjectT immOiSelectionObject;
 static SaSelectionObjectT immOmSelectionObject;
@@ -54,20 +55,42 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 					  SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params)
 {
 	const SaImmAdminOperationParamsT_2 *param = params[0];
-	if(param) {TRACE("bogus trace"); goto done;}
-
+	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 
-	if (opId == 4711) {
-		/*
-		(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
-					       "saLogStreamSeverityFilter", SA_IMM_ATTR_SAUINT32T,
-					       &stream->severityFilter);
-		*/
+	if(opId == OPENSAF_IMM_PBE_CLASS_CREATE) {
+		if(param) {
+			TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
+			std::string className(*((SaStringT *) param->paramBuffer));
 
-		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			rc = pbeBeginTrans(sDbHandle);
+			if(rc != SA_AIS_OK) {
+				LOG_WA("PBE failed to start transaction for class create");
+				rc = SA_AIS_ERR_NO_RESOURCES;
+				goto done;
+			}
+			TRACE("Begin PBE transaction for class create OK");
+
+
+			(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
+
+			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
+			if(rc != SA_AIS_OK) {
+				LOG_WA("PBE failed to commit transaction for class create");
+				rc = SA_AIS_ERR_NO_RESOURCES;
+				goto done;
+			}
+			TRACE("Commit PBE transaction for class create");
+			/* We only reply with ok result. PBE failed class create handled by timeout, cleanup.
+			   We encode OK result for OPENSAF_IMM_PBE_CLASS_CREATE with the arbitrary and otherwise
+			   unused error code SA_AIS_ERR_REPAIR_PENDING. This way the immnd can tell that this
+			   is supposed to be an ok reply on PBE_CLASS_CREATE.
+			 */
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING);
+		}
+		goto done;
 	} else {
-		LOG_ER("Invalid operation ID, should be %d ", 4711);
+		LOG_ER("Invalid operation ID %llu", (SaUint64T) opId);
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 	}
  done:
@@ -635,6 +658,8 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 	immVersion.releaseCode = RELEASE_CODE;
 	immVersion.majorVersion = MAJOR_VERSION;
 	immVersion.minorVersion = MINOR_VERSION;
+
+	pbeOmHandle = immHandle;
 
 	rc = saImmOiInitialize_2(&pbeOiHandle, &callbacks, &immVersion);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {

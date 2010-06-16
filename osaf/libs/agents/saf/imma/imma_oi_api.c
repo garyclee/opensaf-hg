@@ -833,6 +833,7 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 
 	/* Note NOT unsigned since negative means async invoc. */
 	SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(invocation);
+	SaInt32T owner = m_IMMSV_UNPACK_HANDLE_HIGH(invocation);
 
 	/* populate the structure */
 	memset(&adminOpRslt_evt, 0, sizeof(IMMSV_EVT));
@@ -842,16 +843,18 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 		adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ASYNC_ADMOP_RSP;
 	} else {
 		adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ADMOP_RSP;
+		if(owner) {
+			adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ADMOP_RSP;
+		} else {
+			TRACE_1("PBE_ADMOP_RSP");
+			assert(cl_node->isPbe);
+			adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_PBE_ADMOP_RSP;
+		}
 	}
 	adminOpRslt_evt.info.immnd.info.admOpRsp.oi_client_hdl = immOiHandle;
 	adminOpRslt_evt.info.immnd.info.admOpRsp.invocation = invocation;
 	adminOpRslt_evt.info.immnd.info.admOpRsp.result = result;
 	adminOpRslt_evt.info.immnd.info.admOpRsp.error = SA_AIS_OK;
-
-	/* Unlock before MDS Send */
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	locked = FALSE;
-	cl_node=NULL; /* avoid unsafe use */
 
 	if (cb->is_immnd_up == FALSE) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -861,8 +864,17 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	}
 
 	/* send the reply to the IMMND ASYNCronously */
-	proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest,
-		&adminOpRslt_evt, NCSMDS_SVC_ID_IMMND);
+	if(adminOpRslt_evt.info.immnd.type == IMMND_EVT_A2ND_PBE_ADMOP_RSP) {
+		proc_rc = imma_evt_fake_evs(cb, &adminOpRslt_evt, NULL, 0, cl_node->handle, &locked, FALSE);
+	} else {
+		/* Unlock before MDS Send */
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = FALSE;
+		cl_node=NULL; /* avoid unsafe use */
+
+		proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest,
+			&adminOpRslt_evt, NCSMDS_SVC_ID_IMMND);
+	}
 
 	/* MDS error handling */
 	switch (proc_rc) {

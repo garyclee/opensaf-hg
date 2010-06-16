@@ -47,6 +47,10 @@ void* pbeRepositoryInit(const char* filePath, bool create);
 void pbeRepositoryClose(void* dbHandle);
 void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
+
+ClassInfo* classToPBE(std::string classNameString, SaImmHandleT immHandle,
+	void* db_handle, unsigned int class_id);
+
 unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
 

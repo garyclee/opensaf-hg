@@ -74,7 +74,14 @@ public:
     static ImmModel*    instance(void** sInstancep);
     // Classes
     
-    SaAisErrorT         classCreate(const ImmsvOmClassDescr* req);
+    SaAisErrorT         classCreate(
+				    const ImmsvOmClassDescr* req,
+				    SaUint32T reqConn,
+				    SaUint32T nodeId,
+				    SaUint32T* continuationId,
+				    SaUint32T* pbeConn,
+				    unsigned int* pbeNodeId);
+
     
     SaAisErrorT         classDelete(const ImmsvOmClassDescr* req);
     
@@ -209,6 +216,12 @@ public:
 						     SaAisErrorT error,
 						     unsigned int nodeId, 
 						     SaUint32T *reqConn);
+
+    void                 pbeClassCreateContinuation(
+						     SaUint32T invocation,
+						     unsigned int nodeId, 
+						     SaUint32T *reqConn);
+    
     
     // Administrative operations
     SaAisErrorT         adminOperationInvoke(
