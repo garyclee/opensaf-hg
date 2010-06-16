@@ -31,14 +31,14 @@ static int __init_eds(void)
 	lib_create.info.create.argc = 0;
 	lib_create.info.create.argv = NULL;
 
-	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("Agents Startup Failed");
+		return NCSCC_RC_FAILURE;
+	}
 	/* Init EDS */
-	m_NCS_DBG_PRINTF("\nEDSV:EDS:ON");
 	if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		fprintf(stderr, "ncs_edsv_eds_lib_req FAILED\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		LOG_ER("EDS Library Request Failed");
+		return NCSCC_RC_FAILURE;
 
 	}
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	daemonize(argc, argv);
 
 	if (__init_eds() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "__init_dts() failed");
+		LOG_ER("EDS Initialization failed");
 		exit(EXIT_FAILURE);
 	}
 

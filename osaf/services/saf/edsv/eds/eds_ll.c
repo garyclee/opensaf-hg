@@ -161,8 +161,8 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
 		NULL
 	};
 
-	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaEvtChannel", &parentName, attrValues);
-
+	if ((rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaEvtChannel", &parentName, attrValues)) != SA_AIS_OK)
+		LOG_ER("saImmOiRtObjectCreate failed with rc = %d",rc);
 	free(dndup);
 
 	return rc;
@@ -1304,11 +1304,8 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
 		/* Create an IMM runtime object */
-		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-			if (create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle) !=
-			    SA_AIS_OK)
-				printf("create_runtime_object failed\n");
-		}
+		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+			create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle);
 
 		/* Initialize the channel open record patricia tree */
 		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS) {
@@ -1432,12 +1429,9 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		/* initialize channels with default values */
 		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
-/* Create an IMM runtime object */
-		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-			if (create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle) !=
-			    SA_AIS_OK)
-				printf("create_runtime_object failed\n");
-		}
+		/* Create an IMM runtime object */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE)
+			create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle);
 
 		/* Initialize the channel open record patricia tree */
 		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS)
@@ -1549,7 +1543,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 				eds_remove_cname_rec(cb, wp);
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
-					printf("Deleting runtime object %s FAILED", chan_name.value);
+					LOG_ER("Deleting runtime object %s FAILED", chan_name.value);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -1594,7 +1588,7 @@ uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uns8 *chan_name)
 				strncpy((char *)channel_name.value, (char *)wp->cname, channel_name.length);
 				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 					if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name) != SA_AIS_OK) {
-						printf("Deleting runtime object %s FAILED", channel_name.value);
+						LOG_ER("Deleting runtime object %s FAILED", channel_name.value);
 						return NCSCC_RC_FAILURE;
 					}
 				}
@@ -1751,8 +1745,6 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 		if (!give_hdl)
 			eds_stop_tmr(&rm_node->ret_tmr);
 
-		TRACE("Cleared Retained event %u", rm_node->event_id);
-
 		m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
 
 		return;
@@ -1780,8 +1772,6 @@ eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
 				/* stop the retention timer */
 				if (!give_hdl)
 					eds_stop_tmr(&rm_node->ret_tmr);
-
-				TRACE("Cleared Retained event %u", rm_node->event_id);
 
 				m_MMGR_FREE_EDS_RETAINED_EVT(rm_node);
 

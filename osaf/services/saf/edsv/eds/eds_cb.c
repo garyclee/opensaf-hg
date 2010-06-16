@@ -57,28 +57,39 @@ static nfds_t nfds = 5;
  *****************************************************************************/
 uns32 eds_cb_init(EDS_CB *eds_cb)
 {
-	NCS_PATRICIA_PARAMS reg_param, cname_param;
+	NCS_PATRICIA_PARAMS reg_param, cname_param, nodelist_param;
 
 	memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&nodelist_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	reg_param.key_size = sizeof(uns32);
 	cname_param.key_size = sizeof(SaNameT);
+	nodelist_param.key_size = sizeof(uns32);
 
 	/* Assign Initial HA state */
 	eds_cb->ha_state = EDS_HA_INIT_STATE;
 	eds_cb->csi_assigned = FALSE;
-	eds_cb->cluster_node_list = NULL;
 	/* Assign Version. Currently, hardcoded, This will change later */
 	m_GET_MY_VERSION(eds_cb->eds_version);
 
 	/* Initialize patricia tree for reg list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param))
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param)) {
+		LOG_ER("Patricia Init for Reg List failed");
 		return NCSCC_RC_FAILURE;
+	}
 
 	/* Initialize patricia tree for channel name list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param))
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param)) {
+		LOG_ER("Patricia Init for Channel Name List failed");
 		return NCSCC_RC_FAILURE;
+	}
+
+	/* Initialize patricia tree for cluster nodes list */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cluster_nodes_list, &nodelist_param)) {
+		LOG_ER("Patricia Init for Cluster Nodes List failed");
+		return NCSCC_RC_FAILURE;
+	}
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -101,6 +112,7 @@ void eds_cb_destroy(EDS_CB *eds_cb)
 	ncs_patricia_tree_destroy(&eds_cb->eda_reg_list);
 	/* Check if other lists are deleted as well */
 	ncs_patricia_tree_destroy(&eds_cb->eds_cname_list);
+	ncs_patricia_tree_destroy(&eds_cb->eds_cluster_nodes_list);
 
 	return;
 }
@@ -176,7 +188,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			eds_imm_declare_implementer(&eds_cb->immOiHandle);
 		}
 	} else {
-		TRACE("Imm Init Failed");
+		LOG_ER("Imm Init Failed");
 		exit(EXIT_FAILURE);
 	}
 
@@ -213,47 +225,42 @@ void eds_main_process(SYSF_MBX *mbx)
 		}
 		/* process all the AMF messages */
 		if (fds[FD_AMF].revents & POLLIN) {
-			TRACE("AMF EVENT HAS OCCURRED....");
 			/* dispatch all the AMF pending callbacks */
 			error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK) {
 				m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
 						     error, __FILE__, __LINE__, 0);
+				LOG_ER("AMF Dispatch failed with rc = %d",error);
 			}
 		}
 
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
-			TRACE("MBCSV EVENT HAS OCCURRED....");
 			error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
-			if (NCSCC_RC_SUCCESS != error)
-				TRACE("MBCSV DISPATCH FAILED...");
-			else
-				TRACE("MBCSV DISPATCH SUCCESS...");
+			if (NCSCC_RC_SUCCESS != error) {
+				LOG_ER("MBCSv Dispatch failed with rc = %d",error);
+			}
 		}
 
 		/* Process the EDS Mail box, if eds is ACTIVE. */
 		if (fds[FD_MBX].revents & POLLIN) {
-			TRACE("MAILBOX EVENT HAS OCCURRED....");
 			/* now got the IPC mail box event */
 			eds_process_mbx(mbx);
 		}
 
 		/* process the CLM messages */
 		if (fds[FD_CLM].revents & POLLIN) {
-			TRACE("CLM EVENT HAS OCCURRED....");
-
 			/* dispatch all the AMF pending callbacks */
 			error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
-			if (error != SA_AIS_OK)
-				TRACE("CLM Dispatch failed, error");
+			if (error != SA_AIS_OK) {
+				LOG_ER("CLM Dispatch failed with rc = %d",error);
+			}
 		}
 
 		/* process the IMM messages */
 		if (eds_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
-			TRACE("IMM EVENT HAS OCCURRED....");
 
-			/* dispatch all the IMM pending function */
+			/* dispatch the IMM event */
 			error = saImmOiDispatch(eds_cb->immOiHandle, SA_DISPATCH_ONE);
 
 			/*
@@ -267,7 +274,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			 */
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				TRACE("saImmOiDispatch returned BAD_HANDLE %u", error);
+				TRACE("saImmOiDispatch returned BAD_HANDLE");
 
 				/* Invalidate the IMM OI handle. */
 				saImmOiFinalize(eds_cb->immOiHandle);
@@ -275,7 +282,7 @@ void eds_main_process(SYSF_MBX *mbx)
 				eds_imm_reinit_bg(eds_cb);
 				
 			} else if (error != SA_AIS_OK) {
-				TRACE("saImmOiDispatch FAILED: %u", error);
+				LOG_ER("saImmOiDispatch FAILED with rc = %d", error);
 				break;
 			}
 
