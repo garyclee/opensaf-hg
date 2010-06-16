@@ -646,6 +646,10 @@ set/specified in the plmcd.conf file.
 
 More TODO on status command.
 
+Command To Trigger a Administrative Switchover of the Controller Nodes:
+=======================================================================
+immadm -o 7 safSi=SC-2N,safApp=OpenSAF
+
 Building `OpenSAF' Samples
 ==========================
 
