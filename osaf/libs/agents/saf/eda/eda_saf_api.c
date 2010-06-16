@@ -524,8 +524,8 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	uns32 chan_id, timeOut;
 	uns32 chan_open_id;
 
-	if ((NULL == channelName) || (0 == channelName->length) ||
-	    (SA_MAX_NAME_LENGTH < channelName->length) || (NULL == o_chanHdl)) {
+	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length)
+		|| (NULL == o_chanHdl) || (strncmp((char *)channelName->value, "safChnl=", 8))) {
 		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
 			      __FILE__, __LINE__, 0, evtHandle);
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -703,7 +703,8 @@ saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length)) {
+	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length) ||
+		(strncmp((char *)channelName->value, "safChnl=", 8))) {
 		m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
 			      __FILE__, __LINE__, 0, evtHandle);
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -962,8 +963,8 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle, const SaNameT *channelNam
 	EDSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	if ((NULL == channelName) || (0 == channelName->length)
-	    || (SA_MAX_NAME_LENGTH < channelName->length)) {
+	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length) ||
+		(strncmp((char *)channelName->value, "safChnl=", 8))) {
 		m_LOG_EDSV_AF(EDA_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
 			      __FILE__, __LINE__, 0, evtHandle);
 		return SA_AIS_ERR_INVALID_PARAM;

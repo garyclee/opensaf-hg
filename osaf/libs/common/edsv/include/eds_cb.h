@@ -218,12 +218,8 @@ typedef struct eda_down_list_tag {
 
 /* List of current nodes in the cluster */
 typedef struct node_info_tag {
+	NCS_PATRICIA_NODE pat_node;
 	NODE_ID node_id;
-	/* Place holder for multi-cluster!
-	 * Thinking way too far.
-	 */
-	uns32 cluster_id;
-	struct node_info_tag *next;
 } NODE_INFO;
 
 typedef struct eds_cb_tag {
@@ -262,7 +258,7 @@ typedef struct eds_cb_tag {
 	NODE_ID node_id;
 	SaClmHandleT clm_hdl;	/* CLM handle */
 	SaSelectionObjectT clm_sel_obj;	/* Selection object to wait for CLM events */
-	NODE_INFO *cluster_node_list;
+	NCS_PATRICIA_TREE eds_cluster_nodes_list;
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/* Selection object to wait for IMM events */
 } EDS_CB;
@@ -330,7 +326,7 @@ EXTERN_C uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTime
 EXTERN_C void eds_stop_tmr(EDS_TMR *tmr);
 EXTERN_C void eds_tmr_exp(void *uarg);
 
-EXTERN_C void update_node_db(EDS_CB *, NODE_ID, SaClmClusterChangesT);
+EXTERN_C SaBoolT update_node_db(EDS_CB *, NODE_ID, SaBoolT);
 
 EXTERN_C void send_clm_status_change(EDS_CB *, SaClmClusterChangesT, NODE_ID);
 

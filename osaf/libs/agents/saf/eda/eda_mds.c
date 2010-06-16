@@ -1182,7 +1182,7 @@ static uns32 eda_dec_limit_get_rsp_msg(NCS_UBAID *uba, EDSV_MSG *msg)
 	uns8 local_data[100];
 
 	if (NULL == uba) {
-		printf("NULL uba received for decoding limit get response message\n");
+		TRACE("NULL uba received for decoding limit get response message\n");
 		return 0;
 	}
 
