@@ -1156,6 +1156,10 @@ static SaAisErrorT clms_imm_ccb_obj_modify_callback(SaImmOiHandleT immOiHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
+	clms_node_update_rattr(node);
+	ckpt_node_rec(node);
+	ckpt_cluster_rec();
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1644,7 +1648,6 @@ static void clms_timer_ipc_send(SaClmNodeIdT node_id)
 		TRACE("IPC send failed %d", rc);
 		free(clmsv_evt);
 	}
-	free(clmsv_evt);
 
 	TRACE_LEAVE();
 }
