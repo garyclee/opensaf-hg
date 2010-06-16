@@ -288,7 +288,7 @@ void pbeRepositoryClose(void* dbHandle)
 	sqlite3_close((sqlite3 *) dbHandle);
 }
 
-static ClassInfo* classToPBE(std::string classNameString,
+ClassInfo* classToPBE(std::string classNameString,
 	SaImmHandleT immHandle,
 	void* db_handle,
 	unsigned int class_id)
@@ -1825,6 +1825,15 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle)
 {
 	assert(0);
+}
+
+ClassInfo* classToPBE(std::string classNameString,
+	SaImmHandleT immHandle,
+	void* db_handle,
+	unsigned int class_id)
+{
+	assert(0);
+	return NULL;
 }
 
 unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
