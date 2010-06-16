@@ -42,6 +42,13 @@ System Controller Checklist
 5.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE system controller.
 
+6.  Have you checked the node_name. It should contain the same name as the
+    value specified in the nodes.cfg file while generating the imm.xml.
+    "Unconfigured CLM nodes are not allowed to join the cluster if the node_names
+     dont match and CLMNA will not allowed to be initialized".
+
+NOTE: Also check for /var/log/messages for any errors during the startup.
+
 Payload Node Checklist
 ======================
 
@@ -67,3 +74,12 @@ Payload Node Checklist
 
 3.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE & STANDBY system controllers.
+
+4.  Have you checked the node_name. It should contain the same name as the
+    value specified in the nodes.cfg file while generating the imm.xml.
+    "Unconfigured CLM nodes are not allowed to join the cluster if the node_names
+     dont match and CLMNA will not allowed to be initialized".
+
+
+NOTE: Also check for /var/log/messages for any errors during the startup.
+
