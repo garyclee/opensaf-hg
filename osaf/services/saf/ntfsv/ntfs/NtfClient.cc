@@ -364,7 +364,9 @@ void NtfClient::readNextResponse(SaAisErrorT* error,
                                  NtfNotification& notification,
                                  MDS_SYNC_SND_CTXT *mdsCtxt)
 {
+    TRACE_ENTER();
     read_next_res_lib(*error, notification.sendNotInfo_, mdsDest_, mdsCtxt);
+    TRACE_ENTER();
 }
 
 void NtfClient::deleteReaderResponse(SaAisErrorT* error,
