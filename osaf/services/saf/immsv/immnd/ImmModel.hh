@@ -75,15 +75,21 @@ public:
     // Classes
     
     SaAisErrorT         classCreate(
-				    const ImmsvOmClassDescr* req,
-				    SaUint32T reqConn,
-				    SaUint32T nodeId,
-				    SaUint32T* continuationId,
-				    SaUint32T* pbeConn,
-				    unsigned int* pbeNodeId);
+                                    const ImmsvOmClassDescr* req,
+                                    SaUint32T reqConn,
+                                    SaUint32T nodeId,
+                                    SaUint32T* continuationId,
+                                    SaUint32T* pbeConn,
+                                    unsigned int* pbeNodeId);
 
     
-    SaAisErrorT         classDelete(const ImmsvOmClassDescr* req);
+    SaAisErrorT         classDelete(
+                                    const ImmsvOmClassDescr* req,
+                                    SaUint32T reqConn,
+                                    SaUint32T nodeId,
+                                    SaUint32T* continuationId,
+                                    SaUint32T* pbeConn,
+                                    unsigned int* pbeNodeId);
     
     SaAisErrorT         classDescriptionGet(
                                             const immsv_octet_string* clName,
@@ -164,7 +170,7 @@ public:
                                      ObjectNameVector& objNameVector,
                                      ConnVector& connVector,
                                      IdVector& continuations,
-				     unsigned int pbeIsLocal);
+                                     unsigned int pbeIsLocal);
     
     bool                ccbWaitForDeleteImplAck(
                                                 SaUint32T ccbId, 
@@ -175,8 +181,8 @@ public:
                                                SaAisErrorT* err,
                                                SaUint32T* pbeConn,
                                                unsigned int* pbeNodeId,
-					       SaUint32T* pbeId,
-					       SaUint32T* pbeCtn);
+                                               SaUint32T* pbeId,
+                                               SaUint32T* pbeCtn);
     
     void                ccbObjDelContinuation(
                                               const immsv_oi_ccb_upcall_rsp* rsp,
@@ -200,27 +206,32 @@ public:
 
 
     void                 pbePrtObjCreateContinuation(
-						     SaUint32T invocation,
-						     SaAisErrorT error,
-						     unsigned int nodeId, 
-						     SaUint32T *reqConn);
+                                                     SaUint32T invocation,
+                                                     SaAisErrorT error,
+                                                     unsigned int nodeId, 
+                                                     SaUint32T *reqConn);
     
     void                 pbePrtObjDeletesContinuation(
-						     SaUint32T invocation,
-						     SaAisErrorT error,
-						     unsigned int nodeId, 
-						     SaUint32T *reqConn);
+                                                     SaUint32T invocation,
+                                                     SaAisErrorT error,
+                                                     unsigned int nodeId, 
+                                                     SaUint32T *reqConn);
     
     void                 pbePrtAttrUpdateContinuation(
-						     SaUint32T invocation,
-						     SaAisErrorT error,
-						     unsigned int nodeId, 
-						     SaUint32T *reqConn);
+                                                     SaUint32T invocation,
+                                                     SaAisErrorT error,
+                                                     unsigned int nodeId, 
+                                                     SaUint32T *reqConn);
 
     void                 pbeClassCreateContinuation(
-						     SaUint32T invocation,
-						     unsigned int nodeId, 
-						     SaUint32T *reqConn);
+                                                     SaUint32T invocation,
+                                                     unsigned int nodeId, 
+                                                     SaUint32T *reqConn);
+    
+    void                 pbeClassDeleteContinuation(
+                                                     SaUint32T invocation,
+                                                     unsigned int nodeId, 
+                                                     SaUint32T *reqConn);
     
     
     // Administrative operations
@@ -286,7 +297,7 @@ public:
                                        const struct ImmsvOmCcbObjectCreate* req,
                                        SaUint32T conn,
                                        unsigned int nodeId,
-				       SaUint32T* continuationId,
+                                       SaUint32T* continuationId,
                                         SaUint32T* pbeConn,
                                         unsigned int* pbeNodeId);
 
@@ -296,24 +307,24 @@ public:
                                        SaUint32T conn,
                                        unsigned int nodeId,
                                        bool* isPureLocal,
-				       SaUint32T* continuationId,
-				       SaUint32T* pbeConn,
-				       unsigned int* pbeNodeId);
+                                       SaUint32T* continuationId,
+                                       SaUint32T* pbeConn,
+                                       unsigned int* pbeNodeId);
     
     SaAisErrorT         rtObjectDelete(
                                        const ImmsvOmCcbObjectDelete* req, //re-used struct
                                        SaUint32T conn,
                                        unsigned int nodeId,
-				       SaUint32T* continuationId,
-				       SaUint32T* pbeConnPtr,
-				       unsigned int* pbeNodeIdPtr,
-				       ObjectNameVector& objNameVector);
+                                       SaUint32T* continuationId,
+                                       SaUint32T* pbeConnPtr,
+                                       unsigned int* pbeNodeIdPtr,
+                                       ObjectNameVector& objNameVector);
     
     SaAisErrorT         deleteRtObject(
                                        ObjectMap::iterator& oi,
                                        bool doIt,
                                        ImplementerInfo* info,
-				       bool& subTreeHasPersistent);
+                                       bool& subTreeHasPersistent);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
 
@@ -343,10 +354,10 @@ public:
     bool              pbeIsInSync();
     void              getNonCriticalCcbs(IdVector& cv);
     void              getOldCriticalCcbs(
-					 IdVector& cv, 
-					 SaUint32T* pbeConn,
-					 unsigned int* pbeNodeId,
-					 SaUint32T* pbeId);
+                                         IdVector& cv, 
+                                         SaUint32T* pbeConn,
+                                         unsigned int* pbeNodeId,
+                                         SaUint32T* pbeId);
     bool              immNotWritable();
     bool              immNotPbeWritable();
     void*             getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode);
@@ -371,7 +382,7 @@ public:
                                        InvocVector& admReqs,
                                        InvocVector& searchReqs,
                                        IdVector& ccbs,
-				       IdVector& pbePrtoReqs,
+                                       IdVector& pbePrtoReqs,
                                        bool iAmCoord);
     
     void              fetchAdmImplContinuation(
