@@ -425,6 +425,7 @@ void NtfAdmin::notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptio
  */
 void NtfAdmin::notificationLoggedConfirmed(SaNtfIdentifierT notificationId)
 {
+    TRACE_ENTER();
     // find notification
     NotificationMap::iterator pos;
     pos = notificationMap.find(notificationId);
@@ -449,6 +450,7 @@ void NtfAdmin::notificationLoggedConfirmed(SaNtfIdentifierT notificationId)
                 " notification %llu not found",
                 notificationId);
     }
+    TRACE_LEAVE();
 }
 
 /**
@@ -668,6 +670,7 @@ void NtfAdmin::syncGlobals(const struct NtfGlobals& ntfGlobals)
 void NtfAdmin::deleteConfirmedNotification(NtfNotification* notification,
                                            NotificationMap::iterator pos)
 {
+    TRACE_ENTER();
     if (notification->isSubscriptionListEmpty() &&
         notification->loggedOk())
     {
@@ -678,6 +681,7 @@ void NtfAdmin::deleteConfirmedNotification(NtfNotification* notification,
                 (unsigned int)notificationMap.size());
         delete notification;
     }
+    TRACE_LEAVE();
 }
 
 /**

@@ -2832,6 +2832,9 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 	if (read_not->notificationType == SA_NTF_TYPE_ALARM) {
 		notification->notificationType = read_not->notificationType;
 		notification->notification.alarmNotification = read_not->notification.alarm;
+	} else if(read_not->notificationType == SA_NTF_TYPE_SECURITY_ALARM){
+		notification->notificationType = read_not->notificationType;
+		notification->notification.securityAlarmNotification = read_not->notification.securityAlarm;
 	} else {
 		TRACE_1("Notification type (%d) is not alarm!", (int)read_not->notificationType);
 		rc = SA_AIS_ERR_NOT_SUPPORTED;

@@ -263,8 +263,13 @@ void NtfNotification::notificationLoggedConfirmed()
 */
 bool NtfNotification::loggedOk() const
 {
-    if (getNotificationType() != SA_NTF_TYPE_ALARM)
+    TRACE_ENTER();
+    if ((getNotificationType() != SA_NTF_TYPE_ALARM) &&
+		(getNotificationType() != SA_NTF_TYPE_SECURITY_ALARM)) {
+	TRACE("Not alarm and Not recurity alarm");
         return true;
+}
+    TRACE_LEAVE();		
     return logged;
 }
 

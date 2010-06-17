@@ -59,7 +59,9 @@ void saLogWriteLogCallback(SaInvocationT invocation,
 
 void retryLogNotification(NtfNotification& notif)
 {
+    TRACE_ENTER();
     NtfAdmin::theNtfAdmin->logger.checkQueueAndLog(notif);
+    TRACE_LEAVE();
 }
 
 /* ========================================================================
@@ -150,7 +152,8 @@ void NtfLogger::log(NtfNotification& notif, bool isLocal)
         this->checkQueueAndLog(notif);
     }
 
-    if (notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM)
+    if ((notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
+		(notif.sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
     {
         TRACE_2("template queue handling...");
         if (coll_.size() < NTF_LOG_CASH_SIZE)
@@ -244,7 +247,8 @@ SaAisErrorT NtfLogger::logNotification(NtfNotification& notif)
     timeout = LOG_NOTIFICATION_TIMEOUT;
 
     /* Also write alarms and security alarms to the alarm log */
-    if (notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM)
+    if ((notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
+		(notif.sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
     {
         TRACE_2("Logging notification to alarm stream");
         errorCode = saLogWriteLogAsync(alarmStreamHandle,
