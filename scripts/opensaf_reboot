@@ -44,6 +44,7 @@ opensaf_reboot_no_plm()
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
 {
+         
 	immadm -o 7 $ee_name
 	retval=$?
 	if [ $retval != 0 ]; then
@@ -71,8 +72,19 @@ temp_node_id=`cat "$NODE_ID_FILE"`
 temp_node_id=`echo "$temp_node_id" |sed -e 's:^0[bBxX]::'| sed -e 's:^:0x:'`
 self_node_id=`printf "%d" $temp_node_id`
 
-if [ ":$ee_name" == ":" ]; then
-	opensaf_reboot_no_plm
+if [ "$self_node_id" == "$node_id" ]; then
+	test -x /sbin/reboot && \
+		/sbin/reboot -f now "OpenSAF requested system reboot"
+	/sbin/reboot
 else
-	opensaf_reboot_with_plm
-fi
+	if [ ":$ee_name" != ":" ]; then
+		plm_node_state=`immlist $ee_name |grep saPlmEEAdminState|awk '{print $3}'` 
+		if [ $plm_node_state != 2 ]; then
+			opensaf_reboot_with_plm
+		else	
+			logger -t "opensaf_reboot" "Not rebooting remote node $ee_name as it is already in locked state"
+		fi
+	else
+        	logger -t "opensaf_reboot" "Rebooting remote node in the absence of PLM is outside the scope of OpenSAF"
+	fi	
+fi	
