@@ -488,7 +488,7 @@ static void createImmObject(ParserState* state)
     {
         if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
         {
-            LOG_IN("IGNORE EXISTING OBJECT");
+            LOG_IN("IGNORE EXISTING OBJECT %s", state->objectName);
         }
         else
         {
@@ -585,7 +585,7 @@ static void createImmClass(ParserState* state)
     {
         if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
         {
-            LOG_IN("IGNORE EXISTING CLASS");
+            LOG_IN("IGNORE EXISTING CLASS %s", state->className);
         } 
         else
         {
