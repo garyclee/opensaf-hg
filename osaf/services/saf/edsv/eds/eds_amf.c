@@ -739,6 +739,8 @@ SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 			LOG_ER("Patricia tree delete failed for node_id = %d",node_id);
 			return SA_FALSE;
 		} else {
+			if (cn)
+				free(cn);
 			TRACE("Node = %d deleted from DB",node_id);
 			return SA_TRUE;
 		}
