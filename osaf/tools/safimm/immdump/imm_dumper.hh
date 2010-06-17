@@ -51,6 +51,9 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 ClassInfo* classToPBE(std::string classNameString, SaImmHandleT immHandle,
 	void* db_handle, unsigned int class_id);
 
+void deleteClassToPBE(std::string classNameString, void* db_handle, 
+	ClassInfo* theClass);
+
 unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
 

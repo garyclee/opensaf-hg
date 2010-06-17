@@ -371,14 +371,19 @@ immModel_classCreate(IMMND_CB *cb, const struct ImmsvOmClassDescr* req,
     unsigned int* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-	    classCreate(req, reqConn, nodeId, continuationId, pbeConn, pbeNodeId);
+        classCreate(req, reqConn, nodeId, continuationId, pbeConn, pbeNodeId);
 }
 
 SaAisErrorT
-immModel_classDelete(IMMND_CB *cb, const struct ImmsvOmClassDescr* req)
+immModel_classDelete(IMMND_CB *cb, const struct ImmsvOmClassDescr* req,
+    SaUint32T reqConn,
+    unsigned int nodeId,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    unsigned int* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-        classDelete(req);
+        classDelete(req, reqConn, nodeId, continuationId, pbeConn, pbeNodeId);
 }
 
 SaAisErrorT
@@ -1046,6 +1051,13 @@ void immModel_pbeClassCreateContinuation(IMMND_CB *cb,
         invocation, nodeId, reqConn);
 }
 
+void immModel_pbeClassDeleteContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaClmNodeIdT nodeId, SaUint32T *reqConn)
+{
+    ImmModel::instance(&cb->immModel)->pbeClassDeleteContinuation(
+        invocation, nodeId, reqConn);
+}
+
 void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
         SaClmNodeIdT nodeId, SaUint32T *reqConn)
@@ -1475,7 +1487,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         omuti!=sPbeRtMutations.end(); ++omuti) {
         ObjectMutation* oMut = omuti->second;
         oi = sObjectMap.find(omuti->first);
-	assert(oi != sObjectMap.end() ||
+        assert(oi != sObjectMap.end() ||
             (oMut->mOpType == IMM_CREATE_CLASS)||
             (oMut->mOpType == IMM_DELETE_CLASS));
 
@@ -1545,10 +1557,10 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
             case IMM_CREATE_CLASS:
                     LOG_WA("PBE failed in persistification of class create %s",
                         omuti->first.c_str());
-                    /* The PBE should have aborted when if this happened.
+                    /* The PBE should have aborted when this happened.
                        The existence of this mutation would prevent a restart
                        with --recover. Instead a restart will regenerate the
-                       PBE file, foercing it in line with the imms runtime
+                       PBE file, forcing it in line with the imms runtime
                        state.
                     */
                 break;
@@ -1556,10 +1568,10 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
             case IMM_DELETE_CLASS:
                     LOG_WA("PBE failed in persistification of class delete %s",
                         omuti->first.c_str());
-                    /* The PBE should have aborted when if this happened.
+                    /* The PBE should have aborted when this happened.
                        The existence of this mutation would prevent a restart
                        with --recover. Instead a restart will regenerate the
-                       PBE file, foercing it in line with the imms runtime
+                       PBE file, forcing it in line with the imms runtime
                        state.
                     */
 
@@ -1999,7 +2011,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     */
                     ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
                     if(i2 == sPbeRtMutations.end()) {
-                        /* Create "object" mutation to bar pbe restart --recover
+                        /* Object mutation to bar pbe restart --recover
                            This is actually a class mutation, but lets keep the name.
                         */
                         ObjectMutation* oMut = new ObjectMutation(IMM_CREATE_CLASS);
@@ -2030,7 +2042,12 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
  * Deletes a class. 
  */
 SaAisErrorT
-ImmModel::classDelete(const ImmsvOmClassDescr* req)
+ImmModel::classDelete(const ImmsvOmClassDescr* req,
+        SaUint32T reqConn,
+        unsigned int nodeId,
+        SaUint32T* continuationIdPtr,
+        SaUint32T* pbeConnPtr,
+        unsigned int* pbeNodeIdPtr)
 {
     TRACE_ENTER();
     
@@ -2067,6 +2084,43 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req)
             sClassMap.erase(i);
             updateImmObject(className, true);
             TRACE_5("class %s deleted", className.c_str());
+
+            if(pbeNodeIdPtr) {
+                if(!getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
+                    LOG_ER("Pbe is not available, can not happen here");
+                    abort();
+                }
+                ++sLastContinuationId;
+                if(sLastContinuationId >= 0xfffffffe) {
+                        sLastContinuationId = 1;
+                }
+                (*continuationIdPtr) = sLastContinuationId;
+                /* There is a tiny risk here that there exists a PRTO with DN
+                   identical to the classname and that a PRTO operation on THIS
+                   object is performed concurrently with this class delete!
+                */
+                ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
+                if(i2 == sPbeRtMutations.end()) {
+                    /* Object mutation to bar pbe restart --recover
+                       This is actually a class mutation, but lets keep the name.
+                    */
+                        ObjectMutation* oMut = new ObjectMutation(IMM_DELETE_CLASS);
+                        oMut->mContinuationId = (*continuationIdPtr);
+                        oMut->mAfterImage = NULL;
+                        sPbeRtMutations[className] = oMut;
+
+                        if(reqConn) {
+                            SaInvocationT tmp_hdl =
+                                m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
+                            sPbeRtReqContinuationMap[tmp_hdl] =
+                                ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+                        }
+                    } else {
+                        LOG_WA("PBE class delete unprotected because of concurrent "
+                           "conflicting PRTO operation on same name '%s'",
+                           className.c_str());
+                    }
+                }
         }
     }
     TRACE_LEAVE();
@@ -5908,7 +5962,7 @@ ImmModel::updateImmObject(std::string newClassName,
             valuep->setExtraValueC_str(newClassName.c_str());
         } else {
             TRACE_5("Class %s already existed", newClassName.c_str());
-	}
+        }
     }
     TRACE_LEAVE();
 }
@@ -7549,7 +7603,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
             if(!pbe) {
                 LOG_ER("Pbe is not available, can not happen here");
-		abort();
+                abort();
             } 
         }
 
@@ -7837,6 +7891,42 @@ void ImmModel::pbeClassCreateContinuation(SaUint32T invocation,
     assert(oMut->mOpType == IMM_CREATE_CLASS);
 
     LOG_IN("Create of class %s is PERSISTENT.", i2->first.c_str());
+
+    sPbeRtMutations.erase(i2);
+    delete oMut;
+    TRACE_LEAVE();
+}
+
+void ImmModel::pbeClassDeleteContinuation(SaUint32T invocation,
+    unsigned int nodeId, SaUint32T *reqConn)
+{
+    TRACE_ENTER();
+
+    SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
+    ContinuationMap2::iterator ci = sPbeRtReqContinuationMap.find(inv);
+    if(ci != sPbeRtReqContinuationMap.end()) {
+        /* The client was local. */
+        TRACE("CLIENT WAS LOCAL continuation found");
+        *reqConn = ci->second.mConn;
+        sPbeRtReqContinuationMap.erase(ci);
+    }
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+
+    if(i2 == sPbeRtMutations.end()) {
+        LOG_ER("PBE Class Delete continuation missing! invoc:%u",
+            invocation);
+        return;
+    }
+
+    ObjectMutation* oMut = i2->second;
+
+    assert(oMut->mOpType == IMM_DELETE_CLASS);
+
+    LOG_IN("Delete of class %s is PERSISTENT.", i2->first.c_str());
 
     sPbeRtMutations.erase(i2);
     delete oMut;

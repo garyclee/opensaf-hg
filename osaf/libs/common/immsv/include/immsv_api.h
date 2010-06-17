@@ -42,6 +42,7 @@ extern "C" {
 
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 #define OPENSAF_IMM_PBE_CLASS_CREATE 1
+#define OPENSAF_IMM_PBE_CLASS_DELETE 2
 
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"
 

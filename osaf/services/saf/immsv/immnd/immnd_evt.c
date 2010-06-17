@@ -2836,8 +2836,9 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 	SaUint32T invoc = m_IMMSV_UNPACK_HANDLE_LOW(evt->info.admOpRsp.invocation);
 
 	if(evt->info.admOpRsp.error != SA_AIS_OK) {
-		LOG_ER("Received error result from PBE CLASS CREATE - dropping "
-			"continuation. PBE should get restarted");
+		LOG_ER("Received error result %u from PBE CLASS CREATE - dropping "
+			"continuation. PBE should get restarted", 
+			evt->info.admOpRsp.error);
 		return;
 	}
 
@@ -2845,7 +2846,15 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 		/* OK result on OPENSAF_IMM_PBE_CLASS_CREATE */
 		immModel_pbeClassCreateContinuation(cb, invoc, cb->node_id, &reqConn);
 		TRACE("Returned from pbeClassCreateContinuation reqConn:%x", reqConn);
+	} else if(evt->info.admOpRsp.result == SA_AIS_ERR_NO_SPACE) {
+		/* OK result on OPENSAF_IMM_PBE_CLASS_DELETE */
+		immModel_pbeClassDeleteContinuation(cb, invoc, cb->node_id, &reqConn);
+		TRACE("Returned from pbeClassDeleteContinuation reqConn:%x", reqConn);
+	} else {
+		LOG_ER("Unexpected PBE admop result %u", evt->info.admOpRsp.result);
+		/* reqConn will be zero. */
 	}
+
 	if (reqConn) {
 		SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
@@ -3351,6 +3360,7 @@ getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
 	IMMSV_OM_CLASS_DESCR* classDescr=NULL;
 	switch(operationId) {
 		case OPENSAF_IMM_PBE_CLASS_CREATE:
+		case OPENSAF_IMM_PBE_CLASS_DELETE:
 			classDescr = (IMMSV_OM_CLASS_DESCR *) evt;
 			param->paramName.size = strlen(classNameParamName);
 			param->paramName.buf = (char *) classNameParamName;
@@ -3551,13 +3561,91 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 	SaAisErrorT error = SA_AIS_OK;
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMND_IMM_CLIENT_NODE *pbe_cl_node = NULL;
 	IMMSV_SEND_INFO *sinfo = NULL;
+	SaImmOiHandleT implHandle = 0LL;
+	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
+	SaBoolT delayedReply = SA_FALSE;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaUint32T continuationId = 0;
+
 	TRACE_ENTER();
 
-	TRACE_2("immnd_evt_proc_class_delete:%s", evt->info.classDescr.className.buf);
-	error = immModel_classDelete(cb, &(evt->info.classDescr));
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		TRACE("We expect there to be a PBE");
+		/* If pbeNodeIdPtr is NULL then classCreate skips the lookup
+		   of the pbe implementer.
+                */
+	}
 
-	if (originatedAtThisNd) {
+	TRACE_2("immnd_evt_proc_class_delete:%s", evt->info.classDescr.className.buf);
+	error = immModel_classDelete(cb, &(evt->info.classDescr),
+		originatedAtThisNd ? reqConn : 0,
+		nodeId, &continuationId, &pbeConn, pbeNodeIdPtr);
+
+	if(pbeNodeId && error == SA_AIS_OK) {
+		/*The persistent back-end is present => wait for reply. */
+		delayedReply = SA_TRUE;
+		if(pbeConn) {
+			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
+			/*The persistent back-end is executing at THIS node. */
+			assert(cb->mIsCoord);
+			assert(pbeNodeId);
+			assert(pbeNodeId == cb->node_id);
+			implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+			/*Fetch client node for PBE */
+			immnd_client_node_get(cb, implHandle, &pbe_cl_node);
+			assert(pbe_cl_node);
+			if (pbe_cl_node->mIsStale) {
+				LOG_WA("PBE is down => class create is delayed!");
+				/* ****
+				   An Mutation record should have been created in ImmModel to reflect
+				   the class create. This will bar the PBE being restarted with
+				   --recover. TODO: Liveness check for PBE.
+				*/
+			} else {
+				IMMSV_ADMIN_OPERATION_PARAM param;
+				memset(&param, '\0', sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_PBE_ADMOP;
+				send_evt.info.imma.info.admOpReq.adminOwnerId = 0; /* Only allowed for PBE. */
+				send_evt.info.imma.info.admOpReq.operationId =
+					OPENSAF_IMM_PBE_CLASS_DELETE;
+
+				/* TODO: This is a bit ugly, using the continuationId to
+				   transport the immOiHandle. */
+				send_evt.info.imma.info.admOpReq.continuationId = implHandle;
+				send_evt.info.imma.info.admOpReq.invocation = continuationId;
+				send_evt.info.imma.info.admOpReq.timeout = 0;
+				send_evt.info.imma.info.admOpReq.objectName.size = strlen(osafImmDn);
+				send_evt.info.imma.info.admOpReq.objectName.buf =
+					(char *) osafImmDn;
+				send_evt.info.imma.info.admOpReq.params =
+					getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_CLASS_DELETE,
+						&(evt->info.classDescr), &param);
+
+				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT CLASS DELETE upcall");
+				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					    pbe_cl_node->agent_mds_dest, &send_evt) !=
+					NCSCC_RC_SUCCESS)
+				{
+					LOG_WA("Upcall over MDS for persistent class delete "
+						"to PBE failed!");
+					/* See comment **** above. */
+				}
+			}
+			implHandle = 0LL;
+			pbe_cl_node = NULL;
+		}
+	}
+
+	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client %llu went down so no response", clnt_hdl);

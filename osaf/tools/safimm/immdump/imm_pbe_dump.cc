@@ -501,6 +501,112 @@ ClassInfo* classToPBE(std::string classNameString,
 	exit(1);
 }
 
+void deleteClassToPBE(std::string classNameString, void* db_handle, 
+	ClassInfo* theClass)
+{
+
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sqlZ("select obj_id from objects where class_id = ");
+
+	std::string sqlA("delete from classes where class_id = ");
+	std::string sqlB("drop table ");
+	std::string sqlC("delete from attr_def where class_id = ");
+	std::string sqlD("delete from attr_dflt where class_id = ");
+
+	int rc=0;
+	char **result=NULL;
+	char *execErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	unsigned int rowsModified=0;
+	char classIdStr[STRINT_BSZ];
+	snprintf(classIdStr, STRINT_BSZ, "%u", theClass->mClassId);
+
+	/* 1. Verify zero instances of the class in objects relation. */
+	sqlZ.append(classIdStr);
+
+	TRACE("GENERATED Z:%s", sqlZ.c_str());
+	rc = sqlite3_get_table(dbHandle, sqlZ.c_str(), &result, &nrows, &ncols, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlZ.c_str(),
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+	sqlite3_free_table(result);
+	if(nrows) {
+		LOG_ER("Can not delete class %s when instances exist, rows:%u", 
+			classNameString.c_str(), nrows);
+		goto bailout;
+	}
+
+	/* 2. Remove classes tuple. */
+	sqlA.append(classIdStr);
+	TRACE("GENERATED A:%s", sqlA.c_str());
+	rc = sqlite3_exec(dbHandle, sqlA.c_str(), NULL, NULL, &execErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlA.c_str(), execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+	rowsModified = sqlite3_changes(dbHandle);
+	TRACE("Deleted %u tuples from classes", rowsModified);
+	if(rowsModified != 1) {
+		LOG_ER("Could not delete class tuple for class %s from relation 'classes'",
+			classNameString.c_str());
+		goto bailout;
+	}
+	
+	/* 3. Remove attr_def tuples. */
+	sqlC.append(classIdStr);
+	TRACE("GENERATED C:%s", sqlC.c_str());
+	rc = sqlite3_exec(dbHandle, sqlC.c_str(), NULL, NULL, &execErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlC.c_str(), execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+	rowsModified = sqlite3_changes(dbHandle);
+	TRACE("Deleted %u tuples from attr_def", rowsModified);
+	if(rowsModified == 0) {
+		LOG_WA("Could not delete attr_def tuples for class %s",
+			classNameString.c_str());
+		/* Dont bailout on this one. Could possibly be a degenerate class.*/
+	}
+
+	/* 4. Remove attr_dflt tuples. */
+	sqlD.append(classIdStr);
+	TRACE("GENERATED D:%s", sqlD.c_str());
+	rc = sqlite3_exec(dbHandle, sqlD.c_str(), NULL, NULL, &execErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlD.c_str(), execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+	rowsModified = sqlite3_changes(dbHandle);
+	TRACE("Deleted %u tuples from attr_dflt", rowsModified);
+
+	/* 5. Drop 'classname' base relation. */
+	sqlB.append(classNameString);
+	TRACE("GENERATED B:%s", sqlB.c_str());
+	rc = sqlite3_exec(dbHandle, sqlB.c_str(), NULL, NULL, &execErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlB.c_str(), execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+	rowsModified = sqlite3_changes(dbHandle);
+	TRACE("Dropped table %s rows:%u", classNameString.c_str(), rowsModified);
+
+	TRACE_LEAVE();
+	return;
+
+bailout:
+	sqlite3_close((sqlite3 *) dbHandle);
+	LOG_ER("Exiting");
+	exit(1);
+}
+
 static ClassInfo* verifyClassPBE(std::string classNameString,
 	SaImmHandleT immHandle,
 	void* db_handle)

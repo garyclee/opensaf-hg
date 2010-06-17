@@ -66,7 +66,6 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			rc = pbeBeginTrans(sDbHandle);
 			if(rc != SA_AIS_OK) {
 				LOG_WA("PBE failed to start transaction for class create");
-				rc = SA_AIS_ERR_NO_RESOURCES;
 				goto done;
 			}
 			TRACE("Begin PBE transaction for class create OK");
@@ -77,16 +76,50 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
 			if(rc != SA_AIS_OK) {
 				LOG_WA("PBE failed to commit transaction for class create");
-				rc = SA_AIS_ERR_NO_RESOURCES;
 				goto done;
 			}
 			TRACE("Commit PBE transaction for class create");
 			/* We only reply with ok result. PBE failed class create handled by timeout, cleanup.
 			   We encode OK result for OPENSAF_IMM_PBE_CLASS_CREATE with the arbitrary and otherwise
-			   unused error code SA_AIS_ERR_REPAIR_PENDING. This way the immnd can tell that this
-			   is supposed to be an ok reply on PBE_CLASS_CREATE.
+			   unused (in immsv) error code SA_AIS_ERR_REPAIR_PENDING. This way the immnd can tell that this
+			   is supposed to be an ok reply on PBE_CLASS_CREATE. This usage is internal to immsv.
 			 */
 			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING);
+		}
+		goto done;
+	} else if(opId == OPENSAF_IMM_PBE_CLASS_DELETE) {
+		if(param) {
+			TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
+			std::string className(*((SaStringT *) param->paramBuffer));
+
+			rc = pbeBeginTrans(sDbHandle);
+			if(rc != SA_AIS_OK) {
+				LOG_WA("PBE failed to start transaction for class delete");
+				goto done;
+			}
+			TRACE("Begin PBE transaction for class delete OK");
+
+			ClassInfo* theClass = (*sClassIdMap)[className];
+			if(!theClass) {
+				LOG_ER("Class %s missing from classIdMap", className.c_str());
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
+			deleteClassToPBE(className, sDbHandle, theClass);
+
+			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
+			if(rc != SA_AIS_OK) {
+				LOG_WA("PBE failed to commit transaction for class delete");
+				goto done;
+			}
+			TRACE("Commit PBE transaction for class delete");
+			/* We only reply with ok result. PBE failed class delete handled by timeout, cleanup.
+			   We encode OK result for OPENSAF_IMM_PBE_CLASS_DELETE with the arbitrary and otherwise
+			   unused (in immsv) error code SA_AIS_ERR_NO_SPACE. This way the immnd can tell that this
+			   is supposed to be an ok reply on PBE_CLASS_DELETE. This usage is internal to immsv.
+			 */
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NO_SPACE);
 		}
 		goto done;
 	} else {
@@ -94,6 +127,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 	}
  done:
+	assert(rc == SA_AIS_OK);
 	TRACE_LEAVE();
 }
 

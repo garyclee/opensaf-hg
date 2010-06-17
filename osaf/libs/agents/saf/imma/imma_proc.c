@@ -348,7 +348,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 
 	if(isPbeAdmOp) {
 		if(cl_node->isPbe) {
-			TRACE_3("PBE-OI received PBE class create");
+			TRACE_3("PBE-OI received PBE admin operation");
 		} else {
 			LOG_ER("Apparent PBE class create received at OI which is not PBE- ignoring");
 			return;
