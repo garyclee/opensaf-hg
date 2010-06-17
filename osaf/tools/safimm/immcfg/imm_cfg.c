@@ -56,7 +56,7 @@ typedef enum {
 #define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
 
 // The interface function which implements the -f opton (imm_import.cc)
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose);
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates);
 
 
 /**
@@ -83,6 +83,7 @@ static void usage(const char *progname)
 	printf("\t-m, --modify-object [object DN]... \n");
 	printf("\t-v, --verbose (only valid with -f/--file option)\n");
 	printf("\t-f, --file <imm.xml file containing classes and/or objects>\n");
+	printf("\t--ignore-duplicates  (only valid with -f/--file option)\n)");
 	printf("\t--delete-class <classname> [classname2]... \n");
 
 	printf("\nEXAMPLE\n");
@@ -538,6 +539,7 @@ int main(int argc, char *argv[])
 		{"attribute", required_argument, NULL, 'a'},
 		{"create-object", required_argument, NULL, 'c'},
 		{"file", required_argument, NULL, 'f'},
+		{"ignore-duplicates", no_argument, NULL, 0},
 		{"delete-class", no_argument, NULL, 0},    /* Note: should be 'no_arg'! treated as "Remaining args" below*/
 		{"delete-object", no_argument, NULL, 'd'},
 		{"help", no_argument, NULL, 'h'},
@@ -561,6 +563,7 @@ int main(int argc, char *argv[])
 	SaImmClassNameT className = NULL;
 	op_t op = INVALID;
 	char* xmlFilename=NULL;
+	int ignore_duplicates = 0;
 	int i;
 
 	while (1) {
@@ -573,11 +576,13 @@ int main(int argc, char *argv[])
 		switch (c) {
 		case 0:
 			VERBOSE_INFO("Long option[%d]: %s\n", option_index, long_options[option_index].name);
-            if (strcmp("delete-class", long_options[option_index].name) == 0)
-            {
-            	op = verify_setoption(op, DELETE_CLASS);
-            }
-            break;
+			if (strcmp("delete-class", long_options[option_index].name) == 0) {
+				op = verify_setoption(op, DELETE_CLASS);
+			}
+			if (strcmp("ignore-duplicates", long_options[option_index].name) == 0) {
+				ignore_duplicates = 1;
+			}
+		break;
 		case 'a':
 			optargs = realloc(optargs, ++optargs_len * sizeof(char *));
 			optargs[optargs_len - 1] = strdup(optarg);
@@ -613,7 +618,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (op == LOAD_IMMFILE) {
-		rc = importImmXML(xmlFilename, adminOwnerName, verbose);
+		VERBOSE_INFO("importImmXML(xmlFilename=%s, verbose=%d, ignore_duplicates=%d)\n", xmlFilename, verbose, ignore_duplicates);
+		rc = importImmXML(xmlFilename, adminOwnerName, verbose, ignore_duplicates);
 		exit(rc);
 	}
 
