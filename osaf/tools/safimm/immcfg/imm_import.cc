@@ -47,12 +47,13 @@
 
 extern "C"
 {
-	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose);
+	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates);
 }
 
 extern ImmutilErrorFnT immutilError;
 char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
+static bool imm_import_ignore_duplicates = false;
 
 /* The possible states of the parser */
 typedef enum
@@ -245,6 +246,11 @@ static void imm_importImmutilError(char const *fmt, ...)
  */
 static void imm_importImmutilError(char const *fmt, ...)
 {
+	return;
+	/*
+	Not relevant to use immutil internal error logging 
+	since code below will log if (and only if) call is considered failing
+
 	va_list ap;
 	va_list ap2;
 
@@ -254,6 +260,7 @@ static void imm_importImmutilError(char const *fmt, ...)
 	//vsyslog(LOG_ERR, fmt, ap2);
 	va_end(ap);
 	//abort();
+	*/
 }
 
 void setAdminOwnerHelper(ParserState* state, SaNameT *parentOfObject)
@@ -479,8 +486,15 @@ static void createImmObject(ParserState* state)
 
     if (SA_AIS_OK != errorCode)
     {
-        LOG_ER("Failed to create the imm om object, rc =  %d", errorCode);
-        exit(1);
+        if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
+        {
+            LOG_IN("IGNORE EXISTING OBJECT");
+        }
+        else
+        {
+            LOG_ER("Failed to create the imm object %s, rc =  %d", state->objectName, errorCode);
+            exit(1);
+        }
     }
 
 
@@ -569,8 +583,15 @@ static void createImmClass(ParserState* state)
 
     if (SA_AIS_OK != errorCode)
     {
-        LOG_ER("FAILED to create IMM class, rc = %d", errorCode);
-        exit(1);
+        if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
+        {
+            LOG_IN("IGNORE EXISTING CLASS");
+        } 
+        else
+        {
+            LOG_ER("FAILED to create IMM class %s, rc = %d", state->className, errorCode);
+            exit(1);
+        }
     }
 
 
@@ -1800,11 +1821,12 @@ int loadImmXML(std::string xmlfile)
 // C and c++ caller wrapper
 //  The objective is to keep the code copied from imm_load.cc as close to original as possible
 //  to ease a future refactoring towards common codebase
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose)
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates)
 {
 	std::string xmlfile(xmlfileC);
 	imm_import_adminOwnerName = adminOwnerName;
 	imm_import_verbose = verbose;
+        imm_import_ignore_duplicates = ignore_duplicates;
 	LOG_IN("file: %s adminOwner: %s", xmlfileC, adminOwnerName);
 
 	// assign own immutil errorhandler (no call to abort())
