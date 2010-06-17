@@ -1898,7 +1898,7 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 	PLMS_CKPT_ENTITY_GROUP_INFO *ptr = NULL,*prev = NULL,*tmp = NULL;
 	PLMS_CKPT_ENTITY_LIST       *cur_list_ptr = NULL,*prev_list_ptr = NULL,
 					*msg_list_ptr= NULL,*tmp_list_ptr = NULL;
-	SaInt8T                         str[256];				
+	SaInt8T                         str[256] = {0};				
 
 	TRACE_ENTER();
 
@@ -1915,8 +1915,6 @@ SaUint32T plms_mbcsv_add_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 	
 			while (msg_list_ptr)
 			{
-				if(msg->info.ent_grp_info.track_cookie)
-			
 				/* First allocate mem for entity list and add it to group info */
 				cur_list_ptr = (PLMS_CKPT_ENTITY_LIST *)malloc(sizeof(PLMS_CKPT_ENTITY_LIST));
 				if (!cur_list_ptr)
