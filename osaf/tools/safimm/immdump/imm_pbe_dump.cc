@@ -1942,6 +1942,12 @@ ClassInfo* classToPBE(std::string classNameString,
 	return NULL;
 }
 
+void deleteClassToPBE(std::string classNameString, void* db_handle, 
+	ClassInfo* theClass)
+{
+	assert(0);
+}
+
 unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle)
 {
