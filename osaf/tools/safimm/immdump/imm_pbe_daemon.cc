@@ -56,6 +56,11 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 {
 	const SaImmAdminOperationParamsT_2 *param = params[0];
 	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAttrValuesT_2 attrValues;
+	void* sastringVal;
+	SaImmAttrValueT val = &sastringVal;
+	std::string opensafObj((const char *) objectName->value);
+
 	TRACE_ENTER();
 
 	if(opId == OPENSAF_IMM_PBE_CLASS_CREATE) {
@@ -72,6 +77,14 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
 
 			(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
+
+			attrValues.attrName = OPENSAF_IMM_ATTR_CLASSES;
+			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
+			attrValues.attrValuesNumber = 1;
+			attrValues.attrValues = &val;
+			sastringVal = (void *) className.c_str();
+			
+			objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
 
 			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
 			if(rc != SA_AIS_OK) {
@@ -107,6 +120,15 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			}
 
 			deleteClassToPBE(className, sDbHandle, theClass);
+
+			attrValues.attrName = OPENSAF_IMM_ATTR_CLASSES;
+			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
+			attrValues.attrValuesNumber = 1;
+			attrValues.attrValues = &val;
+			sastringVal = (void *) className.c_str();
+
+			objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, opensafObj,
+				&attrValues, 0);			
 
 			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
 			if(rc != SA_AIS_OK) {
