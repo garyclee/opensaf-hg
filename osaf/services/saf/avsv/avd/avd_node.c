@@ -180,6 +180,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaBoolT abool;
 	SaAmfAdminStateT admstate;
 	char *parent;
+	SaNameT saAmfNodeClmNode;
 
 	if ((parent = strchr((char *)dn->value, ',')) == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
@@ -211,6 +212,11 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if ((immutil_getAttr("saAmfNodeAdminState", attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate)) {
 		LOG_ER("Invalid saAmfNodeAdminState %u for '%s'", admstate, dn->value);
+		return 0;
+	}
+
+	if (immutil_getAttr("saAmfNodeClmNode", attributes, 0, &saAmfNodeClmNode) != SA_AIS_OK) { 
+		LOG_ER("saAmfNodeClmNode not configured for '%s'", dn->value);
 		return 0;
 	}
 
