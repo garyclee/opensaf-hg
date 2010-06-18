@@ -1240,8 +1240,8 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		goto done;
 	}
 
-	if (timeout == 0) {
-		TRACE("timeout is NULL");
+	if ((timeout == 0) || (timeout < 0)) {
+		TRACE("timeout is NULL or Negative");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
