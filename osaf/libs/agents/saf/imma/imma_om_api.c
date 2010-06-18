@@ -6795,8 +6795,8 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 {
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT err = SA_AIS_OK;
-	unsigned int sleep_delay_ms = 500;
-	unsigned int max_waiting_time_ms = 3 * 1000;	/* 3 secs */
+	unsigned int sleep_delay_ms = 200;
+	unsigned int max_waiting_time_ms = 1 * 1000;	/* 1 secs */
 	unsigned int msecs_waited = 0;
 	SaImmAdminOwnerHandleT temp_hdl, *temp_ptr = NULL;
 	IMMA_ADMIN_OWNER_NODE *adm_node = NULL;

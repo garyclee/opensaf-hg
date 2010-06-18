@@ -32,7 +32,7 @@ static uns32 immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
-static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt);
+static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_recover_ccb_result(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -464,7 +464,15 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_IMM_CLIENTHIGH:
-		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd);
+		LOG_WA("Deprecated message type IMMND_EVT_A2ND_IMM_CLIENTHIGH - ignoring");
+		break;
+
+	case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:
+		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		break;
+
+	case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH:
+		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
 		break;
 
 	case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
@@ -1520,10 +1528,17 @@ static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
 
     /* First check that no one else grabbed the old handle value before us. */
     immnd_client_node_get(cb,evt->info.finReq.client_hdl,&cl_node);
-    if ( cl_node != NULL ) {
-        LOG_ER("IMMND - Client Node already occupied for handle %llu",
-            evt->info.finReq.client_hdl);
-        error=SA_AIS_ERR_EXIST;
+    if ( cl_node != NULL) {
+	    if(cl_node->mIsResurrect) {
+		    /* The temporary client node is still present
+		       => this immnd is still being synced. */
+		    TRACE_2("Rejecting OM client resurrect, sync not complete");
+		    error = SA_AIS_ERR_TRY_AGAIN;
+	    } else {
+		    LOG_ER("IMMND - Client Node already occupied for handle %llu",
+			    evt->info.finReq.client_hdl);
+		    error=SA_AIS_ERR_EXIST;
+	    }
         goto agent_rsp;
     }
  
@@ -1600,10 +1615,13 @@ static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
  *                 high.
  *
  *****************************************************************************/
-static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt)
+static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt, 
+	IMMSV_SEND_INFO *sinfo, SaBoolT isOm)
 {
     SaUint32T clientHigh = evt->info.initReq.client_pid;
-        TRACE_2("Client high received: %x", clientHigh);
+    IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+
+    TRACE_2("Client high received: %x", clientHigh);
 
     if((cb->cli_id_gen <= clientHigh) &&
         (clientHigh < 0x000f0000))
@@ -1612,6 +1630,24 @@ static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt)
         TRACE_2("Client high bumped up to: %x, IMMND just restarted?", 
 		cb->cli_id_gen);
     }
+
+    /* Create a temporary client place holder for resurrect.*/
+    cl_node = calloc(1, sizeof(IMMND_IMM_CLIENT_NODE));
+    memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
+    assert(cl_node);
+    cl_node->imm_app_hdl = m_IMMSV_PACK_HANDLE(clientHigh, cb->node_id);
+    cl_node->agent_mds_dest = sinfo->dest;
+    cl_node->sv_id = (isOm) ? NCSMDS_SVC_ID_IMMA_OM : NCSMDS_SVC_ID_IMMA_OI;
+    cl_node->mIsResurrect = 0x1;
+
+    if (immnd_client_node_add(cb, cl_node) != NCSCC_RC_SUCCESS) {
+	    LOG_ER("IMMND - Adding temporary imma client Failed.");
+	    /*free(cl_node);*/
+	    abort();
+    }
+
+    TRACE_2("Added client with id: %llx <node:%x, count:%u>",
+	    cl_node->imm_app_hdl, cb->node_id, clientHigh);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -5946,6 +5982,10 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 	TRACE_ENTER();
 	TRACE_2("**********immnd_evt_proc_finalize_sync***********");
 	if (cb->mSync) {
+		IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+		SaImmHandleT prev_hdl;
+		unsigned int count = 0;
+		IMMSV_EVT send_evt;
 		TRACE_2("FinalizeSync for sync client");
 		assert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_TRUE) == SA_AIS_OK);
 		cb->mAccepted = SA_TRUE;	/*Accept ALL fevs messages after this one! */
@@ -5954,6 +5994,38 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
 		/*This adjust-epoch will persistify the new epoch for sync-clients. */
 		immnd_adjustEpoch(cb);
+
+		/* Sync completed for client => trigger active resurrect. */
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_PROC_STALE_CLIENTS;
+		immnd_client_node_getnext(cb, 0, &cl_node);
+		while (cl_node) {
+			prev_hdl = cl_node->imm_app_hdl;
+			if(!(cl_node->mIsResurrect)) {
+				LOG_WA("Found active client id: %llx version:%c %u %u, after sync, should not happen",
+					 cl_node->imm_app_hdl, cl_node->version.releaseCode,
+					cl_node->version.majorVersion,
+					cl_node->version.minorVersion);
+				immnd_client_node_getnext(cb, prev_hdl, &cl_node);
+				continue;
+			}
+			/* Send resurrect message. */
+			if (immnd_mds_msg_send(cb, cl_node->sv_id,
+				    cl_node->agent_mds_dest, &send_evt)!=NCSCC_RC_SUCCESS) 
+			{
+				LOG_WA("Failed to send active resurrect message");
+
+			}
+			/* Remove the temporary client node. */
+			immnd_client_node_del(cb, cl_node);
+			memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
+			free(cl_node);
+			cl_node = NULL;
+			++count;
+			immnd_client_node_getnext(cb, 0, &cl_node);
+		}
+		TRACE_2("Triggered %u active resurrects", count);
 	} else {
 		if (cb->mIsCoord) {
 			IMMND_IMM_CLIENT_NODE *cl_node = NULL;

@@ -39,8 +39,8 @@
  *   DATA DECLARATIONS
  * ========================================================================
  */
-
 class SmfUpgradeProcedure;
+class SmfSwapThread;
 
 //================================================================================
 // Class SmfProcState
@@ -72,6 +72,7 @@ class SmfProcState {
 
 	virtual SaSmfProcStateT getState() const = 0;
 
+	friend class SmfSwapThread;
  protected:
 
 	void changeState(SmfUpgradeProcedure * i_proc, SmfProcState * i_state);

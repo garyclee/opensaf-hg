@@ -33,6 +33,8 @@ static int __init_avd(void)
 int main(int argc, char *argv[])
 {
 	uns32 error;
+	char * ee_id = NULL;
+        uns32 node_id;
 
 	daemonize(argc, argv);
 
@@ -44,7 +46,8 @@ int main(int argc, char *argv[])
 	/* should never return */
 	avd_main_proc();
 
-	avsv_reboot_local_node("avd_main_proc exited");
+        node_id = m_NCS_GET_NODE_ID;
+	opensaf_reboot(node_id, ee_id, "avd_main_proc exited");
 	exit(1);
 
 done:

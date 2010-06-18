@@ -564,12 +564,12 @@ void ntfsv_copy_ntf_alarm(SaNtfAlarmNotificationT *dest, const SaNtfAlarmNotific
 void ntfsv_copy_ntf_security_alarm(SaNtfSecurityAlarmNotificationT *dest, const SaNtfSecurityAlarmNotificationT *src)
 {
 	ntfsv_copy_ntf_header(&dest->notificationHeader, &src->notificationHeader);
-	dest->probableCause = src->probableCause;
+	*(dest->probableCause) = *(src->probableCause);
 
-	dest->severity = src->severity;
-	dest->securityAlarmDetector = src->securityAlarmDetector;
-	dest->serviceUser = src->serviceUser;
-	dest->serviceProvider = src->serviceProvider;
+	*(dest->severity) = *(src->severity);
+	memcpy(dest->securityAlarmDetector, src->securityAlarmDetector, sizeof(SaNtfSecurityAlarmDetectorT));
+	memcpy(dest->serviceUser, src->serviceUser, sizeof(SaNtfServiceUserT));
+	memcpy(dest->serviceProvider, src->serviceProvider, sizeof(SaNtfServiceUserT));
 }
 
 /**

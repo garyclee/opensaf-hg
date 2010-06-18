@@ -233,6 +233,7 @@ void read_next_res_lib(SaAisErrorT error,
 		TRACE("ntfs_mds_msg_send FAILED");
 		/* TODO: what to do exit here? */
 	}
+	TRACE_LEAVE();
 
 /* TODO: async update*/
 };
@@ -312,7 +313,9 @@ int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, M
 
 void sendLoggedConfirm(SaNtfIdentifierT notificationId)
 {
+	TRACE_ENTER();
 	notificationLoggedConfirmed(notificationId);
+	TRACE_LEAVE();
 };
 
 /**

@@ -350,7 +350,8 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 	//	"NCS SU failed default recovery NODE_FAILFAST");
 	/* reboot the AvD if the AvND matches self and AVD is quiesced. */
 	if ((avnd->node_info.nodeId == cb->node_id_avd) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED)) {
-		avsv_reboot_local_node("Node failed in qsd state");
+		opensaf_reboot(avnd->node_info.nodeId, (char *)avnd->node_info.executionEnvironment.value,
+				"Node failed in qsd state");
 	}
 
 	return;
@@ -683,6 +684,7 @@ void avd_node_mark_absent(AVD_AVND *node)
 	node->adest = 0;
 	node->rcv_msg_id = 0;
 	node->snd_msg_id = 0;
+	node->recvr_fail_sw = 0;
 
 	node->node_info.initialViewNumber = 0;
 	node->node_info.member = SA_FALSE;

@@ -26,6 +26,12 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 static const SaImmOiImplementerNameT implementer_name = EDSV_IMM_IMPLEMENTER_NAME;
 
+/**
+ * Callback from IMM to fetch values of run time non-cached attributes from us.
+ * 
+ * @return SaAisErrorT
+ */
+
 SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 					const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
@@ -52,7 +58,6 @@ SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	/* Look up the channel worklist DB to find the channel indicated by objectName */
 	wp = get_channel_from_worklist(cb, *objectName);
 	if (wp == NULL) {
-		/* No Such Channel. Log it */
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ncshm_give_hdl(gl_eds_hdl);
 		return rc;
@@ -131,6 +136,12 @@ SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiRtAttrUpdateCallback = saImmOiRtAttrUpdateCallback
 };
 
+/**
+ * Initialize with IMM and get a selection object.
+ * @param cb
+ * @return SaAisErrorT
+ */
+
 SaAisErrorT eds_imm_init(EDS_CB *cb)
 {
 	SaAisErrorT rc;
@@ -147,6 +158,10 @@ SaAisErrorT eds_imm_init(EDS_CB *cb)
 	return rc;
 }
 
+/**
+ * Declare yourself (ACTIVE) as the implementer for the event service runtime objects.
+ * @return void *
+ */
 void * _eds_imm_declare_implementer(void *_immOiHandle)
 {
 	SaAisErrorT rc;
@@ -182,6 +197,12 @@ void eds_imm_declare_implementer(SaImmOiHandleT *immOiHandle)
 	pthread_attr_destroy(&attr);
 }
 
+/**
+ * Walkthrough the worklist and find the specified channel record. 
+ * @param cb, channel name
+ * 
+ * @return EDS_WORKLIST * 
+ */
 
 EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 {
@@ -194,23 +215,29 @@ EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
 	/* Loop through the list for a matching channel name */
 
 	while (wp) {
-		if (wp->cname_len == chan_name.length) {	/* Compare channel length */
-			/*   len = chan_name.length; */
-
-			/* Compare channel name */
+		/* Compare channel length */
+		if (wp->cname_len == chan_name.length) {
+		/* Compare channel name */
 			if (memcmp(wp->cname, chan_name.value, chan_name.length) == 0)
+			{
+				
 				return wp;	/* match found */
+			}
 		}
 		wp = wp->next;
 	}			/*End while */
 
 	/* if we reached here, no channel by that name */
+	TRACE("OiRtAttrUpdate: Channel %s not found",chan_name.value);
 	return ((EDS_WORKLIST *)NULL);
 }	/*End get_channel_from_worklist */
 
 
 /**
- * Initialize the OI interface and get a selection object. 
+ * Re-Initialize the OI interface and get a selection object.
+ * This is performed wihen IMM returns SA_AIS_ERR_BAD_HANDLE.
+ * This is needed currently because IMM is incapable of handling IMMND restarts.
+ * i.e. IMMND restarts affect the application.
  * @param cb
  * 
  * @return SaAisErrorT

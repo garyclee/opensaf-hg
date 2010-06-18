@@ -44,7 +44,9 @@ int main(int argc, char *argv[])
 	/* should never return */
 	avnd_main_process();
 
-	avsv_reboot_local_node("avnd_main_proc exited");
+	opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+			"avnd_main_proc exited");
+
 	exit(1);
 
 done:

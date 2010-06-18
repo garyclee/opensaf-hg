@@ -79,6 +79,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_avd_role_change_evh,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
 	avnd_evt_avd_admin_op_req_evh,  /* AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
 	avnd_evt_avd_hb_evh,            /* AVND_EVT_AVD_HEARTBEAT_MSG */
+	avnd_evt_avd_reboot_evh,            /* /AVND_EVT_AVD_REBOOT_MSG */
 
 	/* AvA event types */
 	avnd_evt_ava_finalize_evh,	/* AVND_EVT_AVA_AMF_FINALIZE */

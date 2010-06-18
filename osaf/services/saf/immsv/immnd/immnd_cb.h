@@ -68,6 +68,14 @@ typedef struct immnd_immom_client_node {
 	uns8 mIsStale;		/* Client disconnected when IMMD
 				   is unavailable => postpone 
 				   discardClient. */
+	uns8 mIsResurrect;      /* The client is a temprary place holder
+                                  for handle resurrect. We use it to send
+				  the PROC_STALE_CLIENT internal upcall to
+				  the IMMA clients that are dispatching.
+				  This is done when immnd sync has completed.
+				  The tmp client is then removed, anticipating
+				  a resurrect request by the IMMA.
+                               */
 } IMMND_IMM_CLIENT_NODE;
 
 /******************************************************************************

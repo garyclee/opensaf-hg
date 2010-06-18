@@ -35,6 +35,8 @@
 #include <avd_su.h>
 #include <avd_clm.h>
 
+static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node);
+
 /*****************************************************************************
  * Function: avd_new_assgn_susi
  *
@@ -252,6 +254,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 * application SUs in the node as O.O.S.
 				 */
 				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+				node->recvr_fail_sw = TRUE;
 				i_su = node->list_of_su;
 				while (i_su != NULL) {
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -268,6 +271,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 * to do the reallignment of SIs for assigned SUs.
 				 */
 				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+				node->recvr_fail_sw = TRUE;
 				i_su = node->list_of_su;
 				while (i_su != NULL) {
 					avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -750,9 +754,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
-	AVD_SU *su = NULL;
+	AVD_SU *su = NULL, *temp_su;
 	AVD_SU_SI_REL *susi;
-	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE;
+	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE, all_su_unassigned = TRUE;
 
 	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_su_si_assign.node_id);
 
@@ -1267,6 +1271,30 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
+	/* Check whether the node belonging to this su is disable and susi of all su got removed.
+	   This is the case of node_failover/node_switchover. */
+	if ((SA_AMF_OPERATIONAL_DISABLED == node->saAmfNodeOperState) && (TRUE == node->recvr_fail_sw)) {
+
+		/* We are checking only application components as on payload all ncs comp are in no_red model.
+		   We are doing the same thing for controller also. */
+		temp_su = node->list_of_su;
+		while (temp_su) {
+			if (NULL != temp_su->list_of_susi) {
+				all_su_unassigned = FALSE;
+			}
+			temp_su = temp_su->avnd_list_su_next;
+		}
+		if (TRUE == all_su_unassigned) {
+			/* All app su got unassigned, Safe to reboot the blade now. */
+			/* Check if it matches with controller id, then rather than sending to amfnd, reboot from here*/
+			if (cb->node_id_avd == node->node_info.nodeId) {
+				opensaf_reboot(node->node_info.nodeId, (char *)node->node_info.executionEnvironment.value,
+						"Rebooting the node because of Node Failover/Switchover.");
+			} else {
+				avd_d2n_reboot_snd(node);
+			}
+		}
+	}
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
@@ -1407,11 +1435,10 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			}
 		} /* if(i_su->readiness_state == NCS_IN_SERVICE) */
 		else if (i_su->num_of_comp == i_su->curr_num_comp) {
-			/* if the SU is non preinstantiable and disable and if the node
-			 * operational state is enable make the operation state enable.
+			/* if the SU is non preinstantiable and if the node operational state
+			 * is enable. Put the SU in service.
 			 */
 			if ((i_su->saAmfSUPreInstantiable == FALSE) &&
-			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			    (i_su->term_state == FALSE)) {
@@ -2266,5 +2293,44 @@ uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	rc = NCSCC_RC_SUCCESS;
 done:
 	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
+  Name          : avd_d2n_reboot_snd
+                        
+  Description   : This is a routine sends reboot command to amfnd. 
+ 
+  Arguments     : node:  Node director node to which this message
+                         will be sent.
+                                
+  Return Values : OK/ERROR 
+ 
+  Notes         : None.         
+*****************************************************************************/
+static SaAisErrorT avd_d2n_reboot_snd(AVD_AVND *node) 
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	TRACE("Sending %u to %x", AVSV_D2N_REBOOT_MSG, node->node_info.nodeId);
+
+	/* Send reboot request to amfnd to reboot that node. */
+	AVD_DND_MSG *d2n_msg;
+
+	if ((d2n_msg = calloc(1, sizeof(AVSV_DND_MSG))) == NULL) {
+		LOG_ER("%s: calloc failed", __FUNCTION__);
+		return SA_AIS_ERR_NO_MEMORY;
+	}
+
+	d2n_msg->msg_type = AVSV_D2N_REBOOT_MSG;
+	d2n_msg->msg_info.d2n_reboot_info.node_id = node->node_info.nodeId;
+	d2n_msg->msg_info.d2n_reboot_info.msg_id = ++(node->snd_msg_id);
+
+	/* Now send the message to the node director */
+	if (avd_d2n_msg_snd(avd_cb, node, d2n_msg) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
+		avsv_dnd_msg_free(d2n_msg);
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+	}
 	return rc;
 }

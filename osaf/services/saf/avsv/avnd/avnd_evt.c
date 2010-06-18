@@ -91,6 +91,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_AVD_ROLE_CHANGE_MSG:
 	case AVND_EVT_AVD_ADMIN_OP_REQ_MSG:
 	case AVND_EVT_AVD_HEARTBEAT_MSG:
+	case AVND_EVT_AVD_REBOOT_MSG:
 		evt->info.avd = (AVSV_DND_MSG *)info;
 		break;
 
@@ -221,6 +222,7 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_AVD_ROLE_CHANGE_MSG:
 	case AVND_EVT_AVD_ADMIN_OP_REQ_MSG:
 	case AVND_EVT_AVD_HEARTBEAT_MSG:
+	case AVND_EVT_AVD_REBOOT_MSG:
 		if (evt->info.avd)
 			avsv_dnd_msg_free(evt->info.avd);
 		break;
