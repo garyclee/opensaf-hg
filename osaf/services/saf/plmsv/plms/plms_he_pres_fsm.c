@@ -3972,7 +3972,7 @@ SaUint32T plms_he_reset(PLMS_ENTITY *ent,SaUint32T is_adm_op,
 			/* Set management lost flag.*/
 			plms_readiness_flag_mark_unmark(ent,
 				SA_PLM_RF_MANAGEMENT_LOST,1/*mark*/,
-				NULL,SA_NTF_MANAGEMENT_OPERATION,
+				NULL,(is_adm_op ? SA_NTF_MANAGEMENT_OPERATION:SA_NTF_OBJECT_OPERATION),
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			cbk = 1;
 		}
