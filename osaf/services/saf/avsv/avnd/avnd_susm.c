@@ -448,13 +448,13 @@ static uns32 assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 
 		/* trigger the su fsm */
 		if (AVND_SU_PRES_FSM_EV_MAX != su_ev) {
-			if (!si) {
+			if (!single_csi) {
 				m_AVND_SU_ALL_SI_SET(su);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 			}
 			rc = avnd_su_pres_fsm_run(avnd_cb, su, 0, su_ev);
 		} else
-			rc = avnd_su_si_oper_done(avnd_cb, su, si);
+			rc = avnd_su_si_oper_done(avnd_cb, su, ((single_csi) ? si:NULL));
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 	}

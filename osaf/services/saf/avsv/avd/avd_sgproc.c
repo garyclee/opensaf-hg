@@ -1435,11 +1435,10 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			}
 		} /* if(i_su->readiness_state == NCS_IN_SERVICE) */
 		else if (i_su->num_of_comp == i_su->curr_num_comp) {
-			/* if the SU is non preinstantiable and disable and if the node
-			 * operational state is enable make the operation state enable.
+			/* if the SU is non preinstantiable and if the node operational state
+			 * is enable. Put the SU in service.
 			 */
 			if ((i_su->saAmfSUPreInstantiable == FALSE) &&
-			    (i_su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			    (i_su->term_state == FALSE)) {
