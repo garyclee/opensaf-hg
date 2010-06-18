@@ -1005,6 +1005,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
 		if ( su->saAmfSUPreInstantiable == FALSE ) {
+			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
 		}

@@ -244,7 +244,7 @@ static void log_failed_exec(NCS_OS_PROC_EXEC_STATUS_INFO *exec_stat,
 		LOG_NO("CLC CLI script: %s", comp->clc_info.cmds[exec_cmd-1].cmd);
 
 	if (NCS_OS_PROC_EXIT_ON_SIGNAL == exec_stat->value)
-		LOG_NO("Signal: %u", exec_stat->info.exit_on_signal.signal_num);
+		LOG_NO("Signal: %u, CLC CLI script: %s", exec_stat->info.exit_on_signal.signal_num,comp->clc_info.cmds[exec_cmd-1].cmd);
 }
 
 /****************************************************************************
