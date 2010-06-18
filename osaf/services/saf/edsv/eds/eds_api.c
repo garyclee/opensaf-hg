@@ -82,19 +82,16 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		/* clean up the CB */
 		m_MMGR_FREE_EDS_CB(eds_cb);
 		/* log the error */
-		printf("eds_se_lib_init: eds_cb_init() FAILED\n");
 		return rc;
 	}
 
 	m_LOG_EDSV_S(EDS_CB_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init: eds_cb_init()- EDS_CB INIT SUCCESS\n");
 
 	m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
 	/* Create the mbx to communicate with the EDS thread */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&eds_cb->mbx))) {
 		m_LOG_EDSV_S(EDS_IPC_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		printf("eds_se_lib_init : mailbox create FAILED......\n");
 		/* Release EDU handle */
 		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
 		/* Destroy the hdl for this CB */
@@ -107,7 +104,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* Attach the IPC to the created thread */
 	m_NCS_IPC_ATTACH(&eds_cb->mbx);
 	m_LOG_EDSV_S(EDS_MAIL_BOX_CREATE_ATTACH_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init : EDS-MAILBOX CREATE & ATTACH SUCCESS\n");
 
 	/* Bind to MDS */
 	if (NCSCC_RC_SUCCESS != (rc = eds_mds_init(eds_cb))) {
@@ -118,18 +114,16 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
 		gl_eds_hdl = 0;
 		m_MMGR_FREE_EDS_CB(eds_cb);
-		printf("eds_se_lib_init: eds_mds_init() EDS MDS INIT FAILED\n");
 		return rc;
 	}
 	m_LOG_EDSV_S(EDS_MDS_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init: eds_mds_init() EDS MDS INIT SUCCESS\n");
 
 	/* Initialize and Register with CLM */
 	rc = eds_clm_init(eds_cb);
 	if (rc != SA_AIS_OK) {
 		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
 						     rc, __FILE__, __LINE__, 0);
-		TRACE("CLM Init failed: Exiting.");
+		LOG_ER("CLM Init failed: Exiting.");
 		exit(1);
 	} else {
 		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
@@ -141,7 +135,7 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	if (rc != NCSCC_RC_SUCCESS) {
 		m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
 						     __FILE__, __LINE__, 0);
-		TRACE("AMF Init failed: Exiting.");
+		LOG_ER("AMF Init failed: Exiting.");
 		exit(1);
 	} else {
 	m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
@@ -151,12 +145,10 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* Initialize mbcsv interface */
 	if (NCSCC_RC_SUCCESS != (rc = eds_mbcsv_init(eds_cb))) {
 		m_LOG_EDSV_S(EDS_MBCSV_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		printf("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT FAILED\n");
+		LOG_ER("eds_mbcsv_init() EDS MBCSV INIT FAILED");
 		/* Log it */
 	} else
 		m_LOG_EDSV_S(EDS_MBCSV_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-
-	printf("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT SUCCESS \n");
 
 	/* Create EDS's thread */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)eds_main_process,
@@ -164,6 +156,7 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 							"EDS",
 							EDS_TASK_PRIORITY, NCS_STACKSIZE_HUGE, &eds_cb->task_hdl))) {
 		m_LOG_EDSV_S(EDS_TASK_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("Trask create of eds_main_process() failed");
 		eds_mds_finalize(eds_cb);
 		/* release the IPC */
 		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
@@ -179,6 +172,7 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/* Put the EDS thread in the start state */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_START(eds_cb->task_hdl))) {
 		m_LOG_EDSV_S(EDS_TASK_START_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		LOG_ER("Trask start of eds_main_process() failed");
 		eds_mds_finalize(eds_cb);
 		/* kill the created task */
 		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
@@ -192,11 +186,9 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		/* clean up the CB */
 		m_MMGR_FREE_EDS_CB(eds_cb);
 		/* log the error */
-		printf("eds_se_lib_init: EDS MAIN PROCESS START FAILED\n");
 		return rc;
 	}
 	m_LOG_EDSV_S(EDS_MAIN_PROCESS_START_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init: EDS MAIN PROCESS START SUCCESS\n");
 
 	return (rc);
 }
@@ -297,7 +289,7 @@ static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 #endif
 		gl_eds_hdl = 0;
 		m_END_CRITICAL;
-		printf("EDS-CB-LIB DESTROY CALLED...... \n");
+		TRACE("EDS-CB-LIB DESTROY CALLED.");
 	}
 
 	return (NCSCC_RC_SUCCESS);

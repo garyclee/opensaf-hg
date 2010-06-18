@@ -83,6 +83,7 @@ typedef enum {
 	AVSV_D2N_ROLE_CHANGE_MSG,
 	AVSV_D2N_ADMIN_OP_REQ_MSG,
 	AVSV_D2N_HEARTBEAT_MSG,
+	AVSV_D2N_REBOOT_MSG,
 	AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -420,6 +421,11 @@ typedef struct avsv_d2n_node_up_msg_info_tag {
 	uns32 su_failover_max;
 } AVSV_D2N_NODE_UP_MSG_INFO;
 
+typedef struct avsv_d2n_reboot_msg_info_tag {
+	uns32 msg_id;
+	SaClmNodeIdT node_id;
+} AVSV_D2N_REBOOT_MSG_INFO;
+
 typedef struct avsv_d2n_reg_su_msg_info_tag {
 	uns32 msg_id;
 	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
@@ -570,6 +576,7 @@ typedef struct avsv_dnd_msg {
 		AVSV_D2N_ROLE_CHANGE_INFO d2n_role_change_info;
 		AVSV_D2N_ADMIN_OP_REQ_MSG_INFO d2n_admin_op_req_info;
 		AVSV_D2N_HB_MSG_INFO d2n_hb_info;
+		AVSV_D2N_REBOOT_MSG_INFO d2n_reboot_info;
 	} msg_info;
 } AVSV_DND_MSG;
 

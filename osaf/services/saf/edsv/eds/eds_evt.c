@@ -129,8 +129,6 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
 
-	TRACE("INITIALIZE EVENT....");
-
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);
 	if (!m_EDA_VER_IS_VALID(version))
@@ -139,20 +137,25 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	/* Check if this EDA is a b03 client, and is on a cluster member node. 
 	 */
 	if (m_IS_B03_CLIENT(version)) {
+		TRACE("cb->ha_state = %d",cb->ha_state);
 		/* Are we already assigned HA_STATE and is our node DB is populated ? */
-		if ((cb->ha_state != EDS_HA_INIT_STATE) && (cb->cluster_node_list != NULL)) {
+		if (cb->ha_state != EDS_HA_INIT_STATE) {
+			TRACE("Checking if node is a member");
 			/* Check if this node is in the cluster */
 			if (!is_node_a_member(cb, evt->fr_node_id))
 				rc = SA_AIS_ERR_UNAVAILABLE;
+			else
+				TRACE("Node is a member, allow initialize");
 		}
 	}
 
+	TRACE("rc after checking clientb03 version = %d",rc);
 	if (rc != SA_AIS_OK) {
 		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
 		/* Return a default reg_id */
 		m_EDS_EDSV_INIT_MSG_FILL(msg, rc, 0)
-		    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+		rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 		if (rc != NCSCC_RC_SUCCESS)
 			m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 				      0, evt->fr_dest);
@@ -190,7 +193,7 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
 		m_EDS_EDSV_INIT_MSG_FILL(msg, rc, 0)
-		    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+		rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 		if (rc != NCSCC_RC_SUCCESS)
 			m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 				      0, evt->fr_dest);
@@ -200,7 +203,7 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	/* Send response back with assigned reg_id value */
 	rc = SA_AIS_OK;
 	m_EDS_EDSV_INIT_MSG_FILL(msg, rc, cb->last_reg_id)
-	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_EDSV_SF(EDS_INIT_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
@@ -210,13 +213,9 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {	/*Revisit this */
 		memset(&ckpt, 0, sizeof(ckpt));
 		m_EDSV_FILL_ASYNC_UPDATE_REG(ckpt, cb->last_reg_id, evt->fr_dest)
-		    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-		if (async_rc != NCSCC_RC_SUCCESS) {
-			/* log it */
-		} else {
-			TRACE("REG_REC ASYNC UPDATE SEND SUCCESS.....");
-		}
-
+		async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+		if (async_rc != NCSCC_RC_SUCCESS)
+			TRACE("Async Update Send failed");	
 	}
 	return rc;
 }
@@ -240,9 +239,9 @@ static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 async_rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA ckpt;
 
-	TRACE("FINALIZE EVENT....");
-	/* This call will insure all open subscriptions, channels, and any other */
-	/* resources allocated by this registration are freed up.                */
+	/* This call will ensure all open subscriptions, channels, and any other
+	* resources allocated by this registration are freed up.
+	*/
 	rc = eds_remove_reglist_entry(cb, evt->info.msg.info.api_info.param.finalize.reg_id, FALSE);
 	if (rc == NCSCC_RC_SUCCESS) {
 		m_LOG_EDSV_SF(EDS_FINALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
@@ -250,12 +249,9 @@ static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {	/*Revisit this */
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt, evt->info.msg.info.api_info.param.finalize.reg_id)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* log it */
-			} else {
-				TRACE("FINALIZE: ASYNC UPDATE SEND SUCCESS....");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async update send failed for finalize");
 		}
 	} else
 		m_LOG_EDSV_SF(EDS_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
@@ -288,7 +284,6 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_EDA_CHAN_OPEN_SYNC_PARAM *open_sync_param;
 	EDS_CKPT_DATA ckpt;
 
-	TRACE("CHANNEL OPEN EVENT....");
 	open_sync_param = &(evt->info.msg.info.api_info.param.chan_open_sync);
 
 	/* Set the open  time here */
@@ -320,12 +315,9 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_CHAN(ckpt, open_sync_param, chan_id, chan_open_id, evt->fr_dest,
 						      chan_create_time)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("CHAN_OPEN:ASYNC UPDATE SEND SUCCESS...");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update Send failed for chan open sync msg");
 		}
 		m_LOG_EDSV_SF(EDS_CHN_OPEN_SYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
 			      rc, evt->fr_dest);
@@ -358,7 +350,6 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_EDA_CHAN_OPEN_ASYNC_PARAM *open_async_param;
 	EDS_CKPT_DATA ckpt;
 
-	TRACE(" CHANNEL OPEN ASYNC EVENT....");
 	open_async_param = &(evt->info.msg.info.api_info.param.chan_open_async);
 
 	/* Set the open  time here */
@@ -394,12 +385,9 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_CHAN(ckpt, open_async_param, chan_id, chan_open_id, evt->fr_dest,
 						      chan_create_time)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("COPENASYNC: ASYNC UPDATE SEND SUCCESS...");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update send failed for chan open msg");
 		}
 		m_LOG_EDSV_SF(EDS_CHN_OPEN_ASYNC_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__, __LINE__,
 			      rc, evt->fr_dest);
@@ -427,7 +415,6 @@ static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	close_param = &(evt->info.msg.info.api_info.param.chan_close);
-	TRACE("CHANNEL CLOSE EVENT....");
 	rc = eds_channel_close(cb, close_param->reg_id, close_param->chan_id, close_param->chan_open_id, FALSE);
 	if (rc == NCSCC_RC_SUCCESS) {
 		/* Send an Async update to STANDBY EDS peer */
@@ -435,12 +422,9 @@ static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_CCLOSE(ckpt, close_param->reg_id, close_param->chan_id,
 							close_param->chan_open_id)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("CHAN_CLOSE:ASYNC UPDATE SEND SUCCESS...");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update send failed for chan close msg");
 		}
 		m_LOG_EDSV_SF(EDS_CHN_CLOSE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
@@ -471,7 +455,6 @@ static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	unlink_param = &(evt->info.msg.info.api_info.param.chan_unlink);
-	TRACE("CHANNEL UNLINK EVENT....");
 	rs = eds_channel_unlink(cb, unlink_param->chan_name.length, unlink_param->chan_name.value);
 	if (rs != SA_AIS_OK)
 		m_LOG_EDSV_SF(EDS_CHN_UNLINK_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rs, __FILE__, __LINE__, 0,
@@ -489,12 +472,9 @@ static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_CUNLINK(ckpt, unlink_param->chan_name.value,
 							 unlink_param->chan_name.length)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("CHAN_UNLINK: ASYNC UPDATE SEND SUCCESS...");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async update send failed for unlink msg");
 		}
 		m_LOG_EDSV_SF(EDS_CHN_UNLINK_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
@@ -530,7 +510,6 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 retd_evt_chan_open_id = 0;
 	EDS_CKPT_DATA ckpt;
 	publish_param = &(evt->info.msg.info.api_info.param).publish;
-	TRACE("PUBLISH EVENT....");
 
 	/* Get worklist ptr for this chan */
 	wp = eds_get_worklist_entry(cb->eds_work_list, publish_param->chan_id);
@@ -629,12 +608,9 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_RETAIN_EVT(ckpt, publish_param, publish_time)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("RETEN_EVT: ASYNC UPDATE SEND SUCCESS....");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update Send Failed for Publish");
 		}
 		/* Now give the patternarray & data ownership to the reten record */
 		publish_param->pattern_array = NULL;
@@ -672,7 +648,6 @@ static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	SaUint8T list_iter;
 
 	subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
-	TRACE("SUBSCRIBE EVENT....");
 
 	/* Make sure this is a valid regID */
 	reglst = eds_get_reglist_entry(cb, subscribe_param->reg_id);
@@ -758,12 +733,9 @@ static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 		memset(&ckpt, 0, sizeof(ckpt));
 		m_EDSV_FILL_ASYNC_UPDATE_SUBSCRIBE(ckpt, subscribe_param)
-		    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-		if (async_rc != NCSCC_RC_SUCCESS) {
-			/* Log it */
-		} else {
-			TRACE("SUBSCRIBE: ASYNC UPDATE SEND SUCCESS....");
-		}
+		async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+		if (async_rc != NCSCC_RC_SUCCESS)
+			TRACE("Async Update send failed for Subscribe");
 	}
 
 	/* Transfer memory ownership to the 
@@ -794,7 +766,6 @@ static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	unsubscribe_param = &(evt->info.msg.info.api_info.param.unsubscribe);
-	TRACE("UNSUBSCRIBE EVENT....");
 	/* Remove subscription from our lists */
 	rc = eds_remove_subscription(cb,
 				     unsubscribe_param->reg_id,
@@ -805,12 +776,9 @@ static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_UNSUBSCRIBE(ckpt, unsubscribe_param)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("UNSUBSCRIBE: ASYNC UPDATE SEND SUCCESS....");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update send failed for unsubscribe");
 		}
 
 		m_LOG_EDSV_SF(EDS_UNSUBSCRIBE_SUCCESS, NCSFL_LC_EDSV_DATA, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
@@ -841,7 +809,6 @@ static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	uns32 async_rc = NCSCC_RC_SUCCESS;
 	EDSV_MSG msg;
 
-	TRACE("RETENTION TIMER CLEAR EVENT....");
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(evt->info.msg.info.api_info.param.rettimeclr);
 	EDS_CKPT_DATA ckpt;
 
@@ -868,12 +835,9 @@ static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 			memset(&ckpt, 0, sizeof(ckpt));
 			m_EDSV_FILL_ASYNC_UPDATE_RETEN_CLEAR(ckpt, param)
-			    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (async_rc != NCSCC_RC_SUCCESS) {
-				/* Log it */
-			} else {
-				TRACE("RETEN_TIME_CLR: ASYNC UPDATE SEND SUCCESS....");
-			}
+			async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			if (async_rc != NCSCC_RC_SUCCESS)
+				TRACE("Async Update send failed for retentime clear msg");
 		}
 		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rs, __FILE__,
 			      __LINE__, rc, evt->fr_dest);
@@ -900,7 +864,7 @@ static uns32 eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 
 	TRACE("LIMIT GET EVENT ...");
 	m_EDS_EDSV_LIMIT_GET_MSG_FILL(msg, rc)
-	    rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+	rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
 		TRACE("LIMIT GET Response Send Failed...");
 
@@ -995,7 +959,6 @@ static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDS_CB *eds_cb;
 
-	TRACE("RETENTION TIMER EXPIRY EVENT.....");
 	/* retrieve retained evt */
 	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
 		m_LOG_EDSV_SF(EDS_RETENTION_TMR_EXP_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
@@ -1076,11 +1039,9 @@ static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 				memset(&ckpt, 0, sizeof(ckpt));
 				m_EDSV_FILL_ASYNC_UPDATE_AGENT_DOWN(ckpt, evt->fr_dest)
-				    async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
-				if (async_rc != NCSCC_RC_SUCCESS) {
-					/* Log it */
-				} else
-					TRACE("AGENT DOWN : ASYNC UPDATE SEND SUCCESS...");
+				async_rc = send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD);
+				if (async_rc != NCSCC_RC_SUCCESS)
+					TRACE("Agent down async update send failed");
 			}
 		} else if (cb->ha_state == SA_AMF_HA_STANDBY) {
 			EDA_DOWN_LIST *eda_down_rec = NULL;
@@ -1394,95 +1355,3 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 }
 #endif
 
-/* 
-void  eds_copy_evt_to_ckpt(EDSV_API_INFO evt_msg, EDSV_CKPT_DATA *ckpt_msg, MDS_DEST dest)
-{
-   switch(evt_msg.type)
-   {
-     case  EDSV_EDA_INITIALIZE:  
-                evt_msg.param.init;
-     case  EDSV_EDA_FINALIZE:
-                evt_msg.param.finalize;
-     case  EDSV_EDA_CHAN_OPEN_SYNC:
-                 evt_msg.param.chan_open_sync;
-     case  EDSV_EDA_CHAN_OPEN_ASYNC:
-                 evt_msg.param.chan_open_async;
-     case  EDSV_EDA_CHAN_CLOSE:
-                 evt_msg.param.chan_close;
-     case  EDSV_EDA_CHAN_UNLINK:
-                 evt_msg.param.chan_unlink;
-     case  EDSV_EDA_PUBLISH:
-                 evt_msg.param.publish;
-     case  EDSV_EDA_SUBSCRIBE:
-                 evt_msg.param.subscribe;
-     case  EDSV_EDA_UNSUBSCRIBE:
-                 evt_msg.param.unsubscribe;
-     case  EDSV_EDA_RETENTION_TIME_CLR:
-                 evt_msg.param.rettimeclr;
-     default:
-}
-
-#define m_EDSV_FILL_ASYNC_UPDATE_REG(regid,dest) \
-  ckpt->ckpt_rec.reg_rec.reg_id = regid;\
-  ckpt->ckpt_rec.reg_rec.eda_client_dest = dest;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_CHAN(evt,ckpt,dest) \
-  ckpt.ckpt_rec.chan_rec.reg_id = evt.param.chan_open_sync.reg_id; \
-  ckpt.ckpt_rec.chan_rec.chan_id = 0;\
-  ckpt.ckpt_rec.chan_rec.last_copen_id = 0;\
-  ckpt.ckpt_rec.chan_rec.chan_attrib = evt.param.chan_open_sync.chan_open_flags; \
-  ckpt.ckpt_rec.chan_rec.use_cnt = 0;\
-  ckpt.ckpt_rec.chan_rec.chan_opener_dest = dest;\
-  ckpt.ckpt_rec.chan_rec.cname_len = evt.param.chan_open_sync.chan_name.value; \
-  memcpy(ckpt.ckpt_rec.chan_rec.cname,evt.param.chan_open_sync.chan_name.value,ckpt.ckpt_rec.chan_rec.cname_len);
-
-#define m_EDSV_FILL_ASYNC_UPDATE_COPEN(evt,ckpt) \
-  ckpt.ckpt_rec.chan_open_rec.reg_id=  \
-  ckpt.ckpt_rec.chan_open_rec.chan_id=  \
-  ckpt.ckpt_rec.chan_open_rec.chan_open_id=  \
-  ckpt.ckpt_rec.chan_open_rec.chan_attrib=  \
-  ckpt.ckpt_rec.chan_open_rec.use_cnt=  \
-  ckpt.ckpt_rec.chan_open_rec.chan_opener_dest=  \
-  ckpt.ckpt_rec.chan_open_rec.cname_len=  \
-  memcpy(ckpt.ckpt_rec.chan_open_rec.cname,,ckpt.ckpt_rec.chan_open_rec.cname_len); 
-
-#define m_EDSV_FILL_ASYNC_UPDATE_CCLOSE(evt,ckpt)\
-  ckpt.ckpt_rec.chan_close_rec.reg_id=evt.param.chan_close.reg_id;  \
-  ckpt.ckpt_rec.chan_close_rec.chan_id=evt.param.chan_close.chan_id;  \
-  ckpt.ckpt_rec.chan_close_rec.chan_open_id=evt.param.chan_open_id;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_CUNLINK(evt,ckpt)\
-  ckpt.ckpt_rec.chan_unlink_rec.reg_id=evt.param;\
-  ckpt.ckpt_rec.chan_unlink_rec.chan_name.length=evt.param.chan_unlink.chan_name.length;\
-  ckpt.ckpt_rec.chan_unlink_rec.chan_name.value=evt.param.chan_unlink.chan_name.value;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_RETAIN_EVT(evt,ckpt,pattern_array,data)\
-  ckpt.ckpt_rec.retain_evt_rec.data.event_id=evt.param.publish.event_id;\
-  ckpt.ckpt_rec.retain_evt_rec.data.priority=evt.param.publish.priority;\
-  ckpt.ckpt_rec.retain_evt_rec.data.retention_time=evt.param.publish.retention_time;\
-  ckpt.ckpt_rec.retain_evt_rec.data.publishTime=evt.param.publish.publishTime;\
-  ckpt.ckpt_rec.retain_evt_rec.data.publisher_name.length=evt.param.publish.publisher_name.length;\
-  ckpt.ckpt_rec.retain_evt_rec.data.publisher_name.value=evt.param.publish.publisher_name.value;\
-  ckpt.ckpt_rec.retain_evt_rec.data.pattern_array=evt.param.publish.pattern_array;\
-  ckpt.ckpt_rec.retain_evt_rec.data.data=evt.param.publish.data;\
-  ckpt.ckpt_rec.retain_evt_rec.data.data_len=evt.param.publish.data_len;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_SUBSCRIBE(evt,ckpt,filter_array)\
-  ckpt.ckpt_rec.subscribe_rec.data.reg_id=evt.param.subscribe.reg_id;\
-  ckpt.ckpt_rec.subscribe_rec.data.sub_id=evt.param.subscribe.sub_id;\
-  ckpt.ckpt_rec.subscribe_rec.data.chan_id=evt.param.subscribe.chan_id;\
-  ckpt.ckpt_rec.subscribe_rec.data.chan_open_id=evt.param.subscribe.chan_open_id;\
-  ckpt.ckpt_rec.subscribe_rec.data.filter_array=filter_array;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_UNSUBSCRIBE(evt,ckpt)\
-  ckpt.ckpt_rec.unsubscribe_rec.data.reg_id=evt.param.unsubscribe.reg_id;\
-  ckpt.ckpt_rec.unsubscribe_rec.data.chan_id=evt.param.unsubscribe.chan_id;\
-  ckpt.ckpt_rec.unsubscribe_rec.data.chan_open_id=evt.param.unsubscribe.chan_open_id;\
-  ckpt.ckpt_rec.unsubscribe_rec.data.sub_id=evt.param.unsubscribe.sub_id;
-
-#define m_EDSV_FILL_ASYNC_UPDATE_RETEN_TIME_CLR(evt,ckpt)\
-  ckpt.ckpt_rec.reten_time_clr_rec.data.chan_id=evt.param.rettimeclr.chan_id;\
-  ckpt.ckpt_rec.reten_time_clr_rec.data.chan_open_id=evt.param.rettimeclr.chan_open_id;\
-  ckpt.ckpt_rec.reten_time_clr_rec.data.event_id=evt.param.rettimeclr.chan_id;\
-
-*/

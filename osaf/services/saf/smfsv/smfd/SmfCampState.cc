@@ -720,24 +720,8 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 
 	i_camp->m_campWrapup.executeCampWrapup(); // No action if wrapup is faulty
 
-	changeState(i_camp, SmfCampStateCommitted::instance());
-
-	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());
-
-	// TODO Start wait to allow new campaign timer
-	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
-
-	/* Commit all procedures to remove all runtime objects */
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-#if 0
-	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
-		SmfProcedureThread *procThread = (*iter)->getProcThread();
-		PROCEDURE_EVT *evt = new PROCEDURE_EVT();
-		evt->type = PROCEDURE_EVT_COMMIT;
-		procThread->send(evt);
-	}
-#endif
 	//Remove the procedure runtime objects
+	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
 		(*iter)->commit();
 	}
@@ -760,6 +744,12 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 	}
 
 	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+
+	changeState(i_camp, SmfCampStateCommitted::instance());
+	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());
+
+	// TODO Start wait to allow new campaign timer
+	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
 
 	/* Terminate campaign thread */
 	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();

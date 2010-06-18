@@ -433,7 +433,11 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
             }
             locked = TRUE;
         }
-        imma_process_stale_clients(cb);
+        /*imma_process_stale_clients(cb);
+	  The active resurrect is postponed until after immnd sync is 
+	  completed. imma_process_stale_clients now invoked in imma_proc.c
+	  when event IMMA_EVT_ND2A_PROC_STALE_CLIENTS is received.
+	 */
 
         m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
         locked = FALSE;

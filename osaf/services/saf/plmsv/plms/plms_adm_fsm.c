@@ -5307,13 +5307,30 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 	of parent HE.
 	*/
 	if ( PLMS_HE_ENTITY == ent->parent->entity_type){
-		ret_err = plms_he_reset(ent->parent,1/*adm_op*/,
+		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,
 					1/*mngt_cbk*/,SAHPI_COLD_RESET);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("Reset of parent HE %s failed and hence \
 			admin restart of EE %s can not be performed.",
 			ent->parent->dn_name_str,ent->dn_name_str);
 			
+			/* Set admin pending and management lost flag fot the entity.*/
+			if (!plms_rdness_flag_is_set(ent, SA_PLM_RF_MANAGEMENT_LOST)){
+				
+				/* Set management lost flag.*/
+				plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_MANAGEMENT_LOST,1/*mark*/,
+					NULL,SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+				plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_ADMIN_OPERATION_PENDING,1/*mark*/,
+					NULL,SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+				plms_mngt_lost_clear_cbk_call(ent,1/*mark*/);
+			}
+
 			ret_err= saImmOiAdminOperationResult(cb->oi_hdl,
 			evt->req_evt.admin_op.inv_id,
 			SA_AIS_ERR_FAILED_OPERATION);

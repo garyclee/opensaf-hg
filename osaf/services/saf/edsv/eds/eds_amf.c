@@ -55,7 +55,7 @@ uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
 	error = saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, error);
 
 	saAmfResponse(cb->amf_hdl, invocation, error);
-	printf("I AM IN HA AMF QUIESCING STATE\n");
+	TRACE("I AM IN HA AMF QUIESCING STATE");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -92,12 +92,12 @@ uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 	cb->amf_invocation_id = invocation;
 
 	cb->is_quisced_set = TRUE;
-	printf("I AM IN HA AMF QUIESCED STATE\n");
+	TRACE("I AM IN HA AMF QUIESCED STATE");
 
 	/* Give up our implementer role */
 	error = immutil_saImmOiImplementerClear(cb->immOiHandle);
 	if (error != SA_AIS_OK)
-		printf("saImmOiImplementerClear failed: err = %d", error);
+		LOG_ER("saImmOiImplementerClear failed with rc = %d", error);
 
 	return NCSCC_RC_SUCCESS;
 
@@ -215,11 +215,11 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		switch (new_haState) {
 		case SA_AMF_HA_ACTIVE:
 			eds_cb->mds_role = V_DEST_RL_ACTIVE;
-			printf("I AM HA AMF ACTIVE\n");
+			TRACE("I AM HA AMF ACTIVE");
 			break;
 		case SA_AMF_HA_STANDBY:
 			eds_cb->mds_role = V_DEST_RL_STANDBY;
-			printf("I AM HA AMF STANDBY\n");
+			TRACE("I AM HA AMF STANDBY");
 			break;
 		case SA_AMF_HA_QUIESCED:
 			eds_quiesced_state_handler(eds_cb, invocation);
@@ -260,11 +260,9 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 			if ((rc = eds_mds_change_role(eds_cb)) != NCSCC_RC_SUCCESS) {
 				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
 					     __FILE__, __LINE__, eds_cb->mds_role);
-				printf(" eds_amf_CSI_set_callback: MDS role change to %d FAILED\n", eds_cb->mds_role);
 			} else {
 				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
 					     __FILE__, __LINE__, eds_cb->mds_role);
-				printf(" eds_amf_CSI_set_callback: MDS role change to %d SUCCESS\n", eds_cb->mds_role);
 				/* Declare as Implementer if state changed only from STANDBY to ACTIVE, 
 				 * Need to check for transition from QUEISCED back to ACTIVE 
 				 */
@@ -277,12 +275,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		if (NCSCC_RC_SUCCESS != (error = eds_mbcsv_change_HA_state(eds_cb))) {
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__,
 				     new_haState);
-			printf(" eds_amf_CSI_set_callback: MBCSV state change to (in CSI AssignMent Cbk): %d FAILED \n",
-			       eds_cb->ha_state);
 		} else {
-			printf
-			    (" eds_amf_CSI_set_callback: MBCSV state change to (in CSI Assignment Cbk): %d SUCCESS \n",
-			     eds_cb->ha_state);
 			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 		}
 		/* Send the response to AMF */
@@ -480,7 +473,6 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
 	rc = saAmfInitialize(&eds_cb->amf_hdl, &amfCallbacks, &amf_version);
 
 	if (rc != SA_AIS_OK) {
-		printf("  eds_amf_init: saAmfInitialize() AMF initialization FAILED\n");
 		m_LOG_EDSV_S(EDS_AMF_INIT_ERROR, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
@@ -488,7 +480,6 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
 
 	/* Obtain the amf selection object to wait for amf events */
 	if (SA_AIS_OK != (rc = saAmfSelectionObjectGet(eds_cb->amf_hdl, &eds_cb->amfSelectionObject))) {
-		printf("  eds_amf_init: saAmfSelectionObjectGet() FAILED\n");
 		m_LOG_EDSV_S(EDS_AMF_GET_SEL_OBJ_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			     0);
 		return rc;
@@ -498,7 +489,6 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
 	/* get the component name */
 	rc = saAmfComponentNameGet(eds_cb->amf_hdl, &eds_cb->comp_name);
 	if (rc != SA_AIS_OK) {
-		printf("  eds_amf_init: saAmfComponentNameGet() FAILED\n");
 		m_LOG_EDSV_S(EDS_AMF_COMP_NAME_GET_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			     0);
 		return NCSCC_RC_FAILURE;
@@ -534,12 +524,9 @@ uns32 eds_amf_register(EDS_CB *eds_cb)
 	if ((rc = eds_amf_init(eds_cb)) != NCSCC_RC_SUCCESS) {
 		m_LOG_EDSV_S(EDS_AMF_INIT_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
-		printf(" eds_amf_register: eds_amf_init() FAILED\n");
 		return NCSCC_RC_FAILURE;
 	}
 	m_LOG_EDSV_S(EDS_AMF_INIT_OK, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
-
-	printf(" eds_amf_register: eds_amf_init() SUCCESS\n");
 
 	/* register EDS component with AvSv */
 	error = saAmfComponentRegister(eds_cb->amf_hdl, &eds_cb->comp_name, (SaNameT *)NULL);
@@ -547,20 +534,16 @@ uns32 eds_amf_register(EDS_CB *eds_cb)
 		m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
 			     __LINE__, 0);
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
-		printf(" eds_amf_register: saAmfComponentRegister() FAILED\n");
 		return NCSCC_RC_FAILURE;
 	}
 	m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
-	printf(" eds_amf_register: saAmfComponentRegister() SUCCESS \n");
 	if (NCSCC_RC_SUCCESS != (rc = eds_healthcheck_start(eds_cb))) {
 		m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			     0);
-		printf(" eds_amf_register: saAmfHealthcheckStart FAILED \n");
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
 	m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_DONE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
-	printf(" eds_amf_register: saAmfHealthcheckStart SUCCESS\n");
 	m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
 	return NCSCC_RC_SUCCESS;
@@ -607,10 +590,9 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
 	if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj))) {
 		m_LOG_EDSV_S(EDS_CLM_SEL_OBJ_GET_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			     0);
-		/* Log it */
 		return rc;
 	}
-
+	/* Get your own node id */
 	rc = saClmClusterNodeGet(cb->clm_hdl, SA_CLM_LOCAL_NODE_ID, timeout, &cluster_node);
 	if (rc != SA_AIS_OK) {
 		m_LOG_EDSV_S(EDS_CLM_NODE_GET_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
@@ -620,7 +602,7 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
 	cb->node_id = cluster_node.nodeId;
 
 	notify_buff.notification = NULL;
-	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), &notify_buff);
+	rc = saClmClusterTrack(cb->clm_hdl, (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
 	if (rc != SA_AIS_OK)
 		m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
 			     0);
@@ -659,8 +641,10 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 	EDS_CB *cb = NULL;
 	NODE_ID node_id;
 	SaClmClusterChangesT cluster_change;
+	SaBoolT is_member;
 	uns32 counter = 0;
 
+	TRACE("CLM Cluster track callback");
 	if (error == SA_AIS_OK) {
 		/* Get EDS CB Handle. */
 		if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
@@ -671,18 +655,30 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 
 		if (notificationBuffer != NULL) {
 			for (counter = 0; counter < notificationBuffer->numberOfItems; counter++) {
-				/* Send the update to EDA clients */
-				cluster_change = notificationBuffer->notification[counter].clusterChange;
-				if ((cluster_change == SA_CLM_NODE_JOINED) || (cluster_change == SA_CLM_NODE_LEFT)) {
-					node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
-					update_node_db(cb, node_id, cluster_change);
+				is_member = notificationBuffer->notification[counter].clusterNode.member;
+				node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+				if ((cluster_change = update_node_db(cb, node_id, is_member))) {
+					if (is_member)
+						cluster_change = SA_CLM_NODE_JOINED;
+					else
+						cluster_change = SA_CLM_NODE_LEFT;
 					/* Send to all EDAs on node_id */
-					printf("Sending ClusterChange Update to Agents on NodeId = %d\n", node_id);
 					send_clm_status_change(cb, cluster_change, node_id);
 				}
 			}
 		}
-
+		else
+			TRACE("Notification buffer is NULL");
+		TRACE("After processing, clust list contains: %d nodes",ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
+		TRACE("=======================================");
+		NODE_INFO *tmp=NULL;
+		tmp = (NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uns8 *)0);
+		while (tmp != NULL)
+		{
+			TRACE("NODE = %d\n", tmp->node_id);
+			tmp=(NODE_INFO *)ncs_patricia_tree_getnext(&cb->eds_cluster_nodes_list, (uns8 *)&tmp->node_id);
+		}
+		TRACE("=======================================");
 		ncshm_give_hdl(gl_eds_hdl);
 		m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
 			     __LINE__, 0);
@@ -702,46 +698,52 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
  * Input  : none
  * Output : NotificationBuffer that contains information of all nodes in the
  *          cluster and the corresponding change that occured on that node.
- * Returns:   None
+ * Returns: SA_TRUE if there is a change in membership, else SA_FALSE 
  *
  * Notes  : Upon invocation of this callback, if a node joined or left the cluster,
  *  EDS shall send an update to all the EDAs on that particular node.
  **************************************************************************/
 
-void update_node_db(EDS_CB *cb, NODE_ID node_id, SaClmClusterChangesT cluster_change)
+SaBoolT update_node_db(EDS_CB *cb, NODE_ID node_id, SaBoolT is_member)
 {
-	NODE_INFO *prev = NULL, *cur = NULL, *new = NULL;
-
-	prev = cur = cb->cluster_node_list;	/* Get the list head */
-
-	/* If list is null, there is nothing to delete! */
-	if ((cur == NULL) && (cluster_change == SA_CLM_NODE_LEFT))
-		return;
-	/* See if node is already in the Cluster */
-	while (cur != NULL) {
-		if (node_id == cur->node_id) {
-			if (cluster_change == SA_CLM_NODE_JOINED)
-				return;
-			else if (cluster_change == SA_CLM_NODE_LEFT) {
-				prev = cur->next;
-				m_MMGR_FREE_CLUSTER_NODE_LIST(cur);
-				return;
+	NODE_INFO *cn = NULL;
+	if (is_member) {
+		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL) {
+			TRACE("Node = %d not existing in the DB",node_id);
+			cn = (NODE_INFO *)malloc(sizeof(NODE_INFO));
+			if (cn == NULL) {
+				LOG_CR("Malloc failed for cluster node record");
+				return SA_FALSE;
 			}
+			cn->node_id = node_id;
+			cn->pat_node.key_info = (uns8 *)&cn->node_id;
+			if (ncs_patricia_tree_add(&cb->eds_cluster_nodes_list,&cn->pat_node) != NCSCC_RC_SUCCESS) {
+				free(cn);
+				LOG_ER("Patricia add failed for cluster node %d",cn->node_id);
+				return SA_FALSE;
+			} else {
+				TRACE("Added Node = %d, to the DB, num nodes = %d",node_id,ncs_patricia_tree_size(&cb->eds_cluster_nodes_list));
+				return SA_TRUE;
+			}
+		} else {
+			TRACE("Node = %d, already a member",node_id);
+			return SA_FALSE;
 		}
-		prev = cur;
-		cur = cur->next;
 	}
-	/* Its a new node to the cluster, add to the list */
-	if (cluster_change == SA_CLM_NODE_JOINED) {
-		/* Add a new node to the list after prev */
-		new = m_MMGR_ALLOC_CLUSTER_NODE_LIST(sizeof(NODE_INFO));
-		memset(new, 0, sizeof(NODE_INFO));
-		new->node_id = node_id;
-		new->next = NULL;
-		if (prev == NULL)
-			prev = new;	/* first node to join */
-		else
-			prev->next = new;	/* Add to the end */
+	else {
+		if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL) {
+			TRACE("Node = %d not in the DB, no change to DB",node_id);
+			return SA_FALSE;
+		}
+		if (ncs_patricia_tree_del(&cb->eds_cluster_nodes_list, &cn->pat_node) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Patricia tree delete failed for node_id = %d",node_id);
+			return SA_FALSE;
+		} else {
+			if (cn)
+				free(cn);
+			TRACE("Node = %d deleted from DB",node_id);
+			return SA_TRUE;
+		}
 	}
 }
 
@@ -771,7 +773,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 				m_LOG_EDSV_S(EDS_CLUSTER_CHANGE_NOTIFY_SEND_FAILED, NCSFL_LC_EDSV_INIT,
 					     NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
 			else
-				printf("ClusterNodeUpdate = %d send to %d Success\n", cluster_change, node_id);
+				TRACE("Sending ClusterNodeUpdate = %d for %d Success", cluster_change, node_id);
 		}
 		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&reg_rec->reg_id_Net);
 	}
@@ -790,12 +792,11 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 
 NCS_BOOL is_node_a_member(EDS_CB *cb, NODE_ID node_id)
 {
-	NODE_INFO *tmp_rec = NULL;
-	tmp_rec = cb->cluster_node_list;
-	while (tmp_rec != NULL) {
-		if (tmp_rec->node_id == node_id)
-			return TRUE;
-		tmp_rec = tmp_rec->next;
-	}
-	return FALSE;
+	NODE_INFO *cn = NULL;
+
+	if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uns8 *)&node_id)) == NULL)
+		return FALSE;
+	else
+		return TRUE;
 }
+

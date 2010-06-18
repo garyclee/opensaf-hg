@@ -2662,8 +2662,8 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT err = SA_AIS_OK;
-	unsigned int sleep_delay_ms = 500;
-	unsigned int max_waiting_time_ms = 3 * 1000;	/* 3 secs */
+	unsigned int sleep_delay_ms = 200;
+	unsigned int max_waiting_time_ms = 1 * 1000;	/* 1 secs */
 	unsigned int msecs_waited = 0;
 	SaImmOiImplementerNameT implName;
 	IMMA_CLIENT_NODE *cl_node = NULL;

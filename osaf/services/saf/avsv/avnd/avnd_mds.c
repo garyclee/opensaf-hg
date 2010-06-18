@@ -634,7 +634,8 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 		case NCSMDS_SVC_ID_AVD:
 			/* Supervise our node local director */
 			if (evt_info->i_node_id == ncs_get_node_id())
-				avsv_reboot_local_node("AMF director unexpectedly crasched");
+				opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+						"AMF director unexpectedly crasched");
 			
 			/* Validate whether this is a ADEST or VDEST */
 			if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))

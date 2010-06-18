@@ -3036,6 +3036,7 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 			PLMS_GROUP_ENTITY **ent_list,SaUint8T inst_dep_ee)
 {
 	SaUint32T ret_err;
+	SaUint32T inst = 1;
 	/* Terminating condition. */
 	if (NULL == dep_ent_list)
 		return;
@@ -3087,6 +3088,8 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			plms_ent_to_ent_list_add(dep_ent_list->plm_entity,ent_list);
+		}else{
+			inst = 0;
 		}
 	}else{
 		if (!plms_rdness_flag_is_set(dep_ent_list->plm_entity,
@@ -3151,7 +3154,7 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 		(SA_PLM_EE_PRESENCE_TERMINATING != 
 		 dep_ent_list->plm_entity->entity.ee_entity.
 		 saPlmEEPresenceState)){
-		if (inst_dep_ee){
+		if (inst_dep_ee && inst){
 			ret_err = plms_ent_enable(dep_ent_list->plm_entity,
 			FALSE,0/*mngt_cbk*/);
 			if ( NCSCC_RC_SUCCESS != ret_err){

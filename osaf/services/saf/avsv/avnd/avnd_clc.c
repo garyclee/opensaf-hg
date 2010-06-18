@@ -244,7 +244,7 @@ static void log_failed_exec(NCS_OS_PROC_EXEC_STATUS_INFO *exec_stat,
 		LOG_NO("CLC CLI script: %s", comp->clc_info.cmds[exec_cmd-1].cmd);
 
 	if (NCS_OS_PROC_EXIT_ON_SIGNAL == exec_stat->value)
-		LOG_NO("Signal: %u", exec_stat->info.exit_on_signal.signal_num);
+		LOG_NO("Signal: %u, CLC CLI script: %s", exec_stat->info.exit_on_signal.signal_num,comp->clc_info.cmds[exec_cmd-1].cmd);
 }
 
 /****************************************************************************
@@ -702,7 +702,8 @@ uns32 avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_FSM
 		switch (ev) {
 		case AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL:
 			LOG_ER("%s termination failed", comp->name.value);
-			avsv_reboot_local_node("Stopping OpenSAF failed");
+			opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+					"Stopping OpenSAF failed");
 			break;
 		case AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC:
 			m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);

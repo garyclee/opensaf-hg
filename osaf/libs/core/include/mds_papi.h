@@ -186,12 +186,11 @@ extern "C" {
 		NCSMDS_SVC_ID_PLMS_HRB = 38,
 		NCSMDS_SVC_ID_PLMA = 39,
 		NCSMDS_SVC_ID_NCSMAX,	/* This mnemonic always last */
-		/* END: These are NCS internal use service-id definitions */
 
-		/* The range below is for Motorola internal use */
+		/* The range below is for OpenSAF internal use */
 		NCSMDS_SVC_ID_INTERNAL_MIN = 256,
 
-		/* The range below is for Motorola external use */
+		/* The range below is for OpenSAF external use */
 		NCSMDS_SVC_ID_EXTERNAL_MIN = 512,
 	} NCSMDS_SVC_ID;
 
