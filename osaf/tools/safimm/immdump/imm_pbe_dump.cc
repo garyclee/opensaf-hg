@@ -591,12 +591,14 @@ void deleteClassToPBE(std::string classNameString, void* db_handle,
 	TRACE("GENERATED B:%s", sqlB.c_str());
 	rc = sqlite3_exec(dbHandle, sqlB.c_str(), NULL, NULL, &execErr);
 	if(rc) {
-		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlB.c_str(), execErr);
+		TRACE("SQL statement ('%s') failed because:\n %s", sqlB.c_str(), execErr);
+		TRACE("Class apparently defined non-persistent runtime objects");
 		sqlite3_free(execErr);
-		goto bailout;
+		/**/
+	} else {
+		rowsModified = sqlite3_changes(dbHandle);
+		TRACE("Dropped table %s rows:%u", classNameString.c_str(), rowsModified);
 	}
-	rowsModified = sqlite3_changes(dbHandle);
-	TRACE("Dropped table %s rows:%u", classNameString.c_str(), rowsModified);
 
 	TRACE_LEAVE();
 	return;
