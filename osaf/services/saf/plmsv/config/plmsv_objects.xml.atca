@@ -64,7 +64,7 @@
                 </attr>
                 <attr>
                         <name>saAmfCtDefRecoveryOnError</name>
-                        <value>5</value>
+                        <value>6</value>
                 </attr>
                 <attr>
                         <name>saAmfCtDefDisableRestart</name>

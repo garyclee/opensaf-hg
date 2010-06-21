@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+n?xml version="1.0" encoding="utf-8"?>
 <!-- Created with Liquid XML Studio 6.1.18.0 - FREE Community Edition (http://www.liquid-technologies.com) -->
 <!--
  *      -*- OpenSAF  -*-
@@ -64,7 +64,7 @@
                 </attr>
                 <attr>
                         <name>saAmfCtDefRecoveryOnError</name>
-                        <value>5</value>
+                        <value>6</value>
                 </attr>
                 <attr>
                         <name>saAmfCtDefDisableRestart</name>
