@@ -425,11 +425,8 @@ uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_
 
 			/* goto reploc_node_add_fail; */
 			m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-			/* Free the Client Node */
-			if (ckpt_reploc_node)
-				m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(ckpt_reploc_node);
 
-			return NCSCC_RC_FAILURE;
+			rc = NCSCC_RC_FAILURE;
 
 		}
 	}

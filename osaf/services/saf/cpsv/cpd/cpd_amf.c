@@ -39,6 +39,8 @@
 #define NCS_2_0 1
 #if NCS_2_0			/* Required for NCS 2.0 */
 extern uns32 gl_cpd_cb_hdl;
+extern const SaImmOiImplementerNameT implementer_name;
+
 
 /****************************************************************************
  PROCEDURE NAME : cpd_saf_hlth_chk_cb
@@ -166,8 +168,11 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			TRACE("ACTIVE STATE");
 
 			/* If this is the active server, become implementer again. */
-			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-				cpd_imm_declare_implementer(cb);
+			/* If this is the active Director, become implementer */
+			saErr = immutil_saImmOiImplementerSet(cb->immOiHandle, implementer_name);
+			if (saErr != SA_AIS_OK){
+				cpd_log(NCSFL_SEV_ERROR, "cpd_imm_declare_implementer failed: err = %u \n", saErr);
+				exit(EXIT_FAILURE);
 			}
 			/*   anchor   = cb->cpd_anc; */
 		} else if (SA_AMF_HA_QUIESCED == cb->ha_state) {
@@ -184,13 +189,13 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			if (NCSCC_RC_SUCCESS != rc) {
 				m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
-					     __LINE__);
+						__LINE__);
 				ncshm_give_hdl(cb->cpd_hdl);
 				return;
 			}
 			ncshm_give_hdl(cb->cpd_hdl);
 			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM QUIESCED",
-				      __FILE__, __LINE__);
+					__FILE__, __LINE__);
 			return;
 		} else {
 			mds_role = V_DEST_RL_STANDBY;
@@ -214,8 +219,8 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		}
 
-      /** Set the CB's anchor value */
-/*      cb->cpd_anc= anchor;  */
+		/** Set the CB's anchor value */
+		/*      cb->cpd_anc= anchor;  */
 		saAmfResponse(cb->amf_hdl, invocation, saErr);
 		ncshm_give_hdl(cb->cpd_hdl);
 
@@ -224,19 +229,19 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			while (node_info) {
 				prev_dest = node_info->cpnd_dest;
 				if (node_info->timer_state == 2) {
-				TRACE	
-					    ("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE");
+					TRACE	
+						("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE");
 					cpd_process_cpnd_down(cb, &node_info->cpnd_dest);
 				}
 				cpd_cpnd_info_node_getnext(&cb->cpnd_tree, &prev_dest, &node_info);
 
 			}
 			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM ACTIVE", __FILE__,
-				      __LINE__);
+					__LINE__);
 		}
 		if (SA_AMF_HA_STANDBY == cb->ha_state)
 			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM STANDBY",
-				      __FILE__, __LINE__);
+					__FILE__, __LINE__);
 
 	} else {
 		m_LOG_CPD_CL(CPD_DONOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -395,9 +400,9 @@ void cpd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
  *
  * Return Values : None 
  *****************************************************************************/
-void
+	void
 cpd_amf_csi_rmv_callback(SaInvocationT invocation,
-			 const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
+		const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
 	CPD_CB *cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
