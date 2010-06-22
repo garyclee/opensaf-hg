@@ -1230,6 +1230,7 @@ fi
 %if %is_tools
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
+%{_bindir}/ntfread
 %endif
 %{_libdir}/libSaNtf.so.*
 

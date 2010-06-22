@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -12,16 +12,23 @@
 # licensing terms.
 #
 # Author(s): Wind River Systems
+#            Ericsson AB
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+bin_PROGRAMS = ntfread
 
-if ENABLE_TOOLS
+ntfread_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/tools/safntf/include \
+	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
-SUBDIRS += ntfsend ntfsubscribe ntfread
+ntfread_SOURCES = \
+	ntfread.c
 
-endif
+ntfread_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
