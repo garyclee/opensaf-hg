@@ -1841,11 +1841,6 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	cb->fevs_replies_pending++;	/*flow control */
-	if (cb->fevs_replies_pending > 1) {
-		TRACE("Messages pending:%u", cb->fevs_replies_pending);
-	}
-
 	if(strncmp(evt->info.implSet.impl_name.buf, OPENSAF_IMM_PBE_IMPL_NAME,
 		   evt->info.implSet.impl_name.size)==0) {
 		if(cl_node->mIsPbe) {
@@ -1857,6 +1852,11 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 			send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_BAD_HANDLE;
 			goto agent_rsp;
 		}
+	}
+
+	cb->fevs_replies_pending++;	/*flow control */
+	if (cb->fevs_replies_pending > 1) {
+		TRACE("Messages pending:%u", cb->fevs_replies_pending);
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
@@ -2845,11 +2845,16 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 	if(evt->info.admOpRsp.result == SA_AIS_ERR_REPAIR_PENDING) {
 		/* OK result on OPENSAF_IMM_PBE_CLASS_CREATE */
 		immModel_pbeClassCreateContinuation(cb, invoc, cb->node_id, &reqConn);
-		TRACE("Returned from pbeClassCreateContinuation reqConn:%x", reqConn);
+		TRACE("Returned from pbeClassCreateContinuation invoc:%x", invoc);
 	} else if(evt->info.admOpRsp.result == SA_AIS_ERR_NO_SPACE) {
 		/* OK result on OPENSAF_IMM_PBE_CLASS_DELETE */
 		immModel_pbeClassDeleteContinuation(cb, invoc, cb->node_id, &reqConn);
-		TRACE("Returned from pbeClassDeleteContinuation reqConn:%x", reqConn);
+		TRACE("Returned from pbeClassDeleteContinuation invoc:%x", invoc);
+	} else if(evt->info.admOpRsp.result == SA_AIS_ERR_QUEUE_NOT_AVAILABLE) {
+		/* OK result on OPENSAF_IMM_PBE_UPDATE_EPOCH 
+		   No reqConn since this is no client for this call. */
+		immModel_pbeUpdateEpochContinuation(cb, invoc, cb->node_id);
+		TRACE("Returned from pbeUpdateEpochContinuation invoc:%x", invoc);
 	} else {
 		LOG_ER("Unexpected PBE admop result %u", evt->info.admOpRsp.result);
 		/* reqConn will be zero. */
@@ -3352,25 +3357,6 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	TRACE_LEAVE();
 }
 
-static IMMSV_ADMIN_OPERATION_PARAM *
-getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
-	IMMSV_ADMIN_OPERATION_PARAM * param)
-{
-	const char * classNameParamName = "className";
-	IMMSV_OM_CLASS_DESCR* classDescr=NULL;
-	switch(operationId) {
-		case OPENSAF_IMM_PBE_CLASS_CREATE:
-		case OPENSAF_IMM_PBE_CLASS_DELETE:
-			classDescr = (IMMSV_OM_CLASS_DESCR *) evt;
-			param->paramName.size = strlen(classNameParamName);
-			param->paramName.buf = (char *) classNameParamName;
-			param->paramType = SA_IMM_ATTR_SASTRINGT;
-			param->paramBuffer.val.x = classDescr->className;
-			param->next = NULL;
-	}
-	return param;
-}
-
 /****************************************************************************
  * Name          : immnd_evt_proc_class_create
  *
@@ -3476,7 +3462,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 				send_evt.info.imma.info.admOpReq.objectName.buf =
 					(char *) osafImmDn;
 				send_evt.info.imma.info.admOpReq.params =
-					getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_CLASS_CREATE,
+					immnd_getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_CLASS_CREATE,
 						&(evt->info.classDescr), &param);
 
 				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT CLASS CREATE upcall");
@@ -3627,7 +3613,7 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 				send_evt.info.imma.info.admOpReq.objectName.buf =
 					(char *) osafImmDn;
 				send_evt.info.imma.info.admOpReq.params =
-					getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_CLASS_DELETE,
+					immnd_getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_CLASS_DELETE,
 						&(evt->info.classDescr), &param);
 
 				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT CLASS DELETE upcall");
@@ -4458,7 +4444,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
 				assert(evt->info.objModify.ccbId == 0);
 
-				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ CREATE upcall");
+				TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT RT-OBJ MODIFY upcall");
 				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 					    pbe_cl_node->agent_mds_dest, &send_evt) != 
 					NCSCC_RC_SUCCESS) 
@@ -5575,7 +5561,7 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INF
 			}
 
 			if (immnd_is_immd_up(cb)) {
-				immnd_adjustEpoch(cb);
+				immnd_adjustEpoch(cb, SA_TRUE);
 			} else {
 				/* Not critical to increment epoch for dump */
 				LOG_ER("Dump-ok failed to adjust epoch, IMMD DOWN:");
@@ -5631,7 +5617,7 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *s
 				LOG_WA("IMMND can not adjust epoch because IMMD is DOWN %u", retryCount);
 				sleep(1);
 			}
-			immnd_adjustEpoch(cb);	/* will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* will assert if immd is down. */
 		}
 		immModel_abortSync(cb);
 	}
@@ -5731,7 +5717,7 @@ uns32 immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	if ((cb->mState == IMM_SERVER_LOADING_CLIENT) && (immModel_getLoader(cb) == 0)) {
-		immnd_adjustEpoch(cb);
+		immnd_adjustEpoch(cb, SA_TRUE);
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
 		cb->mState = IMM_SERVER_READY;
 		LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY (materialized by start sync)");
@@ -5791,7 +5777,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 	} else {
 		if (cb->mMyEpoch + 1 < cb->mRulingEpoch) {
 			if (cb->mState > IMM_SERVER_LOADING_PENDING) {
-				LOG_WA("Imm at this evs node has epoch %u, "
+				LOG_WA("Imm at this node has epoch %u, "
 				       "appears to be a stragler in wrong state %u", cb->mMyEpoch, cb->mState);
 				assert(0);
 			} else {
@@ -6256,7 +6242,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		/*This must bring the epoch of the joiner up to the ruling epoch */
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
 		/*This adjust-epoch will persistify the new epoch for sync-clients. */
-		immnd_adjustEpoch(cb);
+		immnd_adjustEpoch(cb, SA_TRUE);
 
 		/* Sync completed for client => trigger active resurrect. */
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -6304,7 +6290,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: coord. */
-			immnd_adjustEpoch(cb);	/* Will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* Will assert if immd is down. */
 		} else {
 			TRACE_2("FinalizeSync for veteran node that is non coord");
 			/* In this case we use the sync message to verify the state 
@@ -6316,7 +6302,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: veterans. */
-			immnd_adjustEpoch(cb);	/* Will assert if immd is down. */
+			immnd_adjustEpoch(cb, SA_TRUE); /* Will assert if immd is down. */
 		}
 	}
 
@@ -6656,7 +6642,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send response to agent/client over MDS");
 		}
-	}
+	} 
 }
 
 /****************************************************************************
@@ -6773,6 +6759,11 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to send response to agent/client over MDS");
 		}
+	}
+
+	if((err == SA_AIS_OK) && (strcmp(OPENSAF_IMM_CLASS_NAME, evt->info.implSet.impl_name.buf)==0)) {
+		TRACE("PBE class implementer set, send initial epoch to implementer");
+		immnd_adjustEpoch(cb, SA_FALSE); /*No increment, just inform PBE of current epoch. */
 	}
 }
 

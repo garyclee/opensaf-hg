@@ -190,8 +190,8 @@ typedef enum {
     IMM_MODIFY = 2,
     IMM_DELETE = 3,
     IMM_CREATE_CLASS = 4,
-    IMM_DELETE_CLASS = 5
-
+    IMM_DELETE_CLASS = 5,
+    IMM_UPDATE_EPOCH = 6
 } ImmMutationType;
 
 struct ObjectMutation
@@ -1058,6 +1058,13 @@ void immModel_pbeClassDeleteContinuation(IMMND_CB *cb,
         invocation, nodeId, reqConn);
 }
 
+void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
+        SaUint32T invocation, SaClmNodeIdT nodeId)
+{
+    ImmModel::instance(&cb->immModel)->pbeUpdateEpochContinuation(
+        invocation, nodeId);
+}
+
 void immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
         SaClmNodeIdT nodeId, SaUint32T *reqConn)
@@ -1217,9 +1224,13 @@ immModel_finalizeSync(IMMND_CB *cb,
 }
 
 SaUint32T
-immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch)
+immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch,
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId, SaBoolT increment)
 {
-    return ImmModel::instance(&cb->immModel)->adjustEpoch(suggestedEpoch);
+    return ImmModel::instance(&cb->immModel)->adjustEpoch(suggestedEpoch,
+        continuationId, pbeConn, pbeNodeId, increment);
 }
 
 SaUint32T
@@ -1489,7 +1500,8 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
         oi = sObjectMap.find(omuti->first);
         assert(oi != sObjectMap.end() ||
             (oMut->mOpType == IMM_CREATE_CLASS)||
-            (oMut->mOpType == IMM_DELETE_CLASS));
+            (oMut->mOpType == IMM_DELETE_CLASS)||
+            (oMut->mOpType == IMM_UPDATE_EPOCH));
 
         inv = m_IMMSV_PACK_HANDLE(oMut->mContinuationId, nodeId);
         ci = sPbeRtReqContinuationMap.find(inv);
@@ -1568,6 +1580,17 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
             case IMM_DELETE_CLASS:
                     LOG_WA("PBE failed in persistification of class delete %s",
                         omuti->first.c_str());
+                    /* The PBE should have aborted when this happened.
+                       The existence of this mutation would prevent a restart
+                       with --recover. Instead a restart will regenerate the
+                       PBE file, forcing it in line with the imms runtime
+                       state.
+                    */
+
+                break;
+
+            case IMM_UPDATE_EPOCH:
+                    LOG_WA("PBE failed in persistification of update epoch");
                     /* The PBE should have aborted when this happened.
                        The existence of this mutation would prevent a restart
                        with --recover. Instead a restart will regenerate the
@@ -1696,12 +1719,20 @@ ImmModel::getLoader()
 
 /**
  * Changes the current epoch to either suggestedEpoch or to
- * the epoch fetched from the imm-object (incremented iwht one).
+ * the epoch fetched from the imm-object.
  * The former case is expected to be after a sync. The latter
  * case is expected after a reload.
+ * Normally the epoch is incremented when suggestedEpoch is <=
+ * than current epoch. But if the 'inrement' arg is false then
+ * no incrementing is done here. This is used when only the side
+ * effects of adjustEpoch are desired (pushing epoch to IMMD and PBE).
  */
 int
-ImmModel::adjustEpoch(int suggestedEpoch) 
+ImmModel::adjustEpoch(int suggestedEpoch,
+    SaUint32T* continuationIdPtr,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr,
+    bool increment)
 {
     int restoredEpoch = 0;
     ImmAttrValueMap::iterator avi;
@@ -1723,12 +1754,30 @@ ImmModel::adjustEpoch(int suggestedEpoch)
     
     if(suggestedEpoch <= restoredEpoch) {
         suggestedEpoch = restoredEpoch;
-        ++suggestedEpoch;
+        if(increment) {
+            ++suggestedEpoch;
+        }
     }
     
-    if(immObject && avi != immObject->mAttrValueMap.end()) {
+    if(increment && immObject && avi != immObject->mAttrValueMap.end()) {
         avi->second->setValue_int(suggestedEpoch);
-        LOG_NO("Persistent Epoch set to %u", suggestedEpoch);
+        LOG_NO("Epoch set to %u in ImmModel", suggestedEpoch);
+    }
+
+    if(pbeNodeIdPtr && getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
+        *continuationIdPtr = ++sLastContinuationId;
+        if(sLastContinuationId >= 0xfffffffe)
+        {sLastContinuationId = 1;}
+        TRACE("continuation generated: %u", *continuationIdPtr);
+
+        if(sPbeRtMutations.find(immObjectDn) == sPbeRtMutations.end()) {
+           ObjectMutation* oMut = new ObjectMutation(IMM_UPDATE_EPOCH);
+           oMut->mContinuationId = (*continuationIdPtr);
+           oMut->mAfterImage = NULL;
+           sPbeRtMutations[immObjectDn] = oMut;
+        } else {
+            LOG_WA("Continuation for Pbe mutation on %s already exists", immObjectDn.c_str());
+        }
     }
     
     return suggestedEpoch;
@@ -7927,6 +7976,33 @@ void ImmModel::pbeClassDeleteContinuation(SaUint32T invocation,
     assert(oMut->mOpType == IMM_DELETE_CLASS);
 
     LOG_IN("Delete of class %s is PERSISTENT.", i2->first.c_str());
+
+    sPbeRtMutations.erase(i2);
+    delete oMut;
+    TRACE_LEAVE();
+}
+
+void ImmModel::pbeUpdateEpochContinuation(SaUint32T invocation,
+    unsigned int nodeId)
+{
+    TRACE_ENTER();
+
+    ObjectMutationMap::iterator i2;
+    for(i2=sPbeRtMutations.begin(); i2!=sPbeRtMutations.end(); ++i2) {
+        if(i2->second->mContinuationId == invocation) {break;}
+    }
+
+    if(i2 == sPbeRtMutations.end()) {
+        LOG_WA("PBE update epoch continuation missing! invoc:%u",
+            invocation);
+        return;
+    }
+
+    ObjectMutation* oMut = i2->second;
+
+    assert(oMut->mOpType == IMM_UPDATE_EPOCH);
+
+    LOG_IN("Update of epoch is PERSISTENT.");
 
     sPbeRtMutations.erase(i2);
     delete oMut;
