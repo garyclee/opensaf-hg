@@ -1112,7 +1112,7 @@ static uns32 clms_mds_svc_event(struct ncsmds_callback_info *info)
 			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
 
 			/* Push the event and we are done */
-			if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+			if (m_NCS_IPC_SEND(&clms_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 				TRACE("ipc send failed");
 				free(evt);
 				rc = NCSCC_RC_FAILURE;
