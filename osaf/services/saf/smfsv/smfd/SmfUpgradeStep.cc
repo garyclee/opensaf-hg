@@ -1098,7 +1098,11 @@ SmfUpgradeStep::saveImmContent()
 	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 
-	std::string cmd = "/usr/local/bin/immdump /etc/opensaf/imm.xml";
+	std::string cmd = "immdump /etc/opensaf/imm.xml";
+	if (getenv("SMF_IMM_PERSIST_CMD") != NULL) {
+		cmd = getenv("SMF_IMM_PERSIST_CMD");
+	}
+
 	int result  = smf_system(cmd);
 	if (result != 0) {
 		TRACE("SmfUpgradeStep::saveImmContent fails, cmd=""%s"", rc=%d", cmd.c_str(), result);
