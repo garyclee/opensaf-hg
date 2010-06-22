@@ -95,6 +95,68 @@ SaUint32T plms_proc_standby_active_role_change()
 	return NCSCC_RC_SUCCESS;
 }
 /***********************************************************************
+ * Name          : plms_build_epath_to_entity_map_tree
+ *
+ *
+ * Description   :
+ *
+ * Arguments     :
+ *
+ * Return Values :
+ *
+***********************************************************************/
+SaUint32T plms_build_epath_to_entity_map_tree()
+{
+	SaUint32T (* hsm_func_ptr)(SaInt8T *epath_str,SaHpiEntityPathT *epath_ptr) = NULL;
+	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
+	PLMS_ENTITY *plm_ent;
+	PLMS_CB       *cb = plms_cb;
+	SaUint32T ret_err = NCSCC_RC_SUCCESS;
+
+	hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "convert_string_to_epath");
+	if ( NULL == hsm_func_ptr ) {
+		LOG_ER("dlsym() of HPI lib failed with error %s", dlerror());
+		return NCSCC_RC_FAILURE;
+	}
+	plm_ent = (PLMS_ENTITY *) ncs_patricia_tree_getnext(&cb->entity_info,
+			(SaUint8T *) 0);
+	while (plm_ent != NULL) {
+		if ((plm_ent->entity_type == PLMS_HE_ENTITY) &&
+		(plm_ent->entity.he_entity.saPlmHECurrEntityPath != NULL)) {
+			/* Add the epath to entity mapping to patricia tree.*/
+			epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)calloc(1,
+					sizeof(PLMS_EPATH_TO_ENTITY_MAP_INFO));
+			epath_to_ent->entity_path = (SaInt8T *)calloc(1,
+			strlen(plm_ent->entity.he_entity.saPlmHECurrEntityPath) +1);
+			strcpy(epath_to_ent->entity_path, plm_ent->entity.
+				he_entity.saPlmHECurrEntityPath);
+			ret_err = (* hsm_func_ptr)(epath_to_ent->entity_path,
+				&epath_to_ent->epath_key);
+			if ( NCSCC_RC_SUCCESS != ret_err  ){
+				LOG_ER("function returned the error %d", ret_err);
+				return ret_err;
+			}
+			epath_to_ent->plms_entity = plm_ent;
+			epath_to_ent->pat_node.key_info = (SaUint8T *)
+				&(epath_to_ent->epath_key);
+			ret_err = ncs_patricia_tree_add(
+					&cb->epath_to_entity_map_info,
+					&epath_to_ent->pat_node);
+			if (NCSCC_RC_SUCCESS != ret_err){
+				LOG_ER("Patricia tree add of epath_to_ent to \
+				cb->epath_to_entity_map_info failed.\
+				ret_err = %d", ret_err);
+				return ret_err;
+			}
+			TRACE("Entity Path: %s of entity: %s added to epath_to_ent_map tree",
+				plm_ent->entity.he_entity.saPlmHECurrEntityPath, plm_ent->dn_name_str);
+		}
+		plm_ent = (PLMS_ENTITY *) ncs_patricia_tree_getnext(&cb->entity_info,
+			(SaUint8T *) &plm_ent->dn_name);
+	}
+	return ret_err;
+}
+/***********************************************************************
  * Name          : plms_build_ent_grp_tree 
  *
  *

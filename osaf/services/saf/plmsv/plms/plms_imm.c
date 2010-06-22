@@ -3904,6 +3904,7 @@ void plms_proc_quiesced_standby_role_change()
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *ent_map_info;
 	PLMS_CLIENT_INFO *client_info;
 	PLMS_ENTITY_GROUP_INFO *ent_grp_info;
+	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	SaUint32T i;
 	TRACE_ENTER();	
 	/* clean up the imm configuration in the data structures */
@@ -4016,6 +4017,16 @@ void plms_proc_quiesced_standby_role_change()
 		free(ent_grp_info);
 	}
 	TRACE_2("Freed the entity group info tree");
+	/* Free epath_to_ent_map patricia tree */
+	while ((epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)
+		ncs_patricia_tree_getnext(&plms_cb->epath_to_entity_map_info,
+		(SaUint8T *) 0)) != NULL) {
+		free(epath_to_ent->entity_path);
+		ncs_patricia_tree_del(&plms_cb->epath_to_entity_map_info,
+			&epath_to_ent->pat_node);
+		free(epath_to_ent);
+	}
+	TRACE_2("Freed the epath_to_ent_map patricia  tree");
 	plms_cb->is_initialized = FALSE;
 	plms_cb->async_update_cnt = 0;
 	free_ckpt_track_step_info(plms_cb->prev_trk_step_rec);

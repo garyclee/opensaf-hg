@@ -241,15 +241,24 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 		else if (prev_haState == SA_AMF_HA_STANDBY) {
 			plms_proc_standby_active_role_change();
 		}
-		if((cb->hpi_intf_up == FALSE) && cb->hpi_cfg.hpi_support){
-			TRACE("Got Active role, spawning HSM & HRB");
-			rc = plms_hsm_hrb_init();
-			if(NCSCC_RC_FAILURE == rc) {
-				LOG_ER("hsm & hrb initialization failed");
-				rc = NCSCC_RC_FAILURE;
-				goto response;
+		if(cb->hpi_cfg.hpi_support){
+			if (cb->hpi_intf_up == FALSE) {
+				TRACE("Got Active role, spawning HSM & HRB");
+				rc = plms_hsm_hrb_init();
+				if(NCSCC_RC_FAILURE == rc) {
+					LOG_ER("hsm & hrb initialization failed");
+					goto response;
+				}
+				cb->hpi_intf_up = TRUE;
 			}
-			cb->hpi_intf_up = TRUE;
+			if (prev_haState == SA_AMF_HA_STANDBY) {
+				/* Build entity_path_to_entity mapping tree */
+				rc = plms_build_epath_to_entity_map_tree();
+				if( NCSCC_RC_SUCCESS != rc ){
+					LOG_ER("Failed to build entity_path_to_entity mapping tree");
+					goto response;
+				}
+			}
 		}
 		if( cb->hpi_intf_up ) {
 			TRACE("PLMS sending Active role to HSM");
