@@ -78,7 +78,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
 			(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
 
-			attrValues.attrName = OPENSAF_IMM_ATTR_CLASSES;
+			attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
 			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
 			attrValues.attrValuesNumber = 1;
 			attrValues.attrValues = &val;
@@ -121,7 +121,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
 			deleteClassToPBE(className, sDbHandle, theClass);
 
-			attrValues.attrName = OPENSAF_IMM_ATTR_CLASSES;
+			attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
 			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
 			attrValues.attrValuesNumber = 1;
 			attrValues.attrValues = &val;
