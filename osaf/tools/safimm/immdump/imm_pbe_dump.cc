@@ -163,7 +163,8 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 		 "CREATE TABLE objects_blob_multi (obj_id integer, attr_name text, blob_val blob, tuple_id integer primary key)",
 		 "CREATE INDEX objects_blob_multi_idx on objects_blob_multi (obj_id, attr_name)",
 
-		 "CREATE TABLE ccb_commits(ccb_id integer primary key, epoch integer, commit_time integer)",
+		 "CREATE TABLE ccb_commits(ccb_id integer, epoch integer, commit_time integer)",
+		 "CREATE INDEX ccb_commits_idx on ccb_commits (ccb_id, epoch)",
 
 		 "COMMIT TRANSACTION",
 		 NULL
@@ -1848,6 +1849,36 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T currentEp
 	return SA_AIS_OK;
 }
 
+void purgeCcbCommitsFromPbe(void* db_handle, SaUint32T currentEpoch)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	char *execErr=NULL;
+	int rc=0;
+	std::string sqlPurge("delete from ccb_commits where epoch <= ");
+	char epochStr[STRINT_BSZ];
+
+	if(currentEpoch < 11) return;
+
+	snprintf(epochStr, STRINT_BSZ, "%u", currentEpoch - 10);
+	sqlPurge.append(epochStr);
+
+	TRACE("GENERATED sqlPurge:%s", sqlPurge.c_str());
+	rc = sqlite3_exec(dbHandle, sqlPurge.c_str(), NULL, NULL, &execErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sqlPurge.c_str(), execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u ccb commits", sqlite3_changes(dbHandle));
+	return;
+
+ bailout:
+	sqlite3_close(dbHandle);
+	LOG_ER("Exiting");
+	exit(1);
+}
+
 void pbeAbortTrans(void* db_handle)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
@@ -1912,7 +1943,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 	TRACE_LEAVE();
 	return err;
  bailout:
-	sqlite3_close((sqlite3 *) dbHandle);
+	sqlite3_close(dbHandle);
 	LOG_ER("Exiting");
 	exit(1);
 }
@@ -2012,6 +2043,11 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epo
 }
 
 unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
+{
+	assert(0);
+}
+
+void purgeCcbCommitsFromPbe(void* sDbHandle, SaUint32T currentEpoch)
 {
 	assert(0);
 }

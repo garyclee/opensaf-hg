@@ -171,7 +171,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		/*objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, opensafObj,
 		  &attrValues, 0);*/
 
-		objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);		
+		objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
+
+		purgeCcbCommitsFromPbe(sDbHandle, sEpoch);
 
 		rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
 		if(rc != SA_AIS_OK) {
@@ -788,6 +790,11 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;	
 		rc = saImmOiClassImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_CLASS_NAME);
+	}
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiClassImplementerSet for %s failed %u", OPENSAF_IMM_CLASS_NAME, rc);
+		return rc;
 	}
 
 	rc = saImmOiSelectionObjectGet(pbeOiHandle, &immOiSelectionObject);

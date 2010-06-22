@@ -74,6 +74,8 @@ SaAisErrorT pbeBeginTrans(void* db_handle);
 SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch);
 void pbeAbortTrans(void* db_handle);
 
+void purgeCcbCommitsFromPbe(void* sDbHandle, SaUint32T currentEpoch);
+
 void objectModifyDiscardAllValuesOfAttrToPBE(void* dbHandle, 
 	std::string objName, const SaImmAttrValuesT_2* modAttr,
 	SaUint64T ccb_id);

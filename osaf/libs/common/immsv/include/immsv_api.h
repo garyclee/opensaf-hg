@@ -36,6 +36,7 @@ extern "C" {
 #define OPENSAF_IMM_ATTR_CLASSES "opensafImmClassNames"
 #define OPENSAF_IMM_ATTR_EPOCH "opensafImmEpoch"
 #define OPENSAF_IMM_ATTR_RDN "opensafImm"
+#define OPENSAF_IMM_ATTR_NOSTD_FLAGS "opensafImmNostdFlags"
 #define OPENSAF_IMM_OBJECT_DN "opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"

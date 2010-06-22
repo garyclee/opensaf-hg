@@ -183,7 +183,8 @@ void opensafClassCreate(SaImmHandleT immHandle)
 {
     SaAisErrorT err = SA_AIS_OK;
     int retries=0;
-    SaImmAttrDefinitionT_2 d1, d2, d3;
+    SaImmAttrDefinitionT_2 d1, d2, d3, d4;
+    SaUint32T nost_flags_default = 0;
 
     d1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
     d1.attrValueType = SA_IMM_ATTR_SANAMET;
@@ -201,7 +202,12 @@ void opensafClassCreate(SaImmHandleT immHandle)
         SA_IMM_ATTR_MULTI_VALUE;
     d3.attrDefaultValue = NULL;
 
-    const SaImmAttrDefinitionT_2* attrDefs[4] = {&d1, &d2, &d3, 0};
+    d4.attrName = (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS;
+    d4.attrValueType = SA_IMM_ATTR_SAUINT32T;
+    d4.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED;
+    d4.attrDefaultValue = &nost_flags_default;
+
+    const SaImmAttrDefinitionT_2* attrDefs[5] = {&d1, &d2, &d3, &d4, 0};
 
 
     do {/* Create the class */
