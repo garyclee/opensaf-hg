@@ -47,10 +47,14 @@ void immnd_proc_immd_down(IMMND_CB *cb);
 
 void immnd_proc_imma_up(IMMND_CB *cb, MDS_DEST dest);
 void immnd_proc_app_status(IMMND_CB *cb);
-void immnd_adjustEpoch(IMMND_CB *cb);
+void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment);
 uns32 immnd_introduceMe(IMMND_CB *cb);
 void immnd_announceDump(IMMND_CB *cb);
 uns32 immnd_is_immd_up(IMMND_CB *cb);
+IMMSV_ADMIN_OPERATION_PARAM * immnd_getOsafImmPbeAdmopParam(
+	    SaImmAdminOperationIdT operationId, 
+	    void* evt,
+	    IMMSV_ADMIN_OPERATION_PARAM * param);
 void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint32T reqConn);
 void immnd_ackToNid(uns32 rc);
 SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
@@ -258,7 +262,9 @@ extern "C" {
 	SaAisErrorT
 	    immModel_finalizeSync(IMMND_CB *cb, struct ImmsvOmFinalizeSync *req, SaBoolT isCoord, SaBoolT isSyncClient);
 
-	SaUint32T immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch);
+	SaUint32T immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch,
+		SaUint32T *continuationId, SaUint32T *pbeConn,
+		SaClmNodeIdT *pbeNodeId, SaBoolT increment);
 
 	SaUint32T immModel_adminOwnerChange(IMMND_CB *cb, const struct immsv_a2nd_admown_set *req, SaBoolT isRelease);
 	void immModel_getAdminOwnerIdsForCon(IMMND_CB *cb, SaUint32T conn, SaUint32T *arrSize, SaUint32T **ccbIdArr);
@@ -284,6 +290,9 @@ extern "C" {
 
 	void immModel_pbeClassDeleteContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaClmNodeIdT nodeId, SaUint32T *reqConn);
+
+	void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
+		SaUint32T invocation, SaClmNodeIdT nodeId);
 
 
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,

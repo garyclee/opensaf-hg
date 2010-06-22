@@ -233,6 +233,9 @@ public:
                                                      unsigned int nodeId, 
                                                      SaUint32T *reqConn);
     
+    void                 pbeUpdateEpochContinuation(
+                                                     SaUint32T invocation,
+                                                     unsigned int nodeId);
     
     // Administrative operations
     SaAisErrorT         adminOperationInvoke(
@@ -340,7 +343,12 @@ public:
     void              getObjectName(ObjectInfo* obj, std::string& name);
     void              setLoader(int pid);
     int               getLoader();
-    int               adjustEpoch(int suggestedEpoch);
+    int               adjustEpoch(int suggestedEpoch, 
+                                  SaUint32T* continuationId,
+                                  SaUint32T* pbeConnPtr,
+                                  unsigned int* pbeNodeIdPtr,
+	                          bool increment);
+
     SaImmRepositoryInitModeT getRepositoryInitMode();
     void              prepareForLoading();
     bool              readyForLoading();

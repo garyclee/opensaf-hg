@@ -57,93 +57,135 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	const SaImmAdminOperationParamsT_2 *param = params[0];
 	SaAisErrorT rc = SA_AIS_OK;
 	SaImmAttrValuesT_2 attrValues;
-	void* sastringVal;
-	SaImmAttrValueT val = &sastringVal;
+	SaStringT sastringVal;
+	SaImmAttrValueT val;
 	std::string opensafObj((const char *) objectName->value);
 
 	TRACE_ENTER();
 
 	if(opId == OPENSAF_IMM_PBE_CLASS_CREATE) {
-		if(param) {
-			TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
-			std::string className(*((SaStringT *) param->paramBuffer));
+		if(!param) {goto done;}
+		TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
+		std::string className(*((SaStringT *) param->paramBuffer));
 
-			rc = pbeBeginTrans(sDbHandle);
-			if(rc != SA_AIS_OK) {
-				LOG_WA("PBE failed to start transaction for class create");
-				goto done;
-			}
-			TRACE("Begin PBE transaction for class create OK");
+		rc = pbeBeginTrans(sDbHandle);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to start transaction for class create");
+			goto done;
+		}
+		TRACE("Begin PBE transaction for class create OK");
 
 
-			(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
+		(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
 
-			attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
-			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
-			attrValues.attrValuesNumber = 1;
-			attrValues.attrValues = &val;
-			sastringVal = (void *) className.c_str();
+		attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
+		attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
+		attrValues.attrValuesNumber = 1;
+		attrValues.attrValues = &val;
+		val = &sastringVal;
+		sastringVal = (SaStringT) className.c_str();
 			
-			objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
+		objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
 
-			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
-			if(rc != SA_AIS_OK) {
-				LOG_WA("PBE failed to commit transaction for class create");
-				goto done;
-			}
-			TRACE("Commit PBE transaction for class create");
-			/* We only reply with ok result. PBE failed class create handled by timeout, cleanup.
-			   We encode OK result for OPENSAF_IMM_PBE_CLASS_CREATE with the arbitrary and otherwise
-			   unused (in immsv) error code SA_AIS_ERR_REPAIR_PENDING. This way the immnd can tell that this
-			   is supposed to be an ok reply on PBE_CLASS_CREATE. This usage is internal to immsv.
-			 */
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING);
+		rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to commit transaction for class create");
+			goto done;
 		}
-		goto done;
+		TRACE("Commit PBE transaction for class create");
+		/* We only reply with ok result. PBE failed class create handled by timeout, cleanup.
+		   We encode OK result for OPENSAF_IMM_PBE_CLASS_CREATE with the arbitrary and otherwise
+		   unused (in immsv) error code SA_AIS_ERR_REPAIR_PENDING. This way the immnd can tell that this
+		   is supposed to be an ok reply on PBE_CLASS_CREATE. This usage is internal to immsv.
+		*/
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING);
+
 	} else if(opId == OPENSAF_IMM_PBE_CLASS_DELETE) {
-		if(param) {
-			TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
-			std::string className(*((SaStringT *) param->paramBuffer));
+		if(!param) {goto done;}
+		TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
+		std::string className(*((SaStringT *) param->paramBuffer));
 
-			rc = pbeBeginTrans(sDbHandle);
-			if(rc != SA_AIS_OK) {
-				LOG_WA("PBE failed to start transaction for class delete");
-				goto done;
-			}
-			TRACE("Begin PBE transaction for class delete OK");
-
-			ClassInfo* theClass = (*sClassIdMap)[className];
-			if(!theClass) {
-				LOG_ER("Class %s missing from classIdMap", className.c_str());
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-
-			deleteClassToPBE(className, sDbHandle, theClass);
-
-			attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
-			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
-			attrValues.attrValuesNumber = 1;
-			attrValues.attrValues = &val;
-			sastringVal = (void *) className.c_str();
-
-			objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, opensafObj,
-				&attrValues, 0);			
-
-			rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
-			if(rc != SA_AIS_OK) {
-				LOG_WA("PBE failed to commit transaction for class delete");
-				goto done;
-			}
-			TRACE("Commit PBE transaction for class delete");
-			/* We only reply with ok result. PBE failed class delete handled by timeout, cleanup.
-			   We encode OK result for OPENSAF_IMM_PBE_CLASS_DELETE with the arbitrary and otherwise
-			   unused (in immsv) error code SA_AIS_ERR_NO_SPACE. This way the immnd can tell that this
-			   is supposed to be an ok reply on PBE_CLASS_DELETE. This usage is internal to immsv.
-			 */
-			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NO_SPACE);
+		rc = pbeBeginTrans(sDbHandle);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to start transaction for class delete");
+			goto done;
 		}
-		goto done;
+		TRACE("Begin PBE transaction for class delete OK");
+
+		ClassInfo* theClass = (*sClassIdMap)[className];
+		if(!theClass) {
+			LOG_ER("Class %s missing from classIdMap", className.c_str());
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		deleteClassToPBE(className, sDbHandle, theClass);
+
+		attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
+		attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
+		attrValues.attrValuesNumber = 1;
+		attrValues.attrValues = &val;
+		val = &sastringVal;
+		sastringVal = (SaStringT) className.c_str();
+
+		objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, opensafObj,
+			&attrValues, 0);			
+
+		rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to commit transaction for class delete");
+			goto done;
+		}
+		TRACE("Commit PBE transaction for class delete");
+		/* We only reply with ok result. PBE failed class delete handled by timeout, cleanup.
+		   We encode OK result for OPENSAF_IMM_PBE_CLASS_DELETE with the arbitrary and otherwise
+		   unused (in immsv) error code SA_AIS_ERR_NO_SPACE. This way the immnd can tell that this
+		   is supposed to be an ok reply on PBE_CLASS_DELETE. This usage is internal to immsv.
+		*/
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NO_SPACE);
+
+	} else if(opId == OPENSAF_IMM_PBE_UPDATE_EPOCH) {
+		TRACE("paramName: %s paramType: %u value:%u", param->paramName, param->paramType, *((SaUint32T *) param->paramBuffer));
+		if(!param) {goto done;}
+		SaUint32T epoch = (*((SaUint32T *) param->paramBuffer));
+
+		if(sEpoch >= epoch) {
+			TRACE("Current epoch %u already equal or greater than %u ignoring", sEpoch, epoch);
+			goto done;
+		}
+		sEpoch = epoch;
+
+		rc = pbeBeginTrans(sDbHandle);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to start transaction for update epoch");
+			goto done;
+		}
+		TRACE("Begin PBE transaction for update epoch OK");
+
+		attrValues.attrName = OPENSAF_IMM_ATTR_EPOCH;
+		attrValues.attrValueType = SA_IMM_ATTR_SAUINT32T;
+		attrValues.attrValuesNumber = 1;
+		attrValues.attrValues = &val;
+		val = &epoch;
+
+		/*objectModifyDiscardMatchingValuesOfAttrToPBE(sDbHandle, opensafObj,
+		  &attrValues, 0);*/
+
+		objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);		
+
+		rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("PBE failed to commit transaction for update epoch");
+			goto done;
+		}
+		TRACE("Commit PBE transaction for update epoch");
+		/* We only reply with ok result. PBE failed update epoch handled by timeout, cleanup.
+		   We encode OK result for OPENSAF_IMM_PBE_UPDATE_EPOCH with the arbitrary and otherwise
+		   unused (in immsv) error code SA_AIS_ERR_QUEUE_NOT_AVAILABLE. This way the immnd can
+		   tell that this is supposed to be an ok reply on PBE_UPDATE_EPOCH. This usage is
+		   internal to immsv.
+		*/
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_QUEUE_NOT_AVAILABLE);
 	} else {
 		LOG_ER("Invalid operation ID %llu", (SaUint64T) opId);
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);

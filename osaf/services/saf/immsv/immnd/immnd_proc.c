@@ -525,6 +525,10 @@ static SaInt32T immnd_syncNeeded(IMMND_CB *cb)
 
 static uns32 immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 {
+	/* announceSync can get into a race on epoch with announceDump. This is because
+	   announcedump can be generated at the non-coord SC. The epoch sequence
+	   should be corrected by the IMMD before replying with dumpOk/syncOk. 
+	 */
 	uns32 rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -556,17 +560,65 @@ static uns32 immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 	return 1;
 }
 
-void immnd_adjustEpoch(IMMND_CB *cb)
+IMMSV_ADMIN_OPERATION_PARAM *
+immnd_getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
+	IMMSV_ADMIN_OPERATION_PARAM * param)
 {
-	TRACE_ENTER();
-	/*Correct epoch for counter loaded from backup/sync
-	   First check that current members agree ?? */
+	const char * classNameParamName = "className";
+	const char* epochStr = OPENSAF_IMM_ATTR_EPOCH;
 
-	int newEpoch = immModel_adjustEpoch(cb, cb->mMyEpoch);
+	IMMSV_OM_CLASS_DESCR* classDescr=NULL;
+	IMMND_CB *cb = NULL;
+	switch(operationId) {
+		case OPENSAF_IMM_PBE_CLASS_CREATE:
+		case OPENSAF_IMM_PBE_CLASS_DELETE:
+			classDescr = (IMMSV_OM_CLASS_DESCR *) evt;
+			param->paramName.size = strlen(classNameParamName);
+			param->paramName.buf = (char *) classNameParamName;
+			param->paramType = SA_IMM_ATTR_SASTRINGT;
+			param->paramBuffer.val.x = classDescr->className;
+			param->next = NULL;
+			break;
+
+		case OPENSAF_IMM_PBE_UPDATE_EPOCH:
+			cb = (IMMND_CB *) evt;
+			param->paramName.size = strlen(epochStr);
+			param->paramName.buf = (char *) epochStr;
+			param->paramType = SA_IMM_ATTR_SAUINT32T;
+			param->paramBuffer.val.sauint32 = cb->mMyEpoch;
+			param->next = NULL;
+	}
+	return param;
+}
+
+
+void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
+{
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaUint32T continuationId = 0;
+	TRACE_ENTER2("Epoch on entry:%u", cb->mMyEpoch);
+
+	/*Correct epoch for counter loaded from backup/sync.
+	  Also push the PRTO epoch attribute to PBE if present.
+	 */
+
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		TRACE("We expect there to be a PBE");
+		/* If pbeNodeIdPtr is NULL then rtObjectUpdate skips the lookup
+		   of the pbe implementer.
+		 */
+	}
+
+
+	int newEpoch = immModel_adjustEpoch(cb, cb->mMyEpoch,
+		&continuationId, &pbeConn, pbeNodeIdPtr, increment);
 	if (newEpoch != cb->mMyEpoch) {
 		/*This case only relevant when persistent epoch overrides
 		   last epoch, i.e. after reload at cluster start. */
-		TRACE_5("Adjusting epoch to:%u", newEpoch);
+		TRACE_5("ABT Adjusting epoch to:%u", newEpoch);
 		cb->mMyEpoch = newEpoch;
 		if (cb->mRulingEpoch != newEpoch) {
 			assert(cb->mRulingEpoch < newEpoch);
@@ -576,6 +628,51 @@ void immnd_adjustEpoch(IMMND_CB *cb)
 	}
 	assert(immnd_introduceMe(cb) == NCSCC_RC_SUCCESS);
 	/* Convert to a test and postpone intro if we can note & do it later. */
+
+	if(pbeNodeId && pbeConn) {
+		IMMND_IMM_CLIENT_NODE *pbe_cl_node = NULL;
+		SaImmOiHandleT implHandle = 0LL;
+
+
+		/*The persistent back-end is executing at THIS node. */
+		assert(cb->mIsCoord);
+		assert(pbeNodeId == cb->node_id);
+		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+		/*Fetch client node for PBE */
+		immnd_client_node_get(cb, implHandle, &pbe_cl_node);
+		assert(pbe_cl_node);
+		if (pbe_cl_node->mIsStale) {
+			LOG_WA("PBE is down => persistify of epoch is dropped!");
+		} else {
+			IMMSV_EVT send_evt;
+			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
+			IMMSV_ADMIN_OPERATION_PARAM param;
+			memset(&param, '\0', sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_PBE_ADMOP;
+			send_evt.info.imma.info.admOpReq.adminOwnerId = 0; /* Only allowed for PBE. */
+			send_evt.info.imma.info.admOpReq.operationId = OPENSAF_IMM_PBE_UPDATE_EPOCH;
+
+			send_evt.info.imma.info.admOpReq.continuationId = implHandle;
+			send_evt.info.imma.info.admOpReq.invocation = continuationId;
+			send_evt.info.imma.info.admOpReq.timeout = 0;
+			send_evt.info.imma.info.admOpReq.objectName.size = strlen(osafImmDn);
+			send_evt.info.imma.info.admOpReq.objectName.buf = (char *) osafImmDn;
+			send_evt.info.imma.info.admOpReq.params =
+				immnd_getOsafImmPbeAdmopParam(OPENSAF_IMM_PBE_UPDATE_EPOCH,
+					cb, &param);
+
+			TRACE_2("MAKING PBE-IMPLEMENTER PERSISTENT UPDATE EPOCH upcall");
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				    pbe_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS)
+			{
+				LOG_WA("Upcall over MDS for persistent class create "
+					"to PBE failed!");
+			}
+		}
+	}
 
 	TRACE_LEAVE();
 }
@@ -645,7 +742,7 @@ static void immnd_abortSync(IMMND_CB *cb)
 		sleep(1);
 	}
 
-	immnd_adjustEpoch(cb);
+	immnd_adjustEpoch(cb, SA_TRUE);
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
@@ -1388,7 +1485,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 					immnd_ackToNid(rc);
 				}
 			} else if (immModel_getLoader(cb) == 0) {	/*Success in loading */
-				immnd_adjustEpoch(cb);
+				immnd_adjustEpoch(cb, SA_TRUE);
 				cb->mState = IMM_SERVER_READY;
 				immnd_ackToNid(NCSCC_RC_SUCCESS);
 				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_SERVER --> IMM_SERVER_READY");
@@ -1435,7 +1532,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			immnd_ackToNid(rc);
 		}
 		if (immModel_getLoader(cb) == 0) {
-			immnd_adjustEpoch(cb);
+			immnd_adjustEpoch(cb, SA_TRUE);
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
 			cb->mState = IMM_SERVER_READY;
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY");
