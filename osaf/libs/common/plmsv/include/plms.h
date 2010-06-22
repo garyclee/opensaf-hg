@@ -647,4 +647,5 @@ EXTERN_C SaUint32T plms_hsm_hrb_init();
 EXTERN_C SaUint64T  plm_handle_pool;
 EXTERN_C SaUint64T  entity_grp_hdl_pool;
 EXTERN_C void plm_imm_reinit_bg(PLMS_CB *cb);
+EXTERN_C SaUint32T plms_build_epath_to_entity_map_tree();
 #endif   /* PLMS_H */

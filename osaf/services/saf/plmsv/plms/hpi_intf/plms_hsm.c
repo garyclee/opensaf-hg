@@ -222,7 +222,7 @@ static void *plms_hsm(void)
 	SaHpiRdrT   	  rdr;
 	SaHpiHsStateT  	  state;
 	SaUint32T	  retriev_idr_info = 0;
-	SaInt32T	  rc;
+	SaInt32T	  rc,ret;
 	SaInt32T	  got_new_active = FALSE;
 
 	TRACE_ENTER();
@@ -290,9 +290,30 @@ static void *plms_hsm(void)
 			got_new_active = FALSE;
 		}
 
-		rc = saHpiEventGet(cb->session_id, SAHPI_TIMEOUT_BLOCK, 
+		ret = saHpiEventGet(cb->session_id, SAHPI_TIMEOUT_BLOCK, 
 					&event, &rdr, &rpt_entry, NULL);
-		if( SA_OK != rc ){
+		rc = pthread_mutex_lock(&hsm_ha_state.mutex);
+		if(rc){
+			LOG_CR("HSM: Failed to take hsm_ha_state lock, exiting \
+			the thread, ret value:%d err:%s", rc, strerror(errno));
+			assert(0);
+		}
+		if(hsm_ha_state.state != SA_AMF_HA_ACTIVE){
+			rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
+			if(rc){
+				LOG_CR("HSM:Failed to unlock hsm_ha_state lock,exiting \
+				the thread, ret value:%d err:%s", rc, strerror(errno));
+				assert(0);
+			}
+			continue;
+		}
+		rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
+		if(rc){
+			LOG_CR("HSM:Failed to unlock hsm_ha_state lock,exiting \
+			the thread, ret value:%d err:%s", rc, strerror(errno));
+			assert(0);
+		}
+		if( SA_OK != ret ){
 			LOG_ER("HSM:saHpiEventGet failed, ret val is:%d",rc);
 			/* Reopen the session */
 			hsm_session_reopen();

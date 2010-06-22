@@ -3214,6 +3214,9 @@ SaUint32T plms_hpi_hs_evt_process(PLMS_EVT *evt)
 		ent->entity.he_entity.saPlmHEPresenceState,\
 		hpi_evt->sa_hpi_evt.EventDataUnion.HotSwapEvent.HotSwapState);
 
+		/* Populate the entity state model.*/
+		ent->state_model = hpi_evt->state_model;
+
 		/* Verification is not needed. I am assuming if the entity is 
 		present in epath_to_entity tree, then it is verified and hence
 		not cheking the CurrEntityPath and CurrHEType. Call FSM.*/
