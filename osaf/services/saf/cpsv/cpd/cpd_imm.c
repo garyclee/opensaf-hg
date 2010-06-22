@@ -23,6 +23,8 @@
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define CPSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safCheckPointService"
+const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
+
 /* IMMSv Defs */
 #define CPSV_IMM_RELEASE_CODE 'A'
 #define CPSV_IMM_MAJOR_VERSION 0x02
@@ -34,7 +36,6 @@ static SaVersionT imm_version = {
 	CPSV_IMM_MINOR_VERSION
 };
 
-static const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
 static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
 static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
@@ -496,19 +497,6 @@ static void *_cpd_imm_declare_implementer(void *cb)
 	return NULL;
 }
 
-/**
- * Become object implementer, non-blocking.
- * @param cb
- */
-void cpd_imm_declare_implementer(CPD_CB *cb)
-{
-	pthread_t thread;
-
-	if (pthread_create(&thread, NULL, _cpd_imm_declare_implementer, cb) != 0) {
-		cpd_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-}
 
 void cpd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
 				     const char *rdn_tag, SaNameT *dn)
