@@ -879,6 +879,7 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/include/Makefile
         osaf/tools/safntf/ntfsend/Makefile
         osaf/tools/safntf/ntfsubscribe/Makefile
+        osaf/tools/safntf/ntfread/Makefile
         osaf/tools/rde/Makefile
         osaf/tools/scripts/Makefile
         pkgconfig/Makefile
