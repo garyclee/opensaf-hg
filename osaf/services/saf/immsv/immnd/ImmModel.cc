@@ -5849,6 +5849,7 @@ ImmModel::schemaNameCheck(const std::string& name) const
        problems in sqlite. Each imm-class is mapped to several tables,
        but one table is named usingthe classname. 
     */
+    unsigned char chr;
     size_t pos;
     size_t len = name.length();
 
@@ -5857,7 +5858,7 @@ ImmModel::schemaNameCheck(const std::string& name) const
     }
 
     for(pos=0; pos < len; ++pos) {
-        unsigned char chr = name.at(pos);
+        chr = name.at(pos);
         if(isalnum(chr)||(chr == 95)) {
             continue;      /* _ */
         } else {
@@ -5865,6 +5866,14 @@ ImmModel::schemaNameCheck(const std::string& name) const
                 name.c_str(), chr, pos);
             return false;
         }
+    }
+
+    chr = name.at(0);
+
+    if(isdigit(chr)) {
+        LOG_IN("Bad class/attribute name starts with number: '%s' (%c): pos=%zu", 
+            name.c_str(), chr, 0);
+        return false;	    
     }
 
     return true;
