@@ -1153,6 +1153,7 @@ static SaUint32T plms_clean_mbcsv_database()
 			free(tmp_ent_grp_ptr1);
 			tmp_ent_grp_ptr1 = tmp_ent_grp_ptr2;
 		}
+		client_info->entity_group_list = NULL;
 		ncs_patricia_tree_del(&cb->client_info, &client_info->pat_node);
 		free(client_info);
 	}

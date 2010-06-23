@@ -67,6 +67,7 @@ static SaUint32T hsm_get_idr_chassis_info(SaHpiRptEntryT  *rpt_entry,
 				 	SaHpiIdrIdT 	  idr_id,
 				 	PLMS_INV_DATA     *inv_data);
 static SaUint32T hsm_session_reopen();
+SaUint32T plms_hsm_session_close();
 static SaUint32T hsm_discover_and_dispatch();
 static void *plms_hsm();
 
@@ -256,6 +257,18 @@ static void *plms_hsm(void)
 	/* Discover and dispatch the pending hotswap events */
 	hsm_discover_and_dispatch();
 
+	/* PLMC initialize */
+        if( !plms_cb->plmc_initialized && plms_cb->ha_state == SA_AMF_HA_ACTIVE ) {
+                rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,plms_plmc_error_cbk);
+                if (rc) {
+                        LOG_ER("PLMC initialize failed");
+                        rc = NCSCC_RC_FAILURE;
+                        exit(0);
+                }
+		plms_cb->plmc_initialized = TRUE;
+		TRACE("PLMC initialization Success.");
+        }
+
 	TRACE("HSM:Blocking to receive events on HPI session");
 	while(TRUE){
 		rc = pthread_mutex_lock(&hsm_ha_state.mutex);
@@ -265,14 +278,10 @@ static void *plms_hsm(void)
 			assert(0);
 		}
 		if(hsm_ha_state.state != SA_AMF_HA_ACTIVE){
-			/* Wait on condition variable for the HA role from PLMS 			main thread */
-			TRACE("HSM:Received Standby state, thread going to \
-					block till Active state is set");
-			pthread_cond_wait(&hsm_ha_state.cond,
-					&hsm_ha_state.mutex);
-
+			/* Wait on condition variable for the HA role from PLMS main thread */
+			TRACE("HSM:Received Standby state,thread going to block till Active state is set");
+			pthread_cond_wait(&hsm_ha_state.cond,&hsm_ha_state.mutex);
 			got_new_active = TRUE;
-			
 		}
 		rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
 		if(rc){
@@ -288,29 +297,38 @@ static void *plms_hsm(void)
 			hsm_discover_and_dispatch();
 
 			got_new_active = FALSE;
+
+			/* PLMC initialize */
+			if( !plms_cb->plmc_initialized ) {
+				rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,plms_plmc_error_cbk);
+				if (rc) {
+					LOG_ER("PLMC initialize failed");
+					rc = NCSCC_RC_FAILURE;
+					exit(0);
+				}
+				plms_cb->plmc_initialized = TRUE;
+				TRACE("PLMC initialization Success.");
+			}
 		}
 
 		ret = saHpiEventGet(cb->session_id, SAHPI_TIMEOUT_BLOCK, 
 					&event, &rdr, &rpt_entry, NULL);
 		rc = pthread_mutex_lock(&hsm_ha_state.mutex);
 		if(rc){
-			LOG_CR("HSM: Failed to take hsm_ha_state lock, exiting \
-			the thread, ret value:%d err:%s", rc, strerror(errno));
+			LOG_CR("HSM: Failed to take hsm_ha_state lock,exiting thread, ret value:%d err:%s",rc,strerror(errno));
 			assert(0);
 		}
 		if(hsm_ha_state.state != SA_AMF_HA_ACTIVE){
 			rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
 			if(rc){
-				LOG_CR("HSM:Failed to unlock hsm_ha_state lock,exiting \
-				the thread, ret value:%d err:%s", rc, strerror(errno));
+				LOG_CR("HSM:Failed to unlock hsm_ha_state,exiting thread,ret value:%d err:%s",rc,strerror(errno));
 				assert(0);
 			}
 			continue;
 		}
 		rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
 		if(rc){
-			LOG_CR("HSM:Failed to unlock hsm_ha_state lock,exiting \
-			the thread, ret value:%d err:%s", rc, strerror(errno));
+			LOG_CR("HSM:Failed to unlock hsm_ha_state,exiting thread,ret value:%d err:%s",rc,strerror(errno));
 			assert(0);
 		}
 		if( SA_OK != ret ){
@@ -322,8 +340,7 @@ static void *plms_hsm(void)
 			continue;
 		}
 
-		TRACE("HSM:Receieved event for res_id:%u Evt type:%u ",
-			rpt_entry.ResourceId,event.EventType);
+		TRACE("HSM:Receieved event for res_id:%u Evt type:%u ",rpt_entry.ResourceId,event.EventType);
 
 		/* Get the Hotswap State model for this resource */
 		rc = hsm_get_hotswap_model(&rpt_entry,&hotswap_state_model);
@@ -332,18 +349,13 @@ static void *plms_hsm(void)
 		}
 
 		/* Get the hotswap state */
-		rc = saHpiHotSwapStateGet(cb->session_id,
-			rpt_entry.ResourceId,&state);
+		rc = saHpiHotSwapStateGet(cb->session_id,rpt_entry.ResourceId,&state);
 		if( SA_OK != rc )
 		{
-			LOG_ER("HSM:saHpiHotSwapStateGet failed for a res \
-					with state model as:%d and ret val:%d",
-					hotswap_state_model,rc); 
-
+			LOG_ER("HSM:saHpiHotSwapStateGet failed for a res with state model as:%d and ret val:%d",hotswap_state_model,rc);
 			continue;
 		}
-		TRACE("HSM:Hotswap state of res:%u is :%u",
-			rpt_entry.ResourceId,state);
+		TRACE("HSM:Hotswap state of res:%u is :%u",rpt_entry.ResourceId,state);
 
 		/* If it is a resource restore event( communication lost and
 		got restored immediately ) ,retrieve the hotswap state after
@@ -490,15 +502,13 @@ static SaUint32T hsm_discover_and_dispatch()
 			 }
 
 		}
-		TRACE("Retrieved RPT entry for res_id:%u ",
-			rpt_entry.ResourceId);
+		TRACE("Retrieved RPT entry for res_id:%u ",rpt_entry.ResourceId);
 
 		if(rpt_entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG){
 			rc = saHpiEventLogClear(cb->session_id,
 					      rpt_entry.ResourceId);
 			if (SA_OK != rc)
-				LOG_ER("saHpiEventLogClear failed ret val:%u",
-									rc);
+				LOG_ER("saHpiEventLogClear failed ret val:%u",rc);
 		}
 
 		/* Get the Hotswap State model for this resource */
@@ -537,15 +547,12 @@ static SaUint32T hsm_discover_and_dispatch()
 		}
 		
 		/* Get the hotswap state */
-		rc = saHpiHotSwapStateGet(cb->session_id,
-				rpt_entry.ResourceId,&state);
+		rc = saHpiHotSwapStateGet(cb->session_id,rpt_entry.ResourceId,&state);
 		if( SA_OK != rc){
-			LOG_ER("HSM:saHpiHotSwapStateGet failed for res:%u \
-				with ret val:%d",rpt_entry.ResourceId,rc); 
+			LOG_ER("HSM:saHpiHotSwapStateGet failed for res:%u with ret val:%d",rpt_entry.ResourceId,rc);
 			continue;
 		}
-		TRACE("Hotswap state of res:%u is :%u", rpt_entry.ResourceId,
-								state); 
+		TRACE("Hotswap state of res:%u is :%u", rpt_entry.ResourceId,state);
 		/* Retrieve IDR info if the state is 
 		SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_ACTIVE */
 		if ( SAHPI_HS_STATE_INSERTION_PENDING == state ||
@@ -561,8 +568,7 @@ static SaUint32T hsm_discover_and_dispatch()
 			rc = saHpiDomainInfoGet(cb->session_id, 
 					&latest_domain_info);
 			if( SA_OK != rc){
-				LOG_ER("HSM:saHpiDomainInfoGet failed with \
-						ret val:%d",rc); 
+				LOG_ER("HSM:saHpiDomainInfoGet failed with ret val:%d",rc); 
 				return rc;
 			}
 
@@ -640,7 +646,7 @@ static SaUint32T hsm_get_hotswap_model(SaHpiRptEntryT *rpt_entry,
 		TRACE("Resource :%d is not a FRU",rpt_entry->ResourceId);
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE("Hotswap State model for res:%u is:%u res_capab is:%u",
+	TRACE("Hotswap State model for res:%u is:%u res_capab is:%x",
 	      		rpt_entry->ResourceId,*hotswap_state_model,
 	      		rpt_entry->ResourceCapabilities);
 	
@@ -1212,8 +1218,10 @@ static SaUint32T hsm_session_reopen()
 	TRACE_ENTER();
 
 	/* Close the session */
-	if((err = saHpiSessionClose(cb->session_id))!= SA_OK)
-		LOG_ER("HSM:Close session return error: %d:\n",err);
+	if(cb->session_id){
+		if((err = saHpiSessionClose(cb->session_id))!= SA_OK)
+			LOG_ER("HSM:Close session return error: %d:\n",err);
+	}
 
 	/* Reset the session_id */
 	cb->session_id = 0;
@@ -1279,5 +1287,28 @@ static SaUint32T hsm_session_reopen()
 	}
 
 	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+/***********************************************************************
+* @brief	 This function closes HPI session
+* 
+* @param[in] 
+*                
+*
+* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
+***********************************************************************/
+SaUint32T plms_hsm_session_close()
+{
+	PLMS_HSM_CB        *cb = hsm_cb;
+	SaUint32T	   rc = 0;
+	/* Close the HPI session */
+        rc = saHpiSessionClose(cb->session_id);
+        if (SA_OK != rc){
+        	LOG_ER("HSM:Close session return error: %d:\n",rc);
+	        return NCSCC_RC_FAILURE;
+	}
+
+	/* Reset the session_id */
+	cb->session_id = 0;
 	return NCSCC_RC_SUCCESS;
 }

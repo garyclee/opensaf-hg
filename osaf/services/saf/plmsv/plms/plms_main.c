@@ -325,13 +325,11 @@ static uns32 plms_init()
 		}
 	}
 
-	if( cb->hpi_cfg.hpi_support ) {
-		if( cb->ha_state == SA_AMF_HA_ACTIVE ){
-			rc = plms_hsm_hrb_init();
-			if(NCSCC_RC_FAILURE == rc)
-				goto done;
-			cb->hpi_intf_up = TRUE;
-		}
+	if( cb->hpi_cfg.hpi_support && cb->ha_state == SA_AMF_HA_ACTIVE ) {
+		rc = plms_hsm_hrb_init();
+		if(NCSCC_RC_FAILURE == rc)
+			goto done;
+		cb->hpi_intf_up = TRUE;
 	}
 
 	plms_tmr_handler_install();
@@ -340,7 +338,7 @@ static uns32 plms_init()
 	plms_ee_adm_fsm_init(plm_EE_adm_state_op);
 
 	/* PLMC initialize */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+	if ( !cb->hpi_cfg.hpi_support && cb->ha_state == SA_AMF_HA_ACTIVE) {
 		rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,
 		plms_plmc_error_cbk);
 		if (rc) {
@@ -355,7 +353,7 @@ static uns32 plms_init()
         rc = saNtfInitialize(&cb->ntf_hdl, &ntf_callbacks, &ntf_version);
         if (rc != SA_AIS_OK) {
                 /* log the error code here */
-		LOG_ER("Ntf Initialization failed");
+		LOG_ER("NTF Initialization failed");
                 goto done;
         }
 
