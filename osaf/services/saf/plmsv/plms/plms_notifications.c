@@ -207,7 +207,7 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 /*	SaNtfMiscellaneousNotificationT plm_notification; */
 	SaNtfStateChangeNotificationT   plm_notification;
 	SaAisErrorT                     ret = NCSCC_RC_SUCCESS; 
-	SaStringT                       dest_ptr1,dest_ptr2;
+	SaStringT                       dest_ptr1 = NULL;
 	SaUint16T			ntf_obj_len = 0;
 
 	/* FIXME : Need to enable, when the following API is supported */
@@ -225,7 +225,7 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 					    &plm_notification,
 					    no_of_corr_notifications, /* No of correlated notifs */
 					    0, /* Len of additional text */
-					    3, /* At present fixed it to 3 */ 
+					    2, /* At present fixed it to 2, only mandatory fields. */ 
 					    0,
 					    SA_NTF_ALLOC_SYSTEM_LIMIT  /* variable data size*/
 					    );
@@ -237,44 +237,32 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 	switch ( event_type ) {
 		case SAHPI_ET_RESOURCE:
 		case SAHPI_ET_HOTSWAP:
-			*(plm_notification.notificationHeader.eventType) = 
-						SA_NTF_HPI_EVENT_RESOURCE;
+			*(plm_notification.notificationHeader.eventType) = SA_NTF_HPI_EVENT_RESOURCE;
 			break;
 		case SAHPI_ET_SENSOR:
 		case SAHPI_ET_SENSOR_ENABLE_CHANGE:
-			*(plm_notification.notificationHeader.eventType) = 
-						SA_NTF_HPI_EVENT_SENSOR;
+			*(plm_notification.notificationHeader.eventType) = SA_NTF_HPI_EVENT_SENSOR;
 			break;
 		case SAHPI_ET_WATCHDOG:
-			*(plm_notification.notificationHeader.eventType) = 
-						SA_NTF_HPI_EVENT_WATCHDOG;
+			*(plm_notification.notificationHeader.eventType) = SA_NTF_HPI_EVENT_WATCHDOG;
 			break;
 		case SAHPI_ET_DIMI:
-			*(plm_notification.notificationHeader.eventType) = 
-							SA_NTF_HPI_EVENT_DIMI;
+			*(plm_notification.notificationHeader.eventType) = SA_NTF_HPI_EVENT_DIMI;
 			break;
 		case SAHPI_ET_FUMI:
-			*(plm_notification.notificationHeader.eventType) = 
-							SA_NTF_HPI_EVENT_FUMI;        
+			*(plm_notification.notificationHeader.eventType) = SA_NTF_HPI_EVENT_FUMI;        
 			break;
 		default :
-			ret = NCSCC_RC_FAILURE; /* FIXME */
+			ret = NCSCC_RC_FAILURE; 
 			return ret;
 	}
 
-	*(plm_notification.notificationHeader.eventTime) = 
-		(SaTimeT)SA_TIME_UNKNOWN; /* FIXME */; /* Put current time */
+	*(plm_notification.notificationHeader.eventTime) = (SaTimeT)SA_TIME_UNKNOWN; 
 		
 	/* Copy noticationObject details give above */
 	plm_notification.notificationHeader.notificationObject->length = object->length;
 	memcpy(plm_notification.notificationHeader.notificationObject->value,object->value,object->length);
 	
-#if 0
-	/* Copy notification object details */
-	strcpy(plm_notification.notificationHeader.notificationObject->value,"SafApp=safHpiService[:<varAppName>]");
-	plm_notification.notificationHeader.notificationObject->length = 
-		strlen(plm_notification.notificationHeader.notificationObject->value);
-#endif 
 	/* Initialize notifying object details. */
 	ntf_obj_len = strlen("safApp=safPlmService"); 
 	memset(plm_notification.notificationHeader.notifyingObject,0,sizeof(SaNameT));
@@ -282,19 +270,14 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 	plm_notification.notificationHeader.notifyingObject->length = ntf_obj_len; 
 
 	/* Fill in the class identifier details */
-	plm_notification.notificationHeader.notificationClassId->vendorId = 
-							SA_NTF_VENDOR_ID_SAF;
-	plm_notification.notificationHeader.notificationClassId->majorId = 
-							SA_SVC_PLM;
-	plm_notification.notificationHeader.notificationClassId->minorId = 0; 
-							/* FIXME */ 
+	plm_notification.notificationHeader.notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
+	plm_notification.notificationHeader.notificationClassId->majorId = SA_SVC_PLM;
+	plm_notification.notificationHeader.notificationClassId->minorId = SA_PLM_NTFID_HPI_NORMAL_MSB; 
 
 	/* Fill in the additional info */
 	/* Domain Id first */
-	plm_notification.notificationHeader.additionalInfo[0].infoId = 
-						SA_PLM_AI_HPI_DOMAIN_ID; 
-	plm_notification.notificationHeader.additionalInfo[0].infoType = 
-						SA_NTF_VALUE_UINT32; 
+	plm_notification.notificationHeader.additionalInfo[0].infoId = SA_PLM_AI_HPI_DOMAIN_ID; 
+	plm_notification.notificationHeader.additionalInfo[0].infoType = SA_NTF_VALUE_UINT32; 
 	plm_notification.notificationHeader.additionalInfo[0].infoValue.uint32Val = domain_id;
 
 	if (!hpi_event)
@@ -306,10 +289,8 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 
 	/* Fill in mandatory information SaHpiEventT */
         /* For intoType = BINARY we need to allocate memory for ptrVal */
-	plm_notification.notificationHeader.additionalInfo[1].infoId = 
-							SA_PLM_AI_HPI_EVENT_DATA; 
-	plm_notification.notificationHeader.additionalInfo[1].infoType = 
-							SA_NTF_VALUE_BINARY; 
+	plm_notification.notificationHeader.additionalInfo[1].infoId = SA_PLM_AI_HPI_EVENT_DATA; 
+	plm_notification.notificationHeader.additionalInfo[1].infoType = SA_NTF_VALUE_BINARY; 
 
 	ret = saNtfPtrValAllocate(plm_notification.notificationHandle,
 	                          sizeof(SaHpiEventT),
@@ -323,36 +304,7 @@ SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
 	}
 
 	memcpy(dest_ptr1,hpi_event,sizeof(SaHpiEventT));
-
-	/* Fill in optional information Entity Path */
-	if (!entity_path)
-	{
-		saNtfNotificationFree(plm_notification.notificationHandle);
-		LOG_ER("Entity Path Not Present");
-		return NCSCC_RC_FAILURE;
-	}
 	
-        /* For intoType = BINARY we need to allocate memory for ptrVal */
-	plm_notification.notificationHeader.additionalInfo[2].infoId = 
-							SA_PLM_AI_ENTITY_PATH;
-	plm_notification.notificationHeader.additionalInfo[2].infoType = 
-							SA_NTF_VALUE_STRING; 
-
-	ret = saNtfPtrValAllocate(plm_notification.notificationHandle,
-		                  strlen(entity_path) + 1,
-		                  (void**)&dest_ptr2,
-		                  &(plm_notification.notificationHeader.additionalInfo[2].infoValue)
-		                  );
-
-	if ( ret != SA_AIS_OK ) {
-		saNtfNotificationFree(plm_notification.notificationHandle);
-		return ret;
-	}
-	
-
-	strcpy(dest_ptr2,entity_path);
-
-
 	/* Send the notification */
 	ret = saNtfNotificationSend(plm_notification.notificationHandle);
 	if (ret != SA_AIS_OK)
