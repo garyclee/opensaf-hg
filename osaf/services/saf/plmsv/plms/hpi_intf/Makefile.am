@@ -18,13 +18,14 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-pkglib_LTLIBRARIES = libplms_hpi.la
+pkglib_LTLIBRARIES = libplms_hpi.la 
 
 libplms_hpi_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include \
 	-I$(top_srcdir)/contrib/plmc/include \
-	-I$(top_srcdir)/contrib/plmc/lib/plmc/include
+	-I$(top_srcdir)/contrib/plmc/lib/plmc/include \
+	-I$(top_builddir)/contrib/plmc/lib/plmc
 
 libplms_hpi_la_CFLAGS = $(HPI_CFLAGS)
 
@@ -35,3 +36,6 @@ libplms_hpi_la_SOURCES = \
 	plms_epath_util.c
 
 libplms_hpi_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+
+libplms_hpi_la_LIBADD = \
+        $(top_builddir)/contrib/plmc/lib/plmc/.libs/libplmc.a

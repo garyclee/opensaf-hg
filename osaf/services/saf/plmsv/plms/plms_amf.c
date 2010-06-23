@@ -222,19 +222,7 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	case SA_AMF_HA_ACTIVE:
 		cb->mds_role = V_DEST_RL_ACTIVE;
 		TRACE("MY HA ROLE : AMF ACTIVE\n");
-		/* PLMC initialize */
-		if(!cb->plmc_initialized){
-			TRACE("Initializing PLMC");
-			rc = plmc_initialize(plms_plmc_connect_cbk,
-						plms_plmc_udp_cbk,
-						plms_plmc_error_cbk);
-			if (rc){
-				LOG_ER("PLMC initialize failed.");
-				rc = NCSCC_RC_FAILURE;
-				goto response;
-			}
-			cb->plmc_initialized = TRUE;
-		}
+
 		if (prev_haState == SA_AMF_HA_QUIESCED) {
 			plms_proc_quiesced_active_role_change();
 		}
@@ -273,6 +261,21 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 			pthread_cond_signal(&hrb_ha_state.cond);
 			pthread_mutex_unlock(&hrb_ha_state.mutex);
 		}
+                /* PLMC initialize */
+                if(!cb->hpi_cfg.hpi_support && !cb->plmc_initialized){
+                        TRACE("Initializing PLMC");
+                        rc = plmc_initialize(plms_plmc_connect_cbk,
+                                                plms_plmc_udp_cbk,
+                                                plms_plmc_error_cbk);
+                        if (rc){
+                                LOG_ER("PLMC initialize failed.");
+                                rc = NCSCC_RC_FAILURE;
+                                goto response;
+                        }
+                        TRACE("PLMC initialize success.");
+                        cb->plmc_initialized = TRUE;
+                }
+
 
 		cb->mds_role = V_DEST_RL_ACTIVE;
 		break;
@@ -283,21 +286,37 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 			plms_proc_quiesced_standby_role_change();
 		}
 
-		LOG_NO("Send signal to HSM indicating standby state");
+		TRACE("Send signal to HSM indicating standby state");
 		pthread_mutex_lock(&hsm_ha_state.mutex);
 		hsm_ha_state.state = SA_AMF_HA_STANDBY;
 		pthread_mutex_unlock(&hsm_ha_state.mutex);
 
-		LOG_NO("Send signal to HRB indicating standby state");
+		TRACE("Send signal to HRB indicating standby state");
 		pthread_mutex_lock(&hrb_ha_state.mutex);
 		hrb_ha_state.state = SA_AMF_HA_STANDBY;
 		pthread_mutex_unlock(&hrb_ha_state.mutex);
+
+		SaUint32T (* hsm_func_ptr)() = NULL;
+
+		/* Get the hsm Init func ptr */
+        	hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hsm_session_close");
+		if ( NULL == hsm_func_ptr ) {
+			LOG_ER("dlsym() failed to get the hsm_func_ptr,error %s", dlerror());
+			goto response;
+		}
+
+		/* Initialize HSM */
+		rc = (* hsm_func_ptr)();
+		if ( NCSCC_RC_SUCCESS != rc ) {
+			LOG_ER("plms_session_close failed");
+			goto response;
+		}
 
 		/* PLMC finalize */
 		if(cb->plmc_initialized){
 			rc = plmc_destroy();
 			if (rc){
-				LOG_ER("PLMC initialize failed.");
+				LOG_ER("PLMC destroy failed.");
 				rc = NCSCC_RC_FAILURE;
 			}
 			cb->plmc_initialized = FALSE;

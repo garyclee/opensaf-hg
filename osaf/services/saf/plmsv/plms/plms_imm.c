@@ -3999,13 +3999,23 @@ void plms_proc_quiesced_standby_role_change()
 	TRACE_2("Freed the entity path to entity nodes mapping tree");
 	/* Free client_info patricia tree */
 	while ((client_info = (PLMS_CLIENT_INFO *)
-		ncs_patricia_tree_getnext(&plms_cb->client_info,
-		(SaUint8T *) 0)) != NULL) {
-		free(client_info->entity_group_list);
-		ncs_patricia_tree_del(&plms_cb->client_info, 
-					&client_info->pat_node);
-		free(client_info);
+		ncs_patricia_tree_getnext(&plms_cb->client_info,(SaUint8T *) 0)) != NULL) {
+			PLMS_ENTITY_GROUP_INFO_LIST *tmp_ent_grp_ptr1 = NULL, *tmp_ent_grp_ptr2 = NULL;
+			tmp_ent_grp_ptr1 = client_info->entity_group_list;
+			while (tmp_ent_grp_ptr1)
+			{
+				tmp_ent_grp_ptr2 = tmp_ent_grp_ptr1->next;
+				free(tmp_ent_grp_ptr1);
+				tmp_ent_grp_ptr1 = tmp_ent_grp_ptr2;
+			}
+
+			client_info->entity_group_list = NULL;
+
+			ncs_patricia_tree_del(&plms_cb->client_info, 
+						&client_info->pat_node);
+			free(client_info);
 	}
+
 	TRACE_2("Freed the client_info tree");
 	/* Free entity group info patricia tree */
 	while ((ent_grp_info = (PLMS_ENTITY_GROUP_INFO *)
