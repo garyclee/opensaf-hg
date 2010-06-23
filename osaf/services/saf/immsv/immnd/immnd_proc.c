@@ -1556,12 +1556,6 @@ uns32 immnd_proc_server(uns32 *timeout)
 			cb->mState = IMM_SERVER_READY;
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
 			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY");
-			if (cb->mPbeFile) {/* Pbe enabled */
-				cb->mRim = immModel_getRepositoryInitMode(cb);
-
-				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
-			}
 			/*
 			   This code case duplicated in immnd_evt.c
 			   Search for: "ticket:#599"

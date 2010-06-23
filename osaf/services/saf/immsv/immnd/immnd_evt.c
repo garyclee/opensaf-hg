@@ -6242,6 +6242,12 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		/*This must bring the epoch of the joiner up to the ruling epoch */
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
 		/*This adjust-epoch will persistify the new epoch for sync-clients. */
+		if (cb->mPbeFile) {/* Pbe enabled */
+			cb->mRim = immModel_getRepositoryInitMode(cb);
+
+			TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+		}
 		immnd_adjustEpoch(cb, SA_TRUE);
 
 		/* Sync completed for client => trigger active resurrect. */
