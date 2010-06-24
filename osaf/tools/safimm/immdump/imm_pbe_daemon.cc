@@ -162,7 +162,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		}
 		TRACE("Begin PBE transaction for update epoch OK");
 
-		attrValues.attrName = OPENSAF_IMM_ATTR_EPOCH;
+		attrValues.attrName = (char *) OPENSAF_IMM_ATTR_EPOCH;
 		attrValues.attrValueType = SA_IMM_ATTR_SAUINT32T;
 		attrValues.attrValuesNumber = 1;
 		attrValues.attrValues = &val;
