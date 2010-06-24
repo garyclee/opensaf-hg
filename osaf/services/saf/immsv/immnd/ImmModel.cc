@@ -5871,7 +5871,7 @@ ImmModel::schemaNameCheck(const std::string& name) const
     chr = name.at(0);
 
     if(isdigit(chr)) {
-        LOG_IN("Bad class/attribute name starts with number: '%s' (%c): pos=%zu", 
+        LOG_IN("Bad class/attribute name starts with number: '%s' (%c): pos=%u", 
             name.c_str(), chr, 0);
         return false;	    
     }
