@@ -810,6 +810,7 @@ int main(int argc, char *argv[])
 
 	static struct option long_options[] = {
 		{"additionalText", required_argument, 0, 'a'},
+		{"notificationType", required_argument, 0, 'T'},
 		{"notificationClassId", required_argument, 0, 'c'},
 		{"notificationObject", required_argument, 0, 'n'},
 		{"notifyingObject", required_argument, 0, 'N'},
