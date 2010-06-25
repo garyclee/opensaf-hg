@@ -432,7 +432,18 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
-			TRACE("avnd %llx down", evt_info->i_dest);
+			{
+				AVD_EVT *evt = calloc(1, sizeof(AVD_EVT));
+				assert(evt);
+				evt->rcv_evt = AVD_EVT_MDS_AVND_DOWN;
+				evt->info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt_info->i_dest);
+				TRACE("avnd %llx down", evt_info->i_dest);
+				if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) 
+						!= NCSCC_RC_SUCCESS) {
+					LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
+					free(evt);
+				}
+			}
 			break;
 
 		default:

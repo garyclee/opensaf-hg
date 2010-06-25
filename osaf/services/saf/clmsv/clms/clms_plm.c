@@ -213,8 +213,18 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 	}
 
 	if(node->nodeup) {
-		clms_send_track(clms_cb, node, step);	/*dude you need to checkpoint admin_op admin_state when track is complete or not decide */
-		clms_cluster_update_rattr(osaf_cluster);
+		if(node->member == SA_FALSE && node->admin_state == SA_CLM_ADMIN_LOCKED) {
+			if(step == SA_PLM_CHANGE_START) {
+				ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation, SA_PLM_CALLBACK_RESPONSE_OK);
+				if (ais_er != SA_AIS_OK) {
+					TRACE("saPlmReadinessTrackResponse FAILED");
+					goto done;
+				}
+			}/*In completed step we don't need to send Response*/
+		} else {
+			clms_send_track(clms_cb, node, step);	/*dude you need to checkpoint admin_op admin_state when track is complete or not decide */
+			clms_cluster_update_rattr(osaf_cluster);
+		}
 	}
 
 	/* Clear admin_op and stat_change for the completed step */

@@ -1257,13 +1257,19 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* also check for pending clm callback operations */ 
 		if (su->su_on_node->clm_pend_inv != 0) {
 			if((su->saAmfSUNumCurrActiveSIs == 0) && 
-			   (su->saAmfSUNumCurrStandbySIs == 0)) 
+					(su->saAmfSUNumCurrStandbySIs == 0))
 				su->su_on_node->su_cnt_admin_oper--;
-			if (su->su_on_node->su_cnt_admin_oper == 0)
+			if (su->su_on_node->su_cnt_admin_oper == 0) {
 				/* since unassignment of all SIs on this node has been done
 				   now go on with the terminataion */
+				/* clm admin lock/shutdown operations were on, so we need to reset 
+				   node admin state.*/
+				su->su_on_node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
 				clm_node_terminate(su->su_on_node);
-			else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+			} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+				/* clm admin lock/shutdown operations were on, so we need to reset 
+				   node admin state.*/
+				su->su_on_node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
 				/* just report error to clm let CLM take the action */
 				saClmResponse_4(cb->clmHandle, su->su_on_node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
 				su->su_on_node->clm_pend_inv = 0;
