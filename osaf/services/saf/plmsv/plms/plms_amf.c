@@ -297,19 +297,20 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 		pthread_mutex_unlock(&hrb_ha_state.mutex);
 
 		SaUint32T (* hsm_func_ptr)() = NULL;
+		if(cb->hpi_cfg.hpi_support){
+			/* Get the hsm Init func ptr */
+			hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hsm_session_close");
+			if ( NULL == hsm_func_ptr ) {
+				LOG_ER("dlsym() failed to get the hsm_func_ptr,error %s", dlerror());
+				goto response;
+			}
 
-		/* Get the hsm Init func ptr */
-        	hsm_func_ptr = dlsym(cb->hpi_intf_hdl, "plms_hsm_session_close");
-		if ( NULL == hsm_func_ptr ) {
-			LOG_ER("dlsym() failed to get the hsm_func_ptr,error %s", dlerror());
-			goto response;
-		}
-
-		/* Initialize HSM */
-		rc = (* hsm_func_ptr)();
-		if ( NCSCC_RC_SUCCESS != rc ) {
-			LOG_ER("plms_session_close failed");
-			goto response;
+			/* Initialize HSM */
+			rc = (* hsm_func_ptr)();
+			if ( NCSCC_RC_SUCCESS != rc ) {
+				LOG_ER("plms_session_close failed");
+				goto response;
+			}
 		}
 
 		/* PLMC finalize */
