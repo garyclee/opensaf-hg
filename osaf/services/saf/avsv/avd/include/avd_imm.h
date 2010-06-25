@@ -36,6 +36,20 @@ extern SaAisErrorT avd_imm_impl_set(void);
 extern void avd_imm_update_runtime_attrs(void);
 
 /**
+ * Possible return values from avd_job_fifo_dequeue
+ */
+typedef enum {
+	JOB_EXECUTED = 1,  /* A job was successfully executed */
+	JOB_ETRYAGAIN = 2, /* A job exist but execution was rejected with TRY_AGAIN */
+	JOB_ENOTEXIST = 3, /* No job exist */
+	JOB_EINVH = 4,     /* Invalid handle */ 
+	JOB_ERR = 5        /* Other error than TRY_AGAIN, job was removed/deleted */
+
+} AvdJobDequeueResultT;
+
+extern AvdJobDequeueResultT avd_job_fifo_execute(SaImmOiHandleT immOiHandle);
+
+/**
  * Install callbacks associated with classNames
  * @param className
  * @param rtattr_cb
