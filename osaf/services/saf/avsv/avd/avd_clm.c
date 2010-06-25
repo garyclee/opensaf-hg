@@ -27,53 +27,41 @@ static SaVersionT clmVersion = { 'B', 4, 1 };
 static void clm_node_join_complete(AVD_AVND *node)
 {
 	AVD_SU *su;
-	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	/* For each of the SUs calculate the readiness state. 
 	 ** call the SG FSM with the new readiness state.
 	 */
 
+	if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		LOG_NO("Amf Node is in locked-inst state, amf admin state is %u", node->saAmfNodeAdminState);
+		goto done;
+	}
+
 	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_ENABLED);
 	su = node->list_of_su;
 	while (su != NULL) {
+		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
+		if ( su->saAmfSUPreInstantiable == FALSE ) {
+			/* Skip the instantiation. */
+		} else {
 
-		if (m_AVD_APP_SU_IS_INSVC(su, node)) {
-			avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
-			switch (su->sg_of_su->sg_redundancy_model) {
-			case SA_AMF_2N_REDUNDANCY_MODEL:
-				rc = avd_sg_2n_su_insvc_func(avd_cb, su);
-				break;
-
-			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-				rc = avd_sg_nway_su_insvc_func(avd_cb, su);
-				break;
-
-			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-				rc = avd_sg_nacvred_su_insvc_func(avd_cb, su);
-				break;
-
-			case SA_AMF_NPM_REDUNDANCY_MODEL:
-				rc = avd_sg_npm_su_insvc_func(avd_cb, su);
-				break;
-
-			case SA_AMF_NO_REDUNDANCY_MODEL:
-				rc = avd_sg_nored_su_insvc_func(avd_cb, su);
-				break;
-			default:
-				assert(0);
+			if ((node->node_state == AVD_AVND_STATE_PRESENT)   ||
+					(node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+					(node->node_state == AVD_AVND_STATE_NCS_INIT)) {
+				/* When the SU will instantiate then prescence state change message will come
+				   and so store the callback parameters to send response later on. */
+				if (avd_snd_presence_msg(avd_cb, su, FALSE) == NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SU_TERM(avd_cb, su, FALSE);
+				} else {
+					LOG_ER("Internal error, could not send message to avnd");
+				}
 			}
-			TRACE("'%s' '%u'", su->name.value, rc);
-			/* Since an SU has come in-service re look at the SG to see if other
-			 * instantiations or terminations need to be done.
-			 */
-			rc = avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
-			TRACE("'%s' '%u'", su->name.value, rc);
 		}
 		/* get the next SU on the node */
 		su = su->avnd_list_su_next;
 	}
-
+done:
 	TRACE_LEAVE();
 }
 
@@ -143,11 +131,27 @@ static void clm_node_exit_start(AVD_AVND *node, SaClmClusterChangesT change)
 		goto done;
 	}
 
-	if (change == SA_CLM_NODE_SHUTDOWN)
-		/* call with NULL invocation to differentiate it with AMF node shutdown */
+	if (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) {
+		LOG_NO("Amf Node is not in unlocked state, amf admin state is '%u'", node->saAmfNodeAdminState);
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
+			clm_node_terminate(node);
+			goto done;
+		}
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			saClmResponse_4(avd_cb->clmHandle, node->clm_pend_inv, 
+					SA_CLM_CALLBACK_RESPONSE_OK);
+			node->clm_pend_inv = 0; 
+			goto done;
+		}
+	}
+
+	if (change == SA_CLM_NODE_SHUTDOWN) {
+		/* call with NULL invocation to differentiate it with AMF node shutdown. */
 		avd_node_admin_lock_unlock_shutdown(node, 0, SA_AMF_ADMIN_SHUTDOWN); 
-	else /* SA_CLM_NODE_LEFT case */
+	}
+	else {/* SA_CLM_NODE_LEFT case */
 		avd_node_admin_lock_unlock_shutdown(node, 0, SA_AMF_ADMIN_LOCK);
+	}
 
 	if (node->su_cnt_admin_oper == 0 && node->clm_pend_inv != 0) {
 		clm_node_terminate(node);

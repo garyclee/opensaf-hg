@@ -78,6 +78,7 @@ typedef struct avd_evt_tag {
 	union {
 		AVD_DND_MSG *avnd_msg;
 		AVD_D2D_MSG *avd_msg;
+		SaClmNodeIdT node_id;
 		AVD_TMR tmr;
 	} info;
 

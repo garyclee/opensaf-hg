@@ -641,16 +641,23 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 	SaAmfAdminStateT old_state  = node->saAmfNodeAdminState;
 	
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("%s AdmState %s => %s", node->name.value,
-		avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
+	if (0 != node->clm_pend_inv) {
+		/* Clm operations going on, skip notifications and rt updates for node change. We are using node state
+		   as LOCKED for making CLM Admin operation going through. */
+		node->saAmfNodeAdminState = admin_state;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
+	} else {
+		TRACE_ENTER2("%s AdmState %s => %s", node->name.value,
+				avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
 
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", node->name.value,
-		avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
-	node->saAmfNodeAdminState = admin_state;
-	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
-				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
-	avd_send_admin_state_chg_ntf(&node->name, SA_AMF_NTFID_NODE_ADMIN_STATE, old_state, node->saAmfNodeAdminState);
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", node->name.value,
+				avd_adm_state_name[node->saAmfNodeAdminState], avd_adm_state_name[admin_state]);
+		node->saAmfNodeAdminState = admin_state;
+		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
+				SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
+		avd_send_admin_state_chg_ntf(&node->name, SA_AMF_NTFID_NODE_ADMIN_STATE, old_state, node->saAmfNodeAdminState);
+	}
 	TRACE_LEAVE();
 }
 
@@ -1042,6 +1049,12 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		su = su->avnd_list_su_next;
 	}
 
+	if (node->clm_pend_inv != 0) {
+		LOG_NO("Clm lock operation going on");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
 	switch (operationId) {
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -1053,6 +1066,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		if (node->node_info.member == FALSE) {
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+			LOG_NO("Clm lock has been already performed");
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 			goto done;
 		}
 
@@ -1072,6 +1092,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
+		if (node->node_info.member == FALSE) {
+			LOG_NO("Clm lock has been already performed");
+			node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+			goto done;
+		}
+
 		avd_node_admin_lock_unlock_shutdown(node, invocation, operationId);
 		break;
 
@@ -1085,6 +1112,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		if (node->node_info.member == FALSE) {
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+			LOG_NO("Clm lock has been already performed");
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 			goto done;
 		}
 
@@ -1105,6 +1139,12 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		}
 
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+
+		if (node->node_info.member == FALSE) {
+			LOG_NO("Clm lock has been already performed");
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+			goto done;
+		}
 
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED || node->list_of_su == NULL) {
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
@@ -1137,6 +1177,12 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		}
 
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+
+		if (node->node_info.member == FALSE) {
+			LOG_NO("Clm lock has been already performed");
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+			goto done;
+		}
 
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED || node->list_of_su == NULL) {
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
