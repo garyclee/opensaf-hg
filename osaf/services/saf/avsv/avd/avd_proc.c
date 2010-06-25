@@ -367,6 +367,38 @@ static void avd_imm_reinit_bg(AVD_CL_CB *cb)
 	TRACE_LEAVE();
 }
 
+/**
+ * Calculate new poll timeout based on return value from job queue
+ * execution
+ * 
+ * @param job_exec_result
+ * 
+ * @return int
+ */
+static int retval_to_polltmo(AvdJobDequeueResultT job_exec_result)
+{
+	int polltmo = -1;
+
+	switch (job_exec_result) {
+	case JOB_EXECUTED:
+		polltmo = 0;   // Try again asap assuming there are more jobs waiting
+		break;
+	case JOB_ETRYAGAIN:
+		polltmo = 500; // Try again soon
+		break;
+	case JOB_ENOTEXIST:
+	case JOB_EINVH:
+	case JOB_ERR:
+		polltmo = -1;  // Infinite timeout
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	return polltmo;
+}
+
 /*****************************************************************************
  * Function: avd_main_proc
  *
@@ -383,13 +415,13 @@ static void avd_imm_reinit_bg(AVD_CL_CB *cb)
  *
  * 
  **************************************************************************/
-
 void avd_main_proc(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	AVD_EVT *evt;
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
+	int polltmo = -1;
 
 	if (avd_initialize() != NCSCC_RC_SUCCESS) {
 		LOG_ER("main: avd_initialize FAILED, exiting...");
@@ -422,15 +454,20 @@ void avd_main_proc(void)
 			nfds = FD_IMM;
 		}
 		
-		int ret = poll(fds, nfds, -1);
+		int pollretval = poll(fds, nfds, polltmo);
 
-		if (ret == -1) {
-			if (errno == EINTR) {
+		if (pollretval == -1) {
+			if (errno == EINTR)
 				continue;
-			}
 
 			LOG_ER("main: poll FAILED - %s", strerror(errno));
 			break;
+		}
+
+		if (pollretval == 0) {
+			// poll time out, submit some jobs (if any)
+			polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
+			continue;
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
@@ -494,7 +531,10 @@ void avd_main_proc(void)
 
 		if (fds[FD_CLM].revents & POLLIN) {
 			TRACE("CLM event rec");
-			saClmDispatch(cb->clmHandle, SA_DISPATCH_ALL);
+			error = saClmDispatch(cb->clmHandle, SA_DISPATCH_ALL);
+
+			if (error != SA_AIS_OK)
+				LOG_ER("main: saClmDispatch FAILED %u", error);
 
 			/* commit async updated possibly sent in the callback */
 			m_AVSV_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);
@@ -542,6 +582,8 @@ void avd_main_proc(void)
 			}
 		}		/* End of if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN)  */
 
+		// submit some jobs (if any)
+		polltmo = retval_to_polltmo(avd_job_fifo_execute(cb->immOiHandle));
 	}
 
 	syslog(LOG_CRIT, "AVD Thread Failed");
