@@ -2031,7 +2031,7 @@
 			<flag>SA_CACHED</flag>
 		</rdn>
 		<attr>
-			<name>saEvtChannelCreationTimeStamp</name>
+			<name>saEvtChannelCreationTimestamp</name>
 			<type>SA_TIME_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
@@ -2071,7 +2071,7 @@
 			<flag>SA_CACHED</flag>
 		</rdn>
 		<attr>
-			<name>saLckResourceCreationTimeStamp</name>
+			<name>saLckResourceCreationTimestamp</name>
 			<type>SA_TIME_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
