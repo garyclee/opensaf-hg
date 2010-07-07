@@ -173,7 +173,7 @@ SaAisErrorT create_runtime_object(SaStringT rname, SaTimeT create_time, SaImmOiH
 	attr_lckrsc.attrValuesNumber = 1;
 	attr_lckrsc.attrValues = arr1;
 
-	attr_LckRscCreationTimeStamp.attrName = "saLckResourceCreationTimeStamp";
+	attr_LckRscCreationTimeStamp.attrName = "saLckResourceCreationTimestamp";
 	attr_LckRscCreationTimeStamp.attrValueType = SA_IMM_ATTR_SATIMET;
 	attr_LckRscCreationTimeStamp.attrValuesNumber = 1;
 	attr_LckRscCreationTimeStamp.attrValues = arr2;

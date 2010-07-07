@@ -149,7 +149,7 @@ static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImm
 	void *arr2[] = { &create_time };
 
 	const SaImmAttrValuesT_2 attr_saEvtChannelCreationTimeStamp = {
-		.attrName = "saEvtChannelCreationTimeStamp",
+		.attrName = "saEvtChannelCreationTimestamp",
 		.attrValueType = SA_IMM_ATTR_SATIMET,
 		.attrValuesNumber = 1,
 		.attrValues = arr2
