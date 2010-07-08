@@ -594,6 +594,9 @@ Requires: %{name}-lck-libs = %{version}-%{release}
 %if %is_ais_msg
 Requires: %{name}-msg-libs = %{version}-%{release}
 %endif
+%if %is_java
+Requires: %{name}-java = %{version}-%{release}
+%endif
 
 %description devel
 
@@ -1214,6 +1217,8 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %if %is_java
 %dir %{_javadocdir}/%{name}
 %{_javadocdir}/%{name}/*
+%{_libdir}/libjava_ais_api_native.so
+%{_libdir}/libjava_ais_api_native.a
 %endif
 %if %is_ais_plm
 %{_libdir}/libplmc_utils.so
