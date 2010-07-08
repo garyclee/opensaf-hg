@@ -83,7 +83,7 @@ void saNtfPtrAllocateTest_02(void)
 
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_STRING;
     rc = saNtfPtrValAllocate(
-    		(SaNtfNotificationHandleT)NULL,
+    		0,
     		(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
     		(void**) &destPtr,
     		&(myAlarmNotification.proposedRepairActions[0].actionValue));

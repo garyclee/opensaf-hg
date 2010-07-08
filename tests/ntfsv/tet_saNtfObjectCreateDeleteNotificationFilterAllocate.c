@@ -46,7 +46,7 @@ void saNtfObjectCreateDeleteNotificationFilterAllocate_02(void)
     SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
 
      rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
-    		(SaNtfHandleT) NULL,
+    		0,
     		&myObjCreDelFilter,
     		0,
     		0,

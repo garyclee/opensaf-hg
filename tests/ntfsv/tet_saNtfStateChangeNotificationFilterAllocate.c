@@ -51,7 +51,7 @@ void saNtfStateChangeNotificationFilterAllocate_02(void)
     safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
 
     rc = saNtfStateChangeNotificationFilterAllocate(
-        (SaNtfHandleT)NULL,
+        0,
         &myStateChangefilter,
         0,
         0,

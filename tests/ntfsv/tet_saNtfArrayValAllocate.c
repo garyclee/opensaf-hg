@@ -84,7 +84,7 @@ void saNtfArrayAllocateTest_02(void)
 
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_ARRAY;
     rc = saNtfArrayValAllocate(
-    		(SaNtfNotificationHandleT)NULL,
+    		0,
     		(SaUint16T)5,
     		(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
     		(void**) &arrayPtr,

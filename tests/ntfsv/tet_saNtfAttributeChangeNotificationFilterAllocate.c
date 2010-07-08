@@ -41,16 +41,12 @@ void saNtfAttributeChangeNotificationFilterAllocate_01(void)
     	myAttributeChangeFilter.notificationFilterHeader.notificationClassIds[0].minorId = 1;
 
     	/* Initialize filter handles */
-    	myNotificationFilterHandles.alarmFilterHandle =
-    		SA_NTF_FILTER_HANDLE_NULL;
+    	myNotificationFilterHandles.alarmFilterHandle = 0;
     	myNotificationFilterHandles.attributeChangeFilterHandle =
     		myAttributeChangeFilter.notificationFilterHandle;
-    	myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-    		SA_NTF_FILTER_HANDLE_NULL;
-    	myNotificationFilterHandles.securityAlarmFilterHandle =
-    		SA_NTF_FILTER_HANDLE_NULL;
-    	myNotificationFilterHandles.stateChangeFilterHandle =
-    		SA_NTF_FILTER_HANDLE_NULL;
+    	myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    	myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    	myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     	safassert(saNtfNotificationFilterFree(
     			myNotificationFilterHandles.attributeChangeFilterHandle), SA_AIS_OK);
@@ -66,7 +62,7 @@ void saNtfAttributeChangeNotificationFilterAllocate_02(void)
     SaNtfAttributeChangeNotificationFilterT myAttributeChangeFilter;
 
     rc = saNtfAttributeChangeNotificationFilterAllocate(
-        (SaNtfHandleT)NULL,
+        0,
         &myAttributeChangeFilter,
         0,
         0,

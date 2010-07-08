@@ -520,15 +520,12 @@ SaAisErrorT send_obj_cr_del(saNotificationAllocationParamsT *myNotificationAlloc
 		0), SA_AIS_OK);
 
    /* Initialize filter handles */
-   myNotificationFilterHandles.alarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-   myNotificationFilterHandles.attributeChangeFilterHandle =
-       SA_NTF_FILTER_HANDLE_NULL;
+   myNotificationFilterHandles.alarmFilterHandle = 0;
+   myNotificationFilterHandles.attributeChangeFilterHandle = 0;
    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
        myObjCreDelFilter.notificationFilterHandle;
-   myNotificationFilterHandles.securityAlarmFilterHandle =
-       SA_NTF_FILTER_HANDLE_NULL;
-   myNotificationFilterHandles.stateChangeFilterHandle =
-       SA_NTF_FILTER_HANDLE_NULL;
+   myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+   myNotificationFilterHandles.stateChangeFilterHandle = 0;
    safassert(saNtfNotificationSubscribe(&myNotificationFilterHandles, 4), SA_AIS_OK);
 
    SaNtfObjectCreateDeleteNotificationT myNotification;

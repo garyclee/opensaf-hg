@@ -57,7 +57,7 @@ void test1_value_ok(SaNtfSubscriptionIdT subscriptionId,
 	const SaNtfAlarmNotificationT *ntfAlarm;
 
 	ntfRecieved.alarmFilterHandle += 1;
-	if(myNotificationFilterHandles.alarmFilterHandle == SA_NTF_FILTER_HANDLE_NULL)
+	if(myNotificationFilterHandles.alarmFilterHandle == 0)
 		errors +=1;
 	else {
 		ntfAlarm = &notification->notification.alarmNotification;
@@ -113,7 +113,7 @@ void test2_bad_return(SaNtfSubscriptionIdT subscriptionId,
 		for(iCount = 0; iCount < ntfAlarm->numProposedRepairActions; iCount++)
 		{
 			/* NULL in notificationHandle */
-			if(safassertNice((rc = saNtfPtrValGet((SaNtfNotificationHandleT)NULL,
+			if(safassertNice((rc = saNtfPtrValGet(0,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
 					&dataSize)), SA_AIS_ERR_BAD_HANDLE)) errors += 1;
@@ -232,14 +232,10 @@ void saNtfPtrGetTest_common_prep(void)
     /* Initialize filter handles */
     myNotificationFilterHandles.alarmFilterHandle =
         myAlarmFilter.notificationFilterHandle;
-    myNotificationFilterHandles.attributeChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.securityAlarmFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.stateChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
+    myNotificationFilterHandles.attributeChangeFilterHandle = 0;
+    myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     /* subscribe */
     safassert(saNtfNotificationSubscribe(&myNotificationFilterHandles,

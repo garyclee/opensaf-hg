@@ -53,14 +53,10 @@ void saNtfAlarmNotificationFilterAllocate_01(void)
     /* Initialize filter handles */
     myNotificationFilterHandles.alarmFilterHandle =
         myAlarmFilter.notificationFilterHandle;
-    myNotificationFilterHandles.attributeChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.securityAlarmFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.stateChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
+    myNotificationFilterHandles.attributeChangeFilterHandle = 0;
+    myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     safassert(saNtfNotificationFilterFree(
                   myNotificationFilterHandles.alarmFilterHandle), SA_AIS_OK);
@@ -75,7 +71,7 @@ void saNtfAlarmNotificationFilterAllocate_02(void)
     SaNtfAlarmNotificationFilterT myAlarmFilter;
 
     rc = saNtfAlarmNotificationFilterAllocate(
-        (SaNtfHandleT) NULL,
+        0,
         &myAlarmFilter,
         0,
         0,
