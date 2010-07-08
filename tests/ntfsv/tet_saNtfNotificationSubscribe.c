@@ -52,14 +52,10 @@ void saNtfNotificationSubscribe_01(void)
     /* Initialize filter handles */
     myNotificationFilterHandles.alarmFilterHandle =
         myAlarmFilter.notificationFilterHandle;
-    myNotificationFilterHandles.attributeChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.securityAlarmFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.stateChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
+    myNotificationFilterHandles.attributeChangeFilterHandle = 0;
+    myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     rc = saNtfNotificationSubscribe(&myNotificationFilterHandles, 4);
     safassert(saNtfNotificationUnsubscribe(4), SA_AIS_OK);
@@ -95,16 +91,11 @@ void saNtfNotificationSubscribe_03(void)
     safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
 
     /* Initialize filter handles */
-    myNotificationFilterHandles.alarmFilterHandle =
-    	SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.attributeChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.securityAlarmFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.stateChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
+    myNotificationFilterHandles.alarmFilterHandle = 0;
+    myNotificationFilterHandles.attributeChangeFilterHandle = 0;
+    myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     rc = saNtfNotificationSubscribe(&myNotificationFilterHandles, 4);
     safassert(saNtfNotificationUnsubscribe(4), SA_AIS_ERR_NOT_EXIST);
@@ -148,14 +139,10 @@ void saNtfNotificationSubscribe_04(void)
     /* Initialize filter handles */
     myNotificationFilterHandles.alarmFilterHandle =
         myAlarmFilter.notificationFilterHandle;
-    myNotificationFilterHandles.attributeChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.securityAlarmFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
-    myNotificationFilterHandles.stateChangeFilterHandle =
-        SA_NTF_FILTER_HANDLE_NULL;
+    myNotificationFilterHandles.attributeChangeFilterHandle = 0;
+    myNotificationFilterHandles.objectCreateDeleteFilterHandle = 0;
+    myNotificationFilterHandles.securityAlarmFilterHandle = 0;
+    myNotificationFilterHandles.stateChangeFilterHandle = 0;
 
     safassert(saNtfNotificationSubscribe(&myNotificationFilterHandles, subscId), SA_AIS_OK);
     rc = saNtfNotificationSubscribe(&myNotificationFilterHandles, subscId);

@@ -50,7 +50,7 @@ void saNtfSecurityAlarmNotificationFilterAllocate_02(void)
     SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
 
     rc = saNtfSecurityAlarmNotificationFilterAllocate(
-        (SaNtfHandleT) NULL,
+        0,
         &mySecurityAlarmFilter,
         0,
         0,
