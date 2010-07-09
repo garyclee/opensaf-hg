@@ -89,7 +89,7 @@
                 <category>SA_CONFIG</category>
                 <rdn>
                         <name>safCluster</name>
-                        <type>SA_NAME_T</type>
+                        <type>SA_STRING_T</type>
                         <category>SA_CONFIG</category>
                         <flag>SA_INITIALIZED</flag>
                 </rdn>
