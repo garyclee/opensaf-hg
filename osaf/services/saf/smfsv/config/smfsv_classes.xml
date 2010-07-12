@@ -257,53 +257,62 @@
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfBundleCheckCmd</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfNodeCheckCmd</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfRepositoryCheckCmd</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfClusterRebootCmd</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfAdminOpTimeout</name>
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfCliTimeout</name>
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfRebootTimeout</name>
 			<type>SA_TIME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>smfNodeBundleActCmd</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
