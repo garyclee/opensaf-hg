@@ -242,7 +242,7 @@ typedef enum {
 #define SA_AMF_COMP_CONTAINER   0x0010
 #define SA_AMF_COMP_CONTAINED   0x0020
 #define SA_AMF_COMP_PROXIED_NPI 0x0040
-typedef SaUint32T saAmfCompCategoryT;
+typedef SaUint32T SaAmfCompCategoryT;
 
 typedef enum {								
     SA_AMF_2N_REDUNDANCY_MODEL = 1,
@@ -250,7 +250,7 @@ typedef enum {
     SA_AMF_N_WAY_REDUNDANCY_MODEL = 3,
     SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL = 4,
     SA_AMF_NO_REDUNDANCY_MODEL= 5
-} saAmfRedundancyModelT;
+} SaAmfRedundancyModelT;
 
 typedef enum {								
     SA_AMF_COMP_X_ACTIVE_AND_Y_STANDBY = 1,
@@ -260,7 +260,7 @@ typedef enum {
     SA_AMF_COMP_X_ACTIVE = 5,
     SA_AMF_COMP_1_ACTIVE = 6,
     SA_AMF_COMP_NON_PRE_INSTANTIABLE = 7
-} saAmfCompCapabilityModelT;
+} SaAmfCompCapabilityModelT;
 
 typedef enum {								
     SA_AMF_NODE_NAME = 1,
@@ -417,8 +417,8 @@ typedef struct {
     SaAmfProtectionGroupTrackCallbackT        saAmfProtectionGroupTrackCallback;
     SaAmfProxiedComponentInstantiateCallbackT saAmfProxiedComponentInstantiateCallback;
     SaAmfProxiedComponentCleanupCallbackT     saAmfProxiedComponentCleanupCallback;
-    SaAmfContainedComponentInstantiateCallbackT saAmfContaintedComponentInstantiateCallback;
-    SaAmfContainedComponentCleanupCallbackT saAmfContaintedComponentCleanupCallback;
+    SaAmfContainedComponentInstantiateCallbackT saAmfContainedComponentInstantiateCallback;
+    SaAmfContainedComponentCleanupCallbackT saAmfContainedComponentCleanupCallback;
 } SaAmfCallbacksT_3;
 
 extern SaAisErrorT 
@@ -476,8 +476,8 @@ typedef struct {
     SaAmfProtectionGroupTrackCallbackT_4        saAmfProtectionGroupTrackCallback;
     SaAmfProxiedComponentInstantiateCallbackT   saAmfProxiedComponentInstantiateCallback;
     SaAmfProxiedComponentCleanupCallbackT       saAmfProxiedComponentCleanupCallback;
-    SaAmfContainedComponentInstantiateCallbackT saAmfContaintedComponentInstantiateCallback;
-    SaAmfContainedComponentCleanupCallbackT     saAmfContaintedComponentCleanupCallback;
+    SaAmfContainedComponentInstantiateCallbackT saAmfContainedComponentInstantiateCallback;
+    SaAmfContainedComponentCleanupCallbackT     saAmfContainedComponentCleanupCallback;
 } SaAmfCallbacksT_4;
 
 extern SaAisErrorT 
@@ -598,6 +598,13 @@ saAmfComponentErrorReport_4(
     SaAmfRecommendedRecoveryT recommendedRecovery,
     SaNtfCorrelationIdsT *correlationIds
 );
+
+extern SaAisErrorT
+saAmfCorrelationIdsGet(
+
+    SaAmfHandleT amfHandle,
+    SaInvocationT invocation,
+    SaNtfCorrelationIdsT *correlationIds);
 
 extern SaAisErrorT 
 saAmfComponentErrorClear_4(

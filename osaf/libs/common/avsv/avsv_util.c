@@ -362,7 +362,7 @@ void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
  * 
  * @return AVSV_COMP_TYPE_VAL
  */
-AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(saAmfCompCategoryT saf_comp_category)
+AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(SaAmfCompCategoryT saf_comp_category)
 {
 	AVSV_COMP_TYPE_VAL avsv_comp_type = AVSV_COMP_TYPE_INVALID;
 

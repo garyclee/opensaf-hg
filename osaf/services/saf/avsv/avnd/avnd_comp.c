@@ -1074,7 +1074,7 @@ static bool avnd_comp_cap_x_act_or_1_act_check(SaNameT *comp_type, SaNameT *csi_
 	SaNameT dn;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
-	saAmfCompCapabilityModelT comp_cap;
+	SaAmfCompCapabilityModelT comp_cap;
 	SaImmAttrNameT attributeNames[2] = {"saAmfCtCompCapability", NULL};
 
 	avsv_create_association_class_dn(csi_type, comp_type, "safSupportedCsType", &dn);

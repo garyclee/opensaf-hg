@@ -118,7 +118,7 @@ typedef struct avsv_su_info_msg {
 typedef struct avsv_comp_info_tag {
 	SaNameT name;	/* component name */
 
-	saAmfCompCapabilityModelT cap;	/* component capability. See sec 4.6 of
+	SaAmfCompCapabilityModelT cap;	/* component capability. See sec 4.6 of
 					 * Saf AIS 
 					 * Checkpointing - Sent as a one time update.
 					 */
