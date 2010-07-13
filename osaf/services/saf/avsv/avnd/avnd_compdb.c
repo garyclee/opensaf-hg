@@ -59,7 +59,7 @@ static amf_comp_global_attr_t comp_global_attrs;
 typedef struct amf_comp_type {
 	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT    name;
-	saAmfCompCategoryT saAmfCtCompCategory;
+	SaAmfCompCategoryT saAmfCtCompCategory;
 	SaNameT    saAmfCtSwBundle;
 	SaStringT *saAmfCtDefCmdEnv;
 	SaTimeT    saAmfCtDefClcCliTimeout;
@@ -1020,7 +1020,7 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 	return compt;
 }
 
-static void init_comp_category(AVND_COMP *comp, saAmfCompCategoryT category)
+static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 {
 	AVSV_COMP_TYPE_VAL comptype = avsv_amfcompcategory_to_avsvcomptype(category);
 

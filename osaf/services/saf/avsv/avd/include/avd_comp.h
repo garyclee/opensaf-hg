@@ -164,7 +164,7 @@ typedef struct avd_comp_cs_type_tag {
 typedef struct {
 	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT name;
-	saAmfCompCapabilityModelT saAmfCtCompCapability;
+	SaAmfCompCapabilityModelT saAmfCtCompCapability;
 	SaUint32T saAmfCtDefNumMaxActiveCSIs;
 	SaUint32T saAmfCtDefNumMaxStandbyCSIs;
 	AVD_COMP_TYPE *comptype;

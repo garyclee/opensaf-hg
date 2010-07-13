@@ -167,7 +167,7 @@ typedef struct avd_sg_tag {
 					 * with sg_fsm_state.
 					 * Checkpointing - Sent as a one time update.
 					 */
-	saAmfRedundancyModelT sg_redundancy_model;	/* the redundancy model in the service group 
+	SaAmfRedundancyModelT sg_redundancy_model;	/* the redundancy model in the service group 
 							 * see sec 4.7 for values
 							 * Checkpointing - Sent as a one time update.
 							 */
@@ -193,7 +193,7 @@ typedef struct avd_amf_sg_type_tag {
 
    /******************** B.04 model *************************************************/
 	SaNameT *saAmfSGtValidSuTypes;	/* array of DNs, size in number_su_type */
-	saAmfRedundancyModelT saAmfSgtRedundancyModel;
+	SaAmfRedundancyModelT saAmfSgtRedundancyModel;
 	SaNameT *saAmfStgValidSuTypes;
 	SaBoolT saAmfSgtDefAutoRepair;
 	SaBoolT saAmfSgtDefAutoAdjust;

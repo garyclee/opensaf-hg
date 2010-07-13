@@ -285,7 +285,7 @@ typedef struct avnd_comp_tag {
 	/* component attributes */
 	uns32 flag;		/* comp attributes */
 	NCS_BOOL is_restart_en;	/* flag to indicate if comp-restart is allowed */
-	saAmfCompCapabilityModelT cap;	/* comp capability model */
+	SaAmfCompCapabilityModelT cap;	/* comp capability model */
 	NCS_BOOL is_am_en;
 
 	/* clc info */
