@@ -2643,7 +2643,7 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscr
  * eventId - [in]
  *
  ***************************************************************************/
-SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, SaEvtEventIdT eventId)
+SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, const SaEvtEventIdT eventId)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	EDA_CB *eda_cb = NULL;
