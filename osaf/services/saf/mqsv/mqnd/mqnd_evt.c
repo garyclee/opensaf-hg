@@ -1721,7 +1721,7 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
 	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 	for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY; i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++) {
 		TRACE(" Priority: %d", i);
-		TRACE("     Queue Size: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
+		TRACE("     Queue Size: %llu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
 		TRACE("     Queue Used: %llu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueUsed);
 		TRACE("     No of messages: %u",
 		       shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
