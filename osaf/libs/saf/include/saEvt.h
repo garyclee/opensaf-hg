@@ -1,7 +1,7 @@
 /*******************************************************************************
 **
 ** FILE:
-**   SaEvt.h
+**   saEvt.h
 **
 ** DESCRIPTION: 
 **   This file provides the C language binding for the Service 
@@ -12,12 +12,12 @@
 **   SAI-AIS-EVT-B.03.01
 **
 ** DATE: 
-**   Mon  Dec   18  2006  
+**   Thu Jul 16 2009
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS. 
 **
-** Copyright 2006 by the Service Availability Forum. All rights reserved.
+** Copyright(c) 2009, Service Availability(TM) Forum. All rights reserved.
 **
 ** Permission to use, copy, modify, and distribute this software for any
 ** purpose without fee is hereby granted, provided that this entire notice
@@ -35,6 +35,10 @@
 #ifndef _SA_EVT_H
 #define _SA_EVT_H
 
+/*************************************************/
+/********** Defs for EVT API functions ***********/
+/*************************************************/
+
 #include "saAis.h"
 
 #ifdef  __cplusplus
@@ -48,6 +52,7 @@ extern "C" {
 
 	typedef void
 	 (*SaEvtChannelOpenCallbackT) (SaInvocationT invocation, SaEvtChannelHandleT channelHandle, SaAisErrorT error);
+
 	typedef void
 	 (*SaEvtEventDeliverCallbackT) (SaEvtSubscriptionIdT subscriptionId,
 					SaEvtEventHandleT eventHandle, SaSizeT eventDataSize);
@@ -112,6 +117,7 @@ extern "C" {
 /*************************************************/
 /******** EVT API function declarations **********/
 /*************************************************/
+
 	extern SaAisErrorT
 	 saEvtInitialize(SaEvtHandleT *evtHandle, const SaEvtCallbacksT *callbacks, SaVersionT *version);
 
@@ -149,12 +155,12 @@ extern "C" {
 	extern SaAisErrorT
 	 saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
 				 const SaEvtEventPatternArrayT *patternArray,
-				 SaUint8T priority, SaTimeT retentionTime, const SaNameT *publisherName);
+				 SaEvtEventPriorityT priority, SaTimeT retentionTime, const SaNameT *publisherName);
 
 	extern SaAisErrorT
 	 saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 				 SaEvtEventPatternArrayT *patternArray,
-				 SaUint8T *priority,
+				 SaEvtEventPriorityT *priority,
 				 SaTimeT *retentionTime,
 				 SaNameT *publisherName, SaTimeT *publishTime, SaEvtEventIdT *eventId);
 
@@ -176,7 +182,7 @@ extern "C" {
 	 saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle, SaEvtSubscriptionIdT subscriptionId);
 
 	extern SaAisErrorT
-	 saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, SaEvtEventIdT eventId);
+	 saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, const SaEvtEventIdT eventId);
 
 	extern SaAisErrorT
 	 saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimitValueT *limitValue);
