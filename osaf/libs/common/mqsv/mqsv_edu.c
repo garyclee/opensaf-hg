@@ -796,7 +796,7 @@ static uns32 mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET mqsv_queue_usage_rules[] = {
 		{EDU_START, mqsv_edp_queue_usage, 0, 0, 0,
 		 sizeof(SaMsgQueueUsageT), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		{EDU_EXEC, m_NCS_EDP_SASIZET, 0, 0, 0,
 		 (long)&((SaMsgQueueUsageT *)0)->queueSize, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SASIZET, 0, 0, 0,
 		 (long)&((SaMsgQueueUsageT *)0)->queueUsed, 0, NULL},

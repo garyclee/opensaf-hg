@@ -1,7 +1,7 @@
 /*******************************************************************************
 **
 ** FILE:
-**   SaMsg.h
+**   saMsg.h
 **
 ** DESCRIPTION: 
 **   This file provides the C language binding for the Service 
@@ -66,7 +66,7 @@ extern "C" {
 	typedef SaUint32T SaMsgQueueOpenFlagsT;
 
 	typedef struct {
-		SaUint32T queueSize;
+		SaSizeT queueSize;
 		SaSizeT queueUsed;
 		SaUint32T numberOfMessages;
 	} SaMsgQueueUsageT;
@@ -118,10 +118,10 @@ extern "C" {
 
 	typedef enum {
 		SA_MSG_QUEUE_CAPACITY_REACHED = 1,
-		SA_MSG_QUEUE_AVAILABLE = 2,
+		SA_MSG_QUEUE_CAPACITY_AVAILABLE = 2,
 		SA_MSG_QUEUE_GROUP_CAPACITY_REACHED = 3,
-		SA_MSG_QUEUE_GROUP_AVAILABLE = 4
-	} saMsgMessageCapacityStatusT;
+		SA_MSG_QUEUE_GROUP_CAPACITY_AVAILABLE = 4
+	} SaMsgMessageCapacityStatusT;
 
 	typedef struct {
 		SaSizeT capacityReached[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
@@ -139,7 +139,7 @@ extern "C" {
 		SA_MSG_MAX_NUM_QUEUE_GROUPS_ID = 4,
 		SA_MSG_MAX_NUM_QUEUES_PER_GROUP_ID = 5,
 		SA_MSG_MAX_MESSAGE_SIZE_ID = 6,
-		SA_MSG_MAX_REPLY_SIZE_ID = 7,
+		SA_MSG_MAX_REPLY_SIZE_ID = 7
 	} SaMsgLimitIdT;
 
 	typedef void
