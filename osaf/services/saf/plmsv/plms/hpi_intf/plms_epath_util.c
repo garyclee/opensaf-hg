@@ -36,7 +36,8 @@
 /* macro definitions */
 #define EPATH_BEGIN_CHAR          '{'
 #define EPATH_END_CHAR            '}'
-#define EPATH_SEPARATOR_CHAR      ','
+#define EPATH_DOT_SEPARATOR_CHAR        '.'
+#define EPATH_COMMA_SEPARATOR_CHAR      ','
 
 #define SAHPI_ENT_RACK_INDEX 59 
 #define SAHPI_ENT_AMC_INDEX 84
@@ -65,116 +66,112 @@ static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path,
 /* HPI entity type list */
 static PLMS_ENTITY_TYPE_LIST  hpi_ent_type_list[] = {
 	/* Entity type string */                /* Entity type value */
-	{"SAHPI_ENT_UNSPECIFIED",                SAHPI_ENT_UNSPECIFIED},
-	{"SAHPI_ENT_OTHER",                      SAHPI_ENT_OTHER},
-	{"SAHPI_ENT_UNKNOWN",                    SAHPI_ENT_UNKNOWN},
-	{"SAHPI_ENT_PROCESSOR",                  SAHPI_ENT_PROCESSOR},
-	{"SAHPI_ENT_DISK_BAY",                   SAHPI_ENT_DISK_BAY},
-	{"SAHPI_ENT_PERIPHERAL_BAY",             SAHPI_ENT_PERIPHERAL_BAY},
-	{"SAHPI_ENT_SYS_MGMNT_MODULE",           SAHPI_ENT_SYS_MGMNT_MODULE},
-	{"SAHPI_ENT_SYSTEM_BOARD",               SAHPI_ENT_SYSTEM_BOARD},
-	{"SAHPI_ENT_MEMORY_MODULE",              SAHPI_ENT_MEMORY_MODULE},
-	{"SAHPI_ENT_PROCESSOR_MODULE",           SAHPI_ENT_PROCESSOR_MODULE},
+	{"UNSPECIFIED",                SAHPI_ENT_UNSPECIFIED},
+	{"OTHER",                      SAHPI_ENT_OTHER},
+	{"UNKNOWN",                    SAHPI_ENT_UNKNOWN},
+	{"PROCESSOR",                  SAHPI_ENT_PROCESSOR},
+	{"DISK_BAY",                   SAHPI_ENT_DISK_BAY},
+	{"PERIPHERAL_BAY",             SAHPI_ENT_PERIPHERAL_BAY},
+	{"SYS_MGMNT_MODULE",           SAHPI_ENT_SYS_MGMNT_MODULE},
+	{"SYSTEM_BOARD",               SAHPI_ENT_SYSTEM_BOARD},
+	{"MEMORY_MODULE",              SAHPI_ENT_MEMORY_MODULE},
+	{"PROCESSOR_MODULE",           SAHPI_ENT_PROCESSOR_MODULE},
 
-	{"SAHPI_ENT_POWER_SUPPLY",               SAHPI_ENT_POWER_SUPPLY},
-	{"SAHPI_ENT_ADD_IN_CARD",                SAHPI_ENT_ADD_IN_CARD},
-	{"SAHPI_ENT_FRONT_PANEL_BOARD",          SAHPI_ENT_FRONT_PANEL_BOARD},
-	{"SAHPI_ENT_BACK_PANEL_BOARD",           SAHPI_ENT_BACK_PANEL_BOARD},
-	{"SAHPI_ENT_POWER_SYSTEM_BOARD",         SAHPI_ENT_POWER_SYSTEM_BOARD},
-	{"SAHPI_ENT_DRIVE_BACKPLANE",            SAHPI_ENT_DRIVE_BACKPLANE},
-	{"SAHPI_ENT_SYS_EXPANSION_BOARD",        SAHPI_ENT_SYS_EXPANSION_BOARD},
-	{"SAHPI_ENT_OTHER_SYSTEM_BOARD",         SAHPI_ENT_OTHER_SYSTEM_BOARD},
-	{"SAHPI_ENT_PROCESSOR_BOARD",            SAHPI_ENT_PROCESSOR_BOARD},
-	{"SAHPI_ENT_POWER_UNIT",                 SAHPI_ENT_POWER_UNIT},
+	{"POWER_SUPPLY",               SAHPI_ENT_POWER_SUPPLY},
+	{"ADD_IN_CARD",                SAHPI_ENT_ADD_IN_CARD},
+	{"FRONT_PANEL_BOARD",          SAHPI_ENT_FRONT_PANEL_BOARD},
+	{"BACK_PANEL_BOARD",           SAHPI_ENT_BACK_PANEL_BOARD},
+	{"POWER_SYSTEM_BOARD",         SAHPI_ENT_POWER_SYSTEM_BOARD},
+	{"DRIVE_BACKPLANE",            SAHPI_ENT_DRIVE_BACKPLANE},
+	{"SYS_EXPANSION_BOARD",        SAHPI_ENT_SYS_EXPANSION_BOARD},
+	{"OTHER_SYSTEM_BOARD",         SAHPI_ENT_OTHER_SYSTEM_BOARD},
+	{"PROCESSOR_BOARD",            SAHPI_ENT_PROCESSOR_BOARD},
+	{"POWER_UNIT",                 SAHPI_ENT_POWER_UNIT},
 
-	{"SAHPI_ENT_POWER_MODULE",               SAHPI_ENT_POWER_MODULE},
-	{"SAHPI_ENT_POWER_MGMNT",                SAHPI_ENT_POWER_MGMNT},
-	{"SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD",   SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD},
-	{"SAHPI_ENT_SYSTEM_CHASSIS",             SAHPI_ENT_SYSTEM_CHASSIS},
-	{"SAHPI_ENT_SUB_CHASSIS",                SAHPI_ENT_SUB_CHASSIS},
-	{"SAHPI_ENT_OTHER_CHASSIS_BOARD",        SAHPI_ENT_OTHER_CHASSIS_BOARD},
-	{"SAHPI_ENT_DISK_DRIVE_BAY",             SAHPI_ENT_DISK_DRIVE_BAY},
-	{"SAHPI_ENT_PERIPHERAL_BAY_2",           SAHPI_ENT_PERIPHERAL_BAY_2},
-	{"SAHPI_ENT_DEVICE_BAY",                 SAHPI_ENT_DEVICE_BAY},
-	{"SAHPI_ENT_COOLING_DEVICE",             SAHPI_ENT_COOLING_DEVICE},
+	{"POWER_MODULE",               SAHPI_ENT_POWER_MODULE},
+	{"POWER_MGMNT",                SAHPI_ENT_POWER_MGMNT},
+	{"CHASSIS_BACK_PANEL_BOARD",   SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD},
+	{"SYSTEM_CHASSIS",             SAHPI_ENT_SYSTEM_CHASSIS},
+	{"SUB_CHASSIS",                SAHPI_ENT_SUB_CHASSIS},
+	{"OTHER_CHASSIS_BOARD",        SAHPI_ENT_OTHER_CHASSIS_BOARD},
+	{"DISK_DRIVE_BAY",             SAHPI_ENT_DISK_DRIVE_BAY},
+	{"PERIPHERAL_BAY_2",           SAHPI_ENT_PERIPHERAL_BAY_2},
+	{"DEVICE_BAY",                 SAHPI_ENT_DEVICE_BAY},
+	{"COOLING_DEVICE",             SAHPI_ENT_COOLING_DEVICE},
 
-	{"SAHPI_ENT_COOLING_UNIT",               SAHPI_ENT_COOLING_UNIT},
-	{"SAHPI_ENT_INTERCONNECT",               SAHPI_ENT_INTERCONNECT},
-	{"SAHPI_ENT_MEMORY_DEVICE",              SAHPI_ENT_MEMORY_DEVICE},
-	{"SAHPI_ENT_SYS_MGMNT_SOFTWARE",         SAHPI_ENT_SYS_MGMNT_SOFTWARE},
-	{"SAHPI_ENT_BIOS",                       SAHPI_ENT_BIOS},
-	{"SAHPI_ENT_OPERATING_SYSTEM",           SAHPI_ENT_OPERATING_SYSTEM},
-	{"SAHPI_ENT_SYSTEM_BUS",                 SAHPI_ENT_SYSTEM_BUS},
-	{"SAHPI_ENT_GROUP",                      SAHPI_ENT_GROUP},
-	{"SAHPI_ENT_REMOTE",                     SAHPI_ENT_REMOTE},
-	{"SAHPI_ENT_EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
-	{"SAHPI_ENT_BATTERY",                    SAHPI_ENT_BATTERY},
+	{"COOLING_UNIT",               SAHPI_ENT_COOLING_UNIT},
+	{"INTERCONNECT",               SAHPI_ENT_INTERCONNECT},
+	{"MEMORY_DEVICE",              SAHPI_ENT_MEMORY_DEVICE},
+	{"SYS_MGMNT_SOFTWARE",         SAHPI_ENT_SYS_MGMNT_SOFTWARE},
+	{"BIOS",                       SAHPI_ENT_BIOS},
+	{"OPERATING_SYSTEM",           SAHPI_ENT_OPERATING_SYSTEM},
+	{"SYSTEM_BUS",                 SAHPI_ENT_SYSTEM_BUS},
+	{"GROUP",                      SAHPI_ENT_GROUP},
+	{"REMOTE",                     SAHPI_ENT_REMOTE},
+	{"EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
+	{"BATTERY",                    SAHPI_ENT_BATTERY},
 
-	{"SAHPI_ENT_RESERVED_1",                 SAHPI_ENT_RESERVED_1},
-	{"SAHPI_ENT_RESERVED_2",                 SAHPI_ENT_RESERVED_2},
-	{"SAHPI_ENT_RESERVED_3",                 SAHPI_ENT_RESERVED_3},
-	{"SAHPI_ENT_RESERVED_4",                 SAHPI_ENT_RESERVED_4},
-	{"SAHPI_ENT_RESERVED_5",                 SAHPI_ENT_RESERVED_5},
-	{"SAHPI_ENT_MC_FIRMWARE",                SAHPI_ENT_MC_FIRMWARE},
-	{"SAHPI_ENT_IPMI_CHANNEL",               SAHPI_ENT_IPMI_CHANNEL},
-	{"SAHPI_ENT_PCI_BUS",                    SAHPI_ENT_PCI_BUS},
-	{"SAHPI_ENT_PCI_EXPRESS_BUS",            SAHPI_ENT_PCI_EXPRESS_BUS},
+	{"RESERVED_1",                 SAHPI_ENT_RESERVED_1},
+	{"RESERVED_2",                 SAHPI_ENT_RESERVED_2},
+	{"RESERVED_3",                 SAHPI_ENT_RESERVED_3},
+	{"RESERVED_4",                 SAHPI_ENT_RESERVED_4},
+	{"RESERVED_5",                 SAHPI_ENT_RESERVED_5},
+	{"MC_FIRMWARE",                SAHPI_ENT_MC_FIRMWARE},
+	{"IPMI_CHANNEL",               SAHPI_ENT_IPMI_CHANNEL},
+	{"PCI_BUS",                    SAHPI_ENT_PCI_BUS},
+	{"PCI_EXPRESS_BUS",            SAHPI_ENT_PCI_EXPRESS_BUS},
 
-	{"SAHPI_ENT_SCSI_BUS",                   SAHPI_ENT_SCSI_BUS},
-	{"SAHPI_ENT_SATA_BUS",                   SAHPI_ENT_SATA_BUS},
-	{"SAHPI_ENT_PROC_FSB",                   SAHPI_ENT_PROC_FSB},
-	{"SAHPI_ENT_CLOCK",                      SAHPI_ENT_CLOCK},
-	{"SAHPI_ENT_SYSTEM_FIRMWARE",            SAHPI_ENT_SYSTEM_FIRMWARE},
+	{"SCSI_BUS",                   SAHPI_ENT_SCSI_BUS},
+	{"SATA_BUS",                   SAHPI_ENT_SATA_BUS},
+	{"PROC_FSB",                   SAHPI_ENT_PROC_FSB},
+	{"CLOCK",                      SAHPI_ENT_CLOCK},
+	{"SYSTEM_FIRMWARE",            SAHPI_ENT_SYSTEM_FIRMWARE},
 
 
-	{"SAHPI_ENT_CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
-	{"SAHPI_ENT_BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
-	{"SAHPI_ENT_OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
-	{"SAHPI_ENT_ROOT",                       SAHPI_ENT_ROOT},
-	{"SAHPI_ENT_RACK",                       SAHPI_ENT_RACK},
+	{"CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
+	{"BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
+	{"OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
+	{"ROOT",                       SAHPI_ENT_ROOT},
+	{"RACK",                       SAHPI_ENT_RACK},
 
-	{"SAHPI_ENT_SUBRACK",                    SAHPI_ENT_SUBRACK},
-	{"SAHPI_ENT_COMPACTPCI_CHASSIS",         SAHPI_ENT_COMPACTPCI_CHASSIS},
-	{"SAHPI_ENT_ADVANCEDTCA_CHASSIS",        SAHPI_ENT_ADVANCEDTCA_CHASSIS},
-	{"SAHPI_ENT_RACK_MOUNTED_SERVER",        SAHPI_ENT_RACK_MOUNTED_SERVER},
-	{"SAHPI_ENT_SYSTEM_BLADE",               SAHPI_ENT_SYSTEM_BLADE},
-	{"SAHPI_ENT_SWITCH",                     SAHPI_ENT_SWITCH},
-	{"SAHPI_ENT_SWITCH_BLADE",               SAHPI_ENT_SWITCH_BLADE},
-	{"SAHPI_ENT_SBC_BLADE",                  SAHPI_ENT_SBC_BLADE},
-	{"SAHPI_ENT_IO_BLADE",                   SAHPI_ENT_IO_BLADE},
-	{"SAHPI_ENT_DISK_BLADE",                 SAHPI_ENT_DISK_BLADE},
+	{"SUBRACK",                    SAHPI_ENT_SUBRACK},
+	{"COMPACTPCI_CHASSIS",         SAHPI_ENT_COMPACTPCI_CHASSIS},
+	{"ADVANCEDTCA_CHASSIS",        SAHPI_ENT_ADVANCEDTCA_CHASSIS},
+	{"RACK_MOUNTED_SERVER",        SAHPI_ENT_RACK_MOUNTED_SERVER},
+	{"SYSTEM_BLADE",               SAHPI_ENT_SYSTEM_BLADE},
+	{"SWITCH",                     SAHPI_ENT_SWITCH},
+	{"SWITCH_BLADE",               SAHPI_ENT_SWITCH_BLADE},
+	{"SBC_BLADE",                  SAHPI_ENT_SBC_BLADE},
+	{"IO_BLADE",                   SAHPI_ENT_IO_BLADE},
+	{"DISK_DRIVE",                 SAHPI_ENT_DISK_DRIVE},
+	{"FAN",                        SAHPI_ENT_FAN},
+	{"POWER_DISTRIBUTION_UNIT",    SAHPI_ENT_POWER_DISTRIBUTION_UNIT},
+	{"SPEC_PROC_BLADE",            SAHPI_ENT_SPEC_PROC_BLADE},
+	{"IO_SUBBOARD",                SAHPI_ENT_IO_SUBBOARD},
+	{"SBC_SUBBOARD",               SAHPI_ENT_SBC_SUBBOARD},
+	{"ALARM_MANAGER",              SAHPI_ENT_ALARM_MANAGER},
+	{"SHELF_MANAGER",              SAHPI_ENT_SHELF_MANAGER},
+	{"DISPLAY_PANEL",              SAHPI_ENT_DISPLAY_PANEL},
+	{"SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE},
 
-	{"SAHPI_ENT_DISK_DRIVE",                 SAHPI_ENT_DISK_DRIVE},
-	{"SAHPI_ENT_FAN",                        SAHPI_ENT_FAN},
-	{"SAHPI_ENT_POWER_DISTRIBUTION_UNIT",    SAHPI_ENT_POWER_DISTRIBUTION_UNIT},
-	{"SAHPI_ENT_SPEC_PROC_BLADE",            SAHPI_ENT_SPEC_PROC_BLADE},
-	{"SAHPI_ENT_IO_SUBBOARD",                SAHPI_ENT_IO_SUBBOARD},
-	{"SAHPI_ENT_SBC_SUBBOARD",               SAHPI_ENT_SBC_SUBBOARD},
-	{"SAHPI_ENT_ALARM_MANAGER",              SAHPI_ENT_ALARM_MANAGER},
-	{"SAHPI_ENT_SHELF_MANAGER",              SAHPI_ENT_SHELF_MANAGER},
-	{"SAHPI_ENT_DISPLAY_PANEL",              SAHPI_ENT_DISPLAY_PANEL},
-	{"SAHPI_ENT_SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE},
+	{"PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
 
-	{"SAHPI_ENT_PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
-
-	{"SAHPI_ENT_PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
-	{"SAHPI_ENT_SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
-	{"SAHPI_ENT_FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
-	{"SAHPI_ENT_AMC",                        SAHPI_ENT_AMC},
-	{"SAHPI_ENT_BMC",                        SAHPI_ENT_BMC},
-	{"SAHPI_ENT_IPMC",                       SAHPI_ENT_IPMC},
-	{"SAHPI_ENT_MMC",                        SAHPI_ENT_MMC},
-	{"SAHPI_ENT_SHMC",                       SAHPI_ENT_SHMC},
-	{"SAHPI_ENT_CPLD",                       SAHPI_ENT_CPLD},
-
-	{"SAHPI_ENT_EPLD",                       SAHPI_ENT_EPLD},
-	{"SAHPI_ENT_FPGA",                       SAHPI_ENT_FPGA},
-	{"SAHPI_ENT_DASD",                       SAHPI_ENT_DASD},
-	{"SAHPI_ENT_NIC",                        SAHPI_ENT_NIC},
-	{"SAHPI_ENT_DSP",                        SAHPI_ENT_DSP},
-	{"SAHPI_ENT_UCODE",                      SAHPI_ENT_UCODE},
-	{"SAHPI_ENT_NPU",                        SAHPI_ENT_NPU},
-	{"SAHPI_ENT_OEM",                        SAHPI_ENT_OEM}
+	{"PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
+	{"SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
+	{"FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
+	{"AMC",                        SAHPI_ENT_AMC},
+	{"BMC",                        SAHPI_ENT_BMC},
+	{"IPMC",                       SAHPI_ENT_IPMC},
+	{"MMC",                        SAHPI_ENT_MMC},
+	{"SHMC",                       SAHPI_ENT_SHMC},
+	{"EPLD",                       SAHPI_ENT_EPLD},
+	{"FPGA",                       SAHPI_ENT_FPGA},
+	{"DASD",                       SAHPI_ENT_DASD},
+	{"NIC",                        SAHPI_ENT_NIC},
+	{"DSP",                        SAHPI_ENT_DSP},
+	{"UCODE",                      SAHPI_ENT_UCODE},
+	{"NPU",                        SAHPI_ENT_NPU},
+	{"OEM",                        SAHPI_ENT_OEM}
 };
 
 
@@ -330,11 +327,8 @@ static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path,
 		return NCSCC_RC_FAILURE;
 	}
 
-        *(ent_path_str++) = '{';
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
         {
-		*(ent_path_str++) = '{';
-		
 		index = entity_path->Entry[i].EntityLocation;
 
 		memcpy(ent_path_str,hpi_ent_type_list[index_array[i]].etype_str,
@@ -343,20 +337,17 @@ static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path,
 		ent_path_str +=
 		strlen(hpi_ent_type_list[index_array[i]].etype_str);
 
-		*(ent_path_str++) = ',';
+		*(ent_path_str++) = '.';
 
-		count = sprintf(ent_path_str, "%d", 
-		entity_path->Entry[i].EntityLocation);
+		count = sprintf(ent_path_str, "%d",entity_path->Entry[i].EntityLocation); 
 		ent_path_str += count;
-
-		*(ent_path_str++)= '}';
-		*(ent_path_str++)= ',';
 
 		if(entity_path->Entry[i].EntityType == SAHPI_ENT_ROOT)
 			break;
-        }
 
-        *(ent_path_str - 1)= '}';
+		*(ent_path_str++)= ',';
+
+        }
 
         /* Must null-terminate this string */
         *ent_path_str = '\0';
@@ -391,6 +382,7 @@ SaUint32T convert_string_to_epath(SaInt8T *epath_str,
 	SaUint32T 	num_entity_types; 
         SaUint32T 	epath_len;
 
+	TRACE_ENTER();
         /* verify the arguments */
         if ( NULL == epath_str )
         {
@@ -414,31 +406,11 @@ SaUint32T convert_string_to_epath(SaInt8T *epath_str,
         tok = epath;
         end_char = epath + epath_len;
 
-        /* look for and skip the first '{' char in entity path */
-        if (NULL == (ptr = strchr((char *)tok, EPATH_BEGIN_CHAR)))
-        {
-                LOG_ER("Invalid arguments to string2entitypath");
-                free(epath);
-                return NCSCC_RC_FAILURE;
-        }
-        *ptr = '\0';
-        if ((tok = ptr+1) >= end_char)
-        {
-                LOG_ER("Invalid arguments to string2entitypath");
-                free(epath);
-                return NCSCC_RC_FAILURE;
-        }
-	
 	 /* get the tokens from epath and fill the epath_ptr structure */
         while (tok != NULL)
         {
-                /* go to next tuple in entity path string */
-                if (NULL == (ptr = strchr(tok, EPATH_BEGIN_CHAR)))
-                        break;
-                if ((tok = ptr+1) >= end_char)
-                        break;
                 /* gets the entity type */
-                if (NULL == (ptr = strchr(tok, EPATH_SEPARATOR_CHAR)))
+                if (NULL == (ptr = strchr(tok, EPATH_DOT_SEPARATOR_CHAR)))
                         break;
                 *ptr = '\0';
                 remove_spaces(&tok);
@@ -465,8 +437,8 @@ SaUint32T convert_string_to_epath(SaInt8T *epath_str,
                 if ((tok = ptr+1) >= end_char)
                         break;
                 /* get the entity instance value */
-                if (NULL == (ptr = strchr(tok, EPATH_END_CHAR)))
-                        break;
+                if (NULL == (ptr = strchr(tok, EPATH_COMMA_SEPARATOR_CHAR)))
+                        ptr = strchr(tok, '\0');
                 *ptr = '\0';
 
                 remove_spaces(&tok);
@@ -482,6 +454,7 @@ SaUint32T convert_string_to_epath(SaInt8T *epath_str,
         /* free the duplicate string allocated for entity path */
         free(epath);
 	epath = NULL;
+	TRACE_LEAVE();
         return rc;
 }
 /****************************************************************************

@@ -197,7 +197,7 @@
 		<dn>safHE=f120_slot_1,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>{{SAHPI_ENT_ADVANCEDTCA_CHASSIS,2},{SAHPI_ENT_PHYSICAL_SLOT,1},{SAHPI_ENT_SWITCH_BLADE,0}}</value> 
+			<value>ADVANCEDTCA_CHASSIS.2,PHYSICAL_SLOT.1,SWITCH_BLADE.0</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -208,7 +208,7 @@
 		<dn>safHE=f120_slot_16,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>{{SAHPI_ENT_ADVANCEDTCA_CHASSIS,2},{SAHPI_ENT_PHYSICAL_SLOT,16},{SAHPI_ENT_SWITCH_BLADE,0}}</value> 
+			<value>ADVANCEDTCA_CHASSIS.2,PHYSICAL_SLOT.16,SWITCH_BLADE.0</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -219,7 +219,7 @@
 		<dn>safHE=pramc_slot_1,safHE=f120_slot_1,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>{{SAHPI_ENT_ADVANCEDTCA_CHASSIS,2},{SAHPI_ENT_PHYSICAL_SLOT,1},{SAHPI_ENT_SWITCH_BLADE,0},{SAHPI_ENT_SBC_BLADE,8}}</value> 
+			<value>ADVANCEDTCA_CHASSIS.2,PHYSICAL_SLOT.1,SWITCH_BLADE.0,SBC_BLADE.8</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -230,7 +230,7 @@
 		<dn>safHE=pramc_slot_16,safHE=f120_slot_16,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>{{SAHPI_ENT_ADVANCEDTCA_CHASSIS,2},{SAHPI_ENT_PHYSICAL_SLOT,16},{SAHPI_ENT_SWITCH_BLADE,0},{SAHPI_ENT_SBC_BLADE,8}}</value> 
+			<value>ADVANCEDTCA_CHASSIS.2,PHYSICAL_SLOT.16,SWITCH_BLADE.0,SBC_BLADE.8</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -241,7 +241,7 @@
 		<dn>safHE=7150_slot_2,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>{{SAHPI_ENT_PICMG_FRONT_BLADE,0},{SAHPI_ENT_PHYSICAL_SLOT,2},{SAHPI_ENT_ADVANCEDTCA_CHASSIS,2},{SAHPI_ENT_ROOT,0}}</value> 
+			<value>PICMG_FRONT_BLADE.0,PHYSICAL_SLOT.2,ADVANCEDTCA_CHASSIS.2,ROOT.0</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
