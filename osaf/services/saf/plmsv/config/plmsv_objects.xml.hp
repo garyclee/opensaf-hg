@@ -148,7 +148,7 @@
 		<dn>safHE=blade_1,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>SYSTEM_BLADE.1,SYSTEM_CHASSIS.2,ROOT.0</value> 
+			<value>SYSTEM_BLADE.1,SYSTEM_CHASSIS.2</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -159,7 +159,7 @@
 		<dn>safHE=blade_2,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>SYSTEM_BLADE.2,SYSTEM_CHASSIS.2,ROOT.0</value> 
+			<value>SYSTEM_BLADE.2,SYSTEM_CHASSIS.2</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -170,7 +170,7 @@
 		<dn>safHE=blade_3,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>SYSTEM_BLADE.3,SYSTEM_CHASSIS.2,ROOT.0</value> 
+			<value>SYSTEM_BLADE.3,SYSTEM_CHASSIS.2</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
@@ -181,7 +181,7 @@
 		<dn>safHE=blade_4,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>SYSTEM_BLADE.4,SYSTEM_CHASSIS.2,ROOT.0</value> 
+			<value>SYSTEM_BLADE.4,SYSTEM_CHASSIS.2</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 

@@ -241,7 +241,7 @@
 		<dn>safHE=7150_slot_2,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmHEEntityPaths</name> 
-			<value>PICMG_FRONT_BLADE.0,PHYSICAL_SLOT.2,ADVANCEDTCA_CHASSIS.2,ROOT.0</value> 
+			<value>PICMG_FRONT_BLADE.0,PHYSICAL_SLOT.2,ADVANCEDTCA_CHASSIS.2</value> 
 		</attr>
 		<attr>
 			<name>saPlmHEBaseHEType</name> 
