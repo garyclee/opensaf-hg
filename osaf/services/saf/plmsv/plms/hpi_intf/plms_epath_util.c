@@ -342,7 +342,7 @@ static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path,
 		count = sprintf(ent_path_str, "%d",entity_path->Entry[i].EntityLocation); 
 		ent_path_str += count;
 
-		if(entity_path->Entry[i].EntityType == SAHPI_ENT_ROOT)
+		if(entity_path->Entry[i+1].EntityType == SAHPI_ENT_ROOT)
 			break;
 
 		*(ent_path_str++)= ',';
@@ -450,6 +450,9 @@ SaUint32T convert_string_to_epath(SaInt8T *epath_str,
                 if (++entity_index >= SAHPI_MAX_ENTITY_PATH)
                         break;
         }
+
+	epath_ptr->Entry[entity_index].EntityType = SAHPI_ENT_ROOT;
+        epath_ptr->Entry[entity_index].EntityLocation = 0;
 
         /* free the duplicate string allocated for entity path */
         free(epath);
