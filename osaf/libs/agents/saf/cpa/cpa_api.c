@@ -1964,7 +1964,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
 ******************************************************************************/
 SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 				SaCkptSectionCreationAttributesT *sectionCreationAttributes,
-				const SaUint8T *initialData, SaSizeT initialDataSize)
+				const void *initialData, SaSizeT initialDataSize)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;

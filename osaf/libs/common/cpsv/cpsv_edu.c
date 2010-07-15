@@ -445,7 +445,7 @@ FUNC_DECLARATION(DS)
 		EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0,
 			    (long)&((DS *) 0)->checkpointCreationAttributes, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->numberOfSections, 0, NULL}, {
-		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->memoryUsed, 0, NULL}, {
+		EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS *) 0)->memoryUsed, 0, NULL}, {
 	EDU_END, 0, 0, 0, 0, 0, 0, NULL},};
 	NCS_ENC_DEC_REM_FLOW(DS)
 }
