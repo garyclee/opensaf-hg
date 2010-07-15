@@ -84,13 +84,13 @@ extern "C" {
 	typedef struct {
 		SaCkptCheckpointCreationAttributesT checkpointCreationAttributes;
 		SaUint32T numberOfSections;
-		SaUint32T memoryUsed;
+		SaSizeT memoryUsed;
 	} SaCkptCheckpointDescriptorT;
 
 	typedef enum {
 		SA_CKPT_SECTION_FULL = 1,
 		SA_CKPT_SECTION_AVAILABLE = 2
-	} saCkptCheckpointStatusT;
+	} SaCkptCheckpointStatusT;
 
 	typedef enum {
 		SA_CKPT_CHECKPOINT_STATUS = 1
@@ -117,14 +117,14 @@ extern "C" {
 	 saCkptFinalize(SaCkptHandleT ckptHandle);
 	extern SaAisErrorT
 	 saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
-			      const SaNameT *ckeckpointName,
+			      const SaNameT *checkpointName,
 			      const SaCkptCheckpointCreationAttributesT *checkpointCreationAttributes,
 			      SaCkptCheckpointOpenFlagsT checkpointOpenFlags,
 			      SaTimeT timeout, SaCkptCheckpointHandleT *checkpointHandle);
 	extern SaAisErrorT
 	 saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle,
 				   SaInvocationT invocation,
-				   const SaNameT *ckeckpointName,
+				   const SaNameT *checkpointName,
 				   const SaCkptCheckpointCreationAttributesT *checkpointCreationAttributes,
 				   SaCkptCheckpointOpenFlagsT checkpointOpenFlags);
 	extern SaAisErrorT
@@ -141,7 +141,7 @@ extern "C" {
 	extern SaAisErrorT
 	 saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 			     SaCkptSectionCreationAttributesT *sectionCreationAttributes,
-			     const SaUint8T *initialData, SaSizeT initialDataSize);
+			     const void *initialData, SaSizeT initialDataSize);
 	extern SaAisErrorT
 	 saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle, const SaCkptSectionIdT *sectionId);
 	extern SaAisErrorT
@@ -169,7 +169,7 @@ extern "C" {
 			      SaCkptIOVectorElementT *ioVector,
 			      SaUint32T numberOfElements, SaUint32T *erroneousVectorIndex);
 	extern SaAisErrorT
-	 saCkptCheckpointSynchronize(SaCkptCheckpointHandleT ckeckpointHandle, SaTimeT timeout);
+	 saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandle, SaTimeT timeout);
 	extern SaAisErrorT
 	 saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointHandle, SaInvocationT invocation);
 
