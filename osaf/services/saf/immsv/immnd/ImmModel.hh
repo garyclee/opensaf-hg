@@ -386,7 +386,7 @@ public:
                                ConnVector& connVector,
                                SaUint32T* client,
 			       unsigned int* pbeNodeIdPtr);
-    bool              cleanTheBasement(
+    SaUint32T         cleanTheBasement(
                                        unsigned int seconds, 
                                        InvocVector& admReqs,
                                        InvocVector& searchReqs,
