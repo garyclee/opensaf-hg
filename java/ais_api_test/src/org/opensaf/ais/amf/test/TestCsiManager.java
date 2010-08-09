@@ -38,12 +38,12 @@ import junit.framework.TestCase;
 public class TestCsiManager extends TestCase {
 
 	// STATIC FIELDS
-	private static String s_csiName1 = "safCsi=amfTestCSI_1,safSi=amfTestSI_1";
-	private static String s_csiName2 = "safCsi=amfTestCSI_2,safSi=amfTestSI_2";
-	private static String s_csiName3 = "safCsi=amfTestCSI_3,safSi=amfTestSI_3";
+	private static String s_csiName1 = "safCsi=amfTestCSI_1,safSi=amfTestSI_1,safApp=AmfTestApp";
+	private static String s_csiName2 = "safCsi=amfTestCSI_2,safSi=amfTestSI_2,safApp=AmfTestApp";
+	private static String s_csiName3 = "safCsi=amfTestCSI_3,safSi=amfTestSI_3,safApp=AmfTestApp";
 
-	private static String s_compName1 = "safComp=amfTestComp,safSu=amfTestSU1,safNode=PL_2_3";
-	private static String s_compName2 = "safComp=amfTestComp,safSu=amfTestSU2,safNode=PL_2_3";
+	private static String s_compName1 = "safComp=amfTestComp,safSu=amfTestSU1,safSg=amfTestSG,safApp=AmfTestApp";
+	private static String s_compName2 = "safComp=amfTestComp,safSu=amfTestSU2,safSg=amfTestSG,safApp=AmfTestApp";
 	private static HaState s_haState_comp1_csi1;
 	private static HaState s_haState_comp1_csi2;
 	private static HaState s_haState_comp1_csi3;
@@ -214,9 +214,13 @@ public class TestCsiManager extends TestCase {
 	public void getHaState_Comp1() {
 		//
 		try {
+            System.out.println(java.util.Calendar.getInstance());
+            System.out.println("Trying to get " + s_compName1 + " " + s_csiName1);
 			s_haState_comp1_csi1 = csiMgr.getHaState(s_compName1, s_csiName1);
 		} catch (AisException e) {
 			aisExc = e;
+            System.out.println(e);
+            e.printStackTrace(System.out);
 		}
 		Assert.assertNull(aisExc);
 		Assert.assertNotNull(s_haState_comp1_csi1);

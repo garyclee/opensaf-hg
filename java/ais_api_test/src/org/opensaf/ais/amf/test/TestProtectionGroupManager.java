@@ -110,13 +110,9 @@ public class TestProtectionGroupManager extends TestCase implements
 
 	private ProtectionGroupNotification[] notificationArray;
 
-	// Old
-	// private String csiName1 = "safCsi=amfTestCSI_1";
-	// private String csiName2 = "safCsi=amfTestCSI_2";
-	// private String csiName3 = "safCsi=amfTestCSI_3";
-	private String csiName1 = "safCsi=amfTestCSI_1,safSi=amfTestSI_1";
-	private String csiName2 = "safCsi=amfTestCSI_2,safSi=amfTestSI_2";
-	private String csiName3 = "safCsi=amfTestCSI_3,safSi=amfTestSI_3";
+	private String csiName1 = "safCsi=amfTestCSI_1,safSi=amfTestSI_1,safApp=AmfTestApp";
+	private String csiName2 = "safCsi=amfTestCSI_2,safSi=amfTestSI_2,safApp=AmfTestApp";
+	private String csiName3 = "safCsi=amfTestCSI_3,safSi=amfTestSI_3,safApp=AmfTestApp";
 	private String csiNameCurrent;
 
 	private boolean called_tPG_cb;
