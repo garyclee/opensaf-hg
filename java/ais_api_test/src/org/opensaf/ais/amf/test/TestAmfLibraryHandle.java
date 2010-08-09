@@ -57,6 +57,9 @@ public class TestAmfLibraryHandle extends TestCase implements
 		CleanupProxiedComponentCallback, TrackProtectionGroupCallback {
 	// STATIC METHODS
 
+	// CONSTANTS
+	private final int ALLOWED_TIME_DIFF = 50; // (ms)
+
 	// NOTE that Eclipse does not use this method...
 	public static void main(String[] args) {
 		junit.textui.TestRunner.run(TestAmfLibraryHandle.class);
@@ -652,9 +655,9 @@ public class TestAmfLibraryHandle extends TestCase implements
 		Assert.assertFalse(_pending); // because no pending callback
 		Assert.assertNull(aisExc);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	/*
@@ -681,9 +684,9 @@ public class TestAmfLibraryHandle extends TestCase implements
 		Assert.assertNull(_selectedHandleArray); // because no registered callback
 		Assert.assertNull(aisExc);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	/*
@@ -712,9 +715,9 @@ public class TestAmfLibraryHandle extends TestCase implements
 		Assert.assertFalse(called_cPComp_cb);
 		Assert.assertFalse(called_tPG_cb);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	/*
