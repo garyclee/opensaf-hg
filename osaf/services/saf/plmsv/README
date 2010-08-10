@@ -251,19 +251,12 @@ Then the corresponding configuration of plmc is as below
 	[controller_2_ip]
 	10.105.1.6
 
-	[services_to_start]
-	/etc/init.d/snmpd start
-	/etc/init.d/openhpid start
+	[services]
+	/etc/init.d/snmpd
+	/etc/init.d/openhpid
 
-	[services_to_stop]
-	/etc/init.d/openhpid stop
-	/etc/init.d/snmpd stop
-
-	[osaf_to_start]
-	/etc/init.d/opensafd start
-
-	[osaf_to_stop]
-	/etc/init.d/opensafd stop
+	[osaf]
+	/etc/init.d/opensafd
 
 	[tcp_plms_listening_port]
 	6868
@@ -282,6 +275,18 @@ Then the corresponding configuration of plmc is as below
 
 	[os_shutdown_cmd]
 	/sbin/shutdown -h 0
+
+	[so_keepalive]
+	1
+
+	[tcp_keepidle_time]
+	2
+
+	[tcp_keepalive_intvl]
+	1
+
+	[tcp_keepalive_probes]
+	2
 
 Please note that os_type in plmcd.conf directly corresponds to what is specified
 for object class="SaPlmEEBaseType" in imm.xml. 
