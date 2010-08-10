@@ -45,6 +45,9 @@ public class TestClmMultiThreading extends TestCase {
 		junit.textui.TestRunner.run(TestClmMultiThreading.class);
 	}
 
+	// CONSTANTS
+	private final int ALLOWED_TIME_DIFF = 50; // (ms)
+
 	// INSTANCE FIELDS
 
 	private AisException aisExc;
@@ -477,7 +480,7 @@ public class TestClmMultiThreading extends TestCase {
 			}
 			Assert.assertTrue(isPendingCallback);
 			Assert.assertFalse(Utils.s_isDurationTooLong(before, after,
-					timeout, 5));
+					timeout, ALLOWED_TIME_DIFF));
 			Assert.assertNull(aisExc);
 		}
 
@@ -490,9 +493,9 @@ public class TestClmMultiThreading extends TestCase {
 			}
 			Assert.assertFalse(isPendingCallback);
 			Assert.assertFalse(Utils.s_isDurationTooLong(before, after,
-					timeout, 5));
+					timeout, ALLOWED_TIME_DIFF));
 			Assert.assertFalse(Utils.s_isDurationTooShort(before, after,
-					timeout, 5));
+					timeout, ALLOWED_TIME_DIFF));
 			Assert.assertNull(aisExc);
 		}
 
@@ -548,13 +551,19 @@ public class TestClmMultiThreading extends TestCase {
 
 		Thread dispatchThread;
 
+		// CONSTRUCTOR
+
+		public CallDispatchBlocking() {
+			isFinished = false;
+		}
+
 		// INSTANCE METHODS
 
 		public synchronized void run() {
 			try {
 				dispatchThread = Thread.currentThread();
 				// wait one second to receive the callback
-				clmLibHandle.dispatchBlocking(Consts.SA_TIME_ONE_MILLISECOND * 100);
+				clmLibHandle.dispatchBlocking(Consts.SA_TIME_ONE_MILLISECOND * 1000);
 				System.out.println("JAVA TEST: dispatch() by " + this
 						+ " returned ");
 			} catch (AisException e) {
