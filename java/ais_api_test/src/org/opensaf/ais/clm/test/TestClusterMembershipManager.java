@@ -56,6 +56,8 @@ public class TestClusterMembershipManager extends TestCase implements
 
     private static int INVALID_NODE_ID = 133;
 
+    private static int ALLOWED_TIME_DIFF = 50;
+
     // STATIC METHODS
 
     public static void main(String[] args) {
@@ -649,7 +651,7 @@ public class TestClusterMembershipManager extends TestCase implements
 		}
 		Assert.assertTrue(_pending);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				GET_CLUSTER_NODE_TIMEOUT, 5));
+				GET_CLUSTER_NODE_TIMEOUT, ALLOWED_TIME_DIFF));
 		// check callback
 		assert_gCN_cb_OK(TestClusterMembershipManager.s_invocation);
 		// check equality
@@ -701,7 +703,7 @@ public class TestClusterMembershipManager extends TestCase implements
 			aisExc = e;
 		}
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				GET_CLUSTER_NODE_TIMEOUT, 5));
+				GET_CLUSTER_NODE_TIMEOUT, ALLOWED_TIME_DIFF));
 		// check callback
 		assert_gCN_cb_OK(TestClusterMembershipManager.s_invocation);
 		// check equality
