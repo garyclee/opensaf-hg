@@ -33,6 +33,9 @@ public class TestClmLibraryHandle extends TestCase implements
 		GetClusterNodeCallback, TrackClusterCallback {
 	// STATIC METHODS
 
+	// CONSTANTS
+	private final int ALLOWED_TIME_DIFF = 50; // (ms)
+
 	// NOTE that Eclipse does not use this method...
 	public static void main(String[] args) {
 		junit.textui.TestRunner.run(TestClmLibraryHandle.class);
@@ -604,9 +607,9 @@ public class TestClmLibraryHandle extends TestCase implements
 		Assert.assertFalse(_pending); // because no pending callback
 		Assert.assertNull(aisExc);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	/*
@@ -659,9 +662,9 @@ public class TestClmLibraryHandle extends TestCase implements
 		Assert.assertFalse(called_gCN_cb);
 		Assert.assertFalse(called_tC_cb);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, ALLOWED_TIME_DIFF));
 	}
 
 	public void getClusterNodeCallback(long invocation,
