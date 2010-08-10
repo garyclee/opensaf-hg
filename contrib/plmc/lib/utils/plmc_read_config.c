@@ -431,6 +431,18 @@ void plmc_print_config(PLMC_config_data *config)
 	printf("  [os_shutdown_cmd]\n");
 	printf("  %s\n", config->os_shutdown_cmd);
 
+	printf("  [so_keepalive]\n");
+	printf("  %d\n", config->so_keepalive);
+
+	printf("  [tcp_keepidle_time]\n");
+	printf("  %d\n", config->tcp_keepidle_time);
+
+	printf("  [tcp_keepalive_intvl]\n");
+	printf("  %d\n", config->tcp_keepalive_intvl);
+
+	printf("  [tcp_keepalive_probes]\n");
+	printf("  %d\n", config->tcp_keepalive_probes);
+
 	printf("\n");
 }
 
