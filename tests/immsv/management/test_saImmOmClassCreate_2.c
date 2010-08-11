@@ -186,6 +186,25 @@ void saImmOmClassCreate_2_12(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmClassCreate_2_13(void)
+{
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 attr1 =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaImmAttrDefinitionT_2 attr2 =
+        {"rdn", SA_IMM_ATTR_SASTRINGT, SA_IMM_ATTR_CONFIG, NULL};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&attr1, NULL};
+    const SaImmAttrDefinitionT_2 *attrDefinitions2[] = {&attr1, &attr2, NULL};
+
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions2);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+
 extern void saImmOmClassDescriptionGet_2_01(void);
 extern void saImmOmClassDescriptionGet_2_02(void);
 extern void saImmOmClassDescriptionGet_2_03(void);
@@ -226,5 +245,6 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(2, saImmOmClassDelete_2_01, "saImmOmClassDelete_2 - SA_AIS_OK");
     test_case_add(2, saImmOmClassDelete_2_02, "saImmOmClassDelete_2 - SA_AIS_ERR_BAD_HANDLE");
     test_case_add(2, saImmOmClassDelete_2_03, "saImmOmClassDelete_2 - SA_AIS_ERR_NOT_EXIST, className does not exist");
+    test_case_add(2, saImmOmClassCreate_2_13, "saImmOmClassCreate_2 UPGRADE - SA_AIS_OK, Added attribute to class");
 }
 
