@@ -1871,6 +1871,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         SaUint32T* pbeConnPtr,
         unsigned int* pbeNodeIdPtr)
 {
+    int rdns=0;
+    int illegal=0;
+    bool persistentRt = false;
+    bool persistentRdn = false;
+    ClassInfo* classInfo = NULL;
+    ImmsvAttrDefList* list = req->attrDefinitions;
+
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
     size_t sz = strnlen((char *) req->className.buf, (size_t)req->className.size);
     
@@ -1883,216 +1890,209 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
-        err = SA_AIS_ERR_INVALID_PARAM;
-    } else {
-        ClassMap::iterator i = sClassMap.find(className);
-        if (i != sClassMap.end()) {
-            TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
-            err = SA_AIS_ERR_EXIST;
-        } else {
-            TRACE_5("CREATE CLASS '%s' category:%u", className.c_str(),
-                req->classCategory);
-            ClassInfo* classInfo = new ClassInfo(req->classCategory);
-            
-            int rdns=0;
-            int illegal=0;
-            bool persistentRt = false;
-            bool persistentRdn = false;
-            ImmsvAttrDefList* list = req->attrDefinitions;
-            //ImmsvAttrDefinition* attr = req->attrDefinitions.list.array[j];
-            //for (int j = 0; 
-            //   j < req->attrDefinitions.list.count && err == SA_AIS_OK; 
-            //   j++) {
-            while(list) {
-                ImmsvAttrDefinition* attr = &list->d;
-                sz = strnlen((char *) attr->attrName.buf, 
-                    (size_t)attr->attrName.size);
-                std::string attrName((const char*)attr->attrName.buf, sz);
-                const char* attNm = attrName.c_str();
-                
-                if((attr->attrFlags & SA_IMM_ATTR_CONFIG) &&
-                    (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
-                    LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not be both SA_IMM_ATTR_CONFIG "
-                        "and SA_IMM_ATTR_RUNTIME", attNm);
-                    illegal = 1;
-                }
-                
-                if(attr->attrFlags & SA_IMM_ATTR_CONFIG) {
-                    
-                    if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
-                        LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config attributes '%s'",
-                            attNm);
-                        illegal = 1;
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_PERSISTENT) {
-                        LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
-                            "SA_IMM_ATTR_PERSISTENT", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_CACHED) {
-                        LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
-                            "SA_IMM_ATTR_CACHED", attNm);
-                        illegal = 1;
-                    }
-                    
-                } else if(attr->attrFlags & SA_IMM_ATTR_RUNTIME) {
-                    
-                    if((attr->attrFlags & SA_IMM_ATTR_PERSISTENT) &&
-                        !(attr->attrFlags & SA_IMM_ATTR_CACHED)){
-                        attr->attrFlags |= SA_IMM_ATTR_CACHED;
-                        LOG_NO("persistent implies cached as of SAI-AIS-IMM-A.02.01 "
-                            "class:%s atrName:%s - corrected", className.c_str(), attNm);
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
-                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
-                            "SA_IMM_ATTR_WRITABLE", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
-                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
-                            "SA_IMM_ATTR_INITIALIZED", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
-                        (attr->attrFlags & SA_IMM_ATTR_PERSISTENT)) {
-                        TRACE_5("PERSISTENT RT %s:%s", className.c_str(), attNm);
-                        persistentRt = true;
-                        if(attr->attrFlags & SA_IMM_ATTR_RDN) {
-                            TRACE_5("PERSISTENT RT && PERSISTENT RDN %s:%s", 
-                                className.c_str(), attNm);
-                            persistentRdn = true;
-                        }
-                    }
-                } else {
-                    LOG_NO("ERR_INVALID_PARAM: Attribute '%s' is neither SA_IMM_ATTR_CONFIG nor "
-                        "SA_IMM_ATTR_RUNTIME", attNm);
-                    illegal = 1;
-                }
-                
+        return SA_AIS_ERR_INVALID_PARAM;
+    } 
+
+    ClassMap::iterator i = sClassMap.find(className);
+    if (i != sClassMap.end()) {
+        TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
+        err = SA_AIS_ERR_EXIST;
+        goto done;
+    }
+
+    TRACE_5("CREATE CLASS '%s' category:%u", className.c_str(),
+        req->classCategory);
+    classInfo = new ClassInfo(req->classCategory);
+
+    while(list) {
+        ImmsvAttrDefinition* attr = &list->d;
+        sz = strnlen((char *) attr->attrName.buf, 
+            (size_t)attr->attrName.size);
+        std::string attrName((const char*)attr->attrName.buf, sz);
+        const char* attNm = attrName.c_str();
+
+        if((attr->attrFlags & SA_IMM_ATTR_CONFIG) &&
+            (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
+            LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not be both SA_IMM_ATTR_CONFIG "
+                "and SA_IMM_ATTR_RUNTIME", attNm);
+            illegal = 1;
+        }
+
+        if(attr->attrFlags & SA_IMM_ATTR_CONFIG) {
+
+            if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
+                LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config attributes '%s'",
+                    attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_PERSISTENT) {
+                LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
+                    "SA_IMM_ATTR_PERSISTENT", attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_CACHED) {
+                LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
+                    "SA_IMM_ATTR_CACHED", attNm);
+                illegal = 1;
+            }
+
+        } else if(attr->attrFlags & SA_IMM_ATTR_RUNTIME) {
+
+            if((attr->attrFlags & SA_IMM_ATTR_PERSISTENT) &&
+                !(attr->attrFlags & SA_IMM_ATTR_CACHED)){
+                attr->attrFlags |= SA_IMM_ATTR_CACHED;
+                LOG_NO("persistent implies cached as of SAI-AIS-IMM-A.02.01 "
+                    "class:%s atrName:%s - corrected", className.c_str(), attNm);
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
+                LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
+                    "SA_IMM_ATTR_WRITABLE", attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
+                LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
+                    "SA_IMM_ATTR_INITIALIZED", attNm);
+                illegal = 1;
+            }
+
+            if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
+                (attr->attrFlags & SA_IMM_ATTR_PERSISTENT)) {
+                TRACE_5("PERSISTENT RT %s:%s", className.c_str(), attNm);
+                persistentRt = true;
                 if(attr->attrFlags & SA_IMM_ATTR_RDN) {
-                    ++rdns;
-                    
-                    if((req->classCategory == SA_IMM_CLASS_CONFIG) &&
-                        (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
-                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a configuration object "
-                            "can not be a runtime attribute", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
-                        LOG_NO("ERR_INVALID_PARAM: RDN attribute '%s' can not be SA_IMM_ATTR_WRITABLE",
-                            attNm);
-                        illegal = 1;
-                    }
-                    
-                    if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
-                        !(attr->attrFlags & SA_IMM_ATTR_CACHED)) {
-                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a runtime object must be declared cached",
-                            attNm);
-                        illegal = 1;
-                    }
+                    TRACE_5("PERSISTENT RT && PERSISTENT RDN %s:%s", className.c_str(),
+                        attNm);
+                    persistentRdn = true;
                 }
-                
-                if(attr->attrDefaultValue) {
-                    if(attr->attrFlags & SA_IMM_ATTR_RDN) {
-                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' can not have a default", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if((attr->attrFlags & SA_IMM_ATTR_RUNTIME) &&
-                        !(attr->attrFlags & SA_IMM_ATTR_CACHED) && 
-                        !(attr->attrFlags & SA_IMM_ATTR_PERSISTENT))
-                    {
-                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' is neither cached nor "
-                            "persistent => can not have a default", attNm);
-                        illegal = 1;
-                    }
-                    
-                    if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
-                        LOG_NO("ERR_INVALID_PARAM: Attribute %s declared as SA_IMM_ATTR_INITIALIZED "
-                            "inconsistent with having default", attNm);
-                        illegal = 1;
-                    }
-                }
-                err = attrCreate(classInfo, attr);
-                if(err != SA_AIS_OK) {
-                    illegal = 1;
-                }
-                list = list->next;
             }
-            
-            if(persistentRt && !persistentRdn) {
-                LOG_NO("ERR_INVALID_PARAM: Class for persistent runtime object requires "
-                    "persistent RDN");
+        } else {
+            LOG_NO("ERR_INVALID_PARAM: Attribute '%s' is neither SA_IMM_ATTR_CONFIG nor "
+                "SA_IMM_ATTR_RUNTIME", attNm);
+            illegal = 1;
+        }
+
+        if(attr->attrFlags & SA_IMM_ATTR_RDN) {
+            ++rdns;
+
+            if((req->classCategory == SA_IMM_CLASS_CONFIG) &&
+                (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a configuration object "
+                    "can not be a runtime attribute", attNm);
                 illegal = 1;
             }
-            
-            if(rdns != 1) {
-                LOG_NO("ERR_INVALID_PARAM: ONE and only ONE RDN attribute must be defined!");
+
+            if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
+                LOG_NO("ERR_INVALID_PARAM: RDN attribute '%s' can not be SA_IMM_ATTR_WRITABLE",
+                    attNm);
                 illegal = 1;
             }
-            
-            if(illegal) {
-                
-                LOG_NO("ERR_INVALID_PARAM: Problem with class '%s'", className.c_str());
-                
-                err = SA_AIS_ERR_INVALID_PARAM;
 
-                while(classInfo->mAttrMap.size()) {
-                    AttrMap::iterator ai = classInfo->mAttrMap.begin();
-                    AttrInfo* ainfo = ai->second;
-                    assert(ainfo);
-                    delete(ainfo);
-                    classInfo->mAttrMap.erase(ai);
-                }
-                delete classInfo;
-            } else {
-                sClassMap[className] = classInfo;
-                updateImmObject(className);
-                if(pbeNodeIdPtr) {
-                    if(!getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
-                        LOG_ER("Pbe is not available, can not happen here");
-                        abort();
-                    }
-                    ++sLastContinuationId;
-                    if(sLastContinuationId >= 0xfffffffe) {
-                            sLastContinuationId = 1;
-                    }
-                    (*continuationIdPtr) = sLastContinuationId;
-                    /* There is a tiny risk here that there exists a PRTO with DN
-                       identical to the classname and that a PRTO operation on THIS
-                       object is performed concurrently with this class create!
-                    */
-                    ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
-                    if(i2 == sPbeRtMutations.end()) {
-                        /* Object mutation to bar pbe restart --recover
-                           This is actually a class mutation, but lets keep the name.
-                        */
-                        ObjectMutation* oMut = new ObjectMutation(IMM_CREATE_CLASS);
-                        oMut->mContinuationId = (*continuationIdPtr);
-                        oMut->mAfterImage = NULL;
-                        sPbeRtMutations[className] = oMut;
-
-                        if(reqConn) {
-                            SaInvocationT tmp_hdl =
-                                m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
-                            sPbeRtReqContinuationMap[tmp_hdl] =
-                                ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
-                        }
-                    } else {
-                        LOG_WA("PBE class create unprotected because of concurrent "
-                           "conflicting PRTO operation on same name '%s'",
-                           className.c_str());
-                    }
-                }
+            if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
+                !(attr->attrFlags & SA_IMM_ATTR_CACHED)) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a runtime object must be declared cached",
+                    attNm);
+                illegal = 1;
             }
         }
+
+        if(attr->attrDefaultValue) {
+            if(attr->attrFlags & SA_IMM_ATTR_RDN) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' can not have a default", attNm);
+                illegal = 1;
+            }
+
+            if((attr->attrFlags & SA_IMM_ATTR_RUNTIME) &&
+                !(attr->attrFlags & SA_IMM_ATTR_CACHED) && 
+                !(attr->attrFlags & SA_IMM_ATTR_PERSISTENT))
+            {
+                LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' is neither cached nor "
+                    "persistent => can not have a default", attNm);
+                illegal = 1;
+            }
+
+            if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute %s declared as SA_IMM_ATTR_INITIALIZED "
+                    "inconsistent with having default", attNm);
+                illegal = 1;
+            }
+        }
+        err = attrCreate(classInfo, attr);
+        if(err != SA_AIS_OK) {
+            illegal = 1;
+        }
+        list = list->next;
     }
+
+    if(persistentRt && !persistentRdn) {
+        LOG_NO("ERR_INVALID_PARAM: Class for persistent runtime object requires "
+            "persistent RDN");
+        illegal = 1;
+    }
+
+    if(rdns != 1) {
+        LOG_NO("ERR_INVALID_PARAM: ONE and only ONE RDN attribute must be defined!");
+        illegal = 1;
+    }
+
+    if(illegal) {
+            LOG_NO("ERR_INVALID_PARAM: Problem with class '%s'", className.c_str());
+            err = SA_AIS_ERR_INVALID_PARAM;
+
+        while(classInfo->mAttrMap.size()) {
+            AttrMap::iterator ai = classInfo->mAttrMap.begin();
+            AttrInfo* ainfo = ai->second;
+            assert(ainfo);
+            delete(ainfo);
+            classInfo->mAttrMap.erase(ai);
+        }
+        delete classInfo;
+        goto done;
+    }
+
+    sClassMap[className] = classInfo;
+    updateImmObject(className);
+    if(pbeNodeIdPtr) {
+        if(!getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
+            LOG_ER("Pbe is not available, can not happen here");
+            abort();
+        }
+        ++sLastContinuationId;
+        if(sLastContinuationId >= 0xfffffffe) {
+                sLastContinuationId = 1;
+        }
+        (*continuationIdPtr) = sLastContinuationId;
+        /* There is a tiny risk here that there exists a PRTO with DN
+           identical to the classname and that a PRTO operation on THIS
+           object is performed concurrently with this class create!
+        */
+        ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
+        if(i2 == sPbeRtMutations.end()) {
+            /* Object mutation to bar pbe restart --recover
+               This is actually a class mutation, but lets keep the name.
+            */
+            ObjectMutation* oMut = new ObjectMutation(IMM_CREATE_CLASS);
+            oMut->mContinuationId = (*continuationIdPtr);
+            oMut->mAfterImage = NULL;
+            sPbeRtMutations[className] = oMut;
+
+            if(reqConn) {
+                SaInvocationT tmp_hdl =
+                    m_IMMSV_PACK_HANDLE((*continuationIdPtr), nodeId);
+                sPbeRtReqContinuationMap[tmp_hdl] =
+                    ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
+            }
+        } else {
+            LOG_WA("PBE class create unprotected because of concurrent "
+                "conflicting PRTO operation on same name '%s'",
+                className.c_str());
+        }
+    }
+
+ done:
     TRACE_LEAVE();
     return err;
 }
