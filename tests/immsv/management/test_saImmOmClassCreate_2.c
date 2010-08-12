@@ -192,7 +192,7 @@ void saImmOmClassCreate_2_13(void)
     SaImmAttrDefinitionT_2 attr1 =
         {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
     SaImmAttrDefinitionT_2 attr2 =
-        {"rdn", SA_IMM_ATTR_SASTRINGT, SA_IMM_ATTR_CONFIG, NULL};
+        {"attr2", SA_IMM_ATTR_SASTRINGT, SA_IMM_ATTR_CONFIG, NULL};
     const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&attr1, NULL};
     const SaImmAttrDefinitionT_2 *attrDefinitions2[] = {&attr1, &attr2, NULL};
 
