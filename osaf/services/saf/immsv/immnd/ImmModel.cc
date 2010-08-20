@@ -69,7 +69,7 @@ struct AttrInfo
     SaUint32T       mNtfId;
     ImmAttrValue    mDefaultValue;
 };
-typedef std::map<std::string, AttrInfo*> AttrMap;
+//typedef std::map<std::string, AttrInfo*> AttrMap;
 
 struct ImplementerInfo
 {
@@ -1876,6 +1876,11 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
     bool persistentRt = false;
     bool persistentRdn = false;
     ClassInfo* classInfo = NULL;
+    ClassInfo* prevClassInfo = NULL;
+    ClassInfo dummyClass(req->classCategory);
+    bool schemaUpgrade=false;
+    AttrMap newAttrs;
+    AttrMap changedAttrs;
     ImmsvAttrDefList* list = req->attrDefinitions;
 
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationIdPtr, pbeConnPtr, pbeNodeIdPtr);
@@ -1889,21 +1894,37 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
     }
 
     if(!schemaNameCheck(className)) {
-        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name %s", className.c_str());
         return SA_AIS_ERR_INVALID_PARAM;
     } 
 
     ClassMap::iterator i = sClassMap.find(className);
-    if (i != sClassMap.end()) {
-        TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
-        err = SA_AIS_ERR_EXIST;
-        goto done;
+    if (i == sClassMap.end()) {
+        TRACE_5("CREATE CLASS '%s' category:%u", className.c_str(),
+            req->classCategory);
+        classInfo = new ClassInfo(req->classCategory);
+    } else {
+        /* Class name exists, check for schema upgrade.*/
+        if(schemaUpgradeAllowed()) {
+            /* New non-standard upgrade behavior. */
+            TRACE_7("Class '%s' exist - possible schema upgrade", className.c_str());
+            schemaUpgrade=true;
+            classInfo = &dummyClass; /* New class created as dummy, do all normal checks */
+            prevClassInfo = i->second;
+        } else {
+            /* Standard (old) behavior, reject. */
+            TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
+            err = SA_AIS_ERR_EXIST;
+            goto done;
+        }
     }
 
-    TRACE_5("CREATE CLASS '%s' category:%u", className.c_str(),
-        req->classCategory);
-    classInfo = new ClassInfo(req->classCategory);
-
+    /* The entire while loop below is independent of whether this is an upgrade
+       or not. Each attrdef is checked for fundamental correctness. 
+       A proposed upgrade of a class def has to pass all the checks it would
+       face, had it been the first version of the class def.
+       Additional checks, specific to upgrade are done, later (after this loop).
+    */
     while(list) {
         ImmsvAttrDefinition* attr = &list->d;
         sz = strnlen((char *) attr->attrName.buf, 
@@ -1921,8 +1942,8 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         if(attr->attrFlags & SA_IMM_ATTR_CONFIG) {
 
             if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
-                LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config attributes '%s'",
-                    attNm);
+                LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config "
+                    "attributes '%s'", attNm);
                 illegal = 1;
             }
 
@@ -1964,8 +1985,8 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                 TRACE_5("PERSISTENT RT %s:%s", className.c_str(), attNm);
                 persistentRt = true;
                 if(attr->attrFlags & SA_IMM_ATTR_RDN) {
-                    TRACE_5("PERSISTENT RT && PERSISTENT RDN %s:%s", className.c_str(),
-                        attNm);
+                    TRACE_5("PERSISTENT RT && PERSISTENT RDN %s:%s",
+                        className.c_str(), attNm);
                     persistentRdn = true;
                 }
             }
@@ -1993,8 +2014,8 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
             if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
                 !(attr->attrFlags & SA_IMM_ATTR_CACHED)) {
-                LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a runtime object must be declared cached",
-                    attNm);
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a runtime object must be declared "
+                    "cached", attNm);
                 illegal = 1;
             }
         }
@@ -2025,7 +2046,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             illegal = 1;
         }
         list = list->next;
-    }
+    } //while(list)
 
     if(persistentRt && !persistentRdn) {
         LOG_NO("ERR_INVALID_PARAM: Class for persistent runtime object requires "
@@ -2038,9 +2059,26 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         illegal = 1;
     }
 
+    if(schemaUpgrade && !illegal) {
+        /* 
+         If all basic checks passed and this is an upgrade, do upgrade specific checks.
+        */
+        if(verifySchemaUpgrade(className, prevClassInfo, classInfo, newAttrs, changedAttrs)) {
+            LOG_NO("Schema change for class %s ACCEPTED. Added %u and changed %u attribute defs",
+                className.c_str(), (unsigned int) newAttrs.size(), (unsigned int) changedAttrs.size());
+        } else {
+            LOG_IN("ERR_EXIST: Class '%s' exist - possible failed schema upgrade",
+               className.c_str());
+            err = SA_AIS_ERR_EXIST;
+            illegal = 1;
+        }
+    }
+
     if(illegal) {
-            LOG_NO("ERR_INVALID_PARAM: Problem with class '%s'", className.c_str());
+        if(err == SA_AIS_OK) {
+            LOG_NO("ERR_INVALID_PARAM: Problem with new class '%s'", className.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
+        }
 
         while(classInfo->mAttrMap.size()) {
             AttrMap::iterator ai = classInfo->mAttrMap.begin();
@@ -2049,12 +2087,115 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             delete(ainfo);
             classInfo->mAttrMap.erase(ai);
         }
-        delete classInfo;
+
+        if(!schemaUpgrade) {
+            delete classInfo;
+        }
+        classInfo = NULL;
         goto done;
     }
 
-    sClassMap[className] = classInfo;
-    updateImmObject(className);
+    /* All checks passed, now install the class def. */
+
+    if(!schemaUpgrade) {
+        /* Normal case, install the brand new class. */
+        sClassMap[className] = classInfo;
+        updateImmObject(className);
+    } else {
+        /* Schema upgrade case, Change the attr defs. */
+        AttrMap::iterator ai;
+        AttrInfo* ainfo = NULL;
+        ObjectMap::iterator oi;
+        assert(prevClassInfo);
+
+        /* Remove old attr defs. */
+        while(prevClassInfo->mAttrMap.size()) {
+            ai = prevClassInfo->mAttrMap.begin();
+            TRACE_5("Removing old attribute %s:%s", className.c_str(), ai->first.c_str());
+            ainfo = ai->second;
+            assert(ainfo);
+            delete(ainfo);
+            prevClassInfo->mAttrMap.erase(ai);
+        }
+
+        /* Move new attr defs from dummyClass to existing ClassInfo object. 
+           This leaves references from existing instances to the ClassInfo intact.
+        */
+        for(ai = dummyClass.mAttrMap.begin(); ai != dummyClass.mAttrMap.end(); ++ai) {
+            TRACE_5("Inserting attribute %s:%s", className.c_str(), ai->first.c_str());
+            prevClassInfo->mAttrMap[ai->first] = ai->second;
+        }
+        dummyClass.mAttrMap.clear();
+
+        /* Migrate instances. */
+        if(prevClassInfo->mRefCount) { 
+            /* There are instances. 
+               TODO: If we implement class extent index in ClassInfo, then we
+               should of course use that instead of iterating over sObjectMap.
+            */
+            for(oi=sObjectMap.begin(); oi != sObjectMap.end(); ++oi) {
+                if(oi->second->mClassInfo == prevClassInfo) {
+                    ObjectInfo* object = oi->second;
+                    ImmAttrValue* attrValue = NULL;
+                    TRACE_5("Migrating %s object %s", className.c_str(), oi->first.c_str());
+
+                    /* Add new attributes to instances. */
+                    for(ai = newAttrs.begin(); ai != newAttrs.end(); ++ai) {
+                        AttrInfo* attr = ai->second;
+
+                        if(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
+                            if(attr->mDefaultValue.empty()) {
+                                attrValue = new ImmAttrMultiValue();
+                            } else {
+                                attrValue = new ImmAttrMultiValue(attr->mDefaultValue);
+                            }
+                        } else {
+                            if(attr->mDefaultValue.empty()) {
+                                attrValue = new ImmAttrValue();
+                            } else {
+                                attrValue = new ImmAttrValue(attr->mDefaultValue);
+                            }
+                        }
+                        object->mAttrValueMap[ai->first] = attrValue;
+                    }
+
+                    /* Adjust existing attributes.
+                    */
+                    ImmAttrValueMap::iterator oavi; 
+                    for(oavi = object->mAttrValueMap.begin(); 
+                          oavi != object->mAttrValueMap.end(); ++oavi) {
+                        TRACE_5("CHECKING existing attribute %s:%s for object %s",
+                            className.c_str(), oavi->first.c_str(), oi->first.c_str());
+
+                        /*Change from single to multi-value requires change of value rep.*/
+                        ai = changedAttrs.find(oavi->first);
+                        if(ai != changedAttrs.end()) {
+                            if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+                               (!oavi->second->isMultiValued())) {
+                                attrValue = new ImmAttrMultiValue(*(oavi->second));
+                                TRACE_5("Schema change adjuisted attribute %s in object:%s "
+                                    "to be multivalued",
+                                    oavi->first.c_str(), oi->first.c_str());
+                                delete oavi->second;
+                                object->mAttrValueMap.erase(oavi);
+                                object->mAttrValueMap[ai->first] = attrValue;
+                            }
+                        }
+
+                        /* Correct object->mAdminOwnerAttrVal. */
+                        if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                            object->mAdminOwnerAttrVal = oavi->second;
+                            TRACE_5("Schema change corrected %s in object:%s",
+                                oavi->first.c_str(), oi->first.c_str());
+                        }
+                    }
+                }
+            }
+        } else {
+            LOG_IN("No instances to migrate");
+        }
+    } /* end of schema upgrade case. */
+
     if(pbeNodeIdPtr) {
         if(!getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
             LOG_ER("Pbe is not available, can not happen here");
@@ -2062,7 +2203,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         }
         ++sLastContinuationId;
         if(sLastContinuationId >= 0xfffffffe) {
-                sLastContinuationId = 1;
+            sLastContinuationId = 1;
         }
         (*continuationIdPtr) = sLastContinuationId;
         /* There is a tiny risk here that there exists a PRTO with DN
@@ -2071,7 +2212,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         */
         ObjectMutationMap::iterator i2 = sPbeRtMutations.find(className);
         if(i2 == sPbeRtMutations.end()) {
-            /* Object mutation to bar pbe restart --recover
+            /* Create an object mutation record to bar pbe restart --recover
                This is actually a class mutation, but lets keep the name.
             */
             ObjectMutation* oMut = new ObjectMutation(IMM_CREATE_CLASS);
@@ -2095,6 +2236,231 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
  done:
     TRACE_LEAVE();
     return err;
+}
+
+bool
+ImmModel::schemaUpgradeAllowed()
+{
+    return true;
+}
+
+/**
+ * Verify that a class create with same name as an existing class is a legal
+ * schema upgrade.
+ */
+bool
+ImmModel::verifySchemaUpgrade(const std::string& className, ClassInfo * oldClassInfo,
+   ClassInfo* newClassInfo, AttrMap& newAttrs, AttrMap& changedAttrs)
+{
+    AttrMap::iterator iold;
+    AttrMap::iterator inew;
+    bool verifyFailed=false;
+    TRACE_ENTER2("ClassName:%s", className.c_str());
+    assert(oldClassInfo && newClassInfo);
+    unsigned int oldCount = (unsigned int) oldClassInfo->mAttrMap.size();
+    unsigned int newCount = (unsigned int) newClassInfo->mAttrMap.size();
+    if(oldCount > newCount) {
+        LOG_NO("Impossible upgrade, new class descr for '%s' has fewer "
+               "attributes %u than existing %u.", className.c_str(),
+                newCount, oldCount);
+        return false;
+    }
+
+    if(oldClassInfo->mCategory != newClassInfo->mCategory) {
+        LOG_NO("Impossible upgrade, new class descr for '%s' not of "
+               "same category as existing.", className.c_str());
+        return false;
+    }
+
+    /* Verify that all old attrs exist in new. */
+
+    for(iold=oldClassInfo->mAttrMap.begin(); iold!=oldClassInfo->mAttrMap.end();++iold) {
+        std::string attName = iold->first;
+        inew = newClassInfo->mAttrMap.find(attName);
+        if(inew == newClassInfo->mAttrMap.end()) {
+            LOG_NO("Attribute %s missing in new class def.", attName.c_str());
+            verifyFailed = true;
+        } else {
+            --oldCount;
+        }
+    }
+
+    if(verifyFailed) {return false;}
+
+    assert(oldCount == 0); /* Yes this check is redundant. */
+
+    /* Check compatibility for all attrdefs in new class def. */
+    for(inew=newClassInfo->mAttrMap.begin(); inew!=newClassInfo->mAttrMap.end();++inew) {
+        std::string attName = inew->first;
+        AttrInfo* newAttr = inew->second;
+        iold = oldClassInfo->mAttrMap.find(attName);
+        if(iold == oldClassInfo->mAttrMap.end()) {
+            TRACE_5("New attribute %s added by new class def", attName.c_str());
+            verifyFailed = notCompatibleAtt(className, attName, NULL, newAttr, NULL) || 
+                verifyFailed;
+            newAttrs[inew->first] = newAttr;
+        } else {
+            TRACE_5("Existing attribute %s (re)defined? in new class def", attName.c_str());
+            verifyFailed = notCompatibleAtt(className, attName, iold->second, newAttr,
+                &changedAttrs) || verifyFailed;
+        }
+    }
+
+    if(newAttrs.empty() && changedAttrs.empty()) {
+        LOG_IN("New class def is same as old, not a real schema upgrade");
+        verifyFailed = true;
+    }
+
+    return !verifyFailed;
+    TRACE_LEAVE();
+}
+
+bool
+ImmModel::notCompatibleAtt(const std::string& className, const std::string& attName, 
+    const AttrInfo* oldAttr, AttrInfo* newAttr, AttrMap* changedAttrs)
+{
+    if(oldAttr) {
+        /* Existing attribute, possibly changed. */
+        bool change=false;
+        assert(changedAttrs);
+        if(oldAttr->mValueType != newAttr->mValueType) {
+            LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
+                className.c_str(), attName.c_str());
+            return true;
+        }
+
+        if(oldAttr->mFlags != newAttr->mFlags) {
+            if((oldAttr->mFlags & SA_IMM_ATTR_RUNTIME) !=
+               (newAttr->mFlags & SA_IMM_ATTR_RUNTIME)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s changes flag "
+                    "SA_IMM_ATTR_RUNTIME", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_CONFIG) !=
+               (newAttr->mFlags & SA_IMM_ATTR_CONFIG)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s changes flag "
+                    "SA_IMM_ATTR_CONFIG", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_CACHED) !=
+               (newAttr->mFlags & SA_IMM_ATTR_CACHED)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s changes flag "
+                    "SA_IMM_ATTR_CACHED", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_RDN) !=
+               (newAttr->mFlags & SA_IMM_ATTR_RDN)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s changes flag "
+                    "SA_IMM_ATTR_RDN", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s remove flag "
+                    "SA_IMM_ATTR_MULTI_VALUE", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+               (newAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
+                LOG_IN("Allowed upgrade, attribute %s:%s add flag "
+                    "SA_IMM_ATTR_MULTI_VALUE", className.c_str(), attName.c_str());
+
+                change = true; /* Instances NEED migration. */
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s remove flag "
+                    "SA_IMM_ATTR_WRITABLE", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
+               (newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
+                LOG_IN("Allowed upgrade, attribute %s:%s add flag "
+                    "SA_IMM_ATTR_WRITABLE", className.c_str(), attName.c_str());
+
+                change = true; /* Instances dont need migration. */
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_INITIALIZED) &&
+               (newAttr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s add flag "
+                    "SA_IMM_ATTR_INITIALIZED", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_INITIALIZED) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
+                LOG_IN("Allowed upgrade, attribute %s:%s remove flag "
+                    "SA_IMM_ATTR_INITIALIZED", className.c_str(), attName.c_str());
+
+                change = true; /* Instances dont need migration. */
+            }
+
+            if(!(oldAttr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
+               (newAttr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s add flag "
+                    "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
+                return true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
+               !(newAttr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
+                LOG_IN("Allowed upgrade, attribute %s:%s remove flag "
+                    "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
+
+                change = true; /* Instances dont need migration. */
+            }
+        }
+
+        if(oldAttr->mDefaultValue.empty() && !newAttr->mDefaultValue.empty()) {
+            LOG_NO("Impossible upgrade, attribute %s:%s adds default value",
+                className.c_str(), attName.c_str());
+            return true;
+        }
+
+        if(!oldAttr->mDefaultValue.empty() && newAttr->mDefaultValue.empty()) {
+            LOG_NO("Impossible upgrade, attribute %s:%s removes default value",
+                className.c_str(), attName.c_str());
+            return true;
+        }
+
+        /* Default value may change, this will only affect new instances. */
+        if(!oldAttr->mDefaultValue.empty() && !newAttr->mDefaultValue.empty()) {
+            IMMSV_EDU_ATTR_VAL oldval;
+            IMMSV_OCTET_STRING tmpos;
+            oldAttr->mDefaultValue.copyValueToEdu(&oldval, (SaImmValueTypeT)
+                oldAttr->mValueType);
+            eduAtValToOs(&tmpos, &oldval, (SaImmValueTypeT) oldAttr->mValueType);
+            if(newAttr->mDefaultValue.hasMatchingValue(tmpos)) {
+                TRACE_5("Unchanged default value for %s:%s", className.c_str(),
+                attName.c_str());
+            } else {
+                LOG_IN("Allowed upgrade, attribute %s:%s changes default value",
+                    className.c_str(), attName.c_str());
+                change = true;
+            }
+        }
+
+        if(change) {
+             (*changedAttrs)[attName] = newAttr;
+        }
+    } else {
+        /* This a new attribute apended to the class. */
+        if(newAttr->mFlags & SA_IMM_ATTR_INITIALIZED) {
+            LOG_NO("Impossible upgrade, new attribute %s:%s has SA_IMM_ATTR_INITIALIZED "
+                "flag set", className.c_str(), attName.c_str());
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /** 
@@ -4709,7 +5075,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                 "operation in same ccb. Currently can not handle delete chained "
                 "on top of create or update in same ccb.", oi->first.c_str());
             return SA_AIS_ERR_BAD_OPERATION;
-	}
+        }
     }
 
     if(oi->second->mObjFlags & IMM_RT_UPDATE_LOCK) {

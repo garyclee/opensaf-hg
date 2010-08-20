@@ -53,7 +53,7 @@ public:
     void            setValue(const IMMSV_OCTET_STRING& in);
     void            copyValueToEdu(IMMSV_EDU_ATTR_VAL* out, 
         SaImmValueTypeT t) const;
-    bool            empty() {return !mValueSize;}
+    bool            empty() const {return !mValueSize;}
     
 protected:
     char*           mValue;

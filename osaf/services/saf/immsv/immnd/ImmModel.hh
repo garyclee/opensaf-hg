@@ -56,6 +56,9 @@ struct ImmOiRtObjectCreate;
 
 struct immsv_oi_ccb_upcall_rsp;
 
+struct AttrInfo;
+typedef std::map<std::string, AttrInfo*> AttrMap;
+
 class ImmSearchOp;
 
 typedef std::vector<SaUint32T> ConnVector;
@@ -82,7 +85,19 @@ public:
                                     SaUint32T* pbeConn,
                                     unsigned int* pbeNodeId);
 
-    
+    bool                schemaUpgradeAllowed();
+    bool                verifySchemaUpgrade(const std::string& className,
+                                            ClassInfo* oldClass,
+                                            ClassInfo* newClass,
+                                            AttrMap& newAttrs,
+                                            AttrMap& changedAttrs);
+
+    bool                notCompatibleAtt(const std::string& className,
+                                         const std::string& attName, 
+                                         const AttrInfo* oldAttr,
+                                         AttrInfo* newAttr,
+                                         AttrMap* changedAttrs);
+
     SaAisErrorT         classDelete(
                                     const ImmsvOmClassDescr* req,
                                     SaUint32T reqConn,
