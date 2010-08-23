@@ -42,9 +42,13 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
-#define OPENSAF_IMM_PBE_CLASS_CREATE 1
-#define OPENSAF_IMM_PBE_CLASS_DELETE 2
-#define OPENSAF_IMM_PBE_UPDATE_EPOCH 3
+#define OPENSAF_IMM_PBE_CLASS_CREATE 0x10000000
+#define OPENSAF_IMM_PBE_CLASS_DELETE 0x20000000
+#define OPENSAF_IMM_PBE_UPDATE_EPOCH 0x30000000
+#define OPENSAF_IMM_NOST_FLAG_ON     0x00000001
+#define OPENSAF_IMM_NOST_FLAG_OFF    0x00000002
+
+#define OPENSAF_IMM_FLAG_SCHCH_ALLOW 0x00000001
 
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"
 
@@ -71,7 +75,7 @@ extern "C" {
  * in the standard, as a reminder of where I am tresspassing. 
  * This includefile is not part of the public API anyway.
 */
-#define SA_IMM_SEARCH_PERSISTENT_ATTRS          0x0010
+#define SA_IMM_SEARCH_PERSISTENT_ATTRS         0x0010
 #define SA_IMM_SEARCH_SYNC_CACHED_ATTRS        0x0020
 
 /* These functions are private and nonstandard parts of the IMM client

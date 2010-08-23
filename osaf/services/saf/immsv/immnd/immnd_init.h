@@ -93,7 +93,8 @@ extern "C" {
 					  const struct ImmsvOmAdminOperationInvoke *req,
 					  SaUint32T reqConn,
 					  SaUint64T reply_dest,
-					  SaInvocationT inv, SaUint32T *implConn, SaClmNodeIdT *implNodeId);
+					  SaInvocationT inv, SaUint32T *implConn,
+		                          SaClmNodeIdT *implNodeId, SaBoolT pbeExpected);
 
 	SaAisErrorT immModel_classCreate(IMMND_CB *cb, 
 		const struct ImmsvOmClassDescr *req,

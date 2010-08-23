@@ -301,10 +301,11 @@ static SaUint32T        sLastContinuationId = 0;
 
 static ImmNodeState     sImmNodeState = IMM_NODE_UNKNOWN;
 
-static std::string immObjectDn(OPENSAF_IMM_OBJECT_DN);
-static std::string immAttrClasses(OPENSAF_IMM_ATTR_CLASSES);
-static std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
-static std::string immClassName(OPENSAF_IMM_CLASS_NAME);
+static const std::string immObjectDn(OPENSAF_IMM_OBJECT_DN);
+static const std::string immAttrClasses(OPENSAF_IMM_ATTR_CLASSES);
+static const std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
+static const std::string immClassName(OPENSAF_IMM_CLASS_NAME);
+static const std::string immAttrNostFlags(OPENSAF_IMM_ATTR_NOSTD_FLAGS);
 
 static std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
 static std::string saImmRepositoryInit("saImmRepositoryInit");
@@ -748,10 +749,12 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
     SaUint64T reply_dest,
     SaInvocationT inv,
     SaUint32T* implConn,
-    SaClmNodeIdT* implNodeId)
+    SaClmNodeIdT* implNodeId,
+    SaBoolT pbeExpected)
 {
     return ImmModel::instance(&cb->immModel)->
-        adminOperationInvoke(req, reqConn, reply_dest, inv, implConn, implNodeId);
+        adminOperationInvoke(req, reqConn, reply_dest, inv,
+        implConn, implNodeId, pbeExpected);
 }
 
 /*
@@ -1878,7 +1881,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
     ClassInfo* classInfo = NULL;
     ClassInfo* prevClassInfo = NULL;
     ClassInfo dummyClass(req->classCategory);
-    bool schemaUpgrade=false;
+    bool schemaChange=false;
     AttrMap newAttrs;
     AttrMap changedAttrs;
     ImmsvAttrDefList* list = req->attrDefinitions;
@@ -1905,10 +1908,10 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         classInfo = new ClassInfo(req->classCategory);
     } else {
         /* Class name exists, check for schema upgrade.*/
-        if(schemaUpgradeAllowed()) {
+        if(schemaChangeAllowed()) {
             /* New non-standard upgrade behavior. */
             TRACE_7("Class '%s' exist - possible schema upgrade", className.c_str());
-            schemaUpgrade=true;
+            schemaChange=true;
             classInfo = &dummyClass; /* New class created as dummy, do all normal checks */
             prevClassInfo = i->second;
         } else {
@@ -2059,11 +2062,11 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         illegal = 1;
     }
 
-    if(schemaUpgrade && !illegal) {
+    if(schemaChange && !illegal) {
         /* 
          If all basic checks passed and this is an upgrade, do upgrade specific checks.
         */
-        if(verifySchemaUpgrade(className, prevClassInfo, classInfo, newAttrs, changedAttrs)) {
+        if(verifySchemaChange(className, prevClassInfo, classInfo, newAttrs, changedAttrs)) {
             LOG_NO("Schema change for class %s ACCEPTED. Added %u and changed %u attribute defs",
                 className.c_str(), (unsigned int) newAttrs.size(), (unsigned int) changedAttrs.size());
         } else {
@@ -2088,7 +2091,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             classInfo->mAttrMap.erase(ai);
         }
 
-        if(!schemaUpgrade) {
+        if(!schemaChange) {
             delete classInfo;
         }
         classInfo = NULL;
@@ -2097,7 +2100,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
     /* All checks passed, now install the class def. */
 
-    if(!schemaUpgrade) {
+    if(!schemaChange) {
         /* Normal case, install the brand new class. */
         sClassMap[className] = classInfo;
         updateImmObject(className);
@@ -2239,9 +2242,25 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 }
 
 bool
-ImmModel::schemaUpgradeAllowed()
+ImmModel::schemaChangeAllowed()
 {
-    return true;
+    TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    assert(avi != immObject->mAttrValueMap.end());
+    assert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    TRACE_LEAVE();
+    return noStdFlags & OPENSAF_IMM_FLAG_SCHCH_ALLOW;
 }
 
 /**
@@ -2249,7 +2268,7 @@ ImmModel::schemaUpgradeAllowed()
  * schema upgrade.
  */
 bool
-ImmModel::verifySchemaUpgrade(const std::string& className, ClassInfo * oldClassInfo,
+ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassInfo,
    ClassInfo* newClassInfo, AttrMap& newAttrs, AttrMap& changedAttrs)
 {
     AttrMap::iterator iold;
@@ -4037,6 +4056,9 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 } else {
                     attrValue = new 
                         ImmAttrValue(attr->mDefaultValue);
+		    if(i4->first == immAttrNostFlags) {
+                        TRACE_5("ABT Default value set for %s", immAttrNostFlags.c_str());
+		    }
                 }
             }
             
@@ -5707,7 +5729,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     op.addAttrValue(*j->second);
                     //Persistent rt attributes still accessible
                     //If they have been given any value
-                }
+                } 
                 //No implementer and the rt attribute is not persistent 
                 //then attribute name, but no value is to be returned.
                 //Se spec p 42.
@@ -6026,7 +6048,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                                         //sync cached values even when there
                                         //is no implementer currently. 
                                         op.addAttrValue(*j->second);
-                                    }
+                                    } 
                                     //No implementer and the rt attribute is
                                     //not persistent, then attribute name, but
                                     //no value is to be returned. 
@@ -6054,7 +6076,8 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                                            SaUint64T reply_dest,
                                            SaInvocationT& saInv,
                                            SaUint32T* implConn,
-                                           unsigned int* implNodeId)
+                                           unsigned int* implNodeId,
+                                           bool pbeExpected)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -6178,9 +6201,16 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             }
         }
     } else {
-        TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
-            objectName.c_str());
-        err = SA_AIS_ERR_NOT_EXIST;
+        /* Check for special imm OI support */
+        if(!pbeExpected && objectName == immObjectDn) {
+            err = updateImmObject2(req);
+            TRACE_7("Admin op on special object %s whith no implementer ret:%u",
+                objectName.c_str(), err);
+        } else {
+            TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
+                objectName.c_str());
+            err = SA_AIS_ERR_NOT_EXIST;
+        }
     }
     TRACE_LEAVE(); 
     return err;
@@ -6461,6 +6491,72 @@ ImmModel::updateImmObject(std::string newClassName,
         }
     }
     TRACE_LEAVE();
+}
+
+SaAisErrorT
+ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
+{
+    SaAisErrorT err = SA_AIS_ERR_REPAIR_PENDING;
+    /* Function for handling admin-ops directed at the immsv itself.
+       If PBE is enabled, such admin-ops are handled by the PBE-OI. 
+       But when there is no PBE, then we handle the adminOp inside the immnds
+       and reply directly. An error reply from such an internally handled adminOp will
+       be handled identically to an error reply for a normal adminOp where the error
+       is caught early.
+
+       But an OK reply for an internally handled adminOp is encoded as SA_AIS_ERR_REPAIR_PENDING,
+       to avoid confusion with the normal OK reponse in the early processing. That error code is
+       not used anywhere in the imm spec, so there is no risk of confusing it with a normal
+       error response from early processing either. 
+       The ok/SA_AIS_ERR_REPAIR_PENDING is converted back to SA_AIS_OK before replying to user.
+    */
+
+    ImmAttrValue* valuep = NULL;
+    ImmAttrValueMap::iterator avi;
+    ObjectInfo* immObject = NULL;
+    unsigned int noStdFlags=0x00000000;
+
+    TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    
+    if(oi == sObjectMap.end()) {
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    }
+    
+    immObject = oi->second;
+    avi = immObject->mAttrValueMap.find(immAttrNostFlags);
+    assert(avi != immObject->mAttrValueMap.end());
+    assert(!(avi->second->isMultiValued()));
+    valuep = (ImmAttrValue *) avi->second;
+    noStdFlags = valuep->getValue_int();
+
+    if((req->params == NULL) || (req->params->paramType != SA_IMM_ATTR_SAUINT32T)) {
+        err = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
+    }
+
+    if(req->operationId == OPENSAF_IMM_NOST_FLAG_ON) {
+        SaUint32T flagsToSet = req->params->paramBuffer.val.sauint32;
+        TRACE_5("Admin op NOST_FLAG_ON, current flags %x on flags %x", noStdFlags, flagsToSet);
+        noStdFlags |= flagsToSet;
+        valuep->setValue_int(noStdFlags);
+        TRACE_5("Flags result %x", noStdFlags);
+    } else if(req->operationId == OPENSAF_IMM_NOST_FLAG_OFF) {
+        SaUint32T flagsToUnSet = req->params->paramBuffer.val.sauint32;
+        TRACE_5("Admin op NOST_FLAG_OFF, current flags %x off flags %x", noStdFlags, flagsToUnSet);
+        noStdFlags &= ~flagsToUnSet;
+        valuep->setValue_int(noStdFlags);
+        TRACE_5("Flags result %x", noStdFlags);
+    } else {
+        LOG_IN("Invalid operation ID %llu, for operation on %s", (SaUint64T) req->operationId,
+            immObjectDn.c_str());
+        err = SA_AIS_ERR_INVALID_PARAM;
+    }
+
+ done:
+    TRACE_LEAVE();
+    return err;
 }
 
 SaUint32T
