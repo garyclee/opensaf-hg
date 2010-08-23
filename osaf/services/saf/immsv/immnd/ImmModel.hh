@@ -85,8 +85,8 @@ public:
                                     SaUint32T* pbeConn,
                                     unsigned int* pbeNodeId);
 
-    bool                schemaUpgradeAllowed();
-    bool                verifySchemaUpgrade(const std::string& className,
+    bool                schemaChangeAllowed();
+    bool                verifySchemaChange(const std::string& className,
                                             ClassInfo* oldClass,
                                             ClassInfo* newClass,
                                             AttrMap& newAttrs,
@@ -259,7 +259,8 @@ public:
                                              SaUint64T reply_dest,
                                              SaInvocationT& inv,
                                              SaUint32T* implConn,
-                                             unsigned int* implNodeId);
+                                             unsigned int* implNodeId,
+                                             bool pbeExpected);
     
     // Objects
     
@@ -505,6 +506,7 @@ private:
     void               updateImmObject(
                                        std::string newClassName, 
                                        bool remove=false);
+    SaAisErrorT        updateImmObject2(const ImmsvOmAdminOperationInvoke* req);
     
     void               commitCreate(ObjectInfo* afim);
     bool               commitModify(const std::string& dn, ObjectInfo* afim);

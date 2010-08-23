@@ -48,6 +48,7 @@ static ClassMap* sClassIdMap=NULL;
 static unsigned int sObjCount=0;
 static unsigned int sClassCount=0;
 static unsigned int sEpoch=0;
+static unsigned int sNoStdFlags=0x00000000;
 
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 					  SaInvocationT invocation,
@@ -64,7 +65,10 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	TRACE_ENTER();
 
 	if(opId == OPENSAF_IMM_PBE_CLASS_CREATE) {
-		if(!param) {goto done;}
+		if(!param || (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			goto done;
+		}
 		TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
 		std::string className(*((SaStringT *) param->paramBuffer));
 
@@ -101,7 +105,10 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING);
 
 	} else if(opId == OPENSAF_IMM_PBE_CLASS_DELETE) {
-		if(!param) {goto done;}
+		if(!param || (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			goto done;
+		}
 		TRACE("paramName: %s paramType: %u value:%s", param->paramName, param->paramType, *((SaStringT *) param->paramBuffer));
 		std::string className(*((SaStringT *) param->paramBuffer));
 
@@ -145,8 +152,11 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NO_SPACE);
 
 	} else if(opId == OPENSAF_IMM_PBE_UPDATE_EPOCH) {
+		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T)) {
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			goto done;
+		}
 		TRACE("paramName: %s paramType: %u value:%u", param->paramName, param->paramType, *((SaUint32T *) param->paramBuffer));
-		if(!param) {goto done;}
 		SaUint32T epoch = (*((SaUint32T *) param->paramBuffer));
 
 		if(sEpoch >= epoch) {
@@ -188,8 +198,62 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		   internal to immsv.
 		*/
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_QUEUE_NOT_AVAILABLE);
+	} else if(opId == OPENSAF_IMM_NOST_FLAG_ON) {
+		SaNameT myObj;
+		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
+		myObj.length = strlen((const char *) myObj.value);
+		SaImmAttrValueT val = &sNoStdFlags;
+		SaImmAttrModificationT_2 attMod = {SA_IMM_ATTR_VALUES_REPLACE,
+						   {(char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS, SA_IMM_ATTR_SAUINT32T, 1, &val}};
+		const SaImmAttrModificationT_2* attrMods[] = 
+			{&attMod, NULL};
+		
+		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T)) {
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			goto done;
+		}
+
+		SaUint32T flagsToSet = (*((SaUint32T *) param->paramBuffer));
+
+		sNoStdFlags |= flagsToSet;
+
+
+		rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("Update of attr %s in %s failed, rc=%u",
+				attMod.modAttr.attrName, (char *) myObj.value, rc);
+		}
+
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	} else if(opId == OPENSAF_IMM_NOST_FLAG_OFF) {
+		SaNameT myObj;
+		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
+		myObj.length = strlen((const char *) myObj.value);
+		SaImmAttrValueT val = &sNoStdFlags;
+		SaImmAttrModificationT_2 attMod = {SA_IMM_ATTR_VALUES_REPLACE,
+						   {(char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS, SA_IMM_ATTR_SAUINT32T, 1, &val}};
+		const SaImmAttrModificationT_2* attrMods[] = 
+			{&attMod, NULL};
+		
+		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T)) {
+			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			goto done;
+		}
+
+		SaUint32T flagsToUnSet = (*((SaUint32T *) param->paramBuffer));
+
+		sNoStdFlags &= ~flagsToUnSet;
+
+
+		rc = saImmOiRtObjectUpdate_2(immOiHandle, &myObj, attrMods);
+		if(rc != SA_AIS_OK) {
+			LOG_WA("Update of attr %s in %s failed, rc=%u",
+				attMod.modAttr.attrName, (char *) myObj.value, rc);
+		}
+
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 	} else {
-		LOG_ER("Invalid operation ID %llu", (SaUint64T) opId);
+		LOG_WA("Invalid operation ID %llu", (SaUint64T) opId);
 		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 	}
  done:
@@ -753,6 +817,7 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 	SaAisErrorT rc;
 	unsigned int msecs_waited = 0;
 	SaVersionT  immVersion;
+        SaImmAccessorHandleT accessorHandle;
 	TRACE_ENTER();
 
 	immVersion.releaseCode = RELEASE_CODE;
@@ -811,6 +876,27 @@ SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 		return rc;
 	}
 
+	rc = saImmOmAccessorInitialize(immHandle, &accessorHandle);
+	if(rc == SA_AIS_OK) {
+		const SaImmAttrNameT attName = (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS;
+		SaNameT myObj;
+		strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
+		myObj.length = strlen((const char *) myObj.value);
+		SaImmAttrNameT attNames[] = {attName, NULL};
+		SaImmAttrValuesT_2 ** resultAttrs;
+		rc = saImmOmAccessorGet_2(accessorHandle, &myObj, attNames, &resultAttrs);
+		if(rc == SA_AIS_OK) {
+			assert(resultAttrs[0] && 
+				(resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T) &&
+				(resultAttrs[0]->attrValuesNumber == 1));
+			sNoStdFlags = *((SaUint32T *) resultAttrs[0]->attrValues[0]);
+			TRACE("NostdFlags initialized to %x", sNoStdFlags);
+		}
+	}
+
+	if(rc != SA_AIS_OK) {
+		LOG_WA("PBE failed to fetch initial value for NoStdFlags, assuming all flags are zero");
+	}
 	TRACE_LEAVE();
 
 	return rc;

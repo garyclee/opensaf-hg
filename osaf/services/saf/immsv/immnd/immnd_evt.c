@@ -3238,6 +3238,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
 	SaBoolT async = SA_FALSE;
+	SaBoolT pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
 	assert(evt->type == IMMND_EVT_A2ND_IMM_ADMOP || async);
@@ -3256,7 +3257,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 	error = immModel_adminOperationInvoke(cb, &(evt->info.admOpReq),
 					      originatedAtThisNd ? conn : 0,
-					      (SaUint64T)reply_dest, saInv, &implConn, &implNodeId);
+					      (SaUint64T)reply_dest, saInv, &implConn,
+		                              &implNodeId, pbeExpected);
 
 	/*Check if we have an implementer, if so forward the message.
 	   If there is no implementer then implNodeId is zero.
@@ -3308,7 +3310,19 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	}
 
 	/*Take care of possible immediate reply, when errors already occurred */
-	/* Possibly move this code down inside the error!=OK branch. */
+        /* Special non-error case added for handling admin-ops directed at the immsv itself.
+           If PBE is enabled, such admin-ops are handled by the PBE-OI. 
+           But when there is no PBE, then we handle the adminOp inside the immnds
+           and reply directly. An error reply from such an internally handled adminOp will
+           be handled identically to an error reply for a normal adminOp where the error
+           is caught early in ImmModel::adminOperationInvoke().
+
+           But an OK reply for an internally handled adminOp is encoded as SA_AIS_ERR_REPAIR_PENDING,
+           to avoid confusion with the normal OK reponse in the early processing. That error code is
+           not used anywhere in the imm spec, so there is no risk of confusing it with a normal
+           error response from early processing either. 
+           The ok/SA_AIS_ERR_REPAIR_PENDING is converted back to SA_AIS_OK in the code block below.
+        */
 	if (originatedAtThisNd) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
@@ -3316,15 +3330,38 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 			return;
 		}
 
-		/* TODO: Match against continuation.
-		   Asyncronous agent calls can cause more than one continuation to be
-		   present for the SAME client. But is this a problem ? */
+		TRACE_2("Send immediate reply to client");
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 
-		if (error != SA_AIS_OK) {
-			TRACE_2("Send immediate reply to client");
-			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
-			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		if(error == SA_AIS_ERR_REPAIR_PENDING) {
+			uns32 rc = NCSCC_RC_SUCCESS;
+			assert(!pbeExpected);
+			TRACE("Ok reply for internally handled adminOp when PBE not configured");
+			send_evt.info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP;
+			send_evt.info.imma.info.admOpRsp.invocation = saInv;
+			send_evt.info.imma.info.admOpRsp.result = SA_AIS_OK;
+			send_evt.info.imma.info.admOpRsp.error = SA_AIS_OK;
+			if (async) {
+				TRACE_2("ASYNCRONOUS special reply %llu %u %u to OM",
+					send_evt.info.imma.info.admOpRsp.invocation,
+					send_evt.info.imma.info.admOpRsp.result,
+					send_evt.info.imma.info.admOpRsp.error);
+				rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OM,
+					cl_node->agent_mds_dest, &send_evt);
+				TRACE_2("ASYNC REPLY SENT rc:%u", rc);
+			} else {
+				TRACE_2("NORMAL syncronous reply %llu %u to OM",
+					send_evt.info.imma.info.admOpRsp.invocation,
+					send_evt.info.imma.info.admOpRsp.result);
+				rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt);
+				TRACE_2("SYNC REPLY SENT rc:%u", rc);
+			}
 
+			if (rc != NCSCC_RC_SUCCESS) {
+				LOG_ER("Failure in sending reply for admin-op over MDS");
+			}
+		} else if (error != SA_AIS_OK) {
 			if (async) {
 				saInv = m_IMMSV_PACK_HANDLE(evt->info.admOpReq.adminOwnerId,
 							    evt->info.admOpReq.invocation);
