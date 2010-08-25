@@ -411,7 +411,7 @@ ClassInfo* classToPBE(std::string classNameString,
 		std::string sqlC2(sqlC);
 
 		classInfo->mAttrMap[(*p)->attrName] = (*p)->attrFlags;
-		TRACE("DUMPED Class %s Attr%s Flags %llx", classNameString.c_str(),
+		TRACE("DUMPED Class %s Attr %s Flags %llx", classNameString.c_str(),
 			(*p)->attrName, (*p)->attrFlags);
 
 		if ((*p)->attrFlags & SA_IMM_ATTR_RUNTIME) {

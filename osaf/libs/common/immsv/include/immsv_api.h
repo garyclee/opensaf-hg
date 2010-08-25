@@ -42,9 +42,13 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
+
+/* Admin operation IDs */
+/* Internal PBE operation ids. */
 #define OPENSAF_IMM_PBE_CLASS_CREATE 0x10000000
 #define OPENSAF_IMM_PBE_CLASS_DELETE 0x20000000
 #define OPENSAF_IMM_PBE_UPDATE_EPOCH 0x30000000
+/* Public operation ids on OpenSafImmPBE */
 #define OPENSAF_IMM_NOST_FLAG_ON     0x00000001
 #define OPENSAF_IMM_NOST_FLAG_OFF    0x00000002
 

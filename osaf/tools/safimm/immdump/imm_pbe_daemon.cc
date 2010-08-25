@@ -208,7 +208,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		const SaImmAttrModificationT_2* attrMods[] = 
 			{&attMod, NULL};
 		
-		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T)) {
+		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T) || 
+			strcmp(param->paramName, (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS)) {
+			LOG_IN("Incorrect parameter to NostdFlags-ON, should be 'flags:SA_UINT32_T:nnnn");
 			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 			goto done;
 		}
@@ -235,7 +237,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		const SaImmAttrModificationT_2* attrMods[] = 
 			{&attMod, NULL};
 		
-		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T)) {
+		if(!param || (param->paramType != SA_IMM_ATTR_SAUINT32T) ||
+			strcmp(param->paramName, (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS)) {
+			LOG_IN("Incorrect parameter to NostdFlags-OFF, should be 'flags:SA_UINT32_T:nnnn");
 			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 			goto done;
 		}
