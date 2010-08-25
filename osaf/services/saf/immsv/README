@@ -16,7 +16,7 @@
 #
 
 GENERAL
-
+=======
 This directory (osaf/services/saf/immsv) contains an implementation of the
 SAF IMM service version A.02.01.
 
@@ -229,6 +229,7 @@ message sequence.
 
 
 PERSISTENCE
+===========
 The IMM standard mandates that configuration attributes and persistent runtime
 attributes shall be persistent in the sense that such values must survive a
 cluster restart and that this must hold for every applied CCB. 
@@ -256,7 +257,7 @@ sufficient priority (according to OpenSAF), then will get fixed.
 
 -----------------------------------------------
 
-The IMM-PBE feature is intended to be an optional feature.
+The IMM-PBE feature is an optional feature.
 To enable this feature the folowing three steps are needed. 
 
 	1) ++++++BUILD WITH PBE+++++++
@@ -314,9 +315,99 @@ To enable this feature the folowing three steps are needed.
 
 ---------------------
 
+SCHEMA CHANGES
+==============
+OpenSAF 4.1 adds the immsv enhancement of supporting schema changes, that is
+changes at runtime to existing class definitions. For more background see
+ticket #1310: http://devel.opensaf.org/ticket/1310
+
+The new class definition must of course be valid in itself, i.e. it must
+pass all tests that a first version of a class has to pass. 
+On top of this there are many restrictions that apply to a schema change.
+
+The kinds of change allowed in OpenSAF 4.1 are limited to addition of
+new attributes and changes to existing attributes. Removal of existing
+attributes are not allowed. Furthermore, not all kinds of additions or
+changes are allowed. In general, relaxation changes are allowed while
+restricting changes are not. 
+
+The following changes are allowed:
+
+ADDITION of new attributes when the 'initialized' flag is not set.
+
+CHANGE of an existing attribute if it is one of the following:
+
+   * Change of default-value for an attribute (config or runtime).
+     New instances of the class will get the new default,
+     old instances retain the old value.
+
+   * Adding 'multivalued' flag for an attribute (config or runtime).
+
+   * Adding 'writable' flag for an attribute (config).
+
+   * Removing 'initialized' flag for an attribute (config).
+
+   * Removing 'persistent' flag for an attribute (runtime).
+
+
+All other changes, such as change of attribute type, removal of default,
+addition of default, etc are not allowed.
+
+There is no API change. The existing saImmOmClassCreate_2 call is used
+to insert the new class version. The standard behavior is to reject 
+a class create call with ERR_EXIST if the class name matches an existing class.
+This is also still the defalt behavior. But if schema change is enabled,
+(explained below), then a new definition for an existing class is 
+interpreted as an attempt to change that existing definintion. 
+The implied change is analyzed to ensure that it is an allowed change
+according to the above rules. If it is allowed, the new class definition
+replaces the old and all existing instances are migrated to the new 
+representation. If PBE is enabled, the entire change is made persistent.
+
+To enable the non standard schema change support, the following admin 
+operation must be executed: 
+
+        immadm -o 1 -p opensafImmNostdFlags:SA_UINT32_T:1 \
+           opensafImm=opensafImm,safApp=safImmService
+
+The will set the lowest order bit of the 'opensafImmNostdFlags' runtime
+attribute inside the immsv. Operation-id '1' invoked on the object
+'opensafImm=opensafImm,safApp=safImmService' has the meaning of 'flags-ON'.
+The lowest order flag is the allow-schema-change flag which controls the
+schema-change behavior. With this flag switched on, the immsv accepts
+legal schema changes. If this flag is off, the immsv follows the standard 
+behavior of rejecting all implied schema changes with ERR_EXIST.
+
+The flag is switched off by a corresponding admin operation. Operation-id '2'
+invoked on the object 'opensafImm=opensafImm,safApp=safImmService' has the
+meaning of 'flags-OFF'. 
+
+        immadm -o 2 -p opensafImmNostdFlags:SA_UINT32_T:1 \
+           opensafImm=opensafImm,safApp=safImmService
+
+We strongly recommend that the flag is switched off as soon as any intended
+schema change has been completed. This to avoid legal but unintended (!) 
+schema changes. For example, two applications may accidentally use the 
+same class name. If the first application is already installed when the
+second application arrives and the second application redefines the class
+in such a way that it is valid when interpreted as an implied upgrade,
+then the class could be upgraded. This could have many unintended
+consequences which also could be very hard to troubleshoot. The example
+also illustrates the importance of propper prefixing of classnames,
+since the class name-space is flat (as opposed to the naming tree
+for objects). 
+
+If PBE is enabled, the current value of opensafImmNostdFlags can be inspected
+via the cached non-persistent runtime attribute 'opensafImmNostdFlags' in the
+object  'opensafImm=opensafImm,safApp=safImmService'. 
+If PBE is not enabled, then this runtime attribute is not accessible, because
+there is no regular implementer attached. But the above admin operations are
+still handled by the immsv and the schema change behavior is still controlled
+the same way.
+
 
 DEPENDENCIES
-
+============
 immsv depends of the following other services:
 - NID
 - MBCSV

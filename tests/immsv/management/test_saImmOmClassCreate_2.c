@@ -17,6 +17,7 @@
 
 #include "immtest.h"
 
+
 void saImmOmClassCreate_2_01(void)
 {
     const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
@@ -186,9 +187,21 @@ void saImmOmClassCreate_2_12(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+#define OPENSAF_IMM_OBJECT_DN "opensafImm=opensafImm,safApp=safImmService"
+#define OPENSAF_IMM_ATTR_NOSTD_FLAGS "opensafImmNostdFlags"
+#define OPENSAF_IMM_FLAG_SCHCH_ALLOW 0x00000001
+
 void saImmOmClassCreate_2_13(void)
 {
+    SaUint32T noStdFlags = 0;
+    SaImmAccessorHandleT accessorHandle;
     const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    const SaImmAttrNameT attName = (char *) OPENSAF_IMM_ATTR_NOSTD_FLAGS;
+    SaNameT myObj;
+    strcpy((char *) myObj.value, OPENSAF_IMM_OBJECT_DN);
+    myObj.length = strlen((const char *) myObj.value);
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
     SaImmAttrDefinitionT_2 attr1 =
         {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
     SaImmAttrDefinitionT_2 attr2 =
@@ -197,9 +210,24 @@ void saImmOmClassCreate_2_13(void)
     const SaImmAttrDefinitionT_2 *attrDefinitions2[] = {&attr1, &attr2, NULL};
 
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &myObj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    if(resultAttrs[0]->attrValuesNumber == 1) {
+	    noStdFlags = *((SaUint32T *) resultAttrs[0]->attrValues[0]);
+    }
+
     safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
     rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions2);
-    test_validate(rc, SA_AIS_OK);
+    if(noStdFlags & OPENSAF_IMM_FLAG_SCHCH_ALLOW) {
+	    test_validate(rc, SA_AIS_OK);
+    } else {
+	    if(rc != SA_AIS_OK) {
+		    test_validate(rc, SA_AIS_ERR_EXIST);
+	    } else {
+		    test_validate(rc, SA_AIS_OK);
+	    }
+    }
     safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
@@ -245,6 +273,6 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(2, saImmOmClassDelete_2_01, "saImmOmClassDelete_2 - SA_AIS_OK");
     test_case_add(2, saImmOmClassDelete_2_02, "saImmOmClassDelete_2 - SA_AIS_ERR_BAD_HANDLE");
     test_case_add(2, saImmOmClassDelete_2_03, "saImmOmClassDelete_2 - SA_AIS_ERR_NOT_EXIST, className does not exist");
-    test_case_add(2, saImmOmClassCreate_2_13, "saImmOmClassCreate_2 UPGRADE - SA_AIS_OK, Added attribute to class");
+    test_case_add(2, saImmOmClassCreate_2_13, "saImmOmClassCreate_2 UPGRADE - SA_AIS_OK/SA_AIS_ERR_EXIST, Added attribute to class");
 }
 

@@ -2176,7 +2176,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                             if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
                                (!oavi->second->isMultiValued())) {
                                 attrValue = new ImmAttrMultiValue(*(oavi->second));
-                                TRACE_5("Schema change adjuisted attribute %s in object:%s "
+                                TRACE_5("Schema change adjusted attribute %s in object:%s "
                                     "to be multivalued",
                                     oavi->first.c_str(), oi->first.c_str());
                                 delete oavi->second;
@@ -2195,8 +2195,9 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                 }
             }
         } else {
-            LOG_IN("No instances to migrate");
+            LOG_IN("No instances to migrate - schema change could have been avoided");
         }
+        LOG_NO("Schema change completed for class %s", className.c_str());
     } /* end of schema upgrade case. */
 
     if(pbeNodeIdPtr) {
@@ -2319,13 +2320,13 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
                 verifyFailed;
             newAttrs[inew->first] = newAttr;
         } else {
-            TRACE_5("Existing attribute %s (re)defined? in new class def", attName.c_str());
+            TRACE_5("Existing attribute %s", attName.c_str());
             verifyFailed = notCompatibleAtt(className, attName, iold->second, newAttr,
                 &changedAttrs) || verifyFailed;
         }
     }
 
-    if(newAttrs.empty() && changedAttrs.empty()) {
+    if(!verifyFailed && newAttrs.empty() && changedAttrs.empty()) {
         LOG_IN("New class def is same as old, not a real schema upgrade");
         verifyFailed = true;
     }
@@ -4056,9 +4057,6 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 } else {
                     attrValue = new 
                         ImmAttrValue(attr->mDefaultValue);
-		    if(i4->first == immAttrNostFlags) {
-                        TRACE_5("ABT Default value set for %s", immAttrNostFlags.c_str());
-		    }
                 }
             }
             
@@ -6362,8 +6360,7 @@ ImmModel::nameCheck(const std::string& name, bool strict) const
                (prev_chr == '\\')) || 
                 (!isgraph(chr) && !(chr == '\0' && pos == len - 1)))
         {
-            /*TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());*/
-            TRACE_5("Bad name. string size:%zu isgraph(%c):%u, pos=%zu", 
+            TRACE_5("Irregular name. string size:%zu isgraph(%c):%u, pos=%zu", 
                 len, chr, isgraph(chr), pos);
             return false;
         }
