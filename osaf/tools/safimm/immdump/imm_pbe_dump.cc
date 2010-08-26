@@ -542,7 +542,7 @@ ClassInfo* classToPBE(std::string classNameString,
 void deleteClassToPBE(std::string classNameString, void* db_handle, 
 	ClassInfo* theClass)
 {
-
+	TRACE_ENTER();
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	std::string sqlZ("select obj_id from objects where class_id = ");
 
@@ -1316,6 +1316,164 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	exit(1);
 }
 
+unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle)
+{
+	SaImmSearchHandleT     searchHandle;
+	SaAisErrorT            errorCode;
+	SaNameT                objectName;
+	SaImmSearchParametersT_2 searchParam;
+	SaImmAttrValuesT_2**   attrs=NULL;
+	unsigned int           retryInterval = 300000; /* 0.3 sec */
+	unsigned int           maxTries = 10;          /* 9 times =~ max 3 secs */
+	unsigned int           tryCount=0;
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	const char * classNamePar = className.c_str();
+	unsigned int nrofDeletes=0;
+	TRACE_ENTER();
+
+	searchParam.searchOneAttr.attrName = (SaImmAttrNameT) SA_IMM_ATTR_CLASS_NAME;
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &classNamePar;
+
+	do {
+		if(tryCount) {
+			usleep(retryInterval);
+		}
+		++tryCount;
+
+		errorCode = saImmOmSearchInitialize_2(immHandle, 
+			NULL, 
+			SA_IMM_SUBTREE,
+			(SaImmSearchOptionsT)
+			(SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR),
+			&searchParam,
+			NULL, 
+			&searchHandle);
+
+		TRACE_5("Search initialize returned %u", errorCode);
+ 
+	} while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
+		(tryCount < maxTries)); 
+
+	if (SA_AIS_OK != errorCode)
+	{
+		LOG_ER("Failed on saImmOmSearchInitialize:%u - exiting ", errorCode);
+		goto bailout;
+	}
+
+	do
+	{
+		errorCode = saImmOmSearchNext_2(searchHandle, &objectName, &attrs);
+		TRACE_5("Search next returned %u", errorCode);
+		if (SA_AIS_OK != errorCode)
+		{
+			break;
+		}
+
+		//assert(attrs[0] == NULL);
+
+		objectDeleteToPBE(std::string((const char *) objectName.value), db_handle);
+		++nrofDeletes;
+	} while (true);
+
+	if (SA_AIS_ERR_NOT_EXIST != errorCode)
+	{
+		LOG_ER("Failed in saImmOmSearchNext_2:%u - exiting", errorCode);
+		goto bailout;
+	}
+
+	saImmOmSearchFinalize(searchHandle);
+
+	TRACE_LEAVE();
+	return nrofDeletes;
+ bailout:
+	sqlite3_close(dbHandle);
+	/* TODO remove imm.db file */
+	LOG_ER("Exiting");
+	exit(1);	
+}
+
+unsigned int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
+	std::string className, unsigned int* objIdCount, void* db_handle)
+{
+	unsigned int obj_count=0;
+	SaImmSearchHandleT     searchHandle;
+	SaAisErrorT            errorCode;
+	SaNameT                objectName;
+	SaImmSearchParametersT_2 searchParam;
+	SaImmAttrValuesT_2**   attrs;
+	unsigned int           retryInterval = 300000; /* 0.3 sec */
+	unsigned int           maxTries = 10;          /* 9 times =~ max 3 secs */
+	unsigned int           tryCount=0;
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	const char * classNamePar = className.c_str();
+	TRACE_ENTER();
+
+	searchParam.searchOneAttr.attrName = (SaImmAttrNameT) SA_IMM_ATTR_CLASS_NAME;
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &classNamePar;
+
+	do {
+		if(tryCount) {
+			usleep(retryInterval);
+		}
+		++tryCount;
+
+		errorCode = saImmOmSearchInitialize_2(immHandle, 
+			NULL,
+			SA_IMM_SUBTREE,
+			(SaImmSearchOptionsT)
+			(SA_IMM_SEARCH_ONE_ATTR | 
+				SA_IMM_SEARCH_GET_ALL_ATTR |
+				SA_IMM_SEARCH_PERSISTENT_ATTRS),//Special & nonstandard
+			&searchParam,
+			NULL, 
+			&searchHandle);
+	} while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
+		(tryCount < maxTries)); 
+
+	if (SA_AIS_OK != errorCode)
+	{
+		LOG_ER("Failed on saImmOmSearchInitialize:%u - exiting ", errorCode);
+		goto bailout;
+	}
+
+	do
+	{
+		errorCode = saImmOmSearchNext_2(searchHandle, &objectName, &attrs);
+
+		if (SA_AIS_OK != errorCode)
+		{
+			break;
+		}
+
+		assert(attrs[0] != NULL);
+
+		objectToPBE(std::string((const char*)objectName.value),
+			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, 
+			++(*objIdCount), (SaImmClassNameT) className.c_str(), 0);
+
+		++obj_count;
+
+	} while (true);
+
+	if (SA_AIS_ERR_NOT_EXIST != errorCode)
+	{
+		LOG_ER("Failed in saImmOmSearchNext_2:%u - exiting", errorCode);
+		goto bailout;
+	}
+
+	saImmOmSearchFinalize(searchHandle);
+
+	TRACE_LEAVE();
+	return obj_count;
+ bailout:
+	sqlite3_close(dbHandle);
+	LOG_ER("Exiting");
+	exit(1);
+}
+
+
 void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 {
 	sqlite3* dbHandle = (sqlite3 *) db_handle;
@@ -1796,7 +1954,8 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 		}
 
 		objectToPBE(std::string((char*)objectName.value, objectName.length),
-			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, NULL, 0);
+			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, 
+			NULL, 0);
 	} while (true);
 
 	if (SA_AIS_ERR_NOT_EXIST != errorCode)
@@ -1819,9 +1978,8 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	return object_id; /* == number of dumped objects */
  bailout:
 	sqlite3_close(dbHandle);
-	/* TODO remove imm.db file */
 	LOG_ER("Exiting");
-	exit(1);	
+	exit(1);
 }
 
 SaAisErrorT pbeBeginTrans(void* db_handle)
@@ -2010,6 +2168,18 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle)
 {
 	assert(0);
+}
+
+unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle)
+{
+	assert(0);
+}
+
+unsigned int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
+	std::string className, unsigned int* objIdCount, void* db_handle)
+{
+	assert(0);
+	return 0;
 }
 
 ClassInfo* classToPBE(std::string classNameString,
