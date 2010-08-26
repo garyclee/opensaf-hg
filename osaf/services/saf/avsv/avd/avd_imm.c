@@ -670,7 +670,6 @@ static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 		if (ccb_completed_callback[type] == NULL) {
 			/* this can happen for malformed DNs */
 			LOG_ER("Class implementer for '%s' not found", opdata->objectName.value);
-			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
 		rc = ccb_completed_callback[type](opdata);
@@ -757,7 +756,6 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
 	assert(ccb_util_ccb_data);
 	ccbutil_deleteCcbData(ccb_util_ccb_data);
-
 	TRACE_LEAVE();
 }
 

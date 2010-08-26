@@ -37,13 +37,15 @@
 #include <saClm.h>
 #include <mds_papi.h>
 #include <avsv_defs.h>
+#include <stdbool.h>
 
 /* In Service upgrade support */
-#define AVND_MDS_SUB_PART_VERSION   2
+#define AVND_MDS_SUB_PART_VERSION   3
 
 /* Message format versions */
 #define AVSV_AVD_AVND_MSG_FMT_VER_1    1
 #define AVSV_AVD_AVND_MSG_FMT_VER_2    2
+#define AVSV_AVD_AVND_MSG_FMT_VER_3    3
 
 /* Internode/External Components Validation result */
 typedef enum {
@@ -383,6 +385,7 @@ typedef struct avsv_n2d_info_su_si_assign_msg_info_tag {
 	SaNameT si_name;
 	SaAmfHAStateT ha_state;
 	uns32 error;
+	bool single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
 } AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO;
 
 typedef struct avsv_n2d_pg_track_act_msg_info_tag {
@@ -458,6 +461,7 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 				 * all SIs of this SU only the SU name field
 				 * is filled. */
 	SaAmfHAStateT ha_state;
+	bool single_csi; /* To differentiate single csi assignment from SI assignment.*/
 	uns32 num_assigns;
 	AVSV_SUSI_ASGN *list;
 } AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO;

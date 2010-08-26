@@ -528,13 +528,23 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
 		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->node_info.nodeId;
+		if (si) {
+			msg.info.avd->msg_info.n2d_su_si_assign.single_csi = si->single_csi_add_rem_in_si;
+		}
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
 		    (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
 		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
 		    ((!curr_si->prv_state) ? AVSV_SUSI_ACT_ASGN : AVSV_SUSI_ACT_MOD) : AVSV_SUSI_ACT_DEL;
 		msg.info.avd->msg_info.n2d_su_si_assign.su_name = su->name;
-		if (si)
+		if (si) {
 			msg.info.avd->msg_info.n2d_su_si_assign.si_name = si->name;
+			if (AVSV_SUSI_ACT_ASGN == si->single_csi_add_rem_in_si) {
+				msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
+					(m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
+					 m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
+					AVSV_SUSI_ACT_ASGN : AVSV_SUSI_ACT_DEL;
+			}
+		}
 		msg.info.avd->msg_info.n2d_su_si_assign.ha_state =
 		    (SA_AMF_HA_QUIESCING == curr_si->curr_state) ? SA_AMF_HA_QUIESCED : curr_si->curr_state;
 		msg.info.avd->msg_info.n2d_su_si_assign.error =

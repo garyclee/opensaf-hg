@@ -23,16 +23,27 @@
 #include <avd_csi.h>
 #include <avd_imm.h>
 
-static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttrValuesT_2 **attributes)
+/*****************************************************************************
+ * Function: csiattr_dn_to_csiattr_name
+ * 
+ * Purpose: This routine extracts csi attr name(Name1) from csi attr obj name
+ *          (safCsiAttr=Name1,safCsi=csi1,safSi=si1,safApp=app1).
+ * 
+ *
+ * Input   : Pointer to csi attr obj name.
+ * Output  : csi attr name filled in csiattr_name.
+ *  
+ * Returns: OK/ERROR.
+ *  
+ **************************************************************************/
+static SaAisErrorT csiattr_dn_to_csiattr_name(const SaNameT *csiattr_obj_dn, SaNameT *csiattr_name)
 {
-	int rc = 0;
-	AVD_CSI_ATTR *csiattr = NULL, *tmp;
-	unsigned int values_number;
+	SaAisErrorT rc = SA_AIS_OK;
 	char *p1, *p2;
-	SaNameT dn = *csiattr_name;
-	int i;
-	const char *value;
-	
+	SaNameT dn = *csiattr_obj_dn;
+
+	TRACE_ENTER();
+
 	p2 = strchr((char*)dn.value, ',');
 	*p2 = '\0';
 	
@@ -40,8 +51,29 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttr
 	p1++;
 	
 	if ((p2 - p1) > SA_MAX_NAME_LENGTH) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		LOG_ER("CSI attr name too long('%lu') (impl limit is '%u')", (long)(p2 - p1), SA_MAX_NAME_LENGTH);
+		goto done;
+	}
+
+	strcpy((char *)&csiattr_name->value, p1);
+	csiattr_name->length = p2 - p1;
+done:
+	TRACE_LEAVE2("obj name '%s', csi attr name '%s'", csiattr_obj_dn->value, csiattr_name->value);
+	return rc;
+}
+
+static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImmAttrValuesT_2 **attributes)
+{
+	int rc = 0;
+	AVD_CSI_ATTR *csiattr = NULL, *tmp;
+	unsigned int values_number;
+	SaNameT dn;
+	int i;
+	const char *value;
+	
+	if (SA_AIS_OK != csiattr_dn_to_csiattr_name(csiattr_obj_name, &dn)) {
 		rc = -1;
-		LOG_ER("CSI attr name too long (impl limit)");
 		goto done;
 	}
 
@@ -59,8 +91,8 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttr
 			tmp->attr_next = csiattr;
 			csiattr = tmp;
 
-			csiattr->name_value.name.length = p2 - p1;
-			memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
+			csiattr->name_value.name.length = dn.length;
+			memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 
 			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != NULL) {
 				if (strlen(value) > SA_MAX_NAME_LENGTH) {
@@ -84,8 +116,8 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttr
 			goto done;
 		}
 
-		csiattr->name_value.name.length = p2 - p1;
-		memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
+		csiattr->name_value.name.length = dn.length;
+		memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 	}
 
 done:
@@ -101,28 +133,54 @@ done:
 	return csiattr;
 }
 
-static int is_csiattr_valid(AVD_CSI *csi, char *csiattr)
+/*****************************************************************************
+ * Function: csi_name_value_pair_find
+ * 
+ * Purpose: This routine searches csi attr matching name and value.
+ * 
+ *
+ * Input  : Csi pointer, pointer to csi attr obj name, pointer to value of name-value pair.
+ *  
+ * Returns: Pointer to name value pair if found else NULL.
+ *  
+ * NOTES  : None.
+ *
+ **************************************************************************/
+static AVD_CSI_ATTR * csi_name_value_pair_find(AVD_CSI *csi, SaNameT *csiattr_name, char *value)
+{
+        AVD_CSI_ATTR *i_attr = csi->list_attributes;
+
+        while (i_attr != NULL) {
+		if ((strncmp((char *)&i_attr->name_value.name.value, (char *)&csiattr_name->value, 
+						csiattr_name->length) == 0) &&
+				(strncmp((char *)&i_attr->name_value.value.value, value, strlen(value)) == 0)) {
+			return i_attr;
+		}
+                i_attr = i_attr->attr_next;
+        }
+
+	TRACE_LEAVE();
+        return NULL;
+}
+
+static AVD_CSI_ATTR * is_csiattr_exists(AVD_CSI *csi, SaNameT *csiattr_obj_name)
 {
 	AVD_CSI_ATTR *i_attr = csi->list_attributes;
-	char *p1, *p2;
+	SaNameT dn;
 	
-	p2 = strchr(csiattr, ',');
-	*p2 = '\0';
+	TRACE_ENTER();
 
-	p1 = strchr(csiattr, '=');
-	p1++;
-
-	if ((p2 - p1) > SA_MAX_NAME_LENGTH)
-		goto done;
+	if (SA_AIS_OK != csiattr_dn_to_csiattr_name(csiattr_obj_name, &dn)) goto done;
 
 	while (i_attr != NULL) {
-		if (strncmp((char *)&i_attr->name_value.name.value, p1, p2 - p1) == 0)
-			return 0;
+		if (strncmp((char *)&i_attr->name_value.name.value, (char *)&dn.value, dn.length) == 0)
+			return i_attr;
 		i_attr = i_attr->attr_next;
 	}
 
 done:
-	return 1;
+	TRACE_LEAVE();
+	return NULL;
 }
 
 static int is_config_valid(const SaNameT *dn)
@@ -188,6 +246,232 @@ done1:
 	return error;
 }
 
+/*****************************************************************************
+ * Function: csiattr_ccb_completed_create_hdlr
+ * 
+ * Purpose: This routine validates create CCB operations on SaAmfCSIAttribute objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: OK/ERROR.
+ *  
+ * NOTES  : None.
+ *
+ **************************************************************************/
+static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	SaNameT csi_dn;
+	AVD_CSI *csi;
+
+	TRACE_ENTER();
+
+	if (!is_config_valid(&opdata->objectName))
+		goto done;
+
+	/* extract the parent csi dn */
+	strncpy((char *)&csi_dn.value, 
+			strstr((char *)&opdata->objectName.value, "safCsi="),
+			SA_MAX_NAME_LENGTH); 
+	csi_dn.length = strlen((char *)&csi_dn.value);
+
+	if (NULL == (csi = avd_csi_get(&csi_dn))) {
+		LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+		goto done;
+	}
+
+	/* check whether the SI of parent csi is in locked state */
+	if ((csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) ||
+			(csi->si->list_of_sisu != NULL) || (csi->list_compcsi != NULL)) {
+		LOG_ER("SI '%s' admin state(%u) is not locked or csi '%s' in use", csi->si->name.value,
+				csi->si->saAmfSIAdminState, csi->name.value);
+		goto done;
+	}
+
+	/* check whether an attribute with this name already exists in csi
+	   if exists, only then the modification of attr values allowed */
+	if (is_csiattr_exists(csi, &opdata->objectName)) {
+		LOG_ER("csi attr already '%s' exists", opdata->objectName.value);
+		rc = SA_AIS_ERR_EXIST;
+		goto done;
+	}
+
+	rc = SA_AIS_OK;
+
+done:
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/*****************************************************************************
+ * Function: csiattr_ccb_completed_modify_hdlr
+ * 
+ * Purpose: This routine validates modify CCB operations on SaAmfCSIAttribute objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: OK/ERROR.
+ *  
+ * NOTES  : None.
+ *
+ **************************************************************************/
+static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	const SaImmAttrModificationT_2 *attr_mod;
+	const SaImmAttrValuesT_2 *attribute;
+	SaNameT csi_dn, csi_attr_name;
+	AVD_CSI *csi;
+	int attr_counter = 0, add_found = 0, delete_found = 0, i = 0;
+
+	TRACE_ENTER();
+
+	if (!is_config_valid(&opdata->objectName)) goto done;
+
+	/* extract the parent csi dn */
+	strncpy((char *)&csi_dn.value,
+			strstr((char *)&opdata->objectName.value, "safCsi="),
+			SA_MAX_NAME_LENGTH);
+	csi_dn.length = strlen((char *)&csi_dn.value);
+
+	if (NULL == (csi = avd_csi_get(&csi_dn))) {
+		LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+		goto done;
+	}
+
+	/* check whether the SI of parent csi is in locked state */
+	if ((csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) ||
+			(csi->si->list_of_sisu != NULL) || (csi->list_compcsi != NULL)) {
+		LOG_ER("SI '%s' admin state(%u) is not locked or csi '%s' in use", csi->si->name.value, 
+				csi->si->saAmfSIAdminState, csi->name.value);
+		goto done;
+	}
+
+	/* check whether an attribute with this name already exists in csi
+	   if exists, only then the modification of attr values allowed */
+	if (!is_csiattr_exists(csi, &opdata->objectName)) {
+		LOG_ER("csi attr '%s' doesn't exists", opdata->objectName.value);
+		rc = SA_AIS_ERR_NOT_EXIST;
+		goto done;
+	}
+
+	if (SA_AIS_OK != (rc = csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name))) goto done;
+
+	while ((attr_mod = opdata->param.modify.attrMods[attr_counter++]) != NULL) {
+
+		if ((SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) || (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType)) {
+			if (0 == attr_mod->modAttr.attrValuesNumber) {
+				LOG_ER("CSI Attr %s Add/Del with attrValuesNumber zero", opdata->objectName.value);
+				goto done;
+			}
+		}
+		attribute = &attr_mod->modAttr;
+		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
+			if (delete_found) {
+                                LOG_ER("csi attr '%s' modify: no support for mixed ops", opdata->objectName.value);
+                                goto done;
+                        }
+
+			add_found = 1;
+			/* We need to varify that csi attr name value pair already exists. */
+			for (i = 0; i < attribute->attrValuesNumber; i++) {
+				char *value = *(char **)attribute->attrValues[i++];
+
+				if (csi_name_value_pair_find(csi, &csi_attr_name, value)) {
+					LOG_ER("csi attr name '%s' and value '%s' exists", csi_attr_name.value, value);
+					rc = SA_AIS_ERR_EXIST;
+					goto done;
+				}
+                        } /* for  */
+		} else if (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType) {
+			if (add_found) {
+				LOG_ER("csi attr '%s' modify: no support for mixed ops", opdata->objectName.value);
+				goto done;
+			}
+			add_found = 1;
+			/* We need to varify that csi attr name value pair already exists. */
+			for (i = 0; i < attribute->attrValuesNumber; i++) {
+				char *value = *(char **)attribute->attrValues[i++];
+
+				if (NULL == value) goto done;
+
+				if (NULL == csi_name_value_pair_find(csi, &csi_attr_name, value)) {
+					LOG_ER("csi attr name '%s' and value '%s' doesn't exist", 
+							csi_attr_name.value, value);
+					rc = SA_AIS_ERR_EXIST;
+					goto done;
+				}
+                        } /* for  */
+		}
+
+	}/* while */
+
+
+	rc = SA_AIS_OK;
+done:
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/*****************************************************************************
+ * Function: csiattr_ccb_completed_delete_hdlr
+ * 
+ * Purpose: This routine validates delete CCB operations on SaAmfCSIAttribute objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: OK/ERROR.
+ *  
+ * NOTES  : None.
+ *
+ **************************************************************************/
+static SaAisErrorT csiattr_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
+{
+        SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+        SaNameT csi_dn;
+        AVD_CSI *csi;
+
+        TRACE_ENTER();
+
+        /* extract the parent csi dn */
+        strncpy((char *)&csi_dn.value,
+                        strstr((char *)&opdata->objectName.value, "safCsi="),
+                        SA_MAX_NAME_LENGTH);
+        csi_dn.length = strlen((char *)&csi_dn.value);
+
+        if (NULL == (csi = avd_csi_get(&csi_dn))) {
+                LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+                goto done;
+        }
+
+        /* check whether the SI of parent csi is in locked state */
+        if ((csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) ||
+                        (csi->si->list_of_sisu != NULL) || (csi->list_compcsi != NULL)) {
+                LOG_ER("SI '%s' admin state(%u) is not locked or csi '%s' in use", csi->si->name.value,
+                                csi->si->saAmfSIAdminState, csi->name.value);
+                goto done;
+        }
+
+        /* check whether an attribute with this name already exists in csi
+           if exists, only then the modification of attr values allowed */
+        if (!is_csiattr_exists(csi, &opdata->objectName)) {
+                LOG_ER("csi attr '%s' doesn't exists", opdata->objectName.value);
+                rc = SA_AIS_ERR_NOT_EXIST;
+                goto done;
+        }
+
+        rc = SA_AIS_OK;
+done:
+
+        TRACE_LEAVE();
+        return rc;
+}
+
 static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -196,41 +480,13 @@ static SaAisErrorT csiattr_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName))
-			rc = SA_AIS_OK;
+		rc = csiattr_ccb_completed_create_hdlr(opdata);
 		break;
 	case CCBUTIL_MODIFY:
-		{
-		SaNameT csi_dn;
-		AVD_CSI *csi;
-
-		if (!is_config_valid(&opdata->objectName)) 
-			break;
-
-		/* extract the parent csi dn */
-		strncpy((char *)&csi_dn.value, 
-				strstr((char *)&opdata->objectName.value, "safCsi="),
-				SA_MAX_NAME_LENGTH); 
-		csi_dn.length = strlen((char *)&csi_dn.value);
-
-		if (NULL == (csi = avd_csi_get(&csi_dn)))
-			break;
-
-		/* check whether the SI of parent csi is in locked state */
-		if ((csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) ||
-		    (csi->si->list_of_sisu != NULL) || (csi->list_compcsi != NULL))
-			break;
-
-		/* check whether an attribute with this name already exists in csi
-		   if exists, only then the modification of attr values allowed */
-		if (!is_csiattr_valid(csi, (char *)&opdata->objectName.value))
-			break;
-
-		rc = SA_AIS_OK;
+		rc = csiattr_ccb_completed_modify_hdlr(opdata);
 		break;
-		}
 	case CCBUTIL_DELETE:
-		rc = SA_AIS_OK;
+		rc = csiattr_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
@@ -256,39 +512,118 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	const SaImmAttrValuesT_2 *attribute;
 	AVD_CSI_ATTR *csiattr = NULL, *i_attr;
-	char *p1, *p2;
-	int i;
+        SaNameT csi_attr_name, csi_dn;
+	int i, counter = 0;
 	AVD_CSI *csi;
 
-	csi = avd_csi_get(opdata->param.create.parentName);
+        /* extract the parent csi dn */
+        strncpy((char *)&csi_dn.value,
+                        strstr((char *)&opdata->objectName.value, "safCsi="),
+                        SA_MAX_NAME_LENGTH);
+        csi_dn.length = strlen((char *)&csi_dn.value);
 
-	attr_mod = opdata->param.modify.attrMods[0];
-	attribute = &attr_mod->modAttr;
+        csi = avd_csi_get(&csi_dn);
 
-	p2 = strchr((char *)&opdata->objectName.value, ',');
-	*p2 = '\0';
-	p1 = strchr((char *)&opdata->objectName.value, '=');
-	p1++;
-
+        csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name);
 	/* create new name-value pairs for the modified csi attribute */
-	for (i = 0; i < attribute->attrValuesNumber; i++) {
-		char *value = attribute->attrValues[i++];
-		if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
-			LOG_ER("%s:calloc FAILED", __FUNCTION__);
-			return;
+	while ((attr_mod = opdata->param.modify.attrMods[counter++]) != NULL) {
+		attribute = &attr_mod->modAttr;
+		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
+			for (i = 0; i < attribute->attrValuesNumber; i++) {
+				char *value = *(char **)attribute->attrValues[i++];
+				if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
+					LOG_ER("%s:calloc FAILED", __FUNCTION__);
+					return;
+				}
+
+				i_attr->attr_next = csiattr;
+				csiattr = i_attr;
+
+				csiattr->name_value.name.length = csi_attr_name.length;
+				memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
+				csiattr->name_value.value.length = strlen (value);
+				memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+			} /* for  */
+			/* add the modified csiattr values to parent csi */
+			avd_csi_add_csiattr(csi, csiattr);
+		} else if (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType) {
+			for (i = 0; i < attribute->attrValuesNumber; i++) {
+				char *value = *(char **)attribute->attrValues[i++];
+
+				if ((csiattr = csi_name_value_pair_find(csi, &csi_attr_name, value))) {
+					avd_csi_remove_csiattr(csi, csiattr);
+				}
+
+			}
+		} else if (SA_IMM_ATTR_VALUES_REPLACE == attr_mod->modType) {
+			/* Delete existing CSI attributes */
+			while ((csiattr = is_csiattr_exists(csi, &opdata->objectName))) {
+				avd_csi_remove_csiattr(csi, csiattr);
+			}
+
+			/* Add New CSI attr. */
+			for (i = 0; i < attribute->attrValuesNumber; i++) {
+				char *value = *(char **)attribute->attrValues[i++];
+				if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
+					LOG_ER("%s:calloc FAILED", __FUNCTION__);
+					return;
+				}
+
+				i_attr->attr_next = csiattr;
+				csiattr = i_attr;
+
+				csiattr->name_value.name.length = csi_attr_name.length;
+				memcpy(csiattr->name_value.name.value, csi_attr_name.value, csiattr->name_value.name.length);
+				csiattr->name_value.value.length = strlen (value);
+				memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+			}
+			/* add the modified csiattr values to parent csi */
+			avd_csi_add_csiattr(csi, csiattr);
 		}
+	} /* while */
 
-		i_attr->attr_next = csiattr;
-		csiattr = i_attr;
+}
 
-		csiattr->name_value.name.length = p2 - p1;
-		memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
-		csiattr->name_value.value.length = strlen (value);
-		memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
+/*****************************************************************************
+ * Function: csiattr_delete_apply 
+ * 
+ * Purpose: This routine handles delete operations on SaAmfCSIAttribute objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data. 
+ *  
+ * Returns: None.
+ **************************************************************************/
+static void csiattr_delete_apply(CcbUtilOperationData_t *opdata)
+{
+        AVD_CSI_ATTR *csiattr = NULL;
+        SaNameT csi_attr_name, csi_dn;
+        AVD_CSI *csi;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+        /* extract the parent csi dn */
+        strncpy((char *)&csi_dn.value,
+                        strstr((char *)&opdata->objectName.value, "safCsi="),
+                        SA_MAX_NAME_LENGTH);
+        csi_dn.length = strlen((char *)&csi_dn.value);
+
+        csi = avd_csi_get(&csi_dn);
+
+	if (NULL == csi) {
+		/* This is the case when csi might have been deleted before csi attr. 
+		   This will happen when csi delete is done before csi attr. In csi delete case, csi attr
+		   also gets deleted along with csi. */
+		goto done;
 	}
+        csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name);
 
-	/* add the modified csiattr values to parent csi */
-	avd_csi_add_csiattr(csi, csiattr);
+	/* Delete existing CSI attributes */
+	while ((csiattr = is_csiattr_exists(csi, &opdata->objectName))) {
+		avd_csi_remove_csiattr(csi, csiattr);
+	}
+done:
+	TRACE_LEAVE();
 }
 
 static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
@@ -300,6 +635,7 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		csiattr_create_apply(opdata);
 		break;
 	case CCBUTIL_DELETE:
+		csiattr_delete_apply(opdata);
 		break;
 	case CCBUTIL_MODIFY:
 		csiattr_modify_apply(opdata);

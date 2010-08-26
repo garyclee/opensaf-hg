@@ -312,7 +312,8 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi = NULL;
 
-	TRACE_ENTER2("%s, act=%u, ha_state=%u", su->name.value, info->msg_act, info->ha_state);
+	TRACE_ENTER2("%s, act=%u, ha_state=%u, single_csi=%u, su=%s", su->name.value, info->msg_act, info->ha_state, 
+			info->single_csi,su->name.value);
 
 	/* we have started the su si msg processing */
 	m_AVND_SU_ASSIGN_PEND_SET(su);
@@ -321,16 +322,33 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 	switch (info->msg_act) {
 	case AVSV_SUSI_ACT_ASGN:	/* new assign */
 		{
-			/* add to the database */
-			si = avnd_su_si_rec_add(cb, su, info, &rc);
-			if (NULL != si) {
-				/* Send the ASYNC updates for this SI and its CSI. First of all 
-				   send SU_SI record and then all the CSIs. */
-				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, si, AVND_CKPT_SU_SI_REC);
-				for (csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-				     csi; csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
-					m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, csi, AVND_CKPT_CSI_REC);
+			if (false == info->single_csi) {
+				/* add to the database */
+				si = avnd_su_si_rec_add(cb, su, info, &rc);
+				if (NULL != si) {
+					/* Send the ASYNC updates for this SI and its CSI. First of all 
+					   send SU_SI record and then all the CSIs. */
+					m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, si, AVND_CKPT_SU_SI_REC);
+					for (csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
+							csi; csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
+						m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, csi, AVND_CKPT_CSI_REC);
+					}
 				}
+			} else {
+				AVND_COMP_CSI_PARAM *csi_param;
+				/* verify if su-si relationship already exists */
+				if (0 == (si = avnd_su_si_rec_get(cb, &info->su_name, &info->si_name))) {
+					LOG_ER("No SUSI Rec exists"); 
+					goto done;
+				}
+
+				assert((info->num_assigns == 1));
+				csi_param = info->list;
+				assert(csi_param);
+				assert(!(csi_param->next));
+				avnd_su_si_csi_rec_add(cb, su, si, csi_param, &rc);
+				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, si_rec, AVND_CKPT_CSI_REC);
+				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_ASGN;
 			}
 			/* initiate si assignment */
 			if (si)
@@ -349,6 +367,21 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 			 * si may point to si-rec to be deleted or be 0 (signifying all).
 			 * initiate si removal.
 			 */
+			if (true == info->single_csi) {
+				AVND_COMP_CSI_PARAM *csi_param;
+				AVND_COMP_CSI_REC *csi_rec;
+				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_DEL;
+				assert((info->num_assigns == 1));
+				csi_param = info->list;
+				assert(csi_param);
+				assert(!(csi_param->next));
+				if (NULL ==  (csi_rec = avnd_compdb_csi_rec_get(cb, &csi_param->comp_name, &csi_param->csi_name))) {
+					LOG_ER("No CSI Rec exists for comp=%s and csi=%s",csi_param->comp_name.value, 
+							csi_param->csi_name.value); 
+					goto done;
+				}
+				csi_rec->single_csi_add_rem_in_si = AVSV_SUSI_ACT_DEL;
+			}
 			rc = avnd_su_si_remove(cb, su, si);
 		}
 		break;
@@ -403,20 +436,53 @@ static uns32 assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 				 rank = curr_csi->rank;
 				  (curr_csi != NULL) && (curr_csi->rank == rank);
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
+				curr_csi->comp->assigned_flag = FALSE;
+			}
+			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
+				 rank = curr_csi->rank;
+				  (curr_csi != NULL) && (curr_csi->rank == rank);
+				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 
-				rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
-				if (NCSCC_RC_SUCCESS != rc)
-					goto done;
+				if (AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED != curr_csi->curr_assign_state) {
+					if (FALSE == curr_csi->comp->assigned_flag) {
+						rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+						if (NCSCC_RC_SUCCESS != rc)
+							goto done;
+						if ((FALSE == curr_csi->comp->assigned_flag) && (m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)))
+							curr_csi->comp->assigned_flag = TRUE;
+					} else {
+						m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
+					}
+				}
 			}
 		} else {
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
 				 rank = curr_csi->rank;
 				  (curr_csi != NULL) && (curr_csi->rank == rank);
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
+				curr_csi->comp->assigned_flag = FALSE;
+			}
+			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
+				 rank = curr_csi->rank;
+				  (curr_csi != NULL) && (curr_csi->rank == rank);
+				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
 
-				rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
-				if (NCSCC_RC_SUCCESS != rc)
-					goto done;
+				/* We need to send only one csi set for a comp having  more than one CSI assignment for
+				   csi mod/rem.*/
+				if (AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED != curr_csi->curr_assign_state) {
+					if (FALSE == curr_csi->comp->assigned_flag) {
+						rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+						if (NCSCC_RC_SUCCESS != rc)
+							goto done;
+						if ((!single_csi) && (FALSE == curr_csi->comp->assigned_flag) && 
+								(m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)))
+							curr_csi->comp->assigned_flag = TRUE;
+					} else {
+						m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
+					}
+				}
 			}
 		}
 	}
@@ -570,14 +636,27 @@ uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	/* initiate the si removal for pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		/* pick up the last csi */
-		curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&curr_si->csi_list);
+		if (si && (AVSV_SUSI_ACT_DEL == si->single_csi_add_rem_in_si)) {
+			/* We have to remove single csi. */
+			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
+					curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
+				if (AVSV_SUSI_ACT_DEL == curr_csi->single_csi_add_rem_in_si) {
+					rc = avnd_comp_csi_remove(cb, curr_csi->comp, curr_csi);
+					if (NCSCC_RC_SUCCESS != rc)
+						goto done;
+				}
+			}
 
-		/* remove the csi */
-		if (curr_csi) {
-			rc = avnd_comp_csi_remove(cb, curr_csi->comp, (si) ? curr_csi : 0);
-			if (NCSCC_RC_SUCCESS != rc)
-				goto done;
+		} else {
+			/* pick up the last csi */
+			curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&curr_si->csi_list);
+
+			/* remove the csi */
+			if (curr_csi) {
+				rc = avnd_comp_csi_remove(cb, curr_csi->comp, (si) ? curr_csi : 0);
+				if (NCSCC_RC_SUCCESS != rc)
+					goto done;
+			}
 		}
 	}
 
@@ -618,7 +697,7 @@ uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_SU_SI_REC *curr_si = 0;
-	AVND_COMP_CSI_REC *curr_csi = 0;
+	AVND_COMP_CSI_REC *curr_csi = 0, *t_csi;
 	NCS_BOOL are_si_assigned;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -673,7 +752,31 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 	}
+	/* Now correct si state if single csi was being removed. For the rest of csi assigned, si should be in 
+	   Assigned state*/
+	if ((si) && (AVSV_SUSI_ACT_DEL == si->single_csi_add_rem_in_si) && 
+			(m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(si))) {
+		m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si, AVND_SU_SI_ASSIGN_STATE_ASSIGNED);
+		/* Also, we need to remove links of si, csi and comp. */
+		/* We have to remove single csi. */
+		for (t_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
+				t_csi; t_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&t_csi->si_dll_node)) {
+			if (AVSV_SUSI_ACT_DEL == t_csi->single_csi_add_rem_in_si) {
+				break;
+			}
+		}
+		assert(t_csi);
+		/* free the csi attributes */
+		if (t_csi->attrs.list)
+			free(t_csi->attrs.list);
 
+		m_AVND_SU_SI_CSI_REC_REM(*si, *t_csi);
+		m_AVND_COMPDB_REC_CSI_REM(*(t_csi->comp), *t_csi);
+		free(t_csi);
+	}
+	/* Reset the single add/del */
+	if (si)
+		si->single_csi_add_rem_in_si = 0;
 	/* finally delete the si(s) if they are removed */
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si)) {

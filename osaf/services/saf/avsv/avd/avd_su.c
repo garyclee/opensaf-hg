@@ -145,6 +145,7 @@ void avd_su_remove_comp(AVD_COMP *comp)
 			/* decrement the active component number of this SU */
 			assert(comp->su->curr_num_comp > 0);
 			comp->su->curr_num_comp--;
+			comp->su->num_of_comp--;
 
 			comp->su_comp_next = NULL;
 			comp->su = NULL;

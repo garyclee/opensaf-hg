@@ -156,7 +156,8 @@ typedef struct avd_comp_cs_type_tag {
 	SaUint32T saAmfCompNumMaxStandbyCSIs;
 	SaUint32T saAmfCompNumCurrActiveCSIs;
 	SaUint32T saAmfCompNumCurrStandbyCSIs;
-	SaNameT **saAmfCompAssignedCsi;
+	uns32   number_comp;     /* number of element in saAmfCompAssignedCsi */
+	SaNameT *saAmfCompAssignedCsi;
 	AVD_COMP *comp;
 } AVD_COMPCS_TYPE;
 
@@ -232,7 +233,7 @@ extern SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 extern AVD_COMPCS_TYPE *avd_compcstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
 extern AVD_COMPCS_TYPE *avd_compcstype_get(const SaNameT *dn);
 extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn);
-extern uns32 avd_compcstype_find_match(const struct avd_csi_tag *csi, const AVD_COMP *comp);
+extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *csi, const AVD_COMP *comp);
 extern void avd_compcstype_constructor(void);
 
 #endif

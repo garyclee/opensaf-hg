@@ -50,6 +50,7 @@ typedef enum {
  * This data structure lives in the AvD and reflects relationship between
  * the SU and SI on the AvD.
  */
+
 typedef struct avd_su_si_rel_tag {
 
 	AVD_SI *si;		/* SI to which this relationship with SU
@@ -64,7 +65,10 @@ typedef struct avd_su_si_rel_tag {
 				   the su rank in the per si list */
 	struct avd_su_si_rel_tag *su_next;	/* The next element in the list w.r.t to SU */
 	struct avd_su_si_rel_tag *si_next;	/* The next element in the list w.r.t to SI */
-
+	/* To check which comp-csi is being added/removed. */
+	SaBoolT csi_add_rem;
+	SaNameT comp_name;
+	SaNameT csi_name;
 } AVD_SU_SI_REL;
 
 /* SusperSiRank table index structure */

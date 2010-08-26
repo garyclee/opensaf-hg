@@ -605,8 +605,12 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	/* comp should not be attached to any hc when it is being deleted */
 	assert(comp->hc_list.n_nodes == 0);
 
+	LOG_IN("Deleted '%s'", name->value);
 	/* free the memory */
 	free(comp);
+
+	TRACE_LEAVE();
+	return rc;
 
 done:
 	if (rc == NCSCC_RC_SUCCESS)
@@ -1457,6 +1461,7 @@ done:
 		free(comp);
 		comp = NULL;
 	}
+	TRACE_LEAVE2("%u", rc);
 	return comp;
 }
 
@@ -1478,6 +1483,8 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfComp";
 	AVND_COMP *comp;
+
+	TRACE_ENTER2("SU'%s'", su->name.value);
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
@@ -1508,6 +1515,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
  done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
+	TRACE_LEAVE();
 	return rc;
 }
 

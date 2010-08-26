@@ -672,7 +672,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 				old_fsm_state = susi->fsm;
 				susi->fsm = AVD_SU_SI_STATE_UNASGN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-				if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL) == NCSCC_RC_FAILURE) {
+				if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
@@ -874,7 +874,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 			old_fsm_state = susi->fsm;
 			susi->fsm = AVD_SU_SI_STATE_UNASGN;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL) == NCSCC_RC_FAILURE) {
+			if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 				susi->fsm = old_fsm_state;
@@ -995,7 +995,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				old_fsm_state = susi->fsm;
 				susi->fsm = AVD_SU_SI_STATE_UNASGN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-				if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL) == NCSCC_RC_FAILURE) {
+				if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
@@ -1122,7 +1122,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 			old_fsm_state = susi->fsm;
 			susi->fsm = AVD_SU_SI_STATE_UNASGN;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
-			if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL) == NCSCC_RC_FAILURE) {
+			if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
 				susi->fsm = old_fsm_state;
@@ -1553,7 +1553,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 				i_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_gen_su_ha_state_changed_ntf(cb, i_susi);
-				if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
+				if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_susi->su->name.value,
 									 i_susi->su->name.length);
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
@@ -1577,7 +1577,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 				i_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_gen_su_ha_state_changed_ntf(cb, i_susi);
-				if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
+				if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD, false, NULL) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_susi->su->name.value,
 									 i_susi->su->name.length);
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
@@ -1606,7 +1606,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 					i_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 					avd_gen_su_ha_state_changed_ntf(cb, i_susi);
-					if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD) ==
+					if (avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_MOD, false, NULL) ==
 					    NCSCC_RC_FAILURE) {
 						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_susi->su->name.value,
 										 i_susi->su->name.length);

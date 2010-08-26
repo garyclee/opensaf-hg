@@ -43,8 +43,8 @@
 #include "avd.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] =
-    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2 };
-const MDS_CLIENT_MSG_FORMAT_VER avd_avd_msg_fmt_map_table[AVD_AVD_SUBPART_VER_MAX] = { AVD_AVD_MSG_FMT_VER_1, AVD_AVD_MSG_FMT_VER_2};
+    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2, AVSV_AVD_AVND_MSG_FMT_VER_3};
+const MDS_CLIENT_MSG_FORMAT_VER avd_avd_msg_fmt_map_table[AVD_AVD_SUBPART_VER_MAX] = { AVD_AVD_MSG_FMT_VER_1, AVD_AVD_MSG_FMT_VER_2, AVD_AVD_MSG_FMT_VER_3};
 
 /* fwd decl */
 
@@ -299,7 +299,7 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 										     avd_avd_msg_fmt_map_table);
 
 				if (info->info.enc.o_msg_fmt_ver < AVD_AVD_MSG_FMT_VER_1) {
-					LOG_ER("%s: wrong msg fmt ver %u", __FUNCTION__, info->info.enc.o_msg_fmt_ver);
+					LOG_ER("%s: wrong msg fmt ver %u, %u.", __FUNCTION__, info->info.enc.o_msg_fmt_ver,info->info.enc.i_rem_svc_pvt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -312,7 +312,7 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 										     avd_avnd_msg_fmt_map_table);
 
 				if (info->info.enc.o_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_1) {
-					LOG_ER("%s: wrong msg fmt ver %u", __FUNCTION__, info->info.enc.o_msg_fmt_ver);
+					LOG_ER("%s: wrong msg fmt ver %u, %u", __FUNCTION__, info->info.enc.o_msg_fmt_ver,info->info.enc.i_rem_svc_pvt_ver);
 					return NCSCC_RC_FAILURE;
 				}
 

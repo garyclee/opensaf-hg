@@ -1833,23 +1833,37 @@ uns32 avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	 * pick up the prv csi(s) & remove
 	 */
 	if (csi) {
-		curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&csi->si_dll_node);
-
-		/* assign the csi */
-		if (curr_csi)
-			rc = avnd_comp_csi_remove(cb, curr_csi->comp, curr_csi);
-		else
-			/* all csis belonging to the si are removed */
+		if (AVSV_SUSI_ACT_DEL == csi->single_csi_add_rem_in_si) {
+			/* csi belonging to the si are removed */
 			rc = avnd_su_si_oper_done(cb, comp->su, csi->si);
-		if (NCSCC_RC_SUCCESS != rc)
-			goto done;
+
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
+		else {
+			curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&csi->si_dll_node);
+
+			/* assign the csi */
+			if (curr_csi)
+				rc = avnd_comp_csi_remove(cb, curr_csi->comp, curr_csi);
+			else
+				/* all csis belonging to the si are removed */
+				rc = avnd_su_si_oper_done(cb, comp->su, csi->si);
+
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
 	} else {		/* assign all the csis belonging to the prv rank in one shot */
 		/* get the first csi-record for this comp */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-
 		/* get the prv csi */
-		if (curr_csi)
+		if (curr_csi) {
+find_next:
 			curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node);
+			if (curr_csi) {
+				if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVED(curr_csi)) goto find_next;
+			}
+		}
 		else {
 			/* csi rec is already deleted, so SI rec would also have been deleted
 			 *  we are already done with rmv operation, just quit

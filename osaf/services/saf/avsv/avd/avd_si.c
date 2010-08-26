@@ -568,8 +568,8 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
 			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
-			LOG_WA("SI lock of %s failed, has no assignments", objectName->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			/* This may happen when SUs are locked before SI is locked. */
+			rc = SA_AIS_OK;
 			goto done;
 		}
 
@@ -679,6 +679,43 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	return SA_AIS_OK;
 }
 
+/**
+ * Validation performed when an SU is dynamically created with a CCB.
+ * @param dn
+ * @param attributes
+ * @param opdata
+ * 
+ * @return int
+ */
+static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
+        const CcbUtilOperationData_t *opdata)
+{
+        SaAmfAdminStateT admstate;
+        int is_app_su = 1;
+
+        if (strstr((char *)dn->value, "safApp=OpenSAF") != NULL)
+                is_app_su = 0;
+
+        if (!is_app_su) {
+		LOG_ER("Adding SI '%s' to middleware component not allowed", dn->value);
+                return 0;
+        }
+
+	if (immutil_getAttr("saAmfSIAdminState", attributes, 0, &admstate) == SA_AIS_OK) {
+		if (admstate != SA_AMF_ADMIN_LOCKED) {
+			LOG_ER("Invalid saAmfSIAdminState %u for '%s'", admstate, dn->value);
+			LOG_NO("saAmfSIAdminState must be SA_AMF_ADMIN_LOCKED(%u) for dynamically created SIs",
+					SA_AMF_ADMIN_LOCKED);
+			return 0;
+		}
+	} else {
+		LOG_ER("saAmfSIAdminState not configured for '%s'", dn->value);
+		return 0;
+	}
+
+	return 1;
+}
+
 static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -687,17 +724,23 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
-			rc = SA_AIS_OK;
-		break;
+        case CCBUTIL_CREATE:
+                if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata) &&
+                    is_ccb_create_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+                        rc = SA_AIS_OK;
+                break;
 	case CCBUTIL_MODIFY:
 		rc = si_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
 		si = avd_si_get(&opdata->objectName);
+		if (SA_AMF_ADMIN_LOCKED != si->saAmfSIAdminState) {
+			LOG_ER("SaAmfSI '%s' must be in SA_AMF_ADMIN_LOCKED(%u) state to be deleted. Admin State '%u'", 
+					si->name.value, SA_AMF_ADMIN_LOCKED, si->saAmfSIAdminState);
+			goto done;
+		}
 		if (NULL != si->list_of_csi) {
-			LOG_ER("SaAmfSI is in use");
+			LOG_ER("SaAmfSI '%s' is in use", si->name.value);
 			goto done;
 		}
 		rc = SA_AIS_OK;

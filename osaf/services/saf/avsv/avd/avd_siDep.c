@@ -270,7 +270,7 @@ uns32 avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 			susi->fsm = AVD_SU_SI_STATE_UNASGN;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
-			rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL);
+			rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* LOG the erro */
 				susi->fsm = old_fsm_state;

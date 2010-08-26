@@ -37,9 +37,6 @@
 
 #include "avnd.h"
 
-/* macro to remove a csi-record from the si-csi list */
-#define m_AVND_SU_SI_CSI_REC_REM(si, csi) \
-           ncs_db_link_list_delink(&(si).csi_list, &(csi).si_dll_node)
 
 extern AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *, AVND_COMP *, AVSV_AMF_HC_START_PARAM *, MDS_DEST *);
 /****************************************************************************\

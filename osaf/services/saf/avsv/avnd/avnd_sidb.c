@@ -38,9 +38,6 @@
 
 /* static function declarations */
 
-static AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *, AVND_SU *,
-						 AVND_SU_SI_REC *, AVND_COMP_CSI_PARAM *, uns32 *);
-
 static uns32 avnd_su_si_csi_rec_modify(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *, AVND_COMP_CSI_PARAM *);
 
 static uns32 avnd_su_si_csi_all_modify(AVND_CB *, AVND_SU *, AVND_COMP_CSI_PARAM *);
@@ -85,6 +82,8 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 {
 	AVND_SU_SI_REC *si_rec = 0;
 	AVND_COMP_CSI_PARAM *csi_param = 0;
+
+	TRACE_ENTER();
 
 	*rc = NCSCC_RC_SUCCESS;
 
@@ -157,6 +156,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 
 	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_ADD, AVND_LOG_SU_DB_FAILURE,
 			 &param->su_name, &param->si_name, NCSFL_SEV_CRITICAL);
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -181,6 +181,8 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
 	AVND_COMP *comp = 0;
+
+	TRACE_ENTER2("Comp'%s', Csi'%s' and Rank'%u'",param->csi_name.value, param->comp_name.value, param->csi_rank);
 
 	*rc = NCSCC_RC_SUCCESS;
 
@@ -290,6 +292,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 
 	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_ADD, AVND_LOG_COMP_DB_FAILURE,
 			   &param->comp_name, &param->csi_name, NCSFL_SEV_CRITICAL);
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -312,6 +315,8 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc)
 {
 	AVND_SU_SI_REC *si_rec = 0;
+
+	TRACE_ENTER2();
 
 	*rc = NCSCC_RC_SUCCESS;
 
@@ -338,10 +343,11 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM
 					 (SA_AMF_HA_QUIESCING == param->ha_state)) ? 0 : param->list);
 	if (*rc != NCSCC_RC_SUCCESS)
 		goto err;
-
+	TRACE_LEAVE();
 	return si_rec;
 
  err:
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -365,6 +371,7 @@ uns32 avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to the si & modify them */
 	if (!param) {
 		for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si_rec->csi_list);
@@ -398,6 +405,7 @@ uns32 avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	}			/* for */
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -420,6 +428,7 @@ uns32 avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
 	AVND_SU_SI_REC *curr_si = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2();
 	/* modify all the si records */
 	for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	     curr_si; curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
@@ -436,6 +445,7 @@ uns32 avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
 	/* now modify the comp-csi records */
 	rc = avnd_su_si_csi_all_modify(cb, su, ((SA_AMF_HA_QUIESCED == param->ha_state) ||
 						(SA_AMF_HA_QUIESCING == param->ha_state)) ? 0 : param->list);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -463,6 +473,7 @@ uns32 avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM *p
 	AVND_COMP *curr_comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to all the sis & modify them */
 	if (!param) {
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -486,25 +497,39 @@ uns32 avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM *p
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
+		curr_comp->assigned_flag = FALSE;
+	}
 
-		/* modify all the csi-records */
-		for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&curr_comp->csi_list));
-		     curr_csi;
-		     curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_csi->comp_dll_node)))
-		{
-			/* update the assignment related parameters */
-			curr_csi->act_comp_name = curr_param->active_comp_name;
-			curr_csi->trans_desc = curr_param->active_comp_dsc;
-			curr_csi->standby_rank = curr_param->stdby_rank;
+	/* pick up all the csis belonging to the comps specified in the param-list */
+	for (curr_param = param; curr_param; curr_param = curr_param->next) {
+		/* get the comp */
+		curr_comp = m_AVND_COMPDB_REC_GET(cb->compdb, curr_param->comp_name);
+		if (!curr_comp || (curr_comp->su != su)) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		if (FALSE == curr_comp->assigned_flag) {
+			/* modify all the csi-records */
+			for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&curr_comp->csi_list));
+					curr_csi;
+					curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_csi->comp_dll_node)))
+			{
+				/* update the assignment related parameters */
+				curr_csi->act_comp_name = curr_param->active_comp_name;
+				curr_csi->trans_desc = curr_param->active_comp_dsc;
+				curr_csi->standby_rank = curr_param->stdby_rank;
 
-			/* store the prv assign-state & update the new assign-state */
-			curr_csi->prv_assign_state = curr_csi->curr_assign_state;
-			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
-		}		/* for */
+				/* store the prv assign-state & update the new assign-state */
+				curr_csi->prv_assign_state = curr_csi->curr_assign_state;
+				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
+				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
+			}		/* for */
+			curr_comp->assigned_flag = TRUE;
+		}
 	}			/* for */
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -739,6 +764,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, SaNameT *su_name, SaNameT *si_na
 	AVND_SU_SI_REC *si_rec = 0;
 	AVND_SU *su = 0;
 
+	TRACE_ENTER();
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
 	if (!su)
@@ -748,6 +774,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, SaNameT *su_name, SaNameT *si_na
 	si_rec = (AVND_SU_SI_REC *)ncs_db_link_list_find(&su->si_list, (uns8 *)si_name);
 
  done:
+	TRACE_LEAVE();
 	return si_rec;
 }
 

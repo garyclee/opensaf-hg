@@ -245,6 +245,7 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	if (pg_node_csi)
 		free(pg_node_csi);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -271,6 +272,7 @@ void avd_pg_csi_node_del_all(AVD_CL_CB *cb, AVD_CSI *csi)
 	while (0 != (curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&csi->pg_node_list)))
 		avd_pg_csi_node_del(cb, csi, curr->node);
 
+	TRACE_LEAVE();
 	return;
 }
 

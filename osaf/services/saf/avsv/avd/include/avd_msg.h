@@ -99,7 +99,7 @@ EXTERN_C uns32 avd_snd_su_comp_msg(struct cl_cb_tag *cb,
 EXTERN_C uns32 avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
 EXTERN_C uns32 avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
 EXTERN_C uns32 avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
-				AVSV_SUSI_ACT actn);
+				AVSV_SUSI_ACT actn, SaBoolT single_csi, struct avd_comp_csi_rel_tag*);
 EXTERN_C uns32 avd_snd_shutdown_app_su_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 
 EXTERN_C uns32 avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
