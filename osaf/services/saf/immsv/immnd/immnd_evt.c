@@ -731,6 +731,12 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	void *searchOp = NULL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 
+	/* Official DUMP/BACKUP assumed when search is global for only persistent attrs and done at SC. */
+        SaBoolT officialDump = cb->mCanBeCoord &&
+		(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & SA_IMM_SEARCH_PERSISTENT_ATTRS) &&
+		(evt->info.searchInit.searchParam.present == ImmOmSearchParameter_PR_NOTHING) &&
+		(evt->info.searchInit.rootName.size == 0);
+
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHINIT_RSP;
@@ -746,17 +752,11 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
-	if (((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & SA_IMM_SEARCH_PERSISTENT_ATTRS) {
-					 /*=>DUMP/BACKUP*/
-		if (cb->mCanBeCoord) {
-			if (immModel_immNotWritable(cb) || (cb->mState != IMM_SERVER_READY)) {
-				LOG_WA("Cannot allow official dump/backup when imm-sync is in progress");
-				error = SA_AIS_ERR_TRY_AGAIN;
-				goto agent_rsp;
-			}
-		} else {
-			/* Handle it as a regular search OP. */
-			LOG_WA("Dump of IMM not at controller is not an offical dump");
+	if (officialDump) {
+		if (immModel_immNotWritable(cb) || (cb->mState != IMM_SERVER_READY)) {
+			LOG_WA("Cannot allow official dump/backup when imm-sync is in progress");
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
 		}
 	}
 
@@ -776,14 +776,11 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		cl_node->searchOpList = sn;
 		send_evt.info.imma.info.searchInitRsp.searchId = sn->searchId;
 
-		if (((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & SA_IMM_SEARCH_PERSISTENT_ATTRS) {
-					     /*=>DUMP/BACKUP*/
-			if (cb->mCanBeCoord) {
-				assert(!immModel_immNotWritable(cb));
-				TRACE_2("SEARCH INIT tentatively adj epoch to "
-					":%u & adnnounce dump", cb->mMyEpoch + 1);
-				immnd_announceDump(cb);
-			}
+		if (officialDump) { /*=>DUMP/BACKUP*/
+			assert(!immModel_immNotWritable(cb));
+			TRACE_2("SEARCH INIT tentatively adj epoch to "
+				":%u & adnnounce dump", cb->mMyEpoch + 1);
+			immnd_announceDump(cb);
 		}
 	}
 

@@ -65,6 +65,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	TRACE_ENTER();
 
 	if(opId == OPENSAF_IMM_PBE_CLASS_CREATE) {
+		bool schemaChange = false;
 		if(!param || (param->paramType != SA_IMM_ATTR_SASTRINGT)) {
 			(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 			goto done;
@@ -79,17 +80,47 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		}
 		TRACE("Begin PBE transaction for class create OK");
 
+		if(sNoStdFlags & OPENSAF_IMM_FLAG_SCHCH_ALLOW) {
+			/* Schema change allowed, check for possible upgrade. */
+			ClassInfo* theClass = (*sClassIdMap)[className];
+			if(theClass) {
+				unsigned int instances=0;
+				LOG_IN("PBE detected schema change for class %s", className.c_str());
+				schemaChange = true;
+				instances = purgeInstancesOfClassToPBE(pbeOmHandle, className, sDbHandle);
+				LOG_IN("PBE removed %u old instances of class %s", instances, className.c_str());
+				deleteClassToPBE(className, sDbHandle, theClass);
+				assert(sClassIdMap->erase(className) == 1);
+				delete theClass;
+				theClass = NULL;
+				LOG_IN("PBE removed old class definition for %s", className.c_str());
+				/* Note: We dont remove the classname from the opensaf object,
+				   since we will shortly add the new version of the class, with same name. 
+				 */
+			}
+		}
 
+		/* Note that schema upgrade generates a new PBE class_id for the new version of the class */
 		(*sClassIdMap)[className] = classToPBE(className, pbeOmHandle, sDbHandle, ++sClassCount);
 
-		attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
-		attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
-		attrValues.attrValuesNumber = 1;
-		attrValues.attrValues = &val;
-		val = &sastringVal;
-		sastringVal = (SaStringT) className.c_str();
+		if(schemaChange) {
+			unsigned int obj_count=0;
+			LOG_IN("PBE created new class definition for %s", className.c_str());
+			TRACE_5("sObjCount:%u", sObjCount);
+			obj_count = dumpInstancesOfClassToPBE(pbeOmHandle, sClassIdMap, className, &sObjCount, sDbHandle);
+			LOG_IN("PBE dumped %u objects of new class definition for %s", obj_count, className.c_str());
+			TRACE_5("sObjCount:%u", sObjCount);
+		} else {
+			/* Add classname to opensaf object when this is not an upgrade. */
+			attrValues.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
+			attrValues.attrValueType = SA_IMM_ATTR_SASTRINGT;
+			attrValues.attrValuesNumber = 1;
+			attrValues.attrValues = &val;
+			val = &sastringVal;
+			sastringVal = (SaStringT) className.c_str();
 			
-		objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
+			objectModifyAddValuesOfAttrToPBE(sDbHandle, opensafObj,	&attrValues, 0);
+		}
 
 		rc = pbeCommitTrans(sDbHandle, 0, sEpoch);
 		if(rc != SA_AIS_OK) {
@@ -143,6 +174,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			LOG_WA("PBE failed to commit transaction for class delete");
 			goto done;
 		}
+
+		assert(sClassIdMap->erase(className) == 1);
+		delete theClass;
 		TRACE("Commit PBE transaction for class delete");
 		/* We only reply with ok result. PBE failed class delete handled by timeout, cleanup.
 		   We encode OK result for OPENSAF_IMM_PBE_CLASS_DELETE with the arbitrary and otherwise

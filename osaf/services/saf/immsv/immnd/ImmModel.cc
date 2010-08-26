@@ -1910,7 +1910,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         /* Class name exists, check for schema upgrade.*/
         if(schemaChangeAllowed()) {
             /* New non-standard upgrade behavior. */
-            TRACE_7("Class '%s' exist - possible schema upgrade", className.c_str());
+            LOG_IN("Class '%s' exist - check implied schema upgrade", className.c_str());
             schemaChange=true;
             classInfo = &dummyClass; /* New class created as dummy, do all normal checks */
             prevClassInfo = i->second;
@@ -2067,7 +2067,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
          If all basic checks passed and this is an upgrade, do upgrade specific checks.
         */
         if(verifySchemaChange(className, prevClassInfo, classInfo, newAttrs, changedAttrs)) {
-            LOG_NO("Schema change for class %s ACCEPTED. Added %u and changed %u attribute defs",
+            LOG_NO("Schema change for class %s ACCEPTED. Adding %u and changing %u attribute defs",
                 className.c_str(), (unsigned int) newAttrs.size(), (unsigned int) changedAttrs.size());
         } else {
             LOG_IN("ERR_EXIST: Class '%s' exist - possible failed schema upgrade",
@@ -2166,22 +2166,24 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     */
                     ImmAttrValueMap::iterator oavi; 
                     for(oavi = object->mAttrValueMap.begin(); 
-                          oavi != object->mAttrValueMap.end(); ++oavi) {
+                        oavi != object->mAttrValueMap.end(); ++oavi) {
+                        /*
                         TRACE_5("CHECKING existing attribute %s:%s for object %s",
                             className.c_str(), oavi->first.c_str(), oi->first.c_str());
+			*/
 
-                        /*Change from single to multi-value requires change of value rep.*/
-                        ai = changedAttrs.find(oavi->first);
-                        if(ai != changedAttrs.end()) {
-                            if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
-                               (!oavi->second->isMultiValued())) {
-                                attrValue = new ImmAttrMultiValue(*(oavi->second));
-                                TRACE_5("Schema change adjusted attribute %s in object:%s "
-                                    "to be multivalued",
-                                    oavi->first.c_str(), oi->first.c_str());
-                                delete oavi->second;
-                                object->mAttrValueMap.erase(oavi);
-                                object->mAttrValueMap[ai->first] = attrValue;
+                       /* Change from single to multi-value requires change of value rep.*/
+                       ai = changedAttrs.find(oavi->first);
+                       if(ai != changedAttrs.end()) {
+                           if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+                              (!oavi->second->isMultiValued())) {
+                               attrValue = new ImmAttrMultiValue(*(oavi->second));
+                               TRACE_5("Schema change adjusted attribute %s in object:%s "
+                                   "to be multivalued",
+                                   oavi->first.c_str(), oi->first.c_str());
+                               delete oavi->second;
+                               object->mAttrValueMap.erase(oavi);
+                               object->mAttrValueMap[ai->first] = attrValue;
                             }
                         }
 
@@ -2197,7 +2199,8 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         } else {
             LOG_IN("No instances to migrate - schema change could have been avoided");
         }
-        LOG_NO("Schema change completed for class %s", className.c_str());
+        LOG_NO("Schema change succeeded for class %s %s", className.c_str(),
+            pbeNodeIdPtr?"(PBE changes still pending).":"");
     } /* end of schema upgrade case. */
 
     if(pbeNodeIdPtr) {
@@ -2315,7 +2318,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
         AttrInfo* newAttr = inew->second;
         iold = oldClassInfo->mAttrMap.find(attName);
         if(iold == oldClassInfo->mAttrMap.end()) {
-            TRACE_5("New attribute %s added by new class def", attName.c_str());
+            LOG_IN("New attribute %s added by new class def", attName.c_str());
             verifyFailed = notCompatibleAtt(className, attName, NULL, newAttr, NULL) || 
                 verifyFailed;
             newAttrs[inew->first] = newAttr;
@@ -2380,14 +2383,14 @@ ImmModel::notCompatibleAtt(const std::string& className, const std::string& attN
 
             if((oldAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
                !(newAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                LOG_NO("Impossible upgrade, attribute %s:%s remove flag "
+                LOG_NO("Impossible upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_MULTI_VALUE", className.c_str(), attName.c_str());
                 return true;
             }
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
                (newAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s add flag "
+                LOG_IN("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_MULTI_VALUE", className.c_str(), attName.c_str());
 
                 change = true; /* Instances NEED migration. */
@@ -2395,14 +2398,14 @@ ImmModel::notCompatibleAtt(const std::string& className, const std::string& attN
 
             if((oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
                !(newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
-                LOG_NO("Impossible upgrade, attribute %s:%s remove flag "
+                LOG_NO("Impossible upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_WRITABLE", className.c_str(), attName.c_str());
                 return true;
             }
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
                (newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s add flag "
+                LOG_IN("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_WRITABLE", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
@@ -2410,14 +2413,14 @@ ImmModel::notCompatibleAtt(const std::string& className, const std::string& attN
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_INITIALIZED) &&
                (newAttr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
-                LOG_NO("Impossible upgrade, attribute %s:%s add flag "
+                LOG_NO("Impossible upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_INITIALIZED", className.c_str(), attName.c_str());
                 return true;
             }
 
             if((oldAttr->mFlags & SA_IMM_ATTR_INITIALIZED) &&
                !(newAttr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s remove flag "
+                LOG_IN("Allowed upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_INITIALIZED", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
@@ -2425,14 +2428,14 @@ ImmModel::notCompatibleAtt(const std::string& className, const std::string& attN
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
                (newAttr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                LOG_NO("Impossible upgrade, attribute %s:%s add flag "
+                LOG_NO("Impossible upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
                 return true;
             }
 
             if((oldAttr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
                !(newAttr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s remove flag "
+                LOG_IN("Allowed upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */

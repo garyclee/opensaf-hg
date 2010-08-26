@@ -72,12 +72,12 @@ void
 ImmSearchOp::setImplementer(SaUint32T conn, unsigned int nodeId,
     SaUint64T mds_dest)
 {
-    TRACE_ENTER();
+     //TRACE_ENTER();
     SearchObject& obj = mResultList.back();
     obj.implConn = conn;
     obj.implNodeId = nodeId;
     obj.implDest = mds_dest;
-    TRACE_LEAVE();
+    //TRACE_LEAVE();
 }
 
 SaAisErrorT

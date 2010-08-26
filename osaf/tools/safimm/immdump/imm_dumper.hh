@@ -49,6 +49,10 @@ void pbeRepositoryClose(void* dbHandle);
 void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
 
+unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle);
+unsigned int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
+	std::string className, unsigned int* objidCount, void* db_handle);
+
 ClassInfo* classToPBE(std::string classNameString, SaImmHandleT immHandle,
 	void* db_handle, unsigned int class_id);
 
