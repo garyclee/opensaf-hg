@@ -4642,14 +4642,14 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             return SA_AIS_ERR_BUSY;
         }
     }
-
+    
     if(oi->second->mClassInfo->mCategory != SA_IMM_CLASS_CONFIG) {
         LOG_IN("ERR_BAD_OPERATION: object '%s' is not a configuration object",
             oi->first.c_str());
         /*return SA_AIS_ERR_INVALID_PARAM;*/
         return SA_AIS_ERR_BAD_OPERATION;
     }
-
+    
     if(!(oi->second->mImplementer && oi->second->mImplementer->mNodeId) &&
         (ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI)) {
         TRACE_7("ERR_NOT_EXIST: object '%s' has no implementer yet flag "
