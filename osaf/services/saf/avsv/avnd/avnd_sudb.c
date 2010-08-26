@@ -124,7 +124,7 @@ uns32 avnd_sudb_destroy(AVND_CB *cb)
 AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 {
 	AVND_SU *su = 0;
-
+	TRACE_ENTER2("SU'%s'", info->name.value);
 	/* verify if this su is already present in the db */
 	if (0 != m_AVND_SUDB_REC_GET(cb->sudb, info->name)) {
 		*rc = AVND_ERR_DUP_SU;
@@ -211,6 +211,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 	}
 
 	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_FAILURE, &info->name, 0, NCSFL_SEV_CRITICAL);
+	TRACE_LEAVE();
 	return 0;
 }
 

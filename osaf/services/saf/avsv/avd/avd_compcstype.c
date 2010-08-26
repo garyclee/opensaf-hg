@@ -94,19 +94,16 @@ static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
  *        row status is active.
  **************************************************************************/
 
-uns32 avd_compcstype_find_match(const AVD_CSI *csi, const AVD_COMP *comp)
+AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *cstype_name, const AVD_COMP *comp)
 {
-	AVD_COMPCS_TYPE *cst;
+	AVD_COMPCS_TYPE *cst = NULL;
 	SaNameT dn;
 
-	avsv_create_association_class_dn(&csi->saAmfCSType, &comp->comp_info.name, "safSupportedCsType", &dn);
+	TRACE_ENTER();
+	avsv_create_association_class_dn(cstype_name, &comp->comp_info.name, "safSupportedCsType", &dn);
 	TRACE("'%s'", dn.value);
 	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uns8 *)&dn);
-
-	if (cst != NULL)
-		return NCSCC_RC_SUCCESS;
-	else
-		return NCSCC_RC_FAILURE;
+	return cst;
 }
 
 AVD_COMPCS_TYPE *avd_compcstype_get(const SaNameT *dn)
@@ -231,6 +228,7 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	char *p;
 	SaNameT comp_name;
 	AVD_COMP *comp;
+	SaUint32T num_max_act_csi, num_max_std_csi;
 
 	TRACE_ENTER2("'%s'", dn->value);
 
@@ -254,15 +252,23 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	ctcstype = avd_ctcstype_get(&ctcstype_name);
 
 	if (immutil_getAttr("saAmfCompNumMaxActiveCSIs", attributes, 0,
-		&compcstype->saAmfCompNumMaxActiveCSIs) != SA_AIS_OK) {
-
+				&num_max_act_csi) != SA_AIS_OK) {
 		compcstype->saAmfCompNumMaxActiveCSIs = ctcstype->saAmfCtDefNumMaxActiveCSIs;
+	} else {
+		compcstype->saAmfCompNumMaxActiveCSIs = num_max_act_csi;
+		if (compcstype->saAmfCompNumMaxActiveCSIs > ctcstype->saAmfCtDefNumMaxActiveCSIs) {
+			compcstype->saAmfCompNumMaxActiveCSIs = ctcstype->saAmfCtDefNumMaxActiveCSIs;
+		}
 	}
 
 	if (immutil_getAttr("saAmfCompNumMaxStandbyCSIs", attributes, 0,
-		&compcstype->saAmfCompNumMaxStandbyCSIs) != SA_AIS_OK) {
-
+				&num_max_std_csi) != SA_AIS_OK) {
 		compcstype->saAmfCompNumMaxStandbyCSIs = ctcstype->saAmfCtDefNumMaxStandbyCSIs;
+	} else {
+		compcstype->saAmfCompNumMaxStandbyCSIs = num_max_std_csi;
+		if (compcstype->saAmfCompNumMaxStandbyCSIs > ctcstype->saAmfCtDefNumMaxStandbyCSIs) {
+			compcstype->saAmfCompNumMaxStandbyCSIs = ctcstype->saAmfCtDefNumMaxStandbyCSIs;
+		}
 	}
 
 	rc = 0;
@@ -352,6 +358,7 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		cst = avd_compcstype_get(&opdata->objectName);
+		assert(cst);
 		if (cst->comp->su->sg_of_su->sg_ncs_spec)
 			if (cst->comp->su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
 				rc = SA_AIS_OK;

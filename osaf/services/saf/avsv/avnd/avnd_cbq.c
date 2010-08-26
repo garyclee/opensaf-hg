@@ -586,6 +586,7 @@ uns32 avnd_comp_cbq_send(AVND_CB *cb,
 	MDS_DEST mds_dest;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	/* determine the mds-dest */
 	mds_dest = (dest) ? *dest : comp->reg_dest;
 
@@ -616,6 +617,7 @@ uns32 avnd_comp_cbq_send(AVND_CB *cb,
 			avnd_comp_cbq_rec_del(cb, comp, rec);
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -653,6 +655,7 @@ uns32 avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, N
 	AVSV_ND2ND_AVND_MSG *avnd_msg = NULL;
 	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
 
+	TRACE_ENTER();
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* allocate ava message */
@@ -719,6 +722,7 @@ uns32 avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, N
  done:
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
+	TRACE_LEAVE();
 	return rc;
 }
 

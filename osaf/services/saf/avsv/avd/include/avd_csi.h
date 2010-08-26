@@ -34,7 +34,6 @@
 #ifndef AVD_CSI_H
 #define AVD_CSI_H
 
-#include <stdbool.h>
 #include <avd_susi.h>
 #include <avd_comp.h>
 #include <avd_pg.h>
@@ -55,7 +54,7 @@ typedef struct avd_csi_tag {
 	SaNameT name;
 	SaNameT saAmfCSType;
 	SaNameT saAmfCSIDependencies;
-        bool dep_csi_added; /* Used when the saAmfCSIDependencies is getting added in the si rank list*/
+        SaBoolT dep_csi_added; /* Used when the saAmfCSIDependencies is getting added in the si rank list*/
         /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
            Else rank will one more than rank of saAmfCSIDependencies. */
 	uns32 rank;		/* The rank of the CSI in the SI 
@@ -76,6 +75,8 @@ typedef struct avd_csi_tag {
 	uns32 compcsi_cnt;	/* no of comp-csi rels */
 	struct avd_csi_tag *csi_list_cs_type_next;
 	struct avd_cstype *cstype;
+	NCS_BOOL assign_flag;   /* Flag used while assigning. to mark this csi has been assigned a Comp 
+				   from * current SI being assigned */
 } AVD_CSI;
 
 typedef struct avd_cstype {
@@ -150,5 +151,8 @@ extern void avd_cstype_constructor(void);
 
 extern SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi);
 extern void avd_csiattr_constructor(void);
+extern uns32 avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi, struct avd_comp_csi_rel_tag *comp_csi, NCS_BOOL ckpt);
+extern void csi_delete(struct avd_csi_tag *csi);
+extern void csi_cmplt_delete(struct avd_csi_tag *csi, SaBoolT ckpt);
 
 #endif

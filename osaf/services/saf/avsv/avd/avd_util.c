@@ -935,7 +935,8 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
  *             SI assignments need to be deleted
  *             or when all the SIs of the SU need to change role.
  *      actn - The action value that needs to be sent in the message.
- *             
+ *      single_csi - If a single component is to be assigned as csi.
+ *      compcsi - Comp CSI assignment(signle comp and associated csi) if single_csi is true else NULL.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -944,8 +945,8 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
  * 
  **************************************************************************/
 
-uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT actn)
-{
+uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT actn, bool single_csi, 
+		AVD_COMP_CSI_REL *compcsi) {
 
 	AVD_DND_MSG *susi_msg;
 	AVD_AVND *avnd;
@@ -979,6 +980,9 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	susi_msg->msg_info.d2n_su_si_assign.su_name = su->name;
 	susi_msg->msg_info.d2n_su_si_assign.msg_act = actn;
 
+	if (true == single_csi) {
+		susi_msg->msg_info.d2n_su_si_assign.single_csi = true;
+	}
 	switch (actn) {
 	case AVSV_SUSI_ACT_DEL:
 		if (susi != AVD_SU_SI_REL_NULL) {
@@ -987,6 +991,24 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			 */
 			susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 
+			/* For only these options fill the comp CSI values. */
+			if (true == single_csi) {
+				assert(compcsi);
+				l_compcsi = compcsi;
+
+				compcsi_info = calloc(1, sizeof(AVSV_SUSI_ASGN));
+				if (compcsi_info == NULL) {
+					LOG_ER("%s: calloc failed", __FUNCTION__);
+					LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
+					avsv_dnd_msg_free(susi_msg);
+					return NCSCC_RC_FAILURE;
+				}
+
+				compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
+				compcsi_info->csi_name = l_compcsi->csi->name;
+				susi_msg->msg_info.d2n_su_si_assign.num_assigns = 1;
+				susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info;
+			}
 		}
 		break;		/* case AVSV_SUSI_ACT_DEL */
 	case AVSV_SUSI_ACT_MOD:
@@ -1117,7 +1139,11 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		}
 
 		/* For only these options fill the comp CSI values. */
-		l_compcsi = l_susi->list_of_csicomp;
+		if (true == single_csi) {
+			assert(compcsi);
+			l_compcsi = compcsi;
+		} else
+			l_compcsi = l_susi->list_of_csicomp;
 
 		while (l_compcsi != NULL) {
 			compcsi_info = calloc(1, sizeof(AVSV_SUSI_ASGN));
@@ -1174,6 +1200,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info;
 			susi_msg->msg_info.d2n_su_si_assign.num_assigns++;
 
+			if (true == single_csi) break;
 			l_compcsi = l_compcsi->susi_csicomp_next;
 		}		/* while (l_compcsi != AVD_COMP_CSI_REL_NULL) */
 	}
@@ -1185,7 +1212,6 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 
 	/* send the SU SI message */
 	TRACE("Sending %u to %x", AVSV_D2N_INFO_SU_SI_ASSIGN_MSG, avnd->node_info.nodeId);
-
 	if (avd_d2n_msg_snd(cb, avnd, susi_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
@@ -1438,6 +1464,7 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 
  done:
 	/* if (pg_msg) avsv_dnd_msg_free(pg_msg); */
+	TRACE_LEAVE2("(%u)", rc);
 	return rc;
 }
 
@@ -1586,7 +1613,7 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 
 int avd_admin_state_is_valid(SaAmfAdminStateT state)
 {
-	return ((SA_AMF_ADMIN_UNLOCKED <= state) && (state <= SA_AMF_ADMIN_SHUTTING_DOWN));
+	return ((state >= SA_AMF_ADMIN_UNLOCKED) && (state <= SA_AMF_ADMIN_SHUTTING_DOWN));
 }
 
 /*****************************************************************************

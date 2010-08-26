@@ -340,6 +340,7 @@ void avnd_pgdb_trk_rec_del_all(AVND_CB *cb, AVND_PG *pg)
 AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGroupNotificationT *mem_info)
 {
 	AVND_PG_MEM *pg_mem = 0;
+	TRACE_ENTER();
 
 	/* get the mem rec */
 	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
@@ -364,13 +365,14 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 
 	/* update other params */
 	pg_mem->info.member = mem_info->member;
-
+	TRACE_LEAVE();
 	return pg_mem;
 
  err:
 	if (pg_mem)
 		free(pg_mem);
 
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -392,6 +394,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
 {
 	AVND_PG_MEM *pg_mem = 0;
+	TRACE_ENTER();
 
 	/* get the pg mem record */
 	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, *comp_name);
@@ -405,6 +408,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
 	pg_mem->info.change = SA_AMF_PROTECTION_GROUP_REMOVED;
 	pg_mem->info.member.haState = 0;
 
+	TRACE_LEAVE();
 	return pg_mem;
 }
 

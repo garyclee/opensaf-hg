@@ -364,8 +364,11 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	indx.si_name = si_name;
 	indx.su_rank = rank;
 	if ((avd_sirankedsu_find(avd_cb, indx)) != NULL ) {
-		LOG_ER("saAmfRankedSu exists %s", dn->value);
-		return 0;  
+		if (opdata != NULL) {
+			LOG_ER("saAmfRankedSu exists %s, si'%s', rank'%u'", dn->value, si_name.value, rank);
+			return 0;
+		}
+		return SA_AIS_OK;  
 	}
 
         return SA_AIS_OK;
@@ -453,7 +456,8 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	/* Find the su name. */
 	su = avd_su_get(&su_name);
 
-	if (su != NULL) {
+	if (su == NULL) {
+		LOG_ER("SU '%s' not found", su_name.value);
 		goto error;
 	}
 
@@ -468,11 +472,12 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 		curr_su = avd_su_get(&su_rank_rec->su_name);
 		if (curr_su == su) {
 			found = TRUE;
-			goto error;
+			break;
 		}
 	}
 
 	if (FALSE == found) {
+		LOG_ER("'%s' not found", opdata->objectName.value);
 		goto error;
 	}
 
@@ -480,16 +485,21 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	si = avd_si_get(&si_name);
 
 	if (si == NULL) {
+		LOG_ER("SI '%s' not found", si_name.value);
 		goto error;
 	}
 
 	if (su != NULL) {
 		if (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) {
+			LOG_ER("'%s' admin state('%u') is not SA_AMF_ADMIN_LOCKED", 
+					su->name.value, su->saAmfSUAdminState);
 			goto error;
 		}
 	}
 	if (si != NULL) {
 		if (si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) {
+			LOG_ER("'%s' admin state('%u') is not SA_AMF_ADMIN_LOCKED", 
+					si->name.value, si->saAmfSIAdminState);
 			goto error;
 		}
 	}

@@ -37,7 +37,7 @@
 #include "avsv_n2avaedu.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] =
-    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2 };
+    { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2, AVSV_AVD_AVND_MSG_FMT_VER_3};
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[AVND_AVND_SUBPART_VER_MAX] =
     { AVSV_AVND_AVND_MSG_FMT_VER_1 };
 const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[AVND_AVA_SUBPART_VER_MAX] = { AVSV_AVND_AVA_MSG_FMT_VER_1 };
@@ -720,6 +720,8 @@ uns32 avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 								AVND_AVD_SUBPART_VER_MAX, avnd_avd_msg_fmt_map_table);
 
 		if (enc_info->o_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_1) {
+			LOG_ER("%s,%u: wrong msg fmt not valid %u, res'%u'", __FUNCTION__, __LINE__,
+					enc_info->i_rem_svc_pvt_ver, enc_info->o_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -809,6 +811,8 @@ uns32 avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 								AVND_AVD_SUBPART_VER_MAX, avnd_avd_msg_fmt_map_table);
 
 		if (enc_info->o_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_1) {
+			LOG_ER("%s,%u: wrong msg fmt not valid %u, res'%u'", __FUNCTION__, __LINE__,
+					enc_info->i_rem_svc_pvt_ver, enc_info->o_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -954,6 +958,8 @@ uns32 avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
 					       AVND_AVD_SUBPART_VER_MIN,
 					       AVND_AVD_SUBPART_VER_MAX, avnd_avd_msg_fmt_map_table)) {
+			LOG_ER("%s,%u: wrong msg fmt not valid %u", __FUNCTION__, __LINE__,
+					dec_info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1047,6 +1053,8 @@ uns32 avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
 					       AVND_AVD_SUBPART_VER_MIN,
 					       AVND_AVD_SUBPART_VER_MAX, avnd_avd_msg_fmt_map_table)) {
+			LOG_ER("%s,%u: wrong msg fmt not valid %u", __FUNCTION__, __LINE__,
+					dec_info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -1151,6 +1159,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
 	/* populate the mds params */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
@@ -1195,6 +1204,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	if (NCSCC_RC_SUCCESS != rc)
 		LOG_ER("ncsmds_api for %u FAILED, dest=%llx", send_info->i_sendtype, *dest);
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1311,6 +1321,7 @@ uns32 avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 	MDS_SEND_INFO *send_info = NULL;
 	MDS_SENDTYPE_SNDRSP_INFO *send = NULL;
 
+	TRACE_ENTER();
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
 	mds_info.i_mds_hdl = cb->mds_hdl;
@@ -1337,6 +1348,7 @@ uns32 avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 	/* send the message & block until AvND responds or operation times out */
 	rc = ncsmds_api(&mds_info);
 
+	TRACE_LEAVE();
 	return rc;
 }
 

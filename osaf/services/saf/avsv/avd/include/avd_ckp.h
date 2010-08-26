@@ -47,6 +47,9 @@ typedef struct avsv_su_si_rel_ckpt_msg {
 	SaNameT si_name;
 	SaAmfHAStateT state;
 	uns32 fsm;		/* The SU SI FSM state */
+        SaBoolT csi_add_rem;
+        SaNameT comp_name;
+        SaNameT csi_name;
 } AVSV_SU_SI_REL_CKPT_MSG;
 
 /* 

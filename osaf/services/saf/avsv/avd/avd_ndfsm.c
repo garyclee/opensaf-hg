@@ -593,7 +593,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if ((AVD_SU_SI_STATE_ASGND == rel_ptr->fsm) || (AVD_SU_SI_STATE_ABSENT == rel_ptr->fsm))
 					continue;
 
-				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
+				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm, false, NULL) != NCSCC_RC_SUCCESS) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}
@@ -620,7 +620,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL) ||
 			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)) {
 				if (AVD_SU_SI_STATE_MODIFY == su_ptr->list_of_susi->fsm) {
-					avd_snd_susi_msg(cb, su_ptr, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD);
+					avd_snd_susi_msg(cb, su_ptr, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, NULL);
 					continue;
 				}
 			}
@@ -629,7 +629,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if ((AVD_SU_SI_STATE_ASGND == rel_ptr->fsm) || (AVD_SU_SI_STATE_ABSENT == rel_ptr->fsm))
 					continue;
 
-				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
+				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm, false, NULL) != NCSCC_RC_SUCCESS) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}

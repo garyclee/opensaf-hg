@@ -451,7 +451,7 @@ uns32 avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG_MEM *chg_mem = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("is_csi_del=%u", info->is_csi_del);
 
 	/* dont process unless AvD is up */
 	if (!m_AVND_CB_IS_AVD_UP(cb))

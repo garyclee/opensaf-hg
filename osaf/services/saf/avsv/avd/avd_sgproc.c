@@ -26,7 +26,6 @@
  * Module Inclusion Control...
  */
 
-#include <stdbool.h>
 #include <immutil.h>
 #include <logtrace.h>
 
@@ -64,9 +63,9 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *susi;
 	AVD_COMP_CSI_REL *compcsi;
-	NCS_BOOL l_flag;
 	AVD_COMP *l_comp;
 	AVD_CSI *l_csi;
+	AVD_COMPCS_TYPE *cst;
 
 	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
 
@@ -79,9 +78,12 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	susi->fsm = AVD_SU_SI_STATE_ASGN;
 	susi->state = ha_state;
 
-	l_flag = TRUE;
-
+	/* Mark csi to be unassigned to detect duplicate assignment.*/
 	l_csi = si->list_of_csi;
+	while (l_csi != NULL) {
+		l_csi->assign_flag = FALSE;
+		l_csi = l_csi->si_list_of_csi_next;
+	}
 
 	/* reset the assign flag */
 	l_comp = su->list_of_comp;
@@ -90,45 +92,93 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		l_comp = l_comp->su_comp_next;
 	}
 
-	while ((l_csi != NULL) && (l_flag == TRUE)) {
+	l_csi = si->list_of_csi;
+	while (l_csi != NULL) {
 		/* find the component that has to be assigned this CSI */
 
 		l_comp = su->list_of_comp;
 		while (l_comp != NULL) {
 			if ((l_comp->assign_flag == FALSE) &&
-			    (avd_compcstype_find_match(l_csi, l_comp) == NCSCC_RC_SUCCESS))
+			    (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))))
 				break;
 
 			l_comp = l_comp->su_comp_next;
 		}
 
 		if (l_comp == NULL) {
-
-			l_flag = FALSE;
+			/* This means either - 1. l_csi cann't be assigned to any comp or 2. some comp got assigned 
+			   and the rest cann't be assigned.*/
+			l_csi = l_csi->si_list_of_csi_next;
 			continue;
 		}
 
 		if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
 			/* free all the CSI assignments and end this loop */
 			avd_compcsi_delete(cb, susi, TRUE);
-			l_flag = FALSE;
+			l_csi = l_csi->si_list_of_csi_next;
 			continue;
 		}
 
 		l_comp->assign_flag = TRUE;
+		l_csi->assign_flag = TRUE;
 		l_csi = l_csi->si_list_of_csi_next;
-	}			/* while((l_csi != AVD_CSI_NULL) && (l_flag == TRUE)) */
+	} /* while(l_csi != AVD_CSI_NULL) */
 
-	if (l_flag == FALSE) {
+	/* After previous while loop(while (l_csi != NULL)) all the deserving components got assigned at least one. Some
+	   components and csis may be left out. We need to ignore now all unassigned comps as they cann't be assigned 
+	   any csi. Unassigned csis may include those csi, which cann't be assigned to any comp and those csi, which 
+	   can be assigned to comp, which are already assigned(more than 1 csi to be assigned). 
+
+	   Here, policy for assigning more than 1 csi to components is : Assign to max to the deserving comps and then
+	   assign the rest csi to others. We are taking advantage of Specs defining implementation specific csi 
+	   assigiment.*/
+	TRACE("Now assiging more than one csi per comp");
+	l_csi = si->list_of_csi;
+	while (NULL !=  l_csi) {
+		if (FALSE == l_csi->assign_flag) {
+			l_comp = su->list_of_comp;
+			/* Assign to only those comps, which have assignment. Those comps, which could not have assignment 
+			   before, cann't find compcsi here also.*/
+			while (l_comp != NULL) { 
+				if (TRUE == l_comp->assign_flag) {
+					if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) {
+						if (SA_AMF_HA_ACTIVE == ha_state) {
+							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
+							} else { /* We cann't assign this csi to this comp, so check for another comp */
+								l_comp = l_comp->su_comp_next;
+								continue ;
+							}
+						} else {
+							if (cst->saAmfCompNumCurrStandbyCSIs < cst->saAmfCompNumMaxStandbyCSIs) {
+							} else { /* We cann't assign this csi to this comp, so check for another comp */
+								l_comp = l_comp->su_comp_next;
+								continue ;
+							}
+						}
+						if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
+							/* free all the CSI assignments and end this loop */
+							avd_compcsi_delete(cb, susi, TRUE);
+							l_comp = l_comp->su_comp_next;
+							continue;
+						}
+						l_csi->assign_flag = TRUE;
+						/* If one csi has been assigned to a comp, then look for another csi. */
+						break;
+					}/* if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) */
+				}/* if (TRUE == l_comp->assign_flag) */
+				l_comp = l_comp->su_comp_next;
+			}/* while (l_comp != NULL) */
+		}/* if (FALSE == l_csi->assign_flag)*/
+		l_csi = l_csi->si_list_of_csi_next;
+	}/* while (l_csi != NULL) */
+
+	/* Log the unassigned csi.*/
+	l_csi = si->list_of_csi;
+	while ((l_csi != NULL) && (FALSE == l_csi->assign_flag)) {
 		LOG_ER("%s: Component type missing for SU '%s'", __FUNCTION__, su->name.value);
 		LOG_ER("%s: Component type missing for CSI '%s'", __FUNCTION__, l_csi->name.value);
-
-		/* free all the CSI assignments and end this loop */
-		avd_compcsi_delete(cb, susi, TRUE);
-		/* Unassign the SUSI */
-		avd_susi_delete(cb, susi, TRUE);
-		goto done;
-	}
+		l_csi = l_csi->si_list_of_csi_next;
+	}/* while ((l_csi != NULL) && (FALSE == l_csi->assign_flag)) */
 
 	/* Now send the message about the SU SI assignment to
 	 * the AvND. Send message only if this function is not 
@@ -136,7 +186,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	 */
 
 	if (FALSE == ckpt) {
-		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN) != NCSCC_RC_SUCCESS) {
+		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN, false, NULL) != NCSCC_RC_SUCCESS) {
 			/* free all the CSI assignments and end this loop */
 			avd_compcsi_delete(cb, susi, TRUE);
 			/* Unassign the SUSI */
@@ -756,7 +806,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *node;
 	AVD_SU *su = NULL, *temp_su;
 	AVD_SU_SI_REL *susi;
-	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE, all_su_unassigned = TRUE;
+	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE, all_su_unassigned = TRUE, all_csi_rem = TRUE;
 
 	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_su_si_assign.node_id);
 
@@ -980,9 +1030,117 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
 		case AVSV_SUSI_ACT_DEL:
+			TRACE("Del:single_csi '%u', susi '%p'", n2d_msg->msg_info.n2d_su_si_assign.single_csi,susi);
+			if (true == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
+				AVD_COMP *comp;
+				AVD_CSI  *csi;
+				/* This is a case of single csi assignment/removal. */
+				/* Don't worry abt n2d_msg->msg_info.n2d_su_si_assign.error as SUCCESS/FAILURE. We will
+				   mark it as success and complete the assignment to others. In case any comp rejects 
+				   csi, recovery will take care of this.*/
+				AVD_COMP_CSI_REL *t_comp_csi;
+				AVD_SU_SI_REL *t_sisu;
+				AVD_CSI *csi_tobe_deleted = NULL;
+
+                                assert(susi->csi_add_rem);
+                                susi->csi_add_rem = false;
+                                comp = avd_comp_get(&susi->comp_name);
+                                assert(comp);
+                                csi = avd_csi_get(&susi->csi_name);
+                                assert(csi);
+
+                                for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
+                                        if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
+                                                break;
+                                }
+                                assert(t_comp_csi);
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+
+				/* Store csi if this is the last comp-csi to be deleted. */
+				csi_tobe_deleted = t_comp_csi->csi;
+				/* Delete comp-csi. */
+				avd_compcsi_from_csi_and_susi_delete(susi, t_comp_csi, false);
+
+                                /* Search for the next SUSI to be added csi. */
+                                t_sisu = susi->si->list_of_sisu;
+                                while(t_sisu) {
+                                        if (true == t_sisu->csi_add_rem) {
+						all_csi_rem = FALSE;
+                                                comp = avd_comp_get(&t_sisu->comp_name);
+                                                assert(comp);
+                                                csi = avd_csi_get(&t_sisu->csi_name);
+                                                assert(csi);
+
+                                                for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
+                                                        if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
+                                                                break;
+                                                }
+                                                assert(t_comp_csi);
+                                                avd_snd_susi_msg(cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_DEL, true, t_comp_csi);
+                                                /* Break here. We need to send one by one.  */
+                                                break;
+                                        }
+                                        t_sisu = t_sisu->si_next;
+                                }/* while(t_sisu) */
+				if (TRUE == all_csi_rem) {
+					/* All the csi removed, so now delete pg tracking and CSI. */
+					csi_cmplt_delete(csi_tobe_deleted, false);
+				}
+                                /* Comsume this message. */
+                                goto done;
+                        }
 			break;
 
 		case AVSV_SUSI_ACT_ASGN:
+			TRACE("single_csi '%u', susi '%p'", n2d_msg->msg_info.n2d_su_si_assign.single_csi,susi);
+			if (true == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
+				AVD_COMP *comp;
+				AVD_CSI  *csi;
+				/* This is a case of single csi assignment/removal. */
+				/* Don't worry abt n2d_msg->msg_info.n2d_su_si_assign.error as SUCCESS/FAILURE. We will
+				   mark it as success and complete the assignment to others. In case any comp rejects 
+				   csi, recovery will take care of this.*/
+				AVD_COMP_CSI_REL *t_comp_csi;
+				AVD_SU_SI_REL *t_sisu;
+
+				assert(susi->csi_add_rem);
+				susi->csi_add_rem = false;
+				comp = avd_comp_get(&susi->comp_name);
+				assert(comp);
+				csi = avd_csi_get(&susi->csi_name);
+				assert(csi);
+
+				for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
+					if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
+						break;
+				}
+				assert(t_comp_csi);
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+
+				/* Search for the next SUSI to be added csi. */
+				t_sisu = susi->si->list_of_sisu;
+				while(t_sisu) {
+					if (true == t_sisu->csi_add_rem) {
+						/* Find the comp csi relationship. */
+						comp = avd_comp_get(&t_sisu->comp_name);
+						assert(comp);
+						csi = avd_csi_get(&t_sisu->csi_name);
+						assert(csi);
+
+						for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
+							if ((t_comp_csi->comp == comp) && (t_comp_csi->csi == csi))
+								break;
+						}
+						assert(t_comp_csi);
+						avd_snd_susi_msg(cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_ASGN, true, t_comp_csi); 
+						/* Break here. We need to send one by one.  */
+						break;
+					}
+					t_sisu = t_sisu->si_next;
+				}/* while(t_sisu) */
+				/* Comsume this message. */
+				goto done;
+			}
 			/* Verify that the SUSI is in the assign state for the same HA state. */
 			if ((susi->fsm != AVD_SU_SI_STATE_ASGN) ||
 			    (susi->state != n2d_msg->msg_info.n2d_su_si_assign.ha_state)) {
@@ -2220,7 +2378,7 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	/* Now send a single message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
@@ -2284,7 +2442,7 @@ uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	/* Now send a single delete message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL, false, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {

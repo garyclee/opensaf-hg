@@ -487,6 +487,14 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 		if (NULL != su_si_rel_ptr) {
 			su_si_rel_ptr->fsm = su_si_ckpt->fsm;
 			su_si_rel_ptr->state = su_si_ckpt->state;
+			su_si_rel_ptr->csi_add_rem = su_si_ckpt->csi_add_rem;
+			if (su_si_rel_ptr->csi_add_rem) {
+				su_si_rel_ptr->comp_name = su_si_ckpt->comp_name;
+				su_si_rel_ptr->csi_name = su_si_ckpt->csi_name;
+			} else {
+				memset(&(su_si_rel_ptr->comp_name),0,sizeof(SaNameT));
+				memset(&(su_si_rel_ptr->csi_name),0,sizeof(SaNameT));
+			}
 		} else {
 			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 			return NCSCC_RC_FAILURE;

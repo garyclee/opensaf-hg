@@ -311,10 +311,11 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		esc_rcvr = SA_AMF_NODE_FAILOVER;
 	}
 
-	/* We need not entertain errors when comp is not in shape */
+	/* We need not entertain errors when comp is not in shape. 
+	   In case of terminating, ava down may come before clc response */
 	if (comp && (m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(comp) ||
 		     m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(comp) ||
-		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp)))
+		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp) || m_AVND_COMP_PRES_STATE_IS_TERMINATING(comp)))
 		goto done;
 
    	/* update the err params */

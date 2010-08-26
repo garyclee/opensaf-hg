@@ -185,6 +185,7 @@ typedef struct avnd_comp_csi_rec {
 	SaNameT comp_name;	/* For Checkpointing */
 	SaNameT si_name;	/* For Checkpointing */
 	SaNameT su_name;	/* For Checkpointing */
+	AVSV_SUSI_ACT single_csi_add_rem_in_si; /* To detect whether single csi removal is going on.*/
 
 } AVND_COMP_CSI_REC;
 
@@ -345,6 +346,7 @@ typedef struct avnd_comp_tag {
 	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
 	SaBoolT admin_oper;   /*set to TRUE if undergoing admin operation */
 	int config_is_valid; /* Used to indicate that config has to be refreshed from IMM */
+	NCS_BOOL assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
 
 } AVND_COMP;
 
