@@ -489,13 +489,6 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 		goto error;
 	}
 
-	if (su != NULL) {
-		if (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("'%s' admin state('%u') is not SA_AMF_ADMIN_LOCKED", 
-					su->name.value, su->saAmfSUAdminState);
-			goto error;
-		}
-	}
 	if (si != NULL) {
 		if (si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) {
 			LOG_ER("'%s' admin state('%u') is not SA_AMF_ADMIN_LOCKED", 
