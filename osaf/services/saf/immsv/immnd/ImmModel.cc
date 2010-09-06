@@ -1352,6 +1352,7 @@ ImmModel::immNotWritable()
             assert(0);
             
     }  
+    return false;
 }
 
 /* immNotPbeWritable returning true means:
