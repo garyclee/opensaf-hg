@@ -5309,10 +5309,15 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
 {
 	if (cb->mSync) {
-		if (id == IMMND_EVT_A2ND_CLASS_CREATE || id == IMMND_EVT_A2ND_OBJ_SYNC || 
-			id == IMMND_EVT_ND2ND_SYNC_FINALIZE ||	id == IMMND_EVT_ND2ND_SYNC_FINALIZE_2 || 
-			id == IMMND_EVT_D2ND_SYNC_ABORT || id == IMMND_EVT_D2ND_DISCARD_IMPL ||
-			id == IMMND_EVT_D2ND_DISCARD_NODE || id == IMMND_EVT_A2ND_OI_IMPL_CLR) {	
+		if (
+		    id == IMMND_EVT_A2ND_CLASS_CREATE ||
+		    id == IMMND_EVT_A2ND_OBJ_SYNC ||
+		    id == IMMND_EVT_ND2ND_SYNC_FINALIZE ||
+		    id == IMMND_EVT_ND2ND_SYNC_FINALIZE_2 ||
+		    id == IMMND_EVT_D2ND_SYNC_ABORT ||
+		    id == IMMND_EVT_D2ND_DISCARD_IMPL ||
+		    id == IMMND_EVT_D2ND_DISCARD_NODE ||
+		    id == IMMND_EVT_A2ND_OI_IMPL_CLR) {	
 			return 1;
 		}
 	}
