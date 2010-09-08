@@ -270,6 +270,12 @@ extern "C" {
 		SaNameT name;
 	} IMMSV_OI_CCB_UPCALL_RSP;
 
+	typedef struct ImmsvSyncFevsBase {
+		SaUint64T fevsBase;
+		SaImmHandleT client_hdl;	//odd to put client_hdl here..
+	} IMMSV_SYNC_FEVS_BASE;
+
+
 #ifdef __cplusplus
 }
 #endif

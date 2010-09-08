@@ -56,6 +56,8 @@ static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt);
 static uns32 immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
 
+static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
 /****************************************************************************
  * Name          : immd_process_evt
  *
@@ -152,6 +154,10 @@ void immd_process_evt(void)
 		rc = immd_evt_mds_quiesced_ack_rsp(cb, &evt->info.immd, &evt->sinfo);
 		break;
 
+	case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
+		rc = immd_evt_proc_sync_fevs_base(cb, &evt->info.immd, &evt->sinfo);
+		break;
+
 	case IMMD_EVT_CB_DUMP:
 		rc = immd_evt_proc_cb_dump(cb);
 		break;
@@ -160,7 +166,7 @@ void immd_process_evt(void)
 		break;
 	default:
 		/* Log the error TBD */
-		TRACE_5("UNRECOGNIZED IMMD EVENT");
+		LOG_WA("UNRECOGNIZED IMMD EVENT: %u", evt->info.immd.type);
 		break;
 	}
 
@@ -1406,6 +1412,82 @@ static uns32 immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 	impl_req->impl_name.size = 0;
 	return proc_rc;
 }
+
+
+
+
+/****************************************************************************
+ * Name          : immd_evt_proc_sync_fevs_base
+ *
+ * Description   : Function to process the IMMD_EVT_ND2D_SYNC_FEVS_BASE event 
+ *                 from IMMND.
+ *
+ * Arguments     : IMMD_CB *cb - IMMD CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *****************************************************************************/
+
+static uns32 immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	IMMSV_EVT fevs_evt;
+	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	NCS_UBAID uba;
+	char *tmpData = NULL;
+	uba.start = NULL;
+
+	TRACE_5("Sync Fevs Base:%llu", 	evt->info.syncFevsBase.fevsBase);
+
+	/*First create and pack the core message for fevs. */
+
+	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));
+	fevs_evt.type = IMMSV_EVT_TYPE_IMMND;
+	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_FEVS_BASE;
+	fevs_evt.info.immnd.info.syncFevsBase = evt->info.syncFevsBase.fevsBase;
+
+	proc_rc = ncs_enc_init_space(&uba);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_WA("Failed init ubaid");
+		uba.start = NULL;
+		goto fail;
+	}
+
+	proc_rc = immsv_evt_enc(&fevs_evt, &uba);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_WA("Failed encode fevs");
+		uba.start = NULL;
+		goto fail;
+	}
+
+	int32 size = uba.ttl;
+	tmpData = malloc(size);
+	assert(tmpData);
+	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
+
+	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));	/*No ponters=>no leak */
+	fevs_evt.type = IMMSV_EVT_TYPE_IMMD;
+	fevs_evt.info.immd.type = 0;
+	fevs_evt.info.immd.info.fevsReq.client_hdl = evt->info.syncFevsBase.client_hdl;
+	fevs_evt.info.immd.info.fevsReq.msg.size = size;
+	fevs_evt.info.immd.info.fevsReq.msg.buf = data;
+
+	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
+	   In actuality, this call needed extra processing (the global id) so
+	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+
+ fail:
+	if (tmpData) {
+		free(tmpData);
+	}
+
+	if (uba.start) {
+		m_MMGR_FREE_BUFR_LIST(uba.start);
+	}
+
+	return proc_rc;
+}
+
 
 /****************************************************************************
  * Name          : immd_evt_proc_discard_impl

@@ -56,6 +56,7 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_LGA_CB",
 	"IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS",
 	"IMMD_EVT_ND2D_LOADING_FAILED",
+	"IMMD_EVT_ND2D_SYNC_FEVS_BASE"
 };
 
 static const char *immsv_get_immd_evt_name(unsigned int id)
@@ -146,7 +147,8 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP",
 	"IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH",
 	"IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH",
-	"IMMND_EVT_A2ND_PBE_ADMOP_RSP"
+	"IMMND_EVT_A2ND_PBE_ADMOP_RSP",
+	"IMMND_EVT_D2ND_SYNC_FEVS_BASE"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -2402,6 +2404,16 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 1);
 			break;
 
+		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
+			p8 = ncs_enc_reserve_space(o_ub, 8);
+			ncs_encode_64bit(&p8, immdevt->info.syncFevsBase.client_hdl);
+			ncs_enc_claim_space(o_ub, 8);
+
+			p8 = ncs_enc_reserve_space(o_ub, 8);
+			ncs_encode_64bit(&p8, immdevt->info.syncFevsBase.fevsBase);
+			ncs_enc_claim_space(o_ub, 8);
+			break;
+
 		case IMMD_EVT_ND2D_ADMINIT_REQ:	/* AdminOwnerInitialize */
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immdevt->info.admown_init.client_hdl);
@@ -3128,6 +3140,12 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 			break;
 
+		case IMMND_EVT_D2ND_SYNC_FEVS_BASE:
+			p8 = ncs_enc_reserve_space(o_ub, 8);
+			ncs_encode_64bit(&p8, immndevt->info.syncFevsBase);
+			ncs_enc_claim_space(o_ub, 8);
+			break;
+
 		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:	/* Fake EVS msg from director (consume) */
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.fevsReq.sender_count);
@@ -3566,6 +3584,16 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
 			immdevt->info.ctrl_msg.pbeEnabled = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
+			break;
+
+		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
+			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+			immdevt->info.syncFevsBase.client_hdl = ncs_decode_64bit(&p8);
+			ncs_dec_skip_space(i_ub, 8);
+
+			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+			immdevt->info.syncFevsBase.fevsBase = ncs_decode_64bit(&p8);
+			ncs_dec_skip_space(i_ub, 8);
 			break;
 
 		case IMMD_EVT_ND2D_ADMINIT_REQ:	/* AdminOwnerInitialize */
@@ -4340,6 +4368,12 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.ctrl.nodeEpoch = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
+			break;
+
+		case IMMND_EVT_D2ND_SYNC_FEVS_BASE:
+			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+			immndevt->info.syncFevsBase = ncs_decode_64bit(&p8);
+			ncs_dec_skip_space(i_ub, 8);
 			break;
 
 		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:	/* Fake EVS msg from director (consume) */
