@@ -175,6 +175,7 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH = 76,  /* Highest client id IMMA knows */
 	IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH = 77,  /* Highest client id IMMA knows */
 	IMMND_EVT_A2ND_PBE_ADMOP_RSP = 78,      /* PBE AdminOperation result FEVS reply */
+	IMMND_EVT_D2ND_SYNC_FEVS_BASE = 79,   /* Sync started based on this fevsCount */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -211,6 +212,8 @@ typedef enum immd_evt_type {
 	IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS = 21, /* Broadcast for cleanup*/
 
 	IMMD_EVT_ND2D_LOADING_FAILED = 22, /* Loading failed. */
+
+	IMMD_EVT_ND2D_SYNC_FEVS_BASE = 23, /* Sync started based on this fevsCount */
 
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
@@ -466,8 +469,10 @@ typedef struct immnd_evt {
 		IMMSV_D2ND_ADMINIT adminitGlobal;
 		IMMSV_D2ND_CCBINIT ccbinitGlobal;
 
-		/* Locally generated events */
-		IMMSV_MDS_INFO mds_info;
+		IMMSV_MDS_INFO mds_info; /* Locally generated events */
+
+		SaUint64T syncFevsBase; /* FevsCount that sync iterator is
+					   based on . */
 	} info;
 } IMMND_EVT;
 
@@ -503,6 +508,9 @@ typedef struct immd_evt {
 		IMMD_TMR_INFO tmr_info;
 		IMMSV_MDS_INFO mds_info;
 		IMMSV_RDA_INFO rda_info;
+
+		IMMSV_SYNC_FEVS_BASE syncFevsBase; /* FevsCount that sync is 
+						      based on . */
 	} info;
 } IMMD_EVT;
 

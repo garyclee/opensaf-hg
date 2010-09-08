@@ -737,6 +737,10 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		(evt->info.searchInit.searchParam.present == ImmOmSearchParameter_PR_NOTHING) &&
 		(evt->info.searchInit.rootName.size == 0);
 
+	SaBoolT isSync = cb->mIsCoord && (cb->syncPid > 0) &&
+		(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & 
+			SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
+
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_SEARCHINIT_RSP;
@@ -760,7 +764,46 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		}
 	}
 
+	if(isSync) {
+		/* Special checks only for sync iterator. */
+		if (!immnd_is_immd_up(cb)) {
+			LOG_WA("ERR_TRY_AGAIN: IMMD is down can not progress with sync");
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		} else if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+			LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages "
+				"(> %u) rejecting sync iteration request",
+				IMMND_FEVS_MAX_PENDING);
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
+	}
+
 	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp);
+
+	if((error == SA_AIS_OK) && isSync) {
+		/* Special processing only for sync iterator. */
+		IMMSV_EVT send_evt2;
+		memset(&send_evt2, '\0', sizeof(IMMSV_EVT));
+		send_evt2.type = IMMSV_EVT_TYPE_IMMD;
+		send_evt2.info.immd.type = IMMD_EVT_ND2D_SYNC_FEVS_BASE;
+		send_evt2.info.immd.info.syncFevsBase.fevsBase = cb->highestProcessed;
+		send_evt2.info.immd.info.syncFevsBase.client_hdl = evt->info.searchInit.client_hdl;
+
+		cb->fevs_replies_pending++;	/*flow control */
+		if (cb->fevs_replies_pending > 1) {
+			TRACE("Messages pending:%u", cb->fevs_replies_pending);
+		}
+
+		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
+			&send_evt2);
+
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("IMMND - Send of SYNC_FEVS_BASE message failed");
+			error = SA_AIS_ERR_TRY_AGAIN;
+			cb->fevs_replies_pending--;
+		}
+	}
 
 	/*Generate search-id */
 	if (error == SA_AIS_OK) {
@@ -2803,6 +2846,35 @@ static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
 	}
 
 	TRACE_LEAVE();
+}
+
+
+/****************************************************************************
+ * Name          : immnd_evt_sync_fevs_base
+ *
+ * Description   : Function to receive the sync_fevs_base.
+ *                 This is the fevs coutn at the coord at the time when 
+ *                 the searchinitialize for the sync is generated.
+ *                 This count is used to discard any RTA updates that
+ *                 arrived at the sync client before the sync base was generated. 
+ *                 Any RTA updates arriving after the sync-base iterator
+ *                 initialize, must be applied at the sync client as soon as the
+ *                 sync message for the object arrives. 
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : None.
+ *
+ *****************************************************************************/
+static void immnd_evt_sync_fevs_base(IMMND_CB *cb, IMMND_EVT *evt,
+       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+{
+	TRACE_ENTER2("Received syncFevsBase: %llu", evt->info.syncFevsBase);
+	if(cb->mSync) {
+		cb->syncFevsBase = evt->info.syncFevsBase;
+	}
+
 }
 
 
@@ -5317,7 +5389,8 @@ static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
 		    id == IMMND_EVT_D2ND_SYNC_ABORT ||
 		    id == IMMND_EVT_D2ND_DISCARD_IMPL ||
 		    id == IMMND_EVT_D2ND_DISCARD_NODE ||
-		    id == IMMND_EVT_A2ND_OI_IMPL_CLR) {	
+		    id == IMMND_EVT_A2ND_OI_IMPL_CLR  ||
+		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE) {	
 			return 1;
 		}
 	}
@@ -5563,6 +5636,10 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	case IMMND_EVT_A2ND_PBE_ADMOP_RSP:
 		immnd_evt_pbe_admop_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
+	case IMMND_EVT_D2ND_SYNC_FEVS_BASE:
+		immnd_evt_sync_fevs_base(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	default:
@@ -6297,6 +6374,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		TRACE_2("FinalizeSync for sync client");
 		assert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_TRUE) == SA_AIS_OK);
 		cb->mAccepted = SA_TRUE;	/*Accept ALL fevs messages after this one! */
+		cb->syncFevsBase = 0LL;
 		cb->mMyEpoch++;
 		/*This must bring the epoch of the joiner up to the ruling epoch */
 		assert(cb->mMyEpoch == cb->mRulingEpoch);

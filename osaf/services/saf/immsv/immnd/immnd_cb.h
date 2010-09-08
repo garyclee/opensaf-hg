@@ -107,6 +107,7 @@ typedef struct immnd_cb_tag {
 
 	SaUint64T highestProcessed;	//highest fevs msg processed so far.
 	SaUint64T highestReceived;	//highest fevs msg received so far 
+	SaUint64T syncFevsBase;	        //Last fevsMessage before sync iterator.
 	IMMND_FEVS_MSG_NODE *fevs_in_list;  //incomming queue
 	IMMND_FEVS_MSG_NODE *fevs_out_list; //outgoing queue
 
