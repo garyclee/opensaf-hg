@@ -307,8 +307,8 @@ static const std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static const std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 static const std::string immAttrNostFlags(OPENSAF_IMM_ATTR_NOSTD_FLAGS);
 
-static std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
-static std::string saImmRepositoryInit("saImmRepositoryInit");
+static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
+static const std::string saImmRepositoryInit("saImmRepositoryInit");
 static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
 SaAisErrorT 
@@ -1916,7 +1916,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             classInfo = &dummyClass; /* New class created as dummy, do all normal checks */
             prevClassInfo = i->second;
         } else {
-            /* Standard (old) behavior, reject. */
+            /* Standard behavior, reject. */
             TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
             err = SA_AIS_ERR_EXIST;
             goto done;
@@ -2171,7 +2171,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                         /*
                         TRACE_5("CHECKING existing attribute %s:%s for object %s",
                             className.c_str(), oavi->first.c_str(), oi->first.c_str());
-			*/
+                        */
 
                        /* Change from single to multi-value requires change of value rep.*/
                        ai = changedAttrs.find(oavi->first);
@@ -5594,10 +5594,6 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     int matchedAttributes=0;
     int soughtAttributes=0;
     
-    if(immNotWritable()) {
-        op.setImmNotWritable();
-    }
-    
     // Validate object name
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -5840,10 +5836,6 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     bool filter=false;
     bool isDumper=false;
     bool isSyncer=false;
-    
-    if(immNotWritable()) {
-        op.setImmNotWritable();
-    }
     
     SaImmScopeT scope = (SaImmScopeT)req->scope;
     
@@ -6186,11 +6178,9 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                 *implConn = 0;
             } else {
                 if(object->mImplementer->mAdminOpBusy) {
-                    LOG_WA("Implementer for object: %s is already busy with admop",
-                        objAdminOwnerName.c_str());
-                    //TODO: This should generate SA_AIS_ERR_BUSY for ccb ops, 
-                    //but we dont have reliable cleanup yet.
-                    //It is the "object" which is bussy not the "implementer".
+                    LOG_NO("Implementer '%s' for object: '%s' is busy with other admop, "
+                        "request is queued", object->mImplementer->mImplementerName.c_str(),
+                        objectName.c_str());
                 }
 
                 TRACE_5("Storing impl invocation %u for inv: %llu", 
@@ -8684,7 +8674,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     ImmAttrValueMap::iterator oavi;
     ImplementerInfo* info = NULL;
     bool wasLocal = *isPureLocal;
-    if(wasLocal) {assert(conn);}  //Assert may be a bit too strong here
+    if(wasLocal) {assert(conn);} 
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
@@ -8731,7 +8721,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         err = SA_AIS_ERR_BAD_OPERATION;
         goto rtObjectUpdateExit;
     }
-    //conn is NULL on all nodes except primary.
+    //conn is NULL on all nodes except hosting node
     //At these other nodes the only info on implementer existence is that
     //the nodeId is non-zero. The nodeId is the nodeId of the node where
     //the implementer resides.
@@ -8859,7 +8849,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 (size_t) p->attrValue.attrName.size);
             std::string attrName((const char *) p->attrValue.attrName.buf, sz);
             
-            TRACE_5("update rt attribute '%s'", attrName.c_str());
+            if(doIt) {
+                TRACE_5("update rt attribute '%s'", attrName.c_str());
+            }
             
             ImmAttrValueMap::iterator i5 = 
                 object->mAttrValueMap.find(attrName);
@@ -8907,8 +8899,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             if(attr->mFlags & SA_IMM_ATTR_CACHED || 
                 attr->mFlags & SA_IMM_ATTR_PERSISTENT) {
                 //A non-local runtime attribute
-                TRACE_5("A non local runtime attribute '%s'", 
-                    attrName.c_str());
+                if(!doIt) {
+                    TRACE_5("A non local runtime attribute '%s'", attrName.c_str());
+                }
                 
                 if(immNotWritable()) {
                     //Dont allow writes to cached or persistent rt-attrs 
@@ -8938,12 +8931,10 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     }
 
                     /* Check for ccb interference if it is a config object */
-                    if(classInfo->mCategory == SA_IMM_CLASS_CONFIG &&
-                        object->mCcbId) {
+                    if(!doIt && classInfo->mCategory == SA_IMM_CLASS_CONFIG && object->mCcbId) {
                         CcbVector::iterator ci = std::find_if(sCcbVector.begin(),
                             sCcbVector.end(), CcbIdIs(object->mCcbId));
                         if((ci != sCcbVector.end()) && ((*ci)->isActive())) {
-                            assert(!doIt);
                             LOG_IN("ERR_TRY_AGAIN: Object %s is part of active ccb %u, can not "
                                 "allow PRT attr updates", objectName.c_str(), object->mCcbId);
                             err = SA_AIS_ERR_TRY_AGAIN; 
@@ -9000,17 +8991,19 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         break;//out of switch
                     }
                     
-                    eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
-                        (SaImmValueTypeT) p->attrValue.attrValueType);
-                    
-                    if(p->attrValue.attrValueType == SA_IMM_ATTR_SASTRINGT) {
-                        TRACE("Update attribute of type string:%s  %s",
-                            tmpos.buf, p->attrValue.attrValue.val.x.buf);
-                    }
-                    
-                    if(p->attrValue.attrValueType == SA_IMM_ATTR_SAUINT32T) {
-                        TRACE("Update attribute of type uint:%u",
-                            p->attrValue.attrValue.val.sauint32);
+                    if(doIt) {
+                        eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
+                            (SaImmValueTypeT) p->attrValue.attrValueType);
+
+                        if(p->attrValue.attrValueType == SA_IMM_ATTR_SASTRINGT) {
+                            TRACE("Update attribute of type string:%s  %s",
+                                tmpos.buf, p->attrValue.attrValue.val.x.buf);
+                        }
+
+                        if(p->attrValue.attrValueType == SA_IMM_ATTR_SAUINT32T) {
+                            TRACE("Update attribute of type uint:%u",
+                                p->attrValue.attrValue.val.sauint32);
+                        }
                     }
                     
                     if(p->attrModType == SA_IMM_ATTR_VALUES_REPLACE ||
@@ -9036,9 +9029,6 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     }
                     
                     if(p->attrValue.attrValuesNumber > 1) {
-                        /*
-                          int extraValues = p->attrValue.attrValuesNumber - 1;
-                        */
                         if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
                             assert(!doIt);
                             LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
@@ -9046,21 +9036,17 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                                 attrName.c_str());
                             err = SA_AIS_ERR_INVALID_PARAM;
                             break; //out of switch
-                        } else {
-                            if(doIt) {
-                                assert(attrValue->isMultiValued());
-                                ImmAttrMultiValue* multiattr = 
-                                    (ImmAttrMultiValue *) attrValue;
+                        } else if(doIt) {
+                            assert(attrValue->isMultiValued());
+                            ImmAttrMultiValue* multiattr = 
+                                (ImmAttrMultiValue *) attrValue;
                                 
-                                IMMSV_EDU_ATTR_VAL_LIST* al = 
-                                    p->attrValue.attrMoreValues;
-                                while(al) {
-                                    eduAtValToOs(&tmpos, &(al->n),
-                                        (SaImmValueTypeT) 
-                                        p->attrValue.attrValueType);
-                                    multiattr->setExtraValue(tmpos);
-                                    al = al->next;
-                                }
+                            IMMSV_EDU_ATTR_VAL_LIST* al = p->attrValue.attrMoreValues;
+                            while(al) {
+                                eduAtValToOs(&tmpos, &(al->n),
+                                    (SaImmValueTypeT) p->attrValue.attrValueType);
+                                multiattr->setExtraValue(tmpos);
+                                al = al->next;
                             }
                         }
                     }
@@ -9077,28 +9063,22 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         break; //out of switch
                     }
                     
-                    if(!attrValue->empty()) {
-                        if(doIt) {
-                            eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
-                                (SaImmValueTypeT) p->attrValue.attrValueType);
-                            
-                            attrValue->removeValue(tmpos);
-                        }
+                    if(!attrValue->empty() && doIt) {
+                        eduAtValToOs(&tmpos, &(p->attrValue.attrValue),
+                            (SaImmValueTypeT) p->attrValue.attrValueType);
+                        attrValue->removeValue(tmpos);
+
                         //Note: We allow the delete value to be multivalued
                         //even if the attribute is single valued. 
                         //The semantics is that we delete ALL matchings of ANY
                         //delete value.
                         if(p->attrValue.attrValuesNumber > 1) {
-                            IMMSV_EDU_ATTR_VAL_LIST* al = 
-                                p->attrValue.attrMoreValues;
-                            if(doIt) {
-                                while(al) {
-                                    eduAtValToOs(&tmpos, &(al->n),
-                                        (SaImmValueTypeT) 
-                                        p->attrValue.attrValueType);
-                                    attrValue->removeValue(tmpos);
-                                    al = al->next;
-                                }
+                            IMMSV_EDU_ATTR_VAL_LIST* al = p->attrValue.attrMoreValues;
+                            while(al) {
+                                eduAtValToOs(&tmpos, &(al->n),
+                                    (SaImmValueTypeT) p->attrValue.attrValueType);
+                                attrValue->removeValue(tmpos);
+                                al = al->next;
                             }
                         }
                     }
@@ -10216,7 +10196,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     bool explained = false;
                     if(ii->id == 0) {
                         LOG_NO("Sync-verify: Veteran node has different "
-                            "Implementer-id %u for name%s, should be 0 "
+                            "Implementer-id %u for name: %s, should be 0 "
                             "according to sync-verify. Discarding it.",
                             info->mId, implName.c_str());
                         /*Does not delete struct that info points to.*/
@@ -10255,7 +10235,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 
                     if(!explained) {
                         LOG_ER("Sync-verify: Established node has different "
-                               "Implementer-id: %u for name%s, sync says %u. ",
+                               "Implementer-id: %u for name: %s, sync says %u. ",
                                info->mId, implName.c_str(), ii->id);
                         abort();
                     }

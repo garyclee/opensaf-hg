@@ -22,7 +22,6 @@
 
 ImmSearchOp::ImmSearchOp()
 {
-    mImmNotWritable=false;
     mLastResult=NULL;
 }
 
@@ -118,20 +117,12 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
             if(rtsToFetch && ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
                 ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
                 //The non-cached rt-attr must in general be fetched
-                if(!(((*i).flags & SA_IMM_ATTR_PERSISTENT) && mImmNotWritable)) {
-                    //Except persistent attributes when the imm is not writable!
-                    //The above imm-not-writable check is not secure since
-                    //the search init, that sets it, is done long before this
-                    //search next op. The danger is that it was writable then,
-                    //but is not writable now. But the case of non-cached and
-                    //persistent is being removed in A.02.01.
-                    mRtsToFetch.push_back(*i);
-                    mRtsToFetch.back().valuep=NULL;/*Unused & crashes destructor.*/
-                    *rtsToFetch = &mRtsToFetch;
-                    *connp = obj.implConn;
-                    *nodeIdp = obj.implNodeId;
-                    *implDest = obj.implDest;
-                }
+                mRtsToFetch.push_back(*i);
+                mRtsToFetch.back().valuep=NULL;/*Unused & crashes destructor.*/
+                *rtsToFetch = &mRtsToFetch;
+                *connp = obj.implConn;
+                *nodeIdp = obj.implNodeId;
+                *implDest = obj.implDest;
             }
             
             if((*i).valuep) {
