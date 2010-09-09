@@ -60,6 +60,7 @@ void immnd_ackToNid(uns32 rc);
 SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
 
 void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId);
+void immnd_abortSync(IMMND_CB *cb);
 
 /* End immnd_proc.c */
 
@@ -331,6 +332,16 @@ extern "C" {
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
+
+	void immModel_deferRtUpdate(IMMND_CB *cb, 
+		struct ImmsvOmCcbObjectModify *req,
+		SaUint64T msgNo);
+
+	SaBoolT immModel_fetchRtUpdate(IMMND_CB *cb, 
+		struct ImmsvOmObjectSync *syncReq,
+		struct ImmsvOmCcbObjectModify *rtModReq,
+		SaUint64T syncFevsBase);
+
 
 #ifdef __cplusplus
 }

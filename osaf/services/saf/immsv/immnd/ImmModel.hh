@@ -329,7 +329,9 @@ public:
                                        SaUint32T* continuationId,
                                        SaUint32T* pbeConn,
                                        unsigned int* pbeNodeId);
+    void                deferRtUpdate(ImmsvOmCcbObjectModify* req, SaUint64T msgNo);
     
+
     SaAisErrorT         rtObjectDelete(
                                        const ImmsvOmCcbObjectDelete* req, //re-used struct
                                        SaUint32T conn,
@@ -346,6 +348,11 @@ public:
                                        bool& subTreeHasPersistent);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
+    bool              fetchRtUpdate(
+				    ImmsvOmObjectSync* syncReq,
+				    ImmsvOmCcbObjectModify* modReq,
+				    SaUint64T syncFevsBase);
+
 
     SaAisErrorT       finalizeSync(
                                    ImmsvOmFinalizeSync* req,

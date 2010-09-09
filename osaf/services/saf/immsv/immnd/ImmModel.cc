@@ -175,6 +175,16 @@ struct ObjectInfo
 //typedef std::map<std::string, ObjectInfo*> ObjectMap;  
 typedef std::set<ObjectInfo*> ObjectSet;
 
+struct DeferredRtAUpdate
+{
+    SaUint64T fevsMsgNo;
+    immsv_attr_mods_list* attrModsList;
+};
+
+typedef std::list<DeferredRtAUpdate> DeferredRtAUpdateList;
+
+typedef std::map<std::string, DeferredRtAUpdateList*> DeferredObjUpdatesMap;
+
 void
 ObjectInfo::getAdminOwnerName(std::string *str) const
 {
@@ -296,6 +306,8 @@ static IdVector         sImplsDeadDuringSync; // die after finalizeSync is sent 
                                               // but before it arrives over fevs. 
                                               // This to avoid apparent implementor
                                               // re-create by finalizeSync (at non coord). 
+
+static DeferredObjUpdatesMap sDeferredObjUpdatesMap;
 
 static SaUint32T        sLastContinuationId = 0;
 
@@ -1326,6 +1338,25 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
     return err;
 }
 
+void
+immModel_deferRtUpdate(IMMND_CB *cb, 
+    struct ImmsvOmCcbObjectModify *req,
+    SaUint64T msgNo)
+{
+    ImmModel::instance(&cb->immModel)->deferRtUpdate(req, msgNo);
+}
+
+SaBoolT
+immModel_fetchRtUpdate(IMMND_CB *cb, 
+    struct ImmsvOmObjectSync *syncReq,
+    struct ImmsvOmCcbObjectModify *rtModReq,
+    SaUint64T syncFevsBase)
+{
+    return ImmModel::instance(&cb->immModel)->
+        fetchRtUpdate(syncReq, rtModReq, syncFevsBase)?SA_TRUE:SA_FALSE;
+}
+
+
 /*====================================================================*/
 
 ImmModel::ImmModel() : 
@@ -1352,7 +1383,7 @@ ImmModel::immNotWritable()
             assert(0);
             
     }  
-    return false;
+    assert(0);
 }
 
 /* immNotPbeWritable returning true means:
@@ -8644,6 +8675,31 @@ bool ImmModel::pbeIsInSync()
     return sPbeRtMutations.empty();
 }
 
+void
+ImmModel::deferRtUpdate(ImmsvOmCcbObjectModify* req, SaUint64T msgNo)
+{
+    DeferredRtAUpdateList* attrUpdList = NULL;
+    DeferredRtAUpdate dRtAU;
+    TRACE_ENTER2("Defer RtUpdate for object:%s msgNo:%llu", req->objectName.buf, msgNo);
+    size_t sz = strnlen((char *) req->objectName.buf, 
+        (size_t)req->objectName.size);
+    std::string objectName((const char*)req->objectName.buf, sz);
+
+    dRtAU.fevsMsgNo = msgNo;
+    dRtAU.attrModsList = req->attrMods;
+    req->attrMods=NULL; /* Steal the attrModsList */
+
+    DeferredObjUpdatesMap::iterator doumIter = sDeferredObjUpdatesMap.find(objectName);
+    if(doumIter != sDeferredObjUpdatesMap.end()) {
+        attrUpdList = doumIter->second;
+    }
+    if(!attrUpdList) {
+        attrUpdList = new  DeferredRtAUpdateList;
+        sDeferredObjUpdatesMap[objectName] = attrUpdList;
+    }
+    attrUpdList->push_back(dRtAU);
+}
+
 /** 
  * Update a runtime attributes in an object (runtime or config)
  */
@@ -8674,6 +8730,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     ImmAttrValueMap::iterator oavi;
     ImplementerInfo* info = NULL;
     bool wasLocal = *isPureLocal;
+    bool isSyncClient = (sImmNodeState == IMM_NODE_W_AVAILABLE);
     if(wasLocal) {assert(conn);} 
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
@@ -8690,9 +8747,20 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
-        err = SA_AIS_ERR_NOT_EXIST;
+
+        if(isSyncClient) {
+            TRACE_7("rtObjectUpdate: Object '%s' is missing, "
+                "but this node is being synced", objectName.c_str());
+            /* Bogus error message, encodes this case. */
+            err = SA_AIS_ERR_REPAIR_PENDING; 
+        } else {
+            TRACE_7("ERR_NOT_EXIST: object '%s' does not exist",
+                objectName.c_str());
+            err = SA_AIS_ERR_NOT_EXIST;
+        }
+
         goto rtObjectUpdateExit;
+
     } else if(oi->second->mObjFlags & IMM_CREATE_LOCK) {
         TRACE_7("ERR_NOT_EXIST: object '%s' registered for creation "
             "but not yet applied (ccb or PRTO PBE)", objectName.c_str());
@@ -8705,43 +8773,41 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         goto rtObjectUpdateExit;
     } 
 
-    /*Prevent abuse from wrong implementer.*/
-    /*Should rename member adminOwnerId. Used to store implid here.*/
-    info = findImplementer(req->adminOwnerId);
-    if(!info) {
-        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
-        err = SA_AIS_ERR_BAD_HANDLE;
-        goto rtObjectUpdateExit;
-    } 
-    
-    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
-            "not correspond to the actual connection <%u, %x> != <%u, %x>",
-            req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
-        err = SA_AIS_ERR_BAD_OPERATION;
-        goto rtObjectUpdateExit;
-    }
-    //conn is NULL on all nodes except hosting node
-    //At these other nodes the only info on implementer existence is that
-    //the nodeId is non-zero. The nodeId is the nodeId of the node where
-    //the implementer resides.
-    
     object = oi->second;
+
+    if(!isSyncClient) {
+        /*Prevent abuse from wrong implementer.*/
+        /*Should rename member adminOwnerId. Used to store implid here.*/
+        info = findImplementer(req->adminOwnerId);
+        if(!info) {
+            LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
+            err = SA_AIS_ERR_BAD_HANDLE;
+            goto rtObjectUpdateExit;
+        }
     
-    if(!object->mImplementer ||
-        (object->mImplementer->mConn != conn) || 
-        (object->mImplementer->mNodeId != nodeId)) {
-        LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle or object "
-            "not handled by the implementer conn:%u nodeId:%x "
-            "object->mImplementer:%p", conn, nodeId, object->mImplementer);
-        err = SA_AIS_ERR_BAD_OPERATION;
-        goto rtObjectUpdateExit;
+        if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+            LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
+                "not correspond to the actual connection <%u, %x> != <%u, %x>",
+                req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
+            err = SA_AIS_ERR_BAD_OPERATION;
+            goto rtObjectUpdateExit;
+        }
+        //conn is NULL on all nodes except hosting node
+        //At these other nodes the only info on implementer existence is that
+        //the nodeId is non-zero. The nodeId is the nodeId of the node where
+        //the implementer resides.
+    
+        if(!object->mImplementer ||
+            (object->mImplementer->mConn != conn) || 
+            (object->mImplementer->mNodeId != nodeId)) {
+            LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle or object "
+                "not handled by the implementer conn:%u nodeId:%x "
+                "object->mImplementer:%p", conn, nodeId, object->mImplementer);
+            err = SA_AIS_ERR_BAD_OPERATION;
+            goto rtObjectUpdateExit;
+        }
     }
-    //conn is NULL on all nodes except primary.
-    
-    //We rely on FEVS to guarantee that the same handleId is produced at
-    //all nodes for the same implementer. 
-    
+
     classInfo = object->mClassInfo;
     assert(classInfo);
     
@@ -8903,6 +8969,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     TRACE_5("A non local runtime attribute '%s'", attrName.c_str());
                 }
                 
+               /* Enhancement ticket #1338 => Allow updates to cached
+                 (non-persistent) RT attrs concurrently with sync.
+                 The persistent case is caught below.
                 if(immNotWritable()) {
                     //Dont allow writes to cached or persistent rt-attrs 
                     //during sync
@@ -8911,6 +8980,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     TRACE_5("IMM not writable => Cant update cahced rtattrs");
                     break;//out of while-loop
                 }
+               */
 
                 if(!doIt && (object->mObjFlags & IMM_RT_UPDATE_LOCK)) {
                     err = SA_AIS_ERR_TRY_AGAIN;
@@ -9467,6 +9537,57 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     return SA_AIS_OK;
 }
 
+bool
+ImmModel::fetchRtUpdate(ImmsvOmObjectSync* syncReq, ImmsvOmCcbObjectModify* modReq,
+    SaUint64T syncFevsBase)
+{
+    bool retVal=false;
+    DeferredRtAUpdateList* attrUpdList = NULL;
+    TRACE_ENTER2("fetch updates for object%s later than msgNo:%llu", 
+        syncReq->objectName.buf, syncFevsBase);
+
+    size_t sz = strnlen((char *) syncReq->objectName.buf, 
+        (size_t)syncReq->objectName.size);
+    std::string objectName((const char*)syncReq->objectName.buf, sz);
+
+    DeferredObjUpdatesMap::iterator doumIter = sDeferredObjUpdatesMap.find(objectName);
+    if(doumIter == sDeferredObjUpdatesMap.end()) {
+        return false;
+    }
+
+    attrUpdList = doumIter->second;
+    while (!attrUpdList->empty()) {
+        DeferredRtAUpdate& dRtAU = attrUpdList->front();
+
+        if(dRtAU.fevsMsgNo <= syncFevsBase) {
+            TRACE_7("Discarding RtUpdate message fevs %llu (<= %llu)", dRtAU.fevsMsgNo,
+                syncFevsBase);
+            immsv_free_attrmods(dRtAU.attrModsList);
+            dRtAU.attrModsList = NULL;
+            attrUpdList->pop_front();
+            continue;
+        } else {
+            LOG_IN("APPLYING deferred RtUpdate message %llu (> %llu)", dRtAU.fevsMsgNo,
+                syncFevsBase);
+            modReq->attrMods = dRtAU.attrModsList;
+            dRtAU.attrModsList = NULL;
+            modReq->objectName.size = sz;
+            modReq->objectName.buf = syncReq->objectName.buf; /* Warning borrowed string. */
+            retVal = true;
+            attrUpdList->pop_front();
+            break;              
+        }
+    }
+
+    if(attrUpdList->empty()) {
+        delete attrUpdList;
+        sDeferredObjUpdatesMap.erase(doumIter);
+    }
+    
+
+    return retVal;
+}
+
 SaAisErrorT
 ImmModel::objectSync(const ImmsvOmObjectSync* req)
 {
@@ -9927,6 +10048,11 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
         //Joiners will copy the finalize state.
         //old members (except coordinator) will verify equivalent state.
         if(isSyncClient) {
+            if(!sDeferredObjUpdatesMap.empty()) {
+                LOG_ER("syncFinalize found deferred RTA updates - aborting");
+                abort();
+            }
+            assert(sDeferredObjUpdatesMap.empty());
             //syncronize with the checkpoint
             //sLastAdminOwnerId = req->lastAdminOwnerId;
             //sLastCcbId = req->lastCcbId;
