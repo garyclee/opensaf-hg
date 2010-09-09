@@ -132,8 +132,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
-					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+	IMMND_EVT *evt,	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
 
 static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					 IMMND_EVT *evt,
@@ -150,8 +149,7 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb,
 
 
 static void immnd_evt_proc_object_sync(IMMND_CB *cb,
-				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
 
 static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 				     IMMND_EVT *evt,
@@ -3898,13 +3896,15 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
  *
  *****************************************************************************/
 static void immnd_evt_proc_object_sync(IMMND_CB *cb,
-				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	IMMSV_SEND_INFO *sinfo = NULL;
+	IMMSV_OM_CCB_OBJECT_MODIFY objModify;
+	unsigned int isLocal = 0;
 	TRACE_ENTER();
 
 	if (cb->mSync) {	/*This node is being synced => Accept the sync message. */
@@ -3912,6 +3912,21 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 		if (err != SA_AIS_OK) {
 			LOG_ER("Failed to apply IMMND sync message");
 			assert(0);	/*If we fail in sync then restart the IMMND sync client. */
+		}
+		memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
+		while(immModel_fetchRtUpdate(cb, &(evt->info.obj_sync), &objModify, cb->syncFevsBase)) {
+			LOG_IN("Applying deferred RTA update for object %s",
+				objModify.objectName.buf);
+			err = immModel_rtObjectUpdate(cb, &objModify, 0, 0, &isLocal,
+				NULL, NULL, NULL);
+			//free(objModify.objectName.buf);
+			immsv_free_attrmods(objModify.attrMods);
+			memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
+			if(err != SA_AIS_OK) {
+				LOG_ER("Failed to apply RTA update on object '%s' at sync client - aborting",
+					objModify.objectName.buf);
+				abort();
+			}
 		}
 	} else {
 		/* TODO: I should verify that the class & object exists, 
@@ -4454,8 +4469,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
  *
  *****************************************************************************/
 static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
-					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -4502,9 +4517,31 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	if (originatedAtThisNd) {
 		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), reqConn, nodeId, &isLocal,
 			&continuationId, &pbeConn, pbeNodeIdPtr);
+		if(err != SA_AIS_OK) {
+			LOG_WA("Got error on non local rt object update");
+			if(cb->mIsCoord && immModel_immNotWritable(cb) && 
+				(cb->mState == IMM_SERVER_SYNC_SERVER)) {
+				LOG_WA("Failed RtObject update has to abbort sync");
+				immnd_abortSync(cb);
+			}
+		}
 	} else {
 		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), 0, nodeId, &isLocal,
 			&continuationId, &pbeConn, pbeNodeIdPtr);
+		if(err == SA_AIS_ERR_REPAIR_PENDING) {
+			/* This is the special case of an rtObjectUpdate arriving over fevs
+			   at a node that is being synced. If the object has been synced when
+			   the update arrives, then the update should be applied normally. But if the
+			   object does not exist, then this is interpreted as the object not
+			   yet having been synced. In this latter case we store the update 
+			   message and possibly apply it later when the object has been synced.
+			   Only updates that arrive over fevs AFTER the sync message has 
+			   been generated, but before the sync message arrives, are applied.
+			   Message that arrive before the sync message is generated, are
+			   reflected in the sync message.
+			*/
+			immModel_deferRtUpdate(cb, &(evt->info.objModify), msgNo);
+		}
 	}
 
 	/* Non cached attributes only updated locally, see immnd_ect_proc_rt_update. 
@@ -5389,8 +5426,9 @@ static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
 		    id == IMMND_EVT_D2ND_SYNC_ABORT ||
 		    id == IMMND_EVT_D2ND_DISCARD_IMPL ||
 		    id == IMMND_EVT_D2ND_DISCARD_NODE ||
-		    id == IMMND_EVT_A2ND_OI_IMPL_CLR  ||
-		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE) {	
+		    id == IMMND_EVT_A2ND_OI_IMPL_CLR ||
+		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE ||
+		    id == IMMND_EVT_A2ND_OI_OBJ_MODIFY) {
 			return 1;
 		}
 	}
@@ -5417,7 +5455,8 @@ static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
  *****************************************************************************/
 static SaAisErrorT
 immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
-			     SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	IMMSV_EVT frwrd_evt;
@@ -5496,7 +5535,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_OI_OBJ_MODIFY:
-		immnd_evt_proc_rt_object_modify(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		immnd_evt_proc_rt_object_modify(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, msgNo);
 		break;
 
 	case IMMND_EVT_A2ND_OBJ_DELETE:
@@ -5508,7 +5547,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_OBJ_SYNC:
-		immnd_evt_proc_object_sync(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		immnd_evt_proc_object_sync(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, msgNo);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_ADMOP:
@@ -6169,7 +6208,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 
 	do {
 		SaAisErrorT err = immnd_evt_proc_fevs_dispatch(cb, msg, originatedAtThisNd, clnt_hdl,
-							       reply_dest);
+							       reply_dest, msgNo);
 		if (err != SA_AIS_OK) {
 			if (err == SA_AIS_ERR_ACCESS) {
 				TRACE_2("DISCARDING msg no:%llu", msgNo);

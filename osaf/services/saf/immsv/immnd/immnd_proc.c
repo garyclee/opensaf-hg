@@ -736,7 +736,7 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
 	return completed;
 }
 
-static void immnd_abortSync(IMMND_CB *cb)
+void immnd_abortSync(IMMND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
