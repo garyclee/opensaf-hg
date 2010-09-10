@@ -410,7 +410,7 @@ immModel_classDelete(IMMND_CB *cb, const struct ImmsvOmClassDescr* req,
 
 SaAisErrorT
 immModel_ccbObjectCreate(IMMND_CB *cb, 
-    const struct ImmsvOmCcbObjectCreate* req,
+    struct ImmsvOmCcbObjectCreate* req,
     SaUint32T* implConn,
     SaClmNodeIdT* implNodeId,
     SaUint32T* continuationId,
@@ -3772,7 +3772,7 @@ ImmModel::eduAtValToOs(immsv_octet_string* tmpos,
 /** 
  * Creates an object
  */
-SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
+SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     SaUint32T* implConn,
     unsigned int* implNodeId,
     SaUint32T* continuationId,
@@ -4217,8 +4217,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             p = p->next;
         } //while(p)
         
+
         //Check that all attributes with INITIALIZED flag have been set.
-        
+        //
+        //Also: append missing attributes and default values to immsv_attr_values_list
+        //so the generated SaImmOiCcbObjectCreateCallbackT_2 will be complete. See #847.
+        //But dont append runtime attributes!
         for(i6=object->mAttrValueMap.begin(); 
             i6!=object->mAttrValueMap.end() && err==SA_AIS_OK;
             ++i6) {
@@ -4235,8 +4239,52 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                     "yet no value provided in the object create call", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
+                continue;
             }
-        }
+
+
+            if(pbeNodeIdPtr || 
+                (object->mImplementer && object->mImplementer->mNodeId)) {
+                /* PBE or regular impl exists => ensure create up-call is complete
+                   by appending missing attributes.
+                */
+                bool found = false;
+                immsv_attr_values_list** trailing_p = &p;
+                for(p = req->attrValues; p!= NULL; p = p->next, trailing_p = &p) {
+                    if(strncmp(attrName.c_str(), p->n.attrName.buf, p->n.attrName.size) == 0) {
+                        found = true;
+                    }
+                }
+
+                if(!found) {
+                    TRACE("Attribute %s was missing from create input list", attrName.c_str());
+
+                    if(attr->mFlags & SA_IMM_ATTR_RUNTIME) {
+                       /* Runtime attributes not to be appended, skip this attribute. */
+                       continue;
+                    }
+
+                    p = new immsv_attr_values_list;
+                    (*trailing_p) = p;
+                    p->n.attrName.size = attrName.size() +1;
+                    p->n.attrName.buf = strdup(attrName.c_str());
+                    p->n.attrValueType = attr->mValueType;
+                    p->n.attrMoreValues = NULL;
+                    if(attrValue->empty()) {
+                        TRACE("Empty attribute value appended");
+                        p->n.attrValuesNumber = 0;
+                        p->n.attrValue.val.sauint64 = 0LL;
+                    } else {
+                        TRACE("Attribute with default value appended");
+                        p->n.attrValuesNumber = 1;
+                        attrValue->copyValueToEdu(&(p->n.attrValue), 
+                            (SaImmValueTypeT) attr->mValueType);
+                    }
+                    p->next = req->attrValues;
+                    req->attrValues = p;
+                }
+            }
+        } //for(i6=object->...
 
          // Prepare for call on PersistentBackEnd
         if((err == SA_AIS_OK) && pbeNodeIdPtr) {
@@ -4311,7 +4359,6 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                     objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
             }
-
         }
         
         if(err == SA_AIS_OK) {

@@ -152,7 +152,7 @@ public:
     SaAisErrorT         ccbTerminate(SaUint32T ccbId);
     
     SaAisErrorT         ccbObjectCreate(
-                                        const ImmsvOmCcbObjectCreate* req,
+                                        ImmsvOmCcbObjectCreate* req,
                                         SaUint32T* implConn,
                                         unsigned int* implNodeId,
                                         SaUint32T* continuationId,
@@ -370,7 +370,7 @@ public:
                                   SaUint32T* continuationId,
                                   SaUint32T* pbeConnPtr,
                                   unsigned int* pbeNodeIdPtr,
-	                          bool increment);
+                                  bool increment);
 
     SaImmRepositoryInitModeT getRepositoryInitMode();
     void              prepareForLoading();
@@ -408,7 +408,7 @@ public:
                                SaUint32T ccbId, 
                                ConnVector& connVector,
                                SaUint32T* client,
-			       unsigned int* pbeNodeIdPtr);
+                               unsigned int* pbeNodeIdPtr);
     SaUint32T         cleanTheBasement(
                                        unsigned int seconds, 
                                        InvocVector& admReqs,
