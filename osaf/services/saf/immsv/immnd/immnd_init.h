@@ -156,7 +156,7 @@ extern "C" {
 
 	SaAisErrorT
 	    immModel_ccbObjectCreate(IMMND_CB *cb,
-		    const struct ImmsvOmCcbObjectCreate *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
+		    struct ImmsvOmCcbObjectCreate *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	SaAisErrorT
