@@ -5914,6 +5914,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     bool filter=false;
     bool isDumper=false;
     bool isSyncer=false;
+    bool isClassExtentSearch=false; /* TODO: convert to ClassInfo* */
     
     SaImmScopeT scope = (SaImmScopeT)req->scope;
     
@@ -5983,6 +5984,57 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     isDumper = (searchOptions & SA_IMM_SEARCH_PERSISTENT_ATTRS);
     isSyncer= (searchOptions & SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
+    isClassExtentSearch = filter && 
+        (strcmp(req->searchParam.choice.oneAttrParam.attrName.buf,
+            SA_IMM_ATTR_CLASS_NAME)==0);
+
+    if(isClassExtentSearch) {
+        /* Check if class exists and that all requested attrs exist in class */
+        SaImmClassNameT className = (SaImmClassNameT) 
+            req->searchParam.choice.oneAttrParam.attrValue.val.x.buf;
+        TRACE("Class extent search for class:%s", className);
+        ClassMap::iterator ci = sClassMap.find(className);
+        if(ci == sClassMap.end()) {
+            /* One could think we should return ERR_NOT_EXIST here, but no,
+               that is not acording to the standard. Searching for instances
+               of a class when that class is not currently installed is still a
+               valid search, only that it returns the empty set. The NOT_EXIST
+               will be returned by the first saImmOmSearchNext_2().
+            */
+            assert(err == SA_AIS_OK);
+            goto searchInitializeExit;
+        }
+        ClassInfo* classInfo = ci->second;
+
+        if(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) {
+            /* Explicit attributes requested, check that they exist in class. */
+            bool someAttrsNotFound = false;
+            ImmsvAttrNameList* list = req->attributeNames;
+            while(list) {
+                size_t sz = strnlen((char *) list->name.buf, (size_t) list->name.size);
+                std::string attName((const char *) list->name.buf, sz);
+                AttrMap::iterator ai = classInfo->mAttrMap.find(attName);
+                if(ai == classInfo->mAttrMap.end()) {
+                    LOG_NO("SearchInit ERR_INVALID_PARAM: attribute %s does not exist "
+                           "in class %s",attName.c_str(), className);
+                    someAttrsNotFound = true;
+/* TO BE REMOVED vvvvv */
+                    std::string amfdError("saAmfCompCleanupCmdArgvsaAmfCompCleanupTimeout");
+                    if(attName == amfdError) {
+                        someAttrsNotFound = false;
+                    }
+/* TO BE REMOVED ^^^^^ */
+
+
+                }
+                list = list->next;
+            }
+            if(someAttrsNotFound) {
+                err = SA_AIS_ERR_INVALID_PARAM;
+                goto searchInitializeExit;
+            }
+        }
+    }
     
     // Find root object and all sub objects to the root object.
     for (i = sObjectMap.begin(); 
