@@ -6018,14 +6018,6 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     LOG_NO("SearchInit ERR_INVALID_PARAM: attribute %s does not exist "
                            "in class %s",attName.c_str(), className);
                     someAttrsNotFound = true;
-/* TO BE REMOVED vvvvv */
-                    std::string amfdError("saAmfCompCleanupCmdArgvsaAmfCompCleanupTimeout");
-                    if(attName == amfdError) {
-                        someAttrsNotFound = false;
-                    }
-/* TO BE REMOVED ^^^^^ */
-
-
                 }
                 list = list->next;
             }
