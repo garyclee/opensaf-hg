@@ -97,16 +97,18 @@ struct ImplementerCcbAssociation
 
 typedef std::map<SaUint32T, ImplementerCcbAssociation*> CcbImplementerMap;
 
+typedef std::set<ObjectInfo*> ObjectSet;
+
 struct ClassInfo
 {
-    ClassInfo(SaUint32T category) : mRefCount(0),  mCategory(category),
+    ClassInfo(SaUint32T category) : mCategory(category),
                                     mImplementer(NULL) { }
-    ~ClassInfo() { }
+    ~ClassInfo() { mCategory = 0; mImplementer=NULL;}
     
-    SaInt32T         mRefCount;
     SaUint32T        mCategory;
     AttrMap          mAttrMap;   //<-Each AttrInfo requires explicit delete
     ImplementerInfo* mImplementer;//<- Points INTO ImplementerVector
+    ObjectSet        mExtent;
 };
 typedef std::map<std::string, ClassInfo*> ClassMap;
 
@@ -162,18 +164,25 @@ typedef SaUint32T ImmObjectFlags;
 
 struct ObjectInfo  
 {
+    ObjectInfo() : mAdminOwnerAttrVal(NULL), mCcbId(0),
+                   mClassInfo(NULL), mImplementer(NULL),
+                   mObjFlags(0), mParent(NULL) {}
+
+    ~ObjectInfo() {mAdminOwnerAttrVal=NULL; mCcbId=0;
+                   mClassInfo=NULL; mImplementer=NULL;
+                   mObjFlags=0; mParent=NULL;}
+
     void             getAdminOwnerName(std::string *str) const;
     
     ImmAttrValue*    mAdminOwnerAttrVal; //Pointer INTO mAttrValueMap
-    //CcbInfo* mCcb;    //<- Points INTO CcbVector.
     SaUint32T        mCcbId;
     ImmAttrValueMap  mAttrValueMap; //<-Each ImmAttrValue needs explicit delete
     ClassInfo*       mClassInfo;    //<-Points INTO ClassMap. Not own copy!
     ImplementerInfo* mImplementer;  //<-Points INTO ImplementerVector
     ImmObjectFlags   mObjFlags;
+    ObjectInfo*      mParent;       //<-Points to parent object
 };
 //typedef std::map<std::string, ObjectInfo*> ObjectMap;  
-typedef std::set<ObjectInfo*> ObjectSet;
 
 struct DeferredRtAUpdate
 {
@@ -278,7 +287,10 @@ typedef enum {
                                //being synced.
 } ImmNodeState;
 
-typedef std::set<std::string> ObjectNameSet;
+//Missing parents map used in loading and sync when objects not always
+//inserted in tree order. The Object set contains pointers to known children
+//of the missing parent. 
+typedef std::map<std::string, ObjectSet> MissingParentsMap; 
 
 // Local variables
 
@@ -287,7 +299,7 @@ static AdminOwnerVector  sOwnerVector;
 static CcbVector         sCcbVector;
 static ObjectMap         sObjectMap;
 static ImplementerVector sImplementerVector;
-static ObjectNameSet     sMissingParents;
+static MissingParentsMap sMissingParents;
 static ContinuationMap2  sAdmReqContinuationMap;
 static ContinuationMap3  sAdmImplContinuationMap;
 static ContinuationMap2  sSearchReqContinuationMap;  
@@ -1602,9 +1614,6 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
                             delete oavi->second;
                     }
                     afim->mAttrValueMap.clear(); 
-                    afim->mAdminOwnerAttrVal=0;
-                    afim->mClassInfo=0;
-                    afim->mImplementer=0;
                     delete afim;
                     oMut->mAfterImage = NULL;
                     LOG_WA("update of PERSISTENT runtime attributes in object '%s' REVERTED.",
@@ -1693,7 +1702,7 @@ ImmModel::abortSync()
             while(sClassMap.size()) {
                 ClassMap::iterator ci = sClassMap.begin();
                 TRACE("Removing Class:%s", ci->first.c_str());
-                assert(ci->second->mRefCount == 0);
+                assert(ci->second->mExtent.empty());
                 while(ci->second->mAttrMap.size()) {
                     AttrMap::iterator ai = ci->second->mAttrMap.begin();
                     TRACE("Remove Attr:%s", ai->first.c_str());
@@ -1710,7 +1719,8 @@ ImmModel::abortSync()
             assert(!sOwnerVector.size());
             assert(!sCcbVector.size());
             assert(!sImplementerVector.size());
-            assert(!sMissingParents.size());
+            //assert(!sMissingParents.size());
+            sMissingParents.clear();
             break;
 
         case IMM_NODE_LOADING:
@@ -2140,7 +2150,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         /* Schema upgrade case, Change the attr defs. */
         AttrMap::iterator ai;
         AttrInfo* ainfo = NULL;
-        ObjectMap::iterator oi;
+        ObjectSet::iterator oi;
         assert(prevClassInfo);
 
         /* Remove old attr defs. */
@@ -2163,73 +2173,73 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         dummyClass.mAttrMap.clear();
 
         /* Migrate instances. */
-        if(prevClassInfo->mRefCount) { 
-            /* There are instances. 
-               TODO: If we implement class extent index in ClassInfo, then we
-               should of course use that instead of iterating over sObjectMap.
-            */
-            for(oi=sObjectMap.begin(); oi != sObjectMap.end(); ++oi) {
-                if(oi->second->mClassInfo == prevClassInfo) {
-                    ObjectInfo* object = oi->second;
-                    ImmAttrValue* attrValue = NULL;
-                    TRACE_5("Migrating %s object %s", className.c_str(), oi->first.c_str());
+        if((prevClassInfo->mExtent.empty())) { 
+            LOG_IN("No instances to migrate - schema change could have been avoided");
+        } else {
+            /* There are instances. */
+            for(oi=prevClassInfo->mExtent.begin(); oi != prevClassInfo->mExtent.end(); ++oi) {
+                ImmAttrValue* attrValue = NULL;
+                ObjectInfo* object = *oi;
+                std::string objectDn;
+                assert(object->mClassInfo == prevClassInfo);
 
-                    /* Add new attributes to instances. */
-                    for(ai = newAttrs.begin(); ai != newAttrs.end(); ++ai) {
-                        AttrInfo* attr = ai->second;
+                getObjectName(object, objectDn);
 
-                        if(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
-                            if(attr->mDefaultValue.empty()) {
-                                attrValue = new ImmAttrMultiValue();
-                            } else {
-                                attrValue = new ImmAttrMultiValue(attr->mDefaultValue);
-                            }
+                TRACE_5("Migrating %s object %s", className.c_str(), objectDn.c_str());
+
+                /* Add new attributes to instances. */
+                for(ai = newAttrs.begin(); ai != newAttrs.end(); ++ai) {
+                    AttrInfo* attr = ai->second;
+
+                    if(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
+                        if(attr->mDefaultValue.empty()) {
+                            attrValue = new ImmAttrMultiValue();
                         } else {
-                            if(attr->mDefaultValue.empty()) {
-                                attrValue = new ImmAttrValue();
-                            } else {
-                                attrValue = new ImmAttrValue(attr->mDefaultValue);
-                            }
+                            attrValue = new ImmAttrMultiValue(attr->mDefaultValue);
                         }
-                        object->mAttrValueMap[ai->first] = attrValue;
+                    } else {
+                        if(attr->mDefaultValue.empty()) {
+                            attrValue = new ImmAttrValue();
+                        } else {
+                           attrValue = new ImmAttrValue(attr->mDefaultValue);
+                        }
+                    }
+                    object->mAttrValueMap[ai->first] = attrValue;
+                }
+
+                /* Adjust existing attributes.
+                */
+                ImmAttrValueMap::iterator oavi; 
+                for(oavi = object->mAttrValueMap.begin(); 
+                    oavi != object->mAttrValueMap.end(); ++oavi) {
+                    /*
+                     TRACE_5("CHECKING existing attribute %s:%s for object %s",
+                        className.c_str(), oavi->first.c_str(), objectDn.c_str());
+                    */
+
+                   /* Change from single to multi-value requires change of value rep.*/
+                   ai = changedAttrs.find(oavi->first);
+                   if(ai != changedAttrs.end()) {
+                       if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+                          (!oavi->second->isMultiValued())) {
+                           attrValue = new ImmAttrMultiValue(*(oavi->second));
+                           TRACE_5("Schema change adjusted attribute %s in object:%s "
+                               "to be multivalued",
+                               oavi->first.c_str(), objectDn.c_str());
+                           delete oavi->second;
+                           object->mAttrValueMap.erase(oavi);
+                           object->mAttrValueMap[ai->first] = attrValue;
+                        }
                     }
 
-                    /* Adjust existing attributes.
-                    */
-                    ImmAttrValueMap::iterator oavi; 
-                    for(oavi = object->mAttrValueMap.begin(); 
-                        oavi != object->mAttrValueMap.end(); ++oavi) {
-                        /*
-                        TRACE_5("CHECKING existing attribute %s:%s for object %s",
-                            className.c_str(), oavi->first.c_str(), oi->first.c_str());
-                        */
-
-                       /* Change from single to multi-value requires change of value rep.*/
-                       ai = changedAttrs.find(oavi->first);
-                       if(ai != changedAttrs.end()) {
-                           if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
-                              (!oavi->second->isMultiValued())) {
-                               attrValue = new ImmAttrMultiValue(*(oavi->second));
-                               TRACE_5("Schema change adjusted attribute %s in object:%s "
-                                   "to be multivalued",
-                                   oavi->first.c_str(), oi->first.c_str());
-                               delete oavi->second;
-                               object->mAttrValueMap.erase(oavi);
-                               object->mAttrValueMap[ai->first] = attrValue;
-                            }
-                        }
-
-                        /* Correct object->mAdminOwnerAttrVal. */
-                        if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
-                            object->mAdminOwnerAttrVal = oavi->second;
-                            TRACE_5("Schema change corrected %s in object:%s",
-                                oavi->first.c_str(), oi->first.c_str());
-                        }
+                    /* Correct object->mAdminOwnerAttrVal. */
+                    if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                        object->mAdminOwnerAttrVal = oavi->second;
+                        TRACE_5("Schema change corrected attr %s in object:%s",
+                            oavi->first.c_str(), objectDn.c_str());
                     }
                 }
             }
-        } else {
-            LOG_IN("No instances to migrate - schema change could have been avoided");
         }
         LOG_NO("Schema change succeeded for class %s %s", className.c_str(),
             pbeNodeIdPtr?"(PBE changes still pending).":"");
@@ -2548,9 +2558,9 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
             TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
                 className.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
-        } else if (i->second->mRefCount > 0) {
+        } else if (!(i->second->mExtent.empty())) {
             LOG_IN("ERR_BUSY: class '%s' busy, refCount:%u", 
-                className.c_str(), i->second->mRefCount);
+                className.c_str(), i->second->mExtent.size());
             err = SA_AIS_ERR_BUSY;
         } else {
             while(i->second->mAttrMap.size()) {
@@ -3175,14 +3185,13 @@ ImmModel::ccbApply(SaUint32T ccbId,
         
         if(!ccb->isOk()) {
             err = SA_AIS_ERR_FAILED_OPERATION;
-        } else if((sImmNodeState == IMM_NODE_LOADING) && 
-            sMissingParents.size()) {
-            ObjectNameSet::iterator oni;
+        } else if((sImmNodeState == IMM_NODE_LOADING) && !sMissingParents.empty()) {
+            MissingParentsMap::iterator mpm;
             LOG_ER("Can not apply because there are %u missing parents", 
                 (unsigned int) sMissingParents.size());
-            for(oni=sMissingParents.begin(); oni != sMissingParents.end(); 
-                ++oni) {
-                LOG_ER("Missing Parent DN: %s", oni->c_str());
+            for(mpm=sMissingParents.begin(); mpm != sMissingParents.end(); 
+                ++mpm) {
+                LOG_ER("Missing Parent DN: %s", mpm->first.c_str());
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
@@ -3321,13 +3330,8 @@ ImmModel::commitDelete(const std::string& dn)
     //record is deleted below), but does not hurt.
     oi->second->mAttrValueMap.clear(); 
     
-    assert(oi->second->mClassInfo->mRefCount > 0);
-    oi->second->mClassInfo->mRefCount--;
-    
-    oi->second->mAdminOwnerAttrVal=0;
-    oi->second->mClassInfo=0;
-    oi->second->mImplementer=0;
-    oi->second->mObjFlags = 0;
+    assert(!oi->second->mClassInfo->mExtent.empty());
+    assert(oi->second->mClassInfo->mExtent.erase(oi->second)==1);
     
     TRACE_5("delete object '%s'", oi->first.c_str());
     AdminOwnerVector::iterator i2;
@@ -3637,8 +3641,8 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     }
                     afim->mAttrValueMap.clear(); 
                     
-                    assert(afim->mClassInfo->mRefCount > 0);
-                    afim->mClassInfo->mRefCount--;
+                    assert(!afim->mClassInfo->mExtent.empty());
+                    assert(afim->mClassInfo->mExtent.erase(afim)==1);
                     
                     //Aborting create => ensure no dangling references to
                     //object. Only possible dangling reference for a create is 
@@ -3659,10 +3663,6 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                         //adminOwner of the cccb that creaed it. No other
                         //ccb/admin-owner can have seen the object. 
                     }
-                    afim->mAdminOwnerAttrVal=0;
-                    afim->mClassInfo=0;
-                    afim->mImplementer=0;
-                    afim->mObjFlags=0;
                     delete afim;
                 }
                     break;
@@ -3677,9 +3677,6 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     //Empty the collection, probably not necessary (as the
                     //ObjectInfo record is deleted below), but does not hurt.
                     afim->mAttrValueMap.clear(); 
-                    afim->mAdminOwnerAttrVal=0;
-                    afim->mClassInfo=0;
-                    afim->mImplementer=0;
                     delete afim;
                 }
                     break;
@@ -3809,7 +3806,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     ObjectMutation* oMut = 0;
     ObjectMap::iterator i5;
     ImmAttrValueMap::iterator i6;
-    
+    MissingParentsMap::iterator mpm = sMissingParents.end();
+
     immsv_attr_values_list* attrValues = NULL;
     
     bool nameCorrected = false;
@@ -3900,7 +3898,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     parentName.c_str());
                 //Save parentName in sMissingParents. Remove when loaded.
                 //Check at end of loading that sMissingParents is empty.
-                sMissingParents.insert(parentName);
+                mpm = sMissingParents.find(parentName);
+                if(mpm == sMissingParents.end()) {
+                    sMissingParents[parentName] = ObjectSet();
+                    mpm = sMissingParents.find(parentName);
+                }
+                assert(mpm != sMissingParents.end());
             } else {
                 TRACE_7("ERR_NOT_EXIST: parent object '%s' does not exist", 
                     parentName.c_str());
@@ -4372,7 +4375,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             //The mCreateLock on the object should prevent premature 
             //read access.
             sObjectMap[objectName] = object; 
-            classInfo->mRefCount++;
+            classInfo->mExtent.insert(object);
+            if(parent) {
+                assert(mpm == sMissingParents.end());
+                object->mParent = parent;
+            } else if(mpm != sMissingParents.end()) {
+                mpm->second.insert(object);
+                //TRACE("Missing parent %s has child %p", parentName.c_str(), object);
+            }
             
             unsigned int sze = sObjectMap.size();
             if(sze >= 5000) {
@@ -4395,9 +4405,20 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 }
             }
 
-            if(isLoading && sMissingParents.size() && 
-                sMissingParents.erase(objectName)) {
-                TRACE_5("Missing parent %s found", objectName.c_str());
+            if(isLoading && !sMissingParents.empty()) {  
+                mpm = sMissingParents.find(objectName);
+                if(mpm != sMissingParents.end()) {
+                    TRACE_5("Missing parent %s found during loading", objectName.c_str());
+                    ObjectSet::iterator oi = mpm->second.begin();
+                    while(oi != mpm->second.end()) {
+                        /* Correct the pointer from child to parent */
+                        (*oi)->mParent = object;
+                        //TRACE("Parent %s corrected for child %p", objectName.c_str(), *oi);
+                        ++oi;
+                    }
+                    mpm->second.clear();
+                    sMissingParents.erase(objectName);
+                }
             }
         } else {
             //err != SA_AIS_OK
@@ -4415,10 +4436,6 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             //(as the ObjectInfo record is deleted below), 
             //but does not hurt.
             object->mAttrValueMap.clear(); 
-            
-            object->mImplementer=0;
-            object->mAdminOwnerAttrVal=0;
-            object->mClassInfo=0;
             delete object; 
             
             if(oMut) {
@@ -4611,7 +4628,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         afim->mClassInfo = classInfo;
         afim->mImplementer = object->mImplementer;
         afim->mObjFlags = object->mObjFlags;
-        
+        afim->mParent = object->mParent;
         
         // Copy attribute values from existing object version to afim
         for(oavi = object->mAttrValueMap.begin(); 
@@ -4906,10 +4923,6 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     delete oavi->second;
                 }
                 afim->mAttrValueMap.clear();
-                
-                afim->mImplementer = 0;
-                afim->mAdminOwnerAttrVal=0;
-                afim->mClassInfo=0;
                 delete afim;
             }
             if(oMut) {
@@ -5914,7 +5927,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     bool filter=false;
     bool isDumper=false;
     bool isSyncer=false;
-    bool isClassExtentSearch=false; /* TODO: convert to ClassInfo* */
+    ClassInfo* classInfo = NULL;
     
     SaImmScopeT scope = (SaImmScopeT)req->scope;
     
@@ -5984,27 +5997,31 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     isDumper = (searchOptions & SA_IMM_SEARCH_PERSISTENT_ATTRS);
     isSyncer= (searchOptions & SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
-    isClassExtentSearch = filter && 
-        (strcmp(req->searchParam.choice.oneAttrParam.attrName.buf,
-            SA_IMM_ATTR_CLASS_NAME)==0);
 
-    if(isClassExtentSearch) {
+    if(filter && (strcmp(req->searchParam.choice.oneAttrParam.attrName.buf,
+        SA_IMM_ATTR_CLASS_NAME)==0)) {
         /* Check if class exists and that all requested attrs exist in class */
         SaImmClassNameT className = (SaImmClassNameT) 
             req->searchParam.choice.oneAttrParam.attrValue.val.x.buf;
         TRACE("Class extent search for class:%s", className);
         ClassMap::iterator ci = sClassMap.find(className);
-        if(ci == sClassMap.end()) {
+        if(ci == sClassMap.end() || ci->second->mExtent.empty()) {
             /* One could think we should return ERR_NOT_EXIST here, but no,
                that is not acording to the standard. Searching for instances
-               of a class when that class is not currently installed is still a
-               valid search, only that it returns the empty set. The NOT_EXIST
-               will be returned by the first saImmOmSearchNext_2().
+               of a class when that class is not currently installed, or is
+               installed but empty, is still a valid search, only that it
+               returns the empty set. The NOT_EXIST will be returned by the
+               first saImmOmSearchNext_2().
             */
+            TRACE("Extent for class:%s was empty", className);
             assert(err == SA_AIS_OK);
             goto searchInitializeExit;
         }
-        ClassInfo* classInfo = ci->second;
+
+        classInfo = ci->second;
+
+        TRACE("class:%s extent has size %u", className, 
+            (unsigned int) classInfo->mExtent.size());
 
         if(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) {
             /* Explicit attributes requested, check that they exist in class. */
@@ -6495,7 +6512,6 @@ ImmModel::nameToInternal(std::string& name)
     
     for(pos=0; pos < len; ++pos) {
         unsigned char chr = name.at(pos);
-        //TRACE("nameToInternal: %u %u %c", len, pos, chr);
         if(prev_chr == '\\') {
             if(chr == ',') 
             {
@@ -6530,7 +6546,6 @@ ImmModel::nameToExternal(std::string& name)
     
     for(pos=0; pos < len; ++pos) {
         unsigned char chr = name.at(pos);
-        //TRACE("nameToInternal: %u %u %c", len, pos, chr);
         if((chr == '#') && (prev_chr == '\\'))
         {
             name.replace(pos, 1, 1, ',');
@@ -8245,14 +8260,12 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     if(err == SA_AIS_OK) {
         void* pbe = NULL;
         object = new ObjectInfo();
-        object->mCcbId = 0;
         object->mClassInfo = classInfo;
         object->mImplementer = info;
+        object->mParent=parent;
         if(nameCorrected) {
             object->mObjFlags = IMM_DN_INTERNAL_REP;
-        } else {
-            object->mObjFlags = 0;
-        }
+        } 
         
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); 
@@ -8437,10 +8450,6 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             //Empty the collection, probably not necessary (as the ObjectInfo
             //record is deleted below), but does not hurt.
             object->mAttrValueMap.clear(); 
-            
-            object->mImplementer=0;
-            object->mClassInfo=0;
-            object->mCcbId=0;
             delete object; 
             goto rtObjectCreateExit;
         }
@@ -8478,7 +8487,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         }
         
         sObjectMap[objectName] = object;
-        classInfo->mRefCount++;
+        classInfo->mExtent.insert(object);
         
         if(className == immClassName) {
             updateImmObject(immClassName);
@@ -8671,9 +8680,6 @@ void ImmModel::pbePrtAttrUpdateContinuation(SaUint32T invocation,
         //Empty the collection, probably not necessary (as the
         //ObjectInfo record is deleted below), but does not hurt.
         afim->mAttrValueMap.clear(); 
-        afim->mAdminOwnerAttrVal=0;
-        afim->mClassInfo=0;
-        afim->mImplementer=0;
         delete afim;
     }
 
@@ -8983,11 +8989,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
 
             object->mObjFlags |= IMM_RT_UPDATE_LOCK;
             
+            /* Note: There is no error case where we leak afim, because doIt==true.
+               That is all checks have been passed once already.
+            */
             afim = new ObjectInfo();
-            afim->mCcbId = 0;
             afim->mClassInfo = object->mClassInfo;
             afim->mImplementer = object->mImplementer;
             afim->mObjFlags = object->mObjFlags;
+            afim->mParent = object->mParent;
             // Copy attribute values from existing object version to afim
             for(oavi = object->mAttrValueMap.begin(); 
                 oavi != object->mAttrValueMap.end();
@@ -9609,12 +9618,8 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         }
         object->mAttrValueMap.clear();
         
-        assert(classInfo->mRefCount > 0);
-        classInfo->mRefCount--;
-        object->mAdminOwnerAttrVal=0;
-        object->mClassInfo=0;
-        object->mImplementer = 0;
-        object->mObjFlags = 0;
+        assert(!classInfo->mExtent.empty());
+        classInfo->mExtent.erase(object);
 
         if(isPersistent) {
             if(info) {
@@ -9774,15 +9779,29 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     
     if(err == SA_AIS_OK) {
         TRACE_5("sync inserting object '%s'", objectName.c_str());
-        
+        MissingParentsMap::iterator mpm;
         ObjectInfo* object = new ObjectInfo();
-        object->mCcbId = 0;
         object->mClassInfo = classInfo;
-        object->mImplementer = 0; //Implementer will be corrected later.
         if(nameCorrected) {
             object->mObjFlags = IMM_DN_INTERNAL_REP;
-        } else {
-            object->mObjFlags = 0;
+        } 
+
+        std::string parentName;
+        getParentDn(/*out*/ parentName, /* in */ objectName);
+        if(parentName.size()) { /* There should exist a parent. */
+            i5 = sObjectMap.find(parentName);
+            if(i5 == sObjectMap.end()) { /* Parent apparently not synced yet. */
+                mpm = sMissingParents.find(parentName);
+                if(mpm == sMissingParents.end()) {
+                    sMissingParents[parentName] = ObjectSet();
+                    mpm = sMissingParents.find(parentName);
+                }
+                assert(mpm != sMissingParents.end());
+                mpm->second.insert(object);
+
+            } else {
+                object->mParent = i5->second;
+            }
         }
         
         // Add attributes to object
@@ -9912,8 +9931,23 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         
         if(err == SA_AIS_OK) {
             sObjectMap[objectName] = object; 
-            classInfo->mRefCount++;
+            classInfo->mExtent.insert(object);
+            mpm = sMissingParents.find(objectName);
+
             TRACE_7("Object '%s' was synced ", objectName.c_str());
+
+            if(mpm != sMissingParents.end()) {
+                TRACE_5("Missing parent %s found during sync", objectName.c_str());
+                ObjectSet::iterator oi = mpm->second.begin();
+                while(oi != mpm->second.end()) {
+                    /* Correct the pointer from child to parent */
+                    (*oi)->mParent = object;
+                    //TRACE("Parent %s corrected for child %p", objectName.c_str(), *oi);
+                    ++oi;
+                }
+                mpm->second.clear();
+                sMissingParents.erase(objectName);
+            }
         } else {
             //err != SA_AIS_OK
             //Delete object and its attributes
@@ -9927,10 +9961,6 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
             //Empty the collection, probably not necessary (as the ObjectInfo
             //record is deleted below), but does not hurt.
             object->mAttrValueMap.clear(); 
-            
-            object->mImplementer=0;
-            object->mAdminOwnerAttrVal=0;
-            object->mClassInfo=0;
             delete object; 
         }
     }
@@ -9954,14 +9984,44 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
 void
 ImmModel::getObjectName(ObjectInfo* info, std::string& objName)
 {
-    ObjectMap::iterator oi;
-    for(oi=sObjectMap.begin(); oi!=sObjectMap.end(); ++oi) {
-        if(oi->second == info) {
-            objName = oi->first;
-            return;
-        }
+    AttrMap::iterator i4 = std::find_if(info->mClassInfo->mAttrMap.begin(),
+        info->mClassInfo->mAttrMap.end(), AttrFlagIncludes(SA_IMM_ATTR_RDN));
+    assert(i4 != info->mClassInfo->mAttrMap.end());
+
+    std::string attrName = i4->first;
+
+    ImmAttrValueMap::iterator oavi = info->mAttrValueMap.find(attrName);
+    assert(oavi != info->mAttrValueMap.end());
+
+    ImmAttrValue* attr = oavi->second;
+
+    objName.append(attr->getValueC_str());
+
+    if(info->mParent) {
+        objName.append(",");
+        getObjectName(info->mParent, objName);
     }
-    assert(0);
+
+    /* ABT Remove after component testing */
+    ObjectMap::iterator oi = sObjectMap.find(objName);
+    if(oi == sObjectMap.end()) {
+        LOG_ER("getObjectName does not work for %s", objName.c_str());
+    }
+}
+
+void
+ImmModel::getParentDn(std::string& parentName, const std::string& objectName)
+{
+    TRACE_ENTER();
+    size_t pos = objectName.find(',');
+    if(pos ==  std::string::npos) {
+        if(!parentName.empty()) {
+            parentName = std::string();
+        }
+    } else {
+        parentName = std::string(objectName, pos+1);
+    }
+    TRACE_LEAVE();
 }
 
 SaAisErrorT
@@ -10057,7 +10117,6 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ImmsvObjNameList* nl = (ImmsvObjNameList *)
                     calloc(1, sizeof(ImmsvObjNameList));
                 std::string objName;
-                //TODO: re-implement, this is really ineficient.
                 getObjectName(*oi, objName); 
                 nl->name.size = objName.size();
                 nl->name.buf =strndup((char *) objName.c_str(), 
@@ -10121,7 +10180,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     strndup((char *)ci->mImplementer->mImplementerName.c_str(),
                         ioci->classImplName.size);
             }
-            ioci->nrofInstances = ci->mRefCount;
+            ioci->nrofInstances = ci->mExtent.size();
             ioci->next = req->classes;
             req->classes = ioci;
         }
@@ -10161,7 +10220,18 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 LOG_ER("syncFinalize found deferred RTA updates - aborting");
                 abort();
             }
-            assert(sDeferredObjUpdatesMap.empty());
+
+            if(!sMissingParents.empty()) {
+                MissingParentsMap::iterator mpm;
+                LOG_ER("Can not finalize sync because there are %u missing parents", 
+                    (unsigned int) sMissingParents.size());
+                for(mpm=sMissingParents.begin(); mpm != sMissingParents.end(); ++mpm) {
+                    LOG_ER("Missing Parent DN: %s", mpm->first.c_str());
+                }
+                abort();
+            }
+
+
             //syncronize with the checkpoint
             //sLastAdminOwnerId = req->lastAdminOwnerId;
             //sLastCcbId = req->lastCcbId;
@@ -10270,7 +10340,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 //class ?
                 //Yes, because the existence of a rt object is noted at 
                 //all nodes.
-                assert(ci->mRefCount == (int) ioci->nrofInstances);
+                assert((int) ci->mExtent.size() == (int) ioci->nrofInstances);
                 ++classCount;
                 LOG_IN("Synced class %s has %u instances", 
                     className.c_str(), ioci->nrofInstances);
@@ -10495,7 +10565,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ClassMap::iterator i3 = sClassMap.find(className);
                 assert(i3 != sClassMap.end());
                 ClassInfo* ci = i3->second;
-                assert(ci->mRefCount == (int) ioci->nrofInstances);
+                assert((int) ci->mExtent.size() == (int) ioci->nrofInstances);
                 if(ioci->classImplName.size) {
                     sz = strnlen((char *) ioci->classImplName.buf, 
                         (size_t) ioci->classImplName.size);

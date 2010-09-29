@@ -364,6 +364,8 @@ public:
                                    SaImmValueTypeT t);
 
     void              getObjectName(ObjectInfo* obj, std::string& name);
+    void              getParentDn(std::string& parentName,
+                                  const std::string& objectName);
     void              setLoader(int pid);
     int               getLoader();
     int               adjustEpoch(int suggestedEpoch, 
