@@ -165,6 +165,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
 	si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 	si->alarm_sent = FALSE;
+	si->num_dependents = 0;
 
 	return si;
 }
@@ -569,6 +570,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
 			avd_si_admin_state_set(si, SA_AMF_ADMIN_LOCKED);
 			/* This may happen when SUs are locked before SI is locked. */
+			LOG_WA("SI lock of %s, has no assignments", objectName->value);
 			rc = SA_AIS_OK;
 			goto done;
 		}
@@ -741,6 +743,15 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 		if (NULL != si->list_of_csi) {
 			LOG_ER("SaAmfSI '%s' is in use", si->name.value);
+			goto done;
+		}
+		/* check for any SI-SI dependency configurations */
+		if (NULL != si->spons_si_list) {
+			LOG_ER("SaAmfSIDependency objects exist for '%s'", si->name.value);
+			goto done;
+		}
+		if (0 != si->num_dependents) {
+			LOG_ER("Dependents Exist; Cannot delete '%s'", si->name.value);
 			goto done;
 		}
 		rc = SA_AIS_OK;
