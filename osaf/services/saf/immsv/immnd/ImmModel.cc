@@ -7440,19 +7440,20 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                                 info->mImplementerName.c_str());
                             err = SA_AIS_ERR_EXIST;
                         } else {
-                            ObjectMap::iterator oi;
-                            for(oi=sObjectMap.begin(); oi!=sObjectMap.end();
-                                ++oi) {
-                                ObjectInfo* obj = oi->second;
-                                if(obj->mClassInfo == classInfo) {
-                                    if(obj->mImplementer &&
-                                        obj->mImplementer != info) {
-                                        TRACE_7("ERR_EXIST: Object '%s' already has implementer "
-                                            "%s != %s", oi->first.c_str(), 
-                                            obj->mImplementer->mImplementerName.c_str(),
-                                            info->mImplementerName.c_str());
-                                        err = SA_AIS_ERR_EXIST;
-                                    }
+
+                            ObjectSet::iterator os;
+                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
+                               ++os) {
+                                ObjectInfo* obj = *os;
+                                assert(obj->mClassInfo == classInfo);
+                                if(obj->mImplementer && obj->mImplementer != info) {
+                                    std::string objDn;
+                                    getObjectName(obj, objDn);
+                                    TRACE_7("ERR_EXIST: Object '%s' already has implementer "
+                                        "%s != %s", objDn.c_str(), 
+                                        obj->mImplementer->mImplementerName.c_str(),
+                                        info->mImplementerName.c_str());
+                                    err = SA_AIS_ERR_EXIST;
                                 }
                             }
 
@@ -7474,14 +7475,11 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                                 //be minimal (backwards incompatibility on an 
                                 //error case), and (2) the old solution was not
                                 //good because it removed the object-implementorship
-                                //without notifying that object-impleemntor.
-                                for(oi=sObjectMap.begin(); oi!=sObjectMap.end();
-                                    ++oi) {
-                                    ObjectInfo* obj = oi->second;
-                                    if(obj->mClassInfo == classInfo) {
-                                        obj->mImplementer = 
-                                            classInfo->mImplementer;
-                                    }
+                                //without notifying that object-implementor.
+
+                                for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
+                                    ++os) {
+                                    (*os)->mImplementer = classInfo->mImplementer;
                                 }
                             }
                         }
@@ -7559,40 +7557,31 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                         } else {
                             TRACE_5("implementer for class '%s' is released", 
                                 className.c_str());
-                            ObjectMap::iterator oi;
-                            for(oi=sObjectMap.begin(); oi!=sObjectMap.end();
-                                ++oi) {
-                                //No need for two passes since class
-                                //implementer always overrides object
-                                //implementer.
-                                //TODO ABT0811: Incorrect semanics, opposite in standard.
-                                ObjectInfo* obj = oi->second;
-                                if(obj->mClassInfo == classInfo) {
-                                    if(obj->mImplementer == 
-                                        classInfo->mImplementer) {
-                                        //The above if-statement should
-                                        //possibly be an assert. Since 
-                                        //implementer always overrides object 
-                                        //implementer, I dont see how an object
-                                        //of the class *could* have an
-                                        //implementer different from the class
-                                        //implementer, as long as there *is* a
-                                        //class implementer for the class. 
-                                        if(obj->mCcbId) {
-                                            CcbVector::iterator i1 = 
-                                                std::find_if(sCcbVector.begin(), sCcbVector.end(),
-                                                    CcbIdIs(obj->mCcbId));
-                                            if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                                                LOG_IN("ERR_BUSY: ccb %u is active on object %s",
-                                                    obj->mCcbId, oi->first.c_str());
-                                                TRACE_LEAVE();
-                                                return SA_AIS_ERR_BUSY;
-                                            }
-                                        }
-                                        obj->mImplementer = 0;
+                            ObjectSet::iterator os;
+                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
+                                ++os) {
+                                ObjectInfo* obj = *os;
+                                assert(obj->mClassInfo == classInfo);
+                                assert(obj->mImplementer == classInfo->mImplementer);
+                                if(obj->mCcbId) {
+                                     CcbVector::iterator i1 = 
+                                        std::find_if(sCcbVector.begin(), sCcbVector.end(),
+                                            CcbIdIs(obj->mCcbId));
+                                    if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                                        std::string objDn;
+                                        getObjectName(obj, objDn);
+                                        LOG_IN("ERR_BUSY: ccb %u is active on object %s",
+                                            obj->mCcbId, objDn.c_str());
+                                        TRACE_LEAVE();
+                                        return SA_AIS_ERR_BUSY;
                                     }
                                 }
                             }//for
+
+                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
+                                ++os) {
+                                (*os)->mImplementer = 0;
+                            }
                             classInfo->mImplementer = 0;
                         }
                     }
