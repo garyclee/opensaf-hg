@@ -20,7 +20,9 @@
 file with the main imm.xml using the immxml-merge tool.
 
 - If this file is to be loaded dynamically using e.g. 'immcfg -f', the SUs must have admin state
-unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections below.
+locked instantiation (3). Uncomment the commented saAmfSUAdminState sections below.
+- If this file is to be loaded dynamically using e.g. 'immcfg -f', the SIs must have admin state
+locked (2). Uncomment the commented saAmfSIAdminState sections below.
 
 -->
 
@@ -230,6 +232,12 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 			<name>saAmfSIPrefStandbyAssignments</name>
 			<value>0</value>
 		</attr> 
+<!--
+		<attr>
+			<name>saAmfSIAdminState</name>
+			<value>2</value>
+		</attr>
+-->
 	</object>
 	<object class="SaAmfCSI">
 	    <dn>safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo2</dn>
