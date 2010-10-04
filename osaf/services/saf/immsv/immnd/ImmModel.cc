@@ -3696,7 +3696,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
             }
             ccb->mImplementers.clear();
         }
-        /*  ABT OCT 2009 Retain the ccb info to allow ccb result recovery. */
+        /*  Retain the ccb info to allow ccb result recovery. */
 
         if(ccb->mWaitStartTime == 0)  {
             ccb->mWaitStartTime = time(NULL); 
@@ -5928,8 +5928,11 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     bool isDumper=false;
     bool isSyncer=false;
     ClassInfo* classInfo = NULL;
-    
     SaImmScopeT scope = (SaImmScopeT)req->scope;
+    std::string objectName;
+    ObjectInfo* obj = NULL;
+    ObjectMap::iterator omi;
+    ObjectSet::iterator osi;
     
     if(scope == SA_IMM_ONE) {
         return this->accessorGet(req, op);
@@ -5941,23 +5944,26 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     SaImmSearchOptionsT searchOptions = 
         (SaImmSearchOptionsT)req->searchOptions;
-    ObjectMap::iterator i;
     
+    const size_t rootlen = rootName.length();
+
     // Validate root name
     if(! (nameCheck(rootName)||nameToInternal(rootName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper root name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
     }
-    
-    if (rootName.length() > 0) {
-        i = sObjectMap.find(rootName);
-        if (i == sObjectMap.end()) {
+
+    assert(rootlen == rootName.length()); /* ABT remove after component test.*/
+
+    if (rootlen > 0) {
+        omi = sObjectMap.find(rootName);
+        if (omi == sObjectMap.end()) {
             TRACE_7("ERR_NOT_EXIST: root object '%s' does not exist",
                 rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
-        } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
+        } else if(omi->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("ERR_NOT_EXIST: Root object '%s' is being created, "
                      "but ccb or PRTO PBE not yet applied",
                      rootName.c_str()); 
@@ -6013,7 +6019,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                returns the empty set. The NOT_EXIST will be returned by the
                first saImmOmSearchNext_2().
             */
-            TRACE("Extent for class:%s was empty", className);
+            TRACE("Extent for class:%s was empty, or class does not exist", className);
             assert(err == SA_AIS_OK);
             goto searchInitializeExit;
         }
@@ -6043,17 +6049,32 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                 goto searchInitializeExit;
             }
         }
+
+	/* Class extent filter is handled by changing iteration source to class extent */
+        filter = false; 
+	osi = classInfo->mExtent.begin();
+	assert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
+	obj = *(osi); 
+	omi = sObjectMap.end(); /* Possibly did point to parent*/
+	getObjectName(obj, objectName);
+    } else {
+        /* Initialize iteration for regular object-map as source */
+        omi = sObjectMap.begin();
+	assert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
+        obj = omi->second;
+        objectName = omi->first;
     }
     
     // Find root object and all sub objects to the root object.
-    for (i = sObjectMap.begin(); 
-         err==SA_AIS_OK && i != sObjectMap.end(); i++) {
-        ObjectInfo* obj = i->second;
-        if(obj->mObjFlags & IMM_CREATE_LOCK) {continue;} /*Skip pending creates.*/
-        std::string objectName = i->first;
-        size_t rootlen = rootName.length();
+    // Source set is either (a) entire object-map or (b) class extent set
+    while(err==SA_AIS_OK && (omi != sObjectMap.end() || 
+            (classInfo && osi != classInfo->mExtent.end()))) {
+
+        /*Skip pending creates.*/
+        if(obj->mObjFlags & IMM_CREATE_LOCK) {goto continue_while_loop;}
+
         if (objectName.length() >= rootlen) {
-            size_t pos = objectName.length() - rootName.length();
+            size_t pos = objectName.length() - rootlen;
             if((objectName.rfind(rootName, pos) == pos)&&
                 (!pos //Object IS the current root
                     || !rootlen //Empty root => all objects are sub-rootd.
@@ -6063,11 +6084,11 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     //Before adding the object to the result, check if there
                     //is any attribute match filter. If so check if there is a 
                     //match.
-                    if(filter && 
+                    if(filter &&
                         !filterMatch(obj, (ImmsvOmSearchOneAttr *)
                             &(req->searchParam.choice.oneAttrParam), 
                             err, objectName.c_str())) {
-                        continue; //filter missmatch
+			    goto continue_while_loop;
                     }
                     if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
                         nameToExternal(objectName);
@@ -6097,7 +6118,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                                     }
                                     list = list->next;
                                 }//while(list)
-                                if(notFound) {continue;}
+                                if(notFound) {continue;} /* for loop */
                             }
                             AttrMap::iterator k =
                                 obj->mClassInfo->mAttrMap.find(j->first);
@@ -6106,7 +6127,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                             if(isDumper && 
                                 !(k->second->mFlags & SA_IMM_ATTR_CONFIG) &&
                                 !(k->second->mFlags & SA_IMM_ATTR_PERSISTENT)){
-                                continue;
+                                continue;/* for loop */
                                 //If we are the dumper, then exclude
                                 //non-persistent rt attributes, even when there
                                 //is an implementer. For normal applications, 
@@ -6168,7 +6189,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                                     }
                                 } else {
                                     //There is no implementer
-                                    if(!(j->second->empty()) 
+                                    if(!(j->second->empty())
                                         && (k->second->mFlags & 
                                             SA_IMM_ATTR_PERSISTENT ||
                                             (isSyncer && k->second->mFlags & 
@@ -6192,8 +6213,25 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     }
                 }
             }
-        } 
-    }
+        }
+
+    continue_while_loop:
+	obj = NULL;
+	if(classInfo) {
+		++osi;
+		if(osi != classInfo->mExtent.end()) {
+			obj = (*osi);
+                        objectName.clear(); 
+			getObjectName(obj, objectName);
+		}
+	} else {
+		++omi;
+		if(omi!= sObjectMap.end()) {
+			obj = omi->second;
+			objectName = omi->first;
+		}
+	}
+    } //while
     
  searchInitializeExit:
     TRACE_LEAVE(); 
@@ -9989,12 +10027,6 @@ ImmModel::getObjectName(ObjectInfo* info, std::string& objName)
     if(info->mParent) {
         objName.append(",");
         getObjectName(info->mParent, objName);
-    }
-
-    /* ABT Remove after component testing */
-    ObjectMap::iterator oi = sObjectMap.find(objName);
-    if(oi == sObjectMap.end()) {
-        LOG_ER("getObjectName does not work for %s", objName.c_str());
     }
 }
 
