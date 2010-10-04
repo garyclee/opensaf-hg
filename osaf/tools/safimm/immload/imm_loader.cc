@@ -1105,7 +1105,7 @@ static void charactersHandler(void* userData,
 
                     strncpy(str + oldsize, (const char*)chars, (size_t)len + 1);
                     str[oldsize + len] = '\0';
-                    LOG_IN("APPENDED NEW VALUE newsize %u %s", 
+                    TRACE_8("APPENDED NEW VALUE newsize %u %s", 
                         (unsigned int) oldsize + len + 1, str);
 
                     /* Remove the old string */
