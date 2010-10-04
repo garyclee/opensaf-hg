@@ -98,6 +98,11 @@ public:
                                          AttrInfo* newAttr,
                                          AttrMap* changedAttrs);
 
+    void                migrateObj(ObjectInfo* object,
+                                   std::string className,
+                                   AttrMap& newAttrs,
+                                   AttrMap& changedAttrs);
+
     SaAisErrorT         classDelete(
                                     const ImmsvOmClassDescr* req,
                                     SaUint32T reqConn,

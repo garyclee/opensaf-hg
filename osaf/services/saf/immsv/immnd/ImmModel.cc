@@ -2175,73 +2175,43 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         /* Migrate instances. */
         if((prevClassInfo->mExtent.empty())) { 
             LOG_IN("No instances to migrate - schema change could have been avoided");
-        } else {
-            /* There are instances. */
+        } else {/* There are instances. */
+            CcbVector::iterator ci;
+            ObjectMutationMap::iterator omit;
+            ObjectMutation* omut = NULL;
+
+            /* Migrate current version of instances. */
             for(oi=prevClassInfo->mExtent.begin(); oi != prevClassInfo->mExtent.end(); ++oi) {
-                ImmAttrValue* attrValue = NULL;
-                ObjectInfo* object = *oi;
-                std::string objectDn;
-                assert(object->mClassInfo == prevClassInfo);
+                assert((*oi)->mClassInfo == prevClassInfo);
+                migrateObj(*oi, className, newAttrs, changedAttrs);
+            }
 
-                getObjectName(object, objectDn);
-
-                TRACE_5("Migrating %s object %s", className.c_str(), objectDn.c_str());
-
-                /* Add new attributes to instances. */
-                for(ai = newAttrs.begin(); ai != newAttrs.end(); ++ai) {
-                    AttrInfo* attr = ai->second;
-
-                    if(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
-                        if(attr->mDefaultValue.empty()) {
-                            attrValue = new ImmAttrMultiValue();
-                        } else {
-                            attrValue = new ImmAttrMultiValue(attr->mDefaultValue);
+            /* Migrate new versions of modify of instances, in active CCBs */
+            for(ci=sCcbVector.begin(); ci!=sCcbVector.end(); ++ci) {
+                CcbInfo* ccb = (*ci);
+                if(ccb->isActive()) {
+                    for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                        omut = omit->second;
+                        if(omut->mOpType==IMM_MODIFY && omut->mAfterImage && 
+                            omut->mAfterImage->mClassInfo == prevClassInfo) {
+                            migrateObj(omut->mAfterImage, className, newAttrs, changedAttrs);
                         }
-                    } else {
-                        if(attr->mDefaultValue.empty()) {
-                            attrValue = new ImmAttrValue();
-                        } else {
-                           attrValue = new ImmAttrValue(attr->mDefaultValue);
-                        }
-                    }
-                    object->mAttrValueMap[ai->first] = attrValue;
-                }
-
-                /* Adjust existing attributes.
-                */
-                ImmAttrValueMap::iterator oavi; 
-                for(oavi = object->mAttrValueMap.begin(); 
-                    oavi != object->mAttrValueMap.end(); ++oavi) {
-                    /*
-                     TRACE_5("CHECKING existing attribute %s:%s for object %s",
-                        className.c_str(), oavi->first.c_str(), objectDn.c_str());
-                    */
-
-                   /* Change from single to multi-value requires change of value rep.*/
-                   ai = changedAttrs.find(oavi->first);
-                   if(ai != changedAttrs.end()) {
-                       if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
-                          (!oavi->second->isMultiValued())) {
-                           attrValue = new ImmAttrMultiValue(*(oavi->second));
-                           TRACE_5("Schema change adjusted attribute %s in object:%s "
-                               "to be multivalued",
-                               oavi->first.c_str(), objectDn.c_str());
-                           delete oavi->second;
-                           object->mAttrValueMap.erase(oavi);
-                           object->mAttrValueMap[ai->first] = attrValue;
-                        }
-                    }
-
-                    /* Correct object->mAdminOwnerAttrVal. */
-                    if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
-                        object->mAdminOwnerAttrVal = oavi->second;
-                        TRACE_5("Schema change corrected attr %s in object:%s",
-                            oavi->first.c_str(), objectDn.c_str());
                     }
                 }
             }
+
+            /* Migrate new versions of modify of instances for ongoing PBE PRTA data updates */
+            for(omit=sPbeRtMutations.begin(); omit!=sPbeRtMutations.end(); ++omit) {
+                omut = omit->second;
+                if(omut->mOpType==IMM_MODIFY && omut->mAfterImage && 
+                   omut->mAfterImage->mClassInfo == prevClassInfo) {
+                    migrateObj(omut->mAfterImage, className, newAttrs, changedAttrs);
+                }
+            }
+
         }
-        LOG_NO("Schema change succeeded for class %s %s", className.c_str(),
+
+        LOG_NO("Schema change completed for class %s %s", className.c_str(),
             pbeNodeIdPtr?"(PBE changes still pending).":"");
     } /* end of schema upgrade case. */
 
@@ -2285,6 +2255,72 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
  done:
     TRACE_LEAVE();
     return err;
+}
+
+void
+ImmModel::migrateObj(ObjectInfo* object,
+                    std::string className,
+                    AttrMap& newAttrs,
+                    AttrMap& changedAttrs)
+{
+    AttrMap::iterator ai;
+    ImmAttrValue* attrValue = NULL;
+    std::string objectDn;
+
+    getObjectName(object, objectDn);
+
+    TRACE_5("Migrating %s object %s", className.c_str(), objectDn.c_str());
+
+    /* Add new attributes to instances. */
+    for(ai = newAttrs.begin(); ai != newAttrs.end(); ++ai) {
+        AttrInfo* attr = ai->second;
+
+        if(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) {
+            if(attr->mDefaultValue.empty()) {
+                attrValue = new ImmAttrMultiValue();
+            } else {
+                attrValue = new ImmAttrMultiValue(attr->mDefaultValue);
+            }
+        } else {
+            if(attr->mDefaultValue.empty()) {
+                attrValue = new ImmAttrValue();
+            } else {
+                attrValue = new ImmAttrValue(attr->mDefaultValue);
+            }
+        }
+        object->mAttrValueMap[ai->first] = attrValue;
+    }
+
+    /* Adjust existing attributes.*/
+    ImmAttrValueMap::iterator oavi; 
+    for(oavi = object->mAttrValueMap.begin(); 
+       oavi != object->mAttrValueMap.end(); ++oavi) {
+        /*
+           TRACE_5("CHECKING existing attribute %s:%s for object %s",
+           className.c_str(), oavi->first.c_str(), objectDn.c_str());
+        */
+
+        /* Change from single to multi-value requires change of value rep.*/
+        ai = changedAttrs.find(oavi->first);
+        if(ai != changedAttrs.end()) {
+            if((ai->second->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
+                (!oavi->second->isMultiValued())) {
+                attrValue = new ImmAttrMultiValue(*(oavi->second));
+                TRACE_5("Schema change adjusted attribute %s in object:%s "
+                    "to be multivalued", oavi->first.c_str(), objectDn.c_str());
+                delete oavi->second;
+                object->mAttrValueMap.erase(oavi);
+                object->mAttrValueMap[ai->first] = attrValue;
+            }
+        }
+
+        /* Correct object->mAdminOwnerAttrVal. */
+        if(oavi->first == std::string(SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+            object->mAdminOwnerAttrVal = oavi->second;
+            TRACE_5("Schema change corrected attr %s in object:%s",
+                oavi->first.c_str(), objectDn.c_str());
+        }
+    }
 }
 
 bool
@@ -3823,7 +3859,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 parentName.c_str(), (unsigned int) parentName.size());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto ccbObjectCreateExit;
-        }
+       }
     }
     
     if(!schemaNameCheck(className)) {
@@ -6050,17 +6086,17 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
             }
         }
 
-	/* Class extent filter is handled by changing iteration source to class extent */
+        /* Class extent filter is handled by changing iteration source to class extent */
         filter = false; 
-	osi = classInfo->mExtent.begin();
-	assert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
-	obj = *(osi); 
-	omi = sObjectMap.end(); /* Possibly did point to parent*/
-	getObjectName(obj, objectName);
+        osi = classInfo->mExtent.begin();
+        assert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
+        obj = *(osi); 
+        omi = sObjectMap.end(); /* Possibly did point to parent*/
+        getObjectName(obj, objectName);
     } else {
         /* Initialize iteration for regular object-map as source */
         omi = sObjectMap.begin();
-	assert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
+        assert(omi != sObjectMap.end()); /* sObjectMap can never be empty! */
         obj = omi->second;
         objectName = omi->first;
     }
@@ -6084,11 +6120,10 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     //Before adding the object to the result, check if there
                     //is any attribute match filter. If so check if there is a 
                     //match.
-                    if(filter &&
-                        !filterMatch(obj, (ImmsvOmSearchOneAttr *)
-                            &(req->searchParam.choice.oneAttrParam), 
-                            err, objectName.c_str())) {
-			    goto continue_while_loop;
+                    if(filter && !filterMatch(obj, (ImmsvOmSearchOneAttr *)
+                       &(req->searchParam.choice.oneAttrParam), 
+                       err, objectName.c_str())) {
+                        goto continue_while_loop;
                     }
                     if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
                         nameToExternal(objectName);
@@ -6216,21 +6251,21 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         }
 
     continue_while_loop:
-	obj = NULL;
-	if(classInfo) {
-		++osi;
-		if(osi != classInfo->mExtent.end()) {
-			obj = (*osi);
-                        objectName.clear(); 
-			getObjectName(obj, objectName);
-		}
-	} else {
-		++omi;
-		if(omi!= sObjectMap.end()) {
-			obj = omi->second;
-			objectName = omi->first;
-		}
-	}
+        obj = NULL;
+        if(classInfo) {
+            ++osi;
+            if(osi != classInfo->mExtent.end()) {
+                obj = (*osi);
+                objectName.clear(); 
+                getObjectName(obj, objectName);
+            }
+        } else {
+            ++omi;
+            if(omi!= sObjectMap.end()) {
+                obj = omi->second;
+                objectName = omi->first;
+            }
+        }
     } //while
     
  searchInitializeExit:
@@ -7283,7 +7318,7 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
 
 
     if(pbeRtRegress) {
-        if(++sPbeRegressPeriods < 15) {
+        if(++sPbeRegressPeriods < 150) {
             /* Have some patience. */
             pbeRtRegress = 0;
             TRACE_5("sPbeRegressPeriods:%u", sPbeRegressPeriods);
