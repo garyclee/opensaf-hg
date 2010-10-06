@@ -1475,7 +1475,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			cb->mState = IMM_SERVER_SYNC_CLIENT;
 		} else {
 			/* Sync has not started yet. */
-			if (cb->mTimer > 110) {	/*This timeout value should not be
+			if (cb->mTimer > 610) {	/*This timeout value should not be
 						   hard-coded. */
 				LOG_WA("This node failed to be sync'ed. "
 				       "Giving up after %u seconds, restarting..", cb->mTimer / 10);
@@ -1560,7 +1560,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
-		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 150) : 150)) {
+		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 600) : 600)) {
 			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
 			cb->mTimer = 0;
 			/*immModel_setLoader(cb,0); */
