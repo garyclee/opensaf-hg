@@ -829,11 +829,9 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 static void si_update_ass_state(AVD_SI *si)
 {
 	SaAmfAssignmentStateT oldState = si->saAmfSIAssignmentState;
-	SaAmfAssignmentStateT newState;
+	SaAmfAssignmentStateT newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 
-	if (si->saAmfSINumCurrActiveAssignments == 0)
-		newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
-	else {
+	if (si->saAmfSINumCurrActiveAssignments != 0) {
 		switch (si->sg_of_si->sg_type->saAmfSgtRedundancyModel) {
 		case SA_AMF_2N_REDUNDANCY_MODEL:
 			/* fall through */
