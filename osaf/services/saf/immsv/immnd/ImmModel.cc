@@ -2596,7 +2596,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
             err = SA_AIS_ERR_NOT_EXIST;
         } else if (!(i->second->mExtent.empty())) {
             LOG_IN("ERR_BUSY: class '%s' busy, refCount:%u", 
-                className.c_str(), i->second->mExtent.size());
+                className.c_str(), (unsigned int) i->second->mExtent.size());
             err = SA_AIS_ERR_BUSY;
         } else {
             while(i->second->mAttrMap.size()) {

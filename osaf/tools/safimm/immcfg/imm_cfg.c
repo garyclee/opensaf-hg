@@ -41,7 +41,9 @@
 
 #include "saf_error.h"
 #include "ncsgl_defs.h"
-#include <config.h>
+//#ifdef HAVE_CONFIG_H
+//#include <config.h>
+//#endif
 
 static SaVersionT immVersion = { 'A', 2, 1 };
 int verbose = 0;
