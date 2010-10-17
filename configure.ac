@@ -190,9 +190,6 @@ AC_ARG_ENABLE([tests],
         [enable_tests=no])
 AC_MSG_RESULT([$enable_tests])
 
-AM_CONDITIONAL([ENABLE_TESTS], [test "$enable_tests" = yes])
-AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
-
 #
 # If tests are enabled, then compile not just test programs but any code 
 # anywhere bracketed by "HAVE_TESTS"
@@ -200,6 +197,9 @@ AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
 if test "$enable_tests" = yes; then
 	AC_DEFINE([HAVE_TESTS], 1, [Define if we built OpenSAF tests])
 fi
+
+AM_CONDITIONAL([ENABLE_TESTS], [test "$enable_tests" = yes])
+AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
 
 #
 # Enable/disable IMM Persistent Backend
