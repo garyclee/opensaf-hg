@@ -179,13 +179,13 @@ extern "C" {
 	SaBoolT immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
 	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
 
-	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp);
+	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync);
 
 	SaAisErrorT
 	    immModel_nextResult(IMMND_CB *cb, void *searchOp,
 				IMMSV_OM_RSP_SEARCH_NEXT **rsp,
 				SaUint32T *implConn, SaUint32T *implNodeId,
-				struct ImmsvAttrNameList **rtAttrsToFetch, MDS_DEST *implDest);
+				struct ImmsvAttrNameList **rtAttrsToFetch, MDS_DEST *implDest, SaBoolT retardSync);
 
 	void immModel_deleteSearchOp(void *searchOp);
 
@@ -366,11 +366,11 @@ void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo,
 	SaUint64T *next_expected,	//out
 	SaUint32T *andHowManyMore);	//out
 
-void immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, 
+unsigned int immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, 
 	IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl);
 
-void immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb, SaImmHandleT clnt_hdl,
-	IMMSV_OCTET_STRING *msg);
+unsigned int immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
+	SaImmHandleT clnt_hdl, IMMSV_OCTET_STRING *msg);
 
 void dequeue_outgoing(IMMND_CB *cb);
 

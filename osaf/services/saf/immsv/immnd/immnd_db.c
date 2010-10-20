@@ -288,11 +288,9 @@ IMMSV_OCTET_STRING *immnd_dequeue_incoming_fevs_msg(IMMSV_OCTET_STRING *msg,
  * Description     : Place a fevs message in backlog queue
  *
  *************************************************************************/
-void immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb, 
+unsigned int immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb, 
 	SaImmHandleT clnt_hdl, IMMSV_OCTET_STRING *msg)
 {
-	TRACE_ENTER();
-	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_out_list;
 	IMMND_FEVS_MSG_NODE *new_node = malloc(sizeof(IMMND_FEVS_MSG_NODE));
 	assert(new_node);
 	new_node->msgNo = 0;
@@ -304,15 +302,19 @@ void immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
 	msg->size = 0;
 	new_node->next = NULL;
 
-	if(tmp == NULL) { 
-		cb->fevs_out_list = new_node; /* First insert. */
+	if(cb->fevs_out_list == NULL) { /* First insert. */
+		assert(cb->fevs_out_list_end == NULL);
+		assert(cb->fevs_out_count == 0);
+		cb->fevs_out_list = new_node; 
+		cb->fevs_out_count = 1;
 	} else {
-		while (tmp && tmp->next) { 
-			tmp = tmp->next;
-		}
-		tmp->next = new_node; /* Insert at end. */
+		cb->fevs_out_list_end->next = new_node;/* Insert at end. */
+		++(cb->fevs_out_count);
 	}
-	TRACE_LEAVE();
+
+	cb->fevs_out_list_end = new_node; 
+
+	return cb->fevs_out_count;
 }
 
 /***************************************************************************
@@ -321,11 +323,12 @@ void immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb,
  * Description     : Removes a fevs_msg from backlog.
  *
  *************************************************************************/
-void immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl)
+unsigned int immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl)
 {
-	TRACE_ENTER();
 	assert(msg);
 	assert(cb->fevs_out_list);
+	assert(cb->fevs_out_list_end);
+	assert(cb->fevs_out_count);
 	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_out_list;
 
 	msg->buf = tmp->msg.buf;
@@ -340,7 +343,14 @@ void immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *msg, SaIm
 	tmp->next = NULL; 
 	free(tmp);
 
-	TRACE_LEAVE();
+	--(cb->fevs_out_count);
+
+	if(cb->fevs_out_list == NULL) { /* Last remove */
+		assert(cb->fevs_out_count == 0);
+		cb->fevs_out_list_end = NULL;
+	}
+
+	return cb->fevs_out_count;
 }
 
 

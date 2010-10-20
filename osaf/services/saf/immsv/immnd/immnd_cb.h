@@ -110,6 +110,8 @@ typedef struct immnd_cb_tag {
 	SaUint64T syncFevsBase;	        //Last fevsMessage before sync iterator.
 	IMMND_FEVS_MSG_NODE *fevs_in_list;  //incomming queue
 	IMMND_FEVS_MSG_NODE *fevs_out_list; //outgoing queue
+	IMMND_FEVS_MSG_NODE *fevs_out_list_end; //end outgoing queue
+	SaUint32T           fevs_out_count; //Nrof elements in outgoing queue
 
 	void *immModel;
 	SaUint32T mMyEpoch;	//Epoch counter, used in synch of immnds

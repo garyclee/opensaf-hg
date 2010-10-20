@@ -763,21 +763,15 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	}
 
 	if(isSync) {
-		/* Special checks only for sync iterator. */
+		/* Special check only for sync iterator. */
 		if (!immnd_is_immd_up(cb)) {
 			LOG_WA("ERR_TRY_AGAIN: IMMD is down can not progress with sync");
-			error = SA_AIS_ERR_TRY_AGAIN;
-			goto agent_rsp;
-		} else if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
-			LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages "
-				"(> %u) rejecting sync iteration request",
-				IMMND_FEVS_MAX_PENDING);
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
 		}
 	}
 
-	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp);
+	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync);
 
 	if((error == SA_AIS_OK) && isSync) {
 		/* Special processing only for sync iterator. */
@@ -1028,11 +1022,11 @@ static uns32 immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 		reqo.attributeNames = evt->info.rtAttUpdRpl.sr.attributeNames;	/*borrowing. */
 
 		TRACE_2("oi_att_pull_rpl Before searchInit");
-		err = immModel_searchInitialize(cb, &reqo, &searchOp);
+		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE);
 		if (err == SA_AIS_OK) {
 			TRACE_2("oi_att_pull_rpl searchInit returned OK, calling searchNext");
 			IMMSV_OM_RSP_SEARCH_NEXT *rsp = 0;
-			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL);
+			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE);
 			if (err == SA_AIS_OK) {
 				rspo->runtimeAttrs.attrValuesList = rsp->attrValuesList;
 				/*STEALING*/ rsp->attrValuesList = NULL;
@@ -1106,7 +1100,7 @@ static uns32 immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 
  deleteSearchOp:
 	if (searchOp) {
-		/* immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL); */
+		/* immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE); */
 		immModel_deleteSearchOp(searchOp);
 	}
 
@@ -1192,6 +1186,9 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	SaUint32T implNodeId = 0;
 	IMMSV_OM_RSP_SEARCH_NEXT *rsp = NULL;
 	MDS_DEST implDest = 0LL;
+	SaBoolT retardSync = 
+		((cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) && 
+		cb->mIsCoord && (cb->syncPid > 0));
 
 	TRACE_ENTER();
 
@@ -1220,7 +1217,8 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		goto agent_rsp;
 	}
 
-	error = immModel_nextResult(cb, sn->searchOp, &rsp, &implConn, &implNodeId, &rtAttrsToFetch, &implDest);
+	error = immModel_nextResult(cb, sn->searchOp, &rsp, &implConn, &implNodeId, &rtAttrsToFetch,
+		&implDest, retardSync);
 	if (error != SA_AIS_OK) {
 		goto agent_rsp;
 	}
@@ -1785,7 +1783,7 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 	}
 
 	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting admo_init request", 
+		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting admo_init request", 
 			IMMND_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
@@ -1873,7 +1871,7 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	}
 
 	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting impl_set request",
+		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting impl_set request",
 			IMMND_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
@@ -1979,7 +1977,7 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	}
 
 	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting ccb_init request",
+		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting ccb_init request",
 			IMMND_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
@@ -2077,7 +2075,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 	}
 
 	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting rt_update request",
+		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting rt_update request",
 			IMMND_FEVS_MAX_PENDING);
 		err = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
@@ -2243,12 +2241,22 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
 		if(asyncReq) {
-			immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
-			LOG_WA("Too many pending FEVS message replies (> %u) enqueueing async message",
-				IMMND_FEVS_MAX_PENDING);
+			unsigned int backlog = 
+				immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
+
+			if(backlog%50) {
+				TRACE_2("Too many pending incoming FEVS messages (> %u) "
+					"enqueueing async message. Backlog:%u",
+					IMMND_FEVS_MAX_PENDING, backlog);
+			} else {
+				LOG_IN("Too many pending incoming FEVS messages (> %u) "
+					"enqueueing async message. Backlog:%u",
+					IMMND_FEVS_MAX_PENDING, backlog);
+			}
+
 			return NCSCC_RC_SUCCESS;
 		} else {
-			LOG_WA("ERR_TRY_AGAIN: Too many pending FEVS message replies (> %u) rejecting request",
+			TRACE_2("ERR_TRY_AGAIN: Too many pending FEVS message replies (> %u) rejecting request",
 				IMMND_FEVS_MAX_PENDING);
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
@@ -2289,7 +2297,7 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	   Note should set up a wait time for the continuation roughly in line
 	   with IMMSV_WAIT_TIME. */
 	assert(rc == NCSCC_RC_SUCCESS);
-	if(sinfo) {
+	if(cl_node && sinfo) {
 		cl_node->tmpSinfo = *sinfo;	//TODO: should be part of continuation?
 	}
 
@@ -2299,9 +2307,11 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	   But we should be able to use the agents
 	   count/continuation-id .. ? */
 
-	if (cl_node->mIsSync) {
+	if (cl_node && cl_node->mIsSync) {
 		assert(!cl_node->mSyncBlocked);
-		cl_node->mSyncBlocked = TRUE;
+		if(!asyncReq) {
+			cl_node->mSyncBlocked = TRUE;
+		}
 	}
 
 	return rc;		/*Normal return here => asyncronous reply in fevs_rcv. */
@@ -3899,9 +3909,6 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT err = SA_AIS_OK;
-	IMMSV_EVT send_evt;
-	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
-	IMMSV_SEND_INFO *sinfo = NULL;
 	IMMSV_OM_CCB_OBJECT_MODIFY objModify;
 	unsigned int isLocal = 0;
 	TRACE_ENTER();
@@ -3927,42 +3934,9 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 				abort();
 			}
 		}
-	} else {
-		/* TODO: I should verify that the class & object exists, 
-		   at least the object. */
-	}
+	} /*else {TODO: I should verify that the class & object exists, 
+		   at least the object. }*/
 
-	if (originatedAtThisNd) {
-		/*Send ack to client (sync process) */
-
-		immnd_client_node_get(cb, clnt_hdl, &cl_node);
-		if (cl_node == NULL || cl_node->mIsStale) {
-			LOG_WA("IMMND - Client went down so no response");
-			return;
-		}
-
-		sinfo = &cl_node->tmpSinfo;
-
-		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
-		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		send_evt.info.imma.info.errRsp.error = err;
-		assert(sinfo);
-		assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
-
-		if (cl_node->mIsSync && cl_node->mSyncBlocked) {
-			if (immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
-				LOG_ER("Failed to send sync-object result to Agent");
-			}
-		} else {
-			LOG_ER("Unexpected sync-object reply arrived destined for sync agent - "
-			       "isSync:%u blocked:%u discarding", cl_node->mIsSync, cl_node->mSyncBlocked);
-		}
-
-		if (cl_node->mSyncBlocked) {
-			cl_node->mSyncBlocked = FALSE;
-		}
-	}
 	TRACE_LEAVE();
 }
 
@@ -5962,7 +5936,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 			LOG_WA("Imm at this evs node has epoch %u, "
 			       "COORDINATOR appears to be a stragler!!, aborting.", cb->mMyEpoch);
 			abort();
-			/* TODO: 080414 re-inserted the assert ...
+			/* TODO: 080414 re-inserted the assert/abort ...
 			   This is an extreemely odd case. Possibly it could occur after a
 			   failover ?? */
 		}
@@ -6127,14 +6101,26 @@ void dequeue_outgoing(IMMND_CB *cb)
 
 	while(cb->fevs_out_list && space && (cb->fevs_replies_pending < IMMND_FEVS_MAX_PENDING) && immnd_is_immd_up(cb)){
 		memset(&dummy_evt, '\0', sizeof(IMMND_EVT));
-		--space;
-		immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
-		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL) == NCSCC_RC_SUCCESS) {
-			LOG_IN("Outgoing asyncronous fevs message dequeued, messages now pending: %u", 
-				cb->fevs_replies_pending);
-		} else {
+		unsigned int backlog = 
+			immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
+
+		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL) != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to process delayed asyncronous fevs message - discarded");
 		}
+		--space;
+		
+		if(backlog) {
+			if(backlog%50) {
+				TRACE_2("Backlogged outgoing asyncronous fevs messages: %u, "
+					"incoming messages pending: %u",
+					backlog, cb->fevs_replies_pending);
+			} else {
+				LOG_IN("Backlogged outgoing asyncronous fevs messages: %u, "
+					"incoming messages pending: %u",
+					backlog, cb->fevs_replies_pending);
+			}
+		}
+
 		if(dummy_evt.info.fevsReq.msg.buf) {
 			free(dummy_evt.info.fevsReq.msg.buf);
 			dummy_evt.info.fevsReq.msg.size = 0;

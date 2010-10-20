@@ -23,6 +23,7 @@
 ImmSearchOp::ImmSearchOp()
 {
     mLastResult=NULL;
+    mIsSync=false;
 }
 
 ImmSearchOp::~ImmSearchOp()

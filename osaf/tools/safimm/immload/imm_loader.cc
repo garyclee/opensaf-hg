@@ -215,7 +215,7 @@ void opensafClassCreate(SaImmHandleT immHandle)
         if(err == SA_AIS_ERR_TRY_AGAIN) {
             TRACE_8("Got TRY_AGAIN (retries:%u) on class create",
                 retries);
-            usleep(500);
+            usleep(200000);
             err = SA_AIS_OK;
         }
         err = saImmOmClassCreate_2(
@@ -270,7 +270,7 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
         if(err == SA_AIS_ERR_TRY_AGAIN) {
             TRACE_8("Got TRY_AGAIN (retries:%u) on class create",
                 retries);
-            usleep(500);
+            usleep(200000);
             err = SA_AIS_OK;
         }
 
@@ -390,7 +390,7 @@ bool createImmObject(SaImmClassNameT className,
         if(errorCode == SA_AIS_ERR_TRY_AGAIN) {
             TRACE_8("Got TRY_AGAIN (retries:%u) on object create",
                 retries);
-            usleep(500);
+            usleep(200000);
             errorCode = SA_AIS_OK;
         }
 
@@ -482,7 +482,7 @@ bool createImmClass(SaImmHandleT immHandle,
         if(errorCode == SA_AIS_ERR_TRY_AGAIN) {
             TRACE_8("Got TRY_AGAIN (retries:%u) on class create",
                 retries);
-            usleep(500);
+            usleep(200000);
             errorCode = SA_AIS_OK;
         }
         errorCode = saImmOmClassCreate_2(immHandle,
@@ -1840,7 +1840,7 @@ void syncClassDescription(std::string className, SaImmHandleT& immHandle)
     do
     {
         if(retries) {
-            usleep(500);
+            usleep(200000);
             TRACE("Retry %u", retries);
         }
         err = saImmOmClassCreate_2(immHandle, cln, classCategory, 
@@ -1919,18 +1919,24 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
     param.searchOneAttr.attrValue = (void *) &cln;  //Pointer TO char*
 
     SaImmSearchHandleT searchHandle;
-    err = saImmOmSearchInitialize_2(immHandle, 
-                                    NULL, //rootname
-                                    SA_IMM_SUBTREE,
-                                    (SaImmSearchOptionsT)
-                                    (SA_IMM_SEARCH_ONE_ATTR |
-                                     SA_IMM_SEARCH_GET_SOME_ATTR |
-                                     SA_IMM_SEARCH_SYNC_CACHED_ATTRS),
-                                    &param,
-                                    attrNames,
-                                    &searchHandle);
+    unsigned int retries = 0;
+    do {
+	    if(retries) {
+		    usleep(200000);
+	    }
+	    err = saImmOmSearchInitialize_2(immHandle, 
+		    NULL, //rootname
+		    SA_IMM_SUBTREE,
+		    (SaImmSearchOptionsT)
+		    (SA_IMM_SEARCH_ONE_ATTR |
+			    SA_IMM_SEARCH_GET_SOME_ATTR |
+			    SA_IMM_SEARCH_SYNC_CACHED_ATTRS),
+		    &param,
+		    attrNames,
+		    &searchHandle);
+	    retries++;
+    } while (err == SA_AIS_ERR_TRY_AGAIN && (retries < 32));
 
-    //Should perhaps do retries if err == SA_AIS_ERR_TRY_AGAIN
     free(attrNames);
     attrNames = NULL;
     if (err != SA_AIS_OK)
@@ -1940,48 +1946,76 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
         exit(1);
     }
 
-    saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+    err = saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+    if (err != SA_AIS_OK)
+    {
+        LOG_ER("Failed to release description of class %s, error code:%u", cln, err);
+        exit(1);
+    }
 
     //Iterate over objects
     SaNameT objectName;
     objectName.value[0] = 0;
     objectName.length = 0;
     SaImmAttrValuesT_2 **attributes=NULL;
-    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
+    bool message_buffered=false;
 
     int nrofObjs=0;
-    while (err != SA_AIS_ERR_NOT_EXIST)
+    while (err == SA_AIS_OK)
     {
-        if (err != SA_AIS_OK)
-        {
-            //Retries not likely on search-next since it simply fetches from a copy
-            LOG_ER("Sync failed on call saImmOmSearchNext_2, error:%u", err);
-            exit(1);      
-        }
-        ++nrofObjs;
-
         int retries = 0;
+
         do
         {
             if(retries) {
-                usleep(500);
-                TRACE("Retry %u", retries);
+                usleep(200000);
             }
-            err = immsv_sync(immHandle, cln, &objectName, 
-                             (const SaImmAttrValuesT_2 **) attributes);
-        } while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
+	    /* Syncronous for throtteling sync */
+	    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
 
-        if (err != SA_AIS_OK)
-        {
-            LOG_ER("Sync failed on call immsv_sync, retries: %u error:%u", 
-                   retries, err);
+	    retries++;
+	} while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
+
+        ++nrofObjs;
+
+	if(err == SA_AIS_ERR_NOT_EXIST) {
+		goto done;
+	}
+
+	/* Asyncronous */
+	err = immsv_sync(immHandle, cln, &objectName, 
+                             (const SaImmAttrValuesT_2 **) attributes);
+
+	if(err == SA_AIS_OK) {
+		message_buffered = false;
+	} else if(err == SA_AIS_ERR_NOT_READY) {
+		message_buffered = true;
+		err = SA_AIS_OK;
+	} else {
+            LOG_ER("Sync failed with error error:%u", err);
             exit(1);
-        }
+	}
+
+	attributes=NULL;
+        objectName.value[0] = 0;
+        objectName.length = 0;
 
         TRACE("Synced object: %s", objectName.value);
-
-        err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
     }
+
+ done:
+
+    if(err != SA_AIS_ERR_NOT_EXIST)
+    {
+            LOG_ER("Sync failed with error retries:%u error:%u", 
+                   retries, err);
+            exit(1);
+    }
+
+    if(message_buffered) {
+	    err = immsv_sync(immHandle, cln, &objectName, NULL);
+    }
+
 
     saImmOmSearchFinalize(searchHandle);
     return nrofObjs;
@@ -2008,7 +2042,7 @@ int immsync(void)
                                       &version);
         if (retries)
         {
-            usleep(500);
+            usleep(100000);
             TRACE_8("IMM-SYNC initialize retry %u", retries);
         }
     } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) && (++retries < 32));
