@@ -4942,7 +4942,6 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
-	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	NCS_BOOL locked = FALSE;
 	TRACE_ENTER();
@@ -5060,22 +5059,10 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 		evt.info.immnd.info.obj_sync.attrValues = p;
 	}
 
-	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, FALSE);
+	rc = imma_evt_fake_evs(cb, &evt, NULL, 0, cl_node->handle, &locked, FALSE);
 
 	if (rc != SA_AIS_OK) {
 		goto mds_send_fail;
-	}
-
-	if (out_evt) {
-		/* Process the outcome, note this is after a blocking call. */
-		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
-		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
-		rc = out_evt->info.imma.info.errRsp.error;
-
-		/* We dont need the lock here */
-
-		free(out_evt);
-		out_evt=NULL;
 	}
 
  error_exit_1:

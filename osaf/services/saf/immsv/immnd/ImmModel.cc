@@ -894,11 +894,13 @@ immModel_ccbFinalize(IMMND_CB *cb,
 
 SaAisErrorT
 immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req, 
-    void** searchOp)
+    void** searchOp, SaBoolT isSync)
 {
     ImmSearchOp* op = new ImmSearchOp();
     *searchOp = op;
-    
+
+    if(isSync) {op->setIsSync();}
+
     return ImmModel::instance(&cb->immModel)->searchInitialize(req, *op);
 }
 
@@ -907,12 +909,19 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
     IMMSV_OM_RSP_SEARCH_NEXT** rsp,
     SaUint32T* implConn, SaUint32T* implNodeId,
     struct ImmsvAttrNameList** rtAttrsToFetch,
-    MDS_DEST* implDest)
+    MDS_DEST* implDest, SaBoolT retardSync)
 {
     //assert(searchOp && rsp && implConn && implNodeId && rtAttrsToFetch);
     assert(searchOp && rsp);
     if(rtAttrsToFetch) {assert(implConn && implNodeId && implDest);}
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
+
+    if(retardSync && op->isSync()) {
+        TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages "
+            "(> %u) rejecting sync iteration next request",
+            IMMND_FEVS_MAX_PENDING);
+        return SA_AIS_ERR_TRY_AGAIN;
+    }
     
     AttributeList* rtAttrs = NULL;
     SaAisErrorT err = op->nextResult(rsp, implConn, implNodeId, 
@@ -2915,11 +2924,16 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
                 }
                 if(++loopCount > 500) {
                     if(loopCount%1000==0) {
-                        LOG_ER("Stuck in adminOwnerDelete? %u", loopCount);
+                        TRACE_5("Bussy in adminOwnerDelete? %u", loopCount);
                     }
-                    if(loopCount > 500000) {
-                        LOG_ER("Stuck in adminOwnerDelete!!!!!");
-                        err = SA_AIS_ERR_TRY_AGAIN;
+                    if(loopCount%50000==0) {
+                        LOG_WA("Bussy in HUGE admin owner release %u",
+                            loopCount);
+                    }
+                    if(loopCount%2000000==0) {
+                        LOG_ER("Assuming stuck in adminOwnerDelete %u",
+                            loopCount);
+                        err = SA_AIS_ERR_LIBRARY;
                         goto done;
                     }
                 }

@@ -80,12 +80,14 @@ public:
     IMMSV_OM_RSP_SEARCH_NEXT*
     fetchLastResult() {return mLastResult;}
     void          clearLastResult() {mLastResult = NULL;}
-    
+    void          setIsSync() {mIsSync = true;}
+    bool          isSync() {return mIsSync;}
 private:
     ResultList    mResultList;
     IMMSV_OM_RSP_SEARCH_NEXT* mLastResult;//only used to save result during
     //fetching of runtime attribute values.
     AttributeList mRtsToFetch;
+    bool mIsSync;
 };
 
 #endif

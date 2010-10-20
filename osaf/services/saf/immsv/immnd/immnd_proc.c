@@ -618,7 +618,7 @@ void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
 	if (newEpoch != cb->mMyEpoch) {
 		/*This case only relevant when persistent epoch overrides
 		   last epoch, i.e. after reload at cluster start. */
-		TRACE_5("ABT Adjusting epoch to:%u", newEpoch);
+		TRACE_5("Adjusting epoch to:%u", newEpoch);
 		cb->mMyEpoch = newEpoch;
 		if (cb->mRulingEpoch != newEpoch) {
 			assert(cb->mRulingEpoch < newEpoch);
@@ -719,11 +719,7 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
 	assert(cb->mSync || coordinator);
 	assert(!(cb->mSync) || !coordinator);
 	completed = immModel_syncComplete(cb);
-	if (!completed) {
-		/*Possibly a timeout with the help of step.
-		   But sync failure is aborted from coord. */
-
-	} else {		/*completed */
+	if (completed) {
 		if (cb->mSync) {
 			cb->mSync = SA_FALSE;;
 
