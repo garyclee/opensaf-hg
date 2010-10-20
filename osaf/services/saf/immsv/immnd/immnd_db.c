@@ -185,11 +185,10 @@ void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT
 {
 	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_in_list;
 
-	/* assert(0); */
 	LOG_ER("MESSAGE OUT OF ORDER => EXITING");
-	exit(1);
+	abort();
 	/* We dont trust this code as it has not been tested yet. */
-	/* Hopefully we will get this assert in system test...? */
+	/* Hopefully we will get this abort in system test...? */
 
 	/* sort in ascending msgNo order. */
 	while (tmp && tmp->next && (tmp->next->msgNo < msgNo)) {

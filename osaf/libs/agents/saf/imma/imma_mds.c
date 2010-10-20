@@ -398,7 +398,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
         cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
             TRACE_4("Locking failed");
-            assert(0);
+            abort();
         }
         locked = TRUE;
 		imma_mark_clients_stale(cb);
@@ -417,7 +417,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
             TRACE_4("Locking failed");
-            assert(0);
+            abort();
         }
         locked = TRUE;
         /* Check again if some clients have been exposed during down time. 
@@ -429,7 +429,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
         if (!locked) {
             if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
                 TRACE_4("Locking failed");
-                assert(0);
+                abort();
             }
             locked = TRUE;
         }

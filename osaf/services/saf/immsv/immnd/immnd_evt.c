@@ -3810,7 +3810,6 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 
 		if (err != SA_AIS_OK) {
 			LOG_ER("Failed to encode IMMND finalize sync message");
-			/*assert(0); */
 			/*If we fail in sync then restart the IMMND sync client.
 			   This assumes that ImmModel::finalizeSync(,,T,F) does not 
 			   alter model state (to fully available) *if* if returns error.
@@ -3911,7 +3910,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 		err = immModel_objectSync(cb, &(evt->info.obj_sync));
 		if (err != SA_AIS_OK) {
 			LOG_ER("Failed to apply IMMND sync message");
-			assert(0);	/*If we fail in sync then restart the IMMND sync client. */
+			abort();	/*If we fail in sync then restart the IMMND sync client. */
 		}
 		memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
 		while(immModel_fetchRtUpdate(cb, &(evt->info.obj_sync), &objModify, cb->syncFevsBase)) {
@@ -5304,7 +5303,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 						LOG_WA("PBE went down");
 						/* TODO need to ABORT ccb in CRITICAL. or set CRITICAL below*/
 						err = SA_AIS_ERR_FAILED_OPERATION;
-						assert(0);
+						abort();
 					}
 
 					memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -5954,7 +5953,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 			if (cb->mState > IMM_SERVER_LOADING_PENDING) {
 				LOG_WA("Imm at this node has epoch %u, "
 				       "appears to be a stragler in wrong state %u", cb->mMyEpoch, cb->mState);
-				assert(0);
+				abort();
 			} else {
 				TRACE_2("This nodes apparently missed start of sync");
 			}
@@ -5962,7 +5961,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 			assert(cb->mMyEpoch + 1 > cb->mRulingEpoch);
 			LOG_WA("Imm at this evs node has epoch %u, "
 			       "COORDINATOR appears to be a stragler!!, aborting.", cb->mMyEpoch);
-			assert(0);
+			abort();
 			/* TODO: 080414 re-inserted the assert ...
 			   This is an extreemely odd case. Possibly it could occur after a
 			   failover ?? */

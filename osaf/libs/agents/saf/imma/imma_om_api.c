@@ -4235,7 +4235,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 						size = sizeof(SaAnyT);
 						break;
 					default:
-						assert(0);
+						abort();
 					}	/*switch */
 
 					SaNameT *namep = NULL;
@@ -4296,7 +4296,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 						       anyp->bufferSize);
 						break;
 					default:
-						assert(0);
+						abort();
 					}	/*switch */
 
 					attr[i]->attrDefaultValue = copyv;
@@ -4434,7 +4434,7 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree(SaImmHandleT immHandle, SaImmAttrD
 					break;
 
 				default:
-					assert(0);
+					abort();
 				}	//switch
 				attrDefinition[i]->attrDefaultValue = 0;
 			}
@@ -4519,7 +4519,7 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 					break;
 
 				default:
-					assert(0);
+					abort();
 				}	//switch
 				attrDefinition[i]->attrDefaultValue = 0;
 			}

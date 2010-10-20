@@ -1000,7 +1000,7 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		/*The idea is here that we should be syncing some fevs messages 
 		   that are still in the "period of grace", i.e. available for 
 		   resends. */
-		assert(0);	/* Saving of fevs messages in immd A/S not yet implemented */
+		abort();	/* Saving of fevs messages in immd A/S not yet implemented */
 	}
 
 	/* Get the counters */

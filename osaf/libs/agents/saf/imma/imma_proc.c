@@ -1923,7 +1923,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					if(!isPbeOp) {TRACE_2("The oi_ccb_record now marked as critical.");}
 				} else {
 					LOG_ER("ERROR: CCB record for %u non existent - exiting", callback->ccbID);
-					assert(0);
+					abort();
 				}
 			} else {
 				TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);

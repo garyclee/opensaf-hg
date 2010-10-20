@@ -1392,10 +1392,9 @@ ImmModel::immNotWritable()
             
         default:
             LOG_ER( "Impossible node state, will terminate");
-            assert(0);
             
     }  
-    assert(0);
+    abort();
 }
 
 /* immNotPbeWritable returning true means:
@@ -1455,10 +1454,10 @@ ImmModel::prepareForLoading()
         case IMM_NODE_R_AVAILABLE:
             LOG_ER( "Node is in a state that cannot accept start "
                 "of loading, will terminate");
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
             
     }
 }
@@ -1489,10 +1488,10 @@ ImmModel::recognizedIsolated()
         case IMM_NODE_LOADING:
         case IMM_NODE_R_AVAILABLE:
             LOG_ER("Node is in a state that cannot request sync, will terminate");
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
     }
 }
 
@@ -1523,10 +1522,10 @@ ImmModel::prepareForSync(bool isJoining)
         case IMM_NODE_R_AVAILABLE:
             LOG_ER("Node is in a state that cannot accept start of sync, "
                 "will terminate");
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
             
     }
 }
@@ -1656,7 +1655,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
 
 
             default:
-                assert(0);
+                abort();
         }
         delete oMut;
     }
@@ -1727,10 +1726,10 @@ ImmModel::abortSync()
             
             LOG_ER("Node is in a state %u that cannot accept abort "
                 " of sync, will terminate", sImmNodeState);
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
             
     }
 }
@@ -3174,7 +3173,7 @@ ImmModel::ccbResult(SaUint32T ccbId)
 
             default:
                 LOG_ER("ccbResult: Illegal state %u in ccb %u", (*i)->mState, ccbId);
-                assert(0);
+                abort();
         }
     }
     return err;
@@ -3429,7 +3428,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
                 commitDelete(omit->first);
                 break;
             default:
-                assert(0);
+                abort();
         }//switch
         delete omut;
     }//for
@@ -3542,7 +3541,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
 
         default:
             LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
-            assert(0);
+            abort();
     }
     
     
@@ -3645,7 +3644,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 return SA_AIS_ERR_TRY_AGAIN;
             default:
                 LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
-                assert(0);
+                abort();
         }
         
         ObjectMutationMap::iterator omit;
@@ -3717,7 +3716,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 }
                     break;
                 default: 
-                    assert(0);
+                    abort();
             }//switch
             delete omut;
         }//for each mutation
@@ -4731,7 +4730,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         if (i5 == afim->mAttrValueMap.end()) {
             LOG_ER("Attr '%s' defined in class yet missing from existing object %s", 
                 attrName.c_str(), objectName.c_str());
-            assert(0); 
+            abort(); 
         }
         
         ImmAttrValue* attrValue = i5->second;
@@ -6768,7 +6767,7 @@ ImmModel::findConnForImplementerOfObject(std::string objectDn)
 
     if(! (nameCheck(objectDn)||nameToInternal(objectDn)) ) {
         LOG_ER("Invalid object name %s sent internally", objectDn.c_str());
-        assert(0);
+        abort();
     }
 
     oi = sObjectMap.find(objectDn);
@@ -8203,7 +8202,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_ER("No RDN attribute found in class!");
-        assert(0); 
+        abort(); 
     }
     
     attrValues = req->attrValues;
@@ -9782,10 +9781,10 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         case IMM_NODE_R_AVAILABLE:
             LOG_ER("Node is in a state %u that cannot accept"
                 "sync message, will terminate", sImmNodeState);
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
     }
     
     size_t sz = strnlen((char *) req->className.buf, 
@@ -10103,10 +10102,10 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 "finalize of sync, will terminate %u %u", sImmNodeState, 
                 isCoord,
                 isSyncClient);
-            assert(0);
+            abort();
         default:
             LOG_ER("Impossible node state, will terminate");
-            assert(0);
+            abort();
     }
     
     if(isCoord) {//Produce the checkpoint 
@@ -10317,7 +10316,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     if(oi == sObjectMap.end()) {
                         LOG_ER("Sync client failed to locate object: "
                             "%s, will restart.", objectName.c_str());
-                        assert(0);
+                        abort();
                     }
                     info->mTouchedObjects.insert(oi->second);
                     nl = nl->next;
@@ -10508,21 +10507,21 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         "AdminOwner-name %s for id %u, should be %s.",
                         info->mAdminOwnerName.c_str(), ai->id, 
                         ownerName.c_str());
-                    assert(0);
+                    abort();
                 }
                 if(info->mReleaseOnFinalize != ai->releaseOnFinalize) {
                     LOG_ER("Sync-verify: Established node has "
                         "different release-on-verify flag (%u) for AdminOwner "
                         "%s, should be %u.", info->mReleaseOnFinalize, 
                         ownerName.c_str(), ai->releaseOnFinalize);
-                    assert(0);
+                    abort();
                 }
                 if(info->mNodeId != (unsigned int) ai->nodeId) {
                     LOG_ER("Sync-verify: Established node has "
                         "different nodeId (%x) for AdminOwner "
                         "%s, should be %x.", info->mNodeId, 
                         ownerName.c_str(), ai->nodeId);
-                    assert(0);
+                    abort();
                 }
                 
                 ImmsvObjNameList* nl = ai->touchedObjects;
@@ -10537,7 +10536,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         (unsigned int) info->mTouchedObjects.size(), 
                         ownerName.c_str(),
                         nrofTouchedObjs);
-                    assert(0);
+                    abort();
                 }
                 ai = ai->next;
             }
