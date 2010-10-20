@@ -367,7 +367,7 @@ void imma_freeAttrValue3(SaImmAttrValueT p, const SaImmValueTypeT attrValueType)
 		TRACE_4("Incorrect value for SaImmValueTypeT:%u. "
 			"Did you forget to set the attrValueType member in a "
 			"SaImmAttrValuesT_2 value ?", attrValueType);
-		assert(0);
+		abort();
 	}
 
 	free(p);
@@ -436,7 +436,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 		TRACE_4("Incorrect value for SaImmValueTypeT:%u. "
 			"Did you forget to set the attrValueType member in a "
 			"SaImmAttrValuesT_2 value ?\n", attrValueType);
-		assert(0);
+		abort();
 	}
 
 	p->val.x.size = valueSize;
@@ -456,11 +456,11 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 			(void)memcpy(p->val.x.buf, saAnyTp->bufferAddr, valueSize);
 			break;
 		default:
-			assert(0);	/*If I get here then I have introduced a bug 
+			abort();	/*If I get here then I have introduced a bug 
 					   somewhere above. */
 		}
 	} else {
-		assert(0);
+		abort();
 	}
 }
 
@@ -513,7 +513,7 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 
 	default:
 		TRACE_4("Illegal value type: %u", attrValueType);
-		assert(0);
+		abort();
 	}
 
 	retVal = calloc(1, valueSize);
@@ -575,7 +575,7 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 		break;
 
 	default:
-		assert(0);
+		abort();
 	}
 	return retVal;
 }

@@ -1051,7 +1051,6 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
 				    &send_evt) != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failure to broadcast discard Ccb for ccbId:%u", ccbIdArr[ix]);
-				/* assert(0); */
 			}
 		}
 		free(ccbIdArr);
@@ -1776,7 +1775,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	default:
 		LOG_ER("Illegal state in ImmServer:%u", cb->mState);
-		assert(0);
+		abort();
 		break;
 	}
 

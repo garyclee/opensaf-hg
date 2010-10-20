@@ -395,7 +395,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 						&(attMod->modAttr), ccbId);
 					
 					break;
-				default: assert(0);
+				default: abort();
 			}
 		}
 
@@ -559,12 +559,12 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 								&(attMod->modAttr), ccbId);
 
 							break;
-						default: assert(0);
+						default: abort();
 					}
 				}
 				break;
 
-			default: assert(0);
+			default: abort();
 
 		}
 		ccbUtilOperationData = ccbUtilOperationData->next;

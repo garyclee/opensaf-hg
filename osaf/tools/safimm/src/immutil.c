@@ -426,7 +426,7 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
                                         break;
                                 default:
                                         error = SA_AIS_ERR_INVALID_PARAM;
-					assert(0);
+					abort();
                                         goto done;
                                         break;
                         }

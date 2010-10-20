@@ -1137,7 +1137,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 					LOG_ER("immd_evt_proc_immnd_intro: syncStarted true for node with "
 						"strange epoch node_info->epoch(%u) != cb->mRulingEpoc(%u)",	
 						node_info->epoch, cb->mRulingEpoch);
-					assert(0);
+					abort();
 				}
 				/*node_info->epoch = cb->mRulingEpoch;*/
 				node_info->syncStarted = FALSE;

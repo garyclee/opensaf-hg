@@ -100,7 +100,7 @@ static void valuesToPBE(const SaImmAttrValuesT_2* p,
 
 		default:
 			LOG_ER("Unknown value type %u", p->attrValueType);
-			assert(0);
+			abort();
 	}
 	sqlG.append(objIdStr);
 	sqlG.append("', '");
@@ -2156,29 +2156,30 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 
 void pbeRepositoryClose(void* dbHandle) 
 {
-	assert(0);
+	abort();
 }
 
 void pbeAtomicSwitchFile(const char* filePath)
 {
-	assert(0);
+	abort();
 }
 
 void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle)
 {
-	assert(0);
+	abort();
 }
 
 unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle)
 {
-	assert(0);
+	abort();
+	return 0;
 }
 
 unsigned int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
 	std::string className, unsigned int* objIdCount, void* db_handle)
 {
-	assert(0);
+	abort();
 	return 0;
 }
 
@@ -2187,20 +2188,20 @@ ClassInfo* classToPBE(std::string classNameString,
 	void* db_handle,
 	unsigned int class_id)
 {
-	assert(0);
+	abort();
 	return NULL;
 }
 
 void deleteClassToPBE(std::string classNameString, void* db_handle, 
 	ClassInfo* theClass)
 {
-	assert(0);
+	abort();
 }
 
 unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle)
 {
-	assert(0);
+	abort();
 	return 0;
 }
 
@@ -2216,30 +2217,30 @@ SaAisErrorT pbeCommitTrans(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
 
 void pbeAbortTrans(void* db_handle)
 {
-	assert(0);
+	abort();
 }
 
 void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 {
-	assert(0);
+	abort();
 }
 
 void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objName, 
 	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
-	assert(0);
+	abort();
 }
 
 void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName, 
 	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
-	assert(0);
+	abort();
 }
 
 void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string objName, 
 	const SaImmAttrValuesT_2* attrValue, SaUint64T ccb_id)
 {
-	assert(0);
+	abort();
 }
 
 void objectToPBE(std::string objectNameString,
@@ -2250,7 +2251,7 @@ void objectToPBE(std::string objectNameString,
 	SaImmClassNameT className,
 	SaUint64T ccb_id)
 {
-	assert(0);
+	abort();
 }
 
 SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch)
@@ -2260,13 +2261,13 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epo
 
 unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle)
 {
-	assert(0);
+	abort();
 	return 0;
 }
 
 void purgeCcbCommitsFromPbe(void* sDbHandle, SaUint32T currentEpoch)
 {
-	assert(0);
+	abort();
 }
 
 #endif

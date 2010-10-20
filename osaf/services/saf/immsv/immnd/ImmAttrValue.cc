@@ -194,7 +194,7 @@ ImmAttrValue::copyValueToEdu(IMMSV_EDU_ATTR_VAL* out, SaImmValueTypeT t) const
             break;
             
         default:
-            assert(0);
+            abort();
     }
 }
 
