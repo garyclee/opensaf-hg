@@ -89,7 +89,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
     if(!mRtsToFetch.empty()) {mRtsToFetch.clear();}
     
-    if (mResultList.size() > 0) {
+    if (!mResultList.empty()) {
         SearchObject& obj = mResultList.front();
         IMMSV_OM_RSP_SEARCH_NEXT* p =   (IMMSV_OM_RSP_SEARCH_NEXT*)
             calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_NEXT));
