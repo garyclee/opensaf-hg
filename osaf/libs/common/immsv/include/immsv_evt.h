@@ -176,6 +176,9 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH = 77,  /* Highest client id IMMA knows */
 	IMMND_EVT_A2ND_PBE_ADMOP_RSP = 78,      /* PBE AdminOperation result FEVS reply */
 	IMMND_EVT_D2ND_SYNC_FEVS_BASE = 79,   /* Sync started based on this fevsCount */
+	IMMND_EVT_A2ND_OBJ_SYNC_2 = 80,	/* immsv_sync */
+	IMMND_EVT_A2ND_IMM_FEVS_2 = 81,	/* Fake EVS msg from Agent (forward) */
+	IMMND_EVT_D2ND_GLOB_FEVS_REQ_2 = 82, /* Fake EVS msg from director (consume) */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -215,6 +218,8 @@ typedef enum immd_evt_type {
 
 	IMMD_EVT_ND2D_SYNC_FEVS_BASE = 23, /* Sync started based on this fevsCount */
 
+	IMMD_EVT_ND2D_FEVS_REQ_2 = 24,	/*Fake EVS over Director. */
+
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMD_EVT_TYPE enum. */
@@ -253,6 +258,7 @@ typedef struct immsv_fevs {
 	SaImmHandleT client_hdl;	//Needed for aborting callbacks
 	/* Holds nodeId and connection */
 	IMMSV_OCTET_STRING msg;
+	uns8 isObjSync;   /* Used by coord to avoid unpacking, saves exec.*/
 } IMMSV_FEVS;
 
 /****************************************************************************

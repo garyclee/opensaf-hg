@@ -23,13 +23,14 @@
 *****************************************************************************/
 
 #include "immsv.h"
+#include "immsv_api.h"
 
 #define IMMSV_MAX_ATTRIBUTES 128
 #define IMMSV_MAX_CLASSES 1000
 #define IMMSV_MAX_IMPLEMENTERS 3000
 #define IMMSV_MAX_ADMINOWNERS 2000
 #define IMMSV_MAX_OBJECTS 10000
-#define IMMSV_MAX_CCBS 1000
+#define IMMSV_MAX_CCBS 10000
 
 /* This array must match IMMD_EVT_TYPE */
 static const char *immd_evt_names[] = {
@@ -56,7 +57,8 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_LGA_CB",
 	"IMMD_EVT_ND2D_PBE_PRTO_PURGE_MUTATIONS",
 	"IMMD_EVT_ND2D_LOADING_FAILED",
-	"IMMD_EVT_ND2D_SYNC_FEVS_BASE"
+	"IMMD_EVT_ND2D_SYNC_FEVS_BASE",
+	"IMMD_EVT_ND2D_FEVS_REQ_2"
 };
 
 static const char *immsv_get_immd_evt_name(unsigned int id)
@@ -148,7 +150,10 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH",
 	"IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH",
 	"IMMND_EVT_A2ND_PBE_ADMOP_RSP",
-	"IMMND_EVT_D2ND_SYNC_FEVS_BASE"
+	"IMMND_EVT_D2ND_SYNC_FEVS_BASE",
+	"IMMND_EVT_A2ND_OBJ_SYNC_2",
+	"IMMND_EVT_A2ND_IMM_FEVS_2",
+	"IMMND_EVT_D2ND_GLOB_FEVS_REQ_2"
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -1350,7 +1355,8 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			}
 		}
 	} else if (i_evt->type == IMMSV_EVT_TYPE_IMMD) {
-		if (i_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ) {
+		if ((i_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ) ||
+			(i_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immd.info.fevsReq.msg);
 			immsv_evt_enc_inline_string(o_ub, os);
 		} else if (i_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) {
@@ -1378,7 +1384,9 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 		}
 	} else if (i_evt->type == IMMSV_EVT_TYPE_IMMND) {
 		if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
-		    (i_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ)) {
+		    (i_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ) ||
+		    (i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS_2) ||
+		    (i_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.fevsReq.msg);
 			immsv_evt_enc_inline_string(o_ub, os);
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET) ||
@@ -1479,27 +1487,74 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.objDelete.objectName);
 			immsv_evt_enc_inline_string(o_ub, os);
 
-		} else if (i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
-			int depth = 0;
-			/*Encode the className */
-			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.obj_sync.className);
-			immsv_evt_enc_inline_string(o_ub, os);
+		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) ||
+			(i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)) {
+			int syncDepth = 0;
+			IMMSV_OM_OBJECT_SYNC* obj_sync = &(i_evt->info.immnd.info.obj_sync);
+			while(obj_sync) {
+				uns8 *p8;
+				int attrDepth = 0;
 
-			/*Encode the objecttName */
-			os = &(i_evt->info.immnd.info.obj_sync.objectName);
-			immsv_evt_enc_inline_string(o_ub, os);
+				++syncDepth;
+				if (syncDepth >= IMMSV_MAX_SYNCBATCH) {
+					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
+					return NCSCC_RC_OUT_OF_MEM;
+				}
+				
+				/*Encode the className */
+				IMMSV_OCTET_STRING *os = &(obj_sync->className);
+				immsv_evt_enc_inline_string(o_ub, os);
 
-			/*Encode the list of attributes */
-			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.immnd.info.obj_sync.attrValues;
+				/*Encode the objecttName */
+				os = &(obj_sync->objectName);
+				immsv_evt_enc_inline_string(o_ub, os);
 
-			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
-				immsv_evt_enc_attribute(o_ub, p);
-				p = p->next;
-				++depth;
-			}
-			if (depth >= IMMSV_MAX_ATTRIBUTES) {
-				LOG_ER("TOO MANY attributes line:%u", __LINE__);
-				return NCSCC_RC_OUT_OF_MEM;
+				/*Encode the list of attributes */
+				IMMSV_ATTR_VALUES_LIST *p = obj_sync->attrValues;
+
+				while (p && (attrDepth < IMMSV_MAX_ATTRIBUTES)) {
+					immsv_evt_enc_attribute(o_ub, p);
+					p = p->next;
+					++attrDepth;
+				}
+				if (attrDepth >= IMMSV_MAX_ATTRIBUTES) {
+					LOG_ER("TOO MANY attributes line:%u", __LINE__);
+					return NCSCC_RC_OUT_OF_MEM;
+				}
+
+				if(i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
+					/* Old OBJ_SYNC messages contain only one object
+					   and have no next marker.
+					 */
+					TRACE("Old OBJ_SYNC send case");
+					assert(obj_sync->next == NULL);
+					break;
+				}
+
+				obj_sync = obj_sync->next;
+				if(obj_sync) { /* Another object in the sync batch. */
+					/* next marker == 1 */
+					p8 = ncs_enc_reserve_space(o_ub, 1);
+					ncs_encode_8bit(&p8, 1);
+					ncs_enc_claim_space(o_ub, 1);
+
+					p8 = ncs_enc_reserve_space(o_ub, 4);
+					ncs_encode_32bit(&p8, obj_sync->className.size);
+					ncs_enc_claim_space(o_ub, 4);
+
+					p8 = ncs_enc_reserve_space(o_ub, 4);
+					ncs_encode_32bit(&p8, obj_sync->objectName.size);
+					ncs_enc_claim_space(o_ub, 4);
+
+					p8 = ncs_enc_reserve_space(o_ub, 1);
+					ncs_encode_8bit(&p8, (obj_sync->attrValues) ? 0x1 : 0x0);
+					ncs_enc_claim_space(o_ub, 1);
+				} else { /* End of the sync batch */
+					/* next marker == 0 */
+					p8 = ncs_enc_reserve_space(o_ub, 1);
+					ncs_encode_8bit(&p8, 0x0);
+					ncs_enc_claim_space(o_ub, 1);
+				}
 			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_SET) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
@@ -1796,7 +1851,8 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			}
 		}
 	} else if (o_evt->type == IMMSV_EVT_TYPE_IMMD) {
-		if (o_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ) {
+		if ((o_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ) ||
+		    (o_evt->info.immd.type == IMMD_EVT_ND2D_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immd.info.fevsReq.msg);
 			immsv_evt_dec_inline_string(i_ub, os);
 		} else if (o_evt->info.immd.type == IMMD_EVT_ND2D_IMPLSET_REQ) {
@@ -1817,7 +1873,9 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 		}
 	} else if (o_evt->type == IMMSV_EVT_TYPE_IMMND) {
 		if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
-		    (o_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ)) {
+			(o_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ) ||
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS_2) ||
+			(o_evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)) {
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.fevsReq.msg);
 			immsv_evt_dec_inline_string(i_ub, os);
 		} else
@@ -1890,19 +1948,70 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			/*Decode the objectName */
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.objDelete.objectName);
 			immsv_evt_dec_inline_string(i_ub, os);
-		} else if (o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
-			/*Decode the className */
-			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.obj_sync.className);
-			immsv_evt_dec_inline_string(i_ub, os);
+		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC)||
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)) {
+			uns8 *p8;
+			uns8 local_data[8];
+			int syncDepth = 0;
+			IMMSV_OM_OBJECT_SYNC* obj_sync = &(o_evt->info.immnd.info.obj_sync);
+			while(obj_sync) {
+				++syncDepth;
+				if (syncDepth >= IMMSV_MAX_SYNCBATCH) {
+					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
+					return NCSCC_RC_OUT_OF_MEM;
+				}
 
-			os = &(o_evt->info.immnd.info.obj_sync.objectName);
-			immsv_evt_dec_inline_string(i_ub, os);
+				/*Decode the className */
+				IMMSV_OCTET_STRING *os = &(obj_sync->className);
+				immsv_evt_dec_inline_string(i_ub, os);
 
-			/*Decode the list of attributes */
-			IMMSV_ATTR_VALUES_LIST *p = o_evt->info.immnd.info.obj_sync.attrValues;
-			if (p) {
-				immsv_evt_dec_attributes(i_ub, &p);
-				o_evt->info.immnd.info.obj_sync.attrValues = p;
+				/*Decode the objectName */
+				os = &(obj_sync->objectName);
+				immsv_evt_dec_inline_string(i_ub, os);
+
+				/*Decode the list of attributes */
+				IMMSV_ATTR_VALUES_LIST *p = obj_sync->attrValues;
+				if (p) {
+					immsv_evt_dec_attributes(i_ub, &p);
+					obj_sync->attrValues = p;
+				}
+
+				if(o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
+					/* Old OBJ_SYNC messages contain only one object
+					   and have no next marker.
+					 */
+					TRACE("Old OBJ_SYNC receive case");
+					obj_sync->next = NULL;
+					break;
+				}
+
+				/* IMMND_EVT_A2ND_OBJ_SYNC_2 => possible batch. */
+
+				p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+				if (ncs_decode_8bit(&p8)) {
+					obj_sync->next = 
+						calloc(1, sizeof(IMMSV_OM_OBJECT_SYNC));
+				}
+				ncs_dec_skip_space(i_ub, 1);
+
+				if (obj_sync->next) {
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+					obj_sync->next->className.size = 
+						ncs_decode_32bit(&p8);
+					ncs_dec_skip_space(i_ub, 4);
+
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+					obj_sync->next->objectName.size =
+						ncs_decode_32bit(&p8);
+					ncs_dec_skip_space(i_ub, 4);
+
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+					if (ncs_decode_8bit(&p8)) {
+						obj_sync->next->attrValues = (void *)0x1;
+					}
+					ncs_dec_skip_space(i_ub, 1);
+				}
+				obj_sync = obj_sync->next;					
 			}
 		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_SET) ||
 			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
@@ -2435,6 +2544,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMD_EVT_ND2D_FEVS_REQ:	/*Fake EVS over Director. */
+		case IMMD_EVT_ND2D_FEVS_REQ_2:
 			assert(sizeof(MDS_DEST) == 8);
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immdevt->info.fevsReq.reply_dest);
@@ -2448,7 +2558,14 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_encode_32bit(&p8, immdevt->info.fevsReq.msg.size);
 			ncs_enc_claim_space(o_ub, 4);
 			/* immdevt->info.fevsRe.msg.buf encoded by sublevel */
+
+			if(immdevt->type == IMMD_EVT_ND2D_FEVS_REQ_2) {			
+				p8 = ncs_enc_reserve_space(o_ub, 1);
+				ncs_encode_8bit(&p8, immdevt->info.fevsReq.isObjSync);
+				ncs_enc_claim_space(o_ub, 1);
+			}
 			break;
+
 
 		case IMMD_EVT_ND2D_CCBINIT_REQ:	/* CcbInitialize */
 			p8 = ncs_enc_reserve_space(o_ub, 4);
@@ -2597,6 +2714,9 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_A2ND_IMM_FEVS:	/*Fake EVS msg from Agent (forward) */
+		case IMMND_EVT_A2ND_IMM_FEVS_2:
+		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:	/* Fake EVS msg from director (consume) */
+		case IMMND_EVT_D2ND_GLOB_FEVS_REQ_2:
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.fevsReq.sender_count);
 			ncs_enc_claim_space(o_ub, 8);
@@ -2613,6 +2733,13 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_encode_32bit(&p8, immndevt->info.fevsReq.msg.size);
 			ncs_enc_claim_space(o_ub, 4);
 			/* immndevt->info.fevsReq.msg.buf encoded by encode sublevel */
+
+			if((immndevt->type == IMMND_EVT_A2ND_IMM_FEVS_2) ||
+			   (immndevt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)) {
+				p8 = ncs_enc_reserve_space(o_ub, 1);
+				ncs_encode_8bit(&p8, immndevt->info.fevsReq.isObjSync);
+				ncs_enc_claim_space(o_ub, 1);
+			}
 			break;
 
 		case IMMND_EVT_A2ND_CCBINIT:	/* CcbInitialize */
@@ -2889,6 +3016,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_A2ND_OBJ_SYNC:	/* immsv_sync */
+		case IMMND_EVT_A2ND_OBJ_SYNC_2:	
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.obj_sync.className.size);
 			ncs_enc_claim_space(o_ub, 4);
@@ -3144,25 +3272,6 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			p8 = ncs_enc_reserve_space(o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.syncFevsBase);
 			ncs_enc_claim_space(o_ub, 8);
-			break;
-
-		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:	/* Fake EVS msg from director (consume) */
-			p8 = ncs_enc_reserve_space(o_ub, 8);
-			ncs_encode_64bit(&p8, immndevt->info.fevsReq.sender_count);
-			ncs_enc_claim_space(o_ub, 8);
-
-			p8 = ncs_enc_reserve_space(o_ub, 8);
-			ncs_encode_64bit(&p8, immndevt->info.fevsReq.reply_dest);
-			ncs_enc_claim_space(o_ub, 8);
-
-			p8 = ncs_enc_reserve_space(o_ub, 8);
-			ncs_encode_64bit(&p8, immndevt->info.fevsReq.client_hdl);
-			ncs_enc_claim_space(o_ub, 8);
-
-			p8 = ncs_enc_reserve_space(o_ub, 4);
-			ncs_encode_32bit(&p8, immndevt->info.fevsReq.msg.size);
-			ncs_enc_claim_space(o_ub, 4);
-			/* immndevt->info.fevsReq.msg.buf encoded by encode sublevel */
 			break;
 
 		case IMMND_EVT_D2ND_ADMINIT:	/* Admin Owner init reply */
@@ -3616,6 +3725,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMD_EVT_ND2D_FEVS_REQ:	/*Fake EVS over Director. */
+		case IMMD_EVT_ND2D_FEVS_REQ_2:
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 			immdevt->info.fevsReq.reply_dest = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -3628,6 +3738,12 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			immdevt->info.fevsReq.msg.size = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
 			/* immdevt->info.fevsReq.msg.buf decoded by sublevel */
+
+			if(immdevt->type == IMMD_EVT_ND2D_FEVS_REQ_2) {
+				p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+				immdevt->info.fevsReq.isObjSync = ncs_decode_8bit(&p8);
+				ncs_dec_skip_space(i_ub, 1);
+			}
 			break;
 
 		case IMMD_EVT_ND2D_CCBINIT_REQ:	/* CcbInitialize */
@@ -3780,7 +3896,11 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 1);
 			break;
 
-		case IMMND_EVT_A2ND_IMM_FEVS:	/*Fake EVS msg from Agent (forward) */
+		case IMMND_EVT_A2ND_IMM_FEVS:	  /* Fake EVS msg from Agent (forward) */
+		case IMMND_EVT_A2ND_IMM_FEVS_2:
+		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:/* Fake EVS msg from director (consume) */
+		case IMMND_EVT_D2ND_GLOB_FEVS_REQ_2:
+
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 			immndevt->info.fevsReq.sender_count = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -3797,6 +3917,13 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			immndevt->info.fevsReq.msg.size = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
 			/* immndevt->info.fevsReq.msg.buf decoded by decode sublevel */
+
+			if((immndevt->type == IMMND_EVT_A2ND_IMM_FEVS_2)||
+			   (immndevt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2))  {
+				p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+				immndevt->info.fevsReq.isObjSync = ncs_decode_8bit(&p8);
+				ncs_dec_skip_space(i_ub, 1);
+			}
 			break;
 
 		case IMMND_EVT_A2ND_CCBINIT:	/* CcbInitialize */
@@ -4090,6 +4217,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			break;
 
 		case IMMND_EVT_A2ND_OBJ_SYNC:	/* immsv_sync */
+		case IMMND_EVT_A2ND_OBJ_SYNC_2:
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.obj_sync.className.size = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -4374,25 +4502,6 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 			immndevt->info.syncFevsBase = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
-			break;
-
-		case IMMND_EVT_D2ND_GLOB_FEVS_REQ:	/* Fake EVS msg from director (consume) */
-			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
-			immndevt->info.fevsReq.sender_count = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(i_ub, 8);
-
-			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
-			immndevt->info.fevsReq.reply_dest = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(i_ub, 8);
-
-			p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
-			immndevt->info.fevsReq.client_hdl = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(i_ub, 8);
-
-			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
-			immndevt->info.fevsReq.msg.size = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(i_ub, 4);
-			/* immndevt->info.fevsReq.msg.buf decoded by decode sublevel */
 			break;
 
 		case IMMND_EVT_D2ND_ADMINIT:	/* Admin Owner init reply */

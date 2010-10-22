@@ -366,17 +366,37 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
 		free(evt->info.immnd.info.objDelete.objectName.buf);
 		evt->info.immnd.info.objDelete.objectName.buf = NULL;
 		evt->info.immnd.info.objDelete.objectName.size = 0;
-	} else if (evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
-		free(evt->info.immnd.info.obj_sync.className.buf);
-		evt->info.immnd.info.obj_sync.className.buf = NULL;
-		evt->info.immnd.info.obj_sync.className.size = 0;
+	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) ||
+		(evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)) {
+		IMMSV_OM_OBJECT_SYNC* obj_sync = &(evt->info.immnd.info.obj_sync);
+		IMMSV_OM_OBJECT_SYNC* tmp = NULL;
+		SaBoolT top=SA_TRUE;
 
-		free(evt->info.immnd.info.obj_sync.objectName.buf);
-		evt->info.immnd.info.obj_sync.objectName.buf = NULL;
-		evt->info.immnd.info.obj_sync.objectName.size = 0;
+		while(obj_sync) {
+			free(obj_sync->className.buf);
+			obj_sync->className.buf = NULL;
+			obj_sync->className.size = 0;
 
-		immsv_free_attrvalues_list(evt->info.immnd.info.obj_sync.attrValues);
-		evt->info.immnd.info.obj_sync.attrValues = NULL;
+			free(obj_sync->objectName.buf);
+			obj_sync->objectName.buf = NULL;
+			obj_sync->objectName.size = 0;
+
+			immsv_free_attrvalues_list(obj_sync->attrValues);
+			obj_sync->attrValues = NULL;
+
+			if(evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC) {
+				obj_sync = NULL;
+			} else {
+				tmp = obj_sync;
+				obj_sync = obj_sync->next;
+				tmp->next = NULL;
+				if(!top) { /* Top object resides in evt on stack. */
+					free(tmp);
+					top = SA_FALSE;
+				}
+			}
+		}
+
 	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_CREATE) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DESCR_GET) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DELETE)) {
@@ -1188,7 +1208,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	MDS_DEST implDest = 0LL;
 	SaBoolT retardSync = 
 		((cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) && 
-		cb->mIsCoord && (cb->syncPid > 0));
+			cb->mIsCoord && (cb->syncPid > 0));
 
 	TRACE_ENTER();
 
@@ -2275,6 +2295,8 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	send_evt.info.immd.info.fevsReq.msg.size = evt->info.fevsReq.msg.size;
 	/*Borrow the octet buffer from the input message instead of copying */
 	send_evt.info.immd.info.fevsReq.msg.buf = evt->info.fevsReq.msg.buf;
+	send_evt.info.immd.info.fevsReq.isObjSync = 
+		evt->info.fevsReq.isObjSync;
 
 	/* send the request to the IMMD */
 
@@ -3914,26 +3936,31 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 	TRACE_ENTER();
 
 	if (cb->mSync) {	/*This node is being synced => Accept the sync message. */
-		err = immModel_objectSync(cb, &(evt->info.obj_sync));
-		if (err != SA_AIS_OK) {
-			LOG_ER("Failed to apply IMMND sync message");
-			abort();	/*If we fail in sync then restart the IMMND sync client. */
-		}
-		memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
-		while(immModel_fetchRtUpdate(cb, &(evt->info.obj_sync), &objModify, cb->syncFevsBase)) {
-			LOG_IN("Applying deferred RTA update for object %s",
-				objModify.objectName.buf);
-			err = immModel_rtObjectUpdate(cb, &objModify, 0, 0, &isLocal,
-				NULL, NULL, NULL);
-			//free(objModify.objectName.buf);
-			immsv_free_attrmods(objModify.attrMods);
-			memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
-			if(err != SA_AIS_OK) {
-				LOG_ER("Failed to apply RTA update on object '%s' at sync client - aborting",
-					objModify.objectName.buf);
-				abort();
+		IMMSV_OM_OBJECT_SYNC* obj_sync = &(evt->info.obj_sync);
+		do {
+			err = immModel_objectSync(cb, obj_sync);
+			if (err != SA_AIS_OK) {
+				LOG_ER("Failed to apply IMMND sync message");
+				abort(); /*If we fail in sync then restart the IMMND sync client. */
 			}
-		}
+
+			memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
+			while(immModel_fetchRtUpdate(cb, &(evt->info.obj_sync), &objModify, cb->syncFevsBase)) {
+				LOG_IN("Applying deferred RTA update for object %s",
+					objModify.objectName.buf);
+				err = immModel_rtObjectUpdate(cb, &objModify, 0, 0, &isLocal,
+					NULL, NULL, NULL);
+				//free(objModify.objectName.buf);
+				immsv_free_attrmods(objModify.attrMods);
+				memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
+				if(err != SA_AIS_OK) {
+					LOG_ER("Failed to apply RTA update on object '%s' at sync client - aborting",
+						objModify.objectName.buf);
+					abort();
+				}
+			}
+			obj_sync = obj_sync->next;
+		} while (obj_sync);
 	} /*else {TODO: I should verify that the class & object exists, 
 		   at least the object. }*/
 

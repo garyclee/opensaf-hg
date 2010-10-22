@@ -208,6 +208,7 @@ extern "C" {
 		IMMSV_OCTET_STRING className;
 		IMMSV_OCTET_STRING objectName;
 		IMMSV_ATTR_VALUES_LIST *attrValues;
+		struct ImmsvOmObjectSync *next;
 	} IMMSV_OM_OBJECT_SYNC;
 
 	typedef struct ImmsvObjNameList {
