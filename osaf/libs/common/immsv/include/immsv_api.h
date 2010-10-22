@@ -43,6 +43,8 @@ extern "C" {
 
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 
+#define IMMSV_MAX_SYNCBATCH 1000
+
 /* Admin operation IDs */
 /* Internal PBE operation ids. */
 #define OPENSAF_IMM_PBE_CLASS_CREATE 0x10000000
