@@ -330,9 +330,11 @@ static const std::string immAttrClasses(OPENSAF_IMM_ATTR_CLASSES);
 static const std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static const std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 static const std::string immAttrNostFlags(OPENSAF_IMM_ATTR_NOSTD_FLAGS);
+static const std::string immSyncBatchSize(OPENSAF_IMM_SYNC_BATCH_SIZE);
 
 static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
 static const std::string saImmRepositoryInit("saImmRepositoryInit");
+
 static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
 SaAisErrorT 
@@ -920,6 +922,10 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
         TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages "
             "(> %u) rejecting sync iteration next request",
             IMMND_FEVS_MAX_PENDING);
+	/* This is special handling for sync. Because immsv_sync (sync object send) 
+	   is asyncronous, it can not be throttled directly. Insead we throttle the 
+	   sync object send by retarding the iterator used in syncing.
+	 */
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
@@ -1238,6 +1244,12 @@ immModel_getRepositoryInitMode(IMMND_CB *cb)
 {
     return (SaImmRepositoryInitModeT)
         ImmModel::instance(&cb->immModel)->getRepositoryInitMode();
+}
+
+unsigned int
+immModel_getMaxSyncBatchSize(IMMND_CB *cb)
+{
+    return ImmModel::instance(&cb->immModel)->getMaxSyncBatchSize();
 }
 
 void
@@ -1872,6 +1884,31 @@ ImmModel::getRepositoryInitMode()
     return SA_IMM_INIT_FROM_FILE;
 }
 
+unsigned int
+ImmModel::getMaxSyncBatchSize()
+{
+    TRACE_ENTER();
+    unsigned int mbSize = 0;
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return 0;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immSyncBatchSize);
+    if(avi != immObject->mAttrValueMap.end()) {
+        assert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        mbSize = valuep->getValue_int();
+    }
+    TRACE_LEAVE();
+    return mbSize;
+}
+
+
+
 /**
  * Fetches the nodeId and possibly connection id for the
  * implementer connected to the class OPENSAF_IMM_CLASS_NAME.
@@ -1882,8 +1919,7 @@ ImmModel::getRepositoryInitMode()
 void *
 ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
 {
-    std::string opensafClass(OPENSAF_IMM_CLASS_NAME);
-    ClassMap::iterator ci = sClassMap.find(opensafClass);
+    ClassMap::iterator ci = sClassMap.find(immClassName);
     assert(ci!=sClassMap.end());
     ClassInfo* classInfo = ci->second;
     if((classInfo->mImplementer && 

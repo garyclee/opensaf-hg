@@ -148,6 +148,7 @@ void immd_process_evt(void)
 		rc = immd_evt_proc_rt_modify_req(cb, &evt->info.immd, &evt->sinfo);
 		break;
 	case IMMD_EVT_ND2D_FEVS_REQ:
+	case IMMD_EVT_ND2D_FEVS_REQ_2:
 		rc = immd_evt_proc_fevs_req(cb, &evt->info.immd, &evt->sinfo, TRUE);
 		break;
 	case IMMD_EVT_MDS_QUIESCED_ACK_RSP:
@@ -236,7 +237,9 @@ uns32 immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo,
 	/* Populate & Send the FEVS Event to IMMND */
 	memset(&send_evt, 0, sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMND;
-	send_evt.info.immnd.type = IMMND_EVT_D2ND_GLOB_FEVS_REQ;
+	send_evt.info.immnd.type = (evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)?
+		IMMND_EVT_D2ND_GLOB_FEVS_REQ_2: IMMND_EVT_D2ND_GLOB_FEVS_REQ;
+
 	if ((evt->type == 0) && (fevs_req->sender_count > 0)) {
 		TRACE_5("Re-sending fevs message %llu", fevs_req->sender_count);
 		send_evt.info.immnd.info.fevsReq.sender_count = fevs_req->sender_count;
@@ -249,6 +252,8 @@ uns32 immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo,
 	send_evt.info.immnd.info.fevsReq.msg.size = fevs_req->msg.size;
 	/*Borrow the buffer from the input message instead of copying */
 	send_evt.info.immnd.info.fevsReq.msg.buf = fevs_req->msg.buf;
+	send_evt.info.immnd.info.fevsReq.isObjSync = (evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)?
+		(fevs_req->isObjSync):0x0;
 
 	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
 	mbcp_msg.type = IMMD_A2S_MSG_FEVS;

@@ -2698,13 +2698,15 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));
 	fevs_evt.type = IMMSV_EVT_TYPE_IMMND;
-	fevs_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_FEVS;
+	fevs_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_FEVS_2;
 	fevs_evt.info.immnd.info.fevsReq.client_hdl = immHandle;
 	/*Overloaded use of sender_count. IMMA->IMMND we use it as a marker
 	   if imm writability should be checked before sending to IMMD. */
 	fevs_evt.info.immnd.info.fevsReq.sender_count = checkWritable;
 	fevs_evt.info.immnd.info.fevsReq.msg.size = size;
 	fevs_evt.info.immnd.info.fevsReq.msg.buf = data;
+	fevs_evt.info.immnd.info.fevsReq.isObjSync = 
+		(i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)?0x1:0x0;
 
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);

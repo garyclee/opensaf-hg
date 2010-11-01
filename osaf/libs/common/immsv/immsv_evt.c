@@ -1496,7 +1496,7 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				int attrDepth = 0;
 
 				++syncDepth;
-				if (syncDepth >= IMMSV_MAX_SYNCBATCH) {
+				if (syncDepth >= IMMSV_MAX_OBJS_IN_SYNCBATCH) {
 					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}
@@ -1555,6 +1555,9 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					ncs_encode_8bit(&p8, 0x0);
 					ncs_enc_claim_space(o_ub, 1);
 				}
+			}
+			if(syncDepth > 20) {
+				TRACE("syncDepth > 20 :%u", syncDepth);
 			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_SET) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
@@ -1956,7 +1959,7 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			IMMSV_OM_OBJECT_SYNC* obj_sync = &(o_evt->info.immnd.info.obj_sync);
 			while(obj_sync) {
 				++syncDepth;
-				if (syncDepth >= IMMSV_MAX_SYNCBATCH) {
+				if (syncDepth >= IMMSV_MAX_OBJS_IN_SYNCBATCH) {
 					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}

@@ -183,7 +183,7 @@ void opensafClassCreate(SaImmHandleT immHandle)
 {
     SaAisErrorT err = SA_AIS_OK;
     int retries=0;
-    SaImmAttrDefinitionT_2 d1, d2, d3, d4;
+    SaImmAttrDefinitionT_2 d1, d2, d3, d4, d5;
     SaUint32T nost_flags_default = 0;
 
     d1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
@@ -207,7 +207,12 @@ void opensafClassCreate(SaImmHandleT immHandle)
     d4.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED;
     d4.attrDefaultValue = &nost_flags_default;
 
-    const SaImmAttrDefinitionT_2* attrDefs[5] = {&d1, &d2, &d3, &d4, 0};
+    d5.attrName = (char *) OPENSAF_IMM_SYNC_BATCH_SIZE;
+    d5.attrValueType = SA_IMM_ATTR_SAUINT32T;
+    d5.attrFlags = SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE;
+    d5.attrDefaultValue = NULL;
+
+    const SaImmAttrDefinitionT_2* attrDefs[6] = {&d1, &d2, &d3, &d4, &d5, 0};
 
 
     do {/* Create the class */
@@ -584,7 +589,7 @@ static void startElementHandler(void* userData,
 {
     ParserState* state;    
 
-    TRACE_8("TAG %s", name);
+    //TRACE_8("TAG %s", name);
 
     state = (ParserState*) userData;
     state->depth++;
@@ -748,7 +753,7 @@ static void endElementHandler(void* userData,
 
     state = (ParserState*)userData;
 
-    TRACE_8("END %s", name);
+    //TRACE_8("END %s", name);
 
     /* </value> */
     if (strcmp((const char*)name, "value") == 0)
@@ -838,7 +843,7 @@ static void endElementHandler(void* userData,
     }
     else if (strcmp((const char*)name, "object") == 0)
     {
-        TRACE_8("END OBJECT");
+        //TRACE_8("END OBJECT");
         if (!state->doneParsingClasses)
         {
             TRACE_8("CCB INIT");
@@ -1856,11 +1861,16 @@ void syncClassDescription(std::string className, SaImmHandleT& immHandle)
     saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
 }
 
-int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
+int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBatchSize)
 {
     SaImmClassCategoryT classCategory;
     SaImmAttrDefinitionT_2 **attrDefinitions;
     TRACE("Syncing instances of class %s", className.c_str());
+
+    if(maxBatchSize <= 0) {maxBatchSize = IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE;}
+
+    TRACE("ABT maxBatchSize set tu %d", maxBatchSize);
+
 
     const SaImmClassNameT cln = (char *) className.c_str();
 
@@ -1959,6 +1969,9 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
     objectName.length = 0;
     SaImmAttrValuesT_2 **attributes=NULL;
     bool message_buffered=false;
+    void* batch=NULL;
+    int remainingSpace = maxBatchSize;
+    int objsInBatch = 0;
 
     int nrofObjs=0;
     while (err == SA_AIS_OK)
@@ -1968,7 +1981,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
         do
         {
             if(retries) {
-                usleep(200000);
+                usleep(150000);
             }
 	    /* Syncronous for throtteling sync */
 	    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
@@ -1976,31 +1989,36 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
 	    retries++;
 	} while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
 
-        ++nrofObjs;
-
 	if(err == SA_AIS_ERR_NOT_EXIST) {
 		goto done;
 	}
 
+        ++nrofObjs;
+	++objsInBatch;
 	/* Asyncronous */
 	err = immsv_sync(immHandle, cln, &objectName, 
-                             (const SaImmAttrValuesT_2 **) attributes);
+		(const SaImmAttrValuesT_2 **) attributes, 
+		&batch, &remainingSpace, objsInBatch);
 
 	if(err == SA_AIS_OK) {
+		TRACE("SA_AIS_OK => sync sent message");
 		message_buffered = false;
+		remainingSpace = maxBatchSize;
+		objsInBatch = 0;
 	} else if(err == SA_AIS_ERR_NOT_READY) {
+		TRACE("SA_AIS_ERR_NOT_READY => BUFFERED");
 		message_buffered = true;
 		err = SA_AIS_OK;
 	} else {
-            LOG_ER("Sync failed with error error:%u", err);
+            LOG_ER("Object sync failed with error error:%u", err);
             exit(1);
 	}
+
+        TRACE("Synced object: %s", objectName.value);
 
 	attributes=NULL;
         objectName.value[0] = 0;
         objectName.length = 0;
-
-        TRACE("Synced object: %s", objectName.value);
     }
 
  done:
@@ -2013,7 +2031,13 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
     }
 
     if(message_buffered) {
-	    err = immsv_sync(immHandle, cln, &objectName, NULL);
+	    TRACE("SA_AIS_ERR_NOT_EXIST => BUFFERED & end of iter => send unfilled batch");
+	    err = immsv_sync(immHandle, cln, &objectName, NULL, 
+		    &batch, &remainingSpace, objsInBatch);
+	    if(err != SA_AIS_OK) {
+		    LOG_ER("Object sync failed with error error:%u", err);
+		    exit(1);
+	    }
     }
 
 
@@ -2022,7 +2046,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
 }
 
 /* 1=>OK, 0=>FAIL */
-int immsync(void)
+int immsync(int maxBatchSize)
 {
     std::list<std::string> classNamesList;
     std::list<std::string>::iterator it;
@@ -2074,14 +2098,25 @@ int immsync(void)
     int nrofObjects = 0;
     while (it != classNamesList.end())
     {
-        int objects = syncObjectsOfClass(*it, immHandle);
+        int objects = syncObjectsOfClass(*it, immHandle, maxBatchSize);
         TRACE("Synced %u objects of class %s", objects, (*it).c_str());
         nrofObjects += objects;
         it++;
     }
     LOG_IN("Synced %u objects in total", nrofObjects);
 
-    if (immsv_finalize_sync(immHandle) != SA_AIS_OK)
+    retries = 0;
+    do
+    {
+        errorCode = immsv_finalize_sync(immHandle);
+        if (retries)
+        {
+            usleep(100000);
+            TRACE_8("IMM-SYNC FINALIZE RETRY %u", retries);
+        }
+    } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) && (++retries < 100));
+
+    if (SA_AIS_OK != errorCode)
     {
         LOG_ER("immsv_finalize_sync failed!");
         return 0;
@@ -2128,14 +2163,20 @@ int main(int argc, char* argv[])
         std::string syncMarker("sync");
         if (syncMarker == std::string(argv[3]))
         {
+            int maxBatchSize=0;
             if (logtrace_init("immsync", logPath, category_mask) == -1)
             {
                 syslog(LOG_ERR, "logtrace_init FAILED");
                 /* We allow the sync to execute anyway. */
             }
 
+	    if(argc > 4) {
+		    maxBatchSize = (unsigned int) strtoul(argv[4], NULL, 0);
+		    TRACE("maxBatchSize:%u %s", maxBatchSize, argv[4]);
+	    }
+
             LOG_NO("Sync starting");
-            if (immsync())
+            if (immsync(maxBatchSize))
             {
                 LOG_NO("Sync ending normally");
                 exit(0);

@@ -4935,52 +4935,144 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	return rc;
 }
 
-SaAisErrorT immsv_sync(SaImmHandleT immHandle,
-		       const SaImmClassNameT className,
-		       const SaNameT *objectName, const SaImmAttrValuesT_2 **attrValues)
+static unsigned int get_att_val_size(IMMSV_EDU_ATTR_VAL *p, SaImmValueTypeT t)
+{
+	switch (t) {
+	case SA_IMM_ATTR_SAINT32T:
+	case SA_IMM_ATTR_SAUINT32T:
+		return sizeof(SaUint32T);
+	case SA_IMM_ATTR_SAINT64T:
+	case SA_IMM_ATTR_SAUINT64T:
+		return sizeof(SaUint64T);
+	case SA_IMM_ATTR_SATIMET:
+		return sizeof(SaTimeT);
+	case SA_IMM_ATTR_SAFLOATT:
+		return sizeof(SaFloatT);
+	case SA_IMM_ATTR_SADOUBLET:
+		return sizeof(SaDoubleT);
+
+	case SA_IMM_ATTR_SANAMET:
+	case SA_IMM_ATTR_SASTRINGT:
+	case SA_IMM_ATTR_SAANYT:
+		return (p->val.x.size + 4);
+	}
+
+	abort();
+}
+
+static unsigned int get_attr_list_size(IMMSV_EDU_ATTR_VAL_LIST *al, const SaImmValueTypeT t)
+{
+	unsigned int size = 0;
+	while (al) {
+		size += (get_att_val_size(&(al->n), t)  + 1);
+		al = al->next;
+	}
+
+	return size;
+}
+
+static unsigned int get_obj_size(const IMMSV_OM_OBJECT_SYNC* batch)
+{
+	TRACE_ENTER();
+	unsigned int obj_size = (batch->className.size + 4);
+	obj_size+= (batch->objectName.size + 4);
+
+	IMMSV_ATTR_VALUES_LIST *avl = batch->attrValues;
+	while(avl) {
+		obj_size += (avl->n.attrName.size + 4 + 1); /* string + size + next-marker */
+
+		if(avl->n.attrValuesNumber) {
+			obj_size += get_att_val_size(&(avl->n.attrValue), avl->n.attrValueType);
+			if (avl->n.attrValuesNumber > 1) {
+				obj_size += get_attr_list_size(avl->n.attrMoreValues,
+					avl->n.attrValueType);
+			}
+		}
+		avl=avl->next;
+	}
+
+	/* Add about 20% overhead */
+	obj_size = (obj_size * 119) / 100;
+	TRACE("Object size: %u", obj_size);
+
+	TRACE_LEAVE();
+	return obj_size;
+}
+
+
+
+SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
+	const SaNameT *objectName, const SaImmAttrValuesT_2 **attrValues, void** batchp,
+	int* remainingSpacep, int objsInBatch)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
 	IMMSV_EVT evt;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	NCS_BOOL locked = FALSE;
-	TRACE_ENTER();
+	IMMSV_OM_OBJECT_SYNC* batch=NULL;
+	IMMSV_OM_OBJECT_SYNC* tmp = NULL;
+	TRACE_ENTER2("remainingSpace %d objsInBatch:%u", *remainingSpacep, objsInBatch);
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if ((className == NULL) || (objectName == NULL) || (attrValues == NULL)) {
-		return SA_AIS_ERR_INVALID_PARAM;
+	if ((className == NULL) || (objectName == NULL) || (attrValues == NULL && batchp == NULL)) {
+		LOG_ER("(className == NULL) || (objectName == NULL) || (attrValues == NULL && batchp == NULL)");
+		abort();
 	}
 
-	/* get the CB Lock */
-	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: Lock failed");
-		goto lock_fail;
-	}
-	locked = TRUE;
+	/*
+	  Cases:
+	  (A) (attrValues == NULL && batchp != NULL) => send the batch. Client iteration complete.
 
-	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-	if (!(cl_node && cl_node->isOm)) {
-		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		goto client_not_found;
-	}
+	  (B) (attrValues != NULL && batchp == NULL) => send a single object (old nonbatched variant).
 
-	if (cl_node->stale) {
-		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
-		/* Dont bother resurrecting. This is a sync operation !! */
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		goto stale_handle;
+	  (C) (attrValues != NULL && batchp != NULL) => add to the batch and send if batch full.
+	*/
+
+	if(batchp != NULL) {
+		assert(remainingSpacep);
+		batch = (*(IMMSV_OM_OBJECT_SYNC **)batchp);
+		if(batch == NULL) {
+			TRACE("ABT batch is NULL");
+		}
 	}
 
-	/* Populate the Object-Sync event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
-	evt.info.immnd.type = IMMND_EVT_A2ND_OBJ_SYNC;
+	evt.info.immnd.type = IMMND_EVT_A2ND_OBJ_SYNC_2;
+
+	if(attrValues == NULL) {
+		/* Case A */
+		if(!batch) {
+			LOG_ER("batch is NULL");
+			abort();
+		}
+		/* Copy top object from batch onto EVT */
+		tmp = batch;
+		batch = batch->next;
+		evt.info.immnd.info.obj_sync.className.size = tmp->className.size;
+		tmp->className.size = 0;
+		evt.info.immnd.info.obj_sync.className.buf = tmp->className.buf;
+		tmp->className.buf = NULL;
+		evt.info.immnd.info.obj_sync.objectName.size = tmp->objectName.size;
+		tmp->objectName.size = 0;
+		evt.info.immnd.info.obj_sync.objectName.buf = tmp->objectName.buf;
+		tmp->objectName.buf = NULL;
+		evt.info.immnd.info.obj_sync.attrValues = tmp->attrValues;
+		tmp->attrValues = NULL;
+		evt.info.immnd.info.obj_sync.next = tmp->next;
+		tmp->next = NULL;
+		free(tmp);
+		goto send_batch;
+	}
+
+	/* (attrValues != NULL) Case B or C */
+
+	assert((objectName->length != 0) && (objectName->length < SA_MAX_NAME_LENGTH));
 
 	evt.info.immnd.info.obj_sync.className.size = strlen(className) + 1;
 
@@ -4988,23 +5080,17 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 	evt.info.immnd.info.obj_sync.className.buf = malloc(evt.info.immnd.info.obj_sync.className.size);
 	strncpy(evt.info.immnd.info.obj_sync.className.buf, className, evt.info.immnd.info.obj_sync.className.size);
 
-	if (objectName->length) {
-		assert(objectName->length < SA_MAX_NAME_LENGTH);
-		evt.info.immnd.info.obj_sync.objectName.size = strlen((char *)objectName->value) + 1;
+	evt.info.immnd.info.obj_sync.objectName.size = strlen((char *)objectName->value) + 1;
 
-		if (objectName->length + 1 < evt.info.immnd.info.obj_sync.objectName.size) {
-			evt.info.immnd.info.obj_sync.objectName.size = objectName->length + 1;
-		}
-
-		/*alloc-2 */
-		evt.info.immnd.info.obj_sync.objectName.buf = malloc(evt.info.immnd.info.obj_sync.objectName.size);
-		strncpy(evt.info.immnd.info.obj_sync.objectName.buf,
-			(char *)objectName->value, evt.info.immnd.info.obj_sync.objectName.size);
-		evt.info.immnd.info.obj_sync.objectName.buf[evt.info.immnd.info.obj_sync.objectName.size - 1] = '\0';
-	} else {
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto error_exit_1;
+	if (objectName->length + 1 < evt.info.immnd.info.obj_sync.objectName.size) {
+		evt.info.immnd.info.obj_sync.objectName.size = objectName->length + 1;
 	}
+
+	/*alloc-2 */
+	evt.info.immnd.info.obj_sync.objectName.buf = malloc(evt.info.immnd.info.obj_sync.objectName.size);
+	strncpy(evt.info.immnd.info.obj_sync.objectName.buf,
+		(char *)objectName->value, evt.info.immnd.info.obj_sync.objectName.size);
+	evt.info.immnd.info.obj_sync.objectName.buf[evt.info.immnd.info.obj_sync.objectName.size - 1] = '\0';
 
 	assert(evt.info.immnd.info.obj_sync.attrValues == NULL);
 	const SaImmAttrValuesT_2 *attr;
@@ -5027,7 +5113,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
 			p=NULL;
-			goto mds_send_fail;
+			goto free_data;
 		}
 
 		/*alloc-4 */
@@ -5059,57 +5145,134 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 		evt.info.immnd.info.obj_sync.attrValues = p;
 	}
 
-	rc = imma_evt_fake_evs(cb, &evt, NULL, 0, cl_node->handle, &locked, FALSE);
+	evt.info.immnd.info.obj_sync.next = batch;
 
-	if (rc != SA_AIS_OK) {
-		goto mds_send_fail;
+	/* still Case B or C */
+
+	if(batchp) {
+		if(objsInBatch > (IMMSV_MAX_OBJS_IN_SYNCBATCH - 2)) {
+			TRACE("Limit for # of objects in batch reached: %d", objsInBatch);
+			*remainingSpacep = 0;
+		} else {
+			(*remainingSpacep) -= get_obj_size(&evt.info.immnd.info.obj_sync);
+		}
+		TRACE("Remaining space:%d", *remainingSpacep);
+
+		if((*remainingSpacep) > 0)
+		{ 
+			/* Case C only. */
+			/* There is more space. Push EVT onto batch & get ready for more objects */
+			IMMSV_OM_OBJECT_SYNC* tmp = calloc(1, sizeof(IMMSV_OM_OBJECT_SYNC));		
+			tmp->next = batch;
+			(*batchp) = tmp;
+
+			tmp->className.size = evt.info.immnd.info.obj_sync.className.size;
+			evt.info.immnd.info.obj_sync.className.size=0;
+			tmp->className.buf = evt.info.immnd.info.obj_sync.className.buf;
+			evt.info.immnd.info.obj_sync.className.buf = NULL;
+
+			tmp->objectName.size = evt.info.immnd.info.obj_sync.objectName.size;
+			evt.info.immnd.info.obj_sync.objectName.size = 0;
+			tmp->objectName.buf = evt.info.immnd.info.obj_sync.objectName.buf;
+			evt.info.immnd.info.obj_sync.objectName.buf = NULL;
+
+			tmp->attrValues = evt.info.immnd.info.obj_sync.attrValues;
+			evt.info.immnd.info.obj_sync.attrValues = NULL;
+			TRACE_LEAVE();
+			return SA_AIS_ERR_NOT_READY; /* Not an error, flags object was buffered */
+		} else {
+			(*batchp) = NULL; /* Send consumes the batch */
+			
+		}
 	}
 
- error_exit_1:
- mds_send_fail:
+	/* back to Case B or C */
+
+ send_batch:
+	/* Case A or B or C */
+
+	(*remainingSpacep) = 0;
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Lock failed");
+		goto free_data;
+	}
+	locked = TRUE;
+
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto free_data;
+	}
+
+	if (cl_node->stale) {
+		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
+		/* Dont bother resurrecting. This is a sync operation !! */
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto free_data;
+	}
+
+	rc = imma_evt_fake_evs(cb, &evt, NULL, 0, cl_node->handle, &locked, FALSE);
+
+ free_data:
 	/*We may be un-locked here but this should not matter.
 	   We are freing heap objects that should only be vissible from this
 	   thread. */
 
-	if (evt.info.immnd.info.obj_sync.className.buf) {	/*free-1 */
-		free(evt.info.immnd.info.obj_sync.className.buf);
-		evt.info.immnd.info.obj_sync.className.buf = NULL;
-	}
+	tmp = &(evt.info.immnd.info.obj_sync);
 
-	if (evt.info.immnd.info.obj_sync.objectName.buf) {	/*free-2 */
-		free(evt.info.immnd.info.obj_sync.objectName.buf);
-		evt.info.immnd.info.obj_sync.objectName.buf = NULL;
-	}
+	do {
 
-	while (evt.info.immnd.info.obj_sync.attrValues) {
-		IMMSV_ATTR_VALUES_LIST *p = evt.info.immnd.info.obj_sync.attrValues;
-		evt.info.immnd.info.obj_sync.attrValues = p->next;
-		p->next = NULL;
-		if (p->n.attrName.buf) {	/*free-4 */
-			free(p->n.attrName.buf);
-			p->n.attrName.buf = NULL;
+		if (tmp->className.buf) {	/*free-1 */
+			free(tmp->className.buf);
+			tmp->className.buf = NULL;
 		}
 
-		immsv_evt_free_att_val(&(p->n.attrValue), p->n.attrValueType);	/*free-5 */
-
-		while (p->n.attrMoreValues) {
-			IMMSV_EDU_ATTR_VAL_LIST *al = p->n.attrMoreValues;
-			p->n.attrMoreValues = al->next;
-			al->next = NULL;
-			immsv_evt_free_att_val(&(al->n), p->n.attrValueType);	/*free-7 */
-
-			free(al);	/*free-6 */
+		if (tmp->objectName.buf) {	/*free-2 */
+			free(tmp->objectName.buf);
+			tmp->objectName.buf = NULL;
 		}
-		p->next = NULL;
-		free(p);	/*free-3 */
-	}
 
- stale_handle:
- client_not_found:
+		while (tmp->attrValues) {
+			IMMSV_ATTR_VALUES_LIST *p = tmp->attrValues;
+			tmp->attrValues = p->next;
+			p->next = NULL;
+			if (p->n.attrName.buf) {	/*free-4 */
+				free(p->n.attrName.buf);
+				p->n.attrName.buf = NULL;
+			}
+
+			immsv_evt_free_att_val(&(p->n.attrValue), p->n.attrValueType);	/*free-5 */
+
+			while (p->n.attrMoreValues) {
+				IMMSV_EDU_ATTR_VAL_LIST *al = p->n.attrMoreValues;
+				p->n.attrMoreValues = al->next;
+				al->next = NULL;
+				immsv_evt_free_att_val(&(al->n), p->n.attrValueType);	/*free-7 */
+
+				free(al);	/*free-6 */
+			}
+			p->next = NULL;
+			free(p);	/*free-3 */
+		}
+
+		/* Free heap allocated objects, but not the top (stack allocated) EVT object */
+		if(tmp == evt.info.immnd.info.obj_sync.next) {
+			evt.info.immnd.info.obj_sync.next = tmp->next;
+			tmp->next =NULL;
+			free(tmp);
+		}
+		tmp = evt.info.immnd.info.obj_sync.next;
+		
+	} while (tmp);
+
+
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
- lock_fail:
 	TRACE_LEAVE();
 	return rc;
 }
