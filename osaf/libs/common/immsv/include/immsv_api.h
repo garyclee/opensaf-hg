@@ -41,9 +41,13 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
+#define OPENSAF_IMM_SYNC_BATCH_SIZE "opensafImmSyncBatchSize"
+#define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE 4096
+/*MDS_DIRECT_BUF_MAXSIZE 8000 possibly adjust fevs to this in the future. */
+#define IMMSV_MAX_OBJS_IN_SYNCBATCH 400
+
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 
-#define IMMSV_MAX_SYNCBATCH 1000
 
 /* Admin operation IDs */
 /* Internal PBE operation ids. */
@@ -86,10 +90,14 @@ extern "C" {
 
 /* These functions are private and nonstandard parts of the IMM client
    (agent) API. They are used by the process that drives the immnd sync.
+   The immsv_sync function is NOT reentrant. It must be used by only
+   one thread.
 */
 	SaAisErrorT
 	 immsv_sync(SaImmHandleT immHandle,
-		    const SaImmClassNameT className, const SaNameT *objectName, const SaImmAttrValuesT_2 **atributes);
+		    const SaImmClassNameT className, const SaNameT *objectName,
+		    const SaImmAttrValuesT_2 **atributes, void** batch,
+		    int* remainingSpace, int objsInBatch);
 
 	SaAisErrorT
 	 immsv_finalize_sync(SaImmHandleT immHandle);

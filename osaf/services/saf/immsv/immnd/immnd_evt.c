@@ -291,7 +291,9 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
 			free(p);	/*free-2 */
 		}
 	} else if ((evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ) ||
-		   (evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS)) {
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS) ||
+		(evt->info.immnd.type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_IMM_FEVS_2)) {
 		if (evt->info.immnd.info.fevsReq.msg.buf != NULL) {
 			free(evt->info.immnd.info.fevsReq.msg.buf);
 			evt->info.immnd.info.fevsReq.msg.buf = NULL;
@@ -390,9 +392,10 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
 				tmp = obj_sync;
 				obj_sync = obj_sync->next;
 				tmp->next = NULL;
-				if(!top) { /* Top object resides in evt on stack. */
-					free(tmp);
+				if(top) { /* Top object resides in evt on stack. */
 					top = SA_FALSE;
+				} else {
+					free(tmp);
 				}
 			}
 		}
@@ -450,7 +453,8 @@ void immnd_process_evt(void)
 		return;
 	}
 
-	if (evt->info.immnd.type != IMMND_EVT_D2ND_GLOB_FEVS_REQ)
+	if ((evt->info.immnd.type != IMMND_EVT_D2ND_GLOB_FEVS_REQ) &&
+		(evt->info.immnd.type != IMMND_EVT_D2ND_GLOB_FEVS_REQ_2))
 		immsv_msg_trace_rec(evt->sinfo.dest, evt);
 
 	switch (evt->info.immnd.type) {
@@ -524,6 +528,7 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_IMM_FEVS:
+	case IMMND_EVT_A2ND_IMM_FEVS_2:
 		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
@@ -602,6 +607,7 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_D2ND_GLOB_FEVS_REQ:
+	case IMMND_EVT_D2ND_GLOB_FEVS_REQ_2:
 		rc = immnd_evt_proc_fevs_rcv(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
@@ -2289,14 +2295,15 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
-	send_evt.info.immd.type = IMMD_EVT_ND2D_FEVS_REQ;
+	send_evt.info.immd.type = (evt->type == IMMND_EVT_A2ND_IMM_FEVS_2)?
+		IMMD_EVT_ND2D_FEVS_REQ_2:IMMD_EVT_ND2D_FEVS_REQ;
 	send_evt.info.immd.info.fevsReq.reply_dest = cb->immnd_mdest_id;
 	send_evt.info.immd.info.fevsReq.client_hdl = client_hdl;
 	send_evt.info.immd.info.fevsReq.msg.size = evt->info.fevsReq.msg.size;
 	/*Borrow the octet buffer from the input message instead of copying */
 	send_evt.info.immd.info.fevsReq.msg.buf = evt->info.fevsReq.msg.buf;
-	send_evt.info.immd.info.fevsReq.isObjSync = 
-		evt->info.fevsReq.isObjSync;
+	send_evt.info.immd.info.fevsReq.isObjSync = (evt->type == IMMND_EVT_A2ND_IMM_FEVS_2)?
+		evt->info.fevsReq.isObjSync:0x0;
 
 	/* send the request to the IMMD */
 
@@ -5421,6 +5428,7 @@ static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
 		if (
 		    id == IMMND_EVT_A2ND_CLASS_CREATE ||
 		    id == IMMND_EVT_A2ND_OBJ_SYNC ||
+		    id == IMMND_EVT_A2ND_OBJ_SYNC_2 ||
 		    id == IMMND_EVT_ND2ND_SYNC_FINALIZE ||
 		    id == IMMND_EVT_ND2ND_SYNC_FINALIZE_2 ||
 		    id == IMMND_EVT_D2ND_SYNC_ABORT ||
@@ -5547,6 +5555,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_OBJ_SYNC:
+	case IMMND_EVT_A2ND_OBJ_SYNC_2:
 		immnd_evt_proc_object_sync(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, msgNo);
 		break;
 
@@ -6175,6 +6184,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	SaImmHandleT clnt_hdl = evt->info.fevsReq.client_hdl;
 	IMMSV_OCTET_STRING *msg = &evt->info.fevsReq.msg;
 	MDS_DEST reply_dest = evt->info.fevsReq.reply_dest;
+	NCS_BOOL isObjSync = (evt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)?evt->info.fevsReq.isObjSync:FALSE;
 	TRACE_ENTER();
 
 	if (cb->highestProcessed >= msgNo) {
@@ -6219,8 +6229,14 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	/*NORMAL CASE: Received the expected in-order message. */
 
 	do {
-		SaAisErrorT err = immnd_evt_proc_fevs_dispatch(cb, msg, originatedAtThisNd, clnt_hdl,
-							       reply_dest, msgNo);
+		SaAisErrorT err = SA_AIS_OK;
+		if(isObjSync && cb->mIsCoord && (cb->syncPid > 0)) {
+			TRACE("Coord discards object sync message");
+		} else {
+			err = immnd_evt_proc_fevs_dispatch(cb, msg, originatedAtThisNd, clnt_hdl,
+				reply_dest, msgNo);
+		}
+
 		if (err != SA_AIS_OK) {
 			if (err == SA_AIS_ERR_ACCESS) {
 				TRACE_2("DISCARDING msg no:%llu", msgNo);

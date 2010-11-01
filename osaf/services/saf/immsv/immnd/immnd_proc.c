@@ -1140,7 +1140,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 		}
 	}
 
-	if (step % 50) {/* Wait 5 secs for non critical ccbs to terminate */
+	if (step % 100) {/* Wait 5 or 10 secs for non critical ccbs to terminate */
 		return SA_FALSE;
 	}
 
@@ -1229,8 +1229,17 @@ static int immnd_forkSync(IMMND_CB *cb)
 	int loaderBaseLen = strlen(loaderBase);
 	int pid = (-1);
 	int i, j;
-
+	int maxSyncBatchSize = immModel_getMaxSyncBatchSize(cb);
+	char arg4[16];
 	TRACE_ENTER();
+
+	if(maxSyncBatchSize != 0) {
+		snprintf(arg4, 16, "%u", maxSyncBatchSize);
+	} else {
+		arg4[0] = 0;
+	}
+
+
 	if ((myAbsLen - myLen + loaderBaseLen) > 1023) {
 		LOG_ER("Pathname too long: %u max is 1023", myAbsLen - myLen + loaderBaseLen);
 		return (-1);
@@ -1253,7 +1262,7 @@ static int immnd_forkSync(IMMND_CB *cb)
 
 	if (pid == 0) {		/*child */
 		/* TODO: Should close file-descriptors ... */
-		char *ldrArgs[5] = { loaderName, "", "", "sync", 0 };
+		char *ldrArgs[6] = { loaderName, "", "", "sync", arg4, 0 };
 		execvp(loaderName, ldrArgs);
 		LOG_ER("%s failed to exec sync, error %u", base, errno);
 		exit(1);
@@ -1412,7 +1421,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			}
 		}
 
-		if (cb->mTimer > 200) {	/* No progress in 20 secs */
+		if (cb->mTimer > 500) {	/* No progress in 50 secs */
 			LOG_ER("Failed to load/sync. Giving up after %u seconds, restarting..", (cb->mTimer) / 10);
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
 			immnd_ackToNid(rc);
@@ -1478,12 +1487,12 @@ uns32 immnd_proc_server(uns32 *timeout)
 				immnd_ackToNid(rc);
 			}
 
-			if (!(cb->mTimer % 60)) {
+			if (!(cb->mTimer % 200)) {/* Once every 20 secs. */
 				LOG_IN("REQUESTING SYNC AGAIN %u", cb->mTimer);
 				immnd_requestSync(cb);
 			}
 
-			if (!(cb->mTimer % 10)) {
+			if (!(cb->mTimer % 50)) {
 				LOG_IN("This node still waiting to be sync'ed after %u seconds", cb->mTimer / 10);
 			}
 		}
@@ -1542,7 +1551,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			}
 		}
-		if (cb->mTimer > 600) {	/*Waited for loading for a whole minute */
+		if (cb->mTimer > 1200) {/*Waited 2 minutes for loading to complete */
 			LOG_ER("LOADING IS APPARENTLY HUNG");
 			cb->loaderPid = 0;
 			/*immModel_setLoader(cb, 0); */
@@ -1555,7 +1564,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
-		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 600) : 600)) {
+		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 1200) : 1200)) {
 			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
 			cb->mTimer = 0;
 			/*immModel_setLoader(cb,0); */
@@ -1655,8 +1664,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			} else {
 				/*Phase 3 */
-				if (!(cb->mTimer % 10)) {
-					LOG_IN("Sync Phase-3 time:%u", cb->mTimer/10);
+				if (!(cb->mTimer % 60)) {
+					LOG_IN("Sync Phase-3 time:%u", cb->mTimer/60);
 				}
 				if (immnd_syncComplete(cb, TRUE, cb->mTimer)) {
 					cb->mTimer = 0;

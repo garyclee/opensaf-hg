@@ -310,6 +310,8 @@ extern "C" {
 
 	SaImmRepositoryInitModeT immModel_getRepositoryInitMode(IMMND_CB *cb);
 
+	unsigned int immModel_getMaxSyncBatchSize(IMMND_CB *cb);
+
 	SaAisErrorT
 	    immModel_rtObjectCreate(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectCreate *req,

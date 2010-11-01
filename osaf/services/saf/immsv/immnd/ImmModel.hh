@@ -381,6 +381,7 @@ public:
                                   bool increment);
 
     SaImmRepositoryInitModeT getRepositoryInitMode();
+    unsigned int      getMaxSyncBatchSize();
     void              prepareForLoading();
     bool              readyForLoading();
     void              prepareForSync(bool isJoining);
