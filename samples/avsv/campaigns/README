@@ -1,0 +1,14 @@
+
+
+  This directory contains campaigns that can be used as examples for different redundancy models or
+  for testing.
+
+  The campaigns should contain a comment near the top-of-file that
+  describes prerequisites, how to execute the campaign and the expected
+  outcome.
+
+  For now the campaigns must be executed manually on a 5-node UML
+  cluster.
+
+  For more detailed information about running campaigns in UML look at SMF samples directory;
+  <opensaf dir>/samples/smfsv/README

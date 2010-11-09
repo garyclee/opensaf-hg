@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="ASCII"?>
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:noNamespaceSchemaLocation="file:///tmp/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" 
+safSmfCampaign="safSmfCampaign=AmfDemoNway-InstCamp">
+  <!--
+
+   NWay redundancy example with 3 SI and 3 SUs.
+
+   The campaign can be executed manually on a 5-node UML
+   cluster. The SUs are configured on the 3 PL nodes.
+
+   Prerequisites;
+   ==============
+   - The NwayInstallationCampaign.xml campaign is copied to 
+     a directory reachable for UML. 
+     (for example the below .../opensaf/tools/cluster_sim_uml)
+
+   - Since no installation scripts is provided disable the 
+     check-scripts that are executed during a campaign;
+
+     echo "exit 0" > .../cluster_sim_uml/smf.rc
+
+   - The AmfDemo SW is installed under /opt/amf_demo.
+   - The AmfDemo application must NOT be executing.
+
+     For UML environment this can be accomplished with;
+
+    ./build_uml install_testprog
+    cp rootfs/etc/opensaf/imm.xml.orig rootfs/etc/opensaf/imm.xml
+
+   Execution;
+   =========
+   add campaign "immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/NwayInstallationCampaign.xml safSmfCampaign=AmfDemoNway,safApp=safSmfService"
+   execute      "immadm -o 1 safSmfCampaign=AmfDemoNway,safApp=safSmfService"
+   list         "immlist safSmfCampaign=AmfDemoNway,safApp=safSmfService"
+   suspend      "immadm -o 3 safSmfCampaign=AmfDemoNway,safApp=safSmfService"
+   commit       "immadm -o 4 safSmfCampaign=AmfDemoNway,safApp=safSmfService"
+
+   Expected result;
+   ================
+   # On the PL's
+   amf-state su
+       # The SU's in safSg=AmfDemoNway-x should be;
+       # UNLOCKED/ENABLED/INSTANTIATED/IN-SERVICE
+   
+   ps
+       # /opt/amf_demo/amf_demo should be executing
+ 
+   logs from amfdemo can be found in:
+   /var/opt/amf_demo/amf_demo.log 
+
+  -->
+    <campaignInfo>
+      <campaignPeriod saSmfCmpgExpectedTime="600000000"/>
+    </campaignInfo>
+    <campaignInitialization>
+      <addToImm>
+	<softwareBundle name="safSmfBundle=AmfDemoNway.1.0.0">
+		<removal>
+			<offline command="/bin/logger" args="-t NWay AmfDemo removal offline" saSmfBundleRemoveOfflineScope="1" />
+			<online command="/bin/logger" args="-t NWay AmfDemo removal online" />
+		</removal>
+		<installation>
+			<offline command="/bin/logger" args="-t NWay AmfDemo installation offline" saSmfBundleInstallOfflineScope="2" />
+			<online command="/bin/logger" args="-t NWay AmfDemo installation online" />
+		</installation>
+		<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
+	</softwareBundle>
+        <amfEntityTypes>
+          <CompBaseType safCompType="safCompType=AmfDemoNway">
+            <CompType safVersion="safVersion=1.0.0">
+              <providesCSType saAmfCtCompCapability="3" saAmfCtDefNumMaxActiveCsi="0" saAmfCtDefNumMaxStandbyCsi="0" safSupportedCsType="safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway"/>
+              <compTypeDefaults saAmfCtCompCategory="1" saAmfCtDefCallbackTimeout="10000000000" saAmfCtDefClcCliTimeout="10000000000" saAmfCtDefDisableRestart="0" saAmfCtDefInstantiationLevel="0" saAmfCtDefQuiescingCompleteTimeout="10000000000" saAmfCtDefRecoveryOnError="1"/>
+              <instantiateCmd saAmfCtRelPathInstantiateCmd="amf_demo/amf_demo_script">
+                <cmdArgv>instantiate 4302</cmdArgv>
+              </instantiateCmd>
+              <cleanupCmd saAmfCtRelPathCleanupCmd="amf_demo/amf_demo_script">
+                <cmdArgv>cleanup 4302</cmdArgv>
+              </cleanupCmd>
+              <healthCheck saAmfHealthcheckMaxDuration="1800000000" saAmfHealthcheckPeriod="2400000000" safHealthcheckKey="safHealthcheckKey=AmfDemo"/>
+              <swBundle saAmfCtSwBundle="safSmfBundle=AmfDemoNway.1.0.0"/>
+            </CompType>
+          </CompBaseType>
+          <SUBaseType safSuType="safSuType=AmfDemoNway">
+            <SUType safVersion="safVersion=1.0.0">
+              <mandatoryAttrs saAmfSutDefSUFailover="0" saAmfSutIsExternal="0"/>
+              <componentType saAmfSutMaxNumComponents="0" saAmfSutMinNumComponents="1" safMemberCompType="safMemberCompType=safVersion=1.0.0\,safCompType=AmfDemoNway"/>
+              <supportedSvcType saAmfSutProvidesSvcType="safVersion=1.0.0,safSvcType=AmfDemoNway"/>
+            </SUType>
+          </SUBaseType>
+          <SGBaseType safSgType="safSgType=AmfDemoNway">
+            <SGType safVersion="safVersion=1.0.0">
+              <suType saAmfSgtValidSuTypes="safVersion=1.0.0,safSuType=AmfDemoNway"/>
+              <redundancy saAmfSgtRedundancyModel="3"/>
+              <compRestart saAmfSgtDefCompRestartMax="5" saAmfSgtDefCompRestartProb="100000"/>
+              <suRestart saAmfSgtDefSuRestartMax="5" saAmfSgtDefSuRestartProb="100000"/>
+              <autoAttrs saAmfSgtDefAutoAdjustProb="100000" safAmfSgtDefAutoAdjust="0" safAmfSgtDefAutoRepair="1"/>
+            </SGType>
+          </SGBaseType>
+          <AppBaseType safAppType="safAppType=AmfDemoNway">
+            <AppType safVersion="safVersion=1.0.0">
+              <serviceGroupType saAmfApptSGTypes="safVersion=1.0.0,safSgType=AmfDemoNway"/>
+            </AppType>
+          </AppBaseType>
+          <CSBaseType safCSType="safCSType=AmfDemoNway">
+            <CSType safVersion="safVersion=1.0.0"/>
+          </CSBaseType>
+          <ServiceBaseType safSvcType="safSvcType=AmfDemoNway">
+            <ServiceType safVersion="safVersion=1.0.0">
+              <csType saAmfSvctMaxNumCSIs="0" safMemberCSType="safMemberCSType=safVersion=1.0.0\,safCSType=AmfDemoNway"/>
+            </ServiceType>
+          </ServiceBaseType>
+        </amfEntityTypes>
+      </addToImm>
+    </campaignInitialization>
+    <upgradeProcedure safSmfProcedure="safSmfProc=SingleStepProc">
+      <outageInfo>
+        <acceptableServiceOutage>
+          <all/>
+        </acceptableServiceOutage>
+        <procedurePeriod saSmfProcPeriod="600000000"/>
+      </outageInfo>
+      <procInitAction>
+        <immCCB ccbFlags="0">
+          <create objectClassName="SaAmfApplication" parentObjectDN="=">
+            <attribute name="safApp" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safApp=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfAppType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safAppType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfApplicationAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSG" parentObjectDN="safApp=AmfDemoNway">
+            <attribute name="safSg" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSg=SGNway</value>
+            </attribute>
+            <attribute name="saAmfSGType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSgType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSGSuHostNodeGroup" type="SA_IMM_ATTR_SANAMET">
+              <value>safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster</value>
+            </attribute>
+            <attribute name="saAmfSGNumPrefInserviceSUs" type="SA_IMM_ATTR_SAUINT32T">
+              <value>3</value>
+            </attribute>
+            <attribute name="saAmfSGMaxActiveSIsperSU" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1000</value>
+            </attribute>
+            <attribute name="saAmfSGMaxStandbySIsperSU" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1000</value>
+            </attribute>
+            <attribute name="saAmfSGAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSU" parentObjectDN="safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSu=AmfDemoNway-0</value>
+            </attribute>
+            <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>0</value>
+            </attribute>
+            <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+              <value>safAmfNode=PL-3,safAmfCluster=myAmfCluster</value>
+            </attribute>
+            <attribute name="saAmfSUFailover" type="SA_IMM_ATTR_SAUINT32T">
+              <value>true</value>
+            </attribute>
+            <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>3</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfComp" parentObjectDN="safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safComp=AmfDemoNway-0</value>
+            </attribute>
+            <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safHealthcheckKey" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safHealthcheckKey=AmfDemo</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckPeriod" type="SA_IMM_ATTR_SATIMET">
+              <value>2400000000</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckMaxDuration" type="SA_IMM_ATTR_SATIMET">
+              <value>1800000000</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
+              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSU" parentObjectDN="safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSu=AmfDemoNway-1</value>
+            </attribute>
+            <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>0</value>
+            </attribute>
+            <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+              <value>safAmfNode=PL-4,safAmfCluster=myAmfCluster</value>
+            </attribute>
+            <attribute name="saAmfSUFailover" type="SA_IMM_ATTR_SAUINT32T">
+              <value>true</value>
+            </attribute>
+            <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>3</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfComp" parentObjectDN="safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safComp=AmfDemoNway-0</value>
+            </attribute>
+            <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safHealthcheckKey" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safHealthcheckKey=AmfDemo</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckPeriod" type="SA_IMM_ATTR_SATIMET">
+              <value>2400000000</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckMaxDuration" type="SA_IMM_ATTR_SATIMET">
+              <value>1800000000</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
+              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSU" parentObjectDN="safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSu=AmfDemoNway-2</value>
+            </attribute>
+            <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSuType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSURank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>0</value>
+            </attribute>
+            <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+              <value>safAmfNode=PL-5,safAmfCluster=myAmfCluster</value>
+            </attribute>
+            <attribute name="saAmfSUFailover" type="SA_IMM_ATTR_SAUINT32T">
+              <value>true</value>
+            </attribute>
+            <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>3</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfComp" parentObjectDN="safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safComp=AmfDemoNway-0</value>
+            </attribute>
+            <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCompType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfHealthcheck" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safHealthcheckKey" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safHealthcheckKey=AmfDemo</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckPeriod" type="SA_IMM_ATTR_SATIMET">
+              <value>2400000000</value>
+            </attribute>
+            <attribute name="saAmfHealthcheckMaxDuration" type="SA_IMM_ATTR_SATIMET">
+              <value>1800000000</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemoNway-0,safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway">
+            <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
+              <value>safSupportedCsType=safVersion=1.0.0\,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
+            <attribute name="safSi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSi=Nway-0</value>
+            </attribute>
+            <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
+              <value>safSg=SGNway,safApp=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIRank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1</value>
+            </attribute>
+            <attribute name="saAmfSIPrefStandbyAssignments" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+            <attribute name="saAmfSIAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-0,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-0</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-0,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-1</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-0,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-2</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
+            <attribute name="safSi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSi=Nway-1</value>
+            </attribute>
+            <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
+              <value>safSg=SGNway,safApp=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIRank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1</value>
+            </attribute>
+            <attribute name="saAmfSIPrefStandbyAssignments" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+            <attribute name="saAmfSIAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-1,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-0</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-1,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-1</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-1,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-2</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemoNway">
+            <attribute name="safSi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safSi=Nway-2</value>
+            </attribute>
+            <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safSvcType=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
+              <value>safSg=SGNway,safApp=AmfDemoNway</value>
+            </attribute>
+            <attribute name="saAmfSIRank" type="SA_IMM_ATTR_SAUINT32T">
+              <value>1</value>
+            </attribute>
+            <attribute name="saAmfSIPrefStandbyAssignments" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+            <attribute name="saAmfSIAdminState" type="SA_IMM_ATTR_SAUINT32T">
+              <value>2</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-2,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-0</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-2,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-1</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+          <create objectClassName="SaAmfCSI" parentObjectDN="safSi=Nway-2,safApp=AmfDemoNway">
+            <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
+              <value>safCsi=Nway-2</value>
+            </attribute>
+            <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
+              <value>safVersion=1.0.0,safCSType=AmfDemoNway</value>
+            </attribute>
+          </create>
+        </immCCB>
+      </procInitAction>
+      <upgradeMethod>
+        <singleStepUpgrade>
+          <upgradeScope>
+            <forAddRemove>
+              <deactivationUnit/>
+              <activationUnit>
+                <actedOn>
+                  <byName objectDN="safSu=AmfDemoNway-0,safSg=SGNway,safApp=AmfDemoNway"/>
+                  <byName objectDN="safSu=AmfDemoNway-1,safSg=SGNway,safApp=AmfDemoNway"/>
+                  <byName objectDN="safSu=AmfDemoNway-2,safSg=SGNway,safApp=AmfDemoNway"/>
+                </actedOn>
+                <swAdd bundleDN="safSmfBundle=AmfDemoNway.1.0.0" pathnamePrefix="/opt">
+                  <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                  <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                  <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                </swAdd>
+              </activationUnit>
+            </forAddRemove>
+          </upgradeScope>
+          <upgradeStep/>
+        </singleStepUpgrade>
+      </upgradeMethod>
+    </upgradeProcedure>
+    <campaignWrapup>
+      <waitToCommit></waitToCommit>
+      <campWrapupAction>
+        <doAdminOperation objectDN="safSi=Nway-0,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_UNLOCK"/>
+        <undoAdminOperation objectDN="safSi=Nway-0,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_LOCK"/>
+      </campWrapupAction>
+      <campWrapupAction>
+        <doAdminOperation objectDN="safSi=Nway-1,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_UNLOCK"/>
+        <undoAdminOperation objectDN="safSi=Nway-1,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_LOCK"/>
+      </campWrapupAction>
+      <campWrapupAction>
+        <doAdminOperation objectDN="safSi=Nway-2,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_UNLOCK"/>
+        <undoAdminOperation objectDN="safSi=Nway-2,safApp=AmfDemoNway" operationID="SA_AMF_ADMIN_LOCK"/>
+      </campWrapupAction>
+      <waitToAllowNewCampaign/>
+      <removeFromImm/>
+    </campaignWrapup>
+  </upgradeCampaign>
