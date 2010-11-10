@@ -36,6 +36,12 @@
 #define SMF_CLI_TIMEOUT_ATTR      "smfCliTimeout"
 #define SMF_REBOOT_TIMEOUT_ATTR   "smfRebootTimeout"
 #define SMF_NODE_ACT_ATTR         "smfNodeBundleActCmd"
+// The four attributes below is added in a schema upgrade
+#define SMF_SI_SWAP_SI_NAME_ATTR  "smfSiSwapSiName"
+#define SMF_SI_SWAP_MAX_RETRY_ATTR "smfSiSwapMaxRetry"
+#define SMF_CAMP_MAX_RESTART_ATTR "smfCampMaxRestart"
+#define SMF_IMM_PERSIST_CMD_ATTR  "smfImmPersistCmd"
+#define SMF_NODE_REBOOT_CMD_ATTR  "smfNodeRebootCmd"
 
 class SmfUpgradeCampaign;
 class SmfUpgradeProcedure;

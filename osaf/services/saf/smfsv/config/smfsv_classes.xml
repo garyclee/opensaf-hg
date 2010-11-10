@@ -321,6 +321,36 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
+		<attr>
+			<name>smfSiSwapSiName</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>smfSiSwapMaxRetry</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>smfCampMaxRestart</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>smfImmPersistCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>smfNodeRebootCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>

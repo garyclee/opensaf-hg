@@ -712,6 +712,82 @@ uns32 read_config_and_set_control_block(smfd_cb_t * cb)
 		LOG_NO("Node bundle activation cmd = %s", smfNodeBundleActCmd);
 	}
 
+	////////////////////////////////////////////////////
+	//The attributes below is a part of a schema upgrade
+	////////////////////////////////////////////////////
+	const char *smfSiSwapSiName = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+							     SMF_SI_SWAP_SI_NAME_ATTR, 0);
+	if (smfSiSwapSiName == NULL) {
+		//Not found in config object, read from smfd.conf SI_SWAP_SI
+		if (getenv("SI_SWAP_SI") == NULL) {
+			LOG_ER("Attr SI_SWAP_SI is not available in SMF config object or smfd.conf file");
+			return NCSCC_RC_FAILURE;
+		}
+		smfSiSwapSiName = getenv("SI_SWAP_SI");
+	}
+
+	LOG_NO("DN for si_swap operation = %s", smfSiSwapSiName);
+
+	const SaUint32T *smfSiSwapMaxRetry = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+							    SMF_SI_SWAP_MAX_RETRY_ATTR, 0);
+	unsigned int tmp_max_swap_retry;
+	if (smfSiSwapMaxRetry == NULL) {
+		//Not found in config object, read from smfd.conf SI_SWAP_MAX_RETRY
+		if (getenv("SI_SWAP_MAX_RETRY") == NULL) {
+			LOG_ER("Attr SI_SWAP_MAX_RETRY is not available in SMF config object or smfd.conf file");
+			return NCSCC_RC_FAILURE;
+		}
+
+		tmp_max_swap_retry = atoi(getenv("SI_SWAP_MAX_RETRY"));
+		smfSiSwapMaxRetry = &tmp_max_swap_retry;
+	}
+
+	LOG_NO("SI si_swap operation max retry = %u", *smfSiSwapMaxRetry);
+
+	const SaUint32T *smfCampMaxRestart = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+							    SMF_CAMP_MAX_RESTART_ATTR, 0);
+	unsigned int tmp_camp_max_restart;
+	if (smfCampMaxRestart == NULL) {
+		//Not found in config object, read from smfd.conf CAMP_MAX_RESTART
+		if (getenv("CAMP_MAX_RESTART") == NULL) {
+			LOG_ER("Attr CAMP_MAX_RESTART is not available in SMF config object or smfd.conf file");
+			return NCSCC_RC_FAILURE;
+		}
+
+		tmp_camp_max_restart = atoi(getenv("CAMP_MAX_RESTART"));
+		smfCampMaxRestart = &tmp_camp_max_restart;
+	}
+
+	LOG_NO("Max num of campaign restarts = %u", *smfCampMaxRestart);
+
+	const char *smfImmPersistCmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+							     SMF_IMM_PERSIST_CMD_ATTR, 0);
+	if (smfImmPersistCmd == NULL) {
+		//Not found in config object, read from smfd.conf SMF_IMM_PERSIST_CMD
+		if (getenv("SMF_IMM_PERSIST_CMD") == NULL) {
+			//Not found in smfd.conf. Set hardcoded value for backward compability
+			LOG_NO("Attr SMF_IMM_PERSIST_CMD is not available in SMF config object or smfd.conf file. Use default cmd: immdump /etc/opensaf/imm.xml");
+			smfImmPersistCmd =  "immdump /etc/opensaf/imm.xml";
+		} else {
+			smfImmPersistCmd = getenv("SMF_IMM_PERSIST_CMD");
+		}
+	}
+
+	LOG_NO("IMM persist command = %s", smfImmPersistCmd);
+
+	const char *smfNodeRebootCmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+							     SMF_NODE_REBOOT_CMD_ATTR, 0);
+	if (smfNodeRebootCmd == NULL) {
+		//Not found in config object, set to default "reboot".
+		smfNodeRebootCmd = "reboot";
+	}
+
+	LOG_NO("Node reboot cmd = %s", smfNodeRebootCmd);
+
+	//////////////////////////////////
+	//End of schema upgrade attributes
+	//////////////////////////////////
+
 	cb->backupCreateCmd = strdup(backupCreateCmd);
 	cb->bundleCheckCmd = strdup(bundleCheckCmd);
 	cb->nodeCheckCmd = strdup(nodeCheckCmd);
@@ -721,6 +797,11 @@ uns32 read_config_and_set_control_block(smfd_cb_t * cb)
 	cb->cliTimeout = *cliTimeout;
 	cb->rebootTimeout = *rebootTimeout;
 	cb->nodeBundleActCmd = strdup(smfNodeBundleActCmd);
+	cb->smfSiSwapSiName = strdup(smfSiSwapSiName);
+	cb->smfSiSwapMaxRetry = *smfSiSwapMaxRetry;
+	cb->smfCampMaxRestart = *smfCampMaxRestart;
+	cb->smfImmPersistCmd = strdup(smfImmPersistCmd);
+	cb->smfNodeRebootCmd = strdup(smfNodeRebootCmd);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

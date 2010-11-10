@@ -1542,11 +1542,7 @@ SmfUpgradeStep::saveImmContent()
 	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 
-	std::string cmd = "immdump /etc/opensaf/imm.xml";
-	if (getenv("SMF_IMM_PERSIST_CMD") != NULL) {
-		cmd.clear();	
-		cmd = getenv("SMF_IMM_PERSIST_CMD");
-	}
+	std::string cmd = smfd_cb->smfImmPersistCmd;
 
 	int result  = smf_system(cmd);
 	if (result != 0) {
@@ -1822,7 +1818,6 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 			      command.c_str(), i_node.c_str());
 			TRACE("Get node destination for %s", i_node.c_str());
 
-//			SaTimeT timeout = smfd_cb->rebootTimeout;
 			int interval = 5;
 			int timeout = smfd_cb->rebootTimeout/1000000000; //seconds
 			MDS_DEST nodeDest = getNodeDestination(i_node);
@@ -1957,7 +1952,7 @@ SmfUpgradeStep::nodeReboot()
 	int cliTimeout    = 400;                                 // 400 * 10 ms = 4 seconds
 
 	//Order smf node director to reboot the node
-	cmd = "reboot";
+	cmd = smfd_cb->smfNodeRebootCmd;
 	nodeDest = getNodeDestination(getSwNode());
 
 	if (nodeDest == 0) {

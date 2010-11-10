@@ -46,6 +46,7 @@
 #include "SmfUpgradeMethod.hh"
 #include "SmfUpgradeAction.hh"
 #include "SmfUtils.hh"
+#include "smfd.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -2810,10 +2811,10 @@ SmfSwapThread::main(void)
 	TRACE_ENTER();
 	sem_post(&m_semaphore);          //Start method waits for thread to start
 	SmfAdminOperationAction admOp(1);
-	std::string si_name = getenv("SI_SWAP_SI");
+	std::string si_name = smfd_cb->smfSiSwapSiName;
 	admOp.setDoDn(si_name);
 	admOp.setDoId(SA_AMF_ADMIN_SI_SWAP);
-	int max_swap_retry = atoi(getenv("SI_SWAP_MAX_RETRY"));
+	int max_swap_retry = smfd_cb->smfSiSwapMaxRetry;
 	int retryCnt = 0;
 	int rc;
 	while((rc = admOp.execute()) != SA_AIS_OK) {
