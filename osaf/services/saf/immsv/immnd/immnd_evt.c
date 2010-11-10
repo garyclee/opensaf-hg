@@ -5784,7 +5784,8 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *s
 		if (cb->mState == IMM_SERVER_SYNC_CLIENT) {	/* Sync client will have to restart the sync */
 			cb->mState = IMM_SERVER_LOADING_PENDING;
 			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER LOADING PENDING (sync aborted)");
-			cb->mTimer = 0;
+			cb->mStep = 0;
+			cb->mJobStart = time(NULL);
 			cb->mMyEpoch = 0;
 			cb->mSync = FALSE;
 			assert(!(cb->mAccepted));
@@ -5913,8 +5914,9 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		   with respect to the just arriving start-sync.
 		   Search for "ticket:#598" in immnd_proc.c
 		 */
-	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, SA_FALSE, cb->mTimer))) {
-		cb->mTimer = 0;
+	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, SA_FALSE, cb->mStep))) {
+		cb->mStep = 0;
+		cb->mJobStart = time(NULL);
 		cb->mState = IMM_SERVER_READY;
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
 		LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY (materialized by start sync)");
@@ -6034,7 +6036,8 @@ static uns32 immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 			assert(cb->mState == IMM_SERVER_LOADING_PENDING);
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
 			cb->mState = IMM_SERVER_LOADING_CLIENT;
-			cb->mTimer = 0;
+			cb->mStep = 0;
+			cb->mJobStart = time(NULL);
 			cb->mAccepted = TRUE;
 		}
 	} else if (cb->mState == IMM_SERVER_LOADING_SERVER) {
@@ -6081,6 +6084,7 @@ static uns32 immnd_evt_proc_sync_req(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	} else if (cb->mIsCoord) {
 		TRACE_2("Set marker for sync at coordinator");
 		cb->mSyncRequested = TRUE;
+		if(cb->mLostNodes > 0) {cb->mLostNodes--;}
 		/*assert(cb->mRulingEpoch == evt->info.ctrl.rulingEpoch); */
 		TRACE_2("At COORD: My Ruling Epoch:%u Cenral Ruling Epoch:%u",
 			cb->mRulingEpoch, evt->info.ctrl.rulingEpoch);
@@ -6102,10 +6106,14 @@ static uns32 immnd_evt_proc_sync_req(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
  *****************************************************************************/
 static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
-	if (evt->info.ctrl.nodeId != cb->node_id) {
-		cb->mNumNodes++;
-		TRACE("immnd_evt_proc_intro_rsp cb->mNumNodes: %u", cb->mNumNodes);
-	} else {		/*This node was introduced to the IMM cluster */
+	TRACE_ENTER2("evt->info.ctrl.nodeId(%x) != cb->node_id:(%x) ?%u", 
+		evt->info.ctrl.nodeId, cb->node_id, 
+		evt->info.ctrl.nodeId != cb->node_id);
+	cb->mNumNodes++;
+	TRACE("immnd_evt_proc_intro_rsp cb->mNumNodes: %u", cb->mNumNodes);
+
+	if (evt->info.ctrl.nodeId == cb->node_id) {
+		/*This node was introduced to the IMM cluster */
 		cb->mIntroduced = TRUE;
 		cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
 		if (evt->info.ctrl.isCoord) {
@@ -6326,6 +6334,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 	/* We should remember the nodeId/pid pair to avoid a redundant message
 	   causing a newly reattached node being discarded. 
 	 */
+	cb->mLostNodes++;
 	immModel_discardNode(cb, evt->info.ctrl.nodeId, &arrSize, &idArr);
 	if (arrSize) {
 		SaAisErrorT err = SA_AIS_OK;

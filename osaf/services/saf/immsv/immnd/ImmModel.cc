@@ -562,7 +562,6 @@ immModel_pbeOiExists(IMMND_CB *cb)
 
 SaUint32T
 immModel_cleanTheBasement(IMMND_CB *cb, 
-    SaUint32T seconds,
     SaInvocationT** admReqArr,
     SaUint32T* admReqArrSize,
     SaInvocationT** searchReqArr,
@@ -582,7 +581,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
     unsigned int ix;
     
     SaUint32T stuck = 
-        ImmModel::instance(&cb->immModel)->cleanTheBasement(seconds, 
+        ImmModel::instance(&cb->immModel)->cleanTheBasement(
         admReqs, 
         searchReqs, 
         ccbs,
@@ -922,10 +921,10 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
         TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages "
             "(> %u) rejecting sync iteration next request",
             IMMND_FEVS_MAX_PENDING);
-	/* This is special handling for sync. Because immsv_sync (sync object send) 
-	   is asyncronous, it can not be throttled directly. Insead we throttle the 
-	   sync object send by retarding the iterator used in syncing.
-	 */
+        /* This is special handling for sync. Because immsv_sync (sync object send) 
+           is asyncronous, it can not be throttled directly. Insead we throttle the 
+           sync object send by retarding the iterator used in syncing.
+        */
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
@@ -3463,7 +3462,9 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         assert(!omut->mWaitForImplAck);
         switch(omut->mOpType){
             case IMM_CREATE:
-                TRACE_5("COMMITING CREATE of %s", omit->first.c_str());
+                if(ccbId != 1) {
+                    TRACE_5("COMMITING CREATE of %s", omit->first.c_str());
+                }
                 assert(omut->mAfterImage);
                 commitCreate(omut->mAfterImage);
                 omut->mAfterImage=NULL;
@@ -7212,7 +7213,7 @@ ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
 }
 
 SaUint32T
-ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
+ImmModel::cleanTheBasement(InvocVector& admReqs,
     InvocVector& searchReqs, IdVector& ccbs, IdVector& pbePrtoReqs,
     bool iAmCoord)
 {

@@ -147,7 +147,12 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	}
 
 	if (immnd_info_node) {
-		if (immnd_info_node->epoch <= ctrl->nodeEpoch) {
+		if (immnd_info_node->epoch < ctrl->nodeEpoch) {
+			LOG_IN("SBY: New Epoch for IMMND process at node %x "
+				"old epoch: %u  new epoch:%u", ctrl->nodeId,
+				immnd_info_node->epoch, ctrl->nodeEpoch);
+			
+
 			immnd_info_node->epoch = ctrl->nodeEpoch;
 		}
 		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord) {

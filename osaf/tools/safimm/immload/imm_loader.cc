@@ -185,6 +185,7 @@ void opensafClassCreate(SaImmHandleT immHandle)
     int retries=0;
     SaImmAttrDefinitionT_2 d1, d2, d3, d4, d5;
     SaUint32T nost_flags_default = 0;
+    SaUint32T batch_size_default = IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE;
 
     d1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
     d1.attrValueType = SA_IMM_ATTR_SANAMET;
@@ -210,7 +211,7 @@ void opensafClassCreate(SaImmHandleT immHandle)
     d5.attrName = (char *) OPENSAF_IMM_SYNC_BATCH_SIZE;
     d5.attrValueType = SA_IMM_ATTR_SAUINT32T;
     d5.attrFlags = SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE;
-    d5.attrDefaultValue = NULL;
+    d5.attrDefaultValue = &batch_size_default;
 
     const SaImmAttrDefinitionT_2* attrDefs[6] = {&d1, &d2, &d3, &d4, &d5, 0};
 
@@ -1869,7 +1870,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
 
     if(maxBatchSize <= 0) {maxBatchSize = IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE;}
 
-    TRACE("ABT maxBatchSize set tu %d", maxBatchSize);
+    TRACE("maxBatchSize set to %d", maxBatchSize);
 
 
     const SaImmClassNameT cln = (char *) className.c_str();

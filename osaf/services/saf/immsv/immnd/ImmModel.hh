@@ -419,7 +419,6 @@ public:
                                SaUint32T* client,
                                unsigned int* pbeNodeIdPtr);
     SaUint32T         cleanTheBasement(
-                                       unsigned int seconds, 
                                        InvocVector& admReqs,
                                        InvocVector& searchReqs,
                                        IdVector& ccbs,
