@@ -52,6 +52,11 @@ typedef struct smfd_cb {
 	SaTimeT cliTimeout;	                    /* Timeout for cli commands     */
 	SaTimeT rebootTimeout;	                    /* Timeout for reboot to finish */
 	char *nodeBundleActCmd;	                    /* Command for activation of bundles on a node */
+	char *smfSiSwapSiName;	                    /* SI name for swap operation */
+	SaUint32T smfSiSwapMaxRetry;	            /* Max number of SI_SWAP retries */
+	SaUint32T smfCampMaxRestart;	            /* Max number of campaign restarts */
+	char *smfImmPersistCmd;	                    /* Command for IMM persistance */
+	char *smfNodeRebootCmd;	                    /* Command for node reboot */
 } smfd_cb_t;
 
 #ifdef __cplusplus

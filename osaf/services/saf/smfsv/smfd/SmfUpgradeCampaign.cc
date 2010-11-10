@@ -30,6 +30,7 @@
 #include "SmfProcedureThread.hh"
 #include "SmfCampState.hh"
 #include "SmfUtils.hh"
+#include "smfd.h"
 
 //#include "rollingupgrade.h"
 //#include "campaigntime.h"
@@ -533,7 +534,7 @@ SmfUpgradeCampaign::tooManyRestarts(bool *o_result)
 		}
 	}
 
-	int maxCnt = atoi(getenv("CAMP_MAX_RESTART"));
+	int maxCnt = smfd_cb->smfCampMaxRestart;
 	TRACE("maxCnt=%d, curCnt=%d", 	maxCnt, curCnt);	
 	if (curCnt > maxCnt){
 		TRACE("TRUE");
@@ -721,7 +722,7 @@ SmfUpgradeCampaign::continueExec()
 	if (this->tooManyRestarts(&o_result) == SA_AIS_OK){
 		if (o_result == true) {
 			LOG_ER("The campaign have been restarted to many times");
-			std::string cnt = getenv("CAMP_MAX_RESTART");
+			int cnt = smfd_cb->smfCampMaxRestart;
 			std::string error = "To many campaign restarts, max " + cnt;
 			SmfCampaignThread::instance()->campaign()->setError(error);
 			changeState(SmfCampStateExecFailed::instance());

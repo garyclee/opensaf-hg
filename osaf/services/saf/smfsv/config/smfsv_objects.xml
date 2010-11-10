@@ -45,6 +45,26 @@
 			<name>smfNodeBundleActCmd</name>
 			<value></value>
 		</attr>
+		<attr>
+			<name>smfSiSwapSiName</name>
+			<value>safSi=SC-2N,safApp=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>smfSiSwapMaxRetry</name>
+			<value>200</value>
+		</attr>
+		<attr>
+			<name>smfCampMaxRestart</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>smfImmPersistCmd</name>
+			<value>immdump /etc/opensaf/imm.xml</value>
+		</attr>
+		<attr>
+			<name>smfNodeRebootCmd</name>
+			<value>reboot</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeSMF</dn>
