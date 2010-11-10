@@ -27,6 +27,7 @@
 #include "SmfCampaignXmlParser.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
+#include "SmfProcedureThread.hh"
 
 #include <saSmf.h>
 #include <logtrace.h>
@@ -39,13 +40,14 @@
 /** 
  * Constructor
  */
- SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** attrValues):
+SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** attrValues):
 	m_cmpgConfigBase(0),
 	m_cmpgExpectedTime(0),
 	m_cmpgElapsedTime(0),
 	m_cmpgState(SA_SMF_CMPG_INITIAL),
 	m_upgradeCampaign(NULL),
-	m_campaignXmlDir("")
+	m_campaignXmlDir(""),
+        m_adminOpBusy(false)
 {
 	init(attrValues);
 	m_dn = m_cmpg;
@@ -61,7 +63,8 @@ SmfCampaign::SmfCampaign(const SaNameT * dn):
 	m_cmpgExpectedTime(0),
 	m_cmpgElapsedTime(0),
 	m_cmpgState(SA_SMF_CMPG_INITIAL),
-	m_upgradeCampaign(NULL)
+	m_upgradeCampaign(NULL),
+        m_adminOpBusy(false)
 {
 	m_dn.append((char *)dn->value, dn->length);
 }
@@ -95,13 +98,11 @@ SmfCampaign::executing(void)
 	switch (m_cmpgState) {
 	/* 
 	   The following states are final states where the campaign is
-	   considered as NOT executing and object can be removed/modified
+	   considered as NOT executing.
 	*/
 	case SA_SMF_CMPG_INITIAL:
 	case SA_SMF_CMPG_CAMPAIGN_COMMITTED:
-	case SA_SMF_CMPG_EXECUTION_FAILED:
 	case SA_SMF_CMPG_ROLLBACK_COMMITTED:
-	case SA_SMF_CMPG_ROLLBACK_FAILED:
 		rc = false;
 		break;
 	default:
@@ -323,6 +324,7 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 				}
 				break;
 			case SA_SMF_CMPG_EXECUTION_SUSPENDED:
+			case SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED:
 				break;
 			default:
 				{
@@ -338,6 +340,14 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 					return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
 				}
 			}
+
+                        if (m_adminOpBusy == true) {
+                                LOG_ER("Campaign temporary busy handling another admin op");
+                                return SA_AIS_ERR_BUSY;
+                        }
+
+                        m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
+
 			TRACE("Sending execute event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
 			evt->type = CAMPAIGN_EVT_EXECUTE;
@@ -347,20 +357,16 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 
 	case SA_SMF_ADMIN_ROLLBACK:
 		{
-			/* TODO remove lines below when rollback is implemented */
-			LOG_ER("Rollback is not yet implemented");
-			return SA_AIS_ERR_BAD_OPERATION;
-
 			switch (m_cmpgState) {
 			case SA_SMF_CMPG_EXECUTION_COMPLETED:
-			case SA_SMF_CMPG_ERROR_DETECTED:
 			case SA_SMF_CMPG_EXECUTION_SUSPENDED:
 			case SA_SMF_CMPG_ROLLBACK_SUSPENDED:
+			case SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED:
 				break;
 			default:
 				{
 					LOG_ER("Failed to rollback campaign, wrong state %u", m_cmpgState);
-					return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+					return SA_AIS_ERR_BAD_OPERATION;
 				}
 			}
 
@@ -368,6 +374,13 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 				LOG_ER("Failed to rollback campaign, campaign not executing");
 				return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
 			}
+
+                        if (m_adminOpBusy == true) {
+                                LOG_ER("Campaign temporary busy handling another admin op");
+                                return SA_AIS_ERR_BUSY;
+                        }
+
+                        m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
 
 			TRACE("Sending rollback event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -385,7 +398,7 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 			default:
 				{
 					LOG_ER("Failed to suspend campaign, wrong state %u", m_cmpgState);
-					return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+					return SA_AIS_ERR_BAD_OPERATION;
 				}
 			}
 
@@ -393,6 +406,13 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 				LOG_ER("Failed to suspend campaign, campaign not executing");
 				return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
 			}
+
+                        if (m_adminOpBusy == true) {
+                                LOG_ER("Campaign temporary busy handling another admin op");
+                                return SA_AIS_ERR_BUSY;
+                        }
+
+                        m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
 
 			TRACE("Sending suspend event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -410,7 +430,7 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 			default:
 				{
 					LOG_ER("Failed to commit campaign, wrong state %u", m_cmpgState);
-					return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+					return SA_AIS_ERR_BAD_OPERATION;
 				}
 			}
 
@@ -418,6 +438,13 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 				LOG_ER("Failed to commit campaign, campaign not executing");
 				return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
 			}
+
+                        if (m_adminOpBusy == true) {
+                                LOG_ER("Campaign temporary busy handling another admin op");
+                                return SA_AIS_ERR_BUSY;
+                        }
+
+                        m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
 
 			TRACE("Sending commit event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -442,15 +469,64 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 SaAisErrorT 
 SmfCampaign::adminOpExecute(void)
 {
-	if (getUpgradeCampaign() == NULL) {
+	getUpgradeCampaign()->execute();
+        m_adminOpBusy = false; /* allow new admin op */
+	return SA_AIS_OK;
+}
+
+/** 
+ * adminOpSuspend
+ * Executes the administrative operation Suspend
+ */
+SaAisErrorT 
+SmfCampaign::adminOpSuspend(void)
+{
+	getUpgradeCampaign()->suspend();
+        m_adminOpBusy = false; /* allow new admin op */
+	return SA_AIS_OK;
+}
+
+/** 
+ * adminOpCommit
+ * Executes the administrative operation Commit
+ */
+SaAisErrorT 
+SmfCampaign::adminOpCommit(void)
+{
+	getUpgradeCampaign()->commit();
+        m_adminOpBusy = false; /* allow new admin op */
+	return SA_AIS_OK;
+}
+
+/** 
+ * adminOpRollback
+ * Executes the administrative operation Rollback
+ */
+SaAisErrorT 
+SmfCampaign::adminOpRollback(void)
+{
+	getUpgradeCampaign()->rollback();
+        m_adminOpBusy = false; /* allow new admin op */
+	return SA_AIS_OK;
+}
+
+/** 
+ * initExecution
+ * initializes the execution
+ */
+SaAisErrorT 
+SmfCampaign::initExecution(void)
+{
+        /* Parse the campaign xml file and start all procedure threads */
+        if (getUpgradeCampaign() == NULL) {
 		//Check if campaign file exist
 		struct stat filestat;
 		if (stat(m_cmpgFileUri.c_str(), &filestat) == -1) {
 			std::string error = "Campaign file does not exist " + m_cmpgFileUri;
 			LOG_ER("%s", error.c_str());
 			setError(error);
-			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
-			return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+			/* Don't change state to allow reexecution */
+			return SA_AIS_OK;
 		}
 
 		//The directory where the campaign.xml file is stored
@@ -464,8 +540,8 @@ SmfCampaign::adminOpExecute(void)
 			std::string error = "Error when parsing the campaign file " + m_cmpgFileUri;
 			LOG_ER("%s", error.c_str());
 			setError(error);
-			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
-			return SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+			/* Don't change state to allow reexecution */
+			return SA_AIS_OK;
 		}
 
 		//Initiate the campaign with the current campaign object state
@@ -474,44 +550,29 @@ SmfCampaign::adminOpExecute(void)
 		p_uc->setCampState(getState());
 
 		setUpgradeCampaign(p_uc);
+
+                const std::vector < SmfUpgradeProcedure * >& procedures = p_uc->getProcedures();
+        	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+        
+        	//Set DN and start procedure threads
+        	TRACE("SmfCampaign::initExecution, start procedure threads");
+        	iter = procedures.begin();
+        	while (iter != procedures.end()) {
+        		//Set the DN of the procedure
+        		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
+        		(*iter)->setDn(dn);
+
+                        /* Start procedure thread */
+                        SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
+        		(*iter)->setProcThread(procThread);
+        
+        		TRACE("SmfCampaign::initExecution, Starting procedure thread %s", (*iter)->getProcName().c_str());
+        		procThread->start();
+        
+        		iter++;
+        	}
 	}
 
-	//Execute campaign
-	TRACE("adminOpExecute, Executing campaign %s", getUpgradeCampaign()->getCampaignName().c_str());
-	getUpgradeCampaign()->execute();
-	return SA_AIS_OK;
-}
-
-/** 
- * adminOpSuspend
- * Executes the administrative operation Suspend
- */
-SaAisErrorT 
-SmfCampaign::adminOpSuspend(void)
-{
-	getUpgradeCampaign()->suspend();
-	return SA_AIS_OK;
-}
-
-/** 
- * adminOpCommit
- * Executes the administrative operation Commit
- */
-SaAisErrorT 
-SmfCampaign::adminOpCommit(void)
-{
-	getUpgradeCampaign()->commit();
-	return SA_AIS_OK;
-}
-
-/** 
- * adminOpRollback
- * Executes the administrative operation Rollback
- */
-SaAisErrorT 
-SmfCampaign::adminOpRollback(void)
-{
-	getUpgradeCampaign()->rollback();
 	return SA_AIS_OK;
 }
 

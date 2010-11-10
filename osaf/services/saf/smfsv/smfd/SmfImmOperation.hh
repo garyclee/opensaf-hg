@@ -39,6 +39,8 @@
  * ========================================================================
  */
 
+class SmfRollbackData;
+
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
@@ -139,7 +141,7 @@ class SmfImmOperation {
 /// @param   None.
 /// @return  None.
 ///
-	virtual SaAisErrorT execute();
+	virtual SaAisErrorT execute(SmfRollbackData* o_rollbackData = NULL);
 
 ///
 /// Purpose: Rollback the operation.
@@ -168,6 +170,17 @@ class SmfImmOperation {
 /// @return  None.
 ///
 	virtual void addValue(const SmfImmAttribute & i_value);
+
+///
+/// Purpose: Add a attribute value to be used in the IMM operation.
+/// @param   i_name The name of the attribute to add.
+/// @param   i_type The type of the attribute to add.
+/// @param   i_value The value of the attribute to add.
+/// @return  None.
+///
+	virtual void addAttrValue(const std::string & i_name,
+                                  const std::string & i_type,
+                                  const std::string & i_value);
 
  protected:
 	 SaImmCcbHandleT m_ccbHandle;
@@ -200,7 +213,7 @@ class SmfImmCreateOperation:public SmfImmOperation {
 /// @param   None.
 /// @return  None.
 ///
-	SaAisErrorT execute();
+	SaAisErrorT execute(SmfRollbackData* o_rollbackData = NULL);
 
 ///
 /// Purpose: Rollback the operation.
@@ -245,6 +258,17 @@ class SmfImmCreateOperation:public SmfImmOperation {
 	void addValue(const SmfImmAttribute & i_value);
 
 ///
+/// Purpose: Add a attribute value to be used in the IMM operation.
+/// @param   i_name The name of the attribute to add.
+/// @param   i_type The type of the attribute to add.
+/// @param   i_value The value of the attribute to add.
+/// @return  None.
+///
+	void addAttrValue(const std::string & i_name,
+                          const std::string & i_type,
+                          const std::string & i_value);
+
+///
 /// Purpose: Get the values set for the object to create
 /// @param   None.
 /// @return  A list of SmfImmAttribute.
@@ -266,9 +290,16 @@ class SmfImmCreateOperation:public SmfImmOperation {
 ///
 	void setAttrValues(SaImmAttrValuesT_2 ** i_values);
 
-	 std::string m_className;	/* class name for the object to be created */
-	 std::string m_parentDn;	/* dn to the parent object */
-	 std::list < SmfImmAttribute > m_values;	/* Attribute creation values */
+///
+/// Purpose: Prepare rollback of the operation.
+/// @param   None.
+/// @return  None.
+///
+	SaAisErrorT prepareRollback(SmfRollbackData* o_rollbackData);
+
+        std::string m_className;	/* class name for the object to be created */
+        std::string m_parentDn;	/* dn to the parent object */
+        std::list < SmfImmAttribute > m_values;	/* Attribute creation values */
 	SaImmAttrValuesT_2 **m_immAttrValues;	/* The array of opinters to SaImmAttrValuesT_2 structures */
 };
 
@@ -298,7 +329,7 @@ class SmfImmDeleteOperation:public SmfImmOperation {
 /// @param   None.
 /// @return  None.
 ///
-	SaAisErrorT execute();
+	SaAisErrorT execute(SmfRollbackData* o_rollbackData = NULL);
 
 ///
 /// Purpose: Rollback the operation.
@@ -322,7 +353,15 @@ class SmfImmDeleteOperation:public SmfImmOperation {
 	const std::string & getDn();
 
  private:
-	 std::string m_dn;	/* dn to the object to delete */
+
+///
+/// Purpose: Prepare rollback of the operation.
+/// @param   None.
+/// @return  None.
+///
+	SaAisErrorT prepareRollback(SmfRollbackData* o_rollbackData);
+
+        std::string m_dn;	/* dn to the object to delete */
 };
 
 ///
@@ -351,7 +390,7 @@ class SmfImmModifyOperation:public SmfImmOperation {
 /// @param   None.
 /// @return  None.
 ///
-	SaAisErrorT execute();
+	SaAisErrorT execute(SmfRollbackData* o_rollbackData = NULL);
 
 ///
 /// Purpose: Rollback the operation.
@@ -409,7 +448,26 @@ class SmfImmModifyOperation:public SmfImmOperation {
 ///
 	void addValue(const SmfImmAttribute & i_value);
 
+///
+/// Purpose: Add a attribute value to be used in the IMM operation.
+/// @param   i_name The name of the attribute to add.
+/// @param   i_type The type of the attribute to add.
+/// @param   i_value The value of the attribute to add.
+/// @return  None.
+///
+	void addAttrValue(const std::string & i_name,
+                          const std::string & i_type,
+                          const std::string & i_value);
+
 private:
+
+///
+/// Purpose: Prepare rollback of the operation.
+/// @param   None.
+/// @return  None.
+///
+	SaAisErrorT prepareRollback(SmfRollbackData* o_rollbackData);
+
         std::string m_dn;	/* dn to the object to be modified */
         std::string m_rdn;      /* rdn is an optional attribute which may be set in the campaign taregtEntityTemplate */
         std::string m_op;	/* type of modification operation */

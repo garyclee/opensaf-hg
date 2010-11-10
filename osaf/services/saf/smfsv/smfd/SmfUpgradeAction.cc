@@ -23,6 +23,7 @@
 #include "stdio.h"
 #include "logtrace.h"
 #include "SmfUpgradeAction.hh"
+#include "SmfRollback.hh"
 #include "SmfUtils.hh"
 #include "smfd.h"
 #include <SmfTargetTemplate.hh>
@@ -70,7 +71,7 @@ SmfUpgradeAction::~SmfUpgradeAction()
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT
-SmfUpgradeAction::execute()
+SmfUpgradeAction::execute(const std::string* i_rollbackDn)
 {
 	LOG_ER("execute must be specialised");
 	return SA_AIS_ERR_NOT_EXIST;
@@ -79,11 +80,11 @@ SmfUpgradeAction::execute()
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-int 
-SmfUpgradeAction::rollback()
+SaAisErrorT 
+SmfUpgradeAction::rollback(const std::string& i_rollbackDn)
 {
 	LOG_ER("rollback must be specialised");
-	return -1;
+	return SA_AIS_ERR_FAILED_OPERATION;
 }
 
 //------------------------------------------------------------------------------
@@ -153,8 +154,8 @@ SmfCliCommandAction::setUndoCmdArgs(const std::string & i_cmdArgs)
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-SaAisErrorT
-SmfCliCommandAction::execute()
+SaAisErrorT 
+SmfCliCommandAction::execute(const std::string* i_rollbackDn)
 {
 	SaAisErrorT result = SA_AIS_OK;
 	SaTimeT timeout = smfd_cb->cliTimeout;	/* Default timeout */
@@ -198,11 +199,49 @@ SmfCliCommandAction::execute()
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-int 
-SmfCliCommandAction::rollback()
+SaAisErrorT 
+SmfCliCommandAction::rollback(const std::string& i_rollbackDn)
 {
-	LOG_ER("Rollback not implemented yet");
-	return -1;
+	SaAisErrorT result = SA_AIS_OK;
+	SaTimeT timeout = smfd_cb->cliTimeout;	/* Default timeout */
+	std::string command;
+	std::list <SmfPlmExecEnv>::reverse_iterator it;
+
+	TRACE_ENTER();
+
+        TRACE("Start rollback of Cli command action");
+	command = m_undoCmd;
+	if (m_undoCmdArgs.length() > 0) {
+		command += " ";
+		command += m_undoCmdArgs;
+	}
+
+        /* Execute the undo command on nodes in reverse order */
+	for (it = m_plmExecEnvList.rbegin(); it != m_plmExecEnvList.rend(); it++) {
+		const std::string& n = it->getPrefered();
+		MDS_DEST nodeDest = getNodeDestination(n);
+		if (nodeDest == 0) {
+			LOG_ER("SmfCliCommandAction no node destination found for node %s", n.c_str());
+			result = SA_AIS_ERR_NOT_EXIST;
+			goto done;
+		}
+
+		TRACE("executing undo command '%s' on node '%s'", command.c_str(), n.c_str());
+
+		/* Execute the script remote on node */
+		int rc = smfnd_remote_cmd(command.c_str(), nodeDest, timeout / 10000000);	/* convert ns to 10 ms timeout */
+		if (rc != 0) {
+			LOG_ER("executing undo command '%s' on node '%s' failed with rc %d", 
+                               command.c_str(), n.c_str(), rc);
+
+			result = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		}
+	}
+
+ done:
+	TRACE_LEAVE();
+	return result;
 }
 
 //================================================================================
@@ -234,7 +273,8 @@ const SaImmAdminOperationParamsT_2 **
 SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParameter > i_parameters)
 {
 	//Create space for param pointers
-	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2 *[i_parameters.size() + 1];
+	const SaImmAdminOperationParamsT_2 **params = 
+                (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2 *[i_parameters.size() + 1];
 
 	std::list < SmfAdminOperationParameter >::iterator iter;
 	std::list < SmfAdminOperationParameter >::iterator iterE;
@@ -246,7 +286,7 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 	//For all parameters
 	while (iter != iterE) {
 		//Create structure for one parameter
-		 SaImmAdminOperationParamsT_2 *par = new(std::nothrow)  SaImmAdminOperationParamsT_2();
+		SaImmAdminOperationParamsT_2 *par = new(std::nothrow)  SaImmAdminOperationParamsT_2();
 		assert(par != 0);
 
 		par->paramName   = (SaStringT)(*iter).m_name.c_str();
@@ -334,20 +374,18 @@ SmfAdminOperationAction::addUndoParameter(const std::string & i_name, const std:
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT
-SmfAdminOperationAction::execute()
+SmfAdminOperationAction::execute(const std::string* i_rollbackDn)
 {
 	TRACE_ENTER();
 
-	TRACE("objectDN    = %s",m_doDn.c_str());
-	TRACE("operationID = %d",m_doOpId);
+	TRACE("execute admin op, do objectDN = %s, operationID = %d",m_doDn.c_str(), m_doOpId);
 
 	std::list < SmfAdminOperationParameter >::iterator iter = m_doParameters.begin();
 	std::list < SmfAdminOperationParameter >::iterator iterE = m_doParameters.end();
 
 	while (iter != iterE) {
-		TRACE("name  = %s",(*iter).m_name.c_str());
-		TRACE("type  = %s",(*iter).m_type.c_str());
-                TRACE("value = %s",(*iter).m_value.c_str());
+		TRACE("parameter name = %s, type = %s, value = '%s'",
+                      (*iter).m_name.c_str(),(*iter).m_type.c_str(),(*iter).m_value.c_str());
                 iter++;
 	}
 
@@ -364,11 +402,30 @@ SmfAdminOperationAction::execute()
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-int 
-SmfAdminOperationAction::rollback()
+SaAisErrorT 
+SmfAdminOperationAction::rollback(const std::string& i_rollbackDn)
 {
-	LOG_ER("Rollback not implemented yet");
-	return -1;
+	TRACE_ENTER();
+
+	TRACE("rollback admin op, undo objectDN = %s, operationID = %d",m_undoDn.c_str(), m_undoOpId);
+
+	std::list < SmfAdminOperationParameter >::iterator iter = m_undoParameters.begin();
+	std::list < SmfAdminOperationParameter >::iterator iterE = m_undoParameters.end();
+
+	while (iter != iterE) {
+		TRACE("parameter name = %s, type = %s, value = '%s'",
+                      (*iter).m_name.c_str(),(*iter).m_type.c_str(),(*iter).m_value.c_str());
+                iter++;
+	}
+
+        const SaImmAdminOperationParamsT_2 **params = createAdmOperParams(m_undoParameters);
+
+	SmfImmUtils siu;
+        SaAisErrorT rc = siu.callAdminOperation(m_undoDn, m_undoOpId, params, smfd_cb->adminOpTimeout);
+
+	TRACE_LEAVE();
+
+	return rc;
 }
 
 //================================================================================
@@ -418,16 +475,50 @@ SmfImmCcbAction::addOperation(SmfImmOperation * i_op)
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmCcbAction::execute()
+SmfImmCcbAction::execute(const std::string* i_rollbackDn)
 {
 	SaAisErrorT result = SA_AIS_OK;
-	TRACE_ENTER();
+        SmfRollbackCcb* rollbackCcb = NULL;
 
-	TRACE("Imm ccb actions %zu", m_operations.size());
+        TRACE_ENTER();
+
+	TRACE("Imm ccb actions id %d, size %zu", m_id, m_operations.size());
+        if (i_rollbackDn != NULL) {
+                std::string immRollbackCcbDn;
+                char idStr[16];
+                sprintf(idStr, "%08d", m_id);
+                immRollbackCcbDn = "smfRollbackElement=ccb_";
+                immRollbackCcbDn += idStr;
+                immRollbackCcbDn += ",";
+                immRollbackCcbDn += *i_rollbackDn;
+        
+                if ((result = smfCreateRollbackElement(immRollbackCcbDn)) != SA_AIS_OK) {
+                        LOG_ER("SmfImmCcbAction::execute failed to create rollback element %s, rc = %d", 
+                               immRollbackCcbDn.c_str(), result);
+                        return result;
+                }
+
+                rollbackCcb = new (std::nothrow) SmfRollbackCcb (immRollbackCcbDn);
+                if (rollbackCcb == NULL) {
+                        LOG_ER("SmfImmCcbAction::execute failed to create SmfRollbackCcb");
+                        return SA_AIS_ERR_NO_MEMORY;
+                }
+        }
+
 	if (m_operations.size() > 0) {
 		SmfImmUtils immUtil;
-		result = immUtil.doImmOperations(m_operations);
+		if ((result = immUtil.doImmOperations(m_operations, rollbackCcb)) != SA_AIS_OK) {
+                        delete rollbackCcb;
+                        rollbackCcb = NULL;
+		}
 	}
+
+        if (rollbackCcb != NULL) {
+                if ((result = rollbackCcb->execute()) != SA_AIS_OK) {
+			LOG_ER("SmfImmCcbAction::execute failed to store rollback CCB %d", result);
+                }
+                delete rollbackCcb;
+        }
 
 	TRACE_LEAVE();
 	return result;
@@ -436,9 +527,29 @@ SmfImmCcbAction::execute()
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-int 
-SmfImmCcbAction::rollback()
+SaAisErrorT 
+SmfImmCcbAction::rollback(const std::string& i_rollbackDn)
 {
-	LOG_ER("Rollback not implemented yet");
-	return -1;
+	SaAisErrorT result = SA_AIS_OK;
+        SmfImmUtils immUtil;
+
+        TRACE_ENTER();
+
+        std::string immRollbackCcbDn;
+        char idStr[16];
+        sprintf(idStr, "%08d", m_id);
+        immRollbackCcbDn = "smfRollbackElement=ccb_";
+        immRollbackCcbDn += idStr;
+        immRollbackCcbDn += ",";
+        immRollbackCcbDn += i_rollbackDn;
+
+        SmfRollbackCcb rollbackCcb(immRollbackCcbDn);
+
+	TRACE("Rollback IMM ccb actions id %d, dn %s", m_id, immRollbackCcbDn.c_str());
+
+        if ((result = rollbackCcb.rollback()) != SA_AIS_OK) {
+                LOG_ER("SmfImmCcbAction::rollback failed to rollback CCB %s, %d", immRollbackCcbDn.c_str(), result);
+        }
+
+	return result;
 }

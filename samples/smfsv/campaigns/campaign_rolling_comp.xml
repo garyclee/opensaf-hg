@@ -291,7 +291,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 	<!--  
 	The procedure 4 and 5 are executing in parallell and updates the component from 7.7.7 to 5.5.5. 
 	saSmfStepRestartOption is set to true (1), which means the components shall be restarted.
-	The SG does not exist, so the procedures will do nothing.
+	The SG does not exist, so the procedures will do nothing except for removing the "safSmfBundle=AmfDemo".
 	-->
 	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParExec1_CompRestart" saSmfExecLevel="5">
 		<outageInfo>
@@ -327,7 +327,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 	<!--  
 	The procedure 4 and 5 are executing in parallell and updates the component from 7.7.7 to 5.5.5. 
 	saSmfStepRestartOption is set to true (1), which means the components shall be restarted.
-	The SG does not exist, so the procedures will do nothing.
+	The SG does not exist, so the procedures will do nothing except for removing the "safSmfBundle=AmfDemo".
 	-->
 	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParExec2_CompRestart" saSmfExecLevel="5">
 		<outageInfo>
@@ -345,7 +345,7 @@ safSmfCampaign="safSmfCampaign=campaign_rolling_comp">
 								<parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent>
 								<type objectDN="safVersion=7.7.7,safCompType=AmfDemo1"></type>
 							</activationUnitTemplate>
-							<swRemove bundleDN="safSmfBundle=AmfDemo"/>
+							<swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo"/>
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<type objectDN="safVersion=7.7.7,safCompType=AmfDemo1"></type>

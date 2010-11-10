@@ -526,6 +526,7 @@ class SmfCampaignXmlParser {
 	xmlDocPtr m_doc;
 	xmlXPathContextPtr m_xpathCtx;
 	xmlXPathObjectPtr m_xpathObj;
+        unsigned int m_actionId;
 };
 
 #endif				// __SMFCAMPAIGNXMLREADER_H

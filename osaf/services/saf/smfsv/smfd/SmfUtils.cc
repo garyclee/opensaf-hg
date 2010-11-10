@@ -25,6 +25,8 @@
 #include <saAis.h>
 
 #include <immutil.h>
+#include <iostream>
+#include <sstream>
 #include <string.h>
 #include <algorithm>
 
@@ -32,6 +34,8 @@
 #include "SmfUtils.hh"
 #include "smfd_smfnd.h"
 #include "SmfImmOperation.hh"
+#include "SmfRollback.hh"
+
 
 /* ========================================================================
  *   DEFINITIONS
@@ -116,7 +120,7 @@ getNodeDestination(const std::string & i_node)
 		char *nodeName = strndup((const char *)clmNode->value, clmNode->length);
 		dest = smfnd_dest_for_name(nodeName);
 		if (dest == 0) {
-			LOG_ER("Failed to get node dest for clm node %s", nodeName);
+			LOG_NO("Failed to get node dest for clm node %s", nodeName);
 		}
 		free(nodeName);
 		return dest;
@@ -264,7 +268,7 @@ SmfImmUtils::getObject(const std::string & i_dn, SaImmAttrValuesT_2 *** o_attrib
 	rc = immutil_saImmOmAccessorGet_2(m_accessorHandle, &objectName, NULL, o_attributes);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmAccessorGet_2 failed, rc=%d object name=%s", rc, i_dn.c_str());
+		TRACE("saImmOmAccessorGet_2 failed, rc=%d object name=%s", rc, i_dn.c_str());
 		return false;
 	}
 
@@ -442,7 +446,7 @@ done:
 // doImmOperations()
 // ------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList)
+SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList, SmfRollbackCcb* io_rollbackCcb)
 {
 	/* Initialize CCB and get the IMM CCB handle */
 	SaAisErrorT result;
@@ -460,13 +464,45 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList)
 
 	/* Do all operations within the CCB  */
 	for (iter = i_immOperationList.begin(); iter != i_immOperationList.end(); ++iter) {
+                SmfRollbackData* rollbackData = NULL;
+
 		(*iter)->setImmOwnerHandle(m_ownerHandle);
 		(*iter)->setCcbHandle(immCcbHandle);
-		result = (*iter)->execute();
-		if (result != SA_AIS_OK){
-			LOG_ER("SmfImmUtils::doImmOperations:execute failed SaAisErrorT=%u", result);
-			return result;
+
+                if (io_rollbackCcb != NULL) {
+                        rollbackData = new (std::nothrow) SmfRollbackData(io_rollbackCcb);
+                        if (rollbackData == NULL) {
+                                LOG_ER("SmfImmUtils::doImmOperations:execute failed to create SmfRollbackData");
+                                return SA_AIS_ERR_NO_MEMORY;
+                        }
+                }
+
+		if ((result = (*iter)->execute(rollbackData)) != SA_AIS_OK){
+                        SmfImmCreateOperation* createOperation = dynamic_cast<SmfImmCreateOperation*>(*iter);
+                        TRACE("SmfImmUtils::doImmOperations: Check if create operation");
+                        if (createOperation != NULL) {
+                		//The creation may fail if the base type already exist, it shall not be considered an error
+                		if ((result == SA_AIS_ERR_EXIST) && (createOperation->getClassName().find("BaseType") != std::string::npos)) {
+                			TRACE("SmfImmUtils::doImmOperations: base type object already exists");
+                                        /* We should not rollback this non creation */
+                                        delete rollbackData; 
+                                        rollbackData = NULL;
+                		} else {
+                			LOG_ER("SmfImmUtils::doImmOperations: create failed %u", result);
+                                        delete rollbackData;
+                			return result;
+                		}
+                        }
+                        else {
+        			LOG_ER("SmfImmUtils::doImmOperations:execute failed SaAisErrorT=%u", result);
+                                delete rollbackData;
+        			return result;
+                        }
 		}
+
+                if (rollbackData != NULL) {
+                        io_rollbackCcb->addCcbData(rollbackData);
+                }
 	}
 
 	/* Apply the CCB */
@@ -513,10 +549,38 @@ smf_stringToImmType(char *i_type)
 	else if (!strcmp("SA_IMM_ATTR_SAANYT", i_type))
 		return SA_IMM_ATTR_SAANYT;
 	else {
-		TRACE("SmfUtils::smf_stringToImmType type %s not found", i_type);
+		LOG_ER("SmfUtils::smf_stringToImmType type %s not found", i_type);
 		assert(0);
 	}
 	return (SaImmValueTypeT)0;
+}
+
+static const char* immTypeNames[SA_IMM_ATTR_SAANYT + 1] = {
+        NULL,
+        "SA_IMM_ATTR_SAINT32T",
+        "SA_IMM_ATTR_SAUINT32T",
+        "SA_IMM_ATTR_SAINT64T",
+        "SA_IMM_ATTR_SAUINT64T",
+        "SA_IMM_ATTR_SATIMET",
+        "SA_IMM_ATTR_SANAMET",
+        "SA_IMM_ATTR_SAFLOATT",
+        "SA_IMM_ATTR_SADOUBLET",
+        "SA_IMM_ATTR_SASTRINGT",
+        "SA_IMM_ATTR_SAANYT"
+};
+
+// ------------------------------------------------------------------------------
+// smf_immTypeToString()
+// ------------------------------------------------------------------------------
+const char* 
+smf_immTypeToString(SaImmValueTypeT i_type)
+{
+        if (i_type < SA_IMM_ATTR_SAINT32T || i_type > SA_IMM_ATTR_SAANYT) {
+		LOG_ER("SmfUtils::smf_immTypeToString type %d not found", i_type);
+		assert(0);
+                return NULL;
+        }
+	return immTypeNames[i_type];
 }
 
 // ------------------------------------------------------------------------------
@@ -532,7 +596,7 @@ smf_stringToImmAttrModType(char *i_type)
 	else if (!strcmp("SA_IMM_ATTR_VALUES_REPLACE", i_type))
 		return SA_IMM_ATTR_VALUES_REPLACE;
 	else {
-		TRACE("SmfUtils::smf_stringToImmAttrModType type %s not found", i_type);
+		LOG_ER("SmfUtils::smf_stringToImmAttrModType type %s not found", i_type);
 		assert(0);
 	}
 	return (SaImmAttrModificationTypeT)0;
@@ -542,7 +606,7 @@ smf_stringToImmAttrModType(char *i_type)
 // smf_stringsToValues()
 //------------------------------------------------------------------------------
 bool 
-smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string > i_values)
+smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >& i_values)
 {
 //	assert(i_attribute->attrValuesNumber > 0);
 //	size_t len;
@@ -554,18 +618,13 @@ smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string > 
 	SaImmAttrValueT *value = i_attribute->attrValues;
 
 	std::list < std::string >::iterator iter;
-	std::list < std::string >::iterator iterE;
-	iter = i_values.begin();
-	iterE = i_values.end();
 
-	while (iter != iterE) {
+	for (iter = i_values.begin(); iter != i_values.end(); iter++) {
                 if (!smf_stringToValue(i_attribute->attrValueType, value,  (*iter).c_str())) {
                         LOG_ER("SmfUtils:smf_stringsToValues: Fails to convert a string to value");
                         assert(0);
                         return false;
                 }
-
-		iter++;
 		value++;	//Next value in (case of multivalue attribute)
 	}			//End whle
 
@@ -649,12 +708,75 @@ smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* 
                 TRACE("SIZE: %d", (int)((SaAnyT *) * i_value)->bufferSize);
                 break;
         default:
-                LOG_ER("BAD VALUE TYPE");
+                LOG_ER("smf_stringToValue: BAD VALUE TYPE");
                 assert(0);
                 return false;
         }		//End switch
 
         return true;
+}
+
+
+std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
+{
+    SaNameT* namep;
+    char* str;
+    SaAnyT* anyp;
+    std::ostringstream ost;
+
+    switch (type)
+    {
+        case SA_IMM_ATTR_SAINT32T: 
+            ost << *((int *) value);
+            break;
+        case SA_IMM_ATTR_SAUINT32T: 
+            ost << *((unsigned int *) value);
+            break;
+        case SA_IMM_ATTR_SAINT64T:  
+            ost << *((long long *) value);
+            break;
+        case SA_IMM_ATTR_SAUINT64T: 
+            ost << *((unsigned long long *) value);
+            break;
+        case SA_IMM_ATTR_SATIMET:   
+            ost << *((unsigned long long *) value);
+            break;
+        case SA_IMM_ATTR_SAFLOATT:  
+            ost << *((float *) value);
+            break;
+        case SA_IMM_ATTR_SADOUBLET: 
+            ost << *((double *) value);
+            break;
+        case SA_IMM_ATTR_SANAMET:
+            namep = (SaNameT *) value;
+
+            if (namep->length > 0)
+            {
+                namep->value[namep->length] = 0;
+                ost << (char*) namep->value;
+            }
+            break;
+        case SA_IMM_ATTR_SASTRINGT:
+            str = *((SaStringT *) value);
+            ost << str;
+            break;
+        case SA_IMM_ATTR_SAANYT:
+            anyp = (SaAnyT *) value;
+
+            for (unsigned int i = 0; i < anyp->bufferSize; i++)
+            {
+                ost << std::hex
+                    << (((int)anyp->bufferAddr[i] < 0x10)? "0":"")
+                << (int)anyp->bufferAddr[i];
+            }
+
+            break;
+        default:
+            std::cout << "Unknown value type - exiting" << std::endl;
+            exit(1);
+    }
+
+    return ost.str().c_str();
 }
 
 // ------------------------------------------------------------------------------
@@ -686,7 +808,7 @@ smf_opStringToInt(const char *i_str)
 	else if (!strcmp("SA_AMF_ADMIN_EAM_STOP", i_str))
 		return SA_AMF_ADMIN_EAM_STOP;
 	else {
-		TRACE("SmfUtils::smf_opStringToInt type %s not found", i_str);
+		LOG_ER("SmfUtils::smf_opStringToInt type %s not found, aborting", i_str);
 		assert(0);
 	}
 	return (SaAmfAdminOperationIdT)0;

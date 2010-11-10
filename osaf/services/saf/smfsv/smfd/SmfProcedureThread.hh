@@ -39,9 +39,8 @@
 typedef enum {
 	PROCEDURE_EVT_TERMINATE = 1,
 	PROCEDURE_EVT_EXECUTE = 2,
-	PROCEDURE_EVT_EXECUTE_INIT = 3,
 	PROCEDURE_EVT_EXECUTE_STEP = 4,
-	PROCEDURE_EVT_EXECUTE_WRAPUP = 5,
+	PROCEDURE_EVT_ROLLBACK_STEP = 5,
 	PROCEDURE_EVT_SUSPEND = 6,
 	PROCEDURE_EVT_COMMIT = 7,
 	PROCEDURE_EVT_ROLLBACK = 8,
@@ -123,8 +122,6 @@ class SmfProcedureThread {
 	int handleEvents(void);
 	void processEvt(void);
 
-	SaAisErrorT createImmHandle(SmfUpgradeProcedure * procedure);
-	SaAisErrorT deleteImmHandle();
 	SaAisErrorT getImmProcedure(SmfUpgradeProcedure * procedure);
 	SaAisErrorT createImmProcedure(SmfUpgradeProcedure * procedure);
 
@@ -135,8 +132,6 @@ class SmfProcedureThread {
 	bool m_running;
 	SmfUpgradeProcedure *m_procedure;
 	sem_t m_semaphore;
-	SaImmOiHandleT m_procOiHandle;	/* IMM OI handle                           */
-	SaSelectionObjectT m_procSelectionObject;	/* Selection Object to wait for IMM events */
 };
 
 #endif

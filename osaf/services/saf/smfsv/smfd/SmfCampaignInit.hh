@@ -127,7 +127,7 @@ class SmfCampaignInit {
 /// @param   None.
 /// @return  None.
 ///
-	bool executeRollback();
+	bool rollback();
 
  private:
 

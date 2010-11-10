@@ -8,8 +8,8 @@
 	1) RollingSUfromParent_SuTypeAsEntTempl,                 exec level 2
 	2) RollingSUfromParentAndType_SuParentAndTypeAsEntTempl, exec level 3
 	3) RollingSUfromParentAndType_CompTypeAsEntTempl,        exec level 4
-	4) RollingSUfromNoExistingSG_ParallellExecution1,        exec level 5
-	5) RollingSUfromNoExistingSG_ParallellExecution2,        exec level 5
+	4) RollingSUfromNoExistingSG_ParallellExecution1,        exec level 6
+	4) RollingSUfromNoExistingSG_ParallellExecution2,        exec level 6
 
 	The procedures uses different methods to filter out the "safComp=AmfDemo"
 	component and set the versioned type to safVersion=5.5.5 and safVersion=4.0.0.
@@ -129,6 +129,7 @@
 							<activationUnitTemplate>
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 							</activationUnitTemplate>
+							<swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo" />
 							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
@@ -161,7 +162,8 @@
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 								<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
 							</activationUnitTemplate>
-							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swRemove bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swAdd bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
 							<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
@@ -178,7 +180,7 @@
 			</rollingUpgrade>
 		</upgradeMethod>
 	</upgradeProcedure>
-		<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromParentAndType_CompTypeAsEntTempl" saSmfExecLevel="4">
+	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromParentAndType_CompTypeAsEntTempl" saSmfExecLevel="4">
 		<outageInfo>
 			<acceptableServiceOutage>
 				<all />
@@ -194,6 +196,7 @@
 								<parent objectDN="safSg=AmfDemo,safApp=AmfDemo1"></parent>
 								<type objectDN="safVersion=4.0.0,safSuType=AmfDemo1"></type>
 							</activationUnitTemplate>
+							<swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo" />
 							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
@@ -210,7 +213,7 @@
 			</rollingUpgrade>
 		</upgradeMethod>
 	</upgradeProcedure>
-	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParallellExecution1" saSmfExecLevel="5">
+	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParallellExecution1" saSmfExecLevel="6">
 		<outageInfo>
 			<acceptableServiceOutage>
 				<all />
@@ -225,13 +228,13 @@
 							<activationUnitTemplate>
 								<parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent>
 							</activationUnitTemplate>
-							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
+							<swAdd bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
-							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
+							<type objectDN="safVersion=5.5.5,safCompType=AmfDemo1"></type>
 							<modifyOperation operation="SA_IMM_ATTR_VALUES_REPLACE">
 								<attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-									<value>safVersion=5.5.5,safCompType=AmfDemo1</value>
+									<value>safVersion=4.0.0,safCompType=AmfDemo1</value>
 								</attribute>
 							</modifyOperation>
 						</targetEntityTemplate>
@@ -241,7 +244,7 @@
 			</rollingUpgrade>
 		</upgradeMethod>
 	</upgradeProcedure>
-	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParallellExecution2" saSmfExecLevel="5">
+	<upgradeProcedure safSmfProcedure="safSmfProc=RollingSUfromNoExistingSG_ParallellExecution2" saSmfExecLevel="6">
 		<outageInfo>
 			<acceptableServiceOutage>
 				<all />
@@ -256,14 +259,12 @@
 							<activationUnitTemplate>
 								<parent objectDN="safSg=SG_dummy_2n,safApp=2nApp "></parent>
 							</activationUnitTemplate>
-							<swRemove bundleDN="safSmfBundle=AmfDemo"/>
-							<swAdd bundleDN="safSmfBundle=bundleA,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" />
 						</targetNodeTemplate>
 						<targetEntityTemplate>
-							<type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"></type>
+							<type objectDN="safVersion=5.5.5,safCompType=AmfDemo1"></type>
 							<modifyOperation operation="SA_IMM_ATTR_VALUES_REPLACE">
 								<attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-									<value>safVersion=5.5.5,safCompType=AmfDemo1</value>
+									<value>safVersion=4.0.0,safCompType=AmfDemo1</value>
 								</attribute>
 							</modifyOperation>
 						</targetEntityTemplate>

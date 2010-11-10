@@ -246,18 +246,49 @@ SmfUpgradeCampaign::setCampState(SaSmfCmpgStateT i_state)
 			m_state = SmfCampStateExecFailed::instance();
 			break;
 		}
-
-#if 0
-		/*Not implemented yet */
-		SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED = 8,
-		    SA_SMF_CMPG_ERROR_DETECTED_IN_SUSPENDING = 9, SA_SMF_CMPG_ROLLING_BACK =
-		    11, SA_SMF_CMPG_SUSPENDING_ROLLBACK = 12, SA_SMF_CMPG_ROLLBACK_SUSPENDED =
-		    13, SA_SMF_CMPG_ROLLBACK_COMPLETED = 14, SA_SMF_CMPG_ROLLBACK_COMMITTED =
-		    15, SA_SMF_CMPG_ROLLBACK_FAILED = 16
-#endif
+	case SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED:
+		{
+			m_state = SmfCampStateSuspendedByErrorDetected::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ERROR_DETECTED_IN_SUSPENDING:
+		{
+			m_state = SmfCampStateErrorDetectedInSuspending::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ROLLING_BACK:
+		{
+			m_state = SmfCampRollingBack::instance();
+			break;
+		}
+	case SA_SMF_CMPG_SUSPENDING_ROLLBACK:
+		{
+			m_state = SmfCampSuspendingRollback::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ROLLBACK_SUSPENDED:
+		{
+			m_state = SmfCampRollbackSuspended::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ROLLBACK_COMPLETED:
+		{
+			m_state = SmfCampRollbackCompleted::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ROLLBACK_COMMITTED:
+		{
+			m_state = SmfCampRollbackCommitted::instance();
+			break;
+		}
+	case SA_SMF_CMPG_ROLLBACK_FAILED:
+		{
+			m_state = SmfCampRollbackFailed::instance();
+			break;
+		}
 	default:
 		{
-			LOG_ER("unknown state");
+			LOG_ER("SmfUpgradeCampaign: Trying to set unknown state %d", i_state);
 		}
 	}
 
@@ -523,7 +554,16 @@ void
 SmfUpgradeCampaign::execute()
 {
 	TRACE_ENTER();
-	m_state->execute(this);
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->execute(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
 	TRACE_LEAVE();
 }
 
@@ -534,7 +574,7 @@ void
 SmfUpgradeCampaign::executeInit()
 {
 	TRACE_ENTER();
-	m_state->executeInit(this);
+	//m_state->executeInit(this);
 	TRACE_LEAVE();
 }
 
@@ -545,7 +585,16 @@ void
 SmfUpgradeCampaign::executeProc()
 {
 	TRACE_ENTER();
-	m_state->executeProc(this);
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->executeProc(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
 	TRACE_LEAVE();
 }
 
@@ -556,7 +605,7 @@ void
 SmfUpgradeCampaign::executeWrapup()
 {
 	TRACE_ENTER();
-	m_state->executeWrapup(this);
+	//m_state->executeWrapup(this);
 	TRACE_LEAVE();
 }
 
@@ -567,7 +616,36 @@ void
 SmfUpgradeCampaign::rollback()
 {
 	TRACE_ENTER();
-	m_state->rollback(this);
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->rollback(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// rollbackProc()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::rollbackProc()
+{
+	TRACE_ENTER();
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->rollbackProc(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
 	TRACE_LEAVE();
 }
 
@@ -578,7 +656,15 @@ void
 SmfUpgradeCampaign::suspend()
 {
 	TRACE_ENTER();
-	m_state->suspend(this);
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->suspend(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
 	TRACE_LEAVE();
 }
 
@@ -589,6 +675,199 @@ void
 SmfUpgradeCampaign::commit()
 {
 	TRACE_ENTER();
-	m_state->commit(this);
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->commit(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
 	TRACE_LEAVE();
 }
+
+//------------------------------------------------------------------------------
+// procResult()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::procResult(SmfUpgradeProcedure* i_procedure, SmfProcResultT i_result)
+{
+	TRACE_ENTER();
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->procResult(this, i_procedure, i_result);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// continueExec()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::continueExec()
+{
+	TRACE_ENTER();
+        SaSmfCmpgStateT currentState = m_state->getState();
+
+        /* Check if we have restarted too many times */
+        bool o_result;
+	if (this->tooManyRestarts(&o_result) == SA_AIS_OK){
+		if (o_result == true) {
+			LOG_ER("The campaign have been restarted to many times");
+			std::string cnt = getenv("CAMP_MAX_RESTART");
+			std::string error = "To many campaign restarts, max " + cnt;
+			SmfCampaignThread::instance()->campaign()->setError(error);
+			changeState(SmfCampStateExecFailed::instance());
+			TRACE_LEAVE();
+			return;
+		}
+	} else {
+		LOG_ER("continueExec() restart number check failed");
+		std::string error = "Restart number check failed";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
+	}
+
+        switch (currentState) {
+        case SA_SMF_CMPG_EXECUTING:
+                execute();
+                break;
+        case SA_SMF_CMPG_ROLLING_BACK:
+                rollback();
+                break;
+        default:
+                TRACE("current continue state is %u, do nothing", currentState);
+                break;
+        }
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// resetMaintenanceState()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::resetMaintenanceState()
+{
+	TRACE_ENTER();
+
+        LOG_NO("CAMP: Campaign wrapup, reset saAmfSUMaintenanceCampaign flags");
+        //Find all SUs in the system
+        std::list < std::string > objectList;
+	SmfImmUtils immUtil;
+        (void)immUtil.getChildren("", objectList, SA_IMM_SUBTREE, "SaAmfSU");
+
+        //Reset saAmfSUMaintenanceCampaign for all found SUs
+        const std::string campDn = SmfCampaignThread::instance()->campaign()->getDn();
+        std::list < SmfImmOperation * > operations;
+        std::list < std::string >::const_iterator suit;
+	SaImmAttrValuesT_2 **attributes;
+
+        for (suit = objectList.begin(); suit != objectList.end(); ++suit) {
+
+		if (immUtil.getObject((*suit), &attributes) == true) {
+			const SaNameT *maintCamp =
+				immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+						    "saAmfSUMaintenanceCampaign",
+						    0);
+
+			if ((maintCamp != NULL) && (maintCamp->length > 0)) {
+				SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
+				assert(modop != 0);
+				modop->setDn(*suit);
+				modop->setOp("SA_IMM_ATTR_VALUES_DELETE");
+				SmfImmAttribute saAmfSUMaintenanceCampaign;
+				saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
+				saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
+				saAmfSUMaintenanceCampaign.addValue(campDn);
+				modop->addValue(saAmfSUMaintenanceCampaign);
+				operations.push_back(modop);
+			}
+		}
+        }
+
+        if (immUtil.doImmOperations(operations) != SA_AIS_OK) {
+                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
+        }
+
+        //Delete the created SmfImmModifyOperation instances
+        std::list < SmfImmOperation * > ::iterator operIter;
+        for (operIter = operations.begin(); operIter != operations.end(); ++operIter) {
+                delete (*operIter);
+        }
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// removeRunTimeObjects()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::removeRunTimeObjects()
+{
+	TRACE_ENTER();
+
+	/* Remove smfRestartInfo runtime object */
+        LOG_NO("CAMP: Campaign wrapup, Remove runtime objects");
+
+        SaNameT objectName;
+	std::string dn = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn(); 
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
+					   &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
+	}
+
+	/* Remove campaign rollback element runtime objects */
+        dn = "smfRollbackElement=AddToImmCcb," + SmfCampaignThread::instance()->campaign()->getDn(); 
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
+                                           &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
+	}
+
+        dn = "smfRollbackElement=CampInit," + SmfCampaignThread::instance()->campaign()->getDn(); 
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
+					   &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
+	}
+
+        dn = "smfRollbackElement=CampComplete," + SmfCampaignThread::instance()->campaign()->getDn(); 
+	objectName.length = dn.length();
+	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
+					   &objectName);
+
+	if (rc != SA_AIS_OK) {
+		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
+	}
+
+	TRACE_LEAVE();
+}
+

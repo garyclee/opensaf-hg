@@ -65,7 +65,9 @@ class SmfCampaign {
 	SaAisErrorT adminOpCommit(void);
 	SaAisErrorT adminOpRollback(void);
 
-//    void procResult(SmfUpgradeProcedure* procedure, PROCEDURE_RESULT rc);
+	SaAisErrorT initExecution(void);
+
+        //    void procResult(SmfUpgradeProcedure* procedure, PROCEDURE_RESULT rc);
 	/* TODO Remove procResult ?? */
 	void procResult(SmfUpgradeProcedure * procedure, int rc);
 
@@ -79,6 +81,7 @@ class SmfCampaign {
 	SmfUpgradeCampaign *getUpgradeCampaign();
 	void setCampaignXmlDir(std::string i_path);
 	const std::string getCampaignXmlDir();
+        void adminOpBusy(bool busy) { m_adminOpBusy = busy; }
 
  private:
 
@@ -92,6 +95,7 @@ class SmfCampaign {
 	std::string m_cmpgError;
 	SmfUpgradeCampaign *m_upgradeCampaign;
 	std::string m_campaignXmlDir;
+        bool m_adminOpBusy;
 };
 
 ///
