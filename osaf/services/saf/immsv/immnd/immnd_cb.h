@@ -22,8 +22,6 @@
 
 /* macros for the CB handle */
 
-#define IMMSV_WAIT_TIME  100
-
 /*Max # of outstanding fevs messages towards director.*/
 /*Note max-max is 255. cb->fevs_replies_pending is an uns8*/
 #define IMMND_FEVS_MAX_PENDING 16
@@ -124,6 +122,7 @@ typedef struct immnd_cb_tag {
 	uns8 mSync;		//true => this node is being synced (client).
 	uns8 mCanBeCoord;
 	uns8 mIsCoord;
+	uns8 mLostNodes;       //Detached & not syncreq => delay sync start
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;
@@ -140,7 +139,8 @@ typedef struct immnd_cb_tag {
 	int32 syncPid;
 	int32 pbePid;   //Persistent back end (PBE) is running if pbePid > 0
 	IMMND_SERVER_STATE mState;
-	uns32 mTimer;		//Measures progress in immnd_proc_server
+	uns32 mStep;		//Measures progress in immnd_proc_server
+	time_t mJobStart;       //Start time for major server tasks like start, load, sync.
 	char *mProgName;	//The full path name of the immnd executable.
 	const char *mDir;	//The directory where imm.xml & pbe files reside
 	const char *mFile;	//The imm.xml file to start from

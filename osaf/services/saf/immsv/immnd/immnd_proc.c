@@ -379,12 +379,6 @@ uns32 immnd_introduceMe(IMMND_CB *cb)
 	}
 
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
-	if (cb->mNumNodes == 0) {
-		/*Only set to 1 if this is the first time, (dont overwrite higher 
-		   values). Incremented in immnd_evt_proc_intro_rsp. */
-		cb->mNumNodes = 1;
-		TRACE("immnd_introduceMe cb->mNumNodes:%u", cb->mNumNodes);
-	}
 	return rc;
 }
 
@@ -516,8 +510,16 @@ static SaInt32T immnd_syncNeeded(IMMND_CB *cb)
 	   The fact that we are IMMND coord has laready been checked. */
 
 	if (cb->mSyncRequested) {
-		cb->mSyncRequested = 0;	/*reset sync request marker */
-		return (cb->mMyEpoch + 1);
+		if(cb->mLostNodes) {
+			/* We have lost more nodes than have returned to request sync
+			   Wait a bit more to allow them to join.
+			 */
+			LOG_IN("Postponing sync, waiting for %u nodes", cb->mLostNodes);
+			cb->mLostNodes--; 
+		} else {
+			cb->mSyncRequested = FALSE;	/*reset sync request marker */
+			return (cb->mMyEpoch + 1);
+		}
 	}
 
 	return 0;
@@ -864,7 +866,6 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	}
 
 	stuck = immModel_cleanTheBasement(cb,
-		cb->mTimer,
 		&admReqArr,
 		&admReqArrSize,
 		&searchReqArr, 
@@ -1106,7 +1107,7 @@ void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId)
 }
 
 
-static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
+static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration)
 {
 	assert(cb->mIsCoord);
 	if (cb->mPendSync) {
@@ -1127,7 +1128,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 		return SA_TRUE;
 	}
 
-	if(!(step % 20) && !pbeIsInSync) { /* Every two seconds check on pbe */
+	if(!(duration % 2) && !pbeIsInSync) { /* Every two seconds check on pbe */
 		if(cb->pbePid) {
 			LOG_WA("Persistent back end process appears hung, restarting it.");
 			kill(cb->pbePid, SIGTERM);
@@ -1140,7 +1141,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 		}
 	}
 
-	if (step % 100) {/* Wait 5 or 10 secs for non critical ccbs to terminate */
+	if (duration % 5) {/* Wait 5 secs for non critical ccbs to terminate */
 		return SA_FALSE;
 	}
 
@@ -1364,13 +1365,16 @@ uns32 immnd_proc_server(uns32 *timeout)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	int32 coord, newEpoch;
 	int32 printFrq = (*timeout > 100) ? 5 : 50;
+	time_t now = time(NULL);
+	uns32 jobDuration = now - cb->mJobStart;
+	if(!jobDuration) {++jobDuration;} /* Avoid jobDuraton of zero */
 	/*TRACE_ENTER(); */
 
-	if ((cb->mTimer % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u cord:%u rim:%s vet:%u",
+	if ((cb->mStep % printFrq) == 0) {
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s lost:%u",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
 			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-			"KEEP_REPO":"FROM_FILE", cb->mPbeVeteran);
+			"KEEP_REPO":"FROM_FILE", cb->mLostNodes);
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1383,7 +1387,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 	case IMM_SERVER_ANONYMOUS:	/*send introduceMe msg. */
 		/*TRACE_5("IMM_SERVER_ANONYMOUS");*/
 		if (immnd_introduceMe(cb) == NCSCC_RC_SUCCESS) {
-			cb->mTimer = 0;
+			cb->mStep = 0;
+			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_ANONYMOUS --> IMM_SERVER_CLUSTER_WAITING");
 			cb->mState = IMM_SERVER_CLUSTER_WAITING;
 		}
@@ -1399,30 +1404,35 @@ uns32 immnd_proc_server(uns32 *timeout)
 		coord = immnd_iAmCoordinator(cb);
 		if (coord != (-1)) {	/* (-1) Not ready; (1) coord; (0) non-coord */
 			if (coord) {
-				if ((cb->mNumNodes >= cb->mExpectedNodes) || (cb->mTimer >= 10 * (cb->mWaitSecs))) {
+				if ((cb->mNumNodes >= cb->mExpectedNodes) || 
+					(jobDuration >= cb->mWaitSecs)) {
+					TRACE_5("Nodes %u >= %u || Secs %u >= %u", cb->mNumNodes,
+						cb->mExpectedNodes, jobDuration, cb->mWaitSecs);
 					cb->mState = IMM_SERVER_LOADING_PENDING;
 					LOG_NO("SERVER STATE: IMM_SERVER_CLUSTER_WAITING -->"
 					       " IMM_SERVER_LOADING_PENDING");
-					cb->mTimer = 0;
+					cb->mStep = 0;
+					cb->mJobStart = now;
 				} else {
-					TRACE_5("Nodes %u < %u || %u < %u", cb->mNumNodes,
-						cb->mExpectedNodes, cb->mTimer, 10 * (cb->mWaitSecs));
+					TRACE_5("Nodes %u < %u && %u < %u", cb->mNumNodes,
+						cb->mExpectedNodes, jobDuration, cb->mWaitSecs);
 				}
 			} else {
 				/*Non coordinator goes directly to loading pending */
 				cb->mState = IMM_SERVER_LOADING_PENDING;
 				LOG_NO("SERVER STATE: IMM_SERVER_CLUSTER_WAITING --> IMM_SERVER_LOADING_PENDING");
-				cb->mTimer = 0;
+				cb->mStep = 0;
+				cb->mJobStart = now;
 			}
 		} else {	/*We are not ready to start loading yet */
-			if (!(cb->mIntroduced) && !(cb->mTimer % 100)) {
+			if (!(cb->mIntroduced) && !((cb->mStep + 1) % 10)) { /* Every 10th step */
 				LOG_WA("Resending introduce-me - problems with MDS ?");
 				immnd_introduceMe(cb);
 			}
 		}
 
-		if (cb->mTimer > 500) {	/* No progress in 50 secs */
-			LOG_ER("Failed to load/sync. Giving up after %u seconds, restarting..", (cb->mTimer) / 10);
+		if (jobDuration > 50) {	/* No progress in 50 secs */
+			LOG_ER("Failed to load/sync. Giving up after %u seconds, restarting..", jobDuration);
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
 			immnd_ackToNid(rc);
 		}
@@ -1440,16 +1450,17 @@ uns32 immnd_proc_server(uns32 *timeout)
 				/*Epoch == -2 means coord is available but epoch
 				   missmatch => go to synch immediately.
 				   Epoch == -1 means still waiting for coord. 
-				   Be patient, give the coord 3 seconds to come up. */
+				   Be patient, give the coord 30 seconds to come up. */
 
-				if (newEpoch == (-2) || cb->mTimer > 300) {
+				if (newEpoch == (-2) || (jobDuration > 30)) {
 					/*Request to be synched instead. */
 					LOG_IN("REQUESTING SYNC");
 					if (immnd_requestSync(cb)) {
 						LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING "
 						       "--> IMM_SERVER_SYNC_PENDING");
 						cb->mState = IMM_SERVER_SYNC_PENDING;
-						cb->mTimer = 0;
+						cb->mStep = 0;
+						cb->mJobStart = now;
 					}
 				}
 			}
@@ -1460,13 +1471,15 @@ uns32 immnd_proc_server(uns32 *timeout)
 					LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING "
 					       "--> IMM_SERVER_LOADING_SERVER");
 					cb->mState = IMM_SERVER_LOADING_SERVER;
-					cb->mTimer = 0;
+					cb->mStep = 0;
+					cb->mJobStart = now;
 				}
 			} else {
 				/*Non loader goes directly to loading client */
 				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT");
 				cb->mState = IMM_SERVER_LOADING_CLIENT;
-				cb->mTimer = 0;
+				cb->mStep = 0;
+				cb->mJobStart = now;
 			}
 		}
 		break;
@@ -1474,26 +1487,26 @@ uns32 immnd_proc_server(uns32 *timeout)
 	case IMM_SERVER_SYNC_PENDING:
 		if (cb->mSync) {
 			/* Sync has started */
-			cb->mTimer = 0;
+			cb->mStep = 0;
+			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_PENDING --> IMM_SERVER_SYNC_CLIENT");
 			cb->mState = IMM_SERVER_SYNC_CLIENT;
 		} else {
 			/* Sync has not started yet. */
-			if (cb->mTimer > 610) {	/*This timeout value should not be
-						   hard-coded. */
+			if (jobDuration > 100) { /*This timeout value should not be hard-coded. */
 				LOG_WA("This node failed to be sync'ed. "
-				       "Giving up after %u seconds, restarting..", cb->mTimer / 10);
+				       "Giving up after %u seconds, restarting..", jobDuration);
 				rc = NCSCC_RC_FAILURE;	/*terminate. */
 				immnd_ackToNid(rc);
 			}
 
-			if (!(cb->mTimer % 200)) {/* Once every 20 secs. */
-				LOG_IN("REQUESTING SYNC AGAIN %u", cb->mTimer);
+			if (!(cb->mStep % 1000)) {/* Once 1000 steps. */
+				LOG_IN("REQUESTING SYNC AGAIN %u", cb->mStep);
 				immnd_requestSync(cb);
 			}
 
-			if (!(cb->mTimer % 50)) {
-				LOG_IN("This node still waiting to be sync'ed after %u seconds", cb->mTimer / 10);
+			if (!(cb->mStep % 200)) {
+				LOG_IN("This node still waiting to be sync'ed after %u seconds", jobDuration);
 			}
 		}
 		break;
@@ -1503,7 +1516,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 		if (cb->mMyEpoch > cb->mRulingEpoch) {
 			TRACE_5("Wait for permission to start loading "
 				"My epoch:%u Ruling epoch:%u", cb->mMyEpoch, cb->mRulingEpoch);
-			if (cb->mTimer > 150) {
+			if (jobDuration > 15) {
 				LOG_WA("MDS problem-2, giving up");
 				rc = NCSCC_RC_FAILURE;	/*terminate. */
 				immnd_ackToNid(rc);
@@ -1512,6 +1525,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			if (cb->loaderPid == (-1) && immModel_readyForLoading(cb)) {
 				TRACE_5("START LOADING");
 				cb->loaderPid = immnd_forkLoader(cb);
+				cb->mJobStart = now;
 				if (cb->loaderPid > 0) {
 					immModel_setLoader(cb, cb->loaderPid);
 				} else {
@@ -1530,6 +1544,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				cb->mState = IMM_SERVER_READY;
 				immnd_ackToNid(NCSCC_RC_SUCCESS);
 				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_SERVER --> IMM_SERVER_READY");
+				cb->mJobStart = now;
 				if (cb->mPbeFile) {/* Pbe enabled */
 					cb->mRim = immModel_getRepositoryInitMode(cb);
 
@@ -1551,7 +1566,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			}
 		}
-		if (cb->mTimer > 1200) {/*Waited 2 minutes for loading to complete */
+		if (jobDuration > 120) {/*Waited 2 minutes for loading to complete */
 			LOG_ER("LOADING IS APPARENTLY HUNG");
 			cb->loaderPid = 0;
 			/*immModel_setLoader(cb, 0); */
@@ -1564,9 +1579,10 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
-		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 1200) : 1200)) {
+		if (jobDuration > (cb->mWaitSecs ? (cb->mWaitSecs + 120) : 120)) {
 			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
-			cb->mTimer = 0;
+			cb->mStep = 0;
+			cb->mJobStart = now;
 			/*immModel_setLoader(cb,0); */
 			/*cb->mState = IMM_SERVER_ANONYMOUS; */
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
@@ -1576,6 +1592,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			immnd_adjustEpoch(cb, SA_TRUE);
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
 			cb->mState = IMM_SERVER_READY;
+			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY");
 			if (cb->mPbeFile) {/* Pbe enabled */
 				cb->mRim = immModel_getRepositoryInitMode(cb);
@@ -1592,8 +1609,9 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_SYNC_CLIENT:
 		TRACE_5("IMM_SERVER_SYNC_CLIENT");
-		if (immnd_syncComplete(cb, SA_FALSE, cb->mTimer)) {
-			cb->mTimer = 0;
+		if (immnd_syncComplete(cb, SA_FALSE, cb->mStep)) {
+			cb->mStep = 0;
+			cb->mJobStart = now;
 			cb->mState = IMM_SERVER_READY;
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
 			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY");
@@ -1614,21 +1632,22 @@ uns32 immnd_proc_server(uns32 *timeout)
 		break;
 
 	case IMM_SERVER_SYNC_SERVER:
-		if (!immnd_ccbsTerminated(cb, cb->mTimer)) {
+		if (!immnd_ccbsTerminated(cb, jobDuration)) {
 			/*Phase 1 */
-			if (!(cb->mTimer % 10)) {
+			if (!(cb->mStep % 60)) {
 				LOG_IN("Sync Phase-1, waiting for existing "
-				       "Ccbs to terminate, seconds waited: %u", cb->mTimer / 10);
+				       "Ccbs to terminate, seconds waited: %u", jobDuration);
 			}
-			if (cb->mTimer > 200) {
+			if (jobDuration > 20) {
 				LOG_IN("Still waiting for existing Ccbs to terminate "
-				       "after %u seconds. Aborting this sync attempt", cb->mTimer / 10);
+				       "after %u seconds. Aborting this sync attempt", jobDuration);
 				immnd_abortSync(cb);
 				if(cb->syncPid != 0) {
 					LOG_NO("STOPPING sync process pid %u", cb->syncPid);
 					kill(cb->syncPid, SIGTERM);
 				}
-				cb->mTimer = 0;
+				cb->mStep = 0;
+				cb->mJobStart = now;
 				cb->mState = IMM_SERVER_READY;
 				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 			}
@@ -1654,7 +1673,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 				if (cb->syncPid <= 0) {
 					LOG_ER("Failed to fork sync process");
 					cb->syncPid = 0;
-					cb->mTimer = 0;
+					cb->mStep = 0;
+					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
 					immnd_abortSync(cb);
 					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
@@ -1664,11 +1684,12 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			} else {
 				/*Phase 3 */
-				if (!(cb->mTimer % 60)) {
-					LOG_IN("Sync Phase-3 time:%u", cb->mTimer/60);
+				if (!(cb->mStep % 60)) {
+					LOG_IN("Sync Phase-3 step:%u", cb->mStep);
 				}
-				if (immnd_syncComplete(cb, TRUE, cb->mTimer)) {
-					cb->mTimer = 0;
+				if (immnd_syncComplete(cb, TRUE, cb->mStep)) {
+					cb->mStep = 0;
+					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
 					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 				} else {
@@ -1676,7 +1697,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 					if (waitpid(cb->syncPid, &status, WNOHANG) > 0) {
 						LOG_ER("SYNC APPARENTLY FAILED status:%i", WEXITSTATUS(status));
 						cb->syncPid = 0;
-						cb->mTimer = 0;
+						cb->mStep = 0;
+						cb->mJobStart = now;
 						LOG_NO("-SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 						cb->mState = IMM_SERVER_READY;
 						immnd_abortSync(cb);
@@ -1726,8 +1748,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 		immnd_cleanTheHouse(cb, coord == 1);
 
-		if ((coord == 1) && (cb->mTimer > 1)) {
-			/*Every sec but first time after 2 secs. */
+		if ((coord == 1) && (cb->mStep > 1)) {
 			if (immModel_immNotWritable(cb)) {
 				/*Ooops we have apparently taken over the role of IMMND
 				  coordinator during an uncompleted sync. Probably due 
@@ -1746,7 +1767,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 							LOG_NO("SERVER STATE: IMM_SERVER_READY -->"
 								" IMM_SERVER_SYNC_SERVER");
 							cb->mState = IMM_SERVER_SYNC_SERVER;
-							cb->mTimer = 0;
+							cb->mStep = 0;
+							cb->mJobStart = now;
 							*timeout = 100;	/* 0.1 sec */
 						}
 					}
@@ -1784,7 +1806,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 		break;
 	}
 
-	++(cb->mTimer);
+	++(cb->mStep);
 
 	/*TRACE_LEAVE(); */
 	return rc;

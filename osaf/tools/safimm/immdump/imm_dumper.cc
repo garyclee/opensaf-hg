@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
         if(pbeDaemonCase) {
             LOG_WA("Failed to initialize imm om handle - exiting");
         } else {
-            std::cout << "Failed to initialize the imm om interface - exiting" 
+            std::cerr << "Failed to initialize the imm om interface - exiting" 
             << errorCode 
             <<  std::endl;
         }
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
             if(pbeDaemonCase) {
                 LOG_WA("immdump: pbe intialize failed - exiting");
             } else {
-                std::cout << "immdump: intialize failed - exiting, check syslog for details"
+                std::cerr << "immdump: intialize failed - exiting, check syslog for details"
                     << std::endl;
             }
             exit(1);
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
                 LOG_WA("Failed to initialize admin owner handle: err:%u - exiting",
                     errorCode);
             } else {
-                std::cout << "Failed to initialize admin owner handle; err:" 
+                std::cerr << "Failed to initialize admin owner handle; err:" 
                     << errorCode << std::endl;
             }
             exit(1);
@@ -407,7 +407,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     TRACE_1("After searchInitialize rc:%u", errorCode);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed on saImmOmSearchInitialize - exiting " 
+        std::cerr << "Failed on saImmOmSearchInitialize - exiting " 
             << errorCode 
             << std::endl;
 
@@ -440,7 +440,7 @@ static void dumpObjects(SaImmHandleT immHandle,
 
     if (SA_AIS_ERR_NOT_EXIST != errorCode)
     {
-        std::cout << "Failed in saImmOmSearchNext_2 - exiting"
+        std::cerr << "Failed in saImmOmSearchNext_2 - exiting"
             << errorCode
             << std::endl;
         exit(1);
@@ -450,7 +450,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     errorCode = saImmOmSearchFinalize(searchHandle);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to finalize the search connection - exiting"
+        std::cerr << "Failed to finalize the search connection - exiting"
             << errorCode
             << std::endl;
         exit(1);
@@ -487,14 +487,14 @@ std::string getClassName(const SaImmAttrValuesT_2** attrs)
             }
             else
             {
-                std::cout << "Invalid type for class name exiting" 
+                std::cerr << "Invalid type for class name exiting" 
                     << attrs[i]->attrValueType
                     << std::endl;
                 exit(1);
             }
         }
     }
-    std::cout << "Could not find classname attribute -  exiting" 
+    std::cerr << "Could not find classname attribute -  exiting" 
         << std::endl;    
     exit(1);
 }
@@ -534,7 +534,7 @@ static void classToXML(std::string classNameString,
                                              &attrDefinitions);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to get the description for the " 
+        std::cerr << "Failed to get the description for the " 
             << classNameString
             << " class - exiting, "
             << errorCode
@@ -600,7 +600,7 @@ static void classToXML(std::string classNameString,
         saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to free the description of class "
+        std::cerr << "Failed to free the description of class "
             << classNameString
             << std::endl;
         exit(1);
@@ -619,7 +619,7 @@ static void objectToXML(std::string objectNameString,
     xmlNodePtr objectNode;
     TRACE_ENTER();
 
-    std::cout << "Dumping object " << objectNameString << std::endl;
+    //std::cout << "Dumping object " << objectNameString << std::endl;
     classNameString = getClassName((const SaImmAttrValuesT_2**) attrs);
     /* Create the object tag */
     objectNode = xmlNewTextChild(parent, 
@@ -669,7 +669,7 @@ static void valuesToXML(SaImmAttrValuesT_2* p, xmlNodePtr parent)
 {
     if (!p->attrValues)
     {
-        std::cout << "No values!" << std::endl;
+       //std::cout << "No values!" << std::endl;
         return;
     }
 
@@ -739,7 +739,7 @@ std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
 
             break;
         default:
-            std::cout << "Unknown value type - exiting" << std::endl;
+            std::cerr << "Unknown value type - exiting" << std::endl;
             exit(1);
     }
 
@@ -875,7 +875,7 @@ static void typeToXML(SaImmAttrDefinitionT_2* p, xmlNodePtr parent)
                             (xmlChar*)"SA_ANY_T");
             break;
         default:
-            std::cout << "Unknown value type" << std::endl;
+            std::cerr << "Unknown value type" << std::endl;
             exit(1);
     }
 }
@@ -899,7 +899,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed on saImmOmAccessorInitialize - exiting " 
+        std::cerr << "Failed on saImmOmAccessorInitialize - exiting " 
             << errorCode 
             << std::endl;
         exit(1);
@@ -915,7 +915,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed in saImmOmAccessorGet - exiting " 
+        std::cerr << "Failed in saImmOmAccessorGet - exiting " 
             << errorCode
             << std::endl;
         exit(1);
@@ -933,7 +933,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 
     if (NULL == (*p))
     {
-        std::cout << "Failed to get the classes attribute" << std::endl;
+        std::cerr << "Failed to get the classes attribute" << std::endl;
         exit(1);
     }
 
@@ -949,7 +949,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
         }
         else if ((*attributes)->attrValueType == SA_IMM_ATTR_SANAMET)
         {
-            std::cout << "SANAMET" << std::endl;
+	    //std::cout << "SANAMET" << std::endl;
             std::string classNameString = 
                 std::string((char*)((SaNameT*)(*attributes)->attrValues + i)->value,
                             ((SaNameT*)(*attributes)->attrValues + i)->length);
@@ -958,7 +958,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
         }
         else
         {
-            std::cout << "Invalid class name value type for "
+            std::cerr << "Invalid class name value type for "
                 << (*attributes)->attrName
                 << std::endl;
             exit(1);
@@ -968,7 +968,7 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
     errorCode = saImmOmAccessorFinalize(accessorHandle);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to finalize the accessor handle " 
+        std::cerr << "Failed to finalize the accessor handle " 
             << errorCode
             << std::endl;
         exit(1);

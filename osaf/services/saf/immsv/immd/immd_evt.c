@@ -643,7 +643,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 		goto done;
 	}
 
-	if (doReply) {		/*If doReply is false then this was only an epoch refresh
+	if (doReply && (cb->is_loc_immnd_up || cb->is_rem_immnd_up)) {		/*If doReply is false then this was only an epoch refresh
 				   from an IMMND. */
 		/* Send reply on intro (accept) message back to sending IMMND */
 		proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &accept_evt);
@@ -673,6 +673,28 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 				if (proc_rc != NCSCC_RC_SUCCESS) {
 					LOG_WA("Failed to send immnd-act accept message to IMMND at "
 					       "sby %llu error:%u", cb->rem_immnd_dest, proc_rc);
+					goto done;
+				}
+			}
+		} else { 
+			/* Send payload intro to immnd on both controllers. */
+			assert(node_info->immnd_key != cb->node_id);
+			if(cb->is_loc_immnd_up) {
+				TRACE("Payload intro sent to IMMND on active SC");
+				proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->loc_immnd_dest, &accept_evt);
+				if (proc_rc != NCSCC_RC_SUCCESS) {
+					LOG_WA("Failed to send immnd-payload accept message to IMMND at "
+						"active %x error:%u", node_info->immnd_key, proc_rc);
+					goto done;
+				}
+			}
+
+			if (cb->is_rem_immnd_up) {
+				TRACE("Payload intro sent to IMMND on standby SC");
+				proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, cb->rem_immnd_dest, &accept_evt);
+				if (proc_rc != NCSCC_RC_SUCCESS) {
+					LOG_WA("Failed to send immnd-payload accept message to IMMND at "
+						"sby %llu error:%u", cb->rem_immnd_dest, proc_rc);
 					goto done;
 				}
 			}
@@ -1127,7 +1149,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 
 		if (oldPid != newPid || oldEpoch != newEpoch) {
 			if (oldEpoch != newEpoch) {
-				LOG_IN("New Epoch for IMMND process at node %x "
+				LOG_IN("ACT: New Epoch for IMMND process at node %x "
 				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
 			}
 
