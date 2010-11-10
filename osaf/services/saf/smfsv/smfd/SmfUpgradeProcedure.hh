@@ -32,6 +32,7 @@
 #include <saSmf.h>
 #include <saImmOi.h>
 #include "SmfImmOperation.hh"
+#include "SmfCampaignThread.hh"
 
 class SmfUpgradeMethod;
 class SmfProcedureThread;
@@ -211,49 +212,42 @@ class SmfUpgradeProcedure {
 /// @param    None
 /// @return   None
 ///
-	void execute();
-
-///
-/// Purpose:  Execute the procedure init actions
-/// @param    None
-/// @return   None
-///
-	void executeInit();
+	SmfProcResultT execute();
 
 ///
 /// Purpose:  Execute the procedure steps
 /// @param    None
 /// @return   None
 ///
-	void executeStep();
+	SmfProcResultT executeStep();
 
 ///
-/// Purpose:  Execute the procedure wrapup actions
+/// Purpose:  Rollback the procedure steps
 /// @param    None
 /// @return   None
 ///
-	void executeWrapup();
+	SmfProcResultT rollbackStep();
 
 ///
 /// Purpose:  Rollback the upgrade procedure
 /// @param    None
 /// @return   None
 ///
-	void rollback();
+	SmfProcResultT rollback();
 
 ///
 /// Purpose: Suspend the upgrade procedure
 /// @param    None
 /// @return   None
 ///
-	void suspend();
+	SmfProcResultT suspend();
 
 ///
 /// Purpose: Commit the upgrade procedure
 /// @param    None
 /// @return   None
 ///
-	void commit();
+	SmfProcResultT commit();
 
 ///
 /// Purpose:  Set the procedure thread
@@ -421,6 +415,27 @@ class SmfUpgradeProcedure {
 	bool setEntitiesToAddRemMod(SmfUpgradeStep * i_step, SmfImmAttribute* io_smfEntityToAddRemove);
 
 ///
+/// Purpose:  Get the list of upgrade steps
+/// @param    -
+/// @return   The list of upgrade steps.
+///
+        const std::vector < SmfUpgradeStep * >& getProcSteps() { return m_procSteps; }
+
+///
+/// Purpose:  Get the list of init actions
+/// @param    -
+/// @return   The list of init actions.
+///
+        const std::vector < SmfUpgradeAction * >& getInitActions() { return m_procInitAction; }
+
+///
+/// Purpose:  Get the list of wrapup actions
+/// @param    -
+/// @return   The list of wrapup actions.
+///
+        const std::vector < SmfUpgradeAction * >& getWrapupActions() { return m_procWrapupAction; }
+
+///
 /// Purpose:  Check if the component pointed out by DN is restartable
 /// @param    i_compDN The DN of the components
 /// @return   True if restartable otherwise false.
@@ -436,12 +451,8 @@ class SmfUpgradeProcedure {
 ///
 	bool getActDeactUnitsAndNodes(const std::string &i_dn, std::string& io_unit, std::string& io_node);
 
+
 	friend class SmfProcState;
-	friend class SmfProcStateInitial;
-	friend class SmfProcStateExecuting;
-	friend class SmfProcStateExecutionCompleted;
-	friend class SmfProcStateSuspended;
-	friend class SmfProcStateFailed;
 
  private:
 
@@ -473,7 +484,7 @@ class SmfUpgradeProcedure {
 	SmfUpgradeMethod *m_upgradeMethod;	              // Pointer to the upgrade method (rolling or synchronous)
         std::vector < SmfUpgradeAction * >m_procInitAction;   //Container of the procedure initiation commands
         std::vector < SmfUpgradeAction * >m_procWrapupAction; //Container of the procedure wrap up commands
-        std::vector < SmfUpgradeStep * >m_procSteps;	      //Container of the procedure wrap up commands
+        std::vector < SmfUpgradeStep * >  m_procSteps;	      //Container of the procedure steps
 	sem_t m_semaphore;
 };
 

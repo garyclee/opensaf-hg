@@ -1,0 +1,262 @@
+#! /bin/sh
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+die() {
+	logger -s -t smf-state -p user.err "$prg: ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo ""
+	echo "usage: `basename $0` <class name> [DN]"
+	echo ""
+	echo "	class names: camp|proc|step"
+}
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+elif [ $# -eq 1 ]; then
+	CLASS=$1
+	DN=all
+elif [ $# -eq 2 ]; then
+	CLASS=$1
+	DN=$2
+else
+	usage
+	exit 1
+fi
+
+
+camp_state()
+{
+	local dn
+	local dns
+	local state
+
+	if [ "$1" = "all" ]; then
+		dns=`immfind -c SaSmfCampaign`
+	else
+		dns=$1
+	fi
+
+	for dn in $dns; do
+		echo "$dn"
+
+		state=$(immlist -a saSmfCmpgState $dn 2> /dev/null) || \
+		    die "Campaign does not exist [$1]"
+		eval $state
+		saSmfCmpgError=$(immlist -a saSmfCmpgError $dn | \
+		    sed -e 's,^saSmfCmpgError=,,' -e 's,<Empty>,,')
+
+		case $saSmfCmpgState in
+		    1)
+                        state=INITIAL
+			;;
+                    2)
+                        state=EXECUTING
+			;;
+		    3)
+                        state=SUSPENDING_EXECUTING
+			;;
+		    4)
+                        state=EXECUTION_SUSPENDED
+			;;
+		    5)
+		        state=EXECUTION_COMPLETED
+			;;
+		    6)
+		        state=CAMPAIGN_COMMITTED
+			;;
+		    7)
+		        state=ERROR_DETECTED
+			;;
+		    8)
+		        state=SUSPENDED_BY_ERROR_DETECTED
+			;;
+		    9)
+		        state=ERROR_DETECTED_IN_SUSPENDING
+			;;
+		   10)
+		        state=EXECUTION_FAILED
+			;;
+		   11)
+		        state=ROLLING_BACK
+			;;
+		   12)
+		        state=SUSPENDING_ROLLBACK
+			;;
+		   13)
+		        state=ROLLBACK_SUSPENDED
+			;;
+		   14)
+		        state=ROLLBACK_COMPLETED
+			;;
+		   15)
+		        state=ROLLBACK_COMMITTED
+			;;
+		   16)
+		        state=ROLLBACK_FAILED
+			;;
+		    *)
+		        die "Invalid camaign state [$saSmfCmpgState]"
+		esac
+		echo "        state=$state($saSmfCmpgState)"
+		echo "        error='$saSmfCmpgError'"
+	done
+}
+
+proc_state()
+{
+	local dn
+	local dns
+	local state
+
+	if [ "$1" = "all" ]; then
+		dns=`immfind -c SaSmfProcedure`
+	else
+		dns=$1
+	fi
+
+	for dn in $dns; do
+		echo "$dn"
+
+		state=$(immlist -a saSmfProcState $dn 2> /dev/null) || \
+		    die "Campaign does not exist [$1]"
+		eval $state
+		saSmfProcError=$(immlist -a saSmfProcError $dn | \
+		    sed -e 's,^saSmfProcError=,,' -e 's,<Empty>,,')
+
+                case $saSmfProcState in
+		    1)
+                        state=INITIAL
+			;;
+		    2)
+		        state=EXECUTING
+			;;
+                    3)
+		        state=SUSPENDED
+			;;
+                    4)
+		        state=COMPLETED
+			;;
+                    5)
+		        state=STEP_UNDONE
+			;;
+                    6)
+		        state=FAILED
+			;;
+		    7)
+		        state=ROLLING_BACK
+			;;
+                    8)
+		        state=ROLLBACK_SUSPENDED
+			;;
+                    9)
+		        state=ROLLED_BACK
+			;;
+                   10)
+		        state=ROLLBACK_FAILED
+			;;
+		    *)
+		        die "Invalid procedure state [$saSmfProcState]"
+		esac
+
+		echo "        state=$state($saSmfProcState)"
+		echo "        error='$saSmfProcError'"
+	done
+}
+
+step_state()
+{
+	local dn
+	local dns
+	local state
+
+	if [ "$1" = "all" ]; then
+		dns=`immfind -c SaSmfStep`
+	else
+		dns=$1
+	fi
+
+	for dn in $dns; do
+		echo "$dn"
+
+		state=$(immlist -a saSmfStepState $dn 2> /dev/null) || \
+		    die "Campaign does not exist [$1]"
+		eval $state
+		saSmfStepError=$(immlist -a saSmfStepError $dn | \
+		    sed -e 's,^saSmfStepError=,,' -e 's,<Empty>,,')
+
+		case $saSmfStepState in
+		    1)
+                        state=INITIAL
+			;;
+                    2)
+                        state=EXECUTING
+			;;
+		    3)
+                        state=UNDOING
+			;;
+		    4)
+                        state=COMPLETED
+			;;
+		    5)
+		        state=UNDONE
+			;;
+		    6)
+		        state=FAILED
+			;;
+		    7)
+		        state=ROLLING_BACK
+			;;
+		    8)
+		        state=UNDOING_ROLLBACK
+			;;
+		    9)
+		        state=ROLLED_BACK
+			;;
+		   10)
+		        state=ROLLBACK_UNDONE
+			;;
+		   11)
+		        state=ROLLBACK_FAILED
+			;;
+		    *)
+		        die "Invalid step state [$saSmfStepState]"
+		esac
+		echo "        state=$state($saSmfStepState)"
+		echo "        error='$saSmfStepError'"
+	done
+}
+
+case "$CLASS" in
+	camp)
+		camp_state $DN
+		;;
+	proc)
+		proc_state $DN
+		;;
+	step)
+		step_state $DN
+		;;
+	*)
+		usage
+		exit 1
+esac
+exit 0
+

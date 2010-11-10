@@ -480,9 +480,9 @@ uns32 create_campaign_objects(smfd_cb_t * cb)
 		LOG_NO("Continue executing ongoing campaign %s", execCampaign->getDn().c_str());
 
 		if (SmfCampaignThread::start(execCampaign) == 0) {
-			TRACE("Sending CAMPAIGN_EVT_EXECUTE event to thread");
+			TRACE("Sending CAMPAIGN_EVT_CONTINUE event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
-			evt->type = CAMPAIGN_EVT_EXECUTE;
+			evt->type = CAMPAIGN_EVT_CONTINUE;
 			SmfCampaignThread::instance()->send(evt);
 		} else {
 			LOG_ER("create_campaign_objects, failed to start campaign");

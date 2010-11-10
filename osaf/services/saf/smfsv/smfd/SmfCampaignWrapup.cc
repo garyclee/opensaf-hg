@@ -25,6 +25,7 @@
 #include "SmfCampaignThread.hh"
 #include "SmfCampaignWrapup.hh"
 #include "SmfImmOperation.hh"
+#include "SmfRollback.hh"
 #include "SmfUpgradeAction.hh"
 #include "SmfUtils.hh"
 
@@ -130,7 +131,7 @@ SmfCampaignWrapup::executeCampWrapup()
 	// The campaign will enter state "commited" even if some actions fails.
 	// Just log errors and try to execute as many operations as possible.
 
-	LOG_NO("CAMP: Campaign wrapup, start campWrapupActions (%zu)", m_campWrapupAction.size());
+	LOG_NO("CAMP: Campaign wrapup, start wrapup actions (%zu)", m_campWrapupAction.size());
 	std::list < SmfUpgradeAction * >::iterator iter;
 	for (iter = m_campWrapupAction.begin(); iter != m_campWrapupAction.end(); ++iter) {
 		if ((*iter)->execute() != SA_AIS_OK) {
@@ -138,7 +139,7 @@ SmfCampaignWrapup::executeCampWrapup()
 		}
 	}
 
-	LOG_NO("CAMP: Campaign wrapup , start remove from IMM (%zu)", m_removeFromImm.size());
+	LOG_NO("CAMP: Campaign wrapup, start remove from IMM (%zu)", m_removeFromImm.size());
 	if (m_removeFromImm.size() > 0) {
 		SmfImmUtils immUtil;
 		if (immUtil.doImmOperations(m_removeFromImm) != SA_AIS_OK) {
@@ -146,52 +147,7 @@ SmfCampaignWrapup::executeCampWrapup()
 		}
 	}
 
-	LOG_NO("CAMP: Campaign wrapup, reset saAmfSUMaintenanceCampaign flags");
-        //Find all SUs in the system
-        std::list < std::string > objectList;
-	SmfImmUtils immUtil;
-        (void)immUtil.getChildren("", objectList, SA_IMM_SUBTREE, "SaAmfSU");
-
-        //Reset saAmfSUMaintenanceCampaign for all found SUs
-        const std::string campDn = SmfCampaignThread::instance()->campaign()->getDn();
-        std::list < SmfImmOperation * > operations;
-        std::list < std::string >::const_iterator suit;
-	SaImmAttrValuesT_2 **attributes;
-
-        for (suit = objectList.begin(); suit != objectList.end(); ++suit) {
-
-		if (immUtil.getObject((*suit), &attributes) == true) {
-			const SaNameT *maintCamp =
-				immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
-						    "saAmfSUMaintenanceCampaign",
-						    0);
-
-			if ((maintCamp != NULL) && (maintCamp->length > 0)) {
-				SmfImmModifyOperation *modop = new (std::nothrow) SmfImmModifyOperation;
-				assert(modop != 0);
-				modop->setDn(*suit);
-				modop->setOp("SA_IMM_ATTR_VALUES_DELETE");
-				SmfImmAttribute saAmfSUMaintenanceCampaign;
-				saAmfSUMaintenanceCampaign.setName("saAmfSUMaintenanceCampaign");
-				saAmfSUMaintenanceCampaign.setType("SA_IMM_ATTR_SANAMET");
-				saAmfSUMaintenanceCampaign.addValue(campDn);
-				modop->addValue(saAmfSUMaintenanceCampaign);
-				operations.push_back(modop);
-			}
-		}
-        }
-
-        if (immUtil.doImmOperations(operations) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
-        }
-
-        //Delete the created SmfImmModifyOperation instances
-        std::list < SmfImmOperation * > ::iterator operIter;
-        for (operIter = operations.begin(); operIter != operations.end(); ++operIter) {
-                delete (*operIter);
-        }
-
-	LOG_NO("CAMP: campWrapupActions completed");
+	LOG_NO("CAMP: Campaign wrapup actions completed");
 
 	TRACE_LEAVE();
 
@@ -207,18 +163,29 @@ SmfCampaignWrapup::executeCampComplete()
 	TRACE_ENTER();
 
 	//Campaign wrapup complete actions
-	LOG_NO("CAMP: Campaign complete, start executeCampComplete (%zu)", m_campCompleteAction.size());
+	LOG_NO("CAMP: Start campaign complete actions (%zu)", m_campCompleteAction.size());
+        SaAisErrorT result;
+        std::string completeRollbackDn;
+        completeRollbackDn = "smfRollbackElement=CampComplete,";
+        completeRollbackDn += SmfCampaignThread::instance()->campaign()->getDn();
+
+        if ((result = smfCreateRollbackElement(completeRollbackDn)) != SA_AIS_OK) {
+                LOG_ER("SmfCampaignWrapup failed to create campaign complete rollback element %s, rc = %d", 
+                       completeRollbackDn.c_str(), result);
+                return false;
+        }
+
 	std::list < SmfUpgradeAction * >::iterator iter;
 	iter = m_campCompleteAction.begin();
 	while (iter != m_campCompleteAction.end()) {
-		if ((*iter)->execute() != SA_AIS_OK) {
-			LOG_ER("SmfCampaignWrapup campCompleteAction %d failed", (*iter)->getId());
+		if ((result = (*iter)->execute(&completeRollbackDn)) != SA_AIS_OK) {
+			LOG_ER("SmfCampaignWrapup campCompleteAction %d failed %d", (*iter)->getId(), result);
 			return false;
 		}
 		iter++;
 	}
 
-	LOG_NO("CAMP: executeCampComplete completed");
+	LOG_NO("CAMP: Campaign complete actions completed");
 
 	TRACE_LEAVE();
 
@@ -226,15 +193,39 @@ SmfCampaignWrapup::executeCampComplete()
 }
 
 //------------------------------------------------------------------------------
-// executeRollback()
+// rollbackCampComplete()
 //------------------------------------------------------------------------------
 bool 
-SmfCampaignWrapup::executeRollback()
+SmfCampaignWrapup::rollbackCampComplete()
 {
+	LOG_NO("CAMP: Start rollback campaign complete actions (%zu)", m_campCompleteAction.size());
+
+        SaAisErrorT rc;
+        std::string completeRollbackDn;
+
+        TRACE("Start rollback of all complete actions ");
+
+        completeRollbackDn = "smfRollbackElement=CampComplete,";
+        completeRollbackDn += SmfCampaignThread::instance()->campaign()->getDn();
+
+	std::list < SmfUpgradeAction * >::reverse_iterator upActiter;
+
+        TRACE("Start rollback of all complete actions (in reverse order)");
+        /* For each action (in reverse order) call rollback */
+	for (upActiter = m_campCompleteAction.rbegin(); upActiter != m_campCompleteAction.rend(); upActiter++) {
+		rc = (*upActiter)->rollback(completeRollbackDn);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("SmfCampaignWrapup rollback of complete action %d failed, rc = %d", (*upActiter)->getId(), rc);
+			return false;
+		}
+		
+	}
+
 #if 0
 	std::list < SmfCallbackOptions * >m_callbackAtRollback;
-	std::list < SmfAction * >m_campInitAction;
 #endif
 
+	LOG_NO("CAMP: Rollback of campaign complete actions completed");
 	return true;
 }
+

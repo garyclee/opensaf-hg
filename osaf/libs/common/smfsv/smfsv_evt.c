@@ -691,7 +691,7 @@ uns32 smfsv_mds_send_rsp(uns32             mds_handle,
    rc = ncsmds_api(&mds_info);
    if ( rc != NCSCC_RC_SUCCESS)
    {
-      LOG_ER("Failed to send mds response message");
+      LOG_NO("Failed to send mds response message");
    }
 
    return rc;
@@ -747,7 +747,7 @@ uns32 smfsv_mds_msg_sync_send (uns32       mds_handle,
       *o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
    else
    {
-      LOG_ER("Failed to send sync mds message");
+      LOG_NO("Failed to send sync mds message");
    }
 
    return rc;
@@ -795,7 +795,7 @@ uns32 smfsv_mds_msg_send (uns32        mds_handle,
 
    if ( rc != NCSCC_RC_SUCCESS)
    {
-      LOG_ER("Failed to send mds message");
+      LOG_NO("Failed to send mds message");
    }
 
    return rc;

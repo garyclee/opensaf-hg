@@ -1,0 +1,52 @@
+#! /bin/sh
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+usage()
+{
+	echo "usage: `basename $0` <execute|rollback|suspend|commit> <DN>"
+}
+
+if [ $# -ne 2 ]; then
+	usage
+	exit 1
+fi
+
+ADMIN_EXECUTE=1
+ADMIN_ROLLBACK=2
+ADMIN_SUSPEND=3
+ADMIN_COMMIT=4
+
+case $1 in
+	"execute")
+		immadm -o $ADMIN_EXECUTE $2
+		;;
+	"rollback")
+		immadm -o $ADMIN_ROLLBACK $2
+		;;
+	"suspend")
+		immadm -o $ADMIN_SUSPEND $2
+		;;
+	"commit")
+		immadm -o $ADMIN_COMMIT $2
+		;;
+	*)
+		echo "illegal SMF admin operation: $1"
+		usage
+		exit 1
+esac
+
+exit $?
+

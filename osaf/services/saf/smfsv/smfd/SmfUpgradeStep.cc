@@ -28,10 +28,13 @@
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
+#include "SmfUpgradeMethod.hh"
 #include "SmfProcedureThread.hh"
 #include "SmfStepState.hh"
+#include "SmfStepTypes.hh"
 #include "SmfCampaignThread.hh"
 #include "SmfTargetTemplate.hh"
+#include "SmfRollback.hh"
 #include "SmfUtils.hh"
 #include "immutil.h"
 #include "smfd_smfnd.h"
@@ -69,7 +72,7 @@ SmfUpgradeStep::SmfUpgradeStep():
    m_retryCount(0), 
    m_restartOption(1), //True 
    m_procedure(NULL),
-   m_stepType(SMF_STEP_UNKNOWN),
+   m_stepType(NULL),
    m_switchOver(false)
 {
 }
@@ -85,6 +88,7 @@ SmfUpgradeStep::~SmfUpgradeStep()
 	for (it = m_modificationList.begin(); it != m_modificationList.end(); ++it) {
 		delete(*it);
 	}
+        delete m_stepType;
 }
 
 // ------------------------------------------------------------------------------
@@ -99,7 +103,7 @@ SmfUpgradeStep::init(const SaImmAttrValuesT_2 ** attrValues)
 		void *value;
 
 		if ((*attribute)->attrValuesNumber != 1) {
-			LOG_ER("invalid number of values %u for %s", (*attribute)->attrValuesNumber,
+			TRACE("invalid number of values %u for %s", (*attribute)->attrValuesNumber,
 			       (*attribute)->attrName);
 			continue;
 		}
@@ -110,35 +114,25 @@ SmfUpgradeStep::init(const SaImmAttrValuesT_2 ** attrValues)
 			char *rdn = *((char **)value);
 			m_rdn = rdn;
 			TRACE("init safSmfStep = %s", rdn);
-		} else if (strcmp((*attribute)->attrName, "saSmfStepMaxRetry")
-			   == 0) {
+		} else if (strcmp((*attribute)->attrName, "saSmfStepMaxRetry") == 0) {
 			unsigned int maxRetry = *((unsigned int *)value);
 			m_maxRetry = maxRetry;
 			TRACE("init saSmfStepMaxRetry = %u", m_maxRetry);
-		} else if (strcmp((*attribute)->attrName, "saSmfStepRetryCount")
-			   == 0) {
+		} else if (strcmp((*attribute)->attrName, "saSmfStepRetryCount") == 0) {
 			unsigned int retryCount = *((unsigned int *)value);
 			m_retryCount = retryCount;
 			TRACE("init saSmfStepRetryCount = %u", m_retryCount);
-		} else if (strcmp((*attribute)->attrName, "saSmfStepRestartOption")
-			   == 0) {
+		} else if (strcmp((*attribute)->attrName, "saSmfStepRestartOption") == 0) {
 			unsigned int restartOption = *((unsigned int *)value);
 			m_restartOption = restartOption;
 			TRACE("init saSmfStepRestartOption = %u", m_restartOption);
 		} else if (strcmp((*attribute)->attrName, "saSmfStepState") == 0) {
 			unsigned int state = *((unsigned int *)value);
 
-			//In case of failover, the step may has been left in executing state
-			//Reset the state to initial for the step to make it me re-executed
-			if (state == SA_SMF_STEP_EXECUTING) {
-				state = SA_SMF_STEP_INITIAL;
-				LOG_NO("STEP: Step number %s, state has been reset to SA_SMF_STEP_INITIAL for re-execution", m_rdn.c_str());
-			}
-
 			if ((state >= SA_SMF_STEP_INITIAL) && (state <= SA_SMF_STEP_ROLLBACK_FAILED)) {
 				setStepState((SaSmfStepStateT) state);
 			} else {
-				LOG_ER("invalid step state %u", state);
+				LOG_ER("SmfUpgradeStep: invalid step state %u", state);
 				setStepState(SA_SMF_STEP_INITIAL);
 			}
 			TRACE("init saSmfStepState = %u", (int)state);
@@ -196,9 +190,21 @@ SmfUpgradeStep::setStepState(SaSmfStepStateT i_state)
 			break;
 		}
 
+	case SA_SMF_STEP_UNDOING:
+		{
+			m_state = SmfStepStateUndoing::instance();
+			break;
+		}
+
 	case SA_SMF_STEP_COMPLETED:
 		{
 			m_state = SmfStepStateCompleted::instance();
+			break;
+		}
+
+	case SA_SMF_STEP_UNDONE:
+		{
+			m_state = SmfStepStateUndone::instance();
 			break;
 		}
 
@@ -208,15 +214,38 @@ SmfUpgradeStep::setStepState(SaSmfStepStateT i_state)
 			break;
 		}
 
-#if 0
-		/* Remains to be implemented */
-		SA_SMF_STEP_UNDOING = 3, SA_SMF_STEP_UNDONE = 5, SA_SMF_STEP_ROLLING_BACK =
-		    7, SA_SMF_STEP_UNDOING_ROLLBACK = 8, SA_SMF_STEP_ROLLED_BACK = 9, SA_SMF_STEP_ROLLBACK_UNDONE =
-		    10, SA_SMF_STEP_ROLLBACK_FAILED = 11
-#endif
+	case SA_SMF_STEP_ROLLING_BACK:
+		{
+			m_state = SmfStepStateRollingBack::instance();
+			break;
+		}
+
+	case SA_SMF_STEP_UNDOING_ROLLBACK:
+		{
+			m_state = SmfStepStateUndoingRollback::instance();
+			break;
+		}
+
+	case SA_SMF_STEP_ROLLED_BACK:
+		{
+			m_state = SmfStepStateRolledBack::instance();
+			break;
+		}
+
+	case SA_SMF_STEP_ROLLBACK_UNDONE:
+		{
+			m_state = SmfStepStateRollbackUndone::instance();
+			break;
+		}
+
+	case SA_SMF_STEP_ROLLBACK_FAILED:
+		{
+			m_state = SmfStepStateRollbackFailed::instance();
+			break;
+		}
 	default:
 		{
-			LOG_ER("unknown state");
+			LOG_ER("SmfUpgradeStep::setStepState unknown state %d", i_state);
 		}
 	}
 
@@ -472,58 +501,99 @@ SmfUpgradeStep::getSwNode()
 // setStepType()
 //------------------------------------------------------------------------------
 void 
-SmfUpgradeStep::setStepType(SmfStepT i_type)
+SmfUpgradeStep::setStepType(SmfStepType* i_type)
 {
+        delete m_stepType;
 	m_stepType = i_type;
 }
 
 //------------------------------------------------------------------------------
 // getStepType()
 //------------------------------------------------------------------------------
-SmfStepT 
+SmfStepType* 
 SmfUpgradeStep::getStepType()
 {
 	return m_stepType;
 }
 
 //------------------------------------------------------------------------------
-// offlineInstallBundles()
+// offlineInstallNewBundles()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::offlineInstallBundles(const std::string & i_node)
+SmfUpgradeStep::offlineInstallNewBundles()
 {
-	TRACE("Offline install bundles on node %s", i_node.c_str());
-	return callBundleScript(SMF_STEP_OFFLINE_INSTALL, m_swAddList, i_node);
+	TRACE("Offline install new bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_OFFLINE_INSTALL, m_swAddList, getSwNode());
 }
 
 //------------------------------------------------------------------------------
-// onlineInstallBundles()
+// onlineInstallNewBundles()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::onlineInstallBundles(const std::string & i_node)
+SmfUpgradeStep::onlineInstallNewBundles()
 {
-	TRACE("Online install bundles on node %s", i_node.c_str());
-	return callBundleScript(SMF_STEP_ONLINE_INSTALL, m_swAddList, i_node);
+	TRACE("Online install new bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_ONLINE_INSTALL, m_swAddList, getSwNode());
 }
 
 //------------------------------------------------------------------------------
-// offlineRemoveBundles()
+// offlineRemoveOldBundles()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::offlineRemoveBundles(const std::string & i_node)
+SmfUpgradeStep::offlineRemoveOldBundles()
 {
-	TRACE("Offline remove bundles on node %s", i_node.c_str());
-	return callBundleScript(SMF_STEP_OFFLINE_REMOVE, m_swRemoveList, i_node);
+	TRACE("Offline remove old bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_OFFLINE_REMOVE, m_swRemoveList, getSwNode());
 }
 
 //------------------------------------------------------------------------------
-// onlineRemoveBundles()
+// onlineRemoveOldBundles()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::onlineRemoveBundles(const std::string & i_node)
+SmfUpgradeStep::onlineRemoveOldBundles()
 {
-	TRACE("Online remove bundles on node %s", i_node.c_str());
-	return callBundleScript(SMF_STEP_ONLINE_REMOVE, m_swRemoveList, i_node);
+	TRACE("Online remove old bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_ONLINE_REMOVE, m_swRemoveList, getSwNode());
+}
+
+//------------------------------------------------------------------------------
+// offlineInstallOldBundles()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::offlineInstallOldBundles()
+{
+	TRACE("Offline install old bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_OFFLINE_INSTALL, m_swRemoveList, getSwNode());
+}
+
+//------------------------------------------------------------------------------
+// onlineInstallOldBundles()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::onlineInstallOldBundles()
+{
+	TRACE("Online install old bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_ONLINE_INSTALL, m_swRemoveList, getSwNode());
+}
+
+//------------------------------------------------------------------------------
+// offlineRemoveNewBundles()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::offlineRemoveNewBundles()
+{
+	TRACE("Offline remove new bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_OFFLINE_REMOVE, m_swAddList, getSwNode());
+}
+
+//------------------------------------------------------------------------------
+// onlineRemoveNewBundles()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::onlineRemoveNewBundles()
+{
+	TRACE("Online remove new bundles on node %s", getSwNode().c_str());
+	return callBundleScript(SMF_STEP_ONLINE_REMOVE, m_swAddList, getSwNode());
 }
 
 //------------------------------------------------------------------------------
@@ -549,6 +619,18 @@ SmfUpgradeStep::lockDeactivationUnits()
 }
 
 //------------------------------------------------------------------------------
+// unlockDeactivationUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::unlockDeactivationUnits()
+{
+	TRACE("unlock deactivation units");
+	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
+	params[0] = NULL;	//Null terminate the list of parameter pointers
+	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_deactivationUnit.m_actedOn);
+}
+
+//------------------------------------------------------------------------------
 // terminateDeactivationUnits()
 //------------------------------------------------------------------------------
 bool 
@@ -561,6 +643,30 @@ SmfUpgradeStep::terminateDeactivationUnits()
 }
 
 //------------------------------------------------------------------------------
+// instantiateDeactivationUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::instantiateDeactivationUnits()
+{
+	TRACE("instantiate deactivation units");
+	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
+	params[0] = NULL;	//Null terminate the list of parameter pointers
+	return callAdminOperation(SA_AMF_ADMIN_UNLOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
+}
+
+//------------------------------------------------------------------------------
+// lockActivationUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::lockActivationUnits()
+{
+	TRACE("lock activation units");
+	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
+	params[0] = NULL;	//Null terminate the list of parameter pointers
+	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_activationUnit.m_actedOn);
+}
+
+//------------------------------------------------------------------------------
 // unlockActivationUnits()
 //------------------------------------------------------------------------------
 bool 
@@ -570,6 +676,18 @@ SmfUpgradeStep::unlockActivationUnits()
 	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
 	params[0] = NULL;	//Null terminate the list of parameter pointers
 	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_activationUnit.m_actedOn);
+}
+
+//------------------------------------------------------------------------------
+// terminateActivationUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::terminateActivationUnits()
+{
+	TRACE("terminate activation units");
+	const SaImmAdminOperationParamsT_2 **params = (const SaImmAdminOperationParamsT_2 **) new SaImmAdminOperationParamsT_2;
+	params[0] = NULL;	//Null terminate the list of parameter pointers
+	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_activationUnit.m_actedOn);
 }
 
 //------------------------------------------------------------------------------
@@ -602,30 +720,104 @@ SmfUpgradeStep::restartActivationUnits()
 SaAisErrorT 
 SmfUpgradeStep::modifyInformationModel()
 {
+        SaAisErrorT rc;
+        std::string modifyRollbackCcbDn;
+        modifyRollbackCcbDn = "smfRollbackElement=ModifyCcb,";
+        modifyRollbackCcbDn += this->getDn();
+
+        SaNameT objectName;
+	objectName.length = modifyRollbackCcbDn.length();
+	strncpy((char *)objectName.value, modifyRollbackCcbDn.c_str(), objectName.length);
+	objectName.value[objectName.length] = 0;
+
+        /* In case of a undoing the rollback could already exists, delete it and recreate a new one */
+	rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(), &objectName);
+
+	if (rc != SA_AIS_OK) {
+		TRACE("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, modifyRollbackCcbDn.c_str());
+	}
+
+        if ((rc = smfCreateRollbackElement(modifyRollbackCcbDn)) != SA_AIS_OK) {
+                LOG_ER("SmfUpgradeStep failed to create modify rollback element %s, rc = %d", 
+                       modifyRollbackCcbDn.c_str(), rc);
+                return rc;
+        }
+
 	if (m_modificationList.size() > 0) {
 		TRACE("Modifying information model");
 		SmfImmUtils immUtil;
-		return immUtil.doImmOperations(m_modificationList);
+                SmfRollbackCcb rollbackCcb(modifyRollbackCcbDn);
+
+		if ((rc = immUtil.doImmOperations(m_modificationList, &rollbackCcb)) != SA_AIS_OK) {
+			LOG_ER("SmfUpgradeStep modify IMM failed %d", rc);
+			return rc;
+		}
+
+                if ((rc = rollbackCcb.execute()) != SA_AIS_OK) {
+			LOG_ER("SmfUpgradeStep failed to store rollback CCB %d", rc);
+			return rc;
+                }
+        } else {
+                TRACE("Nothing to modify in information model");
 	}
 
-	TRACE("Nothing to modify in information model");
 	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
+// reverseInformationModel()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::reverseInformationModel()
+{
+        SaAisErrorT rc;
+        std::string modifyRollbackCcbDn;
+        modifyRollbackCcbDn = "smfRollbackElement=ModifyCcb,";
+        modifyRollbackCcbDn += this->getDn();
+
+        SmfRollbackCcb rollbackCcb(modifyRollbackCcbDn);
+
+        if ((rc = rollbackCcb.rollback()) != SA_AIS_OK) {
+                LOG_ER("SmfUpgradeStep failed to rollback Modify CCB %d", rc);
+                return rc;
+        }
+
+	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
+// setMaintenanceStateActUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::setMaintenanceStateActUnits()
+{
+        return setMaintenanceState(m_activationUnit);
+}
+
+//------------------------------------------------------------------------------
+// setMaintenanceStateDeactUnits()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::setMaintenanceStateDeactUnits()
+{
+        return setMaintenanceState(m_deactivationUnit);
 }
 
 //------------------------------------------------------------------------------
 // setMaintenanceState()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::setMaintenanceState()
+SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
 {
         TRACE_ENTER();
 
         bool rc = true;
+        SaAisErrorT result = SA_AIS_OK;
 	SmfImmUtils immUtil;
         std::list < std::string > suList;
         std::list < std::string >::iterator it;
 
-        for (it = m_activationUnit.m_actedOn.begin(); it != m_activationUnit.m_actedOn.end(); ++it) {
+        for (it = i_units.m_actedOn.begin(); it != i_units.m_actedOn.end(); ++it) {
                 if ((*it).find("safAmfNode") == 0) { 
                         //If DN is a node, set saAmfSUMaintenanceCampaign for all SUs on the node
 			// Find all SU's on the node
@@ -649,10 +841,10 @@ SmfUpgradeStep::setMaintenanceState()
                                         }
 				}
 			}
-                }else if ((*it).find("safSu") == 0) { 
+                } else if ((*it).find("safSu") == 0) { 
                         //If DN is a SU, set saAmfSUMaintenanceCampaign for this SU only
                         suList.push_back(*it);
-                }else if ((*it).find("safComp") == 0) {
+                } else if ((*it).find("safComp") == 0) {
                         //IF DN is a component, set saAmfSUMaintenanceCampaign for the hosting SU
                         //Extract the SU name from the DN
                         std::string su = ((*it).substr((*it).find(",") + 1, std::string::npos));
@@ -703,10 +895,11 @@ SmfUpgradeStep::setMaintenanceState()
 			operations.push_back(modop);
 		}
         }
-        
-        if (immUtil.doImmOperations(operations) != SA_AIS_OK) {
-                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to set saAmfSUMaintenanceCampaign");
+
+        if ((result = immUtil.doImmOperations(operations)) != SA_AIS_OK) {
+                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to set saAmfSUMaintenanceCampaign %d", result);
                 rc = false;
+                goto exit;
         }
 
 exit:
@@ -723,16 +916,16 @@ exit:
 }
 
 //------------------------------------------------------------------------------
-// createSaAmfNodeSwBundles()
+// createSaAmfNodeSwBundlesNew()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::createSaAmfNodeSwBundles(const std::string & i_node)
+SmfUpgradeStep::createSaAmfNodeSwBundlesNew()
 {
 	TRACE_ENTER();
 	std::list < SmfBundleRef >::const_iterator bundleit;
 	for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
-		if (i_node.length() > 0) {
-			if (createOneSaAmfNodeSwBundle(i_node, *bundleit) == false) {
+		if (getSwNode().length() > 0) {
+			if (createOneSaAmfNodeSwBundle(getSwNode(), *bundleit) == false) {
 				TRACE_LEAVE();
 				return false;
 			}
@@ -757,12 +950,47 @@ SmfUpgradeStep::createSaAmfNodeSwBundles(const std::string & i_node)
 }
 
 //------------------------------------------------------------------------------
+// deleteSaAmfNodeSwBundleNew()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::deleteSaAmfNodeSwBundlesNew()
+{
+	TRACE_ENTER();
+	std::list < SmfBundleRef >::const_iterator bundleit;
+ 
+	for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
+		if (getSwNode().length() > 0) {
+			if (deleteOneSaAmfNodeSwBundle(getSwNode(), *bundleit) == false) {
+				TRACE_LEAVE();
+				return false;
+			}
+		} else {
+			std::list<std::string> swNodeList;
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				TRACE_LEAVE();
+				return false;
+			}
+			std::list<std::string>::const_iterator n;
+			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+				if (deleteOneSaAmfNodeSwBundle(*n, *bundleit) == false) {
+					TRACE_LEAVE();
+					return false;
+				}
+			}
+                }
+        }
+
+	TRACE_LEAVE();
+
+	return true;
+}
+
+//------------------------------------------------------------------------------
 // createOneSaAmfNodeSwBundle()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::createOneSaAmfNodeSwBundle(
-	const std::string& i_node,
-	const SmfBundleRef& i_bundle)
+SmfUpgradeStep::createOneSaAmfNodeSwBundle(const std::string& i_node,
+                                           const SmfBundleRef& i_bundle)
 {
 	TRACE_ENTER();
         SmfImmUtils immUtil;
@@ -807,12 +1035,11 @@ SmfUpgradeStep::createOneSaAmfNodeSwBundle(
 }
 
 //------------------------------------------------------------------------------
-// deleteSaAmfNodeSwBundle()
+// deleteOneSaAmfNodeSwBundle()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::deleteOneSaAmfNodeSwBundle(
-	const std::string & i_node,
-	const SmfBundleRef& i_bundle)
+SmfUpgradeStep::deleteOneSaAmfNodeSwBundle(const std::string & i_node,
+                                           const SmfBundleRef& i_bundle)
 {
 	TRACE_ENTER();
 
@@ -844,17 +1071,17 @@ SmfUpgradeStep::deleteOneSaAmfNodeSwBundle(
 }
 
 //------------------------------------------------------------------------------
-// deleteSaAmfNodeSwBundle()
+// deleteSaAmfNodeSwBundleOld()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::deleteSaAmfNodeSwBundles(const std::string & i_node)
+SmfUpgradeStep::deleteSaAmfNodeSwBundlesOld()
 {
 	TRACE_ENTER();
 	std::list < SmfBundleRef >::const_iterator bundleit;
  
 	for (bundleit = m_swRemoveList.begin(); bundleit != m_swRemoveList.end(); ++bundleit) {
-		if (i_node.length() > 0) {
-			if (deleteOneSaAmfNodeSwBundle(i_node, *bundleit) == false) {
+		if (getSwNode().length() > 0) {
+			if (deleteOneSaAmfNodeSwBundle(getSwNode(), *bundleit) == false) {
 				TRACE_LEAVE();
 				return false;
 			}
@@ -876,6 +1103,40 @@ SmfUpgradeStep::deleteSaAmfNodeSwBundles(const std::string & i_node)
 
 	TRACE_LEAVE();
 
+	return true;
+}
+
+//------------------------------------------------------------------------------
+// createSaAmfNodeSwBundlesOld()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::createSaAmfNodeSwBundlesOld()
+{
+	TRACE_ENTER();
+	std::list < SmfBundleRef >::const_iterator bundleit;
+	for (bundleit = m_swRemoveList.begin(); bundleit != m_swRemoveList.end(); ++bundleit) {
+		if (getSwNode().length() > 0) {
+			if (createOneSaAmfNodeSwBundle(getSwNode(), *bundleit) == false) {
+				TRACE_LEAVE();
+				return false;
+			}
+		} else {
+			std::list<std::string> swNodeList;
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				TRACE_LEAVE();
+				return false;
+			}
+			std::list<std::string>::const_iterator n;
+			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+				if (createOneSaAmfNodeSwBundle(*n, *bundleit) == false) {
+					TRACE_LEAVE();
+					return false;
+				}
+			}
+		}
+	}
+
+	TRACE_LEAVE();
 	return true;
 }
 
@@ -920,6 +1181,186 @@ bool
 SmfUpgradeStep::getSwitchOver()
 {
         return m_switchOver;
+}
+
+//------------------------------------------------------------------------------
+// calculateStepType()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::calculateStepType()
+{
+        SmfImmUtils immutil;
+	bool rebootNeeded = false;
+	bool activateUsed = false;
+	SaImmAttrValuesT_2 ** attributes;
+
+	/* Check if any bundle requires node reboot, in such case only AU = node is accepted */
+	TRACE("SmfUpgradeStep::calculateStepType: Check if any software bundle requires reboot");
+
+	if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
+                activateUsed = false;
+        }
+        else {
+                activateUsed = true;
+        }
+	const std::list < SmfBundleRef > &removeList = this->getSwRemoveList();
+	std::list< SmfBundleRef >::const_iterator bundleIter;
+	bundleIter = removeList.begin();
+	while (bundleIter != removeList.end()) {
+		/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
+		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+			LOG_ER("Could not find remove software bundle  %s", (*bundleIter).getBundleDn().c_str());
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+							       "saSmfBundleRemoveOfflineScope",
+							       0);
+
+		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+			TRACE("SmfUpgradeStep::calculateStepType: The SW bundle %s requires reboot to remove", 
+			      (*bundleIter).getBundleDn().c_str());
+
+			rebootNeeded = true;
+			break;
+		}
+		bundleIter++;
+	}
+
+	//If restart was not needed for installation, also check the bundle removal otherwise not needed
+	if (rebootNeeded == false) {
+		const std::list < SmfBundleRef > &addList = this->getSwAddList();
+		bundleIter = addList.begin();
+		while (bundleIter != addList.end()) {
+			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				return SA_AIS_ERR_FAILED_OPERATION;
+			}
+			const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+								       "saSmfBundleInstallOfflineScope",
+								       0);
+
+			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+				TRACE("SmfUpgradeStep::calculateStepType: The SW bundle %s requires reboot to install", 
+				      (*bundleIter).getBundleDn().c_str());
+
+				rebootNeeded = true;
+				break;
+			}
+
+			bundleIter++;
+		}
+	}
+
+        //Find out type of step
+	//If single step upgrade, determin the type from first AU or first DU in the step
+	//If rolling upgrade check the first AU of the step
+	std::string className;
+	std::string firstAuDu;
+	if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		//Single step
+		//Try the activation unit list, if empty try the deactivation unit list
+		if (!this->getActivationUnitList().empty()) {
+			firstAuDu = this->getActivationUnitList().front();
+		} else if (!this->getDeactivationUnitList().empty()) {
+			firstAuDu = this->getDeactivationUnitList().front();
+		} else {
+			//No activation/deactivation, just SW installation
+			className = "SaAmfNode";
+		}
+
+	} else { 
+		//Rolling
+		if (!this->getActivationUnitList().empty()) {
+			firstAuDu = this->getActivationUnitList().front();
+		} else {
+			//No activation/deactivation, just SW installation
+			className = "SwInstallNode"; //Fake name for SW installation only
+		}
+	}
+
+	//If a AU/DU was found, check the DN for key words to figure out the class name
+	if (!firstAuDu.empty()) {
+		if (firstAuDu.find("safComp") == 0) {
+			className = "SaAmfComp";
+		} else if (firstAuDu.find("safSu") == 0) {
+			className = "SaAmfSU";
+		} else if (firstAuDu.find("safAmfNode") == 0) {
+			className = "SaAmfNode";
+		} else {
+			LOG_ER("Could not find class for AU/DU DN %s", firstAuDu.c_str());
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+	}
+	if (className == "SwInstallNode") {
+                if (activateUsed == false)
+                        this->setStepType(new SmfStepTypeSwInstall(this));
+                else
+                        this->setStepType(new SmfStepTypeSwInstallAct(this));
+	}
+	else if (className == "SaAmfNode") {
+		/* AU is AMF node */
+
+		if (rebootNeeded) {
+			/* -If rolling upgrade: Check if the step will lock/reboot our own node and if so
+			    move our campaign execution to the other controller using e.g. 
+			    admin operation SWAP on the SI we belong to. Then the other
+			    controller will continue with this step and do the lock/reboot.
+			   
+			   -If single step  upgrade: No switchover is needed. A cluster reboot will be 
+                            ordered within the step */
+
+			if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) {
+				if (this->isCurrentNode(firstAuDu) == true) {
+					this->setSwitchOver(true);
+					return SA_AIS_OK; 
+				}
+
+                                if (activateUsed == false)
+                                        this->setStepType(new SmfStepTypeNodeReboot(this));
+                                else
+                                        this->setStepType(new SmfStepTypeNodeRebootAct(this));
+			}
+                        else { // SINGLE STEP
+                                if (activateUsed == false)
+                                        this->setStepType(new SmfStepTypeClusterReboot(this));
+                                else
+                                        this->setStepType(new SmfStepTypeClusterRebootAct(this));
+                        }
+		} else {
+                        if (activateUsed == false)
+                                this->setStepType(new SmfStepTypeAuLock(this));
+                        else
+                                this->setStepType(new SmfStepTypeAuLockAct(this));
+		}
+
+	} else if (className == "SaAmfSU") {
+		/* AU is SU */
+		if (rebootNeeded) {
+			LOG_ER("A software bundle requires reboot but the AU is a SU (%s)", firstAuDu.c_str());
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+                if (activateUsed == false)
+                        this->setStepType(new SmfStepTypeAuLock(this));
+                else
+                        this->setStepType(new SmfStepTypeAuLockAct(this));
+	} else if (className == "SaAmfComp") {
+		/* AU is Component */
+		if (rebootNeeded) {
+			LOG_ER("A software bundle requires reboot but the AU is a Component (%s)", firstAuDu.c_str());
+			return SA_AIS_ERR_FAILED_OPERATION;
+		}
+
+                if (activateUsed == false)
+                        this->setStepType(new SmfStepTypeAuRestart(this));
+                else
+                        this->setStepType(new SmfStepTypeAuRestartAct(this));
+	} else {
+		LOG_ER("class name %s for %s unknown as AU", className.c_str(), firstAuDu.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+	}
+
+        return SA_AIS_OK;
 }
 
 //------------------------------------------------------------------------------
@@ -1061,7 +1502,7 @@ SaAisErrorT
 SmfUpgradeStep::clusterReboot()
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT result = SA_AIS_OK;
 	std::string error;
 	std::string s;
 	std::stringstream out;
@@ -1080,14 +1521,16 @@ SmfUpgradeStep::clusterReboot()
 			s = out.str();
 			error += s;
 			LOG_ER("%s", error.c_str());
+                        result = SA_AIS_ERR_FAILED_OPERATION;
 		}
 	} else {
-		LOG_ER("STEP: No cluster reboot command  found");
+		LOG_ER("STEP: No cluster reboot command found");
+                result = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
 	TRACE_LEAVE();
 
-        return rc;
+        return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1154,7 +1597,7 @@ done:
 // callActivationCmd()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::callActivationCmd(const std::string & i_node)
+SmfUpgradeStep::callActivationCmd()
 {
 	std::list < SmfBundleRef >::const_iterator bundleit;
 	bool result = true;
@@ -1164,7 +1607,7 @@ SmfUpgradeStep::callActivationCmd(const std::string & i_node)
 
 	TRACE_ENTER();
 
-	if (i_node.length() == 0) {
+	if (getSwNode().length() == 0) {
 
 		/* In the single-step upgrade the nodes for
 		   the bundle is provided in the m_swNodeList
@@ -1222,12 +1665,12 @@ SmfUpgradeStep::callActivationCmd(const std::string & i_node)
 	} else {
 
 		TRACE("Executing  activation command '%s' on node '%s'", 
-		      actCommand.c_str(), i_node.c_str());
-		TRACE("Get node destination for %s", i_node.c_str());
+		      actCommand.c_str(), getSwNode().c_str());
+		TRACE("Get node destination for %s", getSwNode().c_str());
 
-		MDS_DEST nodeDest = getNodeDestination(i_node);
+		MDS_DEST nodeDest = getNodeDestination(getSwNode());
 		if (nodeDest == 0) {
-			LOG_ER("no node destination found for node %s", i_node.c_str());
+			LOG_ER("no node destination found for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -1240,7 +1683,7 @@ SmfUpgradeStep::callActivationCmd(const std::string & i_node)
 		/* convert ns to 10 ms cliTimeouttimeout */
 		if (rc != 0) {
 			LOG_ER("executing activation command '%s' on node '%s' failed with rc %d", 
-			       actCommand.c_str(), i_node.c_str(), rc);
+			       actCommand.c_str(), getSwNode().c_str(), rc);
 			result = false;
 			goto done;
 		}
@@ -1319,7 +1762,7 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 			LOG_NO("STEP: Attribute %s is NULL or empty in bundle %s",
 			       cmdAttr.c_str(), curBundleDN.c_str());
 			/* cmd is not a must so don't set result = false */
-			continue;
+			goto done;
 		}
 		command = cmd;
 
@@ -1500,7 +1943,7 @@ done:
 // nodeReboot()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::nodeReboot(const std::string & i_node)
+SmfUpgradeStep::nodeReboot()
 {
 	TRACE_ENTER();
 
@@ -1515,10 +1958,10 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 
 	//Order smf node director to reboot the node
 	cmd = "reboot";
-	nodeDest = getNodeDestination(i_node);
+	nodeDest = getNodeDestination(getSwNode());
 
 	if (nodeDest == 0) {
-		LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", i_node.c_str());
+		LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 		result = false;
 		goto done;
 	}
@@ -1528,7 +1971,7 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 	// Do not wait for answer, the rebooted node will not answer
 	if (rc != 0) {
 		LOG_ER("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
-		       cmd.c_str(), i_node.c_str(), rc);
+		       cmd.c_str(), getSwNode().c_str(), rc);
 		result = false;
 		goto done;
 	}
@@ -1538,13 +1981,13 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 	timeout  = rebootTimeout; //seconds
 	interval = 1;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting for node destination to disappear");
-	nodeDest = getNodeDestination(i_node);
+	nodeDest = getNodeDestination(getSwNode());
 	while (nodeDest != 0) {
 		TRACE("SmfUpgradeStep::nodeReboot: Destination has not yet disappear, check again wait %d seconds", interval);
 		sleep(interval);
-		nodeDest = getNodeDestination(i_node);
+		nodeDest = getNodeDestination(getSwNode());
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", i_node.c_str());
+			LOG_ER("SmfUpgradeStep::nodeReboot: node destination has not disappear within time frame for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -1559,13 +2002,13 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 	timeout  = rebootTimeout; //seconds
 	interval = 5;
 	LOG_NO("SmfUpgradeStep::nodeReboot: Waiting to get node destination");
-	nodeDest = getNodeDestination(i_node);
+	nodeDest = getNodeDestination(getSwNode());
 	while (nodeDest == 0) {
 		TRACE("SmfUpgradeStep::nodeReboot: No destination found, try again wait %d seconds", interval);
 		sleep(interval);
-		nodeDest = getNodeDestination(i_node);
+		nodeDest = getNodeDestination(getSwNode());
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", i_node.c_str());
+			LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -1583,7 +2026,7 @@ SmfUpgradeStep::nodeReboot(const std::string & i_node)
 		sleep(interval);
 		rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
 		if (timeout <= 0) {
-			LOG_ER("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", i_node.c_str());
+			LOG_ER("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", getSwNode().c_str());
 			result = false;
 			goto done;
 		}
@@ -1602,28 +2045,45 @@ done:
 SmfStepResultT 
 SmfUpgradeStep::execute()
 {
-	SmfStepResultT stepResult = SMF_STEP_COMPLETED;
+	SmfStepResultT stepResult;
 
 	TRACE_ENTER();
 
-	m_state->execute(this);
+        while (1) {
+        	stepResult = m_state->execute(this);
 
-        if (m_switchOver == true) {
-                TRACE("Step ordered switch over");
-		stepResult = SMF_STEP_SWITCHOVER;
-        } else {
+                TRACE("Step result after executing %u", stepResult);
 
-                TRACE("Step state after executing %u", m_state->getState());
-
-                switch (m_state->getState()) {
-                case SA_SMF_STEP_COMPLETED:
-                        stepResult = SMF_STEP_COMPLETED;
-                        break;
-                default:
-                        stepResult = SMF_STEP_FAILED;
+                if (stepResult != SMF_STEP_CONTINUE) {
                         break;
                 }
 
+                TRACE("Step state after executing %u", m_state->getState());
+        }
+	TRACE_LEAVE();
+	return stepResult;
+}
+
+//------------------------------------------------------------------------------
+// rollback()
+//------------------------------------------------------------------------------
+SmfStepResultT 
+SmfUpgradeStep::rollback()
+{
+	SmfStepResultT stepResult;
+
+	TRACE_ENTER();
+
+        while (1) {
+        	stepResult = m_state->rollback(this);
+
+                TRACE("Step result after rollback %u", stepResult);
+
+                if (stepResult != SMF_STEP_CONTINUE) {
+                        break;
+                }
+
+                TRACE("Step state after rollback %u", m_state->getState());
         }
 	TRACE_LEAVE();
 	return stepResult;

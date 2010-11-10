@@ -68,9 +68,7 @@ SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
 	m_task_hdl(0),
 	m_mbx(0),
 	m_running(true), 
-	m_procedure(procedure),
-	m_procOiHandle(0),
-	m_procSelectionObject(0)
+	m_procedure(procedure)
 {
 	sem_init(&m_semaphore, 0, 0);
 }
@@ -80,12 +78,6 @@ SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
  */
 SmfProcedureThread::~SmfProcedureThread()
 {
-	TRACE_ENTER();
-
-	//Delete the IMM handler
-	deleteImmHandle();
-
-	TRACE_LEAVE();
 }
 
 /**
@@ -165,12 +157,6 @@ SmfProcedureThread::init(void)
 		return -1;
 	}
 
-	/* Create Imm handle for our runtime objects */
-	if ((rc = createImmHandle(m_procedure)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("createImmHandle FAILED %d", rc);
-		return -1;
-	}
-
 	/* Check if our Imm runtime object already exists (switchover or restart occured) */
 	result = getImmProcedure(m_procedure);
 	if (result == SA_AIS_ERR_NOT_EXIST) {
@@ -180,12 +166,14 @@ SmfProcedureThread::init(void)
 			return -1;
 		}
 	} else if (result == SA_AIS_OK) {
-		/* Procedure exists, get step data */
-		result = m_procedure->getImmSteps();
-		if (result != SA_AIS_OK) {
-			LOG_ER("getImmSteps FAILED %d", result);
-			return -1;
-		}
+                if (m_procedure->getState() != SA_SMF_PROC_INITIAL) {
+        		/* Procedure exists and it has been started at some time, get step data */
+        		result = m_procedure->getImmSteps();
+        		if (result != SA_AIS_OK) {
+        			LOG_ER("getImmSteps FAILED %d", result);
+        			return -1;
+        		}
+                }
 	} else {
 		LOG_ER("getImmProcedure FAILED %d", result);
 		return -1;
@@ -209,105 +197,14 @@ SmfProcedureThread::send(PROCEDURE_EVT * evt)
 }
 
 /** 
- * SmfProcedureThread::createImmHandle
- * Creates Imm handle for our runtime objects.
- */
-SaAisErrorT 
-SmfProcedureThread::createImmHandle(SmfUpgradeProcedure * procedure)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	int existCnt = 0;
-
-	SaVersionT immVersion = { 'A', 2, 1 };
-	const char *procDn = procedure->getDn().c_str();
-
-	TRACE_ENTER();
-
-	rc = immutil_saImmOiInitialize_2(&m_procOiHandle, NULL, &immVersion);
-	while (rc == SA_AIS_ERR_TRY_AGAIN) {
-		sleep(1);
-		rc = immutil_saImmOiInitialize_2(&m_procOiHandle, NULL, &immVersion);
-	}
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize_2 fails rc=%d", rc);
-		goto done;
-	}
-
-	TRACE("saImmOiImplementerSet DN=%s", procDn);
-
-	//SA_AIS_ERR_TRY_AGAIN can proceed forever
-	//SA_AIS_ERR_EXIST is limited to 60 seconds (for the other side to release the handle)
-	rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) {
-		if(rc == SA_AIS_ERR_EXIST) 
-			existCnt++;
-		if(existCnt > 60) {
-			TRACE("immutil_saImmOiImplementerSet rc = SA_AIS_ERR_EXIST for 60 sec, giving up ");
-			goto done;
-		}
-
-		TRACE("immutil_saImmOiImplementerSet rc = %d, wait 1 sec and retry", rc);
-		sleep(1);
-		rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procDn);
-	}
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerSet for DN=%s fails rc=%d", procDn, rc);
-		goto done;
-	}
-
-	done:
-	TRACE_LEAVE();
-	return rc;
-}
-
-/** 
- * SmfProcedureThread::deleteImmHandle
- * Deletes Imm handle for our runtime objects.
- */
-SaAisErrorT 
-SmfProcedureThread::deleteImmHandle()
-{
-	SaAisErrorT rc = SA_AIS_OK;
-
-	TRACE_ENTER();
-
-	rc = immutil_saImmOiImplementerClear(m_procOiHandle);
-	while (rc == SA_AIS_ERR_TRY_AGAIN) {
-		sleep(1);
-		rc = immutil_saImmOiImplementerClear(m_procOiHandle);
-	}
-	if (rc != SA_AIS_OK) {
-		if (rc == SA_AIS_ERR_BAD_HANDLE) {
-			TRACE("saImmOiImplementerClear returns SA_AIS_ERR_BAD_HANDLE, probably because of switchover");
-		} else {
-			LOG_ER("SmfProcedureThread::deleteImmHandle:saImmOiImplementerClear fails rc=%d", rc);
-		}
-		goto done;
-	}
-
-	rc = immutil_saImmOiFinalize(m_procOiHandle);
-	while (rc == SA_AIS_ERR_TRY_AGAIN) {
-		sleep(1);
-		rc = immutil_saImmOiFinalize(m_procOiHandle);
-	}
-	if (rc != SA_AIS_OK) {
-		LOG_ER("SmfProcedureThread::deleteImmHandle:saImmOiFinalize fails rc=%d", rc);
-	}
-
-	done:
-	m_procOiHandle = 0;
-	TRACE_LEAVE();
-	return rc;
-}
-
-/** 
  * SmfProcedureThread::getImmHandle
  * Get the Imm handle for procedure runtime objects.
  */
 SaImmOiHandleT 
 SmfProcedureThread::getImmHandle()
 {
-	return m_procOiHandle;
+        /* Use the same handle in all threads for rollback to work */
+        return SmfCampaignThread::instance()->getImmHandle();
 }
 
 /** 
@@ -469,7 +366,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 	strncpy((char *)parentName.value, campaign->getDn().c_str(), parentName.length);
 	parentName.value[parentName.length] = 0;
 
-	rc = immutil_saImmOiRtObjectCreate_2(m_procOiHandle, (char*)"SaSmfProcedure", &parentName, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(getImmHandle(), (char*)"SaSmfProcedure", &parentName, attrValues);
 
 	if (rc != SA_AIS_OK) {
 		TRACE("saImmOiRtObjectCreate_2 returned %u for %s, parent %s", rc, procedure->getProcName().c_str(),
@@ -493,7 +390,7 @@ SmfProcedureThread::updateImmAttr(const char *dn, SaImmAttrNameT attributeName, 
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
-	rc = immutil_update_one_rattr(m_procOiHandle, dn, attributeName, attrValueType, value);
+	rc = immutil_update_one_rattr(getImmHandle(), dn, attributeName, attrValueType, value);
 
 	if (rc != SA_AIS_OK) {
 		LOG_ER("update attribute failed %d, dn %s, attr %s", rc, dn, attributeName);
@@ -513,6 +410,7 @@ void
 SmfProcedureThread::processEvt(void)
 {
 	PROCEDURE_EVT *evt;
+        SmfProcResultT procResult = SMF_PROC_DONE;
 
 	evt = (PROCEDURE_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(&m_mbx, evt);
 	if (evt != NULL) {
@@ -529,48 +427,39 @@ SmfProcedureThread::processEvt(void)
 		case PROCEDURE_EVT_EXECUTE:
 			{
 				TRACE("Executing procedure %s", m_procedure->getProcName().c_str());
-
-				m_procedure->execute();
-
-				break;
-			}
-
-		case PROCEDURE_EVT_EXECUTE_INIT:
-			{
-				TRACE("Executing init actions %s", m_procedure->getProcName().c_str());
-				m_procedure->executeInit();
+				procResult = m_procedure->execute();
 				break;
 			}
 
 		case PROCEDURE_EVT_EXECUTE_STEP:
 			{
 				TRACE("Executing steps %s", m_procedure->getProcName().c_str());
-				m_procedure->executeStep();
+				procResult = m_procedure->executeStep();
 				break;
 			}
 
-		case PROCEDURE_EVT_EXECUTE_WRAPUP:
+		case PROCEDURE_EVT_ROLLBACK_STEP:
 			{
-				TRACE("Executing wrapup actions %s", m_procedure->getProcName().c_str());
-				m_procedure->executeWrapup();
+				TRACE("Rollback steps %s", m_procedure->getProcName().c_str());
+				procResult = m_procedure->rollbackStep(); 
 				break;
 			}
 
 		case PROCEDURE_EVT_SUSPEND:
 			{
-				m_procedure->suspend();
+				procResult = m_procedure->suspend();
 				break;
 			}
 
 		case PROCEDURE_EVT_COMMIT:
 			{
-				m_procedure->commit();
+				procResult = m_procedure->commit();
 				break;
 			}
 
 		case PROCEDURE_EVT_ROLLBACK:
 			{
-				m_procedure->rollback();
+				procResult = m_procedure->rollback();
 				break;
 			}
 		default:
@@ -581,6 +470,16 @@ SmfProcedureThread::processEvt(void)
 
 		delete(evt);
 	}
+
+        if (procResult != SMF_PROC_DONE) {
+                /* Send procedure response to campaign thread */
+                TRACE("Sending procedure response %d to campaign from %s", procResult, m_procedure->getProcName().c_str());
+                CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+                evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+                evt->event.procResult.rc = procResult;
+                evt->event.procResult.procedure = m_procedure;
+                SmfCampaignThread::instance()->send(evt);
+        }
 }
 
 typedef enum {
@@ -644,7 +543,7 @@ SmfProcedureThread::main(void)
 		/* Mark the thread terminated */
 		sem_post(&m_semaphore);
 	} else {
-		LOG_ER("init failed");
+		LOG_ER("SmfProcedureThread: init failed");
 	}
 	TRACE_LEAVE();
 }

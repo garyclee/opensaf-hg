@@ -84,78 +84,88 @@ SmfCampState::toString(std::string & io_str) const
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampState::execute(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	LOG_ER("SmfCampState::execute default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
-}
-
-//------------------------------------------------------------------------------
-// executeInit()
-//------------------------------------------------------------------------------
-void 
-SmfCampState::executeInit(SmfUpgradeCampaign * i_camp)
-{
-	TRACE_ENTER();
-	LOG_ER("SmfCampState::executeInit default implementation, should NEVER be executed.");
-	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
 // executeProc()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampState::executeProc(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	LOG_ER("SmfCampState::executeProc default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
-// executeWrapup()
+// rollbackProc()
 //------------------------------------------------------------------------------
-void 
-SmfCampState::executeWrapup(SmfUpgradeCampaign * i_camp)
+SmfCampResultT 
+SmfCampState::rollbackProc(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
-	LOG_ER("SmfCampState::executeWrapup default implementation, should NEVER be executed.");
+	LOG_ER("SmfCampState::rollbackProc default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
 // rollback()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampState::rollback(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	LOG_ER("SmfCampState::rollback default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
 // suspend()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampState::suspend(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	LOG_ER("SmfCampState::suspend default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
 // commit()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampState::commit(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	LOG_ER("SmfCampState::commit default implementation, should NEVER be executed.");
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// procResult()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampState::procResult(SmfUpgradeCampaign *  i_camp,
+                         SmfUpgradeProcedure * i_procedure,
+                         SmfProcResultT        i_result)
+{
+	TRACE_ENTER();
+	LOG_NO("SmfCampState::procResult default implementation. Received response %d from procedure %s",
+              i_result, i_procedure->getProcName().c_str());
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
@@ -215,7 +225,7 @@ SmfCampStateInitial::toString(std::string & io_str) const {
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
@@ -223,6 +233,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	std::string s;
 	std::stringstream out;
 	std::vector < SmfUpgradeProcedure * >::iterator procIter;
+        SmfCampResultT initResult;
 
 	std::list < std::string > bundleInstallDnCamp;
 	std::list < std::string > notFoundInstallDn;
@@ -592,19 +603,18 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	TRACE("Create the SmfCampRestartInfo object");
 	i_camp->createCampRestartInfo();
 
-	//Preparation is ready, change state and continue the campaign execution
+	//Preparation is ready, change state and execute campaign initialization
 	changeState(i_camp, SmfCampStateExecuting::instance());
-	i_camp->execute();
 
+        initResult = executeInit(i_camp);
 	TRACE_LEAVE();
-	return;
+	return initResult;
 
 exit_error:
 	LOG_ER("%s", error.c_str());
 	SmfCampaignThread::instance()->campaign()->setError(error);
 
 	//Remain in state initial if prerequsites check or SMF backup fails
-//	changeState(i_camp, SmfCampStateExecFailed::instance());
 
 	/* Terminate campaign thread */
 	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -612,7 +622,28 @@ exit_error:
 	SmfCampaignThread::instance()->send(evt);
 
 	TRACE_LEAVE();
-	return;
+	return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// executeInit()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateInitial::executeInit(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampStateExecuting::executeInit, Running campaign init actions");
+
+	if (i_camp->m_campInit.execute() != SA_AIS_OK) {
+		std::string error = "Campaign init failed";
+		LOG_ER("%s", error.c_str());
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		return SMF_CAMP_FAILED;
+	}
+
+	TRACE("SmfCampStateExecuting::executeInit, campaign init actions completed");
+        return SMF_CAMP_CONTINUE; /* Continue in next state */
 }
 
 //------------------------------------------------------------------------------
@@ -652,66 +683,23 @@ SmfCampStateExecuting::toString(std::string & io_str) const
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 
 	TRACE("SmfCampStateExecuting::execute, Do some checking");
 
-	/* Check if the campaign have been restarted to many times */
-	bool o_result;
-	if (i_camp->tooManyRestarts(&o_result) == SA_AIS_OK){
-		if (o_result == true) {
-			LOG_ER("The campaign have been restarted to many times");
-			std::string cnt = getenv("CAMP_MAX_RESTART");
-			std::string error = "To many campaign restarts, max " + cnt;
-			SmfCampaignThread::instance()->campaign()->setError(error);
-			changeState(i_camp, SmfCampStateExecFailed::instance());
-			TRACE_LEAVE();
-			return;
-		}
-	} else {
-		LOG_ER("toManyRestarts() fails");
-		std::string error = "Restart number check fails";
-		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		TRACE_LEAVE();
-		return;
-	}
-
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-
-	//Set the DN of the procedures
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
-		//Set the DN of the procedure
-		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
-		(*iter)->setDn(dn);
-
-		iter++;
-	}
-
-	//Start procedure threads
-	TRACE("SmfCampStateExecuting::execute, start procedure threads and set initial state");
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
-		SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
-		(*iter)->setProcThread(procThread);
-
-		TRACE("SmfCampStateExecuting::executeProc, Starting procedure %s", (*iter)->getProcName().c_str());
-		procThread->start();
-
-		iter++;
-	}
-
-	//If a running campaign was restarted on an other node, the procedures in executing state
-	//must be restarted. The execution shall continue at step execution phase. The procedure initiation
+	//If a running campaign was restarted on another node, the procedures in executing state
+	//must be restarted. The execution shall continue at step execution phase. The procedure initialization
 	//and step calculation was performed before the move of control.
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+        std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 	bool execProcFound = false;
-	iter = i_camp->m_procedure.begin();
+
+	iter = procedures.begin();
 	i_camp->m_noOfExecutingProc = 0; //The no of answers which must be wait for, could be more than 1 if parallel procedures
-	while (iter != i_camp->m_procedure.end()) {
+	while (iter != procedures.end()) {
 		if ((*iter)->getState() == SA_SMF_PROC_EXECUTING) {
 			TRACE("SmfCampStateExecuting::execute, restarted procedure found, send PROCEDURE_EVT_EXECUTE_STEP event to thread");
 			SmfProcedureThread *procThread = (*iter)->getProcThread();
@@ -726,125 +714,49 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 	}
 
 	if (execProcFound == true) {
-		//Execution will continue at SmfCampStateExecuting::executeProc() when first proc result is received.
+		//Execution will continue at SmfCampStateExecuting::executeProc() when proc result is received.
 		TRACE("SmfCampStateExecuting::execute, Wait for restarted procedures to respond.");
 		TRACE_LEAVE();
-		return;
+		return SMF_CAMP_DONE;
 	}
 
-	/* No executing procedures, this must be a campaign start so execute campaign inititialization */
-        this->executeInit(i_camp);
-
-	TRACE_LEAVE();
-}
-
-//------------------------------------------------------------------------------
-// executeInit()
-//------------------------------------------------------------------------------
-void 
-SmfCampStateExecuting::executeInit(SmfUpgradeCampaign * i_camp)
-{
-	TRACE_ENTER();
-	TRACE("SmfCampStateExecuting::executeInit, Running campaign init actions");
-
-	if (i_camp->m_campInit.execute() != SA_AIS_OK) {
-		std::string error = "Campaign init failed";
-		LOG_ER("%s", error.c_str());
-		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		return;
-	}
-
-	TRACE("SmfCampStateExecuting::executeInit, campaign init actions completed");
-        this->executeProc(i_camp);
-
-	TRACE_LEAVE();
+	/* No executing procedures, start executing next procedure */
+        SmfCampResultT result = this->executeProc(i_camp);
+        TRACE_LEAVE();
+        return result;
 }
 
 //------------------------------------------------------------------------------
 // executeProc()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
-	TRACE("SmfCampStateExecuting::executeProc, Starting procedure threads");
 
-	if (i_camp->m_noOfExecutingProc > 1) {
-		i_camp->m_noOfExecutingProc--;
-		TRACE("Still noProc=%d procedures executing, continue waiting for result.", i_camp->m_noOfExecutingProc);
-		TRACE_LEAVE();
-		return;
-	} else if (i_camp->m_noOfExecutingProc == 1) {
-		//Decrement counter for the last procedure on the current exec level 
-		i_camp->m_noOfExecutingProc--;
-	}
-
-	TRACE("All procedures started on the same execlevel have answered.");
-	//Check that the counter is 0, otherwise fail
-	if ( i_camp->m_noOfExecutingProc != 0)
-	{
-		LOG_ER("Procedure counter is supposed to be 0, was %d", i_camp->m_noOfExecutingProc);
-		std::string error = "Wrong procedure counter " + i_camp->m_noOfExecutingProc;
-		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		TRACE_LEAVE();
-		return;
-	}
-	
-	//All procedures started on the execution level has send results
-	//Find out if some procedure is still executing, should never happend here
-	//Find out if any of the procedures failed
-
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
-		switch ((*iter)->getState()) {
-		case SA_SMF_PROC_EXECUTING: //Shold never happends since all procedures are assumed to have answered
-			{
-				LOG_ER("No procdedures are supposed to execute but procedure %s still in SA_SMF_PROC_EXECUTING state", (*iter)->getProcName().c_str());
-				std::string error = "Procedure in wrong state (SA_SMF_PROC_EXECUTING)";
-				SmfCampaignThread::instance()->campaign()->setError(error);
-				changeState(i_camp, SmfCampStateExecFailed::instance());
-				TRACE_LEAVE();
-				return;
-			}
-		case SA_SMF_PROC_FAILED:
-			{
-				std::string error = "Procedure " + (*iter)->getProcName() + " failed";
-				LOG_ER("%s", error.c_str());
-				SmfCampaignThread::instance()->campaign()->setError(error);
-				changeState(i_camp, SmfCampStateExecFailed::instance());
-				TRACE_LEAVE();
-				return;
-			}
-		default:
-			break;
-		}
-		iter++;
-	}
-
-	TRACE("No procedures in executing state was found, proceed with next execution level procedures");
+	TRACE("SmfCampStateExecuting::executeProc Proceed with next execution level procedures");
 
 	//The procedure vector is sorted in execution level order (low -> high)
 	//Lowest number shall be executed first.
 
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 	int execLevel = -1;
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
+
+	iter = procedures.begin();
+	while (iter != procedures.end()) {
 
 		TRACE("Start procedures, try procedure %s, state=%u, execLevel=%d",
 		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
 
-		//If the state is initial and the execution level is new or the same as 
-		//the procedure just started.
+		// If the state is initial and the execution level is new or the same as 
+		// the procedure just started.
 		if (((*iter)->getState() == SA_SMF_PROC_INITIAL)
 		    && ((execLevel == -1) || (execLevel == (*iter)->getExecLevel()))) {
 			if (execLevel == (*iter)->getExecLevel()) {
 				TRACE("A procedure already run at execLevel=%d, start parallel procedure", execLevel);
 			} else if (execLevel == -1) {
-				TRACE("Start first  procedure on  execLevel=%d", (*iter)->getExecLevel());
+				TRACE("Start first procedure on execLevel=%d", (*iter)->getExecLevel());
 			}
 
 			SmfProcedureThread *procThread = (*iter)->getProcThread();
@@ -860,30 +772,31 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 	if (execLevel != -1) {
 		TRACE("SmfCampStateExecuting::executeProc, Wait for procedure results");
 		TRACE_LEAVE();
-		return;
+		return SMF_CAMP_DONE;
 	}
 
 	TRACE("SmfCampStateExecuting::executeProc, All procedures executed, start wrapup");
-        this->executeWrapup(i_camp);
 
-	TRACE_LEAVE();
+	LOG_NO("CAMP: All procedures executed, start wrapup");
+        SmfCampResultT result = this->executeWrapup(i_camp);
+        TRACE_LEAVE();
+        return result;
 }
 
 //------------------------------------------------------------------------------
 // executeWrapup()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecuting::executeWrapup(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
-	LOG_NO("CAMP: Running campaign wrapup complete actions");
 
 	if (i_camp->m_campWrapup.executeCampComplete() == false) {
-		std::string error = "Campaign wrapup.executeCampComplete failed";
+		std::string error = "Campaign wrapup executing campaign complete actions failed";
 		LOG_ER("%s", error.c_str());
 		SmfCampaignThread::instance()->campaign()->setError(error);
 		changeState(i_camp, SmfCampStateExecFailed::instance());
-		return;
+		return SMF_CAMP_FAILED;
 	}
 	// TODO Start wait to complete timer
 	LOG_NO("CAMP: Start wait to complete timer (not implemented yet)");
@@ -893,22 +806,24 @@ SmfCampStateExecuting::executeWrapup(SmfUpgradeCampaign * i_camp)
 
 	LOG_NO("CAMP: Upgrade campaign completed %s", i_camp->getCampaignName().c_str());
 	TRACE_LEAVE();
+        return SMF_CAMP_COMPLETED;
 }
 
 //------------------------------------------------------------------------------
 // suspend()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecuting::suspend(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 	TRACE("SmfCampStateExecuting::suspend implementation");
 
 	/* Send suspend message to all procedures */
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
-	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
-                TRACE("SmfCampStateExecuting::Procedure %s executing, send suspend",
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+                TRACE("SmfCampStateExecuting::Procedure %s, send suspend",
                       (*iter)->getProcName().c_str());
                 SmfProcedureThread *procThread = (*iter)->getProcThread();
                 PROCEDURE_EVT *evt = new PROCEDURE_EVT();
@@ -916,10 +831,85 @@ SmfCampStateExecuting::suspend(SmfUpgradeCampaign * i_camp)
                 procThread->send(evt);
 	}
 
+        i_camp->m_noOfProcResponses = 0;
         changeState(i_camp, SmfCampStateSuspendingExec::instance());
-        /* Wait for responses from all procedures (SmfCampStateSuspendingExec::execProc) */
+        /* Wait for suspend responses from all procedures (SmfCampStateSuspendingExec::procResult) */
 
 	TRACE_LEAVE();
+        return SMF_CAMP_SUSPENDING; 
+}
+
+//------------------------------------------------------------------------------
+// procResult()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateExecuting::procResult(SmfUpgradeCampaign *  i_camp,
+                                  SmfUpgradeProcedure * i_procedure,
+                                  SmfProcResultT        i_result)
+{
+	TRACE_ENTER();
+
+        switch (i_result) {
+        case SMF_PROC_COMPLETED: {
+                LOG_NO("CAMP: Procedure %s returned COMPLETED", i_procedure->getProcName().c_str());
+                break;
+        }
+        case SMF_PROC_FAILED: {
+                LOG_NO("CAMP: Procedure %s returned FAILED", i_procedure->getProcName().c_str());
+                std::string error = "Procedure " + i_procedure->getProcName() + " failed";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return SMF_CAMP_FAILED;
+                break;
+        }
+        case SMF_PROC_STEPUNDONE: {
+                LOG_NO("CAMP: Procedure %s returned STEPUNDONE", i_procedure->getProcName().c_str());
+
+                /* Send suspend message to all procedures */
+                const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+        	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+        
+        	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+                        TRACE("SmfCampStateExecuting:: Step undone, send suspend to procedure %s",
+                              (*iter)->getProcName().c_str());
+                        SmfProcedureThread *procThread = (*iter)->getProcThread();
+                        PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+                        evt->type = PROCEDURE_EVT_SUSPEND;
+                        procThread->send(evt);
+        	}
+                i_camp->m_noOfProcResponses = 0;
+
+                /* Receive all suspend responses in new state */
+		changeState(i_camp, SmfCampStateErrorDetected::instance());
+		TRACE_LEAVE();
+		return SMF_CAMP_DONE;
+                break;
+        }
+        default: {
+                LOG_NO("SmfCampStateExecuting::procResult received unhandled response %d from procedure %s", 
+                       i_result, i_procedure->getDn().c_str());                
+                break;
+        }
+        }
+
+	if (i_camp->m_noOfExecutingProc > 1) {
+		i_camp->m_noOfExecutingProc--;
+		TRACE("Still noProc=%d procedures executing, continue waiting for result.", i_camp->m_noOfExecutingProc);
+		TRACE_LEAVE();
+		return SMF_CAMP_DONE;
+	} else if (i_camp->m_noOfExecutingProc == 1) {
+		TRACE("Response from last procedure received.");
+		//Decrement counter for the last procedure on the current exec level 
+		i_camp->m_noOfExecutingProc--;
+	}
+
+	TRACE("All procedures started on the same execlevel have answered.");
+
+        /* Find next procedure to be executed */
+        SmfCampResultT result = this->executeProc(i_camp);
+        TRACE_LEAVE();
+        return result;
 }
 
 //------------------------------------------------------------------------------
@@ -956,94 +946,63 @@ void SmfCampStateExecCompleted::toString(std::string & io_str) const
 }
 
 //------------------------------------------------------------------------------
-// execute()
+// rollback()
 //------------------------------------------------------------------------------
-void 
-SmfCampStateExecCompleted::execute(SmfUpgradeCampaign * i_camp)
+SmfCampResultT 
+SmfCampStateExecCompleted::rollback(SmfUpgradeCampaign * i_camp)
+{
+        TRACE_ENTER();
+	LOG_NO("CAMP: Start rolling back completed campaign %s", i_camp->getCampaignName().c_str());
+        changeState(i_camp, SmfCampRollingBack::instance());
+        SmfCampResultT wrapupResult = rollbackWrapup(i_camp);
+	TRACE_LEAVE();
+        return wrapupResult;
+}
+
+//------------------------------------------------------------------------------
+// rollbackWrapup()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateExecCompleted::rollbackWrapup(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 
-	TRACE("SmfCampStateExecuting::execute, Do some checking");
-
-	/* Check if the campaign have been restarted to many times */
-	bool o_result;
-	if (i_camp->tooManyRestarts(&o_result) == SA_AIS_OK){
-		if (o_result == true) {
-			LOG_ER("The campaign have been restarted to many times");
-			std::string cnt = getenv("CAMP_MAX_RESTART");
-			std::string error = "To many campaign restarts, max " + cnt;
-			SmfCampaignThread::instance()->campaign()->setError(error);
-			changeState(i_camp, SmfCampStateExecFailed::instance());
-			TRACE_LEAVE();
-			return;
-		}
-	} else {
-		LOG_ER("toManyRestarts() fails");
-		std::string error = "Restart number check fails";
+	if (i_camp->m_campWrapup.rollbackCampComplete() == false) {
+		std::string error = "Campaign rollback complete actions failed";
+		LOG_ER("%s", error.c_str());
 		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		TRACE_LEAVE();
-		return;
+		changeState(i_camp, SmfCampRollbackFailed::instance());
+		return SMF_CAMP_FAILED;
 	}
 
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-
-	//Set the DN of the procedures
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
-		//Set the DN of the procedure
-		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
-		(*iter)->setDn(dn);
-
-		iter++;
-	}
-
-	//Start procedure threads
-	TRACE("SmfCampStateExecuting::execute, start procedure threads and set initial state");
-	iter = i_camp->m_procedure.begin();
-	while (iter != i_camp->m_procedure.end()) {
-		SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
-		(*iter)->setProcThread(procThread);
-
-		TRACE("SmfCampStateExecuting::executeProc, Starting procedure %s", (*iter)->getProcName().c_str());
-		procThread->start();
-
-		iter++;
-	}
-
+	LOG_NO("CAMP: Start rolling back the procedures");
 	TRACE_LEAVE();
+        return SMF_CAMP_CONTINUE; /* Continue in next state */
 }
 
 //------------------------------------------------------------------------------
 // commit()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 
+        LOG_NO("CAMP: Commit upgrade campaign %s", i_camp->getCampaignName().c_str());
+
 	i_camp->m_campWrapup.executeCampWrapup(); // No action if wrapup is faulty
 
+        i_camp->resetMaintenanceState(); // No action if it fails
+
 	//Remove the procedure runtime objects
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+        for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
 		(*iter)->commit();
 	}
 
-	/* Remove smfRestartInfo runtime object */
-
-	SaNameT objectName;
-	std::string dn = "smfRestartInfo=info," + SmfCampaignThread::instance()->campaign()->getDn(); 
-	objectName.length = dn.length();
-	strncpy((char *)objectName.value, dn.c_str(), objectName.length);
-	objectName.value[objectName.length] = 0;
-
-	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),	//The OI handle
-					   &objectName);
-
-	if (rc != SA_AIS_OK) {
-		LOG_ER("immutil_saImmOiRtObjectDelete returned %u for %s, continuing", rc, dn.c_str());
-	}
+        i_camp->removeRunTimeObjects(); // No action if it fails
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());
@@ -1057,6 +1016,7 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 	SmfCampaignThread::instance()->send(evt);
 
 	TRACE_LEAVE();
+        return SMF_CAMP_COMMITED;
 }
 
 //------------------------------------------------------------------------------
@@ -1073,14 +1033,6 @@ SmfCampState *SmfCampStateSuspendingExec::instance(void)
 	}
 
 	return s_instance;
-}
-
-//------------------------------------------------------------------------------
-// SmfCampStateSuspendingExec()
-//------------------------------------------------------------------------------
-SmfCampStateSuspendingExec::SmfCampStateSuspendingExec(void):
-        m_numOfProcResponses(0)
-{
 }
 
 //------------------------------------------------------------------------------
@@ -1102,28 +1054,54 @@ SmfCampStateSuspendingExec::toString(std::string & io_str) const
 }
 
 //------------------------------------------------------------------------------
-// suspend()
+// procResult()
 //------------------------------------------------------------------------------
-void 
-SmfCampStateSuspendingExec::executeProc(SmfUpgradeCampaign * i_camp)
+SmfCampResultT 
+SmfCampStateSuspendingExec::procResult(SmfUpgradeCampaign *  i_camp,
+                                       SmfUpgradeProcedure * i_procedure,
+                                       SmfProcResultT        i_result)
 {
 	TRACE_ENTER();
-	TRACE("SmfCampStateSuspendingExec::executeProc implementation");
+	TRACE("SmfCampStateSuspendingExec::procResult implementation");
 
-        /* If first response, set number of expected responses */
-        if (m_numOfProcResponses == 0) {
-                m_numOfProcResponses = i_camp->m_procedure.size();
+        /* We could get other responses */
+        switch (i_result) {
+        case SMF_PROC_SUSPENDED: {
+                /* If first response, set number of expected responses */
+                if (i_camp->m_noOfProcResponses == 0) {
+                        i_camp->m_noOfProcResponses = i_camp->getProcedures().size();
+                }
+
+                /* Decrease the response counter */
+                i_camp->m_noOfProcResponses--;
+        
+                /* If last response, change state to suspended */
+                if (i_camp->m_noOfProcResponses == 0) {
+        		changeState(i_camp, SmfCampStateExecSuspended::instance());
+        	}
+                break;
+        }
+        case SMF_PROC_FAILED: {
+                TRACE("SmfCampStateSuspendingExec::procResult received FAILED from procedure %s", i_procedure->getDn().c_str());
+                changeState(i_camp, SmfCampStateExecFailed::instance());
+                /* The rest of the procedure results will be received by new state */
+                break;
+        }
+        case SMF_PROC_STEPUNDONE: {
+                TRACE("SmfCampStateSuspendingExec::procResult received STEPUNDONE from procedure %s", i_procedure->getDn().c_str());
+                changeState(i_camp, SmfCampStateErrorDetectedInSuspending::instance());
+                /* Handle the rest of the procedure suspend results in new state */
+                break;
+        }
+        default: {
+                LOG_NO("SmfCampStateSuspendingExec::procResult received unhandled response %d from procedure %s", 
+                       i_result, i_procedure->getDn().c_str());
+                break;
+        }
         }
 
-        /* Decrease the response counter */
-        m_numOfProcResponses--;
-
-        /* If last response, change state to suspended */
-        if (m_numOfProcResponses == 0) {
-		changeState(i_camp, SmfCampStateExecSuspended::instance());
-	}
-
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
@@ -1163,7 +1141,7 @@ SmfCampStateExecSuspended::toString(std::string & io_str) const
 //------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
-void 
+SmfCampResultT 
 SmfCampStateExecSuspended::execute(SmfUpgradeCampaign * i_camp)
 {
         int numOfSuspendedProc = 0;
@@ -1171,9 +1149,10 @@ SmfCampStateExecSuspended::execute(SmfUpgradeCampaign * i_camp)
 	TRACE("SmfCampStateExecSuspended::execute implementation");
 
 	/* Send execute to all suspended procedures */
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
 
-	for (iter = i_camp->m_procedure.begin(); iter != i_camp->m_procedure.end(); ++iter) {
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
 		switch ((*iter)->getState()) {
 		case SA_SMF_PROC_SUSPENDED:
 			{
@@ -1192,17 +1171,69 @@ SmfCampStateExecSuspended::execute(SmfUpgradeCampaign * i_camp)
 	}
 
 	changeState(i_camp, SmfCampStateExecuting::instance());
+        i_camp->m_noOfExecutingProc = numOfSuspendedProc;
 
         /* If no suspended procedures existed, execute next procedure in state initial.
            I.e. we were suspended in between procedures */
         if (numOfSuspendedProc == 0) {
-                /* Execute next procedure */
+                TRACE("SmfCampStateExecuting::No suspended procedures, start next procedure");
+
                 CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
                 evt->type = CAMPAIGN_EVT_EXECUTE_PROC;
                 SmfCampaignThread::instance()->send(evt);
         }
 
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// rollback()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateExecSuspended::rollback(SmfUpgradeCampaign * i_camp)
+{
+        int numOfSuspendedProc = 0;
+	TRACE_ENTER();
+	TRACE("SmfCampStateExecSuspended::rollback implementation");
+
+	/* Send rollback to all suspended procedures */
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+		switch ((*iter)->getState()) {
+		case SA_SMF_PROC_SUSPENDED:
+			{
+				TRACE("SmfCampStateExecuting::Procedure %s suspended, send rollback",
+				      (*iter)->getProcName().c_str());
+				SmfProcedureThread *procThread = (*iter)->getProcThread();
+				PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+				evt->type = PROCEDURE_EVT_ROLLBACK;
+				procThread->send(evt);
+                                numOfSuspendedProc++;
+                                break;
+			}
+		default:
+			break;
+		}
+	}
+
+	changeState(i_camp, SmfCampRollingBack::instance());
+        i_camp->m_noOfExecutingProc = numOfSuspendedProc;
+
+        /* If no suspended procedures existed, rollback next completed procedure.
+           I.e. we were suspended in between procedures */
+        if (numOfSuspendedProc == 0) {
+                TRACE("SmfCampStateExecuting::No suspended procedures, start rollback next procedure");
+
+                CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+                evt->type = CAMPAIGN_EVT_ROLLBACK_PROC;
+                SmfCampaignThread::instance()->send(evt);
+        }
+
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
@@ -1240,14 +1271,37 @@ SmfCampStateCommitted::toString(std::string & io_str) const
 }
 
 //------------------------------------------------------------------------------
-// execute()
+//------------------------------------------------------------------------------
+// SmfCampStateExecFailed implementations
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampStateExecFailed::s_instance = NULL;
+
+SmfCampState *SmfCampStateExecFailed::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampStateExecFailed;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
 //------------------------------------------------------------------------------
 void 
-SmfCampStateCommitted::execute(SmfUpgradeCampaign * i_camp)
+SmfCampStateExecFailed::getClassName(std::string & io_str) const 
 {
-	TRACE_ENTER();
-	TRACE("SmfCampStateCommitted::execute implementation");
-	TRACE_LEAVE();
+	io_str = "SmfCampStateExecFailed";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampStateExecFailed::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
 }
 
 //------------------------------------------------------------------------------
@@ -1285,27 +1339,54 @@ SmfCampStateErrorDetected::toString(std::string & io_str) const
 }
 
 //------------------------------------------------------------------------------
-// execute()
+// procResult()
 //------------------------------------------------------------------------------
-void 
-SmfCampStateErrorDetected::execute(SmfUpgradeCampaign * i_camp)
+SmfCampResultT 
+SmfCampStateErrorDetected::procResult(SmfUpgradeCampaign *  i_camp,
+                                      SmfUpgradeProcedure * i_procedure,
+                                      SmfProcResultT        i_result)
 {
 	TRACE_ENTER();
-	TRACE("SmfCampStateErrorDetected::execute implementation");
+	TRACE("SmfCampStateErrorDetected::procResult implementation");
+
+        /* We could get other responses */
+        if (i_result == SMF_PROC_SUSPENDED) {
+                /* If first response, set number of expected responses */
+                if (i_camp->m_noOfProcResponses == 0) {
+                        i_camp->m_noOfProcResponses = i_camp->m_procedure.size();
+                }
+
+                /* Decrease the response counter */
+                i_camp->m_noOfProcResponses--;
+        
+                /* If last response, change state to suspended by error detected */
+                if (i_camp->m_noOfProcResponses == 0) {
+        		changeState(i_camp, SmfCampStateSuspendedByErrorDetected::instance());
+        	}
+        } else if (i_result == SMF_PROC_FAILED) {
+                TRACE("SmfCampStateErrorDetected::procResult received FAILED from procedure %s", i_procedure->getDn().c_str());
+                changeState(i_camp, SmfCampStateExecFailed::instance());
+                /* Any more suspend responses will be received by new state */
+        } else {
+                LOG_NO("SmfCampStateErrorDetected::procResult received unhandled response %d from procedure %s", 
+                       i_result, i_procedure->getDn().c_str());                
+        }
+
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
 }
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-// SmfCampStateExecFailed implementations
+// SmfCampStateErrorDetectedInSuspending implementation
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-SmfCampState *SmfCampStateExecFailed::s_instance = NULL;
+SmfCampState *SmfCampStateErrorDetectedInSuspending::s_instance = NULL;
 
-SmfCampState *SmfCampStateExecFailed::instance(void)
+SmfCampState *SmfCampStateErrorDetectedInSuspending::instance(void)
 {
 	if (s_instance == NULL) {
-		s_instance = new SmfCampStateExecFailed;
+		s_instance = new SmfCampStateErrorDetectedInSuspending;
 	}
 
 	return s_instance;
@@ -1315,27 +1396,720 @@ SmfCampState *SmfCampStateExecFailed::instance(void)
 // getClassName()
 //------------------------------------------------------------------------------
 void 
-SmfCampStateExecFailed::getClassName(std::string & io_str) const 
+SmfCampStateErrorDetectedInSuspending::getClassName(std::string & io_str) const 
 {
-	io_str = "SmfCampStateExecFailed";
+	io_str = "SmfCampStateErrorDetectedInSuspending";
 }
 
 //------------------------------------------------------------------------------
 // toString()
 //------------------------------------------------------------------------------
 void 
-SmfCampStateExecFailed::toString(std::string & io_str) const 
+SmfCampStateErrorDetectedInSuspending::toString(std::string & io_str) const 
 {
 	getClassName(io_str);
 }
 
 //------------------------------------------------------------------------------
-// execute()
+// procResult()
 //------------------------------------------------------------------------------
-void 
-SmfCampStateExecFailed::execute(SmfUpgradeCampaign * i_camp)
+SmfCampResultT 
+SmfCampStateErrorDetectedInSuspending::procResult(SmfUpgradeCampaign *  i_camp,
+                                                  SmfUpgradeProcedure * i_procedure,
+                                                  SmfProcResultT        i_result)
 {
 	TRACE_ENTER();
-	TRACE("SmfCampStateExecFailed::execute implementation");
+	TRACE("SmfCampStateErrorDetectedInSuspending::procResult implementation");
+
+        /* We could get other responses */
+        if (i_result == SMF_PROC_SUSPENDED) {
+                /* If first response, set number of expected responses */
+                if (i_camp->m_noOfProcResponses == 0) {
+                        i_camp->m_noOfProcResponses = i_camp->m_procedure.size();
+                }
+
+                /* Decrease the response counter */
+                i_camp->m_noOfProcResponses--;
+        
+                /* If last response, change state to suspended by error detected */
+                if (i_camp->m_noOfProcResponses == 0) {
+        		changeState(i_camp, SmfCampStateSuspendedByErrorDetected::instance());
+        	}
+        } else if (i_result == SMF_PROC_FAILED) {
+                TRACE("SmfCampStateSuspendingExec::procResult received ROLLBACKFAILED from procedure %s", i_procedure->getDn().c_str());
+                changeState(i_camp, SmfCampStateExecFailed::instance());
+                /* Any more responses will be received by new state */
+        } else {
+                LOG_NO("SmfCampStateErrorDetectedInSuspending::procResult received unhandled response %d from procedure %s", 
+                       i_result, i_procedure->getDn().c_str());                
+        }
+
 	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampStateSuspendedByErrorDetected implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampStateSuspendedByErrorDetected::s_instance = NULL;
+
+SmfCampState *SmfCampStateSuspendedByErrorDetected::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampStateSuspendedByErrorDetected;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampStateSuspendedByErrorDetected::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampStateSuspendedByErrorDetected";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampStateSuspendedByErrorDetected::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+
+//------------------------------------------------------------------------------
+// execute()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateSuspendedByErrorDetected::execute(SmfUpgradeCampaign * i_camp)
+{
+        int numOfSuspendedProc = 0;
+	TRACE_ENTER();
+	TRACE("SmfCampStateSuspendedByErrorDetected::execute implementation");
+
+	/* Send execute to all suspended/undone procedures */
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+		switch ((*iter)->getState()) {
+		case SA_SMF_PROC_SUSPENDED:
+		case SA_SMF_PROC_STEP_UNDONE:
+			{
+				TRACE("SmfCampStateSuspendedByErrorDetected::Procedure %s suspended/undone, send execute",
+				      (*iter)->getProcName().c_str());
+				SmfProcedureThread *procThread = (*iter)->getProcThread();
+				PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+				evt->type = PROCEDURE_EVT_EXECUTE;
+				procThread->send(evt);
+                                numOfSuspendedProc++;
+                                break;
+			}
+		default:
+			break;
+		}
+	}
+
+        /* If no suspended/undone procedures exists something is really wrong */
+        if (numOfSuspendedProc == 0) {
+                LOG_ER("SmfCampStateSuspendedByErrorDetected: No suspended/undone procedures found when execute");
+                changeState(i_camp, SmfCampStateExecFailed::instance());
+        }
+
+	changeState(i_camp, SmfCampStateExecuting::instance());
+        i_camp->m_noOfExecutingProc = numOfSuspendedProc;
+
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// rollback()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateSuspendedByErrorDetected::rollback(SmfUpgradeCampaign * i_camp)
+{
+        int numOfSuspendedProc = 0;
+	TRACE_ENTER();
+	TRACE("SmfCampStateSuspendedByErrorDetected::rollback implementation");
+
+	/* Send rollback to all suspended/undone procedures */
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+		switch ((*iter)->getState()) {
+		case SA_SMF_PROC_SUSPENDED:
+		case SA_SMF_PROC_STEP_UNDONE:
+			{
+				TRACE("SmfCampStateSuspendedByErrorDetected::Procedure %s suspended/undone, send rollback",
+				      (*iter)->getProcName().c_str());
+				SmfProcedureThread *procThread = (*iter)->getProcThread();
+				PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+				evt->type = PROCEDURE_EVT_ROLLBACK;
+				procThread->send(evt);
+                                numOfSuspendedProc++;
+                                break;
+			}
+		default:
+			break;
+		}
+	}
+
+        /* If no suspended/undone procedures exists something is really wrong */
+        if (numOfSuspendedProc == 0) {
+                LOG_ER("SmfCampStateSuspendedByErrorDetected: No suspended/undone procedures found when rollback");
+                changeState(i_camp, SmfCampStateExecFailed::instance());
+        }
+
+	changeState(i_camp, SmfCampRollingBack::instance());
+        i_camp->m_noOfExecutingProc = numOfSuspendedProc;
+
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampRollingBack implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampRollingBack::s_instance = NULL;
+
+SmfCampState *SmfCampRollingBack::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampRollingBack;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollingBack::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampRollingBack";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollingBack::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+//------------------------------------------------------------------------------
+// rollback()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::rollback(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampRollingBack::rollback implementation");
+
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_reverse_iterator iter;
+
+	//If a running campaign was restarted on an other node, the procedures in rolling back state
+	//must be restarted. The execution shall continue at step rollback phase. 
+	bool execProcFound = false;
+	
+	i_camp->m_noOfExecutingProc = 0; //The no of answers which must be wait for, could be more than 1 if parallel procedures
+	for (iter = procedures.rbegin(); iter != procedures.rend(); iter++) {
+		if ((*iter)->getState() == SA_SMF_PROC_ROLLING_BACK) {
+			TRACE("SmfCampRollingBack::rollback, restarted procedure found, send PROCEDURE_EVT_ROLLBACK_STEP event to %s",
+                              (*iter)->getProcName().c_str());
+			SmfProcedureThread *procThread = (*iter)->getProcThread();
+			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+			evt->type = PROCEDURE_EVT_ROLLBACK_STEP;
+			procThread->send(evt);
+			execProcFound = true;
+			i_camp->m_noOfExecutingProc++; 
+		}
+	}
+
+	if (execProcFound == true) {
+		//Execution will continue at SmfCampRollingBack::rollbackProc() when proc result is received.
+		TRACE("SmfCampRollingBack::rollback, Wait for restarted procedures to respond.");
+		TRACE_LEAVE();
+		return SMF_CAMP_DONE;
+	}
+
+        /* No running procedures, continue with next procedure */
+        SmfCampResultT procResult = rollbackProc(i_camp);
+	TRACE_LEAVE();
+        return procResult;
+}
+
+//------------------------------------------------------------------------------
+// rollbackInit()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::rollbackInit(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+
+        TRACE("SmfCampRollingBack::rollbackInit implementation");
+
+        if (i_camp->m_campInit.rollback() != SA_AIS_OK) {
+		std::string error = "Campaign init rollback failed";
+		LOG_ER("%s", error.c_str());
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampRollbackFailed::instance());
+		return SMF_CAMP_FAILED;
+	}
+
+        changeState(i_camp, SmfCampRollbackCompleted::instance());
+        LOG_NO("CAMP: Upgrade campaign rollback completed %s", i_camp->getCampaignName().c_str());
+        TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// rollbackProc()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::rollbackProc(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("Proceed rollback with next execution level procedures");
+
+	//The procedure vector is sorted in execution level order (low -> high)
+	//Highest number shall be rolled back first so start from end of list.
+
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_reverse_iterator iter;
+
+        int execLevel = -1;
+	
+	for (iter = procedures.rbegin(); iter != procedures.rend(); iter++) {
+
+		TRACE("Rollback procedures, try procedure %s, state=%u, execLevel=%d",
+		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
+
+		// If the state is completed and the execution level is new or the same as 
+		// the procedure just started.
+		if (((*iter)->getState() == SA_SMF_PROC_COMPLETED)
+		    && ((execLevel == -1) || (execLevel == (*iter)->getExecLevel()))) {
+			if (execLevel == (*iter)->getExecLevel()) {
+				TRACE("A procedure already run at execLevel=%d, start parallel procedure", execLevel);
+			} else if (execLevel == -1) {
+				TRACE("Start first  procedure on  execLevel=%d", (*iter)->getExecLevel());
+			}
+
+			SmfProcedureThread *procThread = (*iter)->getProcThread();
+			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+			evt->type = PROCEDURE_EVT_ROLLBACK;
+			procThread->send(evt);
+			execLevel = (*iter)->getExecLevel();
+			i_camp->m_noOfExecutingProc++;
+		}
+	}
+
+	if (execLevel != -1) {
+		TRACE("SmfCampRollingBack::rollbackProc, Wait for procedure results");
+		TRACE_LEAVE();
+		return SMF_CAMP_DONE;
+	}
+
+	LOG_NO("CAMP: All procedures rolled back");
+
+        /* End with rollback of init */
+        SmfCampResultT initResult = rollbackInit(i_camp);
+	TRACE_LEAVE();
+        return initResult;
+}
+
+//------------------------------------------------------------------------------
+// suspend()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::suspend(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampRollingBack::suspend implementation");
+
+	/* Send suspend message to all procedures */
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+                TRACE("SmfCampRollingBack::Procedure %s, send suspend",
+                      (*iter)->getProcName().c_str());
+                SmfProcedureThread *procThread = (*iter)->getProcThread();
+                PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+                evt->type = PROCEDURE_EVT_SUSPEND;
+                procThread->send(evt);
+	}
+
+        i_camp->m_noOfProcResponses = 0;
+        changeState(i_camp, SmfCampSuspendingRollback::instance());
+        /* Wait for suspend responses from all procedures (SmfCampSuspendingRollback::procResult) */
+
+	TRACE_LEAVE();
+        return SMF_CAMP_SUSPENDING; 
+}
+
+//------------------------------------------------------------------------------
+// procResult()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::procResult(SmfUpgradeCampaign *  i_camp,
+                               SmfUpgradeProcedure * i_procedure,
+                               SmfProcResultT        i_result)
+{
+	TRACE_ENTER();
+
+        switch (i_result) {
+        case SMF_PROC_ROLLEDBACK: {
+                LOG_NO("CAMP: Procedure %s returned ROLLEDBACK", i_procedure->getProcName().c_str());
+                break;
+        }
+        case SMF_PROC_ROLLBACKFAILED: {
+                LOG_NO("CAMP: Procedure %s returned ROLLBACKFAILED", i_procedure->getProcName().c_str());
+                std::string error = "Procedure " + i_procedure->getProcName() + " failed rollback";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampRollbackFailed::instance());
+		TRACE_LEAVE();
+		return SMF_CAMP_FAILED;
+                break;
+        }
+        default: {
+                LOG_ER("SmfCampRollingBack: Procedure %s returned unhandled response %d", 
+                       i_procedure->getProcName().c_str(), i_result);
+                break;
+        }
+        }
+
+	if (i_camp->m_noOfExecutingProc > 1) {
+		i_camp->m_noOfExecutingProc--;
+		TRACE("Still noProc=%d procedures rolling back, continue waiting for result.", i_camp->m_noOfExecutingProc);
+		TRACE_LEAVE();
+		return SMF_CAMP_DONE;
+	} else if (i_camp->m_noOfExecutingProc == 1) {
+		TRACE("Response from last procedure received.");
+		//Decrement counter for the last procedure on the current exec level 
+		i_camp->m_noOfExecutingProc--;
+	}
+
+	TRACE("All procedures rolled back on the same execlevel have answered.");
+
+        /* Find next procedure to be rolled back */
+        SmfCampResultT result = this->rollbackProc(i_camp);
+        TRACE_LEAVE();
+        return result;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampRollbackSuspended implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampRollbackSuspended::s_instance = NULL;
+
+SmfCampState *SmfCampRollbackSuspended::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampRollbackSuspended;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackSuspended::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampRollbackSuspended";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackSuspended::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+//------------------------------------------------------------------------------
+// suspend()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollbackSuspended::rollback(SmfUpgradeCampaign * i_camp)
+{
+        int numOfSuspendedProc = 0;
+	TRACE_ENTER();
+	TRACE("SmfCampRollbackSuspended::rollback implementation");
+
+	/* Send rollback to all suspended procedures */
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+		switch ((*iter)->getState()) {
+		case SA_SMF_PROC_ROLLBACK_SUSPENDED:
+			{
+				TRACE("SmfCampRollbackSuspended::Procedure %s suspended, send rollback",
+				      (*iter)->getProcName().c_str());
+				SmfProcedureThread *procThread = (*iter)->getProcThread();
+				PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+				evt->type = PROCEDURE_EVT_ROLLBACK;
+				procThread->send(evt);
+                                numOfSuspendedProc++;
+                                break;
+			}
+		default:
+			break;
+		}
+	}
+
+	changeState(i_camp, SmfCampRollingBack::instance());
+        i_camp->m_noOfExecutingProc = numOfSuspendedProc;
+
+        /* If no suspended procedures existed, rollback next completed procedure.
+           I.e. we were suspended in between procedures */
+        if (numOfSuspendedProc == 0) {
+                TRACE("SmfCampRollbackSuspended::No suspended procedures, start rollback next procedure");
+
+                CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+                evt->type = CAMPAIGN_EVT_ROLLBACK_PROC;
+                SmfCampaignThread::instance()->send(evt);
+        }
+
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampSuspendingRollback implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampSuspendingRollback::s_instance = NULL;
+
+SmfCampState *SmfCampSuspendingRollback::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampSuspendingRollback;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampSuspendingRollback::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampSuspendingRollback";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampSuspendingRollback::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+//------------------------------------------------------------------------------
+// procResult()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampSuspendingRollback::procResult(SmfUpgradeCampaign *  i_camp,
+                                      SmfUpgradeProcedure * i_procedure,
+                                      SmfProcResultT        i_result)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampSuspendingRollback::procResult implementation");
+
+        /* We could get other responses */
+        switch (i_result) {
+        case (SMF_PROC_SUSPENDED): {
+                /* If first response, set number of expected responses */
+                if (i_camp->m_noOfProcResponses == 0) {
+                        i_camp->m_noOfProcResponses = i_camp->m_procedure.size();
+                }
+
+                /* Decrease the response counter */
+                i_camp->m_noOfProcResponses--;
+        
+                /* If last response, change state to rollback suspended */
+                if (i_camp->m_noOfProcResponses == 0) {
+        		changeState(i_camp, SmfCampRollbackSuspended::instance());
+        	}
+                break;
+        } 
+        case (SMF_PROC_ROLLBACKFAILED): {
+                TRACE("SmfCampSuspendingRollback::procResult received ROLLBACKFAILED from procedure %s", 
+                      i_procedure->getDn().c_str());
+                changeState(i_camp, SmfCampRollbackFailed::instance());
+                break;
+        }
+        default: {
+                LOG_NO("SmfCampSuspendingRollback::procResult received unhandled response %d from procedure %s", 
+                       i_result, i_procedure->getDn().c_str());
+                break;
+        }
+        }
+
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampRollbackCompleted implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampRollbackCompleted::s_instance = NULL;
+
+SmfCampState *SmfCampRollbackCompleted::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampRollbackCompleted;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackCompleted::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampRollbackCompleted";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackCompleted::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+//------------------------------------------------------------------------------
+// commit()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollbackCompleted::commit(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampRollbackCompleted::commit implementation");
+
+        LOG_NO("CAMP: Start rollback commit campaign %s", i_camp->getCampaignName().c_str());
+
+        i_camp->resetMaintenanceState(); // No action if it fails
+
+        //Remove the procedure runtime objects
+        const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
+	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
+
+        for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+		(*iter)->commit();
+	}
+
+        i_camp->removeRunTimeObjects(); // No action if it fails
+
+	changeState(i_camp, SmfCampRollbackCommitted::instance());
+	LOG_NO("CAMP: Upgrade campaign rollback committed %s", i_camp->getCampaignName().c_str());
+
+	// TODO Start wait to allow new campaign timer
+	LOG_NO("CAMP: Start wait to allow new campaign timer (not implemented yet)");
+
+	/* Terminate campaign thread */
+	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+	evt->type = CAMPAIGN_EVT_TERMINATE;
+	SmfCampaignThread::instance()->send(evt);
+
+	TRACE_LEAVE();
+        return SMF_CAMP_COMMITED;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampRollbackCommitted implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampRollbackCommitted::s_instance = NULL;
+
+SmfCampState *SmfCampRollbackCommitted::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampRollbackCommitted;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackCommitted::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampRollbackCommitted";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackCommitted::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SmfCampRollbackFailed implementation
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+SmfCampState *SmfCampRollbackFailed::s_instance = NULL;
+
+SmfCampState *SmfCampRollbackFailed::instance(void)
+{
+	if (s_instance == NULL) {
+		s_instance = new SmfCampRollbackFailed;
+	}
+
+	return s_instance;
+}
+
+//------------------------------------------------------------------------------
+// getClassName()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackFailed::getClassName(std::string & io_str) const 
+{
+	io_str = "SmfCampRollbackFailed";
+}
+
+//------------------------------------------------------------------------------
+// toString()
+//------------------------------------------------------------------------------
+void 
+SmfCampRollbackFailed::toString(std::string & io_str) const 
+{
+	getClassName(io_str);
 }

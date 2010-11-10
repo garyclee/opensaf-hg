@@ -41,8 +41,10 @@ noinst_HEADERS = \
 	SmfProcState.hh \
 	SmfUpgradeStep.hh \
 	SmfStepState.hh \
+	SmfStepTypes.hh \
 	SmfUpgradeMethod.hh \
 	SmfUtils.hh \
+	SmfRollback.hh \
 	SmfCampaignWrapup.hh \
 	SmfCampaignInit.hh
 
@@ -75,8 +77,10 @@ osafsmfd_SOURCES = \
 	SmfUpgradeAction.cc \
 	SmfUpgradeStep.cc \
 	SmfStepState.cc \
+	SmfStepTypes.cc \
 	SmfUpgradeMethod.cc \
 	SmfUtils.cc \
+	SmfRollback.cc \
 	SmfCampaignInit.cc \
 	SmfCampaignWrapup.cc
 

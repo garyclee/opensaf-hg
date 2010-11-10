@@ -113,11 +113,11 @@ class SmfCampaignWrapup {
 	bool executeCampComplete();
 
 ///
-/// Purpose: Execute rollback actions.
+/// Purpose: Rollback campaign complete actions.
 /// @param   None.
 /// @return  True if sucessful otherwise false.
 ///
-	bool executeRollback();
+	bool rollbackCampComplete();
 
  private:
 	 std::list < SmfImmOperation * >m_removeFromImm;

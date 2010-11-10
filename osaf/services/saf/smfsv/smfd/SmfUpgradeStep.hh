@@ -45,20 +45,6 @@ class SmfUpgradeProcedure;
  */
 
 typedef enum {
-	SMF_STEP_COMPLETED = 1,
-	SMF_STEP_SWITCHOVER = 2,
-	SMF_STEP_FAILED = 3
-} SmfStepResultT;
-
-typedef enum {
-	SMF_STEP_UNKNOWN = 1,
-	SMF_STEP_SW_INSTALL = 2,
-	SMF_STEP_AU_LOCK = 3,
-	SMF_STEP_AU_RESTART = 4,
-	SMF_STEP_NODE_REBOOT = 5
-} SmfStepT;
-
-typedef enum {
 	SMF_NO_CLUSTER_REBOOT = 0,
 	SMF_INSTALLATION_REBOOT = 1,
 	SMF_REMOVAL_REBOOT = 2
@@ -69,6 +55,7 @@ typedef enum {
  *   DATA DECLARATIONS
  * ========================================================================
  */
+class SmfStepType;
 
 ///------------------------------------------------------------------------------
 /// Purpose: Class for activation unit
@@ -208,6 +195,13 @@ class SmfUpgradeStep {
 	SmfStepResultT execute();
 
 ///
+/// Purpose:  Rollback the upgrade step
+/// @param    None
+/// @return   None
+///
+	SmfStepResultT rollback();
+
+///
 /// Purpose:  Set the procedure
 /// @param    A ptr to our procedure 
 /// @return   None
@@ -321,42 +315,70 @@ class SmfUpgradeStep {
 /// @param    type 
 /// @return   None
 ///
-	void setStepType(SmfStepT i_type);
+	void setStepType(SmfStepType* i_type);
 
 ///
 /// Purpose:  Get type of step
 /// @param     
 /// @return   type
 ///
-	SmfStepT getStepType();
+	SmfStepType* getStepType();
 
 ///
-/// Purpose:  Offline install bundles
-/// @param    on what node to offline install bundles
+/// Purpose:  Offline install new bundles
+/// @param    -
 /// @return   true on success else false
 ///
-	bool offlineInstallBundles(const std::string & i_node);
+	bool offlineInstallNewBundles();
 
 ///
-/// Purpose:  Online install bundles
-/// @param    on what node to online install bundles
+/// Purpose:  Online install new bundles
+/// @param    -
 /// @return   true on success else false
 ///
-	bool onlineInstallBundles(const std::string & i_node);
+	bool onlineInstallNewBundles();
 
 ///
-/// Purpose:  Offline remove bundles
-/// @param    on what node to offline remove bundles 
+/// Purpose:  Offline remove old bundles
+/// @param    - 
 /// @return   true on success else false
 ///
-	bool offlineRemoveBundles(const std::string & i_node);
+	bool offlineRemoveOldBundles();
+
+///
+/// Purpose:  Online remove old bundles
+/// @param    - 
+/// @return   true on success else false
+///
+	bool onlineRemoveOldBundles();
+
+///
+/// Purpose:  Offline install old bundles
+/// @param    -
+/// @return   true on success else false
+///
+	bool offlineInstallOldBundles();
+
+///
+/// Purpose:  Online install old bundles
+/// @param    -
+/// @return   true on success else false
+///
+	bool onlineInstallOldBundles();
+
+///
+/// Purpose:  Offline remove new bundles
+/// @param    - 
+/// @return   true on success else false
+///
+	bool offlineRemoveNewBundles();
 
 ///
 /// Purpose:  Online remove bundles
-/// @param    on what node to offline remove bundles 
+/// @param    - 
 /// @return   true on success else false
 ///
-	bool onlineRemoveBundles(const std::string & i_node);
+	bool onlineRemoveNewBundles();
 
 ///
 /// Purpose:  Online remove bundles according to user supplied list
@@ -374,11 +396,32 @@ class SmfUpgradeStep {
 	bool lockDeactivationUnits();
 
 ///
-/// Purpose:  Lock deactivation units 
+/// Purpose:  Unlock deactivation units 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool unlockDeactivationUnits();
+
+///
+/// Purpose:  Terminate deactivation units 
 /// @param    - 
 /// @return   true on success else false
 ///
 	bool terminateDeactivationUnits();
+
+///
+/// Purpose:  Instantiate deactivation units 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool instantiateDeactivationUnits();
+
+///
+/// Purpose:  Lock activation units 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool lockActivationUnits();
 
 ///
 /// Purpose:  Unlock activation units 
@@ -388,7 +431,14 @@ class SmfUpgradeStep {
 	bool unlockActivationUnits();
 
 ///
-/// Purpose:  instantiate activation units 
+/// Purpose:  Terminate activation units 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool terminateActivationUnits();
+
+///
+/// Purpose:  Instantiate activation units 
 /// @param    - 
 /// @return   true on success else false
 ///
@@ -409,25 +459,53 @@ class SmfUpgradeStep {
 	SaAisErrorT modifyInformationModel();
 
 ///
-/// Purpose:  setMaintenanceState  
+/// Purpose:  reverseInformationModel  
 /// @param    - 
 /// @return   true on success else false
 ///
-	bool setMaintenanceState();
+	SaAisErrorT reverseInformationModel();
 
 ///
-/// Purpose:  createSaAmfNodeSwBundles 
+/// Purpose:  setMaintenanceStateActUnits  
 /// @param    - 
 /// @return   true on success else false
 ///
-	bool createSaAmfNodeSwBundles(const std::string & i_node);
+	bool setMaintenanceStateActUnits();
 
 ///
-/// Purpose:  deleteSaAmfNodeSwBundles 
+/// Purpose:  setMaintenanceStateActUnits  
 /// @param    - 
 /// @return   true on success else false
 ///
-	bool deleteSaAmfNodeSwBundles(const std::string & i_node);
+	bool setMaintenanceStateDeactUnits();
+
+///
+/// Purpose:  createSaAmfNodeSwBundlesNew 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool createSaAmfNodeSwBundlesNew();
+
+///
+/// Purpose:  deleteSaAmfNodeSwBundlesNew 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool deleteSaAmfNodeSwBundlesNew();
+
+///
+/// Purpose:  deleteSaAmfNodeSwBundlesOld 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool deleteSaAmfNodeSwBundlesOld();
+
+///
+/// Purpose:  createSaAmfNodeSwBundlesOld 
+/// @param    - 
+/// @return   true on success else false
+///
+	bool createSaAmfNodeSwBundlesOld();
 
 ///
 /// Purpose:  setSwitchOver  
@@ -442,6 +520,13 @@ class SmfUpgradeStep {
 /// @return   true if switch over ordered
 ///
 	bool getSwitchOver();
+
+///
+/// Purpose:  calculateStepType  
+/// @param    i_needsReboot true if reboot is needed 
+/// @return   SA_AIS_OK if calculation went OK 
+///
+	SaAisErrorT calculateStepType();
 
 ///
 /// Purpose:  isCurrentNode  
@@ -478,10 +563,29 @@ class SmfUpgradeStep {
 ///
 	SaAisErrorT saveImmContent();
 
-	friend class SmfStepState;
-	friend class SmfStepStateExecuting;
-	friend class SmfStepStateCompleted;
-	friend class SmfStepStateFailed;
+///
+/// Purpose:  Call activation command on remote node
+/// @param    -
+/// @return   -
+///
+	bool callActivationCmd();
+
+///
+/// Purpose:  Change the step stste.  If i_onlyInternalState == false, the IMM step object is updated and 
+///           a state change event is sent
+/// @param    -
+/// @return   A ptr to the step thread
+///
+	void changeState(const SmfStepState * i_state);
+
+///
+/// Purpose:  Reboot the SW node and wait until possible to communicate
+/// @param    -
+/// @return   Bool true if successful otherwise false
+///
+	bool nodeReboot();
+
+        friend class SmfStepState;
 
  private:
 	typedef enum {
@@ -500,19 +604,19 @@ class SmfUpgradeStep {
 			       const std::string & i_node);
 
 ///
-/// Purpose:  Call activation command on remote node
-/// @param    -
-/// @return   -
-///
-	bool callActivationCmd(const std::string & i_node);
-
-///
 /// Purpose:  Call bundle script on remote node
 /// @param    -
 /// @return   -
 ///
 	bool callBundleScript(SmfInstallRemoveT i_order, const std::list < SmfBundleRef > &i_bundleList,
 			      const std::string & i_node);
+
+///
+/// Purpose:  setMaintenanceState  
+/// @param    - 
+/// @return   true on success else false
+///
+	bool setMaintenanceState(SmfActivationUnit& i_units);
 
 
 ///
@@ -538,26 +642,11 @@ class SmfUpgradeStep {
 				const std::list < std::string > &i_dnList);
 
 ///
-/// Purpose:  Reboot a node in the cluster and wait until possible to communicate
-/// @param    The node to be rebooted
-/// @return   Bool true if successful otherwise false
-///
-	bool nodeReboot(const std::string & i_node);
-
-///
 /// Purpose:  Set the state in IMM step object and send state change notification
 /// @param    -
 /// @return   -
 ///
 	void setImmStateAndSendNotification(SaSmfStepStateT i_state);
-
-///
-/// Purpose:  Change the step stste.  If i_onlyInternalState == false, the IMM step object is updated and 
-///           a state change event is sent
-/// @param    -
-/// @return   A ptr to the step thread
-///
-	void changeState(const SmfStepState * i_state);
 
 ///
 /// Purpose:  Set step state
@@ -588,10 +677,10 @@ class SmfUpgradeStep {
 	std::list < SmfBundleRef > m_swRemoveList;
 	std::list < SmfBundleRef > m_swAddList;
 	std::list < SmfImmOperation * >m_modificationList;
-	std::string m_swNode;	         // The node where bundles should be added/removed
+	std::string m_swNode;	             // The node where bundles should be added/removed
 	std::list<std::string> m_swNodeList; // Same as "m_swNode" but for single-step
-	SmfStepT m_stepType;	         // Type of activation unit
-        bool     m_switchOver;           // Switchover executed 
+	SmfStepType* m_stepType;	     // Type of step
+        bool     m_switchOver;               // Switchover executed 
 };
 
 #endif				// SMFUPGRADESTEP_HH

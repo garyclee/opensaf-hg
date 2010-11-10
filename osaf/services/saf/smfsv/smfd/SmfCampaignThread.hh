@@ -25,6 +25,9 @@
 #include <string>
 #include <saImmOi.h>
 
+
+class SmfUpgradeProcedure;
+
 /* TODO: This needs to be handled somewhere else */
 #define SMF_NOTIFYING_OBJECT "safApp=safSmfService"
 #define MINOR_ID_CAMPAIGN 0x65
@@ -40,31 +43,30 @@
 /**** Macro for CAMPAIGN task stack size ****/
 #define m_CAMPAIGN_STACKSIZE NCS_STACKSIZE_HUGE
 
-class SmfUpgradeProcedure;
-
 /* Procedure result enums */
 typedef enum {
-	PROCEDURE_FAILED = 1,
-	PROCEDURE_STEPUNDONE = 2,
-	PROCEDURE_SUSPENDED = 3,
-	PROCEDURE_COMPLETED = 4,
-	PROCEDURE_ROLLBACKSUSPENDED = 5,
-	PROCEDURE_ROLLBACKFAILED = 6,
-	PROCEDURE_ROLLEDBACK = 7,
-	PROCEDURE_MAX
-} PROCEDURE_RESULT;
+	SMF_PROC_DONE = 1,
+	SMF_PROC_CONTINUE = 2,
+	SMF_PROC_FAILED = 3,
+	SMF_PROC_STEPUNDONE = 4,
+	SMF_PROC_SUSPENDED = 5,
+	SMF_PROC_COMPLETED = 6,
+	SMF_PROC_ROLLBACKFAILED = 7,
+	SMF_PROC_ROLLEDBACK = 8,
+	SMF_PROC_MAX
+} SmfProcResultT;
 
 /* CampaignThread event enums */
 typedef enum {
 	CAMPAIGN_EVT_TERMINATE = 1,
-	CAMPAIGN_EVT_EXECUTE = 2,
-	CAMPAIGN_EVT_EXECUTE_INIT = 3,
-	CAMPAIGN_EVT_EXECUTE_PROC = 4,
-	CAMPAIGN_EVT_EXECUTE_WRAPUP = 6,
-	CAMPAIGN_EVT_SUSPEND = 7,
-	CAMPAIGN_EVT_COMMIT = 8,
-	CAMPAIGN_EVT_ROLLBACK = 9,
-	CAMPAIGN_EVT_PROCEDURE_RC = 10,
+	CAMPAIGN_EVT_CONTINUE = 2,
+	CAMPAIGN_EVT_EXECUTE = 3,
+	CAMPAIGN_EVT_SUSPEND = 4,
+	CAMPAIGN_EVT_COMMIT = 5,
+	CAMPAIGN_EVT_ROLLBACK = 6,
+	CAMPAIGN_EVT_EXECUTE_PROC = 7,
+	CAMPAIGN_EVT_ROLLBACK_PROC = 8,
+	CAMPAIGN_EVT_PROCEDURE_RC = 9,
 	CAMPAIGN_EVT_MAX
 } CAMPAIGN_EVT_TYPE;
 
@@ -103,7 +105,7 @@ typedef struct {
 
 typedef struct {
 	SmfUpgradeProcedure *procedure;
-	PROCEDURE_RESULT rc;
+	SmfProcResultT rc;
 } campaign_evt_procedure_result;
 
 typedef struct {

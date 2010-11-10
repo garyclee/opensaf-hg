@@ -242,6 +242,11 @@ int SmfCampaignThread::init(void)
 		return -1;
 	}
 
+        if (m_campaign->initExecution() != SA_AIS_OK) {
+		LOG_ER("initialization of campaign FAILED");
+                return -1;
+        }
+
 	TRACE_LEAVE();
 	return 0;
 }
@@ -473,6 +478,14 @@ void SmfCampaignThread::processEvt(void)
 	if (evt != NULL) {
 		TRACE("Campaign thread received event type %d", evt->type);
 
+                if (m_campaign->getUpgradeCampaign() == NULL) {
+                        LOG_ER("The parsing of campaign was not successful, terminating campaign thread");
+                        m_running = false;
+                        delete(evt);
+                        m_campaign->adminOpBusy(false);
+                        return;
+                }
+
 		switch (evt->type) {
 		case CAMPAIGN_EVT_TERMINATE:
 			{
@@ -483,6 +496,12 @@ void SmfCampaignThread::processEvt(void)
 				
 				/* */
 				m_running = false;
+				break;
+			}
+
+		case CAMPAIGN_EVT_CONTINUE:
+			{
+				m_campaign->getUpgradeCampaign()->continueExec();
 				break;
 			}
 
@@ -513,21 +532,15 @@ void SmfCampaignThread::processEvt(void)
 				break;
 			}
 
-		case CAMPAIGN_EVT_EXECUTE_INIT:
-			{
-				m_campaign->getUpgradeCampaign()->executeInit();
-				break;
-			}
-
 		case CAMPAIGN_EVT_EXECUTE_PROC:
 			{
 				m_campaign->getUpgradeCampaign()->executeProc();
 				break;
 			}
 
-		case CAMPAIGN_EVT_EXECUTE_WRAPUP:
+		case CAMPAIGN_EVT_ROLLBACK_PROC:
 			{
-				m_campaign->getUpgradeCampaign()->executeWrapup();
+				m_campaign->getUpgradeCampaign()->rollbackProc();
 				break;
 			}
 
@@ -539,7 +552,7 @@ void SmfCampaignThread::processEvt(void)
                                    so we can see what response this is. This is needed for suspend 
                                    where we can receive an execute response in the middle of the suspend
                                    responses if a procedure just finished when we sent the suspend to it. */
-				m_campaign->getUpgradeCampaign()->executeProc();
+				m_campaign->getUpgradeCampaign()->procResult(evt->event.procResult.procedure, evt->event.procResult.rc);
 				break;
 			}
 
@@ -611,6 +624,7 @@ void SmfCampaignThread::main(void)
 			LOG_ER("initNtf failed");
 		}
 	
+                LOG_NO("CAMP: Wait for RDA role to be Active");
 		while (numOfTries > 0) {
 			/* Rda get Role */
 			if ((rc = rda_get_role(&smfd_rda_role)) != NCSCC_RC_SUCCESS) {
@@ -618,7 +632,7 @@ void SmfCampaignThread::main(void)
 			} 
 
 			if (smfd_rda_role == SA_AMF_HA_ACTIVE) {
-				LOG_NO("rda_get_role: Active");
+				LOG_NO("CAMP: The RDA role is now Active, continue campaign");
 				break;
 			}
 			sleep(1);

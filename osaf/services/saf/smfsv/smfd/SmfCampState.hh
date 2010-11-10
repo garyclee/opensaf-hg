@@ -49,26 +49,27 @@ class SmfUpgradeCampaign;
 class SmfCampState {
  public:
 
-	virtual ~ SmfCampState() {
-	};
+	virtual ~ SmfCampState() {};
 
 	virtual void getClassName(std::string & io_str) const;
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeInit(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT executeProc(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackProc(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeWrapup(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
 
-	virtual void rollback(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
 
-	virtual void suspend(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT commit(SmfUpgradeCampaign * i_camp);
 
-	virtual void commit(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
 
 	virtual SaSmfCmpgStateT getState() const = 0;
 
@@ -90,7 +91,9 @@ class SmfCampStateInitial:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
+
+	virtual SmfCampResultT executeInit(SmfUpgradeCampaign * i_camp);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_INITIAL;
@@ -112,15 +115,17 @@ class SmfCampStateExecuting:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeInit(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT executeProc(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT executeWrapup(SmfUpgradeCampaign * i_camp);
 
-	virtual void executeWrapup(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
 
-	virtual void suspend(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_EXECUTING;
@@ -142,9 +147,9 @@ class SmfCampStateExecCompleted:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
-
-	virtual void commit(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackWrapup(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT commit(SmfUpgradeCampaign * i_camp);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_EXECUTION_COMPLETED;
@@ -166,16 +171,15 @@ class SmfCampStateSuspendingExec:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void executeProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_SUSPENDING_EXECUTION;
  } private:
 
 	static SmfCampState *s_instance;
-
-        SmfCampStateSuspendingExec();
-        int m_numOfProcResponses;
 };
 
 ///
@@ -191,7 +195,8 @@ class SmfCampStateExecSuspended:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_EXECUTION_SUSPENDED;
@@ -213,8 +218,6 @@ class SmfCampStateCommitted:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
-
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_CAMPAIGN_COMMITTED;
  } private:
@@ -234,8 +237,6 @@ class SmfCampStateExecFailed:public SmfCampState {
 	virtual void getClassName(std::string & io_str) const;
 
 	virtual void toString(std::string & io_str) const;
-
-	virtual void execute(SmfUpgradeCampaign * i_camp);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_EXECUTION_FAILED;
@@ -257,10 +258,195 @@ class SmfCampStateErrorDetected:public SmfCampState {
 
 	virtual void toString(std::string & io_str) const;
 
-	virtual void execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
 
 	virtual SaSmfCmpgStateT getState() const {
 		return SA_SMF_CMPG_ERROR_DETECTED;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_ERROR_DETECTED_IN_SUSPENDING state of the upgrade campaign.
+///
+
+class SmfCampStateErrorDetectedInSuspending:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ERROR_DETECTED_IN_SUSPENDING;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED state of the upgrade campaign.
+///
+
+class SmfCampStateSuspendedByErrorDetected:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_ROLLING_BACK state of the upgrade campaign.
+///
+
+class SmfCampRollingBack:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackInit(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ROLLING_BACK;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_ROLLBACK_SUSPENDED state of the upgrade campaign.
+///
+
+class SmfCampRollbackSuspended:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ROLLBACK_SUSPENDED;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_SUSPENDING_ROLLBACK state of the upgrade campaign.
+///
+
+class SmfCampSuspendingRollback:public SmfCampState {
+public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
+                                          SmfUpgradeProcedure * i_procedure,
+                                          SmfProcResultT        i_result);
+
+	virtual SaSmfCmpgStateT getState() const 
+                { return SA_SMF_CMPG_SUSPENDING_ROLLBACK; } 
+private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_ROLLBACK_COMPLETED state of the upgrade campaign.
+///
+
+class SmfCampRollbackCompleted:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SmfCampResultT commit(SmfUpgradeCampaign * i_camp);
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ROLLBACK_COMPLETED;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: The SA_SMF_CMPG_ROLLBACK_COMMITTED state of the upgrade campaign.
+///
+
+class SmfCampRollbackCommitted:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ROLLBACK_COMMITTED;
+ } private:
+
+	static SmfCampState *s_instance;
+};
+
+///
+/// Purpose: SA_SMF_CMPG_ROLLBACK_FAILED state of the upgrade campaign.
+///
+
+class SmfCampRollbackFailed:public SmfCampState {
+ public:
+
+	static SmfCampState *instance();
+
+	virtual void getClassName(std::string & io_str) const;
+
+	virtual void toString(std::string & io_str) const;
+
+	virtual SaSmfCmpgStateT getState() const {
+		return SA_SMF_CMPG_ROLLBACK_FAILED;
  } private:
 
 	static SmfCampState *s_instance;

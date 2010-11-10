@@ -36,6 +36,7 @@
  */
 
 class SmfImmOperation;
+class SmfRollbackCcb;
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -52,10 +53,12 @@ extern "C" {
 #endif
 
 	extern SaImmValueTypeT smf_stringToImmType(char *i_type);
+        extern const char* smf_immTypeToString(SaImmValueTypeT i_type);
 	extern SaImmAttrModificationTypeT smf_stringToImmAttrModType(char
 								     *i_type);
-	extern bool smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, const std::list < std::string > i_values);
+	extern bool smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >& i_values);
         extern bool smf_stringToValue(SaImmValueTypeT i_type, SaImmAttrValueT *i_value, const char* i_str);
+        extern std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type);
         extern int  smf_opStringToInt(const char* i_str);
         extern int  smf_system(std::string i_cmd);
         
@@ -153,10 +156,10 @@ class SmfImmUtils {
 /// @param   i_immOperationList A list of Imm operations to be done.
 /// @return  True if successful, otherwise false
 ///
-	SaAisErrorT doImmOperations(std::list < SmfImmOperation * >&i_immOperationList);
+	SaAisErrorT doImmOperations(std::list < SmfImmOperation * >&i_immOperationList, SmfRollbackCcb* io_rollbackCcb = NULL);
 
  private:
-	 bool initialize(void);
+	bool initialize(void);
 	bool finalize(void);
 
 	static SaVersionT s_immVersion;

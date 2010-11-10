@@ -74,14 +74,14 @@ class SmfUpgradeAction {
 /// @param   None
 /// @return  0 on success, otherwise failure.
 ///
-	virtual SaAisErrorT execute();
+	virtual SaAisErrorT execute(const std::string* i_rollbackDn = NULL);
 
 ///
 /// Purpose: Rollback the upgrade action (to be specialized).
 /// @param   None
 /// @return  0 on success, otherwise failure.
 ///
-	virtual int rollback();
+	virtual SaAisErrorT rollback(const std::string& i_rollbackDn);
 
 ///
 /// Purpose: Get action Id (to be specialized).
@@ -133,14 +133,14 @@ class SmfCliCommandAction:public SmfUpgradeAction {
 /// @return  0 on success, otherwise failure.
 ///
 
-	SaAisErrorT execute();
+	SaAisErrorT execute(const std::string* i_rollbackDn = NULL);
 
 ///
 /// Purpose: Rollback the CLI command action.
 /// @param   None.
 /// @return  0 on success, otherwise failure.
 ///
-	int rollback();
+	SaAisErrorT rollback(const std::string& i_rollbackDn);
 
 ///
 /// Purpose: Set the Do command (executed in execute() method).
@@ -223,14 +223,14 @@ class SmfAdminOperationAction:public SmfUpgradeAction {
 /// @param   None.
 /// @return  0 on success, otherwise failure.
 ///
-	SaAisErrorT execute();
+	SaAisErrorT execute(const std::string* i_rollbackDn = NULL);
 
 ///
 /// Purpose: Rollback the admin operation action.
 /// @param   None.
 /// @return  0 on success, otherwise failure.
 ///
-	int rollback();
+	SaAisErrorT rollback(const std::string& i_rollbackDn);
 
 ///
 /// Purpose: Set the dn to the do object (executed in execute() method).
@@ -339,14 +339,14 @@ class SmfImmCcbAction:public SmfUpgradeAction {
 /// @param   None.
 /// @return  0 on success, otherwise failure.
 ///
-	SaAisErrorT execute();
+	SaAisErrorT execute(const std::string* i_rollbackDn = NULL);
 
 ///
 /// Purpose: Rollback the IMM CCB action.
 /// @param   None.
 /// @return  0 on success, otherwise failure.
 ///
-	int rollback();
+	SaAisErrorT rollback(const std::string& i_rollbackDn);
 
 ///
 /// Purpose: Set the CCB flag.

@@ -356,4 +356,53 @@
 			<flag>SA_CACHED</flag>
 		</attr>
 	</class>
+	<class name="OpenSafSmfRollbackElement">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>smfRollbackElement</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+	</class>
+	<class name="OpenSafSmfRollbackData">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>smfRollbackData</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>smfRollbackType</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>smfRollbackDn</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>smfRollbackClass</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>smfRollbackAttrValue</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
 </imm:IMM-contents>

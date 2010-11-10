@@ -27,6 +27,7 @@
 #include <saSmf.h>
 #include "SmfCampaignInit.hh"
 #include "SmfCampaignWrapup.hh"
+#include "SmfCampaignThread.hh"
 
 class SmfUpgradeProcedure;
 class SmfCampState;
@@ -41,6 +42,18 @@ class SmfUpgradeAction;
  *   TYPE DEFINITIONS
  * ========================================================================
  */
+
+/* Campaign result enums */
+typedef enum {
+	SMF_CAMP_DONE = 1,
+	SMF_CAMP_CONTINUE = 2,
+	SMF_CAMP_FAILED = 3,
+	SMF_CAMP_COMPLETED = 4,
+	SMF_CAMP_SUSPENDING = 5,
+	SMF_CAMP_SUSPENDED = 6,
+	SMF_CAMP_COMMITED = 6,
+	SMF_CAMP_MAX
+} SmfCampResultT;
 
 /* ========================================================================
  *   DATA DECLARATIONS
@@ -278,6 +291,13 @@ class SmfUpgradeCampaign {
 	void rollback();
 
 ///
+/// Purpose: Rollback the campaign upgrade procedure.
+/// @param   None.
+/// @return  None.
+///
+	void rollbackProc();
+
+///
 /// Purpose: Suspend the campaign.
 /// @param   None.
 /// @return  None.
@@ -291,6 +311,41 @@ class SmfUpgradeCampaign {
 ///
 	void commit();
 
+///
+/// Purpose: Procedure result.
+/// @param   None.
+/// @return  None.
+///
+	void procResult(SmfUpgradeProcedure* i_procedure, SmfProcResultT i_result);
+
+///
+/// Purpose: Continue executing the campaign
+/// @param   None.
+/// @return  None.
+///
+	void continueExec();
+
+///
+/// Purpose: Reset Maintenance State
+/// @param   None.
+/// @return  None.
+///
+	void resetMaintenanceState();
+
+///
+/// Purpose: Remove runtime objects
+/// @param   None.
+/// @return  None.
+///
+	void removeRunTimeObjects();
+
+///
+/// Purpose: get procedure list
+/// @param   None.
+/// @return  list of procedures.
+///
+	const std::vector < SmfUpgradeProcedure * >& getProcedures() { return m_procedure; }
+
 	friend class SmfCampState;
 	friend class SmfCampStateInitial;
 	friend class SmfCampStateExecuting;
@@ -300,8 +355,16 @@ class SmfUpgradeCampaign {
 	friend class SmfCampStateCommitted;
 	friend class SmfCampStateExecFailed;
 	friend class SmfCampStateErrorDetected;
+	friend class SmfCampStateErrorDetectedInSuspending;
+	friend class SmfCampStateSuspendedByErrorDetected;
+	friend class SmfCampRollbackCommitted;
+	friend class SmfCampRollbackCompleted;
+	friend class SmfCampRollbackFailed;
+	friend class SmfCampRollbackSuspended;
+	friend class SmfCampRollingBack;
+	friend class SmfCampSuspendingRollback;
 
- private:
+private:
 
 	void changeState(const SmfCampState * i_state);
 
@@ -336,5 +399,6 @@ class SmfUpgradeCampaign {
         SaTimeT m_waitToCommit;
         SaTimeT m_waitToAllowNewCampaign;
 	int m_noOfExecutingProc;
+        int m_noOfProcResponses;
 };
 #endif				// __SMFUPGRADECAMPAIGN_H

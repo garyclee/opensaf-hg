@@ -25,6 +25,7 @@
 #include "stdio.h"
 #include "logtrace.h"
 #include "SmfImmOperation.hh"
+#include "SmfRollback.hh"
 #include "SmfUtils.hh"
 
 #include <saImmOm.h>
@@ -160,10 +161,21 @@ SmfImmOperation::addValue(const SmfImmAttribute & i_value)
 }
 
 //------------------------------------------------------------------------------
+// addAttrValue()
+//------------------------------------------------------------------------------
+void 
+SmfImmOperation::addAttrValue(const std::string & i_name,
+                              const std::string & i_type,
+                              const std::string & i_value)
+{
+	LOG_ER("addAttrValue must be specialised");
+}
+
+//------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmOperation::execute()
+SmfImmOperation::execute(SmfRollbackData* o_rollbackData)
 {
 	LOG_ER("execute must be specialised");
 	return (SaAisErrorT)-1;
@@ -247,6 +259,36 @@ SmfImmCreateOperation::addValue(const SmfImmAttribute & i_value)
 }
 
 //------------------------------------------------------------------------------
+// addAttrValue()
+//------------------------------------------------------------------------------
+void 
+SmfImmCreateOperation::addAttrValue(const std::string & i_name,
+                                    const std::string & i_type,
+                                    const std::string & i_value)
+{
+        /* Check if attribute already exists (MULTI_VALUE) then add the 
+           value to this attribute */
+
+	std::list < SmfImmAttribute >::iterator iter;
+
+	// For all attributes 
+	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
+                if ((*iter).m_name == i_name) {
+                        (*iter).addValue(i_value);
+                        return;
+                }
+	}
+        /* Attribute don't exists, create a new one and add to list */
+        SmfImmAttribute newAttr;
+        newAttr.setName(i_name);
+        newAttr.setType(i_type);
+        newAttr.addValue(i_value);
+
+	m_values.push_back(newAttr);
+}
+
+
+//------------------------------------------------------------------------------
 // getValues()
 //------------------------------------------------------------------------------
 const std::list < SmfImmAttribute > & 
@@ -284,12 +326,16 @@ SmfImmCreateOperation::createAttrValues(void)
 		attr->attrValueType = smf_stringToImmType((char *)(*iter).m_type.c_str());
 
 		assert((*iter).m_values.size() > 0);	//Must have at least one value
-		attr->attrValuesNumber = (*iter).m_values.size();
-
-		smf_stringsToValues(attr, (*iter).m_values);	//Convert the string to a SA Forum type
-
-		//Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
-		attributeValues[i++] = attr;
+                if ((*iter).m_values.size() == 1 && (!strcmp((*iter).getValues().front().c_str(),"<_empty_>"))) {
+                        attr->attrValuesNumber = 0;
+                }
+                else {
+        		attr->attrValuesNumber = (*iter).m_values.size();
+        		smf_stringsToValues(attr, (*iter).m_values);	//Convert the string to a SA Forum type
+                }
+        
+                //Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
+                attributeValues[i++] = attr;
 
 		iter++;
 	}
@@ -313,7 +359,7 @@ SmfImmCreateOperation::setAttrValues(SaImmAttrValuesT_2 ** i_values)
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmCreateOperation::execute()
+SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 {
 	TRACE_ENTER();
 
@@ -385,29 +431,29 @@ SmfImmCreateOperation::execute()
 						  className, &objectName, (const SaImmAttrValuesT_2 **)
 						  m_immAttrValues);
 	if (result != SA_AIS_OK) {
-		//The creation may fail if the base type already exist, it shall not be considered an error
-		if ((result == SA_AIS_ERR_EXIST) & (m_className.find("BaseType") != std::string::npos)) {
-			TRACE("SmfImmCreateOperation::execute: base type object already created, OK");
-			result = SA_AIS_OK;
+		if (result == SA_AIS_ERR_EXIST) {
+			TRACE("SmfImmCreateOperation::execute: object already exists");
 		} else {
 			LOG_ER("SmfImmCreateOperation::execute:saImmOmCcbObjectCreate_2 failed %u", result);
 			TRACE_LEAVE();
 			return result;
 		}
 	}
+
+        if (o_rollbackData != NULL) {
+                SaAisErrorT rollbackResult;
+                if ((rollbackResult = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
+                        LOG_ER("SmfImmCreateOperation::execute: Failed to prepare rollback data %d", rollbackResult);
+                        TRACE_LEAVE();
+                        return SA_AIS_ERR_FAILED_OPERATION;
+                }
+        }
+
 	//Release IMM ownership
 	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
-#if 0
-	result = immutil_saImmOmAdminOwnerRelease(m_immOwnerHandle, objectNames, SA_IMM_ONE);
-	if (result != SA_AIS_OK) {
-		TRACE("SmfImmDeleteOperation::execute:saImmOmAdminOwnerRelease failed %u\n", result);
-		return result;
-	}
-#endif
 
 	TRACE_LEAVE();
-
 	return result;
 }
 
@@ -419,6 +465,67 @@ SmfImmCreateOperation::rollback()
 {
 	LOG_ER("Rollback not implemented yet");
 	return -1;
+}
+
+//------------------------------------------------------------------------------
+// prepareRollback()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
+{
+        SmfImmUtils immUtil;
+        SaImmAttrDefinitionT_2 ** attributeDefs;
+ 
+        if (immUtil.getClassDescription(m_className, &attributeDefs) == false) {
+                LOG_ER("Could not find class %s", m_className.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        // Find the SA_IMM_ATTR_RDN attribute
+        std::string rdnAttrName;
+        for (int i = 0; attributeDefs[i] != 0; i++) {
+                SaImmAttrFlagsT flags = attributeDefs[i]->attrFlags;
+                if ((flags & SA_IMM_ATTR_RDN) == SA_IMM_ATTR_RDN) {
+                        rdnAttrName = (char*)attributeDefs[i]->attrName;
+                        break;
+                }
+        }
+
+        immUtil.classDescriptionMemoryFree(attributeDefs);
+        if (rdnAttrName.length() == 0) {
+                LOG_ER("Could not find RDN attribute in class %s", m_className.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        // Find the value of the RDN
+	std::list < SmfImmAttribute >::iterator iter;
+        std::string rdnAttrValue;
+
+	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
+		if (rdnAttrName == (*iter).m_name) {
+                        assert((*iter).m_values.size() == 1);	// Must have only one value
+                        rdnAttrValue = (*iter).m_values.front();
+                        break;
+                }
+	}
+        if (rdnAttrValue.length() == 0) {
+                LOG_ER("Could not find RDN value for %s, class %s", rdnAttrName.c_str(), m_className.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        TRACE("prepareRollback: Found RDN %s=%s", rdnAttrName.c_str(), rdnAttrValue.c_str());
+
+        /* Prepare deletion of created object at rollback */
+        o_rollbackData->setType("DELETE");
+        std::string delDn;
+        delDn = rdnAttrValue;
+        if (m_parentDn.length() > 0) {
+                delDn += ",";
+                delDn += m_parentDn;
+        }
+        o_rollbackData->setDn(delDn);
+
+	return SA_AIS_OK;
 }
 
 //================================================================================
@@ -461,7 +568,7 @@ SmfImmDeleteOperation::getDn()
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmDeleteOperation::execute()
+SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 {
 	TRACE_ENTER();
 
@@ -501,6 +608,15 @@ SmfImmDeleteOperation::execute()
                 TRACE_LEAVE();
 		return result;
 	}
+
+        if (o_rollbackData != NULL) {
+                if ((result = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
+                        LOG_ER("SmfImmDeleteOperation::execute: Failed to prepare rollback data %d", result);
+                        TRACE_LEAVE();
+                        return SA_AIS_ERR_FAILED_OPERATION;
+                }
+        }
+
 	//Release IMM ownership
 	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
@@ -525,6 +641,92 @@ SmfImmDeleteOperation::rollback()
 {
 	LOG_ER("Rollback not implemented yet");
 	return -1;
+}
+
+//------------------------------------------------------------------------------
+// prepareRollback()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfImmDeleteOperation::prepareRollback(SmfRollbackData* o_rollbackData)
+{
+        SmfImmUtils               immUtil;
+        SaImmAttrDefinitionT_2 ** attributeDefs;
+        SaImmAttrValuesT_2 **     attributes;
+        SaImmAttrValuesT_2 *      attr;
+        const char*               className;
+        int                       i = 0;
+
+        if (immUtil.getObject(m_dn, &attributes) == false) {
+                LOG_ER("SmfImmDeleteOperation::prepareRollback Could not find object %s", m_dn.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, SA_IMM_ATTR_CLASS_NAME, 0);
+        if (className == NULL) {
+                LOG_ER("SmfImmDeleteOperation::prepareRollback Could not find class name for %s", m_dn.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        if (immUtil.getClassDescription(className, &attributeDefs) == false) {
+                LOG_ER("SmfImmDeleteOperation::prepareRollback Could not find class %s", className);
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        /* For each attribute in the object that is not RUNTIME or IMM internal 
+           store the current value in rollback data for future use at rollback */
+
+        std::string parentDn;
+        if (m_dn.find(",") != std::string::npos) { 
+                parentDn = m_dn.substr(m_dn.find(",") + 1);
+        }
+
+        o_rollbackData->setType("CREATE");
+        o_rollbackData->setDn(parentDn);
+        o_rollbackData->setClass(className);
+
+        while ((attr = attributes[i++]) != NULL) {
+
+                // Check if IMM internal attribute
+                if (!strcmp(attr->attrName, SA_IMM_ATTR_CLASS_NAME)) {
+                        continue;
+                }
+                else if (!strcmp(attr->attrName, SA_IMM_ATTR_ADMIN_OWNER_NAME)) {
+                        continue;
+                }
+                else if (!strcmp(attr->attrName, SA_IMM_ATTR_IMPLEMENTER_NAME)) {
+                        continue;
+                }
+
+                // Check if RUNTIME attribute
+                bool saveAttribute = true;
+                for (int i = 0; attributeDefs[i] != 0; i++) {
+                        if (!strcmp(attr->attrName, attributeDefs[i]->attrName)) {
+                                SaImmAttrFlagsT flags = attributeDefs[i]->attrFlags;
+                                if ((flags & SA_IMM_ATTR_RUNTIME) == SA_IMM_ATTR_RUNTIME) {
+                                        saveAttribute = false;
+                                } 
+                                break;
+                        }
+                }
+
+                if (saveAttribute == true) {
+                        if (attr->attrValuesNumber == 0) {
+                                o_rollbackData->addAttrValue(attr->attrName, 
+                                                             smf_immTypeToString(attr->attrValueType), 
+                                                             "<_empty_>");
+                        } else {
+                                for (unsigned int j = 0; j < attr->attrValuesNumber; j++) {
+                                        o_rollbackData->addAttrValue(attr->attrName, 
+                                                                     smf_immTypeToString(attr->attrValueType), 
+                                                                     smf_valueToString(attr->attrValues[j],attr->attrValueType));
+                                }       
+                        }
+                }
+        }
+
+        immUtil.classDescriptionMemoryFree(attributeDefs);
+
+	return SA_AIS_OK;
 }
 
 //================================================================================
@@ -622,12 +824,16 @@ SmfImmModifyOperation::createAttrMods(void)
 		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
 
 		assert((*iter).m_values.size() > 0);	//Must have at least one value
-		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
+                if ((*iter).m_values.size() == 1 && (!strcmp((*iter).getValues().front().c_str(),"<_empty_>"))) {
+                        mod->modAttr.attrValuesNumber = 0;
+                }
+                else {
+                        mod->modAttr.attrValuesNumber = (*iter).m_values.size();
+                        smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type
+                }
 
-		smf_stringsToValues(&mod->modAttr, (*iter).m_values);	//Convert the string to a SA Forum type
-
-		//Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
-		attributeModifications[i++] = mod;
+                //Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
+                attributeModifications[i++] = mod;
 
 		iter++;
 	}
@@ -648,10 +854,39 @@ SmfImmModifyOperation::addValue(const SmfImmAttribute & i_value)
 }
 
 //------------------------------------------------------------------------------
+// addAttrValue()
+//------------------------------------------------------------------------------
+void 
+SmfImmModifyOperation::addAttrValue(const std::string & i_name,
+                                    const std::string & i_type,
+                                    const std::string & i_value)
+{
+        /* Check if attribute already exists (MULTI_VALUE) then add the 
+           value to this attribute */
+
+	std::list < SmfImmAttribute >::iterator iter;
+
+	// For all attributes 
+	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
+                if ((*iter).m_name == i_name) {
+                        (*iter).addValue(i_value);
+                        return;
+                }
+	}
+        /* Attribute don't exists, create a new one and add to list */
+        SmfImmAttribute newAttr;
+        newAttr.setName(i_name);
+        newAttr.setType(i_type);
+        newAttr.addValue(i_value);
+
+	m_values.push_back(newAttr);
+}
+
+//------------------------------------------------------------------------------
 // execute()
 //------------------------------------------------------------------------------
 SaAisErrorT 
-SmfImmModifyOperation::execute()
+SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 {
 	TRACE_ENTER();
 
@@ -705,6 +940,15 @@ SmfImmModifyOperation::execute()
                 TRACE_LEAVE();
 		return result;
 	}
+
+        if (o_rollbackData != NULL) {
+                if ((result = this->prepareRollback(o_rollbackData)) != SA_AIS_OK) {
+                        LOG_ER("SmfImmModifyOperation::execute: Failed to prepare rollback data %d", result);
+                        TRACE_LEAVE();
+                        return SA_AIS_ERR_FAILED_OPERATION;
+                }
+        }
+
 	//Release IMM ownership
 	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
@@ -729,6 +973,52 @@ SmfImmModifyOperation::rollback()
 {
 	LOG_ER("Rollback not implemented yet");
 	return -1;
+}
+
+//------------------------------------------------------------------------------
+// prepareRollback()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfImmModifyOperation::prepareRollback(SmfRollbackData* o_rollbackData)
+{
+        SmfImmUtils               immUtil;
+        SaImmAttrValuesT_2 **     attributes;
+        SaImmAttrValuesT_2 *      attr;
+        int                       i;
+
+        if (immUtil.getObject(m_dn, &attributes) == false) {
+                LOG_ER("SmfImmDeleteOperation::prepareRollback Could not find object %s", m_dn.c_str());
+                return SA_AIS_ERR_FAILED_OPERATION;
+        }
+
+        o_rollbackData->setType("MODIFY");
+        o_rollbackData->setDn(m_dn);
+
+	std::list < SmfImmAttribute >::iterator iter;
+
+       /* For each modified attribute in the object 
+          store the current value in rollback data for future use at rollback */
+
+	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
+                i = 0;
+                while ((attr = attributes[i++]) != NULL) {
+                        if (!strcmp((*iter).m_name.c_str(), attr->attrName)) {        
+                                if (attr->attrValuesNumber == 0) {
+                                        o_rollbackData->addAttrValue(attr->attrName, 
+                                                                     smf_immTypeToString(attr->attrValueType), 
+                                                                     "<_empty_>");
+                                } else {
+                                        for (unsigned int j = 0; j < attr->attrValuesNumber; j++) {
+                                                o_rollbackData->addAttrValue(attr->attrName, 
+                                                                             smf_immTypeToString(attr->attrValueType), 
+                                                                             smf_valueToString(attr->attrValues[j],attr->attrValueType));
+                                        }       
+                                }
+                                break;
+                        }
+                }
+        }
+	return SA_AIS_OK;
 }
 
 //================================================================================
