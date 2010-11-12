@@ -514,7 +514,7 @@ SmfRollbackCcb::rollback()
                 return SA_AIS_OK;
         }
 
-        TRACE("Rollback %d operations in CCB %s", rollbackData.size(), m_dn.c_str());
+        TRACE("Rollback %zu operations in CCB %s", rollbackData.size(), m_dn.c_str());
 
         /* Sort the rollback data list */
         rollbackData.sort();
