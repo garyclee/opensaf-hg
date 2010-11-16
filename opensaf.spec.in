@@ -817,9 +817,6 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %{_bindir}/amf-adm
 %{_bindir}/amf-find
 %{_bindir}/amf-state
-%{_bindir}/smf-adm
-%{_bindir}/smf-find
-%{_bindir}/smf-state
 %{_pkglibdir}/libavsv_logstr.so.*
 %{_pkglibdir}/osafamfd
 %{_pkgclcclidir}/osaf-amfd
@@ -1148,6 +1145,9 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %dir %{_pkgimmxmldir}
 %dir %{_pkgdatadir}
 %config(noreplace) %{_pkgsysconfdir}/smfd.conf
+%{_bindir}/smf-adm
+%{_bindir}/smf-find
+%{_bindir}/smf-state
 %{_pkglibdir}/smf-backup-create
 %{_pkglibdir}/smf-bundle-check
 %{_pkglibdir}/smf-cluster-reboot
