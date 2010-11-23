@@ -2440,12 +2440,12 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
         iold = oldClassInfo->mAttrMap.find(attName);
         if(iold == oldClassInfo->mAttrMap.end()) {
             LOG_IN("New attribute %s added by new class def", attName.c_str());
-            verifyFailed = notCompatibleAtt(className, attName, NULL, newAttr, NULL) || 
+            verifyFailed = notCompatibleAtt(className, newClassInfo, attName, NULL, newAttr, NULL) || 
                 verifyFailed;
             newAttrs[inew->first] = newAttr;
         } else {
             TRACE_5("Existing attribute %s", attName.c_str());
-            verifyFailed = notCompatibleAtt(className, attName, iold->second, newAttr,
+            verifyFailed = notCompatibleAtt(className, newClassInfo, attName, iold->second, newAttr,
                 &changedAttrs) || verifyFailed;
         }
     }
@@ -2460,8 +2460,9 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
 }
 
 bool
-ImmModel::notCompatibleAtt(const std::string& className, const std::string& attName, 
-    const AttrInfo* oldAttr, AttrInfo* newAttr, AttrMap* changedAttrs)
+ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo,
+    const std::string& attName, const AttrInfo* oldAttr, AttrInfo* newAttr,
+    AttrMap* changedAttrs)
 {
     if(oldAttr) {
         /* Existing attribute, possibly changed. */
@@ -2600,6 +2601,15 @@ ImmModel::notCompatibleAtt(const std::string& className, const std::string& attN
         if(newAttr->mFlags & SA_IMM_ATTR_INITIALIZED) {
             LOG_NO("Impossible upgrade, new attribute %s:%s has SA_IMM_ATTR_INITIALIZED "
                 "flag set", className.c_str(), attName.c_str());
+            return true;
+        }
+
+        if((newAttr->mFlags & SA_IMM_ATTR_CACHED) && 
+            (newClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) &&
+            newAttr->mDefaultValue.empty()) {
+            LOG_NO("Impossible upgrade, runtime class has new attribute %s:%s with"
+                " SA_IMM_ATTR_CACHED flag set, but no default value", 
+                className.c_str(), attName.c_str());
             return true;
         }
     }

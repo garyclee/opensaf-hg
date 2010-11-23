@@ -93,6 +93,7 @@ public:
                                             AttrMap& changedAttrs);
 
     bool                notCompatibleAtt(const std::string& className,
+                                         ClassInfo* newClass,
                                          const std::string& attName, 
                                          const AttrInfo* oldAttr,
                                          AttrInfo* newAttr,
