@@ -32,7 +32,8 @@
   
 ******************************************************************************
 */
-
+#define _GNU_SOURCE
+#include <string.h>
 #include <logtrace.h>
 
 #include <avnd.h>
@@ -2269,8 +2270,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 {
 	NCS_OS_PROC_EXECUTE_TIMED_INFO cmd_info;
 	NCS_OS_ENVIRON_ARGS arg;
-	NCS_OS_ENVIRON_SET_NODE env_set[3];
-	SaNameT env_val_name;
+	NCS_OS_ENVIRON_SET_NODE *env_set;
 	char env_val_nodeid[11];
 	char env_val_comp_err[11];	/*we req only 10 */
 	char env_var_name[] = "SA_AMF_COMPONENT_NAME";
@@ -2285,6 +2285,9 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	char *argv[AVND_COMP_CLC_PARAM_MAX + 2];
 	char tmp_argv[AVND_COMP_CLC_PARAM_MAX + 2][AVND_COMP_CLC_PARAM_SIZE_MAX];
 	uns32 argc = 0, result, rc = NCSCC_RC_SUCCESS;
+        unsigned int env_counter;
+        unsigned int i;
+        SaStringT env;
 
 	TRACE_ENTER2("%s, type:%u", comp->name.value, cmd_type);
 
@@ -2329,27 +2332,45 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 		}
 	}
 
+        /* Allocate environment variable set */
+        env_set = calloc (comp->numOfCompCmdEnv + 3, sizeof(NCS_OS_ENVIRON_SET_NODE));
+
 	memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
 	memset(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
-	memset(env_set, 0, 3 * sizeof(NCS_OS_ENVIRON_SET_NODE));
-
-	memset(&env_val_name, '\0', sizeof(SaNameT));
-	memset(env_val_nodeid, '\0', sizeof(env_val_nodeid));
-	memcpy((char*)env_val_name.value, (char*)comp->name.value, comp->name.length);
 
    /*** populate the env variable set ***/
+        env_counter = 0;
+
+        if (comp->saAmfCompCmdEnv != NULL) {
+        	while ((env = comp->saAmfCompCmdEnv[env_counter]) != NULL) {
+                        char* equalPos = strchr(env, '=');
+                        if (equalPos == NULL) {
+                                LOG_ER("Unknown enviroment variable format '%s'. Should be 'var=value'", env);
+                                env_counter++;
+                                continue;
+                        }
+                        env_set[env_counter].name = strndup(env, equalPos - env);
+                        env_set[env_counter].value = strdup(equalPos + 1);
+                        env_set[env_counter].overwrite = 1; 
+                        arg.num_args++;
+                        env_counter++;
+                }
+        }
+
 	/* comp name env */
-	env_set[0].overwrite = 1;
-	env_set[0].name = env_var_name;
-	env_set[0].value = (char *)(env_val_name.value);
+	env_set[env_counter].overwrite = 1;
+	env_set[env_counter].name = strdup(env_var_name);
+	env_set[env_counter].value = strndup ((char*)comp->name.value, comp->name.length);
 	arg.num_args++;
+        env_counter++;
 
 	/* node id env */
-	env_set[1].overwrite = 1;
-	env_set[1].name = env_var_nodeid;
+	env_set[env_counter].overwrite = 1;
+	env_set[env_counter].name = strdup(env_var_nodeid);
 	sprintf(env_val_nodeid, "%u", (uns32)(cb->node_info.nodeId));
-	env_set[1].value = (char *)env_val_nodeid;
+	env_set[env_counter].value = strdup(env_val_nodeid);
 	arg.num_args++;
+        env_counter++;
 
 	/* Note:- we will set NCS_ENV_COMPONENT_ERROR_SRC only for 
 	 * cleanup script
@@ -2359,11 +2380,12 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	if (cmd_type == AVND_COMP_CLC_CMD_TYPE_CLEANUP) {
 		/* error code, will be set only if we are cleaning up */
 		memset(env_val_comp_err, '\0', sizeof(env_val_comp_err));
-		env_set[2].overwrite = 1;
-		env_set[2].name = (char *)env_var_comp_err;
+		env_set[env_counter].overwrite = 1;
+		env_set[env_counter].name = strdup(env_var_comp_err);
 		sprintf((char *)env_val_comp_err, "%u", (uns32)(comp->err_info.src));
-		env_set[2].value = (char *)env_val_comp_err;
+		env_set[env_counter].value = strdup(env_val_comp_err);
 		arg.num_args++;
+                env_counter++;
 	}
 
 	/*Note :- For the Npi Components Csi Attributes 
@@ -2385,10 +2407,11 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 
 		if (NULL != env_attr_val) {
 			/*Csi Attributes env */
-			env_set[2].overwrite = 1;
-			env_set[2].name = (char *)env_var_attr;
-			env_set[2].value = (char *)env_attr_val;
+			env_set[env_counter].overwrite = 1;
+			env_set[env_counter].name = strdup(env_var_attr);
+			env_set[env_counter].value = strdup(env_attr_val);
 			arg.num_args++;
+                        env_counter++;
 		}
 
 	}
@@ -2407,6 +2430,14 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 
 	/* finally execute the command */
 	rc = m_NCS_OS_PROCESS_EXECUTE_TIMED(&cmd_info);
+
+        /* Remove the env_set structure */
+        for (i = 0; i < env_counter; i++) {
+                free(env_set[i].name);
+                free(env_set[i].value);
+        }
+        free(env_set);
+
 	if (NCSCC_RC_SUCCESS != rc) {
 		/* generate a cmd failure event; it'll be executed asynchronously */
 		memset(&clc_evt, 0, sizeof(AVND_CLC_EVT));
