@@ -371,7 +371,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
  err:
 
 	if (comp) {
-		free(comp);
+		avnd_comp_delete(comp);
 	}
 
 	m_AVND_AVND_ERR_LOG("avnd_internode_comp_add failed. Comp and NodeId are", name, node_id, 0, 0, 0);
@@ -428,14 +428,14 @@ uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *na
 
 	/* free the memory */
 	if (comp)
-		free(comp);
+		avnd_comp_delete(comp);
 	return rc;
 
  err:
 
 	/* free the memory */
 	if (comp)
-		free(comp);
+		avnd_comp_delete(comp);
 
 	m_AVND_AVND_ERR_LOG("internode_comp_del failed. Comp and rc are", name, rc, 0, 0, 0);
 

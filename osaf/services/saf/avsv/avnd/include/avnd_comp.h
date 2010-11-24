@@ -287,7 +287,9 @@ typedef struct avnd_comp_tag {
 
 	SaNameT name;	/* comp name */
 	SaNameT saAmfCompType;
-	uns32 inst_level;	/* comp instantiation level */
+	uns32 numOfCompCmdEnv;	    /* number of comp command environment variables */
+	SaStringT *saAmfCompCmdEnv; /* comp command environment variables */
+	uns32 inst_level;	    /* comp instantiation level */
 
 	uns32 comp_hdl;		/* hdl returned by hdl-mngr */
 
@@ -877,5 +879,6 @@ extern void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, 
 extern uns32 avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 extern int avnd_comp_config_reinit(AVND_COMP *comp);
+extern void avnd_comp_delete(AVND_COMP *comp);
 
 #endif   /* !AVND_COMP_H */

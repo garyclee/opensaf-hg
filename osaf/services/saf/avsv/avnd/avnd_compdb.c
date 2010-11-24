@@ -516,7 +516,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 		if (comp->comp_hdl)
 			ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
 
-		free(comp);
+		avnd_comp_delete(comp);
 	}
 
 	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_ADD, AVND_LOG_COMP_DB_FAILURE, &info->name, 0, NCSFL_SEV_CRITICAL);
@@ -607,7 +607,7 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 
 	LOG_IN("Deleted '%s'", name->value);
 	/* free the memory */
-	free(comp);
+	avnd_comp_delete(comp);
 
 	TRACE_LEAVE();
 	return rc;
@@ -880,8 +880,15 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 	if (!compt)
 		return;
 
-	free(compt->saAmfCtDefCmdEnv);
-	free(compt->saAmfCtRelPathInstantiateCmd);
+	/* Free saAmfCtDefCmdEnv[i] before freeing saAmfCtDefCmdEnv */
+        if (compt->saAmfCtDefCmdEnv != NULL) {
+        	arg_counter = 0;
+        	while ((argv = compt->saAmfCtDefCmdEnv[arg_counter++]) != NULL)
+        		free(argv);
+        	free(compt->saAmfCtDefCmdEnv);
+        }
+
+        free(compt->saAmfCtRelPathInstantiateCmd);
 
 	/* Free saAmfCtDefInstantiateCmdArgv[i] before freeing saAmfCtDefInstantiateCmdArgv */
 	arg_counter = 0;
@@ -956,10 +963,16 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 		return NULL;	
 	}
 
-#if 0
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != NULL)
-		compt->saAmfCtDefCmdEnv = strdup(str);
-#endif
+        immutil_getAttrValuesNumber("saAmfCtDefCmdEnv", attributes, &j);
+	compt->saAmfCtDefCmdEnv = calloc(j + 1, sizeof(SaStringT));
+	assert(compt->saAmfCtDefCmdEnv);
+	for (i = 0; i < j; i++) {
+		str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", i);
+		assert(str);
+		compt->saAmfCtDefCmdEnv[i] = strdup(str);
+		assert(compt->saAmfCtDefCmdEnv[i]);
+	}
+
 	(void)immutil_getAttr("saAmfCtDefClcCliTimeout", attributes, 0, &compt->saAmfCtDefClcCliTimeout);
 
 	(void)immutil_getAttr("saAmfCtDefCallbackTimeout", attributes, 0, &compt->saAmfCtDefCallbackTimeout);
@@ -1270,6 +1283,12 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
 	SaNameT nodeswbundle_name;
 	SaBoolT disable_restart;
 	char *path_prefix = NULL;
+	unsigned int i;
+	unsigned int num_of_comp_env = 0;
+	unsigned int num_of_ct_env = 0;
+	unsigned int env_cntr = 0;
+	const char *str;
+	SaStringT env;
 
 	TRACE_ENTER2("%s", comp->name.value);
 
@@ -1373,6 +1392,50 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
 	else
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 
+        /* Remove any previous environment variables */
+        if (comp->saAmfCompCmdEnv != NULL) {
+        	env_cntr = 0;
+        	while ((env = comp->saAmfCompCmdEnv[env_cntr++]) != NULL)
+        		free(env);
+        	free(comp->saAmfCompCmdEnv);
+                comp->saAmfCompCmdEnv = NULL;
+        }
+
+        /* Find out how many environment variables there are in our comp type */
+        num_of_ct_env = 0;
+        if (comptype->saAmfCtDefCmdEnv != NULL) {
+                env_cntr = 0;
+        	while ((comptype->saAmfCtDefCmdEnv[env_cntr++]) != NULL)
+                        num_of_ct_env++;
+        }
+
+        /* Find out how many environment variables in our comp */
+        immutil_getAttrValuesNumber("saAmfCompCmdEnv", attributes, &num_of_comp_env);
+
+        /* Store the total number of env variables */
+        comp->numOfCompCmdEnv = num_of_ct_env + num_of_comp_env;
+
+        /* Allocate total number of environment variables */
+	comp->saAmfCompCmdEnv = calloc(comp->numOfCompCmdEnv + 1, sizeof(SaStringT));
+	assert(comp->saAmfCompCmdEnv);
+
+        /* Copy environment variables from our comp type */
+        env_cntr = 0;
+        while ((comptype->saAmfCtDefCmdEnv[env_cntr]) != NULL) {
+                comp->saAmfCompCmdEnv[env_cntr] = strdup (comptype->saAmfCtDefCmdEnv[env_cntr]);
+                env_cntr++;
+        }
+
+        /* Get environment variables from our IMM comp object */
+        for (i = 0; i < num_of_comp_env; i++, env_cntr++) {
+		str = immutil_getStringAttr(attributes, "saAmfCompCmdEnv", i);
+		assert(str);
+		comp->saAmfCompCmdEnv[env_cntr] = strdup(str);
+		assert(comp->saAmfCompCmdEnv[env_cntr]);
+	}
+
+        /* The env string array will be terminated by zero due to the calloc above */
+
 	/* if we are missing path_prefix we need to refresh the config later */
 	if (path_prefix != NULL)
 		comp->config_is_valid = 1;
@@ -1384,6 +1447,29 @@ done:
 	avnd_comptype_delete(comptype);
 	TRACE_LEAVE();
 	return res;
+}
+
+/**
+ * Delete an avnd component object.
+ * @param comp
+ * 
+ * @return
+ */
+void avnd_comp_delete(AVND_COMP *comp)
+{
+	int env_counter;
+	SaStringT env;
+
+        /* Free saAmfCompCmdEnv[i] before freeing saAmfCompCmdEnv */
+        if (comp->saAmfCompCmdEnv != NULL) {
+        	env_counter = 0;
+        	while ((env = comp->saAmfCompCmdEnv[env_counter++]) != NULL)
+        		free(env);
+        	free(comp->saAmfCompCmdEnv);
+        }
+
+        free(comp);
+	return;
 }
 
 /**
@@ -1488,7 +1574,7 @@ done:
 	if (rc != 0) {
 		/* remove the association with hdl mngr */
 		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
-		free(comp);
+		avnd_comp_delete(comp);
 		comp = NULL;
 	}
 	TRACE_LEAVE2("%u", rc);
