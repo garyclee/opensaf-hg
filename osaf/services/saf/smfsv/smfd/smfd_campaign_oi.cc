@@ -28,6 +28,7 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 
+#include <configmake.h>
 #include <logtrace.h>
 
 #include "immutil.h"
@@ -767,7 +768,7 @@ uns32 read_config_and_set_control_block(smfd_cb_t * cb)
 		if (getenv("SMF_IMM_PERSIST_CMD") == NULL) {
 			//Not found in smfd.conf. Set hardcoded value for backward compability
 			LOG_NO("Attr SMF_IMM_PERSIST_CMD is not available in SMF config object or smfd.conf file. Use default cmd: immdump /etc/opensaf/imm.xml");
-			smfImmPersistCmd =  "immdump /etc/opensaf/imm.xml";
+			smfImmPersistCmd =  "immdump " PKGSYSCONFDIR "/imm.xml";
 		} else {
 			smfImmPersistCmd = getenv("SMF_IMM_PERSIST_CMD");
 		}
