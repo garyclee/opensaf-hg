@@ -75,28 +75,68 @@
 			</singleStepUpgrade>
 		</upgradeMethod>
 		<procWrapupAction>
-			<doAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK"/>
-			<undoAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK"/>
+			<doAdminOperation objectDN="safSg=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK"/>
+			<undoAdminOperation objectDN="safSg=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK"/>
 		</procWrapupAction>
 		<procWrapupAction>
-			<doAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK_INSTANTIATION"/>
-			<undoAdminOperation objectDN="safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK_INSTANTIATION"/>
+			<doAdminOperation objectDN="safSg=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK_INSTANTIATION"/>
+			<undoAdminOperation objectDN="safSg=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK_INSTANTIATION"/>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doAdminOperation objectDN="safSi=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_LOCK"/>
+			<undoAdminOperation objectDN="safSi=AmfDemo,safApp=AmfDemo1" operationID="SA_AMF_ADMIN_UNLOCK"/>
 		</procWrapupAction>
 		<procWrapupAction>
 			<immCCB ccbFlags="0">
 				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safSi=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safSg=AmfDemo,safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
 				<delete objectDN="safApp=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
+				<delete objectDN="safHealthcheckKey=AmfDemo,safVersion=4.0.0,safCompType=AmfDemo1"/>
+				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safVersion=4.0.0,safCompType=AmfDemo1"/>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
+				<delete objectDN="safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemo1,safVersion=4.0.0,safSvcType=AmfDemo1"/>
+				<delete objectDN="safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemo1,safVersion=4.0.0,safSuType=AmfDemo1"/>
 			</immCCB>
 		</procWrapupAction>
 	</upgradeProcedure>
@@ -116,7 +156,6 @@
 			<amfEntityTypeDN objectDN="safCSType=AmfDemo1"/>
 			<amfEntityTypeDN objectDN="safVersion=4.0.0,safSvcType=AmfDemo1"/>
 			<amfEntityTypeDN objectDN="safSvcType=AmfDemo1"/>
-			<softwareBundleDN bundleDN="safSmfBundle=AmfDemo"/>
 		</removeFromImm>
 	</campaignWrapup>
 </upgradeCampaign>
