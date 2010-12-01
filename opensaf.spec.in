@@ -1279,4 +1279,5 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %{_libdir}/libjava_ais_api_native.so.*
 %{_javadir}/opensaf_ais_api.jar
+%{_javadir}/amf_agent.jar
 %endif
