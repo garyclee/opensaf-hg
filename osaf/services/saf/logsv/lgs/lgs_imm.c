@@ -44,6 +44,8 @@ static SaVersionT immVersion = { 'A', 2, 1 };
 
 static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT)"safLogService";
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+
 /**
  * Pack and send a stream checkpoint using mbcsv
  * @param cb
@@ -621,8 +623,13 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 	if ((rc = stream_create_and_configure(SA_LOG_STREAM_SYSTEM, &cb->systemStream, 2)) != SA_AIS_OK)
 		goto done;
 
+	immutilWrapperProfile.nTries = 250; /* After loading,allow missed sync of large data to complete */
+
 	(void)immutil_saImmOiImplementerSet(cb->immOiHandle, implementerName);
 	(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+
+	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
+
 
 	/* Update creation timestamp, must be object implementer first */
 	(void)immutil_update_one_rattr(cb->immOiHandle, SA_LOG_STREAM_ALARM,
