@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2009 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson
+ *
+
+- This file is prepared for initial loading, loaded by IMM at startup. Merge this 
+file with the main imm.xml using the immxml-merge tool.
+
+- If this file is to be loaded dynamically using e.g. 'immcfg -f', the SUs must have admin state
+unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections below.
+
+-->
+
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<object class="SaAmfAppBaseType">
+		<dn>safAppType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=Sailfin</dn>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSvcBaseType">
+	    <dn>safSvcType=Sailfin</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+	    <dn>safCSType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSvcType">
+	    <dn>safVersion=4.0.0,safSvcType=Sailfin</dn>
+	</object>
+	<object class="SaAmfAppType">
+		<dn>safVersion=4.0.0,safAppType=Sailfin</dn>
+		<attr>
+			<name>saAmfApptSGTypes</name>
+			<value>safVersion=4.0.0,safSgType=Sailfin</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=4.0.0,safSgType=Sailfin</dn>
+		<attr>
+			<name>saAmfSgtRedundancyModel</name>
+			<value>4</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=4.0.0,safSuType=Sailfin</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=4.0.0,safSuType=Sailfin</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=4.0.0,safSvcType=Sailfin</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=Sailfin</dn>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=Sailfin</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>as-single-instance-instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>start</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>as-single-instance-cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+        <attr>
+            <name>saAmfCtDefTerminateCmdArgv</name>
+            <value>das-cleanup</value>
+        </attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>5</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>0</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=Sailfin,safVersion=4.0.0,safSuType=Sailfin</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+	  <dn>safMemberCSType=safVersion=4.0.0\,safCSType=Sailfin,safVersion=4.0.0,safSvcType=Sailfin</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=Sailfin,safVersion=4.0.0,safCompType=Sailfin</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>6</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=0202,safVersion=4.0.0,safCompType=Sailfin</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>6000000000</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfApplication">
+		<dn>safApp=Sailfin</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=Sailfin</value>
+		</attr>
+	</object>
+	<object class="SaAmfSG">
+		<dn>safSg=Sailfin,safApp=Sailfin</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=4.0.0,safSgType=Sailfin</value>
+		</attr>
+		<attr>
+			<name>saAmfSGSuHostNodeGroup</name>
+			<value>safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxActiveSIsperSU</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSGMaxStandbySIsperSU</name>
+			<value>0</value>
+		</attr>
+	</object>
+	<object class="SaAmfSI">
+		<dn>safSi=Sailfin,safApp=Sailfin</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=4.0.0,safSvcType=Sailfin</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=Sailfin,safApp=Sailfin</value>
+		</attr> 
+		<attr>
+			<name>saAmfSIPrefActiveAssignments</name>
+			<value>1</value>
+		</attr> 
+		<attr>
+			<name>saAmfSIPrefStandbyAssignments</name>
+			<value>0</value>
+		</attr> 
+	</object>
+	<object class="SaAmfCSI">
+	    <dn>safCsi=Sailfin,safSi=Sailfin,safApp=Sailfin</dn>
+	    <attr>
+		<name>saAmfCSType</name>
+		<value>safVersion=4.0.0,safCSType=Sailfin</value>
+	    </attr>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrNoValue,safCsi=Sailfin,safSi=Sailfin,safApp=Sailfin</dn>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrSingleValue,safCsi=Sailfin,safSi=Sailfin,safApp=Sailfin</dn>
+		<attr>
+				<name>saAmfCSIAttriValue</name>
+				<value>val11</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrMultiValue,safCsi=Sailfin,safSi=Sailfin,safApp=Sailfin</dn>
+		<attr>
+				<name>saAmfCSIAttriValue</name>
+				<value>val21</value>
+				<value>val22</value>
+				<value>val23</value>
+		</attr>
+	</object>
+	<object class="SaSmfSwBundle">
+			<dn>safBundle=Sailfin</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safBundle=Sailfin,safAmfNode=SC-1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/hostfs/sailfin/bin/</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SU1,safSg=Sailfin,safApp=Sailfin</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=4.0.0,safSuType=Sailfin</value>
+		</attr>
+
+<!-- Uncomment to tell the SU where to execute
+		<attr>
+			<name>saAmfSUHostNodeOrNodeGroup</name>
+			<value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
+		</attr>
+-->
+<!--
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+-->
+	</object>
+	<object class="SaAmfComp">
+	    <dn>safComp=Sailfin,safSu=SU1,safSg=Sailfin,safApp=Sailfin</dn>
+	    <attr>
+		<name>saAmfCompType</name>
+		<value>safVersion=4.0.0,safCompType=Sailfin</value>
+	    </attr>
+        <attr>
+        <name>saAmfCompInstantiationLevel</name>
+        <value>1</value>
+        </attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=Sailfin,safComp=Sailfin,safSu=SU1,safSg=Sailfin,safApp=Sailfin</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safBundle=Sailfin,safAmfNode=SC-2,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/hostfs/sailfin/bin/</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SU2,safSg=Sailfin,safApp=Sailfin</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=4.0.0,safSuType=Sailfin</value>
+		</attr>
+<!--
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+-->
+	</object>
+	<object class="SaAmfComp">
+	    <dn>safComp=Sailfin,safSu=SU2,safSg=Sailfin,safApp=Sailfin</dn>
+	    <attr>
+		<name>saAmfCompType</name>
+		<value>safVersion=4.0.0,safCompType=Sailfin</value>
+	    </attr>
+        <attr>
+        <name>saAmfCompInstantiationLevel</name>
+        <value>1</value>
+        </attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=Sailfin,safComp=Sailfin,safSu=SU2,safSg=Sailfin,safApp=Sailfin</dn>
+	</object>
+</imm:IMM-contents>

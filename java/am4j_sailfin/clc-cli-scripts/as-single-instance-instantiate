@@ -1,0 +1,11 @@
+#! /bin/bash
+
+export LD_LIBRARY_PATH=/hostfs/:$LD_LIBRARY_PATH
+
+logger "Starting domain 1"
+/hostfs/sailfin/bin/asadmin start-domain domain1
+RESULT=$?
+logger "Result: $RESULT"
+
+exit $RESULT
+
