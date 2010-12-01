@@ -1,0 +1,157 @@
+                      --- Sailfin on OpenSAF via AM4J ---
+
+1. Introduction
+
+  This document explains how Sailfin can be configured to run on top
+  of OpenSAF with full AMF integration through AM4J. Sailfin will be
+  configured to run in a single-instance configuration, i.e. with no
+  clustering.
+
+  Sailfin is a Java EE application server with support for SIP servlets.
+
+2. Requirements
+
+  The following pieces are required to follow the description.
+   - OpenSAF source checked out
+   - AM4J Reference Implementation
+   - Sailfin
+   - JDK
+    + JDK
+    + libnsl.so.1
+
+3. AM4J Concepts 
+
+  The AM4J standard describes two main entities, the
+  Availability Executor and the Availability Agent. The interaction
+  between them is described in the standard.
+
+  The Availability Executor integrates with the JavaEE application
+  server while the Availability Agent integrates with the availability
+  framework, ie AMF.
+
+  AM4J defines two types of entities that the availability framework
+  can control. These are the container itself and JavaEE components
+  running inside the container. The container is represented by an
+  AvailabilityContainerController and the components are represented by
+  AvailabilityUnitController instances.
+
+4. AMF Agent
+
+  There is no implementation of an AMF Agent in the OpenSAF repository
+  today. The steps below have been tested with a prototype of such an
+  agent.
+
+  An important part of AM4J is that it lets the availability
+  framework control both the container and its components. This means
+  that the framework must treat the components as entities that depend
+  on the container. In AMF, this dependency is modelled as
+  container-contained. This is included in the AMF specification but
+  it's not implemented in the current OpenSAF implementation.
+
+5. Step-by-step Description
+
+  These steps describe how to set up and configure the UML environment
+  and Sailfin.
+
+  In the description below, commands to be executed on the host machine
+  are denoted "# <command" and commands to be executed in the UML
+  environment are denoted "UML # <command>". 
+
+  Build OpenSAF with Java enabled
+  # cd <path-to-opensaf>
+  # ./bootstrap
+  # ./configure --enable-java --disable-ais-plm
+  # make
+  
+  Build the UML environment
+  # cd tools/cluster_sim
+  # ./build_uml
+  
+  Configure UML for a suitable number of instances
+  # ./build_uml generate_immxml 2
+  
+  Change the UML instances RAM to 512
+  # mv opensaf opensaf.orig
+  # sed 's/128/512/' < opensaf.orig > opensaf
+  # chmod +x opensaf
+  
+  Install a JDK in to UML
+  # cp /usr/lib/libnsl.so ./libnsl.so.1
+  # cp <path-to-jdk>/jdk-<version-string>-i586.bin .
+  # sh jdk-<version-string>-i586.bin
+  
+  Copy CLC CLI scripts
+  # cp -r ../../java/am4j-sailfin/clc-cli-scripts/ .
+  
+  Copy the Sailfin installer
+  # cp <path-to-sailfin-installer/sailfin-installer-v2-b31g-linux.jar .
+  
+  Copy the AMF agent - ???????
+  # cp ../../java/amf_agent/bin/amf_agent.jar .
+
+  Download the AM4J Sailfin integration
+  # wget https://availabilitymanagement.dev.java.net/files/documents/9451/148611/am4j-ri-1.0.0.zip
+  # unzip am4j-ri-1.0.0.zip am4j-javaee-ri/am4j-sailfin-1.0.0.jar
+  
+  Copy the OpenSAF JNI - ???????
+  # cp ../../java/ais_api_impl/bin/opensaf_ais_api.jar .
+  # cp ../../java/ais_api_impl_native/.libs/libjava_ais_api_native.so .
+  
+  Start the UML environment with one instance
+  # ./opensaf start 1
+  
+  Set the library path to include libnsl
+  UML # export LD_LIBRARY_PATH=/hostfs/:$LD_LIBRARY_PATH
+  
+  Set the path to include java
+  UML # export PATH=/hostfs/jdk<version-string>/bin/:$PATH
+  
+  Install Sailfin
+  UML # cd /hostfs
+  UML # java -Xmx256M -jar /hostfs/sailfin-installer-v2-b31g-linux.jar
+  
+  Set up Sailfin
+  UML # cd sailfin
+  UML # chmod +x -R lib/ant
+  UML # lib/ant/bin/ant -f setup.xml
+  
+  Install AM4J
+  UML # cp /hostfs/am4j-javaee-ri/am4j-sailfin-1.0.0.jar lib/
+  
+  Install the AMF agent
+  UML # cp /hostfs/amf_agent.jar lib/
+  
+  Install the AMF JNI
+  UML # cp /hostfs/opensaf_ais_api.jar lib/
+  UML # cp /hostfs/libjava_ais_api_native.so lib/
+
+  Start Sailfin
+  UML # bin/asadmin start-domain
+  
+  Install the AM4J RI
+  UML # bin/asadmin create-lifecycle-module --classname com.ericsson.am4j.sailfin.AvailabilityLifeCycleModule --property javax.availability.management.agent=com.ericsson.saf.amf.AmfAvailabilityAgent AM4J-RI
+  
+  Install the AM4J JNDI object
+  UML # bin/asadmin create-custom-resource --restype javax.availability.management.AvailabilityService --factoryclass com.ericsson.am4j.sailfin.AvailabilityServiceReferenceFactory availabilityService
+  
+  Install the CLC CLI scripts
+  UML # cp /hostfs/clc-cli-scripts/* bin/
+  UML # chmod +x -R bin
+  
+  Configure the AMF agent to use OpenSAF
+  UML # bin/asadmin create-jvm-options "-DSAF_AIS_AMF_IMPL_CLASSNAME=org.opensaf.ais.amf.AmfHandleImpl"
+  UML # bin/asadmin create-jvm-options "-DnativeLibrary=java_ais_api_native"
+  UML # bin/asadmin create-jvm-options "-DSAF_AIS_AMF_IMPL_URL=file\\:///hostfs/sailfin/lib/"
+  
+  Stop UML
+  # ./opensaf stop
+  
+  Insert the Sailfin configuration
+  # ../../osaf/tools/safimm/immxml/immxml-merge -o imm.xml rootfs/etc/opensaf/imm.xml ../../java/am4j_sailfin/amf-configuration/sailfin-single-instance.xml
+  # cp rootfs/etc/opensaf/imm.xml rootfs/etc/opensaf/imm.xml.orig
+  # cp imm.xml rootfs/etc/opensaf/
+  
+  Start UML
+  # ./opensaf start 1
+  
+ 
