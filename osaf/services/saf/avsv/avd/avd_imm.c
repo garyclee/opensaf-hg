@@ -835,6 +835,8 @@ SaAisErrorT avd_imm_impl_set(void)
 
 	TRACE_ENTER();
 
+	immutilWrapperProfile.nTries = 250; /* After loading, allow missed sync of large data to complete */
+
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, implementerName)) != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		return rc;
@@ -848,6 +850,8 @@ SaAisErrorT avd_imm_impl_set(void)
 			break;
 		}
 	}
+
+	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
 	avd_cb->is_implementer = SA_TRUE;
 
