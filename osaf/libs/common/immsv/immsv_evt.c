@@ -1497,7 +1497,8 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 				++syncDepth;
 				if (syncDepth >= IMMSV_MAX_OBJS_IN_SYNCBATCH) {
-					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
+					LOG_ER("TOO MANY objects %u >= %u in sync line:%u", 
+						syncDepth, IMMSV_MAX_OBJS_IN_SYNCBATCH, __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}
 				
@@ -1960,7 +1961,8 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			while(obj_sync) {
 				++syncDepth;
 				if (syncDepth >= IMMSV_MAX_OBJS_IN_SYNCBATCH) {
-					LOG_ER("TOO MANY objects in sync line:%u", __LINE__);
+					LOG_ER("TOO MANY objects %u >= %u in sync line:%u", 
+						syncDepth, IMMSV_MAX_OBJS_IN_SYNCBATCH, __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}
 

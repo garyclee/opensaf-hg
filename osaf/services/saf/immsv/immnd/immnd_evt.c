@@ -1213,7 +1213,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	IMMSV_OM_RSP_SEARCH_NEXT *rsp = NULL;
 	MDS_DEST implDest = 0LL;
 	SaBoolT retardSync = 
-		((cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) && 
+		((cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) && 
 			cb->mIsCoord && (cb->syncPid > 0));
 
 	TRACE_ENTER();
@@ -1808,9 +1808,9 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		goto agent_rsp;
 	}
 
-	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting admo_init request", 
-			IMMND_FEVS_MAX_PENDING);
+			IMMSV_DEFAULT_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -1896,9 +1896,9 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting impl_set request",
-			IMMND_FEVS_MAX_PENDING);
+			IMMSV_DEFAULT_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -2002,9 +2002,9 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting ccb_init request",
-			IMMND_FEVS_MAX_PENDING);
+			IMMSV_DEFAULT_FEVS_MAX_PENDING);
 		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -2100,9 +2100,9 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 		goto agent_rsp;
 	}
 
-	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting rt_update request",
-			IMMND_FEVS_MAX_PENDING);
+			IMMSV_DEFAULT_FEVS_MAX_PENDING);
 		err = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -2265,7 +2265,7 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		}
 	}
 
-	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		if(asyncReq) {
 			unsigned int backlog = 
 				immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
@@ -2273,17 +2273,17 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 			if(backlog%50) {
 				TRACE_2("Too many pending incoming FEVS messages (> %u) "
 					"enqueueing async message. Backlog:%u",
-					IMMND_FEVS_MAX_PENDING, backlog);
+					IMMSV_DEFAULT_FEVS_MAX_PENDING, backlog);
 			} else {
 				LOG_IN("Too many pending incoming FEVS messages (> %u) "
 					"enqueueing async message. Backlog:%u",
-					IMMND_FEVS_MAX_PENDING, backlog);
+					IMMSV_DEFAULT_FEVS_MAX_PENDING, backlog);
 			}
 
 			return NCSCC_RC_SUCCESS;
 		} else {
 			TRACE_2("ERR_TRY_AGAIN: Too many pending FEVS message replies (> %u) rejecting request",
-				IMMND_FEVS_MAX_PENDING);
+				IMMSV_DEFAULT_FEVS_MAX_PENDING);
 			error = SA_AIS_ERR_TRY_AGAIN;
 			goto agent_rsp;
 		}
@@ -5957,6 +5957,14 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		if (!cb->mSync) {	/*If I am an old established member then increase 
 					   my epoch now! */
 			cb->mMyEpoch++;
+			if(!(cb->mIsCoord)) {
+				/* Sync apparently started by coord => this immnd which
+				   is not coord can forget Lost Nodes. This is mostly
+				   relevant for "standby" i.e. the non-coord immnd which is
+				   on an SC.
+				 */
+				cb->mLostNodes = 0;
+			}
 		}
 		immModel_prepareForSync(cb, cb->mSync);
 		cb->mPendSync = 0;	//Sync can now begin.
@@ -6138,12 +6146,12 @@ void dequeue_outgoing(IMMND_CB *cb)
 	TRACE_ENTER();
 	IMMND_EVT dummy_evt;
 	
-	unsigned int space = (cb->fevs_replies_pending < IMMND_FEVS_MAX_PENDING)?
-		(IMMND_FEVS_MAX_PENDING - cb->fevs_replies_pending):0;
+	unsigned int space = (cb->fevs_replies_pending < IMMSV_DEFAULT_FEVS_MAX_PENDING)?
+		(IMMSV_DEFAULT_FEVS_MAX_PENDING - cb->fevs_replies_pending):0;
 
 	TRACE("Pending replies:%u space:%u out list?:%p", cb->fevs_replies_pending, space, cb->fevs_out_list);
 
-	while(cb->fevs_out_list && space && (cb->fevs_replies_pending < IMMND_FEVS_MAX_PENDING) && immnd_is_immd_up(cb)){
+	while(cb->fevs_out_list && space && (cb->fevs_replies_pending < IMMSV_DEFAULT_FEVS_MAX_PENDING) && immnd_is_immd_up(cb)){
 		memset(&dummy_evt, '\0', sizeof(IMMND_EVT));
 		unsigned int backlog = 
 			immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);

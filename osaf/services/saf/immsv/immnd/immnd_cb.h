@@ -20,12 +20,6 @@
 
 #include <saClm.h>
 
-/* macros for the CB handle */
-
-/*Max # of outstanding fevs messages towards director.*/
-/*Note max-max is 255. cb->fevs_replies_pending is an uns8*/
-#define IMMND_FEVS_MAX_PENDING 16
-
 typedef enum immnd_server_state {
 	IMM_SERVER_UNKNOWN = 0,
 	IMM_SERVER_ANONYMOUS = 1,

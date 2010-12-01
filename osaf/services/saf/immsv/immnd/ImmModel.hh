@@ -56,6 +56,8 @@ struct ImmOiRtObjectCreate;
 
 struct immsv_oi_ccb_upcall_rsp;
 
+struct ImmsvOmRspSearchNext;
+
 struct AttrInfo;
 typedef std::map<std::string, AttrInfo*> AttrMap;
 
@@ -271,8 +273,11 @@ public:
     // Objects
     
     SaAisErrorT         searchInitialize(
-                                         const ImmsvOmSearchInit* req,
+                                         ImmsvOmSearchInit* req,
                                          ImmSearchOp& op);
+
+    SaAisErrorT         nextSyncResult(ImmsvOmRspSearchNext** rsp,
+                                       ImmSearchOp& op);
     
     SaAisErrorT         accessorGet(
                                     const ImmsvOmSearchInit* req,
@@ -354,10 +359,9 @@ public:
                                        bool& subTreeHasPersistent);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
-    bool              fetchRtUpdate(
-				    ImmsvOmObjectSync* syncReq,
-				    ImmsvOmCcbObjectModify* modReq,
-				    SaUint64T syncFevsBase);
+    bool              fetchRtUpdate(ImmsvOmObjectSync* syncReq,
+                          ImmsvOmCcbObjectModify* modReq,
+                          SaUint64T syncFevsBase);
 
 
     SaAisErrorT       finalizeSync(

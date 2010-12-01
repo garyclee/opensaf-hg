@@ -82,6 +82,9 @@ public:
     void          clearLastResult() {mLastResult = NULL;}
     void          setIsSync() {mIsSync = true;}
     bool          isSync() {return mIsSync;}
+    void*         syncOsi;
+    void*         attrNameList;
+    void*         classInfo;
 private:
     ResultList    mResultList;
     IMMSV_OM_RSP_SEARCH_NEXT* mLastResult;//only used to save result during

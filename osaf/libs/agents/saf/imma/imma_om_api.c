@@ -5150,7 +5150,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
 	/* still Case B or C */
 
 	if(batchp) {
-		if(objsInBatch > (IMMSV_MAX_OBJS_IN_SYNCBATCH - 2)) {
+		if((objsInBatch - 2) > IMMSV_MAX_OBJS_IN_SYNCBATCH) {
 			TRACE("Limit for # of objects in batch reached: %d", objsInBatch);
 			*remainingSpacep = 0;
 		} else {

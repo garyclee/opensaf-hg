@@ -24,6 +24,9 @@ ImmSearchOp::ImmSearchOp()
 {
     mLastResult=NULL;
     mIsSync=false;
+    syncOsi=NULL;
+    attrNameList=NULL;
+    classInfo=NULL;
 }
 
 ImmSearchOp::~ImmSearchOp()
@@ -32,6 +35,9 @@ ImmSearchOp::~ImmSearchOp()
     mRtsToFetch.clear();
     //Do NOT try to delete mlastResult, it is not owned by this object.
     mLastResult=NULL;
+    assert(syncOsi == NULL);
+    assert(attrNameList == NULL);
+    classInfo = NULL;
 }
 
 void
@@ -138,8 +144,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, SaUint32T* connp,
                 } else {
                     attr->attrValuesNumber = (*i).valuep->extraValues() + 1;
                     (*i).valuep->copyValueToEdu(&(attr->attrValue),
-					    (SaImmValueTypeT) 
-					    attr->attrValueType);
+                        (SaImmValueTypeT) attr->attrValueType);
                     if(attr->attrValuesNumber > 1) {
                         assert((*i).valuep->isMultiValued());
                         ((ImmAttrMultiValue *)(*i).valuep)->
