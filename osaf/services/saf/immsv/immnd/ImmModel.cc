@@ -782,48 +782,6 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
         implConn, implNodeId, pbeExpected);
 }
 
-/*
-  void
-  immModel_setCcbObjCreateImplContinuation(IMMND_CB *cb, 
-  SaInvocationT saInv,
-  SaUint32T implConn, 
-  SaUint64T reply_dest)
-  {
-  ImmModel::instance(&cb->immModel)->
-  setCcbObjCreateImplContinuation(saInv, implConn, reply_dest);
-  }
-  
-  void
-  immModel_setCcbObjDelImplContinuation(IMMND_CB *cb, 
-  SaInvocationT saInv,
-  SaUint32T implConn, 
-  SaUint64T reply_dest)
-  {
-  ImmModel::instance(&cb->immModel)->
-  setCcbObjDelImplContinuation(saInv, implConn, reply_dest);
-  }
-  
-  void
-  immModel_setCcbCompletedImplContinuation(IMMND_CB *cb, 
-  SaInvocationT saInv,
-  SaUint32T implConn,
-  SaUint64T reply_dest)
-  {
-  ImmModel::instance(&cb->immModel)->
-  setCcbCompletedImplContinuation(saInv, implConn, reply_dest);
-  }
-  
-  void
-  immModel_fetchCcbCompletedContinuation(IMMND_CB *cb, 
-  SaInvocationT saInv,
-  SaUint32T* implConn,
-  SaUint64T* reply_dest)
-  {
-  ImmModel::instance(&cb->immModel)->
-  fetchCcbCompletedContinuation(saInv, implConn, reply_dest);
-  }
-*/
-
 SaUint32T 
 immModel_findConnForImplementerOfObject(IMMND_CB *cb, 
     IMMSV_OCTET_STRING* objectName)
@@ -912,26 +870,31 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
     struct ImmsvAttrNameList** rtAttrsToFetch,
     MDS_DEST* implDest, SaBoolT retardSync)
 {
-    //assert(searchOp && rsp && implConn && implNodeId && rtAttrsToFetch);
+    AttributeList* rtAttrs = NULL;
+    SaAisErrorT err = SA_AIS_OK;
     assert(searchOp && rsp);
     if(rtAttrsToFetch) {assert(implConn && implNodeId && implDest);}
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
 
-    if(retardSync && op->isSync()) {
-        TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages "
-            "(> %u) rejecting sync iteration next request",
-            IMMND_FEVS_MAX_PENDING);
-        /* This is special handling for sync. Because immsv_sync (sync object send) 
+    if(op->isSync()) {
+        /* Special handling for sync. Because immsv_sync (sync object send) 
            is asyncronous, it can not be throttled directly. Insead we throttle the 
            sync object send by retarding the iterator used in syncing.
+           In addition, the nextResult operation is handled differently for sync.
         */
-        return SA_AIS_ERR_TRY_AGAIN;
+        if(retardSync) {
+            TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs "
+                "messages (> %u) rejecting sync iteration next request",
+                IMMSV_DEFAULT_FEVS_MAX_PENDING);
+            return SA_AIS_ERR_TRY_AGAIN;
+        }
+        err = ImmModel::instance(&cb->immModel)->nextSyncResult(rsp, *op);
+    } else {
+        err = op->nextResult(rsp, implConn, implNodeId, 
+            (rtAttrsToFetch)?(&rtAttrs):NULL,
+            (SaUint64T*) implDest);
     }
-    
-    AttributeList* rtAttrs = NULL;
-    SaAisErrorT err = op->nextResult(rsp, implConn, implNodeId, 
-        (rtAttrsToFetch)?(&rtAttrs):NULL,
-        (SaUint64T*) implDest);
+
     if(err != SA_AIS_OK) { return err; }
     
     if(rtAttrs && (*implNodeId)) {
@@ -947,14 +910,28 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
             *rtAttrsToFetch = p;
         }
     }
-    return SA_AIS_OK;
+    return err;
 }
 
 void
 immModel_deleteSearchOp(void* searchOp)
 {
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
-    delete op;
+    if(op) {
+        if(op->isSync()) {
+            ObjectSet::iterator *osip = (ObjectSet::iterator *) op->syncOsi;
+            ImmsvAttrNameList* theAttList = 
+                (ImmsvAttrNameList *) op->attrNameList;
+            if(osip) {
+                delete osip;
+                op->syncOsi = NULL;
+                immsv_evt_free_attrNames(theAttList);
+                op->attrNameList = NULL;
+                op->classInfo = NULL;
+            }
+        }
+        delete op;
+    }
 }
 
 void
@@ -1812,15 +1789,14 @@ ImmModel::adjustEpoch(int suggestedEpoch,
     ImmAttrValueMap::iterator avi;
     ObjectInfo* immObject = NULL;
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
-    if(oi != sObjectMap.end()) {
-        immObject = oi->second;
-        avi = immObject->mAttrValueMap.find(immAttrEpoch);
-        
-        if(avi != immObject->mAttrValueMap.end()) {
-            assert(!avi->second->isMultiValued());
-            restoredEpoch = avi->second->getValue_int();
-        }
-    }
+    assert(oi != sObjectMap.end());
+
+    immObject = oi->second;
+    avi = immObject->mAttrValueMap.find(immAttrEpoch);
+    assert(avi != immObject->mAttrValueMap.end());
+    assert(!avi->second->isMultiValued());
+
+    restoredEpoch = avi->second->getValue_int();
     
     if(restoredEpoch < 1) {
         restoredEpoch = 1;
@@ -1905,8 +1881,6 @@ ImmModel::getMaxSyncBatchSize()
     TRACE_LEAVE();
     return mbSize;
 }
-
-
 
 /**
  * Fetches the nodeId and possibly connection id for the
@@ -6015,7 +5989,7 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
 }
 
 SaAisErrorT
-ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
+ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
 {
     TRACE_ENTER();
     
@@ -6150,6 +6124,17 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         filter = false; 
         osi = classInfo->mExtent.begin();
         assert(osi !=  classInfo->mExtent.end()); /* Already checked for empty above */
+        if(isSyncer) {
+            /* Avoid copy iterator for sync. Use a raw STL iterator over extent. */
+            op.syncOsi = new ObjectSet::iterator(osi);
+            op.attrNameList = req->attributeNames;
+            req->attributeNames = NULL;
+            op.classInfo = classInfo;
+            assert(scope==SA_IMM_SUBTREE);
+            assert(rootlen == 0);
+            assert(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR);
+            goto searchInitializeExit;
+        }
         obj = *(osi); 
         omi = sObjectMap.end(); /* Possibly did point to parent*/
         getObjectName(obj, objectName);
@@ -6331,6 +6316,117 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
  searchInitializeExit:
     TRACE_LEAVE(); 
     return err; 
+}
+
+SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op)
+{
+    TRACE_ENTER();
+    SaAisErrorT err = SA_AIS_OK;
+    ObjectSet::iterator *osip = (ObjectSet::iterator *) op.syncOsi;
+    if(!osip) { return SA_AIS_ERR_NOT_EXIST;}
+    ImmsvAttrNameList* theAttList = (ImmsvAttrNameList *) op.attrNameList;
+    ClassInfo* classInfo = (ClassInfo *) op.classInfo;
+    assert(classInfo != NULL);
+    ObjectInfo* obj = NULL;
+    std::string objectName;
+    ImmAttrValueMap::iterator j;
+    IMMSV_OM_RSP_SEARCH_NEXT* p = NULL;
+
+    if((*osip) == classInfo->mExtent.end()) {
+        delete osip;
+        op.syncOsi = NULL;
+        immsv_evt_free_attrNames(theAttList);
+        op.attrNameList = NULL;
+        op.classInfo = NULL;
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    }
+
+    obj = *(*osip);
+    assert(obj);
+    assert(obj->mClassInfo == classInfo);
+    getObjectName(obj, objectName); /* ABT do I need it ?*/
+    if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
+        nameToExternal(objectName);
+    }
+    assert(!(obj->mObjFlags & IMM_CREATE_LOCK));
+    assert(!(obj->mObjFlags & IMM_DELETE_LOCK));
+    assert(!(obj->mObjFlags & IMM_RT_UPDATE_LOCK)); /* Is this really secured? */
+
+    /* (1) op.addObject(objectName);*/
+
+    p = (IMMSV_OM_RSP_SEARCH_NEXT*) calloc(1, sizeof(IMMSV_OM_RSP_SEARCH_NEXT));
+    assert(p);
+    *rsp = p;
+
+    // Get object name
+    p->objectName.size = (int)objectName.length()+1;
+    p->objectName.buf = strdup(objectName.c_str());
+    p->attrValuesList = NULL;
+
+
+    for (j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); j++) {
+        /*SA_IMM_SEARCH_GET_SOME_ATTR must have been set since this is sync. */
+        IMMSV_ATTR_VALUES_LIST* attrl = NULL;
+        IMMSV_ATTR_VALUES* attr = NULL;
+        ImmsvAttrNameList* list = theAttList;
+
+        while(list) {
+            size_t sz = strnlen((char *) list->name.buf, (size_t) list->name.size);
+            std::string attName((const char *) list->name.buf, sz);
+            if(j->first == attName) {
+                break;
+            }
+            list = list->next;
+        }//while(list)
+        if(!list) {continue;} // for loop */
+
+        attrl = (IMMSV_ATTR_VALUES_LIST *)
+            calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+        attr = &(attrl->n);
+
+
+        AttrMap::iterator k = classInfo->mAttrMap.find(j->first);
+        assert(k != classInfo->mAttrMap.end());
+        //op.addAttribute(j->first, k->second->mValueType, k->second->mFlags);
+        attr->attrName.size = j->first.length()+1;
+        attr->attrName.buf = strdup(j->first.c_str());
+        attr->attrValueType = k->second->mValueType;
+
+
+        //Check if attribute is the implementername
+        //attribute. if so add the value artificially
+        if(j->first.c_str() == std::string(SA_IMM_ATTR_IMPLEMENTER_NAME)&&(obj->mImplementer)) {
+            j->second->setValueC_str(obj->mImplementer->mImplementerName.c_str());
+        }
+
+
+        if((!j->second->empty()) && 
+           ((k->second->mFlags & SA_IMM_ATTR_CONFIG) ||
+            (k->second->mFlags & SA_IMM_ATTR_CACHED))) {
+            //Config attributes always synced
+            //Runtime attributes synced if they are cached
+            //op.addAttrValue(*j->second);
+            attr->attrValuesNumber = j->second->extraValues() + 1;
+            j->second->copyValueToEdu(&(attr->attrValue),
+                (SaImmValueTypeT) attr->attrValueType);
+
+            if(attr->attrValuesNumber > 1) {
+                assert(j->second->isMultiValued());
+                ((ImmAttrMultiValue *)j->second)->
+                    copyExtraValuesToEdu(&(attr->attrMoreValues),
+                        (SaImmValueTypeT) attr->attrValueType);
+            }
+        }
+        attrl->next = p->attrValuesList;
+        p->attrValuesList = attrl;
+    }
+
+    (*osip)++;
+
+ done:
+    TRACE_LEAVE();
+    return err;
 }
 
 /** 
@@ -8104,9 +8200,6 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
     
-    //TODO This is a mutating op.
-    //Potential interference problem with sync!
-    
     ImplementerInfo* info = findImplementer(req->impl_id);
     if(!info) {
         if(sImmNodeState == IMM_NODE_W_AVAILABLE) {
@@ -8959,6 +9052,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
         (size_t)req->objectName.size);
     std::string objectName((const char*)req->objectName.buf, sz);
     
+    TRACE_5("Update runtime attributes in object '%s'", objectName.c_str());
+
     ClassInfo* classInfo = 0;
     ObjectInfo* object = 0;
     bool isPersistent = false;
@@ -9059,8 +9154,6 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     //Check that attribute is a runtime attribute.
     //If multivalue implied check that it is multivalued.
     //Assign the attribute as intended.
-    
-    TRACE_5("Update runtime attributes in object '%s'", objectName.c_str());
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         TRACE_5("update rt attributes doit: %u", doIt);
@@ -10244,7 +10337,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             req->adminOwners = ai;
         }
         
-        LOG_NO("finalizeSync message contains %u admin-owners", 
+        LOG_IN("finalizeSync message contains %u admin-owners", 
             (unsigned int) sOwnerVector.size());
         
         req->implementers = NULL;
@@ -10277,7 +10370,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             req->implementers = ii;
         }
 
-        LOG_NO("finalizeSync message contains %u implementers", 
+        LOG_IN("finalizeSync message contains %u implementers", 
             (unsigned int) sImplementerVector.size());
         
         req->classes = NULL;
@@ -10385,6 +10478,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 sOwnerVector.push_back(info);
                 ai = ai->next;
             }
+
+            LOG_IN("finalizeSync message contains %u admin-owners", 
+                (unsigned int) sOwnerVector.size());
             
             //Sync currently existing implementers
             ImmsvImplList* ii = req->implementers;
@@ -10419,6 +10515,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ii = ii->next;
             }
 
+            LOG_IN("finalizeSync message contains %u implementers", 
+                (unsigned int) sImplementerVector.size());
+
             //Attach object implementers using the implementer-name attribute.
             ObjectMap::iterator oi;
             std::string implAttr(SA_IMM_ATTR_IMPLEMENTER_NAME);
@@ -10429,7 +10528,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 assert(att);
                 if(!(att->empty())) {
                     std::string implName(att->getValueC_str());
-                    /*
+                   /*
                       TRACE_5("Attaching implementer %s to object %s",
                       implName.c_str(), oi->first.c_str());
                     */
@@ -10438,6 +10537,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     if(impl) {
                         //Implementer name may be assigned but none attached 
                         obj->mImplementer = impl;
+                    } else {
+                      TRACE_5("Implementer %s for object %s is MISSING",
+                      implName.c_str(), oi->first.c_str());
                     }
                 }
             }
