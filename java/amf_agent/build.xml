@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="amf_agent">
+	<property environment="env" />
+	<!-- <property name="am4j_api.location" value="$AM4J_API_JAR" /> -->
+	<property name="ais_api.location" value="../ais_api" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.5" />
+	<property name="source" value="1.5" />
+
+	<!-- Location of projects that reference this project -->
+	<property name="jar_name" value="amf_agent.jar" />
+
+	<path id="am4j_api.classpath">
+		<pathelement location="${am4j_api.location}" />
+	</path>
+	<path id="ais_api.classpath">
+		<pathelement location="${ais_api.location}/bin" />
+	</path>
+	<path id="amf_agent.classpath">
+		<pathelement location="bin" />
+		<path refid="am4j_api.classpath" />
+		<path refid="ais_api.classpath" />
+	</path>
+
+	<target name="init">
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src" excludes="**/*.launch, **/*.java" />
+		</copy>
+	</target>
+	
+	<target name="clean">
+		<delete failonerror="off" includeemptydirs="true">
+			<fileset dir="build" includes="**/*" />
+			<fileset dir="javadoc" includes="**/*" />
+			<fileset dir="bin" includes="**/*" />
+		</delete>
+	</target>
+	<target depends="clean" name="cleanall">
+		<ant antfile="${ais_api.location}/build.xml" inheritAll="false" target="clean" />
+	</target>
+	
+	<target depends="build-subprojects,build-project" name="build" />	
+	<target name="build-subprojects">
+		<ant antfile="${ais_api.location}/build.xml" inheritAll="false" target="build-project">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+	</target>
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+			<src path="src" />
+			<classpath refid="amf_agent.classpath" />
+		</javac>
+	</target>
+
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+		<ant antfile="${ais_impl_test.location}/build.xml" inheritAll="false" target="clean" />
+		<ant antfile="${ais_impl_test.location}/build.xml" inheritAll="false" target="build">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+	</target>
+
+	<target depends="build" description="Package the project with the current implementation to a single JAR." name="build-jar">
+                <echo>${am4j_api.location}</echo>
+		<delete file="bin/${jar_name}" />
+		<jar destfile="bin/${jar_name}">
+			<fileset dir="bin">
+				<exclude name="**/*.html" />
+			</fileset>
+			<zipfileset includes="**/*.class" src="${am4j_api.location}"/>
+		</jar>
+		<echo message="bin/${jar_name} has been created"></echo>
+	</target>
+	
+	<target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+		<antcall target="build" />
+	</target>
+</project>
