@@ -1566,7 +1566,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			}
 		}
-		if (jobDuration > 120) {/*Waited 2 minutes for loading to complete */
+		if (jobDuration > 300) {/*Waited 5 minutes for loading to complete */
 			LOG_ER("LOADING IS APPARENTLY HUNG");
 			cb->loaderPid = 0;
 			/*immModel_setLoader(cb, 0); */
@@ -1579,7 +1579,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
-		if (jobDuration > (cb->mWaitSecs ? (cb->mWaitSecs + 120) : 120)) {
+		if (jobDuration > (cb->mWaitSecs ? (cb->mWaitSecs + 300) : 300)) {
 			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
 			cb->mStep = 0;
 			cb->mJobStart = now;
