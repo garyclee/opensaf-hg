@@ -205,3 +205,37 @@ AC_DEFUN([AC_PROG_JAVADOC], [
       JAVADOC=$SYMLINK_FOLLOWED_TO
    fi
 ])
+
+#------------------------------------------------------------------------
+# AC_PROG_AM4J_API
+#
+#  If AM4J_API is not already defined, then search for "am4j-api-1.0.jar" in
+#  the jdk lib path.
+#
+# Arguments:
+#  NONE
+#
+# VARIABLES SET:
+#  with_am4j_api_jar can be set to the path name of the AM4J API JAR or to no
+#------------------------------------------------------------------------
+
+AC_DEFUN([AC_PROG_AM4J_API], [
+   if test "x$with_am4j_api_jar" = "xno" ; then
+      AC_PATH_PROG(AM4J_API_JAR, am4j-api-1.0.jar, , $ac_java_vm_dir/lib)
+      if test "x$AM4J_API_JAR" = "x" ; then
+         AC_MSG_ERROR([am4j-api-1.0.jar not found on PATH ... did you try with --with-am4j-api-jar=FILE])
+      fi
+   fi
+
+   AM4J_API=$with_am4j_api_jar
+
+   if test ! -f $AM4J_API_JAR ; then
+      AC_MSG_ERROR([am4j-api '$AM4J_API_JAR' does not exist.
+      Perhaps AM4J API is not installed or you passed a bad file to a --with option.])
+   fi
+
+   if test -h "$AM4J_API_JAR" -a "x$DONT_FOLLOW_SYMLINK" != "xyes"; then
+      FOLLOW_SYMLINKS($AM4J_API_JAR, "am4j-api-1.0.jar")
+      AM4J_API_JAR=$SYMLINK_FOLLOWED_TO
+   fi
+])

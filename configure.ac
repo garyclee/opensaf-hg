@@ -161,6 +161,20 @@ AC_ARG_WITH([initscriptdir],
 
 AC_SUBST([initscriptdir], ["$with_initscriptdir"])
 
+#
+# If the AM4J API library isn't in the standard CLASSPATH, it can be configured
+# with a parameter instead
+AC_ARG_WITH([am4j-api-jar],
+        [AS_HELP_STRING([--with-am4j-api-jar=@<:@FILE@:>@],
+                [use FILE as the AM4J API JAR])],
+        [
+        if test -f $withval; then
+                with_am4j_api_jar=$withval
+        else
+                AC_ERROR([$withval is an invalid filename])
+        fi
+        ],
+        [with_am4j_api_jar=no])
 
 #
 # Enable/disable the Java AIS interface mapping components
@@ -351,6 +365,10 @@ if test "$enable_java" = yes; then
 
         AC_JAVA_ANT
         AC_SUBST([JAVA_HOME], [$ac_java_jvm_dir])
+
+        AC_PROG_AM4J_API
+
+        AC_SUBST([AM4J_API_JAR], ["$with_am4j_api_jar"])
 fi
 
 
@@ -537,6 +555,7 @@ AC_CONFIG_FILES([
         java/ais_api/Makefile
         java/ais_api_impl/Makefile
         java/ais_api_impl_native/Makefile
+        java/amf_agent/Makefile
         osaf/Makefile
         osaf/libs/Makefile
         osaf/libs/agents/Makefile
