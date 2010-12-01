@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ais_api ais_api_impl ais_api_impl_native
+SUBDIRS = ais_api ais_api_impl ais_api_impl_native amf_agent
 
 EXTRA_DIST = \
 	INSTALL \
