@@ -189,8 +189,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		avsv_sanamet_init(dn, &si_name, "safSi");
 
 		if (NULL != (avd_si = avd_si_get(&si_name))) {
-			/* Check for any admin operations undegoing.*/
-			if(AVD_SG_FSM_STABLE != avd_si->sg_of_si->sg_fsm_state) {
+			/* Check for any admin operations undergoing. This is valid during dyn add*/
+			if((opdata != NULL) && (AVD_SG_FSM_STABLE != avd_si->sg_of_si->sg_fsm_state)) {
 				LOG_ER("SG('%s') fsm state('%u') is not in AVD_SG_FSM_STABLE(0)", 
 						avd_si->sg_of_si->name.value, avd_si->sg_of_si->sg_fsm_state);
 				return 0;
