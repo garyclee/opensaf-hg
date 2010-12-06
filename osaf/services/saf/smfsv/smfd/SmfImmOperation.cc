@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <list>
 #include <string>
+#include <string.h>
 #include "stdio.h"
 #include "logtrace.h"
 #include "SmfImmOperation.hh"
@@ -676,8 +677,16 @@ SmfImmDeleteOperation::prepareRollback(SmfRollbackData* o_rollbackData)
            store the current value in rollback data for future use at rollback */
 
         std::string parentDn;
-        if (m_dn.find(",") != std::string::npos) { 
-                parentDn = m_dn.substr(m_dn.find(",") + 1);
+        const char* tmpParentDn = m_dn.c_str();
+        const char* commaPos;
+
+        /* Find first comma not prepended by a \ */
+        while ((commaPos = strchr(tmpParentDn, ',')) != NULL) {
+                if (*(commaPos - 1) != '\\') {
+                        parentDn = (commaPos + 1);
+                        break;
+                }
+                tmpParentDn = commaPos + 1;
         }
 
         o_rollbackData->setType("CREATE");
