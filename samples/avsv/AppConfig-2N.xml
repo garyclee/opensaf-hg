@@ -143,6 +143,11 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 			<name>saAmfCtDefDisableRestart</name>
 			<value>0</value>
 		</attr>
+		<attr>
+			<name>saAmfCtDefCmdEnv</name>
+			<value>AMF_DEMO_VAR1=CT_VALUE1</value>
+			<value>AMF_DEMO_VAR2=CT_VALUE2</value>
+		</attr>
 	</object>
 	<object class="SaAmfCSType">
 		<dn>safVersion=4.0.0,safCSType=AmfDemo1</dn>
@@ -270,11 +275,17 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
-	    <attr>
-		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemo1</value>
-	    </attr>
+                <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
+	        <attr>
+		        <name>saAmfCompType</name>
+		        <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
+	        </attr>
+	        <attr>
+			<name>saAmfCompCmdEnv</name>
+			<value>AMF_DEMO_VAR2=COMP1_OVERLOAD_VALUE2</value>
+			<value>AMF_DEMO_VAR3=COMP1_VALUE3</value>
+			<value>AMF_DEMO_VAR4=COMP1_VALUE4</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompCsType">
 	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1</dn>
@@ -308,11 +319,17 @@ locked(2). Uncomment the commented saAmfSIAdminState sections below.
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
-	    <attr>
-		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemo1</value>
-	    </attr>
+	        <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
+	        <attr>
+		        <name>saAmfCompType</name>
+		        <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
+	        </attr>
+	        <attr>
+			<name>saAmfCompCmdEnv</name>
+			<value>AMF_DEMO_VAR2=COMP2_OVERLOAD_VALUE2</value>
+			<value>AMF_DEMO_VAR3=COMP2_VALUE3</value>
+			<value>AMF_DEMO_VAR4=COMP2_VALUE4</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompCsType">
 	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
