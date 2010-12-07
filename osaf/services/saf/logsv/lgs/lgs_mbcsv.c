@@ -128,7 +128,7 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 	arg.info.initialize.i_service = NCS_SERVICE_ID_LGS;
 
 	if ((rc = ncs_mbcsv_svc(&arg)) != NCSCC_RC_SUCCESS) {
-		TRACE("NCS_MBCSV_OP_INITIALIZE FAILED");
+		LOG_ER("NCS_MBCSV_OP_INITIALIZE FAILED");
 		goto done;
 	}
 
@@ -141,7 +141,7 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 	arg.info.open.i_client_hdl = 0;
 
 	if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
-		TRACE("NCS_MBCSV_OP_OPEN FAILED");
+		LOG_ER("NCS_MBCSV_OP_OPEN FAILED");
 		goto done;
 	}
 	cb->mbcsv_ckpt_hdl = arg.info.open.o_ckpt_hdl;
@@ -151,7 +151,7 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	arg.info.sel_obj_get.o_select_obj = 0;
 	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&arg))) {
-		TRACE("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
+		LOG_ER("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
 		goto done;
 	}
 
@@ -165,7 +165,7 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 	arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
 	arg.info.obj_set.i_val = FALSE;
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
-		TRACE("NCS_MBCSV_OP_OBJ_SET FAILED");
+		LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
 		goto done;
 	}
 
@@ -1373,7 +1373,7 @@ uns32 lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uns32 action)
 
 	/* Send async update */
 	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-		TRACE(" MBCSV send FAILED rc=%u.", rc);
+		LOG_ER("MBCSV send FAILED rc=%u.", rc);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}

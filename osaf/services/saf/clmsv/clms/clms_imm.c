@@ -686,7 +686,7 @@ static void clms_create_track_resp_list(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_IN
 	trk->pat_node.key_info = (uns8 *)&client->inv_id;	/*Key Info as inv id */
 
 	if (ncs_patricia_tree_add(&node->trackresp, &trk->pat_node) != NCSCC_RC_SUCCESS) {
-		LOG_ER("patricia tree add failed for CLMS_TRACK_INFO");
+		LOG_ER("patricia tree add failed for CLMS_TRACK_INFO inv_id %llu",client->inv_id);
 		assert(0);
 	}
 
@@ -1139,11 +1139,12 @@ static SaAisErrorT clms_imm_ccb_obj_delete_callback(SaImmOiHandleT immOiHandle,
 		/* "memorize the request" */
 		ccbutil_ccbAddDeleteOperation(ccb_util_ccb_data, objectName);
 	} else {
-		TRACE("Failed to get CCB object for %llu", ccbId);
+		LOG_ER("Failed to get CCB object for %llu", ccbId);
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
 	if (!strncmp((const char *)objectName->value, "safCluster=", 11)) {
+		LOG_ER("Deletion of the present single cluster Object not supported");
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 	}
 
@@ -1238,11 +1239,11 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saClmNodeAddressFamily")) {
-			TRACE("Modifictaion of saClmNodeAddressFamily  not allowed");
+			LOG_IN("Modification of saClmNodeAddressFamily of object %s not allowed",opdata->objectName.value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "saClmNodeAddress")) {
-			TRACE("Modifictaion of saClmNodeAddress  not allowed");
+			LOG_IN("Modification of saClmNodeAddress of object %s not allowed",opdata->objectName.value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout")) {
@@ -1254,11 +1255,11 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata)
 		} else if (!strcmp(attribute->attrName, "saClmNodeEE")) {
 
 			if (clms_cb->reg_with_plm == SA_FALSE) {
-				TRACE("saClmNodeEE1 attribute change doesn't apply when plm in not in model");
+				LOG_IN("saClmNodeEE attribute change doesn't apply when plm in not in model");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else {
-				TRACE("saClmNodeEE1 attribute change is not supported");
+				LOG_IN("saClmNodeEE attribute change of object %s is not supported",opdata->objectName.value);
 				rc = SA_AIS_ERR_NOT_SUPPORTED;
 				goto done;
 			}
@@ -1368,10 +1369,7 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	node->stat_change = SA_FALSE;
 
 	/*Send Notification with ntfid as SA_CLM_NTFID_NODE_RECONFIG */
-	rc = clms_node_reconfigured_ntf(clms_cb, node);
-	if (rc != SA_AIS_OK) {
-		TRACE("clms_node_reconfigured_ntf failed %u", rc);
-	}
+	clms_node_reconfigured_ntf(clms_cb, node);
 	node->change = SA_CLM_NODE_NO_CHANGE;
 
 	ckpt_node_rec(node);
@@ -1663,7 +1661,7 @@ static void clms_timer_ipc_send(SaClmNodeIdT node_id)
 
 	rc = m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, MDS_SEND_PRIORITY_VERY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("IPC send failed %d", rc);
+		LOG_ER("IPC send failed %d", rc);
 		free(clmsv_evt);
 	}
 
@@ -1704,17 +1702,9 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 	nodeop->change = SA_CLM_NODE_NO_CHANGE;
 
 	/* Send node leave notification */
-	rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
-	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_node_exit_ntf failed %u", rc);
-		goto done;
-	}
+	clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
 
-	rc = clms_node_exit_ntf(clms_cb, nodeop);
-	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_node_exit_ntf failed %u", rc);
-		goto done;
-	}
+	clms_node_exit_ntf(clms_cb, nodeop);
 
 	rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -1726,7 +1716,6 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 			 clms_reboot_remote_node(nodeop,"Clm lock:no start subscriber and  disable reboot set to false");
 		} /* Without PLM in system,till now there is no mechanism to reboot remote node*/
 	}
- done:
 	TRACE_LEAVE();
 	return rc;
 
@@ -1793,11 +1782,7 @@ uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 		(void)immutil_saImmOiAdminOperationResult(clms_cb->immOiHandle, nodeop->curr_admin_inv, SA_AIS_OK);
 
 		/*Send Notification */
-		rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
-		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("clms_node_admin_state_change_ntf failed %u", rc);
-			goto done;
-		}
+		clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
 	}
  done:
 	TRACE_LEAVE();
@@ -1846,11 +1831,7 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
 
 				/*Send node join notification */
-				rc = clms_node_join_ntf(clms_cb, nodeop);
-				if (rc != NCSCC_RC_SUCCESS) {
-					TRACE("clms_node_join_ntf failed %u", rc);
-					goto done;
-				}
+				clms_node_join_ntf(clms_cb, nodeop);
 
 				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
 				if(rc != NCSCC_RC_SUCCESS) {
@@ -1881,11 +1862,7 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_COMPLETED);
 
 				/*Send node join notification */
-				rc = clms_node_join_ntf(clms_cb, nodeop);
-				if (rc != NCSCC_RC_SUCCESS) {
-					TRACE("clms_node_join_ntf failed %u", rc);
-					goto done;
-				}
+				clms_node_join_ntf(clms_cb, nodeop);
 
 				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
 				if(rc != NCSCC_RC_SUCCESS) {
@@ -1914,11 +1891,7 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 
 	/* Send node join notification */
 	(void)immutil_saImmOiAdminOperationResult(clms_cb->immOiHandle, nodeop->curr_admin_inv, SA_AIS_OK);
-	rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_UNLOCKED);
-	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_node_admin_state_change_ntf failed %u", rc);
-		goto done;
-	}
+	clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_UNLOCKED);
  done:
 	TRACE_LEAVE();
 	return rc;
@@ -1966,10 +1939,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 			nodeop->change = SA_CLM_NODE_SHUTDOWN;
 			clms_send_track(clms_cb, nodeop, SA_CLM_CHANGE_START);
 
-			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
-                        if (rc != NCSCC_RC_SUCCESS) {
-                                TRACE("clms_node_admin_state_change_ntf failed %u", rc);
-                        }
+			clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_SHUTTING_DOWN);
 
 		} else {
 			nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
@@ -1997,15 +1967,9 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 
 			nodeop->change = SA_CLM_NODE_NO_CHANGE;
 
-			rc = clms_node_exit_ntf(clms_cb, nodeop);
-			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_node_exit_ntf failed %u", rc);
-			}
+			clms_node_exit_ntf(clms_cb, nodeop);
 
-			rc = clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
-			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_node_admin_state_change_ntf failed %u", rc);
-			}
+			clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
 
 			rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -2065,7 +2029,7 @@ static void clms_lock_send_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 	timer.it_interval.tv_nsec = 0;
 
 	if ((timer_settime(nodeop->lock_timerid, 0, &timer, NULL)) != 0) {
-		TRACE("Setting lock timer value failed");
+		LOG_ER("Setting lock timer value failed");
 		assert(0);
 	}
 	TRACE("Timer started");

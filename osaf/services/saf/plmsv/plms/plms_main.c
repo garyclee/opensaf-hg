@@ -263,7 +263,7 @@ static uns32 plms_init()
 	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
-		TRACE("ncs_agents_startup FAILED");
+		LOG_ER("ncs_agents_startup FAILED");
                 rc = NCSCC_RC_FAILURE;
 		goto done;
 	}

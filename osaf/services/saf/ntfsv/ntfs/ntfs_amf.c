@@ -234,7 +234,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
 	if (role_change == TRUE) {
 		if ((rc = ntfs_mds_change_role()) != NCSCC_RC_SUCCESS) {
-			TRACE("ntfs_mds_change_role FAILED");
+			LOG_ER("ntfs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
 
@@ -422,6 +422,7 @@ SaAisErrorT ntfs_amf_init()
 
 	/* Start AMF healthchecks */
 	if (ntfs_amf_healthcheck_start() != SA_AIS_OK){
+		LOG_ER("ntfs_amf_healthcheck_start() FAILED");
 		error = NCSCC_RC_FAILURE;
 		goto done;
 	}

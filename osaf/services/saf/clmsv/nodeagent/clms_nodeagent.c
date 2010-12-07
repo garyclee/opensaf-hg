@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 			if (errno == EINTR)
 				continue;
 
-			syslog(LOG_ERR, "%s: poll failed - %s", __FUNCTION__, strerror(errno));
+			LOG_ER("%s: poll failed - %s", __FUNCTION__, strerror(errno));
 			break;
 		}
 

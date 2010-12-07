@@ -166,7 +166,7 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 			/* Delete this client data from the clmresp tracking list */
 			rc = clms_client_del_trackresp(client->client_id);
 			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_client_delete_trackresp FAILED: %u", rc);
+				LOG_ER("clms_client_delete_trackresp FAILED: %u", rc);
 			}
 			break;
 		}
@@ -197,7 +197,7 @@ uns32 clms_client_delete(uns32 client_id)
 	}
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_del(&clms_cb->client_db, &client->pat_node)) {
-		TRACE("ncs_patricia_tree_del FAILED");
+		LOG_ER("ncs_patricia_tree_del FAILED for key %u",client_id);
 		status = 2;
 		goto done;
 	}
@@ -226,7 +226,7 @@ CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id)
 	TRACE_ENTER2("MDS dest %llx", mds_dest);
 
 	if (NULL == (client = calloc(1, sizeof(CLMS_CLIENT_INFO)))) {
-		LOG_WA("calloc FAILED");
+		LOG_ER("clms_client_new calloc FAILED");
 		goto done;
 	}
 
@@ -347,10 +347,7 @@ uns32 proc_node_up_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 			node->stat_change = SA_FALSE;
 
 			/* Send Node join notification */
-			rc = clms_node_join_ntf(clms_cb, node);
-			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_node_join_ntf failed %u", rc);
-			}
+			clms_node_join_ntf(clms_cb, node);
 			clms_node_update_rattr(node);
 			clms_cluster_update_rattr(osaf_cluster);
 			ckpt_node_rec(node);
@@ -389,14 +386,8 @@ static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 		goto done;
 	clms_clmresp_error_timeout(clms_cb, op_node);
 
-	rc = clms_node_exit_ntf(clms_cb, op_node);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("clms_node_exit_ntf failed %u", rc);
-	}
-	rc = clms_node_admin_state_change_ntf(clms_cb, op_node, SA_CLM_ADMIN_LOCKED);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
-	}
+	clms_node_exit_ntf(clms_cb, op_node);
+	clms_node_admin_state_change_ntf(clms_cb, op_node, SA_CLM_ADMIN_LOCKED);
 
 	/*you have to reboot the node in case of imm */
 	if (clms_cb->reg_with_plm == SA_TRUE)
@@ -411,8 +402,6 @@ static uns32 proc_node_lock_tmr_exp_msg(CLMSV_CLMS_EVT * evt)
 
 void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-
 	node->nodeup = 0;
 	TRACE_ENTER2("MDS Down nodeup info %d", node->nodeup);
 
@@ -432,10 +421,7 @@ void clms_track_send_node_down(CLMS_CLUSTER_NODE *node)
 	/* Clear node->stat_change after sending the callback to its clients */
 	node->stat_change = SA_FALSE;
 
-	rc = clms_node_exit_ntf(clms_cb, node);
-	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("clms_node_exit_ntf failed %u", rc);
-	}
+	clms_node_exit_ntf(clms_cb, node);
 	/*Update IMMSV */
 	clms_node_update_rattr(node);
 	clms_cluster_update_rattr(osaf_cluster);
@@ -598,7 +584,7 @@ static uns32 proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt)
 				if (NULL == (clma_down_rec = (CLMA_DOWN_LIST *) malloc(sizeof(CLMA_DOWN_LIST)))) {
 					/* Log it */
 					rc = SA_AIS_ERR_NO_MEMORY;
-					TRACE("memory allocation for the CLMA_DOWN_LIST failed");
+					LOG_ER("memory allocation for the CLMA_DOWN_LIST failed");
 					break;
 				}
 				memset(clma_down_rec, 0, sizeof(CLMA_DOWN_LIST));
@@ -866,7 +852,7 @@ static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	node = clms_node_get_by_id(node_id);
 	TRACE("Node id = %d", node_id);
 	if (node == NULL) {
-		TRACE("Client tracking on an unconfigured node");
+		LOG_IN("Client tracking on an unconfigured node:nodeid = %d",node_id);
 		ais_rc = SA_AIS_ERR_UNAVAILABLE;
 		goto snd_rsp;
 	}
@@ -874,13 +860,13 @@ static uns32 proc_track_stop_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	client = clms_client_get_by_id(param->client_id);
 
 	if (client == NULL) {
-		TRACE("Invalid Client ID");
+		LOG_IN("Invalid Client ID:client_id = %d",param->client_id);
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto snd_rsp;
 	}
 
 	if (client->track_flags == 0) {
-		TRACE("Client didn't subscribe for track start");
+		LOG_IN("Client %d didn't subscribe for track start",param->client_id);
 		ais_rc = SA_AIS_ERR_NOT_EXIST;
 		goto snd_rsp;
 	}
@@ -1083,7 +1069,7 @@ static uns32 proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	node = clms_node_get_by_id(node_id);
 	TRACE("Node id = %d", node_id);
 	if (node == NULL) {
-		TRACE("Client on an unconfigured node");
+		LOG_IN("Initialize request of client on an unconfigured node: node_id = %d",node_id);
 		ais_rc = SA_AIS_ERR_UNAVAILABLE;
 	}
 

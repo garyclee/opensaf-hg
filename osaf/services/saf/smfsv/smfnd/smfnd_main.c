@@ -127,13 +127,13 @@ static uns32 initialize_smfnd(void)
 
 	/* Create the mailbox used for communication with SMFD/SMFA */
 	if ((rc = m_NCS_IPC_CREATE(&smfnd_cb->mbx)) != NCSCC_RC_SUCCESS) {
-		TRACE("m_NCS_IPC_CREATE FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
 		goto done;
 	}
 
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&smfnd_cb->mbx) != NCSCC_RC_SUCCESS)) {
-		TRACE("m_NCS_IPC_ATTACH FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		goto done;
 	}
 

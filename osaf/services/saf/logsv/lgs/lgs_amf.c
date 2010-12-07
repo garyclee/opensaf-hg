@@ -468,8 +468,10 @@ SaAisErrorT lgs_amf_init(lgs_cb_t *cb)
 	}
 
 	/* Start AMF healthchecks */
-	if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK)
+	if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK){
+		LOG_ER("amf_healthcheck_start() failed with error %u",error);
 		goto done;
+	}
 
  done:
 	TRACE_LEAVE();

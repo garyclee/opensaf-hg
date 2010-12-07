@@ -151,7 +151,7 @@ static uns32 log_stream_remove(const char *key)
 	
 	if (ncs_patricia_tree_get(&stream_dn_tree,stream->pat_node.key_info)){
 		if ((rc = ncs_patricia_tree_del(&stream_dn_tree, &stream->pat_node)) != NCSCC_RC_SUCCESS) {
-			TRACE("ncs_patricia_tree_del FAILED");
+			LOG_WA("ncs_patricia_tree_del FAILED for  '%s' %u",key,rc);
 			goto done;
 		}
 	}
@@ -271,7 +271,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 
 	stream = calloc(1, sizeof(log_stream_t));
 	if (stream == NULL) {
-		LOG_WA("calloc FAILED");
+		LOG_WA("log_stream_new calloc FAILED");
 		goto done;
 	}
 	memcpy(stream->name, dn->value, dn->length);
@@ -437,7 +437,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 			free(dndup);
 
 			if (rv != SA_AIS_OK) {
-				TRACE("saImmOiRtObjectCreate_2 returned %u for %s, parent %s",
+				LOG_ER("saImmOiRtObjectCreate_2 returned %u for %s, parent %s",
 				      rv, stream->name, parent_name);
 				log_stream_delete(&stream);
 				goto done;
@@ -601,7 +601,7 @@ int log_stream_close(log_stream_t **s)
 		if (stream->fd != -1) {
 			char *timeString = lgs_get_time();
 			if ((rc = fileclose(stream->fd)) == -1) {
-				LOG_ER("close FAILED: %s", strerror(errno));
+				LOG_ER("log_stream_close FAILED: %s", strerror(errno));
 				goto done;
 			}
 
@@ -647,7 +647,7 @@ int log_stream_file_close(log_stream_t *stream)
 
 	if (stream->fd != -1) {
 		if ((rc = fileclose(stream->fd)) == -1)
-			LOG_ER("close FAILED: %s", strerror(errno));
+			LOG_ER("log_stream_file_close FAILED: %s", strerror(errno));
 		else
 			stream->fd = -1;
 	}
@@ -1013,7 +1013,7 @@ int log_stream_config_change(log_stream_t *stream, const char *current_file_name
 	}
 
 	if ((rc = fileclose(stream->fd)) == -1) {
-		LOG_ER("close FAILED: %s", strerror(errno));
+		LOG_ER("log_stream_config_change file close  FAILED: %s", strerror(errno));
 		goto done;
 	}
 

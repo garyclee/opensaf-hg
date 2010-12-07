@@ -276,7 +276,7 @@ static void plms_handle_oi_init_try_again_err (SaImmOiHandleT *imm_oi_hdl)
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OiInit Retry count %u", retry_cnt);
+		LOG_IN("OiInit Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OiInit returned error %u, so asserting now", error);
@@ -302,7 +302,7 @@ static void plms_handle_oi_sel_obj_get_try_again_err(SaSelectionObjectT
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OiSelObjGet Retry count %u", retry_cnt);
+		LOG_IN("OiSelObjGet Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OiSelObjGet returned error %u, asserting now", error);
@@ -327,7 +327,7 @@ static void plms_handle_oi_impl_set_try_again_err()
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OiImplSet Retry count %u", retry_cnt);
+		LOG_IN("OiImplSet Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OiImplSet returned error %u, so asserting now", error);
@@ -374,7 +374,7 @@ static void plms_handle_class_impl_set_try_again_err(SaImmClassNameT class_name)
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OiClassImplSet Retry count %u", retry_cnt);
+		LOG_IN("OiClassImplSet Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OiClassImplSet returned error %u, asserting now",error);
@@ -400,7 +400,7 @@ static void plms_handle_om_init_try_again_err (SaImmHandleT *imm_om_hdl)
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OmInit Retry count %u", retry_cnt);
+		LOG_IN("OmInit Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OmInit returned error %u, asserting now", error);
@@ -466,7 +466,7 @@ static void plms_handle_om_search_init_try_again_err(SaNameT *root_name,
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OmSearchInit Retry count %u", retry_cnt);
+		LOG_IN("OmSearchInit Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OmSearchInit returned error %u, asserting now", error);
@@ -493,7 +493,7 @@ static void plms_handle_om_search_next_try_again_err(SaImmSearchHandleT
 			break; /* from the do while */
 		}
 		++retry_cnt;
-		LOG_ER("OmSearchNext Retry count %u", retry_cnt);
+		LOG_IN("OmSearchNext Retry count %u", retry_cnt);
 	}while (1);
 	if (error != SA_AIS_OK) {
 		LOG_CR("OmSearchNext returned error %u, asserting now", error);

@@ -1219,7 +1219,7 @@ uns32 ntfs_mds_msg_send(ntfs_cb_t *cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("mds send FAILED");
+		LOG_ER("ntfs_mds_msg_send FAILED");
 	}
 	return rc;
 }
