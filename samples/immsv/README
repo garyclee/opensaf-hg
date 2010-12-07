@@ -15,7 +15,23 @@
 # Author(s): Ericsson AB
 #
 
-The intent is that this directory shall contain various examples of imm usage.
-Currently we only have a file for test classes here.
-The testclass can be added to your system by an "immcfg -f immsv_test_classes.xml".
+This directory contains various examples of imm usage.
+Currently we have:
+
+	* immsv_test_classes.xml:  A file for test classes.
+	  The testclass(es) can be added to your system by an 
+	  "immcfg -f immsv_test_classes.xml".
+
+	* imm_utils: A collection of utility functions intended to make life
+          easier for programmers forced to use the SAF-IMM C API.
+          This is provided as is, take it or leave it, for use by anyone
+          that finds it convenient for accessing the OpenSAF IMM.
+          To use it you need to copy and integrate it into your own build.
+          There is no Makefile here.
+          Contributor: Lars Ekman (lars.g.ekman@ericsson.com)
+
+	* immom_python: A python interface to the ImmOm interface.
+          Se README in subdirectory.
+          Contributor: Lars Ekman (lars.g.ekman@ericsson.com)
+
 

@@ -1,0 +1,301 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Lars Ekman, Ericsson AB (lars.g.ekman@ericsson.com)
+#
+
+
+
+IMM Object Manager for Python
+=============================
+
+This is an object manager for python. A python interface to the OM
+(object management) interface for the IMM is provided.
+
+PLEASE NOTE:
+This is *NOT* an python version of the C API. It is not intend to
+be. This python interface is designed to provide a powerful and
+convenient method for object management in the IMM.
+
+You can *NOT* use the Object Implementer (OI) interface from python
+with this package.
+
+
+Example usage
+-------------
+
+The Python immom may be used for programatic manipulation of IMM
+objects and when the "imm*" cli-commands are insufficient, and when a
+C program is unnecesary complex.  The powerful data types such as list
+and set in Python simplifies the object handlling a lot!
+
+Examples;
+
+  o Tests and test frameworks. (this was the original purpose)
+
+  o Object manipulation in larger CCB. The "imm*" commands does only
+    one action in a CCB.
+
+  o Complex cli commands. Complex checks and manipulations are
+    often suprisingly simple in Python.
+
+  o Complex filtering and information extraction from the IMM.
+
+  o Create initial configuration for an application from a more
+    convenient format (e.g. a readable XML).
+
+
+The files
+---------
+
+README --
+  This file.
+
+immombin.c --
+  This is the adaptation to the native IMMOM C interface.
+
+immom.py --
+  This is the python immom API. A Python script should use this module
+  rather than the "immombin" module directly.
+
+immomcmd.py --
+  This is an interactive command line interace that uses "immom.py".  It
+  can be used as a complement or alternative to the "imm*" commands.
+
+immomtest.py --
+  Test program for "immom.py".
+
+immomexamples.py --
+  Some random example functions using "immom.py"
+
+
+Compilation
+-----------
+
+The "immombin.c" must be compiled to a shared library using Python
+includes and libraries that match the ones used on the
+cluster. Example;
+
+  gcc -shared -o immombin.so -I/usr/include/python2.6 -I$OPENSAFD/include \
+    -Wall immombin.c -L$OPENSAFD/lib -lpython2.6 -lSaImmOm
+
+
+Execute on the cluster
+----------------------
+
+Copy the compiled immombin.so and the "*.py" files to the cluster. Set
+the PYTHONPATH variable to the directory where the files are
+placed. Then call for instance the "immomtest.py" program to verify
+the installation or the "immomcmd.py" to check things interactively.
+
+A powerful feature in interpreted languages like Python is to run your
+functions in a "shell". For example;
+
+  # python
+  Python 2.6.1 ...
+  >>> import immom
+  >>> help(immom)
+  ... (help text printed)
+  >>> immom.getinstanceof('safCluster=myClmCluster', 'SaClmNode')
+  ... (list of nodes printed)
+  >>> import immomexamples
+  >>> immomexamples.getimplementers()
+  ['safAmfService', 'safClmService', 'OpenSAFDtsvService', 'safLogService']
+  >>>
+
+
+
+Help on module immom:
+---------------------
+
+NAME
+    immom - immom -- An IMM Object Manager in Python
+
+FILE
+    immom.py
+
+DESCRIPTION
+      The Information Model Management (IMM) is the configuration module
+      in Service Availability Forum (SAF). The "immom" module provides
+      object management functions towards the IMM.
+    
+      "immom" uses the "immombin" module to make native calls to the
+      IMM C-API functions.
+    
+      Most functions may raise an immom.AisException. The possible
+      reasons are;
+    
+            "SA_AIS_ERR_LIBRARY",
+            "SA_AIS_ERR_VERSION",
+            "SA_AIS_ERR_INIT",
+            "SA_AIS_ERR_TIMEOUT",
+            "SA_AIS_ERR_TRY_AGAIN",
+            "SA_AIS_ERR_INVALID_PARAM",
+            "SA_AIS_ERR_NO_MEMORY",
+            "SA_AIS_ERR_BAD_HANDLE",
+            "SA_AIS_ERR_BUSY",
+            "SA_AIS_ERR_ACCESS",
+            "SA_AIS_ERR_NOT_EXIST",
+            "SA_AIS_ERR_NAME_TOO_LONG",
+            "SA_AIS_ERR_EXIST",
+            "SA_AIS_ERR_NO_SPACE",
+            "SA_AIS_ERR_INTERRUPT",
+            "SA_AIS_ERR_NAME_NOT_FOUND",
+            "SA_AIS_ERR_NO_RESOURCES",
+            "SA_AIS_ERR_NOT_SUPPORTED",
+            "SA_AIS_ERR_BAD_OPERATION",
+            "SA_AIS_ERR_FAILED_OPERATION",
+            "SA_AIS_ERR_MESSAGE_ERROR",
+            "SA_AIS_ERR_QUEUE_FULL",
+            "SA_AIS_ERR_QUEUE_NOT_AVAILABLE",
+            "SA_AIS_ERR_BAD_FLAGS",
+            "SA_AIS_ERR_TOO_BIG",
+            "SA_AIS_ERR_NO_SECTIONS",
+            "SA_AIS_ERR_NO_OP",
+            "SA_AIS_ERR_REPAIR_PENDING",
+            "SA_AIS_ERR_NO_BINDINGS",
+            "SA_AIS_ERR_UNAVAILABLE"
+
+FUNCTIONS
+
+    adminoperation(dn, op, attr_list)
+        Invoke an Administrative Operation.
+    
+    adminowner_clear(scope, dn_list)
+        Clear the admin owner for objects.
+        
+        scope := 'SA_IMM_ONE' | 'SA_IMM_SUBLEVEL' | 'SA_IMM_SUBTREE'
+    
+    adminowner_finalize()
+        Finalize the admin owner.
+        Any ongoing CCB will be aborted.
+    
+    adminowner_initialize(name)
+        Initialize an admin owner.
+        "immom" allows only one active admin owner. An admin owner is
+        required for a CCB.
+    
+    ccb_apply()
+        Apply a CCB.
+        All changes in the CCB will be executed in an atomic operation.
+    
+    ccb_finalize()
+        Finalize the CCB
+        If "ccb_apply()" has NOT been called all operations for the CCB are
+        aborted.
+    
+    ccb_initialize(flag=0)
+        Initialize a CCB.
+        "immom" allows only one active CCB.  A CCB is required for
+        create/modify/delete object operations.
+        Prerequisites: An admin owner must have been initiated.
+    
+    classof(dn)
+        Get the class of an object.
+    
+    copyobject(src_dn, dst_dn)
+        Copy an IMM object.
+    
+    createclass(name, category, attrs)
+        Create a new IMM class.
+        See the "getclass" function for parameter values. Any "SaImm*"
+        attributes passed will be ignored.
+        
+        NOTE: Default values are not yet implemented.
+
+    createobject(dn, class_name, attr_list)
+        Create an IMM object.
+        The passed dn is the object to be created, NOT the parent. The rdn
+        attribute will be created automatically and shall not be included
+        in the attr_list. Any "SaImm*" and RDN attributes will be ignored.
+    
+    deleteclass(name)
+        Delete an IMM class.
+        No instantiated objects of the class may exist.
+    
+    deleteobjects(dn_list)
+        Delete IMM objects.
+        Prerequisites: An admin owner and CCB must have been initiated.
+    
+    deletesubtree(dn)
+        Delete a subtree in the IMM.
+        Prerequisites: An admin owner and CCB must have been initiated.
+        WARNING: This can be a very destructive command!
+    
+    dumpclass(cn)
+        Dump a class in imm-xml format.
+    
+    dumpobj(dn)
+        Dump an object in imm-xml format.
+
+    getattributes(dn)
+        Get the attributes of an IMM object as a dictionary.
+        This is basically the same as the getobject function but returned as
+        a convenient dictionary. The type info is however lost.
+    
+    getchildobjects(dn)
+        Get child objects of the passed object.
+        An empty dn ('') represents the root.
+    
+    getclass(name)
+        Get IMM Class Information.
+        Retruns a tuple (category, attribute_list). The attribute_list consists
+        of tuples (name, type, flag_list, default_list). Example;
+        
+        >>> immom.getclass('Common')
+        ('CONFIG', [('userLabel', 'SASTRINGT', ['CONFIG', 'WRITABLE'],[]),
+                    ('SaImmAttrImplementerName', 'SASTRINGT', ['CONFIG'],[]),
+                    ('SaImmAttrClassName', 'SASTRINGT', ['CONFIG'],[]),
+                    ('SaImmAttrAdminOwnerName', 'SASTRINGT', ['CONFIG'],[]),
+                    ('CommonId', 'SANAMET', ['RDN', 'CONFIG', 'INITIALIZED'],[])])
+        
+        category := 'CONFIG' | 'RUNTIME'
+        
+        type := 'SAINT32T' | 'SAUINT32T' | 'SAINT64T' | 'SAUINT64T' |
+                'SATIMET' | 'SANAMET' | 'SAFLOATT' | 'SADOUBLET' |
+                'SASTRINGT' | 'SAANYT'
+        
+        flag := 'MULTI_VALUE' | 'RDN' | 'CONFIG' | 'WRITABLE' | 'INITIALIZED' |
+                'RUNTIME' | 'PERSISTENT' | 'CACHED'
+    
+    getclassnames()
+        Returns a list of all defined IMM classes.
+    
+    getinstanceof(dn, classname)
+        Get instances of a class beneath the passed object.
+        An empty dn ('') represents the root and will thus return all instances
+        of the class. Childs may come before their parents in the list (IMM
+        search order is undefined).
+    
+    getobject(dn)
+        Get an IMM object.
+        Returns a list with all attributes as tuples (name, type, value_list).
+        See the "getclass" function for types.
+    
+    getsubtree(dn)
+        Get ALL objects beneath the passed object.
+        An empty dn ('') represents the root and will thus return all objects
+        in the IMM. In the returned list parents will come before their child
+        objects.
+    
+    modifyobject(dn, attr_list)
+        Modify an IMM object.
+        Any "SaImm*" attributes will be ignored.
+    
+    split_dn(dn)
+        Split a distinguish (dn) name into a tuple; (rdn,parent)
+        Handles the rather tricky case with "referende" rdn's like;
+        "ref=one=1\,two=2\,three=3,top=1" which would split into
+        ('ref=one=1\,two=2\,three=3', 'top=1')
+
