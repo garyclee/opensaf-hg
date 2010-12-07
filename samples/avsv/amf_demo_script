@@ -46,6 +46,9 @@ instantiate()
 	echo $! > $PIDFILE
 }
 
+logger -t AMF_DEMO CMD=$CMD
+printenv | grep AMF_DEMO_VAR | logger -t AMF_DEMO_VAR
+
 case "$CMD" in
 	instantiate)
 		instantiate $*
