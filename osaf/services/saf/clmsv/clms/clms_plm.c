@@ -160,11 +160,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 						++(clms_cb->cluster_view_num);
 						--(osaf_cluster->num_nodes);
 						node->member = SA_FALSE;
-						rc = clms_node_exit_ntf(clms_cb, node);
-						if (rc != SA_AIS_OK) {
-							TRACE("clms_node_exit_ntf failed %u", rc);
-							/*goto done; */
-						}
+						clms_node_exit_ntf (clms_cb, node);
 					
 						rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
 						if (rc != NCSCC_RC_SUCCESS) {
