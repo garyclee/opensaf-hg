@@ -100,7 +100,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list
 	}
 
 	if (NULL == (client = calloc(1, sizeof(log_client_t)))) {
-		LOG_WA("calloc FAILED");
+		LOG_WA("lgs_client_new calloc FAILED");
 		goto done;
 	}
 
@@ -161,7 +161,7 @@ int lgs_client_delete(uns32 client_id)
 
 	if (ncs_patricia_tree_get(&lgs_cb->client_tree,client->pat_node.key_info)){
 		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_del(&lgs_cb->client_tree, &client->pat_node)) {
-			TRACE("ncs_patricia_tree_del FAILED");
+			LOG_WA("ncs_patricia_tree_del FAILED,client_id %u",client_id);
 			status = -2;
 			goto done;
 		}
@@ -369,7 +369,7 @@ static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 				ckpt.ckpt_rec.agent_dest = evt->fr_dest;
 				async_rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 				if (async_rc == NCSCC_RC_SUCCESS) {
-					TRACE_4("ASYNC UPDATE SEND SUCCESS for LGA_DOWN event..");
+					TRACE("ASYNC UPDATE SEND SUCCESS for LGA_DOWN event..");
 				}
 			}
 		} else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
@@ -378,7 +378,7 @@ static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 				if (NULL == (lga_down_rec = (LGA_DOWN_LIST *) malloc(sizeof(LGA_DOWN_LIST)))) {
 				/* Log it */
 					rc = SA_AIS_ERR_NO_MEMORY;
-					TRACE("memory allocation for the LGA_DOWN_LIST failed");
+					LOG_WA("memory allocation for the LGA_DOWN_LIST failed");
 					break;
 				}
 				memset(lga_down_rec, 0, sizeof(LGA_DOWN_LIST));

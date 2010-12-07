@@ -154,7 +154,7 @@ static uns32 initialize()
 	TRACE_ENTER();
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
-		TRACE("ncs_core_agents_startup FAILED");
+		LOG_ER("ncs_core_agents_startup FAILED");
 		goto done;
 	}
 
@@ -179,13 +179,13 @@ static uns32 initialize()
 
 	/* Create the mailbox used for communication with NTFS */
 	if ((rc = m_NCS_IPC_CREATE(&ntfs_cb->mbx)) != NCSCC_RC_SUCCESS) {
-		TRACE("m_NCS_IPC_CREATE FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
 		goto done;
 	}
 
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&ntfs_cb->mbx) != NCSCC_RC_SUCCESS)) {
-		TRACE("m_NCS_IPC_ATTACH FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		goto done;
 	}
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 	daemonize(argc, argv);
 
 	if (initialize() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "initialize in ntfs  FAILED, exiting...");
+		LOG_ER("initialize in ntfs  FAILED, exiting...");
 		goto done;
 	}
 

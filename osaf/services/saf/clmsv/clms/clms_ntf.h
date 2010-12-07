@@ -17,10 +17,10 @@
 
 #ifndef CLMS_NTF_H
 #define CLMS_NTF_H
-extern uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
-extern uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState);
+extern void clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
+extern void clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState);
 extern SaAisErrorT clms_ntf_init(CLMS_CB * cb);
-extern uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
-extern uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
+extern void clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
+extern void clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node);
 
 #endif

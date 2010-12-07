@@ -116,7 +116,7 @@ static uns32 sendStateChangeNotificationClms(CLMS_CB * clms_cb,
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
+void clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT dn;
@@ -141,7 +141,9 @@ uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 						 SA_NTF_OBJECT_OPERATION,
 						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_JOINED);
 
-	return status;
+	if(status == NCSCC_RC_FAILURE)
+		LOG_ER("clms_node_join_ntf FAILED: status= %u",status);
+
 }
 
 /*****************************************************************************
@@ -156,7 +158,7 @@ uns32 clms_node_join_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
+void clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT dn;
@@ -181,7 +183,9 @@ uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 						 SA_NTF_OBJECT_OPERATION,
 						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_LEFT);
 
-	return status;
+	if(status == NCSCC_RC_FAILURE)
+		LOG_ER("clms_node_exit_ntf failed %u",status);		
+
 }
 
 /*****************************************************************************
@@ -196,7 +200,7 @@ uns32 clms_node_exit_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
+void clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT dn;
@@ -219,7 +223,9 @@ uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 						 SA_NTF_OBJECT_OPERATION,
 						 SA_CLM_CLUSTER_CHANGE_STATUS, SA_CLM_NODE_RECONFIGURED);
 
-	return status;
+	if(status == NCSCC_RC_FAILURE)
+                LOG_ER("clms_node_reconfigured_ntf failed %u",status);
+
 }
 
 /*****************************************************************************
@@ -234,7 +240,7 @@ uns32 clms_node_reconfigured_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node)
 
   Notes         : 
 *****************************************************************************/
-uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState)
+void clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * node, SaUint32T newState)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNameT dn;
@@ -258,9 +264,10 @@ uns32 clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * no
 						 SA_SVC_CLM,
 						 SA_CLM_NTFID_NODE_ADMIN_STATE,
 						 SA_NTF_MANAGEMENT_OPERATION, SA_CLM_ADMIN_STATE, newState);
+	if (status == NCSCC_RC_FAILURE)
+		LOG_ER("clms_node_admin_state_change_ntf failed %u",status);
 
 	TRACE_LEAVE();
-	return status;
 }
 
 SaAisErrorT clms_ntf_init(CLMS_CB * cb)

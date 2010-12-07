@@ -102,7 +102,7 @@ SaUint32T plms_quiesced_state_handler(SaInvocationT invocation)
 	cb->amf_invocation_id = invocation;
 
 	cb->is_quisced_set = TRUE;
-	printf("I AM IN HA AMF QUIESCED STATE\n");
+	LOG_IN("I AM IN HA AMF QUIESCED STATE\n");
 
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 
@@ -559,14 +559,14 @@ SaUint32T plms_amf_init()
 		LOG_ER("  plms_amf_init: saAmfInitialize() AMF initialization FAILED\n");
 		goto done;
 	}
-	LOG_ER("  plms_amf_init: saAmfInitialize() AMF initialization SUCCESS\n");
+	LOG_IN("  plms_amf_init: saAmfInitialize() AMF initialization SUCCESS\n");
 
 	/* Obtain the amf selection object to wait for amf events */
 	if (SA_AIS_OK != (rc = saAmfSelectionObjectGet(cb->amf_hdl, &cb->amf_sel_obj))) {
 		LOG_ER("saAmfSelectionObjectGet() FAILED\n");
 		goto done;
 	}
-	LOG_ER("saAmfSelectionObjectGet() SUCCESS\n");
+	LOG_IN("saAmfSelectionObjectGet() SUCCESS\n");
 
 	/* get the component name */
 
@@ -612,7 +612,7 @@ SaUint32T plms_amf_register()
 		return NCSCC_RC_FAILURE;
 	}
 
-	LOG_ER("AMF init SUCCESS");
+	LOG_IN("AMF init SUCCESS");
 	/* register PLMS component with AvSv */
 	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
@@ -620,13 +620,13 @@ SaUint32T plms_amf_register()
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
-	LOG_ER("AMF Component Register SUCCESS");
+	LOG_IN("AMF Component Register SUCCESS");
 	if (NCSCC_RC_SUCCESS != (rc = plms_healthcheck_start())) {
 		LOG_ER("PLMS Health Check Start failed");
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
 	}
-	LOG_ER("PLMS Health Check Started Successfully SUCCESS");
+	LOG_IN("PLMS Health Check Started Successfully SUCCESS");
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	return NCSCC_RC_SUCCESS;

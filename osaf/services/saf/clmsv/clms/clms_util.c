@@ -283,7 +283,7 @@ uns32 clms_node_dn_chk(SaNameT *objName)
 					TRACE_LEAVE();
 					return NCSCC_RC_SUCCESS;
 				} else {
-					TRACE("Node is not the child of our cluster %s", osaf_cluster->name.value);
+					LOG_ER("Node is not the child of our cluster %s", osaf_cluster->name.value);
 					TRACE_LEAVE();
 					return NCSCC_RC_FAILURE;
 				}
@@ -307,7 +307,7 @@ uns32 clms_cluster_dn_chk(SaNameT *objName)
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
-	TRACE("Dn name is incorrect");
+	LOG_ER("Dn name is incorrect %s",(char *)objName->value);
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 
@@ -519,7 +519,7 @@ uns32 clms_client_del_trackresp(SaUint32T client_id)
 					} else {
 						if (NCSCC_RC_SUCCESS !=
 								ncs_patricia_tree_del(&node->trackresp, &trkrsp_rec->pat_node)) {
-							TRACE("ncs_patricia_tree_del FAILED");
+							LOG_ER("ncs_patricia_tree_del FAILED for client_id %u",client_id);
 							rc = NCSCC_RC_FAILURE;
 							goto done;
 						}
@@ -552,7 +552,7 @@ uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
 	while (trkrec != NULL) {
 		inv_id = trkrec->inv_id;
 		if (NCSCC_RC_SUCCESS != ncs_patricia_tree_del(&op_node->trackresp, &trkrec->pat_node)) {
-			TRACE("ncs_patricia_tree_del FAILED");
+			LOG_ER("ncs_patricia_tree_del FAILED for invocation id %llu",inv_id);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -731,14 +731,8 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 			}
 			clms_clmresp_error_timeout(cb, node);
 
-			rc = clms_node_exit_ntf(cb, node);
-			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("clms_node_exit_ntf failed %u", rc);
-			}
-			rc = clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
-			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
-			}
+			clms_node_exit_ntf(cb, node);
+			clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
 
 			/*you have to reboot the node in case of imm */
 			if (clms_cb->reg_with_plm == SA_TRUE)
@@ -749,14 +743,8 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 		{
 			clms_clmresp_error_timeout(cb, node);
 
-			rc = clms_node_exit_ntf(cb, node);
-			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("clms_node_exit_ntf failed %u", rc);
-			}
-			rc = clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
-			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("clms_node_admin_state_change_ntf failed %d", rc);
-			}
+			clms_node_exit_ntf(cb, node);
+			clms_node_admin_state_change_ntf(cb, node, SA_CLM_ADMIN_LOCKED);
 
 			/*you have to reboot the node in case of imm */
 			if (clms_cb->reg_with_plm == SA_TRUE)
@@ -773,7 +761,7 @@ uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 			    saPlmReadinessTrackResponse(cb->ent_group_hdl, node->plm_invid,
 							SA_CLM_CALLBACK_RESPONSE_ERROR);
 			if (ais_er != SA_AIS_OK) {
-				TRACE("saPlmReadinessTrackResponse FAILED");
+				LOG_ER("saPlmReadinessTrackResponse FAILED error %u",ais_er);
 				goto done;
 			}
 #endif
@@ -857,7 +845,7 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			clms_clear_node_dep_list(op_node);
 			ais_er = saPlmReadinessTrackResponse(cb->ent_group_hdl, op_node->plm_invid, SA_PLM_CALLBACK_RESPONSE_OK);
 			if (ais_er != SA_AIS_OK) {
-				TRACE("saPlmReadinessTrackResponse FAILED");
+				LOG_ER("saPlmReadinessTrackResponse FAILED with error %u",ais_er);
 				goto done;
 			}
 			TRACE("PLM Track Response Send Succedeed");
@@ -900,16 +888,9 @@ uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO
 			/* Send track callback to all start client */
 			clms_send_cbk_start_sub(cb, op_node);
 
-			rc = clms_node_exit_ntf(cb, op_node);
-			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_node_exit_ntf failed %u", rc);
-				goto done;
-			}
-			rc = clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_ADMIN_LOCKED);
-			if (rc != NCSCC_RC_SUCCESS) {
-				TRACE("clms_node_admin_state_change_ntf failed %d", rc);
-				goto done;
-			}
+			clms_node_exit_ntf(cb, op_node);
+			clms_node_admin_state_change_ntf(cb, op_node, SA_CLM_ADMIN_LOCKED);
+
 			op_node->admin_op = 0;
 			op_node->stat_change = SA_FALSE;
 			(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, op_node->curr_admin_inv, SA_AIS_OK);

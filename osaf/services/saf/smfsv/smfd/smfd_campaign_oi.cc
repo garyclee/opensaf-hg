@@ -592,13 +592,13 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 	TRACE_ENTER();
 	rc = immutil_saImmOiInitialize_2(&cb->campaignOiHandle, &callbacks, &immVersion);
 	if (rc != SA_AIS_OK) {
-		TRACE("immutil_saImmOiInitialize_2 fail, rc = %d", rc);
+		LOG_ER("immutil_saImmOiInitialize_2 fail, rc = %d", rc);
 		return NCSCC_RC_FAILURE;
 	}
 
 	rc = immutil_saImmOiSelectionObjectGet(cb->campaignOiHandle, &cb->campaignSelectionObject);
 	if (rc != SA_AIS_OK) {
-		TRACE("immutil_saImmOiSelectionObjectGet fail, rc = %d", rc);
+		LOG_ER("immutil_saImmOiSelectionObjectGet fail, rc = %d", rc);
 		return NCSCC_RC_FAILURE;
 	}
 

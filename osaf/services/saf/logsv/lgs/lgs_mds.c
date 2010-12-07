@@ -1266,7 +1266,7 @@ uns32 lgs_mds_msg_send(lgs_cb_t *cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("mds send FAILED: %u", rc);
+		LOG_ER("lgs_mds_msg_send FAILED: %u", rc);
 	}
 	return rc;
 }

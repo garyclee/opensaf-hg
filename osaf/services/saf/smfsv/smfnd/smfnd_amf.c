@@ -247,6 +247,7 @@ SaAisErrorT smfnd_amf_init(smfnd_cb_t * cb)
 
 	/* Start AMF healthchecks */
 	if ((result = amf_healthcheck_start(cb)) != SA_AIS_OK) {
+		LOG_ER("amf_healthcheck_start() FAILED");
 		goto done;
 	}
 

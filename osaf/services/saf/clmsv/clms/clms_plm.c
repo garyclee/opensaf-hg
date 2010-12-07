@@ -38,7 +38,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 		if ((step == SA_PLM_CHANGE_VALIDATE)||(step == SA_PLM_CHANGE_START)){
 			ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation, SA_PLM_CALLBACK_RESPONSE_OK);
 			if (ais_er != SA_AIS_OK) {
-				TRACE("saPlmReadinessTrackResponse FAILED");
+				LOG_ER("saPlmReadinessTrackResponse FAILED with error %u",ais_er);
 				goto done;
 			}
 
@@ -98,7 +98,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 						TRACE("No clients exists for validate/start step");
 						ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation,SA_PLM_CALLBACK_RESPONSE_OK);
 						if (ais_er != SA_AIS_OK) {
-							TRACE("saPlmReadinessTrackResponse FAILED");
+							LOG_ER("saPlmReadinessTrackResponse FAILED with error %u",ais_er);
 							goto done;
 						}
 						TRACE("PLM Track Response Send Succedeed");
@@ -109,7 +109,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 					SA_PLM_READINESS_OUT_OF_SERVICE){
 				ais_er = saPlmReadinessTrackResponse(clms_cb->ent_group_hdl, invocation,SA_PLM_CALLBACK_RESPONSE_OK);
 				if (ais_er != SA_AIS_OK) {
-					TRACE("saPlmReadinessTrackResponse FAILED");
+					LOG_ER("saPlmReadinessTrackResponse FAILED with error %u",ais_er);
 					goto done;
 				}
 				TRACE("Step = %d, 1/2/3 = validate/start/aborted, nodeup is zero", step);
@@ -194,11 +194,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 							node->init_view = (++(clms_cb->cluster_view_num));
 							node->member = SA_TRUE;
 							node->change = SA_CLM_NODE_JOINED;
-							rc = clms_node_join_ntf(clms_cb, node);
-							if (rc != SA_AIS_OK) {
-								TRACE("clms_node_join_ntf failed %u", rc);
-								/*goto done; */
-							}
+							clms_node_join_ntf(clms_cb, node);
 
 							rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
 							if (rc != NCSCC_RC_SUCCESS) {

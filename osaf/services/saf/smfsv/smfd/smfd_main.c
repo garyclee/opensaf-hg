@@ -141,13 +141,13 @@ static uns32 initialize_smfd(void)
 
 	/* Create the mailbox used for communication with SMFND */
 	if ((rc = m_NCS_IPC_CREATE(&smfd_cb->mbx)) != NCSCC_RC_SUCCESS) {
-		TRACE("m_NCS_IPC_CREATE FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
 		goto done;
 	}
 
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&smfd_cb->mbx) != NCSCC_RC_SUCCESS)) {
-		TRACE("m_NCS_IPC_ATTACH FAILED %d", rc);
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		goto done;
 	}
 

@@ -1452,7 +1452,7 @@ uns32 clms_mds_msg_send(CLMS_CB * cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE("mds send FAILED: %u", rc);
+		LOG_ER("clms_mds_msg_send FAILED: %u", rc);
 	}
 	TRACE_LEAVE();
 	return rc;
