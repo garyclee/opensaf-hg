@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file://H:/xsd/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=TestRollback">
+	<!--
+
+    Test of rollback.
+
+    Prerequisites;
+    ==============
+    - This file is copied into the UML directory tools/cluster_sim_uml/.
+    - The smf-verify script is copied into UML dir tools/cluster_sim_uml/.
+    - The smfsv_test_classes.xml file is copied into UML dir tools/cluster_sim_uml/.
+
+    Execution;
+    ==========
+    # After starting a 5 node cluster in UML;
+    # Load the SMFSV Test Class file
+    immcfg -f /hostfs/smfsv_test_classes.xml
+    # Create a campaign object
+    immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_TestRollback.xml safSmfCampaign=TestRollback,safApp=safSmfService
+
+    # Start executing the campaign
+    smf-adm execute safSmfCampaign=TestRollback,safApp=safSmfService
+
+    # When the campaign is completed, initiate a rollback
+    smf-adm rollback safSmfCampaign=TestRollback,safApp=safSmfService
+
+    # When the rollback is completed, initate a commit
+    smf-adm commit safSmfCampaign=TestRollback,safApp=safSmfService
+
+    Expected result;
+    ================
+    # The campaign should execute/rollback without termination (failure).
+    # if smf-verify script verification fails it'll do exit 1 which will fail the campaign
+    # Check the syslog in SC-1 (/var/log/messages/) for any errors
+
+  -->
+	<campaignInfo>
+		<campaignPeriod saSmfCmpgExpectedTime="72000000000"/>
+	</campaignInfo>
+	<campaignInitialization>
+		<addToImm>
+			<softwareBundle name="safSmfBundle=NewDummy">
+				<removal>
+					<offline command="/bin/logger" args="-t SMF NewDummy removal offline" saSmfBundleRemoveOfflineScope="1" />
+					<online command="/bin/logger" args="-t SMF NewDummy removal online" />
+				</removal>
+				<installation>
+					<offline command="/bin/logger" args="-t SMF NewDummy installation offline" saSmfBundleInstallOfflineScope="2" />
+					<online command="/bin/logger" args="-t SMF NewDummy installation online" />
+				</installation>
+				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
+			</softwareBundle>
+			<softwareBundle name="safSmfBundle=OldDummy">
+				<removal>
+					<offline command="/bin/logger" args="-t SMF OldDummy removal offline" saSmfBundleRemoveOfflineScope="1" />
+					<online command="/bin/logger" args="-t SMF OldDummy removal online" />
+				</removal>
+				<installation>
+					<offline command="/bin/logger" args="-t SMF OldDummy installation offline" saSmfBundleInstallOfflineScope="2" />
+					<online command="/bin/logger" args="-t SMF OldDummy installation online" />
+				</installation>
+				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
+			</softwareBundle>
+			<amfEntityTypes>
+				<AppBaseType safAppType="safAppType=SmfTest">
+					<AppType safVersion="safVersion=4.0.0">
+						<serviceGroupType saAmfApptSGTypes="safVersion=4.0.0,safSgType=SmfTest" />
+					</AppType>
+				</AppBaseType>
+				<SGBaseType safSgType="safSgType=SmfTest">
+					<SGType safVersion="safVersion=4.0.0">
+						<suType saAmfSgtValidSuTypes="safVersion=4.0.0,safSuType=SmfTest" />
+						<redundancy saAmfSgtRedundancyModel="1" />
+						<compRestart saAmfSgtDefCompRestartProb="4000000" saAmfSgtDefCompRestartMax="10" />
+						<suRestart saAmfSgtDefSuRestartProb="4000000" saAmfSgtDefSuRestartMax="10" />
+						<autoAttrs safAmfSgtDefAutoAdjust="0" safAmfSgtDefAutoRepair="1" saAmfSgtDefAutoAdjustProb="10000000" />
+					</SGType>
+				</SGBaseType>
+				<SUBaseType safSuType="safSuType=SmfTest">
+					<SUType safVersion="safVersion=4.0.0">
+						<mandatoryAttrs saAmfSutIsExternal="0" saAmfSutDefSUFailover="1" />
+						<componentType saAmfSutMinNumComponents="1" safMemberCompType="safMemberCompType=safVersion=4.0.0\,safCompType=SmfTest" />
+						<supportedSvcType saAmfSutProvidesSvcType="safVersion=4.0.0,safSvcType=SmfTest" />
+					</SUType>
+				</SUBaseType>
+				<SUBaseType safSuType="safSuType=SmfTest">
+					<SUType safVersion="safVersion=5.5.5">
+						<mandatoryAttrs saAmfSutIsExternal="0" saAmfSutDefSUFailover="1" />
+						<componentType saAmfSutMinNumComponents="1" safMemberCompType="safMemberCompType=safVersion=4.0.0\,safCompType=SmfTest" />
+						<supportedSvcType saAmfSutProvidesSvcType="safVersion=4.0.0,safSvcType=SmfTest" />
+					</SUType>
+				</SUBaseType>
+			</amfEntityTypes>
+		</addToImm>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSuType=SmfTest EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSuType=SmfTest EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safVersion=4.0.0,safSuType=SmfTest EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safVersion=4.0.0,safSuType=SmfTest EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safVersion=5.5.5,safSuType=SmfTest EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safVersion=5.5.5,safSuType=SmfTest EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampInit,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampInit,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createCampInit</value>
+					</attribute>
+				</create>
+			</immCCB>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampInit,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampInit,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=modifyCampInit</value>
+					</attribute>
+					<attribute name="testMultiString" type="SA_IMM_ATTR_SASTRINGT">
+						<value>This is a campaign created string 1</value>
+						<value>This is a campaign created string 2</value>
+						<value>This is a campaign created string 3</value>
+						<value>This is a campaign created string 4</value>
+					</attribute>
+				</create>
+			</immCCB>
+		</campInitAction>
+		<campInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campInitAction>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+							<create objectClassName="SaAmfApplication" parentObjectDN="=">
+								<attribute name="safApp" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safApp=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfAppType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safAppType=SmfTest</value>
+								</attribute>
+							</create>
+			</immCCB>
+		</campInitAction>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+							<create objectClassName="SaAmfSG" parentObjectDN="safApp=SmfTest">
+								<attribute name="safSg" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSg=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSGType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSgType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSGSuHostNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSGNumPrefStandbySUs" type="SA_IMM_ATTR_SAUINT32T">
+									<value>1</value>
+								</attribute>
+								<attribute name="saAmfSGNumPrefInserviceSUs" type="SA_IMM_ATTR_SAUINT32T">
+									<value>10</value>
+								</attribute>
+								<attribute name="saAmfSGNumPrefAssignedSUs" type="SA_IMM_ATTR_SAUINT32T">
+									<value>10</value>
+								</attribute>
+								<attribute name="saAmfSGNumPrefActiveSUs" type="SA_IMM_ATTR_SAUINT32T">
+									<value>1</value>
+								</attribute>
+								<attribute name="saAmfSGMaxStandbySIsperSU" type="SA_IMM_ATTR_SAUINT32T">
+									<value>1</value>
+								</attribute>
+								<attribute name="saAmfSGMaxActiveSIsperSU" type="SA_IMM_ATTR_SAUINT32T">
+									<value>1</value>
+								</attribute>
+								<attribute name="saAmfSGAutoRepair" type="SA_IMM_ATTR_SAUINT32T">
+									<value>0</value>
+								</attribute>
+								<attribute name="saAmfSGAutoAdjust" type="SA_IMM_ATTR_SAUINT32T">
+									<value>0</value>
+								</attribute>
+								<attribute name="saAmfSGAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+			</immCCB>
+		</campInitAction>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+							<create objectClassName="SaAmfSU" parentObjectDN="safSg=SmfTest,safApp=SmfTest">
+								<attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSu=SmfTestSU1</value>
+								</attribute>
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSuType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+							<create objectClassName="SaAmfSU" parentObjectDN="safSg=SmfTest,safApp=SmfTest">
+								<attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSu=SmfTestSU2</value>
+								</attribute>
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSuType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+							<create objectClassName="SaAmfSU" parentObjectDN="safSg=SmfTest,safApp=SmfTest">
+								<attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSu=SmfTestSU3</value>
+								</attribute>
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSuType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNode=PL-3,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+							<create objectClassName="SaAmfSU" parentObjectDN="safSg=SmfTest,safApp=SmfTest">
+								<attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSu=SmfTestSU4</value>
+								</attribute>
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSuType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNode=PL-4,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+							<create objectClassName="SaAmfSU" parentObjectDN="safSg=SmfTest,safApp=SmfTest">
+								<attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
+									<value>safSu=SmfTestSU5</value>
+								</attribute>
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=4.0.0,safSuType=SmfTest</value>
+								</attribute>
+								<attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
+									<value>safAmfNode=PL-5,safAmfCluster=myAmfCluster</value>
+								</attribute>
+								<attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
+									<value>3</value>
+								</attribute>
+							</create>
+			</immCCB>
+		</campInitAction>
+	</campaignInitialization>
+	<upgradeProcedure safSmfProcedure="safSmfProc=testSmf">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="60000000000" />
+		</outageInfo>
+		<procInitAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createProcInit\,test=association1\,test=association2</value>
+					</attribute>
+				</create>
+			</immCCB>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createProcInit,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createProcInit,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createProcInit</value>
+					</attribute>
+				</create>
+                                <modify objectDN="testRdn=modifyCampInit,safApp=safSmfService" operation="SA_IMM_ATTR_VALUES_DELETE">
+					<attribute name="testMultiString" type="SA_IMM_ATTR_SASTRINGT">
+						<value>This is a campaign created string 2</value>
+					</attribute>
+                                </modify>
+			</immCCB>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createProcInit,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createProcInit,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-1,safAmfCluster=myAmfCluster NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-1,safAmfCluster=myAmfCluster NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-2,safAmfCluster=myAmfCluster NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-2,safAmfCluster=myAmfCluster NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-3,safAmfCluster=myAmfCluster NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-3,safAmfCluster=myAmfCluster NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-4,safAmfCluster=myAmfCluster NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-4,safAmfCluster=myAmfCluster NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-5,safAmfCluster=myAmfCluster NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-5,safAmfCluster=myAmfCluster NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU1,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU1,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU2,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU2,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU3,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU3,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU4,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU4,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<procInitAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU5,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU5,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=4.0.0,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procInitAction>
+		<upgradeMethod>
+			<rollingUpgrade>
+				<upgradeScope>
+					<byTemplate>
+						<targetNodeTemplate objectDN="safAmfCluster=myAmfCluster">
+							<swRemove bundleDN="safSmfBundle=OldDummy" pathnamePrefix="/opt/OldDummy"/>
+							<swAdd bundleDN="safSmfBundle=NewDummy" pathnamePrefix="/opt/NewDummy" />
+						</targetNodeTemplate>
+						<targetEntityTemplate>
+							<type objectDN="safVersion=4.0.0,safSuType=SmfTest"></type>
+							<modifyOperation operation="SA_IMM_ATTR_VALUES_REPLACE">
+								<attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=5.5.5,safSuType=SmfTest</value>
+								</attribute>
+							</modifyOperation>
+						</targetEntityTemplate>
+					</byTemplate>
+				</upgradeScope>
+				<upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8"/>
+			</rollingUpgrade>
+		</upgradeMethod>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU1,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU1,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU2,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU2,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU3,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU3,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU4,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU4,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU5,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safSu=SmfTestSU5,safSg=SmfTest,safApp=SmfTest saAmfSUType 'safVersion=5.5.5,safSuType=SmfTest'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createProcWrapup,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createProcWrapup,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 4711" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 4711" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt32 -4711" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt32 -4711" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint64 4294967296" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint64 4294967296" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt64 -4294967296" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt64 -4294967296" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testString 'This is a test string'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testString 'This is a test string'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testSaName testRdn=0" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testSaName testRdn=0" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createProcWrapup</value>
+					</attribute>
+				</create>
+                                <modify objectDN="testRdn=modifyCampInit,safApp=safSmfService" operation="SA_IMM_ATTR_VALUES_REPLACE">
+					<attribute name="testUint32" type="SA_IMM_ATTR_SAUINT32T">
+						<value>1234567</value>
+					</attribute>
+					<attribute name="testInt32" type="SA_IMM_ATTR_SAINT32T">
+						<value>-1234567</value>
+					</attribute>
+					<attribute name="testUint64" type="SA_IMM_ATTR_SAUINT64T">
+						<value>7654321</value>
+					</attribute>
+					<attribute name="testInt64" type="SA_IMM_ATTR_SAINT64T">
+						<value>-7654321</value>
+					</attribute>
+					<attribute name="testString" type="SA_IMM_ATTR_SASTRINGT">
+						<value>This is a modified test string</value>
+					</attribute>
+					<attribute name="testSaName" type="SA_IMM_ATTR_SANAMET">
+						<value>testRdn=0,testDn=test</value>
+					</attribute>
+                                </modify>
+			</immCCB>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createProcWrapup,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createProcWrapup,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-1,safAmfCluster=myAmfCluster EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-1,safAmfCluster=myAmfCluster EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-2,safAmfCluster=myAmfCluster EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=SC-2,safAmfCluster=myAmfCluster EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-3,safAmfCluster=myAmfCluster EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-3,safAmfCluster=myAmfCluster EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-4,safAmfCluster=myAmfCluster EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-4,safAmfCluster=myAmfCluster EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-5,safAmfCluster=myAmfCluster EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="safInstalledSwBundle=safSmfBundle=NewDummy,safAmfNode=PL-5,safAmfCluster=myAmfCluster EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</procWrapupAction>
+		<procWrapupAction>
+			<immCCB ccbFlags="0">
+				<delete objectDN="testRdn=createProcInit\,test=association1\,test=association2,safApp=safSmfService"/>
+			</immCCB>
+		</procWrapupAction>
+	</upgradeProcedure>
+	<campaignWrapup>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampComplete,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampComplete,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 1234567" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint32 1234567" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt32 -1234567" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt32 -1234567" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint64 7654321" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testUint64 7654321" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt64 -7654321" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testInt64 -7654321" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testString 'This is a modified test string'" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testString 'This is a modified test string'" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testSaName testRdn=0,testDn=test" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService testSaName testRdn=0,testDn=test" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createCampComplete</value>
+					</attribute>
+				</create>
+				<delete objectDN="testRdn=modifyCampInit,safApp=safSmfService"/>
+			</immCCB>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampComplete,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampComplete,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<campCompleteAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=modifyCampInit,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campCompleteAction>
+		<waitToCommit />
+		<campWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampWrapup,safApp=safSmfService NONEXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampWrapup,safApp=safSmfService NONEXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campWrapupAction>
+		<campWrapupAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="OpensafSmfTest" parentObjectDN="safApp=safSmfService">
+					<attribute name="testRdn" type="SA_IMM_ATTR_SASTRINGT">
+						<value>testRdn=createCampWrapup</value>
+					</attribute>
+				</create>
+			</immCCB>
+		</campWrapupAction>
+		<campWrapupAction>
+			<doCliCommand command="/hostfs/smf-verify" args="testRdn=createCampWrapup,safApp=safSmfService EXIST" ></doCliCommand>
+			<undoCliCommand command="/hostfs/smf-verify" args="testRdn=createCampWrapup,safApp=safSmfService EXIST" ></undoCliCommand>
+			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
+		</campWrapupAction>
+		<waitToAllowNewCampaign />
+		<removeFromImm />
+	</campaignWrapup>
+</upgradeCampaign>
