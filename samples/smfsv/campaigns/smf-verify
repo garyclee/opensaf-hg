@@ -1,0 +1,99 @@
+#! /bin/bash
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+usage()
+{
+	echo ""
+	echo "usage: `basename $0` <DN> <attributename> <attributevalue>"
+	echo "       `basename $0` <DN> <EXIST|NONEXIST>"
+	echo ""
+}
+
+die() {
+	logger -s -t smf-verify -p user.err "$prg: ERROR: $@"
+	exit 1
+}
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+elif [ $# -eq 1 ]; then
+	usage
+	exit 1
+elif [ $# -eq 2 ]; then
+	DN=$1
+	CHECK=$2
+elif [ $# -eq 3 ]; then
+	DN=$1
+	ATTRNAME=$2
+	ATTRVALUE=$3
+else
+	usage
+	exit 1
+fi
+
+
+check_attribute_value()
+{
+	local dn=$1
+	local name=$2
+	local expectedvalue=$3
+
+	value=$(immlist -a $name $dn 2> /dev/null | sed -e "s,^$name=,,")
+
+	# It could be a multivalue attribute
+	saved_IFS=$IFS
+	IFS=':'
+	for multivalue in $value; do
+	    if [ "$multivalue" = "$expectedvalue" ]; then
+		IFS=$saved_IFS
+		exit 0
+	    fi
+	done 
+	die "\"$expectedvalue\" not found, value=\"$value\""
+}
+
+check_object()
+{
+	local dn=$1
+	local check=$2
+
+#	path=$(echo $PATH)
+#	immlist=$(which immlist)
+#	dummy=$(immlist -a SaImmAttrClassName $dn 2> /dev/null)
+#	logger -s -t smf-verify -p user.err "immlist=$immlist, path=$path, , dummy=$dummy, exit=$?"
+
+	if [ $check = "EXIST" ]; then
+	    value=$(immlist -a SaImmAttrClassName $dn 2> /dev/null) || \
+		die "Object does not exist [$dn]"
+	elif [ $check = "NONEXIST" ]; then
+	    value=$(immlist -a SaImmAttrClassName $dn 2> /dev/null) && \
+		die "Object exist [$dn]"
+	fi
+
+	exit 0
+}
+
+export PATH=$PATH:/usr/local/bin
+
+if [ -n "$CHECK" ]; then
+    check_object $DN $CHECK
+else
+    check_attribute_value $DN "$ATTRNAME" "$ATTRVALUE"
+fi
+
+exit 0
+
