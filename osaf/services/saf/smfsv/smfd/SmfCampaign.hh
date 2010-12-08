@@ -43,6 +43,8 @@
 #define SMF_IMM_PERSIST_CMD_ATTR  "smfImmPersistCmd"
 #define SMF_NODE_REBOOT_CMD_ATTR  "smfNodeRebootCmd"
 
+#define SMF_UPDATE_ELAPSED_TIME_INTERVAL 10000
+
 class SmfUpgradeCampaign;
 class SmfUpgradeProcedure;
 
@@ -88,6 +90,9 @@ class SmfCampaign {
 	void setCampaignXmlDir(std::string i_path);
 	const std::string getCampaignXmlDir();
         void adminOpBusy(bool busy) { m_adminOpBusy = busy; }
+        void updateElapsedTime();
+        void startElapsedTime();
+        void stopElapsedTime();
 
  private:
 
@@ -102,6 +107,7 @@ class SmfCampaign {
 	SmfUpgradeCampaign *m_upgradeCampaign;
 	std::string m_campaignXmlDir;
         bool m_adminOpBusy;
+        SaTimeT m_previousUpdateTime;
 };
 
 ///

@@ -19,6 +19,7 @@
 #include <new>
 #include <vector>
 #include <string>
+#include <sys/time.h>
 
 #include "SmfCampaign.hh"
 #include "smfd.h"
@@ -47,7 +48,8 @@ SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** att
 	m_cmpgState(SA_SMF_CMPG_INITIAL),
 	m_upgradeCampaign(NULL),
 	m_campaignXmlDir(""),
-        m_adminOpBusy(false)
+        m_adminOpBusy(false),
+        m_previousUpdateTime(0)
 {
 	init(attrValues);
 	m_dn = m_cmpg;
@@ -64,7 +66,8 @@ SmfCampaign::SmfCampaign(const SaNameT * dn):
 	m_cmpgElapsedTime(0),
 	m_cmpgState(SA_SMF_CMPG_INITIAL),
 	m_upgradeCampaign(NULL),
-        m_adminOpBusy(false)
+        m_adminOpBusy(false),
+        m_previousUpdateTime(0)
 {
 	m_dn.append((char *)dn->value, dn->length);
 }
@@ -75,6 +78,10 @@ SmfCampaign::SmfCampaign(const SaNameT * dn):
 SmfCampaign::~SmfCampaign()
 {
 	TRACE_ENTER();
+
+        if (m_previousUpdateTime != 0) {
+                stopElapsedTime();
+        }
 
 	TRACE_LEAVE();
 }
@@ -551,6 +558,10 @@ SmfCampaign::initExecution(void)
 
 		setUpgradeCampaign(p_uc);
 
+                if (p_uc->getCampaignPeriod().size() > 0) {
+                        setExpectedTime((SaTimeT)strtoll(p_uc->getCampaignPeriod().c_str(), NULL, 0));
+                }
+
                 const std::vector < SmfUpgradeProcedure * >& procedures = p_uc->getProcedures();
         	std::vector < SmfUpgradeProcedure * >::const_iterator iter;
         
@@ -606,6 +617,27 @@ SmfCampaign::setState(SaSmfCmpgStateT state)
 
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_CAMPAIGN, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_CAMPAIGN_STATE, m_cmpgState);
+
+        switch (state) {
+        case SA_SMF_CMPG_EXECUTING:
+        case SA_SMF_CMPG_ROLLING_BACK:
+                this->startElapsedTime();
+                break;
+
+        case SA_SMF_CMPG_EXECUTION_COMPLETED:
+        case SA_SMF_CMPG_ROLLBACK_COMPLETED:
+        case SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED:
+        case SA_SMF_CMPG_EXECUTION_SUSPENDED:
+        case SA_SMF_CMPG_EXECUTION_FAILED:
+        case SA_SMF_CMPG_ROLLBACK_SUSPENDED:
+        case SA_SMF_CMPG_ROLLBACK_FAILED:
+                this->stopElapsedTime();
+                break;
+        default:
+                TRACE("new state is %u, do nothing", state);
+                break;
+        }
+
 }
 /** 
  * state
@@ -701,6 +733,60 @@ const std::string
 SmfCampaign::getCampaignXmlDir()
 {
 	return m_campaignXmlDir;
+}
+
+/** 
+ * updateElapsedTime
+ * update the elapsed time
+ */
+void
+SmfCampaign::updateElapsedTime()
+{
+        SaTimeT updateTime;
+        SaTimeT diffTime;
+        timeval timeStamp;
+
+        if (m_previousUpdateTime == 0) {
+                return;
+        }
+
+        gettimeofday(&timeStamp, NULL);
+
+	updateTime = ((SaTimeT) timeStamp.tv_sec * 1000000000L);
+
+        diffTime = updateTime - m_previousUpdateTime;
+        if (diffTime > 0) {
+                m_previousUpdateTime = updateTime;
+                setElapsedTime(m_cmpgElapsedTime + diffTime);
+        }
+}
+
+/** 
+ * startElapsedTime
+ * start the elapsed time updating
+ */
+void
+SmfCampaign::startElapsedTime()
+{
+        SaTimeT updateTime;
+        timeval timeStamp;
+
+        if (m_previousUpdateTime == 0) {
+                gettimeofday(&timeStamp, NULL);
+                updateTime = ((SaTimeT) timeStamp.tv_sec * 1000000000L);
+                m_previousUpdateTime = updateTime;
+        }
+}
+
+/** 
+ * stopElapsedTime
+ * stop the elapsed time updating
+ */
+void
+SmfCampaign::stopElapsedTime()
+{
+        this->updateElapsedTime();
+        m_previousUpdateTime = 0;
 }
 
 /*====================================================================*/
