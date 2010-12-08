@@ -493,7 +493,7 @@ void SmfCampaignThread::processEvt(void)
 				// this pointer will be removed by the main process
 				// after ordering campaign thread terminate
 				m_tmpSmfUpgradeCampaign = m_campaign->getUpgradeCampaign();
-				
+
 				/* */
 				m_running = false;
 				break;
@@ -507,10 +507,7 @@ void SmfCampaignThread::processEvt(void)
 
 		case CAMPAIGN_EVT_EXECUTE:
 			{
-				if(m_campaign->adminOpExecute() != SA_AIS_OK) {
-					m_running = false; //Terminate the campaign thread
-				}
-
+				m_campaign->adminOpExecute();
 				break;
 			}
 
@@ -585,7 +582,8 @@ int SmfCampaignThread::handleEvents(void)
 	TRACE("Campaign thread %s waiting for events", m_campaign->getDn().c_str());
 
 	while (m_running) {
-		int ret = poll(fds, 1, -1);
+
+                int ret = poll(fds, 1, SMF_UPDATE_ELAPSED_TIME_INTERVAL);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -595,11 +593,13 @@ int SmfCampaignThread::handleEvents(void)
 			break;
 		}
 
-		/* Process the Mail box events */
+                /* Process the Mail box events */
 		if (fds[0].revents & POLLIN) {
 			/* dispatch MBX events */
 			processEvt();
 		}
+
+                m_campaign->updateElapsedTime();
 	}
 	TRACE_LEAVE();
 	return 0;

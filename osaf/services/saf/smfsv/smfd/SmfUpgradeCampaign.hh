@@ -144,6 +144,13 @@ class SmfUpgradeCampaign {
 	void setCampaignPeriod(const std::string & i_period);
 
 ///
+/// Purpose: Get the campaign period.
+/// @param   None
+/// @return  A reference to a std::string containing the campaign period (in nano seconds).
+///
+	const std::string& getCampaignPeriod() { return m_campaignPeriod; }
+
+///
 /// Purpose: Set the configuration base.
 /// @param   i_confbase A reference to a std::string containing the configuration base.
 /// @return  None.

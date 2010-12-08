@@ -740,9 +740,11 @@ SmfUpgradeCampaign::continueExec()
 
         switch (currentState) {
         case SA_SMF_CMPG_EXECUTING:
+                SmfCampaignThread::instance()->campaign()->startElapsedTime();
                 execute();
                 break;
         case SA_SMF_CMPG_ROLLING_BACK:
+                SmfCampaignThread::instance()->campaign()->startElapsedTime();
                 rollback();
                 break;
         default:
