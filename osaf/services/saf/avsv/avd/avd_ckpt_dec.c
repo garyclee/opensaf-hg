@@ -36,6 +36,7 @@ static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 static uns32 avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
@@ -88,6 +89,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MB
 static uns32 avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uns32 avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 
@@ -112,6 +114,7 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
 	avsv_decode_ckpt_avd_comp_config,
 	avsv_decode_ckpt_avd_comp_cs_type_config,
 	avsv_decode_ckpt_avd_siass,
+	avsv_decode_ckpt_avd_si_trans,
 
 	/* 
 	 * Messages to update independent fields.
@@ -182,6 +185,7 @@ const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_dec_cold_sync_rsp_data_func_l
 	avsv_decode_cold_sync_rsp_avd_comp_config,
 	avsv_decode_cold_sync_rsp_avd_comp_cs_type_config,
 	avsv_decode_cold_sync_rsp_avd_siass,
+	avsv_decode_cold_sync_rsp_avd_si_trans,
 	avsv_decode_cold_sync_rsp_avd_async_updt_cnt
 };
 
@@ -596,6 +600,53 @@ static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.sg_admin_si_updt++;
+
+	return status;
+}
+
+/**************************************************************************
+ * @brief  decodes the si transfer parameters 
+ * @param[in] cb
+ * @param[in] dec
+ *************************************************************************/
+static uns32 avsv_decode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
+	AVSV_SI_TRANS_CKPT_MSG dec_si_trans_ckpt;
+	EDU_ERR ederror = 0;
+
+	TRACE_ENTER();
+
+	si_trans_ckpt = &dec_si_trans_ckpt;
+
+	switch (dec->i_action) {
+	case NCS_MBCSV_ACT_ADD:
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
+			&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt,
+			&ederror, dec->i_peer_version);
+		break;
+
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans, &dec->i_uba,
+			EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt, &ederror, 1, 1);
+		break;
+
+	default:
+		assert(0);
+	}
+
+	if (status != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
+		return status;
+	}
+
+	avd_ckpt_si_trans(cb, si_trans_ckpt, dec->i_action);
+
+	/* If update is successful, update async update count */
+	if (NCSCC_RC_SUCCESS == status)
+		cb->async_updt_cnt.si_trans_updt++;
 
 	return status;
 }
@@ -2775,6 +2826,43 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
 	return status;
 }
 
+/******************************************************************
+ * @brief    decodes si transfer parameters during cold sync
+ * @param[in] cb
+ * @param[in] dec
+ * @param[in] num_of_obj
+ *****************************************************************/
+static uns32 avsv_decode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
+	AVSV_SI_TRANS_CKPT_MSG dec_si_trans_ckpt;
+	EDU_ERR ederror = 0;
+	uns32 count = 0;
+
+	TRACE_ENTER();
+
+	si_trans_ckpt = &dec_si_trans_ckpt;
+
+	for (count = 0; count < num_of_obj; count++) {
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
+				&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt,
+				&ederror, dec->i_peer_version);
+		if (status != NCSCC_RC_SUCCESS) {
+			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
+		}
+
+		status = avd_ckpt_si_trans(cb, si_trans_ckpt, dec->i_action);
+
+		if (status != NCSCC_RC_SUCCESS) {
+			return NCSCC_RC_FAILURE;
+		}
+	}
+
+	return status;
+
+}
+
 /****************************************************************************\
  * Function: avsv_decode_cold_sync_rsp_avd_su_si_rel
  *
@@ -2901,8 +2989,13 @@ static uns32 avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBC
 	/* 
 	 * Decode and send async update counts for all the data structures.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
-				    &dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
+	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_3)
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
+	else
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version,
+				12,1,2,3,4,5,6,7,8,9,10,11,12);
 
 	if (status != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
@@ -2940,8 +3033,13 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Decode latest async update counts. (In the same manner we received
 	 * in the last message of the cold sync response.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
-				    &dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
+	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_3)
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
+	else
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version,
+				12,1,2,3,4,5,6,7,8,9,10,11,12);
 
 	if (status != NCSCC_RC_SUCCESS)
 		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);

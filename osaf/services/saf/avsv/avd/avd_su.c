@@ -1349,6 +1349,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	AVD_SU *su = opdata->userData;
 	AVD_AVND *su_node_ptr;
 	AVSV_PARAM_INFO param;
+	AVD_SG *sg = su->sg_of_su;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -1365,7 +1366,27 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	}
 
 	avd_su_delete(su);
+	if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) {
+		/*if su of uneqal rank has been delete and all SUs are of same rank then do screening
+		  for SI Distribution. */
+		if (TRUE == sg->equal_ranked_su) {
+			switch (sg->sg_redundancy_model) {
+				case SA_AMF_NPM_REDUNDANCY_MODEL:
+				break;
 
+				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+					avd_sg_nway_screen_si_distr_equal(sg);
+					break;
+
+				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+					avd_sg_nwayact_screening_for_si_distr(sg);
+					break;
+				default:
+
+					break;
+			} /* switch */
+		} /*	if (TRUE == sg->equal_ranked_su) */ 
+	} /*if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) */
 	TRACE_LEAVE();
 }
 

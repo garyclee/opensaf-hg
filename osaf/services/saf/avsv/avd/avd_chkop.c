@@ -224,6 +224,7 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			}
 
 			TRACE("Async update");
+
 			status = avsv_enc_ckpt_data_func_list[arg->info.encode.io_reo_type] (cb, &arg->info.encode);
 		}
 		break;
@@ -306,6 +307,10 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	switch (arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
 		{
+			if ((arg->info.decode.i_peer_version < AVD_MBCSV_SUB_PART_VERSION_3) && 
+					(arg->info.decode.i_reo_type >= AVSV_CKPT_AVD_SI_TRANS))
+				arg->info.decode.i_reo_type ++;
+
 			/* Decode Async update message */
 			if (AVD_STBY_IN_SYNC == cb->stby_sync_state) {
 				if (AVSV_SYNC_COMMIT != arg->info.decode.i_reo_type) {
@@ -344,9 +349,8 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 */
 				if (arg->info.decode.i_reo_type < AVSV_CKPT_MSG_MAX) {
 					status =
-					    avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
-												       &arg->info.
-												       decode);
+						avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
+													&arg->info.decode);
 				} else {
 					LOG_ER("%s: invalid type %u", __FUNCTION__, arg->info.encode.io_reo_type);
 					status = NCSCC_RC_FAILURE;
@@ -373,6 +377,10 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		{
+			if ((arg->info.decode.i_peer_version < AVD_MBCSV_SUB_PART_VERSION_3) && 
+					(arg->info.decode.i_reo_type >= AVSV_CKPT_AVD_SI_TRANS))
+				arg->info.decode.i_reo_type ++;
+
 			/* Decode Cold Sync Response message */
 			status = avsv_decode_cold_sync_rsp(cb, &arg->info.decode);
 
@@ -410,6 +418,10 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
 	case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
 		{
+			if ((arg->info.decode.i_peer_version < AVD_MBCSV_SUB_PART_VERSION_3) && 
+					(arg->info.decode.i_reo_type >= AVSV_CKPT_AVD_SI_TRANS))
+				arg->info.decode.i_reo_type ++;
+
 			/* Decode Warm Sync Response message */
 			status = avsv_decode_warm_sync_rsp(cb, &arg->info.decode);
 
@@ -431,6 +443,10 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		{
+			if ((arg->info.decode.i_peer_version < AVD_MBCSV_SUB_PART_VERSION_3) && 
+					(arg->info.decode.i_reo_type >= AVSV_CKPT_AVD_SI_TRANS))
+				arg->info.decode.i_reo_type ++;
+
 			/* Decode Data response and data response complete message */
 			status = avsv_decode_data_sync_rsp(cb, &arg->info.decode);
 
@@ -581,7 +597,7 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
 	mbcsv_arg.info.initialize.i_service = NCS_SERVICE_ID_AVD;
 	mbcsv_arg.info.initialize.i_mbcsv_cb = avsv_mbcsv_cb;
-	mbcsv_arg.info.initialize.i_version = AVD_MBCSV_SUB_PART_VERSION;
+	mbcsv_arg.info.initialize.i_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		LOG_ER("%s: ncs_mbcsv_svc NCS_MBCSV_OP_INITIALIZE failed", __FUNCTION__);
@@ -899,6 +915,9 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 		break;
 	case AVSV_CKPT_AVD_SI_ASS:
 		cb->async_updt_cnt.siass_updt++;
+		break;
+	case AVSV_CKPT_AVD_SI_TRANS:
+		cb->async_updt_cnt.si_trans_updt++;
 		break;
 
 	case AVSV_SYNC_COMMIT:

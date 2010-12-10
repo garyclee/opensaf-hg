@@ -33,6 +33,7 @@
 #ifndef AVD_CKP_H
 #define AVD_CKP_H
 
+#define AVD_MBCSV_SUB_PART_VERSION_3    3
 #define AVD_MBCSV_SUB_PART_VERSION      2
 #define AVD_MBCSV_SUB_PART_VERSION_MIN  1
 
@@ -51,6 +52,16 @@ typedef struct avsv_su_si_rel_ckpt_msg {
         SaNameT comp_name;
         SaNameT csi_name;
 } AVSV_SU_SI_REL_CKPT_MSG;
+
+/*
+ * SI transfer fields checkpoint encode/decode message structure
+ */
+typedef struct avsv_si_trans_ckpt_msg {
+	SaNameT sg_name;
+	SaNameT si_name;
+	SaNameT min_su_name;
+	SaNameT max_su_name;
+} AVSV_SI_TRANS_CKPT_MSG;
 
 /* 
  * Async Update message queue.
@@ -82,6 +93,7 @@ typedef struct avsv_async_updt_cnt {
 	uns32 comp_updt;
 	uns32 csi_updt;
 	uns32 compcstype_updt;
+	uns32 si_trans_updt;
 } AVSV_ASYNC_UPDT_CNT;
 
 /*
