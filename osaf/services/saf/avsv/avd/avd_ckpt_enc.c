@@ -37,6 +37,7 @@ static uns32 avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 static uns32 avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uns32 avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avsv_encode_ckpt_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
@@ -89,6 +90,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MB
 static uns32 avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
 static uns32 avsv_encode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
 static uns32 avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
+static uns32 avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
 static uns32 avsv_encode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
 static uns32 avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj);
 
@@ -113,6 +115,8 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 	avsv_encode_ckpt_avd_comp_config,
 	avsv_encode_ckpt_avd_comp_cs_type_config,
 	avsv_encode_ckpt_avd_siass,
+        /* SI transfer update messages */
+	avsv_encode_ckpt_avd_si_trans,
 
 	/* 
 	 * Messages to update independent fields.
@@ -183,6 +187,7 @@ const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_enc_cold_sync_rsp_data_func_l
 	avsv_encode_cold_sync_rsp_avd_comp_config,
 	avsv_encode_cold_sync_rsp_avd_comp_cs_type_config,
 	avsv_encode_cold_sync_rsp_avd_siass,
+	avsv_encode_cold_sync_rsp_avd_si_trans,
 	avsv_encode_cold_sync_rsp_avd_async_updt_cnt
 };
 
@@ -543,6 +548,48 @@ static uns32 avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 		break;
 
 	case NCS_MBCSV_ACT_UPDATE:
+	default:
+		assert(0);
+	}
+
+	if (status != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+	}
+
+	return status;
+}
+
+/*********************************************************************
+ * @brief encodes si transfer parameters
+ * @param[in] cb
+ * @param[in] enc
+ ********************************************************************/
+static uns32 avsv_encode_ckpt_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
+	EDU_ERR ederror = 0;
+	
+	TRACE_ENTER();
+
+	memset(&si_trans_ckpt, 0, sizeof(AVSV_SI_TRANS_CKPT_MSG));
+	si_trans_ckpt.sg_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->name;
+
+	switch (enc->io_action) {
+	case NCS_MBCSV_ACT_ADD:
+		si_trans_ckpt.si_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->si_tobe_redistributed->name;
+		si_trans_ckpt.min_su_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->min_assigned_su->name;
+		si_trans_ckpt.max_su_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->max_assigned_su->name;
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
+			&enc->io_uba, EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror, enc->i_peer_version);
+		break;
+
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans, &enc->io_uba,
+			EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror, enc->i_peer_version, 1, 1);
+		break;
+
 	default:
 		assert(0);
 	}
@@ -2262,6 +2309,46 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
 	return status;
 }
 
+/********************************************************************
+ * @brief encodes si transfer parameters during cold sync
+ * @param[in] cb
+ * @param[in] enc
+ * @param[in] num_of_obj
+ *******************************************************************/
+static uns32 avsv_encode_cold_sync_rsp_avd_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SG *sg;
+	SaNameT sg_name = {0};
+	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
+	EDU_ERR ederror = 0;
+
+	TRACE_ENTER();
+
+	sg_name.length = 0;
+	for (sg = avd_sg_getnext(&sg_name); sg != NULL; sg = avd_sg_getnext(&sg_name)) {
+	    if (sg->si_tobe_redistributed != NULL) { 
+		si_trans_ckpt.sg_name = sg->name;
+		si_trans_ckpt.si_name = sg->si_tobe_redistributed->name;
+		si_trans_ckpt.min_su_name = sg->min_assigned_su->name;
+		si_trans_ckpt.max_su_name = sg->max_assigned_su->name;
+
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
+				&enc->io_uba, EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror,
+				enc->i_peer_version);
+
+		if (status != NCSCC_RC_SUCCESS) {
+			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+			return status;
+		}
+
+		(*num_of_obj)++;
+	    }
+	    sg_name = sg->name;
+	}
+	return status;
+}
+
 /****************************************************************************\
  * Function: avsv_encode_cold_sync_rsp_avd_su_si_rel
  *
@@ -2275,7 +2362,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
  * NOTES:
  *
  * 
-\**************************************************************************/
+ \**************************************************************************/
 static uns32 avsv_encode_cold_sync_rsp_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uns32 *num_of_obj)
 {
 	uns32 status = NCSCC_RC_SUCCESS;

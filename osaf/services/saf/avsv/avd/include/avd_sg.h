@@ -185,6 +185,12 @@ typedef struct avd_sg_tag {
 	struct avd_amf_sg_type_tag *sg_type;
 	struct avd_sg_tag *sg_list_app_next;
 	struct avd_app_tag *app;
+	NCS_BOOL equal_ranked_su; /* This flag is set when ranks of all SU is the same.
+				     It is used in equal distribution of SIs on SU 
+				     in Nway, N+M and Nway-Act Red models.*/
+	 struct avd_su_tag * max_assigned_su;
+	 struct avd_su_tag * min_assigned_su; 
+	 struct avd_si_tag * si_tobe_redistributed;
 } AVD_SG;
 
 typedef struct avd_amf_sg_type_tag {
@@ -297,5 +303,6 @@ extern void avd_sgtype_add_sg(AVD_SG *sg);
 extern void avd_sgtype_remove_sg(AVD_SG *sg);
 extern void avd_sgtype_constructor(void);
 extern void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state);
-
+extern void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg);
+extern void avd_sg_nway_screen_si_distr_equal(AVD_SG *sg);
 #endif

@@ -435,6 +435,42 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
 	return status;
 }
 
+/********************************************************************
+ * @brief  updates si parameters in corresponding sg
+ * @param[in] cb
+ * @param[in] si_trans_ckpt
+ * @param[in] action
+ *******************************************************************/
+uns32 avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt, NCS_MBCSV_ACT_TYPE action)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SG *sg_ptr;
+
+	TRACE_ENTER2("'%s'", si_trans_ckpt->sg_name.value);
+
+	sg_ptr = avd_sg_get(&si_trans_ckpt->sg_name);
+	assert(sg_ptr);
+
+	switch (action) {
+	case NCS_MBCSV_ACT_ADD:
+		sg_ptr->si_tobe_redistributed = avd_si_get(&si_trans_ckpt->si_name); 
+		sg_ptr->min_assigned_su = avd_su_get(&si_trans_ckpt->min_su_name); 
+		sg_ptr->max_assigned_su = avd_su_get(&si_trans_ckpt->max_su_name); 
+		break;
+
+	case NCS_MBCSV_ACT_RMV:
+		sg_ptr->si_tobe_redistributed = NULL;
+		sg_ptr->min_assigned_su = NULL;
+		sg_ptr->max_assigned_su = NULL;
+		break;
+
+	default:
+		assert(0);
+	}
+
+	return status;
+}
+
 /****************************************************************************\
  * Function: avd_ckpt_siass
  *

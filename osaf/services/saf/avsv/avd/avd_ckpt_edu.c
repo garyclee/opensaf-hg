@@ -95,6 +95,10 @@ uns32 avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
+	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans, &err);
+	if (rc != NCSCC_RC_SUCCESS)
+		goto error;
+
 	return rc;
 
 error:
@@ -625,6 +629,8 @@ uns32 avsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_ASYNC_UPDT_CNT *)0)->csi_updt, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
 		 (long)&((AVSV_ASYNC_UPDT_CNT *)0)->compcstype_updt, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_ASYNC_UPDT_CNT *)0)->si_trans_updt, 0, NULL},
 
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
@@ -752,3 +758,53 @@ uns32 avsv_edp_ckpt_msg_comp_cs_type(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	return rc;
 }
 
+/******************************************************************
+ * @brief encode/decode rules for si transfer parameters
+ * @param[in] hdl
+ * @param[in] edu_tkn
+ * @param[in] ptr
+ * @param[in] ptr_data_len
+ * @param[in] buf_env
+ * @param[in] op
+ * @param[out] o_err 
+ ******************************************************************/
+uns32 avsv_edp_ckpt_msg_si_trans(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				  NCSCONTEXT ptr, uns32 *ptr_data_len,
+				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_SI_TRANS_CKPT_MSG *struct_ptr = NULL, **d_ptr = NULL;
+        uns16 base_ver = 0;
+        base_ver = AVSV_AVD_AVND_MSG_FMT_VER_3;
+
+	EDU_INST_SET avsv_ckpt_msg_si_trans_rules[] = {
+		{EDU_START, avsv_edp_ckpt_msg_si_trans, 0, 0, 0,
+		 sizeof(AVSV_SI_TRANS_CKPT_MSG), 0, NULL},
+
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SI_TRANS_CKPT_MSG *)0)->sg_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SI_TRANS_CKPT_MSG *)0)->si_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SI_TRANS_CKPT_MSG *)0)->min_su_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SI_TRANS_CKPT_MSG *)0)->max_su_name, 0, NULL},
+
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_SI_TRANS_CKPT_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_SI_TRANS_CKPT_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_SI_TRANS_CKPT_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_si_trans_rules, struct_ptr,
+				 ptr_data_len, buf_env, op, o_err);
+
+	return rc;
+}
