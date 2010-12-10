@@ -490,9 +490,9 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	}
 
 	if (si != NULL) {
-		if (si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("'%s' admin state('%u') is not SA_AMF_ADMIN_LOCKED", 
-					si->name.value, si->saAmfSIAdminState);
+		/* SI should not be assigned while SI ranked SU needs to be deleted */
+		if (si->list_of_sisu != NULL) {
+			TRACE("Parent SI is in assigned state '%s'", si->name.value);
 			goto error;
 		}
 	}

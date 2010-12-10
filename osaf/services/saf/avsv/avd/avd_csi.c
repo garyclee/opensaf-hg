@@ -548,7 +548,7 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		}
 	} else {
 		if (csi->list_compcsi != NULL) {
-			LOG_ER("SaAmfCSI is in use");
+			LOG_ER("SaAmfCSI '%s' is in use", csi->name.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
