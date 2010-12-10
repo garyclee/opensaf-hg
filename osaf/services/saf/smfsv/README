@@ -64,6 +64,7 @@ services/saf/smfsv/inc	 		Common header files used by both smfd and smfnd
 services/saf/smfsv/interface_commands	Common header files used by both smfd and smfnd
 services/saf/smfsv/smfd			SMF director implementation
 services/saf/smfsv/smfnd		SMF node director implementation
+libs/agents/saf/smfa			SMF Agent implementation
 
 FILE STRUCTURE
 ==============

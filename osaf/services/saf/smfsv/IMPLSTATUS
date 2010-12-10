@@ -4,7 +4,6 @@ This document describes the implementation status of this release.
 High level summary
 ------------------
 Not planned to be implemented in OpenSAF4.0 release:
--SMF API.
 -Rollback.
 
 Implemented:
@@ -491,7 +490,7 @@ SMF requires the target entity templete to be written as in the examples below:
 
 
 8 Software Management Framework API
-  Not planned to be implemented in OpenSAF4.0 Release.
+  Implemented.
 
 9 Administrative API
 9.3 Software Management Framework Administrative API

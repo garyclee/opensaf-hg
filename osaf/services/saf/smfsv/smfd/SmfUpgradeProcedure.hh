@@ -33,7 +33,9 @@
 #include <saImmOi.h>
 #include "SmfImmOperation.hh"
 #include "SmfCampaignThread.hh"
+#include "SmfCallback.hh"
 
+class SmfCallback;
 class SmfUpgradeMethod;
 class SmfProcedureThread;
 class SmfProcState;
@@ -451,6 +453,41 @@ class SmfUpgradeProcedure {
 ///
 	bool getActDeactUnitsAndNodes(const std::string &i_dn, std::string& io_unit, std::string& io_node);
 
+///
+/// Purpose:  Get the list of callbacks beforeLock
+/// @param    -
+/// @return   The list of callbacks.
+///
+        std::list < SmfCallback * >& getCbksBeforeLock() { return m_beforeLock; }
+
+///
+/// Purpose:  Get the list of callbacks beforeTerm
+/// @param    -
+/// @return   The list of callbacks.
+///
+        std::list < SmfCallback * >& getCbksBeforeTerm() { return m_beforeTerm; }
+
+///
+/// Purpose:  Get the list of callbacks afterImmModify
+/// @param    -
+/// @return   The list of callbacks.
+///
+        std::list < SmfCallback * >& getCbksAfterImmModify() { return m_afterImmModify; }
+
+///
+/// Purpose:  Get the list of callbacks afterInstall
+/// @param    -
+/// @return   The list of callbacks.
+///
+        std::list < SmfCallback * >& getCbksAfterInstantiate() { return m_afterInstantiate; }
+
+///
+/// Purpose:  Get the list of callbacks afterUnlock
+/// @param    -
+/// @return   The list of callbacks.
+///
+        std::list < SmfCallback * >& getCbksAfterUnlock() { return m_afterUnlock; }
+
 
 	friend class SmfProcState;
 
@@ -484,7 +521,13 @@ class SmfUpgradeProcedure {
 	SmfUpgradeMethod *m_upgradeMethod;	              // Pointer to the upgrade method (rolling or synchronous)
         std::vector < SmfUpgradeAction * >m_procInitAction;   //Container of the procedure initiation commands
         std::vector < SmfUpgradeAction * >m_procWrapupAction; //Container of the procedure wrap up commands
-        std::vector < SmfUpgradeStep * >  m_procSteps;	      //Container of the procedure steps
+        std::vector < SmfUpgradeStep * >m_procSteps;	      //Container of the procedure upgrade steps
+
+        std::list < SmfCallback * >m_beforeLock;   //Container of the procedure callbacks to be invoked onstep, ataction
+        std::list < SmfCallback * >m_beforeTerm;   //Container of the procedure callbacks to be invoked onstep, ataction
+        std::list < SmfCallback * >m_afterImmModify;   //Container of the procedure callbacks to be invoked onstep, ataction
+        std::list < SmfCallback * >m_afterInstantiate;   //Container of the procedure callbacks to be invoked onstep, ataction
+        std::list < SmfCallback * >m_afterUnlock;   //Container of the procedure callbacks to be invoked onstep, ataction
 	sem_t m_semaphore;
 };
 

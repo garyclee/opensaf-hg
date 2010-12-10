@@ -598,6 +598,13 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		goto exit_error;
 	}
 
+	if (i_camp->m_campInit.executeBackup() != SA_AIS_OK) {
+		std::string error = "Campaign init backup callback failed";
+		LOG_ER("%s", error.c_str());
+		goto exit_error;
+	}
+	LOG_NO("CAMP: executed callbackAtBackup successfully in the campaign %s", i_camp->getCampaignName().c_str());
+
 	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
 
 	TRACE("Create the SmfCampRestartInfo object");
@@ -954,6 +961,14 @@ SmfCampStateExecCompleted::rollback(SmfUpgradeCampaign * i_camp)
         TRACE_ENTER();
 	LOG_NO("CAMP: Start rolling back completed campaign %s", i_camp->getCampaignName().c_str());
         changeState(i_camp, SmfCampRollingBack::instance());
+	if (i_camp->m_campInit.executeCallbackAtRollback() == false) {
+		std::string error = "Campaign rollback callback failed";
+		LOG_ER("%s", error.c_str());
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampRollbackFailed::instance());
+		return SMF_CAMP_FAILED;
+	}
+	
         SmfCampResultT wrapupResult = rollbackWrapup(i_camp);
 	TRACE_LEAVE();
         return wrapupResult;
@@ -990,13 +1005,9 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 
         LOG_NO("CAMP: Commit upgrade campaign %s", i_camp->getCampaignName().c_str());
 
-	//Removing runtime objects before execution of the campaign wrapup actions
-	//will make it possible for SMF to update the runtime classes as campaign
-	//wrapup actions. 
-	//The campaign wrapup actions are always successful from a SMF
-	//perspective even if the individual operations fail. The campaign will always
-	//reach completed state so the runtime objects will always be removed regardless
-	//if they are removed after or before the wrapup actions.
+	i_camp->m_campWrapup.executeCampWrapup(); // No action if wrapup is faulty
+
+        i_camp->resetMaintenanceState(); // No action if it fails
 
 	//Remove the procedure runtime objects
         const std::vector < SmfUpgradeProcedure * >& procedures = i_camp->getProcedures();
@@ -1006,15 +1017,7 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 		(*iter)->commit();
 	}
 
-	//Remove the rest
         i_camp->removeRunTimeObjects(); // No action if it fails
-
-	//From this point all SMF runtime objects are removed.
-	//Wrapup actions affecting SMF runtime objects are possible to made.
-
-	i_camp->m_campWrapup.executeCampWrapup(); // No action if wrapup is faulty
-
-        i_camp->resetMaintenanceState(); // No action if it fails
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 	LOG_NO("CAMP: Upgrade campaign committed %s", i_camp->getCampaignName().c_str());

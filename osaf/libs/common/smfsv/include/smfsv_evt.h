@@ -23,6 +23,7 @@
 
 #include <ncsgl_defs.h>
 #include <mds_papi.h>
+#include <saSmf.h>
 
 /* DO NOT CHANGE ANY OF THE NUMBERS BELOW SINCE IT WILL CAUSE
    NONBACKWARD COMPATIBILITY AND MAKE ROLLING UPGRADES IMPOSSIBLE.
@@ -40,6 +41,7 @@ typedef enum {
 typedef enum {
 	SMFD_EVT_MDS_INFO = 1,
 	SMFD_EVT_CMD_RSP = 2,
+	SMFD_EVT_CBK_RSP = 3,
 	SMFD_EVT_MAX
 } SMFD_EVT_TYPE;
 
@@ -47,6 +49,7 @@ typedef enum {
 typedef enum {
 	SMFND_EVT_MDS_INFO = 1,
 	SMFND_EVT_CMD_REQ = 2,
+	SMFND_EVT_CBK_RSP = 3,
 	SMFND_EVT_MAX
 } SMFND_EVT_TYPE;
 
@@ -54,12 +57,44 @@ typedef enum {
 typedef enum {
 	SMFA_EVT_MDS_INFO = 1,
 	SMFA_EVT_DUMMY = 2,
+	SMFA_EVT_CBK = 3,
 	SMFA_EVT_MAX
 } SMFA_EVT_TYPE;
 
 /****************************************************************************
  Events SMFSV 
  ****************************************************************************/
+
+typedef enum {
+        SMF_CLBK_EVT,
+        SMF_RSP_EVT
+}SMF_EVT_TYPE;
+
+typedef struct smf_cbk_evt{
+        SaInvocationT         inv_id;
+	SaSmfCallbackScopeIdT	scope_id;
+        SaNameT               object_name;
+        SaSmfPhaseT           camp_phase;
+        SaSmfCallbackLabelT   cbk_label;
+	uns32			params_len;
+        SaStringT             params;
+}SMF_CBK_EVT;
+
+typedef struct smf_resp_evt{
+        SaInvocationT         inv_id;
+        SaAisErrorT           err;
+}SMF_RESP_EVT;
+
+typedef struct smf_evt{
+        SMF_EVT_TYPE          evt_type;
+        union {
+                SMF_CBK_EVT   cbk_evt;
+                SMF_RESP_EVT  resp_evt;
+        }evt;
+        struct smf_evt        *next;
+}SMF_EVT;
+
+
 
 /* Structure for passing MDS info to components */
 typedef struct {
@@ -82,8 +117,9 @@ typedef struct {
 typedef struct {
 	SMFD_EVT_TYPE type;	/* evt type */
 	union {
-		smfsv_mds_info mds_info;
-		smfd_evt_cmd_rsp cmd_rsp;
+		smfsv_mds_info 		mds_info;
+		smfd_evt_cmd_rsp 	cmd_rsp;
+		struct smf_evt		cbk_rsp;
 	} event;
 } SMFD_EVT;
 
@@ -100,8 +136,9 @@ typedef struct {
 typedef struct {
 	SMFND_EVT_TYPE type;	/* evt type */
 	union {
-		smfsv_mds_info mds_info;
-		smfnd_evt_cmd_req cmd_req;
+		smfsv_mds_info 		mds_info;
+		smfnd_evt_cmd_req 	cmd_req;
+		struct smf_evt		cbk_req_rsp;
 	} event;
 } SMFND_EVT;
 
@@ -114,8 +151,9 @@ typedef struct {
 typedef struct {
 	SMFA_EVT_TYPE type;	/* evt type */
 	union {
-		smfsv_mds_info mds_info;
-	} param;
+		smfsv_mds_info 	mds_info;
+		struct smf_evt	cbk_req_rsp;	
+	} event;
 } SMFA_EVT;
 
 /******************************************************************************

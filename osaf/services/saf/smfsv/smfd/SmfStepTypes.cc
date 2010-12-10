@@ -339,6 +339,7 @@ SmfStepTypeSwInstallAct::rollback()
 bool 
 SmfStepTypeAuLock::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing AU lock step %s", m_step->getDn().c_str());
 
@@ -349,12 +350,26 @@ SmfStepTypeAuLock::execute()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if ((m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE)) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock deactivation units */
         LOG_NO("STEP: Lock deactivation units");
         if (m_step->lockDeactivationUnits() == false) {
                 LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if ((m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE)) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate deactivation units */
         LOG_NO("STEP: Terminate deactivation units");
@@ -375,6 +390,13 @@ SmfStepTypeAuLock::execute()
 	if (m_step->modifyInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if ((m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE)) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateActUnits() == false) {
@@ -403,12 +425,27 @@ SmfStepTypeAuLock::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if ((m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE)) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock activation units */
         LOG_NO("STEP: Unlock activation units");
         if (m_step->unlockActivationUnits() == false) {
                 LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if ((m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE)) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 #if 0
 //Moved to the procedure
 	/* Online uninstallation of old software */
@@ -438,6 +475,7 @@ SmfStepTypeAuLock::execute()
 bool 
 SmfStepTypeAuLock::rollback()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Rolling back SW AU lock step %s", m_step->getDn().c_str());
 
@@ -448,6 +486,13 @@ SmfStepTypeAuLock::rollback()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock activation units */
         LOG_NO("STEP: Lock activation units");
         if (m_step->lockActivationUnits() == false) {
@@ -455,6 +500,12 @@ SmfStepTypeAuLock::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
         /* Terminate activation units */
         LOG_NO("STEP: Terminate activation units");
         if (m_step->terminateActivationUnits() == false) {
@@ -474,6 +525,13 @@ SmfStepTypeAuLock::rollback()
 	if (m_step->reverseInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateDeactUnits() == false) {
@@ -502,12 +560,26 @@ SmfStepTypeAuLock::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock deactivation units */
         LOG_NO("STEP: Unlock deactivation units");
         if (m_step->unlockDeactivationUnits() == false) {
                 LOG_ER("Failed to Unlock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 #if 0
 //Moved to the procedure
@@ -544,6 +616,7 @@ SmfStepTypeAuLock::rollback()
 bool 
 SmfStepTypeAuLockAct::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing AU lock activation step %s", m_step->getDn().c_str());
 
@@ -554,12 +627,26 @@ SmfStepTypeAuLockAct::execute()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock deactivation units */
         LOG_NO("STEP: Lock deactivation units");
         if (m_step->lockDeactivationUnits() == false) {
                 LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate deactivation units */
         LOG_NO("STEP: Terminate deactivation units");
@@ -580,6 +667,13 @@ SmfStepTypeAuLockAct::execute()
 	if (m_step->modifyInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateActUnits() == false) {
@@ -630,12 +724,26 @@ SmfStepTypeAuLockAct::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock activation units */
         LOG_NO("STEP: Unlock activation units");
         if (m_step->unlockActivationUnits() == false) {
                 LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 
 	LOG_NO("STEP: Upgrade AU lock activation step completed %s", m_step->getDn().c_str());
@@ -650,6 +758,7 @@ SmfStepTypeAuLockAct::execute()
 bool 
 SmfStepTypeAuLockAct::rollback()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Rolling back SW AU lock activation step %s", m_step->getDn().c_str());
 
@@ -660,12 +769,26 @@ SmfStepTypeAuLockAct::rollback()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock activation units */
         LOG_NO("STEP: Lock activation units");
         if (m_step->lockActivationUnits() == false) {
                 LOG_ER("Failed to Lock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate activation units */
         LOG_NO("STEP: Terminate activation units");
@@ -686,6 +809,13 @@ SmfStepTypeAuLockAct::rollback()
 	if (m_step->reverseInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateDeactUnits() == false) {
@@ -735,12 +865,26 @@ SmfStepTypeAuLockAct::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock deactivation units */
         LOG_NO("STEP: Unlock deactivation units");
         if (m_step->unlockDeactivationUnits() == false) {
                 LOG_ER("Failed to Unlock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 	LOG_NO("STEP: Rolling back SW AU lock activation step completed %s", m_step->getDn().c_str());
 
@@ -760,6 +904,7 @@ SmfStepTypeAuLockAct::rollback()
 bool 
 SmfStepTypeAuRestart::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing AU restart step %s", m_step->getDn().c_str());
 
@@ -783,6 +928,14 @@ SmfStepTypeAuRestart::execute()
 		LOG_ER("Failed to Modify information model");
 		return false;
 	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 //TODO: Shall maintenance status be set here for restartable units ??
 
         /* Restartable activation units, restart them */
@@ -791,6 +944,13 @@ SmfStepTypeAuRestart::execute()
                 LOG_ER("Failed to Restart activation units");
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 #if 0
 //Moved to the procedure
@@ -821,6 +981,7 @@ SmfStepTypeAuRestart::execute()
 bool 
 SmfStepTypeAuRestart::rollback()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Rolling back AU restart step %s", m_step->getDn().c_str());
 
@@ -844,6 +1005,14 @@ SmfStepTypeAuRestart::rollback()
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
 	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 //TODO: Shall maintenance status be set here for restartable units ??
 
         /* Restartable activation units, restart them */
@@ -852,6 +1021,13 @@ SmfStepTypeAuRestart::rollback()
                 LOG_ER("Failed to Restart activation units");
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 #if 0
 //Moved to the procedure
@@ -890,6 +1066,7 @@ SmfStepTypeAuRestartAct::execute()
 {
         //The step actions below are executed for steps containing
         //restartable activation units i.e. restartable components.
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 
 	LOG_NO("STEP: Executing AU restart activation step %s", m_step->getDn().c_str());
@@ -913,6 +1090,13 @@ SmfStepTypeAuRestartAct::execute()
 	if (m_step->modifyInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Modify information model");
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	/* Note that the Online uninstallation is made before SW activation and AU restart */
@@ -946,6 +1130,13 @@ SmfStepTypeAuRestartAct::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 	LOG_NO("STEP: Upgrade AU restart activation step completed %s", m_step->getDn().c_str());
 
 	TRACE_LEAVE();
@@ -958,6 +1149,7 @@ SmfStepTypeAuRestartAct::execute()
 bool 
 SmfStepTypeAuRestartAct::rollback()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 
 	LOG_NO("STEP: Rolling back AU restart activation step %s", m_step->getDn().c_str());
@@ -982,6 +1174,14 @@ SmfStepTypeAuRestartAct::rollback()
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
 	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 //TODO: Shall maintenance status be set here for restartable units ??
 
 	/* Online uninstallation of new software */
@@ -1012,6 +1212,13 @@ SmfStepTypeAuRestartAct::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
 	LOG_NO("STEP: Rolling back AU restart activation step completed %s", m_step->getDn().c_str());
 
 	TRACE_LEAVE();
@@ -1030,6 +1237,7 @@ SmfStepTypeAuRestartAct::rollback()
 bool 
 SmfStepTypeNodeReboot::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 
 	LOG_NO("STEP: Executing node reboot step %s", m_step->getDn().c_str());
@@ -1054,12 +1262,26 @@ SmfStepTypeNodeReboot::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock deactivation units */
         LOG_NO("STEP: Lock deactivation units");
         if (m_step->lockDeactivationUnits() == false) {
                 LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate deactivation units */
         LOG_NO("STEP: Terminate deactivation units");
@@ -1081,6 +1303,13 @@ SmfStepTypeNodeReboot::execute()
                 LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         if (m_step->setMaintenanceStateActUnits() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
@@ -1196,12 +1425,26 @@ SmfStepTypeNodeReboot::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock activation units */
         LOG_NO("STEP: Unlock activation units");
         if (m_step->unlockActivationUnits() == false) {
                 LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 #if 0
 //Moved to the procedure
@@ -1233,6 +1476,7 @@ SmfStepTypeNodeReboot::execute()
 bool 
 SmfStepTypeNodeReboot::rollback()
 {
+	std::list < SmfCallback * > cbkList;
         TRACE_ENTER();
 
         SmfImmUtils immutil;
@@ -1256,12 +1500,27 @@ SmfStepTypeNodeReboot::rollback()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK);
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock activation units */
         LOG_NO("STEP: Lock activation units");
         if (m_step->lockActivationUnits() == false) {
                 LOG_ER("Failed to Lock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate activation units */
         LOG_NO("STEP: Terminate activation units");
@@ -1282,6 +1541,13 @@ SmfStepTypeNodeReboot::rollback()
 	if (m_step->reverseInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateDeactUnits() == false) {
@@ -1388,12 +1654,26 @@ SmfStepTypeNodeReboot::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock deactivation units */
         LOG_NO("STEP: Unlock deactivation units");
         if (m_step->unlockDeactivationUnits() == false) {
                 LOG_ER("Failed to Unlock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 #if 0
 //Moved to the procedure
@@ -1430,6 +1710,7 @@ SmfStepTypeNodeReboot::rollback()
 bool 
 SmfStepTypeNodeRebootAct::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing node reboot activate step %s", m_step->getDn().c_str());
 
@@ -1441,12 +1722,26 @@ SmfStepTypeNodeRebootAct::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock deactivation units */
         LOG_NO("STEP: Lock deactivation units");
         if (m_step->lockDeactivationUnits() == false) {
                 LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate deactivation units */
         LOG_NO("STEP: Terminate deactivation units");
@@ -1468,6 +1763,13 @@ SmfStepTypeNodeRebootAct::execute()
                 LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         if (m_step->setMaintenanceStateActUnits() == false) {
                 LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
@@ -1519,12 +1821,26 @@ SmfStepTypeNodeRebootAct::execute()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock activation units */
         LOG_NO("STEP: Unlock activation units");
         if (m_step->unlockActivationUnits() == false) {
                 LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 	LOG_NO("STEP: Upgrade node reboot activate step completed %s", m_step->getDn().c_str());
 
@@ -1538,6 +1854,7 @@ SmfStepTypeNodeRebootAct::execute()
 bool 
 SmfStepTypeNodeRebootAct::rollback()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 
 	LOG_NO("STEP: Rolling back node reboot activation step %s", m_step->getDn().c_str());
@@ -1549,12 +1866,26 @@ SmfStepTypeNodeRebootAct::rollback()
 		return false;
 	}
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeLock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Lock activation units */
         LOG_NO("STEP: Lock activation units");
         if (m_step->lockActivationUnits() == false) {
                 LOG_ER("Failed to Lock activation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
         /* Terminate activation units */
         LOG_NO("STEP: Terminate activation units");
@@ -1575,6 +1906,13 @@ SmfStepTypeNodeRebootAct::rollback()
 	if (m_step->reverseInformationModel() != SA_AIS_OK) {
 		LOG_ER("Failed to Reverse information model in step=%s",m_step->getRdn().c_str());
 		return false;
+	}
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
+                return false;
 	}
 
 	if (m_step->setMaintenanceStateDeactUnits() == false) {
@@ -1627,12 +1965,26 @@ SmfStepTypeNodeRebootAct::rollback()
                 return false;
         }
 
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
+
         /* Unlock deactivation units */
         LOG_NO("STEP: Unlock deactivation units");
         if (m_step->unlockDeactivationUnits() == false) {
                 LOG_ER("Failed to Unlock deactivation units in step=%s",m_step->getRdn().c_str());
                 return false;
         }
+
+	/* Check if callback is required to be invoked.*/
+	cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
+                LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
+                return false;
+	}
 
 	LOG_NO("STEP: Rolling back node reboot activation step completed %s", m_step->getDn().c_str());
 
@@ -1652,6 +2004,7 @@ SmfStepTypeNodeRebootAct::rollback()
 bool 
 SmfStepTypeClusterReboot::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 
 	LOG_NO("STEP: Executing cluster reboot step %s", m_step->getDn().c_str());
@@ -1690,10 +2043,24 @@ SmfStepTypeClusterReboot::execute()
 			return false;
 		}
 
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksBeforeLock();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
 		/* Lock deactivation units */
 		LOG_NO("STEP: Lock deactivation units");
 		if (m_step->lockDeactivationUnits() == false) {
 			LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -1715,6 +2082,13 @@ SmfStepTypeClusterReboot::execute()
 		LOG_NO("STEP: Modify information model and set maintenance status");
 		if (m_step->modifyInformationModel() != SA_AIS_OK) {
 			LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -1882,10 +2256,24 @@ SmfStepTypeClusterReboot::execute()
 			return false;
 		}
 
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
 		/* Unlock activation units */
 		LOG_NO("STEP: Unlock activation units");
 		if (m_step->unlockActivationUnits() == false) {
 			LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -1946,6 +2334,7 @@ SmfStepTypeClusterReboot::rollback()
 bool 
 SmfStepTypeClusterRebootAct::execute()
 {
+	std::list < SmfCallback * > cbkList;
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing cluster reboot activate step %s", m_step->getDn().c_str());
 
@@ -1969,10 +2358,24 @@ SmfStepTypeClusterRebootAct::execute()
 			return false;
 		}
 
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksBeforeLock();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
 		/* Lock deactivation units */
 		LOG_NO("STEP: Lock deactivation units");
 		if (m_step->lockDeactivationUnits() == false) {
 			LOG_ER("Failed to Lock deactivation units in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksBeforeTerm();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeTerm, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -1994,6 +2397,13 @@ SmfStepTypeClusterRebootAct::execute()
 		LOG_NO("STEP: Modify information model and set maintenance status");
 		if (m_step->modifyInformationModel() != SA_AIS_OK) {
 			LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterImmModify();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 
@@ -2068,10 +2478,24 @@ SmfStepTypeClusterRebootAct::execute()
 			return false;
 		}
 
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterInstantiate();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterInstantiate, step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
 		/* Unlock activation units */
 		LOG_NO("STEP: Unlock activation units");
 		if (m_step->unlockActivationUnits() == false) {
 			LOG_ER("Failed to Unlock activation units in step=%s",m_step->getRdn().c_str());
+			return false;
+		}
+
+		/* Check if callback is required to be invoked.*/
+		cbkList = m_step->getProcedure()->getCbksAfterUnlock();
+		if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_UPGRADE) == false) {
+			LOG_ER("checkAndInvokeCallback returned false for list cbksAfterUnlock, step=%s",m_step->getRdn().c_str());
 			return false;
 		}
 

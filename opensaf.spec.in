@@ -1133,6 +1133,7 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 
 %files smf-libs
 %defattr(-,root,root)
+%{_libdir}/libSaSmf.so.*
 %dir %{_pkglibdir}
 %{_pkglibdir}/libsmfsv_common.so.*
 

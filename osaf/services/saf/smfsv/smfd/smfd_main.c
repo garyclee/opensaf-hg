@@ -110,6 +110,7 @@ uns32 smfd_cb_init(smfd_cb_t * smfd_cb)
 	smfd_cb->nodeCheckCmd = NULL;
 	smfd_cb->repositoryCheckCmd = NULL;
 	smfd_cb->clusterRebootCmd = NULL;
+	smfd_cb->smfnd_list = NULL;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

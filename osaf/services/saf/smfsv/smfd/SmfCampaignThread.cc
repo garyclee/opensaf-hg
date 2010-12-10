@@ -236,6 +236,18 @@ int SmfCampaignThread::init(void)
 		return -1;
 	}
 
+	/* Create the mailbox used for callback communication */
+	if ((rc = m_NCS_IPC_CREATE(&m_cbkMbx)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
+		return -1;
+	}
+
+	/* Attach mailbox to this thread */
+	if ((rc = m_NCS_IPC_ATTACH(&m_cbkMbx) != NCSCC_RC_SUCCESS)) {
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		return -1;
+	}
+
 	/* Create Imm handle for our runtime objects */
 	if ((rc = createImmHandle(m_campaign)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("createImmHandle FAILED %d", rc);
@@ -389,6 +401,16 @@ SaImmOiHandleT
 SmfCampaignThread::getImmHandle()
 {
 	return m_campOiHandle;
+}
+
+/** 
+ * SmfCampaignThread::getCbkMbx
+ * Get the cbk mbx.
+ */
+SYSF_MBX & 
+SmfCampaignThread::getCbkMbx()
+{
+	return m_cbkMbx;
 }
 
 /** 

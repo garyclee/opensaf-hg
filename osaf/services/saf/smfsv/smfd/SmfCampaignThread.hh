@@ -176,6 +176,7 @@ class SmfCampaignThread {
 				  uns32 newState);
 
 	SaImmOiHandleT getImmHandle();
+	SYSF_MBX & getCbkMbx();
 
  private:
 	 SmfCampaignThread(SmfCampaign * campaign);
@@ -197,6 +198,7 @@ class SmfCampaignThread {
 
 	NCSCONTEXT m_task_hdl;
 	SYSF_MBX m_mbx;		/* mailbox */
+	SYSF_MBX m_cbkMbx;	/* mailbox for send/receive callback/response */
 	bool m_running;
 	SmfCampaign *m_campaign;
 	sem_t m_semaphore;

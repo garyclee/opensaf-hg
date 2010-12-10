@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <ncssysf_ipc.h>
 #include <ncsgl_defs.h>
 #include <saClm.h>
 
@@ -43,6 +44,12 @@ extern "C" {
  *   TYPE DEFINITIONS
  * ========================================================================
  */
+typedef struct smfd_smfnd_adest_invid_map{
+        SaInvocationT                           inv_id;
+        uns32                                   no_of_cbks;
+	SYSF_MBX				*cbk_mbx;
+        struct smfd_smfnd_adest_invid_map       *next_invid;
+}SMFD_SMFND_ADEST_INVID_MAP;
 
 /* ========================================================================
  *   DATA DECLARATIONS

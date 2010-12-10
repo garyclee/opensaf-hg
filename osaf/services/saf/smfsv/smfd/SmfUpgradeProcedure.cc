@@ -120,6 +120,34 @@ SmfUpgradeProcedure::~SmfUpgradeProcedure()
 	for (stepit = m_procSteps.begin(); stepit != m_procSteps.end(); ++stepit) {
 		delete(*stepit);
 	}
+
+	std::list < SmfCallback * >::iterator cbkit;
+
+	/* Delete beforeLock list of callbacks */
+	for (cbkit = m_beforeLock.begin(); cbkit != m_beforeLock.end(); ++cbkit) {
+		delete(*cbkit);
+	}
+
+	/* Delete beforeTerm list of callbacks */
+	for (cbkit = m_beforeTerm.begin(); cbkit != m_beforeTerm.end(); ++cbkit) {
+		delete(*cbkit);
+	}
+
+	/* Delete afterImmModify list of callbacks */
+	for (cbkit = m_afterImmModify.begin(); cbkit != m_afterImmModify.end(); ++cbkit) {
+		delete(*cbkit);
+	}
+
+	/* Delete afterInstantiate list of callbacks */
+	for (cbkit = m_afterInstantiate.begin(); cbkit != m_afterInstantiate.end(); ++cbkit) {
+		delete(*cbkit);
+	}
+
+	/* Delete afterUnlock list of callbacks */
+	for (cbkit = m_afterUnlock.begin(); cbkit != m_afterUnlock.end(); ++cbkit) {
+		delete(*cbkit);
+	}
+
 	TRACE_LEAVE();
 }
 
@@ -506,6 +534,51 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
 		return false;
 	}
 
+	/* Get the list of callbacks from upgrade method and set pointer to Upgrade Procedure */
+	std::list <SmfCallback *>::iterator cbkiter;
+	std::list <SmfCallback *> cbklist = i_rollingUpgrade->getCallbackList();
+	cbkiter = cbklist.begin();
+	TRACE("before traversing cbk list");
+	while (cbkiter != cbklist.end()) {
+		(*cbkiter)->setProcedure(this);
+		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkiter)->getAtAction(), 
+			(*cbkiter)->getStepCount(), (*cbkiter)->getCallbackLabel().c_str());
+		switch((*cbkiter)->getAtAction()) {
+			case SmfCallback::beforeLock:
+			{
+				/*Add this callback ptr to the beforeLock list */
+				m_beforeLock.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::beforeTermination:
+			{
+				m_beforeTerm.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterImmModification:
+			{
+				m_afterImmModify.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterInstantiation:
+			{
+				m_afterInstantiate.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterUnlock:
+			{
+				m_afterUnlock.push_back(*cbkiter);
+				break;
+			}
+			default:
+				TRACE_2 ("default case, atAction val = %d", (*cbkiter)->getAtAction());
+				break;
+		}
+		cbkiter++;
+	}
+	TRACE("after traversing cbk list");
+
+
 	const std::list < SmfParentType * >&actUnitTemplates = nodeTemplate->getActivationUnitTemplateList();
 	std::list < std::string > activationUnitList;
 
@@ -722,6 +795,49 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 	newStep->setMaxRetry(i_upgrade->getStepMaxRetryCount());
 	newStep->setRestartOption(i_upgrade->getStepRestartOption());
 
+	/* Get the list of callbacks from upgrade method and set pointer to Upgrade Procedure */
+	std::list <SmfCallback *>::iterator cbkiter;
+	std::list <SmfCallback *> cbklist = i_upgrade->getCallbackList();
+	cbkiter = cbklist.begin();
+	TRACE("before traversing cbk list");
+	while (cbkiter != cbklist.end()) {
+		(*cbkiter)->setProcedure(this);
+		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkiter)->getAtAction(), 
+			(*cbkiter)->getStepCount(), (*cbkiter)->getCallbackLabel().c_str());
+		switch((*cbkiter)->getAtAction()) {
+			case SmfCallback::beforeLock:
+			{
+				/*Add this callback ptr to the beforeLock list */
+				m_beforeLock.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::beforeTermination:
+			{
+				m_beforeTerm.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterImmModification:
+			{
+				m_afterImmModify.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterInstantiation:
+			{
+				m_afterInstantiate.push_back(*cbkiter);
+				break;
+			}
+			case SmfCallback::afterUnlock:
+			{
+				m_afterUnlock.push_back(*cbkiter);
+				break;
+			}
+			default:
+				TRACE_2 ("default case, atAction val = %d", (*cbkiter)->getAtAction());
+				break;
+		}
+		cbkiter++;
+	}
+	TRACE("after traversing cbk list");
 	if (forAddRemove != NULL) {
 
 		TRACE("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: SmfForAddRemove");

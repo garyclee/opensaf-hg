@@ -234,12 +234,41 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 static uns32 mds_svc_event(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	smfnd_cb_t *cb = smfnd_cb;
+	MDS_CALLBACK_SVC_EVENT_INFO *svc_evt = &info->info.svc_evt; 
+	
+	switch(svc_evt->i_change){
+		case NCSMDS_UP:
+			/* TODO: No lock is taken. This might be dangerous.*/
+			if (NCSMDS_SVC_ID_SMFA == svc_evt->i_svc_id){
+				cb->agent_cnt++;
+				LOG_NO("Count of agents incremeted to : %d",cb->agent_cnt);
+			}else if (NCSMDS_SVC_ID_SMFD == svc_evt->i_svc_id){
+				/* Catch the vdest of SMFD*/
+				if (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest))
+					return NCSCC_RC_SUCCESS;
+				cb->smfd_dest = svc_evt->i_dest;
+			}
+			break;
 
-	goto done;
-
- done:
-	return rc;
+		case NCSMDS_DOWN:
+			/* TODO: No lock is taken. This might be dangerous.*/
+			/* TODO: Need to clean up the cb->cbk_list, otherwise there will be
+			 memory leak. For the time being we are storing only conut of agents,
+			 not the adest of agents and hence it is not possible to clean up cbk_list.*/
+			if (NCSMDS_SVC_ID_SMFA == svc_evt->i_svc_id){
+				cb->agent_cnt--;
+				LOG_NO("Count of agents decremeted to : %d",cb->agent_cnt);
+			}else if (NCSMDS_SVC_ID_SMFD == svc_evt->i_svc_id){
+				if (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest))
+					return NCSCC_RC_SUCCESS;
+				cb->smfd_dest = 0;
+			}
+			break;
+		default:
+			LOG_NO("Got the svc evt: %d for SMFND",svc_evt->i_change);
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -339,6 +368,7 @@ uns32 mds_get_handle(smfnd_cb_t * cb)
 uns32 mds_register(smfnd_cb_t * cb)
 {
 	NCSMDS_INFO svc_info;
+	MDS_SVC_ID svc_id[2] = { NCSMDS_SVC_ID_SMFD,NCSMDS_SVC_ID_SMFA };
 
 	/* clear the svc_info */
 	memset(&svc_info, 0, sizeof(NCSMDS_INFO));
@@ -359,6 +389,19 @@ uns32 mds_register(smfnd_cb_t * cb)
 		return NCSCC_RC_FAILURE;
 	}
 	cb->mds_dest = svc_info.info.svc_install.o_dest;
+	
+	memset(&svc_info, 0, sizeof(NCSMDS_INFO));
+	svc_info.i_mds_hdl = cb->mds_handle;
+	svc_info.i_svc_id = NCSMDS_SVC_ID_SMFND;
+	svc_info.i_op = MDS_SUBSCRIBE;
+
+	svc_info.info.svc_subscribe.i_num_svcs = 2;
+	svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
+	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
+	if (NCSCC_RC_SUCCESS != ncsmds_api(&svc_info)){
+		LOG_ER("SMFND: MDS Subscription FAILED.");
+		return NCSCC_RC_FAILURE;
+	}
 
 	return NCSCC_RC_SUCCESS;
 }

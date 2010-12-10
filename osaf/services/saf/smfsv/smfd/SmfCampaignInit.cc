@@ -68,12 +68,39 @@ SmfCampaignInit::~SmfCampaignInit()
 	std::list < SmfImmOperation * >::iterator addIter;
 	std::list < SmfImmOperation * >::iterator addIterE;
 
+	std::list <SmfCallback *>::iterator cbkIter;
+	std::list <SmfCallback *>::iterator cbkIterE;
+
 	addIter = SmfCampaignInit::m_addToImm.begin();
 	addIterE = SmfCampaignInit::m_addToImm.end();
 
 	while (addIter != addIterE) {
 		delete((*addIter));
 		addIter++;
+	}
+
+	cbkIter = SmfCampaignInit::m_callbackAtInit.begin();
+	cbkIterE = SmfCampaignInit::m_callbackAtInit.end();
+
+	while (cbkIter != cbkIterE) {
+		delete((*cbkIter));
+		cbkIter++;
+	}
+
+	cbkIter = SmfCampaignInit::m_callbackAtBackup.begin();
+	cbkIterE = SmfCampaignInit::m_callbackAtBackup.end();
+
+	while (cbkIter != cbkIterE) {
+		delete((*cbkIter));
+		cbkIter++;
+	}
+
+	cbkIter = SmfCampaignInit::m_callbackAtRollback.begin();
+	cbkIterE = SmfCampaignInit::m_callbackAtRollback.end();
+
+	while (cbkIter != cbkIterE) {
+		delete((*cbkIter));
+		cbkIter++;
 	}
 }
 
@@ -95,34 +122,32 @@ SmfCampaignInit::getAddToImm()
 	return m_addToImm;
 }
 
-#if 0
 //------------------------------------------------------------------------------
 // addCallbackAtInit()
 //------------------------------------------------------------------------------
 void 
-SmfCampaignInit::addCallbackAtInit(SmfCallbackOptions * i_option)
+SmfCampaignInit::addCallbackAtInit(SmfCallback* i_cbk)
 {
-	m_callbackAtInit.push_back(i_option);
+	m_callbackAtInit.push_back(i_cbk);
 }
 
 //------------------------------------------------------------------------------
 // addCallbackAtBackup()
 //------------------------------------------------------------------------------
 void 
-SmfCampaignInit::addCallbackAtBackup(SmfCallbackOptions * i_option)
+SmfCampaignInit::addCallbackAtBackup(SmfCallback* i_cbk)
 {
-	m_callbackAtBackup.push_back(i_option);
+	m_callbackAtBackup.push_back(i_cbk);
 }
 
 //------------------------------------------------------------------------------
 // addCallbackAtRollback()
 //------------------------------------------------------------------------------
 void 
-SmfCampaignInit::addCallbackAtRollback(SmfCallbackOptions * i_option)
+SmfCampaignInit::addCallbackAtRollback(SmfCallback* i_cbk)
 {
-	m_callbackAtRollback.push_back(i_option);
+	m_callbackAtRollback.push_back(i_cbk);
 }
-#endif
 
 //------------------------------------------------------------------------------
 // addCampInitAction()
@@ -199,6 +224,19 @@ SmfCampaignInit::execute()
 	//////////////////
 	//Callback at init
 	//////////////////
+	std::list < SmfCallback * >:: iterator cbkiter;
+	cbkiter = m_callbackAtInit.begin();
+	while (cbkiter != m_callbackAtInit.end()) {
+		SaAisErrorT rc = (*cbkiter)->execute(initRollbackDn);
+		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+			LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			TRACE_LEAVE();
+			return false;
+		}
+		cbkiter++;
+	}
+
+
 #if 0
 	std::list < SmfCallbackOptions * >m_callbackAtInit;
 #endif
@@ -219,6 +257,22 @@ SmfCampaignInit::executeBackup()
 #if 0
 	std::list < SmfCallbackOptions * >m_callbackAtBackup;
 #endif
+	///////////////////////
+	//Callback at backup
+	///////////////////////
+
+	std::list < SmfCallback * >:: iterator cbkiter;
+	std::string dn;
+	cbkiter = m_callbackAtBackup.begin();
+	while (cbkiter != m_callbackAtBackup.end()) {
+		SaAisErrorT rc = (*cbkiter)->execute(dn);
+		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			TRACE_LEAVE();
+			return false;
+		}
+		cbkiter++;
+	}
 	return true;
 }
 
@@ -261,11 +315,37 @@ SmfCampaignInit::rollback()
                 return false;
 	}
 
-
 #if 0
 	std::list < SmfCallbackOptions * >m_callbackAtRollback;
 #endif
 
 	LOG_NO("CAMP: Rollback of campaign init actions completed");
+	return true;
+}
+//------------------------------------------------------------------------------
+// executeCallbackAtRollback()
+//------------------------------------------------------------------------------
+bool
+SmfCampaignInit::executeCallbackAtRollback()
+{
+	std::string dn;
+	////////////////////////
+	//Callback at rollback
+	////////////////////////
+
+	TRACE_ENTER();
+	std::list < SmfCallback * >:: iterator cbkiter;
+	cbkiter = m_callbackAtRollback.begin();
+	while (cbkiter != m_callbackAtRollback.end()) {
+		SaAisErrorT rc = (*cbkiter)->rollback(dn);
+		LOG_NO("SmfCampaignInit callbackAtRollback returned %d", rc);
+		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+			LOG_ER("SmfCampaignInit callbackAtRollback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			TRACE_LEAVE();
+			return false;
+		}
+		cbkiter++;
+	}
+	TRACE_LEAVE();
 	return true;
 }

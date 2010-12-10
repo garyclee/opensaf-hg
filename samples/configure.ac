@@ -53,6 +53,7 @@ PKG_CHECK_MODULES([SAF_AIS_CKPT], [opensaf-ckpt])
 PKG_CHECK_MODULES([SAF_AIS_EVT], [opensaf-evt])
 PKG_CHECK_MODULES([SAF_AIS_LCK], [opensaf-lck])
 PKG_CHECK_MODULES([SAF_AIS_MSG], [opensaf-msg])
+PKG_CHECK_MODULES([SAF_AIS_SMF], [opensaf-smf])
 
 #
 # List the output Makefiles

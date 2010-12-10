@@ -99,3 +99,13 @@ Configuration
 The configuration delivered in
 "$OPENSAFD/osaf/services/saf/immsv/config/imm.xml" contain information
 enough to be able to iterate over all nodes and over a payload and system controllers node group.
+
+How to run smf-demo
+-------------------
+1. Edit smf-demo.c files to mention the appropriate filter names in defination of the following four macros.
+	LABEL1
+	LABEL2
+	LABEL3
+	LABEL4
+2. Run make.
+3. Run ./smf-demo.

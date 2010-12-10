@@ -49,3 +49,9 @@ if ENABLE_AIS_MSG
 SUBDIRS += mqa
 
 endif
+
+if ENABLE_AIS_SMF
+
+SUBDIRS += smfa
+
+endif
