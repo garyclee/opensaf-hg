@@ -2101,3 +2101,112 @@ SmfUpgradeStep::getProcedure()
 {
 	return m_procedure;
 }
+
+//------------------------------------------------------------------------------
+// checkAndInvokeCallback()
+//------------------------------------------------------------------------------
+bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callbackList, unsigned int camp_phase) 
+{
+	std::string stepDn = getDn();
+	SYSF_MBX cbkMbx;
+	cbkMbx = m_procedure->getProcThread()->getCbkMbx();
+	std::list < SmfCallback * >:: iterator cbkiter;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	std::vector < SmfUpgradeStep * >::const_iterator iter;
+	const std::vector <SmfUpgradeStep *>& procSteps = m_procedure->getProcSteps();
+
+	cbkiter = callbackList.begin();
+	while (cbkiter != callbackList.end()) {
+		SmfCallback::StepCountT stepCount = (*cbkiter)->getStepCount();
+
+		if (stepCount == SmfCallback::onFirstStep) {
+			/* check if this is first step */
+			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+				if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
+					/* This is the first step, so call callback */
+					if (camp_phase == SA_SMF_UPGRADE) {
+						rc = (*cbkiter)->execute(stepDn);
+					}
+					else if (camp_phase == SA_SMF_ROLLBACK) {
+						rc = (*cbkiter)->rollback(stepDn);
+					}
+					if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+						LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+						TRACE_LEAVE();
+						return false;
+					}
+					break;
+				}
+			}
+		}
+		else if (stepCount == SmfCallback::onLastStep) {
+			/* check if this is last step */
+			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+				if (iter+1 == procSteps.end()) {
+					break;
+				}
+			}
+			/* iter is at the last step in procSteps now */
+			/* check if the current step is same as iter */
+			if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
+				/* This is the last step, so call callback */
+				if (camp_phase == SA_SMF_UPGRADE) {
+					rc = (*cbkiter)->execute(stepDn);
+				}
+				else if (camp_phase == SA_SMF_ROLLBACK) {
+					rc = (*cbkiter)->rollback(stepDn);
+				}
+				if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+					LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+					TRACE_LEAVE();
+					return false;
+				}
+			}
+		}
+		else if (stepCount == SmfCallback::halfWay) {
+			int noOfSteps = 0, halfWay;
+			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+				noOfSteps++;
+			}
+			halfWay = noOfSteps/2+1;
+			noOfSteps = 0;
+			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+				noOfSteps++;
+				if (halfWay == noOfSteps) {
+					break;
+				}
+			}
+			/* iter is at halfWay of procSteps, check if current step is same as iter */
+			if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
+				/* This is the halfWay step, so call callback */
+				if (camp_phase == SA_SMF_UPGRADE) {
+					rc = (*cbkiter)->execute(stepDn);
+				}
+				else if (camp_phase == SA_SMF_ROLLBACK) {
+					rc = (*cbkiter)->rollback(stepDn);
+				}
+				if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+					LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+					TRACE_LEAVE();
+					return false;
+				}
+			}
+		}
+		else if (stepCount == SmfCallback::onEveryStep) {
+			if (camp_phase == SA_SMF_UPGRADE) {
+				rc = (*cbkiter)->execute(stepDn);
+			}
+			else if (camp_phase == SA_SMF_ROLLBACK) {
+				rc = (*cbkiter)->rollback(stepDn);
+			}
+			if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+				LOG_ER("SmfCampaignInit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+				TRACE_LEAVE();
+				return false;
+			}
+		}
+		cbkiter++;
+	}
+	return true;
+}

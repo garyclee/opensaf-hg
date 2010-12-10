@@ -20,6 +20,7 @@
 
 #include <saImmOm.h>
 #include <saImmOi.h>
+#include <smfd_smfnd.h>
 
 /* Default HA state assigned locally during smfd initialization */
 #define SMFD_HA_INIT_STATE SA_AMF_HA_STANDBY
@@ -57,6 +58,10 @@ typedef struct smfd_cb {
 	SaUint32T smfCampMaxRestart;	            /* Max number of campaign restarts */
 	char *smfImmPersistCmd;	                    /* Command for IMM persistance */
 	char *smfNodeRebootCmd;	                    /* Command for node reboot */
+	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
+	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
+	uns32 no_of_smfnd;
+
 } smfd_cb_t;
 
 #ifdef __cplusplus

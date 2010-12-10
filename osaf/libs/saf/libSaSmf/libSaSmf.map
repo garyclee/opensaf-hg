@@ -1,0 +1,9 @@
+# Version and symbol export for libSaSmf.so
+
+{
+	global:
+		saSmf*;
+
+	local:
+		*;
+};

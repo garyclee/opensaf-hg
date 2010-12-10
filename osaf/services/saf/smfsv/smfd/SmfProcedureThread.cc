@@ -157,6 +157,18 @@ SmfProcedureThread::init(void)
 		return -1;
 	}
 
+	/* Create the mailbox used for callback communication */
+	if ((rc = m_NCS_IPC_CREATE(&m_cbk_mbx)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
+		return -1;
+	}
+
+	/* Attach mailbox to this thread */
+	if ((rc = m_NCS_IPC_ATTACH(&m_cbk_mbx) != NCSCC_RC_SUCCESS)) {
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		return -1;
+	}
+
 	/* Check if our Imm runtime object already exists (switchover or restart occured) */
 	result = getImmProcedure(m_procedure);
 	if (result == SA_AIS_ERR_NOT_EXIST) {
@@ -205,6 +217,16 @@ SmfProcedureThread::getImmHandle()
 {
         /* Use the same handle in all threads for rollback to work */
         return SmfCampaignThread::instance()->getImmHandle();
+}
+
+/** 
+ * SmfProcedureThread::getCbkMbx
+ * Get the cbk mbx.
+ */
+SYSF_MBX & 
+SmfProcedureThread::getCbkMbx()
+{
+	return m_cbk_mbx;
 }
 
 /** 

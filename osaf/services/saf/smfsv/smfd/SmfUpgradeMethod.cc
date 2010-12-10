@@ -117,14 +117,14 @@ SmfUpgradeMethod::getStepMaxRetryCount(void) const
 	return m_stepMaxRetryCount;
 }
 
-const std::list<SmfCallback>& 
-SmfUpgradeMethod::getCallbackList() const
+std::list<SmfCallback *>& 
+SmfUpgradeMethod::getCallbackList() 
 {
 	return callback_list;
 }
 
 void 
-SmfUpgradeMethod::addCallback(SmfCallback& callback)
+SmfUpgradeMethod::addCallback(SmfCallback *callback)
 {
 	callback_list.push_back(callback);
 }

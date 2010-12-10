@@ -29,6 +29,8 @@
 #include "smfsv_defs.h"
 #include "smfsv_evt.h"
 
+void proc_callback_rsp(smfd_cb_t *, SMFSV_EVT *);
+
 /****************************************************************************
  * Name          : proc_mds_info
  *
@@ -60,6 +62,7 @@ static void proc_mds_info(smfd_cb_t * cb, SMFSV_EVT * evt)
 
 		if (mds_info->svc_id == NCSMDS_SVC_ID_SMFND) {
 			smfnd_up(mds_info->node_id, mds_info->dest);
+			cb->no_of_smfnd++;
 		}
 		break;
 
@@ -71,6 +74,7 @@ static void proc_mds_info(smfd_cb_t * cb, SMFSV_EVT * evt)
 
 		if (mds_info->svc_id == NCSMDS_SVC_ID_SMFND) {
 			smfnd_down(mds_info->node_id);
+			cb->no_of_smfnd--;
 		}
 		break;
 
@@ -116,6 +120,11 @@ void smfd_process_mbx(SYSF_MBX * mbx)
 				/* The CMD RSP is always received synchronized so skip it here */
 				break;
 			}
+		case SMFD_EVT_CBK_RSP:
+			{
+				proc_callback_rsp(smfd_cb, evt);
+				break;
+			}
 		default:
 			{
 				LOG_ER("SMFND received unknown event %d",
@@ -127,4 +136,83 @@ void smfd_process_mbx(SYSF_MBX * mbx)
 
  err:
 	smfsv_evt_destroy(evt);
+}
+
+void proc_callback_rsp(smfd_cb_t *cb, SMFSV_EVT *evt)
+{
+	SMF_EVT *cbk_rsp = &evt->info.smfd.event.cbk_rsp;
+	uns32      rc = NCSCC_RC_SUCCESS;
+	SMFSV_EVT *new_evt;
+	
+	TRACE_ENTER();
+	if (cbk_rsp->evt_type == SMF_CLBK_EVT) {
+		/* Ignore, log and return, SMF-D should not receive this */
+		TRACE_LEAVE2("Received SMF_CLBK_EVT, which should not be the case");
+		return;
+	}
+	else if (cbk_rsp->evt_type == SMF_RSP_EVT) {
+		SMFD_SMFND_ADEST_INVID_MAP *prev=NULL, *temp = smfd_cb->smfnd_list;
+
+		TRACE_2("Received evt_type: %d, inv_id: %llu, err: %d", cbk_rsp->evt_type,
+			cbk_rsp->evt.resp_evt.inv_id, cbk_rsp->evt.resp_evt.err);
+		while (temp != NULL) {
+			if (temp->inv_id == cbk_rsp->evt.resp_evt.inv_id)
+			{
+				/* check the response */
+				TRACE_2("found the node with inv_id: %llu", cbk_rsp->evt.resp_evt.inv_id);
+				if (cbk_rsp->evt.resp_evt.err == SA_AIS_ERR_FAILED_OPERATION) {
+					temp->no_of_cbks = 0;
+				}
+				else if (cbk_rsp->evt.resp_evt.err == SA_AIS_OK) {
+					temp->no_of_cbks--;
+				}
+				if (temp->no_of_cbks == 0) {
+					/* all responses are received for this inv_id */
+					TRACE("last response received, cleaning up the node");
+					if (prev == NULL) {
+						smfd_cb->smfnd_list = smfd_cb->smfnd_list->next_invid;
+					}
+					else {
+						prev->next_invid = temp->next_invid;
+					}
+#if 0
+					/* send the consolidated response to camp/proc thread */
+					if (temp->proc == NULL) {
+						/* callback was invoked from campaign thread */
+						SmfCampaignThread *camp_thread = SmfCampaignThread::instance();
+						rc = m_NCS_IPC_SEND(&camp_thread->m_resp_mbx, 
+									cbk_rsp->resp_evt,
+									NCS_IPC_PRIORITY_HIGH);
+						if (rc != NCSCC_RC_SUCCESS) {
+							LOG_CR("IPC send failed %d, %s", rc, strerror(errno));
+						}
+					}
+					else {
+						/* callback invoked from procedure thread */
+						rc = m_NCS_IPC_SEND(&temp->proc->m_resp_mbx, 
+									cbk_rsp->resp_evt,
+									NCS_IPC_PRIORITY_HIGH);
+						if (rc != NCSCC_RC_SUCCESS) {
+							LOG_CR("IPC send failed %d, %s", rc, strerror(errno));
+						}
+					}
+#endif
+					new_evt = (SMFSV_EVT *)calloc (1, sizeof(SMFSV_EVT));
+					memcpy (new_evt, evt, sizeof(SMFSV_EVT));
+					rc = m_NCS_IPC_SEND(temp->cbk_mbx,
+								new_evt,
+								NCS_IPC_PRIORITY_HIGH); 
+					if (rc != NCSCC_RC_SUCCESS) {
+						LOG_CR("IPC send failed %d, %s", rc, strerror(errno));
+					}
+					free(temp);
+					break; /* from the while, otherwise return from function */
+				}
+			}
+			prev = temp;
+			temp = temp->next_invid;
+		}
+	}
+	TRACE_LEAVE();
+	return;
 }

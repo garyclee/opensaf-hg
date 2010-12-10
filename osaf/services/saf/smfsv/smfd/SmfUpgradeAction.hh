@@ -30,6 +30,7 @@
 
 #include <saImmOm.h>
 #include "SmfImmOperation.hh"
+#include "SmfCallback.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -37,6 +38,7 @@
  */
 
 class SmfPlmExecEnv;
+class SmfCallback;
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -375,6 +377,53 @@ class SmfImmCcbAction:public SmfUpgradeAction {
 
 	 std::string m_ccbFlags;	/* CCB flags */
 	 std::list < SmfImmOperation * >m_operations;	/* A list of Imm operations within this ccb */
+};
+
+class SmfCallbackAction:public SmfUpgradeAction {
+ public:
+
+///
+/// The constructor
+/// @param    i_id Th Id of the action
+/// @return   None
+///
+	SmfCallbackAction(int i_id);
+
+///
+/// The dDestructor
+/// @param    None
+/// @return   None
+///
+	~SmfCallbackAction();
+
+///
+/// Purpose: Execute the callback action.
+/// @param   None.
+/// @return  0 on success, otherwise failure.
+///
+	SaAisErrorT execute(const std::string* i_rollbackDn = NULL);
+
+///
+/// Purpose: Rollback the callback action.
+/// @param   None.
+/// @return  0 on success, otherwise failure.
+///
+	SaAisErrorT rollback(const std::string& i_rollbackDn);
+
+	SmfCallback & getCallback(void) { return m_callback; }
+
+ private:
+///
+/// Purpose: Disables copy constructor.
+///
+	 SmfCallbackAction(const SmfCallbackAction &);
+
+///
+/// Purpose: Disables  assignment operator.
+///
+	 SmfCallbackAction & operator=(const SmfCallbackAction &);
+
+	 SmfCallback m_callback;	/* SmfCallback attribute */
 };
 
 #endif				// SMFUPGRADEACTION_HH

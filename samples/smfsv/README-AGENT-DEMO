@@ -1,0 +1,86 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+Running campaign in UML environment:
+===================================
+Prerequisites: 
+   -OpenSAF is configured and built.
+   -Define $INSTALL_TESTPROG to install the OpenSAF demo application
+    when the UML environment is built.
+   -$OPENSAFD points to your OpenSAF directory.
+
+1) Build the UML environment
+	- cd $OPENSAFD/tools/cluster_sim_uml
+	- Run ./build_uml
+
+2) Complie smfsv demo.
+	- cd $OPENSAFD/samples/smfsv/
+	- Run make
+	- smf_demo_agent executable will be generated.
+
+3) Copy the following files to the directory $OPENSAFD/tools/cluster_sim_uml.
+     - offline_install.sh  
+     - offline_remove.sh
+     - online_install.sh
+     - online_remove.sh
+     - campaign_rolling_comp_agent.xml
+     - smf_demo_agent executable
+
+   cp $OPENSAFD/samples/smfsv/*.sh $OPENSAFD/tools/cluster_sim_uml
+   cp $OPENSAFD/samples/smfsv/campaigns/campaign_rolling_comp_agent.xml $OPENSAFD/tools/cluster_sim_uml
+   cp $OPENSAFD/samples/smfsv/smf_demo_agent $OPENSAFD/tools/cluster_sim_uml
+   chmod +x $OPENSAFD/tools/cluster_sim_uml/o*.sh
+
+4) Inhibit check-scripts (TEMPORARY)
+   Disable the check-scripts that are executed during a campaign.
+   echo "exit 0" > $OPENSAFD/tools/cluster_sim_uml/smf.rc
+
+4) Start the cluster:
+   cd $OPENSAFD/tools/cluster_sim_uml
+   ./opensaf start 5 
+
+5) Run the demo in back-ground from shell window for UML processor SC-1. 
+   cd /hostfs/ 
+   ./smf_demo_agent &
+
+6) Start the campaign:
+
+   In the shell window for UML processor SC-1 enter command.
+   # immcfg -c SaSmfCampaign -a saSmfCmpgFileUri=/hostfs/campaign_rolling_comp_agent.xml safSmfCampaign=campaign_rolling_comp,safApp=safSmfService
+
+   In the shell window for UML processor SC-1 enter command:
+   # immadm -o 1 safSmfCampaign=campaign_rolling_comp,safApp=safSmfService
+
+   This command sends the admin operation SA_SMF_ADMIN_EXECUTE to the
+   IMM object with
+   DN="safSmfCampaign=campaign_rolling_comp,safApp=safSmfService", which happends
+   to be the upgrade campaign.
+
+   The following operations are supported:
+   immadm -o 1 "safSmfCampaign=campaign_rolling_comp,safApp=safSmfService"  //execute
+   immadm -o 2 "safSmfCampaign=campaign_rolling_comp,safApp=safSmfService"  //rollback
+   immadm -o 3 "safSmfCampaign=campaign_rolling_comp,safApp=safSmfService"  //suspend
+   immadm -o 4 "safSmfCampaign=campaign_rolling_comp,safApp=safSmfService"  //commit
+
+Logging:
+-------
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-1/log/opensaf/osafsmfd.log
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-2/log/opensaf/osafsmfnd.log
+
+   Printouts from the delivered demo installation/removal scrips are redirected to file.
+
+   $OPENSAFD/tools/cluster_sim_uml/upgradeInstallationRemoval.log

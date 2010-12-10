@@ -43,6 +43,7 @@
 
 class SmfImmOperation;
 class SmfUpgradeAction;
+class SmfCallback;
 
 //================================================================================
 // Class SmfCampaignWrapup
@@ -74,15 +75,13 @@ class SmfCampaignWrapup {
 ///
 	void addRemoveFromImm(SmfImmOperation * i_operation);
 
-#if 0
 ///
 /// Purpose: Add a callback to be issued at commit (from callbackAtCommit section).
 /// @param   i_option A pointer to a SmfCallbackOptions.
 /// @return  None.
 ///
-	void addCallbackAtCommit(SmfCallbackOptions * i_option);
+	void addCallbackAtCommit(SmfCallback* i_cbk);
 
-#endif
 
 ///
 /// Purpose: Add an action to be executed at campaign commit (campCommitAction in campaign xml)..
@@ -124,9 +123,7 @@ class SmfCampaignWrapup {
 	 std::list < SmfUpgradeAction * >m_campCompleteAction;
 	 std::list < SmfUpgradeAction * >m_campWrapupAction;
 
-#if 0
-	 std::list < SmfCallbackOptions * >m_callbackAtCommit;
-#endif
+	 std::list < SmfCallback* >m_callbackAtCommit;
 };
 
 #endif				// SMFCAMPAIGNWRAPUP_HH

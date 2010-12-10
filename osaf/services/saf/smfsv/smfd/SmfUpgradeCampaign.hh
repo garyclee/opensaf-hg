@@ -353,6 +353,9 @@ class SmfUpgradeCampaign {
 ///
 	const std::vector < SmfUpgradeProcedure * >& getProcedures() { return m_procedure; }
 
+	SmfCampaignInit & getCampaignInit() { return  m_campInit; }
+	SmfCampaignWrapup & getCampaignWrapup() { return  m_campWrapup; }
+
 	friend class SmfCampState;
 	friend class SmfCampStateInitial;
 	friend class SmfCampStateExecuting;

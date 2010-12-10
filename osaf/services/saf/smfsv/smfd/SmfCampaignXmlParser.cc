@@ -459,7 +459,14 @@ SmfCampaignXmlParser::parseProcInitAction(SmfUpgradeProcedure * i_proc, xmlNode 
 			i_proc->addProcInitAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
-			TRACE("xmlTag callback found, not implemented");
+			TRACE("xmlTag callback found");
+			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
+			assert(cba != 0);
+			parseCallbackAction(cba, cur);
+			SmfCallback & cbk = cba->getCallback();
+			cbk.m_atAction = SmfCallback::atProcInitAction;
+			cbk.m_procedure = i_proc;
+			i_proc->addProcInitAction(cba);
 		}
 
 		cur = cur->next;
@@ -511,7 +518,14 @@ SmfCampaignXmlParser::parseProcWrapupAction(SmfUpgradeProcedure * i_proc, xmlNod
 			i_proc->addProcWrapupAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
-			TRACE("xmlTag callback found, not implemented");
+			TRACE("xmlTag callback found");
+			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
+			assert(cba != 0);
+			parseCallbackAction(cba, cur);
+			SmfCallback & cbk = cba->getCallback();
+			cbk.m_atAction = SmfCallback::atProcWrapupAction;
+			cbk.m_procedure = i_proc;
+			i_proc->addProcWrapupAction(cba);
 		}
 
 		cur = cur->next;
@@ -960,7 +974,7 @@ SmfCampaignXmlParser::parseCallback(
 {
 	xmlNsPtr ns = 0;
 	while (node != NULL) {
-		SmfCallback cb;
+		SmfCallback *cb = new SmfCallback();
 		// First scan for customizationTime/atAction tags
 		while (node != NULL) {
 			if (strcmp((char *)node->name, "customizationTime") == 0 && node->ns == ns) {
@@ -968,16 +982,16 @@ SmfCampaignXmlParser::parseCallback(
 				for (xmlNode* n = node->xmlChildrenNode; n != NULL; n = n->next) {
 					if (strcmp((char *)n->name, "onStep") == 0 && n->ns == ns) {
 						TRACE("xmlTag onStep found");
-						cb.m_stepCount = parseStepCount(n);
+						cb->m_stepCount = parseStepCount(n);
 					} else if (strcmp((char *)n->name, "atAction") == 0 && n->ns == ns) {
 						TRACE("xmlTag atAction found");
-						cb.m_atAction = parseAtAction(n);
+						cb->m_atAction = parseAtAction(n);
 					}
 				}
 				break;
 			} else if (strcmp((char *)node->name, "atAction") == 0 && node->ns == ns) {
 				TRACE("xmlTag atAction found");
-				cb.m_atAction = parseAtAction(node);
+				cb->m_atAction = parseAtAction(node);
 				break;
 			}
 			node = node->next;
@@ -990,19 +1004,21 @@ SmfCampaignXmlParser::parseCallback(
 			if (strcmp((char *)node->name, "callback") == 0 && node->ns == ns) {
 				TRACE("xmlTag callback found");
 				char *s;
+				std::string str;
 				s = (char *)xmlGetProp(node, (const xmlChar *) "callbackLabel");
 				if (s != NULL) {
-					cb.m_callbackLabel = s;
+					str = s;
+					cb->m_callbackLabel = str;
 					xmlFree(s);
 				}
 				s = (char *)xmlGetProp(node, (const xmlChar *) "stringToPass");
 				if (s != NULL) {
-					cb.m_stringToPass = s;
+					cb->m_stringToPass = s;
 					xmlFree(s);
 				}
 				s = (char *)xmlGetProp(node, (const xmlChar *) "time");
 				if (s != NULL) {
-					cb.m_time = strtoll(s, NULL, 0);
+					cb->m_time = strtoll(s, NULL, 0);
 					xmlFree(s);
 				}
 				break;
@@ -1213,17 +1229,20 @@ SmfCampaignXmlParser::parseCampaignInitialization(SmfUpgradeCampaign * i_campaig
 		}
 		if ((!strcmp((char *)cur->name, "callbackAtInit"))
 		    && (cur->ns == ns)) {
-			TRACE("xmlTag callbackAtInit found, no parsing implemented");
+			TRACE("xmlTag callbackAtInit found");
+			parseCallbackAtInit(i_campaign, cur);
 
 		}
 		if ((!strcmp((char *)cur->name, "callbackAtBackup"))
 		    && (cur->ns == ns)) {
-			TRACE("xmlTag callbackAtBackup found, no parsing implemented");
+			TRACE("xmlTag callbackAtBackup found");
+			parseCallbackAtBackup(i_campaign, cur);
 
 		}
 		if ((!strcmp((char *)cur->name, "callbackAtRollback"))
 		    && (cur->ns == ns)) {
-			TRACE("xmlTag callbackAtRollback found, no parsing implemented");
+			TRACE("xmlTag callbackAtRollback found");
+			parseCallbackAtRollback(i_campaign, cur);
 
 		}
 		if ((!strcmp((char *)cur->name, "campInitAction"))
@@ -1265,7 +1284,9 @@ SmfCampaignXmlParser::parseCampaignWrapup(SmfUpgradeCampaign * i_campaign, xmlNo
                         }
                         m_actionId = 1; // reset action id for wrapup actions
 		} else if ((!strcmp((char *)cur->name, "callbackAtCommit")) && (cur->ns == ns)) {
-			TRACE("xmlTag callbackAtCommit found, no parsing implemented yet");
+			TRACE("xmlTag callbackAtCommit found");
+			parseCallbackAtCommit(i_campaign, cur);
+
 		} else if ((!strcmp((char *)cur->name, "campWrapupAction")) && (cur->ns == ns)) {
 			TRACE("xmlTag campWrapupAction found");
 			parseCampWrapupAction(i_campaign, cur);
@@ -2153,7 +2174,13 @@ SmfCampaignXmlParser::parseCampInitAction(SmfUpgradeCampaign * i_campaign, xmlNo
 			i_campaign->addCampInitAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
-			TRACE("xmlTag callback found, not implemented");
+			TRACE("xmlTag callback found");
+			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
+			assert(cba != 0);
+			parseCallbackAction(cba, cur);
+			SmfCallback & cbk = cba->getCallback();
+			cbk.m_atAction = SmfCallback::atCampInitAction;
+			i_campaign->addCampInitAction(cba);
 		}
 
 		cur = cur->next;
@@ -2206,7 +2233,13 @@ SmfCampaignXmlParser::parseCampCompleteAction(SmfUpgradeCampaign * i_campaign, x
 			i_campaign->addCampCompleteAction(opa);
 		}
 		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
-			TRACE("xmlTag callback found, not implemented");
+			TRACE("xmlTag callback found");
+			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
+			assert(cba != 0);
+			parseCallbackAction(cba, cur);
+			SmfCallback & cbk = cba->getCallback();
+			cbk.m_atAction = SmfCallback::atCampCompleteAction;
+			i_campaign->addCampCompleteAction(cba);
 		}
 
 		cur = cur->next;
@@ -2255,6 +2288,16 @@ SmfCampaignXmlParser::parseCampWrapupAction(SmfUpgradeCampaign * i_campaign, xml
 			assert(opa != 0);
 			parseAdminOpAction(opa, cur);
 			i_campaign->addCampWrapupAction(opa);
+		}
+
+		if ((!strcmp((char *)cur->name, "callback")) && (cur->ns == ns)) {
+			TRACE("xmlTag callback found");
+			SmfCallbackAction *cba = new (std::nothrow) SmfCallbackAction(m_actionId++);
+			assert(cba != 0);
+			parseCallbackAction(cba, cur);
+			SmfCallback & cbk = cba->getCallback();
+			cbk.m_atAction = SmfCallback::atCampWrapupAction;
+			i_campaign->addCampWrapupAction(cba);
 		}
 
 		cur = cur->next;
@@ -2553,3 +2596,148 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
 	TRACE_LEAVE();
 }
 
+// ------------------------------------------------------------------------------
+// parseCallbackOptions()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackOptions(SmfCallback* i_cbk, xmlNode * i_node)
+{
+	xmlNode *cur = i_node;
+	char *s;
+
+	TRACE_ENTER();
+	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"callbackLabel"))) {
+		TRACE("callback label = %s", s);
+		i_cbk->m_callbackLabel = s;
+		xmlFree(s);
+	}
+	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"stringToPass"))) {
+		TRACE("args = %s", s);
+		i_cbk->m_stringToPass = s;
+		xmlFree(s);
+	}
+	if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"time"))) {
+		TRACE("args = %s", s);
+		i_cbk->m_time = strtoll(s, NULL, 0);
+		xmlFree(s);
+	}
+	TRACE_LEAVE();
+}
+// ------------------------------------------------------------------------------
+// parseCallbackAction()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackAction(SmfCallbackAction * i_callbackAction, xmlNode * i_node)
+{
+	xmlNsPtr ns = 0;
+	xmlNode *cur = i_node;
+	TRACE_ENTER();
+	SmfCallback& cbk = i_callbackAction->getCallback();
+	
+	while (cur != NULL) {
+		if ((!strcmp((char *)i_node->name, "callback"))
+		    && (i_node->ns == ns)) {
+			
+			TRACE("xmlTag callback found");
+			parseCallbackOptions (&cbk, i_node);
+		}
+		cur = cur->next;
+	}
+	TRACE_LEAVE();
+}
+// ------------------------------------------------------------------------------
+// parseCallbackAtInit()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackAtInit(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
+{
+	xmlNsPtr ns = 0;
+	xmlNode *cur = i_node;
+	SmfCallback *cbk = new SmfCallback();
+	
+	TRACE_ENTER();
+	while (cur != NULL) {
+		if ((!strcmp((char *)i_node->name, "callbackAtInit"))
+		    && (i_node->ns == ns)) {
+			
+			TRACE("xmlTag callbackAtInit found");
+			parseCallbackOptions (cbk, i_node);
+		}
+		cur = cur->next;
+	}
+	cbk->m_atAction = SmfCallback::atCampInit;
+	i_campaign->getCampaignInit().addCallbackAtInit(cbk);
+	TRACE_LEAVE();
+}
+// ------------------------------------------------------------------------------
+// parseCallbackAtBackup()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackAtBackup(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
+{
+	xmlNsPtr ns = 0;
+	xmlNode *cur = i_node;
+	SmfCallback *cbk = new SmfCallback();
+	
+	TRACE_ENTER();
+	while (cur != NULL) {
+		if ((!strcmp((char *)i_node->name, "callbackAtBackup"))
+		    && (i_node->ns == ns)) {
+			
+			TRACE("xmlTag callbackAtBackup found");
+			parseCallbackOptions (cbk, i_node);
+		}
+		cur = cur->next;
+	}
+	cbk->m_atAction = SmfCallback::atCampBackup;
+	i_campaign->getCampaignInit().addCallbackAtBackup(cbk);
+	TRACE_LEAVE();
+}
+// ------------------------------------------------------------------------------
+// parseCallbackAtRollback()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackAtRollback(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
+{
+	xmlNsPtr ns = 0;
+	xmlNode *cur = i_node;
+	SmfCallback *cbk = new SmfCallback();
+	
+	TRACE_ENTER();
+	while (cur != NULL) {
+		if ((!strcmp((char *)i_node->name, "callbackAtRollback"))
+		    && (i_node->ns == ns)) {
+			
+			TRACE("xmlTag callbackAtRollback found");
+			parseCallbackOptions (cbk, i_node);
+		}
+		cur = cur->next;
+	}
+	cbk->m_atAction = SmfCallback::atCampRollback;
+	i_campaign->getCampaignInit().addCallbackAtRollback(cbk);
+	TRACE_LEAVE();
+}
+// ------------------------------------------------------------------------------
+// parseCallbackAtCommit()
+// ------------------------------------------------------------------------------
+void 
+SmfCampaignXmlParser::parseCallbackAtCommit(SmfUpgradeCampaign * i_campaign, xmlNode * i_node)
+{
+	xmlNsPtr ns = 0;
+	xmlNode *cur = i_node;
+	SmfCallback *cbk = new SmfCallback();
+	
+	TRACE_ENTER();
+	while (cur != NULL) {
+		if ((!strcmp((char *)i_node->name, "callbackAtCommit"))
+		    && (i_node->ns == ns)) {
+			
+			TRACE("xmlTag callbackAtCommit found");
+			parseCallbackOptions (cbk, i_node);
+		}
+		cur = cur->next;
+	}
+	cbk->m_atAction = SmfCallback::atCampCommit;
+	i_campaign->getCampaignWrapup().addCallbackAtCommit(cbk);
+	TRACE_LEAVE();
+}

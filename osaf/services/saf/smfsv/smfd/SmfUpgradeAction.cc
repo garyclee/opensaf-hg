@@ -553,3 +553,61 @@ SmfImmCcbAction::rollback(const std::string& i_rollbackDn)
 
 	return result;
 }
+
+
+//================================================================================
+// Class SmfCallbackAction
+// Purpose:
+// Comments:
+//================================================================================
+
+SmfCallbackAction::SmfCallbackAction(int i_id):
+   SmfUpgradeAction(i_id)
+{
+
+}
+
+// ------------------------------------------------------------------------------
+// ~SmfCallbackAction()
+// ------------------------------------------------------------------------------
+SmfCallbackAction::~SmfCallbackAction()
+{
+}
+
+//------------------------------------------------------------------------------
+// execute()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCallbackAction::execute(const std::string* i_rollbackDn)
+{
+	SaAisErrorT result;
+	std::string dn;
+	TRACE_ENTER();
+
+	TRACE("execute callbackAction");
+
+	result = m_callback.execute(dn);
+
+	TRACE_LEAVE();
+
+	return result;
+}
+
+//------------------------------------------------------------------------------
+// rollback()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfCallbackAction::rollback(const std::string& i_rollbackDn)
+{
+	SaAisErrorT result;
+	std::string dn;
+	TRACE_ENTER();
+
+	TRACE("execute callbackAction");
+
+	result = m_callback.rollback(dn);
+
+	TRACE_LEAVE();
+
+	return result;
+}

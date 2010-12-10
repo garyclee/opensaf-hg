@@ -30,6 +30,19 @@
 
 #define SMFND_HA_INIT_STATE 0
 #define SMFND_MDS_PVT_SUBPART_VERSION 1
+
+/*
+This structure represents the mapping between the inv_id and all the agents need to
+respond to the callback. Every invid represents a callback. The place holder for this
+is smfnd_cb_t.
+*/
+typedef struct smfnd_smfa_adest_invid_map{
+	SaInvocationT				inv_id;
+	uns32					no_of_cbk;
+	/* List of inv_id.*/
+	struct smfnd_smfa_adest_invid_map	*next_invid;
+}SMFND_SMFA_ADEST_INVID_MAP;
+
 /*
  * The LGA control block is the master anchor structure for all LGA
  * instantiations within a process.
@@ -48,6 +61,9 @@ typedef struct {
 	SaAmfHAStateT ha_state;	                /* present AMF HA state of the component     */
 	NCS_SEL_OBJ usr1_sel_obj;	        /* Selection object for USR1 signal events   */
 	uns32 nid_started;	                /* Started by NID or AMF                     */
+	SMFND_SMFA_ADEST_INVID_MAP *cbk_list;	/* Mapping between inv_id and all the agents */
+	uns32 agent_cnt;			/* Count of SMF Agents */
+	MDS_DEST smfd_dest;			/* MDS DEST of SMFD */
 } smfnd_cb_t;
 
 extern smfnd_cb_t *smfnd_cb;

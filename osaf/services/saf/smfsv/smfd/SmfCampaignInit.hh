@@ -43,6 +43,7 @@
 
 class SmfImmOperation;
 class SmfUpgradeAction;
+class SmfCallback;
 
 ///
 /// Purpose: Class for execution of campaign initiation actions.
@@ -78,28 +79,26 @@ class SmfCampaignInit {
 ///
 	const std::list < SmfImmOperation * >& getAddToImm();
 
-#if 0
 ///
 /// Purpose: Add a callback to be issued at init.
-/// @param   i_operation A pointer to a SmfCallbackOptions.
+/// @param   i_operation A pointer to a SmfCallback.
 /// @return  None.
 ///
-	void addCallbackAtInit(SmfCallbackOptions * i_option);
+	void addCallbackAtInit(SmfCallback* i_cbk);
 
 ///
 /// Purpose: Add a callback to be issued at backup.
-/// @param   i_operation A pointer to a SmfCallbackOptions.
+/// @param   i_operation A pointer to a SmfCallback.
 /// @return  None.
 ///
-	void addCallbackAtBackup(SmfCallbackOptions * i_option);
+	void addCallbackAtBackup(SmfCallback* i_cbk);
 
 ///
 /// Purpose: Add a callback to be issued at rollback.
-/// @param   i_operation A pointer to a SmfCallbackOptions.
+/// @param   i_operation A pointer to a SmfCallback.
 /// @return  None.
 ///
-	void addCallbackAtRollback(SmfCallbackOptions * i_option);
-#endif
+	void addCallbackAtRollback(SmfCallback* i_cbk);
 
 ///
 /// Purpose: Add an action to be performed. Actions read from campaign campInitAction (adminOp/IMM CCB/CLI). 
@@ -129,16 +128,21 @@ class SmfCampaignInit {
 ///
 	bool rollback();
 
+///
+/// Purpose: Execute callback at rollback.
+/// @param   None.
+/// @return  None.
+///
+	bool executeCallbackAtRollback();
+
  private:
 
 	 std::list < SmfImmOperation * >m_addToImm;
 	 std::list < SmfUpgradeAction * >m_campInitAction;
 
-#if 0
-	 std::list < SmfCallbackOptions * >m_callbackAtInit;
-	 std::list < SmfCallbackOptions * >m_callbackAtBackup;
-	 std::list < SmfCallbackOptions * >m_callbackAtRollback;
-#endif
+	 std::list < SmfCallback * >m_callbackAtInit;
+	 std::list < SmfCallback * >m_callbackAtBackup;
+	 std::list < SmfCallback * >m_callbackAtRollback;
 };
 
 #endif				// SMFCAMPAIGNINIT_HH

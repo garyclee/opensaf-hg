@@ -67,12 +67,23 @@ SmfCampaignWrapup::~SmfCampaignWrapup()
 	std::list < SmfImmOperation * >::iterator iter;
 	std::list < SmfImmOperation * >::iterator iterE;
 
+	std::list < SmfCallback * >::iterator cbkIter;
+	std::list < SmfCallback * >::iterator cbkIterE;
+
 	iter = SmfCampaignWrapup::m_removeFromImm.begin();
 	iterE = SmfCampaignWrapup::m_removeFromImm.end();
 
 	while (iter != iterE) {
 		delete((*iter));
 		iter++;
+	}
+
+	cbkIter = SmfCampaignWrapup::m_callbackAtCommit.begin();
+	cbkIterE = SmfCampaignWrapup::m_callbackAtCommit.end();
+
+	while (cbkIter != cbkIterE) {
+		delete((*cbkIter));
+		cbkIter++;
 	}
 }
 
@@ -85,16 +96,14 @@ SmfCampaignWrapup::addRemoveFromImm(SmfImmOperation * i_operation)
 	m_removeFromImm.push_back(i_operation);
 }
 
-#if 0
 //------------------------------------------------------------------------------
 // addCallbackAtCommit()
 //------------------------------------------------------------------------------
 void 
-SmfCampaignWrapup::addCallbackAtCommit(SmfCallbackOptions * i_option)
+SmfCampaignWrapup::addCallbackAtCommit(SmfCallback* i_cbk)
 {
-	m_callbackAtCommit.push_back(i_option);
+	m_callbackAtCommit.push_back(i_cbk);
 }
-#endif
 
 //------------------------------------------------------------------------------
 // addCampCompleteAction()
@@ -127,6 +136,23 @@ SmfCampaignWrapup::executeCampWrapup()
 #if 0
 	std::list < SmfCallbackOptions * >m_callbackAtCommit;
 #endif
+
+	///////////////////////
+	//Callback at commit
+	///////////////////////
+	std::list < SmfCallback * >:: iterator cbkiter;
+	std::string dn;
+	cbkiter = m_callbackAtCommit.begin();
+	while (cbkiter != m_callbackAtCommit.end()) {
+		SaAisErrorT rc = (*cbkiter)->execute(dn);
+		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
+			LOG_ER("SmfCampaignCommit callback %s failed, rc = %d", (*cbkiter)->getCallbackLabel().c_str(), rc);
+			TRACE_LEAVE();
+			return false;
+		}
+		cbkiter++;
+	}
+
 	// The actions below are trigged by a campaign commit operation.
 	// The campaign will enter state "commited" even if some actions fails.
 	// Just log errors and try to execute as many operations as possible.

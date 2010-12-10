@@ -46,7 +46,8 @@ noinst_HEADERS = \
 	SmfUtils.hh \
 	SmfRollback.hh \
 	SmfCampaignWrapup.hh \
-	SmfCampaignInit.hh
+	SmfCampaignInit.hh \
+	SmfCallback.hh
 
 osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
@@ -82,7 +83,8 @@ osafsmfd_SOURCES = \
 	SmfUtils.cc \
 	SmfRollback.cc \
 	SmfCampaignInit.cc \
-	SmfCampaignWrapup.cc
+	SmfCampaignWrapup.cc \
+	SmfCallback.cc
 
 osafsmfd_LDFLAGS = \
 	$(AM_LDFLAGS) \

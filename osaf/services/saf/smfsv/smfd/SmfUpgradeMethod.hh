@@ -28,6 +28,7 @@
 #include <saAis.h>
 #include <saSmf.h>
 #include "SmfTargetTemplate.hh"
+#include "SmfCallback.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -121,20 +122,20 @@ class SmfUpgradeMethod {
 /// Purpose: Get the list of Callbacks
 /// @return  The list of Callbacks
 ///
-	const std::list<SmfCallback>& getCallbackList() const;
+	std::list<SmfCallback *>& getCallbackList();
 
 ///
 /// Purpose: Add a Callback objects to the list of Callbacks.
 /// @return  The list of Callbacks
 ///
-	void addCallback(SmfCallback& callback);
+	void addCallback(SmfCallback *callback);
 
 protected:
 
 	SmfUpgradeScope * m_scope;
 	SaUint32T m_stepRestartOption;
 	SaUint32T m_stepMaxRetryCount;
-	std::list <SmfCallback> callback_list;
+	std::list <SmfCallback *> callback_list;
 
 };
 
@@ -458,61 +459,5 @@ class SmfForModify : public SmfUpgradeScope {
 	std::list < SmfTargetEntityTemplate * >m_targetEntityTemplate;	
 	SmfActivationUnitType* m_activationUnit;
 };
-
-///
-/// Purpose: Hold Callback information
-///
-class SmfCallback {
-public:
-	SmfCallback(): 
-		m_stepCount(onEveryStep),
-		m_atAction(beforeLock),
-		m_time(0)
-		{};
-
-	~SmfCallback(){};
-
-	// (the stepCount is only relevant for rolling-upgrade)
-	enum StepCountT {
-		onEveryStep,
-		onFirstStep,
-		onLastStep,
-		halfWay
-	};
-
-	enum AtActionT {
-		beforeLock,
-		beforeTermination,
-		afterImmModification,
-		afterInstantiation,
-		afterUnlock
-	};
-
-	inline enum StepCountT getStepCount() const {
-		return m_stepCount;
-	};
-	inline enum AtActionT getAtAction() const {
-		return m_atAction;
-	};
-	inline std::string getCallbackLabel() const {
-		return m_callbackLabel;
-	};
-	inline SaTimeT getTime() const {
-		return m_time;
-	};
-	inline std::string getStringToPass() const {
-		return m_stringToPass;
-	};
-
-
-private:
-	friend class SmfCampaignXmlParser;
-	enum StepCountT m_stepCount;
-	enum AtActionT m_atAction;
-	std::string m_callbackLabel;
-	SaTimeT m_time;
-	std::string m_stringToPass;
-};
-
 
 #endif				// SMFUPGRADEMETHOD_HH

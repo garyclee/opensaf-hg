@@ -11,31 +11,36 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems 
+# Author(s): GoAhead Software
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = campaigns
+EXTRA_DIST = libSaSmf.map
 
-EXTRA_DIST = \
-	campaign_howtowrite.xml \
-	offline_install.sh \
-	offline_remove.sh \
-	online_install.sh \
-	online_remove.sh \
-	README
+LIB_VERSION = 0:0:0
 
-bin_PROGRAMS = smf_demo_agent
+SUBDIRS = pkgconfig
 
-smf_demo_agent_CPPFLAGS = \
-	-DNCS_SAF=1 \
+lib_LTLIBRARIES = libSaSmf.la
+
+libSaSmf_la_SOURCES =
+
+libSaSmf_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-smf_demo_agent_SOURCES = \
-	smf_demo.c
+if HAVE_LD_VERSION_SCRIPT
+libSaSmf_la_LDFLAGS = \
+	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaSmf/libSaSmf.map \
+	-version-number $(LIB_VERSION)
+else
+libSaSmf_la_LDFLAGS = \
+	-version-number $(LIB_VERSION)
+endif
 
-smf_demo_agent_LDADD = \
-	@SAF_AIS_SMF_LIBS@		   
+libSaSmf_la_LIBADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/agents/saf/smfa/libsmfa.la \
+	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la

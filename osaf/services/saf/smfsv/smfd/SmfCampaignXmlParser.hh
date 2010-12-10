@@ -52,6 +52,7 @@ class SmfEntity;
 class SmfCallback;
 class SmfUpgradeMethod;
 class SmfPlmExecEnv;
+class SmfCallbackAction;
 
 ///
 /// Parses the campaign xml file and build a structure of objects found in the file.
@@ -512,6 +513,49 @@ class SmfCampaignXmlParser {
 ///
 	void parseAdminOpAction(SmfAdminOperationAction * i_admOpAction, xmlNode * i_node);
 
+///
+/// Purpose: Parse callback action.
+/// @param   i_callbackAction  A pointer to a SmfCallbackAction object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackAction(SmfCallbackAction * i_callbackAction, xmlNode * i_node);
+
+///
+/// Purpose: Parse parseCallbackAtInit.
+/// @param   i_campaign  A pointer to a SmfUpgradeCampaign object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackAtInit(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+
+/// Purpose: Parse parseCallbackAtBackup.
+/// @param   i_campaign  A pointer to a SmfUpgradeCampaign object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackAtBackup(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+
+/// Purpose: Parse parseCallbackAtRollback.
+/// @param   i_campaign  A pointer to a SmfUpgradeCampaign object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackAtRollback(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+
+/// Purpose: Parse parseCallbackAtCommit.
+/// @param   i_campaign  A pointer to a SmfUpgradeCampaign object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackAtCommit(SmfUpgradeCampaign * i_campaign, xmlNode * i_node);
+
+/// Purpose: Parse parseCallbackOptions.
+/// @param   i_callback  A pointer to a SmfCallback object.
+/// @param   i_node The xml node 
+/// @return  None
+///
+	void parseCallbackOptions(SmfCallback * i_callback, xmlNode * i_node);
  private:
 ///
 /// Purpose:  Disables copy constructor.

@@ -51,7 +51,6 @@ void smfsv_evt_destroy(SMFSV_EVT *evt)
 /****************************************************************************
   SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD SMFD 
 *****************************************************************************/
-
 /****************************************************************************\
  PROCEDURE NAME : smfd_enc_cmd_rsp
 
@@ -121,6 +120,119 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
+uns32 smf_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+
+    p8 = ncs_enc_reserve_space(o_ub, sizeof(SMF_RESP_EVT));
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_64bit(&p8, i_evt->inv_id);
+    ncs_encode_32bit(&p8, i_evt->err);
+
+    ncs_enc_claim_space(o_ub, sizeof(SMF_RESP_EVT));
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+/****************************************************************************\
+ PROCEDURE NAME : smfd_enc_cbk_rsp
+
+ DESCRIPTION    : Encodes the contents of SMFD_CBK_RSP into userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uns32 smfd_enc_cbk_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+
+    if (o_ub == NULL || i_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->info.smfd.event.cbk_rsp.evt_type);
+    ncs_enc_claim_space(o_ub, 4);
+
+    rc = smf_enc_cbk_rsp(&i_evt->info.smfd.event.cbk_rsp.evt.resp_evt, o_ub);
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+uns32 smf_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+    uns8       local_data[256];
+
+    if (i_ub == NULL || o_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 8);
+    o_evt->inv_id = ncs_decode_64bit(&p8);
+    ncs_dec_skip_space(i_ub, 8);
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->err = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+/****************************************************************************\
+ PROCEDURE NAME : smfd_dec_cbk_rsp
+
+ DESCRIPTION    : Decodes the contents of SMFD_CBK_RSP from userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uns32 smfd_dec_cbk_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+    uns8       local_data[256];
+
+    if (i_ub == NULL || o_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->info.smfd.event.cbk_rsp.evt_type = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    rc = smf_dec_cbk_rsp(i_ub, &o_evt->info.smfd.event.cbk_rsp.evt.resp_evt);
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
 
 /****************************************************************************\
  PROCEDURE NAME : smfd_evt_enc
@@ -160,6 +272,11 @@ uns32 smfd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
             rc = smfd_enc_cmd_rsp(i_evt, o_ub);
             break;
         }
+	case SMFD_EVT_CBK_RSP:
+	{
+	    rc = smfd_enc_cbk_rsp(i_evt, o_ub);
+	    break;
+	}
         default:
         {
             LOG_ER("Unknown SMFND evt type = %d", i_evt->info.smfd.type);
@@ -203,6 +320,11 @@ uns32 smfd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         case SMFD_EVT_CMD_RSP:
         {
             rc = smfd_dec_cmd_rsp (i_ub, o_evt);
+            break;
+        }
+        case SMFD_EVT_CBK_RSP:
+        {
+            rc = smfd_dec_cbk_rsp (i_ub, o_evt);
             break;
         }
         default:
@@ -315,6 +437,299 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
+uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+
+    p8 = ncs_enc_reserve_space(o_ub, 8);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_64bit(&p8, i_evt->inv_id);
+    ncs_enc_claim_space(o_ub, 8);
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->scope_id);
+    ncs_enc_claim_space(o_ub, 4);
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->object_name.length);
+    ncs_enc_claim_space(o_ub, 4);
+    
+    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->object_name.value, 
+				i_evt->object_name.length);
+    //ncs_enc_claim_space(o_ub, i_evt->object_name.length);
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->camp_phase);
+    ncs_enc_claim_space(o_ub, 4);
+
+    p8 = ncs_enc_reserve_space(o_ub, 8);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_64bit(&p8, i_evt->cbk_label.labelSize);
+    ncs_enc_claim_space(o_ub, 8);
+    
+    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->cbk_label.label, 
+				i_evt->cbk_label.labelSize);
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->params_len);
+    ncs_enc_claim_space(o_ub, 4);
+
+   if (i_evt->params_len != 0) {
+	    ncs_encode_n_octets_in_uba(o_ub, (uns8*) i_evt->params, 
+					i_evt->params_len);
+    }
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+uns32 smfnd_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+
+    rc = smf_enc_cbk_req(i_evt, o_ub);
+    return rc;
+}
+
+uns32 smfnd_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+
+    if (o_ub == NULL || i_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    rc = smf_enc_cbk_rsp(i_evt, o_ub);
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+/****************************************************************************\
+ PROCEDURE NAME : smfnd_enc_cbk_req_rsp
+
+ DESCRIPTION    : Encodes the contents of SMF_EVT into userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uns32 smfnd_enc_cbk_req_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+
+    if (o_ub == NULL || i_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->info.smfnd.event.cbk_req_rsp.evt_type);
+    ncs_enc_claim_space(o_ub, 4);
+    
+    switch(i_evt->info.smfnd.event.cbk_req_rsp.evt_type) {
+	case SMF_CLBK_EVT:
+	{
+		rc = smfnd_enc_cbk_req(&i_evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt, o_ub);
+		break;
+	}	
+	case SMF_RSP_EVT:
+	{
+		rc = smfnd_enc_cbk_rsp(&i_evt->info.smfnd.event.cbk_req_rsp.evt.resp_evt, o_ub);
+		break;
+	}
+	default:
+            LOG_ER("Unknown SMF_EVT_TYPE evt type = %d", i_evt->info.smfnd.event.cbk_req_rsp.evt_type);
+            goto err;
+		break;
+    }
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+    uns8       local_data[256];
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 8);
+    o_evt->inv_id = ncs_decode_64bit(&p8);
+    ncs_dec_skip_space(i_ub, 8);
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->scope_id = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->object_name.length = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    if (o_evt->object_name.length != 0)
+    {
+        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)o_evt->object_name.value, o_evt->object_name.length);
+    }
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->camp_phase = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 8);
+    o_evt->cbk_label.labelSize = ncs_decode_64bit(&p8);
+    ncs_dec_skip_space(i_ub, 8);
+    o_evt->cbk_label.label = NULL; /* In case len 0 */
+
+    if (o_evt->cbk_label.labelSize != 0)
+    {
+        char*      label;
+
+    	label = malloc(o_evt->cbk_label.labelSize + 1); /* + 1 for NULL termination */
+        if (label == NULL)
+        {
+            LOG_ER("malloc == NULL");
+            goto err;
+        }
+
+        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)label, o_evt->cbk_label.labelSize);
+        label[o_evt->cbk_label.labelSize] = 0; /* NULL terminate */
+        o_evt->cbk_label.label = (unsigned char *)label;
+    }
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->params_len = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    if (o_evt->params_len != 0)
+    {
+        char*      str;
+
+    	str = malloc(o_evt->params_len + 1); /* + 1 for NULL termination */
+        if (str == NULL)
+        {
+            LOG_ER("malloc == NULL");
+            goto err;
+        }
+
+        ncs_decode_n_octets_from_uba(i_ub,(uns8 *)str, o_evt->params_len);
+        str[o_evt->params_len] = 0; /* NULL terminate */
+        o_evt->params = str;
+    }
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+uns32 smfnd_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+
+    rc = smf_dec_cbk_req(i_ub, o_evt);
+    return rc;
+}
+
+uns32 smfnd_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+
+    if (i_ub == NULL || o_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    rc = smf_dec_cbk_rsp(i_ub, o_evt);
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+/****************************************************************************\
+ PROCEDURE NAME : smfnd_dec_cbk_req_rsp
+
+ DESCRIPTION    : Decodes the contents of SMFND_CBK_REQ_RSP from userbuf
+
+ ARGUMENTS      : *i_evt - Event Struct.
+                   *o_ub - User Buff.
+
+ RETURNS        : None
+\*****************************************************************************/
+uns32 smfnd_dec_cbk_req_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+    uns8       local_data[20];
+
+    if (i_ub == NULL || o_evt == NULL)
+    {
+        LOG_ER("indata == NULL");
+        goto err;
+    }
+
+    /** decode the cmd length **/
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->info.smfnd.event.cbk_req_rsp.evt_type = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+    switch (o_evt->info.smfnd.event.cbk_req_rsp.evt_type) {
+	case SMF_CLBK_EVT:
+	{
+		rc = smfnd_dec_cbk_req(i_ub, &o_evt->info.smfnd.event.cbk_req_rsp.evt.cbk_evt);
+		break;
+	}
+	case SMF_RSP_EVT:
+	{
+		rc = smfnd_dec_cbk_rsp(i_ub, &o_evt->info.smfnd.event.cbk_req_rsp.evt.resp_evt);
+		break;
+	}
+    }
+
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+
 /****************************************************************************\
  PROCEDURE NAME : smfnd_evt_enc
 
@@ -351,6 +766,11 @@ uns32 smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
         case SMFND_EVT_CMD_REQ:
         {
             rc = smfnd_enc_cmd_req(i_evt, o_ub);
+            break;
+        }
+        case SMFND_EVT_CBK_RSP:
+        {
+            rc = smfnd_enc_cbk_req_rsp(i_evt, o_ub);
             break;
         }
         default:
@@ -397,6 +817,11 @@ uns32 smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
             rc = smfnd_dec_cmd_req (i_ub, o_evt);
             break;
         }
+        case SMFND_EVT_CBK_RSP:
+        {
+            rc = smfnd_dec_cbk_req_rsp (i_ub, o_evt);
+            break;
+        }
         default:
         {
             LOG_ER("Unknown evt type = %d", o_evt->info.smfnd.type);
@@ -414,6 +839,43 @@ err:
   SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA
 *****************************************************************************/
 
+uns32 smfa_enc_cbk_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
+
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->info.smfa.event.cbk_req_rsp.evt_type);
+    ncs_enc_claim_space(o_ub, 4);
+    
+    rc = smf_enc_cbk_req(&i_evt->info.smfa.event.cbk_req_rsp.evt.cbk_evt, o_ub);
+    return rc;
+err:
+    return NCSCC_RC_FAILURE;
+}
+
+uns32 smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+{
+    uns32      rc = NCSCC_RC_SUCCESS;
+    uns8      local_data[20];
+    uns8      *p8;
+
+    /* Decode SMFA event type */ 
+
+    p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
+    o_evt->info.smfa.event.cbk_req_rsp.evt_type = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(i_ub, 4);
+
+
+    rc = smf_dec_cbk_req(i_ub, &o_evt->info.smfa.event.cbk_req_rsp.evt.cbk_evt);
+    return rc;
+}
+
 /****************************************************************************\
  PROCEDURE NAME : smfa_evt_enc
 
@@ -427,10 +889,32 @@ err:
 uns32 smfa_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
     uns32      rc = NCSCC_RC_SUCCESS;
+    uns8       *p8;
 
-    /* Not Implemented yet */
-    LOG_ER("Unknown evt type = %d", i_evt->type);
-    goto err;
+    /** encode the type of SMFA event **/
+    p8 = ncs_enc_reserve_space(o_ub, 4);
+    if (p8 == NULL)
+    {
+        LOG_ER("ncs_enc_reserve_space failed");
+        goto err;
+    }
+    ncs_encode_32bit(&p8, i_evt->info.smfa.type);
+    ncs_enc_claim_space(o_ub, 4);
+
+    switch (i_evt->info.smfa.type)
+    {
+        case SMFA_EVT_CBK:
+	{
+		rc = smfa_enc_cbk_req(i_evt, o_ub);
+		break;
+	}
+	default:
+        {
+            LOG_ER("Unknown evt type = %d", i_evt->info.smfa.type);
+            goto err;
+            break; /* not required */
+        }
+    }
 
     return rc; 
 err:
@@ -463,11 +947,16 @@ uns32 smfa_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 
     switch (o_evt->info.smfa.type)
     {
+        case SMFA_EVT_CBK:
+	{
+		rc = smfa_dec_cbk_req(i_ub, o_evt);
+		break;
+	}
         default:
         {
             LOG_ER("Unknown evt type = %d", o_evt->info.smfa.type);
             goto err;
-            break;
+            break; /* not required */
         }
     }
     return rc;
@@ -795,7 +1284,7 @@ uns32 smfsv_mds_msg_send (uns32        mds_handle,
 
    if ( rc != NCSCC_RC_SUCCESS)
    {
-      LOG_NO("Failed to send mds message");
+      LOG_NO("Failed to send mds message, rc = %d, SMFD DEST %llu", rc, to_dest);
    }
 
    return rc;

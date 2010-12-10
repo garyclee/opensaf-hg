@@ -115,6 +115,9 @@ class SmfProcedureThread {
 
 	SaImmOiHandleT getImmHandle();
 
+	SYSF_MBX & getCbkMbx();
+
+
  private:
 
 	void main(void);
@@ -129,6 +132,7 @@ class SmfProcedureThread {
 
 	NCSCONTEXT m_task_hdl;
 	SYSF_MBX m_mbx;		/* mailbox */
+	SYSF_MBX m_cbk_mbx;	/* mailbox to send/receive callback/response */
 	bool m_running;
 	SmfUpgradeProcedure *m_procedure;
 	sem_t m_semaphore;

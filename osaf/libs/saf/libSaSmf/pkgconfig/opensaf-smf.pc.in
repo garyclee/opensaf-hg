@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenSAF SMF
+Description: Implementation of SA Forum AIS Software Management Framework
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lSaSmf
+Cflags: -I${includedir}

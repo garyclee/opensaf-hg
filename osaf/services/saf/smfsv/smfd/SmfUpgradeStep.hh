@@ -38,6 +38,7 @@
  */
 
 class SmfUpgradeProcedure;
+class SmfCallback;
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -584,6 +585,8 @@ class SmfUpgradeStep {
 /// @return   Bool true if successful otherwise false
 ///
 	bool nodeReboot();
+
+	bool checkAndInvokeCallback (std::list < SmfCallback * > &callback_list, unsigned int camp_phase);
 
         friend class SmfStepState;
 

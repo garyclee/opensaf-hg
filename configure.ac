@@ -574,6 +574,7 @@ AC_CONFIG_FILES([
         osaf/libs/agents/saf/eda/Makefile
         osaf/libs/agents/saf/gla/Makefile
         osaf/libs/agents/saf/mqa/Makefile
+        osaf/libs/agents/saf/smfa/Makefile
         osaf/libs/core/Makefile
         osaf/libs/core/include/Makefile
         osaf/libs/core/common/Makefile
@@ -640,6 +641,9 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaMsg/Makefile
         osaf/libs/saf/libSaMsg/pkgconfig/Makefile
         osaf/libs/saf/libSaMsg/pkgconfig/opensaf-msg.pc
+        osaf/libs/saf/libSaSmf/Makefile
+        osaf/libs/saf/libSaSmf/pkgconfig/Makefile
+        osaf/libs/saf/libSaSmf/pkgconfig/opensaf-smf.pc
         osaf/services/Makefile
         osaf/services/infrastructure/Makefile
         osaf/services/infrastructure/dtsv/Makefile
