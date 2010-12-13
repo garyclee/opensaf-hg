@@ -706,13 +706,15 @@ SmfImmDeleteOperation::prepareRollback(SmfRollbackData* o_rollbackData)
                         continue;
                 }
 
-                // Check if RUNTIME attribute
+                // Exclude RUNTIME attributes without PERSISTENT
                 bool saveAttribute = true;
                 for (int i = 0; attributeDefs[i] != 0; i++) {
                         if (!strcmp(attr->attrName, attributeDefs[i]->attrName)) {
                                 SaImmAttrFlagsT flags = attributeDefs[i]->attrFlags;
                                 if ((flags & SA_IMM_ATTR_RUNTIME) == SA_IMM_ATTR_RUNTIME) {
-                                        saveAttribute = false;
+                                        if ((flags & SA_IMM_ATTR_PERSISTENT) != SA_IMM_ATTR_PERSISTENT) {
+                                                saveAttribute = false;
+                                        }
                                 } 
                                 break;
                         }
