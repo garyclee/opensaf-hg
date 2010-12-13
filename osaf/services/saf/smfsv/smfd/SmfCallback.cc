@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/poll.h>
+#include <poll.h>
 #include <new>
 #include <vector>
 #include <string>
