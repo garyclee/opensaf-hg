@@ -127,6 +127,11 @@ static uns32 initialize_smfd(void)
 
 	TRACE_ENTER();
 
+	/* Set the behaviour of SMF-IMM interactions */
+	immutilWrapperProfile.errorsAreFatal = 0;   /* False, no reboot when fail */
+	immutilWrapperProfile.nTries         = 500; /* Times */
+	immutilWrapperProfile.retryInterval  = 400; /* MS */
+
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -179,11 +184,6 @@ static uns32 initialize_smfd(void)
 			goto done;
 		}
 	}
-
-	/* Set the behaviour of SMF-IMM interactions */
-	immutilWrapperProfile.errorsAreFatal = 0;   /* False, no reboot when fail */
-	immutilWrapperProfile.nTries         = 500; /* Times */
-	immutilWrapperProfile.retryInterval  = 400; /* MS */
 
  done:
 	TRACE_LEAVE();
