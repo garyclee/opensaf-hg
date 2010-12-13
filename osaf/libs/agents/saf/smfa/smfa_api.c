@@ -25,6 +25,7 @@
 #include <saSmf.h>
 #include <smfsv_defs.h>
 #include "smfa.h"
+#include <limits.h>
 
 #define MAX_SMFA_HDL LONG_MAX
 
