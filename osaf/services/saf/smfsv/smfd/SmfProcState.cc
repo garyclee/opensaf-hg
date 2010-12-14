@@ -311,9 +311,11 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 	/* Find and execute first step in state Initial. */
 	std::vector < SmfUpgradeStep * >::const_iterator iter;
         const std::vector < SmfUpgradeStep * >& procSteps = i_proc->getProcSteps();
+        unsigned int execStepNo = procSteps.size();
 
-	for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+        for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
                 SmfStepResultT stepResult;
+                execStepNo--;
 
                 /* Try executing the step */
                 stepResult = (*iter)->execute();
@@ -334,7 +336,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 }
                 case SMF_STEP_COMPLETED : {
 
-                        if (iter != procSteps.end()) {
+                        if (execStepNo > 0) {
                                 /* We don't want to be able to suspend between Last step and wrapup */
                                 TRACE ("Step %s completed, sending PROCEDURE_EVT_EXECUTE_STEP",
                                        (*iter)->getRdn().c_str());
@@ -827,10 +829,12 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 	/* Find (in reverse order) and rollback steps. */
         const std::vector < SmfUpgradeStep * >& procSteps = i_proc->getProcSteps();
 	std::vector < SmfUpgradeStep * >::const_reverse_iterator iter;
+        unsigned int execStepNo = procSteps.size();
 
         /* Rollback steps in reverse order */
 	for (iter = procSteps.rbegin(); iter != procSteps.rend(); iter++) {
                 SmfStepResultT stepResult;
+                execStepNo--;
 
                 /* Try rollback the step */
                 stepResult = (*iter)->rollback();
@@ -851,7 +855,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
                 }
                 case SMF_STEP_ROLLEDBACK : {
 
-                        if (iter != procSteps.rend()) {
+                        if (execStepNo > 0) {
                                 /* We don't want to be able to suspend between rollback of first step and init */
                                 TRACE ("Step %s rolled back, sending PROCEDURE_EVT_ROLLBACK_STEP",
                                        (*iter)->getRdn().c_str());
