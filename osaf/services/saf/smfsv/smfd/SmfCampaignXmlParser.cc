@@ -2318,25 +2318,22 @@ SmfCampaignXmlParser::parseCliCommandAction(SmfCliCommandAction * i_cmdAction, x
 	char *s;
 
 	while (cur != NULL) {
+		std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
 		if ((!strcmp((char *)cur->name, "doCliCommand"))
 		    && (cur->ns == ns)) {
 			TRACE("xmlTag doCliCommand found");
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"command"))) {
 				TRACE("command = %s", s);
-				std::string cmd(s);
-				if(CAMPAIGN_ROOT_TAG == cmd.substr(0, cmd.find_first_of('/'))) {
-					TRACE("Keyword %s found, add dir path", CAMPAIGN_ROOT_TAG);
-					std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
-					cmd.replace(cmd.find(CAMPAIGN_ROOT_TAG), sizeof(CAMPAIGN_ROOT_TAG), dirpath);
-					TRACE("command = %s", cmd.c_str());
-				}
-
+				std::string cmd = replaceAllCopy(s, CAMPAIGN_ROOT_TAG, dirpath);
+				TRACE("Modified command = %s", cmd.c_str());
 				i_cmdAction->setDoCmd(cmd);
 				xmlFree(s);
 			}
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"args"))) {
 				TRACE("args = %s", s);
-				i_cmdAction->setDoCmdArgs(s);
+				std::string str = replaceAllCopy(s, CAMPAIGN_ROOT_TAG, dirpath);
+				TRACE("Modified args = %s", str.c_str());
+				i_cmdAction->setDoCmdArgs(str);
 				xmlFree(s);
 			}
 		}
@@ -2345,20 +2342,16 @@ SmfCampaignXmlParser::parseCliCommandAction(SmfCliCommandAction * i_cmdAction, x
 			TRACE("xmlTag undoCliCommand found");
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"command"))) {
 				TRACE("command = %s", s);
-				std::string cmd(s);
-				if(CAMPAIGN_ROOT_TAG == cmd.substr(0, cmd.find_first_of('/'))) {
-					TRACE("Keyword %s found, add dir path", CAMPAIGN_ROOT_TAG);
-					std::string dirpath = SmfCampaignThread::instance()->campaign()->getCampaignXmlDir();
-					cmd.replace(cmd.find(CAMPAIGN_ROOT_TAG), sizeof(CAMPAIGN_ROOT_TAG), dirpath);
-					TRACE("command = %s", cmd.c_str());
-				}
-
+				std::string cmd = replaceAllCopy(s, CAMPAIGN_ROOT_TAG, dirpath);
+				TRACE("Modified command = %s", cmd.c_str());
 				i_cmdAction->setUndoCmd(cmd);
 				xmlFree(s);
 			}
 			if ((s = (char *)xmlGetProp(cur, (const xmlChar *)"args"))) {
 				TRACE("args = %s", s);
-				i_cmdAction->setUndoCmdArgs(s);
+				std::string str = replaceAllCopy(s, CAMPAIGN_ROOT_TAG, dirpath);
+				TRACE("Modified args = %s", str.c_str());
+				i_cmdAction->setUndoCmdArgs(str);
 				xmlFree(s);
 			}
 		}
