@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
-<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=campaign_rolling_su">
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" 
+safSmfCampaign="safSmfCampaign=campaign_rolling_su">
   <!--
     This campaign updates a component in the AmfDemo application
     with a rolling upgrade.
@@ -102,14 +104,14 @@
 			</immCCB>
 		</campInitAction>
 		<campInitAction>
-			<doCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1" ></doCliCommand>
-			<undoCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1"></undoCliCommand>
+			<doCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2" ></doCliCommand>
+			<undoCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2"></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 			<plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campInitAction>
 		<campInitAction>
-			<doCliCommand command="/hostfs/campaign_script.sh" args="arg1" ></doCliCommand>
-			<undoCliCommand command="/hostfs/campaign_script.sh" args="arg1"></undoCliCommand>
+			<doCliCommand command="/hostfs/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2" ></doCliCommand>
+			<undoCliCommand command="/hostfs/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2"></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"></plmExecEnv>
 			<plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campInitAction>

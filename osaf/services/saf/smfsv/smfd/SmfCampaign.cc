@@ -537,7 +537,7 @@ SmfCampaign::initExecution(void)
 		}
 
 		//The directory where the campaign.xml file is stored
-		std::string path = m_cmpgFileUri.substr( 0, m_cmpgFileUri.find_last_of( '/' ) + 1);
+		std::string path = m_cmpgFileUri.substr( 0, m_cmpgFileUri.find_last_of( '/' ));
 		setCampaignXmlDir(path);
 
 		//Parse campaign file

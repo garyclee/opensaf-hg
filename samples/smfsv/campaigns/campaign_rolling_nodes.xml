@@ -99,14 +99,14 @@
 			</immCCB>
 		</campInitAction>
 		<campInitAction>
-			<doCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1" ></doCliCommand>
-			<undoCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1"></undoCliCommand>
+			<doCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2" ></doCliCommand>
+			<undoCliCommand command="$OSAFCAMPAIGNROOT/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2"></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"></plmExecEnv>
 			<plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campInitAction>
 		<campInitAction>
-			<doCliCommand command="/hostfs/campaign_script.sh" args="arg1"></doCliCommand>
-			<undoCliCommand command="/hostfs/campaign_script.sh" args="arg1"></undoCliCommand>
+			<doCliCommand command="/hostfs/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2"></doCliCommand>
+			<undoCliCommand command="/hostfs/campaign_script.sh" args="arg1 $OSAFCAMPAIGNROOT/file1 /fixedpath/file2"></undoCliCommand>
 			<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"></plmExecEnv>
 			<plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"></plmExecEnv>
 		</campInitAction>
