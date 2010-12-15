@@ -1988,10 +1988,32 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
 	    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
 
 	    retries++;
-	} while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
+	} while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 320));
 
 	if(err == SA_AIS_ERR_NOT_EXIST) {
 		goto done;
+	}
+
+	if(err == SA_AIS_ERR_TRY_AGAIN) {
+		LOG_ER("Too many TRY_AGAIN on saImmOmSearchNext - aborting");
+		exit(1);
+	}
+
+	if(err != SA_AIS_OK) {
+		LOG_ER("Error %u from saImmOmSearchNext - aborting", err);
+		exit(1);
+	}
+
+
+	if(objectName.length <= 1) {
+		LOG_ER("syncObjectsOfClass: objectName.length <= 1");
+		exit(1);
+	}
+
+	if(objectName.length >= SA_MAX_NAME_LENGTH) {
+		LOG_ER("syncObjectsOfClass: objectName.length(%u) >= SA_MAX_NAME_LENGTH",
+			objectName.length);
+		exit(1);
 	}
 
         ++nrofObjs;
