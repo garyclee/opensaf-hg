@@ -364,18 +364,17 @@ uns32 smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT invocation)
 					}
 					TRACE_2("SMFA: Waiting for remaining resp.");
 					/* Not the final resp from this hdl.*/
+					rc = NCSCC_RC_SUCCESS;
 					goto done;
 				}
 				hdl_prev = hdl_list;
 				hdl_list = hdl_list->next_hdl;
 			}
-			LOG_ER("SMFA: Duplicate or delay resp.Handle: %llu, Inv_id: %llu",smfHandle,invocation);
 			goto done;
 		}
 		cbk_prev = cbk_list;	
 		cbk_list = cbk_list->next_cbk;
 	}
-	LOG_ER("SMFA: Duplicate or delay resp.Handle: %llu, Inv_id: %llu",smfHandle,invocation);
 	goto done;
 
 rmv_inv:
