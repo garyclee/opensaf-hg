@@ -1712,6 +1712,23 @@ ImmModel::abortSync()
                 sClassMap.erase(ci);
             }
 
+            if(!sDeferredObjUpdatesMap.empty()) {
+                DeferredObjUpdatesMap::iterator doumIter;
+                LOG_NO("Abort sync: discarding deferred RTA updates");
+
+                while(!sDeferredObjUpdatesMap.empty()) {
+                    doumIter = sDeferredObjUpdatesMap.begin();
+                    DeferredRtAUpdateList* attrUpdList = doumIter->second;
+                    while(!attrUpdList->empty()) {
+                        DeferredRtAUpdate& dRtAU = attrUpdList->front();
+                        immsv_free_attrmods(dRtAU.attrModsList);
+                        dRtAU.attrModsList = NULL;
+                        attrUpdList->pop_front();
+                    }
+                    sDeferredObjUpdatesMap.erase(doumIter);
+                }
+            }
+
             assert(!sOwnerVector.size());
             assert(!sCcbVector.size());
             assert(!sImplementerVector.size());

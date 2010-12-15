@@ -3952,7 +3952,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
 			}
 
 			memset(&objModify, '\0', sizeof(IMMSV_OM_CCB_OBJECT_MODIFY));
-			while(immModel_fetchRtUpdate(cb, &(evt->info.obj_sync), &objModify, cb->syncFevsBase)) {
+			while(immModel_fetchRtUpdate(cb, obj_sync, &objModify, cb->syncFevsBase)) {
 				LOG_IN("Applying deferred RTA update for object %s",
 					objModify.objectName.buf);
 				err = immModel_rtObjectUpdate(cb, &objModify, 0, 0, &isLocal,
