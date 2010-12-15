@@ -354,7 +354,7 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_CsiManagerImpl_completedCsiQuies
     // call saAmfCSIQuiescingComplete
     _saStatus = saAmfCSIQuiescingComplete(  _saAmfHandle,
                                             (SaInvocationT) invocation,
-                                            (SaAisErrorT) error );
+                                            (SaAisErrorT) _error );
 
     _TRACE2( "NATIVE: saAmfCSIQuiescingComplete(...) has returned with %d...\n", _saStatus );
 
