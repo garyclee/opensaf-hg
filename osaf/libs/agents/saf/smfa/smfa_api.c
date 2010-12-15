@@ -445,19 +445,19 @@ SaAisErrorT saSmfResponse(
 		TRACE_2("SMFA: Not OK resp from hdl: %llu for inv: %llu.",smfHandle,invocation);
 		/* Clean up every thing related to this inv id.*/
 		if (NCSCC_RC_SUCCESS != smfa_cbk_err_resp_process(invocation,smfHandle)){
-			/* TODO: Change the log level.*/
-			LOG_ER("SMFA: Duplicate or delay resp.");
+			LOG_ER("SMFA: Duplicate/delay/invalid response. Hdl: %llu, inv: %llu",smfHandle,invocation);
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			TRACE_LEAVE();
-			return SA_AIS_OK;
+			return SA_AIS_ERR_INVALID_PARAM;
 		}
 	}else{
 		TRACE_2("SMFA: OK resp from hdl: %llu for inv: %llu.",smfHandle,invocation);
 		/* Preocess the response before sending to ND.*/
 		if (NCSCC_RC_SUCCESS != smfa_cbk_ok_resp_process(smfHandle,invocation)) {
+			LOG_ER("SMFA: Duplicate/delay/invalid response. Hdl: %llu, inv: %llu",smfHandle,invocation);
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			TRACE_LEAVE();
-			return SA_AIS_OK;
+			return SA_AIS_ERR_INVALID_PARAM;
 		}
 	}
 
