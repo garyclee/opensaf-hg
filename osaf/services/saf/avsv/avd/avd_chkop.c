@@ -1225,6 +1225,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	case AVSV_CKPT_SI_SU_CURR_ACTIVE:
 	case AVSV_CKPT_SI_SU_CURR_STBY:
 	case AVSV_CKPT_SI_SWITCH:
+	case AVSV_CKPT_SI_ASSIGNMENT_STATE:
 	case AVSV_CKPT_SI_ADMIN_STATE:
 	case AVSV_CKPT_SI_ALARM_SENT:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_CONFIG)
@@ -1255,6 +1256,11 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 		break;
 	case AVSV_CKPT_AVD_SI_ASS:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_ASS)
+			status = NCSCC_RC_SUCCESS;
+		break;
+
+	case AVSV_CKPT_AVD_SI_TRANS:
+		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_TRANS)
 			status = NCSCC_RC_SUCCESS;
 		break;
 
