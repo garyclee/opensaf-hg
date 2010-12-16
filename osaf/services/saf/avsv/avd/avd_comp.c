@@ -990,10 +990,6 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 
-			if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
-				LOG_ER("Modification of saAmfCompType for OpenSAF comp not supported");
-				goto done;
-			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 			char *param_val = *((char **)value);
 			if (NULL == param_val) {
