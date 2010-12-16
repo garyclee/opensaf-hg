@@ -129,6 +129,7 @@ uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
 {
 	AVD_COMP_CSI_REL *comp_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* scan the comp-csi rel list & generate pg upd for each track req */
 	for (comp_csi = susi->list_of_csicomp; comp_csi; comp_csi = comp_csi->susi_csicomp_next) {
@@ -136,7 +137,7 @@ uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
 		if (NCSCC_RC_SUCCESS != rc)
 			break;
 	}
-
+	TRACE_LEAVE();
 	return rc;
 }
 

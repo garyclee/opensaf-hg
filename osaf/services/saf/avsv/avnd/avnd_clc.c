@@ -321,9 +321,11 @@ uns32 avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				m_AVND_COMP_INST_CMD_SUCC_SET(comp);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
-				if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) || m_AVND_COMP_IS_REG(comp))
+				if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) || m_AVND_COMP_IS_REG(comp)) {
 					/* all set... proceed with inst-succ evt for the fsm */
 					ev = AVND_COMP_CLC_PRES_FSM_EV_INST_SUCC;
+					TRACE("Comp '%s' Inst. flag '%u'", comp->name.value, comp->flag);
+				}
 				else {
 					/* start the comp-reg timer */
 					m_AVND_TMR_COMP_REG_START(cb, *comp, rc);
@@ -345,8 +347,10 @@ uns32 avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		case AVND_COMP_CLC_CMD_TYPE_TERMINATE:
 
-			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value)
+			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) {
 				ev = AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC;
+				TRACE("Comp '%s' Term.", comp->name.value);
+			}
 			else {
 				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP;
 				m_AVND_COMP_TERM_FAIL_SET(comp);
@@ -360,6 +364,7 @@ uns32 avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		case AVND_COMP_CLC_CMD_TYPE_CLEANUP:
 			if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) {
 				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC;
+				TRACE("Comp '%s' Cleanup.", comp->name.value);
 			} else {
 				ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL;
 				LOG_NO("Cleanup of '%s' failed", comp->name.value);
@@ -625,6 +630,7 @@ uns32 avnd_comp_clc_fsm_trigger(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES
 	AVND_COMP_FSM_EVT comp_fsm_evt;
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s', Ev '%u'", comp->name.value, ev);
 
 	memset(&comp_fsm_evt, 0, sizeof(AVND_COMP_FSM_EVT));
 
@@ -646,7 +652,7 @@ uns32 avnd_comp_clc_fsm_trigger(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES
 	/* free the event */
 	if (NCSCC_RC_SUCCESS != rc && evt)
 		avnd_evt_destroy(evt);
-
+	TRACE_ENTER2("%u", rc);
 	return rc;
 }
 
@@ -698,6 +704,7 @@ uns32 avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_FSM
 {
 	SaAmfPresenceStateT prv_st, final_st;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s', Ev '%u'", comp->name.value, ev);
 
 	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN) {
 		switch (ev) {
@@ -766,6 +773,7 @@ uns32 avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_FSM
 		rc = avnd_comp_clc_st_chng_prc(cb, comp, prv_st, final_st);
 
  done:
+	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
 }
 
@@ -791,6 +799,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 	AVSV_PARAM_INFO param;
 	NCS_BOOL is_en;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s', Prv_state '%u', Final_state '%u'", comp->name.value, prv_st, final_st);
 
 	/* 
 	 * Process state change
@@ -852,6 +861,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 
 	/* pi comp in pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(comp->su) && m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+		TRACE("SU and Comp Preinst. comp->su->flag '%u', comp->flag '%u'",  comp->su->flag,  comp->flag);
 		/* instantiating -> instantiated */
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			m_AVND_COMP_FAILED_RESET(comp);
@@ -944,6 +954,8 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 
 	/* npi comp in pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(comp->su) && !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+		TRACE("SU Preinst and Comp Non-Preinst. comp->su->flag '%u', comp->flag '%u'",  comp->su->flag,  
+				comp->flag);
 		/* instantiating -> instantiated */
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			/* csi-set succeeded.. generate csi-done indication */
@@ -1039,6 +1051,8 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceState
 
 	/* npi comp in npi su */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(comp->su) && !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+		TRACE("SU and Comp Non-Preinst. comp->su->flag '%u', comp->flag '%u'",  comp->su->flag,  
+				comp->flag);
 		/* restarting -> instantiated */
 		if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			m_AVND_COMP_FAILED_RESET(comp);
@@ -1326,6 +1340,7 @@ uns32 avnd_comp_clc_insting_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 uns32 avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* stop the reg tmr */
 	if (m_AVND_TMR_IS_ACTIVE(comp->clc_info.clc_reg_tmr))
@@ -1337,7 +1352,7 @@ uns32 avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* transition to 'instantiated' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_INSTANTIATED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -2508,6 +2523,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 uns32 avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("SU '%s', Comp '%s'", su->name.value, failed_comp->name.value);
 
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(failed_comp);
@@ -2559,6 +2575,7 @@ uns32 avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 	}
 
  done:
+	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
 }
 

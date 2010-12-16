@@ -462,6 +462,7 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
+	TRACE_ENTER2("SU '%p', recv '%u'", su, rcvr);
 
 	/* populate the oper msg */
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
@@ -474,6 +475,7 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 		if (su) {
 			msg.info.avd->msg_info.n2d_opr_state.su_name = su->name;
 			msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
+			TRACE("SU '%s, su oper '%u'",  su->name.value, su->oper);
 
 			if ((su->is_ncs == TRUE) && (su->oper == SA_AMF_OPERATIONAL_DISABLED))
 				TRACE("%s SU Oper state got disabled", su->name.value);
@@ -491,6 +493,7 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 
+	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
 }
 
@@ -529,8 +532,10 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
 		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->node_info.nodeId;
 		if (si) {
-			msg.info.avd->msg_info.n2d_su_si_assign.single_csi = si->single_csi_add_rem_in_si;
+			msg.info.avd->msg_info.n2d_su_si_assign.single_csi =
+				((si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_BASE) ? FALSE : TRUE);
 		}
+		TRACE("curr_assign_state '%u'", curr_si->curr_assign_state);
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
 		    (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
 		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
@@ -539,6 +544,7 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		if (si) {
 			msg.info.avd->msg_info.n2d_su_si_assign.si_name = si->name;
 			if (AVSV_SUSI_ACT_ASGN == si->single_csi_add_rem_in_si) {
+				TRACE("si->curr_assign_state '%u'", curr_si->curr_assign_state);
 				msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
 					(m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
 					 m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
@@ -552,6 +558,11 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si)) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
 		/* send the msg to AvD */
+		TRACE("Sending. msg_id'%u', node_id'%u', msg_act'%u', su'%s', si'%s', ha_state'%u', error'%u', single_csi'%u'",
+				msg.info.avd->msg_info.n2d_su_si_assign.msg_id,  msg.info.avd->msg_info.n2d_su_si_assign.node_id,
+				msg.info.avd->msg_info.n2d_su_si_assign.msg_act,  msg.info.avd->msg_info.n2d_su_si_assign.su_name.value, 
+				msg.info.avd->msg_info.n2d_su_si_assign.si_name.value, msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
+				msg.info.avd->msg_info.n2d_su_si_assign.error,  msg.info.avd->msg_info.n2d_su_si_assign.single_csi);
 		rc = avnd_di_msg_send(cb, &msg);
 		if (NCSCC_RC_SUCCESS == rc)
 			msg.info.avd = 0;
@@ -586,6 +597,7 @@ uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s'", param->name.value);
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -606,7 +618,7 @@ uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -670,6 +682,7 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 {
 	AVND_DND_MSG_LIST *rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Msg type '%u'", msg->info.avd->msg_type);
 
 	/* nothing to send */
 	if (!msg)
@@ -700,6 +713,7 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 		m_AVND_DIQ_REC_FIND_POP(cb, rec);
 		avnd_diq_rec_del(cb, rec);
 	}
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -900,6 +914,7 @@ void avnd_diq_del(AVND_CB *cb)
 AVND_DND_MSG_LIST *avnd_diq_rec_add(AVND_CB *cb, AVND_MSG *msg)
 {
 	AVND_DND_MSG_LIST *rec = 0;
+	TRACE_ENTER();
 
 	if ((0 == (rec = calloc(1, sizeof(AVND_DND_MSG_LIST)))))
 		goto error;
@@ -915,10 +930,11 @@ AVND_DND_MSG_LIST *avnd_diq_rec_add(AVND_CB *cb, AVND_MSG *msg)
 
 	/* push the record to the AvD msg list */
 	m_AVND_DIQ_REC_PUSH(cb, rec);
-
+	TRACE_LEAVE();
 	return rec;
 
  error:
+	TRACE_LEAVE2("'%p'", rec);
 	if (rec)
 		avnd_diq_rec_del(cb, rec);
 
@@ -939,6 +955,7 @@ AVND_DND_MSG_LIST *avnd_diq_rec_add(AVND_CB *cb, AVND_MSG *msg)
 ******************************************************************************/
 void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
+	TRACE_ENTER();
 	/* remove the association with hdl-mngr */
 	if (rec->opq_hdl)
 		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
@@ -952,7 +969,7 @@ void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 
 	/* free the record */
 	free(rec);
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -974,6 +991,7 @@ uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -993,7 +1011,7 @@ uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 
 	/* free the msg */
 	avnd_msg_content_free(cb, &msg);
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 

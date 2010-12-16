@@ -808,7 +808,11 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SU_SI_REL *susi;
 	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE, all_su_unassigned = TRUE, all_csi_rem = TRUE;
 
-	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_su_si_assign.node_id);
+	TRACE_ENTER2("msg_id. '%u', node_id '%x', msg_act '%u', su_name'%s', si_name'%s', ha_state'%u', Error'%u', Sinlge_csi'%u'", 
+			n2d_msg->msg_info.n2d_su_si_assign.msg_id, n2d_msg->msg_info.n2d_su_si_assign.node_id,
+			n2d_msg->msg_info.n2d_su_si_assign.msg_act,  n2d_msg->msg_info.n2d_su_si_assign.su_name.value, 
+			n2d_msg->msg_info.n2d_su_si_assign.si_name.value,  n2d_msg->msg_info.n2d_su_si_assign.ha_state,
+			n2d_msg->msg_info.n2d_su_si_assign.error, n2d_msg->msg_info.n2d_su_si_assign.single_csi);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG,
 	     n2d_msg->msg_info.n2d_su_si_assign.msg_id)) == NULL) {
@@ -832,6 +836,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (avd_snd_node_ack_msg(cb, node, node->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: avd_snd_node_ack_msg failed", __FUNCTION__);
+	}
+
+	if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+		LOG_NO("%s: assignment failed for SU '%s'. Error '%u'", __FUNCTION__,
+				n2d_msg->msg_info.n2d_su_si_assign.su_name.value, 
+				n2d_msg->msg_info.n2d_su_si_assign.error);
 	}
 
 	if (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) {
@@ -1031,7 +1041,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
 		case AVSV_SUSI_ACT_DEL:
 			TRACE("Del:single_csi '%u', susi '%p'", n2d_msg->msg_info.n2d_su_si_assign.single_csi,susi);
-			if (true == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
+			if (TRUE == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
 				AVD_COMP *comp;
 				AVD_CSI  *csi;
 				/* This is a case of single csi assignment/removal. */
@@ -1093,7 +1103,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		case AVSV_SUSI_ACT_ASGN:
 			TRACE("single_csi '%u', susi '%p'", n2d_msg->msg_info.n2d_su_si_assign.single_csi,susi);
-			if (true == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
+			if (TRUE == n2d_msg->msg_info.n2d_su_si_assign.single_csi) {
 				AVD_COMP *comp;
 				AVD_CSI  *csi;
 				/* This is a case of single csi assignment/removal. */
@@ -1236,6 +1246,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			/* Now process the acknowledge message based on
 			 * Success or failure.
 			 */
+			TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.error);
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if (q_flag == FALSE) {
 					avd_sg_2n_susi_sucss_func(cb, susi->su, susi,
@@ -1285,6 +1296,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			/* Now process the acknowledge message based on
 			 * Success or failure.
 			 */
+			TRACE("%u", n2d_msg->msg_info.n2d_su_si_assign.error);
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if (q_flag == FALSE) {
 					avd_sg_nacvred_susi_sucss_func(cb, susi->su, susi,

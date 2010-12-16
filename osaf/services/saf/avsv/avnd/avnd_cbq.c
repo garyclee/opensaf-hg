@@ -744,6 +744,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 {
 	AVND_COMP_CBK *rec = 0;
 	NODE_ID dest_node_id = 0;
+	TRACE_ENTER2("Comp '%s', send_del_cbk '%u'", comp->name.value, send_del_cbk);
 
 	do {
 		/* pop the record */
@@ -770,7 +771,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);
 	} while (1);
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -967,6 +968,7 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 	AVND_COMP_CBK *curr = comp->cbk_list, *prv = 0;
 	AVSV_AMF_CBK_INFO *info = 0;
 	NCS_BOOL to_del = FALSE;
+	TRACE_ENTER2("Comp '%s', CSI '%p'", comp->name.value, csi_name);
 
 	/* scan the entire comp-cbk list & delete the matching records */
 	while (curr) {

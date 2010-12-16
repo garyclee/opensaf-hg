@@ -1159,7 +1159,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("Msg type '%u', '%p'", msg->type, mds_ctxt);
 	/* populate the mds params */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
@@ -1204,7 +1204,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	if (NCSCC_RC_SUCCESS != rc)
 		LOG_ER("ncsmds_api for %u FAILED, dest=%llx", send_info->i_sendtype, *dest);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -1236,6 +1236,7 @@ uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *ad
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
 	MDS_SENDTYPE_RED_INFO *send = &send_info->info.red;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Msg type '%u'", msg->type);
 
 	/* populate the mds params */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -1263,6 +1264,7 @@ uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *ad
 	else
 		m_AVND_LOG_MDS(AVSV_LOG_MDS_SEND, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
+	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
 }
 

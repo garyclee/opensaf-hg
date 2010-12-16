@@ -981,7 +981,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	susi_msg->msg_info.d2n_su_si_assign.msg_act = actn;
 
 	if (true == single_csi) {
-		susi_msg->msg_info.d2n_su_si_assign.single_csi = true;
+		susi_msg->msg_info.d2n_su_si_assign.single_csi = TRUE;
 	}
 	switch (actn) {
 	case AVSV_SUSI_ACT_DEL:
