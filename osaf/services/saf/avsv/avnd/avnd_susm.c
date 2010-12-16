@@ -258,6 +258,7 @@ uns32 avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU_SI_REC *si = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("SU '%s'", su->name.value);
 
 	/* get the least-recent buffered msg, if any */
 	siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_LAST(&su->siq);
@@ -286,6 +287,7 @@ uns32 avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
 	/* delete the buffered msg */
 	avnd_su_siq_rec_del(cb, su, siq);
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -323,7 +325,7 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 	switch (info->msg_act) {
 	case AVSV_SUSI_ACT_ASGN:	/* new assign */
 		{
-			if (false == info->single_csi) {
+			if (FALSE == info->single_csi) {
 				/* add to the database */
 				si = avnd_su_si_rec_add(cb, su, info, &rc);
 				if (NULL != si) {
@@ -368,7 +370,7 @@ uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 			 * si may point to si-rec to be deleted or be 0 (signifying all).
 			 * initiate si removal.
 			 */
-			if (true == info->single_csi) {
+			if (TRUE == info->single_csi) {
 				AVND_COMP_CSI_PARAM *csi_param;
 				AVND_COMP_CSI_REC *csi_rec;
 				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_DEL;
@@ -490,6 +492,7 @@ static uns32 assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 
 	/* initiate the si assignment for npi su */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		TRACE("SU is NPI");
 		NCS_BOOL npi_prv_inst = TRUE, npi_curr_inst = TRUE;
 		AVND_SU_PRES_FSM_EV su_ev = AVND_SU_PRES_FSM_EV_MAX;
 
@@ -708,7 +711,9 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	for (curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	     curr_si; curr_si = (si) ? 0 : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 		/* mark the si assigned / removed */
+		TRACE("SI '%s'", curr_si->name.value);
 		if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) {
+			TRACE("Setting SI '%s' assigned", curr_si->name.value);
 			m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_ASSIGNED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE);
 			m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_ASSIGN, AVND_LOG_SU_DB_SUCCESS,
@@ -734,11 +739,15 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		 * termination). Mark the corresponding csis assigned/removed.
 		 */
 		if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+			TRACE("SU is NPI");
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_si->csi_list);
 			     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
-				if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si))
+				TRACE("CSI '%s'", curr_csi->name.value);
+				if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si)) {
+					TRACE("Setting CSI '%s' assigned", curr_csi->name.value);
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
+				}
 				else if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si))
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_REMOVED);
@@ -749,6 +758,7 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	/* inform AvD */
 	if (!m_AVND_SU_IS_RESTART(su)) {
+		TRACE("SU is not restarting");
 		rc = avnd_di_susi_resp_send(cb, su, si);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
@@ -777,7 +787,7 @@ uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	}
 	/* Reset the single add/del */
 	if (si)
-		si->single_csi_add_rem_in_si = 0;
+		si->single_csi_add_rem_in_si = AVSV_SUSI_ACT_BASE;
 	/* finally delete the si(s) if they are removed */
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si)) {
@@ -1020,6 +1030,7 @@ uns32 avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU_PR
 {
 	SaAmfPresenceStateT prv_st, final_st;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("SU '%s', Comp '%p', Ev '%u'", su->name.value, comp, ev);
 
 	/* get the prv presence state */
 	prv_st = su->pres;
@@ -1043,6 +1054,8 @@ uns32 avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU_PR
 		rc = avnd_su_pres_st_chng_prc(cb, su, prv_st, final_st);
 
  done:
+	TRACE_LEAVE2("%u", rc);
+
 	return rc;
 }
 
@@ -1066,6 +1079,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
 	AVND_SU_SI_REC *si = 0;
 	NCS_BOOL is_en;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("SU '%s', Prv_state '%u', Final_state '%u'", su->name.value, prv_st, final_st);
 
 	/* pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
@@ -1173,6 +1187,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
 
 	/* npi su */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		TRACE("SU is Npi");
 		/* get the only si */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 		assert(si);
@@ -1268,6 +1283,7 @@ uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("SU '%s' '%p'", su->name.value, comp);
 
 	/* 
 	 * If pi su, pick the first pi comp & trigger it's FSM with InstEv.
@@ -1291,6 +1307,7 @@ uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp
 	 * lowest ranked csi belonging to this si & trigger it's comp fsm.
 	 */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		TRACE("SU NonPreinst");
 		/* get the only si rec */
 		si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 		assert(si);
@@ -1409,6 +1426,7 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 	NCS_BOOL is;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("SU '%s' '%p'", su->name.value, comp);
 	/* 
 	 * If pi su, pick the next pi comp & trigger it's FSM with InstEv.
 	 * If the component is marked failed (=> component has reinstantiated 
@@ -1445,6 +1463,7 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 	 * If npi su, pick the next csi & trigger it's comp fsm with InstEv.
 	 */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		TRACE("SU is NPI");
 		/* get the only csi rec */
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 		assert(curr_csi);
@@ -1462,12 +1481,14 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 				goto done;
 		} else {
 			/* => si assignment done */
+			TRACE("SU is INSTANTIATED");
 			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
 
  done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 

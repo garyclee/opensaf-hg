@@ -314,6 +314,7 @@ typedef struct avsv_param_info {
 /*
  * Tese values are mapped to SU_SI fsm states */
 typedef enum {
+	AVSV_SUSI_ACT_BASE = 0,	
 	AVSV_SUSI_ACT_ASGN = 2,	/*AVD_SU_SI_STATE_ASGN */
 	AVSV_SUSI_ACT_DEL = 4,	/* AVD_SU_SI_STATE_UNASGN */
 	AVSV_SUSI_ACT_MOD = 5,	/* AVD_SU_SI_STATE_MODIFY */
@@ -389,7 +390,7 @@ typedef struct avsv_n2d_info_su_si_assign_msg_info_tag {
 	SaNameT si_name;
 	SaAmfHAStateT ha_state;
 	uns32 error;
-	bool single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
+	NCS_BOOL single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
 } AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO;
 
 typedef struct avsv_n2d_pg_track_act_msg_info_tag {
@@ -465,7 +466,7 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 				 * all SIs of this SU only the SU name field
 				 * is filled. */
 	SaAmfHAStateT ha_state;
-	bool single_csi; /* To differentiate single csi assignment from SI assignment.*/
+	NCS_BOOL single_csi; /* To differentiate single csi assignment from SI assignment.*/
 	uns32 num_assigns;
 	AVSV_SUSI_ASGN *list;
 } AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO;

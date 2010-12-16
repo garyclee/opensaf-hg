@@ -136,6 +136,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaUint64T pid = rec->pid;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* delete the PM_REC from pm_list */
 	rc = ncs_db_link_list_del(&comp->pm_list, (uns8 *)&rec->pid);
@@ -150,6 +151,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 	if (NCSCC_RC_SUCCESS != rc)
 		assert(0);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -168,6 +170,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_PM_REC *rec = 0;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* No passive monitoring for external component. */
 	if (TRUE == comp->su->su_is_external)
@@ -177,6 +180,7 @@ void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 	while (0 != (rec = (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list)))
 		avnd_comp_pm_rec_del(cb, comp, rec);
 
+	TRACE_LEAVE();
 	return;
 }
 
@@ -609,6 +613,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 {
 	AVND_COMP_PM_REC *rec = 0;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* No passive monitoring for external component. */
 	if (TRUE == comp->su->su_is_external)
@@ -620,7 +625,7 @@ void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 			avnd_comp_pm_rec_del(cb, comp, rec);
 		}
 	}
-
+	TRACE_LEAVE();
 	return;
 }
 

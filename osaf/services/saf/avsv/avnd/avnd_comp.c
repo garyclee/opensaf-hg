@@ -1500,6 +1500,7 @@ uns32 avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
 	SaNameT csi_name;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	assert(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp));
 
@@ -1582,6 +1583,7 @@ uns32 avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 			curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr->comp_dll_node));
 	}			/* while */
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -1991,6 +1993,7 @@ uns32 avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* unmark the previous csi assigned state of this compoonent */
 	for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -2033,6 +2036,7 @@ uns32 avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 	avnd_comp_pm_rec_del_all(cb, comp);	/*if at all anythnig is left behind */
 
  done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -2505,6 +2509,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 	uns32 rc_send = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec = 0;
 	AVND_COMP *pxd_comp = NULL;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* parse thru all proxied comp of this proxy */
 	while (0 != (rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_pop(&comp->pxied_list))) {
@@ -2609,7 +2614,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 	/* case of fault during avnd_di_object_upd_send*/
 	if(rc_send != NCSCC_RC_SUCCESS)
 		rc = rc_send;
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -2666,6 +2671,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 	AVND_COMP_CBK *cbk = 0, *temp_cbk_list = 0, *head = 0;
 	AVND_COMP_CSI_REC *csi = 0, *temp_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS, found = 0;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/*
 	 *  su-sis may be in assigning/removing state. signal csi
@@ -2740,6 +2746,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 		temp_cbk_list->next = comp->cbk_list;
 		comp->cbk_list = head;
 	}
+	TRACE_LEAVE2();
 
 }
 
@@ -2765,6 +2772,7 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
 	SaNameT csi_name;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 	/* go and look for all csi's in assigning state and complete the assignment.
 	 * take care of assign-one and assign-all flags
 	 */
@@ -2800,6 +2808,7 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 		}		/* while */
 	}
 
+	TRACE_LEAVE();
 }
 
 /**

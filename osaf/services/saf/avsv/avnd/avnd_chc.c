@@ -594,12 +594,14 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 void avnd_comp_hc_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_HC_REC *rec = 0;
+	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* scan & delete each healthcheck record */
 	while (0 != (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list))) {
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_HLT_REC);
 		avnd_comp_hc_rec_del(cb, comp, rec);
 	}
+	TRACE_LEAVE();
 	return;
 }
 
