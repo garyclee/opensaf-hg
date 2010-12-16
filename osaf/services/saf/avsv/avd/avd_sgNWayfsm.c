@@ -3263,6 +3263,7 @@ uns32 avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 						m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, susi->si->sg_of_si, AVSV_CKPT_AVD_SI_TRANS);
 					} else {
 						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, t_susi, AVSV_CKPT_AVD_SI_ASS);
+						avd_susi_update(t_susi, t_susi->state);
 						avd_gen_su_ha_state_changed_ntf(avd_cb, t_susi);
 					}
 				}
