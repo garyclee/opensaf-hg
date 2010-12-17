@@ -33,7 +33,6 @@ SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
 # included in the address and slot ID will not be shifted thus producing TIPC
 # addresses like 1.1.1, 1.1.2, 1.1.3 etc.
 USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"YES"}
-
 # constants
 SHIFT4=4
 NID_SVC_NAME=TIPC
@@ -46,9 +45,7 @@ if ! [ -x ${tipc_config} ]; then
     echo "error: tipc-config is not available"
     exit 1
 fi
-
 # Get the Chassis Id and Slot Id from @sysconfdir@/@PACKAGE_NAME@/chassis_id and @sysconfdir@/@PACKAGE_NAME@/slot_id
-
 if ! test -f "$CHASSIS_ID_FILE"; then
    echo "$CHASSIS_ID_FILE doesnt exists, exiting ...." 
    exit 1
@@ -60,7 +57,6 @@ if [ "$CHASSIS_ID" -gt "16" ] || [ "$CHASSIS_ID" -lt "1" ]
       echo "Quitting......"
       exit 1
 fi
-
 if ! test -f "$SLOT_ID_FILE"; then
    echo "$SLOT_ID_FILE doesnt exists, exiting ...." 
    exit 1
@@ -72,7 +68,6 @@ if [ "$SLOT_ID" -gt "255" ] || [ "$SLOT_ID" -lt "1" ]
       echo "Quitting......"
       exit 1
 fi
-
 if ! test -f $SUBSLOT_ID_FILE; then
     echo "$SLOT_ID_FILE doesnt exist, exiting ...." 
     exit 1
@@ -108,9 +103,7 @@ if [ $# -gt 1 ] ; then
 fi    
 
 printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
-
 chmod 744 $pkglocalstatedir/node_id
-
 if [ "$USE_SUBSLOT_ID" = "YES" ]; then
     TIPC_NODEID=$(($SLOT_ID << $SHIFT4))
     TIPC_NODEID=$(($TIPC_NODEID + $SUBSLOT_ID))

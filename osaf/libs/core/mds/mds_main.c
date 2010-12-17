@@ -36,6 +36,11 @@
 #include "patricia.h"
 #include "mds_log.h"
 #include "ncs_main_pub.h"
+#include "mds_dt_tipc.h"
+
+extern uns16 socket_domain;
+extern uns16 port;
+void mds_init_transport(void);
 
 /* MDS Control Block */
 MDS_MCM_CB *gl_mds_mcm_cb = NULL;
@@ -231,6 +236,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 			}
 		}
 
+		mds_init_transport();
 		/* Invoke MDTM-INIT.  */
 		status = mds_mdtm_init(node_id, &mds_tipc_ref);
 		if (status != NCSCC_RC_SUCCESS) {
@@ -316,4 +322,29 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 	}
 
 	return NCSCC_RC_SUCCESS;
+}
+
+void mds_init_transport(void)
+{
+	char *tipc_or_tcp = NULL;
+	tipc_or_tcp = getenv("MDS_TRANSPORT");
+	if (NULL == tipc_or_tcp)
+		tipc_or_tcp = "TIPC";
+	if (strcmp(tipc_or_tcp, "TIPC") == 0) {
+		mds_mdtm_init = mdtm_tipc_init;
+		mds_mdtm_destroy = mdtm_tipc_destroy;
+		mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tipc;
+		mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tipc;
+		mds_mdtm_svc_install = mds_mdtm_svc_install_tipc;
+		mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tipc;
+		mds_mdtm_vdest_install = mds_mdtm_vdest_install_tipc;
+		mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tipc;
+		mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tipc;
+		mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tipc;
+		mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tipc;
+		mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tipc;
+		mds_mdtm_send = mds_mdtm_send_tipc;
+		mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tipc;
+		mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tipc;
+	}
 }

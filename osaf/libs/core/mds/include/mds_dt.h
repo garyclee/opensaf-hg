@@ -33,7 +33,6 @@
 #include "ncssysf_mem.h"
 #include "ncspatricia.h"
 
-#include <linux/tipc.h>
 
 /* This file is private to the MDTM layer. */
 
@@ -48,7 +47,7 @@ extern NCS_LOCK *mds_lock(void);
 typedef struct mdtm_reassembly_key {
 
 	uns32 frag_sequence_num;	/* Frag Sequence number of this message */
-	struct tipc_portid tipc_id;
+	MDS_DEST id;
 
 } MDTM_REASSEMBLY_KEY;
 
@@ -131,9 +130,41 @@ typedef enum {
 	MDS_PROCESS_INST_TYPE = 0x00050000,
 } MDS_MDTM_INST_TYPES;
 
+/* Common to TCP and TIPC */
+#define MAX_SUBSCRIPTIONS   200
+#define MAX_SUBSCRIPTIONS_RETURN_ERROR   500
+#define MDS_EVENT_SHIFT_FOR_PWE   10	/* As SVCID is 8-MDS Prefix, 8- SVC Inst, 6- PWE, 10 -SVCid */
+#define MDS_EVENT_MASK_FOR_PWE  0x3f
+#define MDS_EVENT_MASK_FOR_SVCID  0x3ff
+
+#define LEN_4_BYTES         32
+#define MDS_PWE_BITS_LEN     6
+#define MDS_VER_BITS_LEN       8
+#define MDS_ARCHWORD_BITS_LEN  4
+#define VDEST_POLICY_LEN     1
+#define ACT_STBY_LEN         1
+#define MDS_SCOPE_LEN        2
+
+#define MDS_VER_MASK      0x0ff00000
+#define MDS_POLICY_MASK   0x00080000
+#define MDS_ARCHWORD_MASK 0xf0000000
+#define MDS_ROLE_MASK     0x00040000
+#define MDS_SCOPE_MASK    0x00030000
+
+#define MORE_FRAG_BIT  0x8000
+#define NO_FRAG_BIT    0x0000
+
+uns32 mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref);
+uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref);
+uns32 mds_tmr_mailbox_processing(void);
+uns32 mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref, MDS_SVC_HDL *svc_hdl);
+uns32 mdtm_add_frag_hdr(uns8 *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte);
+uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg);
+uns32 mdtm_process_recv_data(uns8 *buf, uns16 len, uns64 tipc_id, uns32 *buff_dump);
+
 typedef enum {
 	MDTM_TX_TYPE_TIPC = 1,
-	/* MDTM_TX_TYPE_BLAH = 2, If new transport is there */
+	MDTM_TX_TYPE_TCP = 2,
 } MDTM_TX_TYPE;
 
 typedef enum {
@@ -170,6 +201,76 @@ typedef struct mds_subscription_ll_hdl {
 	NCSCONTEXT ll_hdl;
 	NCSCONTEXT ul_hdl;
 } MDS_SUBSCRIPTION_LL_HDL;
+
+typedef struct mdtm_ref_hdl_list {
+	struct mdtm_ref_hdl_list *next;
+	MDS_SUBTN_REF_VAL ref_val;
+	MDS_SVC_HDL svc_hdl;
+} MDTM_REF_HDL_LIST;
+
+MDTM_REF_HDL_LIST *mdtm_ref_hdl_list_hdr;
+uns32 mdtm_attach_mbx(SYSF_MBX mbx);
+void mds_buff_dump(uns8 *buff, uns32 len, uns32 max);
+NCS_PATRICIA_TREE mdtm_reassembly_list;
+
+uns32 mdtm_set_transport(MDTM_TX_TYPE transport);
+#define MDTM_PKT_TYPE_OFFSET            4	/* Fragmented or normal */
+
+#define MDTM_CHECK_MORE_FRAG            0x8000
+#define MDTM_NORMAL_PKT                 0
+#define MDTM_FIRST_FRAG_NUM             0x8001
+#define MDS_MSG_SND_TYPE_OFFSET         10
+#define MDS_MSG_TYPE_OFFSET             2
+#define MDS_MSG_ENC_TYPE_OFFSET         5
+
+#define MDTM_DIRECT     0
+#define MDTM_REASSEMBLE 1
+
+#define m_MDS_MCM_GET_NODE_ID    m_MDS_GET_NODE_ID_FROM_ADEST(tipc_cb.adest)
+
+#define MDS_MCM_GET_PROCESS_ID  m_MDS_GET_PROCESS_ID_FROM_ADEST(tipc_cb.adest)
+
+#define MDS_PROT        0xA0
+#define MDS_VERSION         0x08
+#define MDS_PROT_VER_MASK  (MDS_PROT | MDS_VERSION)
+#define MDTM_PRI_MASK 0x3
+
+/* Added for the subscription changes */
+#define MDS_NCS_CHASSIS_ID       (m_NCS_GET_NODE_ID&0x00ff0000)
+#define MDS_TIPC_COMMON_ID       0x01001000
+
+/*
+ * In the default addressing scheme TIPC addresses will be 1.1.31, 1.1.47.
+ * The slot ID is shifted 4 bits up and subslot ID is added in the 4 LSB.
+ * When use of subslot ID is disabled (set MDS_USE_SUBSLOT_ID=0 in CFLAGS), the
+ * TIPC addresses will be 1.1.1, 1.1.2, etc.
+ */
+#ifndef MDS_USE_SUBSLOT_ID
+#define MDS_USE_SUBSLOT_ID 1
+#endif
+
+#if (MDS_USE_SUBSLOT_ID == 0)
+#define MDS_TIPC_NODE_ID_MIN     0x01001001
+#define MDS_TIPC_NODE_ID_MAX     0x010010ff
+#define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x0000010f)
+#define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000ff0f)
+#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node) \
+        (NODE_ID)( MDS_NCS_CHASSIS_ID | (((node)&0xff)<<8) | (0xf))
+#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
+        (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>8) )
+#else
+#define MDS_TIPC_NODE_ID_MIN     0x01001001
+#define MDS_TIPC_NODE_ID_MAX     0x0100110f
+#define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x00000100)
+#define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000100f)
+#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node) \
+        (NODE_ID)( MDS_NCS_CHASSIS_ID | ((node)&0xf) | (((node)&0xff0)<<4))
+#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
+        (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>4) | ((node)&0xf) )
+#endif
+
+#define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
+#define m_MDS_CHECK_NCS_NODE_ID_RANGE(node) (((((node)<MDS_NCS_NODE_ID_MIN)||((node)>MDS_NCS_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
 
 /* ******************************************** */
 /* ******************************************** */

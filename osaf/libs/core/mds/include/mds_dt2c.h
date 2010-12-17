@@ -26,13 +26,8 @@
 #ifndef _MDS_DT2C_H
 #define _MDS_DT2C_H
 
-#if __AFSINC_LINUX__
-#include <linux/tipc.h>
-#endif
-
 #include <ncsgl_defs.h>
 #include "mds_papi.h"
-#include <linux/tipc.h>
 
 /* Specification of the interface between MCM and MDTM */
 
@@ -263,7 +258,7 @@ typedef struct mds_tmr_req_info {
 
 		struct {
 			uns32 seq_no;
-			struct tipc_portid id;
+			MDS_DEST id;
 		} reassembly_tmr_info;
 
 		struct {
@@ -325,54 +320,54 @@ extern uns32 gl_mds_checksum;
 /* ******************************************** */
 
 /* Initialization of MDTM Module */
-extern uns32 mds_mdtm_init(NODE_ID node_id, uns32 *mds_tipc_ref);
+uns32 (*mds_mdtm_init) (NODE_ID node_id, uns32 *mds_tipc_ref);
 
 /* Destroying the MDTM Module*/
-extern uns32 mds_mdtm_destroy(void);
+uns32 (*mds_mdtm_destroy) (void);
 
-extern uns32 mds_mdtm_send(MDTM_SEND_REQ *req);
+uns32 (*mds_mdtm_send) (MDTM_SEND_REQ *req);
 
 /* SVC Install */
-extern uns32 mds_mdtm_svc_install(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				  V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-				  MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+uns32 (*mds_mdtm_svc_install) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+			       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+			       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 
 /* SVC Uninstall */
-extern uns32 mds_mdtm_svc_uninstall(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				    V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-				    MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+uns32 (*mds_mdtm_svc_uninstall) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+				 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+				 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 
 /* SVC Subscribe */
-extern uns32 mds_mdtm_svc_subscribe(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope,
-				    MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uns32 (*mds_mdtm_svc_subscribe) (PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope,
+				 MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /*  added svc_hdl */
 /* SVC Unsubscribe */
-extern uns32 mds_mdtm_svc_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val);
+uns32 (*mds_mdtm_svc_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* VDEST Install */
-extern uns32 mds_mdtm_vdest_install(MDS_VDEST_ID vdest_id);
+uns32 (*mds_mdtm_vdest_install) (MDS_VDEST_ID vdest_id);
 
 /* VDEST Uninstall */
-extern uns32 mds_mdtm_vdest_uninstall(MDS_VDEST_ID vdest_id);
+uns32 (*mds_mdtm_vdest_uninstall) (MDS_VDEST_ID vdest_id);
 
 /* VDEST Subscribe */
-extern uns32 mds_mdtm_vdest_subscribe(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uns32 (*mds_mdtm_vdest_subscribe) (MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /* VDEST Unsubscribe */
-extern uns32 mds_mdtm_vdest_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val);
+uns32 (*mds_mdtm_vdest_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* Tx Register (For incrementing the use count) */
-extern uns32 mds_mdtm_tx_hdl_register(MDS_DEST adest);
+uns32 (*mds_mdtm_tx_hdl_register) (MDS_DEST adest);
 
 /* Tx Unregister (For decrementing the use count) */
-extern uns32 mds_mdtm_tx_hdl_unregister(MDS_DEST adest);
+uns32 (*mds_mdtm_tx_hdl_unregister) (MDS_DEST adest);
 
 /* Node subscription */
-extern uns32 mds_mdtm_node_subscribe(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uns32 (*mds_mdtm_node_subscribe) (MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
 /* Node unsubscription */
-extern uns32 mds_mdtm_node_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val);
+uns32 (*mds_mdtm_node_unsubscribe) (MDS_SUBTN_REF_VAL subtn_ref_val);
 
 /* ******************************************** */
 /* ******************************************** */
@@ -406,7 +401,7 @@ extern uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
 /* VDEST UP */
 extern uns32 mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);
 
-		  /* VDEST DOWN */	/* Presently Discarded */
+					/* VDEST DOWN */	/* Presently Discarded */
 extern uns32 mds_mcm_vdest_down(MDS_VDEST_ID vdest_id, MDS_DEST adest);
 
 /* Timer expiry functions of MCM */

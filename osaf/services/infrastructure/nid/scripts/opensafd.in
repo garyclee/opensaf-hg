@@ -109,11 +109,72 @@ final_clean() {
 		$cmd stop >/dev/null 2>&1
 	done
 
-	unload_tipc
+	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
+		unload_tipc
+	else
+		rm -f /tmp/mdtm_process_*
+	fi
 	clean_shm
 
 	rm -f $lockfile
 	rm -f $NIDFIFO
+}
+generate_nodeid() {
+
+
+
+
+	CHASSIS_ID_FILE=$pkgsysconfdir/chassis_id
+	SLOT_ID_FILE=$pkgsysconfdir/slot_id
+	SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
+	if ! test -f "$CHASSIS_ID_FILE"; then
+		echo "$CHASSIS_ID_FILE doesnt exists, exiting ...." 
+		exit 1
+	fi
+	CHASSIS_ID=`cat "$CHASSIS_ID_FILE"`
+	if [ "$CHASSIS_ID" -gt "16" ] || [ "$CHASSIS_ID" -lt "1" ]  
+	then 
+		echo "CHASSIS ID Should be in the range of 1 to 16"
+		echo "Quitting......"
+		exit 1
+	fi
+	if ! test -f "$SLOT_ID_FILE"; then
+		echo "$SLOT_ID_FILE doesnt exists, exiting ...." 
+		exit 1
+	fi
+	SLOT_ID=`cat "$SLOT_ID_FILE"`
+	if [ "$SLOT_ID" -gt "255" ] || [ "$SLOT_ID" -lt "1" ]  
+	then 
+		echo "SLOT ID Should be in the range of 1 to 255"
+		echo "Quitting......"
+		exit 1
+	fi
+	if ! test -f $SUBSLOT_ID_FILE; then
+		echo "$SLOT_ID_FILE doesnt exist, exiting ...." 
+		exit 1
+	fi
+	SUBSLOT_ID=`cat $SUBSLOT_ID_FILE`
+	if [ "$SUBSLOT_ID" -gt "15" ] || [ "$SUBSLOT_ID" -lt "0" ]; then
+		echo "SUBSLOT ID Should be in the range of 0 to 15"
+		echo "Quitting......"
+		exit 1
+	fi
+	printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
+	chmod 744 $pkglocalstatedir/node_id
+}
+check_transport() {
+	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
+		# Transport TIPC
+		check_tipc
+		sed -i 's/#*\(.*nid_tipc*\)/\1/gI' $pkgsysconfdir/nodeinit.conf 
+		#Now comment the line in the nodeinit.conf for TIPC
+		grep "osaf-dtm:DTM" $pkgsysconfdir/nodeinit.conf | grep "#" > /dev/null
+		ret_val=$?
+		if [ $ret_val -ne 0 ] ; then
+			#comment the line 
+		 	sed -i 's/\(.*osaf-dtm:DTM*\)/#\1/gI'  $pkgsysconfdir/nodeinit.conf 	
+		fi
+	fi
 }
 
 start() {
@@ -129,8 +190,8 @@ start() {
 
 	[ -x $daemon ] || exit 5
 
-	check_tipc
 	check_env
+	check_transport
 
 	# Comment/Uncomment if you want cores disabled/enabled
 	#enable_coredump
