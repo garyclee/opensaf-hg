@@ -18,7 +18,7 @@
 GENERAL
 =======
 This directory (smfsv) contains an implementation of the SAF SMF service
-version A.01.01.
+version A.01.02.
 
 The SMF service is implemented as a director process (smfd) executing on the controllers
 using a 2N redundancy model and a node director (smfnd) process executing on all nodes 

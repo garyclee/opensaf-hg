@@ -20,6 +20,6 @@
 
 #define SMF_RELEASE_CODE 'A'
 #define SMF_MAJOR_VERSION 1
-#define SMF_MINOR_VERSION 1
+#define SMF_MINOR_VERSION 2
 
 #endif				/* SMFSV_DEFS_H */
