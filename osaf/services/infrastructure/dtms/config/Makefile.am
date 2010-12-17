@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,29 +11,12 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): GoAhead Software
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-noinst_HEADERS = \
-	mds_adm.h \
-	mds_core.h \
-	mds_dl_api.h \
-	mds_dt2c.h \
-	mds_dt.h \
-	mds_log.h \
-	mds_pvt.h \
-	mda_dl_api.h \
-	mda_mem.h \
-	mds_dt_tcp.h \
-	mds_dt_tcp_trans.h \
-	mds_dt_tcp_disc.h \
-	mda_pvt_api.h
-
-if ENABLE_TIPC_TRANSPORT
-noinst_HEADERS += mds_dt_tipc.h 
-endif
-
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/osaf/services/infrastructure/dtms/config/dtmd.conf

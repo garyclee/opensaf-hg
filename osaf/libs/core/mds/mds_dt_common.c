@@ -1,3 +1,20 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2010 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.z
+ *
+ * Author(s): GoAhead Software
+ *
+ */
+
 #include "mds_dt.h"
 #include "mds_log.h"
 #include "ncssysf_def.h"
@@ -151,7 +168,7 @@ uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64 tipc_id, uns32 seq_num_check,
+uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64 transport_adest, uns32 seq_num_check,
 				       uns32 *buff_dump)
 {
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
@@ -167,20 +184,20 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 	MDS_DEST adest = 0;
 
 	if (MDTM_TX_TYPE_TIPC == mdtm_transport) {
-		node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE((uns32)(tipc_id >> 32));
+		node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE((uns32)(transport_adest >> 32));
 
 		if (NCSCC_RC_SUCCESS == node_status) {
 			adest =
-			    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(tipc_id >> 32)))) << 32) |
-			     (uns32)(tipc_id));
+			    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(transport_adest >> 32)))) << 32) |
+			     (uns32)(transport_adest));
 		} else {
 			m_MDS_LOG_ERR
 			    ("MDTM: Dropping  the recd message, as the TIPC NODEid is not in the prescribed range=0x%08x",
-			     (NODE_ID)(tipc_id >> 32));
+			     (NODE_ID)(transport_adest >> 32));
 			return NCSCC_RC_FAILURE;
 		}
 	} else if (MDTM_TX_TYPE_TCP == mdtm_transport) {
-		adest = tipc_id;
+		adest = transport_adest;
 	} else {
 		m_MDS_LOG_ERR("MDTM: unsupported transport =%d", mdtm_transport);
 		abort();
@@ -205,14 +222,14 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 		/* Check whether total lenght of message is not less than MDS header length */
 		if (len < len_mds_hdr) {
 			m_MDS_LOG_ERR
-			    ("MDTM: Message recd (Non Fragmented) len is less than the MDS HDR len  TIPC_ID=<0x%llx> len =%d len_mds_hdr=%",
-			     len, len_mds_hdr, tipc_id);
+			    ("MDTM: Message recd (Non Fragmented) len is less than the MDS HDR len  adest=<0x%llx> len =%d len_mds_hdr=%",
+			     len, len_mds_hdr, transport_adest);
 
 			return NCSCC_RC_FAILURE;
 		}
 		/* Check whether mds header length received is not less than mds header length of this instance */
 		if (len_mds_hdr < MDS_HDR_LEN) {
-			m_MDS_LOG_DBG
+			m_MDS_LOG_ERR
 			    ("MDTM:Mds hdr len of recd msg (Non frag) = %d is less than local mds hdr len = %d",
 			     len_mds_hdr, MDS_HDR_LEN);
 			return NCSCC_RC_FAILURE;
@@ -242,8 +259,8 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 		if (NCSCC_RC_SUCCESS != mds_svc_tbl_get_svc_hdl(pwe_hdl, dest_svc_id, &dest_svc_hdl)) {
 			*buff_dump = 0;	/* For future hack */
-			m_MDS_LOG_ERR("MDTM: Service Doesnt exists for the message recd=%d, TIPC_ID=<0x%llx>\n",
-				      dest_svc_id, tipc_id);
+			m_MDS_LOG_ERR("MDTM: Service Doesnt exists for the message recd=%d, adest=<0x%llx>\n",
+				      dest_svc_id, transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -270,7 +287,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 		if (enc_type > MDS_ENC_TYPE_DIRECT_BUFF) {
 			*buff_dump = 0;	/* For future hack */
-			m_MDS_LOG_ERR("MDTM: Encoding unsupported TIPC-ID=<0x%016llx>\n", tipc_id);
+			m_MDS_LOG_ERR("MDTM: Encoding unsupported, adest=<0x%016llx>\n", transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -298,7 +315,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 		svc_seq_num = ncs_decode_32bit(&data);
 
-		reassem_queue->key.id = tipc_id;
+		reassem_queue->key.id = transport_adest;
 
 		reassem_queue->recv.src_adest = adest;
 
@@ -340,7 +357,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 		reassem_queue->recv.snd_type = msg_snd_type;
 
 		m_MDS_LOG_DBG("MDTM: Recd Unfragmented message with SVC Seq num =%d, from src_Tipc_id=<%llx>",
-			      svc_seq_num, tipc_id);
+			      svc_seq_num, transport_adest);
 
 		if (msg_snd_type == MDS_SENDTYPE_ACK) {
 			/* NOTE: Version in ACK message is ignored */
@@ -419,8 +436,8 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 		/* Check whether total lenght of message is not less than or equal to MDS header length and MDTM frag header length */
 		if (len <= (len_mds_hdr + MDTM_FRAG_HDR_LEN)) {
 			m_MDS_LOG_ERR
-			    ("MDTM: Message recd (Fragmented First Pkt) len is less than or equal to the sum of (len_mds_hdr+MDTM_FRAG_HDR_LEN) len  TIPC_ID=<0x%llx>",
-			     tipc_id);
+			    ("MDTM: Message recd (Fragmented First Pkt) len is less than or equal to the sum of (len_mds_hdr+MDTM_FRAG_HDR_LEN) len, adest=<0x%llx>",
+			     transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
 		/* Check whether mds header length received is not less than mds header length of this instance */
@@ -488,7 +505,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 		data = buffer;
 
 		seq_num = ncs_decode_32bit(&data);
-		reassem_queue = mdtm_add_reassemble_queue(seq_num, tipc_id);
+		reassem_queue = mdtm_add_reassemble_queue(seq_num, transport_adest);
 
 		if (reassem_queue == NULL) {
 			m_MDS_LOG_ERR("MDTM: New reassem queue creation failed\n");
@@ -510,7 +527,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 		svc_seq_num = ncs_decode_32bit(&data);
 
-		reassem_queue->key.id = tipc_id;
+		reassem_queue->key.id = transport_adest;
 
 		reassem_queue->recv.src_adest = adest;
 
@@ -558,19 +575,19 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 		m_MDS_LOG_DBG
 		    ("MDTM: Recd fragmented message(first frag) with Frag Seqnum=%d SVC Seq num =%d, from src_Tipc_id=<%llx>",
-		     seq_num, svc_seq_num, tipc_id);
+		     seq_num, svc_seq_num, transport_adest);
 
 		if ((len - (len_mds_hdr + MDTM_FRAG_HDR_LEN)) > 0) {
 			if (NCSCC_RC_SUCCESS != mdtm_fill_data(reassem_queue, &buffer[len_mds_hdr + MDTM_FRAG_HDR_LEN],
 							       (len - (len_mds_hdr + MDTM_FRAG_HDR_LEN)), enc_type)) {
 				m_MDS_LOG_ERR("MDTM: MDtm fill data failed\n");
-				mdtm_del_reassemble_queue(seq_num, tipc_id);
+				mdtm_del_reassemble_queue(seq_num, transport_adest);
 				return NCSCC_RC_FAILURE;
 			}
 		} else {
 			m_MDS_LOG_ERR("MDTM: No Payload Data present, Total Len=%d, sum of frag_hdr and mds_hdr=%d",
 				      len, (len_mds_hdr + MDTM_FRAG_HDR_LEN));
-			mdtm_del_reassemble_queue(seq_num, tipc_id);
+			mdtm_del_reassemble_queue(seq_num, transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -750,14 +767,14 @@ uns32 mds_tmr_mailbox_processing(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff_dump)
+uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 transport_adest, uns32 *buff_dump)
 {
 	/*
 	   Get the MDS Header from the data received
 	   if Destination SVC exists
 	   if the message is a fragmented one
-	   reassemble  the recd data(is done based on the received data <Sequence number, TIPC_ID>)
-	   An entry for the matching TIPC_ID is serached in the MDS_ADEST_LIST
+	   reassemble  the recd data(is done based on the received data <Sequence number, transport_adest>)
+	   An entry for the matching transport_adest is serached in the MDS_ADEST_LIST
 
 	   if found
 	   reasesemble is done on the MDS_ADEST_LIST
@@ -787,7 +804,8 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 
 	if (pkt_type == MDTM_NORMAL_PKT) {
 		return mdtm_process_recv_message_common(MDTM_DIRECT, &buffer[MDTM_FRAG_HDR_LEN],
-							len - MDTM_FRAG_HDR_LEN, tipc_id, temp_frag_seq_num, buff_dump);
+							len - MDTM_FRAG_HDR_LEN, transport_adest, temp_frag_seq_num,
+							buff_dump);
 	} else {
 		/* We got a fragmented pkt, reassemble */
 		/* Check in reasssebly queue whether any pkts are present */
@@ -806,10 +824,10 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 		seq_num = ncs_decode_32bit(&data);
 
 		m_MDS_LOG_DBG("MDTM: Recd message with Fragment Seqnum=%d, frag_num=%d, from src_Tipc_id=<0x%08x:%u>",
-			      seq_num, frag_num, (uns32)(tipc_id >> 32), (uns32)(tipc_id));
+			      seq_num, frag_num, (uns32)(transport_adest >> 32), (uns32)(transport_adest));
 
 		/* Checking in reassembly queue */
-		reassem_queue = mdtm_check_reassem_queue(seq_num, tipc_id);
+		reassem_queue = mdtm_check_reassem_queue(seq_num, transport_adest);
 
 		if (reassem_queue != NULL) {
 			if (len <= MDTM_FRAG_HDR_LEN) {
@@ -842,8 +860,9 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 								  reassem_queue->key.id);
 				}
 				*buff_dump = 0;	/* For future use. It can be made 1, easily without having to relink etc. */
-				m_MDS_LOG_ERR("MDTM: Message is dropped as msg is out of seq TIPC-ID=<0x%016llx> \n",
-					      tipc_id);
+				m_MDS_LOG_ERR
+				    ("MDTM: Message is dropped as msg is out of seq TRANSPOR-ID=<0x%016llx> \n",
+				     transport_adest);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -875,8 +894,8 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 
 								reassem_queue->tmr_info = NULL;
 								/* Delete this entry from Global reassembly queue */
-								mdtm_del_reassemble_queue(reassem_queue->key.
-											  frag_sequence_num,
+								mdtm_del_reassemble_queue(reassem_queue->
+											  key.frag_sequence_num,
 											  reassem_queue->key.id);
 							}
 							m_MDS_LOG_ERR
@@ -952,8 +971,8 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 			} else {
 				/* fragment recd is not next fragment */
 				*buff_dump = 0;	/* For future use. It can be made 1, easily without having to relink etc. */
-				m_MDS_LOG_ERR("MDTM: Frag recd is not next frag so dopping TIPC-ID=<0x%016llx>\n",
-					      tipc_id);
+				m_MDS_LOG_ERR("MDTM: Frag recd is not next frag so dropping adest=<0x%016llx>\n",
+					      transport_adest);
 				reassem_queue->to_be_dropped = TRUE;	/* This is for avoiding the prints of bad spurious fragments */
 
 				if (((pkt_type & 0x7fff) > 0) && ((pkt_type & 0x8000) == 0)) {
@@ -980,12 +999,13 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns32 *buff
 				return NCSCC_RC_FAILURE;
 			}
 		} else if (MDTM_FIRST_FRAG_NUM == pkt_type) {
-			return mdtm_process_recv_message_common(MDTM_REASSEMBLE, buffer, len, tipc_id,
+			return mdtm_process_recv_message_common(MDTM_REASSEMBLE, buffer, len, transport_adest,
 								temp_frag_seq_num, buff_dump);
 		} else {
 			*buff_dump = 0;
 			/* Some stale message, Log and Drop */
-			m_MDS_LOG_ERR("MDTM: Some stale message recd, hence dropping TIPC-ID=<0x%016llx>\n", tipc_id);
+			m_MDS_LOG_ERR("MDTM: Some stale message recd, hence dropping adest=<0x%016llx>\n",
+				      transport_adest);
 			return NCSCC_RC_FAILURE;
 		}
 	}			/* ELSE Loop */
@@ -1077,8 +1097,8 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST i
 	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uns8 *)&reassembly_key);
 
 	if (reassem_queue == NULL) {
-		m_MDS_LOG_DBG("MDS_DT_TIPC : reassembly queue doesnt exist seq_num=%d, tipc_id=<0x%08x,%u", seq_num,
-			      (uns32)(id >> 32), (uns32)(id));
+		m_MDS_LOG_DBG("MDS_DT_COMMON : reassembly queue doesnt exist seq_num=%d, transport_adest=<0x%08x,%u",
+			      seq_num, (uns32)(id >> 32), (uns32)(id));
 		return reassem_queue;
 	}
 	return reassem_queue;
@@ -1282,4 +1302,36 @@ uns16 mds_checksum(uns32 length, uns8 buff[])
 	sum = ~sum;
 
 	return ((uns16)sum);
+}
+
+/****************************************************************************
+ *      
+ * Function Name: mds_destroy_event
+ *              
+ * Purpose: Used for posting a message when MDS (thread) is to be destroyed.
+ *              
+ *              
+ * Return Value:  NCSCC_RC_SUCCESS
+ *                NCSCC_RC_FAILURE
+ *              
+ ****************************************************************************/
+uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
+{
+	/* Now Queue the message in the Mailbox */
+	MDS_MBX_EVT_INFO *mbx_evt_info = NULL;
+
+	mbx_evt_info = m_MMGR_ALLOC_MBX_EVT_INFO;
+	if (mbx_evt_info == NULL)
+		return NCSCC_RC_FAILURE;
+	memset(mbx_evt_info, 0, sizeof(MDS_MBX_EVT_INFO));
+
+	mbx_evt_info->type = MDS_MBX_EVT_DESTROY;
+	mbx_evt_info->info.destroy_ack_obj = destroy_ack_obj;
+	if ((m_NCS_IPC_SEND(&mdtm_mbx_common, mbx_evt_info, NCS_IPC_PRIORITY_HIGH)) != NCSCC_RC_SUCCESS) {
+		m_MDS_LOG_ERR("MDTM: DESTROY post to Mailbox Failed\n");
+		m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
+		return NCSCC_RC_FAILURE;
+	}
+	m_MDS_LOG_INFO("MDTM: DESTROY post to Mailbox Success\n");
+	return NCSCC_RC_SUCCESS;
 }

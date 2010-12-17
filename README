@@ -217,6 +217,7 @@ Source Tree Structure
    |  |+-services/ (Sources, Config files for Directors/ND/Servers of OpenSAF services)
    |  |   	|+-infrastructure/ (Infrastructure services)
    |  |		|	|+-dtsv/
+   |  |		|	|+-dtms/
    |  |		|	|+-fm/
    |  |		|	|+-nid/
    |  |		|	|+-rde/
@@ -247,7 +248,7 @@ Prerequisites
 
 The following software is required to build `OpenSAF 4.0':
 
-    * The Linux Kernel with TIPC development support
+    * The Linux Kernel with TIPC development support (This is not required when the opensaf is build with option --disable-tipc)
     * An HPI implementation (e.g. OpenHPI), when PLM is enabled.
     * Libxml2
     * automake
@@ -310,6 +311,8 @@ are available w.r.t enabling/disabling the build for a particular OpenSAF servic
                           [default=no]
   --enable-imm-pbe        enable the IMM Persistent Backend Interface
                           [default=yes]
+  --disable-tipc          disable building the TIPC as the transport for MDS 
+                          [default=no]
   --disable-ais-ckpt      disable building the SAI-AIS-CKPT service
                           [default=no]
   --disable-ais-evt       disable building the SAI-AIS-EVT service
@@ -407,6 +410,24 @@ autodetection.
 By using `./configure --disable-rpm-target', you are masking out the `make rpm'
 target, some build systems provide their own `make rpm` rule, it would then be
 clashing with the OpenSAF rule.
+
+By using `./configure --disable-tipc', you are building the MDS with the TCP as 
+the only transport of the OpenSAF(MDS transports supoorted are TCP and TIPC).
+
+If user wants to use TCP as the transport of MDS, build the opensaf with `--disable-tipc` option,  
+and update the variable DTM_NODE_IP to self node IP address  in the `/etc/opensaf/dtmd.conf`
+before starting the opensaf.
+
+If opensaf is built with default option,  MDS is built to support both TIPC and TCP,
+with TIPC selected as default transport.
+If user wants to use TCP as the transport with default built image, user needs 
+to change the variables MDS_TRANSPORT to TCP and  MDS_INTRANODE_TRANSPORT to UNIX in
+the `/etc/opensaf/nid.conf` file and update the variable DTM_NODE_IP to self node 
+IP address  in the `/etc/opensaf/dtmd.conf`.
+For the applications of the opensaf, user needs to export the variables as said 
+below in there respective start up scripts as shown below,
+export MDS_TRANSPORT=TCP
+export MDS_INTRANODE_TRANSPORT=UNIX
 
 
 Building `OpenSAF' RPMS

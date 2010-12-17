@@ -11,29 +11,36 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): GoAhead Software
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-noinst_HEADERS = \
-	mds_adm.h \
-	mds_core.h \
-	mds_dl_api.h \
-	mds_dt2c.h \
-	mds_dt.h \
-	mds_log.h \
-	mds_pvt.h \
-	mda_dl_api.h \
-	mda_mem.h \
-	mds_dt_tcp.h \
-	mds_dt_tcp_trans.h \
-	mds_dt_tcp_disc.h \
-	mda_pvt_api.h
+SUBDIRS = 
 
-if ENABLE_TIPC_TRANSPORT
-noinst_HEADERS += mds_dt_tipc.h 
-endif
+pkglib_PROGRAMS = osafdtmd
 
+osafdtmd_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/services/infrastructure/dtms/include 
+
+osafdtmd_SOURCES = \
+	dtm_intra.c \
+	dtm_main.c \
+	dtm_read_config.c \
+	dtm_node.c \
+        dtm_node_db.c \
+	dtm_node_sockets.c \
+	dtm_inter_svc.c \
+	dtm_intra_svc.c \
+	dtm_intra_trans.c \
+	dtm_inter_trans.c  
+
+osafdtmd_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-Wl,--export-dynamic
+
+osafdtmd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la 

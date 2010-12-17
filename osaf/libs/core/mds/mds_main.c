@@ -36,7 +36,13 @@
 #include "patricia.h"
 #include "mds_log.h"
 #include "ncs_main_pub.h"
+#include "mds_dt_tcp.h"
+#include "mds_dt_tcp_disc.h"
+#include "mds_dt_tcp_trans.h"
+#include <config.h>
+#ifdef ENABLE_TIPC_TRANSPORT
 #include "mds_dt_tipc.h"
+#endif
 
 extern uns16 socket_domain;
 extern uns16 port;
@@ -274,7 +280,6 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 			m_NCS_SEL_OBJ_DESTROY(destroy_ack_obj);
 			return NCSCC_RC_FAILURE;
 		}
-
 		/* Wait for indication from MDS thread that it is ok to kill it */
 		destroy_ack_tmout = 7000;	/* 70seconds */
 		m_NCS_SEL_OBJ_POLL_SINGLE_OBJ(destroy_ack_obj, &destroy_ack_tmout);
@@ -326,25 +331,68 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 
 void mds_init_transport(void)
 {
+	char *inet_or_unix = NULL;
 	char *tipc_or_tcp = NULL;
+
 	tipc_or_tcp = getenv("MDS_TRANSPORT");
-	if (NULL == tipc_or_tcp)
+
+	if (NULL == tipc_or_tcp) {
+#ifdef ENABLE_TIPC_TRANSPORT
 		tipc_or_tcp = "TIPC";
-	if (strcmp(tipc_or_tcp, "TIPC") == 0) {
-		mds_mdtm_init = mdtm_tipc_init;
-		mds_mdtm_destroy = mdtm_tipc_destroy;
-		mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tipc;
-		mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tipc;
-		mds_mdtm_svc_install = mds_mdtm_svc_install_tipc;
-		mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tipc;
-		mds_mdtm_vdest_install = mds_mdtm_vdest_install_tipc;
-		mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tipc;
-		mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tipc;
-		mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tipc;
-		mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tipc;
-		mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tipc;
-		mds_mdtm_send = mds_mdtm_send_tipc;
-		mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tipc;
-		mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tipc;
+#else
+		tipc_or_tcp = "TCP";
+#endif
 	}
+
+	if (strcmp(tipc_or_tcp, "TCP") == 0) {
+		mds_mdtm_init = mds_mdtm_init_tcp;
+		mds_mdtm_destroy = mds_mdtm_destroy_tcp;
+		mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tcp;
+		mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tcp;
+		mds_mdtm_svc_install = mds_mdtm_svc_install_tcp;
+		mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tcp;
+		mds_mdtm_vdest_install = mds_mdtm_vdest_install_tcp;
+		mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tcp;
+		mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tcp;
+		mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tcp;
+		mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tcp;
+		mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tcp;
+		mds_mdtm_send = mds_mdtm_send_tcp;
+		mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tcp;
+		mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tcp;
+
+		inet_or_unix = getenv("MDS_INTRANODE_TRANSPORT");
+
+		if (NULL == inet_or_unix)
+			inet_or_unix = "UNIX";
+
+		if (strcmp(inet_or_unix, "TCP") == 0) {
+			socket_domain = AF_INET;
+		} else {
+			socket_domain = AF_UNIX;
+		}
+		return;
+	}
+
+#ifdef ENABLE_TIPC_TRANSPORT
+	mds_mdtm_init = mdtm_tipc_init;
+	mds_mdtm_destroy = mdtm_tipc_destroy;
+	mds_mdtm_svc_subscribe = mds_mdtm_svc_subscribe_tipc;
+	mds_mdtm_svc_unsubscribe = mds_mdtm_svc_unsubscribe_tipc;
+	mds_mdtm_svc_install = mds_mdtm_svc_install_tipc;
+	mds_mdtm_svc_uninstall = mds_mdtm_svc_uninstall_tipc;
+	mds_mdtm_vdest_install = mds_mdtm_vdest_install_tipc;
+	mds_mdtm_vdest_uninstall = mds_mdtm_vdest_uninstall_tipc;
+	mds_mdtm_vdest_subscribe = mds_mdtm_vdest_subscribe_tipc;
+	mds_mdtm_vdest_unsubscribe = mds_mdtm_vdest_unsubscribe_tipc;
+	mds_mdtm_tx_hdl_register = mds_mdtm_tx_hdl_register_tipc;
+	mds_mdtm_tx_hdl_unregister = mds_mdtm_tx_hdl_unregister_tipc;
+	mds_mdtm_send = mds_mdtm_send_tipc;
+	mds_mdtm_node_subscribe = mds_mdtm_node_subscribe_tipc;
+	mds_mdtm_node_unsubscribe = mds_mdtm_node_unsubscribe_tipc;
+	return;
+#endif
+	/* Should never come here */
+	abort();
+
 }

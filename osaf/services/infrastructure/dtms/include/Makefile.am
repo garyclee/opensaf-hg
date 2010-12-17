@@ -11,7 +11,7 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Goahead Software 
 #
 
 include $(top_srcdir)/Makefile.common
@@ -19,21 +19,14 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	mds_adm.h \
-	mds_core.h \
-	mds_dl_api.h \
-	mds_dt2c.h \
-	mds_dt.h \
-	mds_log.h \
-	mds_pvt.h \
-	mda_dl_api.h \
-	mda_mem.h \
-	mds_dt_tcp.h \
-	mds_dt_tcp_trans.h \
-	mds_dt_tcp_disc.h \
-	mda_pvt_api.h
-
-if ENABLE_TIPC_TRANSPORT
-noinst_HEADERS += mds_dt_tipc.h 
-endif
-
+	dtm.h \
+	dtm_cb.h \
+	dtm_inter_disc.h \
+	dtm_inter_trans.h \
+	dtm_intra_disc.h \
+	dtm_intra_trans.h \
+	dtm_socket.h \
+	dtm_intra.h \
+	dtm_inter.h \
+	dtm_node.h
+        	
