@@ -1,0 +1,146 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: osafdtmd
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: starts/stops the osafdtmd daemon
+# Description: starts/stops the osafdtmd daemon
+### END INIT INFO
+
+osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
+prog="osafdtmd"
+initscript=`basename $0`
+
+
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+
+if [ ! -r $osafdirfile ]; then
+        logger -t $prog "can't read $osafdirfile, exiting."
+        exit 6
+else
+        . $osafdirfile
+        . $pkgsysconfdir/dtmd.conf
+fi
+
+binary=$pkglibdir/$prog
+pidfile=$pkgpiddir/$prog.pid
+lockfile=$lockdir/$initscript
+
+RETVAL=0
+
+start() {
+        [ -x $binary ] || exit 5
+        echo -n "Starting $prog: "
+        start_daemon -p $pidfile $binary  $args
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		touch $lockfile
+		log_success_msg
+#		nohup ./dh_monitoring & > /dev/null
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+stop() {
+        echo -n "Stopping $prog: "
+	killproc -p $pidfile $prog
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		rm -f $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+restart() {
+        stop
+	start
+}
+
+tryrestart() {
+	[ -e $lockfile ] && restart
+	return 0
+}
+
+reload() {
+        echo -n "Reloading $prog: "
+	log_warning_msg
+	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
+	return 3
+}
+
+forcereload() {
+	reload
+	restart
+	return 0
+}
+
+status() {
+        pid=`pidofproc -p ${pidfile} ${binary}`
+        ret=$?
+        if test "${ret}" = "0"
+        then
+                log_success_msg "$prog is running"
+                return $ret
+        elif test "${ret}" == "1"
+        then
+                log_warning_msg "$prog is dead and /var/run pid file exists"
+        elif test "${ret}" == "2"
+        then
+                log_warning_msg "$prog is dead and /var/lock lock file exists"
+        elif test "${ret}" == "3"
+        then
+                echo "$prog is not running"
+        elif test "${ret}" == "4"
+        then
+                log_warning_msg "$prog or service status is unknown"
+        fi
+        return $ret
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
+        ;;
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+        ;;
+  force-reload)
+	forcereload
+	RETVAL=$?
+        ;;
+  status)
+        status
+	RETVAL=$?
+        ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL

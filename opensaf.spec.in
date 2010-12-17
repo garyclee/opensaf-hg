@@ -7,6 +7,7 @@
 %define is_ais_lck %(test "@AIS_LCK_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_msg %(test "@AIS_MSG_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_ais_smf %(test "@AIS_SMF_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_tipc_trans %(test "@TIPC_TRANSPORT_ENABLED@" = "yes" && echo 1 || echo 0)
 
 %define _pkglibdir %{_libdir}/%{name}
 %define _pkgsysconfdir %{_sysconfdir}/%{name}
@@ -753,10 +754,17 @@ sed -i '/isHpiSupported/{N;s|<value>0</value>|<value>1</value>|g}' \
 sed -i '/plmd/d'  %{_pkgsysconfdir}/nodeinit.conf.controller
 %endif
 /usr/lib/lsb/install_initd %{_initddir}/fmd
+
+%if !%is_tipc_trans
+sed -i '/TIPC/d'  %{_pkgsysconfdir}/nodeinit.conf.controller
+sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
+%endif
+
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
 echo "controller" > %{_pkgsysconfdir}/node_type
 hostname -s >  %{_pkgsysconfdir}/node_name
 echo "For information on how to configure the initial imm.xml file check the readme file: %{_pkgimmxmldir}/README"
+
 /sbin/ldconfig
 
 %preun controller
@@ -767,9 +775,14 @@ echo "For information on how to configure the initial imm.xml file check the rea
 
 
 %post payload
+%if !%is_tipc_trans
+sed -i '/TIPC/d'  %{_pkgsysconfdir}/nodeinit.conf.controller
+sed -i 's/MDS_TRANSPORT=TIPC/MDS_TRANSPORT=TCP/g' %{_pkgsysconfdir}/nid.conf
+%endif
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.payload %{_pkgsysconfdir}/nodeinit.conf
 echo "payload" > %{_pkgsysconfdir}/node_type
 hostname -s >  %{_pkgsysconfdir}/node_name
+
 /sbin/ldconfig
 
 %preun payload
@@ -1185,12 +1198,16 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/fmd.conf
 %config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
+%config(noreplace) %{_pkgsysconfdir}/dtmd.conf
 %{_pkglibdir}/osafdtd
 %{_pkgclcclidir}/osaf-dtd
 %{_pkglibdir}/osafrded
 %{_pkgclcclidir}/osaf-rded
 %{_pkglibdir}/osaffmd
 %{_pkgclcclidir}/osaf-fmd
+%{_pkglibdir}/osafdtmd
+%{_pkgclcclidir}/osaf-dtm
+%{_pkgclcclidir}/dh_monitoring
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
@@ -1207,6 +1224,10 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %dir %{_pkgsysconfdir}
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
+%config(noreplace) %{_pkgsysconfdir}/dtmd.conf
+%{_pkglibdir}/osafdtmd
+%{_pkgclcclidir}/osaf-dtm
+%{_pkgclcclidir}/dh_monitoring
 
 
 %files libs

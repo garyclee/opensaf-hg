@@ -194,6 +194,25 @@ AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 
 
 #
+# Enable/disable TIPC transport
+#
+AC_MSG_CHECKING([whether to use TIPC as the transport])
+AC_ARG_ENABLE([tipc],
+        [AS_HELP_STRING([--disable-tipc],
+                [disable building the TIPC [default=no]])],
+        [],
+        [enable_tipc=yes])
+AC_MSG_RESULT([$enable_tipc])
+ 
+if test "$enable_tipc" = yes; then
+        AC_DEFINE([ENABLE_TIPC_TRANSPORT], 1, [Define if TIPC is enabled])
+fi
+ 
+AM_CONDITIONAL([ENABLE_TIPC_TRANSPORT], [test "$enable_tipc" = yes])
+AC_SUBST([TIPC_TRANSPORT_ENABLED], ["$enable_tipc"])
+
+
+#
 # Enable/disable building the OpenSAF tests
 #
 AC_MSG_CHECKING([whether to enable building the OpenSAF tests])
@@ -646,6 +665,13 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaSmf/pkgconfig/opensaf-smf.pc
         osaf/services/Makefile
         osaf/services/infrastructure/Makefile
+	osaf/services/infrastructure/dtms/Makefile
+        osaf/services/infrastructure/dtms/dtm/Makefile
+        osaf/services/infrastructure/dtms/scripts/Makefile
+        osaf/services/infrastructure/dtms/scripts/osaf-dtm
+        osaf/services/infrastructure/dtms/scripts/dh_monitoring
+        osaf/services/infrastructure/dtms/config/Makefile
+        osaf/services/infrastructure/dtms/include/Makefile
         osaf/services/infrastructure/dtsv/Makefile
         osaf/services/infrastructure/dtsv/config/Makefile
         osaf/services/infrastructure/dtsv/include/Makefile
@@ -842,6 +868,7 @@ echo ""
 echo " OpenSAF Options:"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
 echo "${ECHO_T}  Enable PLM support: ${enable_ais_plm}"
+echo "${ECHO_T}  Enable TIPC transport: ${enable_tipc}"
 echo "${ECHO_T}  Enable Build for Payload: ${enable_payload_build}"
 echo "======================================================="
 echo ""

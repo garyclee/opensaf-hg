@@ -432,6 +432,8 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			char *p_field;
 
 			if ((0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) ||
+			    (0 == strncmp("DTM_INTRANODE", task->info.create.i_name, strlen("DTM_INTRANODE") + 1)) ||
+			    (0 == strncmp("NODE_DISCOVERY", task->info.create.i_name, strlen("NODE_DISCOVERY") + 1)) ||
 			    (0 == strncmp("LHCSC", task->info.create.i_name, strlen("LHCSC") + 1)) ||
 			    (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) ||
 			    (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) ||
@@ -507,6 +509,12 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 					sp.sched_priority = 87;
 				} else if (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) {
 					sp.sched_priority = 87;
+				}
+				if (0 == strncmp("DTM_INTRANODE", task->info.create.i_name, strlen("DTM_INTRANODE") + 1)) {
+					sp.sched_priority = 85;
+				}
+				if (0 == strncmp("NODE_DISCOVERY", task->info.create.i_name, strlen("NODE_DISCOVERY") + 1)) {
+					sp.sched_priority = 85;
 				}
 				if (0 ==
 				    strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) {

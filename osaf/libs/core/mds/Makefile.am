@@ -29,7 +29,9 @@ libmds_la_CPPFLAGS = \
 libmds_la_LDFLAGS = -static
 
 libmds_la_SOURCES = \
-	mds_dt_tipc.c \
+	mds_dt_tcp.c \
+	mds_dt_disc.c \
+	mds_dt_trans.c \
 	mds_dt_common.c \
 	mds_c_db.c \
 	mds_main.c \
@@ -40,3 +42,10 @@ libmds_la_SOURCES = \
 	ncs_ada.c \
 	ncs_mda.c \
 	ncs_vda.c
+
+
+if ENABLE_TIPC_TRANSPORT
+ 
+libmds_la_SOURCES +=  mds_dt_tipc.c 
+
+endif

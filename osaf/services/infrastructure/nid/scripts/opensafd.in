@@ -174,6 +174,17 @@ check_transport() {
 			#comment the line 
 		 	sed -i 's/\(.*osaf-dtm:DTM*\)/#\1/gI'  $pkgsysconfdir/nodeinit.conf 	
 		fi
+	else
+		# Transport TCP 
+		#Now comment the line in the nodeinit.conf for TCP
+		sed -i 's/#*\(.*osaf-dtm:DTM*\)/\1/gI' $pkgsysconfdir/nodeinit.conf 
+		grep "nid_tipc" $pkgsysconfdir/nodeinit.conf | grep "#" > /dev/null
+		ret_val=$?
+		if [ $ret_val -ne 0 ] ; then
+			#comment the line 
+		 	sed -i 's/\(.*nid_tipc*\)/#\1/gI'  $pkgsysconfdir/nodeinit.conf 	
+		fi
+		generate_nodeid
 	fi
 }
 

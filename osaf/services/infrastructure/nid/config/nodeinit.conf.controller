@@ -54,6 +54,7 @@
 #############################################################################
 
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxCLCCLIDIRxx/osaf-dtm:DTM:S:xxCLCCLIDIRxx/osaf-dtm:6000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-rded:RDE:S:xxCLCCLIDIRxx/osaf-rded:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-fmd:HLFM:S:xxCLCCLIDIRxx/osaf-fmd:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-immd:IMMD:S:xxCLCCLIDIRxx/osaf-immd:4000:4:2:1:start:stop

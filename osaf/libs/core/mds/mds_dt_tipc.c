@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "mds_dt_tipc.h" 
+#include "mds_dt_tipc.h"
 
 /*
     tipc_id will be <NODE_ID,RANDOM NUMBER>
@@ -654,8 +654,8 @@ static uns32 mdtm_process_recv_events(void)
 							m_MDS_LOG_ERR
 							    ("CHECKSUM-MISMATCH:recvd_on_sock=%d, TIPC-ID=0x%016llx, ADEST=<%08x,%u>",
 							     recd_bytes, tipc_id,
-							     m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(client_addr.
-												     addr.id.node),
+							     m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(client_addr.addr.
+												     id.node),
 							     client_addr.addr.id.ref);
 							mds_buff_dump(inbuf, recd_bytes, 100);
 							abort();
@@ -667,8 +667,8 @@ static uns32 mdtm_process_recv_events(void)
 							m_MDS_LOG_ERR
 							    ("RECV_DATA_PROCESS:recvd_on_sock=%d, TIPC-ID=0x%016llx, ADEST=<%08x,%u>",
 							     recd_bytes, tipc_id,
-							     m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(client_addr.
-												     addr.id.node),
+							     m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(client_addr.addr.
+												     id.node),
 							     client_addr.addr.id.ref);
 							mds_buff_dump(inbuf, recd_bytes, 100);
 						}
@@ -2388,49 +2388,6 @@ static uns32 mdtm_add_mds_hdr(uns8 *buffer, MDTM_SEND_REQ *req)
 
 /****************************************************************************
  *
- * Function Name: mdtm_process_reassem_timer_event
- *
- * Purpose:
- *
- * Return Value:  NCSCC_RC_SUCCESS
- *                NCSCC_RC_FAILURE
- *
- ****************************************************************************/
-
-/****************************************************************************
- *
- * Function Name: mds_destroy_event
- *
- * Purpose: Used for posting a message when MDS (thread) is to be destroyed.
- *          
- *
- * Return Value:  NCSCC_RC_SUCCESS
- *                NCSCC_RC_FAILURE
- *
- ****************************************************************************/
-uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
-{
-	/* Now Queue the message in the Mailbox */
-	MDS_MBX_EVT_INFO *mbx_evt_info = NULL;
-
-	mbx_evt_info = m_MMGR_ALLOC_MBX_EVT_INFO;
-	if (mbx_evt_info == NULL)
-		return NCSCC_RC_FAILURE;
-	memset(mbx_evt_info, 0, sizeof(MDS_MBX_EVT_INFO));
-
-	mbx_evt_info->type = MDS_MBX_EVT_DESTROY;
-	mbx_evt_info->info.destroy_ack_obj = destroy_ack_obj;
-	if ((m_NCS_IPC_SEND(&tipc_cb.tmr_mbx, mbx_evt_info, NCS_IPC_PRIORITY_HIGH)) != NCSCC_RC_SUCCESS) {
-		m_MDS_LOG_ERR("MDTM: DESTROY post to Mailbox Failed\n");
-		m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
-		return NCSCC_RC_FAILURE;
-	}
-	m_MDS_LOG_INFO("MDTM: DESTROY post to Mailbox Success\n");
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- *
  * Function Name: mds_tmr_callback
  *
  * Purpose: Used for posting a message when timer expires
@@ -2458,7 +2415,7 @@ uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
 
 	/* Now Parse thru the mailbox and send all the messages */
 
-							/* return NCSCC_RC_SUCCESS; */	/* Fall through to free memory */
+											/* return NCSCC_RC_SUCCESS; */	/* Fall through to free memory */
 
 			/* Give Handle and Destroy Handle */
 
