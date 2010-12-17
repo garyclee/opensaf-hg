@@ -39,6 +39,7 @@
 #include <sys/ioctl.h>
 
 #include "mds_dt.h"
+#include <linux/tipc.h>
 
 /******************************/
 /* TIPC Service Name specific */

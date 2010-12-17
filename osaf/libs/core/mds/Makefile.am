@@ -30,11 +30,11 @@ libmds_la_LDFLAGS = -static
 
 libmds_la_SOURCES = \
 	mds_dt_tipc.c \
+	mds_dt_common.c \
 	mds_c_db.c \
 	mds_main.c \
 	mds_papi.c \
 	mds_c_sndrcv.c \
-	mds_dt.c \
 	mds_c_api.c \
 	mds_log.c \
 	ncs_ada.c \

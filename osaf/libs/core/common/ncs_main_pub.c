@@ -249,7 +249,7 @@ unsigned int ncs_leap_startup(void)
 	lib_create.info.create.argc = 0;
 	lib_create.info.create.argv = NULL;
 
-   	/* Initalize basic services */
+	/* Initalize basic services */
 	if (leap_env_init() != NCSCC_RC_SUCCESS) {
 		TRACE_4("\nERROR: Couldn't initialised LEAP basic services \n");
 		m_NCS_AGENT_UNLOCK;
@@ -262,6 +262,12 @@ unsigned int ncs_leap_startup(void)
 		return NCSCC_RC_FAILURE;
 	}
 
+	/* Get & Update system specific arguments */
+	if (ncs_update_sys_param_args() != NCSCC_RC_SUCCESS) {
+		TRACE_4("ERROR: Update System Param args \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 	gl_ncs_main_pub_cb.leap_use_count = 1;
 
 	m_NCS_AGENT_UNLOCK;
@@ -293,13 +299,6 @@ unsigned int ncs_mds_startup(void)
 		gl_ncs_main_pub_cb.mds_use_count++;
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_SUCCESS;
-	}
-
-	/* Get & Update system specific arguments */
-	if (ncs_update_sys_param_args() != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERROR: Update System Param args \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
 	}
 
 	memset(&lib_create, 0, sizeof(lib_create));
@@ -375,7 +374,6 @@ unsigned int ncs_dta_startup(void)
 
 	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -505,7 +503,6 @@ unsigned int ncs_mbca_shutdown(void)
 	return rc;
 }
 
-
 /***************************************************************************\
 
   PROCEDURE    :    ncs_leap_shutdown
@@ -631,7 +628,7 @@ unsigned int ncs_core_agents_shutdown()
 		return NCSCC_RC_SUCCESS;
 	}
 
-   	/* Shutdown basic services */
+	/* Shutdown basic services */
 	ncs_dta_shutdown();
 	ncs_mds_shutdown();
 	ncs_leap_shutdown();
@@ -647,7 +644,7 @@ unsigned int ncs_core_agents_shutdown()
 \***************************************************************************/
 NCS_NODE_ID ncs_get_node_id(void)
 {
-	if (!gl_ncs_main_pub_cb.core_started) {
+	if (!gl_ncs_main_pub_cb.leap_use_count) {
 		return m_LEAP_DBG_SINK(0);
 	}
 
