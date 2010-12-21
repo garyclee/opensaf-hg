@@ -123,7 +123,7 @@ extern "C" {
  * Signature: ((JLorg/saforum/ais/AisStatus;)V
  */
 JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_CsiManagerImpl_completedCsiQuiescing
-  (JNIEnv *, jobject, jlong, jobject);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     org_opensaf_ais_amf_CsiManagerImpl

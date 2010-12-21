@@ -343,7 +343,8 @@ public class AmfAvailabilityAgent implements AvailabilityAgent, SetCsiCallback,
                     respond(invocation, AisStatus.OK);
 
                     // tell AMF that quiescing is complete
-                    amfHandle.getCsiManager().completedCsiQuiescing(invocation, AisStatus.OK);
+                    amfHandle.getCsiManager().completedCsiQuiescing(invocation, AisStatus.OK.ordinal());
+                    // should this be getValue(), check with johan.
 
                     break;
             } // switch

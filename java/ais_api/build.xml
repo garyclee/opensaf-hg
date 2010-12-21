@@ -16,9 +16,9 @@
 
 	<target name="javadocAPI">
 		<javadoc use="true" Splitindex="true" destdir="javadoc" author="true" version="true"
-				windowtitle="SA Forum - Java AIS API" doctitle="Draft Java AIS API"
-				header="Draft Java AIS API (SA Forum Confidential)" footer="SA Forum Confidential"
-				bottom="Created by Service Availability Forum, 2007" Verbose="false" Overview="./overview.html">
+				windowtitle="SA Forum - Java AIS API" doctitle="Service Availability Forum - Java AIS API"
+				header="SA Forum - Java AIS API (R2 A.01.01)" footer="SAIM-AIS-R2-JD-A.01.01"
+				bottom="Created by Service Availability Forum, 2008" Verbose="false" Overview="./overview.html">
 			<packageset dir="src" defaultexcludes="yes">
 				<include name="org/saforum/ais/**" />
 			</packageset>
