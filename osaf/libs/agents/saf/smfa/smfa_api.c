@@ -435,10 +435,12 @@ SaAisErrorT saSmfResponse(
 	
 	/* Drop the duplicate/delay response.*/
 	if (NULL == cb->cbk_list){
-		LOG_ER("SMFA: Duplicate/Delay resp: Hdl : %llu, Inv_id: %llu",smfHandle,invocation);
+		LOG_ER("SMFA: Duplicate/Delay/Invalid resp: Hdl : %llu, Inv_id: %llu",smfHandle,invocation);
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_LEAVE();
-		return SA_AIS_OK;
+		/* The correct return code is NOT_EXIST but this is not part of this spec version. 
+		 We are returning INVALID_PARAM. */
+		return SA_AIS_ERR_INVALID_PARAM;
 	}
 	
 	if (SA_AIS_ERR_FAILED_OPERATION == error){
