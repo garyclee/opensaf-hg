@@ -45,7 +45,7 @@ public class CsiManagerImpl implements CsiManager {
         this.amfLibraryHandle = amfLibraryHandle;
     }
 
-	public native void completedCsiQuiescing(long invocation, AisStatus error)
+	public native void completedCsiQuiescing(long invocation, int error)
 			throws AisLibraryException, AisTimeoutException,
 			AisTryAgainException, AisBadHandleException,
 			AisInvalidParamException, AisNoMemoryException,

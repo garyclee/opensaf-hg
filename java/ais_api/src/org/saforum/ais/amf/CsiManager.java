@@ -144,7 +144,7 @@ public interface CsiManager {
      * @throws AisNoResourcesException The system is out of required resources
      *             (other than memory).
      */
-    public void completedCsiQuiescing( long invocation, AisStatus error )
+    public void completedCsiQuiescing( long invocation, int error )
         throws AisLibraryException,
             AisTimeoutException,
             AisTryAgainException,

@@ -312,7 +312,7 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_CsiManagerImpl_completedCsiQuies
     JNIEnv * jniEnv,
     jobject thisCsiManager,
     jlong invocation,
-    jobject error )
+    jint error )
 {
     // VARIABLES
     SaAmfHandleT _saAmfHandle;
@@ -341,16 +341,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_CsiManagerImpl_completedCsiQuies
 
     // convert AisStatus -> int
     // MODIFICATION: screwed up
-    jclass aisStatusClass = JNU_GetGlobalClassRef(  jniEnv,
-                                       				"org/saforum/ais/AisStatus" );
-    jmethodID _MID_AisStatus_getValue = (*jniEnv)->GetMethodID( jniEnv,
-                                                            aisStatusClass,
-                                                            "getValue",
-                                                            "()I" );
-    _error = (*jniEnv)->CallIntMethod( jniEnv,
-    								error,
-    								_MID_AisStatus_getValue);
-
+    _error = (SaAisErrorT) error;
+	
     // call saAmfCSIQuiescingComplete
     _saStatus = saAmfCSIQuiescingComplete(  _saAmfHandle,
                                             (SaInvocationT) invocation,
