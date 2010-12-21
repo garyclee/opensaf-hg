@@ -2122,7 +2122,8 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 
 		if (stepCount == SmfCallback::onFirstStep) {
 			/* check if this is first step */
-			for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+			iter = procSteps.begin(); 
+			if (iter != procSteps.end()) {
 				if (strcmp((*iter)->getDn().c_str(), stepDn.c_str()) == 0) {
 					/* This is the first step, so call callback */
 					if (camp_phase == SA_SMF_UPGRADE) {
@@ -2136,7 +2137,6 @@ bool SmfUpgradeStep::checkAndInvokeCallback (std::list < SmfCallback * > &callba
 						TRACE_LEAVE();
 						return false;
 					}
-					break;
 				}
 			}
 		}
