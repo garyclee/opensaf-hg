@@ -38,8 +38,6 @@
  * ========================================================================
  */
 
-#define FD_USR1 0
-#define NUM_FD 1
 #define DTM_CONFIG_FILE PKGSYSCONFDIR "/dtmd.conf"
 /* pack_size + cluster_id + node_id + mcast_flag +  stream_port +  i_addr_family + ip_addr */
 #define DTM_BCAST_HDR_SIZE 28
@@ -84,10 +82,6 @@ static uns32 dtm_init(DTM_INTERNODE_CB * dtms_cb)
 		goto done;
 	}
 
-	/* Initialize the DTM CB LOCK */
-	m_NCS_LOCK_INIT(&dtms_cb->cb_lock);
-	m_DTM_LOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
-
 	/* Initialize  control block */
 	if ((rc = dtm_cb_init(dtms_cb)) != NCSCC_RC_SUCCESS) {
 		rc = NCSCC_RC_FAILURE;
@@ -98,7 +92,6 @@ static uns32 dtm_init(DTM_INTERNODE_CB * dtms_cb)
  done:
 
 	TRACE_LEAVE2("rc -%d", rc);
-	m_DTM_UNLOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
 	return rc;
 }
 
@@ -242,7 +235,8 @@ int main(int argc, char *argv[])
 	int bcast_buf_len = 0;
 	fd_set rfds1;
 	struct timeval bcast_freq;
-	struct timeval dis_time_out;
+	long int dis_time_out_usec = 0;
+	long int dis_elapsed_time_usec = 0;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
 	TRACE_ENTER();
@@ -258,14 +252,11 @@ int main(int argc, char *argv[])
 		goto done3;
 	}
 
-	m_DTM_LOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
-
 	if ((rc = dtm_read_config(dtms_cb, DTM_CONFIG_FILE))) {
 
 		LOG_ER("DTM:Error reading %s.  errno = %d", DTM_CONFIG_FILE, rc);
 		goto done3;
 	}
-	m_DTM_UNLOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
 
 	/*************************************************************/
 	/* Set up the initial bcast or mcast sender socket */
@@ -278,22 +269,21 @@ int main(int argc, char *argv[])
 			goto done3;
 		}
 	} else {
-
 		/*
-			0 
-			restricted to the same host 
-			1 
-			restricted to the same subnet 
-			32 
-			restricted to the same site 
-			64 
-			restricted to the same region 
-			128 
-			restricted to the same continent 
-			255 
-			unrestricted 
+		   0 
+		   restricted to the same host 
+		   1 
+		   restricted to the same subnet 
+		   32 
+		   restricted to the same site 
+		   64 
+		   restricted to the same region 
+		   128 
+		   restricted to the same continent 
+		   255 
+		   unrestricted 
 		 */
-		rc = dtm_dgram_mcast_sender(dtms_cb, 64); /*TODO */
+		rc = dtm_dgram_mcast_sender(dtms_cb, 64);	/*TODO */
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("DTM:Set up the initial mcast sender socket  failed rc - %d ", rc);
 			goto done3;
@@ -332,8 +322,7 @@ int main(int argc, char *argv[])
 		LOG_ER("DTM: nid_notify failed rc - %d ", rc);
 		goto done1;
 	}
-	dis_time_out.tv_sec = (dtms_cb->initial_dis_timeout * 1000000);
-	dis_time_out.tv_usec = 0;
+	dis_time_out_usec = (dtms_cb->initial_dis_timeout * 1000000);
 
 	do {
 		/* Wait up to bcast_msg_freq seconds. */
@@ -366,9 +355,9 @@ int main(int argc, char *argv[])
 
 		}
 
-		dis_time_out.tv_usec = dis_time_out.tv_usec + (dtms_cb->bcast_msg_freq * 1000);
+		dis_elapsed_time_usec = dis_elapsed_time_usec + (dtms_cb->bcast_msg_freq * 1000);
 
-	} while (dis_time_out.tv_sec != dis_time_out.tv_usec);
+	} while (dis_elapsed_time_usec <= dis_time_out_usec);
 	/*************************************************************/
 	/* Keep waiting forever */
 	/*************************************************************/

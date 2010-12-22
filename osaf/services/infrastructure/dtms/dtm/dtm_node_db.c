@@ -45,8 +45,6 @@ DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node)
 
 	/*Initialize some attributes of the node like */
 	memcpy(node, new_node, sizeof(DTM_NODE_DB));
-	/* Initialize the DTM NODE LOCK */
-	m_NCS_LOCK_INIT(&node->node_lock);
 
  done:
 	TRACE_LEAVE();
@@ -142,7 +140,6 @@ DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_nodeid))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		LOG_ER("Node found %d", node->node_id);
 	}
 
 	TRACE_LEAVE();

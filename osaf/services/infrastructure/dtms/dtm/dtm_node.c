@@ -33,19 +33,6 @@
 
 static struct pollfd fds[MAX_FD];	/* Poll fds global list */
 static int nfds = 0;
-NCS_LOCK dtm_gl_lock;
-
-
-NCS_LOCK *dtm_lock(void)
-{
-	static int lock_inited = FALSE;
-	/* Initialize the lock first time mds_lock() is called */
-	if (!lock_inited) {
-		m_NCS_LOCK_INIT(&dtm_gl_lock);
-		lock_inited = TRUE;
-	}
-	return &dtm_gl_lock;
-}
 
 /**
  * Function to construct the node info hdr
@@ -100,8 +87,6 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *b
 	nodename_len = ncs_decode_32bit(&data);
 	strncpy((char *)nodename, (char *)data, nodename_len);
 
-	m_DTM_LOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
-
 	node = dtm_node_get_by_comm_socket(stream_sock);
 
 	if (node == NULL) {
@@ -151,7 +136,6 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *b
 	}
 
  done:
-	m_DTM_UNLOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -189,7 +173,6 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 		goto node_fail;
 	}
 
-	m_DTM_LOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
 	rc = dtm_node_add(node, 0);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("DTM: dtm_node_add fail  rc - %d node->node_id - %d node->node_ip - %s", rc, node->node_id,
@@ -227,7 +210,6 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 	}
 
  done:
-	m_DTM_UNLOCK(&dtms_cb->cb_lock, NCS_LOCK_WRITE);
  node_fail:
 	return rc;
 
@@ -516,7 +498,7 @@ void node_discovery_process(void *arg)
 {
 	TRACE_ENTER();
 
-	int rc = 0;
+	int poll_ret = 0;
 	int end_server = FALSE, compress_array = FALSE;
 	int close_conn = FALSE;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -596,7 +578,7 @@ void node_discovery_process(void *arg)
 
 	if (dtm_construct_node_info_hdr(dtms_cb, node_info_hrd, &node_info_buffer_len) != NCSCC_RC_SUCCESS) {
 
-		LOG_ER("DTM: dtm_construct_node_info_hdr ");
+		LOG_ER("DTM: dtm_construct_node_info_hdr failed"); 
 		goto done;
 
 	}
@@ -611,20 +593,20 @@ void node_discovery_process(void *arg)
 		/* Call poll() and wait . */
 		/***********************************************************/
 		int fd_check = 0;
-		rc = poll(fds, nfds, DTM_TCP_POLL_TIMEOUT);
+		poll_ret = poll(fds, nfds, DTM_TCP_POLL_TIMEOUT);
 		/***********************************************************/
 
 		/* Check to see if the poll call failed. */
 		/***********************************************************/
-		if (rc < 0) {
+		if (poll_ret < 0) {
 			LOG_ER(" poll() failed");
 			continue;
 		}
 		/***********************************************************/
 		/* Check to see if the 3 minute time out expired. */
 		/***********************************************************/
-		if (rc == 0) {
-			LOG_ER(" poll() timed out");
+		if (poll_ret == 0) {
+			TRACE(" poll() timed out");
 			continue;
 		}
 
@@ -674,7 +656,7 @@ void node_discovery_process(void *arg)
 						/* Add the new incoming connection to the */
 						/* pollfd structure */
 					/*****************************************************/
-						LOG_ER(" add New incoming connection to fd - %d\n", new_sd);
+						LOG_IN(" add New incoming connection to fd - %d\n", new_sd);
 						fds[nfds].fd = new_sd;
 						fds[nfds].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 						nfds++;
@@ -687,6 +669,7 @@ void node_discovery_process(void *arg)
 				} else if (fds[i].fd == dtms_cb->stream_sock) {
 
 					int new_sd = -1;
+					uns32 local_rc = NCSCC_RC_SUCCESS;
 					fd_check++;
 				/*******************************************************/
 					/* Listening descriptor is readable. */
@@ -721,22 +704,21 @@ void node_discovery_process(void *arg)
 					/* Add the new incoming connection to the */
 					/* pollfd structure */
 				/*****************************************************/
-					TRACE(" DTM :add New incoming connection to fd - %d\n", new_sd);
-					fds[nfds].fd = new_sd;
-					fds[nfds].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
-					nfds++;
 
 				/*****************************************************/
 					/* Node info data back to the accept with node info  */
 				/*****************************************************/
 
-					rc = dtm_comm_socket_send(new_sd, node_info_hrd, node_info_buffer_len);
-					if (rc != NCSCC_RC_SUCCESS) {
+					local_rc = dtm_comm_socket_send(new_sd, node_info_hrd, node_info_buffer_len);
+					if (local_rc != NCSCC_RC_SUCCESS) {
 						dtm_comm_socket_close(&new_sd);
-						LOG_ER(" send() failed");
-						close_conn = TRUE;
+						LOG_ER(" send() failed errno - %d ", errno);
 						break;
 					}
+					TRACE(" DTM :add New incoming connection to fd - %d\n", new_sd);
+					fds[nfds].fd = new_sd;
+					fds[nfds].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
+					nfds++;
 
 				/*****************************************************/
 					/* Loop back up and accept another incoming */
@@ -754,7 +736,7 @@ void node_discovery_process(void *arg)
 					    (DTM_SND_MSG_ELEM *) (m_NCS_IPC_NON_BLK_RECEIVE(&dtms_cb->mbx, NULL));
 
 					if (NULL == msg_elem) {
-						LOG_ER("\nDTM: Inter Node Mailbox IPC_NON_BLK_RECEIVE Failed");
+						LOG_ER("DTM: Inter Node Mailbox IPC_NON_BLK_RECEIVE Failed");
 						continue;
 					} else if (DTM_MBX_ADD_DISTR_TYPE == msg_elem->type) {
 						dtm_internode_add_to_svc_dist_list(msg_elem->info.svc_event.server_type,
@@ -763,10 +745,10 @@ void node_discovery_process(void *arg)
 						free(msg_elem);
 						msg_elem = NULL;
 					} else if (DTM_MBX_DEL_DISTR_TYPE == msg_elem->type) {
-						dtm_internode_del_from_svc_dist_list(msg_elem->info.svc_event.
-										     server_type,
-										     msg_elem->info.svc_event.
-										     server_inst,
+						dtm_internode_del_from_svc_dist_list(msg_elem->info.
+										     svc_event.server_type,
+										     msg_elem->info.
+										     svc_event.server_inst,
 										     msg_elem->info.svc_event.pid);
 						free(msg_elem);
 						msg_elem = NULL;
@@ -779,7 +761,7 @@ void node_discovery_process(void *arg)
 						free(msg_elem);
 						msg_elem = NULL;
 					} else {
-						LOG_ER("\nDTM Intranode :Invalid evt type from mbx");
+						LOG_ER("DTM Intranode :Invalid evt type from mbx");
 						free(msg_elem);
 						msg_elem = NULL;
 					}
@@ -810,14 +792,10 @@ void node_discovery_process(void *arg)
 				close_conn = FALSE;
 				compress_array = TRUE;
 			}
-#if 0
-			/* TBD */
 			/* End of existing connection is readable */
-			if (rc == fd_check) {
+			if (poll_ret == fd_check) {
 				break;
 			}
-#endif
-
 		}
 
 		/***********************************************************/
@@ -871,10 +849,11 @@ uns32 dtm_internode_set_poll_fdlist(int fd, uns16 events)
 	for (i = 0; i < nfds; i++) {
 		if (fd == fds[i].fd) {
 			fds[i].events = fds[i].events | events;
-			LOG_ER("\nevent set success, in the poll fd list");
+			LOG_IN("event set success, in the poll fd list");
+			return NCSCC_RC_SUCCESS;
 		}
 	}
-	LOG_ER("\nUnable to set the event in the poll list");
+	LOG_ER("Unable to set the event in the poll list");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -893,7 +872,8 @@ uns32 dtm_internode_reset_poll_fdlist(int fd)
 	for (i = 0; i < nfds; i++) {
 		if (fd == fds[i].fd) {
 			fds[i].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
-			LOG_ER("\nevent set success, in the poll fd list");
+			LOG_IN("event set success, in the poll fd list");
+			return NCSCC_RC_SUCCESS;
 		}
 	}
 	LOG_ER("\nUnable to set the event in the poll list");

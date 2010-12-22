@@ -702,9 +702,9 @@ uns32 mdtm_process_recv_events_tcp(void)
 
 				rcv_bytes = recv(tcp_cb->DBSRsock, buff, 2, 0);
 				if (0 == rcv_bytes) {
-					LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server", rcv_bytes);
+					LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", rcv_bytes);
 					close(tcp_cb->DBSRsock);
-					abort();
+					exit(0);
 
 				} else if (2 == rcv_bytes) {
 					uns16 size = 0;

@@ -1261,6 +1261,7 @@ static uns32 dtm_del_from_node_db_list(NODE_ID node_id)
 
 			/* Need to clean the data base as well */
 			dtm_internode_delete_svc_installed_list_from_svc_tree(mov_ptr);
+			ncs_patricia_tree_destroy(&mov_ptr->dtm_rem_node_svc_tree);
 			free(mov_ptr);
 			mov_ptr = NULL;
 			TRACE("Successfully deleted the node from node db list");
@@ -1311,8 +1312,8 @@ static uns32 dtm_internode_delete_svc_installed_list_from_svc_tree(DTM_INTRANODE
 			}
 			dtm_internode_del_svclist_from_svc_tree(node, svc_info, del_ptr);
 		}
-		ncs_patricia_tree_del(&node->dtm_rem_node_svc_tree, (NCS_PATRICIA_NODE *)&svc_info->server_type);
-		/* Delete from the local info as well */
+		free(svc_info);
+		svc_info = NULL;
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

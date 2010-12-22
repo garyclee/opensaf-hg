@@ -173,9 +173,39 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 				TRACE("  %s Avalible IP address: %s sa_family - %d \n", ifreqs[i].ifr_name, match_ip,
 				      ifreqs[i].ifr_addr.sa_family);
 				if (strcmp(match_ip, config->ip_addr) == 0) {
+					void *numericbcasrAddress = NULL;
+					if (ifreqs[i].ifr_flags & IFF_BROADCAST) {
+						if (ioctl(s, SIOCGIFBRDADDR, &ifreqs[i]) >= 0) {
+							if (ifreqs[i].ifr_addr.sa_family == DTM_IP_ADDR_TYPE_IPV4) {
+								numericbcasrAddress =
+								    &((struct sockaddr_in *)&ifreqs[i].ifr_broadaddr)->
+								    sin_addr;
+							} else if (ifreqs[i].ifr_addr.sa_family ==
+								   DTM_IP_ADDR_TYPE_IPV6) {
+								numericbcasrAddress =
+								    &((struct sockaddr_in6 *)&ifreqs[i].ifr_broadaddr)->
+								    sin6_addr;
+							} else {
+								LOG_ER("   Validation of  Bcast address failed : %s \n",
+								       config->ip_addr);
+								return (NULL);
+							}
+						}
+					} else {
+						LOG_ER("   Validation of  Bcast address failed : %s \n",
+						       config->ip_addr);
+						return (NULL);
+					}
+					if (inet_ntop
+					    (ifreqs[i].ifr_addr.sa_family, numericbcasrAddress, config->bcast_addr,
+					     INET6_ADDRSTRLEN) == NULL) {
+						LOG_ER("   Validation of  Bcast address failed : %s \n",
+						       config->ip_addr);
+						return (NULL);
+					}
 					config->i_addr_family = ifreqs[i].ifr_addr.sa_family;
-					TRACE("  %s Validate  IP address : %s sa_family - %d \n", ifreqs[i].ifr_name,
-					      match_ip, config->i_addr_family);
+					TRACE("  %s Validate  IP address : %s  Bcast address : %s sa_family - %d \n",
+					      ifreqs[i].ifr_name, match_ip, config->bcast_addr, config->i_addr_family);
 					return (match_ip);
 				}
 
@@ -298,13 +328,14 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				strncpy(config->ip_addr, &line[tag_len], INET6_ADDRSTRLEN - 1);	/* ipv4 ipv6 addrBuffer */
 				if (strlen(config->ip_addr) == 0) {
 					syslog(LOG_ERR, "DTM:ip_addr Shouldn't  be NULL");
+					return -1;
 				}
 
 				tag = 0;
 				tag_len = 0;
 
 			}
-			tag = DTM_NODE_IP;
+
 			if (strncmp(line, "DTM_MCAST_ADDR=", strlen("DTM_MCAST_ADDR=")) == 0) {
 				tag_len = strlen("DTM_MCAST_ADDR=");
 				strncpy(config->mcast_addr, &line[tag_len], INET6_ADDRSTRLEN - 1);	/* ipv4 ipv6 addrBuffer */
@@ -344,7 +375,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 			if (strncmp(line, "DTM_UDP_BCAST_REV_PORT=", strlen("DTM_UDP_BCAST_REV_PORT=")) == 0) {
 				tag_len = strlen("DTM_UDP_BCAST_REV_PORT=");
 				config->dgram_port_rcvr = ((in_port_t)atoi(&line[tag_len]));
-				syslog(LOG_ERR, "DTM:dgram_port_rcvr  =%d", config->dgram_port_rcvr);
+				TRACE("DTM:dgram_port_rcvr  =%d", config->dgram_port_rcvr);
 				if (config->dgram_port_rcvr < 1) {
 					LOG_ER("DTM:dgram_port_rcvr t must be a positive integer");
 					return -1;
@@ -429,7 +460,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 			if (strncmp(line, "DTM_INTRA_NODE_SERV_PORT=", strlen("DTM_INTRA_NODE_SERV_PORT=")) == 0) {
 				tag_len = strlen("DTM_INTRA_NODE_SERV_PORT=");
 				config->intra_node_stream_port = (in_port_t)atoi(&line[tag_len]);
-				syslog(LOG_ERR, "DTM:intra_node_stream_port  =%d", config->intra_node_stream_port);
+				TRACE("DTM:intra_node_stream_port  =%d", config->intra_node_stream_port);
 				if (config->intra_node_stream_port < 1) {
 					syslog(LOG_ERR, "DTM:intra_node_stream_port  must be a positive integer");
 					return -1;
@@ -442,6 +473,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 
 		}
 
+		memset(line, 0, DTM_MAX_TAG_LEN);
 	}
 
 	/* End-of-file or error? */
