@@ -24,6 +24,4 @@ noinst_HEADERS = \
    ava_dl_api.h \
    ava.h \
    ava_hdl.h \
-   ava_log.h \
-   ava_logstr.h \
    ava_mds.h

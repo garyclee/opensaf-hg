@@ -29,10 +29,8 @@
 
 #ifndef AVA_H
 #define AVA_H
-
+#include <ncs_main_papi.h>
 #include "avsv.h"
-#include "ncs_log.h"
-#include "dta_papi.h"
 #include "ava_dl_api.h"
 
 /* Porting Include Files */
@@ -45,7 +43,8 @@
 #include "ava_hdl.h"
 #include "ava_mds.h"
 #include "ava_cb.h"
-#include "ava_log.h"
+
+#include<logtrace.h>
 
 /* AvA CB global handle declaration */
 EXTERN_C uns32 gl_ava_hdl;

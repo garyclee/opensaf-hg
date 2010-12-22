@@ -33,13 +33,6 @@
 #ifndef AVSV_H
 #define AVSV_H
 
-/* temporary compilation flags setting that will go away */
-#if (NCS_AVSV_LOG == 1)
-#define NCS_AVA_LOG 1
-#else				/* NCS_AVSV_LOG == 1 */
-#define NCS_AVA_LOG 0
-#endif   /* NCS_AVSV_LOG == 1 */
-
 #include "ncsgl_defs.h"
 #include "ncsdlib.h"
 #include "ncs_saf.h"
