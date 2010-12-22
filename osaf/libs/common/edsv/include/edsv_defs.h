@@ -89,13 +89,13 @@
 #define EDSV_MAX_CHANNELS      1024
 
 /* EDSv maximum length of data of an event(in bytes) */
-#define SA_EVENT_DATA_MAX_SIZE   4096
+#define SA_EVENT_DATA_MAX_SIZE   65536
 
 /* EDSv maximum length of a pattern size */
 #define EDSV_MAX_PATTERN_SIZE    255
 
 /* EDSv maximum number of patterns */
-#define EDSV_MAX_PATTERNS        255
+#define EDSV_MAX_PATTERNS       10
 
 /* EDSv maximum event retention time */
 #define EDSV_MAX_RETENTION_TIME  100000000000000.0	/* Revisit This */
