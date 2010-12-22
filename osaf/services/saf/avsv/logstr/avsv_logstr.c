@@ -40,7 +40,6 @@
 #include "dta_papi.h"
 #include "avsv_log.h"
 #include "avnd_logstr.h"
-#include "ava_logstr.h"
 #include "avsv_logstr.h"
 
 /******************************************************************************
@@ -186,12 +185,10 @@ uns32 avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		res = ava_str_reg();
 		res = avnd_str_reg();
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
-		res = ava_str_unreg();
 		res = avnd_str_unreg();
 		break;
 

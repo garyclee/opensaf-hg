@@ -114,7 +114,6 @@
 
 #if (NCS_AVSV_LOG == 1)
 #include "avnd_logstr.h"
-#include "ava_logstr.h"
 #endif
 
 #if (NCS_GLSV_LOG == 1)

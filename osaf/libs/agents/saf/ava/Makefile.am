@@ -23,7 +23,7 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libava.la
 
 libava_la_CPPFLAGS = \
-	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
+	-DNCS_AVA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include
@@ -34,6 +34,5 @@ libava_la_SOURCES = \
 	ava_api.c \
 	ava_hdl.c \
 	ava_init.c \
-	ava_log.c \
 	ava_mds.c \
 	ava_op.c

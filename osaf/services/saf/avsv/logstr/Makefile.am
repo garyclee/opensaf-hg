@@ -29,7 +29,6 @@ libavsv_logstr_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include 
 
 libavsv_logstr_la_SOURCES = \
-	ava_logstr.c \
 	avnd_logstr.c \
 	avsv_logstr.c 
 
