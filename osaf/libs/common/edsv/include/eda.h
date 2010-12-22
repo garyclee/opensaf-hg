@@ -56,9 +56,6 @@ EXTERN_C uns32 gl_eda_hdl;
 /* EDA Default MDS timeout value */
 #define EDA_MDS_DEF_TIMEOUT 100
 
-/* EDSv maximum length of data of an event(in bytes) */
-#define SA_EVENT_DATA_MAX_SIZE 4096
-
 /* EDSv maximum length of a pattern size */
 #define EDSV_MAX_PATTERN_SIZE 255
 
