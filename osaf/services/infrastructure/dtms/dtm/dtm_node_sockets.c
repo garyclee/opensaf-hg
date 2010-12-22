@@ -408,7 +408,6 @@ uns32 dtm_comm_socket_close(int *comm_socket)
 
 }
 
-
 /**
  * Send the message
  *
@@ -955,8 +954,8 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	}
 
 	if (addr_list == NULL) {
-		LOG_ER("DTM:Unable to getaddrinfo() rtn_val -%d errno - %d", rv, errno);
-		TRACE("DTM:Unable to getaddrinfo() rtn_val -%d errno - %d", rv, errno);
+		LOG_ER("DTM:Unable to get addr_list ");
+		TRACE("DTM:Unable to get addr_list ");
 		TRACE_LEAVE2("rc -%d", NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
@@ -977,6 +976,7 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 		}
 
 		if (bind(dtms_cb->dgram_sock_rcvr, p->ai_addr, p->ai_addrlen) == -1) {
+			LOG_ER("DTM:Socket bind failed  errno - %d", errno);
 			close(dtms_cb->dgram_sock_rcvr);
 			TRACE_LEAVE2("rc -%d", NCSCC_RC_FAILURE);
 			perror("listener: bind");
@@ -1021,7 +1021,12 @@ uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
 		struct sockaddr_in *bcast_sender_addr_in = (struct sockaddr_in *)&bcast_dest_storage;
 		bcast_sender_addr_in->sin_family = AF_INET;
 		bcast_sender_addr_in->sin_port = htons((dtms_cb->dgram_port_rcvr));
-		bcast_sender_addr_in->sin_addr.s_addr = INADDR_BROADCAST;
+		if (0 == inet_aton(dtms_cb->bcast_addr, &bcast_sender_addr_in->sin_addr)) {
+			LOG_ER("DTM : inet_aton failed");
+			TRACE_LEAVE2("rc -%d", NCSCC_RC_FAILURE);
+			return NCSCC_RC_FAILURE;
+
+		}
 		memset(bcast_sender_addr_in->sin_zero, '\0', sizeof bcast_sender_addr_in->sin_zero);
 		bcast_sen_addr_size = sizeof(struct sockaddr_in);
 
@@ -1086,7 +1091,11 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uns8 *data, u
 	node.cluster_id = ncs_decode_32bit(&buffer);
 	node.node_id = ncs_decode_32bit(&buffer);
 	if (dtms_cb->node_id == node.node_id) {
-		TRACE("DTM: received the self node_id bcast message,  droping message");
+		if (dtms_cb->mcast_flag != TRUE) {
+			TRACE("DTM: received the self node_id bcast  message,  droping message");
+		} else {
+			TRACE("DTM: received the self node_id mcast message,  droping message");
+		}
 		TRACE_LEAVE2("sock_desc -%d", sock_desc);
 		return sock_desc;
 	}
@@ -1107,9 +1116,9 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uns8 *data, u
 	if (initial_discovery_phase == TRUE) {
 		if (node.node_id < dtms_cb->node_id) {
 			TRACE("DTM: received node_id is less than local node_id  droping message");
+			return sock_desc;
 		}
-		TRACE_LEAVE2("sock_desc -%d", sock_desc);
-		return sock_desc;
+
 	}
 
 	/* new_node = dtm_node_get_by_id(node.node_id); */
@@ -1309,7 +1318,6 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
  */
 int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *buffer, int buffer_len)
 {
-	LOG_ER("Inside dtm_dgram_recvfrom_bmcast");
 	struct sockaddr_storage clnt_addr;
 	void *numericAddress = NULL;	/* Pointer to binary address */
 	char addrBuffer[INET6_ADDRSTRLEN];

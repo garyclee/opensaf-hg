@@ -69,6 +69,7 @@ typedef struct dtm_internode_cb {
 	char node_name[MAX_NAME_LENGTH];	/* optional */
 	char ip_addr[INET6_ADDRSTRLEN];	/* ipv4 ipv6 addrBuffer */
 	char mcast_addr[INET6_ADDRSTRLEN];	/* ipv4 ipv6 addrBuffer */
+	char bcast_addr[INET6_ADDRSTRLEN];
 	in_port_t stream_port;
 	in_port_t dgram_port_sndr;
 	in_port_t dgram_port_rcvr;

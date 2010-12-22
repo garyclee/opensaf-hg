@@ -39,11 +39,6 @@ extern uns8 initial_discovery_phase;
 
 #define DTM_MAX_TAG_LEN	256
 
-/* Lock Macros */
-#define m_DTM_UNLOCK(p,q) m_NCS_UNLOCK(p,q)
-#define m_DTM_LOCK(p,q) m_NCS_LOCK(p,q)
-#define m_DTM_LOCK_INIT m_NCS_LOCK_INIT(p)
-
 typedef enum {
 	DTM_MBX_UP_TYPE = 1,
 	DTM_MBX_DOWN_TYPE = 2,
