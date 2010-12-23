@@ -163,7 +163,7 @@ void avnd_main_process(void)
 	TRACE_ENTER();
 
 	if (avnd_create() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "avnd_create");
+		LOG_ER("avnd_create failed");
 		goto done;
 	}
 
@@ -172,8 +172,7 @@ void avnd_main_process(void)
 		struct sched_param param = {.sched_priority = sched_get_priority_min(SCHED_RR) };
 
 		if (sched_setscheduler(0, SCHED_RR, &param) == -1)
-			syslog(LOG_ERR, "Could not set scheduling class for avnd: %s",
-				strerror(errno));
+			LOG_ER("Could not set scheduling class for avnd: %s",strerror(errno));
 	}
 
 	if (ncs_sel_obj_create(&term_sel_obj) != NCSCC_RC_SUCCESS) {
@@ -214,7 +213,7 @@ void avnd_main_process(void)
 				continue;
 			}
 
-			syslog(LOG_ERR, "%s: poll failed - %s", __FUNCTION__, strerror(errno));
+			LOG_ER("%s: poll failed - %s", __FUNCTION__, strerror(errno));
 			break;
 		}
 
@@ -244,7 +243,7 @@ void avnd_main_process(void)
 	}
 
 done:
-	syslog(LOG_NOTICE, "exiting");
+	LOG_NO("exiting");
 	exit(0);
 }
 
@@ -263,19 +262,22 @@ void avnd_evt_process(AVND_EVT *evt)
 {
 	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* validate the event type */
 	if ((evt->type <= AVND_EVT_INVALID) || (evt->type >= AVND_EVT_MAX)) {
-		LOG_ER("Unknown event %u", evt->type);
+		LOG_ER("%s: Unknown event %u",__FUNCTION__,evt->type);
 		goto done;
 	}
 
 	/* Temp: AvD Down Handling */
-	if (TRUE == cb->is_avd_down)
+	if (TRUE == cb->is_avd_down){
+		LOG_IN("%s: AvD is down, dropping event %u",__FUNCTION__,evt->type);
 		goto done;
+	}
 
 	/* log the event reception */
-	m_AVND_LOG_EVT(evt->type, 0, 0, NCSFL_SEV_INFO);
+	TRACE("Evt type:%u",evt->type);
 
 	/* acquire cb write lock */
 	m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
@@ -291,8 +293,7 @@ void avnd_evt_process(AVND_EVT *evt)
 	m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
 
 	/* log the result of event processing */
-	m_AVND_LOG_EVT(evt->type, 0,
-		       (rc == NCSCC_RC_SUCCESS) ? AVND_LOG_EVT_SUCCESS : AVND_LOG_EVT_FAILURE, NCSFL_SEV_INFO);
+	TRACE("Evt Type:%u %s",evt->type,((rc == NCSCC_RC_SUCCESS) ? "success" : "failure"));
 
 done:
 	if (evt)

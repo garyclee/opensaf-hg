@@ -144,8 +144,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 		csi_param = csi_param->next;
 	}
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_ADD, AVND_LOG_SU_DB_SUCCESS,
-			 &param->su_name, &param->si_name, NCSFL_SEV_NOTICE);
+	TRACE_1("SU-SI record added, SU= %s : SI=%s",param->su_name.value,param->si_name.value);
 	return si_rec;
 
  err:
@@ -154,8 +153,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 		free(si_rec);
 	}
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_ADD, AVND_LOG_SU_DB_FAILURE,
-			 &param->su_name, &param->si_name, NCSFL_SEV_CRITICAL);
+	LOG_CR("SU-SI record addition failed, SU= %s : SI=%s",param->su_name.value,param->si_name.value);
 	TRACE_LEAVE();
 	return 0;
 }
@@ -278,8 +276,6 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	csi_rec->si_name = si_rec->name;
 	csi_rec->su_name = su->name;
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_ADD, AVND_LOG_COMP_DB_SUCCESS,
-			   &param->comp_name, &param->csi_name, NCSFL_SEV_NOTICE);
 	return csi_rec;
 
  err:
@@ -290,8 +286,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		free(csi_rec);
 	}
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_ADD, AVND_LOG_COMP_DB_FAILURE,
-			   &param->comp_name, &param->csi_name, NCSFL_SEV_CRITICAL);
+	LOG_CR("Comp-CSI record addition failed, Comp=%s : CSI=%s",param->comp_name.value,param->csi_name.value);
 	TRACE_LEAVE();
 	return 0;
 }
@@ -553,6 +548,7 @@ uns32 avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s' : '%s'", su_name->value, si_name->value);
 
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
@@ -582,7 +578,7 @@ uns32 avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_DEL, AVND_LOG_SU_DB_SUCCESS, su_name, si_name, NCSFL_SEV_INFO);
+	TRACE_1("SU-SI record deleted, SU= %s : SI=%s",su_name->value,si_name->value);
 
 	/* free the memory */
 	free(si_rec);
@@ -590,7 +586,7 @@ uns32 avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	return rc;
 
  err:
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_DEL, AVND_LOG_SU_DB_FAILURE, su_name, si_name, NCSFL_SEV_CRITICAL);
+	LOG_CR("SU-SI record deletion failed, SU= %s : SI=%s",su_name->value,si_name->value);
 	return rc;
 }
 
@@ -613,6 +609,7 @@ uns32 avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 	AVND_SU_SI_REC *si_rec = 0;
 	SaNameT lsu_name;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s'", su_name->value);
 
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
@@ -645,10 +642,11 @@ uns32 avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 			cb->term_state = AVND_TERM_STATE_SHUTTING_NCS_SI;
 
 	}
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 
  err:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -670,6 +668,7 @@ uns32 avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s' : '%s'", su->name.value, si_rec->name.value);
 
 	/* scan & delete each csi record */
 	while (0 != (csi_rec = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si_rec->csi_list))) {
@@ -678,10 +677,11 @@ uns32 avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 			goto err;
 
 	}
-
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 
  err:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -702,6 +702,7 @@ uns32 avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 uns32 avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s' : '%s' : '%s'", su->name.value, si_rec->name.value, csi_rec->name.value);
 
 	/* remove from the comp-csi list */
 	rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
@@ -731,17 +732,16 @@ uns32 avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, A
 		free(csi_rec->attrs.list);
 
 	/* free the pg list TBD */
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_DEL, AVND_LOG_COMP_DB_SUCCESS,
-			   &csi_rec->comp->name, &csi_rec->name, NCSFL_SEV_INFO);
+	TRACE_1("Comp-CSI record deletion success, Comp=%s : CSI=%s",csi_rec->comp->name.value,csi_rec->name.value);
 
 	/* finally free this record */
 	free(csi_rec);
 
+	TRACE_LEAVE();
 	return rc;
 
  err:
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_DEL, AVND_LOG_COMP_DB_FAILURE,
-			   &csi_rec->comp->name, &csi_rec->name, NCSFL_SEV_CRITICAL);
+	LOG_CR("Comp-CSI record deletion failed, Comp=%s : CSI=%s",csi_rec->comp->name.value,csi_rec->name.value);
 	return rc;
 }
 
@@ -764,7 +764,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, SaNameT *su_name, SaNameT *si_na
 	AVND_SU_SI_REC *si_rec = 0;
 	AVND_SU *su = 0;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("'%s' : '%s'", su_name->value, si_name->value);
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
 	if (!su)
@@ -798,6 +798,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 	AVND_SU_SIQ_REC *siq = 0;
 
 	*rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* alloc the siq rec */
 	siq = calloc(1, sizeof(AVND_SU_SIQ_REC));
@@ -819,12 +820,14 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 	/* memory transferred to the siq-rec.. nullify it in param */
 	param->list = 0;
 
+	TRACE_LEAVE();
 	return siq;
 
  err:
 	if (siq)
 		free(siq);
 
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -845,6 +848,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
 {
 	AVSV_SUSI_ASGN *curr = 0;
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* delete the comp-csi info */
 	while ((curr = siq->info.list) != 0) {
@@ -858,6 +862,7 @@ void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
 	/* free the rec */
 	free(siq);
 
+	TRACE_LEAVE();
 	return;
 }
 

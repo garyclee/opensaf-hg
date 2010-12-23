@@ -34,6 +34,21 @@
 
 #include "avnd.h"
 
+static const char *tmr_type[] = 
+{
+	"out of range",
+	"health check timer",
+	"callback response timer",
+	"message response timer",
+	"CLC comp register timer",
+	"su error escalation timer",
+	"node error escalation timer",
+	"proxied inst timer",
+	"proxied orphan timer",
+	"HB tmr",
+	"AVND_TMR_MAX"
+};
+
 /*****************************************************************************
   PROCEDURE NAME : avnd_start_tmr
 
@@ -77,8 +92,8 @@ uns32 avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT per
 	if (TMR_T_NULL == tmr->tmr_id)
 		return NCSCC_RC_FAILURE;
 
-	/* log */
-	m_AVND_LOG_TMR(type, AVND_LOG_TMR_START, AVND_LOG_TMR_SUCCESS, NCSFL_SEV_INFO);
+	/* Not sure if tracing here is good, revisit this - mathi. TBD*/
+	TRACE("%s started",tmr_type[type]);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -121,7 +136,7 @@ void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 	}
 
 	/* log */
-	m_AVND_LOG_TMR(tmr->type, AVND_LOG_TMR_STOP, AVND_LOG_TMR_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("%s stopped",tmr_type[tmr->type]);
 
 	return;
 }
@@ -167,8 +182,9 @@ void avnd_tmr_exp(void *uarg)
 	}
 
 	/* if failure, free the event */
-	if (NCSCC_RC_SUCCESS != rc && evt)
+	if (NCSCC_RC_SUCCESS != rc && evt){
+		LOG_ER("Unable to post timer expiry event to mailbox");
 		avnd_evt_destroy(evt);
+	}
 
-	m_AVND_LOG_TMR(tmr->type, AVND_LOG_TMR_EXPIRY, AVND_LOG_TMR_SUCCESS, NCSFL_SEV_INFO);
 }

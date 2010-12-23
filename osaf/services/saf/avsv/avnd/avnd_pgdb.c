@@ -58,9 +58,9 @@ uns32 avnd_pgdb_init(AVND_CB *cb)
 	params.key_size = sizeof(SaNameT);
 	rc = ncs_patricia_tree_init(&cb->pgdb, &params);
 	if (NCSCC_RC_SUCCESS == rc)
-		m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+		TRACE("PG DB create success");
 	else
-		m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
+		LOG_CR("PG DB create failed");
 
 	return rc;
 }
@@ -94,11 +94,11 @@ uns32 avnd_pgdb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+	TRACE("PG DB destroy success");
 	return rc;
 
  err:
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
+	LOG_CR("PG DB destroy failed");
 	return rc;
 }
 
@@ -158,14 +158,14 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uns32 *rc)
 		goto err;
 	}
 
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_SUCCESS, csi_name, NCSFL_SEV_INFO);
+	TRACE("PG DB record added: CSI = %s",csi_name->value);
 	return pg;
 
  err:
 	if (pg)
 		free(pg);
 
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_FAILURE, csi_name, NCSFL_SEV_CRITICAL);
+	LOG_CR("PG DB record addition failed: CSI = %s",csi_name->value);
 	return 0;
 }
 
@@ -206,7 +206,7 @@ uns32 avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 		goto err;
 	}
 
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_SUCCESS, csi_name, NCSFL_SEV_INFO);
+	TRACE("PG DB record deleted: CSI = %s",csi_name->value);
 
 	/* free the memory */
 	free(pg);
@@ -214,7 +214,7 @@ uns32 avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 	return rc;
 
  err:
-	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_FAILURE, csi_name, NCSFL_SEV_CRITICAL);
+	LOG_CR("PG DB record deletion failed: CSI = %s",csi_name->value);
 	return rc;
 }
 

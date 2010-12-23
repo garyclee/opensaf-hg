@@ -696,6 +696,7 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 	} else if (m_AVSV_N2D_MSG_IS_VER_ACK_NACK(msg->info.avd)) {
 		/*send the response to active AvD (In case MDS has not updated its
 		   tables by this time) */
+		TRACE_1("%s, Active AVD Adest: %llu",__FUNCTION__,cb->active_avd_adest);
 		rc = avnd_mds_red_send(cb, msg, &cb->avd_dest, &cb->active_avd_adest);
 		goto done;
 	}
@@ -735,6 +736,7 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 {
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("Receive id = %u",rcv_id);
 
    /*** send the response to AvD ***/
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -750,8 +752,7 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 		else
 			msg.info.avd->msg_info.n2d_ack_nack_info.ack = TRUE;
 
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE,
-				      AVND_LOG_FOVR_MSG_ID_ACK_NACK, msg.info.avd->msg_info.n2d_ack_nack_info.ack);
+		TRACE_1("MsgId=%u,ACK=%u",msg.info.avd->msg_info.n2d_ack_nack_info.msg_id,msg.info.avd->msg_info.n2d_ack_nack_info.ack);
 
 		rc = avnd_di_msg_send(cb, &msg);
 		if (NCSCC_RC_SUCCESS == rc)
@@ -762,6 +763,7 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 
+	TRACE_LEAVE2("retval=%u",rc);
 	return rc;
 }
 
@@ -1039,7 +1041,7 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+		LOG_EM("%s, MsgId mismatch: %u",__FUNCTION__, info->msg_id);
 
 		goto done;
 	}
@@ -1049,11 +1051,13 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) {
 		/* we need not do anything we are already shutting down
 		   we will send the responce after shutting down the app su's */
+		TRACE_1("Nothing to do, already shutting down");
 		goto done;
 	}
 
 	if (cb->term_state == AVND_TERM_STATE_SHUTTING_APP_DONE || cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU) {
 		/* we are already done with shutdown of APP SU just send an ACK */
+		TRACE_1("App SUs already shutdown, sending an ACK");
 		avnd_snd_shutdown_app_su_msg(cb);
 		goto done;
 	}
@@ -1061,8 +1065,10 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 	cb->term_state = AVND_TERM_STATE_SHUTTING_APP_SU;
 
 	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb))
+	if (!m_AVND_CB_IS_AVD_UP(cb)) {
+		TRACE("waiting for AVD up");
 		return rc;
+	}
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 
@@ -1086,7 +1092,7 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
 		    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 			empty_sulist = FALSE;
-
+			TRACE_1("Running SU presence FSM, event: Terminate, SU:%s",su->name.value);
 			/* trigger su termination for pi su */
 			rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_TERM);
 		}
@@ -1100,11 +1106,12 @@ uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		 ** send the response message to AVD informing DONE. 
 		 */
 		cb->term_state = AVND_TERM_STATE_SHUTTING_APP_DONE;
+		TRACE("All SUs processed for termination, responding 'DONE' to AVD");
 		avnd_snd_shutdown_app_su_msg(cb);
 	}
 
 done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("retval=%u",rc);
 	return rc;
 }
 

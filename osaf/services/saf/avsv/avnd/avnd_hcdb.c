@@ -96,11 +96,11 @@ uns32 avnd_hcdb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_DESTROY, AVND_LOG_HC_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+	TRACE("HC DB destroy success");
 	return rc;
 
  err:
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_DESTROY, AVND_LOG_HC_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
+	LOG_ER("HC DB destroy failed");
 	return rc;
 }
 
@@ -174,14 +174,14 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
 		goto err;
 	}
 
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_ADD, AVND_LOG_HC_DB_SUCCESS, &info->name.name, NCSFL_SEV_INFO);
+	TRACE("HC DB rec add: %s success",info->name.name.key);
 	return hc;
 
  err:
 	if (hc)
 		free(hc);
 
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_ADD, AVND_LOG_HC_DB_FAILURE, &info->name.name, NCSFL_SEV_CRITICAL);
+	LOG_CR("HC DB rec add: %s failed",info->name.name.key);
 	return 0;
 }
 
@@ -217,7 +217,7 @@ uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 		goto err;
 	}
 
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_DEL, AVND_LOG_HC_DB_SUCCESS, &hc_key->name, NCSFL_SEV_INFO);
+	TRACE("HC DB rec:%s delete success",hc_key->name.key);
 
 	/* free the memory */
 	free(hc);
@@ -225,7 +225,7 @@ uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	return rc;
 
  err:
-	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_DEL, AVND_LOG_HC_DB_FAILURE, &hc_key->name, NCSFL_SEV_CRITICAL);
+	LOG_CR("HC DB rec:%s delete failed", hc_key->name.key);
 	return rc;
 }
 
@@ -238,12 +238,12 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
 		goto done;
 
 	if (immutil_getAttr("saAmfHealthcheckPeriod", attributes, 0, &hc->period) != SA_AIS_OK) {
-		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHealthcheckPeriod FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfHealthcheckPeriod FAILED for '%s'", dn->value);
 		goto done;
 	}
 
 	if (immutil_getAttr("saAmfHealthcheckMaxDuration", attributes, 0, &hc->max_dur) != SA_AIS_OK) {
-		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHealthcheckMaxDuration FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfHealthcheckMaxDuration FAILED for '%s'", dn->value);
 		goto done;
 	}
 
@@ -284,13 +284,13 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP* comp)
 		&searchParam, NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avnd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &hc_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		avnd_log(NCSFL_SEV_NOTICE, "'%s'", hc_name.value);
+		TRACE_1("'%s'", hc_name.value);
 
 		if (hc_create(avnd_cb, &hc_name, attributes) == NULL)
 			goto done2;
@@ -316,12 +316,12 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 	hc->name = *dn;
 
 	if (immutil_getAttr("saAmfHctDefPeriod", attributes, 0, &hc->saAmfHctDefPeriod) != SA_AIS_OK) {
-		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHctDefPeriod FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfHctDefPeriod FAILED for '%s'", dn->value);
 		goto done;
 	}
 
 	if (immutil_getAttr("saAmfHctDefMaxDuration", attributes, 0, &hc->saAmfHctDefMaxDuration) != SA_AIS_OK) {
-		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHctDefMaxDuration FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfHctDefMaxDuration FAILED for '%s'", dn->value);
 		goto done;
 	}
 
@@ -355,13 +355,13 @@ SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
 		&searchParam, NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avnd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &hc_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		avnd_log(NCSFL_SEV_NOTICE, "'%s'", hc_name.value);
+		TRACE_1("'%s'", hc_name.value);
 
 		if (hctype_create(avnd_cb, &hc_name, attributes) == NULL)
 			goto done2;

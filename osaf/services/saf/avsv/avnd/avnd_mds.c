@@ -86,10 +86,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	/* get the mds-hdl & avnd mds address */
 	rc = avnd_mds_param_get(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_PRM_GET, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS param get failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_PRM_GET, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS param get success");
 
 	/* fill common fields */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -105,10 +105,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_INSTALL, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS install failed");
 		goto done;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_INSTALL, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS install success");
 
    /*** subscribe to mds events ***/
 	mds_info.i_op = MDS_SUBSCRIBE;
@@ -120,10 +120,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	svc_ids[0] = NCSMDS_SVC_ID_AVD;
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS subscription for AVD events failed");
 		goto done;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS subscription for AVD events success");
 
 	/* subscribe to events from ava */
 	mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
@@ -131,10 +131,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	svc_ids[0] = NCSMDS_SVC_ID_AVA;
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS subscription for AVA events failed");
 		goto done;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS subscription for AVA events success");
 
 	/* Subscribe for AvND itself. Will be used for External/Inernode proxy support */
 	mds_info.i_op = MDS_SUBSCRIBE;
@@ -146,10 +146,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	svc_ids[0] = NCSMDS_SVC_ID_AVND;
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS subscription for AVND events failed");
 		goto done;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS subscription for AVND events success");
 
 	/* Subscribe for Controller AvND Vdest. 
 	   It will be used for External Comp support */
@@ -162,10 +162,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	svc_ids[0] = NCSMDS_SVC_ID_AVND_CNTLR;
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS subscription for Controller AVND vdest failed");
 		goto done;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS subscription for Controller AVND vdest success");
 
 	/* get the handle from MDS */
 
@@ -222,7 +222,7 @@ uns32 avnd_mds_vdest_reg(AVND_CB *cb)
 
 	/* create Vdest address */
 	if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS) {
-		m_AVND_AVND_ERR_LOG("Vdest Creation failed", NULL, 0, 0, 0, 0);
+		LOG_CR("Vdest Creation failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -245,7 +245,7 @@ uns32 avnd_mds_vdest_reg(AVND_CB *cb)
 		vda_info.req = NCSVDA_VDEST_DESTROY;
 		vda_info.info.vdest_destroy.i_vdest = cb->avnd_mbcsv_vaddr;
 		ncsvda_api(&vda_info);
-		m_AVND_AVND_ERR_LOG("Mds Installation failed", NULL, 0, 0, 0, 0);
+		LOG_CR("Mds Installation failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -276,9 +276,9 @@ uns32 avnd_mds_unreg(AVND_CB *cb)
 
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc)
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_UNREG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("Unregistration with MDS failed");
 	else
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_UNREG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+		TRACE("Unregistration with MDS success");
 
 	return rc;
 }
@@ -308,79 +308,66 @@ uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 	case MDS_CALLBACK_RECEIVE:
 		{
 			rc = avnd_mds_rcv(cb, &info->info.receive);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_RCV_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_RCV_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS receive callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_COPY:
 		{
 			rc = avnd_mds_cpy(cb, &info->info.cpy);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_CPY_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_CPY_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS copy callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_SVC_EVENT:
 		{
 			rc = avnd_mds_svc_evt(cb, &info->info.svc_evt);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_SVEVT_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_SVEVT_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS service event callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_ENC:
 		{
 			rc = avnd_mds_enc(cb, &info->info.enc);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_ENC_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_ENC_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS encode callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_ENC_FLAT:
 		{
 			rc = avnd_mds_flat_enc(cb, &info->info.enc_flat);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_FLAT_ENC_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_FLAT_ENC_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS encode flat callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_DEC:
 		{
 			rc = avnd_mds_dec(cb, &info->info.dec);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_DEC_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_DEC_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS decode callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_DEC_FLAT:
 		{
 			rc = avnd_mds_flat_dec(cb, &info->info.dec_flat);
-			if (NCSCC_RC_SUCCESS == rc)
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_FLAT_DEC_CBK, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-			else
-				m_AVND_LOG_MDS(AVSV_LOG_MDS_FLAT_DEC_CBK, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			if (NCSCC_RC_SUCCESS != rc)
+				LOG_CR("MDS decode flat callback failed");
 		}
 		break;
 
 	case MDS_CALLBACK_QUIESCED_ACK:
 		{
 			rc = avnd_mds_quiesced_process(cb);;
-			if (NCSCC_RC_SUCCESS != rc) {
-				m_AVND_AVND_ERR_LOG("avnd_mds_flat_dec failed, rc is ", NULL, rc, 0, 0, 0);
-			}
+			if (NCSCC_RC_SUCCESS != rc) 
+				LOG_CR("MDS Quiesced Ack callback failed");
+			else
+				TRACE("MDS Quiesced Ack callback success");
 		}
 		break;
 
@@ -432,6 +419,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		if ((AVSV_D2N_NODE_UP_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type) ||
 		    (AVSV_D2N_DATA_VERIFY_MSG == ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type)) {
 			cb->active_avd_adest = rcv_info->i_fr_dest;
+			TRACE_1("Active AVD Adest = %llu",cb->active_avd_adest);
 		}
 
 		msg.type = AVND_MSG_AVD;
@@ -445,8 +433,8 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		if ((rcv_info->i_fr_dest != cb->active_avd_adest) &&
 		    (msg.info.avd->msg_type != AVSV_D2N_HEARTBEAT_MSG))
 		{
-			m_AVND_AVND_DEBUG_LOG("avnd_mds_rcv():rcv_info->i_fr_dest and cb->active_avd_adest mismatch",
-					      NULL, rcv_info->i_fr_dest, cb->active_avd_adest,((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type, 0);
+			LOG_ER("Received dest: %llu and cb active AVD adest:%llu mismatch, message type = %u",
+			rcv_info->i_fr_dest, cb->active_avd_adest, ((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type);
 			avsv_dnd_msg_free(((AVSV_DND_MSG *)rcv_info->i_msg));
 			rcv_info->i_msg = 0;
 			return NCSCC_RC_SUCCESS;
@@ -647,7 +635,7 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			/* create the mds event */
 			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_DN, 0, &evt_info->i_dest, 0, 0, 0);
 			
-			syslog(LOG_ERR, "Controller node not available");
+			LOG_ER("Controller node not available");
 			break;
 
 		case NCSMDS_SVC_ID_AVA:
@@ -1159,7 +1147,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("Msg type '%u', '%p'", msg->type, mds_ctxt);
+	TRACE_ENTER2("Msg type '%u'", msg->type);
 	/* populate the mds params */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
@@ -1260,9 +1248,7 @@ uns32 avnd_mds_red_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_DEST *ad
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc)
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SEND, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
-	else
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SEND, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+		LOG_CR("AVND MDS send failed: Msg type = %u, vdest = %llu, anchor = %llu",msg->type,send->i_to_vdest,send->i_to_anc);
 
 	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
@@ -1403,7 +1389,7 @@ uns32 avnd_mds_quiesced_process(AVND_CB *cb)
 
 	evt = avnd_evt_create(cb, AVND_EVT_HA_STATE_CHANGE, 0, NULL, 0, 0, 0);
 	if (NULL == evt) {
-		m_AVND_AVND_ERR_LOG("avnd_mds_quiesced_process:evt is NULL", NULL, 0, 0, 0, 0);
+		LOG_ER("%s, Event is NULL",__FUNCTION__);
 	} else {
 		/* Don't use avail_state_avnd as this is not yet updated. It will be 
 		   updated during processing of this event. */

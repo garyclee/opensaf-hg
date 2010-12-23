@@ -46,7 +46,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 	AVND_COMP_PXIED_REC *pxd_rec = 0, *curr_rec = 0;
 	memset(&name, 0, sizeof(SaNameT));
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%u", node_id);
 
 	if(node_id == avnd_cb->node_info.nodeId) {
 	/* if you received a node left indication from clm for self node
@@ -94,7 +94,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 					rc = avnd_comp_unreg_prc(avnd_cb, curr_rec->pxied_comp, comp);
 
 					if (NCSCC_RC_SUCCESS != rc) {
-						m_AVND_AVND_ERR_LOG("avnd_evt_avd_node_update_msg:Unreg failed:Comp is",&curr_rec->pxied_comp->name, 0, 0, 0, 0);
+						LOG_ER("avnd_evt_avd_node_update_msg:Unreg failed: %s",curr_rec->pxied_comp->name.value);
 					}
 				}	/* while */
 			}	/* else if(m_AVND_COMP_TYPE_IS_PROXY(comp)) */

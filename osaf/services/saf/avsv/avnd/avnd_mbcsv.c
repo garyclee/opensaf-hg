@@ -79,14 +79,14 @@ uns32 avnd_mds_mbcsv_reg(AVND_CB *cb)
 	/* MDS Registration. */
 	rc = avnd_mds_vdest_reg(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("mds_vdest_reg failed", NULL, 0, 0, 0, 0);
+		LOG_ER("MDS registration failed");
 		return rc;
 	}
 
 	/* MBCSV Registration */
 	rc = avnd_mbcsv_register(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_mbcsv_register failed", NULL, 0, 0, 0, 0);
+		LOG_ER("MBCSv registration failed");
 		return rc;
 	}
 	return rc;
@@ -119,13 +119,12 @@ uns32 avnd_mbcsv_register(AVND_CB *cb)
 	 * First initialize and then call open.
 	 */
 	if (NCSCC_RC_SUCCESS != (status = avnd_mbcsv_initialize(cb))) {
-		/* Log here */ ;
-		m_AVND_AVND_ERR_LOG("avnd_mbcsv_initialize failed", NULL, 0, 0, 0, 0);
+		LOG_ER("MBCSV Initialization failed");
 		goto done;
 	}
 
 	if (NCSCC_RC_SUCCESS != (status = avnd_mbcsv_open_ckpt(cb))) {
-		m_AVND_AVND_ERR_LOG("avnd_mbcsv_open_ckpt failed", NULL, 0, 0, 0, 0);
+		LOG_ER("MBCSv Initialization failed");
 		goto done_final;
 	}
 
@@ -133,7 +132,7 @@ uns32 avnd_mbcsv_register(AVND_CB *cb)
 	 * Get MBCSv selection object.
 	 */
 	if (NCSCC_RC_SUCCESS != (status = avnd_get_mbcsv_sel_obj(cb))) {
-		m_AVND_AVND_ERR_LOG("avnd_get_mbcsv_sel_obj failed", NULL, 0, 0, 0, 0);
+		LOG_ER("MBCSv selection object get failed");
 		goto done_close;
 	}
 
@@ -165,10 +164,10 @@ static uns32 avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVND_CB *cb = avnd_cb;
 
-	m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_cb", NULL, 0, 0, 0, 0);
+	TRACE_ENTER();
 
 	if (NULL == arg) {
-		m_AVND_AVND_ERR_LOG("avnd_mbcsv_cb: arg is NULL", NULL, 0, 0, 0, 0);
+		LOG_ER("avnd_mbcsv_cb: arg is NULL");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -196,13 +195,14 @@ static uns32 avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 		break;
 
 	default:
-		m_AVND_LOG_INVALID_VAL_FATAL(arg->i_op);
+		LOG_ER("Invalid mbcsv callback op: %u",arg->i_op);
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
 
 	m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE2("%u", status);
 	return status;
 }
 
@@ -222,9 +222,7 @@ static uns32 avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 static uns32 avnd_mbcsv_process_enc_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
-
-	m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_process_enc_cb,Comp,io_msg_type and io_reo_type are",
-			      NULL, arg->info.encode.io_msg_type, arg->info.encode.io_reo_type, 0, 0);
+	TRACE_ENTER2("Msg type: %u, Reotype: %u",arg->info.encode.io_msg_type, arg->info.encode.io_reo_type);
 
 	switch (arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -238,7 +236,7 @@ static uns32 avnd_mbcsv_process_enc_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			/* Encode Async update message */
 			if (arg->info.encode.io_reo_type >= AVND_CKPT_MSG_MAX) {
-				m_AVND_LOG_INVALID_VAL_FATAL(arg->info.encode.io_reo_type);
+				LOG_ER("%s Invalid reotype: %u",__FUNCTION__,arg->info.encode.io_reo_type);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -255,7 +253,7 @@ static uns32 avnd_mbcsv_process_enc_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * cold sync in on.
 			 */
 			cb->stby_sync_state = AVND_STBY_OUT_OF_SYNC;
-			m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_enc_cb: Cold Sync Started", NULL, 0, 0, 0, 0);
+			TRACE("avnd_mbcsv_process_enc_cb: Cold Sync Started");
 		}
 		break;
 
@@ -294,11 +292,11 @@ static uns32 avnd_mbcsv_process_enc_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_REQ:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 	default:
-		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(arg->info.encode.io_msg_type);
+		LOG_ER("Invalid message type: %u",arg->info.encode.io_msg_type);
 		status = NCSCC_RC_FAILURE;
 	}
-
+	
+	TRACE_LEAVE2("%u", status);
 	return status;
 }
 
@@ -319,8 +317,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_process_dec_cb,Comp,i_msg_type and i_reo_type are",
-			      NULL, arg->info.decode.i_msg_type, arg->info.decode.i_reo_type, 0, 0);
+	TRACE_ENTER2("msg_type %u and i_reo_type %u",arg->info.decode.i_msg_type, arg->info.decode.i_reo_type);
 
 	switch (arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -351,8 +348,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 */
 				if (NCSCC_RC_SUCCESS != avnd_validate_reo_type_in_csync(cb,
 											arg->info.decode.i_reo_type)) {
-					m_AVND_AVND_ENTRY_LOG("Cold Sync on:validate_reo_type failed for i_reo_type",
-							      NULL, arg->info.decode.i_reo_type, 0, 0, 0);
+					LOG_ER("Cold Sync on:validate_reo_type failed for %u",arg->info.decode.i_reo_type);
 					/* Free userbuff and return without decoding */
 					ncs_reset_uba(&arg->info.decode.i_uba);
 					break;
@@ -369,7 +365,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 												       &arg->
 												       info.decode);
 				else {
-					m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+					LOG_ER("%s Invalid reo type %u",__FUNCTION__,arg->info.decode.i_reo_type);
 					status = NCSCC_RC_FAILURE;
 				}
 			}
@@ -395,10 +391,10 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			if (NCSCC_RC_SUCCESS != status) {
 				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE)) {
 					/* Log Error ; FATAL; It should never happen unless there is a bug. */
-					m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+					LOG_CR("%s, %u,External component data cleanup failed",__FUNCTION__,__LINE__);
 				}
 
-				m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+				LOG_ER("%s, invalid reo type %u",__FUNCTION__,arg->info.decode.i_reo_type);
 				status = NCSCC_RC_FAILURE;
 				break;
 			}
@@ -411,8 +407,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			    (NCSCC_RC_SUCCESS == status)) {
 
 				cb->stby_sync_state = AVND_STBY_IN_SYNC;
-				m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_dec_cb: Cold Sync Completed",
-						     NULL, 0, 0, 0, 0);
+				TRACE("avnd_mbcsv_process_dec_cb: Cold Sync Completed");
 
 			}
 
@@ -438,8 +433,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			/* If we find mismatch in data or warm sync fails set in_sync to FALSE */
 			if (NCSCC_RC_FAILURE == status) {
-				m_AVND_AVND_ERR_LOG("avnd_mbcsv_process_dec_cb: warm sync decode failed",
-						    NULL, 0, 0, 0, 0);
+				LOG_ER("avnd_mbcsv_process_dec_cb: warm sync decode failed");
 				cb->stby_sync_state = AVND_STBY_OUT_OF_SYNC;
 			}
 
@@ -464,7 +458,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE)) {
 					/* Log Error ; FATAL; It should never happen unless there is a bug. */
-					m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+					LOG_CR("%s, %u,External component data cleanup failed",__FUNCTION__,__LINE__);
 					break;
 				}
 
@@ -472,8 +466,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 * Now send data request, which will sync Standby with Active.
 				 */
 				if (NCSCC_RC_SUCCESS != avnd_send_data_req(cb)) {
-					/* Log error */
-					m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+					LOG_ER("AVND send data req: failed");
 					break;
 				}
 
@@ -482,18 +475,18 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type) {
 				cb->stby_sync_state = AVND_STBY_IN_SYNC;
-				m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_dec_cb: Data Sync Completed",
-						     NULL, 0, 0, 0, 0);
+				TRACE("avnd_mbcsv_process_dec_cb: Data Sync Completed");
 			}
 		}
 		break;
 
 	default:
-		m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_msg_type);
+		LOG_ER("%s, Invalid message type: %u",__FUNCTION__,arg->info.decode.i_msg_type);
 		status = NCSCC_RC_FAILURE;
 		break;
 
 	}
+	TRACE_LEAVE2("%u", status);
 	return status;
 
 }
@@ -514,8 +507,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 static uns32 avnd_mbcsv_process_peer_info_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	/* Compare versions of the peer with self */
-	m_AVND_AVND_ENTRY_LOG("avnd_mbcsv_process_peer_info_cb. Peer Version is", NULL,
-			      arg->info.peer.i_peer_version, 0, 0, 0);
+	TRACE_1("avnd_mbcsv_process_peer_info_cb. Peer Version is %d",arg->info.peer.i_peer_version);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -535,8 +527,7 @@ static uns32 avnd_mbcsv_process_peer_info_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 \**************************************************************************/
 static uns32 avnd_mbcsv_process_notify(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	m_AVND_LOG_INVALID_VAL_FATAL(0);
-	m_AVND_AVND_ERR_LOG("Entered avnd_mbcsv_process_notify", NULL, 0, 0, 0, 0);
+	LOG_ER("avnd_mbcsv_process_notify");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -556,7 +547,7 @@ static uns32 avnd_mbcsv_process_notify(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 static uns32 avnd_mbcsv_process_err_ind(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 
-	m_AVND_AVND_ERR_LOG("Entered avnd_mbcsv_process_err_ind. i_code is", NULL, arg->info.error.i_code, 0, 0, 0);
+	TRACE_ENTER2("error code is %u",arg->info.error.i_code);
 
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
@@ -578,10 +569,11 @@ static uns32 avnd_mbcsv_process_err_ind(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		break;
 
 	default:
-		m_AVND_LOG_INVALID_VAL_FATAL(arg->info.error.i_code);
+		LOG_ER("Invalid mbcsv error indication");
 		break;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -602,8 +594,6 @@ static uns32 avnd_mbcsv_initialize(AVND_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
-	m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_initialize", NULL, 0, 0, 0, 0);
-
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
@@ -611,10 +601,8 @@ static uns32 avnd_mbcsv_initialize(AVND_CB *cb)
 	mbcsv_arg.info.initialize.i_mbcsv_cb = avnd_mbcsv_cb;
 	mbcsv_arg.info.initialize.i_version = AVND_MBCSV_SUB_PART_VERSION;
 
-	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
 		return NCSCC_RC_FAILURE;
-	}
 
 	cb->avnd_mbcsv_hdl = mbcsv_arg.info.initialize.o_mbcsv_hdl;
 
@@ -644,10 +632,8 @@ static uns32 avnd_mbcsv_open_ckpt(AVND_CB *cb)
 	mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
 
-	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
 		return NCSCC_RC_FAILURE;
-	}
 
 	cb->avnd_mbcsv_ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
 
@@ -681,8 +667,7 @@ uns32 avnd_set_mbcsv_ckpt_role(AVND_CB *cb, uns32 role)
 	mbcsv_arg.info.chg_role.i_ha_state = role;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-		m_AVND_LOG_INVALID_VAL_FATAL(rc);
-		m_AVND_AVND_ERR_LOG("set_ckpt_role failed", NULL, 0, 0, 0, 0);
+		LOG_ER("set_ckpt_role failed");
 		return rc;
 	}
 
@@ -713,10 +698,8 @@ static uns32 avnd_get_mbcsv_sel_obj(AVND_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
 
-	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
 		return NCSCC_RC_FAILURE;
-	}
 
 	cb->avnd_mbcsv_sel_obj = mbcsv_arg.info.sel_obj_get.o_select_obj;
 
@@ -748,7 +731,7 @@ uns32 avnd_mbcsv_dispatch(AVND_CB *cb, uns32 flag)
 	mbcsv_arg.info.dispatch.i_disp_flags = flag;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSv dispatch failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -904,7 +887,7 @@ uns32 avnd_send_ckpt_data(AVND_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns3
 	 * Now send this update.
 	 */
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSv send data failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -937,7 +920,7 @@ static uns32 avnd_mbcsv_close_ckpt(AVND_CB *cb)
 	mbcsv_arg.info.close.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSv checkpoint close failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -969,7 +952,7 @@ static uns32 avnd_mbcsv_finalize(AVND_CB *cb)
 	mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSV finalize failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1004,7 +987,7 @@ uns32 avnd_mbcsv_obj_set(AVND_CB *cb, uns32 obj, uns32 val)
 	mbcsv_arg.info.obj_set.i_val = val;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSV object set failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1028,14 +1011,14 @@ uns32 avnd_mbcsv_obj_set(AVND_CB *cb, uns32 obj, uns32 val)
 static uns32 avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	AVND_ASYNC_UPDT_MSG_QUEUE *updt_msg;
+	TRACE_ENTER();
 
-	m_AVND_AVND_ENTRY_LOG("avnd_enqueue_async_update_msgs", NULL, 0, 0, 0, 0);
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
 	if (NULL == (updt_msg = calloc(1, sizeof(AVND_ASYNC_UPDT_MSG_QUEUE)))) {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_CR("calloc failed for AVND_ASYNC_UPDT_MSG_QUEUE");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1049,6 +1032,7 @@ static uns32 avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_msgs.tail = (updt_msg);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1072,7 +1056,7 @@ uns32 avnd_dequeue_async_update_msgs(AVND_CB *cb, NCS_BOOL pr_or_fr)
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVND_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_dequeue_async_update_msgs,pr_or_fr", NULL, pr_or_fr, 0, 0, 0);
+	TRACE_ENTER2("%u",pr_or_fr);
 
 	/*
 	 * This is a FIFO queue. Remove first message first entered in the 
@@ -1093,6 +1077,7 @@ uns32 avnd_dequeue_async_update_msgs(AVND_CB *cb, NCS_BOOL pr_or_fr)
 	/* All messages are dequeued. Set tail to NULL */
 	cb->async_updt_msgs.tail = NULL;
 
+	TRACE_LEAVE();
 	return status;
 }
 
@@ -1114,7 +1099,7 @@ uns32 avnd_send_data_req(AVND_CB *cb)
 	NCS_MBCSV_ARG mbcsv_arg;
 	NCS_UBAID *uba = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_send_data_req", NULL, 0, 0, 0, 0);
+	TRACE_ENTER();
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -1128,10 +1113,11 @@ uns32 avnd_send_data_req(AVND_CB *cb)
 	mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		LOG_ER("MBCSV send data req failed");
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1155,7 +1141,7 @@ static uns32 avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_validate_reo_type_in_csync", NULL, 0, 0, 0, 0);
+	TRACE_ENTER();
 
 	switch (reo_type) {
 	case AVND_CKPT_HLT_CONFIG:
@@ -1262,6 +1248,7 @@ static uns32 avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type)
 		return NCSCC_RC_SUCCESS;
 	}
 
+	TRACE_LEAVE();
 	return status;
 }
 
@@ -1287,18 +1274,19 @@ uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 	TRACE_ENTER();
 
 	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb))
+	if (!m_AVND_CB_IS_AVD_UP(cb)){
+		LOG_IN("AVD is not up yet");
 		return NCSCC_RC_FAILURE;
+	}
 
 	info = &evt->info.avd->msg_info.d2n_role_change_info;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avd_role_change_msg():Comp,MsgId,NodeId, role rcvd and role present are",
-			      NULL, info->msg_id, info->node_id, info->role, cb->avail_state_avnd);
+	TRACE("MsgId: %u,NodeId:%u, role rcvd:%u role present:%u",\
+			      info->msg_id, info->node_id, info->role, cb->avail_state_avnd);
 
 	if ((info->msg_id != 0) && (info->msg_id != (cb->rcv_msg_id + 1))) {
-		/* Log Error */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+		LOG_EM("%s Message id mismatch: %u",__FUNCTION__, info->msg_id);
 		return rc;
 	}
 
@@ -1311,11 +1299,9 @@ uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) && (SA_AMF_HA_QUIESCED == info->role)) {
-		m_AVND_AVND_SUCC_LOG("SA_AMF_HA_QUIESCED role received", NULL, 0, 0, 0, 0);
+		TRACE_1("SA_AMF_HA_QUIESCED role received");
 		if (NCSCC_RC_SUCCESS != (rc = avnd_mds_set_vdest_role(cb, V_DEST_RL_QUIESCED))) {
-			m_AVND_LOG_INVALID_VAL_FATAL(rc);
-			m_AVND_AVND_ERR_LOG("avnd_mds_set_vdest_role returned failure, Comp and role are", NULL,
-					    info->role, 0, 0, 0);
+			LOG_ER("avnd_mds_set_vdest_role returned failure, role:%u",info->role);
 			return rc;
 		}
 		return rc;
@@ -1325,20 +1311,19 @@ uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (cb->avail_state_avnd == SA_AMF_HA_ACTIVE) {
 		mds_role = V_DEST_RL_ACTIVE;
-		m_AVND_AVND_SUCC_LOG("SA_AMF_HA_ACTIVE role received", NULL, 0, 0, 0, 0);
+		TRACE_1("SA_AMF_HA_ACTIVE role received");
 	} else {
 		mds_role = V_DEST_RL_STANDBY;
-		m_AVND_AVND_SUCC_LOG("SA_AMF_HA_STANDBY role received", NULL, 0, 0, 0, 0);
+		TRACE_1("SA_AMF_HA_STANDBY role received");
 	}
 
 	if (NCSCC_RC_SUCCESS != (rc = avnd_mds_set_vdest_role(cb, mds_role))) {
-		m_AVND_LOG_INVALID_VAL_FATAL(rc);
-		m_AVND_AVND_ERR_LOG("avnd_mds_set_vdest_role returned failure", NULL, 0, 0, 0, 0);
+		TRACE_1("avnd_mds_set_vdest_role returned failure");
 		return rc;
 	}
 
 	if (NCSCC_RC_SUCCESS != (rc = avnd_set_mbcsv_ckpt_role(cb, info->role))) {
-		m_AVND_LOG_INVALID_VAL_FATAL(rc);
+		LOG_ER("avnd_set_mbcsv_ckpt_role failed");
 		return rc;
 	}
 
@@ -1352,7 +1337,7 @@ uns32 avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* We need to start all the timers, which were running on ACT. */
 		rc = avnd_ha_state_act_hdlr(cb);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVND_LOG_INVALID_VAL_FATAL(rc);
+			LOG_ER("avnd_ha_state_act_hdlr failed");
 		}
 	}
 
@@ -1564,17 +1549,16 @@ uns32 avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
 		cb->avail_state_avnd = SA_AMF_HA_QUIESCED;
 
 		if (NCSCC_RC_SUCCESS != (rc = avnd_set_mbcsv_ckpt_role(cb, cb->avail_state_avnd))) {
-			m_AVND_LOG_INVALID_VAL_FATAL(rc);
+			LOG_ER("avnd_set_mbcsv_ckpt_role failed");
 			goto error;
 		}
 		cb->is_quisced_set = FALSE;
-		m_AVND_AVND_SUCC_LOG("mbcsv role set to SA_AMF_HA_QUIESCED", NULL, 0, 0, 0, 0);
+		TRACE_1("mbcsv role set to SA_AMF_HA_QUIESCED");
 		return rc;
 	}
 
 error:
-	m_AVND_AVND_ERR_LOG("avnd_evt_ha_state_change:evt_type,ha_state,cb->is_quisced_set,rc are", NULL,
-			    evt->type, ha_state_event->ha_state, cb->is_quisced_set, rc);
+	TRACE("evt_type:%u, ha_state:%u ,cb->is_quisced_set:%u, rc:%u are",evt->type, ha_state_event->ha_state, cb->is_quisced_set, rc);
 
 	TRACE_LEAVE();
 	return rc;
@@ -1601,8 +1585,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 	AVND_COMP *comp = NULL;
 	AVND_COMP_HC_REC *comp_hc = NULL;
 	AVND_COMP_CBK *comp_cbk = NULL;
-
-	m_AVND_AVND_ENTRY_LOG("avnd_ha_state_act_hdlr", NULL, 0, 0, 0, 0);
+	TRACE_ENTER();
 
 /******************  Starting SU Timers  *******************************/
 	{
@@ -1622,7 +1605,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					/* Encode failed!!! */
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
+					LOG_ER("%s,%u,encode failed,ret:%u",__FUNCTION__,__LINE__,rc);
 					return rc;
 				}
 
@@ -1643,7 +1626,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 				}
 
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
+					LOG_ER("proxied comp reg start failed");
 					return rc;
 				}
 
@@ -1658,7 +1641,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 				}
 
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
+					LOG_ER("proxied comp inst start failed");
 					return rc;
 				}
 
@@ -1673,7 +1656,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 					}
 
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
+						LOG_ER("Healthcheck timer start failed");
 						return rc;
 					}
 				}
@@ -1692,7 +1675,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 					}
 
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
+						LOG_ER("component callback response timer start failed");
 						return rc;
 					}
 				}
@@ -1704,5 +1687,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 		}		/* while(comp != 0) */
 	}
 /******************  Starting Component Timers ends here ********************/
+
+	TRACE_LEAVE();
 	return rc;
 }

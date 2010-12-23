@@ -112,8 +112,8 @@ uns32 avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_start():Comp,Hdl,InvType and Err Rcvr are",
-				    &hc_start->comp_name, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr.raw, 0);
+		LOG_ER("avnd_evt_ava_hc_start():%s:Hdl=%llx,InvType: %u, Err Rcvr:%u",\
+				    hc_start->comp_name.value, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr.raw);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -170,8 +170,7 @@ uns32 avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_stop():Comp and Hdl are",
-				    &hc_stop->comp_name, hc_stop->hdl, 0, 0, 0);
+		LOG_ER("avnd_evt_ava_hc_stop():%s : Hdl:%llx",hc_stop->comp_name.value, hc_stop->hdl);
 	}
 
 	TRACE_LEAVE();
@@ -230,8 +229,8 @@ uns32 avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_confirm():Comp, Hdl and hc_res are",
-				    &hc_confirm->comp_name, hc_confirm->hdl, hc_confirm->hc_res, 0, 0);
+		LOG_ER("avnd_evt_ava_hc_confirm():%s: Hdl=%llx, hc_res=%u",\
+				    hc_confirm->comp_name.value, hc_confirm->hdl, hc_confirm->hc_res);
 	}
 
 	TRACE_LEAVE();

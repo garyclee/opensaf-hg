@@ -16,9 +16,6 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-   Vinay Khanna
 
 ..............................................................................
 
@@ -142,6 +139,7 @@ static SaAisErrorT avnd_compglobalattrs_config_get(void)
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
 	SaNameT dn = {.value = "safRdn=compGlobalAttributes,safApp=safAmfService" };
+	TRACE_ENTER();
 
 	dn.length = strlen((char *)dn.value);
 
@@ -152,7 +150,7 @@ static SaAisErrorT avnd_compglobalattrs_config_get(void)
 		goto done;
 	}
 
-	avnd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
+	TRACE_1("'%s'", dn.value);
 
 	if (immutil_getAttr("saAmfNumMaxInstantiateWithoutDelay", attributes, 0,
 			    &comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay) != SA_AIS_OK) {
@@ -184,6 +182,7 @@ static SaAisErrorT avnd_compglobalattrs_config_get(void)
 	rc = SA_AIS_OK;
 
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -202,6 +201,7 @@ uns32 avnd_compdb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
@@ -211,10 +211,11 @@ uns32 avnd_compdb_init(AVND_CB *cb)
 	params.key_size = sizeof(SaNameT);
 	rc = ncs_patricia_tree_init(&cb->compdb, &params);
 	if (NCSCC_RC_SUCCESS == rc)
-		m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CREATE, AVND_LOG_COMP_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+		TRACE("Component DB init succes");
 	else
-		m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CREATE, AVND_LOG_COMP_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
+		LOG_CR("Component DB init failed");
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -234,6 +235,7 @@ uns32 avnd_compdb_destroy(AVND_CB *cb)
 {
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* scan & delete each comp */
 	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0))) {
@@ -252,11 +254,12 @@ uns32 avnd_compdb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_DESTROY, AVND_LOG_COMP_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+	TRACE_LEAVE2("Component DB destroy success");
 	return rc;
 
  err:
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_DESTROY, AVND_LOG_COMP_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
+	LOG_CR("Component DB destroy failed");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -283,6 +286,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 	SaNameT su_name;
 
 	*rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* verify if this component is already present in the db */
 	if (0 != m_AVND_COMPDB_REC_GET(cb->compdb, info->name)) {
@@ -504,7 +508,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 	} else
 		m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_ADD, AVND_LOG_COMP_DB_SUCCESS, &info->name, 0, NCSFL_SEV_NOTICE);
+	TRACE_LEAVE2("Added record %s to component DB",info->name.value);
 	avnd_hc_config_get(comp);
 	return comp;
 
@@ -519,7 +523,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 		avnd_comp_delete(comp);
 	}
 
-	m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_ADD, AVND_LOG_COMP_DB_FAILURE, &info->name, 0, NCSFL_SEV_CRITICAL);
+	LOG_CR("Failed to Add record %s to component DB",info->name.value);
 	return 0;
 }
 
@@ -876,9 +880,12 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 {
 	int arg_counter;
 	char *argv;
+	TRACE_ENTER2("'%s'", compt->name.value);
 
-	if (!compt)
+	if (!compt) {
+		TRACE_LEAVE();
 		return;
+	}
 
 	/* Free saAmfCtDefCmdEnv[i] before freeing saAmfCtDefCmdEnv */
         if (compt->saAmfCtDefCmdEnv != NULL) {
@@ -926,6 +933,7 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 	free(compt->saAmfCtDefAmStopCmdArgv);
 
 	free(compt);
+	TRACE_LEAVE();
 }
 
 static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
@@ -936,6 +944,7 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 	unsigned int j;
 	const char *str;
 	const SaImmAttrValuesT_2 **attributes;
+	TRACE_ENTER2("'%s'", dn->value);
 
 	if ((compt = calloc(1, sizeof(amf_comp_type_t))) == NULL) {
 		LOG_ER("%s: calloc FAILED for '%s'", __FUNCTION__, dn->value);
@@ -1064,11 +1073,13 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 
+	TRACE_LEAVE();
 	return compt;
 }
 
 static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 {
+	TRACE_ENTER2("'%s', %u", comp->name.value, category);
 	AVSV_COMP_TYPE_VAL comptype = avsv_amfcompcategory_to_avsvcomptype(category);
 
 	assert(comptype != AVSV_COMP_TYPE_INVALID);
@@ -1110,6 +1121,7 @@ static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 		assert(0);
 		break;
 	}
+	TRACE_LEAVE();
 }
 
 static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const SaNameT *dn, SaStringT *str)
@@ -1120,6 +1132,7 @@ static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT a
 	SaImmAttrNameT attributeNames[2] = {attrName, NULL};
 	const char *s;
 	SaAisErrorT error;
+	TRACE_ENTER();
 
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
@@ -1138,7 +1151,7 @@ static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT a
 
 done:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1155,6 +1168,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 	int i, j;
 	AVND_COMP_CLC_CMD_PARAM *cmd;
 	const char *argv;
+	TRACE_ENTER();
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1];
 	if (comptype->saAmfCtRelPathInstantiateCmd != NULL) {
@@ -1262,6 +1276,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
 		TRACE("cmd=%s", cmd->cmd);
 	}
+	TRACE_LEAVE();
 }
 
 /**
@@ -1617,7 +1632,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &comp_name,
 		(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		avnd_log(NCSFL_SEV_NOTICE, "'%s'", comp_name.value);
+		TRACE_1("'%s'", comp_name.value);
 		if(0 == m_AVND_COMPDB_REC_GET(avnd_cb->compdb, comp_name)) {
 			if ((comp = avnd_comp_create(&comp_name, attributes, su)) == NULL)
 				goto done2;
@@ -1647,6 +1662,7 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	int res = -1;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
+	TRACE_ENTER();
 
 	/*
 	** If the component configuration is not valid (e.g. comptype has been
@@ -1657,7 +1673,7 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	if (comp->config_is_valid)
 		return 0;
 
-	TRACE_ENTER2("%s", comp->name.value);
+	TRACE_1("%s", comp->name.value);
 
 	(void)immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
 
