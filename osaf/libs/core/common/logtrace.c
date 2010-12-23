@@ -45,6 +45,7 @@ static char *prefix_name[] = { "EM", "AL", "CR", "ER", "WA", "NO", "IN", "DB",
 
 static const char *ident;
 static const char *pathname;
+static int logmask;
 
 /**
  * USR2 signal handler to enable/disable trace (toggle)
@@ -60,6 +61,23 @@ static void sigusr2_handler(int sig)
 		trace_mask = 0;
 
 	trace_category_set(trace_mask);
+}
+
+/**
+ * HUP signal handler to toggle info log level on/off
+ * @param sig
+ */
+static void sighup_handler(int sig)
+{
+	if ((logmask & LOG_MASK(LOG_INFO)) & LOG_MASK(LOG_INFO)) {
+		logmask = LOG_UPTO(LOG_NOTICE);
+		syslog(LOG_NOTICE, "logtrace: info level disabled");
+	} else {
+		logmask = LOG_UPTO(LOG_INFO);
+		syslog(LOG_NOTICE, "logtrace: info level enabled");
+	}
+
+	setlogmask(logmask);
 }
 
 static void output(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap)
@@ -140,13 +158,13 @@ void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
 	va_end(ap);
 }
 
-int logtrace_init(const char *_ident, const char *_pathname, unsigned int mask)
+int logtrace_init(const char *_ident, const char *_pathname, unsigned int _mask)
 {
 	ident = _ident;
 	pathname = strdup(_pathname);
-	category_mask = mask;
+	category_mask = _mask;
 
-	if (mask != 0) {
+	if (_mask != 0) {
 		trace_fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (trace_fd < 0) {
 			syslog(LOG_ERR, "logtrace: open failed, file=%s (%s)", pathname, strerror(errno));
@@ -156,15 +174,26 @@ int logtrace_init(const char *_ident, const char *_pathname, unsigned int mask)
 		syslog(LOG_INFO, "logtrace: trace enabled to file %s, mask=0x%x", pathname, category_mask);
 	}
 
-	/* Only install signal for opensaf daemons */
-	if (strncmp(PKGLOGDIR, _pathname, strlen(PKGLOGDIR)) == 0) {
-		if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-			syslog(LOG_ERR, "logtrace: registering trace toggle SIGUSR2 failed, (%s)", strerror(errno));
-			return -1;
-		}
+	return 0;
+}
+
+int logtrace_init_daemon(const char *_ident, const char *_pathname, unsigned int _tracemask, int _logmask)
+{
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "logtrace: registering SIGUSR2 failed, (%s)", strerror(errno));
+		return -1;
 	}
 
-	return 0;
+	setlogmask(_logmask);
+
+	if (signal(SIGHUP, sighup_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "logtrace: registering SIGHUP failed, (%s)", strerror(errno));
+		return -1;
+	}
+
+	logmask = _logmask;
+
+	return logtrace_init(_ident, _pathname, _tracemask);
 }
 
 int trace_category_set(unsigned int mask)

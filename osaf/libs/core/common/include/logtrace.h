@@ -74,6 +74,23 @@ extern "C" {
 extern int logtrace_init(const char *ident, const char *pathname, unsigned int mask);
 
 /**
+ * logtrace_init_daemon - Initialize the logtrace system for daemons
+ * 
+ * @param ident An identity string to be prepended to every message. Typically
+ * set to the program name.
+ * @param pathname The pathname parameter should contain a valid
+ * path name for a file if tracing is to be enabled. The user must have write
+ * access to that file. If the file already exist, it is appended. If the file
+ * name is not valid, no tracing is performed.
+ * @param tracemask The initial trace mask. Should be set set to zero by
+ *             default (trace disabled)
+ * @param logmask The initial log level to be set for log filtering.
+ * 
+ * @return int - 0 if OK, -1 otherwise
+ */
+extern int logtrace_init_daemon(const char *ident, const char *pathname, unsigned int tracemask, int logmask);
+
+/**
  * trace_category_set - Set the mask used for trace filtering.
  * 
  * In libraries the category mask is typically set (to all ones) after a
