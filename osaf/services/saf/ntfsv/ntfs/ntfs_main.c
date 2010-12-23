@@ -213,11 +213,6 @@ static uns32 initialize()
 
 	initAdmin();
 	
-	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
-		LOG_NO("I am ACTIVE");
-	if (ntfs_cb->ha_state == SA_AMF_HA_STANDBY)
-		LOG_NO("I am STANDBY");
-	
 done:
 	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");

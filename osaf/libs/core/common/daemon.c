@@ -258,4 +258,6 @@ void daemonize(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}*/
+
+	syslog(LOG_NOTICE, "Started");
 }

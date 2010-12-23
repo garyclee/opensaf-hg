@@ -205,8 +205,6 @@ void avnd_main_process(void)
 #endif
 	(void) nid_notify("AMFND", NCSCC_RC_SUCCESS, NULL);
 
-	LOG_NO("Started");
-
 	/* now wait forever */
 	while (1) {
 		int ret = poll(fds, nfds, -1);
