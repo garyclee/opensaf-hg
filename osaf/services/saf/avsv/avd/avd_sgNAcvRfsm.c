@@ -78,7 +78,7 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *avd_sg, AVD_SI *avd_si,
  * 
  **************************************************************************/
 
-static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
+AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *i_su, *qualified_su;
 	AVD_SI *i_si;
