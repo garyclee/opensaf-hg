@@ -106,7 +106,6 @@ enable_coredump() {
 final_clean() {
 	# Loop throught all the OpenSAF LSB CLC-CLI scripts to clean staling pid/lock
 	if [ "$MDS_TRANSPORT" = "TCP" ] ; then
-		pkill -9 osaf-dtm* >/dev/null 2>&1
 		pkill -9 dh_monitoring* >/dev/null 2>&1
 	fi
 	for cmd in `ls $pkgclcclidir/osaf-*`; do
@@ -228,7 +227,6 @@ stop() {
 	logger -t $prog "Stopping the OpenSAF HA Framework"
 
 	if [ "$MDS_TRANSPORT" = "TCP" ] ; then
-		pkill -9 osaf-dtm* >/dev/null 2>&1
 		pkill -9 dh_monitoring* >/dev/null 2>&1
 	fi
 
