@@ -476,15 +476,16 @@ int main(int argc, char *argv[])
 				rc = SA_AIS_ERR_NO_RESOURCES;
 
 			if (rc == SA_AIS_ERR_NOT_EXIST) {
-				LOG_ER("Node : %s is Not a member of cluster",
+				LOG_ER("%s is Not a member of cluster",
 				       o_msg->info.api_resp_info.param.node_name.value);
 				free(o_msg);
 				goto done;
 			}
 
 			if (rc == SA_AIS_OK)
-				LOG_NO("Node : %s has Joined the cluster",
-				       o_msg->info.api_resp_info.param.node_name.value);
+				LOG_NO("%s Joined cluster, nodeid=%x",
+					o_msg->info.api_resp_info.param.node_name.value,
+					node_info.node_id);
 
 			if (o_msg != NULL) 
 					free(o_msg);
@@ -495,6 +496,5 @@ int main(int argc, char *argv[])
 
  done:
 	(void)nid_notify("CLMNA", rc, NULL);
-	LOG_NO("node name:%s, node ID:%x,exiting", node_info.node_name.value, node_info.node_id);
 	return 0;
 }

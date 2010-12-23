@@ -261,10 +261,7 @@ static uns32 log_initialize(void)
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		LOG_NO("I am ACTIVE");
 	}
-	else
-		LOG_NO("I am STANDBY");
 
 done:
 	if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {

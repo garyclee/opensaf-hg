@@ -960,7 +960,6 @@ uns32 spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 
 	/* Fork based on the application type, executable, script or daemon */
 	while (retry) {
-		LOG_NO("Starting the %s service", service->serv_name);
 		pid = (fork_funcs[service->app_type])
 			(service, service->s_name, service->serv_args, strbuff);
 
