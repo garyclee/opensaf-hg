@@ -36,8 +36,9 @@
 #include <saImmOm.h>
 
 #include "avsv.h"
-#include "ncs_log.h"
-#include "dta_papi.h"
+#include "ncs_main_papi.h"
+#include "ncssysf_def.h"
+#include "ncssysf_tsk.h"
 #include "logtrace.h"
 
 /* Porting Include Files */
@@ -66,7 +67,6 @@
 #include "avnd_util.h"
 #include "avnd_clm.h"
 #include "avnd_cb.h"
-#include "avnd_log.h"
 #include "avnd_proxy.h"
 #include "avnd_ckpt_updt.h"
 #include "avnd_ckpt_msg.h"

@@ -830,7 +830,6 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %{_bindir}/amf-adm
 %{_bindir}/amf-find
 %{_bindir}/amf-state
-%{_pkglibdir}/libavsv_logstr.so.*
 %{_pkglibdir}/osafamfd
 %{_pkgclcclidir}/osaf-amfd
 %{_pkgimmxml_svcdir}/avsv_classes.xml

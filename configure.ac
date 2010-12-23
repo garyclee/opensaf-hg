@@ -698,7 +698,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
         osaf/services/saf/avsv/config/Makefile
-        osaf/services/saf/avsv/logstr/Makefile
         osaf/services/saf/avsv/avd/Makefile
         osaf/services/saf/avsv/avd/include/Makefile
         osaf/services/saf/avsv/avd/scripts/Makefile
