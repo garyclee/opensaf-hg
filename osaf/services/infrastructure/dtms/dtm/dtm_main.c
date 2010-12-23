@@ -252,7 +252,9 @@ int main(int argc, char *argv[])
 		goto done3;
 	}
 
-	if ((rc = dtm_read_config(dtms_cb, DTM_CONFIG_FILE))) {
+	rc = dtm_read_config(dtms_cb, DTM_CONFIG_FILE);
+
+	if (rc != 0) {
 
 		LOG_ER("DTM:Error reading %s.  errno = %d", DTM_CONFIG_FILE, rc);
 		goto done3;
