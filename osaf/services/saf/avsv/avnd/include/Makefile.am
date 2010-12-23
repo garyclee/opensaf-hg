@@ -29,8 +29,6 @@ noinst_HEADERS = \
    avnd_evt.h \
    avnd.h \
    avnd_hc.h \
-   avnd_log.h \
-   avnd_logstr.h \
    avnd_mds.h \
    avnd_mon.h \
    avnd_pg.h \
