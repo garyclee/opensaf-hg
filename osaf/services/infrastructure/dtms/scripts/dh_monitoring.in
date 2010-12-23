@@ -1,3 +1,5 @@
+#!/bin/sh
+
 prog="osafdtmd"
 ECHO="echo -e"
 SHUTDOWN="/sbin/shutdown"
