@@ -253,7 +253,6 @@ const AVND_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avnd_enc_cold_sync_rsp_data_func_l
 \**************************************************************************/
 uns32 avnd_encode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_data_sync_rsp", NULL, 0, 0, 0, 0);
 	return avnd_entire_data_update(cb, enc, FALSE);
 }
 
@@ -339,7 +338,6 @@ static uns32 avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	AVND_SU *su;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_su_config", NULL, 0, 0, 0, 0);
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -352,7 +350,6 @@ static uns32 avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Encode failed!!! */
-				m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -384,7 +381,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	AVND_COMP *comp;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_comp_config", NULL, 0, 0, 0, 0);
 
 	/* NOTE    :    1. All external components are proxied components.
 	   2. All Components in internode_avail_comp_db are proxy 
@@ -413,7 +409,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Log Error */
-				m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -433,7 +428,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Log Error */
-				m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -467,7 +461,6 @@ static uns32 avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	AVND_SU_SI_REC *rel;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_su_si_rec", NULL, 0, 0, 0, 0);
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 	while (su != 0) {
@@ -480,7 +473,6 @@ static uns32 avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 				if (status != NCSCC_RC_SUCCESS) {
 					/* Encode failed!!! */
-					m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -515,7 +507,6 @@ static uns32 avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	AVND_SU_SIQ_REC *siq;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_siq_rec", NULL, 0, 0, 0, 0);
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 	while (su != 0) {
@@ -528,7 +519,6 @@ static uns32 avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 				if (status != NCSCC_RC_SUCCESS) {
 					/* Encode failed!!! */
-					m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -563,7 +553,6 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	AVND_COMP_CSI_REC *csi = NULL;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_csi_rec", NULL, 0, 0, 0, 0);
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 	while (su != 0) {
@@ -585,7 +574,6 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 					if (status != NCSCC_RC_SUCCESS) {
 						/* Encode failed!!! */
-						m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 						return NCSCC_RC_FAILURE;
 					}
 
@@ -620,7 +608,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 	AVND_COMP_HC_REC *comp_hc = NULL;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_comp_hlt_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Walk through the entire list and send the entire list data.
@@ -639,7 +626,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 				if (status != NCSCC_RC_SUCCESS) {
 					/* Log Error */
-					m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -674,7 +660,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 	AVND_COMP_CBK *comp_cbk = NULL;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_comp_cbk_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Walk through the entire list and send the entire list data.
@@ -692,7 +677,6 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 				if (status != NCSCC_RC_SUCCESS) {
 					/* Log Error */
-					m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -726,7 +710,6 @@ static uns32 avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	AVND_HC *hc_config;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_hlt_config", NULL, 0, 0, 0, 0);
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -739,7 +722,6 @@ static uns32 avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Encode failed!!! */
-				m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -767,7 +749,6 @@ static uns32 avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 \**************************************************************************/
 uns32 avnd_encode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp", NULL, 0, 0, 0, 0);
 
 	return avnd_entire_data_update(cb, enc, TRUE);
 }
@@ -800,7 +781,6 @@ uns32 avnd_encode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		 cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt,
 		 cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	/*
 	 * Encode and send latest async update counts. (In the same manner we sent
@@ -812,7 +792,6 @@ uns32 avnd_encode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -838,7 +817,6 @@ static uns32 avnd_encode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_cold_sync_rsp_async_updt_cnt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Encode and send async update counts for all the data structures.
@@ -849,7 +827,6 @@ static uns32 avnd_encode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -874,7 +851,6 @@ static uns32 avnd_encode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_hlt_config", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -899,13 +875,11 @@ static uns32 avnd_encode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -930,7 +904,6 @@ static uns32 avnd_encode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_config", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -955,13 +928,11 @@ static uns32 avnd_encode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -986,7 +957,6 @@ static uns32 avnd_encode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_config", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1011,13 +981,11 @@ static uns32 avnd_encode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1042,7 +1010,6 @@ static uns32 avnd_encode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_si_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1068,13 +1035,11 @@ static uns32 avnd_encode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1099,7 +1064,6 @@ static uns32 avnd_encode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_siq_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1125,13 +1089,11 @@ static uns32 avnd_encode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1156,7 +1118,6 @@ static uns32 avnd_encode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_csi_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1183,13 +1144,11 @@ static uns32 avnd_encode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1214,7 +1173,6 @@ static uns32 avnd_encode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_hlt_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1241,13 +1199,11 @@ static uns32 avnd_encode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1272,7 +1228,6 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cbk_rec", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -1298,13 +1253,11 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -1329,7 +1282,6 @@ static uns32 avnd_encode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_hc_period", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1342,11 +1294,9 @@ static uns32 avnd_encode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1372,7 +1322,6 @@ static uns32 avnd_encode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_hc_max_dur", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1385,11 +1334,9 @@ static uns32 avnd_encode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1415,7 +1362,6 @@ static uns32 avnd_encode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_flag_change", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1428,11 +1374,9 @@ static uns32 avnd_encode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1458,7 +1402,6 @@ static uns32 avnd_encode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_err_esc_level", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1471,11 +1414,9 @@ static uns32 avnd_encode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1501,7 +1442,6 @@ static uns32 avnd_encode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_comp_restart_prob", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1514,11 +1454,9 @@ static uns32 avnd_encode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1544,7 +1482,6 @@ static uns32 avnd_encode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_comp_restart_max", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1557,11 +1494,9 @@ static uns32 avnd_encode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1587,7 +1522,6 @@ static uns32 avnd_encode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_restart_prob", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1600,11 +1534,9 @@ static uns32 avnd_encode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1630,7 +1562,6 @@ static uns32 avnd_encode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_restart_max", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1643,11 +1574,9 @@ static uns32 avnd_encode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1673,7 +1602,6 @@ static uns32 avnd_encode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_comp_restart_cnt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1686,11 +1614,9 @@ static uns32 avnd_encode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1716,7 +1642,6 @@ static uns32 avnd_encode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_restart_cnt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1729,11 +1654,9 @@ static uns32 avnd_encode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1759,7 +1682,6 @@ static uns32 avnd_encode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_err_esc_tmr", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1772,11 +1694,9 @@ static uns32 avnd_encode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1802,7 +1722,6 @@ static uns32 avnd_encode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_oper_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1815,11 +1734,9 @@ static uns32 avnd_encode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1845,7 +1762,6 @@ static uns32 avnd_encode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_pres_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1858,11 +1774,9 @@ static uns32 avnd_encode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1888,7 +1802,6 @@ static uns32 avnd_encode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_flag_change", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1901,11 +1814,9 @@ static uns32 avnd_encode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1931,7 +1842,6 @@ static uns32 avnd_encode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_reg_hdl", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1944,11 +1854,9 @@ static uns32 avnd_encode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -1974,7 +1882,6 @@ static uns32 avnd_encode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_reg_dest", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -1987,11 +1894,9 @@ static uns32 avnd_encode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2017,7 +1922,6 @@ static uns32 avnd_encode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_oper_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2030,11 +1934,9 @@ static uns32 avnd_encode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2060,7 +1962,6 @@ static uns32 avnd_encode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_pres_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2073,11 +1974,9 @@ static uns32 avnd_encode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2103,7 +2002,6 @@ static uns32 avnd_encode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_EN
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_term_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2116,11 +2014,9 @@ static uns32 avnd_encode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2146,7 +2042,6 @@ static uns32 avnd_encode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_set_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2159,11 +2054,9 @@ static uns32 avnd_encode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2189,7 +2082,6 @@ static uns32 avnd_encode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_quies_cmplt_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2202,11 +2094,9 @@ static uns32 avnd_encode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2232,7 +2122,6 @@ static uns32 avnd_encode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_rmv_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2245,11 +2134,9 @@ static uns32 avnd_encode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2275,7 +2162,6 @@ static uns32 avnd_encode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_pxied_inst_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2288,11 +2174,9 @@ static uns32 avnd_encode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2318,7 +2202,6 @@ static uns32 avnd_encode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_pxied_clean_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2331,11 +2214,9 @@ static uns32 avnd_encode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2361,7 +2242,6 @@ static uns32 avnd_encode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_err_info", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2374,11 +2254,9 @@ static uns32 avnd_encode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2404,7 +2282,6 @@ static uns32 avnd_encode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_def_recovery", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2417,11 +2294,9 @@ static uns32 avnd_encode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2447,7 +2322,6 @@ static uns32 avnd_encode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_pend_evt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2460,11 +2334,9 @@ static uns32 avnd_encode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2490,7 +2362,6 @@ static uns32 avnd_encode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_orph_tmr", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2503,11 +2374,9 @@ static uns32 avnd_encode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2533,7 +2402,6 @@ static uns32 avnd_encode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_node_id", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2546,11 +2414,9 @@ static uns32 avnd_encode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2576,7 +2442,6 @@ static uns32 avnd_encode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_type", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2589,11 +2454,9 @@ static uns32 avnd_encode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2619,7 +2482,6 @@ static uns32 avnd_encode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_mds_ctxt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2632,11 +2494,9 @@ static uns32 avnd_encode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2662,7 +2522,6 @@ static uns32 avnd_encode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_EN
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_reg_resp_pending", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2675,11 +2534,9 @@ static uns32 avnd_encode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2705,7 +2562,6 @@ static uns32 avnd_encode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_cmd", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2718,11 +2574,9 @@ static uns32 avnd_encode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2748,7 +2602,6 @@ static uns32 avnd_encode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_term_cmd", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2761,11 +2614,9 @@ static uns32 avnd_encode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2791,7 +2642,6 @@ static uns32 avnd_encode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2804,11 +2654,9 @@ static uns32 avnd_encode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2834,7 +2682,6 @@ static uns32 avnd_encode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_term_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2847,11 +2694,9 @@ static uns32 avnd_encode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC *e
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2877,7 +2722,6 @@ static uns32 avnd_encode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_retry_max", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2890,11 +2734,9 @@ static uns32 avnd_encode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2920,7 +2762,6 @@ static uns32 avnd_encode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_retry_cnt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2933,11 +2774,9 @@ static uns32 avnd_encode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -2963,7 +2802,6 @@ static uns32 avnd_encode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_exec_cmd", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -2976,11 +2814,9 @@ static uns32 avnd_encode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3006,7 +2842,6 @@ static uns32 avnd_encode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cmd_exec_ctxt", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3019,11 +2854,9 @@ static uns32 avnd_encode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3049,7 +2882,6 @@ static uns32 avnd_encode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_cmd_ts", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3062,11 +2894,9 @@ static uns32 avnd_encode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3092,7 +2922,6 @@ static uns32 avnd_encode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_clc_reg_tmr", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3105,11 +2934,9 @@ static uns32 avnd_encode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3135,7 +2962,6 @@ static uns32 avnd_encode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_inst_code_rcvd", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3148,11 +2974,9 @@ static uns32 avnd_encode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3178,7 +3002,6 @@ static uns32 avnd_encode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_E
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_proxy_proxied_add", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3191,11 +3014,9 @@ static uns32 avnd_encode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_E
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3221,7 +3042,6 @@ static uns32 avnd_encode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_E
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_proxy_proxied_del", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3234,11 +3054,9 @@ static uns32 avnd_encode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_E
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3264,7 +3082,6 @@ static uns32 avnd_encode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_si_rec_curr_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3278,11 +3095,9 @@ static uns32 avnd_encode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3308,7 +3123,6 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_si_rec_prv_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3322,11 +3136,9 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3352,7 +3164,6 @@ static uns32 avnd_encode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_si_rec_curr_assign_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3366,11 +3177,9 @@ static uns32 avnd_encode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3396,7 +3205,6 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_su_si_rec_prv_assign_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3410,11 +3218,9 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3440,7 +3246,6 @@ static uns32 avnd_encode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_E
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_act_comp_name", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3454,11 +3259,9 @@ static uns32 avnd_encode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_E
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3484,7 +3287,6 @@ static uns32 avnd_encode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_trans_desc", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3498,11 +3300,9 @@ static uns32 avnd_encode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3528,7 +3328,6 @@ static uns32 avnd_encode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_EN
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_standby_rank", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3542,11 +3341,9 @@ static uns32 avnd_encode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3572,7 +3369,6 @@ static uns32 avnd_encode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_curr_assign_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3586,11 +3382,9 @@ static uns32 avnd_encode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3616,7 +3410,6 @@ static uns32 avnd_encode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_prv_assign_state", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3630,11 +3423,9 @@ static uns32 avnd_encode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3660,7 +3451,6 @@ static uns32 avnd_encode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_hc_rec_status", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3674,11 +3464,9 @@ static uns32 avnd_encode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3704,7 +3492,6 @@ static uns32 avnd_encode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_hc_rec_tmr", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3718,11 +3505,9 @@ static uns32 avnd_encode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3748,7 +3533,6 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cbk_rec_amf_hdl", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3762,11 +3546,9 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3792,7 +3574,6 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cbk_rec_mds", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3806,11 +3587,9 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3836,7 +3615,6 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cbk_rec_tmr", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3850,11 +3628,9 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 
@@ -3880,7 +3656,6 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_cbk_rec_timeout", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log
@@ -3894,11 +3669,9 @@ static uns32 avnd_encode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		}
 	} else {
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(enc->io_reo_type);
 		status = NCSCC_RC_FAILURE;
 	}
 

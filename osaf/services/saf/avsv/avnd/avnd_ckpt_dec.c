@@ -258,7 +258,6 @@ uns32 avnd_decode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uns32 num_of_obj;
 	uns8 *ptr;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Since at decode we need to find out how many objects of particular data
@@ -297,7 +296,6 @@ uns32 avnd_decode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uns32 num_of_obj;
 	uns8 *ptr;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_data_sync_rsp", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Since at decode we need to find out how many objects of particular data
@@ -339,7 +337,6 @@ static uns32 avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	AVND_SU *su_ptr = NULL;
 	AVND_SU dec_su;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp_su_config", NULL, 0, 0, 0, 0);
 
 	su_ptr = &dec_su;
 
@@ -351,7 +348,6 @@ static uns32 avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -397,7 +393,6 @@ static uns32 avnd_decode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -445,7 +440,6 @@ static uns32 avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -490,7 +484,6 @@ static uns32 avnd_decode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -526,7 +519,6 @@ static uns32 avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP_CSI_REC *csi_ptr_dec;
 	AVND_COMP_CSI_REC dec_csi;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp_csi_rec", NULL, 0, 0, 0, 0);
 
 	csi_ptr_dec = &dec_csi;
 
@@ -538,7 +530,6 @@ static uns32 avnd_decode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -585,7 +576,6 @@ static uns32 avnd_decode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DE
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -621,7 +611,6 @@ static uns32 avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DE
 	AVND_COMP_CBK *cbk_ptr;
 	AVND_COMP_CBK cbk_info;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp_comp_cbk_rec", NULL, 0, 0, 0, 0);
 
 	cbk_ptr = &cbk_info;
 
@@ -632,7 +621,6 @@ static uns32 avnd_decode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DE
 					    dec->i_peer_version);
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -668,7 +656,6 @@ static uns32 avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_HC dec_hlt;
 	uns32 count = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp_hlt_config", NULL, 0, 0, 0, 0);
 
 	hlt_ptr = &dec_hlt;
 
@@ -682,7 +669,6 @@ static uns32 avnd_decode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 		if (status != NCSCC_RC_SUCCESS) {
 			/* Encode failed!!! */
-			m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 			return status;
 		}
 
@@ -718,7 +704,6 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	EDU_ERR ederror = 0;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_warm_sync_rsp", NULL, 0, 0, 0, 0);
 
 	updt_cnt = &dec_updt_cnt;
 
@@ -731,7 +716,6 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
@@ -740,7 +724,6 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 updt_cnt->hlth_config_updt, updt_cnt->su_updt, updt_cnt->comp_updt, updt_cnt->su_si_updt,
 		 updt_cnt->siq_updt, updt_cnt->csi_updt, updt_cnt->comp_hlth_rec_updt, updt_cnt->comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
@@ -750,7 +733,6 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt,
 		 cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	/*
 	 * Compare the update counts of the Standby with Active.
@@ -775,7 +757,6 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 */
 		if (NCSCC_RC_SUCCESS != avnd_send_data_req(cb)) {
 			/* Log error */
-			m_AVND_LOG_INVALID_VAL_FATAL(dec->i_msg_type);
 		}
 
 		status = NCSCC_RC_FAILURE;
@@ -803,7 +784,6 @@ uns32 avnd_decode_data_req(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	/*
 	 * Don't decode anything...just return success.
 	 */
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_data_req", NULL, 0, 0, 0, 0);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -828,7 +808,6 @@ static uns32 avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_
 	AVND_ASYNC_UPDT_CNT *updt_cnt;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_cold_sync_rsp_async_updt_cnt", NULL, 0, 0, 0, 0);
 
 	updt_cnt = &cb->avnd_async_updt_cnt;
 	/*
@@ -839,7 +818,6 @@ static uns32 avnd_decode_cold_sync_rsp_async_updt_cnt(AVND_CB *cb, NCS_MBCSV_CB_
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
 	return status;
@@ -866,7 +844,6 @@ static uns32 avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_HC dec_hlt_config;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_hlt_config", NULL, 0, 0, 0, 0);
 
 	hlt_config_ptr = &dec_hlt_config;
 
@@ -893,13 +870,11 @@ static uns32 avnd_decode_ckpt_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -933,7 +908,6 @@ static uns32 avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_config", NULL, 0, 0, 0, 0);
 
 	su_ptr = &dec_su;
 
@@ -960,13 +934,11 @@ static uns32 avnd_decode_ckpt_su_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1000,7 +972,6 @@ static uns32 avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_config", NULL, 0, 0, 0, 0);
 
 	comp_ptr = &dec_comp;
 
@@ -1027,13 +998,11 @@ static uns32 avnd_decode_ckpt_comp_config(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1067,7 +1036,6 @@ static uns32 avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU_SI_REC dec_su_si;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_si_rec", NULL, 0, 0, 0, 0);
 
 	su_si_ptr = &dec_su_si;
 
@@ -1094,13 +1062,11 @@ static uns32 avnd_decode_ckpt_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1135,7 +1101,6 @@ static uns32 avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU_SI_PARAM *su_si_param_ptr = NULL;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_siq_rec", NULL, 0, 0, 0, 0);
 
 	siq_ptr = &dec_siq;
 	su_si_param_ptr = &(dec_siq.info);
@@ -1164,13 +1129,11 @@ static uns32 avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1204,7 +1167,6 @@ static uns32 avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP_CSI_REC dec_csi;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_csi_rec", NULL, 0, 0, 0, 0);
 
 	csi_ptr = &dec_csi;
 
@@ -1232,13 +1194,11 @@ static uns32 avnd_decode_ckpt_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1272,7 +1232,6 @@ static uns32 avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP_HC_REC dec_comp_hc;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_hlt_rec", NULL, 0, 0, 0, 0);
 
 	comp_hc_ptr = &dec_comp_hc;
 
@@ -1300,13 +1259,11 @@ static uns32 avnd_decode_ckpt_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1340,7 +1297,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP_CBK dec_comp_cbk;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cbk_rec", NULL, 0, 0, 0, 0);
 
 	comp_cbk_ptr = &dec_comp_cbk;
 
@@ -1367,13 +1323,11 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -1408,7 +1362,6 @@ static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_HC dec_hc;
 	AVND_HC *hc_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_hc_period", NULL, 0, 0, 0, 0);
 
 	hc_ptr = &dec_hc;
 
@@ -1421,13 +1374,11 @@ static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
 	if (NULL == hc_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1461,7 +1412,6 @@ static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_HC dec_hc;
 	AVND_HC *hc_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_hc_max_dur", NULL, 0, 0, 0, 0);
 
 	hc_ptr = &dec_hc;
 
@@ -1474,13 +1424,11 @@ static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
 	if (NULL == hc_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1514,7 +1462,6 @@ static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_flag_change", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1527,13 +1474,11 @@ static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1567,7 +1512,6 @@ static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_err_esc_level", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1580,13 +1524,11 @@ static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1620,7 +1562,6 @@ static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_comp_restart_prob", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1633,13 +1574,11 @@ static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1673,7 +1612,6 @@ static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_comp_restart_max", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1686,13 +1624,11 @@ static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1726,7 +1662,6 @@ static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_restart_prob", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1739,13 +1674,11 @@ static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1779,7 +1712,6 @@ static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_restart_max", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1792,13 +1724,11 @@ static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1832,7 +1762,6 @@ static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_comp_restart_cnt", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1845,13 +1774,11 @@ static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1885,7 +1812,6 @@ static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_restart_cnt", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1898,13 +1824,11 @@ static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1938,7 +1862,6 @@ static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_err_esc_tmr", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -1951,13 +1874,11 @@ static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1992,7 +1913,6 @@ static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_oper_state", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -2005,13 +1925,11 @@ static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2045,7 +1963,6 @@ static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_SU dec_su;
 	AVND_SU *su_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_pres_state", NULL, 0, 0, 0, 0);
 
 	su_dec_ptr = &dec_su;
 
@@ -2058,13 +1975,11 @@ static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2098,7 +2013,6 @@ static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_flag_change", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2111,13 +2025,11 @@ static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2151,7 +2063,6 @@ static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_reg_hdl", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2164,13 +2075,11 @@ static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2204,7 +2113,6 @@ static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_reg_dest", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2217,13 +2125,11 @@ static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2257,7 +2163,6 @@ static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_oper_state", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2270,13 +2175,11 @@ static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2310,7 +2213,6 @@ static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_pres_state", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2323,13 +2225,11 @@ static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2363,7 +2263,6 @@ static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DE
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_term_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2376,13 +2275,11 @@ static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DE
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2416,7 +2313,6 @@ static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_set_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2429,13 +2325,11 @@ static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2469,7 +2363,6 @@ static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2482,13 +2375,11 @@ static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2522,7 +2413,6 @@ static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_rmv_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2535,13 +2425,11 @@ static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2575,7 +2463,6 @@ static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_pxied_inst_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2588,13 +2475,11 @@ static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2628,7 +2513,6 @@ static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_pxied_clean_cbk_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2641,13 +2525,11 @@ static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2681,7 +2563,6 @@ static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_err_info", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2694,13 +2575,11 @@ static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2737,7 +2616,6 @@ static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_def_recovery", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2750,13 +2628,11 @@ static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2790,7 +2666,6 @@ static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_pend_evt", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2803,13 +2678,11 @@ static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2843,7 +2716,6 @@ static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_orph_tmr", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2856,13 +2728,11 @@ static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2896,7 +2766,6 @@ static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_node_id", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2909,13 +2778,11 @@ static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2949,7 +2816,6 @@ static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_type", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -2962,13 +2828,11 @@ static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3002,7 +2866,6 @@ static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_mds_ctxt", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3015,13 +2878,11 @@ static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3056,7 +2917,6 @@ static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DE
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_reg_resp_pending", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3069,13 +2929,11 @@ static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DE
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3109,7 +2967,6 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_cmd", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3122,13 +2979,11 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3168,7 +3023,6 @@ static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_term_cmd", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3181,13 +3035,11 @@ static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3227,7 +3079,6 @@ static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3240,13 +3091,11 @@ static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3281,7 +3130,6 @@ static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_term_timeout", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3294,13 +3142,11 @@ static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3335,7 +3181,6 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_retry_max", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3348,13 +3193,11 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3388,7 +3231,6 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_retry_cnt", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3401,13 +3243,11 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3441,7 +3281,6 @@ static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_exec_cmd", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3454,13 +3293,11 @@ static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3494,7 +3331,6 @@ static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cmd_exec_ctxt", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3507,13 +3343,11 @@ static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3547,7 +3381,6 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_cmd_ts", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3560,13 +3393,11 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3600,7 +3431,6 @@ static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_clc_reg_tmr", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3613,13 +3443,11 @@ static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3654,7 +3482,6 @@ static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_COMP dec_comp;
 	AVND_COMP *comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_inst_code_rcvd", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3667,13 +3494,11 @@ static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3708,7 +3533,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
 	AVND_COMP *comp_rec = NULL;
 	AVND_COMP *pxy_comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_add", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3721,7 +3545,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -3732,11 +3555,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
 	   In case 1. => Search comp in EXT_COMPDB_REC and proxy in COMPDB_REC.
 	   In case 2. => Search comp in COMPDB_REC and proxy in EXT_COMPDB_REC.
 	 */
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_add, comp, len, comp type",
-			      &comp_dec_ptr->name, comp_dec_ptr->name.length, comp_dec_ptr->comp_type, 0, 0);
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_add, Pxy comp, len, comp type",
-			      &comp_dec_ptr->proxy_comp_name,
-			      comp_dec_ptr->proxy_comp_name.length, comp_dec_ptr->comp_type, 0, 0);
 
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp_dec_ptr)) {
 		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name);
@@ -3748,13 +3566,11 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	status = avnd_comp_proxied_add(cb, comp_rec, pxy_comp_rec, FALSE);
 	if (NCSCC_RC_SUCCESS != status) {
-		m_AVND_LOG_INVALID_VAL_FATAL(status);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3787,7 +3603,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
 	AVND_COMP *comp_rec = NULL;
 	AVND_COMP *pxy_comp_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_del", NULL, 0, 0, 0, 0);
 
 	comp_dec_ptr = &dec_comp;
 
@@ -3800,7 +3615,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
@@ -3811,11 +3625,6 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
 	   In case 1. => Search comp in EXT_COMPDB_REC and proxy in COMPDB_REC.
 	   In case 2. => Search comp in COMPDB_REC and proxy in EXT_COMPDB_REC.
 	 */
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_del, comp, len, comp type",
-			      &comp_dec_ptr->name, comp_dec_ptr->name.length, comp_dec_ptr->comp_type, 0, 0);
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_del, Pxy comp, len, comp type",
-			      &comp_dec_ptr->proxy_comp_name,
-			      comp_dec_ptr->proxy_comp_name.length, comp_dec_ptr->comp_type, 0, 0);
 
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp_dec_ptr)) {
 		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name);
@@ -3827,13 +3636,11 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
-		m_AVND_LOG_INVALID_VAL_FATAL(0);
 		return NCSCC_RC_FAILURE;
 	}
 
 	status = avnd_comp_proxied_del(cb, comp_rec, pxy_comp_rec, FALSE, NULL);
 	if (NCSCC_RC_SUCCESS != status) {
-		m_AVND_LOG_INVALID_VAL_FATAL(status);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3865,7 +3672,6 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	AVND_SU_SI_REC dec_su_si;
 	AVND_SU_SI_REC *su_si_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_si_rec_curr_state", NULL, 0, 0, 0, 0);
 
 	su_si_dec_ptr = &dec_su_si;
 
@@ -3878,13 +3684,11 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3918,7 +3722,6 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_SU_SI_REC dec_su_si;
 	AVND_SU_SI_REC *su_si_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_si_rec_prv_state", NULL, 0, 0, 0, 0);
 
 	su_si_dec_ptr = &dec_su_si;
 
@@ -3931,13 +3734,11 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3971,7 +3772,6 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
 	AVND_SU_SI_REC dec_su_si;
 	AVND_SU_SI_REC *su_si_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_si_rec_curr_assign_state", NULL, 0, 0, 0, 0);
 
 	su_si_dec_ptr = &dec_su_si;
 
@@ -3984,13 +3784,11 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4024,7 +3822,6 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 	AVND_SU_SI_REC dec_su_si;
 	AVND_SU_SI_REC *su_si_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_su_si_rec_prv_assign_state", NULL, 0, 0, 0, 0);
 
 	su_si_dec_ptr = &dec_su_si;
 
@@ -4037,13 +3834,11 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4077,7 +3872,6 @@ static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_D
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_act_comp_name", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4090,13 +3884,11 @@ static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_D
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4130,7 +3922,6 @@ static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_trans_desc", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4143,13 +3934,11 @@ static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4183,7 +3972,6 @@ static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DE
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_standby_rank", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4196,13 +3984,11 @@ static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DE
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4236,7 +4022,6 @@ static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_curr_assign_state", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4249,13 +4034,11 @@ static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4289,7 +4072,6 @@ static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_prv_assign_state", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4302,13 +4084,11 @@ static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4344,7 +4124,6 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	AVND_COMP_HC_REC tmp_hc_rec;
 	AVND_COMP_HC_REC dec_comp_hc;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_hc_rec_status", NULL, 0, 0, 0, 0);
 
 	comp_hc_dec_ptr = &dec_comp_hc;
 
@@ -4357,13 +4136,11 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4374,7 +4151,6 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
 
 	if (NULL == comp_hc_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4410,7 +4186,6 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVND_COMP_HC_REC tmp_hc_rec;
 	AVND_COMP_HC_REC dec_comp_hc;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_hc_rec_tmr", NULL, 0, 0, 0, 0);
 
 	comp_hc_dec_ptr = &dec_comp_hc;
 
@@ -4423,13 +4198,11 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4440,7 +4213,6 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
 
 	if (NULL == comp_hc_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4475,7 +4247,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	AVND_COMP *comp = NULL;
 	AVND_COMP_CBK dec_comp_cbk;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cbk_rec_amf_hdl", NULL, 0, 0, 0, 0);
 
 	comp_cbk_dec_ptr = &dec_comp_cbk;
 
@@ -4488,13 +4259,11 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4515,7 +4284,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	}
 
 	if (NULL == comp_cbk_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4550,7 +4318,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP *comp = NULL;
 	AVND_COMP_CBK dec_comp_cbk;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cbk_rec_mds", NULL, 0, 0, 0, 0);
 
 	comp_cbk_dec_ptr = &dec_comp_cbk;
 
@@ -4563,13 +4330,11 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4590,7 +4355,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	if (NULL == comp_cbk_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4625,7 +4389,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	AVND_COMP *comp = NULL;
 	AVND_COMP_CBK dec_comp_cbk;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cbk_rec_tmr", NULL, 0, 0, 0, 0);
 
 	comp_cbk_dec_ptr = &dec_comp_cbk;
 
@@ -4638,13 +4401,11 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4665,7 +4426,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	if (NULL == comp_cbk_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4700,7 +4460,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	AVND_COMP *comp = NULL;
 	AVND_COMP_CBK dec_comp_cbk;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_cbk_rec_timeout", NULL, 0, 0, 0, 0);
 
 	comp_cbk_dec_ptr = &dec_comp_cbk;
 
@@ -4713,13 +4472,11 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return status;
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4740,7 +4497,6 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	}
 
 	if (NULL == comp_cbk_rec) {
-		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 

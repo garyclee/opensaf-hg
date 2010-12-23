@@ -64,8 +64,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 
 	su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su->name);
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_data. SU, Dec action, su_ptr",
-			      &su->name, action, NCS_PTR_TO_INT32_CAST(su_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -81,11 +79,9 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 				su_info.is_ncs = FALSE;	/*External component is not part of NCS */
 				su_ptr = avnd_sudb_rec_add(cb, &su_info, &rc);
 				if (NULL == su_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 			/* Don't put break here, let the other parameters get updated. */
@@ -112,7 +108,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 				su_ptr->si_active_cnt = su->si_active_cnt;
 				su_ptr->si_standby_cnt = su->si_standby_cnt;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -123,11 +118,9 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 			if (NULL != su_ptr) {
 				status = avnd_sudb_rec_del(cb, &su_ptr->name);
 				if (NCSCC_RC_SUCCESS != status) {
-					m_AVND_LOG_INVALID_VAL_FATAL(status);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -135,7 +128,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -168,11 +160,7 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_si_rec. SI, Dec action",
-			      &su_si_ckpt->name, action, 0, 0, 0);
 	su_si_rec_ptr = avnd_su_si_rec_get(cb, &su_si_ckpt->su_name, &su_si_ckpt->name);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_si_rec. SU, Dec action, su_si_rec_ptr",
-			      &su_si_ckpt->su_name, action, NCS_PTR_TO_INT32_CAST(su_si_rec_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -183,16 +171,13 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 				info.si_name = su_si_ckpt->name;
 				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name);
 				if (NULL == su_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 				su_si_rec_ptr = avnd_su_si_rec_add(cb, su_ptr, &info, &rc);
 				if (NULL == su_si_rec_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -209,7 +194,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 				su_si_rec_ptr->curr_assign_state = su_si_ckpt->curr_assign_state;
 				su_si_rec_ptr->prv_assign_state = su_si_ckpt->prv_assign_state;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -220,7 +204,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 			if (NULL != su_si_rec_ptr) {
 				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name);
 				if (NULL == su_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 				/* Delete the CSI first. */
@@ -228,13 +211,11 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 					     (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&su_si_rec_ptr->csi_list))) {
 					rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
 						return NCSCC_RC_FAILURE;
 					}
 					/* remove from the si-csi list */
 					rc = m_AVND_SU_SI_CSI_REC_REM(*su_si_rec_ptr, *csi_rec);
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
 						return NCSCC_RC_FAILURE;
 					}
 					/* free the csi attributes */
@@ -248,13 +229,11 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 				/* Now delete the SU_SI record */
 				rc = m_AVND_SUDB_REC_SI_REM(*su_ptr, *su_si_rec_ptr);
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 				free(su_si_rec_ptr);
 			} /*if (NULL != su_si_rec_ptr) */
 			else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -262,7 +241,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -293,25 +271,20 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 	AVND_SU *su_ptr;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_siq_rec. SU, Dec action",
-			      &su_siq_ckpt->info.su_name, action, 0, 0, 0);
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
 			if (NULL != su_siq_ckpt) {
 				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name);
 				if (NULL == su_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 
 				siq_ptr = avnd_su_siq_rec_add(cb, su_ptr, &su_siq_ckpt->info, &rc);
 				if (NULL == siq_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(siq_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_siq_ckpt);
 				return NCSCC_RC_FAILURE;
 			}
 			break;
@@ -321,7 +294,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 		{
 			su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name);
 			if (NULL == su_ptr) {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -333,7 +305,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 
 				avnd_su_siq_rec_del(cb, su_ptr, siq_ptr);
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_siq_ckpt);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -341,7 +312,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -384,8 +354,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 	} else
 		comp_ptr = m_AVND_COMPDB_REC_GET(cb->compdb, comp->name);
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_data. Comp, Dec action, comp_ptr, Comp Type",
-			      &comp->name, action, NCS_PTR_TO_INT32_CAST(comp_ptr), comp->comp_type, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -399,7 +367,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 					/* For internode too, we are expecting some update, so continue
 					   to mbcsv update section. */
 				} else {
-					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -420,7 +387,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 					comp_info.cap = comp->cap;
 					comp_ptr = avnd_compdb_rec_add(cb, &comp_info, &status);
 					if (NULL == comp_ptr) {
-						m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 						return NCSCC_RC_FAILURE;
 					}
 					comp_ptr->node_id = comp->node_id;
@@ -444,19 +410,16 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 						    m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db,
 										  comp->proxy_comp_name);
 						if (NULL == pxy_comp) {
-							m_AVND_LOG_INVALID_VAL_FATAL(pxy_comp);
 							return NCSCC_RC_FAILURE;
 						}
 						status = avnd_comp_proxied_add(cb, comp_ptr, pxy_comp, FALSE);
 						if (NCSCC_RC_SUCCESS != status) {
-							m_AVND_LOG_INVALID_VAL_FATAL(status);
 							return NCSCC_RC_FAILURE;
 						}
 
 					}	/* memcmp() */
 				} /* if (NULL == comp_ptr) */
 				else {
-					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			}	/*if(!m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) */
@@ -526,7 +489,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 				comp_ptr->orph_tmr.is_active = comp->orph_tmr.is_active;
 				comp_ptr->proxy_comp_name = comp->proxy_comp_name;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -540,7 +502,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 									 &(cb->internode_avail_comp_db),
 									 &(comp->name));
 				else {
-					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -549,12 +510,10 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 				if (NULL != comp_ptr) {
 					status = avnd_compdb_rec_del(cb, &comp->name);
 				} else {
-					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 
 				if (NCSCC_RC_SUCCESS != status) {
-					m_AVND_LOG_INVALID_VAL_FATAL(status);
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -563,7 +522,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -597,16 +555,6 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 
 	su_si_rec = avnd_su_si_rec_get(cb, &csi->su_name, &csi->si_name);
 	csi_ptr = avnd_compdb_csi_rec_get(cb, &csi->comp_name, &csi->name);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. CSI, Dec action, su_si_rec, csi_ptr",
-			      &csi->name, action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr),
-			      0);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SU, Dec action, su_si_rec, csi_ptr", &csi->su_name,
-			      action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. Comp, Dec action, su_si_rec, csi_ptr",
-			      &csi->comp_name, action, NCS_PTR_TO_INT32_CAST(su_si_rec),
-			      NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SI, Dec action, su_si_rec, csi_ptr", &csi->si_name,
-			      action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -620,16 +568,13 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 				csi_param.attrs.list = csi->attrs.list;
 				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name);
 				if (NULL == su) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su);
 					return NCSCC_RC_FAILURE;
 				}
 				csi_ptr = avnd_mbcsv_su_si_csi_rec_add(cb, su, su_si_rec, &csi_param, &rc);
 				if (NULL == csi_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(csi_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -649,7 +594,6 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 				csi_ptr->curr_assign_state = csi->curr_assign_state;
 				csi_ptr->prv_assign_state = csi->prv_assign_state;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(csi_ptr);
 			}
 		}
 		break;
@@ -661,16 +605,13 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 			if ((NULL != csi_ptr) && (NULL != su_si_rec)) {
 				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name);
 				if (NULL == su) {
-					m_AVND_LOG_INVALID_VAL_FATAL(su);
 					return NCSCC_RC_FAILURE;
 				}
 				rc = avnd_mbcsv_su_si_csi_rec_del(cb, su, su_si_rec, csi_ptr);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(csi_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -678,7 +619,6 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -710,8 +650,6 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 
 	hlt_ptr = avnd_hcdb_rec_get(cb, &hlt->key);
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_hlt_data. Comp, Dec Action, hlt_ptr",
-			      &hlt->key.comp_name, action, NCS_PTR_TO_INT32_CAST(hlt_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -724,11 +662,9 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 				hc_info.is_ext = hlt->is_ext;
 				hlt_ptr = avnd_hcdb_rec_add(cb, &hc_info, &rc);
 				if (!hlt_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(hlt_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(hlt_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -737,7 +673,6 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 	case NCS_MBCSV_ACT_UPDATE:
 		{
 			if (NULL == hlt_ptr) {
-				m_AVND_LOG_INVALID_VAL_FATAL(hlt_ptr);
 				return NCSCC_RC_FAILURE;
 			} else {
 				hlt_ptr->period = hlt->period;
@@ -748,7 +683,6 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 	case NCS_MBCSV_ACT_RMV:
 		{
 			if (NULL == hlt_ptr) {
-				m_AVND_LOG_INVALID_VAL_FATAL(hlt_ptr);
 				return NCSCC_RC_FAILURE;
 			} else {
 				avnd_hcdb_rec_del(cb, &hlt_ptr->key);
@@ -757,7 +691,6 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 		}
 
 	default:
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -794,14 +727,9 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 	/* determine if this healthcheck is already active */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, hlt->comp_name);
 	if (comp == NULL) {
-		m_AVND_LOG_INVALID_VAL_FATAL(comp);
 		return NCSCC_RC_FAILURE;
 	}
 	hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
-
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_hlt_rec, Comp, Dec action, comp, hc_rec",
-			      &hlt->comp_name, action, NCS_PTR_TO_INT32_CAST(comp), NCS_PTR_TO_INT32_CAST(hc_rec),
-			      0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -813,11 +741,9 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 				hc_info.hdl = hlt->req_hdl;
 				hc_rec = avnd_mbcsv_comp_hc_rec_add(cb, comp, &hc_info, &hlt->dest);
 				if (!hc_rec) {
-					m_AVND_LOG_INVALID_VAL_FATAL(hc_rec);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(hc_rec);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -835,7 +761,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 				hc_rec->dest = hlt->dest;
 				hc_rec->tmr.is_active = hlt->tmr.is_active;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(hc_rec);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -846,14 +771,12 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 			if ((NULL != hc_rec) && (NULL != comp)) {
 				avnd_mbcsv_comp_hc_rec_del(cb, comp, hc_rec);
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(hc_rec);
 				return NCSCC_RC_FAILURE;
 			}
 		}
 		break;
 
 	default:
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -884,11 +807,8 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, cbk->comp_name);
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_cbk_rec, Comp, Dec action, comp",
-			      &cbk->comp_name, action, NCS_PTR_TO_INT32_CAST(comp), 0, 0);
 
 	if (NULL == comp) {
-		m_AVND_LOG_INVALID_VAL_FATAL(comp);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -909,9 +829,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 		}
 	}
 
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_cbk_rec, Comp, Dec action, cbk_ptr",
-			      &comp->name, action, NCS_PTR_TO_INT32_CAST(cbk_ptr), 0, 0);
-
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
@@ -921,12 +838,10 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 				   are different here. */
 				cbk_ptr = avnd_comp_cbq_rec_add(cb, comp, cbk->cbk_info, &cbk->dest, cbk->timeout);
 				if (NULL == cbk_ptr) {
-					m_AVND_LOG_INVALID_VAL_FATAL(cbk_ptr);
 					return NCSCC_RC_FAILURE;
 				}
 				cbk_ptr->red_opq_hdl = cbk_ptr->opq_hdl;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(cbk_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -942,7 +857,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 				cbk_ptr->resp_tmr.is_active = cbk->resp_tmr.is_active;
 				cbk_ptr->cbk_info->hdl = cbk->cbk_info->hdl;
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(cbk_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -955,10 +869,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 				m_AVND_COMP_CBQ_REC_POP(comp, cbk_ptr, found);
 				if (found)
 					avnd_comp_cbq_rec_del(cb, comp, cbk_ptr);
-				else
-					m_AVND_LOG_INVALID_VAL_FATAL(found);
 			} else {
-				m_AVND_LOG_INVALID_VAL_FATAL(cbk_ptr);
 				return NCSCC_RC_FAILURE;
 			}
 		}
@@ -966,7 +877,6 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 
 	default:
 		/* Log error */
-		m_AVND_LOG_INVALID_VAL_FATAL(action);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -993,7 +903,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVND_AVND_ERR_LOG("avnd_ext_comp_data_clean_up", NULL, 0, 0, 0, 0);
 
   /****************** Destroy healthcheck db *********************************/
 	{
@@ -1008,7 +917,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 			if (TRUE == hc_config->is_ext) {
 				rc = avnd_hcdb_rec_del(cb, &hc_config->key);
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -1048,8 +956,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						    ncs_db_link_list_remove(&del_proxy->pxied_list,
 									    (uns8 *)&del_comp->name);
 						free(del_rec);
-						if (NCSCC_RC_SUCCESS != rc)
-							m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					}
 				}
 				rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
@@ -1079,13 +985,11 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
                                                                                                   csi_list))) {
 						rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
 						if (rc != NCSCC_RC_SUCCESS) {
-							m_AVND_LOG_INVALID_VAL_FATAL(rc);
 							return NCSCC_RC_FAILURE;
 						}
 						/* remove from the si-csi list */
 						rc = m_AVND_SU_SI_CSI_REC_REM(*curr_su_si, *csi_rec);
 						if (rc != NCSCC_RC_SUCCESS) {
-							m_AVND_LOG_INVALID_VAL_FATAL(rc);
 							return NCSCC_RC_FAILURE;
 						}
 						/* free the csi attributes */
@@ -1098,7 +1002,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					/* Now delete the SU_SI record */
 					rc = m_AVND_SUDB_REC_SI_REM(*su, *curr_su_si);
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
 						return NCSCC_RC_FAILURE;
 					}
 					free(curr_su_si);
@@ -1127,7 +1030,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					avnd_su_siq_rec_del(cb, su, su_siq);
 
 					if (rc != NCSCC_RC_SUCCESS) {
-						m_AVND_LOG_INVALID_VAL_FATAL(rc);
 						return NCSCC_RC_FAILURE;
 					}
 				}	/* while(0 != su_siq) */
@@ -1150,7 +1052,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				rc = avnd_compdb_rec_del(cb, &comp->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 			}	/* if(TRUE == comp->su->su_is_external) */
@@ -1172,7 +1073,6 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				rc = avnd_sudb_rec_del(cb, &su->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 			}	/* if(TRUE == su->su_is_external) */

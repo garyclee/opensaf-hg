@@ -133,8 +133,8 @@ uns32 avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 				rc = avnd_avnd_msg_send(cb, (uns8 *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVND_AVND_ERR_LOG("AvND Send Failure:Comp,Type,Hdl,Inv and Err are",
-							    &comp->name, api_info->type, qsc->hdl,
+					LOG_ER("%s,AvND Send Failure:%s,Type=%u,Hdl=%llu,Inv:%llu, Err:%u",__FUNCTION__,\
+							    comp->name.value, api_info->type, qsc->hdl,\
 							    qsc->inv, qsc->err);
 				}
 				goto done;
@@ -276,8 +276,8 @@ uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				rc = avnd_avnd_msg_send(cb, (uns8 *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVND_AVND_ERR_LOG("AvND Send Failure:Comp,Type,Hdl,Inv and Err are",
-							    &comp->name, api_info->type, resp->hdl,
+					LOG_ER("%s,AvND Send Failure:%s,Type:%u,Hdl:%llu,Inv:%llu, Err:%u",__FUNCTION__,\
+							    comp->name.value, api_info->type, resp->hdl,\
 							    resp->inv, resp->err);
 				}
 				goto done;
@@ -377,7 +377,7 @@ uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (SA_AIS_OK != resp->err) {
 			if (SA_AMF_HA_QUIESCED == cbk_rec->cbk_info->param.csi_set.ha) {
 				if (comp->su->is_ncs == TRUE) {
-					syslog(LOG_ERR, "%s got failure %u for qsd cbk", comp->name.value, resp->err);
+					LOG_ER("%s got failure %u for qsd cbk", comp->name.value, resp->err);
 				}
 
 				/* => quiesced assignment failed.. dont treat it as a comp failure */
@@ -507,7 +507,7 @@ uns32 avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* => quiesced assignment failed.. process it */
 		csi = m_AVND_COMPDB_REC_CSI_GET(*(rec->comp), rec->cbk_info->param.csi_set.csi_desc.csiName);
 
-		syslog(LOG_ERR, "%s got qsd cbk timeout", rec->comp->name.value);
+		LOG_ER("%s got qsd cbk timeout", rec->comp->name.value);
 
 		rc = avnd_comp_csi_qscd_assign_fail_prc(cb, rec->comp, csi);
 	} else if (AVSV_AMF_PXIED_COMP_INST == rec->cbk_info->type) {
@@ -530,7 +530,7 @@ uns32 avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			err_info.src = AVND_ERR_SRC_CBK_CSI_REM_TIMEOUT;
 			break;
 		default:
-			m_AVND_LOG_INVALID_VAL_FATAL(rec->cbk_info->type);
+			LOG_ER("%s,%u,type=%u",__FUNCTION__,__LINE__,rec->cbk_info->type);
 			err_info.src = AVND_ERR_SRC_CBK_CSI_SET_TIMEOUT;
 			break;
 		}
@@ -701,8 +701,8 @@ uns32 avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, N
 		i_to_dest = avnd_get_mds_dest_from_nodeid(cb, node_id);
 		rc = avnd_avnd_mds_send(cb, i_to_dest, &msg);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVND_AVND_ERR_LOG("avnd_comp_cbq_rec_send:Msg Send to AvND Failed:Comp and NodeId are",
-					    &comp->name, node_id, 0, 0, 0);
+			LOG_ER("avnd_comp_cbq_rec_send:Msg Send to AvND Failed:%s, %u",\
+					    comp->name.value, node_id);
 		}
 	} else {
 		/* send the message to AvA */

@@ -178,11 +178,8 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	}
 
  done:
-	/* log */
-	if (evt)
-		m_AVND_LOG_EVT(type, AVND_LOG_EVT_CREATE, AVND_LOG_EVT_SUCCESS, NCSFL_SEV_INFO);
-	else
-		m_AVND_LOG_EVT(type, AVND_LOG_EVT_CREATE, AVND_LOG_EVT_FAILURE, NCSFL_SEV_CRITICAL);
+	if (!evt)
+		LOG_ER("AvND event creation failed for evt type %u",type);
 
 	return evt;
 }
@@ -300,9 +297,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	/* free the avnd event */
 	free(evt);
 
-	/* log */
-	m_AVND_LOG_EVT(type, AVND_LOG_EVT_DESTROY, AVND_LOG_EVT_SUCCESS, NCSFL_SEV_INFO);
-
 	return;
 }
 
@@ -325,13 +319,8 @@ uns32 avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 
 	/* send the event */
 	m_AVSV_MBX_SEND(cb, evt, evt->priority, rc);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MBX(AVSV_LOG_MBX_SEND, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
-		m_AVND_LOG_EVT(type, AVND_LOG_EVT_SEND, AVND_LOG_EVT_FAILURE, NCSFL_SEV_CRITICAL);
-	} else {
-//		avnd_log(NCSFL_SEV_NOTICE, "%s", avnd_evt_type_name[type]);
-		m_AVND_LOG_EVT(type, AVND_LOG_EVT_SEND, AVND_LOG_EVT_SUCCESS, NCSFL_SEV_INFO);
-	}
+	if (NCSCC_RC_SUCCESS != rc)
+		LOG_CR("AvND send event to mailbox failed, type = %u",type);
 
 	return rc;
 }

@@ -429,8 +429,8 @@ uns32 avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_start():Comp,Hdl,pid,desc_tree_depth and pm_err are",
-				    &pm_start->comp_name, pm_start->hdl, pm_start->pid,
+		LOG_ER("avnd_evt_ava_pm_start():%s:Hdl=%llx,pid:%llu,desc_tree_depth:%u, pm_err:%u",\
+				    pm_start->comp_name.value, pm_start->hdl, pm_start->pid,\
 				    pm_start->desc_tree_depth, pm_start->pm_err);
 	}
 
@@ -489,8 +489,8 @@ uns32 avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_stop():Comp,Hdl,pid,stop_qual and pm_err are",
-				    &pm_stop->comp_name, pm_stop->hdl, pm_stop->pid,
+		LOG_ER("avnd_evt_ava_pm_stop():%s:Hdl=%llx,pid=%llu,stop_qual:%u, pm_err:%u",\
+				    pm_stop->comp_name.value, pm_stop->hdl, pm_stop->pid,\
 				    pm_stop->stop_qual, pm_stop->pm_err);
 	}
 

@@ -16,17 +16,10 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-   Vinay Khanna
-
-..............................................................................
 
   DESCRIPTION:
    This module deals with the creation, accessing and deletion of
    the SU database on the AVND.
-
-..............................................................................
 
   FUNCTIONS INCLUDED in this module:
 
@@ -57,9 +50,9 @@ uns32 avnd_sudb_init(AVND_CB *cb)
 	params.key_size = sizeof(SaNameT);
 	rc = ncs_patricia_tree_init(&cb->sudb, &params);
 	if (NCSCC_RC_SUCCESS == rc)
-		m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+		TRACE("SU DB create success");
 	else
-		m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
+		LOG_CR("SU DB create failed");
 
 	return rc;
 }
@@ -98,11 +91,11 @@ uns32 avnd_sudb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+	TRACE("SU DB destroy success");
 	return rc;
 
  err:
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
+	LOG_CR("SU DB destroy failed");
 	return rc;
 }
 
@@ -200,7 +193,6 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 		goto err;
 	}
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_SUCCESS, &info->name, 0, NCSFL_SEV_INFO);
 	return su;
 
  err:
@@ -210,7 +202,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 		free(su);
 	}
 
-	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_FAILURE, &info->name, 0, NCSFL_SEV_CRITICAL);
+	LOG_CR("SU DB record %s add failed", info->name.value);
 	TRACE_LEAVE();
 	return 0;
 }

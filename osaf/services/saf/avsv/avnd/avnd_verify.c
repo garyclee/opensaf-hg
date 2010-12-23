@@ -53,6 +53,7 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_PG *pg = 0;
 	SaNameT csi_name;
+	TRACE_ENTER();
 
 	memset(&csi_name, '\0', sizeof(SaNameT));
 
@@ -64,6 +65,8 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
 
 		csi_name = pg->csi_name;
 	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -88,11 +91,9 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rcv_id;
 	NCS_BOOL msg_found = FALSE;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("Data Verify message received from newly ACTIVE AVD");
 
 	info = &evt->info.avd->msg_info.d2n_data_verify;
-
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, AVND_LOG_FOVR_VERIFY_MSG_RCVD, NCSCC_RC_SUCCESS);
 
 	rcv_id = info->rcv_id_cnt;
 
@@ -101,9 +102,8 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;
 
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG, AVND_LOG_FOVR_AVD_SND_ID_CNT, info->snd_id_cnt);
-
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG, AVND_LOG_FOVR_AVND_RCV_ID_CNT, cb->rcv_msg_id);
+	TRACE_1("AVD send ID count: %u",info->snd_id_cnt);
+	TRACE_1("AVND receive ID count: %u",cb->rcv_msg_id);
 
 	/*
 	 * Verify message ID received in the message. Send Ack if send ID count
@@ -126,9 +126,8 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * retransmit queue for which message ID is greater than the received
 	 * send message ID.
 	 */
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG, AVND_LOG_FOVR_AVD_RCV_ID_CNT, info->rcv_id_cnt);
-
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG, AVND_LOG_FOVR_AVND_SND_ID_CNT, cb->snd_msg_id);
+	TRACE_1("AVD receive ID count: %u",info->rcv_id_cnt);
+	TRACE_1("AVND send ID count: %u", cb->snd_msg_id);
 
 	/* 
 	 * Send all the records in the queue, for which send ID is greater
@@ -149,14 +148,12 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 		if ((rcv_id + 1) > (*((uns32 *)(&rec->msg.info.avd->msg_info)))) {
 			/* pop & delete */
 			m_AVND_DIQ_REC_FIND_POP(cb, rec);
-			m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG,
-					      AVND_LOG_FOVR_REC_DEL, *((uns32 *)(&rec->msg.info.avd->msg_info)));
+			TRACE_1("AVND record %u deleted, upon fail-over", *((uns32 *)(&rec->msg.info.avd->msg_info)));
 			avnd_diq_rec_del(cb, rec);
 		} else {
 			avnd_diq_rec_send(cb, rec);
 
-			m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_DEBUG,
-					      AVND_LOG_FOVR_REC_SENT, *((uns32 *)(&rec->msg.info.avd->msg_info)));
+			TRACE_1("AVND record %u sent, upon fail-over", *((uns32 *)(&rec->msg.info.avd->msg_info)));
 
 			msg_found = TRUE;
 		}
@@ -171,7 +168,7 @@ uns32 avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if ((cb->snd_msg_id != info->rcv_id_cnt) && (msg_found == FALSE)) {
 		/* Log error, seems to be some problem. */
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_REC_NOT_FOUND, info->rcv_id_cnt);
+		LOG_EM("AVND record not found, after failover, receive id = %u",info->rcv_id_cnt);
 		return NCSCC_RC_FAILURE;
 	}
 

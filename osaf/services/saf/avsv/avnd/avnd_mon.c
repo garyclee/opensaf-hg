@@ -143,7 +143,7 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 			}
 		} else {
 			m_NCS_UNLOCK(&cb->mon_lock, NCS_LOCK_WRITE);
-			avnd_log(NCSFL_SEV_ERROR, "Memory Alloc Failed for MON_REQ structure");
+			LOG_ER("Memory Alloc Failed for MON_REQ structure");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -154,7 +154,7 @@ AVND_MON_REQ *avnd_mon_req_add(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 
 	m_NCS_UNLOCK(&cb->mon_lock, NCS_LOCK_WRITE);
 
-	avnd_log(NCSFL_SEV_NOTICE, "PID: %lld added for (passive) Monitoring", mon_req->pid);
+	TRACE_1("PID: %lld added for (passive) Monitoring", mon_req->pid);
 
 	/* PID monitoring task not yet created, so create */
 	if (gl_avnd_mon_task_hdl == 0) {
@@ -195,7 +195,7 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 
 	rc = ncs_db_link_list_del(pid_mon_list, (uns8 *)&pid);
 
-	avnd_log(NCSFL_SEV_NOTICE, "PID: %lld deleted from (passive) Monitoring", pid);
+	TRACE_1("PID: %lld deleted from (passive) Monitoring", pid);
 
 	mon_rec = (AVND_MON_REQ *) m_NCS_DBLIST_FIND_FIRST(pid_mon_list);
 
@@ -207,7 +207,7 @@ uns32 avnd_mon_req_del(AVND_CB *cb, SaUint64T pid)
 			m_NCS_TASK_RELEASE(gl_avnd_mon_task_hdl);
 			gl_avnd_mon_task_hdl = 0;
 
-			avnd_log(NCSFL_SEV_NOTICE, "Passive Monitoring thread was released");
+			TRACE_1("Passive Monitoring thread was released");
 		}
 	}
 
@@ -257,18 +257,18 @@ uns32 avnd_mon_task_create(void)
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
 			       "AVND_MON", m_AVND_TASK_PRIORITY, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
-		avnd_log(NCSFL_SEV_CRITICAL, "Passive Monitoring thread CREATE failed");
+		LOG_CR("Passive Monitoring thread CREATE failed");
 		goto err;
 	}
-	avnd_log(NCSFL_SEV_NOTICE, "Created Passive Monitoring thread");
+	TRACE_1("Created Passive Monitoring thread");
 
 	/* now start the task */
 	rc = m_NCS_TASK_START(gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
-		avnd_log(NCSFL_SEV_CRITICAL, "Passive Monitoring thread START failed");
+		LOG_CR("Passive Monitoring thread START failed");
 		goto err;
 	}
-	avnd_log(NCSFL_SEV_NOTICE, "Started Passive Monitoring thread");
+	TRACE_1("Started Passive Monitoring thread");
 
 	return rc;
 
@@ -309,9 +309,9 @@ uns32 avnd_send_pid_exit_evt(AVND_CB *cb, AVND_COMP_PM_REC *pm_rec)
 	}
 
 	if (rc == NCSCC_RC_SUCCESS) {
-		avnd_log(NCSFL_SEV_NOTICE, "Sent PM (PID: %lld) Exit event", pm_rec->pid);
+		TRACE_1("Sent PM (PID: %lld) Exit event", pm_rec->pid);
 	} else {
-		avnd_log(NCSFL_SEV_ERROR, "Failed to send PM (PID: %lld) exit event", pm_rec->pid);
+		LOG_ER("Failed to send PM (PID: %lld) exit event", pm_rec->pid);
 	}
 
 	return rc;
@@ -345,8 +345,7 @@ void avnd_mon_pids(AVND_CB *cb)
 
 		if (mon_rec->pm_rec == NULL) {
 			/* Should not happen, LOG the err message */
-			avnd_log(NCSFL_SEV_ERROR,
-				 "Weird issue, PID (%lld) monitor rec doesn't have context of PM record", mon_rec->pid);
+			LOG_ER("Weird issue, PID (%lld) monitor rec doesn't have context of PM record", mon_rec->pid);
 			continue;
 		}
 
@@ -355,7 +354,7 @@ void avnd_mon_pids(AVND_CB *cb)
 			break;
 		
 		case EPERM:
-			avnd_log(NCSFL_SEV_ERROR, "PM not able send signal to PID: %lld", mon_rec->pid);
+			LOG_ER("PM not able send signal to PID: %lld", mon_rec->pid);
 			break;
 
 		case ESRCH:	/* process died */

@@ -86,7 +86,7 @@ static int get_node_type(void)
                         type = AVSV_AVND_CARD_PAYLOAD;
 		}
                 else {
-                        syslog(LOG_ERR, "Unknown node type %s", buf);
+                        LOG_ER("Unknown node type %s", buf);
                         type = AVSV_AVND_CARD_PAYLOAD;
                 }
         } else {
@@ -120,9 +120,7 @@ uns32 avnd_create(void)
 {
 	AVND_CB *cb = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* register with dtsv */
-	rc = avnd_log_reg();
+	TRACE_ENTER();
 
 	/* create & initialize AvND cb */
 	cb = avnd_cb_create();
@@ -157,6 +155,7 @@ done:
 	if (NCSCC_RC_SUCCESS != rc)
 		avnd_destroy();
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -180,6 +179,7 @@ uns32 avnd_destroy()
 {
 	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
         /* stop clm tracking and finalize */
         avnd_clm_stop();
@@ -200,9 +200,7 @@ uns32 avnd_destroy()
 	 */
 
 done:
-	/* unregister with DTSv */
-	rc = avnd_log_unreg();
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -227,7 +225,7 @@ AVND_CB *avnd_cb_create()
 	SaVersionT immVersion = { 'A', 2, 1 };
 	char *val;
 
-	m_AVND_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
+	TRACE_ENTER();
 
 	/* assign the AvND pool-id (used by hdl-mngr) */
 	cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -258,7 +256,7 @@ AVND_CB *avnd_cb_create()
 
 	/* initialize the AvND cb lock */
 	m_NCS_LOCK_INIT(&cb->lock);
-	m_AVND_LOG_LOCK(AVSV_LOG_LOCK_INIT, AVSV_LOG_LOCK_SUCCESS, NCSFL_SEV_INFO);
+	TRACE_1("Initialized the AvND lock");
 
 	/* initialize the PID monitor lock */
 	m_NCS_LOCK_INIT(&cb->mon_lock);
@@ -302,18 +300,18 @@ AVND_CB *avnd_cb_create()
 	rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
 	if (rc != SA_AIS_OK) {
 		/* log the error code here */
-		avnd_log(NCSFL_SEV_ERROR, "saNtfInitialize Failed (%u)", rc);
+		LOG_ER("saNtfInitialize Failed (%u)", rc);
 		goto err;
 	}
 
 	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
-
+	TRACE_LEAVE();
 	return cb;
 
  err:
 	if (cb)
 		avnd_cb_destroy(cb);
-
+	TRACE_LEAVE();
 	return 0;
 }
 
@@ -331,22 +329,23 @@ AVND_CB *avnd_cb_create()
 uns32 avnd_mbx_create(AVND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* create the mail box */
 	rc = m_NCS_IPC_CREATE(&cb->mbx);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MBX(AVSV_LOG_MBX_CREATE, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("AvND Mailbox creation failed");
 		goto err;
 	}
-	m_AVND_LOG_MBX(AVSV_LOG_MBX_CREATE, AVSV_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("AvND mailbox creation success");
 
 	/* attach the mail box */
 	rc = m_NCS_IPC_ATTACH(&cb->mbx);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MBX(AVSV_LOG_MBX_ATTACH, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("AvND mailbox attach failed");
 		goto err;
 	}
-	m_AVND_LOG_MBX(AVSV_LOG_MBX_ATTACH, AVSV_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
+	TRACE_LEAVE2("AvND mailbox attach success");
 
 	return rc;
 
@@ -354,7 +353,7 @@ uns32 avnd_mbx_create(AVND_CB *cb)
 	/* destroy the mailbox */
 	if (cb->mbx)
 		avnd_mbx_destroy(cb);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -374,65 +373,61 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err = EDU_NORMAL;
+	TRACE_ENTER();
 
 	/* EDU initialisation */
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		/* Log ERROR */
-
+		LOG_ER("%u, EDU compilation failed",__LINE__);
 		goto err;
 	}
 
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl_avnd);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl_avnd, avsv_edp_ndnd_msg, &err);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		/* Log ERROR */
-
+		LOG_ER("%u, EDU compilation failed",__LINE__);
 		goto err;
 	}
 
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl_ava);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl_ava, avsv_edp_nda_msg, &err);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		/* Log ERROR */
-
+		LOG_ER("%u, EDU compilation failed",__LINE__);
 		goto err;
 	}
+
+	TRACE("EDU Init success");
 
 	/* MDS registration */
 	rc = avnd_mds_reg(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_CR("MDS registration failed");
 		goto err;
 	}
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("MDS registration success");
 #if FIXME
 	if (cb->type == AVSV_AVND_CARD_SYS_CON) {
 		rc = avnd_mds_mbcsv_reg(cb);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			LOG_CR("MBCSv registration failed");
 			goto err;
 		}
 	}
 #endif
-	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-
+	TRACE_LEAVE();
 	return rc;
 
  err:
 	/* destroy external interfaces */
 	avnd_ext_intf_destroy(cb);
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -450,6 +445,7 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 uns32 avnd_cb_destroy(AVND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
    /*** destroy all databases ***/
 
@@ -490,7 +486,7 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->lock);
-	m_AVND_LOG_LOCK(AVSV_LOG_LOCK_FINALIZE, AVSV_LOG_LOCK_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("Destroyed the cb lock");
 
 	/* destroy the PID monitor lock */
 	m_NCS_LOCK_DESTROY(&cb->mon_lock);
@@ -501,11 +497,12 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 		goto done;
 
 	cb = NULL;
-	m_AVND_LOG_CB(AVSV_LOG_CB_DESTROY, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
+	TRACE("finalized the control block");
 
 done:
 	if (NCSCC_RC_SUCCESS != rc)
-		m_AVND_LOG_INVALID_VAL_FATAL(rc);
+		LOG_ER("cleanup failed");
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -523,24 +520,24 @@ done:
 uns32 avnd_mbx_destroy(AVND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* detach the mail box */
 	rc = m_NCS_IPC_DETACH(&cb->mbx, avnd_mbx_clean, cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MBX(AVSV_LOG_MBX_DETACH, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_ER("Mailbox detatch failed");
 		goto done;
 	}
-	m_AVND_LOG_MBX(AVSV_LOG_MBX_DETACH, AVSV_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
 
 	/* delete the mail box */
 	rc = m_NCS_IPC_RELEASE(&cb->mbx, 0);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MBX(AVSV_LOG_MBX_DESTROY, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		LOG_ER("Mailbox delete failed");
 		goto done;
 	}
-	m_AVND_LOG_MBX(AVSV_LOG_MBX_DESTROY, AVSV_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
 
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -559,6 +556,7 @@ uns32 avnd_mbx_destroy(AVND_CB *cb)
 uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	/* MDS unregistration */
 	rc = avnd_mds_unreg(cb);
@@ -567,20 +565,18 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 
 	/* EDU cleanup */
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_avnd);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_ava);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	/* NTFA Finalize */
 	rc = saNtfFinalize(cb->ntfHandle);
 	if (rc != SA_AIS_OK) {
-		avnd_log(NCSFL_SEV_ERROR, "saNtfFinalize Failed (%u)", rc);
+		LOG_ER("saNtfFinalize Failed (%u)", rc);
 	}
  done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -601,6 +597,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	AVND_EVT *curr;
 	AVND_EVT *temp;
+	TRACE_ENTER();
 
 	/* clean the entire mailbox */
 	for (curr = (AVND_EVT *)msg; curr;) {
@@ -609,6 +606,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 		avnd_evt_destroy(temp);
 	}
 
+	TRACE_LEAVE();
 	return TRUE;
 }
 
@@ -634,6 +632,7 @@ void avnd_sigterm_handler(void)
 	/* create the evt with evt type indicating last step of termination */
 	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);
 	if (!evt) {
+		LOG_ER("SIG term event create failed");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -643,6 +642,8 @@ void avnd_sigterm_handler(void)
 
 done:
 	/* free the event */
-	if (NCSCC_RC_SUCCESS != rc && evt)
+	if (NCSCC_RC_SUCCESS != rc && evt) {
+		LOG_ER("SIG term event send failed");
 		avnd_evt_destroy(evt);
+	}
 }

@@ -49,7 +49,6 @@ osafamfnd_SOURCES = \
 	avnd_err.c \
 	avnd_evt.c \
 	avnd_hcdb.c \
-	avnd_log.c \
 	avnd_mds.c \
 	avnd_mbcsv.c \
 	avnd_mon.c \

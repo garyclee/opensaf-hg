@@ -64,14 +64,12 @@ uns32 avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		goto done;
 
 	info = &evt->info.avd->msg_info.d2n_reg_su;
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avd_reg_su_msg():Comp,MsgId and Recv Msg Id are",
-			      NULL, cb->rcv_msg_id, info->msg_id, 0, 0);
+	TRACE("Comp MsgId:%u and Recv Msg Id:%u",cb->rcv_msg_id,info->msg_id);
 
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
-
+		LOG_EM("Message id mismatch! Received id: %u",info->msg_id);
 		goto done;
 	}
 
@@ -133,7 +131,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaNameT su_name;
 
-	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, AVND_LOG_FOVR_SU_UPDT, NCSCC_RC_SUCCESS);
+	TRACE_ENTER();
 
 	/* scan the su list & add each su to su-db */
 	for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
@@ -143,8 +141,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 			if (!su) {
 				avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
 				/* Log Error, we are not able to update at this time */
-				m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
-
+				LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
 				return rc;
 			}
 
@@ -182,7 +179,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 				rc = avnd_compdb_rec_del(cb, &comp->name);
 				if (NCSCC_RC_SUCCESS != rc) {
 					/* Log error */
-					m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
+					LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
 					goto err;
 				}
 			}
@@ -193,7 +190,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 			rc = avnd_sudb_rec_del(cb, &su->name);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* Log error */
-				m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
+				LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
 				goto err;
 			}
 
@@ -202,6 +199,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 	}
 
  err:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -230,13 +228,17 @@ uns32 avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* get the su */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, info->su_name);
-	if (!su)
+	if (!su) {
+		TRACE_LEAVE2("SU record not found");
 		return rc;
+	}
+
+	TRACE("'%s'", su->name.value);
 
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+		LOG_EM("%s %u Message Id mismatch, received msg id = %u",__FUNCTION__, __LINE__, info->msg_id);
 
 		goto done;
 	}
@@ -250,6 +252,7 @@ uns32 avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (TRUE == su->su_is_external) {
 			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, &(siq->info), AVND_CKPT_SIQ_REC);
 		}
+		TRACE_LEAVE();
 		return rc;
 	}
 
@@ -257,7 +260,7 @@ uns32 avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 	rc = avnd_su_si_msg_prc(cb, su, info);
 
 done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -284,9 +287,11 @@ uns32 avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* retrieve avnd cb */
 	if (0 == (su = (AVND_SU *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)evt->info.tmr.opq_hdl))) {
-		/* m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL); */
+		LOG_CR("Unable to retrieve handle");
 		goto done;
 	}
+
+	TRACE("'%s'", su->name.value);
 
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, su->su_is_external))
 		goto done;
@@ -340,6 +345,7 @@ uns32 avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_SU_SI_REC *si = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* scan the su-si list & reassign the sis */
 	for (si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -349,6 +355,7 @@ uns32 avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
 			break;
 	}			/* for */
 
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -371,6 +378,7 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* reset err-esc param & oper state (if su is healthy) */
 	if (!m_AVND_SU_IS_FAILED(su)) {
@@ -396,6 +404,7 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 	}
 
  done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -427,6 +436,6 @@ uns32 avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	TRACE_LEAVE();
-	return rc;   
+	return rc;
 }
 

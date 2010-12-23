@@ -58,16 +58,14 @@ uns32 avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 		del_cbk = &avnd_avnd_msg->info.cbk_del;
 		o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, del_cbk->comp_name);
 		if (NULL == o_comp) {
-			m_AVND_AVND_ERR_LOG("Comp not in Inter/Ext Comp DB:Comp and opq_hdl are",
-					    &del_cbk->comp_name, del_cbk->opq_hdl, 0, 0, 0);
+			LOG_ER("Comp not in Inter/Ext Comp DB: %s : opq_hdl= %u",del_cbk->comp_name.value,del_cbk->opq_hdl);
 			return NCSCC_RC_FAILURE;
 		}
 
 		m_AVND_COMP_CBQ_ORIG_INV_GET(o_comp, del_cbk->opq_hdl, cbk_rec);
 
 		if (!cbk_rec) {
-			m_AVND_AVND_DEBUG_LOG("No callback record found:Comp and opq_hdl are",
-					      &del_cbk->comp_name, del_cbk->opq_hdl, 0, 0, 0);
+			TRACE_3("No callback record found: %s,opq_hdl=%u",del_cbk->comp_name.value,del_cbk->opq_hdl);
 			goto done;
 		}
 
@@ -89,8 +87,7 @@ uns32 avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 
 done:
 	if (NCSCC_RC_SUCCESS != res) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_avnd_avnd_msg:failure:Msg Type and res are",
-				    NULL, avnd_avnd_msg->type, res, 0, 0);
+		LOG_ER("avnd_evt_avnd_avnd_msg:failure:Msg Type %u and res %u",avnd_avnd_msg->type, res);
 	}
 
 	TRACE_LEAVE();
@@ -114,6 +111,7 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 res = NCSCC_RC_SUCCESS;
 	AVND_EVT_TYPE evt_type;
+	TRACE_ENTER();
 
 	/* The event is coming from AvND and not from AvA, so we need to 
 	   copy mds context information to evt so that we spoof it like 
@@ -131,7 +129,6 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	evt_type = evt->info.avnd->info.msg->info.api_info.type - AVSV_AMF_FINALIZE + AVND_EVT_AVA_FINALIZE;
 	evt->info.ava.msg = evt->info.avnd->info.msg;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avnd_avnd_api_msg_hdl(): evt_type is", NULL, evt_type, 0, 0, 0);
 
 	if (AVND_EVT_AVA_COMP_REG == evt_type) {
 		if (AVND_LED_STATE_GREEN != cb->led_state) {
@@ -162,7 +159,7 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	}
 
  done:
-
+	TRACE_LEAVE2("%u", res);
 	return res;
 
 }
@@ -189,13 +186,11 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	SaAmfHAStateT *ha_state = NULL;
 	MDS_DEST reg_dest = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avnd_avnd_api_resp_msg_hdl():Comp,Type and rc are",
-			      &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+	TRACE_ENTER2("%s: Type =%u and rc = %u",avnd_msg->comp_name.value, resp_info->type, resp_info->rc);
 
 	o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
 	if (NULL == o_comp) {
-		m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type and rc are",
-				    &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+		LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 		res = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -209,8 +204,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			/* We got comp reg failure. We need to delete the component.  */
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
 			if (NULL == o_comp) {
-				m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type and rc are",
-						    &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -220,8 +214,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		} else {
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
 			if (NULL == o_comp) {
-				m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type and rc are",
-						    &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -242,8 +235,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			   relation */
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
 			if (NULL == o_comp) {
-				m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type and rc are",
-						    &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -268,16 +260,14 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 				 &reg_dest, &avnd_msg->mds_ctxt, NULL, FALSE);
 
 	if (NCSCC_RC_SUCCESS != res) {
-		m_AVND_AVND_ERR_LOG
-		    ("avnd_evt_avnd_avnd_api_resp_msg_hdl:Msg Send to AvA Failed:Comp,Type,rc and Dest are",
-		     &avnd_msg->comp_name, resp_info->type, resp_info->rc, reg_dest, 0);
+		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%llu",__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
 	}
 
  done:
 	if (NCSCC_RC_SUCCESS != res) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_avnd_avnd_api_resp_msg_hdl:Failure:Comp,Type and rc are",
-				    &avnd_msg->comp_name, resp_info->type, resp_info->rc, 0, 0);
+		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u",__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc);
 	}
+	TRACE_LEAVE2("%u", res);
 	return res;
 
 }
@@ -304,8 +294,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_AMF_CBK_INFO *cbk_rec = NULL;
 	AVND_COMP_CBK *rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_evt_avnd_avnd_cbk_msg_hdl():Type,Hdl and Inv are",
-			      NULL, cbk_info->type, cbk_info->hdl, cbk_info->inv, 0);
+	TRACE_ENTER2("Type:%u, Hdl:%llu, Inv:%llu",cbk_info->type, cbk_info->hdl, cbk_info->inv);
 
 	/* Create a callback record for storing purpose. */
 	rc = avsv_amf_cbk_copy(&cbk_rec, cbk_info);
@@ -325,8 +314,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		   cbk_info->param.pxied_comp_inst.comp_name.
 		 */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type,Hdl and Inv are",
-				    &cbk_info->param.hc.comp_name, cbk_info->type, cbk_info->hdl, cbk_info->inv, 0);
+		LOG_ER("Couldn't find comp %s in Inter/Ext Comp DB",cbk_info->param.hc.comp_name.value);
 		/* free the callback info */
 		if (cbk_rec)
 			avsv_amf_cbk_free(cbk_rec);
@@ -355,14 +343,11 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		}
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVND_AVND_ERR_LOG("Comp Cbk Rec Send Failed:Comp,Type,Hdl,Inv and Dest are",
-					    &comp->name, cbk_info->type,
-					    cbk_info->hdl, cbk_info->inv, comp->reg_dest);
+			LOG_ER("comp %s cbk rec send failed",comp->name.value);
 		}
 	} else {
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_AVND_ERR_LOG("Comp Cbk Rec Add Failed:Comp,Type,Hdl,Inv and Dest are",
-				    &comp->name, cbk_info->type, cbk_info->hdl, cbk_info->inv, comp->reg_dest);
+		LOG_ER("%s Cbk Rec Add Failed:Dest: %llu",comp->name.value,comp->reg_dest);
 	}
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
@@ -378,9 +363,10 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
  done:
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_AVND_ERR_LOG("avnd_evt_avnd_avnd_cbk_msg_hdl():Failure:Type,Hdl and Inv are",
-				    NULL, cbk_info->type, cbk_info->hdl, cbk_info->inv, 0);
+		LOG_ER("avnd_evt_avnd_avnd_cbk_msg_hdl():Failure:Type:%u Hdl:%llu and Inv:%llu",cbk_info->type,cbk_info->hdl, cbk_info->inv);
 	}
+
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 

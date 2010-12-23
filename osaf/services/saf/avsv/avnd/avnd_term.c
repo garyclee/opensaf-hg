@@ -194,7 +194,7 @@ uns32 avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("retval=%u",rc);
 	return rc;
 }
 
@@ -215,6 +215,7 @@ uns32 avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 {
 	AVND_SU *su = 0;
+	TRACE_ENTER();
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 
@@ -251,7 +252,7 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 		cb->term_state = AVND_TERM_STATE_SHUTTING_APP_DONE;
 		avnd_snd_shutdown_app_su_msg(cb);
 	}
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -278,8 +279,7 @@ uns32 avnd_evt_avd_set_leds_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (info->msg_id != (cb->rcv_msg_id + 1)) {
 		/* Log Error */
 		rc = NCSCC_RC_FAILURE;
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
-
+		LOG_EM("%s,Message Id mismatch:%u",__FUNCTION__,info->msg_id);
 		goto done;
 	}
 
