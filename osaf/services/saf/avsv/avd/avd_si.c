@@ -837,7 +837,7 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 				sisu->state = SA_AMF_HA_QUIESCED;
 			        sisu->fsm = AVD_SU_SI_STATE_MODIFY;
 
-				if ( avd_snd_susi_msg( avd_cb, sisu->su, sisu, AVSV_SUSI_ACT_MOD ) == 
+				if ( avd_snd_susi_msg( avd_cb, sisu->su, sisu, AVSV_SUSI_ACT_MOD, false, NULL ) == 
 										NCSCC_RC_FAILURE ) {
 					LOG_ER("susi msg send failed  SU:%s SI:%s",sisu->su->name.value,
 										sisu->si->name.value);
@@ -883,7 +883,7 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 				/* Delete Standby SI assignment & move it to Realign state */
 				old_susi_state = sisu->fsm;
 				sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-				if(avd_snd_susi_msg( avd_cb,sisu->su, sisu, AVSV_SUSI_ACT_DEL ) == 
+				if(avd_snd_susi_msg( avd_cb,sisu->su, sisu, AVSV_SUSI_ACT_DEL, false, NULL ) == 
 											NCSCC_RC_FAILURE){
 					LOG_ER("sisu msg send failed  SU:%s SI:%s",sisu->su->name.value,
 									sisu->si->name.value);
