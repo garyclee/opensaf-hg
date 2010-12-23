@@ -44,13 +44,16 @@
 static char __pidfile[NAME_MAX];
 static char __tracefile[NAME_MAX];
 static char __runas_username[UT_NAMESIZE];
-static unsigned int tracemask;
+static unsigned int __tracemask;
+static int __logmask;
 
 static void __print_usage(const char* progname, FILE* stream, int exit_code)
 {
 	fprintf(stream, "Usage:  %s [OPTIONS]...\n", progname);
 	fprintf(stream,
 		"  -h, --help                  Display this usage information.\n"
+		"  -l, --loglevel[=level]      Set daemon log level, [notice|info|debug].\n"
+		"                              notice is default when nothing specified.\n"
 		"  -m, --tracemask[=mask]      Set daemon TRACE mask.\n"
 		"  -p, --pidfile[=filename]    Set the daemon PID as [filename].\n"
 		"                              Will be stored under " PKGPIDDIR "\n"
@@ -97,12 +100,25 @@ static int __create_pidfile(const char* pidfile)
 	return rc;
 }
 
+static int level2mask(const char *level)
+{
+	if (strncmp("notice", level, 6) == 0) {
+		return LOG_UPTO(LOG_NOTICE);
+	} else if (strncmp("info", level, 4) == 0) {
+		return LOG_UPTO(LOG_INFO);
+	} else if (strncmp("debug", level, 5) == 0) {
+		return LOG_UPTO(LOG_DEBUG);
+	} else
+		return 0;
+}
+
 static void __set_default_options(const char *progname)
 {
 	/* Set the default option values */
 	snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s.pid", progname);
 	snprintf(__tracefile, sizeof(__tracefile), PKGLOGDIR "/%s", progname);
 	snprintf(__runas_username, sizeof(__runas_username), DEFAULT_RUNAS_USERNAME);
+	__logmask = level2mask("notice");
 }
 
 static void __parse_options(int argc, char *argv[])
@@ -114,11 +130,12 @@ static void __parse_options(int argc, char *argv[])
 	__set_default_options(progname);
 
 	/* A string listing valid short options letters */
-	const char* const short_options = "hm:p:T:U:v";
+	const char* const short_options = "hl:m:p:T:U:v";
 	
 	/* An array describing valid long options */
 	const struct option long_options[] = {
 		{ "help",      0, NULL, 'h' },
+		{ "loglevel",  1, NULL, 'l' },
 		{ "tracemask", 1, NULL, 'm' },
 		{ "pidfile",   1, NULL, 'p' },
 		{ "tracefile", 1, NULL, 'T' },
@@ -133,8 +150,11 @@ static void __parse_options(int argc, char *argv[])
 		switch(next_option) {
 		case 'h':	/* -h or --help */
 			__print_usage(progname, stdout, EXIT_SUCCESS);
+		case 'l':	/* -l or --loglevel */
+			__logmask = level2mask(optarg);
+			break;
 		case 'm':	/* -m or --tracemask */
-			tracemask = strtoul(optarg, NULL, 0);
+			__tracemask = strtoul(optarg, NULL, 0);
 			break;
 		case 'p':	/* -p or --pidfile */
 			snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s", optarg);
@@ -215,7 +235,7 @@ void daemonize(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 
 	/* Initialize the log/trace interface */
-	if (logtrace_init(basename(argv[0]), __tracefile, tracemask) != 0)
+	if (logtrace_init_daemon(basename(argv[0]), __tracefile, __tracemask, __logmask) != 0)
 		exit(EXIT_FAILURE);
 
 	/* Cancel certain signals */
@@ -223,7 +243,6 @@ void daemonize(int argc, char *argv[])
 	signal(SIGTSTP, SIG_IGN);	/* Various TTY signals */
 	signal(SIGTTOU, SIG_IGN);
 	signal(SIGTTIN, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);	/* Ignore hangup signal */
 	signal(SIGTERM, SIG_DFL);	/* Die on SIGTERM */
 
 	/* TODO: Drop user if there is one, and we were run as root */
