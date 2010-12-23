@@ -147,8 +147,11 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 	ifconf.ifc_buf = (char *)(ifreqs);
 	ifconf.ifc_len = sizeof(ifreqs);
 
-	if (dtm_get_iface_list(&ifconf) < 0)
-		exit(-1);
+	if (dtm_get_iface_list(&ifconf) < 0) {
+		LOG_ER("DTM: Unable to obtain interface list for  this node ");
+		return (NULL);
+
+	}
 
 	nifaces = ifconf.ifc_len / sizeof(struct ifreq);
 
@@ -170,8 +173,8 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 			}
 
 			if (inet_ntop(ifreqs[i].ifr_addr.sa_family, numericAddress, match_ip, INET6_ADDRSTRLEN) != NULL) {
-				TRACE("  %s Avalible IP address: %s sa_family - %d \n", ifreqs[i].ifr_name, match_ip,
-				      ifreqs[i].ifr_addr.sa_family);
+				TRACE("DTM:   %s Avalible IP address: %s sa_family - %d \n", ifreqs[i].ifr_name,
+				      match_ip, ifreqs[i].ifr_addr.sa_family);
 				if (strcmp(match_ip, config->ip_addr) == 0) {
 					void *numericbcasrAddress = NULL;
 					if (ifreqs[i].ifr_flags & IFF_BROADCAST) {
@@ -186,8 +189,9 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 								    &((struct sockaddr_in6 *)&ifreqs[i].ifr_broadaddr)->
 								    sin6_addr;
 							} else {
-								LOG_ER("   Validation of  Bcast address failed : %s \n",
-								       config->ip_addr);
+								LOG_ER
+								    ("DTM:  Validation of  Bcast address failed : %s \n",
+								     config->ip_addr);
 								return (NULL);
 							}
 						}
@@ -199,13 +203,14 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 					if (inet_ntop
 					    (ifreqs[i].ifr_addr.sa_family, numericbcasrAddress, config->bcast_addr,
 					     INET6_ADDRSTRLEN) == NULL) {
-						LOG_ER("   Validation of  Bcast address failed : %s \n",
+						LOG_ER("DTM:   Validation of  Bcast address failed : %s \n",
 						       config->ip_addr);
 						return (NULL);
 					}
 					config->i_addr_family = ifreqs[i].ifr_addr.sa_family;
-					TRACE("  %s Validate  IP address : %s  Bcast address : %s sa_family - %d \n",
-					      ifreqs[i].ifr_name, match_ip, config->bcast_addr, config->i_addr_family);
+					TRACE
+					    ("DTM:  %s Validate  IP address : %s  Bcast address : %s sa_family - %d \n",
+					     ifreqs[i].ifr_name, match_ip, config->bcast_addr, config->i_addr_family);
 					return (match_ip);
 				}
 
@@ -214,7 +219,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 		}
 	}
 
-	LOG_ER("   Validation of  IP address failed : %s \n", config->ip_addr);
+	LOG_ER("DTM:  Validation of  IP address failed : %s \n", config->ip_addr);
 	return (NULL);
 
 }
@@ -234,7 +239,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	char line[DTM_MAX_TAG_LEN];
 	int i, n, comment_line, fieldmissing = 0, tag = 0, tag_len = 0;
 	/* Location for storing the matched IP address */
-	char *local_match_ip;
+	char *local_match_ip = NULL;
 	FILE *fp;
 
 	TRACE_ENTER();
@@ -258,12 +263,12 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	config->node_id = m_NCS_GET_NODE_ID;
 	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
 	if (fp == NULL) {
-		syslog(LOG_ERR, "Could not open file  node_name ");
+		LOG_ER("DTM: Could not open file  node_name ");
 		return (errno);
 	}
 	if (EOF == fscanf(fp, "%s", config->node_name)) {
 		fclose(fp);
-		syslog(LOG_ERR, "Could not get node name ");
+		LOG_ER("DTM: Could not get node name ");
 		return (errno);
 	}
 	fclose(fp);
@@ -279,7 +284,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	dtm_conf_file = fopen(dtm_config_file, "r");
 	if (dtm_conf_file == NULL) {
 		/* Problem with conf file - return errno value */
-		syslog(LOG_ERR, "DTM: dtm_read_cofig: there was a problem opening the dtm.conf file");
+		LOG_ER("DTM: dtm_read_cofig: there was a problem opening the dtm.conf file");
 		return (errno);
 	}
 
@@ -316,7 +321,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_CLUSTER_ID=");
 				config->cluster_id = atoi(&line[tag_len]);
 				if (config->cluster_id < 1) {
-					syslog(LOG_ERR, "DTM:cluster_id must be a positive integer");
+					LOG_ER("DTM:cluster_id must be a positive integer");
 					return -1;
 				}
 				tag = 0;
@@ -327,7 +332,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_NODE_IP=");
 				strncpy(config->ip_addr, &line[tag_len], INET6_ADDRSTRLEN - 1);	/* ipv4 ipv6 addrBuffer */
 				if (strlen(config->ip_addr) == 0) {
-					syslog(LOG_ERR, "DTM:ip_addr Shouldn't  be NULL");
+					LOG_ER("DTM:ip_addr Shouldn't  be NULL");
 					return -1;
 				}
 
@@ -352,7 +357,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->stream_port = (in_port_t)atoi(&line[tag_len]);
 
 				if (config->stream_port < 1) {
-					syslog(LOG_ERR, "DTM:stream_port  must be a positive integer");
+					LOG_ER("DTM:stream_port  must be a positive integer");
 					return -1;
 				}
 
@@ -389,7 +394,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_BCAST_FRE_MSECS=");
 				config->bcast_msg_freq = atoi(&line[tag_len]);
 				if (config->bcast_msg_freq < 1) {
-					syslog(LOG_ERR, "DTM:bcast_msg_freq  must be a positive integer");
+					LOG_ER("DTM:bcast_msg_freq  must be a positive integer");
 					return -1;
 				}
 
@@ -401,7 +406,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_INI_DIS_TIMEOUT_SECS=");
 				config->initial_dis_timeout = atoi(&line[tag_len]);
 				if (config->initial_dis_timeout < 1) {
-					syslog(LOG_ERR, "DTM:initial_dis_timeout must be a positive integer");
+					LOG_ER("DTM:initial_dis_timeout must be a positive integer");
 					return -1;
 				}
 
@@ -413,7 +418,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_SKEEPALIVE=");
 				config->so_keepalive = atoi(&line[tag_len]);
 				if (config->so_keepalive < 0 || config->so_keepalive > 1) {
-					syslog(LOG_ERR, "DTM: so_keepalive needs to be 0 or 1");
+					LOG_ER("DTM: so_keepalive needs to be 0 or 1");
 					return -1;
 				}
 
@@ -425,7 +430,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_TCP_KEEPIDLE_TIME=");
 				config->comm_keepidle_time = atoi(&line[tag_len]);
 				if (config->comm_keepidle_time < 1) {
-					syslog(LOG_ERR, "DTM:comm_keepidle_time must be a positive integer");
+					LOG_ER("DTM:comm_keepidle_time must be a positive integer");
 					return -1;
 				}
 
@@ -437,7 +442,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_TCP_KEEPALIVE_INTVL=");
 				config->comm_keepalive_intvl = atoi(&line[tag_len]);
 				if (config->comm_keepalive_intvl < 1) {
-					syslog(LOG_ERR, "DTM:comm_keepalive_intvl must be a positive integer");
+					LOG_ER("DTM:comm_keepalive_intvl must be a positive integer");
 					return -1;
 				}
 
@@ -449,7 +454,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_TCP_KEEPALIVE_PROBES=");
 				config->comm_keepalive_probes = atoi(&line[tag_len]);
 				if (config->comm_keepalive_probes < 1) {
-					syslog(LOG_ERR, "DTM:comm_keepalive_probes must be a positive integer");
+					LOG_ER("DTM:comm_keepalive_probes must be a positive integer");
 					return -1;
 				}
 
@@ -462,7 +467,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->intra_node_stream_port = (in_port_t)atoi(&line[tag_len]);
 				TRACE("DTM:intra_node_stream_port  =%d", config->intra_node_stream_port);
 				if (config->intra_node_stream_port < 1) {
-					syslog(LOG_ERR, "DTM:intra_node_stream_port  must be a positive integer");
+					LOG_ER("DTM:intra_node_stream_port  must be a positive integer");
 					return -1;
 				}
 
@@ -486,38 +491,38 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	/* Set up validate the IP & sa_family stuff  */
 	/*************************************************************/
 	local_match_ip = dtm_validate_listening_ip_addr(config);
-	if (strlen(local_match_ip) == 0) {
+	if (local_match_ip == NULL) {
 
-		syslog(LOG_ERR,
-		       "DTM: ip_addr cannot match available network insterfaces with IPs of node specified in the dtm.conf file");
+		LOG_ER
+		    ("DTM: ip_addr cannot match available network insterfaces with IPs of node specified in the dtm.conf file");
 		return -1;
 
 	}
 
 	/* Test so we have all mandatory fields */
 	if ((config->cluster_id) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: cluster_id is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: cluster_id is missing in conf file");
 		fieldmissing = 1;
 	} else if ((config->node_id) == 0) {
-		syslog(LOG_ERR, "DTM: node_id: msg_protocol_version is missing in conf file");
+		LOG_ER("DTM: node_id: msg_protocol_version is missing in conf file");
 		fieldmissing = 1;
 	} else if ((config->dgram_port_sndr) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: dgram_port_sndr is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: dgram_port_sndr is missing in conf file");
 		fieldmissing = 1;
 	} else if ((config->dgram_port_rcvr) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: dgram_port_rcvr is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: dgram_port_rcvr is missing in conf file");
 		fieldmissing = 1;
 	} else if ((config->stream_port) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: stream_port is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: stream_port is missing in conf file");
 		fieldmissing = 1;
 	} else if (strlen(config->ip_addr) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: ip_addr is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: ip_addr is missing in conf file");
 		fieldmissing = 1;
 	} else if (strlen(config->node_name) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: node_name is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: node_name is missing in conf file");
 		fieldmissing = 1;
 	} else if ((config->intra_node_stream_port) == 0) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: intra_node_stream_port is missing in conf file");
+		LOG_ER("DTM: dtm_read_config: intra_node_stream_port is missing in conf file");
 		fieldmissing = 1;
 	}
 
@@ -544,7 +549,7 @@ static int checkfile(char *buf)
 			cmd[ii] = '\0';
 
 	if (stat(cmd, &statbuf) == -1) {
-		syslog(LOG_ERR, "DTM: dtm_read_config: File does not exsist: %s", cmd);
+		LOG_ER("DTM: dtm_read_config: File does not exsist: %s", cmd);
 		return -1;
 	}
 
