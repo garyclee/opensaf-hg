@@ -1786,7 +1786,10 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_
 		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
 			for (i_susi = su->list_of_susi;
 			     (i_susi != AVD_SU_SI_REL_NULL) && (i_susi->fsm == AVD_SU_SI_STATE_ASGND);
-			     i_susi = i_susi->su_next) ;
+			     i_susi = i_susi->su_next) {
+				/* Update the IMM */
+				avd_susi_update(i_susi, state);
+			}
 
 			if (i_susi == AVD_SU_SI_REL_NULL) {
 				/* active all and the entire SU is assigned. */
@@ -2365,6 +2368,115 @@ done:
         	TRACE_LEAVE();
         	return;
 }
+/*
+ * @brief        Get the count of cureent Active SUs in this SG 
+ *
+ * @param[in]    sg -  Pointer to Active Service Group 
+ *
+ * @return       curr_pref_active_sus - No of cureent Active SUs.
+ */
+static uns32 avd_sg_get_curr_act_cnt(AVD_SG *sg)
+{
+	AVD_SU *i_su = sg->list_of_su;
+	uns32	curr_pref_active_sus = 0;
+	TRACE_ENTER2("SG name:%s ", sg->name.value);
+
+	while (i_su != NULL) {
+		if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) || (NULL == i_su->list_of_susi)) {
+        		i_su = i_su->sg_list_su_next;
+        		continue;
+        	}
+        	if(SA_AMF_HA_ACTIVE == i_su->list_of_susi->state)
+			curr_pref_active_sus++;
+                i_su = i_su->sg_list_su_next;
+	}
+        TRACE_LEAVE2("cureent Active SUs :%u",curr_pref_active_sus);
+	return curr_pref_active_sus;
+}
+/*
+ * @brief        This routine finds the Standby SU for each of the active assignments on this SU, checks
+ *		 the possibility  of assigning Active role to this SU, if so assigns the  Active role to
+ *		 the corresponding susi and remove the other assignments.If it is not possible to assign
+ *		 Active role sends susi  del to all the asignments on the Standby SU.For the assignments
+ *		 that are removed  the default flow takes care of finding and assigning the qualified SUs 
+ *
+ * @param[in]    su -  Pointer to Active Service unit
+ *
+ * @return       Returns nothing.
+ */
+static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
+{
+	AVD_SU_SI_REL *std_susi, *act_susi = su->list_of_susi;
+	uns32	curr_pref_active_sus = 0;
+
+	TRACE_ENTER2("SU name:%s",su->name.value);
+
+	while (act_susi != AVD_SU_SI_REL_NULL) {
+		std_susi = AVD_SU_SI_REL_NULL;
+                if (act_susi->si->list_of_sisu != act_susi) {
+                        if ((act_susi->si->list_of_sisu->fsm != AVD_SU_SI_STATE_UNASGN) &&
+				(act_susi->si->list_of_sisu->state == SA_AMF_HA_STANDBY)) {
+                        	std_susi = act_susi->si->list_of_sisu;
+                	}
+		} else if (act_susi->si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL) {
+                        if ((act_susi->si->list_of_sisu->si_next->fsm != AVD_SU_SI_STATE_UNASGN) &&
+				(act_susi->si->list_of_sisu->si_next->state == SA_AMF_HA_STANDBY)) {
+                        	std_susi = act_susi->si->list_of_sisu->si_next;
+			}
+		}
+		if (NULL != std_susi) {
+			if (std_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
+				if (!curr_pref_active_sus) {
+					/* Get the count of current Active SUs in this SG */
+					curr_pref_active_sus = avd_sg_get_curr_act_cnt(std_susi->su->sg_of_su);
+				}
+				/* Check the possibility of assigning Active role to std_susi->su  */
+				if(curr_pref_active_sus >= std_susi->su->sg_of_su->saAmfSGNumPrefActiveSUs ) {
+					 /* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the standby SU */ 
+					if (avd_sg_su_si_del_snd(avd_cb, std_susi->su) == NCSCC_RC_FAILURE) {
+                                		LOG_ER("SU del failed :%s :%u :%s", __FILE__, __LINE__,
+											std_susi->su->name.value);
+						goto done;
+                        		}
+					/* Add Standby SU to SU operlist */
+					avd_sg_su_oper_list_add(avd_cb, std_susi->su, FALSE);
+				} else {
+					/* Check if standby SU has standby SI assignment from another SU, if so
+					 * send remove message for each of those SI assignments 
+					 */
+					AVD_SU_SI_REL *susi;
+					for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL;
+											susi = susi->su_next) {
+						if ((susi->si->list_of_sisu != susi) && 
+							(susi->si->list_of_sisu->su == su)) {
+							continue;
+						}
+						if ((susi->si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL) &&
+		    						(susi->si->list_of_sisu->si_next->su == su)) {
+							continue;
+						}
+						susi->fsm = AVD_SU_SI_STATE_UNASGN;
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb,susi, AVSV_CKPT_AVD_SI_ASS);
+						avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
+					}/* for (susi = std_susi->su->list_of_susi; susi != AVD_SU_SI_REL_NULL; 
+						susi = susi->su_next) */
+
+					/* Now send active for all the remaining SUSIs */
+					avd_sg_su_si_mod_snd(avd_cb, std_susi->su, SA_AMF_HA_ACTIVE);
+					
+					/* std_susi->su role changed to Active so increment the curr_pref_active_sus */
+					curr_pref_active_sus++;
+					
+					/* Add Standby SU to SU operlist */
+					avd_sg_su_oper_list_add(avd_cb, std_susi->su, FALSE);
+				}
+			}
+		}
+                act_susi = act_susi->su_next;
+	}
+done:
+	TRACE_LEAVE();
+}
  /*****************************************************************************
  * Function: avd_sg_npm_susi_sucss_su_oper
  *
@@ -2480,30 +2592,16 @@ static uns32 avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_
 						return NCSCC_RC_SUCCESS;
 
 				}
-
-				/* quiesced all and SU is in the operation list. If the admin state of
-		 		* the SU is shutdown change it to lock.  
-		 		*/
-
-				o_susi = avd_sg_npm_su_othr(cb, su);
-				if ((o_susi != AVD_SU_SI_REL_NULL) &&
-		    			(o_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-		    			(o_susi->state == SA_AMF_HA_STANDBY) && (o_susi->fsm !=AVD_SU_SI_STATE_UNASGN)){
-					/* The standby SU w.r.t this SU is inservice has standby 
-			 		* SI assignment from another SU, send remove message for 
-			 		* each of those SI assignment to the standby SU and 
-			 		* send D2N -INFO_SU_SI_ASSIGN message modify active all 
-			 		* assignments to that SU. Add the SU to the oper list.                   
-			 		*/
-					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
-				}
+				
+				/* Find Standby SU corresponding to susi on this SU and do role change */
+				avd_sg_npm_stdbysu_role_change(su);
 
 				/* Send D2N-INFO_SU_SI_ASSIGN message remove all to this SU. If
 		 		* the SUs admin state is shutdown change it to LOCK.
 		 		*/
 				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
+				/* If the admin state of the SU is shutdown change it to lock*/
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
