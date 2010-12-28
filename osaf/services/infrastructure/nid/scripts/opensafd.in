@@ -219,6 +219,13 @@ start() {
 	else
 		final_clean
 		log_failure_msg
+		if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
+			logger -t $prog "Starting OpenSAF failed, rebooting..." 
+			sleep $REBOOT_ON_FAIL_TIMEOUT
+			/sbin/reboot &
+		else
+			logger -t $prog "Starting OpenSAF failed"
+		fi
 	fi
 	return $RETVAL
 }
@@ -253,8 +260,13 @@ stop() {
 		log_failure_msg
 		# If AMF fails to terminate its components,
 		# this system is out of control, reboot it now!
-		logger -t $prog "Stopping OpenSAF failed, rebooting..."
-		/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
+		if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
+			logger -t $prog "Stopping OpenSAF failed, rebooting..."
+			sleep $REBOOT_ON_FAIL_TIMEOUT
+			/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
+		else
+			logger -t $prog "Stoping OpenSAF failed"
+		fi
 	fi
 	return $RETVAL
 }
