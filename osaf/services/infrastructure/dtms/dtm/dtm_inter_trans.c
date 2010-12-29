@@ -135,21 +135,23 @@ uns32 dtm_internode_snd_msg_to_all_nodes(uns8 *buffer, uns16 len)
 	/* Get each node and send message */
 	NODE_ID node_id = 0;
 	DTM_NODE_DB *node = NULL;
-	int check = 0;
 	TRACE_ENTER();
 
 	/* while (NULL != (node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_gl_cb->nodeid_tree, (uns8 *)&node_id)))  */
 	while (NULL != (node = dtm_node_getnext_by_id(node_id))) {
-		check++;
 		node_id = node->node_id;
 		if (node_id != dtms_gl_cb->node_id) {
-			dtm_internode_snd_msg_common(node, buffer, len);
+			uns8 *buf_send = NULL;
+			if (NULL == (buf_send = calloc(1, len))) {
+				TRACE("calloc failed for snd_msg_to_all_nodes");
+				free(buffer);
+				return NCSCC_RC_FAILURE;
+			}
+			memcpy(buf_send, buffer, len);	
+			dtm_internode_snd_msg_common(node, buf_send, len);
 		}
 	}
-	if (0 == check) {
-		/* No Connected nodes */
-		free(buffer);
-	}
+	free(buffer);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
