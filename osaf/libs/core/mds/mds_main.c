@@ -45,7 +45,7 @@
 #endif
 
 extern uns16 socket_domain;
-extern uns16 port;
+extern uns16 mdtm_port;
 void mds_init_transport(void);
 
 /* MDS Control Block */

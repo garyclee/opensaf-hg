@@ -42,7 +42,7 @@
 
 uns32 mdtm_global_frag_num_tcp;
 extern struct pollfd pfd[2];
-extern pid_t pid;
+extern pid_t mdtm_pid;
 
 static uns32 mds_mdtm_process_recvdata(uns32 rcv_bytes, uns8 *buffer);
 
@@ -225,7 +225,7 @@ static uns32 mdtm_add_mds_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_PROCESS_ID_FROM_ADEST(req->adest));
 	ncs_encode_32bit(&ptr, tcp_cb->node_id);
-	ncs_encode_32bit(&ptr, pid);
+	ncs_encode_32bit(&ptr, mdtm_pid);
 
 	/* Frag header */
 	ncs_encode_32bit(&ptr, zero_32);
@@ -297,7 +297,7 @@ static uns32 mdtm_fill_frag_hdr_tcp(uns8 *buffer, MDTM_SEND_REQ *req, uns32 len)
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
 	ncs_encode_32bit(&ptr, (uns32)m_MDS_GET_PROCESS_ID_FROM_ADEST(req->adest));
 	ncs_encode_32bit(&ptr, tcp_cb->node_id);
-	ncs_encode_32bit(&ptr, pid);
+	ncs_encode_32bit(&ptr, mdtm_pid);
 
 	/* Frag header */
 	ncs_encode_32bit(&ptr, zero_32);

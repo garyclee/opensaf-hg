@@ -60,7 +60,6 @@ static uns32 mdtm_tipc_check_for_endianness(void);
 
 uns32 mdtm_tipc_init(NODE_ID node_id, uns32 *mds_tipc_ref);
 uns32 mdtm_tipc_destroy(void);
-NCS_BOOL mdtm_tipc_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 
 static uns32 mdtm_create_rcv_task(int mdtm_hdle);
 static uns32 mdtm_destroy_rcv_task(void);
@@ -380,8 +379,8 @@ uns32 mdtm_tipc_destroy(void)
 		m_MDS_LOG_ERR("MDTM: Receive Task Destruction Failed in MDTM_INIT\n");
 	}
 	/* Destroy mailbox */
-	m_NCS_IPC_DETACH(&tipc_cb.tmr_mbx, (NCS_IPC_CB)mdtm_tipc_mbx_cleanup, NULL);
-	m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, (NCS_IPC_CB)mdtm_tipc_mbx_cleanup);
+	m_NCS_IPC_DETACH(&tipc_cb.tmr_mbx, (NCS_IPC_CB)mdtm_mailbox_mbx_cleanup, NULL);
+	m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, (NCS_IPC_CB)mdtm_mailbox_mbx_cleanup);
 
 	/* Clear reference hdl list */
 	while (mdtm_ref_hdl_list_hdr != NULL) {
@@ -2386,89 +2385,3 @@ static uns32 mdtm_add_mds_hdr(uns8 *buffer, MDTM_SEND_REQ *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-/****************************************************************************
- *
- * Function Name: mds_tmr_callback
- *
- * Purpose: Used for posting a message when timer expires
- *
- * Return Value:  NCSCC_RC_SUCCESS
- *                NCSCC_RC_FAILURE
- *
- ****************************************************************************/
-	/* Now Queue the message in the Mailbox */
-
-		/* Message Queuing failed, free the msg. In TDS they are relaseing the task
-		 * ,releasing IPC and freeing the TDS CB shall we do that same ....??   */
-		/* Do we need to free the UB also??? */
-
-/****************************************************************************
- *
- * Function Name: mds_tmr_mailbox_processing
- *
- * Purpose: Used for processing messages in mailbox
- *
- * Return Value:  NCSCC_RC_SUCCESS
- *                NCSCC_RC_FAILURE
- *
- ****************************************************************************/
-
-	/* Now Parse thru the mailbox and send all the messages */
-
-											/* return NCSCC_RC_SUCCESS; */	/* Fall through to free memory */
-
-			/* Give Handle and Destroy Handle */
-
-			/* Free timer req info */
-		/* No destruction processing. Due to already existing implementation, the 
-		   destroying thread performs the full destruction. This messagae is merely to 
-		   wake up the MDTM thread so that it may process the destroy-command.  
-		   We need to acknowledge that this event has been processed */
-		/* Event-type not set. BUG */
-		/* No further processing here. Just fall through and free evt structure */
-	/* Free tmr_req_info */
-
-/****************************************************************************
- *
- * Function Name: mdtm_tipc_mbx_cleanup
- *
- * Purpose: Used for cleaning messages in mailbox
- *
- * Return Value:  NCSCC_RC_SUCCESS
- *                NCSCC_RC_FAILURE
- *
- ****************************************************************************/
-NCS_BOOL mdtm_tipc_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg)
-{
-	MDS_MBX_EVT_INFO *mbx_evt_info = (MDS_MBX_EVT_INFO *)msg;
-
-	switch (mbx_evt_info->type) {
-	case MDS_MBX_EVT_TIMER_EXPIRY:
-		/* freeing of tmr_req_info and handle is done in mcm, where tmr_running flag is still true */
-		break;
-	case MDS_MBX_EVT_DESTROY:
-		/* Destroy ack object is destroyed by thread posting the destroy-event */
-		break;
-	default:
-		assert(0);
-		break;
-	}
-	m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
-
-	return TRUE;
-}
-
-	/* make 16 bit words out of every two adjacent 8 bit words and
-	   calculate the sum of all 16 bit words */
-
-	/* keep only the last 16 bits of the 32 bit calculated sum and add the carries */
-
-	/* Take the one's complement of sum */
-
-	/* STEP 1: Print all but the last 8 bytes. 
-	   If offset = 0 and len = 8, don't go into for loop below
-	   If offset = 1 and len = 7, don't go into for loop below
-	   If offset = 0 and len = 9,   do  go into for loop below */
-
-	/* STEP 2: Print last  ((len % 8 ) + 1) bytes 
-	   Reaching here implies, len - offset <= 8 */
