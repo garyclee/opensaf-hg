@@ -44,16 +44,19 @@
 /* Send_buffer_size + MDS_MDTM_DTM_PID_BUFFER_SIZE   */
 #define MDS_MDTM_DTM_PID_BUFFER_SIZE (2 + MDS_MDTM_DTM_PID_SIZE)
 
+extern uns32 mdtm_num_subscriptions;
+extern MDS_SUBTN_REF_VAL mdtm_handle;
+extern uns32 mdtm_global_frag_num_tcp;
 uns32 socket_domain = AF_INET;
-uns16 port = 0;
+uns16 mdtm_port = 0;
 
 /* Get the pid of the process */
-pid_t pid;
+pid_t mdtm_pid;
 
 static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uns8 *buff);
 static uns32 mdtm_create_rcv_task(void);
+static uns32 mdtm_destroy_rcv_task_tcp(void);
 uns32 mdtm_process_recv_events_tcp(void);
-
 
 /**
  * Initialize the tcp interface creation of sockets
@@ -76,11 +79,15 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 	char sun_path_connect[MDS_MDTM_SUN_PATH];
 
 	host = gethostbyname("127.0.0.1");
-	pid = getpid();
+	mdtm_pid = getpid();
 
 	MDS_MDTM_DTM_MSG send_evt;
 
 	NCS_PATRICIA_PARAMS pat_tree_params;
+	mdtm_ref_hdl_list_hdr = NULL;
+	mdtm_num_subscriptions = 0;
+	mdtm_handle = 0;
+	mdtm_global_frag_num_tcp = 0;
 
 	memset(&client_addr_un, 0, sizeof(struct sockaddr_un));
 	memset(&dhserver_addr_un, 0, sizeof(struct sockaddr_un));
@@ -141,15 +148,15 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 	}
 
 	tcp_cb->adest = ((uns64)(nodeid)) << 32;
-	tcp_cb->adest |= pid;
+	tcp_cb->adest |= mdtm_pid;
 	tcp_cb->node_id = nodeid;
 
-	*mds_tcp_ref = pid;
+	*mds_tcp_ref = mdtm_pid;
 
 	if (socket_domain == AF_UNIX) {
 		int servlen = 0;
 
-		sprintf(sun_path, "%s_%d", MDS_MDTM_SOCKET_LOC, pid);
+		sprintf(sun_path, "%s_%d", MDS_MDTM_SOCKET_LOC, mdtm_pid);
 		sprintf(sun_path_connect, "%s", MDS_MDTM_CONNECT_PATH);
 
 		dhserver_addr_un.sun_family = AF_UNIX;
@@ -179,7 +186,7 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 	} else {
 		/* Case for AF_INET */
 		server_addr_in.sin_family = AF_INET;
-		server_addr_in.sin_port = port;
+		server_addr_in.sin_port = mdtm_port;
 		server_addr_in.sin_addr = *((struct in_addr *)host->h_addr);
 		bzero(&(server_addr_in.sin_zero), 8);
 
@@ -197,7 +204,7 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 	send_evt.mds_indentifire = MDS_IDENTIFIRE;
 	send_evt.type = MDS_MDTM_DTM_PID_TYPE;
 	send_evt.info.pid.node_id = nodeid;
-	send_evt.info.pid.process_id = pid;
+	send_evt.info.pid.process_id = mdtm_pid;
 
 	/* Convert into the encoded buffer before send */
 	mds_mdtm_enc_init(&send_evt, buffer);
@@ -299,8 +306,80 @@ static uns32 mdtm_create_rcv_task(void)
  */
 uns32 mds_mdtm_destroy_tcp(void)
 {
+	MDTM_REF_HDL_LIST *temp_ref_hdl_list_entry = NULL;
+	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
+	MDTM_REASSEMBLY_KEY reassembly_key;
+
+	/* close sockets first */
+	close(tcp_cb->DBSRsock);
+
+	/* Destroy receiving task */
+	if (mdtm_destroy_rcv_task_tcp() != NCSCC_RC_SUCCESS) {
+		m_MDS_LOG_ERR("MDTM: Receive Task Destruction Failed in MDTM_INIT\n");
+	}
+	/* Destroy mailbox */
+	m_NCS_IPC_DETACH(&tcp_cb->tmr_mbx, (NCS_IPC_CB)mdtm_mailbox_mbx_cleanup, NULL);
+	m_NCS_IPC_RELEASE(&tcp_cb->tmr_mbx, (NCS_IPC_CB)mdtm_mailbox_mbx_cleanup);
+
+	/* Clear reference hdl list */
+	while (mdtm_ref_hdl_list_hdr != NULL) {
+		/* Store temporary the pointer of entry to be deleted */
+		temp_ref_hdl_list_entry = mdtm_ref_hdl_list_hdr;
+		/* point to next entry */
+		mdtm_ref_hdl_list_hdr = mdtm_ref_hdl_list_hdr->next;
+		/* Free the entry */
+		m_MMGR_FREE_HDL_LIST(temp_ref_hdl_list_entry);
+	}
+
+	/* Delete the pat tree for the reassembly */
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext(&mdtm_reassembly_list, (uns8 *)NULL);
+
+	while (NULL != reassem_queue) {
+		/* stop timer and free memory */
+		m_NCS_TMR_STOP(reassem_queue->tmr);
+		m_NCS_TMR_DESTROY(reassem_queue->tmr);
+
+		/* Free tmr_info */
+		m_MMGR_FREE_TMR_INFO(reassem_queue->tmr_info);
+
+		/* Destroy Handle */
+		ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, reassem_queue->tmr_hdl);
+
+		reassem_queue->tmr_info = NULL;
+
+		/* Free memory Allocated to this msg and MDTM_REASSEMBLY_QUEUE */
+		mdtm_free_reassem_msg_mem(&reassem_queue->recv.msg);
+
+		reassembly_key = reassem_queue->key;
+
+		ncs_patricia_tree_del(&mdtm_reassembly_list, (NCS_PATRICIA_NODE *)reassem_queue);
+		m_MMGR_FREE_REASSEM_QUEUE(reassem_queue);
+
+		reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_getnext
+			(&mdtm_reassembly_list, (uns8 *)&reassembly_key);
+	}
+
+	ncs_patricia_tree_destroy(&mdtm_reassembly_list);
+	mdtm_ref_hdl_list_hdr = NULL;
+	mdtm_num_subscriptions = 0;
+	mdtm_handle = 0;
+	mdtm_global_frag_num_tcp = 0;
+	free(tcp_cb);
 
 	return NCSCC_RC_SUCCESS;
+}
+
+uns32 mdtm_destroy_rcv_task_tcp(void)
+{
+        if (m_NCS_TASK_STOP(tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+                m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");
+        }
+
+        if (m_NCS_TASK_RELEASE(tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+                m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");
+        }
+
+        return NCSCC_RC_SUCCESS;
 }
 
 /**

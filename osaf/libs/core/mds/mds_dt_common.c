@@ -1335,3 +1335,34 @@ uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
 	m_MDS_LOG_INFO("MDTM: DESTROY post to Mailbox Success\n");
 	return NCSCC_RC_SUCCESS;
 }
+
+/****************************************************************************
+ *
+ * Function Name: mdtm_mailbox_mbx_cleanup
+ *
+ * Purpose: Used for cleaning messages in mailbox
+ *
+ * Return Value:  NCSCC_RC_SUCCESS
+ *                NCSCC_RC_FAILURE
+ *
+ ****************************************************************************/
+NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg)
+{
+	MDS_MBX_EVT_INFO *mbx_evt_info = (MDS_MBX_EVT_INFO *)msg;
+
+	switch (mbx_evt_info->type) {
+		case MDS_MBX_EVT_TIMER_EXPIRY:
+			/* freeing of tmr_req_info and handle is done in mcm, where tmr_running flag is still true */
+			break;
+		case MDS_MBX_EVT_DESTROY:
+			/* Destroy ack object is destroyed by thread posting the destroy-event */
+			break;
+		default:
+			assert(0);
+			break;
+	}
+	m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
+
+	return TRUE;
+}
+

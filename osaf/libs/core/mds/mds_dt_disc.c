@@ -18,10 +18,13 @@
 #include "mds_dt.h"
 #include "mds_dt_tcp.h"
 #include "mds_dt_tcp_disc.h"
+#include <sys/types.h>
+#include <unistd.h>
 
-static uns16 num_subscriptions;
-static MDS_SUBTN_REF_VAL handle;
-extern uns32 pid;
+
+uns16 mdtm_num_subscriptions;
+MDS_SUBTN_REF_VAL mdtm_handle;
+extern pid_t mdtm_pid;
 
 extern MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_hdr;
 extern MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_tail;
@@ -61,9 +64,9 @@ uns32 mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 	pwe_id = pwe_id << MDS_EVENT_SHIFT_FOR_PWE;
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
 
-	if (num_subscriptions > MAX_SUBSCRIPTIONS) {
-		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", num_subscriptions);
-		if (num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
+	if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS) {
+		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", mdtm_num_subscriptions);
+		if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
 			m_MDS_LOG_ERR
 			    ("MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
 			     MAX_SUBSCRIPTIONS_RETURN_ERROR);
@@ -83,9 +86,9 @@ uns32 mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 	subscr.info.subscribe.server_type = server_type;
 	subscr.info.subscribe.server_instance_lower = MDS_MDTM_LOWER_INSTANCE;
 	subscr.info.subscribe.server_instance_upper = MDS_MDTM_UPPER_INSTANCE;
-	subscr.info.subscribe.sub_ref_val = ++handle;
+	subscr.info.subscribe.sub_ref_val = ++mdtm_handle;
 	subscr.info.subscribe.node_id = tcp_cb->node_id;
-	subscr.info.subscribe.process_id = pid;
+	subscr.info.subscribe.process_id = mdtm_pid;
 
 	*subtn_ref_val = subscr.info.subscribe.sub_ref_val;
 
@@ -97,7 +100,7 @@ uns32 mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 
 	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
 
-	++num_subscriptions;
+	++mdtm_num_subscriptions;
 	m_MDS_LOG_INFO("MDTM: SVC-SUBSCRIBE Success\n");
 
 	return status;
@@ -131,7 +134,7 @@ uns32 mds_mdtm_svc_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 	unsubscr.type = MDS_MDTM_DTM_UNSUBSCRIBE_TYPE;
 	unsubscr.info.unsubscribe.sub_ref_val = subtn_ref_val;
 	unsubscr.info.unsubscribe.node_id = tcp_cb->node_id;
-	unsubscr.info.unsubscribe.process_id = pid;
+	unsubscr.info.unsubscribe.process_id = mdtm_pid;
 
 	/* Convert into the encoded tcp_buffer before send */
 	mds_mdtm_enc_svc_unsubscribe(&unsubscr, tcp_buffer);
@@ -204,7 +207,7 @@ uns32 mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE
 	svc_install.info.bind.server_instance_lower = server_inst;
 	svc_install.info.bind.server_instance_upper = server_inst;
 	svc_install.info.bind.node_id = tcp_cb->node_id;
-	svc_install.info.bind.process_id = pid;
+	svc_install.info.bind.process_id = mdtm_pid;
 	svc_install.info.bind.install_scope = install_scope;
 
 	m_MDS_LOG_INFO("MDTM: install_tcp : <%u,%u,%u>", server_type, server_inst, server_inst);
@@ -277,7 +280,7 @@ uns32 mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 	svc_uninstall.info.unbind.server_instance_lower = server_inst;
 	svc_uninstall.info.unbind.server_instance_upper = server_inst;
 	svc_uninstall.info.unbind.node_id = tcp_cb->node_id;
-	svc_uninstall.info.unbind.process_id = pid;
+	svc_uninstall.info.unbind.process_id = mdtm_pid;
 	svc_uninstall.info.unbind.install_scope = install_scope;
 
 	m_MDS_LOG_INFO("MDTM: uninstall_tcp : <%u,%u,%u>", server_type, server_inst, server_inst);
@@ -322,7 +325,7 @@ uns32 mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id)
 	server_addr.info.bind.server_instance_lower = server_inst;
 	server_addr.info.bind.server_instance_upper = server_inst;
 	server_addr.info.bind.node_id = tcp_cb->node_id;
-	server_addr.info.bind.process_id = pid;
+	server_addr.info.bind.process_id = mdtm_pid;
 	server_addr.info.bind.install_scope = (NCSMDS_SCOPE_NONE - 1);
 
 	/* Convert into the encoded tcp_buffer before send */
@@ -364,7 +367,7 @@ uns32 mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
 	server_addr.info.unbind.server_instance_lower = server_inst;
 	server_addr.info.unbind.server_instance_upper = server_inst;
 	server_addr.info.unbind.node_id = tcp_cb->node_id;
-	server_addr.info.unbind.process_id = pid;
+	server_addr.info.unbind.process_id = mdtm_pid;
 	server_addr.info.unbind.install_scope = (NCSMDS_SCOPE_NONE - 1);
 
 	/* Convert into the encoded tcp_buffer before send */
@@ -394,9 +397,9 @@ uns32 mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *sub
 
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE);
 
-	if (num_subscriptions > MAX_SUBSCRIPTIONS) {
-		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", num_subscriptions);
-		if (num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
+	if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS) {
+		m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n", mdtm_num_subscriptions);
+		if (mdtm_num_subscriptions > MAX_SUBSCRIPTIONS_RETURN_ERROR) {
 			m_MDS_LOG_ERR
 			    ("MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",
 			     MAX_SUBSCRIPTIONS_RETURN_ERROR);
@@ -415,9 +418,9 @@ uns32 mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *sub
 	subscr.info.subscribe.server_type = server_type;
 	subscr.info.subscribe.server_instance_lower = inst;
 	subscr.info.subscribe.server_instance_upper = inst;
-	subscr.info.subscribe.sub_ref_val = ++handle;
+	subscr.info.subscribe.sub_ref_val = ++mdtm_handle;
 	subscr.info.subscribe.node_id = tcp_cb->node_id;
-	subscr.info.subscribe.process_id = pid;
+	subscr.info.subscribe.process_id = mdtm_pid;
 	subscr.info.subscribe.scope_type = (NCSMDS_SCOPE_NONE - 1);
 
 	/* Convert into the encoded tcp_buffer before send */
@@ -426,7 +429,7 @@ uns32 mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *sub
 	/* Add the message to unsent queue if messages are already there otherwise send the message directly */
 	mds_mdtm_unsent_queue_add_send(tcp_buffer, MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE);
 
-	++num_subscriptions;
+	++mdtm_num_subscriptions;
 
 	m_MDS_LOG_INFO("MDTM: VDEST-SUBSCRIBE Success\n");
 
@@ -496,9 +499,9 @@ uns32 mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_
 	node_subscr.mds_version = MDS_SND_VERSION;
 	node_subscr.mds_indentifire = MDS_IDENTIFIRE;
 	node_subscr.type = MDS_MDTM_DTM_NODE_SUBSCRIBE_TYPE;
-	node_subscr.info.node_subscribe.sub_ref_val = ++handle;
+	node_subscr.info.node_subscribe.sub_ref_val = ++mdtm_handle;
 	node_subscr.info.node_subscribe.node_id = tcp_cb->node_id;
-	node_subscr.info.node_subscribe.process_id = pid;
+	node_subscr.info.node_subscribe.process_id = mdtm_pid;
 
 	*subtn_ref_val = node_subscr.info.node_subscribe.sub_ref_val;
 
@@ -509,7 +512,7 @@ uns32 mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_
 	mds_mdtm_unsent_queue_add_send(tcp_buffer, MDS_MDTM_DTM_NODE_SUBSCRIBE_BUFFER_SIZE);
 
 	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
-	++num_subscriptions;
+	++mdtm_num_subscriptions;
 	m_MDS_LOG_INFO("MDTM: NODE-SUBSCRIBE Success\n");
 
 	return status;
@@ -540,7 +543,7 @@ uns32 mds_mdtm_node_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 	node_unsubscr.type = MDS_MDTM_DTM_NODE_SUBSCRIBE_TYPE;
 	node_unsubscr.info.node_unsubscribe.sub_ref_val = subtn_ref_val;
 	node_unsubscr.info.node_unsubscribe.node_id = tcp_cb->node_id;
-	node_unsubscr.info.node_unsubscribe.process_id = pid;
+	node_unsubscr.info.node_unsubscribe.process_id = mdtm_pid;
 
 	/* Convert into the encoded tcp_buffer before send */
 	mds_mdtm_enc_node_unsubscribe(&node_unsubscr, tcp_buffer);

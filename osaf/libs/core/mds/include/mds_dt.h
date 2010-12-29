@@ -214,6 +214,8 @@ void mds_buff_dump(uns8 *buff, uns32 len, uns32 max);
 NCS_PATRICIA_TREE mdtm_reassembly_list;
 
 uns32 mdtm_set_transport(MDTM_TX_TYPE transport);
+NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
+
 #define MDTM_PKT_TYPE_OFFSET            4	/* Fragmented or normal */
 
 #define MDTM_CHECK_MORE_FRAG            0x8000
