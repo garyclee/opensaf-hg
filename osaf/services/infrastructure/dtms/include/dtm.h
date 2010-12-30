@@ -26,6 +26,7 @@
 #include "ncsencdec_pub.h"
 #include "ncs_mda_papi.h"
 #include "ncs_edu_pub.h"
+#include <net/if.h>
 #include "dtm_cb.h"
 
 extern DTM_INTERNODE_CB *dtms_gl_cb;

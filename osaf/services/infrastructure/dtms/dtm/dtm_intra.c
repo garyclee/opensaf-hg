@@ -91,7 +91,7 @@ uns32 dtm_intra_processing_init(void)
 
 	TRACE_ENTER();
 	if (NULL == (dtm_intranode_cb = calloc(1, sizeof(DTM_INTRANODE_CB)))) {
-		syslog(LOG_ERR, "\nMemory allocation failed for dtm_intranode_cb");
+		LOG_ER("DTM: Memory allocation failed for dtm_intranode_cb");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -99,7 +99,7 @@ uns32 dtm_intra_processing_init(void)
 	dtm_intranode_cb->server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (dtm_intranode_cb->server_sockfd < 0) {
-		syslog(LOG_ERR, "\nSocket creation failed");
+		LOG_ER("DTM: Socket creation failed");
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
 	}
@@ -109,7 +109,7 @@ uns32 dtm_intra_processing_init(void)
 
 	if (sock_opt != 0) {
 		/*Non-Blocking Options hasnt been set, what shall we do now */
-		syslog(LOG_ERR, "\nSocket NON Block set failed");
+		LOG_ER("DTM: Socket NON Block set failed");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -117,13 +117,13 @@ uns32 dtm_intra_processing_init(void)
 
 	/* Increase the socket buffer size */
 	if (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
-		syslog(LOG_ERR, "DTM: Unable to set the SO_RCVBUF ");
+		LOG_ER("DTM: Unable to set the SO_RCVBUF ");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
 	}
 	if (setsockopt(dtm_intranode_cb->server_sockfd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
-		syslog(LOG_ERR, "DTM: Unable to set the SO_SNDBUF ");
+		LOG_ER("DTM: Unable to set the SO_SNDBUF ");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -148,13 +148,13 @@ uns32 dtm_intra_processing_init(void)
 	 * created socket*/
 
 	if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serv_addr, servlen) < 0) {
-		syslog(LOG_ERR, "\nBind failed");
+		LOG_ER("DTM: Bind failed");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
 	}
 	if (chmod(UX_SOCK_NAME_PREFIX,(S_IROTH | S_IWOTH ))< 0 ) { 
-		syslog(LOG_ERR, "Unable to set the permission to unix server sock");
+		LOG_ER("DTM:Unable to set the permission to unix server sock");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -164,7 +164,7 @@ uns32 dtm_intra_processing_init(void)
 	memset(&pat_tree_params, 0, sizeof(pat_tree_params));
 	pat_tree_params.key_size = sizeof(uns32);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_intranode_pid_list, &pat_tree_params)) {
-		syslog(LOG_ERR, "\n ncs_patricia_tree_init failed for dtm_intranode_pid_list");
+		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -172,7 +172,7 @@ uns32 dtm_intra_processing_init(void)
 
 	pat_tree_params.key_size = sizeof(int);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_intranode_fd_list, &pat_tree_params)) {
-		syslog(LOG_ERR, "\n ncs_patricia_tree_init failed for dtm_intranode_pid_list");
+		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -180,7 +180,7 @@ uns32 dtm_intra_processing_init(void)
 
 	pat_tree_params.key_size = sizeof(uns32);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_svc_subscr_list, &pat_tree_params)) {
-		syslog(LOG_ERR, "\n ncs_patricia_tree_init failed for dtm_intranode_pid_list");
+		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -188,7 +188,7 @@ uns32 dtm_intra_processing_init(void)
 
 	pat_tree_params.key_size = sizeof(uns32);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&dtm_intranode_cb->dtm_svc_install_list, &pat_tree_params)) {
-		syslog(LOG_ERR, "\n ncs_patricia_tree_init failed for dtm_intranode_pid_list");
+		LOG_ER("DTM: ncs_patricia_tree_init failed for dtm_intranode_pid_list");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -198,7 +198,7 @@ uns32 dtm_intra_processing_init(void)
 
 	if (m_NCS_IPC_CREATE(&dtm_intranode_cb->mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */
-		syslog(LOG_ERR, "\nDTM : Intranode Mailbox Creation failed");
+		LOG_ER("DTM : Intranode Mailbox Creation failed");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -211,7 +211,7 @@ uns32 dtm_intra_processing_init(void)
 			m_NCS_IPC_RELEASE(&dtm_intranode_cb->mbx, NULL);
 			close(dtm_intranode_cb->server_sockfd);
 			free(dtm_intranode_cb);
-			syslog(LOG_ERR, "\nDTM: Intranode Mailbox  Attach failed");
+			LOG_ER("DTM: Intranode Mailbox  Attach failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -225,7 +225,7 @@ uns32 dtm_intra_processing_init(void)
 	dtm_intranode_add_poll_fdlist(dtm_intranode_cb->mbx_fd, POLLIN);
 
 	if (dtm_intranode_create_rcv_task(dtm_intranode_cb->task_hdl) != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "\nMDS:MDTM: Receive Task Creation Failed in MDTM_INIT\n");
+		LOG_ER("MDS:MDTM: Receive Task Creation Failed in MDTM_INIT\n");
 		close(dtm_intranode_cb->server_sockfd);
 		free(dtm_intranode_cb);
 		return NCSCC_RC_FAILURE;
@@ -256,7 +256,7 @@ static uns32 dtm_intranode_create_rcv_task(int task_hdl)
 			      DTM_INTRANODE_TASKNAME,
 			      DTM_INTRANODE_TASK_PRIORITY, DTM_INTRANODE_STACKSIZE,
 			      &dtm_intranode_cb->dtm_intranode_hdl_task) != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "\nIntr NODE Task Creation-failed");
+		LOG_ER("\nIntr NODE Task Creation-failed");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -264,7 +264,7 @@ static uns32 dtm_intranode_create_rcv_task(int task_hdl)
 	 *   if start fails,
 	 *        release the task by calling the NCS task release function*/
 	if (m_NCS_TASK_START(dtm_intranode_cb->dtm_intranode_hdl_task) != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "\nStart of the Created Task-failed");
+		LOG_ER("DTM:Start of the Created Task-failed");
 		m_NCS_TASK_RELEASE(dtm_intranode_cb->dtm_intranode_hdl_task);
 		return NCSCC_RC_FAILURE;
 	}
@@ -309,8 +309,7 @@ static void dtm_intranode_processing(void)
 						     *) (m_NCS_IPC_NON_BLK_RECEIVE(&dtm_intranode_cb->mbx, NULL));
 
 						if (NULL == msg_elem) {
-							syslog(LOG_ERR,
-							       "\nDTM: Intra Node Mailbox IPC_NON_BLK_RECEIVE Failed");
+							  LOG_ER("DTM : Intra Node Mailbox IPC_NON_BLK_RECEIVE Failed");
 							continue;
 						} else if (DTM_MBX_UP_TYPE == msg_elem->type) {
 							dtm_process_internode_service_up_msg(msg_elem->info.svc_event.
@@ -337,7 +336,7 @@ static void dtm_intranode_processing(void)
 											   msg_elem->info.data.dst_pid,
 											   msg_elem->info.data.len);
 						} else {
-							syslog(LOG_ERR, "\nDTM Intranode :Invalid evt type from mbx");
+							LOG_ER("DTM: Intranode :Invalid evt type from mbx");
 						}
 						free(msg_elem);
 
@@ -368,8 +367,7 @@ static void dtm_intranode_processing(void)
 
 							if (NULL == (inbuf = calloc(1, (length + 3)))) {
 								/* Length + 2 is done to reuse the same buffer while sending to other nodes */
-								syslog(LOG_ERR,
-								       "\nMemory allocation failed in dtm_intranode_processing");
+								LOG_ER("DTM :Memory allocation failed in dtm_intranode_processing");
 								assert(0);
 								continue;
 							}
@@ -379,7 +377,7 @@ static void dtm_intranode_processing(void)
 							if (length != recd_bytes) {
 								/* can happen only in two cases, system call interrupt or half data,
 								   half data not possible as per design */
-								syslog(LOG_ERR, "len mismatch len = %d, rcv bytes =%d",
+								LOG_ER("DTM:len mismatch len : %d, rcv bytes =%d",
 								       length, recd_bytes);
 								assert(0);
 							}
@@ -393,8 +391,8 @@ static void dtm_intranode_processing(void)
 
 							if ((DTM_INTRANODE_RCV_MSG_IDENTIFIER != identifier)
 							    || (DTM_INTRANODE_RCV_MSG_VER != version)) {
-								syslog(LOG_ERR,
-								       "\nMalformed packet recd, Ident = %d, ver = %d",
+								LOG_ER(
+								       "DTM: Malformed packet recd, Ident : %d, ver : %d",
 								       identifier, version);
 								free(inbuf);
 								continue;
@@ -452,8 +450,7 @@ static void dtm_intranode_processing(void)
 								}
 							} else {
 								/* msg_type not supported, log error */
-								syslog(LOG_ERR,
-								       "\nRecd msg_type unknown, dropping the message");
+							         LOG_ER("DTM :Recd msg_type unknown, dropping the message");
 								free(inbuf);
 							}
 						} else {
@@ -555,7 +552,7 @@ static uns32 dtm_intranode_del_poll_fdlist(int fd)
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	syslog(LOG_ERR, "\nNo matching entry found in fd list");
+	LOG_ER("DTM:No matching entry found in fd list");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -575,7 +572,7 @@ uns32 dtm_intranode_set_poll_fdlist(int fd, uns16 events)
 
 	TRACE_ENTER();
 	if (mov_ptr == NULL) {
-		syslog(LOG_ERR, "\nUnable to set the event in the poll list");
+		LOG_ER("DTM:Unable to set the event in the poll list");
 		return NCSCC_RC_FAILURE;
 	}
 	while (mov_ptr != NULL) {
@@ -586,7 +583,7 @@ uns32 dtm_intranode_set_poll_fdlist(int fd, uns16 events)
 		}
 		mov_ptr = mov_ptr->next;
 	}
-	syslog(LOG_ERR, "\nUnable to set the event in the poll list");
+	LOG_ER("DTM:Unable to set the event in the poll list");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -606,7 +603,7 @@ uns32 dtm_intranode_reset_poll_fdlist(int fd)
 
 	TRACE_ENTER();
 	if (mov_ptr == NULL) {
-		syslog(LOG_ERR, "\nUnable to set the event in the poll list");
+		LOG_ER("DTM:Unable to set the event in the poll list");
 		return NCSCC_RC_FAILURE;
 	}
 	while (mov_ptr != NULL) {
@@ -617,7 +614,7 @@ uns32 dtm_intranode_reset_poll_fdlist(int fd)
 		}
 		mov_ptr = mov_ptr->next;
 	}
-	syslog(LOG_ERR, "\nUnable to set the event in the poll list");
+	LOG_ER("DTM:Unable to set the event in the poll list");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -642,7 +639,7 @@ static uns32 dtm_intranode_fill_fd_set(void)
 			dtm_intranode_pfd[i].events = mov_ptr->dtm_intranode_fd.events;
 			mov_ptr = mov_ptr->next;
 		} else {
-			syslog(LOG_ERR, "\nDTM Intranode dtm_intranode_max_fd and fd_list differ");
+			LOG_ER("DTM: Intranode dtm_intranode_max_fd and fd_list differ");
 			return NCSCC_RC_FAILURE;
 		}
 	}
@@ -670,7 +667,7 @@ static uns32 dtm_intranode_process_incoming_conn(void)
 
 	/* Error Checking */
 	if (accept_fd < 0) {
-		syslog(LOG_ERR, "\n Connection accept fail");
+		LOG_ER("DTM: Connection accept fail");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -678,7 +675,7 @@ static uns32 dtm_intranode_process_incoming_conn(void)
 	/*Make the socket Non-Blocking for accepting */
 	sock_opt = fcntl(accept_fd, F_SETFL, O_NONBLOCK);
 	if (sock_opt != 0) {
-		syslog(LOG_ERR, "\naccept_fd Non-Blocking hasnt been Set");
+		LOG_ER("DTM: accept_fd Non-Blocking hasnt been Set");
 		retry_count++;
 		/* Non-Blocking Options hasnt been set */
 		if (retry_count > 3) {
@@ -688,12 +685,12 @@ static uns32 dtm_intranode_process_incoming_conn(void)
 		}
 	}
 	if (setsockopt(accept_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) != 0) {
-		syslog(LOG_ERR, "DTM: Unable to set the SO_RCVBUF ");
+		LOG_ER("DTM: Unable to set the SO_RCVBUF ");
 		close(accept_fd);
 		return NCSCC_RC_FAILURE;
 	}
 	if (setsockopt(accept_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) != 0) {
-		syslog(LOG_ERR, "DTM: Unable to set the SO_SNDBUF ");
+		LOG_ER("DTM: Unable to set the SO_SNDBUF ");
 		close(accept_fd);
 		return NCSCC_RC_FAILURE;
 	}

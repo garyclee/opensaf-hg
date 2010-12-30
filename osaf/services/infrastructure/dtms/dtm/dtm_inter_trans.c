@@ -176,10 +176,10 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns1
 
 		if (send_len == len) {
 			free(buffer);
-			TRACE("\nsend success, total_len = %d, send_len=%d", len, send_len);
+			TRACE("DTM:send success, total_len : %d, send_len=%d", len, send_len);
 			return NCSCC_RC_SUCCESS;
 		} else {
-			TRACE("\nsend failed, total_len = %d, send_len=%d", len, send_len);
+			TRACE("DTM: nsend failed, total_len : %d, send_len=%d", len, send_len);
 			/* Queue the message */
 			if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
 				TRACE("\nCalloc failed DTM_INTERNODE_UNSENT_MSGS");
@@ -307,7 +307,7 @@ static uns32 dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
 			free(unsent_msg->buffer);
 			unsent_msg->buffer = NULL;
 			snd_count++;
-			TRACE("\nsend success, total_len = %d, send_len=%d", unsent_msg->len, send_len);
+			TRACE("DTM: send success, total_len : %d, send_len=%d", unsent_msg->len, send_len);
 			if (DTM_INTERNODE_SND_MAX_COUNT == snd_count) {
 				break;
 			}

@@ -54,7 +54,7 @@ uns32 dtm_intranode_process_rcv_data_msg(uns8 *buffer, uns32 dst_pid, uns16 len)
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	pid_node = dtm_intranode_get_pid_info_using_pid(dst_pid);
 	if (NULL == pid_node) {
-		TRACE("\nDestination PID not found = %d", dst_pid);
+		TRACE("DTM: Destination PID not found : %d", dst_pid);
 		free(buffer);
 		return NCSCC_RC_FAILURE;
 	} else {
@@ -106,10 +106,10 @@ uns32 dtm_intranode_send_msg(uns16 len, uns8 *buffer, DTM_INTRANODE_PID_INFO * p
 
 		if (send_len == len) {
 			free(buffer);
-			TRACE("\nsend success, total_len = %d, send_len=%d", len, send_len);
+			TRACE("DTM: send success, total_len : %d, send_len=%d", len, send_len);
 			return NCSCC_RC_SUCCESS;
 		} else {
-			TRACE("\nsend failed, total_len = %d, send_len=%d", len, send_len);
+			TRACE("DTM: send failed, total_len : %d, send_len=%d", len, send_len);
 			/* Queue the message */
 			if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTRANODE_UNSENT_MSGS)))) {
 				TRACE("\nCalloc failed DTM_INTRANODE_UNSENT_MSGS");
@@ -155,7 +155,7 @@ uns32 dtm_intranode_process_pollout(int fd)
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	pid_node = dtm_intranode_get_pid_info_using_fd(fd);
 	if (NULL == pid_node) {
-		TRACE("\nDestination PID not found = %d", fd);
+		TRACE("DTM:Destination PID not found : %d", fd);
 		assert(0);
 		return NCSCC_RC_FAILURE;
 	} else {
@@ -199,7 +199,7 @@ static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int
 			free(unsent_msg->buffer);
 			unsent_msg->buffer = NULL;
 			snd_count++;
-			TRACE("\nsend success, total_len = %d, send_len=%d", unsent_msg->len, send_len);
+			TRACE("DTM:send success, total_len : %d, send_len=%d", unsent_msg->len, send_len);
 			if (DTM_INTRANODE_SND_MAX_COUNT == snd_count) {
 				break;
 			}

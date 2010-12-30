@@ -115,7 +115,7 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *b
 			rc = dtm_comm_socket_send(stream_sock, node_info_hrd, buffer_len);
 			if (rc != NCSCC_RC_SUCCESS) {
 
-				LOG_ER(" dtm_comm_socket_send() failed rc -%d", rc);
+				LOG_ER("DTM: dtm_comm_socket_send() failed rc : %d", rc);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -127,7 +127,7 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *b
 		rc = dtm_process_node_up_down(node->node_id, node->node_name, node->comm_status);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER(" dtm_process_node_up_down() failed rc - %d ", rc);
+			LOG_ER("DTM: dtm_process_node_up_down() failed rc : %d ", rc);
 			rc = NCSCC_RC_FAILURE;
 		}
 	} else {
@@ -169,13 +169,13 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 	node = dtm_node_new(&tmp_node);
 
 	if (node == NULL) {
-		LOG_ER("DTM:  dtm_node_new failed .node_ip = %s ", tmp_node.node_ip);
+		LOG_ER("DTM:  dtm_node_new failed .node_ip : %s ", tmp_node.node_ip);
 		goto node_fail;
 	}
 
 	rc = dtm_node_add(node, 0);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc - %d node->node_id - %d node->node_ip - %s", rc, node->node_id,
+		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
 		       node->node_ip);
 		rc = NCSCC_RC_FAILURE;
 		free(node);
@@ -184,7 +184,7 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 
 	rc = dtm_node_add(node, 1);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc - %d node->node_id - %d node->node_ip - %s", rc, node->node_id,
+		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
 		       node->node_ip);
 		if (dtm_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
 			LOG_ER("DTM :dtm_node_delete failed ");
@@ -197,7 +197,7 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 
 	rc = dtm_node_add(node, 2);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc - %d node->node_id - %d node->node_ip - %s", rc, node->node_id,
+		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
 		       node->node_ip);
 		if (dtm_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
 			LOG_ER("DTM :dtm_node_delete failed ");
@@ -273,7 +273,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_l
 	version = ncs_decode_8bit(&data);
 
 	if ((DTM_INTERNODE_RCV_MSG_IDENTIFIER != identifier) || (DTM_INTERNODE_RCV_MSG_VER != version)) {
-		LOG_ER("\nMalformed packet recd, Ident = %d, ver = %d", identifier, version);
+		LOG_ER("DTM: Malformed packet recd, Ident : %d, ver : %d", identifier, version);
 		goto done;
 	}
 
@@ -355,7 +355,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 
 			recd_bytes = recv(fd, node->len_buff, 2, 0);
 			if (0 == recd_bytes) {
-				LOG_ER("DTM:dtm_comm_socket_recv() failed rc - %d", fd);
+				LOG_ER("DTM:dtm_comm_socket_recv() failed rc : %d", fd);
 				*close_conn = TRUE;
 				return;
 			} else if (2 == recd_bytes) {
@@ -381,7 +381,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 					return;
 				} else if (local_len_buf > recd_bytes) {
 					/* can happen only in two cases, system call interrupt or half data, */
-					TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes,
 					       local_len_buf);
 					node->bytes_tb_read = node->buff_total_len - recd_bytes;
 					return;
@@ -441,7 +441,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 				return;
 			} else if (node->buff_total_len > recd_bytes) {
 				/* can happen only in two cases, system call interrupt or half data, */
-				TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes,
 				       node->buff_total_len);
 				node->bytes_tb_read = node->buff_total_len - recd_bytes;
 				return;
@@ -470,7 +470,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 			return;
 		} else if (node->bytes_tb_read > recd_bytes) {
 			/* can happen only in two cases, system call interrupt or half data, */
-			TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes, node->bytes_tb_read);
+			TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes, node->bytes_tb_read);
 			node->bytes_tb_read = node->bytes_tb_read - recd_bytes;
 			return;
 		} else if (node->bytes_tb_read == recd_bytes) {
@@ -656,7 +656,7 @@ void node_discovery_process(void *arg)
 						/* Add the new incoming connection to the */
 						/* pollfd structure */
 					/*****************************************************/
-						LOG_IN(" add New incoming connection to fd - %d\n", new_sd);
+						LOG_IN("DTM: add New incoming connection to fd : %d\n", new_sd);
 						fds[nfds].fd = new_sd;
 						fds[nfds].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 						nfds++;
@@ -690,8 +690,8 @@ void node_discovery_process(void *arg)
 				/*****************************************************/
 					new_sd = dtm_process_accept(dtms_cb, dtms_cb->stream_sock);
 					if (new_sd < 0) {
-						errno = GET_LAST_ERROR();
-						if (!IS_BLOCKIN_ERROR(errno)) {
+						
+						if (!IS_BLOCKIN_ERROR(GET_LAST_ERROR())) {
 
 							LOG_ER("DTM: accept() failed");
 							end_server = TRUE;
@@ -700,10 +700,7 @@ void node_discovery_process(void *arg)
 
 					}
 
-				/*****************************************************/
-					/* Add the new incoming connection to the */
-					/* pollfd structure */
-				/*****************************************************/
+		
 
 				/*****************************************************/
 					/* Node info data back to the accept with node info  */
@@ -712,10 +709,15 @@ void node_discovery_process(void *arg)
 					local_rc = dtm_comm_socket_send(new_sd, node_info_hrd, node_info_buffer_len);
 					if (local_rc != NCSCC_RC_SUCCESS) {
 						dtm_comm_socket_close(&new_sd);
-						LOG_ER(" send() failed errno - %d ", errno);
+						LOG_ER("DTM: send() failed errno : %d ", GET_LAST_ERROR());
 						break;
 					}
-					TRACE(" DTM :add New incoming connection to fd - %d\n", new_sd);
+					
+				/*****************************************************/
+					/* Add the new incoming connection to the */
+					/* pollfd structure */
+				/*****************************************************/
+					TRACE("DTM :add New incoming connection to fd : %d\n", new_sd);
 					fds[nfds].fd = new_sd;
 					fds[nfds].events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 					nfds++;
