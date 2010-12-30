@@ -20,6 +20,7 @@
 #include <configmake.h>
 #include "ncs_main_papi.h"
 #include "dtm.h"
+#include "dtm_socket.h"
 #include "dtm_node.h"
 
 char match_ip[INET6_ADDRSTRLEN];
@@ -155,7 +156,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 
 	nifaces = ifconf.ifc_len / sizeof(struct ifreq);
 
-	TRACE("Interfaces (count = %d):\n", nifaces);
+	TRACE("DTM:Interfaces (count : %d):\n", nifaces);
 
 	s = socket(PF_INET, SOCK_DGRAM, 0);
 	for (i = 0; i < nifaces; i++) {
@@ -173,7 +174,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 			}
 
 			if (inet_ntop(ifreqs[i].ifr_addr.sa_family, numericAddress, match_ip, INET6_ADDRSTRLEN) != NULL) {
-				TRACE("DTM:   %s Avalible IP address: %s sa_family - %d \n", ifreqs[i].ifr_name,
+				TRACE("DTM:   %s Avalible IP address: %s sa_family : %d \n", ifreqs[i].ifr_name,
 				      match_ip, ifreqs[i].ifr_addr.sa_family);
 				if (strcmp(match_ip, config->ip_addr) == 0) {
 					void *numericbcasrAddress = NULL;
@@ -188,6 +189,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 								numericbcasrAddress =
 								    &((struct sockaddr_in6 *)&ifreqs[i].ifr_broadaddr)->
 								    sin6_addr;
+								    strncpy(config->ifname, ifreqs[i].ifr_name, IFNAMSIZ);
 							} else {
 								LOG_ER
 								    ("DTM:  Validation of  Bcast address failed : %s \n",
@@ -196,7 +198,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 							}
 						}
 					} else {
-						LOG_ER("   Validation of  Bcast address failed : %s \n",
+						LOG_ER("DTM: Validation of  Bcast address failed : %s \n",
 						       config->ip_addr);
 						return (NULL);
 					}
@@ -209,7 +211,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 					}
 					config->i_addr_family = ifreqs[i].ifr_addr.sa_family;
 					TRACE
-					    ("DTM:  %s Validate  IP address : %s  Bcast address : %s sa_family - %d \n",
+					    ("DTM:  %s Validate  IP address : %s  Bcast address : %s sa_family : %d \n",
 					     ifreqs[i].ifr_name, match_ip, config->bcast_addr, config->i_addr_family);
 					return (match_ip);
 				}
@@ -264,12 +266,12 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
 	if (fp == NULL) {
 		LOG_ER("DTM: Could not open file  node_name ");
-		return (errno);
+		return (GET_LAST_ERROR());
 	}
 	if (EOF == fscanf(fp, "%s", config->node_name)) {
 		fclose(fp);
 		LOG_ER("DTM: Could not get node name ");
-		return (errno);
+		return (GET_LAST_ERROR());
 	}
 	fclose(fp);
 	TRACE("config->node_nam %s", config->node_name);
@@ -285,7 +287,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	if (dtm_conf_file == NULL) {
 		/* Problem with conf file - return errno value */
 		LOG_ER("DTM: dtm_read_cofig: there was a problem opening the dtm.conf file");
-		return (errno);
+		return (GET_LAST_ERROR());
 	}
 
 	/* Read file. */

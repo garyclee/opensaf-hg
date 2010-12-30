@@ -172,7 +172,7 @@ DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_nodeid))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		TRACE("Node found %d", node->node_id);
+		TRACE("DTM:Node found %d", node->node_id);
 	}
 
 	TRACE_LEAVE();
@@ -200,7 +200,7 @@ DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_comm_socket))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		TRACE("Node found %d", node->comm_socket);
+		TRACE("DTM:Node found %d", node->comm_socket);
 	}
 
 	TRACE_LEAVE();
@@ -233,7 +233,7 @@ DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_comm_socket))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		TRACE("Node found %d", node->comm_socket);
+		TRACE("DTM:Node found %d", node->comm_socket);
 	}
 
 	TRACE_LEAVE();
@@ -261,7 +261,7 @@ DTM_NODE_DB *dtm_node_get_by_node_ip(uns8 *node_ip)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_ip_address))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		TRACE("Node found %s", node_ip);
+		TRACE("DTM:Node found %s", node_ip);
 	}
 
 	TRACE_LEAVE();
@@ -294,7 +294,7 @@ DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uns8 *node_ip)
 		node = (DTM_NODE_DB *) (((char *)node)
 					- (((char *)&(((DTM_NODE_DB *) 0)->pat_ip_address))
 					   - ((char *)((DTM_NODE_DB *) 0))));
-		TRACE("Node found %s", node_ip);
+		TRACE("DTM:Node found %s", node_ip);
 	}
 
 	TRACE_LEAVE();
@@ -315,52 +315,52 @@ uns32 dtm_node_add(DTM_NODE_DB * node, int i)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER();
-	TRACE("value of i %d", i);
+	TRACE("DTM:value of i %d", i);
 
 	assert(node != NULL);
 
 	switch (i) {
 
 	case 0:
-		TRACE("Adding node_id to the patricia tree with node_id %u as key", node->node_id);
+		TRACE("DTM:Adding node_id to the patricia tree with node_id %u as key", node->node_id);
 		node->pat_nodeid.key_info = (uns8 *)&(node->node_id);
 		rc = ncs_patricia_tree_add(&dtms_cb->nodeid_tree, &node->pat_nodeid);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("ncs_patricia_tree_add for node_id  FAILED for '%d' %u", node->node_id, rc);
+			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for '%d' %u", node->node_id, rc);
 			node->pat_nodeid.key_info = NULL;
 			goto done;
 		}
 		break;
 	case 1:
-		TRACE("Adding node_id to the patricia tree with comm_socket %u as key", node->comm_socket);
+		TRACE("DTM:Adding node_id to the patricia tree with comm_socket %u as key", node->comm_socket);
 		node->pat_comm_socket.key_info = (uns8 *)&(node->comm_socket);
 		rc = ncs_patricia_tree_add(&dtms_cb->comm_sock_tree, &node->pat_comm_socket);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("ncs_patricia_tree_add for node_id  FAILED for '%d' %u", node->comm_socket, rc);
+			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for '%d' %u", node->comm_socket, rc);
 			node->pat_comm_socket.key_info = NULL;
 			goto done;
 		}
 		break;
 
 	case 2:
-		TRACE("Adding node_ip to the patricia tree with node_ip %s as key", node->node_ip);
+		TRACE("DTM:Adding node_ip to the patricia tree with node_ip %s as key", node->node_ip);
 		node->pat_ip_address.key_info = (uns8 *)&(node->node_ip);
 		rc = ncs_patricia_tree_add(&dtms_cb->ip_addr_tree, &node->pat_ip_address);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE("ncs_patricia_tree_add for node_id  FAILED for '%s' %u", node->node_ip, rc);
+			TRACE("DTM:ncs_patricia_tree_add for node_id  FAILED for '%s' %u", node->node_ip, rc);
 			node->pat_comm_socket.key_info = NULL;
 			goto done;
 		}
 		break;
 
 	default:
-		TRACE("Invalid Patricia add");
+		TRACE("DTM:Invalid Patricia add");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
  done:
-	TRACE_LEAVE2("rc - %d", rc);
+	TRACE_LEAVE2("rc : %d", rc);
 	return rc;
 }
 
@@ -377,7 +377,7 @@ uns32 dtm_node_delete(DTM_NODE_DB * node, int i)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
-	TRACE_ENTER2("value of i %d", i);
+	TRACE_ENTER2("DTM:value of i %d", i);
 
 	assert(node != NULL);
 
@@ -386,7 +386,7 @@ uns32 dtm_node_delete(DTM_NODE_DB * node, int i)
 	case 0:
 		if (node->node_id != 0) {
 			if ((rc = ncs_patricia_tree_del(&dtms_cb->nodeid_tree, &node->pat_nodeid)) != NCSCC_RC_SUCCESS) {
-				TRACE("ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
+				TRACE("DTM:ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
 				goto done;
 			}
 		}
@@ -397,7 +397,7 @@ uns32 dtm_node_delete(DTM_NODE_DB * node, int i)
 			if ((rc =
 			     ncs_patricia_tree_del(&dtms_cb->comm_sock_tree,
 						   &node->pat_comm_socket)) != NCSCC_RC_SUCCESS) {
-				TRACE("ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
+				TRACE("DTM:ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
 				goto done;
 			}
 		}
@@ -409,7 +409,7 @@ uns32 dtm_node_delete(DTM_NODE_DB * node, int i)
 			if ((rc =
 			     ncs_patricia_tree_del(&dtms_cb->ip_addr_tree,
 						   &node->pat_ip_address)) != NCSCC_RC_SUCCESS) {
-				TRACE("ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
+				TRACE("DTM:ncs_patricia_tree_del FAILED for nodename %s rc %u", node->node_name, rc);
 				goto done;
 			}
 		}
