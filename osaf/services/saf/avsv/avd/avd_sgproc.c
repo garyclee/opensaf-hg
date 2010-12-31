@@ -69,6 +69,8 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
 
+	assert (si->list_of_csi != NULL);
+
 	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == NULL) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
 			su->name.value, si->name.value);
