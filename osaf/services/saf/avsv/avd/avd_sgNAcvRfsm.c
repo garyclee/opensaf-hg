@@ -95,7 +95,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	while ((i_si != AVD_SI_NULL) && (l_flag == TRUE)) {
 		/* verify that the SI is ready and needs come more assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
-		    (i_si->max_num_csi != i_si->num_csi) ||
+		    (i_si->max_num_csi != i_si->num_csi) || (i_si->list_of_csi == NULL) ||
 		    (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si))) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;

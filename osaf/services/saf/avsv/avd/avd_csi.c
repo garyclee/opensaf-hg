@@ -22,6 +22,7 @@
 #include <avsv_util.h>
 #include <avd_csi.h>
 #include <avd_imm.h>
+#include <avd_proc.h>
 
 static NCS_PATRICIA_TREE csi_db;
 
@@ -795,6 +796,28 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 		}/* while(t_sisu) */
 
 	}/* if (NULL != csi->si->list_of_sisu) */
+	else if (csi->si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) {
+		/* CSI has been added into an SI, now SI can be assigned */
+		switch (csi->si->sg_of_si->sg_redundancy_model) {
+		case SA_AMF_2N_REDUNDANCY_MODEL:
+			avd_sg_2n_si_func(avd_cb, csi->si);
+			break;
+		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+			avd_sg_nacvred_si_func(avd_cb, csi->si);
+			break;
+		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+			avd_sg_nway_si_func(avd_cb, csi->si);
+			break;
+		case SA_AMF_NPM_REDUNDANCY_MODEL:
+			avd_sg_npm_si_func(avd_cb, csi->si);
+			break;
+		case SA_AMF_NO_REDUNDANCY_MODEL:
+			avd_sg_nored_si_func(avd_cb, csi->si);
+			break;
+		default:
+			assert(0);
+		}
+	}
 done:
 	TRACE_LEAVE();
 }

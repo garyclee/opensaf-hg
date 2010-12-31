@@ -711,43 +711,6 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	return SA_AIS_OK;
 }
 
-/**
- * Validation performed when an SU is dynamically created with a CCB.
- * @param dn
- * @param attributes
- * @param opdata
- * 
- * @return int
- */
-static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
-        const CcbUtilOperationData_t *opdata)
-{
-        SaAmfAdminStateT admstate;
-        int is_app_su = 1;
-
-        if (strstr((char *)dn->value, "safApp=OpenSAF") != NULL)
-                is_app_su = 0;
-
-        if (!is_app_su) {
-		LOG_ER("Adding SI '%s' to middleware component not allowed", dn->value);
-                return 0;
-        }
-
-	if (immutil_getAttr("saAmfSIAdminState", attributes, 0, &admstate) == SA_AIS_OK) {
-		if (admstate != SA_AMF_ADMIN_LOCKED) {
-			LOG_ER("Invalid saAmfSIAdminState %u for '%s'", admstate, dn->value);
-			LOG_NO("saAmfSIAdminState must be SA_AMF_ADMIN_LOCKED(%u) for dynamically created SIs",
-					SA_AMF_ADMIN_LOCKED);
-			return 0;
-		}
-	} else {
-		LOG_ER("saAmfSIAdminState not configured for '%s'", dn->value);
-		return 0;
-	}
-
-	return 1;
-}
-
 static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -757,8 +720,7 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
         case CCBUTIL_CREATE:
-                if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata) &&
-                    is_ccb_create_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+                if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
                         rc = SA_AIS_OK;
                 break;
 	case CCBUTIL_MODIFY:

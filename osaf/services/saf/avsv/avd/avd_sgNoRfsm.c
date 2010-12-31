@@ -94,7 +94,7 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* verify that the SI is unassigned and ready */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 		    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
-		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
+		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) || (i_si->list_of_csi == NULL) ||
 		    (i_si->max_num_csi != i_si->num_csi) || (i_si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;
