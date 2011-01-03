@@ -47,8 +47,7 @@ typedef enum dtm_config_tags {
 	DTM_SKEEPALIVE,
 	DTM_TCP_KEEPIDLE_TIME,
 	DTM_TCP_KEEPALIVE_INTVL,
-	DTM_TCP_KEEPALIVE_PROBES,
-	DTM_INTRA_NODE_SERV_PORT,
+	DTM_TCP_KEEPALIVE_PROBES
 } DTM_CONFIG_TAGS;
 
 /**
@@ -120,8 +119,6 @@ void dtm_print_config(DTM_INTERNODE_CB * config)
 	TRACE("  %d\n", config->initial_dis_timeout);
 	TRACE("  DTM_BCAST_FRE_MSECS=");
 	TRACE("  %d\n", config->bcast_msg_freq);
-	TRACE("  DTM_INTRA_NODE_SERV_PORT=");
-	TRACE("  %u\n", config->intra_node_stream_port);
 	TRACE("\n");
 }
 
@@ -464,20 +461,6 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = 0;
 
 			}
-			if (strncmp(line, "DTM_INTRA_NODE_SERV_PORT=", strlen("DTM_INTRA_NODE_SERV_PORT=")) == 0) {
-				tag_len = strlen("DTM_INTRA_NODE_SERV_PORT=");
-				config->intra_node_stream_port = (in_port_t)atoi(&line[tag_len]);
-				TRACE("DTM:intra_node_stream_port  =%d", config->intra_node_stream_port);
-				if (config->intra_node_stream_port < 1) {
-					LOG_ER("DTM:intra_node_stream_port  must be a positive integer");
-					return -1;
-				}
-
-				tag = 0;
-				tag_len = 0;
-
-			}
-
 		}
 
 		memset(line, 0, DTM_MAX_TAG_LEN);
@@ -522,9 +505,6 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 		fieldmissing = 1;
 	} else if (strlen(config->node_name) == 0) {
 		LOG_ER("DTM: dtm_read_config: node_name is missing in conf file");
-		fieldmissing = 1;
-	} else if ((config->intra_node_stream_port) == 0) {
-		LOG_ER("DTM: dtm_read_config: intra_node_stream_port is missing in conf file");
 		fieldmissing = 1;
 	}
 

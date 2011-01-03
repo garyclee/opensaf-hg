@@ -45,7 +45,6 @@
 #endif
 
 extern uns16 socket_domain;
-extern uns16 mdtm_port;
 void mds_init_transport(void);
 
 /* MDS Control Block */
@@ -333,6 +332,9 @@ void mds_init_transport(void)
 {
 	char *inet_or_unix = NULL;
 	char *tipc_or_tcp = NULL;
+	struct addrinfo *addr_list;
+	int rc;
+
 
 	tipc_or_tcp = getenv("MDS_TRANSPORT");
 
@@ -367,7 +369,12 @@ void mds_init_transport(void)
 			inet_or_unix = "UNIX";
 
 		if (strcmp(inet_or_unix, "TCP") == 0) {
-			socket_domain = AF_INET;
+			if ((rc = getaddrinfo("localhost", NULL,NULL, &addr_list)) != 0) {
+				syslog(LOG_ERR,"MDTM:Unable to getaddrinfo() with errno = %d", errno);
+				return;
+			}
+			socket_domain = addr_list->ai_family; /* AF_INET or AF_INET6 */
+
 		} else {
 			socket_domain = AF_UNIX;
 		}

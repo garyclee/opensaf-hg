@@ -15,6 +15,8 @@
  *
  */
 
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "ncs_main_papi.h"
 #include"dtm.h"
 #include"dtm_cb.h"
@@ -82,45 +84,32 @@ uns32 dtm_intranode_process_pid_msg(uns8 *buffer, int fd)
 	uns32 process_id = 0;
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
-	if (NULL == (pid_node = calloc(1, sizeof(DTM_INTRANODE_PID_INFO)))) {
-		TRACE("\nMemory allocation failed for DTM_INTRANODE_PID_INFO");
+
+	pid_node = dtm_intranode_get_pid_info_using_fd(fd);
+
+	if (NULL == pid_node) {
+		LOG_ER("DTM INTRA : PID info coressponding to fd doesnt exist, database mismatch. fd :%d",fd);
+		assert(0);
 		return NCSCC_RC_FAILURE;
 	}
+
 	data = buffer;
+
 	node_id = ncs_decode_32bit(&data);
 	process_id = ncs_decode_32bit(&data);
 
 	pid_node->accepted_fd = fd;
+	if (0 == pid_node->pid) {
 	pid_node->pid = process_id;
+	} else {
+		assert(0);
+	}
 	pid_node->node_id = m_NCS_GET_NODE_ID;
 	pid_node->pid_node.key_info = (uns8 *)&pid_node->pid;
-	pid_node->fd_node.key_info = (uns8 *)&pid_node->accepted_fd;
 
 	TRACE_1("DTM: INTRA: Processid message rcvd: pid=%d", process_id);
 
-	if (m_NCS_IPC_CREATE(&pid_node->mbx) != NCSCC_RC_SUCCESS) {
-		/* Mail box creation failed */
-		TRACE("\nMailbox creation failed,dtm_intranode_process_pid_msg");
-		free(pid_node);
-		return NCSCC_RC_FAILURE;
-	} else {
-
-		NCS_SEL_OBJ obj;
-		/* Code added for attaching the mailbox */
-		if (NCSCC_RC_SUCCESS != m_NCS_IPC_ATTACH(&pid_node->mbx)) {
-			TRACE("\nMailbox attach failed,dtm_intranode_process_pid_msg");
-			m_NCS_IPC_RELEASE(&pid_node->mbx, NULL);
-			free(pid_node);
-			return NCSCC_RC_FAILURE;
-		}
-
-		obj = m_NCS_IPC_GET_SEL_OBJ(&pid_node->mbx);
-
-		/* retreive the corresponding fd for mailbox */
-		pid_node->mbx_fd = m_GET_FD_FROM_SEL_OBJ(obj);	/* extract and fill value needs to be extracted */
-	}
 	ncs_patricia_tree_add(&dtm_intranode_cb->dtm_intranode_pid_list, (NCS_PATRICIA_NODE *)&pid_node->pid_node);
-	ncs_patricia_tree_add(&dtm_intranode_cb->dtm_intranode_fd_list, (NCS_PATRICIA_NODE *)&pid_node->fd_node);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -140,6 +129,7 @@ uns32 dtm_intranode_process_pid_msg(uns8 *buffer, int fd)
 uns32 dtm_intranode_process_pid_down(int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
+	uns16 local_pid = 0;
 	pid_node = dtm_intranode_get_pid_info_using_fd(fd);
 	TRACE_ENTER();
 	if (NULL == pid_node) {
@@ -149,6 +139,9 @@ uns32 dtm_intranode_process_pid_down(int fd)
 		DTM_INTRANODE_PID_INFO *pid_node1 = NULL;
 		DTM_PID_SVC_SUSBCR_INFO *subscr_data = pid_node->subscr_list;
 		DTM_NODE_SUBSCR_INFO *node_subscr = NULL;
+
+		local_pid = pid_node->pid;
+
 		while (NULL != subscr_data) {
 			DTM_SVC_SUBSCR_INFO *subscr_tmp = NULL;
 			DTM_PID_SVC_SUSBCR_INFO *tmp_del_ptr = subscr_data->next;
@@ -248,6 +241,20 @@ uns32 dtm_intranode_process_pid_down(int fd)
 
 		close(pid_node->mbx_fd);
 		free(pid_node);
+		if (AF_UNIX == dtm_intranode_cb->sock_domain) {
+			/* Now unlink the bind client process */
+			
+			struct sockaddr_un serv_addr;	/* For Unix Sock address */
+			char server_ux_name[255], rm_cmd[255];
+#define UX_SOCK_NAME_PREFIX "/tmp/osaf_mdtm_process"
+			bzero((char *)&serv_addr, sizeof(serv_addr));
+			sprintf(server_ux_name, "%s_%d", UX_SOCK_NAME_PREFIX, local_pid);
+			serv_addr.sun_family = AF_UNIX;
+			strcpy(serv_addr.sun_path, server_ux_name);
+
+			unlink(serv_addr.sun_path);
+			sprintf(rm_cmd, "rm -f %s", server_ux_name);
+		}
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

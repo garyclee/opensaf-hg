@@ -103,6 +103,12 @@ typedef struct dtm_intranode_pid_info {
 	DTM_INTRANODE_UNSENT_MSGS *msgs_tail;
 	DTM_PID_SVC_INSTALLED_INFO *svc_installed_list;
 	DTM_PID_SVC_SUSBCR_INFO *subscr_list;
+	/* Message related */
+	uns16 bytes_tb_read;
+	uns16 buff_total_len;
+	uns8 len_buff[2];
+	uns8 num_by_read_for_len_buff;
+	uns8 *buffer;
 } DTM_INTRANODE_PID_INFO;
 
 typedef struct dtm_intranode_node_db {

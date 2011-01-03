@@ -32,11 +32,18 @@
 #include <sys/socket.h>
 #include <linux/un.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
-#define MDS_MDTM_SOCKET_LOC "/tmp/mdtm_process"
+#define MDS_MDTM_SOCKET_LOC "/tmp/osaf_mdtm_process"
 #define MDS_MDTM_SUN_PATH 255
 #define MDS_SND_RCV_SIZE 64000
-#define MDS_MDTM_CONNECT_PATH "/tmp/dtm_intra_server"
+#define MDS_MDTM_CONNECT_PATH "/tmp/osaf_dtm_intra_server"
+
+#ifndef MDS_PORT_NUMBER
+#define MDTM_INTRA_SERVER_PORT 7000 /* Fixed port number for intranode communications */
+#else
+#define MDTM_INTRA_SERVER_PORT MDS_PORT_NUMBER
+#endif
 
 /*  mds_indentifire + mds_version +   msg_type + node_id + process_id   */
 #define MDS_MDTM_DTM_PID_SIZE 14	/* 4 + 1 + 1 + 4 + 4 */
@@ -47,8 +54,8 @@
 extern uns32 mdtm_num_subscriptions;
 extern MDS_SUBTN_REF_VAL mdtm_handle;
 extern uns32 mdtm_global_frag_num_tcp;
-uns32 socket_domain = AF_INET;
-uns16 mdtm_port = 0;
+
+uns32 socket_domain = AF_UNIX;
 
 /* Get the pid of the process */
 pid_t mdtm_pid;
@@ -71,14 +78,13 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 {
 	uns32 flags;
 	uns32 size = MDS_SND_RCV_SIZE;
-	struct hostent *host;
 	struct sockaddr_un client_addr_un, dhserver_addr_un;
-	struct sockaddr_in client_addr_in, server_addr_in;
+	struct sockaddr_in server_addr_in;
+	struct sockaddr_in6 server_addr_in6;
 	uns8 buffer[MDS_MDTM_DTM_PID_BUFFER_SIZE];
 	char sun_path[MDS_MDTM_SUN_PATH];
 	char sun_path_connect[MDS_MDTM_SUN_PATH];
 
-	host = gethostbyname("127.0.0.1");
 	mdtm_pid = getpid();
 
 	MDS_MDTM_DTM_MSG send_evt;
@@ -91,8 +97,8 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 
 	memset(&client_addr_un, 0, sizeof(struct sockaddr_un));
 	memset(&dhserver_addr_un, 0, sizeof(struct sockaddr_un));
-	memset(&client_addr_in, 0, sizeof(struct sockaddr_in));
 	memset(&server_addr_in, 0, sizeof(struct sockaddr_in));
+	memset(&server_addr_in6, 0, sizeof(struct sockaddr_in6));
 	memset(&send_evt, 0, sizeof(MDS_MDTM_DTM_MSG));
 	memset(&buffer, 0, MDS_MDTM_DTM_PID_BUFFER_SIZE);
 	memset(&sun_path, 0, MDS_MDTM_SUN_PATH);
@@ -185,16 +191,29 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
 		}
 	} else {
 		/* Case for AF_INET */
-		server_addr_in.sin_family = AF_INET;
-		server_addr_in.sin_port = mdtm_port;
-		server_addr_in.sin_addr = *((struct in_addr *)host->h_addr);
-		bzero(&(server_addr_in.sin_zero), 8);
+		if (AF_INET == socket_domain) {
+			server_addr_in.sin_family = AF_INET;
+			server_addr_in.sin_port = htons(MDTM_INTRA_SERVER_PORT);
+			server_addr_in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+			bzero(&(server_addr_in.sin_zero), 8);
 
-		/* Blocking Connect */
-		if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_in, sizeof(struct sockaddr)) == -1) {
-			syslog(LOG_ERR, "MDS:MDTM: DBSRsock unable to connect");
-			close(tcp_cb->DBSRsock);
-			return NCSCC_RC_FAILURE;
+			/* Blocking Connect */
+			if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_in, sizeof(struct sockaddr)) == -1) {
+				syslog(LOG_ERR, "MDS:MDTM: DBSRsock unable to connect");
+				close(tcp_cb->DBSRsock);
+				return NCSCC_RC_FAILURE;
+			}
+		} else {
+			server_addr_in6.sin6_family = AF_INET6;
+			server_addr_in6.sin6_port = htons(MDTM_INTRA_SERVER_PORT);
+			inet_pton(AF_INET6, "localhost", &server_addr_in6.sin6_addr);
+
+			/* Blocking Connect */
+			if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_in, sizeof(struct sockaddr)) == -1) {
+				syslog(LOG_ERR, "MDS:MDTM: DBSRsock unable to connect");
+				close(tcp_cb->DBSRsock);
+				return NCSCC_RC_FAILURE;
+			}
 		}
 	}
 
@@ -275,9 +294,9 @@ static uns32 mdtm_create_rcv_task(void)
 	   captures the discovery events as well */
 
 	if (m_NCS_TASK_CREATE((NCS_OS_CB)mdtm_process_recv_events_tcp,
-			      (NCSCONTEXT)NULL,
-			      NCS_MDTM_TASKNAME,
-			      NCS_MDTM_PRIORITY, NCS_MDTM_STACKSIZE, &tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
+				(NCSCONTEXT)NULL,
+				NCS_MDTM_TASKNAME,
+				NCS_MDTM_PRIORITY, NCS_MDTM_STACKSIZE, &tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Task Creation-failed:\n");
 		return NCSCC_RC_FAILURE;
 	}

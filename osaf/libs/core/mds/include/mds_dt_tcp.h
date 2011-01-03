@@ -32,15 +32,21 @@
 #define MDS_TCP_PREFIX 0x56000000
 
 typedef struct mdtm_tcp_cb {
-        int DBSRsock;
+	int DBSRsock;
 
-        void *mdtm_hdle_task;
-        uns64 adest;
+	void *mdtm_hdle_task;
+	uns64 adest;
 
-        SYSF_MBX tmr_mbx;
-        int tmr_fd;
-        uns32 node_id;
+	SYSF_MBX tmr_mbx;
+	int tmr_fd;
+	uns32 node_id;
 	uns16 mdtm_tcp_unsent_counter;
+	/* Added for message reception */
+	uns16 bytes_tb_read;
+	uns16 buff_total_len;
+	uns8 len_buff[2];
+	uns8 num_by_read_for_len_buff;
+	uns8 *buffer;
 
 	MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_hdr;
 	MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_tail;

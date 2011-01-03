@@ -663,6 +663,168 @@ uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 	return NCSCC_RC_FAILURE;
 }
 
+void mdtm_process_poll_recv_data_tcp(void)
+{
+	TRACE_ENTER();
+	if (0 == tcp_cb->bytes_tb_read) {
+		if (0 == tcp_cb->num_by_read_for_len_buff) {
+			uns8 *data;
+			int recd_bytes = 0;
+
+			/*******************************************************/
+			/* Receive all incoming data on this socket */
+			/*******************************************************/
+
+			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->len_buff, 2, 0);
+			if (0 == recd_bytes) {
+				LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", recd_bytes);
+				close(tcp_cb->DBSRsock);
+				exit(0);
+			} else if (2 == recd_bytes) {
+				uns16 local_len_buf = 0;
+
+				data = tcp_cb->len_buff;
+				local_len_buf = ncs_decode_16bit(&data);
+				tcp_cb->buff_total_len = local_len_buf;
+				tcp_cb->num_by_read_for_len_buff = 2;
+
+				if (NULL == (tcp_cb->buffer = calloc(1, (local_len_buf + 1)))) {
+					/* Length + 2 is done to reuse the same buffer 
+					   while sending to other nodes */
+					LOG_ER("Memory allocation failed in dtm_intranode_processing");
+					return;
+				}
+				recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->buffer, local_len_buf, 0);
+
+				if (recd_bytes < 0) {
+					return;
+				} else if (0 == recd_bytes) {
+					LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", recd_bytes);
+					close(tcp_cb->DBSRsock);
+					exit(0);
+				} else if (local_len_buf > recd_bytes) {
+					/* can happen only in two cases, system call interrupt or half data, */
+					TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					       local_len_buf);
+					tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
+					return;
+				} else if (local_len_buf == recd_bytes) {
+					/* Call the common rcv function */
+					mds_mdtm_process_recvdata(tcp_cb->buff_total_len, tcp_cb->buffer);
+					tcp_cb->bytes_tb_read = 0;
+					tcp_cb->buff_total_len = 0;
+					tcp_cb->num_by_read_for_len_buff = 0;
+					free(tcp_cb->buffer);
+					tcp_cb->buffer = NULL;
+					return;
+				} else {
+					assert(0);
+				}
+			} else {
+				/* we had recd some bytes */
+				if (recd_bytes < 0) {
+					/* This can happen due to system call interrupt */
+					return;
+				} else if (1 == recd_bytes) {
+					/* We recd one byte of the length part */
+					tcp_cb->num_by_read_for_len_buff = recd_bytes;
+				} else {
+					assert(0);
+				}
+			}
+		} else if (1 == tcp_cb->num_by_read_for_len_buff) {
+			int recd_bytes = 0;
+
+			recd_bytes = recv(tcp_cb->DBSRsock, &tcp_cb->len_buff[1], 1, 0);
+			if (recd_bytes < 0) {
+				/* This can happen due to system call interrupt */
+				return;
+			} else if (1 == recd_bytes) {
+				/* We recd one byte(remaining) of the length part */
+				uns8 *data = tcp_cb->len_buff;
+				tcp_cb->num_by_read_for_len_buff = 2;
+				tcp_cb->buff_total_len = ncs_decode_16bit(&data);
+				return;
+			} else if (0 == recd_bytes) {
+				LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", recd_bytes);
+				close(tcp_cb->DBSRsock);
+				exit(0);
+			} else {
+				assert(0);	/* This should never occur */
+			}
+		} else if (2 == tcp_cb->num_by_read_for_len_buff) {
+			int recd_bytes = 0;
+
+			if (NULL == (tcp_cb->buffer = calloc(1, (tcp_cb->buff_total_len + 1)))) {
+				/* Length + 2 is done to reuse the same buffer 
+				   while sending to other nodes */
+				LOG_ER("Memory allocation failed in dtm_internode_processing");
+				return;
+			}
+			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->buffer, tcp_cb->buff_total_len, 0);
+
+			if (recd_bytes < 0) {
+				return;
+			} else if (0 == recd_bytes) {
+				LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", recd_bytes);
+				close(tcp_cb->DBSRsock);
+				exit(0);
+			} else if (tcp_cb->buff_total_len > recd_bytes) {
+				/* can happen only in two cases, system call interrupt or half data, */
+				TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				       tcp_cb->buff_total_len);
+				tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
+				return;
+			} else if (tcp_cb->buff_total_len == recd_bytes) {
+				/* Call the common rcv function */
+				mds_mdtm_process_recvdata(tcp_cb->buff_total_len, tcp_cb->buffer);
+				tcp_cb->bytes_tb_read = 0;
+				tcp_cb->buff_total_len = 0;
+				tcp_cb->num_by_read_for_len_buff = 0;
+				free(tcp_cb->buffer);
+				tcp_cb->buffer = NULL;
+				return;
+			} else {
+				assert(0);
+			}
+		} else {
+			assert(0);
+		}
+
+	} else {
+		/* Partial data already read */
+		int recd_bytes = 0;
+
+		recd_bytes =
+		    recv(tcp_cb->DBSRsock, &tcp_cb->buffer[(tcp_cb->buff_total_len - tcp_cb->bytes_tb_read)], tcp_cb->bytes_tb_read, 0);
+
+		if (recd_bytes < 0) {
+			return;
+		} else if (0 == recd_bytes) {
+			LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", recd_bytes);
+			close(tcp_cb->DBSRsock);
+			exit(0);
+		} else if (tcp_cb->bytes_tb_read > recd_bytes) {
+			/* can happen only in two cases, system call interrupt or half data, */
+			TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes, tcp_cb->bytes_tb_read);
+			tcp_cb->bytes_tb_read = tcp_cb->bytes_tb_read - recd_bytes;
+			return;
+		} else if (tcp_cb->bytes_tb_read == recd_bytes) {
+			/* Call the common rcv function */
+			mds_mdtm_process_recvdata(tcp_cb->buff_total_len, tcp_cb->buffer);
+			tcp_cb->bytes_tb_read = 0;
+			tcp_cb->buff_total_len = 0;
+			tcp_cb->num_by_read_for_len_buff = 0;
+			free(tcp_cb->buffer);
+			tcp_cb->buffer = NULL;
+		} else {
+			assert(0);
+		}
+	}
+	TRACE_LEAVE();
+	return; 
+}
+
 /**
  * Main rcv function
  *
@@ -673,7 +835,6 @@ uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
  */
 uns32 mdtm_process_recv_events_tcp(void)
 {
-	uns32 rc = 0;
 	/*
 	   STEP 1: Poll on the DBSRsock to get the events
 	   if data is received process the received data
@@ -696,57 +857,13 @@ uns32 mdtm_process_recv_events_tcp(void)
 
 			/* Check for Socket Read operation */
 			if (pfd[0].revents & POLLIN) {
-
-				uns16 rcv_bytes = 0;
-				uns8 buff[2];
-
-				rcv_bytes = recv(tcp_cb->DBSRsock, buff, 2, 0);
-				if (0 == rcv_bytes) {
-					LOG_ER("MDTM:socket_recv() = %d, conn lost with dh server, exiting library", rcv_bytes);
-					close(tcp_cb->DBSRsock);
-					exit(0);
-
-				} else if (2 == rcv_bytes) {
-					uns16 size = 0;
-					uns8 *inbuffer;
-					inbuffer = buff;
-					size = ncs_decode_16bit(&inbuffer);
-					if (size > 0) {
-						uns8 *buffer = NULL;
-						if (NULL == (buffer = calloc(1, (size + 1)))) {
-							syslog(LOG_ERR,
-							       "\nMemory allocation failed in dtm_intranode_processing");
-							assert(0);
-							break;
-						}
-						rcv_bytes = recv(tcp_cb->DBSRsock, buffer, size, 0);
-
-						if (size != rcv_bytes) {
-							syslog(LOG_CRIT,
-							       "recv bytes and len mismatch size = %d, len =%d ", size,
-							       rcv_bytes);
-							free(buffer);
-							abort();
-						} else {
-							buffer[size] = '\0';
-							rc = mds_mdtm_process_recvdata(rcv_bytes, buffer);
-							/* TODO */
-#if 0
-							if (rc != NCSCC_RC_SUCCESS) {
-								syslog(LOG_CRIT, "Packet Drop !!");
-							}
-#endif
-							free(buffer);
-						}
-					}
-				} else {
-					syslog(LOG_CRIT, "Somthing wrong ... assert!!");
-					abort();
-				}
+				m_MDS_LOG_INFO("MDTM: Processing pollin events\n");
+				mdtm_process_poll_recv_data_tcp();
 			}
 
 			/* Check for Socket Write operation */
 			if (pfd[0].revents & POLLOUT) {
+				m_MDS_LOG_INFO("MDTM: Processing pollout events\n");
 				mds_mdtm_process_poll_out();
 			}
 
