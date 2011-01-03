@@ -211,7 +211,7 @@ uns32 dtm_intranode_process_pid_down(int fd)
 					if (subscr_list->pid != pid_node->pid) {
 						uns8 *snd_buf = NULL;
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
-							TRACE("\ncalloc failed for svc_down msg");
+							TRACE("DTM :calloc failed for svc_down msg");
 						} else {
 							/* Send the message of SVC UP */
 							uns8 *ptr = &buffer[20];
@@ -288,7 +288,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 		DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
 
 		if (NULL == (svc_install_info = calloc(1, sizeof(DTM_PID_SVC_INSTALLED_INFO)))) {
-			TRACE("\nMemory allocation failed for DTM_PID_SVC_INSTALLED_INFO");
+			TRACE("DTM :Memory allocation failed for DTM_PID_SVC_INSTALLED_INFO");
 			return NCSCC_RC_FAILURE;
 		}
 		svc_install_info->install_scope = (uns32)ncs_decode_8bit(&data);
@@ -310,7 +310,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 		svc_node = dtm_intranode_get_svc_node(svc_install_info->server_type);
 		if (NULL == svc_node) {
 			if (NULL == (svc_node = calloc(1, sizeof(DTM_SVC_INSTALL_INFO)))) {
-				TRACE("\ncalloc failed for DTM_SVC_INSTALL_INFO");
+				TRACE("DTM :calloc failed for DTM_SVC_INSTALL_INFO");
 				dtm_intranode_del_svclist_from_pid_tree(pid_node, svc_install_info);
 				return NCSCC_RC_FAILURE;
 			}
@@ -320,7 +320,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 					      (NCS_PATRICIA_NODE *)&svc_node->svc_install_node);
 		}
 		if (NULL == (svc_list = calloc(1, sizeof(DTM_SVC_LIST)))) {
-			TRACE("\ncalloc failed for DTM_SVC_LIST");
+			TRACE("DTM :calloc failed for DTM_SVC_LIST");
 			dtm_intranode_del_svclist_from_pid_tree(pid_node, svc_install_info);
 			return NCSCC_RC_FAILURE;
 		}
@@ -351,7 +351,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 				uns8 *snd_buf = NULL;
 
 				if (NULL == (snd_buf = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
-					TRACE("\ncalloc failed for svc_up msg");
+					TRACE("DTM :calloc failed for svc_up msg");
 				} else {
 					/* Send the message of SVC UP */
 					uns8 *ptr = &buffer[20];
@@ -446,7 +446,7 @@ uns32 dtm_intranode_process_unbind_msg(uns8 *buff, int fd)
 				uns8 *snd_buf = NULL;
 
 				if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
-					TRACE("\ncalloc failed for svc_down msg");
+					TRACE("DTM :calloc failed for svc_down msg");
 				} else {
 					/* Send the message of SVC down */
 					uns8 *ptr = &buffer[20];
@@ -500,7 +500,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 
 		if (NULL == subscr_node) {
 			if (NULL == (subscr_node = calloc(1, sizeof(DTM_SVC_SUBSCR_INFO)))) {
-				TRACE("\ncalloc failed for DTM_SVC_SUBSCR_INFO");
+				TRACE("DTM :calloc failed for DTM_SVC_SUBSCR_INFO");
 				return NCSCC_RC_FAILURE;
 			}
 			subscr_node->server_type = server_type;
@@ -510,11 +510,11 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 		}
 
 		if (NULL == (subscr_info = calloc(1, sizeof(DTM_SUBSCRIBER_LIST)))) {
-			TRACE("\ncalloc failed for DTM_SUBSCRIBER_LIST");
+			TRACE("DTM :calloc failed for DTM_SUBSCRIBER_LIST");
 			return NCSCC_RC_FAILURE;
 		}
 		if (NULL == (subscr_data = calloc(1, sizeof(DTM_PID_SVC_SUSBCR_INFO)))) {
-			TRACE("\ncalloc failed for DTM_PID_SVC_SUSBCR_INFO");
+			TRACE("DTM :calloc failed for DTM_PID_SVC_SUSBCR_INFO");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -552,7 +552,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 					DTM_LIB_UP_MSG up_msg = { 0 };
 
 					if (NULL == (buffer = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
-						TRACE("\ncalloc failed for svc_up msg");
+						TRACE("DTM :calloc failed for svc_up msg");
 					} else {
 						up_msg.server_type = server_type;
 						up_msg.server_instance_lower = svc_list->server_inst_lower;
@@ -648,7 +648,7 @@ uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
 		DTM_NODE_SUBSCR_INFO *node_subscr_info = NULL;
 		DTM_INTRANODE_NODE_DB *node_db = dtm_intranode_node_list_db;
 		if (NULL == (node_subscr_info = calloc(1, sizeof(DTM_NODE_SUBSCR_INFO)))) {
-			TRACE("\nMemory allocation failed in dtm_intranode_process_node_subscribe_msg");
+			TRACE("DTM :Memory allocation failed in dtm_intranode_process_node_subscribe_msg");
 			return NCSCC_RC_FAILURE;
 		}
 		node_subscr_info->node_id = ncs_decode_32bit(&data);
@@ -661,7 +661,7 @@ uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
 			DTM_LIB_NODE_UP_MSG node_up_msg = { 0 };
 			uns8 *buffer = NULL;
 			if (NULL == (buffer = calloc(1, DTM_LIB_NODE_UP_MSG_SIZE_FULL))) {
-				TRACE("\ncalloc failed for node_up, dtm_intranode_process_node_subscribe_msg");
+				TRACE("DTM :calloc failed for node_up, dtm_intranode_process_node_subscribe_msg");
 			} else {
 				node_up_msg.node_id = node_db->node_id;
 				node_up_msg.ref_val = node_subscr_info->subtn_ref_val;
@@ -765,11 +765,11 @@ static uns32 dtm_intranode_del_svclist_from_pid_tree(DTM_INTRANODE_PID_INFO * pi
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the node from svc list ");
+			TRACE("DTM :Successfully deleted the node from svc list ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in svc list for deletion");
+	TRACE("DTM :No matching entry found in svc list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -834,11 +834,11 @@ static uns32 dtm_internode_del_svclist_from_svc_tree(DTM_INTRANODE_NODE_DB * nod
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the node from svc list ");
+			TRACE("DTM :Successfully deleted the node from svc list ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in svc list for deletion");
+	TRACE("DTM : No matching entry found in svc list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -876,11 +876,11 @@ static uns32 dtm_intranode_del_svclist_from_svc_tree(DTM_SVC_INSTALL_INFO * svc_
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the node from svc list ");
+			TRACE("DTM : Successfully deleted the node from svc list ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in svc list for deletion");
+	TRACE("DTM : No matching entry found in svc list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -961,11 +961,11 @@ static uns32 dtm_intranode_del_subscr_from_pid_info(DTM_INTRANODE_PID_INFO * pid
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the subscr node from pid info ");
+			TRACE("DTM : Successfully deleted the subscr node from pid info ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in subscr  data for deletion");
+	TRACE("DTM : No matching entry found in subscr  data for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -1030,11 +1030,11 @@ static uns32 dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO *
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the subscr node from subscr list ");
+			TRACE("DTM : Successfully deleted the subscr node from subscr list ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in subscr list for deletion");
+	TRACE("DTM : No matching entry found in subscr list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -1174,11 +1174,11 @@ static uns32 dtm_del_from_node_subscr_list(uns32 pid, uns64 ref_val)
 			}
 			free(mov_ptr);
 			mov_ptr = NULL;
-			TRACE("\nSuccessfully deleted the subscr node from node subscr list ");
+			TRACE("DTM : Successfully deleted the subscr node from node subscr list ");
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in Node subscr list for deletion");
+	TRACE("DTM : No matching entry found in Node subscr list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -1225,7 +1225,7 @@ uns32 dtm_get_from_node_db_list(DTM_INTRANODE_NODE_DB ** get_node, NODE_ID node_
 	DTM_INTRANODE_NODE_DB *node_db = dtm_intranode_node_list_db;
 	TRACE_ENTER();
 	if (NULL == node_db) {
-		TRACE("\nUnable to find the node in the node_db_list");
+		TRACE("DTM : Unable to find the node in the node_db_list");
 		return NCSCC_RC_FAILURE;
 	} else {
 		while (NULL != node_db) {
@@ -1275,7 +1275,7 @@ static uns32 dtm_del_from_node_db_list(NODE_ID node_id)
 			return NCSCC_RC_SUCCESS;
 		}
 	}
-	TRACE("\nNo matching entry found in Node db list for deletion");
+	TRACE("DTM : No matching entry found in Node db list for deletion");
 	TRACE_LEAVE();
 	return NCSCC_RC_FAILURE;
 }
@@ -1343,7 +1343,7 @@ static uns32 dtm_lib_msg_snd_common(uns8 *buffer, uns32 pid, uns16 msg_size)
 	TRACE_ENTER();
 	pid_node = dtm_intranode_get_pid_info_using_pid(pid);
 	if (NULL == pid_node) {
-		TRACE("\npid node not found, dtm_lib_msg_snd_common");
+		TRACE("DTM :pid node not found, dtm_lib_msg_snd_common");
 		TRACE_LEAVE();
 		free(buffer);
 		return NCSCC_RC_FAILURE;
@@ -1436,7 +1436,7 @@ uns32 dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX m
 
 	if (NCSCC_RC_SUCCESS != (dtm_add_to_node_db_list(node_db_info))) {
 		/* This is critical */
-		TRACE("\nUnable to add the node to node_db_list");
+		TRACE("DTM : Unable to add the node to node_db_list");
 		assert(0);
 	} else {
 		/* Deliver node UP */
@@ -1449,7 +1449,7 @@ uns32 dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX m
 			uns8 *snd_buf = NULL;
 
 			if (NULL == (snd_buf = calloc(1, DTM_LIB_NODE_UP_MSG_SIZE_FULL))) {
-				TRACE("\ncalloc failed for node_up msg, not sending the message");
+				TRACE("DTM : calloc failed for node_up msg, not sending the message");
 			} else {
 				uns8 *ptr = &buffer[12];
 				ncs_encode_64bit(&ptr, node_subscr_info->subtn_ref_val);
@@ -1496,7 +1496,7 @@ uns32 dtm_intranode_process_node_down(NODE_ID node_id)
 	while (NULL != node_subscr_info) {
 		uns8 *snd_buf = NULL;
 		if (NULL == (snd_buf = calloc(1, DTM_LIB_NODE_DOWN_MSG_SIZE_FULL))) {
-			TRACE("\ncalloc failed for node_down msg, not sending the message");
+			TRACE("DTM :calloc failed for node_down msg, not sending the message");
 		} else {
 			uns8 *ptr = &buffer[12];
 			ncs_encode_64bit(&ptr, node_subscr_info->subtn_ref_val);
@@ -1610,7 +1610,7 @@ static uns32 dtm_intranode_process_svc_down_common(DTM_INTRANODE_NODE_DB * node_
 						uns8 *snd_buf = NULL;
 
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
-							TRACE("\ncalloc failed for svc_down msg");
+							TRACE("DTM :calloc failed for svc_down msg");
 						} else {
 							uns8 *ptr = &buffer[20];
 							ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
@@ -1694,7 +1694,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 
 			if (NULL == svc_info) {
 				if (NULL == (svc_info = calloc(1, sizeof(DTM_SVC_INSTALL_INFO)))) {
-					TRACE("Memory allocation failed in dtm_process_internode_service_up_msg");
+					TRACE("DTM :Memory allocation failed in dtm_process_internode_service_up_msg");
 					return NCSCC_RC_FAILURE;
 				}
 				svc_info->server_type = server_type;
@@ -1711,7 +1711,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 			svc_list->node_id = node_id;
 			svc_list->process_id = ncs_decode_32bit(&data);
 
-			TRACE("rcvd internode UP Msg type= %d, inst=%d, node=%d , pid =%d", server_type,
+			TRACE("DTM :rcvd internode UP Msg type :  %d, inst : %d, node : %d , pid :%d", server_type,
 			      svc_list->server_inst_lower, node_id, svc_list->process_id);
 			dtm_intranode_add_svclist_to_svc_tree(svc_info, svc_list);
 
@@ -1720,7 +1720,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 			local_svc_info = dtm_intranode_get_svc_node(server_type);
 			if (NULL == local_svc_info) {
 				if (NULL == (local_svc_info = calloc(1, sizeof(DTM_SVC_INSTALL_INFO)))) {
-					TRACE("calloc failed for DTM_SVC_INSTALL_INFO");
+					TRACE("DTM :calloc failed for DTM_SVC_INSTALL_INFO");
 					return NCSCC_RC_FAILURE;
 				}
 				local_svc_info->server_type = server_type;
@@ -1763,7 +1763,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 						uns8 *snd_buf = NULL;
 
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
-							TRACE("\ncalloc failed for svc_up msg");
+							TRACE("DTM :calloc failed for svc_up msg");
 						} else {
 							uns8 *ptr = &local_buffer[20];
 							ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
@@ -1827,7 +1827,7 @@ uns32 dtm_process_internode_service_down_msg(uns8 *buffer, uns16 len, NODE_ID no
 				svc_list.node_id = node_id;
 				svc_list.process_id = ncs_decode_32bit(&data);
 
-				TRACE("rcvd internode down Msg type= %d, inst=%d, node=%d , pid =%d", server_type,
+				TRACE("DTM :rcvd internode down Msg type:  %d, inst : %d, node: %d , pid :%d", server_type,
 				      svc_list.server_inst_lower, node_id, svc_list.process_id);
 				dtm_internode_del_svclist_from_svc_tree(node_info, svc_info, &svc_list);
 
@@ -1865,7 +1865,7 @@ uns32 dtm_process_internode_service_down_msg(uns8 *buffer, uns16 len, NODE_ID no
 							uns8 *snd_buf = NULL;
 
 							if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
-								TRACE("\ncalloc failed for svc_down msg");
+								TRACE("DTM :calloc failed for svc_down msg");
 							} else {
 								uns8 *ptr = &local_buffer[20];
 								ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
@@ -1910,7 +1910,7 @@ uns32 dtm_intranode_add_self_node_to_node_db(NODE_ID node_id)
 	node_db_info->node_id = node_id;
 	if (NCSCC_RC_SUCCESS != (dtm_add_to_node_db_list(node_db_info))) {
 		/* This is critical */
-		TRACE("\nUnable to add the node to node_db_list");
+		TRACE("DTM : Unable to add the node to node_db_list");
 		assert(0);
 	}
 	TRACE_LEAVE();

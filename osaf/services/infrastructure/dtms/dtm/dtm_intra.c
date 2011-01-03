@@ -737,7 +737,7 @@ static uns32 dtm_intranode_del_poll_fdlist(int fd)
 			mov_ptr = NULL;
 			dtm_intranode_max_fd--;
 			dtm_intranode_fill_fd_set();
-			TRACE("Successfully deleted fd list");
+			TRACE("DTM :Successfully deleted fd list");
 			return NCSCC_RC_SUCCESS;
 		}
 	}

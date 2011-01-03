@@ -381,7 +381,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 					return;
 				} else if (local_len_buf > recd_bytes) {
 					/* can happen only in two cases, system call interrupt or half data, */
-					TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					TRACE("DTM: less data recd, recd bytes : %d, actual len : %d", recd_bytes,
 					       local_len_buf);
 					node->bytes_tb_read = node->buff_total_len - recd_bytes;
 					return;
@@ -441,7 +441,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 				return;
 			} else if (node->buff_total_len > recd_bytes) {
 				/* can happen only in two cases, system call interrupt or half data, */
-				TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				TRACE("DTM: less data recd, recd bytes : %d, actual len : %d", recd_bytes,
 				       node->buff_total_len);
 				node->bytes_tb_read = node->buff_total_len - recd_bytes;
 				return;
@@ -470,7 +470,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 			return;
 		} else if (node->bytes_tb_read > recd_bytes) {
 			/* can happen only in two cases, system call interrupt or half data, */
-			TRACE("DTM: less data recd, recd bytes = %d, actual len = %d", recd_bytes, node->bytes_tb_read);
+			TRACE("DTM: less data recd, recd bytes : %d, actual len : %d", recd_bytes, node->bytes_tb_read);
 			node->bytes_tb_read = node->bytes_tb_read - recd_bytes;
 			return;
 		} else if (node->bytes_tb_read == recd_bytes) {
@@ -606,7 +606,7 @@ void node_discovery_process(void *arg)
 		/* Check to see if the 3 minute time out expired. */
 		/***********************************************************/
 		if (poll_ret == 0) {
-			TRACE(" poll() timed out");
+			TRACE("DTM : poll() timed out");
 			continue;
 		}
 

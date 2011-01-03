@@ -54,11 +54,11 @@ uns32 dtm_internode_process_rcv_data_msg(uns8 *buffer, uns32 dst_pid, uns16 len)
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
-		TRACE("\nDTM Intranode IPC_SEND : DATA MSG: FAILED");
+		TRACE("DTM : Intranode IPC_SEND : DATA MSG: FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Intranode IPC_SEND : DATA MSG: SUCC");
+		TRACE("DTM : Intranode IPC_SEND : DATA MSG: SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -89,11 +89,11 @@ uns32 dtm_add_to_msg_dist_list(uns8 *buffer, uns16 len, NODE_ID node_id)
 	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
-		TRACE("DTM Internode IPC_SEND : MSG EVENT : FAILED");
+		TRACE("DTM : Internode IPC_SEND : MSG EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Internode IPC_SEND : MSG EVENT : SUCC");
+		TRACE("DTM : Internode IPC_SEND : MSG EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -143,7 +143,7 @@ uns32 dtm_internode_snd_msg_to_all_nodes(uns8 *buffer, uns16 len)
 		if (node_id != dtms_gl_cb->node_id) {
 			uns8 *buf_send = NULL;
 			if (NULL == (buf_send = calloc(1, len))) {
-				TRACE("calloc failed for snd_msg_to_all_nodes");
+				TRACE("DTM :calloc failed for snd_msg_to_all_nodes");
 				free(buffer);
 				return NCSCC_RC_FAILURE;
 			}
@@ -176,13 +176,12 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns1
 
 		if (send_len == len) {
 			free(buffer);
-			TRACE("DTM:send success, total_len : %d, send_len=%d", len, send_len);
 			return NCSCC_RC_SUCCESS;
 		} else {
-			TRACE("DTM: nsend failed, total_len : %d, send_len=%d", len, send_len);
+			TRACE("DTM: nsend failed, total_len : %d, send_len : %d", len, send_len);
 			/* Queue the message */
 			if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
-				TRACE("\nCalloc failed DTM_INTERNODE_UNSENT_MSGS");
+				TRACE("DTM :Calloc failed DTM_INTERNODE_UNSENT_MSGS");
 				return NCSCC_RC_FAILURE;
 			}
 			add_ptr->next = NULL;
@@ -196,7 +195,7 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns1
 	} else {
 		/* Queue the message */
 		if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
-			TRACE("\nCalloc failed DTM_INTERNODE_UNSENT_MSGS");
+			TRACE("DTM :Calloc failed DTM_INTERNODE_UNSENT_MSGS");
 			return NCSCC_RC_FAILURE;
 		} else {
 			add_ptr->next = NULL;
@@ -260,7 +259,7 @@ uns32 dtm_internode_process_pollout(int fd)
 	TRACE_ENTER();
 	node = dtm_node_get_by_comm_socket((uns32)fd);
 	if (NULL == node) {
-		TRACE("\n No node matching the fd for pollout, delete this fd from fd list ");
+		TRACE("DTM :No node matching the fd for pollout, delete this fd from fd list ");
 		assert(0);
 		return NCSCC_RC_FAILURE;
 	} else {
@@ -307,7 +306,7 @@ static uns32 dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
 			free(unsent_msg->buffer);
 			unsent_msg->buffer = NULL;
 			snd_count++;
-			TRACE("DTM: send success, total_len : %d, send_len=%d", unsent_msg->len, send_len);
+			TRACE("DTM: send success, total_len : %d, send_len : %d", unsent_msg->len, send_len);
 			if (DTM_INTERNODE_SND_MAX_COUNT == snd_count) {
 				break;
 			}
