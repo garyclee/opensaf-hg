@@ -8083,6 +8083,19 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                 }
             }
 
+            if(classInfo->mImplementer) {
+                ClassMap::iterator ci;
+                for(ci=sClassMap.begin(); ci!= sClassMap.end(); ++ci) {
+                    if(ci->second == classInfo) break;
+                }
+                assert(ci!=sClassMap.end());
+
+                LOG_IN("ERR_BAD_OPERATION: Release of object implementer for "
+                    "object %s conflicts with current class implementorship "
+                    "for class %s", objectName.c_str(), ci->first.c_str());
+                return SA_AIS_ERR_BAD_OPERATION;
+            }
+
             if(doIt) {
                 obj->mImplementer = 0;
                 TRACE_5("implementer for object '%s' is released", 
