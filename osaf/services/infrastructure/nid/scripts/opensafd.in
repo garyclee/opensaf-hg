@@ -115,7 +115,8 @@ final_clean() {
 	if [ "$MDS_TRANSPORT" = "TIPC" ] ; then
 		unload_tipc
 	else
-		rm -f /tmp/mdtm_process_*
+		rm -f /tmp/osaf_dtm_intra_server
+		rm -f /tmp/osaf_mdtm_process_*
 	fi
 	clean_shm
 

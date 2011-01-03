@@ -22,6 +22,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 #include "ncs_main_papi.h"
 #include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
@@ -42,6 +45,13 @@ DTM_INTRANODE_CB *dtm_intranode_cb = NULL;
 #define DTM_INTRANODE_TASK_PRIORITY  NCS_TASK_PRIORITY_4
 #define DTM_INTRANODE_STACKSIZE  NCS_STACKSIZE_HUGE
 
+#ifndef MDS_PORT_NUMBER
+#define DTM_INTRA_SERVER_PORT 7000 /* Fixed port number for intranode communications */
+#else
+#define DTM_INTRA_SERVER_PORT MDS_PORT_NUMBER
+#endif
+
+
 static struct pollfd dtm_intranode_pfd[DTM_INTRANODE_MAX_PROCESSES];
 static struct pollfd pfd_list[DTM_INTRANODE_MAX_PROCESSES];
 
@@ -55,7 +65,7 @@ static uns32 dtm_intranode_process_incoming_conn(void);
 static uns32 dtm_intranode_del_poll_fdlist(int fd);
 
 static uns32 dtm_intranode_fill_fd_set(void);
-
+uns32 socket_domain = AF_UNIX;
 
 
 /**
@@ -88,15 +98,37 @@ uns32 dtm_intra_processing_init(void)
 	struct sockaddr_un serv_addr;	/* For Unix Sock address */
 	char server_ux_name[255];
 	NCS_PATRICIA_PARAMS pat_tree_params;
+	struct sockaddr_in serveraddr;
+	struct sockaddr_in6 serveraddr6;
+	char *inet_or_unix = NULL;
+	struct addrinfo *addr_list;
+	uns32 rc;
+	struct hostent *host;
 
 	TRACE_ENTER();
+
+	inet_or_unix = getenv("MDS_INTRANODE_TRANSPORT");
+	if (strcmp(inet_or_unix, "TCP") == 0) {
+		if ((rc = getaddrinfo("localhost", NULL,NULL, &addr_list)) != 0) {
+			syslog(LOG_ERR,"MDTM:Unable to getaddrinfo() with errno = %d", errno);
+			return NCSCC_RC_FAILURE;
+		}
+
+		socket_domain = addr_list->ai_family; /* AF_INET or AF_INET6 */
+	} else {
+		socket_domain = AF_UNIX;
+	}
+
+	host = gethostbyname("localhost");
+ 
 	if (NULL == (dtm_intranode_cb = calloc(1, sizeof(DTM_INTRANODE_CB)))) {
 		LOG_ER("DTM: Memory allocation failed for dtm_intranode_cb");
 		return NCSCC_RC_FAILURE;
 	}
+	dtm_intranode_cb->sock_domain = socket_domain;
 
 	/* Open a socket, If socket opens to fail return Error */
-	dtm_intranode_cb->server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	dtm_intranode_cb->server_sockfd = socket(socket_domain, SOCK_STREAM, 0);
 
 	if (dtm_intranode_cb->server_sockfd < 0) {
 		LOG_ER("DTM: Socket creation failed");
@@ -133,31 +165,61 @@ uns32 dtm_intra_processing_init(void)
 
 	bzero((char *)&serv_addr, sizeof(serv_addr));
 
-#define UX_SOCK_NAME_PREFIX "/tmp/dtm_intra_server"
+	if (socket_domain == AF_UNIX) {
+#define UX_SOCK_NAME_PREFIX "/tmp/osaf_dtm_intra_server"
 
-	sprintf(server_ux_name, "%s", UX_SOCK_NAME_PREFIX);
-	serv_addr.sun_family = AF_UNIX;
-	strcpy(serv_addr.sun_path, server_ux_name);
+		sprintf(server_ux_name, "%s", UX_SOCK_NAME_PREFIX);
+		serv_addr.sun_family = AF_UNIX;
+		strcpy(serv_addr.sun_path, server_ux_name);
 
-	unlink(serv_addr.sun_path);
+		unlink(serv_addr.sun_path);
 
-	servlen = strlen(serv_addr.sun_path) + sizeof(serv_addr.sun_family);
+		servlen = strlen(serv_addr.sun_path) + sizeof(serv_addr.sun_family);
 
-	/* Bind the created socket here with the address  NODEID, 
-	 *  if bind fails return error by the closing the
-	 * created socket*/
+		/* Bind the created socket here with the address  NODEID, 
+		 *  if bind fails return error by the closing the
+		 * created socket*/
 
-	if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serv_addr, servlen) < 0) {
-		LOG_ER("DTM: Bind failed");
-		close(dtm_intranode_cb->server_sockfd);
-		free(dtm_intranode_cb);
-		return NCSCC_RC_FAILURE;
-	}
-	if (chmod(UX_SOCK_NAME_PREFIX,(S_IROTH | S_IWOTH ))< 0 ) { 
-		LOG_ER("DTM:Unable to set the permission to unix server sock");
-		close(dtm_intranode_cb->server_sockfd);
-		free(dtm_intranode_cb);
-		return NCSCC_RC_FAILURE;
+		if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serv_addr, servlen) < 0) {
+			LOG_ER("DTM: Bind failed");
+			close(dtm_intranode_cb->server_sockfd);
+			free(dtm_intranode_cb);
+			return NCSCC_RC_FAILURE;
+		}
+
+		if (chmod(UX_SOCK_NAME_PREFIX,(S_IROTH | S_IWOTH ))< 0 ) { 
+			LOG_ER("DTM:Unable to set the permission to unix server sock");
+			close(dtm_intranode_cb->server_sockfd);
+			free(dtm_intranode_cb);
+			return NCSCC_RC_FAILURE;
+		}
+	} else {
+ 		if (socket_domain == AF_INET) {
+ 			memset(&serveraddr, 0, sizeof(serveraddr));
+			serveraddr.sin_family      = AF_INET;
+ 			serveraddr.sin_port        = htons(DTM_INTRA_SERVER_PORT);
+ 			//		       serveraddr.sin_addr = *((struct in_addr *)host->h_addr);
+ 			serveraddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+ 
+ 			if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr) ) < 0) {
+ 				syslog(LOG_ERR, "\nBind failed");
+ 				close(dtm_intranode_cb->server_sockfd);
+ 				free(dtm_intranode_cb);
+ 				return NCSCC_RC_FAILURE;
+ 			}
+ 		} else {
+ 			memset(&serveraddr6, 0, sizeof(serveraddr6));
+ 			serveraddr6.sin6_family      = AF_INET6;
+ 			serveraddr.sin_port        = htons(DTM_INTRA_SERVER_PORT);
+ 			inet_pton(AF_INET6, "localhost", &serveraddr6.sin6_addr);
+ 
+ 			if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serveraddr6, sizeof(serveraddr6) ) < 0) {
+ 				LOG_ER("DTM_INTRA: Bind failed");
+ 				close(dtm_intranode_cb->server_sockfd);
+ 				free(dtm_intranode_cb);
+ 				return NCSCC_RC_FAILURE;
+ 			}
+ 		}
 	}
 
 	listen(dtm_intranode_cb->server_sockfd, 20);
@@ -274,6 +336,246 @@ static uns32 dtm_intranode_create_rcv_task(int task_hdl)
 }
 
 /**
+ * Function to process intranode poll rcv message common
+ *
+ *
+ *
+ */
+uns32 dtm_intranode_process_poll_rcv_msg_common(DTM_INTRANODE_PID_INFO *pid_node)
+{
+	uns32 identifier = 0;
+	uns8 version = 0 , *data = NULL; 
+	DTM_INTRANODE_RCV_MSG_TYPES msg_type = 0;
+
+	pid_node->buffer[pid_node->buff_total_len + 2] = '\0';
+	data = &pid_node->buffer[2];
+
+	/* Decode the message */
+	identifier = ncs_decode_32bit(&data);
+	version = ncs_decode_8bit(&data);
+
+	if ((DTM_INTRANODE_RCV_MSG_IDENTIFIER != identifier)
+			|| (DTM_INTRANODE_RCV_MSG_VER != version)) {
+		TRACE("DTM_INTRA: Malformed packet recd, Ident = %d, ver = %d",identifier, version);
+		free(pid_node->buffer);
+		return NCSCC_RC_FAILURE;
+	}
+
+	msg_type = ncs_decode_8bit(&data);
+
+	if (DTM_INTRANODE_RCV_PID_TYPE == msg_type) {
+		dtm_intranode_process_pid_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_BIND_TYPE == msg_type) {
+		dtm_intranode_process_bind_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_UNBIND_TYPE == msg_type) {
+		dtm_intranode_process_unbind_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_SUBSCRIBE_TYPE == msg_type) {
+		dtm_intranode_process_subscribe_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_UNSUBSCRIBE_TYPE == msg_type) {
+		dtm_intranode_process_unsubscribe_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_NODE_SUBSCRIBE_TYPE == msg_type) {
+		dtm_intranode_process_node_subscribe_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_NODE_UNSUBSCRIBE_TYPE == msg_type) {
+		dtm_intranode_process_node_unsubscribe_msg(&pid_node->buffer[8], pid_node->accepted_fd);
+		free(pid_node->buffer);
+	} else if (DTM_INTRANODE_RCV_MESSAGE_TYPE == msg_type) {
+		/* Get the Destination Node ID */
+		NODE_ID dst_nodeid = 0;
+		uns32 dst_processid = 0;
+		dst_nodeid = ncs_decode_32bit(&data);
+		dst_processid = ncs_decode_32bit(&data);
+		if (dtm_intranode_cb->nodeid == dst_nodeid) {
+			/* local node message */
+			dtm_intranode_process_rcv_data_msg(pid_node->buffer,
+					dst_processid, (pid_node->buff_total_len +2));
+		} else {
+			/* remote node message */
+			dtm_add_to_msg_dist_list(pid_node->buffer,
+					(pid_node->buff_total_len +2), dst_nodeid);
+		}
+		pid_node->bytes_tb_read = 0;
+		pid_node->buff_total_len = 0;
+		pid_node->num_by_read_for_len_buff = 0;
+		return NCSCC_RC_SUCCESS;
+	} else {
+		/* msg_type not supported, log error */
+		TRACE("DTM_INTRA: Recd msg_type unknown, dropping the message");
+	}
+
+	pid_node->bytes_tb_read = 0;
+	pid_node->buff_total_len = 0;
+	pid_node->num_by_read_for_len_buff = 0;
+	pid_node->buffer = NULL;
+	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * Function to process intranode poll and rcv message
+ *
+ *
+ *
+ */
+void dtm_intranode_process_poll_rcv_msg(int fd)
+{
+	DTM_INTRANODE_PID_INFO *node = NULL;
+	TRACE_ENTER();
+
+	node = dtm_intranode_get_pid_info_using_fd(fd);
+
+	if (NULL == node) {
+		LOG_ER("DTM INTRA : PID info coressponding to fd doesnt exist, database mismatch. fd :%d",fd);
+		assert(0);
+	}
+	if (0 == node->bytes_tb_read) {
+		if (0 == node->num_by_read_for_len_buff) {
+			uns8 *data;
+			int recd_bytes = 0;
+
+			/*******************************************************/
+			/* Receive all incoming data on this socket */
+			/*******************************************************/
+
+			recd_bytes = recv(fd, node->len_buff, 2, 0);
+			if (0 == recd_bytes) {
+				TRACE("DTM_INTRA: Socket close: %d", fd);
+				dtm_intranode_process_pid_down(fd);
+				dtm_intranode_del_poll_fdlist(fd);
+				return;
+			} else if (2 == recd_bytes) {
+				uns16 local_len_buf = 0;
+
+				data = node->len_buff;
+				local_len_buf = ncs_decode_16bit(&data);
+				node->buff_total_len = local_len_buf;
+				node->num_by_read_for_len_buff = 2;
+
+				if (NULL == (node->buffer = calloc(1, (local_len_buf + 3)))) {
+					/* Length + 2 is done to reuse the same buffer 
+					   while sending to other nodes */
+					LOG_ER("Memory allocation failed in dtm_intranode_processing");
+					return;
+				}
+				recd_bytes = recv(fd, &node->buffer[2], local_len_buf, 0);
+
+				if (recd_bytes < 0) {
+					return;
+				} else if (0 == recd_bytes) {
+					dtm_intranode_process_pid_down(fd);
+					dtm_intranode_del_poll_fdlist(fd);
+					return;
+				} else if (local_len_buf > recd_bytes) {
+					/* can happen only in two cases, system call interrupt or half data, */
+					TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					       local_len_buf);
+					node->bytes_tb_read = node->buff_total_len - recd_bytes;
+					return;
+				} else if (local_len_buf == recd_bytes) {
+					/* Call the common rcv function */
+					dtm_intranode_process_poll_rcv_msg_common(node);
+				} else {
+					assert(0);
+				}
+			} else {
+				/* we had recd some bytes */
+				if (recd_bytes < 0) {
+					/* This can happen due to system call interrupt */
+					return;
+				} else if (1 == recd_bytes) {
+					/* We recd one byte of the length part */
+					node->num_by_read_for_len_buff = recd_bytes;
+				} else {
+					assert(0);
+				}
+			}
+		} else if (1 == node->num_by_read_for_len_buff) {
+			int recd_bytes = 0;
+
+			recd_bytes = recv(fd, &node->len_buff[1], 1, 0);
+			if (recd_bytes < 0) {
+				/* This can happen due to system call interrupt */
+				return;
+			} else if (1 == recd_bytes) {
+				/* We recd one byte(remaining) of the length part */
+				uns8 *data = node->len_buff;
+				node->num_by_read_for_len_buff = 2;
+				node->buff_total_len = ncs_decode_16bit(&data);
+				return;
+			} else if (0 == recd_bytes) {
+				dtm_intranode_process_pid_down(fd);
+				dtm_intranode_del_poll_fdlist(fd);
+				return;
+			} else {
+				assert(0);	/* This should never occur */
+			}
+		} else if (2 == node->num_by_read_for_len_buff) {
+			int recd_bytes = 0;
+
+			if (NULL == (node->buffer = calloc(1, (node->buff_total_len + 3)))) {
+				/* Length + 2 is done to reuse the same buffer 
+				   while sending to other nodes */
+				LOG_ER("\nMemory allocation failed in dtm_internode_processing");
+				return;
+			}
+			recd_bytes = recv(fd, &node->buffer[2], node->buff_total_len, 0);
+
+			if (recd_bytes < 0) {
+				return;
+			} else if (0 == recd_bytes) {
+				dtm_intranode_process_pid_down(fd);
+				dtm_intranode_del_poll_fdlist(fd);
+				return;
+			} else if (node->buff_total_len > recd_bytes) {
+				/* can happen only in two cases, system call interrupt or half data, */
+				TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				       node->buff_total_len);
+				node->bytes_tb_read = node->buff_total_len - recd_bytes;
+				return;
+			} else if (node->buff_total_len == recd_bytes) {
+				/* Call the common rcv function */
+				dtm_intranode_process_poll_rcv_msg_common(node);
+			} else {
+				assert(0);
+			}
+		} else {
+			assert(0);
+		}
+
+	} else {
+		/* Partial data already read */
+		int recd_bytes = 0;
+
+		recd_bytes =
+		    recv(fd, &node->buffer[2 + (node->buff_total_len - node->bytes_tb_read)], node->bytes_tb_read, 0);
+
+		if (recd_bytes < 0) {
+			return;
+		} else if (0 == recd_bytes) {
+			/* Close the connection */
+			dtm_intranode_process_pid_down(fd);
+			dtm_intranode_del_poll_fdlist(fd);
+			return;
+		} else if (node->bytes_tb_read > recd_bytes) {
+			/* can happen only in two cases, system call interrupt or half data, */
+			TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes, node->bytes_tb_read);
+			node->bytes_tb_read = node->bytes_tb_read - recd_bytes;
+			return;
+		} else if (node->bytes_tb_read == recd_bytes) {
+			/* Call the common rcv function */
+			dtm_intranode_process_poll_rcv_msg_common(node);
+		} else {
+			assert(0);
+		}
+	}
+	TRACE_LEAVE();
+	return;
+}
+/**
  * Function to handle the intranode processing
  *
  *
@@ -342,120 +644,7 @@ static void dtm_intranode_processing(void)
 
 					} else {
 						/* Data to be received on accepted connections */
-						uns8 putbuf[2];
-						uns8 *data;
-						int recd_bytes = 0, put_len = 2;
-
-						recd_bytes = recv(pfd_list[i].fd, putbuf, put_len, 0);
-
-						if (0 == recd_bytes) {
-							/*  recd_bytes==  0 indicates a connection close */
-							/* Get the pat node from fd tree, 
-							   Send the SVC down to subscriber list 
-							   delete the entry from the fd list */
-							dtm_intranode_process_pid_down(pfd_list[i].fd);
-							dtm_intranode_del_poll_fdlist(pfd_list[i].fd);
-
-						} else if (2 == recd_bytes) {
-							DTM_INTRANODE_RCV_MSG_TYPES msg_type = 0;
-							uns32 identifier = 0;
-							uns8 version = 0, *inbuf = NULL;
-							uns16 length = 0;
-
-							data = putbuf;
-							length = ncs_decode_16bit(&data);
-
-							if (NULL == (inbuf = calloc(1, (length + 3)))) {
-								/* Length + 2 is done to reuse the same buffer while sending to other nodes */
-								LOG_ER("DTM :Memory allocation failed in dtm_intranode_processing");
-								assert(0);
-								continue;
-							}
-
-							recd_bytes = recv(pfd_list[i].fd, &inbuf[2], length, 0);
-
-							if (length != recd_bytes) {
-								/* can happen only in two cases, system call interrupt or half data,
-								   half data not possible as per design */
-								LOG_ER("DTM:len mismatch len : %d, rcv bytes =%d",
-								       length, recd_bytes);
-								assert(0);
-							}
-
-							inbuf[length + 2] = '\0';
-
-							data = &inbuf[2];
-							/* Decode the message */
-							identifier = ncs_decode_32bit(&data);
-							version = ncs_decode_8bit(&data);
-
-							if ((DTM_INTRANODE_RCV_MSG_IDENTIFIER != identifier)
-							    || (DTM_INTRANODE_RCV_MSG_VER != version)) {
-								LOG_ER(
-								       "DTM: Malformed packet recd, Ident : %d, ver : %d",
-								       identifier, version);
-								free(inbuf);
-								continue;
-							}
-
-							msg_type = ncs_decode_8bit(&data);
-
-							if (DTM_INTRANODE_RCV_PID_TYPE == msg_type) {
-								dtm_intranode_process_pid_msg(&inbuf[8],
-											      pfd_list[i].fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_BIND_TYPE == msg_type) {
-								dtm_intranode_process_bind_msg(&inbuf[8],
-											       pfd_list[i].fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_UNBIND_TYPE == msg_type) {
-								dtm_intranode_process_unbind_msg(&inbuf[8],
-												 pfd_list[i].fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_SUBSCRIBE_TYPE == msg_type) {
-								dtm_intranode_process_subscribe_msg(&inbuf[8],
-												    pfd_list[i].fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_UNSUBSCRIBE_TYPE == msg_type) {
-								dtm_intranode_process_unsubscribe_msg(&inbuf[8],
-												      pfd_list[i].fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_NODE_SUBSCRIBE_TYPE == msg_type) {
-								dtm_intranode_process_node_subscribe_msg(&inbuf[8],
-													 pfd_list[i].
-													 fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_NODE_UNSUBSCRIBE_TYPE == msg_type) {
-								dtm_intranode_process_node_unsubscribe_msg(&inbuf[8],
-													   pfd_list[i].
-													   fd);
-								free(inbuf);
-							} else if (DTM_INTRANODE_RCV_MESSAGE_TYPE == msg_type) {
-								/* Get the Destination Node ID */
-								NODE_ID dst_nodeid = 0;
-								uns32 dst_processid = 0;
-								dst_nodeid = ncs_decode_32bit(&data);
-								dst_processid = ncs_decode_32bit(&data);
-								if (dtm_intranode_cb->nodeid == dst_nodeid) {
-									/* local node message */
-									dtm_intranode_process_rcv_data_msg(inbuf,
-													   dst_processid,
-													   (recd_bytes +
-													    2));
-								} else {
-									/* remote node message */
-									dtm_add_to_msg_dist_list(inbuf,
-												 (recd_bytes + 2),
-												 dst_nodeid);
-								}
-							} else {
-								/* msg_type not supported, log error */
-							         LOG_ER("DTM :Recd msg_type unknown, dropping the message");
-								free(inbuf);
-							}
-						} else {
-							/* Some error, let it we check the data again */
-						}
+ 						dtm_intranode_process_poll_rcv_msg(pfd_list[i].fd);
 					}
 				} else if (pfd_list[i].revents & POLLOUT) {
 					num_fd_checked++;
@@ -528,7 +717,7 @@ static uns32 dtm_intranode_del_poll_fdlist(int fd)
 
 	TRACE_ENTER();
 	for (back = NULL, mov_ptr = dtm_intranode_cb->fd_list_ptr_head; mov_ptr != NULL;
-	     back = mov_ptr, mov_ptr = mov_ptr->next) {
+			back = mov_ptr, mov_ptr = mov_ptr->next) {
 		if (fd == mov_ptr->dtm_intranode_fd.fd) {
 			/* STEP: Detach "mov_ptr" from linked-list */
 			if (back == NULL) {
@@ -646,6 +835,45 @@ static uns32 dtm_intranode_fill_fd_set(void)
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
+static uns32 dtm_intranode_create_pid_info(int fd)
+{
+	DTM_INTRANODE_PID_INFO *pid_node = NULL;
+	TRACE_ENTER();
+	if (NULL == (pid_node = calloc(1, sizeof(DTM_INTRANODE_PID_INFO)))) {
+		TRACE("\nMemory allocation failed for DTM_INTRANODE_PID_INFO");
+		return NCSCC_RC_FAILURE;
+	}
+
+	pid_node->accepted_fd = fd;
+	pid_node->pid = 0; /* Yet to be filled from the PID Message which is yet to come */
+	pid_node->node_id = m_NCS_GET_NODE_ID;
+	pid_node->fd_node.key_info = (uns8 *)&pid_node->accepted_fd;
+
+	if (m_NCS_IPC_CREATE(&pid_node->mbx) != NCSCC_RC_SUCCESS) {
+		/* Mail box creation failed */
+		TRACE("Mailbox creation failed,dtm_accept msg");
+		free(pid_node);
+		return NCSCC_RC_FAILURE;
+	} else {
+
+		NCS_SEL_OBJ obj;
+		/* Code added for attaching the mailbox */
+		if (NCSCC_RC_SUCCESS != m_NCS_IPC_ATTACH(&pid_node->mbx)) {
+			TRACE("\nMailbox attach failed,dtm_intranode_process_pid_msg");
+			m_NCS_IPC_RELEASE(&pid_node->mbx, NULL);
+			free(pid_node);
+			return NCSCC_RC_FAILURE;
+		}
+
+		obj = m_NCS_IPC_GET_SEL_OBJ(&pid_node->mbx);
+
+		/* retreive the corresponding fd for mailbox */
+		pid_node->mbx_fd = m_GET_FD_FROM_SEL_OBJ(obj);	/* extract and fill value needs to be extracted */
+	}
+	ncs_patricia_tree_add(&dtm_intranode_cb->dtm_intranode_fd_list, (NCS_PATRICIA_NODE *)&pid_node->fd_node);
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
 
 /**
  * Function to process the incoming connection request
@@ -671,7 +899,7 @@ static uns32 dtm_intranode_process_incoming_conn(void)
 		return NCSCC_RC_FAILURE;
 	}
 
- tryagain:
+tryagain:
 	/*Make the socket Non-Blocking for accepting */
 	sock_opt = fcntl(accept_fd, F_SETFL, O_NONBLOCK);
 	if (sock_opt != 0) {
@@ -695,6 +923,7 @@ static uns32 dtm_intranode_process_incoming_conn(void)
 		return NCSCC_RC_FAILURE;
 	}
 	dtm_intranode_add_poll_fdlist(accept_fd, POLLIN);
+	dtm_intranode_create_pid_info(accept_fd);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

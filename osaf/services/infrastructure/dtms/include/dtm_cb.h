@@ -74,7 +74,6 @@ typedef struct dtm_internode_cb {
 	in_port_t stream_port;
 	in_port_t dgram_port_sndr;
 	in_port_t dgram_port_rcvr;
-	in_port_t intra_node_stream_port;
 	int stream_sock;	/*  */
 	int dgram_sock_sndr;	/*  */
 	int dgram_sock_rcvr;	/*  */
@@ -115,6 +114,7 @@ typedef struct dtm_intranode_cb {
 	NCS_PATRICIA_TREE dtm_svc_install_list;	/* Tree of service install info */
 	SYSF_MBX mbx;
 	int mbx_fd;
+	int sock_domain;
 } DTM_INTRANODE_CB;
 
 extern DTM_INTRANODE_CB *dtm_intranode_cb;
