@@ -218,7 +218,7 @@ static uns32 dgram_join_mcast_group(DTM_INTERNODE_CB * dtms_cb, struct addrinfo 
 		struct ip_mreq join_request;
 		join_request.imr_multiaddr = ((struct sockaddr_in *)mcast_receiver_addr->ai_addr)->sin_addr;
 		join_request.imr_interface.s_addr =  inet_addr(dtms_cb->ip_addr);
-		TRACE("DTM :Joining IPv4 mcast group...\n");
+		TRACE("DTM :Joining IPv4 mcast group...");
 		if (setsockopt
 		    (dtms_cb->dgram_sock_rcvr, IPPROTO_IP, IP_ADD_MEMBERSHIP, &join_request,
 		     sizeof(join_request)) < 0) {
@@ -538,7 +538,7 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
 	/* results and bind to the first we can */
 	p = addr_list;
 
-	TRACE("family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
+	TRACE("DTM : family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
 	/* Create socket for sending multicast datagrams */
 	if ((sock_desc = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == SOCKET_ERROR()) {
 		LOG_ER("DTM:Socket creation failed (socket()) errno : %d", GET_LAST_ERROR());
@@ -652,11 +652,11 @@ uns32 dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	addr_criteria.ai_protocol = IPPROTO_TCP;	/* Only TCP protocol */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;
 
-	TRACE("stream_port :%d", dtms_cb->stream_port);
+	TRACE("DTM :stream_port :%d", dtms_cb->stream_port);
 	/* snprintf(local_port_str, sizeof(local_port_str), "%d", htons(dtms_cb->stream_port)); */
 	snprintf(local_port_str, sizeof(local_port_str), "%d", dtms_cb->stream_port);
 
-	TRACE("ip_addr : %s local_port_str -%s", dtms_cb->ip_addr, local_port_str);
+	TRACE("DTM :ip_addr : %s local_port_str -%s", dtms_cb->ip_addr, local_port_str);
 	if ((rv = getaddrinfo(dtms_cb->ip_addr, local_port_str, &addr_criteria, &addr_list)) != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno : %d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
@@ -673,7 +673,7 @@ uns32 dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	/* results and bind to the first we can */
 	p = addr_list;
 
-	TRACE("family : %d, socktype : %d, protocol=%d", p->ai_family, p->ai_socktype, p->ai_protocol);
+	TRACE("DTM :family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
 	/* Create socket for sending multicast datagrams */
 	if ((dtms_cb->stream_sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == SOCKET_ERROR()) {
 		LOG_ER("DTM:Socket creation failed (socket()) errno :%d", GET_LAST_ERROR());
@@ -737,7 +737,7 @@ uns32 dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	struct addrinfo *addr_list;	/* Holder serv address */
 	TRACE_ENTER();
 
-	TRACE("dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
+	TRACE("DTM :dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
 	snprintf(local_port_str, sizeof(local_port_str), "%d", (dtms_cb->dgram_port_rcvr));
 
 	dtms_cb->dgram_sock_rcvr = -1;
@@ -748,7 +748,7 @@ uns32 dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	addr_criteria.ai_protocol = IPPROTO_UDP;	/* Only UDP protocol */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;	/* Don't try to resolve address */
 
-	TRACE("mcast_addr : %s local_port_str -%s", dtms_cb->mcast_addr, local_port_str);
+	TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
 	if ((rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &addr_list)) != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno :%d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
@@ -765,7 +765,7 @@ uns32 dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	/* results and bind to the first we can */
 	p = addr_list;
 
-	TRACE("family : %d, socktype : %d, protocol=%d", p->ai_family, p->ai_socktype, p->ai_protocol);
+	TRACE("DTM :family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
 	/* Create socket for sending multicast datagrams */
 	if ((dtms_cb->dgram_sock_rcvr = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==  SOCKET_ERROR()) {
 		LOG_ER("DTM:Socket creation failed (socket()) errno :%d", GET_LAST_ERROR());
@@ -820,7 +820,7 @@ uns32 dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 
 	dtms_cb->dgram_sock_sndr = -1;
 
-	TRACE("dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
+	TRACE("DTM :dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
 	snprintf(local_port_str, sizeof(local_port_str), "%d", (dtms_cb->dgram_port_rcvr));
 
 	memset(&addr_criteria, 0, sizeof(addr_criteria));	/* Zero out structure */
@@ -829,7 +829,7 @@ uns32 dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	addr_criteria.ai_protocol = IPPROTO_UDP;	/* Only UDP please */
 	addr_criteria.ai_flags |= AI_NUMERICHOST;	/* Don't try to resolve address */
 
-	TRACE("mcast_addr : %s local_port_str -%s", dtms_cb->mcast_addr, local_port_str);
+	TRACE("DTM :mcast_addr : %s local_port_str :%s", dtms_cb->mcast_addr, local_port_str);
 	if ((rv = getaddrinfo(dtms_cb->mcast_addr, local_port_str, &addr_criteria, &mcast_sender_addr)) != 0) {
 		LOG_ER("DTM:Unable to getaddrinfo() rtn_val :%d errno :%d", rv, GET_LAST_ERROR());
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
@@ -846,7 +846,7 @@ uns32 dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	/* results and bind to the first we can */
 	p = mcast_sender_addr;
 
-	TRACE("family : %d, socktype : %d, protocol=%d", p->ai_family, p->ai_socktype, p->ai_protocol);
+	TRACE("DTM :family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
 	/* Create socket for sending multicast datagrams */
 	if ((dtms_cb->dgram_sock_sndr = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==  SOCKET_ERROR()) {
 		LOG_ER("DTM:Socket creation failed (socket()) errno :%d", GET_LAST_ERROR());
@@ -905,7 +905,7 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	int rv;
 	TRACE_ENTER();
 
-	TRACE("dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
+	TRACE("DTM :dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
 	snprintf(local_port_str, sizeof(local_port_str), "%d", (dtms_cb->dgram_port_rcvr));
 
 	dtms_cb->dgram_sock_rcvr = -1;
@@ -917,7 +917,7 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	addr_criteria.ai_protocol = IPPROTO_UDP;	// Only UDP socket
 	addr_criteria.ai_flags |= AI_NUMERICHOST;
 
-	TRACE("ip_addr : %s local_port_str -%s", dtms_cb->ip_addr, local_port_str);
+	TRACE("DTM :ip_addr : %s local_port_str :%s", dtms_cb->ip_addr, local_port_str);
 
 	/* FIX ME */
 	/*if ((rv = getaddrinfo(dtms_cb->ip_addr, local_port_str, &addr_criteria, &addr_list)) != 0)  */
@@ -939,7 +939,7 @@ uns32 dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 
 	for (; p; p = p->ai_next) {
 
-		TRACE("family : %d, socktype : %d, protocol=%d", p->ai_family, p->ai_socktype, p->ai_protocol);
+		TRACE("DTM :family : %d, socktype : %d, protocol :%d", p->ai_family, p->ai_socktype, p->ai_protocol);
 
 		if ((dtms_cb->dgram_sock_rcvr = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==  SOCKET_ERROR()) {
 			LOG_ER("DTM:Socket creation failed (socket()) errno :%d", GET_LAST_ERROR());
@@ -1323,7 +1323,7 @@ int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *b
 
 		/* Convert binary to printable address */
 		if (inet_ntop(clnt_addr1->sa_family, numericAddress, addrBuffer, sizeof(addrBuffer)) == NULL) {
-			TRACE("DTM: invalid address %s", addrBuffer);
+			TRACE("DTM: invalid address :%s", addrBuffer);
 		} else {
 			memcpy(node_ip, (char *)addrBuffer, INET6_ADDRSTRLEN);
 		}
@@ -1356,7 +1356,7 @@ uns32 dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
 
 	char *addr_string = dtms_cb->ip_addr;	/* Server address/name */
 
-	TRACE("stream_port :%d", dtms_cb->stream_port);
+	TRACE("DTM :stream_port :%d", dtms_cb->stream_port);
 	snprintf(local_port_str, sizeof(local_port_str), "%d", (dtms_cb->stream_port));
 
 	/* Tell the system what kind(s) of address info we want */
@@ -1369,7 +1369,7 @@ uns32 dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
 	/* Get address(es) associated with the specified name/service */
 	struct addrinfo *addr_list;	/* Holder for list of addresses returned */
 	/* Modify servAddr contents to reference linked list of addresses */
-	TRACE("addr_string : %s local_port_str -%s", addr_string, local_port_str);
+	TRACE("DTM :addr_string : %s local_port_str :%s", addr_string, local_port_str);
 	int rtn_val = getaddrinfo(addr_string, local_port_str, &addr_criteria, &addr_list);
 	if (rtn_val != 0)
 		LOG_ER("getaddrinfo() failed %d", rtn_val);
@@ -1380,11 +1380,11 @@ uns32 dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
 
 		if (addr->ai_addr->sa_family == AF_INET) {
 			dtms_cb->i_addr_family = DTM_IP_ADDR_TYPE_IPV4;
-			TRACE("dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
+			TRACE("DTM :dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
 			goto done;
 		} else if (addr->ai_addr->sa_family == AF_INET6) {
 			dtms_cb->i_addr_family = DTM_IP_ADDR_TYPE_IPV6;
-			TRACE("dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
+			TRACE("DTM :dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
 			goto done;
 		}
 

@@ -46,7 +46,7 @@ uns32 dtm_internode_process_rcv_up_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
 	TRACE_ENTER();
 	if (NULL == (dtm_msg_elem = calloc(1, sizeof(DTM_RCV_MSG_ELEM)))) {
-		TRACE("DTM  SVC UP EVENT : Calloc FAILED");
+		TRACE("DTM : SVC UP EVENT : Calloc FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 	dtm_msg_elem->type = DTM_MBX_UP_TYPE;
@@ -57,11 +57,11 @@ uns32 dtm_internode_process_rcv_up_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
-		TRACE("DTM Intranode IPC_SEND : SVC UP EVENT : FAILED");
+		TRACE("DTM :Intranode IPC_SEND : SVC UP EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Intranode IPC_SEND : SVC UP EVENT : SUCC");
+		TRACE("DTM :Intranode IPC_SEND : SVC UP EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -92,11 +92,11 @@ uns32 dtm_internode_process_rcv_down_msg(uns8 *buffer, uns16 len, NODE_ID node_i
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
-		TRACE("DTM Intranode IPC_SEND : SVC DOWN EVENT : FAILED");
+		TRACE("DTM : Intranode IPC_SEND : SVC DOWN EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Intranode IPC_SEND : SVC DOWN EVENT : SUCC");
+		TRACE("DTM : Intranode IPC_SEND : SVC DOWN EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -119,7 +119,7 @@ uns32 dtm_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
 	uns32 status = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
 	if (NULL == (dtm_msg_elem = calloc(1, sizeof(DTM_RCV_MSG_ELEM)))) {
-		TRACE("Calloc failed for DTM_RCV_MSG_ELEM, dtm_node_up");
+		TRACE("DTM :Calloc failed for DTM_RCV_MSG_ELEM, dtm_node_up");
 		return status;
 	}
 	dtm_msg_elem->type = DTM_MBX_NODE_UP_TYPE;
@@ -132,10 +132,10 @@ uns32 dtm_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
-		TRACE("DTM Intranode IPC_SEND : NODE UP EVENT : FAILED");
+		TRACE("DTM : Intranode IPC_SEND : NODE UP EVENT : FAILED");
 		status = NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Intranode IPC_SEND : NODE UP EVENT : SUCC");
+		TRACE("DTM : Intranode IPC_SEND : NODE UP EVENT : SUCC");
 		status = NCSCC_RC_SUCCESS;
 	}
 
@@ -171,11 +171,11 @@ uns32 dtm_node_down(NODE_ID node_id, char *node_name, SYSF_MBX mbx)
 	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
-		TRACE("DTM Intranode IPC_SEND : NODE DOWN EVENT : FAILED");
+		TRACE("DTM : Intranode IPC_SEND : NODE DOWN EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Intranode IPC_SEND : NODE DOWN EVENT : SUCC");
+		TRACE("DTM : Intranode IPC_SEND : NODE DOWN EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -206,11 +206,11 @@ uns32 dtm_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid)
 	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
-		TRACE("DTM Internode IPC_SEND : SVC UP EVENT : FAILED");
+		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Internode IPC_SEND : SVC UP EVENT : SUCC");
+		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -241,11 +241,11 @@ uns32 dtm_del_from_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid
 	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
-		TRACE("DTM Internode IPC_SEND : SVC UP EVENT : FAILED");
+		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
-		TRACE("DTM Internode IPC_SEND : SVC UP EVENT : SUCC");
+		TRACE("DTM : Internode IPC_SEND : SVC UP EVENT : SUCC");
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
@@ -292,11 +292,11 @@ uns32 dtm_internode_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, u
 	}
 
 	if (NULL == (add_ptr = calloc(1, sizeof(DTM_SVC_DATA)))) {
-		TRACE("CALLOC FAILED FOR DTM_SVC_DATA");
+		TRACE("DTM :CALLOC FAILED FOR DTM_SVC_DATA");
 		return NCSCC_RC_FAILURE;
 	}
 	if (NULL == (buffer = calloc(1, DTM_UP_MSG_SIZE_FULL))) {
-		TRACE("CALLOC FAILED FOR buffer");
+		TRACE("DTM :CALLOC FAILED FOR buffer");
 		free(add_ptr);
 		return NCSCC_RC_FAILURE;
 	}
@@ -337,14 +337,14 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
 	int check_val = 0;
 	TRACE_ENTER();
 	if (NULL == dtm_svc_dist_list) {
-		TRACE("NULL svc dist list ");
+		TRACE("DTM :NULL svc dist list ");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	mov_ptr = dtm_svc_dist_list->data_ptr_hdr;
 
 	if (NULL == mov_ptr) {
-		TRACE("NULL svc dist list ");
+		TRACE("DTM :NULL svc dist list ");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -366,7 +366,7 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
 			free(mov_ptr);
 			mov_ptr = NULL;
 			dtm_svc_dist_list->num_elem--;
-			TRACE("Successfully deleted the node from svc dist list ");
+			TRACE("DTM :Successfully deleted the node from svc dist list ");
 			check_val = 1;
 			break;
 		}
@@ -374,7 +374,7 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
 
 	if (1 == check_val) {
 		if (NULL == (buffer = calloc(1, DTM_DOWN_MSG_SIZE_FULL))) {
-			TRACE("CALLOC FAILED FOR buffer, unable to send down to all nodes");
+			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
@@ -385,7 +385,7 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* dont send to any node */
-		TRACE("No matching entry found in svc dist list for deletion");
+		TRACE("DTM :No matching entry found in svc dist list for deletion");
 		/* assert */
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
@@ -460,25 +460,25 @@ static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 
 	TRACE_ENTER();
 	if (NULL == dtm_svc_dist_list) {
-		TRACE("No services to be updated to remote node");
+		TRACE("DTM :No services to be updated to remote node");
 		return NCSCC_RC_SUCCESS;
 	}
 	num_elem = dtm_svc_dist_list->num_elem;
 	mov_ptr = dtm_svc_dist_list->data_ptr_hdr;
 
 	if (mov_ptr == NULL || (0 == dtm_svc_dist_list->num_elem)) {
-		TRACE("No services to be updated to remote node");
+		TRACE("DTM :No services to be updated to remote node");
 		return NCSCC_RC_SUCCESS;
 	}
 	buff_len = (uns16)(DTM_UP_MSG_SIZE_FULL + ((num_elem - 1) * 12));
 
 	if (NULL == mov_ptr) {
-		TRACE("No services to be updated to remote node");
+		TRACE("DTM :No services to be updated to remote node");
 		return NCSCC_RC_SUCCESS;
 	} else {
 		uns8 *buffer = NULL;
 		if (NULL == (buffer = calloc(1, buff_len))) {
-			TRACE("CALLOC FAILED FOR buffer, unable to send down to all nodes");
+			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			return NCSCC_RC_FAILURE;
 		}
 		data = buffer;

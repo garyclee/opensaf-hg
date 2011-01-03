@@ -88,38 +88,38 @@ static int dtm_get_iface_list(struct ifconf *ifconf)
  */
 void dtm_print_config(DTM_INTERNODE_CB * config)
 {
-	TRACE("dtm.conf: config file contains:\n");
-	TRACE("  IP_V4_OR_V6=");
-	TRACE("  %d\n", config->i_addr_family);
-	TRACE("  DTM_CLUSTER_ID=");
-	TRACE("  %d\n", config->cluster_id);
-	TRACE("  NODE_ID=");
-	TRACE("  %d\n", config->node_id);
-	TRACE("  IP_ADDR=");
-	TRACE("  %s\n", config->ip_addr);
-	TRACE("  STREAM_PORT=");
-	TRACE("  %u\n", config->stream_port);
-	TRACE("  DGRAM_PORT_SNDR=");
-	TRACE("  %u\n", config->dgram_port_sndr);
-	TRACE("  DGRAM_PORT_REV=");
-	TRACE("  %u\n", config->dgram_port_rcvr);
-	TRACE("  MCAST_ADDR=");
-	TRACE("  %s\n", config->mcast_addr);
-	TRACE("  NODE_NAME=");
-	TRACE("  %s\n", config->node_name);
-	TRACE("  DTM_SKEEPALIVE=");
-	TRACE("  %d\n", config->so_keepalive);
-	TRACE("  COMM_KEEPIDLE_TIME=");
-	TRACE("  %d\n", config->comm_keepidle_time);
-	TRACE("  COMM_KEEPALIVE_INTVL=");
-	TRACE("  %d\n", config->comm_keepalive_intvl);
-	TRACE("  COMM_KEEPALIVE_PROBES=");
-	TRACE("  %d\n", config->comm_keepalive_probes);
-	TRACE("  DTM_INI_DIS_TIMEOUT_SECS=");
-	TRACE("  %d\n", config->initial_dis_timeout);
-	TRACE("  DTM_BCAST_FRE_MSECS=");
-	TRACE("  %d\n", config->bcast_msg_freq);
-	TRACE("\n");
+ 	TRACE("DTM :dtm.conf: config file contains:");
+ 	TRACE("  IP_V4_OR_V6: ");
+ 	TRACE("  %d", config->i_addr_family);
+ 	TRACE("  DTM_CLUSTER_ID: ");
+ 	TRACE("  %d", config->cluster_id);
+ 	TRACE("  NODE_ID: ");
+ 	TRACE("  %d", config->node_id);
+ 	TRACE("  IP_ADDR: ");
+ 	TRACE("  %s", config->ip_addr);
+ 	TRACE("  STREAM_PORT: ");
+ 	TRACE("  %u", config->stream_port);
+ 	TRACE("  DGRAM_PORT_SNDR: ");
+ 	TRACE("  %u", config->dgram_port_sndr);
+ 	TRACE("  DGRAM_PORT_REV: ");
+ 	TRACE("  %u", config->dgram_port_rcvr);
+ 	TRACE("  MCAST_ADDR: ");
+ 	TRACE("  %s", config->mcast_addr);
+ 	TRACE("  NODE_NAME: ");
+ 	TRACE("  %s", config->node_name);
+ 	TRACE("  DTM_SKEEPALIVE: ");
+ 	TRACE("  %d", config->so_keepalive);
+ 	TRACE("  COMM_KEEPIDLE_TIME: ");
+ 	TRACE("  %d", config->comm_keepidle_time);
+ 	TRACE("  COMM_KEEPALIVE_INTVL: ");
+ 	TRACE("  %d", config->comm_keepalive_intvl);
+ 	TRACE("  COMM_KEEPALIVE_PROBES: ");
+ 	TRACE("  %d", config->comm_keepalive_probes);
+ 	TRACE("  DTM_INI_DIS_TIMEOUT_SECS: ");
+ 	TRACE("  %d", config->initial_dis_timeout);
+ 	TRACE("  DTM_BCAST_FRE_MSECS: ");
+	TRACE("  %d", config->bcast_msg_freq);
+ 	TRACE("DTM : ");
 }
 
 /**
@@ -153,7 +153,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 
 	nifaces = ifconf.ifc_len / sizeof(struct ifreq);
 
-	TRACE("DTM:Interfaces (count : %d):\n", nifaces);
+	TRACE("DTM:Interfaces (count : %d):", nifaces);
 
 	s = socket(PF_INET, SOCK_DGRAM, 0);
 	for (i = 0; i < nifaces; i++) {
@@ -171,7 +171,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 			}
 
 			if (inet_ntop(ifreqs[i].ifr_addr.sa_family, numericAddress, match_ip, INET6_ADDRSTRLEN) != NULL) {
-				TRACE("DTM:   %s Avalible IP address: %s sa_family : %d \n", ifreqs[i].ifr_name,
+				TRACE("DTM:   %s Avalible IP address: %s sa_family : %d ", ifreqs[i].ifr_name,
 				      match_ip, ifreqs[i].ifr_addr.sa_family);
 				if (strcmp(match_ip, config->ip_addr) == 0) {
 					void *numericbcasrAddress = NULL;
@@ -271,7 +271,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 		return (GET_LAST_ERROR());
 	}
 	fclose(fp);
-	TRACE("config->node_nam %s", config->node_name);
+	TRACE("DTM :config->node_nam : %s", config->node_name);
 	config->cluster_id = -1;
 
 	/* 
@@ -379,7 +379,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 			if (strncmp(line, "DTM_UDP_BCAST_REV_PORT=", strlen("DTM_UDP_BCAST_REV_PORT=")) == 0) {
 				tag_len = strlen("DTM_UDP_BCAST_REV_PORT=");
 				config->dgram_port_rcvr = ((in_port_t)atoi(&line[tag_len]));
-				TRACE("DTM:dgram_port_rcvr  =%d", config->dgram_port_rcvr);
+				TRACE("DTM:dgram_port_rcvr  :%d", config->dgram_port_rcvr);
 				if (config->dgram_port_rcvr < 1) {
 					LOG_ER("DTM:dgram_port_rcvr t must be a positive integer");
 					return -1;

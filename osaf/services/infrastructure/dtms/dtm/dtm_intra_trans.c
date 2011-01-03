@@ -106,13 +106,12 @@ uns32 dtm_intranode_send_msg(uns16 len, uns8 *buffer, DTM_INTRANODE_PID_INFO * p
 
 		if (send_len == len) {
 			free(buffer);
-			TRACE("DTM: send success, total_len : %d, send_len=%d", len, send_len);
 			return NCSCC_RC_SUCCESS;
 		} else {
-			TRACE("DTM: send failed, total_len : %d, send_len=%d", len, send_len);
+			TRACE("DTM: send failed, total_len : %d, send_len :%d", len, send_len);
 			/* Queue the message */
 			if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTRANODE_UNSENT_MSGS)))) {
-				TRACE("\nCalloc failed DTM_INTRANODE_UNSENT_MSGS");
+				TRACE("DTM : Calloc failed DTM_INTRANODE_UNSENT_MSGS");
 				return NCSCC_RC_FAILURE;
 			}
 			add_ptr->next = NULL;
@@ -127,7 +126,7 @@ uns32 dtm_intranode_send_msg(uns16 len, uns8 *buffer, DTM_INTRANODE_PID_INFO * p
 	} else {
 		/* Queue the message */
 		if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTRANODE_UNSENT_MSGS)))) {
-			TRACE("\nCalloc failed DTM_INTRANODE_UNSENT_MSGS");
+			TRACE("DTM : Calloc failed DTM_INTRANODE_UNSENT_MSGS");
 			return NCSCC_RC_FAILURE;
 		}
 		add_ptr->next = NULL;
@@ -199,7 +198,7 @@ static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int
 			free(unsent_msg->buffer);
 			unsent_msg->buffer = NULL;
 			snd_count++;
-			TRACE("DTM:send success, total_len : %d, send_len=%d", unsent_msg->len, send_len);
+			TRACE("DTM:send success, total_len : %d, send_len : %d", unsent_msg->len, send_len);
 			if (DTM_INTRANODE_SND_MAX_COUNT == snd_count) {
 				break;
 			}
