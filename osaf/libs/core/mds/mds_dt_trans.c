@@ -25,6 +25,7 @@
 #include "mds_dt_tcp_trans.h"
 
 #include <sys/poll.h>
+#include <poll.h>
 
 #define MDS_PROT_TCP        0xA0
 #define MDTM_FRAG_HDR_PLUS_LEN_2_TCP (2 + MDS_SEND_ADDRINFO_TCP + MDTM_FRAG_HDR_LEN_TCP)
