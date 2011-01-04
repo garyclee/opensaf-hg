@@ -3458,6 +3458,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 	SaAmfHAStateT old_state;
 	AVD_SU_SI_STATE old_fsm_state;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi)
 		return;
@@ -3481,6 +3482,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 				curr_sisu->state = SA_AMF_HA_ACTIVE;
 				curr_sisu->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
+				avd_susi_update(curr_sisu, SA_AMF_HA_ACTIVE);
 				avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 				rc = avd_snd_susi_msg(cb, curr_sisu->su, curr_sisu, AVSV_SUSI_ACT_MOD, false, NULL);
 				if (NCSCC_RC_SUCCESS != rc) {
@@ -3491,6 +3493,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 					curr_sisu->state = old_state;
 					curr_sisu->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_sisu, AVSV_CKPT_AVD_SI_ASS);
+					avd_susi_update(curr_sisu, old_state);
 					avd_gen_su_ha_state_changed_ntf(cb, curr_sisu);
 					return;
 				}
@@ -3520,6 +3523,8 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 			avd_sg_nway_screen_si_distr_equal(su->sg_of_su);
 		avd_sg_screen_si_si_dependencies(cb, sg);
 	}
+
+	TRACE_LEAVE();
 	return;
 }
 
