@@ -39,6 +39,7 @@
 #include "mds_dt_tcp.h"
 #include "mds_dt_tcp_disc.h"
 #include "mds_dt_tcp_trans.h"
+#include <netdb.h>
 #include <config.h>
 #ifdef ENABLE_TIPC_TRANSPORT
 #include "mds_dt_tipc.h"
