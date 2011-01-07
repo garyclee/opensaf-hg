@@ -3283,11 +3283,9 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 		epath_matched = 0;
 		for ( max = 0; SAHPI_MAX_ENTITY_PATH > max; max++){
 			if ((ent->entity.he_entity.saPlmHEEntityPaths[max])){
-				if ( 0 == memcmp(ent->entity.he_entity.
+				if ( 0 == strcmp(ent->entity.he_entity.
 					saPlmHEEntityPaths[max], 
-					hpi_evt->entity_path, 
-					strlen(ent->entity.he_entity.
-					saPlmHEEntityPaths[max]))){
+					hpi_evt->entity_path)) {
 					
 					epath_matched = 1;
 					break;
