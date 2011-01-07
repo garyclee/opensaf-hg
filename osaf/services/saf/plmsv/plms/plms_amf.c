@@ -282,9 +282,6 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	case SA_AMF_HA_STANDBY:
 		cb->mds_role = V_DEST_RL_STANDBY;
 		LOG_IN("MY HA ROLE : AMF STANDBY\n");
-		if (prev_haState == SA_AMF_HA_QUIESCED) {
-			plms_proc_quiesced_standby_role_change();
-		}
 
 		TRACE("Send signal to HSM indicating standby state");
 		pthread_mutex_lock(&hsm_ha_state.mutex);
@@ -321,6 +318,9 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 				rc = NCSCC_RC_FAILURE;
 			}
 			cb->plmc_initialized = FALSE;
+		}
+		if (prev_haState == SA_AMF_HA_QUIESCED) {
+			plms_proc_quiesced_standby_role_change();
 		}
 		break;
 	case SA_AMF_HA_QUIESCED:
