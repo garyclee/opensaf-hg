@@ -318,9 +318,9 @@ AC_SUBST([AIS_SMF_ENABLED], ["$enable_ais_smf"])
 AC_MSG_CHECKING([whether to build the SAI-AIS-PLM service])
 AC_ARG_ENABLE([ais-plm],
 	[AS_HELP_STRING([--disable-ais-plm],
-		[disable building the SAI-AIS-PLM service [default=no]])],
+		[disable building the SAI-AIS-PLM service [default=yes]])],
 	[],
-	[enable_ais_plm=yes])
+	[enable_ais_plm=no])
 AC_MSG_RESULT([$enable_ais_plm])
 
 if test "$enable_ais_plm" = yes; then
