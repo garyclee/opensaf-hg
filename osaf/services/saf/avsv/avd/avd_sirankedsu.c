@@ -439,7 +439,6 @@ static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	AVD_SU *su = NULL, *curr_su = NULL;
 	AVD_SI *si = NULL;
 	SaNameT su_name;
 	SaNameT si_name;
@@ -453,14 +452,6 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	memset(&si_name, 0, sizeof(SaNameT));
 	avd_susi_namet_init(opdata->param.deleteOp.objectName, &su_name, &si_name);
 
-	/* Find the su name. */
-	su = avd_su_get(&su_name);
-
-	if (su == NULL) {
-		LOG_ER("SU '%s' not found", su_name.value);
-		goto error;
-	}
-
 	/* determine if the su is ranked per si */
 	memset((uns8 *)&indx, '\0', sizeof(indx));
 	indx.si_name = si_name;
@@ -469,8 +460,7 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 			su_rank_rec && (memcmp(&(su_rank_rec->indx.si_name), &si_name, sizeof(SaNameT))
 				== 0);
 			su_rank_rec = avd_sirankedsu_getnext(avd_cb, su_rank_rec->indx)) {
-		curr_su = avd_su_get(&su_rank_rec->su_name);
-		if (curr_su == su) {
+		if (memcmp(&su_rank_rec->su_name.value, &su_name.value, su_name.length) == 0) {
 			found = TRUE;
 			break;
 		}
