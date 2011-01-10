@@ -2299,8 +2299,7 @@ ImmModel::migrateObj(ObjectInfo* object,
 {
     AttrMap::iterator ai;
     ImmAttrValue* attrValue = NULL;
-    std::string objectDn;
-
+    std::string objectDn; /* objectDn only used for trace/log => external rep ok. */
     getObjectName(object, objectDn);
 
     TRACE_5("Migrating %s object %s", className.c_str(), objectDn.c_str());
@@ -6155,6 +6154,12 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
         obj = *(osi); 
         omi = sObjectMap.end(); /* Possibly did point to parent*/
         getObjectName(obj, objectName);
+        if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
+            /* DN is internal rep => regenerated name needs to be the same,
+               since it is used for matching with internal DNs.
+            */
+            assert(nameToInternal(objectName));
+        }
     } else {
         /* Initialize iteration for regular object-map as source */
         omi = sObjectMap.begin();
@@ -6320,6 +6325,12 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                 obj = (*osi);
                 objectName.clear(); 
                 getObjectName(obj, objectName);
+                if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
+                    /* DN is internal rep => regenerated name needs to be the same. 
+                       since it is used for matching with internal DNs.
+                    */
+                    assert(nameToInternal(objectName));
+                }
             }
         } else {
             ++omi;
@@ -6362,10 +6373,8 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
     obj = *(*osip);
     assert(obj);
     assert(obj->mClassInfo == classInfo);
-    getObjectName(obj, objectName); /* ABT do I need it ?*/
-    if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
-        nameToExternal(objectName);
-    }
+    getObjectName(obj, objectName); /* In external form. */
+
     assert(!(obj->mObjFlags & IMM_CREATE_LOCK));
     assert(!(obj->mObjFlags & IMM_DELETE_LOCK));
     assert(!(obj->mObjFlags & IMM_RT_UPDATE_LOCK)); /* Is this really secured? */
@@ -7694,7 +7703,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                                 assert(obj->mClassInfo == classInfo);
                                 if(obj->mImplementer && obj->mImplementer != info) {
                                     std::string objDn;
-                                    getObjectName(obj, objDn);
+                                    getObjectName(obj, objDn); /* External name form */
                                     TRACE_7("ERR_EXIST: Object '%s' already has implementer "
                                         "%s != %s", objDn.c_str(), 
                                         obj->mImplementer->mImplementerName.c_str(),
@@ -7815,7 +7824,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                                             CcbIdIs(obj->mCcbId));
                                     if(i1 != sCcbVector.end() && (*i1)->isActive()) {
                                         std::string objDn;
-                                        getObjectName(obj, objDn);
+                                        getObjectName(obj, objDn); /* External name form */
                                         LOG_IN("ERR_BUSY: ccb %u is active on object %s",
                                             obj->mCcbId, objDn.c_str());
                                         TRACE_LEAVE();
@@ -10226,6 +10235,12 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     return err;
 }
 
+
+/*
+   NOTE: getObjectName returns the DN in EXTERNAL form.
+   If the objectName is to be used for internal lookup, then
+   the it must be converted to internal DN form (nameToInternal).
+*/
 void
 ImmModel::getObjectName(ObjectInfo* info, std::string& objName)
 {
@@ -10356,7 +10371,15 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ImmsvObjNameList* nl = (ImmsvObjNameList *)
                     calloc(1, sizeof(ImmsvObjNameList));
                 std::string objName;
-                getObjectName(*oi, objName); 
+                getObjectName(*oi, objName); /* External name form */
+                if((*oi)->mObjFlags & IMM_DN_INTERNAL_REP) {
+                    /* DN is internal rep => regenerated name should be the same.
+                       Converting to internal rep here instead of at sync-client,
+                       saves execution cost.
+                    */
+                    assert(nameToInternal(objName));
+                }
+
                 nl->name.size = objName.size();
                 nl->name.buf =strndup((char *) objName.c_str(), 
                     nl->name.size);
@@ -10495,7 +10518,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                     std::string objectName((const char *) nl->name.buf, 
                         (size_t) strnlen((const char *) nl->name.buf,
                             (size_t) nl->name.size));
-                    
+
                     ObjectMap::iterator oi = sObjectMap.find(objectName);
                     if(oi == sObjectMap.end()) {
                         LOG_ER("Sync client failed to locate object: "
