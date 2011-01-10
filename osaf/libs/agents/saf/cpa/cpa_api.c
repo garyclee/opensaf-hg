@@ -124,9 +124,9 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	if (ckptCallbacks) {
 		cl_node->ckpt_callbk = *ckptCallbacks;
 
-		proc_rc = cpa_callback_ipc_init(cl_node);
 	}
 
+        proc_rc = cpa_callback_ipc_init(cl_node);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		/* Error handling */
 		rc = SA_AIS_ERR_LIBRARY;
