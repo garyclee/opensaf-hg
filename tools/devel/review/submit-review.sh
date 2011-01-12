@@ -272,6 +272,11 @@ ___ You have resent this content multiple times without a clear indication
 ___ You have failed to adequately and individually address all of the
     comments and change requests that were proposed in the initial review.
 
+___ You have a misconfigured ~/.hgrc file (i.e. username, email etc)
+
+___ Your computer have a badly configured date and time; confusing the
+    the threaded patch review.
+
 ETX
 
 $EDITOR $rr/rr
