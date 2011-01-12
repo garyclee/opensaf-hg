@@ -2,7 +2,7 @@
 #
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2010 The OpenSAF Foundation
+# (C) Copyright 2011 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -125,8 +125,8 @@ fi
 cat <<ETX >> $rr/rr
 Summary: <<FILL ME>>
 Review request for Trac Ticket(s): <<IF ANY LIST THE #>>
-Peer Reviewer(s): <<FILL ME>>
-Maintainer: <<FILL ME>>
+Peer Reviewer(s): <<LIST THE TECH REVIEWER(S) / MAINTAINER(S) HERE>>
+Pull request to: <<LIST THE PERSON WITH PUSH ACCESS HERE>>
 Affected branch(es): <<LIST ALL AFFECTED BRANCH(ES)>>
 Development branch: <<IF ANY GIVE THE REPO URL>>
 
@@ -208,7 +208,7 @@ Testing, Expected Results:
 
 Conditions of Submission:
 -------------------------
- <<HOW MANY DAYS BEFORE PUSHING, CONSENSUS ETC.>>
+ <<HOW MANY DAYS BEFORE PUSHING, CONSENSUS ETC>>
 
 
 Arch      Built     Started    Linux distro
@@ -219,6 +219,59 @@ x86         n          n
 x86_64      n          n
 powerpc     n          n
 powerpc64   n          n
+
+
+Reviewer Checklist:
+-------------------
+[Submitters: make sure that your review doesn't trigger any checkmarks!]
+
+
+Your checkin has not passed review because (see checked entries):
+
+___ Your RR template is generally incomplete; it has too many blank entries
+    that need proper data filled in.
+
+___ You have failed to nominate the proper persons for review and push.
+
+___ Your patches do not have proper short+long header
+
+___ You have grammar/spelling in your header that is unacceptable.
+
+___ You have exceeded a sensible line length in your headers/comments/text.
+
+___ You have failed to put in a proper Trac Ticket # into your commits.
+
+___ You have incorrectly put/left internal data in your comments/files
+    (i.e. internal bug tracking tool IDs, product names etc)
+
+___ You have not given any evidence of testing beyond basic build tests.
+    Demonstrate some level of runtime or other sanity testing.
+
+___ You have ^M present in some of your files. These have to be removed.
+
+___ You have needlessly changed whitespace or added whitespace crimes
+    like trailing spaces, or spaces before tabs.
+
+___ You have mixed real technical changes with whitespace and other
+    cosmetic code cleanup changes. These have to be separate commits.
+
+___ You need to refactor your submission into logical chunks; there is
+    too much content into a single commit.
+
+___ You have extraneous garbage in your review (merge commits etc)
+
+___ You have giant attachments which should never have been sent;
+    Instead you should place your content in a public tree to be pulled.
+
+___ You have too many commits attached to an e-mail; resend as threaded
+    commits, or place in a public tree for a pull.
+
+___ You have resent this content multiple times without a clear indication
+    of what has changed between each re-send.
+
+___ You have failed to adequately and individually address all of the
+    comments and change requests that were proposed in the initial review.
+
 ETX
 
 $EDITOR $rr/rr
