@@ -245,13 +245,11 @@ AVND_CB *avnd_cb_create()
 	cb->hb_duration = AVSV_DEF_HB_DURATION;
 
 	if ((val = getenv("AVSV_HB_DURATION")) != NULL) {
-		SaTimeT heartbeat_duration = strtoll(val, NULL, 0);
-		if ((heartbeat_duration < 100 * SA_TIME_ONE_MILLISECOND) ||
-		    (heartbeat_duration > 100 * SA_TIME_ONE_SECOND)) {
-			LOG_WA("Value of AVSV_HB_DURATION unreasonable (%llu), using default (%llu)",
-				heartbeat_duration, cb->hb_duration);
-		} else
-			cb->hb_duration = heartbeat_duration;
+		cb->hb_duration = strtoll(val, NULL, 0);
+		if (cb->hb_duration == 0) {
+			/* no value or non convertable value, revert to default */
+			cb->hb_duration = AVSV_DEF_HB_DURATION;
+		}
 	}
 
 	/* initialize the AvND cb lock */
