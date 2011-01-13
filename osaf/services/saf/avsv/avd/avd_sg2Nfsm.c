@@ -447,16 +447,17 @@ SaAisErrorT avd_sg_2n_siswap_func(AVD_SI *si, SaInvocationT invocation)
 		/* Check if the Standby is there in unlocked state. */
 		node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
 		if (node == NULL) {
-			LOG_IN("Node %x is not available", avd_cb->node_id_avd_other);
+			LOG_NO("SI Swap not possible, node %x is not available", avd_cb->node_id_avd_other);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 		if (SA_FALSE == node->node_info.member) {
-			LOG_IN("Node %x is locked state", avd_cb->node_id_avd_other);
+			LOG_NO("SI Swap not possible, node %x is locked", avd_cb->node_id_avd_other);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 	}
+
 	/* Identify the active susi rel */
 	if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
 		susi = si->list_of_sisu;

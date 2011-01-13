@@ -332,9 +332,8 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
-	/* log the failure details (placeholder for sending EDSv events) */
-	LOG_IN("Component '%s' faulted due to '%s' : Recovery is %s",
-			comp->name.value, g_comp_err[err_info->src], g_comp_rcvr[esc_rcvr - 1]);
+	LOG_NO("'%s' faulted due to '%s' : Recovery is '%s'",
+		comp->name.value, g_comp_err[err_info->src], g_comp_rcvr[esc_rcvr - 1]);
 
 	if (((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
 		LOG_ER("%s Faulted due to:%s Recovery is:%s",
@@ -667,7 +666,7 @@ uns32 avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 uns32 avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	LOG_IN("%s, Unsupported",__FUNCTION__);
+	LOG_NO("%s, Unsupported",__FUNCTION__);
 
 	return rc;
 }

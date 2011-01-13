@@ -2703,8 +2703,8 @@ uns32 avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 
  done:
 	if (rc == NCSCC_RC_SUCCESS)
-		LOG_IN("SU Failover trigerred for SU: '%s': Failed component:%s",
-					su->name.value, failed_comp->name.value);
+		LOG_NO("SU Failover trigerred for '%s': Failed component: '%s'",
+			su->name.value, failed_comp->name.value);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }

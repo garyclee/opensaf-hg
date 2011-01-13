@@ -1239,11 +1239,11 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saClmNodeAddressFamily")) {
-			LOG_IN("Modification of saClmNodeAddressFamily of object %s not allowed",opdata->objectName.value);
+			LOG_NO("Modification of saClmNodeAddressFamily of object %s not allowed",opdata->objectName.value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "saClmNodeAddress")) {
-			LOG_IN("Modification of saClmNodeAddress of object %s not allowed",opdata->objectName.value);
+			LOG_NO("Modification of saClmNodeAddress of object %s not allowed",opdata->objectName.value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout")) {
@@ -1255,11 +1255,11 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t * opdata)
 		} else if (!strcmp(attribute->attrName, "saClmNodeEE")) {
 
 			if (clms_cb->reg_with_plm == SA_FALSE) {
-				LOG_IN("saClmNodeEE attribute change doesn't apply when plm in not in model");
+				LOG_NO("saClmNodeEE attribute change doesn't apply when plm in not in model");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			} else {
-				LOG_IN("saClmNodeEE attribute change of object %s is not supported",opdata->objectName.value);
+				LOG_NO("saClmNodeEE attribute change of object %s is not supported",opdata->objectName.value);
 				rc = SA_AIS_ERR_NOT_SUPPORTED;
 				goto done;
 			}

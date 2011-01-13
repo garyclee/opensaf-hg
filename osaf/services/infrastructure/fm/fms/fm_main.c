@@ -335,13 +335,13 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
 	switch (fm_mbx_evt->evt_code) {
 	case FM_EVT_NODE_DOWN:
-		LOG_IN("Role: %s, Node Down for node id: %u", role_string[fm_cb->role], fm_mbx_evt->node_id);
+		LOG_NO("Role: %s, Node Down for node id: %x", role_string[fm_cb->role], fm_mbx_evt->node_id);
 		if ((fm_cb->role == PCS_RDA_STANDBY)||(fm_cb->role == PCS_RDA_QUIESCED)) {
 			if ((fm_mbx_evt->node_id == fm_cb->peer_node_id)) {
 /* Start Promote active timer */
 				if ((fm_cb->peer_node_name.length != 0) && (fm_cb->role != PCS_RDA_QUIESCED)) {
 
-					LOG_IN("Promote active timer started");
+					LOG_NO("Promote active timer started");
 					fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
 				} else {
 					fm_cb->role = PCS_RDA_ACTIVE;
@@ -366,7 +366,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 /* Now. Try resetting other blade */
 			fm_cb->role = PCS_RDA_ACTIVE;
 
-			LOG_IN("Reseting peer controller node_id=%u", fm_cb->peer_node_id);
+			LOG_NO("Reseting peer controller node id: %x", fm_cb->peer_node_id);
 			opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
 				       "Received Node Down for Active peer");
 			fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
