@@ -344,7 +344,7 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 				(curr_si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_FULLY_ASSIGNED) ||
 				(curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 				(curr_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
-				(curr_si->max_num_csi != curr_si->num_csi)) {
+				(curr_si->max_num_csi != curr_si->num_csi) || (curr_si->list_of_csi == NULL)) {
 			curr_si = curr_si->sg_list_of_si_next;
 			continue;
 		}
