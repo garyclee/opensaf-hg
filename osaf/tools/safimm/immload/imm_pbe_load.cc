@@ -395,7 +395,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 	for(c=0; c<ncols; ++c) {
 		if(resultF[ncols+c]) {
 			std::list<char*> attrValueBuffers;
-			SaImmValueTypeT attrType;
+			SaImmValueTypeT attrType = (SaImmValueTypeT) 0;
 			size_t len = strlen(resultF[ncols+c]);
 			char * str = (char *) malloc(len+1);
 			strncpy(str, (const char *) resultF[ncols+c], len);

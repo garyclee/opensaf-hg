@@ -103,7 +103,6 @@ uns32 dtm_intra_processing_init(void)
 	char *inet_or_unix = NULL;
 	struct addrinfo *addr_list;
 	uns32 rc;
-	struct hostent *host;
 
 	TRACE_ENTER();
 
@@ -119,8 +118,6 @@ uns32 dtm_intra_processing_init(void)
 		socket_domain = AF_UNIX;
 	}
 
-	host = gethostbyname("localhost");
- 
 	if (NULL == (dtm_intranode_cb = calloc(1, sizeof(DTM_INTRANODE_CB)))) {
 		LOG_ER("DTM: Memory allocation failed for dtm_intranode_cb");
 		return NCSCC_RC_FAILURE;
@@ -198,7 +195,6 @@ uns32 dtm_intra_processing_init(void)
  			memset(&serveraddr, 0, sizeof(serveraddr));
 			serveraddr.sin_family      = AF_INET;
  			serveraddr.sin_port        = htons(DTM_INTRA_SERVER_PORT);
- 			//		       serveraddr.sin_addr = *((struct in_addr *)host->h_addr);
  			serveraddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
  
  			if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr) ) < 0) {

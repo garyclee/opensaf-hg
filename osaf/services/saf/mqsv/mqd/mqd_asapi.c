@@ -973,7 +973,7 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	uns16 qcnt = 0;
 	ASAPi_MSG_INFO msg;
-	MQSV_SEND_INFO info;
+	MQSV_SEND_INFO info = {0};
 	NCS_Q_ITR itr;
 	MQD_TRACK_OBJ *pTrack = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;

@@ -990,15 +990,17 @@ uns32 dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
 	if (dtms_cb->i_addr_family == DTM_IP_ADDR_TYPE_IPV4) {
 
 		/* Holder for bcast_dest_address address */
+		uns32 rc = 0;
 		struct sockaddr_in *bcast_sender_addr_in = (struct sockaddr_in *)&bcast_dest_storage;
 		bcast_sender_addr_in->sin_family = AF_INET;
 		bcast_sender_addr_in->sin_port = htons((dtms_cb->dgram_port_rcvr));
-		if (0 == inet_aton(dtms_cb->bcast_addr, &bcast_sender_addr_in->sin_addr)) {
-			LOG_ER("DTM : inet_aton failed");
-			TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
+		rc = inet_pton(AF_INET, dtms_cb->bcast_addr, &bcast_sender_addr_in->sin_addr);
+		if (1 != rc) {
+			LOG_ER("DTM : inet_pton failed");
+			TRACE_LEAVE2("rc :%d", rc);
 			return NCSCC_RC_FAILURE;
-
 		}
+		
 		memset(bcast_sender_addr_in->sin_zero, '\0', sizeof bcast_sender_addr_in->sin_zero);
 		bcast_sen_addr_size = sizeof(struct sockaddr_in);
 
@@ -1191,7 +1193,7 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
 	struct sockaddr_storage clnt_addr;	/* Client address */
 	/* Set length of client address structure (in-out parameter) */
 	socklen_t clnt_addrLen = sizeof(clnt_addr);
-	void *numericAddress;	/* Pointer to binary address */
+	void *numericAddress = NULL;	/* Pointer to binary address */
 	char addrBuffer[INET6_ADDRSTRLEN];
 	int err = 0;
 	DTM_NODE_DB node;
