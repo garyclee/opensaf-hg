@@ -534,7 +534,7 @@ static uns32 immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
-	LOG_IN("Announce sync, epoch:%u", newEpoch);
+	LOG_NO("Announce sync, epoch:%u", newEpoch);
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_START;
@@ -813,7 +813,7 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
 		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
-	LOG_IN("Coord broadcasting PBE_PRTO_PURGE_MUTATIONS, epoch:%u", cb->mRulingEpoch);
+	LOG_NO("Coord broadcasting PBE_PRTO_PURGE_MUTATIONS, epoch:%u", cb->mRulingEpoch);
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("Coord failed to send PBE_PRTO_PURGE_MUTATIONS over MDS err:%u", rc);
@@ -848,7 +848,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	if((cb->mRim == SA_IMM_KEEP_REPOSITORY) && !(cb->mPbeVeteran)) {
 		cb->mPbeVeteran = immModel_pbeOiExists(cb) && immModel_pbeIsInSync(cb);
 		if(cb->mPbeVeteran && cb->mCanBeCoord) {		       
-			LOG_IN("PBE-OI established on %s SC. Dumping incrementally to file %s", 
+			LOG_NO("PBE-OI established on %s SC. Dumping incrementally to file %s", 
 				(cb->mIsCoord)?"this":"other", 	cb->mPbeFile);
 		}
 	}
@@ -1235,9 +1235,12 @@ static int immnd_forkSync(IMMND_CB *cb)
 	TRACE_ENTER();
 
 	if(maxSyncBatchSize != 0) {
+		if(!immModel_protocol41Allowed(cb)) {
+			maxSyncBatchSize = 1; /* Revert to old 4.0 behavior */
+		}
 		snprintf(arg4, 16, "%u", maxSyncBatchSize);
 	} else {
-		arg4[0] = 0;
+		arg4[0] = 0; /* Will result in default batch size, see immsv_api.h */
 	}
 
 
@@ -1371,10 +1374,10 @@ uns32 immnd_proc_server(uns32 *timeout)
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s lost:%u",
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s 4.1A:%u",
 			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
 			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-			"KEEP_REPO":"FROM_FILE", cb->mLostNodes);
+			"KEEP_REPO":"FROM_FILE", immModel_protocol41Allowed(cb));
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1639,11 +1642,11 @@ uns32 immnd_proc_server(uns32 *timeout)
 				       "Ccbs to terminate, seconds waited: %u", jobDuration);
 			}
 			if (jobDuration > 20) {
-				LOG_IN("Still waiting for existing Ccbs to terminate "
+				LOG_NO("Still waiting for existing Ccbs to terminate "
 				       "after %u seconds. Aborting this sync attempt", jobDuration);
 				immnd_abortSync(cb);
 				if(cb->syncPid != 0) {
-					LOG_NO("STOPPING sync process pid %u", cb->syncPid);
+					LOG_WA("STOPPING sync process pid %u", cb->syncPid);
 					kill(cb->syncPid, SIGTERM);
 				}
 				cb->mStep = 0;
@@ -1685,7 +1688,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			} else {
 				/*Phase 3 */
 				if (!(cb->mStep % 60)) {
-					LOG_IN("Sync Phase-3 step:%u", cb->mStep);
+					LOG_IN("Sync Phase-3: step:%u", cb->mStep);
 				}
 				if (immnd_syncComplete(cb, TRUE, cb->mStep)) {
 					cb->mStep = 0;

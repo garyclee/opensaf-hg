@@ -88,6 +88,7 @@ public:
                                     unsigned int* pbeNodeId);
 
     bool                schemaChangeAllowed();
+    bool                protocol41Allowed();
     bool                verifySchemaChange(const std::string& className,
                                             ClassInfo* oldClass,
                                             ClassInfo* newClass,

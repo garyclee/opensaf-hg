@@ -132,7 +132,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->rulingEpoch, ctrl->pbeEnabled);
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
 		cb->mRulingEpoch = ctrl->rulingEpoch;
-		LOG_IN("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
+		LOG_NO("Ruling epoch noted as:%u on IMMD standby", cb->mRulingEpoch);
 	}
 
 	assert(cb->is_immnd_tree_up);
@@ -148,7 +148,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 
 	if (immnd_info_node) {
 		if (immnd_info_node->epoch < ctrl->nodeEpoch) {
-			LOG_IN("SBY: New Epoch for IMMND process at node %x "
+			LOG_NO("SBY: New Epoch for IMMND process at node %x "
 				"old epoch: %u  new epoch:%u", ctrl->nodeId,
 				immnd_info_node->epoch, ctrl->nodeEpoch);
 			
@@ -165,7 +165,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		if (ctrl->isCoord) {
 			SaImmRepositoryInitModeT oldRim = cb->mRim;
 			cb->immnd_coord = immnd_info_node->immnd_key;
-			LOG_IN("IMMND coord at %x", immnd_info_node->immnd_key);
+			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
 			immnd_info_node->syncStarted = ctrl->syncStarted;
 			cb->mRim = (ctrl->pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
 			if(cb->mRim != oldRim) {

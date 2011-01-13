@@ -619,7 +619,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (isOnController && (cb->immnd_coord == 0)) {
-		LOG_IN("First IMMND on controller found at %x this IMMD at %x."
+		LOG_NO("First IMMND on controller found at %x this IMMD at %x."
 		       "\n\nCluster must be loading => designating this IMMND as coordinator",
 		       node_info->immnd_key, cb->node_id);
 		cb->immnd_coord = node_info->immnd_key;
@@ -769,7 +769,7 @@ static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			node_info->epoch = cb->mRulingEpoch;
 
 			if (immd_dump_ok(cb, cb->mRulingEpoch, node_info)) {
-				LOG_IN("Successfully announced dump at node %x. New Epoch:%u",
+				LOG_NO("Successfully announced dump at node %x. New Epoch:%u",
 				       node_info->immnd_key, node_info->epoch);
 			} else {
 				/*Back out from the epoch change. */
@@ -839,7 +839,7 @@ static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 			/*Only updates epoch for coord. */
 			/*node_info->epoch = cb->mRulingEpoch; */
 			immd_start_sync_ok(cb, cb->mRulingEpoch, node_info);
-			LOG_IN("Successfully announced sync. New ruling epoch:%u", cb->mRulingEpoch);
+			LOG_NO("Successfully announced sync. New ruling epoch:%u", cb->mRulingEpoch);
 		}
 	} else {
 		LOG_WA("Node not found %llu", sinfo->dest);
@@ -887,7 +887,7 @@ uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO
 			/*Updates epoch for coord. */
 			immd_abort_sync_ok(cb, node_info);
 
-			LOG_IN("Successfully aborted sync. Epoch:%u", cb->mRulingEpoch);
+			LOG_WA("Successfully aborted sync. Epoch:%u", cb->mRulingEpoch);
 		}
 	} else {
 		LOG_WA("Node not found %llu", sinfo->dest);
@@ -1044,7 +1044,7 @@ static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 		cb->mRulingEpoch++;
 		node_info->epoch = cb->mRulingEpoch;
 		immd_announce_load_ok(cb, cb->mRulingEpoch);
-		LOG_IN("Successfully announced loading. New ruling epoch:%u", cb->mRulingEpoch);
+		LOG_NO("Successfully announced loading. New ruling epoch:%u", cb->mRulingEpoch);
 	} else {
 		LOG_WA("Node not found %llu", sinfo->dest);
 		proc_rc = NCSCC_RC_FAILURE;
@@ -1091,7 +1091,7 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 
 			/*is this check necessary ?? */
 			if (oldPid && (oldPid != newPid)) {
-				LOG_IN("Detected new IMMND process at node %x "
+				LOG_NO("Detected new IMMND process at node %x "
 				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
 			}
 		}
@@ -1108,7 +1108,7 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 			immd_req_sync(cb, node_info);
 		}
 
-		LOG_IN("Node %x request sync sync-pid:%d epoch:%u ",
+		LOG_NO("Node %x request sync sync-pid:%d epoch:%u ",
 		       node_info->immnd_key, node_info->immnd_execPid, node_info->epoch);
 	} else {
 		LOG_WA("Node not found %llu", sinfo->dest);
@@ -1149,7 +1149,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 
 		if (oldPid != newPid || oldEpoch != newEpoch) {
 			if (oldEpoch != newEpoch) {
-				LOG_IN("ACT: New Epoch for IMMND process at node %x "
+				LOG_NO("ACT: New Epoch for IMMND process at node %x "
 				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
 			}
 
@@ -1173,7 +1173,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 			/*is this check necessary ?? 
 			   It could happen with EVS but not with FEVS. */
 			if (oldPid && (oldPid != newPid)) {
-				LOG_IN("Detected new IMMND process at node %x "
+				LOG_NO("Detected new IMMND process at node %x "
 				       "old epoch: %u  new epoch:%u", node_info->immnd_key, oldEpoch, newEpoch);
 			}
 		}
@@ -1186,13 +1186,13 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 				node_info->immnd_key, node_info->epoch, cb->mRulingEpoch);
 			if (cb->mRulingEpoch < node_info->epoch) {
 				cb->mRulingEpoch = node_info->epoch;
-				LOG_IN("Ruling epoch changed to:%u", cb->mRulingEpoch);
+				LOG_NO("Ruling epoch changed to:%u", cb->mRulingEpoch);
 			}
 			immd_accept_node(cb, node_info, FALSE);
 		} else {
 			if (sinfo->dest == cb->loc_immnd_dest) {
 				node_info->isOnController = TRUE;
-				LOG_IN("New IMMND process is on ACTIVE Controller at %x", node_info->immnd_key);
+				LOG_NO("New IMMND process is on ACTIVE Controller at %x", node_info->immnd_key);
 			} else if (cb->immd_remote_id &&
 				   m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 						      immd_get_slot_and_subslot_id_from_mds_dest(sinfo->dest))) {
@@ -1204,7 +1204,7 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_IN
 					cb->is_rem_immnd_up = TRUE;	/*ABT BUGFIX 080811 */
 					cb->rem_immnd_dest = sinfo->dest;
 				}
-				LOG_IN("New IMMND process is on STANDBY Controller at %x", node_info->immnd_key);
+				LOG_NO("New IMMND process is on STANDBY Controller at %x", node_info->immnd_key);
 			} else {	/*if(cb->immd_remote_id) */
 
 				/*node_info->isOnPayload = TRUE; */

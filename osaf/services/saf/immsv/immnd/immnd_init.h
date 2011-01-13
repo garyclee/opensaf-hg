@@ -251,6 +251,8 @@ extern "C" {
 
 	SaBoolT immModel_pbeOiExists(IMMND_CB *cb);
 
+	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
+
 	void immModel_recognizedIsolated(IMMND_CB *cb);
 
 	SaBoolT immModel_syncComplete(IMMND_CB *cb);

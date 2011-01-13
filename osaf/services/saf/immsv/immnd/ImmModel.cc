@@ -560,6 +560,13 @@ immModel_pbeOiExists(IMMND_CB *cb)
         SA_TRUE : SA_FALSE;
 }
 
+SaBoolT
+immModel_protocol41Allowed(IMMND_CB *cb)
+{
+    return (ImmModel::instance(&cb->immModel)->protocol41Allowed()) ?
+        SA_TRUE : SA_FALSE;
+}
+
 SaUint32T
 immModel_cleanTheBasement(IMMND_CB *cb, 
     SaInvocationT** admReqArr,
@@ -1438,7 +1445,7 @@ ImmModel::prepareForLoading()
     switch(sImmNodeState){ 
         case  IMM_NODE_UNKNOWN:
             sImmNodeState = IMM_NODE_LOADING;
-            LOG_IN("NODE STATE-> IMM_NODE_LOADING");
+            LOG_NO("NODE STATE-> IMM_NODE_LOADING");
             break;
             
         case IMM_NODE_ISOLATED: 
@@ -1471,7 +1478,7 @@ ImmModel::recognizedIsolated()
     switch(sImmNodeState) {
         case  IMM_NODE_UNKNOWN:
             sImmNodeState = IMM_NODE_ISOLATED;
-            LOG_IN("NODE STATE-> IMM_NODE_ISOLATED");
+            LOG_NO("NODE STATE-> IMM_NODE_ISOLATED");
             break;
             
         case IMM_NODE_ISOLATED: 
@@ -1500,13 +1507,13 @@ ImmModel::prepareForSync(bool isJoining)
         case IMM_NODE_ISOLATED: 
             assert(isJoining);
             sImmNodeState = IMM_NODE_W_AVAILABLE; //accept the sync messages
-            LOG_IN("NODE STATE-> IMM_NODE_W_AVAILABLE");
+            LOG_NO("NODE STATE-> IMM_NODE_W_AVAILABLE");
             break;
             
         case IMM_NODE_FULLY_AVAILABLE:
             assert(!isJoining);
             sImmNodeState = IMM_NODE_R_AVAILABLE; //Stop mutations.
-            LOG_IN("NODE STATE-> IMM_NODE_R_AVAILABLE");
+            LOG_NO("NODE STATE-> IMM_NODE_R_AVAILABLE");
             break;
             
         case  IMM_NODE_UNKNOWN:
@@ -1669,7 +1676,7 @@ ImmModel::abortSync()
         
         case IMM_NODE_R_AVAILABLE:
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE; 
-            LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE (%u)", 
+            LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE (%u)", 
                 __LINE__);
             break;
             
@@ -1684,7 +1691,7 @@ ImmModel::abortSync()
             
         case IMM_NODE_W_AVAILABLE:
             sImmNodeState = IMM_NODE_UNKNOWN;
-            LOG_IN("NODE STATE-> IMM_NODE_UNKNOW %u", __LINE__);
+            LOG_NO("NODE STATE-> IMM_NODE_UNKNOW %u", __LINE__);
             /* Aborting a started but not completed sync. */
             LOG_NO("Abort sync: Discarding synced objects");
             while(sObjectMap.size()) {
@@ -1759,14 +1766,14 @@ ImmModel::setLoader(int pid)
     loaderPid = pid;
     if(pid == 0) {
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
-        LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", 
+        LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", 
             __LINE__);
 
         immInitMode = getRepositoryInitMode();
         if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
-            LOG_IN("RepositoryInitModeT is SA_IMM_KEEP_REPOSITORY");
+            LOG_NO("RepositoryInitModeT is SA_IMM_KEEP_REPOSITORY");
         } else {
-            LOG_IN("RepositoryInitModeT is SA_IMM_INIT_FROM_FILE");
+            LOG_NO("RepositoryInitModeT is SA_IMM_INIT_FROM_FILE");
             immInitMode = SA_IMM_INIT_FROM_FILE; /* Ensure valid value*/
         }
     } else {
@@ -1986,7 +1993,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         /* Class name exists, check for schema upgrade.*/
         if(schemaChangeAllowed()) {
             /* New non-standard upgrade behavior. */
-            LOG_IN("Class '%s' exist - check implied schema upgrade", className.c_str());
+            LOG_NO("Class '%s' exist - check implied schema upgrade", className.c_str());
             schemaChange=true;
             classInfo = &dummyClass; /* New class created as dummy, do all normal checks */
             prevClassInfo = i->second;
@@ -2146,7 +2153,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             LOG_NO("Schema change for class %s ACCEPTED. Adding %u and changing %u attribute defs",
                 className.c_str(), (unsigned int) newAttrs.size(), (unsigned int) changedAttrs.size());
         } else {
-            LOG_IN("ERR_EXIST: Class '%s' exist - possible failed schema upgrade",
+            LOG_NO("ERR_EXIST: Class '%s' exist - possible failed schema upgrade",
                className.c_str());
             err = SA_AIS_ERR_EXIST;
             illegal = 1;
@@ -2208,7 +2215,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
 
         /* Migrate instances. */
         if((prevClassInfo->mExtent.empty())) { 
-            LOG_IN("No instances to migrate - schema change could have been avoided");
+            LOG_NO("No instances to migrate - schema change could have been avoided");
         } else {/* There are instances. */
             CcbVector::iterator ci;
             ObjectMutationMap::iterator omit;
@@ -2357,6 +2364,28 @@ ImmModel::migrateObj(ObjectInfo* object,
 }
 
 bool
+ImmModel::protocol41Allowed()
+{
+    TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi = 
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    assert(avi != immObject->mAttrValueMap.end());
+    assert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    TRACE_LEAVE();
+    return noStdFlags & 0x00000002;
+}
+
+bool
 ImmModel::schemaChangeAllowed()
 {
     TRACE_ENTER();
@@ -2441,7 +2470,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
     }
 
     if(!verifyFailed && newAttrs.empty() && changedAttrs.empty()) {
-        LOG_IN("New class def is same as old, not a real schema upgrade");
+        LOG_WA("New class def is same as old, not a real schema upgrade");
         verifyFailed = true;
     }
 
@@ -2638,7 +2667,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
                 className.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
         } else if (!(i->second->mExtent.empty())) {
-            LOG_IN("ERR_BUSY: class '%s' busy, refCount:%u", 
+            LOG_WA("ERR_BUSY: class '%s' busy, refCount:%u", 
                 className.c_str(), (unsigned int) i->second->mExtent.size());
             err = SA_AIS_ERR_BUSY;
         } else {
@@ -2916,9 +2945,28 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
                     "=> Loading must have failed");
             } else {
                 if(this->getLoader() && (sImmNodeState == IMM_NODE_LOADING)) {
-                    LOG_IN("Closing admin owner IMMLOADER, "
+                    LOG_NO("Closing admin owner IMMLOADER, "
                         "loading of IMM done");
                     this->setLoader(0);
+                    /* BEGIN Temporary code for enabling opensaf imm 4.1
+                       protocol when cluster has been loaded.
+                    */
+                    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+                    if(oi == sObjectMap.end()) {
+                        LOG_ER("Failed to find object %s aborting", immObjectDn.c_str());
+                        abort();
+                    }
+                    ObjectInfo* immObject = oi->second;
+                    ImmAttrValueMap::iterator avi = 
+                        immObject->mAttrValueMap.find(immAttrNostFlags);
+                    assert(avi != immObject->mAttrValueMap.end());
+                    assert(!(avi->second->isMultiValued()));
+                    ImmAttrValue* valuep = (ImmAttrValue *) avi->second;
+                    unsigned int noStdFlags = valuep->getValue_int();
+                    noStdFlags |= 0x2;
+                    valuep->setValue_int(noStdFlags);
+                    LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
+                    /* END Temporary code. */
                 }
             }
         }
@@ -3384,9 +3432,9 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
         immInitMode = getRepositoryInitMode();
         if(oldMode != immInitMode) {
             if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
-                LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
+                LOG_NO("SaImmRepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
             } else {
-                LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
+                LOG_NO("SaImmRepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
             }
             TRACE_LEAVE();
             return true;
@@ -6924,13 +6972,13 @@ ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
         TRACE_5("Admin op NOST_FLAG_ON, current flags %x on flags %x", noStdFlags, flagsToSet);
         noStdFlags |= flagsToSet;
         valuep->setValue_int(noStdFlags);
-        TRACE_5("Flags result %x", noStdFlags);
+        LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
     } else if(req->operationId == OPENSAF_IMM_NOST_FLAG_OFF) {
         SaUint32T flagsToUnSet = req->params->paramBuffer.val.sauint32;
         TRACE_5("Admin op NOST_FLAG_OFF, current flags %x off flags %x", noStdFlags, flagsToUnSet);
         noStdFlags &= ~flagsToUnSet;
         valuep->setValue_int(noStdFlags);
-        TRACE_5("Flags result %x", noStdFlags);
+        LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
     } else {
         LOG_IN("Invalid operation ID %llu, for operation on %s", (SaUint64T) req->operationId,
             immObjectDn.c_str());
@@ -7040,7 +7088,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             //discardImplementer(info->mId); 
             //Doing it directly here for efficiency.
             //But watch out for changes in discardImplementer
-            LOG_IN("DISCARDING IMPLEMENTER %u <%u, %x>", 
+            LOG_NO("DISCARDING IMPLEMENTER %u <%u, %x>", 
                 info->mId, info->mConn, info->mNodeId);
             info->mId = 0;
             info->mConn = 0;
@@ -7098,7 +7146,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
     ImplementerInfo* info = findImplementer(implHandle);
     if(info) {
         if(reallyDiscard) {
-            LOG_IN("DISCARDING IMPLEMENTER %u <%u, %x> (%s)", 
+            LOG_NO("DISCARDING IMPLEMENTER %u <%u, %x> (%s)", 
                 info->mId, info->mConn, info->mNodeId,
                 info->mImplementerName.c_str());
             info->mId = 0;
@@ -7303,7 +7351,8 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
                 getPbeOi(pbeConnPtr, pbeNodeIdPtr);
 
             if(!impInfo) {
-                LOG_IN("No PBE implementer registered at this time");
+                LOG_WA("No PBE implementer registered at this time, but CCB %u "
+			"is waiting on PBE commit", ccb->mId);
                 /* TODO: Should check rim if it was switched to  FROM_FILE
                    FROM_FILE indicates the pathological case of PBE switched off
                    accidentally leaving a ccb in critical state. 
@@ -7581,7 +7630,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mDying = false;
     
     
-    LOG_IN("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
+    LOG_NO("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
         info->mImplementerName.c_str(), info->mId, info->mConn, info->mNodeId,
         info->mDying);
 
@@ -8732,7 +8781,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                     "by Impl %s pending PBE ack", objectName.c_str(),
                          info->mImplementerName.c_str());
             } else { /* No pbe and no pbe expected. */
-                       LOG_IN("Create of PERSISTENT runtime object '%s' by Impl %s",
+                       LOG_NO("Create of PERSISTENT runtime object '%s' by Impl %s",
                            objectName.c_str(), info->mImplementerName.c_str());
             }
         } else {/* !isPersistent i.e. normal RTO */
@@ -8785,7 +8834,7 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
     oMut->mAfterImage = NULL;
 
     if(error == SA_AIS_OK) {
-        LOG_IN("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
+        LOG_NO("Create of PERSISTENT runtime object '%s'.", i2->first.c_str());
     } else {
         bool dummy=false;
         ObjectMap::iterator oi = sObjectMap.find(i2->first);
@@ -8829,7 +8878,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 
         if(error == SA_AIS_OK) {
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
-                LOG_IN("Delete of PERSISTENT runtime object '%s'.", i2->first.c_str());
+                LOG_NO("Delete of PERSISTENT runtime object '%s'.", i2->first.c_str());
             } else {
                 LOG_IN("Delete of runtime object '%s'.", i2->first.c_str());
             }
@@ -8969,7 +9018,7 @@ void ImmModel::pbeClassCreateContinuation(SaUint32T invocation,
 
     assert(oMut->mOpType == IMM_CREATE_CLASS);
 
-    LOG_IN("Create of class %s is PERSISTENT.", i2->first.c_str());
+    LOG_NO("Create of class %s is PERSISTENT.", i2->first.c_str());
 
     sPbeRtMutations.erase(i2);
     delete oMut;
@@ -9005,7 +9054,7 @@ void ImmModel::pbeClassDeleteContinuation(SaUint32T invocation,
 
     assert(oMut->mOpType == IMM_DELETE_CLASS);
 
-    LOG_IN("Delete of class %s is PERSISTENT.", i2->first.c_str());
+    LOG_NO("Delete of class %s is PERSISTENT.", i2->first.c_str());
 
     sPbeRtMutations.erase(i2);
     delete oMut;
@@ -9877,7 +9926,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
 
         if(isPersistent) {
             if(info) {
-                LOG_IN("Delete of PERSISTENT runtime object '%s' by Impl: %s", 
+                LOG_NO("Delete of PERSISTENT runtime object '%s' by Impl: %s", 
                 oi->first.c_str(), info->mImplementerName.c_str());
             } else {
                 TRACE_7("REVERT of create OR ack from PBE on delete of PERSISTENT "
@@ -10311,7 +10360,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
         CcbVector::iterator ccbItr;
 
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
-        LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
+        LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
         /*WARNING the controller node here goes to writable state
           based on a NON FEVS message, directly from the sync-process. 
           Other nodes go to writable based on the reception of the 
@@ -10671,7 +10720,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 
             
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
-            LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
+            LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
             
             if(sLastContinuationId != (unsigned int) req->lastContinuationId) {
                 LOG_ER("Sync-verify: Established node has "

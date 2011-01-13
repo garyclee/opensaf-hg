@@ -5193,6 +5193,13 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
  send_batch:
 	/* Case A or B or C */
 
+	/* BEGIN temporary 4.1 code */
+	if(objsInBatch == 1) {
+		evt.info.immnd.type = IMMND_EVT_A2ND_OBJ_SYNC;
+		assert(evt.info.immnd.info.obj_sync.next == NULL);
+	}
+	/* END temporary 4.1 code */
+
 	(*remainingSpacep) = 0;
 
 	/* get the CB Lock */

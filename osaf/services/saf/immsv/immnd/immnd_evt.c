@@ -716,7 +716,7 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		TRACE_2("Sync agent attached, pid: %u", sync_pid);
 		cl_node->mIsSync = 1;
 	} else 	if (pbe_pid && (cl_node->client_pid == pbe_pid) && !isOm) {
-		LOG_IN("Persistent Back End OI attached, pid: %u", pbe_pid);
+		LOG_NO("Persistent Back End OI attached, pid: %u", pbe_pid);
 		cl_node->mIsPbe = 1;
 	}
 	       
@@ -2295,8 +2295,11 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
-	send_evt.info.immd.type = (evt->type == IMMND_EVT_A2ND_IMM_FEVS_2)?
-		IMMD_EVT_ND2D_FEVS_REQ_2:IMMD_EVT_ND2D_FEVS_REQ;
+	if((evt->type == IMMND_EVT_A2ND_IMM_FEVS_2) && immModel_protocol41Allowed(cb)) {
+		send_evt.info.immd.type = IMMD_EVT_ND2D_FEVS_REQ_2;
+	} else {
+		send_evt.info.immd.type = IMMD_EVT_ND2D_FEVS_REQ;
+	}
 	send_evt.info.immd.info.fevsReq.reply_dest = cb->immnd_mdest_id;
 	send_evt.info.immd.info.fevsReq.client_hdl = client_hdl;
 	send_evt.info.immd.info.fevsReq.msg.size = evt->info.fevsReq.msg.size;
