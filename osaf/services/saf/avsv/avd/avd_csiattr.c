@@ -277,7 +277,10 @@ static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opd
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
 	if (NULL == (csi = avd_csi_get(&csi_dn))) {
-		LOG_ER("csi '%s' doesn't exists", csi_dn.value);
+		/* if CSI is NULL, that means the CSI is added in the same CCB
+		 * so allow the csi attributes also to be added in any state of the parent SI
+		 */
+		rc = SA_AIS_OK;
 		goto done;
 	}
 
