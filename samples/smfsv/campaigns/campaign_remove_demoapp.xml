@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
-<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=campaign_increase_demoapp">
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=campaign_remove_demoapp">
 	<!--
 
     Remove campaign for the AmfDemo application.
@@ -43,6 +43,21 @@
 	</campaignInfo>
 	<campaignInitialization>
 		<addToImm />
+		<campInitAction>
+			<!--
+			Mark the bundle to require reboot to uninstall
+			-->
+			<immCCB ccbFlags="0">
+				<modify operation="SA_IMM_ATTR_VALUES_REPLACE" objectDN="safSmfBundle=AmfDemo">
+					<attribute name="saSmfBundleRemoveOfflineScope" type="SA_IMM_ATTR_SAUINT32T">
+						<value>4</value>
+					</attribute>
+					<attribute name="saSmfBundleInstallOfflineScope" type="SA_IMM_ATTR_SAUINT32T">
+						<value>4</value>
+					</attribute>
+				</modify>
+			</immCCB>
+		</campInitAction>
 	</campaignInitialization>
 	<upgradeProcedure safSmfProcedure="safSmfProc=removeAmfDemo">
 		<outageInfo>
@@ -59,13 +74,13 @@
 							<actedOn>
 								<byName objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1" />
 								<byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1" />
-								<byName objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1" />
+								<!--byName objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1" /-->
 							</actedOn>
-							<swRemove bundleDN="safSmfBundle=AmfDemo">
+							<!--swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
 								<plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster" />
 								<plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster" />
 								<plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster" />
-							</swRemove>
+							</swRemove-->
 						</deactivationUnit>
 						<activationUnit>
 						</activationUnit>
@@ -90,21 +105,21 @@
 			<immCCB ccbFlags="0">
 				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
-				<delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<!--delete objectDN="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/-->
 			</immCCB>
 		</procWrapupAction>
 		<procWrapupAction>
 			<immCCB ccbFlags="0">
 				<delete objectDN="safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
-				<delete objectDN="safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<!--delete objectDN="safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/-->
 			</immCCB>
 		</procWrapupAction>
 		<procWrapupAction>
 			<immCCB ccbFlags="0">
 				<delete objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
 				<delete objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
-				<delete objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/>
+				<!--delete objectDN="safSu=SU3,safSg=AmfDemo,safApp=AmfDemo1"/-->
 			</immCCB>
 		</procWrapupAction>
 		<procWrapupAction>
@@ -140,6 +155,32 @@
 			</immCCB>
 		</procWrapupAction>
 	</upgradeProcedure>
+	
+	<!-- 
+	The procedure below removes the Demo bundle and test that the previous single step procedure is not 
+	recalculated when the campaign restarts on a new controller
+	-->
+	<upgradeProcedure safSmfProcedure="safSmfProc=RemoveSwWithReboot" saSmfExecLevel="100">
+    <outageInfo>
+      <acceptableServiceOutage>
+        <all/>
+      </acceptableServiceOutage>
+      <procedurePeriod saSmfProcPeriod="60000000000"/>
+    </outageInfo>
+     <upgradeMethod>
+      <rollingUpgrade>
+        <upgradeScope>
+          <byTemplate>
+            <targetNodeTemplate objectDN="safAmfCluster=myAmfCluster">
+				<swRemove bundleDN="safSmfBundle=AmfDemo" pathnamePrefix="/opt/amf_demo"></swRemove>
+            </targetNodeTemplate>
+          </byTemplate>
+        </upgradeScope>
+        <upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8"/>
+      </rollingUpgrade>
+    </upgradeMethod>
+  </upgradeProcedure>
+	
 	<campaignWrapup>
 		<waitToCommit />
 		<waitToAllowNewCampaign />

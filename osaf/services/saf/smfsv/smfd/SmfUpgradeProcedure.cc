@@ -443,6 +443,8 @@ void
 SmfUpgradeProcedure::switchOver()
 {
 	TRACE_ENTER();
+	TRACE("SmfUpgradeProcedure::switchOver: Create the restart indicator");
+	SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->createSmfRestartIndicator();
 
 	SmfSwapThread *swapThread = new SmfSwapThread(this);
 	TRACE("SmfUpgradeProcedure::switchOver, Starting SI_SWAP thread");
@@ -534,50 +536,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
 		return false;
 	}
 
-	/* Get the list of callbacks from upgrade method and set pointer to Upgrade Procedure */
-	std::list <SmfCallback *>::iterator cbkiter;
-	std::list <SmfCallback *> cbklist = i_rollingUpgrade->getCallbackList();
-	cbkiter = cbklist.begin();
-	TRACE("before traversing cbk list");
-	while (cbkiter != cbklist.end()) {
-		(*cbkiter)->setProcedure(this);
-		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkiter)->getAtAction(), 
-			(*cbkiter)->getStepCount(), (*cbkiter)->getCallbackLabel().c_str());
-		switch((*cbkiter)->getAtAction()) {
-			case SmfCallback::beforeLock:
-			{
-				/*Add this callback ptr to the beforeLock list */
-				m_beforeLock.push_back(*cbkiter);
-				break;
-			}
-			case SmfCallback::beforeTermination:
-			{
-				m_beforeTerm.push_back(*cbkiter);
-				break;
-			}
-			case SmfCallback::afterImmModification:
-			{
-				m_afterImmModify.push_back(*cbkiter);
-				break;
-			}
-			case SmfCallback::afterInstantiation:
-			{
-				m_afterInstantiate.push_back(*cbkiter);
-				break;
-			}
-			case SmfCallback::afterUnlock:
-			{
-				m_afterUnlock.push_back(*cbkiter);
-				break;
-			}
-			default:
-				TRACE_2 ("default case, atAction val = %d", (*cbkiter)->getAtAction());
-				break;
-		}
-		cbkiter++;
-	}
-	TRACE("after traversing cbk list");
-
+	getCallbackList(i_rollingUpgrade);
 
 	const std::list < SmfParentType * >&actUnitTemplates = nodeTemplate->getActivationUnitTemplateList();
 	std::list < std::string > activationUnitList;
@@ -780,26 +739,16 @@ SmfUpgradeProcedure::getNodeForCompSu(const std::string & i_objectDn)
 }
 
 //------------------------------------------------------------------------------
-// calculateSingleStep()
+// getCallbackList()
 //------------------------------------------------------------------------------
-bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
+void SmfUpgradeProcedure::getCallbackList(const SmfUpgradeMethod* i_upgradeMethod)
 {
-        TRACE_ENTER();
-	SmfUpgradeStep *newStep = new SmfUpgradeStep();
-	const SmfUpgradeScope* scope = i_upgrade->getUpgradeScope();
-	const SmfForAddRemove* forAddRemove = 
-		dynamic_cast<const SmfForAddRemove*>(scope);
-
-	newStep->setRdn("safSmfStep=1");
-	newStep->setDn(newStep->getRdn() + "," + getDn());
-	newStep->setMaxRetry(i_upgrade->getStepMaxRetryCount());
-	newStep->setRestartOption(i_upgrade->getStepRestartOption());
+	TRACE_ENTER();
 
 	/* Get the list of callbacks from upgrade method and set pointer to Upgrade Procedure */
-	std::list <SmfCallback *>::iterator cbkiter;
-	std::list <SmfCallback *> cbklist = i_upgrade->getCallbackList();
+	std::list <SmfCallback *>::const_iterator cbkiter;
+	const std::list <SmfCallback *>& cbklist = const_cast<SmfUpgradeMethod*>(i_upgradeMethod)->getCallbackList();
 	cbkiter = cbklist.begin();
-	TRACE("before traversing cbk list");
 	while (cbkiter != cbklist.end()) {
 		(*cbkiter)->setProcedure(this);
 		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkiter)->getAtAction(), 
@@ -837,7 +786,28 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		}
 		cbkiter++;
 	}
-	TRACE("after traversing cbk list");
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
+// calculateSingleStep()
+//------------------------------------------------------------------------------
+bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
+{
+        TRACE_ENTER();
+	SmfUpgradeStep *newStep = new SmfUpgradeStep();
+	const SmfUpgradeScope* scope = i_upgrade->getUpgradeScope();
+	const SmfForAddRemove* forAddRemove = 
+		dynamic_cast<const SmfForAddRemove*>(scope);
+
+	newStep->setRdn("safSmfStep=1");
+	newStep->setDn(newStep->getRdn() + "," + getDn());
+	newStep->setMaxRetry(i_upgrade->getStepMaxRetryCount());
+	newStep->setRestartOption(i_upgrade->getStepRestartOption());
+
+	getCallbackList(i_upgrade);
+
 	if (forAddRemove != NULL) {
 
 		TRACE("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: SmfForAddRemove");
@@ -1113,12 +1083,6 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
         SmfImmUtils immUtil;
         const char *className;
         SaImmAttrValuesT_2 **attributes;
-
-//TODO: If the components are of non restartable type the SU shall be the act/deact unit. 
-//      If the restart flag is set in the campaign and the components are non restartable
-//      it is considered an error and the campaign fails. The oposit way if restartable
-//      components are found and the restart flag is not set it is considered an error and 
-//      the campaign shall fail.
 
         if ( (i_parentType->getTypeDn().size() == 0) && (i_parentType->getParentDn().size() == 0))
         {
@@ -2259,9 +2223,18 @@ SmfUpgradeProcedure::getImmStepsRolling()
 	std::list < std::string > stepList;
 
 	TRACE_ENTER();
+
+	SmfRollingUpgrade * upgradeMethod = (SmfRollingUpgrade*)getUpgradeMethod();
+	if (upgradeMethod == NULL) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsRolling: no upgrade method found");
+		return SA_AIS_ERR_INIT;
+	}
+
+	getCallbackList(upgradeMethod);
+
 	// Read the steps from IMM
 	if (immutil.getChildren(getDn(), stepList, SA_IMM_SUBLEVEL, "SaSmfStep") == false) {
-		LOG_ER("SmfUpgradeProcedure::getImmSteps: Failed to get steps for procedure %s", getDn().c_str());
+		LOG_ER("SmfUpgradeProcedure::getImmStepsRolling: Failed to get steps for procedure %s", getDn().c_str());
 		return SA_AIS_ERR_NOT_EXIST;
 	}
 
@@ -2274,7 +2247,7 @@ SmfUpgradeProcedure::getImmStepsRolling()
 	/* Fetch IMM data for our upgrade procedure steps */
 	for (stepit = stepList.begin(); stepit != stepList.end(); ++stepit) {
 		if (immutil.getObject((*stepit), &attributes) == false) {
-			LOG_ER("SmfUpgradeProcedure::getImmSteps: IMM data for step %s not found", (*stepit).c_str());
+			LOG_ER("SmfUpgradeProcedure::getImmStepsRolling: IMM data for step %s not found", (*stepit).c_str());
 			rc = SA_AIS_ERR_NOT_EXIST;
 			goto done;
 		}
@@ -2284,7 +2257,7 @@ SmfUpgradeProcedure::getImmStepsRolling()
 		SmfUpgradeStep *newStep = new SmfUpgradeStep();
 
 		if (newStep->init((const SaImmAttrValuesT_2 **)attributes) != SA_AIS_OK) {
-			LOG_ER("SmfUpgradeProcedure::getImmSteps: Initialization failed for step %s", (*stepit).c_str());
+			LOG_ER("SmfUpgradeProcedure::getImmStepsRolling: Initialization failed for step %s", (*stepit).c_str());
 			delete newStep;
 			rc = SA_AIS_ERR_INIT;
 			goto done;
@@ -2306,18 +2279,12 @@ SmfUpgradeProcedure::getImmStepsRolling()
 
                 newStep->setDn(newStep->getRdn() + "," + getDn());
 
-                SmfUpgradeMethod *upgradeMethod = getUpgradeMethod();
-                if (upgradeMethod == NULL) {
-                        LOG_ER("SmfUpgradeProcedure::getImmSteps: no upgrade method found");
-                        rc = SA_AIS_ERR_INIT;
-                        goto done;
-                }
+		TRACE("SmfUpgradeProcedure::getImmStepsRolling:Rolling upgrade method found");
 
-                TRACE("Rolling upgrade");
-                newStep->setMaxRetry(((SmfRollingUpgrade*)upgradeMethod)->getStepMaxRetryCount());
-                newStep->setRestartOption(((SmfRollingUpgrade*)upgradeMethod)->getStepRestartOption());
+                newStep->setMaxRetry(upgradeMethod->getStepMaxRetryCount());
+                newStep->setRestartOption(upgradeMethod->getStepRestartOption());
 
-                const SmfByTemplate *byTemplate = (const SmfByTemplate *)((SmfRollingUpgrade*)upgradeMethod)->getUpgradeScope();
+                const SmfByTemplate *byTemplate = (const SmfByTemplate *)upgradeMethod->getUpgradeScope();
                 const SmfTargetNodeTemplate *nodeTemplate = byTemplate->getTargetNodeTemplate();
 
                 // The SW list can not be fetched from the SaSmfImageNodes objects since it lack information
@@ -2326,140 +2293,24 @@ SmfUpgradeProcedure::getImmStepsRolling()
                 newStep->addSwRemove(nodeTemplate->getSwRemoveList());
                 newStep->addSwAdd(nodeTemplate->getSwInstallList());
 
-                std::list < std::string > auList;
-                std::list < std::string > duList;
-                std::list < std::string >::iterator stringit;
-                unsigned int ix;
-                //---------------------------------------------
-                // Read the SaSmfActivationUnit object from IMM
-                //---------------------------------------------
-                TRACE("Read the SaSmfActivationUnit object from IMM parent=%s", newStep->getDn().c_str());
-                if (immutil.getChildren(newStep->getDn(), auList, SA_IMM_SUBLEVEL, "SaSmfActivationUnit") != false) {
-                        TRACE("SaSmfActivationUnit:Resulting list size=%zu", auList.size());
-
-                        /* Fetch IMM data for SaSmfAactivationUnit (should be max one)*/
-                        std::string activationUnit = (*auList.begin());
-                        if (immutil.getObject(activationUnit, &attributes) == false) {
-                                LOG_ER("SmfUpgradeProcedure::getImmSteps: IMM data for step activationUnit %s not found", activationUnit.c_str());
-                                rc = SA_AIS_ERR_NOT_EXIST;
-                                goto done;
-                        }
-
-                        //For the SaAmfActivationUnit read the attribute saSmfAuActedOn and store it in step
-                        TRACE("For the SaAmfActivationUnit read the saSmfAuActedOn and store it in step");
-                        const SaNameT * au;
-                        for(ix = 0; (au = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
-                                                              "saSmfAuActedOn", ix)) != NULL; ix++) {
-                                TRACE("addActivationUnit %s", (char *)au->value);
-                                std::string str = (char *)au->value;
-                                if(str != "") {
-                                        newStep->addActivationUnit((char *)au->value);
-                                } else {
-                                        TRACE("No activation unit, must be SW install");
-                                }
-                        }
-
-                        //For the SaAmfActivationUnit fetch the SaSmfImageNodes objects
-                        TRACE("For the SaAmfActivationUnit fetch the SaSmfImageNodes objects");
-                        std::list < std::string > imageNodesList;
-                        if (immutil.getChildren(activationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
-
-                                TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
-                                if (imageNodesList.size() > 0) {
-
-                                        //Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
-                                        std::string imageNodes = (*imageNodesList.begin());
-                                        TRACE("std::string imageNodes = %s", imageNodes.c_str());
-                                        if (immutil.getObject(imageNodes, &attributes) == false) {
-                                                LOG_ER("SmfUpgradeProcedure::getImmSteps: IMM data for ImageNodes %s not found", imageNodes.c_str());
-                                                rc = SA_AIS_ERR_NOT_EXIST;
-                                                goto done;
-                                        }
-
-                                        // Read the saSmfINSwNode attribute
-                                        const SaNameT *saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saSmfINNode", 0);
-                                        if (saSmfINNode == NULL) {
-                                                LOG_ER("SmfUpgradeProcedure::getImmSteps: Could not read saSmfINNode");  
-                                                rc = SA_AIS_ERR_NOT_EXIST;
-                                                goto done;
-                                        }
-                                        TRACE("saSmfINNode->value = %s", (char*)saSmfINNode->value);
-                                        newStep->setSwNode((char*)saSmfINNode->value);
-                                }
-                        }
-                }
-
-                //---------------------------------------------
-                // Read the SaSmfDeactivationUnit object from IMM
-                //---------------------------------------------
-                TRACE("Read the SaSmfDeactivationUnit object from IMM parent=%s", newStep->getDn().c_str());
-                if (immutil.getChildren(newStep->getDn(), duList, SA_IMM_SUBLEVEL, "SaSmfDeactivationUnit") != false) {
-                        TRACE("SaSmfDeactivationUnit:Resulting list size=%zu", duList.size());
-
-                        /* Fetch IMM data for SaSmfDeactivationUnit (should be max one)*/
-                        std::string deactivationUnit = (*duList.begin());
-                        if (immutil.getObject(deactivationUnit, &attributes) == false) {
-                                LOG_ER("SmfUpgradeProcedure::getImmSteps: IMM data for step deactivationUnit %s not found", deactivationUnit.c_str());
-                                rc = SA_AIS_ERR_NOT_EXIST;
-                                goto done;
-                        }
-
-                        //For the SaAmfDeactivationUnit read the attribute saSmfDuActedOn and store it in step
-                        TRACE("For the SaAmfDeactivationUnit read the saSmfDuActedOnand store it in step");
-                        const SaNameT * du;
-                        for(ix = 0; (du = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
-                                                              "saSmfDuActedOn", ix)) != NULL; ix++) {
-                                TRACE("addDeactivationUnit %s", (char *)du->value);
-                                std::string str = (char *)du->value;
-                                if(str != "") {
-                                        newStep->addDeactivationUnit((char *)du->value);
-                                } else {
-                                        TRACE("No deactivation unit, must be SW remove");
-                                }
-                        }
-
-                        //For the SaAmfDeactivationUnit fetch the SaSmfImageNodes objects
-                        TRACE("For the SaAmfDeactivationUnit fetch the SaSmfImageNodes objects");
-                        std::list < std::string > imageNodesList;
-
-                        if (immutil.getChildren(deactivationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
-
-                                TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
-                                if (imageNodesList.size() > 0) {
-                                        //Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
-                                        std::string imageNodes = (*imageNodesList.begin());
-                                        TRACE("std::string imageNodes = %s", imageNodes.c_str());
-                                        if (immutil.getObject(imageNodes, &attributes) == false) {
-                                                LOG_ER("SmfUpgradeProcedure::getImmSteps: IMM data for ImageNodes %s not found", imageNodes.c_str());
-                                                rc = SA_AIS_ERR_NOT_EXIST;
-                                                goto done;
-                                        }
-
-                                        // Read the saSmfINSwNode attribute
-                                        const SaNameT *saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saSmfINNode", 0);
-                                        if (saSmfINNode == NULL) {
-                                                LOG_ER("SmfUpgradeProcedure::getImmSteps: Could not read saSmfINNode");  
-                                                rc = SA_AIS_ERR_NOT_EXIST;
-                                                goto done;
-                                        }
-
-                                        TRACE("saSmfINNode->value = %s", (char*)saSmfINNode->value);
-                                        newStep->setSwNode((char*)saSmfINNode->value);
-                                }
-                        }
-                }
+		rc = readCampaignImmModel(newStep);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Fail to read campaign IMM model");
+			TRACE_LEAVE();
+			return rc;
+		}
 
                 const std::list < SmfParentType * >&actUnitTemplates = nodeTemplate->getActivationUnitTemplateList();
 
                 if (actUnitTemplates.size() == 0) {
                         if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_AMF_NODE)){
-                                LOG_ER("SmfUpgradeProcedure::getImmSteps:addStepModifications failed");
+                                LOG_ER("SmfUpgradeProcedure::getImmStepsRolling:addStepModifications failed");
                                 rc = SA_AIS_ERR_CAMPAIGN_PROC_FAILED;
                                 goto done;
                         }
                 } else {
                         if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_SU_COMP)){
-                                LOG_ER("SmfUpgradeProcedure::getImmSteps:addStepModifications failed");
+                                LOG_ER("SmfUpgradeProcedure::getImmStepsRolling:addStepModifications failed");
                                 rc = SA_AIS_ERR_CAMPAIGN_PROC_FAILED;
                                 goto done;
                         }
@@ -2480,13 +2331,245 @@ SmfUpgradeProcedure::getImmStepsRolling()
 SaAisErrorT 
 SmfUpgradeProcedure::getImmStepsSingleStep()
 {
-	SaAisErrorT rc = SA_AIS_OK;
+	SmfImmUtils immutil;
+	SaImmAttrValuesT_2 **attributes;
+	std::list < std::string > stepList;
+
 	TRACE_ENTER();
 
-	TRACE("SmfUpgradeProcedure::getImmStepsSingleStep");
-        if( !this->calculateSteps() ) {
-		rc = SA_AIS_ERR_INIT;
-        }
+	SmfSinglestepUpgrade * upgradeMethod = (SmfSinglestepUpgrade *)getUpgradeMethod();
+	if (upgradeMethod == NULL) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: no upgrade method found");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INIT;
+	}
+
+	getCallbackList(upgradeMethod);
+
+	// Read the single step from IMM
+	if (immutil.getChildren(getDn(), stepList, SA_IMM_SUBLEVEL, "SaSmfStep") == false) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Failed to get steps for procedure %s", getDn().c_str());
+		TRACE_LEAVE();
+		return SA_AIS_ERR_NOT_EXIST;
+	}
+
+	std::list < std::string >::iterator stepit;
+	TRACE("Fetch IMM data for our upgrade procedure steps");
+
+	/* Fetch IMM data for our upgrade procedure single step, only just one */
+	stepit = stepList.begin();
+	if (immutil.getObject((*stepit), &attributes) == false) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: IMM data for step %s not found", (*stepit).c_str());
+		TRACE_LEAVE();
+		return SA_AIS_ERR_NOT_EXIST;
+	}
+
+	TRACE("Fetch IMM data for item in stepList");
+
+	SmfUpgradeStep *newStep = new SmfUpgradeStep();
+
+	if (newStep->init((const SaImmAttrValuesT_2 **)attributes) != SA_AIS_OK) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Initialization failed for step %s", (*stepit).c_str());
+		delete newStep;
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INIT;
+	}
+
+	newStep->setDn((*stepit));
+	newStep->setProcedure(this);
+               
+	TRACE("Step %s found in state %d", getDn().c_str(), newStep->getState());
+	newStep->setDn(newStep->getRdn() + "," + getDn());
+
+	TRACE("SmfUpgradeProcedure::getImmStepsSingleStep:Single step upgrade method found");
+
+	newStep->setMaxRetry(upgradeMethod->getStepMaxRetryCount());
+	newStep->setRestartOption(upgradeMethod->getStepRestartOption());
+
+	//---------------------------------------------
+	// Read the software to install and remove
+	// The SW list can not be fetched from the SaSmfImageNodes objects since it lack information
+	// about e.g. pathNamePrefix.
+	// Fetch it from the campaign XML data.
+	//---------------------------------------------
+	const SmfUpgradeScope* scope        = upgradeMethod->getUpgradeScope(); ;
+	const SmfForAddRemove* forAddRemove = dynamic_cast<const SmfForAddRemove*>(scope);
+	const SmfForModify*    forModify    = dynamic_cast<const SmfForModify*>(scope);
+
+	if (forAddRemove != NULL) {
+		const SmfActivationUnitType* aunit;
+		aunit = forAddRemove->getActivationUnit();
+		newStep->addSwAdd(aunit->getSwAdd());
+		aunit = forAddRemove->getDeactivationUnit();
+		newStep->addSwRemove(aunit->getSwRemove());
+	} else if (forModify != NULL) {
+		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
+		newStep->addSwAdd(aunit->getSwAdd());
+		newStep->addSwRemove(aunit->getSwRemove());
+	} else {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Procedure scope not found (SmfForAddRemove/forModify)");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_NOT_EXIST;
+	}
+
+	//----------------------------------------------------------
+	// The step was calculated before the campaign was restarted
+	// Do not regenerate, read the previously generated step 
+	// informationfrom IMM.
+	//----------------------------------------------------------
+	SaAisErrorT rc = readCampaignImmModel(newStep);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Fail to read campaign IMM model");
+		TRACE_LEAVE();
+		return rc;
+	}
+
+	TRACE("Adding procedure step %s from IMM", newStep->getDn().c_str());
+	addProcStep(newStep);
+
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
+// readCampaignImmModel()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
+{
+        TRACE_ENTER();
+	std::list < std::string > auList;
+	std::list < std::string > duList;
+	std::list < std::string >::iterator stringit;
+	unsigned int ix;
+	SmfImmUtils immutil;
+	SaImmAttrValuesT_2 **attributes;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	//---------------------------------------------
+	// Read the SaSmfActivationUnit object from IMM
+	//---------------------------------------------
+	TRACE("Read the SaSmfActivationUnit object from IMM parent=%s", i_newStep->getDn().c_str());
+	if (immutil.getChildren(i_newStep->getDn(), auList, SA_IMM_SUBLEVEL, "SaSmfActivationUnit") != false) {
+		TRACE("SaSmfActivationUnit:Resulting list size=%zu", auList.size());
+
+		/* Fetch IMM data for SaSmfAactivationUnit (should be max one)*/
+		std::string activationUnit = (*auList.begin());
+		if (immutil.getObject(activationUnit, &attributes) == false) {
+			LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: IMM data for step activationUnit %s not found", activationUnit.c_str());
+			rc = SA_AIS_ERR_NOT_EXIST;
+			TRACE_LEAVE();
+			return rc;
+		}
+
+		//For the SaAmfActivationUnit read the attribute saSmfAuActedOn and store it in step
+		TRACE("For the SaAmfActivationUnit read the saSmfAuActedOn and store it in step");
+		const SaNameT * au;
+		for(ix = 0; (au = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
+						      "saSmfAuActedOn", ix)) != NULL; ix++) {
+			TRACE("addActivationUnit %s", (char *)au->value);
+			std::string str = (char *)au->value;
+			if(str != "") {
+				i_newStep->addActivationUnit((char *)au->value);
+			} else {
+				TRACE("No activation unit, must be SW install");
+			}
+		}
+
+		//For the SaAmfActivationUnit fetch the SaSmfImageNodes objects
+		TRACE("For the SaAmfActivationUnit fetch the SaSmfImageNodes objects");
+		std::list < std::string > imageNodesList;
+		if (immutil.getChildren(activationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
+
+			TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
+			if (imageNodesList.size() > 0) {
+
+				//Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
+				std::string imageNodes = (*imageNodesList.begin());
+				TRACE("std::string imageNodes = %s", imageNodes.c_str());
+				if (immutil.getObject(imageNodes, &attributes) == false) {
+					LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: IMM data for ImageNodes %s not found", imageNodes.c_str());
+					rc = SA_AIS_ERR_NOT_EXIST;
+					TRACE_LEAVE();
+					return rc;
+				}
+
+				// Read the saSmfINSwNode attribute
+				const SaNameT *saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saSmfINNode", 0);
+				if (saSmfINNode == NULL) {
+					LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Could not read saSmfINNode");  
+					rc = SA_AIS_ERR_NOT_EXIST;
+					TRACE_LEAVE();
+					return rc;
+				}
+				TRACE("saSmfINNode->value = %s", (char*)saSmfINNode->value);
+				i_newStep->setSwNode((char*)saSmfINNode->value);
+			}
+		}
+	}
+
+	//---------------------------------------------
+	// Read the SaSmfDeactivationUnit object from IMM
+	//---------------------------------------------
+	TRACE("Read the SaSmfDeactivationUnit object from IMM parent=%s", i_newStep->getDn().c_str());
+	if (immutil.getChildren(i_newStep->getDn(), duList, SA_IMM_SUBLEVEL, "SaSmfDeactivationUnit") != false) {
+		TRACE("SaSmfDeactivationUnit:Resulting list size=%zu", duList.size());
+
+		/* Fetch IMM data for SaSmfDeactivationUnit (should be max one)*/
+		std::string deactivationUnit = (*duList.begin());
+		if (immutil.getObject(deactivationUnit, &attributes) == false) {
+			LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: IMM data for step deactivationUnit %s not found", deactivationUnit.c_str());
+			rc = SA_AIS_ERR_NOT_EXIST;
+			TRACE_LEAVE();
+			return rc;
+		}
+
+		//For the SaAmfDeactivationUnit read the attribute saSmfDuActedOn and store it in step
+		TRACE("For the SaAmfDeactivationUnit read the saSmfDuActedOnand store it in step");
+		const SaNameT * du;
+		for(ix = 0; (du = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
+						      "saSmfDuActedOn", ix)) != NULL; ix++) {
+			TRACE("addDeactivationUnit %s", (char *)du->value);
+			std::string str = (char *)du->value;
+			if(str != "") {
+				i_newStep->addDeactivationUnit((char *)du->value);
+			} else {
+				TRACE("No deactivation unit, must be SW remove");
+			}
+		}
+
+		//For the SaAmfDeactivationUnit fetch the SaSmfImageNodes objects
+		TRACE("For the SaAmfDeactivationUnit fetch the SaSmfImageNodes objects");
+		std::list < std::string > imageNodesList;
+
+		if (immutil.getChildren(deactivationUnit, imageNodesList, SA_IMM_SUBLEVEL, "SaSmfImageNodes") != false) {
+
+			TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
+			if (imageNodesList.size() > 0) {
+				//Read the first SaSmfImageNodes. All bundles in the step are installed on the same node
+				std::string imageNodes = (*imageNodesList.begin());
+				TRACE("std::string imageNodes = %s", imageNodes.c_str());
+				if (immutil.getObject(imageNodes, &attributes) == false) {
+					LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: IMM data for ImageNodes %s not found", imageNodes.c_str());
+					rc = SA_AIS_ERR_NOT_EXIST;
+					TRACE_LEAVE();
+					return rc;
+				}
+
+				// Read the saSmfINSwNode attribute
+				const SaNameT *saSmfINNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saSmfINNode", 0);
+				if (saSmfINNode == NULL) {
+					LOG_ER("SmfUpgradeProcedure::getImmStepsSingleStep: Could not read saSmfINNode");  
+					rc = SA_AIS_ERR_NOT_EXIST;
+					TRACE_LEAVE();
+					return rc;
+				}
+
+				TRACE("saSmfINNode->value = %s", (char*)saSmfINNode->value);
+				i_newStep->setSwNode((char*)saSmfINNode->value);
+			}
+		}
+	}
 
 	TRACE_LEAVE();
 	return rc;

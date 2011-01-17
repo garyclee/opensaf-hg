@@ -1485,11 +1485,13 @@ SmfStepTypeNodeReboot::rollback()
 	const SaUint32T* scope;
 
 	std::list< SmfBundleRef >::const_iterator bundleIter;
-	std::list < SmfBundleRef > addList;
+	const std::list < SmfBundleRef >& addList = m_step->getSwAddList();
+
 	bool installationRebootNeeded;
 	
 	std::list < SmfBundleRef > restartBundles;
-        std::list < SmfBundleRef > removeList;
+        const std::list < SmfBundleRef >& removeList = m_step->getSwRemoveList();
+
 	bool removalRebootNeeded;
 
         LOG_NO("STEP: Rolling back node reboot step %s", m_step->getDn().c_str());
@@ -2015,11 +2017,13 @@ SmfStepTypeClusterReboot::execute()
 	const SaUint32T* scope;
 
 	std::list< SmfBundleRef >::const_iterator bundleIter;
-	std::list < SmfBundleRef > addList;
+	const std::list < SmfBundleRef >& addList = m_step->getSwAddList();
+
 	bool installationRebootNeeded;
 	
 	std::list < SmfBundleRef > restartBundles;
-        std::list < SmfBundleRef > removeList;
+        const std::list < SmfBundleRef >& removeList = m_step->getSwRemoveList() ;
+
 	bool removalRebootNeeded;
 
 	int singleStepRebootInfo = SMF_NO_CLUSTER_REBOOT;
@@ -2109,7 +2113,6 @@ SmfStepTypeClusterReboot::execute()
 		/* in the online portion only.                                                 */
 
 		/* Find out if any bundle to install which bundles requires restart to be installed */
-		addList = m_step->getSwAddList();
 		bundleIter = addList.begin();
 		installationRebootNeeded = false;
 		while (bundleIter != addList.end()) {
@@ -2170,7 +2173,6 @@ SmfStepTypeClusterReboot::execute()
 	case SMF_INSTALLATION_REBOOT:
 
 		/* Find out which bundles requires restart to be removed */
-		removeList = m_step->getSwRemoveList();
 		bundleIter = removeList.begin();
 		removalRebootNeeded = false;
 		while (bundleIter != removeList.end()) {

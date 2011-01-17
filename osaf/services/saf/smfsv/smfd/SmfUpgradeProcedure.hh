@@ -327,6 +327,13 @@ class SmfUpgradeProcedure {
         std::string getNodeForCompSu(const std::string & i_objectDn);
 
 ///
+/// Purpose:  Fetch callbacks from the upgrade method
+/// @param    i_upgradeMethod A pointer to the upgrade method to copy from
+/// @return   None
+///
+        void getCallbackList(const SmfUpgradeMethod* i_upgradeMethod);
+
+///
 /// Purpose:  Add an proc step
 /// @param    i_step A pointer to the SmfUpgradeStep object to be added.
 /// @return   None.
@@ -407,6 +414,13 @@ class SmfUpgradeProcedure {
 /// @return   -
 ///
 	SaAisErrorT getImmStepsSingleStep();
+
+///
+/// Purpose:  Read campaign data from IMM and store the information in i_newStep
+/// @param    -
+/// @return   -
+///
+	SaAisErrorT readCampaignImmModel(SmfUpgradeStep * i_newStep);
 
 ///
 /// Purpose:  Register the DNs of the added, removed or modified objects in the step
