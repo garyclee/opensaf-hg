@@ -277,6 +277,9 @@ ___ You have a misconfigured ~/.hgrc file (i.e. username, email etc)
 ___ Your computer have a badly configured date and time; confusing the
     the threaded patch review.
 
+___ Your changes affect IPC mechanism, and you don't present any results
+    for in-service upgradability test.
+
 ETX
 
 $EDITOR $rr/rr
