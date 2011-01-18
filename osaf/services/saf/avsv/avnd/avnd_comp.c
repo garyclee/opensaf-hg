@@ -963,7 +963,7 @@ uns32 avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AVSV_
 uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("comp: '%s' : proxy_comp: '%s'", comp->name.value, pxy_comp->name.value);
+	TRACE_ENTER2("comp: '%s' : proxy_comp: '%p'", comp->name.value, pxy_comp);
 
 	/* Check if this component is an internode/ext component. */
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) {
@@ -1383,7 +1383,7 @@ uns32 avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *csi)
 	NCS_BOOL is_assigned = FALSE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("comp: '%s' : csi: '%s'", comp->name.value, csi->name.value);
+	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.value, csi);
 	/* skip removal from failed / unregistered comp */
 	if (m_AVND_COMP_IS_FAILED(comp) || (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && ((!m_AVND_COMP_IS_REG(comp)
 											   &&
@@ -1822,7 +1822,7 @@ uns32 avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC 
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("comp:'%s' : csi:'%s'", comp->name.value, csi->name.value);
+	TRACE_ENTER2("comp:'%s' : csi:'%p'", comp->name.value, csi);
 
 	/* 
 	 * csi-remove indication is only generated for pi su.. 
