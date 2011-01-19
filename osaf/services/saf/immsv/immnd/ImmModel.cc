@@ -2465,7 +2465,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
         AttrInfo* newAttr = inew->second;
         iold = oldClassInfo->mAttrMap.find(attName);
         if(iold == oldClassInfo->mAttrMap.end()) {
-            LOG_IN("New attribute %s added by new class def", attName.c_str());
+            LOG_NO("New attribute %s added by new class def", attName.c_str());
             verifyFailed = notCompatibleAtt(className, newClassInfo, attName, NULL, newAttr, NULL) || 
                 verifyFailed;
             newAttrs[inew->first] = newAttr;
@@ -2538,7 +2538,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE) &&
                (newAttr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s adds flag "
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_MULTI_VALUE", className.c_str(), attName.c_str());
 
                 change = true; /* Instances NEED migration. */
@@ -2553,7 +2553,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
 
             if(!(oldAttr->mFlags & SA_IMM_ATTR_WRITABLE) &&
                (newAttr->mFlags & SA_IMM_ATTR_WRITABLE)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s adds flag "
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_WRITABLE", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
@@ -2568,7 +2568,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
 
             if((oldAttr->mFlags & SA_IMM_ATTR_INITIALIZED) &&
                !(newAttr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s removes flag "
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_INITIALIZED", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
@@ -2583,7 +2583,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
 
             if((oldAttr->mFlags & SA_IMM_ATTR_PERSISTENT) &&
                !(newAttr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                LOG_IN("Allowed upgrade, attribute %s:%s removes flag "
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
                     "SA_IMM_ATTR_PERSISTENT", className.c_str(), attName.c_str());
 
                 change = true; /* Instances dont need migration. */
@@ -2613,7 +2613,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 TRACE_5("Unchanged default value for %s:%s", className.c_str(),
                 attName.c_str());
             } else {
-                LOG_IN("Allowed upgrade, attribute %s:%s changes default value",
+                LOG_NO("Allowed upgrade, attribute %s:%s changes default value",
                     className.c_str(), attName.c_str());
                 change = true;
             }
@@ -2665,7 +2665,8 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
     if(immNotPbeWritable()) {
         err = SA_AIS_ERR_TRY_AGAIN;
     } else if(!schemaNameCheck(className)) {
-        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name: %s",
+            className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ClassMap::iterator i = sClassMap.find(className);
@@ -8905,7 +8906,7 @@ void ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
             if(oMut->mAfterImage->mObjFlags & IMM_PRTO_FLAG) {
                 LOG_NO("Delete of PERSISTENT runtime object '%s'.", i2->first.c_str());
             } else {
-                LOG_IN("Delete of runtime object '%s'.", i2->first.c_str());
+                TRACE("Delete of runtime object '%s'.", i2->first.c_str());
             }
             bool dummy=false;
             ObjectMap::iterator oi = sObjectMap.find(i2->first);
@@ -9106,7 +9107,7 @@ void ImmModel::pbeUpdateEpochContinuation(SaUint32T invocation,
 
     assert(oMut->mOpType == IMM_UPDATE_EPOCH);
 
-    LOG_IN("Update of epoch is PERSISTENT.");
+    LOG_NO("Update of epoch is PERSISTENT.");
 
     sPbeRtMutations.erase(i2);
     delete oMut;
@@ -10909,7 +10910,13 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ClassMap::iterator i3 = sClassMap.find(className);
                 assert(i3 != sClassMap.end());
                 ClassInfo* ci = i3->second;
-                assert((int) ci->mExtent.size() == (int) ioci->nrofInstances);
+
+                if((int) ci->mExtent.size() != (int) ioci->nrofInstances) {
+                        LOG_ER(" ci->mExtent.size <%d> != ioci->nrofInstances <%d>",
+                            (int) ci->mExtent.size(), (int) ioci->nrofInstances);
+                        abort();
+                }
+
                 if(ioci->classImplName.size) {
                     sz = strnlen((char *) ioci->classImplName.buf, 
                         (size_t) ioci->classImplName.size);
@@ -10947,7 +10954,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             }
             TRACE_5("Verified %u CCBs, %u gone", verified, gone);
             if(sCcbVector.size() != verified + gone) {
-                LOG_WA("sCcbVector.size()/%u != verified/%u + gone/%u",
+                LOG_IN("sCcbVector.size()/%u != verified/%u + gone/%u",
                     (unsigned int) sCcbVector.size(), verified, gone);
             }
             //Old member passed verification.
