@@ -444,6 +444,10 @@ public:
     void              setSearchReqContinuation(
                                                SaInvocationT& inv,
                                                SaUint32T conn);
+
+    void              setAdmReqContinuation(
+                                               SaInvocationT& inv,
+                                               SaUint32T conn);
     
     void              fetchSearchImplContinuation(
                                                   SaInvocationT& inv,

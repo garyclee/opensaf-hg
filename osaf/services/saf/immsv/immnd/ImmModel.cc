@@ -956,6 +956,13 @@ immModel_clearLastResult(void* searchOp)
 }
 
 void
+immModel_setAdmReqContinuation(IMMND_CB *cb, SaInvocationT invoc, 
+    SaUint32T reqConn)
+{
+    ImmModel::instance(&cb->immModel)->setAdmReqContinuation(invoc, reqConn);
+}
+
+void
 immModel_setSearchReqContinuation(IMMND_CB *cb, SaInvocationT invoc, 
     SaUint32T reqConn)
 {
@@ -6592,8 +6599,8 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         }
     }
     
-    
-    // Check for call on object implementor
+
+    // Check for call on object implementer
     if(object->mImplementer && object->mImplementer->mNodeId) {
         *implConn = object->mImplementer->mConn;
         *implNodeId = object->mImplementer->mNodeId;
@@ -6602,13 +6609,22 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             "conn:%u node:%x name:%s", object->mImplementer->mId, *implConn,
             *implNodeId, object->mImplementer->mImplementerName.c_str());
         
-        //If request originated on this node => register request continuation.
+        //If request originated on this node => verify request continuation.
+        //It should already have been created before the fevs was forwarded.
         if(reqConn) {
             SaUint32T timeout = 
                 (req->timeout)?((SaUint32T) (req->timeout)/100 + 1):0;
-            TRACE_5("Storing req invocation %u for inv: %llu timeout:%u", reqConn, saInv,
-                timeout);
-            sAdmReqContinuationMap[saInv] = ContinuationInfo2(reqConn, timeout);
+            TRACE_5("Updating req invocation inv:%llu conn:%u timeout:%u",
+                saInv, reqConn, timeout);
+
+            ContinuationMap2::iterator ci = sAdmReqContinuationMap.find(saInv);
+            if(ci == sAdmReqContinuationMap.end()) {
+                LOG_WA("Assuming reply for adminOp %llu arrived before request.", saInv);
+            } else {
+                TRACE("Located pre request continuation %llu adjusting timeout"
+                    " to %u", saInv, timeout);
+                ci->second.mTimeout = timeout;
+            }
         }
         
         if(*implConn) {
@@ -6648,6 +6664,15 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     }
     TRACE_LEAVE(); 
     return err;
+}
+
+void
+ImmModel::setAdmReqContinuation(SaInvocationT& saInv, SaUint32T reqConn)
+{
+    TRACE_ENTER();
+    TRACE_5("setAdmReqContinuation <%llu, %u>", saInv, reqConn);
+    sAdmReqContinuationMap[saInv] = ContinuationInfo2(reqConn, 2*DEFAULT_TIMEOUT_SEC);
+    TRACE_LEAVE();
 }
 
 void
@@ -7352,7 +7377,7 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
 
             if(!impInfo) {
                 LOG_WA("No PBE implementer registered at this time, but CCB %u "
-			"is waiting on PBE commit", ccb->mId);
+                       "is waiting on PBE commit", ccb->mId);
                 /* TODO: Should check rim if it was switched to  FROM_FILE
                    FROM_FILE indicates the pathological case of PBE switched off
                    accidentally leaving a ccb in critical state. 
