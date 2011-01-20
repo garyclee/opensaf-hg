@@ -20,8 +20,8 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = libSaImmOi.map libSaImmOm.map
 
-OILIB_VERSION = 0:1:4
-OMLIB_VERSION = 0:1:4
+OILIB_VERSION = 0:2:0
+OMLIB_VERSION = 0:2:0
 
 SUBDIRS = pkgconfig
 
