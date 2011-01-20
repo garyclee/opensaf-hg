@@ -530,7 +530,7 @@ SmfUpgradeCampaign::tooManyRestarts(bool *o_result)
 
 		rc = imoCampRestartInfo.execute(); //Modify the object
 		if (rc != SA_AIS_OK){
-			LOG_ER("SmfUpgradeCampaign::createCampRestartInfo: imoCampRestartInfo.execute() returned %d", rc);
+			LOG_ER("SmfUpgradeCampaign::tooManyRestarts: imoCampRestartInfo.execute() returned %d", rc);
 		}
 	}
 
@@ -717,6 +717,24 @@ SmfUpgradeCampaign::continueExec()
 	TRACE_ENTER();
         SaSmfCmpgStateT currentState = m_state->getState();
 
+	//Check if the campaign execution continues after a campaign restart
+	//resulting from a SMF ordered cluster reboot or SI_SWAP
+	
+	//Try to find the IMM object showing SMF initiates the campaign restart
+	//If not found the campaign restart was not initiated from SMF and the campaign shall fail
+	//If found the campaign restart was initiated from SMF, just remove it and continue.
+	if (checkSmfRestartIndicator() != SA_AIS_OK) {
+		LOG_ER("The campaign restart was not initiated by SMF, fail the campaign");
+		std::string error = "Campaign was restarted by other than SMF";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
+	}
+
+//TODO: The "tooManyRestarts" check below is probably no longer needed when the campaign restart 
+//      indicator object above is introduced.
+//      For the time being it is however kept. Should probably be removed.
         /* Check if we have restarted too many times */
         bool o_result;
 	if (this->tooManyRestarts(&o_result) == SA_AIS_OK){
@@ -874,3 +892,119 @@ SmfUpgradeCampaign::removeRunTimeObjects()
 	TRACE_LEAVE();
 }
 
+//------------------------------------------------------------------------------
+// createSmfRestartIndicator()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeCampaign::createSmfRestartIndicator()
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAttrValuesT_2 **attributes;
+	std::string parentDn = "safApp=safSmfService";
+	std::string rdn      = "smfCampaignRestartIndicator=smf";
+	std::string objDn    = rdn + "," + parentDn;
+	SmfImmUtils immUtil;
+
+	//Check if the object exist
+	rc = immUtil.getObjectAisRC(objDn, &attributes);
+	if (rc == SA_AIS_ERR_NOT_EXIST) {  //If not exist, create the object
+
+		SmfImmRTCreateOperation icoCampaignRestartInd;
+
+		icoCampaignRestartInd.setClassName("OpenSafSmfCampRestartIndicator");
+		icoCampaignRestartInd.setParentDn(parentDn);
+		icoCampaignRestartInd.setImmHandle(SmfCampaignThread::instance()->getImmHandle());
+
+		SmfImmAttribute attrRestInd;
+		attrRestInd.setName("smfCampaignRestartIndicator");
+		attrRestInd.setType("SA_IMM_ATTR_SASTRINGT");
+		attrRestInd.addValue(rdn);
+		icoCampaignRestartInd.addValue(attrRestInd);
+
+		rc = icoCampaignRestartInd.execute(); //Create the object
+		if (rc != SA_AIS_OK){
+			LOG_ER("Creation of OpenSafSmfCampRestartIndicator fails, icoCampaignRestartInd.execute() returned %d", rc);
+		}
+	} else {
+		TRACE("OpenSafSmfRestart object already exist, no create. dn=%s", objDn.c_str());
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// checkSmfRestartIndicator()
+//------------------------------------------------------------------------------
+SaAisErrorT
+SmfUpgradeCampaign::checkSmfRestartIndicator()
+{
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAttrValuesT_2 **attributes;
+	std::string parentDn = "safApp=safSmfService";
+	std::string rdn      = "smfCampaignRestartIndicator=smf";
+	std::string objDn    = rdn + "," + parentDn;
+	SmfImmUtils immUtil;
+
+	//This is the place to be very patient regarding object access. A restart have just occured.
+	//If the result differs from the expected outcome, retry a couple of times
+	//An error will cause the campaign to fail and a restore must be performed.
+
+	//Check if the object exist
+	unsigned int retries = 1;
+	rc = immUtil.getObjectAisRC(objDn, &attributes);
+
+	while (rc != SA_AIS_OK && rc != SA_AIS_ERR_NOT_EXIST && retries < 30) {
+		sleep(1);
+		rc = immUtil.getObjectAisRC(objDn, &attributes);
+		retries++;
+	}
+
+	if (rc == SA_AIS_ERR_NOT_EXIST) {  
+		//If not exist, the campaign has ben restarted by other than SMF
+		//This is OK if the campaign is in a state waiting for operator operations
+		SaSmfCmpgStateT currentState = m_state->getState();
+		switch (currentState) {
+		case SA_SMF_CMPG_EXECUTION_SUSPENDED:
+		case SA_SMF_CMPG_EXECUTION_COMPLETED:
+		case SA_SMF_CMPG_SUSPENDED_BY_ERROR_DETECTED:
+		case SA_SMF_CMPG_ROLLBACK_SUSPENDED:
+		case SA_SMF_CMPG_ROLLBACK_COMPLETED:
+			LOG_NO("CAMP: An unexpected campaign restart occured in campaign=%s, campState=%d. OK in this state.", 
+			       SmfCampaignThread::instance()->campaign()->getDn().c_str(), currentState);
+			rc = SA_AIS_OK;
+			break;
+		default:
+			//The campaign was executing while an unexpected campaign restart occured
+			LOG_NO("An unexpected campaign restart occured in campaign=%s, campState=%d.", 
+			       SmfCampaignThread::instance()->campaign()->getDn().c_str(), currentState);
+			rc = SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+			break;
+		}
+	} else {
+		TRACE("OpenSafSmfRestartIndicator object exist, the campaign restart was expected");
+		//Remove the indicator object
+		SaNameT objectName;
+		objectName.length = objDn.length();
+		strncpy((char *)objectName.value, objDn.c_str(), objectName.length);
+		objectName.value[objectName.length] = 0;
+
+		retries = 1;
+		rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),
+						   &objectName);
+		while (rc != SA_AIS_OK && retries < 10) {
+			sleep(1);
+			rc = immutil_saImmOiRtObjectDelete(SmfCampaignThread::instance()->getImmHandle(),
+							   &objectName);
+			retries++;
+		}
+		if (rc != SA_AIS_OK) {
+			LOG_ER("Could not remove OpenSafSmfCampRestart object dn=%s", objDn.c_str());
+		}
+        }
+
+	TRACE_LEAVE();
+        return rc;
+}

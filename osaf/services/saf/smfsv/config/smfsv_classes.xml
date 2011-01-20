@@ -386,6 +386,16 @@
 			<flag>SA_CACHED</flag>
 		</attr>
 	</class>
+	<class name="OpenSafSmfCampRestartIndicator">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>smfCampaignRestartIndicator</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+	</class>
 	<class name="OpenSafSmfRollbackElement">
 		<category>SA_RUNTIME</category>
 		<rdn>

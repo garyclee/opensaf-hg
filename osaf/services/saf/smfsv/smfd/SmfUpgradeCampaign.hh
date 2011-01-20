@@ -345,6 +345,19 @@ class SmfUpgradeCampaign {
 /// @return  None.
 ///
 	void removeRunTimeObjects();
+///
+/// Purpose: Create SMF campaign restart indicator
+/// @param   None.
+/// @return  SaAisErrorT SA_AIS_OK if ok, othervise other error code
+///
+	SaAisErrorT createSmfRestartIndicator();
+
+///
+/// Purpose: Check SMF campaign restart indicator
+/// @param   None.
+/// @return  SaAisErrorT SA_AIS_OK if ok, othervise other error code
+///
+        SaAisErrorT checkSmfRestartIndicator();
 
 ///
 /// Purpose: get procedure list

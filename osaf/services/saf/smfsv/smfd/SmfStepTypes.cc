@@ -20,6 +20,7 @@
  * ========================================================================
  */
 #include "logtrace.h"
+#include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeMethod.hh"
 #include "SmfUpgradeProcedure.hh"
 #include "saSmf.h"
@@ -2141,6 +2142,9 @@ SmfStepTypeClusterReboot::execute()
                                 return false;
                         }
 
+			//Create SMF restart indicator. This is used to decide if the campaign restart was init by SMF.
+			SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->createSmfRestartIndicator();
+
                         //Save IMM content
                         if ((rc = m_step->saveImmContent()) != SA_AIS_OK){
                                 LOG_ER("Fails to save imm content, rc=%d", rc);
@@ -2206,6 +2210,9 @@ SmfStepTypeClusterReboot::execute()
                                 LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
                                 return false;
                         }
+
+			//Create SMF restart indicator. This is used to decide if the campaign restart was init by SMF.
+			SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->createSmfRestartIndicator();
 
                         //Save IMM content
                         if ((rc = m_step->saveImmContent()) != SA_AIS_OK){
@@ -2448,6 +2455,9 @@ SmfStepTypeClusterRebootAct::execute()
                         LOG_ER("Creation of SmfSingleStepInfo object fails, rc=%d", rc);
                         return false;
                 }
+
+		//Create SMF restart indicator. This is used to decide if the campaign restart was init by SMF.
+		SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->createSmfRestartIndicator();
 
                 //Save IMM content
                 if ((rc = m_step->saveImmContent()) != SA_AIS_OK){
