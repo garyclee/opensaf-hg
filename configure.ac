@@ -192,6 +192,19 @@ AC_MSG_RESULT([$enable_java])
 AM_CONDITIONAL([ENABLE_JAVA], [test "$enable_java" = yes])
 AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 
+#
+# Enable/disable the AM4J agent
+#
+AC_MSG_CHECKING([whether to enable the AM4J agent])
+AC_ARG_ENABLE([am4j],
+        [AS_HELP_STRING([--enable-am4j],
+                [enable the AM4J agent [default=no]])],
+        [],
+        [enable_am4j=no])
+
+AC_MSG_RESULT([$enable_am4j])
+AM_CONDITIONAL([ENABLE_AM4J], [test "$enable_am4j" = yes])
+AC_SUBST([AM4J_ENABLED], ["$enable_am4j"])
 
 #
 # Enable/disable TIPC transport
@@ -385,11 +398,21 @@ if test "$enable_java" = yes; then
         AC_JAVA_ANT
         AC_SUBST([JAVA_HOME], [$ac_java_jvm_dir])
 
-        AC_PROG_AM4J_API
-
-        AC_SUBST([AM4J_API_JAR], ["$with_am4j_api_jar"])
+        # Only handle AM4J if it's enabled explicitly or by configuring the AM4J API jar
+        if test "$enable_am4j" = yes || test "$with_am4j_api_jar" != no ; then
+                enable_am4j=yes
+                AC_PROG_AM4J_API
+                AC_SUBST([AM4J_API_JAR], ["$with_am4j_api_jar"])
+                AM_CONDITIONAL([ENABLE_AM4J], [test "$enable_am4j" = yes])
+                AC_SUBST([AM4J_ENABLED], ["$enable_am4j"])
+        fi
 fi
 
+if test "$enable_java" = no; then
+        if test "$with_am4j_api_jar" != no || test "$enable_am4j" != no; then
+                AC_ERROR([Can't build AM4J support without enabling Java])
+        fi
+fi
 
 #############################################
 # MDS ARCH TYPE: MDS advises message encode/decode
@@ -866,6 +889,7 @@ echo "${ECHO_T}  XML2_LIBS: ${XML2_LIBS}"
 echo ""
 echo " OpenSAF Options:"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
+echo "${ECHO_T}  Enable AM4J: ${enable_am4j}"
 echo "${ECHO_T}  Enable PLM support: ${enable_ais_plm}"
 echo "${ECHO_T}  Enable TIPC transport: ${enable_tipc}"
 echo "${ECHO_T}  Enable Build for Payload: ${enable_payload_build}"
