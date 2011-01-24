@@ -1,4 +1,5 @@
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_am4j %(test "@AM4J_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_tests %(test "@TESTS_ENABLED@" = "yes" && echo 1 || echo 0)
 
 %define is_ais_plm %(test "@AIS_PLM_ENABLED@" = "yes" && echo 1 || echo 0)
@@ -1300,5 +1301,7 @@ hostname -s >  %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %{_libdir}/libjava_ais_api_native.so.*
 %{_javadir}/opensaf_ais_api.jar
+%if %is_am4j
 %{_javadir}/amf_agent.jar
+%endif
 %endif
