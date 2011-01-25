@@ -996,22 +996,31 @@ uns32 avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* Reset admn term operation flag */
 		m_AVND_SU_ADMN_TERM_RESET(su);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
-		/* add components belonging to this SU if components were not added before.
-		   This can heppen when runtime first su is added and then comp is added. When su is added amfd will 
-		   send su info to amfnd, at this point of time no component exists inimm db, so su list of comp is 
-		   empty. When comp are added later, it is not sent to amfnd as amfnd reads comp info from immdb. 
+		/* Add components belonging to this SU if components were not added before.
+		   This can happen in runtime when SU is first added and then comp. When SU is added amfd will 
+		   send SU info to amfnd, at this point of time no component exists in IMM DB, so SU list of comp is 
+		   empty. When comp are added later, it is not sent to amfnd as amfnd reads comp info from IMM DB. 
 		   Now when unlock-inst is done then avnd_evt_avd_su_pres_msg is called. At this point of time, we 
 		   are not having Comp info in SU list, so need to add it.
 
-		   If component exists as it would be in case controller is comming up with all entity configured,
-		   then avnd_comp_config_get_su() will not read anything, it will return sucess. */
-                if (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS) {
-                        m_AVND_SU_REG_FAILED_SET(su);
-                        /* Will transition to instantiation-failed when instantiated */
-                        LOG_ER("'%s':FAILED", __FUNCTION__); 
-                        rc = NCSCC_RC_FAILURE;
-                        break;
-                }
+		   If component exists as it would be in case controller is coming up with all entities configured,
+		   then avnd_comp_config_get_su() will not read anything, it will return success. 
+
+		   Trying to read config info of openSAF SUs may result in a deadlock condition when IMMND calls AMF
+		   register sync call(after AMF invokes instantiate script in NoRed SU instantiation sequence) and 
+		   amfnd reads immsv database using search_initializie sync api(AMF reads database for middleware 
+		   2N SUs during 2N Red SU instantiation). This is purely dependent on timing when immnd is 
+		   registering with AMF and AMF is reading config from immnd during controller coming up. 
+		   Fix for the above problem is that Middleware Components wont be dynamically added in the case 
+		   of openSAF SUs, so don't refresh config info if it is openSAF SU. */
+
+		if ((FALSE == su->is_ncs) && (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS)) {
+			m_AVND_SU_REG_FAILED_SET(su);
+			/* Will transition to instantiation-failed when instantiated */
+			LOG_ER("'%s':FAILED", __FUNCTION__); 
+			rc = NCSCC_RC_FAILURE;
+			break;
+		}
 		/* trigger su instantiation for pi su */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 			TRACE("SU instantiation for PI SUs, running the SU presence state FSM:'%s'", su->name.value); 
