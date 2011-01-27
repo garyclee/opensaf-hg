@@ -597,7 +597,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		/* Send the stale handle triggering ipc-message */
 		callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
 		assert(callback);
-        callback->type = IMMA_CALLBACK_STALE_HANDLE;
+		callback->type = IMMA_CALLBACK_STALE_HANDLE;
 		callback->lcl_imm_hdl = 0LL;
 		callback->ccbID = 0;
 
@@ -1575,11 +1575,11 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
 			if (cl_node->stale) {
-                cl_node->exposed = TRUE;
-                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+				cl_node->exposed = TRUE;
+				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
-            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			imma_process_callback_info(cb, cl_node, callback, immHandle);
 			return SA_AIS_OK;
 		} else {
@@ -1625,8 +1625,8 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
 			if (cl_node->stale) {
-                cl_node->exposed = TRUE;
-                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+				cl_node->exposed = TRUE;
+				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
 
@@ -1703,8 +1703,8 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 		if (callback) {
 			if (client_info) {
 				if (client_info->stale) {
-                    client_info->exposed = TRUE;
-                    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+					client_info->exposed = TRUE;
+					m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 					return SA_AIS_ERR_BAD_HANDLE;
 				}
 

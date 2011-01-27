@@ -181,6 +181,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	/* Alloc the client info data structure & put it in the Pat tree */
 	cl_node = (IMMA_CLIENT_NODE *)calloc(1, sizeof(IMMA_CLIENT_NODE));
@@ -651,6 +652,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	/* get the client_info */
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
@@ -4784,6 +4786,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 		locked = FALSE;
 		goto release_cb;
 	}
+	/* locked == TRUE already */
 
 	imma_search_node_get(&cb->search_tree, &accessorHandle, &search_node);
 
@@ -5307,6 +5310,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
@@ -6240,6 +6244,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
@@ -6422,6 +6427,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
@@ -6607,6 +6613,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {

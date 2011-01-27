@@ -144,6 +144,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	/* Draft Validations : Version this is the politically correct validatioin
 	   distinct from the pragmatic validation we do above. */
@@ -623,6 +624,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	/* get the client_info */
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
@@ -798,6 +800,7 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
+	/* locked == TRUE already */
 
 	/* get the client_info */
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
