@@ -167,6 +167,10 @@ cmd_create_rootfs()
     sed -i 's/=$pkglogdir\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/logd.conf
 
+    # Change DTSV configuration to use "replicated" disk
+    sed -i 's/=$pkglogdir\/dtlog/=repl_opensaf\/log/g' \
+		etc/opensaf/dtsv.conf
+
     # Change core pattern, uml cannot write cores to hostfs
     sed -i 's/var\/crash\/opensaf/tmp/g' etc/init.d/opensafd
 
