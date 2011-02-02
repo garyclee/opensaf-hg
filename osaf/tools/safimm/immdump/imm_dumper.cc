@@ -123,6 +123,7 @@ int main(int argc, char* argv[])
 
     std::map<std::string, std::string> classRDNMap;
     std::string filename;
+    std::string localTmpFilename;
     const char* defaultLog = "immdump_trace";
     const char* logPath;
     unsigned int category_mask = 0;
@@ -152,10 +153,6 @@ int main(int argc, char* argv[])
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
         /* We allow the dump to execute anyway. */
-    }
-
-    for(c=0;c<argc;++c) {
-	    TRACE("ABT arg%d is %s", c, argv[c]);
     }
 
     if ((argc < 2) || (argc > 5))
@@ -226,7 +223,7 @@ int main(int argc, char* argv[])
 	   or the entire node on which immnd-coord and pbe was running has crashed.
 	   Try to re-attach to the db file and avoid regenerating it. 
 	*/
-        dbHandle = pbeRepositoryInit(filename.c_str(), false);
+        dbHandle = pbeRepositoryInit(filename.c_str(), false, localTmpFilename);
 	/* getClassIdMap */
         if(dbHandle) {
 		objCount = verifyPbeState(immHandle, &classIdMap, dbHandle);
@@ -243,15 +240,17 @@ int main(int argc, char* argv[])
 
     if(pbeDumpCase) {
         if(pbeDaemonCase) {
-            LOG_IN("Generating DB file from current IMM state. File: %s", filename.c_str());
+            LOG_IN("Generating DB file from current IMM state. DB file: %s", filename.c_str());
         } else {
             std::cout << 
                 "Generating DB file from current IMM state. File: " << filename << 
                  std::endl;
         }
 
-        /* Initialize access to PBE database. */
-        dbHandle = pbeRepositoryInit(filename.c_str(), true);
+	/* Initialize access to PBE database. */
+	dbHandle = pbeRepositoryInit(filename.c_str(), true, localTmpFilename);
+
+
         if(dbHandle) {
             TRACE_1("Opened persistent repository %s", filename.c_str());
         } else {
@@ -272,7 +271,9 @@ int main(int argc, char* argv[])
 
 	pbeRepositoryClose(dbHandle);
 	dbHandle = NULL;
-	pbeAtomicSwitchFile(filename.c_str());
+	LOG_NO("Successfully dumped to file %s", localTmpFilename.c_str());
+
+	pbeAtomicSwitchFile(filename.c_str(), localTmpFilename);
         if(!pbeDaemonCase) {
             exit(0);
         }
@@ -285,7 +286,7 @@ int main(int argc, char* argv[])
     if(pbeDaemonCase) {
 
         if(!dbHandle) {
-            dbHandle = pbeRepositoryInit(filename.c_str(), false);
+            dbHandle = pbeRepositoryInit(filename.c_str(), false, localTmpFilename);
             if(!dbHandle) {
                 LOG_WA("immdump: pbe intialize failed - exiting");
                 exit(1);

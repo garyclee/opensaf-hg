@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <wait.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -124,32 +125,96 @@ static void valuesToPBE(const SaImmAttrValuesT_2* p,
 }
 
 
-/* mv the tempfile on to the regular db file name link.
-   This will simultaneously/atomically remove the link for the
-   old file. 
-*/
-void pbeAtomicSwitchFile(const char* filePath)
-{
-	std::string tmpFilename;
-	tmpFilename.append(filePath);
-	tmpFilename.append(".tmp"); 
+/* 
+   Replace the existing DB-file on global/shared FS with the newly generated
+   DB-file. If the new DB file was generated on local FS (for performance 
+   reasons) then first move it to global FS. 
 
-	if(rename(tmpFilename.c_str(), filePath)!=0) {
-		LOG_ER("Failed to rename %s to %s error:%s", 
-			filePath, tmpFilename.c_str(), strerror(errno));
+   (1) Copy local-tmp-file from local FS to global-tmp-file on global FS.
+       Remove local-tmp-file.
+
+   (2) On global FS, unlink (remove) any old .prev link/file.
+
+   (3) On global FS, Create a ".prev" link to the current DB file (i-node).
+       The current DB file now has two links, the official and the .prev link.
+
+   (4) On global FS, rename/move global-tmp-file onto the official DB file link.
+       This will switch the file (i-node) pointed at by the official DB file link
+       to the newly generated file.
+       This is a file system local operation and the link switch is guaranteed
+       atomic by the OS. The previous DB-file is still accessible via .prev link.
+*/
+void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename)
+{
+	std::string globalTmpFilename;
+	globalTmpFilename.append(filePath);
+	globalTmpFilename.append(".tmp"); 
+	std::string oldFilename;
+	oldFilename.append(filePath);
+	oldFilename.append(".prev"); 
+
+	if(!localTmpFilename.empty()) {
+		int rc=(-1);
+		std::string shellCommand("/bin/cp ");
+		shellCommand.append(localTmpFilename);
+		shellCommand.append(" ");
+		shellCommand.append(globalTmpFilename);
+		rc = system(shellCommand.c_str());
+		if(rc) {
+			if(rc == (-1)) {
+				LOG_ER("Invocation of system(%s) failed, "
+					"cause:%s", shellCommand.c_str(), 
+					strerror(errno));
+			} else {
+				LOG_ER("Exit status for '%s' is %u != 0, "
+					"cause:%s", shellCommand.c_str(), rc,
+					strerror(WEXITSTATUS(rc)));
+			}
+			unlink(localTmpFilename.c_str());
+			unlink(globalTmpFilename.c_str());
+			exit(1);
+		}
+		unlink(localTmpFilename.c_str());
+		LOG_NO("Moved %s to %s", localTmpFilename.c_str(),
+			globalTmpFilename.c_str());
+	}
+
+	/* A new globalTmp database file now exists on the shared directory. 
+	   Now remove any old-old database file to make way for the double link
+	   to the current (old) database file.
+	*/
+
+	if(unlink(oldFilename.c_str()) != 0) {
+		TRACE_2("Failed to unlink %s  error:%s", 
+			oldFilename.c_str(), strerror(errno));
+	}
+
+	/* Make an additional link to the curent (old) db file using
+	   the oldFilename link.
+	*/
+	if(link(filePath, oldFilename.c_str()) != 0) {
+		LOG_WA("Failed to link %s to %s error:%s", 
+			filePath, oldFilename.c_str(), strerror(errno));
+	}
+
+	/* Switch the official DB file link to the new file. */
+	if(rename(globalTmpFilename.c_str(), filePath)!=0) {
+		LOG_ER("Failed to move %s to %s error:%s",
+			globalTmpFilename.c_str(), filePath, strerror(errno));
 		exit(1);
 	} else {
-		TRACE("Renamed %s to %s.", tmpFilename.c_str(), filePath);
+		LOG_NO("Moved %s to %s", globalTmpFilename.c_str(), filePath);
 	}
 }
 
 
-void* pbeRepositoryInit(const char* filePath, bool create)
+void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename)
 {
 	int fd=(-1);
 	sqlite3* dbHandle=NULL;
-	std::string oldFilename;
-	std::string tmpFilename;
+	std::string globalTmpFilename;
+	localTmpFilename.clear();
+	char * localTmpDir = NULL;
 	int rc=0;
 	SaImmRepositoryInitModeT rpi = (SaImmRepositoryInitModeT) 0;
 	char **result=NULL;
@@ -195,49 +260,73 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 
 	if(!create) {goto re_attach;}
 
-	/* Create a fresh Pbe-repository by dumping current imm contents to tmpFilename. 
-	   If old repository exists, then "save it" under additional oldFileName link.
+	/* Create a fresh Pbe-repository by dumping current imm contents to (local or global)
+	   Tmp-File. 
 	 */
 
-	oldFilename.append(filePath);
-	oldFilename.append(".prev"); 
-	tmpFilename.append(filePath);
-	tmpFilename.append(".tmp"); 
+	globalTmpFilename.append(filePath);
+	globalTmpFilename.append(".tmp"); 
+	localTmpDir = getenv("IMMSV_PBE_TMP_DIR");
+	TRACE("TMP DIR:%s", localTmpDir);
+	if(localTmpDir) {
+		TRACE("IMMSV_PBE_TMP_DIR:%s", localTmpDir);
+		localTmpFilename.append(localTmpDir);
+		localTmpFilename.append("/imm.db.XXXXXX");
+		unsigned int sz = localTmpFilename.size() +1;
+		TRACE("localTmpFile:%s", localTmpFilename.c_str());
+		if(1) {
+			char buf[sz];
+			strncpy(buf, localTmpFilename.c_str(), sz);
+			fd = mkstemp(buf);
+			localTmpFilename.clear();
+			localTmpFilename.append(buf);
+			if(fd != (-1)) {
+				TRACE("Successfully created local tmp file %s", buf);
+				close(fd);
+				fd=(-1);
+			} else {
+				LOG_WA("Could not create local tmp file '%s' cause:%s - "
+					"reverting to global tmp file", 
+					buf, strerror(errno));
+				localTmpDir = NULL;
+				localTmpFilename.clear();
+			}
 
+		}
+	}
 
 	/* Existing new file indicates a previous failure.
-	   We should possible have some excalation mechanism here. */
-	if(unlink(tmpFilename.c_str()) != 0) {
+	   We should possibly have some escalation mechanism here. */
+	if(unlink(globalTmpFilename.c_str()) != 0) {
 		TRACE_2("Failed to unlink %s  error:%s", 
-			tmpFilename.c_str(), strerror(errno));
+			globalTmpFilename.c_str(), strerror(errno));
 	}
 
-	/* Also remove old old file. */
-	if(unlink(oldFilename.c_str()) != 0) {
-		TRACE_2("Failed to unlink %s  error:%s", 
-			oldFilename.c_str(), strerror(errno));
-	}
-
-	/* Make an additional link to the current db file.
-	   Instead of removing or overwriting the current db file
-	   we create the tmpFilename on the side, then mv the
-	   new file to the current file, automatically unlinking
-	   the current file from the regular file name. The current
-	   file will still have the oldFilename link.
-	   Could mark with date, but that requires rotation. */
-	if(link(filePath, oldFilename.c_str()) != 0) {
-		LOG_WA("Failed to link %s to %s error:%s", 
-			filePath, oldFilename.c_str(), strerror(errno));
-	}
-
-	rc = sqlite3_open(tmpFilename.c_str(), &dbHandle);
-	if(rc) {
-		LOG_ER("Can't open sqlite pbe file '%s', cause:%s", 
-			tmpFilename.c_str(), sqlite3_errmsg(dbHandle));
-		exit(1);
+	if(localTmpDir) {
+		rc = sqlite3_open(localTmpFilename.c_str(), &dbHandle);
+		if(rc) {
+			LOG_ER("Can't open sqlite pbe local Tmp file '%s', cause:%s", 
+				localTmpFilename.c_str(), sqlite3_errmsg(dbHandle));
+			LOG_WA("Reverting to generate on global tmpFile:%s  ..may take time", 
+				globalTmpFilename.c_str());
+			localTmpDir = NULL;
+			localTmpFilename.clear();
+			rc = 0;
+		} else {
+			LOG_NO("Successfully opened empty local sqlite pbe file %s", localTmpFilename.c_str());
+		}
 	} 
-	TRACE_2("Successfully opened sqlite pbe file %s", tmpFilename.c_str());
-		 
+
+	if(!localTmpDir)
+	{ /* No local tmp file = > generate directly to global tmp file, likely to be slooow.. */
+		rc = sqlite3_open(globalTmpFilename.c_str(), &dbHandle);
+		if(rc) {
+			LOG_ER("Can't open sqlite pbe file '%s', cause:%s", 
+				globalTmpFilename.c_str(), sqlite3_errmsg(dbHandle));
+			exit(1);
+		}
+		LOG_NO("Successfully opened empty global sqlite pbe file %s", globalTmpFilename.c_str());
+	}
 
 	/* Creating the schema. */
 	for (int ix=0; sql_tr[ix]!=NULL; ++ix) {
@@ -247,7 +336,7 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 			sqlite3_free(zErr);
 			goto bailout;
 		}
-		TRACE_2("Successfully executed %s", sql_tr[ix]);
+		TRACE("Successfully executed %s", sql_tr[ix]);
 	}
 
 	TRACE_LEAVE();
@@ -277,7 +366,7 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 			filePath, sqlite3_errmsg(dbHandle));
 		goto bailout;
 	} 
-	TRACE_2("Successfully opened sqlite pbe file %s", filePath);
+	LOG_NO("Successfully opened pre-existing sqlite pbe file %s", filePath);
 
 	rc = sqlite3_get_table((sqlite3 *) dbHandle, sql, &result, &nrows, 
 		&ncols, &zErr);
