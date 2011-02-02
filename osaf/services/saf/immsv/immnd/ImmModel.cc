@@ -7114,8 +7114,8 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             //discardImplementer(info->mId); 
             //Doing it directly here for efficiency.
             //But watch out for changes in discardImplementer
-            LOG_NO("DISCARDING IMPLEMENTER %u <%u, %x>", 
-                info->mId, info->mConn, info->mNodeId);
+            LOG_NO("Implementer disconnected %u <%u, %x(down)> (%s)", info->mId,
+                info->mConn, info->mNodeId, info->mImplementerName.c_str());
             info->mId = 0;
             info->mConn = 0;
             info->mNodeId = 0;
@@ -7172,7 +7172,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
     ImplementerInfo* info = findImplementer(implHandle);
     if(info) {
         if(reallyDiscard) {
-            LOG_NO("DISCARDING IMPLEMENTER %u <%u, %x> (%s)", 
+            LOG_NO("Implementer disconnected %u <%u, %x> (%s)", 
                 info->mId, info->mConn, info->mNodeId,
                 info->mImplementerName.c_str());
             info->mId = 0;
@@ -7196,9 +7196,9 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             }
         } else {
             if(!info->mDying) {
-                LOG_IN("Implementer %u disconnected. Marking it as doomed "
-                    "<Conn:%u, Node:%x>", info->mId, info->mConn, 
-                    info->mNodeId);
+                LOG_IN("Implementer locally disconnected. Marking it as doomed "
+                    "%u <%u, %x> (%s)", info->mId, info->mConn, info->mNodeId,
+                    info->mImplementerName.c_str());
                 info->mDying = true;
             }
         }
@@ -7656,9 +7656,8 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mDying = false;
     
     
-    LOG_NO("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
-        info->mImplementerName.c_str(), info->mId, info->mConn, info->mNodeId,
-        info->mDying);
+    LOG_NO("Implementer connected: %u (%s) <%u, %x>", 
+        info->mId, info->mImplementerName.c_str(), info->mConn, info->mNodeId);
 
     if(implName == std::string(OPENSAF_IMM_PBE_IMPL_NAME)) {
         TRACE_7("Implementer %s for PBE created - "
@@ -9107,7 +9106,7 @@ void ImmModel::pbeUpdateEpochContinuation(SaUint32T invocation,
 
     assert(oMut->mOpType == IMM_UPDATE_EPOCH);
 
-    LOG_NO("Update of epoch is PERSISTENT.");
+    LOG_IN("Update of epoch is PERSISTENT.");
 
     sPbeRtMutations.erase(i2);
     delete oMut;
