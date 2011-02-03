@@ -59,6 +59,7 @@
 #include <avd.h>
 static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg);
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg);
+static uns32 avd_sg_get_curr_act_cnt(AVD_SG *sg);
 
 /*****************************************************************************
  * Function: avd_sg_npm_su_next_asgn
