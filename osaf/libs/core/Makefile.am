@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include common leap mbcsv mds
 
-LIB_VERSION = 0:1:0
+LIB_VERSION = 0:2:0
 
 lib_LTLIBRARIES = libopensaf_core.la
 
