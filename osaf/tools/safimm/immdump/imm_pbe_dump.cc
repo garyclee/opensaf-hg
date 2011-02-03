@@ -2237,7 +2237,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 
 
 #else
-void* pbeRepositoryInit(const char* filePath, bool create)
+void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename)
 {
 	LOG_WA("immdump not built with the --enable-imm-pbe option.");
 	return NULL;
@@ -2248,7 +2248,7 @@ void pbeRepositoryClose(void* dbHandle)
 	abort();
 }
 
-void pbeAtomicSwitchFile(const char* filePath)
+void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename)
 {
 	abort();
 }
