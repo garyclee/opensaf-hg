@@ -220,25 +220,23 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 		 * return the SU with the least active SI assignments
 		 * otherwise, return an in-service SU which has no assignments
 		 */
-		curr_su = sg->list_of_su;
-		while ((curr_su != NULL) && (curr_act_sus < sg->saAmfSGNumPrefActiveSUs)) {
+
+		/* Get the count of current Active SUs in this SG */
+		curr_act_sus = avd_sg_get_curr_act_cnt(sg);
+		TRACE("curr_act_sus = %u", curr_act_sus);
+
+		if (curr_act_sus < sg->saAmfSGNumPrefActiveSUs) {
+			curr_su = sg->list_of_su;
+			while (curr_su != NULL) {
 		                if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						(curr_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 					/* got an in-service SU with no SI assignments */
 					pref_su = curr_su;
 					goto done;
 				}
-				else if ((curr_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
-						(curr_su->list_of_susi->state == ha_state)) {
-					/* increment the current active SUs count as you found 
-					 * a SU with atleast one active SI assignment
-					 */
-					curr_act_sus ++;
-				}
 				curr_su = curr_su->sg_list_su_next;
+			}
 		}
-
-		TRACE("curr_act_sus = %u", curr_act_sus);
 
 		/* we are here, means found no empty su that can be assigned 
 		 * active SI assignment so now loop through the su list of the sg 
