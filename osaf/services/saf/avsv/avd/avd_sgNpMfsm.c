@@ -4280,33 +4280,12 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 	case AVD_SG_FSM_STABLE:
 
 		if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
-			/* The SU is active SU, identify the inservice standby SU for this SU.
-			 * If standby SU doesnt exists stay in the stable state.
-			 */
+			/* Find Standby SU corresponding to each susi on this SU and do role change */
+			avd_sg_npm_stdbysu_role_change(su);
 
-			o_susi = avd_sg_npm_su_othr(cb, su);
+			/*Change state to SG_realign. */
+			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
-			if (o_susi != AVD_SU_SI_REL_NULL) {
-				if ((o_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-				    (o_susi->state == SA_AMF_HA_STANDBY)) {
-					/* The standby SU w.r.t this SU is inservice has standby 
-					 * SI assignment from another SU, send remove message for 
-					 * each of those SI assignment to the standby SU and 
-					 * send D2N -INFO_SU_SI_ASSIGN message modify active all 
-					 * assignments to that SU. Add the SU to the oper list.                   
-					 */
-					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
-				} else {
-					/* the standby is OOS. Add the standby SU to operation list. */
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
-
-				}
-				/*Change state to SG_realign. */
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			}
-
-			/* if (o_su != AVD_SU_NULL) */
 			/* Free all the SI assignments to this SU. */
 			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
 
