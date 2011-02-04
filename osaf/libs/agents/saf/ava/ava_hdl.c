@@ -39,8 +39,8 @@ static uns32 ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
 
 static void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
 
-static void ava_hdl_cbk_list_del(AVA_CB *, AVA_PEND_CBK *);
-static void ava_hdl_pend_resp_list_del(AVA_CB *, AVA_PEND_CBK *);
+static void ava_hdl_pend_resp_list_del(AVA_CB *, AVA_PEND_RESP *);
+static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /****************************************************************************
   Name          : ava_hdl_init
@@ -132,20 +132,17 @@ void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC *hdl_rec)
 	/* pop the hdl rec */
 	ncs_patricia_tree_del(&hdl_db->hdl_db_anchor, &hdl_rec->hdl_node);
 
-	/* clean the pend callbk & resp list */
-	ava_hdl_cbk_list_del(cb, &hdl_rec->pend_cbk);
-	ava_hdl_pend_resp_list_del(cb, (AVA_PEND_CBK *)&hdl_rec->pend_resp);
+	/* detach the mail box */
+	m_NCS_IPC_DETACH(&hdl_rec->callbk_mbx, ava_hdl_cbk_ipc_mbx_del, hdl_rec);
 
-	/* destroy the selection object */
-	if (m_GET_FD_FROM_SEL_OBJ(hdl_rec->sel_obj)) {
-		m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(&hdl_rec->sel_obj);
+	/* delete the mailbox */
+	m_NCS_IPC_RELEASE(&hdl_rec->callbk_mbx, NULL);
 
-		/* remove the association with hdl-mngr */
-		ncshm_destroy_hdl(NCS_SERVICE_ID_AVA, hdl_rec->hdl);
+	/* clean the pend resp list */
+	ava_hdl_pend_resp_list_del(cb, &hdl_rec->pend_resp);
 
-		m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&hdl_rec->sel_obj);
-
-	}
+	/* remove the association with hdl-mngr */
+	ncshm_destroy_hdl(NCS_SERVICE_ID_AVA, hdl_rec->hdl);
 
 	/* free the hdl rec */
 	free(hdl_rec);
@@ -154,41 +151,6 @@ void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC *hdl_rec)
 	hdl_db->num--;
 
 	TRACE_LEAVE2("Handle = %x, successfully deleted from Handle DB, num handles = %d",hdl, hdl_db->num);
-	return;
-}
-
-/****************************************************************************
-  Name          : ava_hdl_cbk_list_del
- 
-  Description   : This routine scans the pending callbk list & deletes all 
-                  the records.
- 
-  Arguments     : cb   - ptr to the AvA control block
-                  list - ptr to the pending callbk list
- 
-  Return Values : None
- 
-  Notes         : None
-******************************************************************************/
-void ava_hdl_cbk_list_del(AVA_CB *cb, AVA_PEND_CBK *list)
-{
-	AVA_PEND_CBK_REC *rec = 0;
-	TRACE_ENTER();
-
-	/* pop & delete all the records */
-	do {
-		m_AVA_HDL_PEND_CBK_POP(list, rec);
-		if (!rec)
-			break;
-
-		/* delete the record */
-		ava_hdl_cbk_rec_del(rec);
-	} while (1);
-
-	/* there shouldn't be any record left */
-	assert((!list->num) && (!list->head) && (!list->tail));
-
-	TRACE_LEAVE();
 	return;
 }
 
@@ -212,6 +174,32 @@ void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *rec)
 
 	/* delete the record */
 	free(rec);
+}
+
+/**
+ * This routine scans the ipc mailbox queue and deletes all the records.
+ *
+ * @param arg
+ * @param msg
+ *
+ * @returns NCS_BOOL
+ */
+static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg)
+{
+	AVA_PEND_CBK_REC *callbk, *pnext;
+
+	TRACE_ENTER();
+
+	pnext = callbk = (AVA_PEND_CBK_REC *)msg;
+
+	while (pnext) {
+		pnext = callbk->next;
+		ava_hdl_cbk_rec_del(callbk);
+		callbk = pnext;
+	}
+
+	TRACE_LEAVE();
+	return TRUE;
 }
 
 /****************************************************************************
@@ -240,11 +228,6 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	if (!(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVA, (NCSCONTEXT)rec)))
 		goto error;
 
-	/* create the selection object & store it in hdl rec */
-	m_NCS_SEL_OBJ_CREATE(&rec->sel_obj);
-	if (!m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
-		goto error;
-
 	/* store the registered callbacks */
 	if (reg_cbks)
 		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaAmfCallbacksT));
@@ -269,10 +252,6 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 		/* remove the association with hdl-mngr */
 		if (rec->hdl)
 			ncshm_destroy_hdl(NCS_SERVICE_ID_AVA, rec->hdl);
-
-		/* destroy the selection object */
-		if (m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
-			m_NCS_SEL_OBJ_DESTROY(rec->sel_obj);
 
 		free(rec);
 	}
@@ -314,15 +293,9 @@ uns32 ava_hdl_cbk_param_add(AVA_CB *cb, AVA_HDL_REC *hdl_rec, AVSV_AMF_CBK_INFO 
 	rec->cbk_info = cbk_info;
 
 	/* now push it to the pending list */
-	m_AVA_HDL_PEND_CBK_PUSH(&(hdl_rec->pend_cbk), rec);
+	rc = m_NCS_IPC_SEND(&hdl_rec->callbk_mbx, rec, NCS_IPC_PRIORITY_NORMAL);
 
-	/* send an indication to the application */
-	if (NCSCC_RC_SUCCESS != (rc = m_NCS_SEL_OBJ_IND(hdl_rec->sel_obj))) {
-		TRACE_3("Selection object indication failed");
-		assert(0);
-	}
-
- done:
+done:
 	if ((NCSCC_RC_SUCCESS != rc) && rec)
 		ava_hdl_cbk_rec_del(rec);
 
@@ -384,7 +357,6 @@ uns32 ava_hdl_cbk_dispatch(AVA_CB **cb, AVA_HDL_REC **hdl_rec, SaDispatchFlagsT 
 ******************************************************************************/
 uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
-	AVA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
 	uns32 hdl = (*hdl_rec)->hdl;
@@ -395,8 +367,9 @@ uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
 	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
 
-	/* pop the rec from the list */
-	m_AVA_HDL_PEND_CBK_POP(list, rec);
+	/* pop the rec from the mailbox queue */
+	rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_NON_BLK_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL);
+
 	if (rec) {
 
 		if (rec->cbk_info->type != AVSV_AMF_PG_TRACK) {
@@ -404,10 +377,6 @@ uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 			m_AVA_HDL_PEND_RESP_PUSH(list_resp, (AVA_PEND_RESP_REC *)rec);
 			m_AVA_HDL_CBK_REC_IN_DISPATCH_SET(rec);
 		}
-
-		/* remove the selection object indication */
-		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE))
-			assert(0);
 
 		/* release the cb lock & return the hdls to the hdl-mngr */
 		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -458,7 +427,6 @@ uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 ******************************************************************************/
 uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
-	AVA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
 	uns32 hdl = (*hdl_rec)->hdl;
@@ -469,9 +437,9 @@ uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
 	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
 
-	/* pop all the records from the list & process them */
+	/* pop all the records from the mailbox & process them */
 	do {
-		m_AVA_HDL_PEND_CBK_POP(list, rec);
+		rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_NON_BLK_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL);
 		if (!rec)
 			break;
 
@@ -480,10 +448,6 @@ uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 			m_AVA_HDL_PEND_RESP_PUSH(list_resp, (AVA_PEND_RESP_REC *)rec);
 			m_AVA_HDL_CBK_REC_IN_DISPATCH_SET(rec);
 		}
-
-		/* remove the selection object indication */
-		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE))
-			assert(0);
 
 		/* release the cb lock & return the hdls to the hdl-mngr */
 		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -534,26 +498,21 @@ uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 ******************************************************************************/
 uns32 ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
-	AVA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	uns32 hdl = (*hdl_rec)->hdl;
 	AVA_PEND_CBK_REC *rec = 0;
-	NCS_SEL_OBJ_SET all_sel_obj;
-	NCS_SEL_OBJ sel_obj = (*hdl_rec)->sel_obj;
 	SaAmfCallbacksT reg_cbk;
 	uns32 rc = SA_AIS_OK;
 	TRACE_ENTER();
-
-	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-	m_NCS_SEL_OBJ_SET(sel_obj, &all_sel_obj);
 
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
 	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
 
 	/* release all lock and handle - we are abt to go into deep sleep */
 	m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-
-	while (m_NCS_SEL_OBJ_SELECT(sel_obj, &all_sel_obj, 0, 0, 0) != -1) {
+	
+	/* wait on the IPC mailbox for messages */
+	while ((rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL)) != NULL) {
 		ncshm_give_hdl(hdl);
 
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -567,30 +526,11 @@ uns32 ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 			break;
 		}
 
-		if (!m_NCS_SEL_OBJ_ISSET(sel_obj, &all_sel_obj)) {
-			rc = SA_AIS_ERR_LIBRARY;
-			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-			TRACE_4("Error: Select returned but fd not set");
-			break;
-		}
-
-		/* pop rec */
-		m_AVA_HDL_PEND_CBK_POP(list, rec);
-		if (!rec) {
-			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-			TRACE_3("Select returned: no callback to pop");
-			break;
-		}
-
 		if (rec->cbk_info->type != AVSV_AMF_PG_TRACK) {
 			/* push this record into pending response list */
 			m_AVA_HDL_PEND_RESP_PUSH(list_resp, (AVA_PEND_RESP_REC *)rec);
 			m_AVA_HDL_CBK_REC_IN_DISPATCH_SET(rec);
 		}
-
-		/* remove the selection object indication */
-		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE))
-			assert(0);
 
 		/* release the cb lock & return the hdls to the hdl-mngr */
 		ncshm_give_hdl(hdl);
@@ -603,9 +543,7 @@ uns32 ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
 		*hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl);
-		if (*hdl_rec) {
-			m_NCS_SEL_OBJ_SET(sel_obj, &all_sel_obj);
-		} else {
+		if (NULL == *hdl_rec) {
 			ava_hdl_cbk_rec_del(rec);
 			TRACE_4("Unable to retrieve handle record");
 			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -939,9 +877,9 @@ AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *list, SaInvocationT key)
  
   Notes         : None
 ******************************************************************************/
-void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_CBK *list)
+void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_RESP *list)
 {
-	AVA_PEND_CBK_REC *rec = 0;
+	AVA_PEND_RESP_REC *rec = 0;
 	TRACE_ENTER();
 
 	/* pop & delete all the records */
@@ -952,7 +890,7 @@ void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_CBK *list)
 
 		/* delete the record */
 		if (!m_AVA_HDL_IS_CBK_REC_IN_DISPATCH(rec))
-			ava_hdl_cbk_rec_del(rec);
+			ava_hdl_cbk_rec_del((AVA_PEND_CBK_REC *)rec);
 	} while (1);
 
 	/* there shouldn't be any record left */
@@ -960,3 +898,22 @@ void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_CBK *list)
 	TRACE_LEAVE();
 	return;
 }
+
+/**
+ * Initializes the client mailbox to process pending callbacks
+ * @param hdl_rec
+ *
+ * @returns uns32 
+ */
+uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec)
+{       
+	uns32 rc = NCSCC_RC_SUCCESS;
+	if ((rc = m_NCS_IPC_CREATE(&hdl_rec->callbk_mbx)) == NCSCC_RC_SUCCESS) {
+		if (m_NCS_IPC_ATTACH(&hdl_rec->callbk_mbx) == NCSCC_RC_SUCCESS) {
+			return NCSCC_RC_SUCCESS;
+		}
+		m_NCS_IPC_RELEASE(&hdl_rec->callbk_mbx, NULL);
+	}
+	return rc;
+}
+
