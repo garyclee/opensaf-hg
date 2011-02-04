@@ -720,8 +720,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				su_found = TRUE;
 
 			}
-		} else {	/* if (o_susi != AVD_SU_SI_REL_NULL) */
-
+		}/* if (o_susi != AVD_SU_SI_REL_NULL) */
+		if(FALSE == su_found) {
+			/* su_found will be false in the following cases
+			* Didnot found the Standby SU corresponding to i_si->list_of_sisu->su
+			* Standby SU is found but current Standby assignments are equal to saAmfSGMaxStandbySIsperSU
+			*/
 			if (l_su != NULL) {
 				if ((l_su->si_max_standby > l_su->saAmfSUNumCurrStandbySIs) &&
 				    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
