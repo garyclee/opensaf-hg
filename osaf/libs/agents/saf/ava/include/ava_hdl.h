@@ -36,26 +36,19 @@
 
 /* Pending callback rec */
 typedef struct ava_pend_cbk_rec {
+	struct ava_pend_cbk_rec *next;
 	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
 	uns32 flag;		/* unused, dont remove it */
 
-	struct ava_pend_cbk_rec *next;
 } AVA_PEND_CBK_REC;
-
-/* Pending callback list */
-typedef struct ava_pend_cbk {
-	uns16 num;		/* no of pending callbacks */
-	AVA_PEND_CBK_REC *head;
-	AVA_PEND_CBK_REC *tail;
-} AVA_PEND_CBK;
 
 /* Pending response rec */
 typedef struct ava_pend_resp_rec {
+	struct ava_pend_resp_rec *next;
 	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
 	uns32 flag;		/* used to see, if we have responded
 				   in callback itself */
 
-	struct ava_pend_resp_rec *next;
 } AVA_PEND_RESP_REC;
 
 /* Pending response list */
@@ -70,11 +63,10 @@ typedef struct ava_hdl_rec_tag {
 	NCS_PATRICIA_NODE hdl_node;	/* hdl-db tree node */
 
 	uns32 hdl;		/* AMF handle (derived from hdl-mngr) */
-	NCS_SEL_OBJ sel_obj;	/* selection object */
 
 	SaAmfCallbacksT reg_cbk;	/* callbacks registered by the application */
 
-	AVA_PEND_CBK pend_cbk;	/* list of pending AvSv callbacks */
+	SYSF_MBX callbk_mbx;       /* mailbox to hold the callback messages */ 
 	AVA_PEND_RESP pend_resp;	/* list of pending AvSv Response */
 } AVA_HDL_REC;
 
@@ -202,5 +194,7 @@ EXTERN_C void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *);
 EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT);
 
 EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
+
+EXTERN_C uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
 
 #endif   /* !AVA_HDL_H */

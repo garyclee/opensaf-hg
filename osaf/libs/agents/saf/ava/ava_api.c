@@ -197,6 +197,12 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg_cbks
 		goto done;
 	}
 
+	/* Initialize the ipc mailbox for the client for processing pending callbacks */
+	if (NCSCC_RC_SUCCESS != ava_callback_ipc_init(hdl_rec)) {
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+
 	/* pass the handle value to the appl */
 	if (SA_AIS_OK == rc) {
 		TRACE_1("saAmfHandle returned to application is: %llx", *o_hdl);
@@ -258,7 +264,8 @@ SaAisErrorT saAmfSelectionObjectGet(SaAmfHandleT hdl, SaSelectionObjectT *o_sel_
 		goto done;
 
 	/* everything's fine.. pass the sel obj to the appl */
-	*o_sel_obj = (SaSelectionObjectT)m_GET_FD_FROM_SEL_OBJ(hdl_rec->sel_obj);
+	*o_sel_obj = (SaSelectionObjectT)
+            m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->callbk_mbx));
 
  done:
 	/* api post processing */
