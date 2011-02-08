@@ -78,7 +78,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_AVD_NODE_UP_MSG:
 	case AVND_EVT_AVD_REG_SU_MSG:
 	case AVND_EVT_AVD_REG_COMP_MSG:
-	case AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG:
 	case AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG:
 	case AVND_EVT_AVD_PG_UPD_MSG:
 	case AVND_EVT_AVD_OPERATION_REQUEST_MSG:
@@ -91,6 +90,11 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_AVD_ROLE_CHANGE_MSG:
 	case AVND_EVT_AVD_ADMIN_OP_REQ_MSG:
 	case AVND_EVT_AVD_REBOOT_MSG:
+		evt->info.avd = (AVSV_DND_MSG *)info;
+		break;
+		/* new job tasks have lowest priority, important if AvND is under heavy stress */
+	case AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG:
+		evt->priority = NCS_IPC_PRIORITY_LOW;
 		evt->info.avd = (AVSV_DND_MSG *)info;
 		break;
 
