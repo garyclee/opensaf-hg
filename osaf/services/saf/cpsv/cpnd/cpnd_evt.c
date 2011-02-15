@@ -2977,7 +2977,7 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPND_E
 	SaAisErrorT error = SA_AIS_OK;
 
 	cpnd_ckpt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &cp_node);
-	cpnd_evt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.from_svc, &evt_node);
+	cpnd_evt_node_get(cb, evt->info.ckpt_nd2nd_data_rsp.ckpt_id, &evt_node);
 
 	memset(&rsp_evt, '\0', sizeof(CPSV_EVT));
 
@@ -3053,6 +3053,13 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPND_E
 
  error:
 	if (evt_node != NULL) {
+
+		if (evt_node->write_rsp_tmr.is_active)
+                {
+                        cpnd_tmr_stop(&evt_node->write_rsp_tmr);
+                
+                }
+		
 		/*Send Error response to CPA */
 		switch (evt->info.ckpt_write.type) {
 		case CPSV_DATA_ACCESS_WRITE_RSP:
