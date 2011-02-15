@@ -1552,7 +1552,7 @@ uns32 cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 	CPSV_EVT rsp_evt;
 
 	cpnd_ckpt_node_get(cb, tmr_info->ckpt_id, &cp_node);
-	cpnd_evt_node_get(cb, tmr_info->agent_dest, &evt_node);
+	cpnd_evt_node_get(cb, tmr_info->ckpt_id, &evt_node);
 
 	memset(&rsp_evt, 0, sizeof(CPSV_EVT));
 

@@ -281,9 +281,9 @@ CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_evt_node_get(CPND_CB *cb, MDS_DEST dest, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
+void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
-	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uns8 *)&dest);
+	*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_get(&cb->writeevt_db, (uns8 *)&checkpointHandle);
 	return;
 }
 
@@ -298,10 +298,10 @@ void cpnd_evt_node_get(CPND_CB *cb, MDS_DEST dest, CPSV_CPND_ALL_REPL_EVT_NODE *
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_evt_node_getnext(CPND_CB *cb, MDS_DEST dest, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
+void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT checkpointHandle, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node)
 {
-	if (dest)
-		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)&dest);
+	if (checkpointHandle)
+		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)&checkpointHandle);
 	else
 		*evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE *)ncs_patricia_tree_getnext(&cb->writeevt_db, (uns8 *)NULL);
 	return;
@@ -322,7 +322,7 @@ uns32 cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	evt_node->patnode.key_info = (uns8 *)&evt_node->sinfo.dest;
+	evt_node->patnode.key_info = (uns8 *)&evt_node->ckpt_id;
 
 	rc = ncs_patricia_tree_add(&cb->writeevt_db, (NCS_PATRICIA_NODE *)&evt_node->patnode);
 	return rc;
@@ -874,7 +874,7 @@ uns32 cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-	param.key_size = sizeof(MDS_DEST);
+	param.key_size = sizeof(SaCkptCheckpointHandleT);
 	if (ncs_patricia_tree_init(&cb->writeevt_db, &param) != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
 
