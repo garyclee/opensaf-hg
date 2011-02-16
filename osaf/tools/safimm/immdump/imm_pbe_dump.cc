@@ -100,7 +100,7 @@ static void valuesToPBE(const SaImmAttrValuesT_2* p,
 			break;
 
 		default:
-			LOG_ER("Unknown value type %u", p->attrValueType);
+			LOG_ER("Unknown value type: %u (line:%u)", p->attrValueType, __LINE__);
 			abort();
 	}
 	sqlG.append(objIdStr);
@@ -624,7 +624,7 @@ ClassInfo* classToPBE(std::string classNameString,
 	sqlite3_close((sqlite3 *) dbHandle);
 	delete classInfo;
 	/* TODO remove imm.db file */
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -732,7 +732,7 @@ void deleteClassToPBE(std::string classNameString, void* db_handle,
 
 bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -777,7 +777,7 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 
@@ -884,7 +884,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 	TRACE_2("Successfully accessed object '%s'. cols:%u", 
@@ -908,7 +908,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 		&ncols, &zErr);
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 
@@ -956,7 +956,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 			break;
 
 		default:
-			LOG_ER("Unknown value type %u", attr_type);
+			LOG_ER("Unknown value type: %u (line:%u)", attr_type, __LINE__);
 			goto bailout;
 		}
 
@@ -992,7 +992,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 		}
 
 		if(nrows != 1) {
-			LOG_ER("Expected 1 row got %u rows", nrows);
+			LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 			goto bailout;
 		}
 
@@ -1030,7 +1030,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
  bailout:
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -1077,7 +1077,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 	TRACE_2("Successfully accessed object '%s'. cols:%u", 
@@ -1100,7 +1100,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 		&ncols, &zErr);
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 
@@ -1154,7 +1154,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 			break;
 
 		default:
-			LOG_ER("Unknown value type %u", attr_type);
+			LOG_ER("Unknown value type: %u (line:%u)", attr_type, __LINE__);
 			goto bailout;
 		}
 
@@ -1203,7 +1203,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 		}
 
 		if(nrows != 1) {
-			LOG_ER("Expected 1 row got %u rows", nrows);
+			LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 			goto bailout;
 		}
 		TRACE_2("Successfully accessed classes class_id:%s class_name:'%s'. cols:%u", 
@@ -1249,7 +1249,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
  bailout:
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -1292,7 +1292,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 	TRACE_2("Successfully accessed object '%s'. cols:%u", 
@@ -1316,7 +1316,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 		&ncols, &zErr);
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 
@@ -1361,7 +1361,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 		}
 
 		if(nrows != 1) {
-			LOG_ER("Expected 1 row got %u rows", nrows);
+			LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 			goto bailout;
 		}
 
@@ -1401,7 +1401,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -1478,7 +1478,7 @@ unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string clas
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);	
 }
 
@@ -1558,7 +1558,7 @@ unsigned int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classId
 	return obj_count;
  bailout:
 	sqlite3_close(dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -1603,7 +1603,7 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 	TRACE_2("Successfully accessed object '%s'. cols:%u", 
@@ -1643,7 +1643,7 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 	class_name = result2[ncols];
@@ -1715,7 +1715,7 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
 
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -1845,7 +1845,7 @@ void objectToPBE(std::string objectNameString,
 	return;
  bailout:
 	sqlite3_close(dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	/* TODO remove imm.db file */
 	exit(1);
 }
@@ -1893,7 +1893,7 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);	
 }
 
@@ -1944,7 +1944,7 @@ unsigned int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* 
 	}
 
 	if(nrows != 1) {
-		LOG_ER("Expected 1 row got %u rows", nrows);
+		LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 		goto bailout;
 	}
 
@@ -2067,7 +2067,7 @@ unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	return object_id; /* == number of dumped objects */
  bailout:
 	sqlite3_close(dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -2162,7 +2162,7 @@ void purgeCcbCommitsFromPbe(void* db_handle, SaUint32T currentEpoch)
 
  bailout:
 	sqlite3_close(dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
@@ -2206,7 +2206,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 
 	if(nrows != 1) {
 		if(nrows > 1) {
-			LOG_ER("Expected 1 row got %u rows", nrows);
+			LOG_ER("Expected 1 row got %u rows (line: %u)", nrows, __LINE__);
 			goto bailout;
 		}
 		LOG_NO("getCcbOutcomeFromPbe: Could not find ccb %llu presume ABORT", ccbId);
@@ -2231,7 +2231,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 	return err;
  bailout:
 	sqlite3_close(dbHandle);
-	LOG_ER("Exiting");
+	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
 }
 
