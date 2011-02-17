@@ -836,10 +836,16 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 		}
 	}
 
-	if(cl_node->isPbe && !isPrtObj && (evt->info.ccbCompl.invocation==0) && 
-		!(imma_oi_ccb_record_exists(cl_node, evt->info.ccbCompl.ccbId))) {
-		TRACE("Faking Ccb record in ccb completed upcall => PBE recovery,");
-		imma_oi_ccb_record_add(cl_node, evt->info.ccbCompl.ccbId, 1/* Hack! Op was initialized to 1*/);
+	if(cl_node->isPbe && !isPrtObj && (evt->info.ccbCompl.invocation==0)) {
+		if(imma_oi_ccb_record_exists(cl_node, evt->info.ccbCompl.ccbId)) {
+			LOG_WA("Redundant & anonymous CCB-completed UC for %u => ignore",
+				evt->info.ccbCompl.ccbId);
+			return;
+		} else {
+			LOG_WA("Re-inserting Ccb record %u in ccb-completed upcall => PBE recovery,",
+				evt->info.ccbCompl.ccbId);
+			imma_oi_ccb_record_add(cl_node, evt->info.ccbCompl.ccbId, 1/* Hack! Op was initialized to 1*/);
+		}
 	} 
 
 	/* Allocate the Callback info */
