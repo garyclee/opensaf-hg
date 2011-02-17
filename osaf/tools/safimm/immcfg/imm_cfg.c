@@ -45,6 +45,8 @@
 //#include <config.h>
 //#endif
 
+#define HAVE_TESTS
+
 static SaVersionT immVersion = { 'A', 2, 1 };
 int verbose = 0;
 int population = 0;

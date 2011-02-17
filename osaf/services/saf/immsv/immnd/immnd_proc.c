@@ -66,7 +66,7 @@ void immnd_proc_immd_down(IMMND_CB *cb)
 /****************************************************************************
  * Name          : immnd_proc_imma_discard_connection
  *
- * Description   : Function to handle Director going down
+ * Description   : Function to handle lost connection.
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMND_IMM_CLIENT_NODE *cl_node - a client node.
@@ -931,10 +931,12 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		if(cb->mRim == SA_IMM_KEEP_REPOSITORY) {
 			SaUint32T pbeConn = 0;
 			if(cb->pbePid > 0) {/* Pbe is running. */
-				/* PBE has probably crashed and been restarted.
+				/* PBE may have crashed or been restarted.
 				   This is the typical case where we could get 
 				   ccbs stuck in critical. Fetch the list of stuck
 				   ccb ids and probe the pbe for their outcome. 
+				   It is also possible that a very large CCB is
+				   being committed by the PBE.
 				 */
 				NCS_NODE_ID pbeNodeId = 0;
 				SaUint32T pbeId = 0;
@@ -970,9 +972,6 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 						   ccb outcome (or discard ccb) reply. This should hopefully click
 						   into the pending waitingforccbcompletedcontinuations, which should
 						   casue the ccb to get resolved. 
-
-						   Maybe, just maybe, first send a dummy ccb-op call to the oi ?
-						   This would also be safer.
 						 */
 						send_evt.info.imma.info.ccbCompl.ccbId = ccbIdArr[ix];
 						TRACE_2("MAKING CCB COMPLETED RECOVERY upcall for ccb:%u", ccbIdArr[ix]);
@@ -1085,7 +1084,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 
 	if(pbePrtoStuck) {
 		if(cb->pbePid > 0) {
-			LOG_ER("PBE process appears stuck on runtime data handling - restarting");
+			LOG_ER("PBE process appears stuckk on runtime data handling - restarting");
 			kill(cb->pbePid, SIGTERM);
 		}
 	}
