@@ -1496,6 +1496,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 
 		/* if not found, scan based on su rank for the sg */
 		if (!curr_su) {
+			/* Reset pref_su for every SI */	
+			pref_su = NULL;
 
 			for (curr_su = sg->list_of_su; curr_su; curr_su = curr_su->sg_list_su_next) {
 				if (SA_AMF_READINESS_IN_SERVICE == curr_su->saAmfSuReadinessState) {
@@ -1534,9 +1536,8 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			if (TRUE == is_all_su_oos)
 				return NCSCC_RC_SUCCESS;
 
-			if (pref_su != NULL)
-				/* if there is preferred SU then let it take
-				 * active assignment fo this SI */
+			/* pref_su is used only for equal_ranked_su, so adding the check */
+			if (TRUE == sg->equal_ranked_su)
 				curr_su = pref_su;
 		}
 
