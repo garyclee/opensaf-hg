@@ -128,6 +128,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	SaImmAttrModificationTypeT modType = SA_IMM_ATTR_VALUES_REPLACE;
 
 	if (className == NULL) {
+		fprintf(stderr, "Object with DN '%s' does not exist\n", objectName->value);
 		res = -1;
 		goto done;
 	}
