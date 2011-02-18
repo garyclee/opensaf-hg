@@ -98,16 +98,14 @@ static void csi_add_to_model(AVD_CSI *csi)
 
 void avd_csi_delete(AVD_CSI *csi)
 {
-	AVD_CSI_ATTR *i_csi_attr, *temp;
+	AVD_CSI_ATTR *temp;
 	unsigned int rc;
 
 	/* Delete CSI attributes */
-	i_csi_attr = csi->list_attributes;
-	while (i_csi_attr != NULL) {
-		avd_csi_remove_csiattr(csi, i_csi_attr);
-		temp = i_csi_attr;
-		i_csi_attr = csi->list_attributes;
-		free(temp);
+	temp = csi->list_attributes;
+	while (temp != NULL) {
+		avd_csi_remove_csiattr(csi, temp);
+		temp = csi->list_attributes;
 	}
 
 	avd_cstype_remove_csi(csi);
@@ -1117,6 +1115,7 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 			csi->list_attributes = i_attr->attr_next;
 		} else {
 			p_attr->attr_next = i_attr->attr_next;
+			free(attr);
 		}
 	}
 

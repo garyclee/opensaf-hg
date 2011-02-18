@@ -132,7 +132,37 @@ done:
 
 	return csiattr;
 }
+/*
+ * @brief This routine searches csi attr matching att_name + value, if it finds checks if only one
+ * 	  entry or more then one are present.
+ *
+ * @param[in] Csi pointer
+ *
+ * @retuen AVD_CSI_ATTR
+ */
+static AVD_CSI_ATTR *csi_name_value_pair_find_last_entry(AVD_CSI *csi, SaNameT *attr_name)
+{
+	AVD_CSI_ATTR *i_attr = csi->list_attributes;
+	AVD_CSI_ATTR *attr = NULL;
+	SaUint32T    found_once = FALSE;
 
+	TRACE_ENTER();
+
+	while (i_attr != NULL) {
+		if (strncmp((char *)&i_attr->name_value.name.value, (char *)&attr_name->value,
+				attr_name->length) == 0) {
+			if (found_once == TRUE) {
+				/* More then one entry exist */
+				return NULL;
+			}
+			found_once = TRUE;
+			attr = i_attr;
+		}
+		i_attr = i_attr->attr_next;
+	}
+	TRACE_LEAVE();
+	return attr;
+}
 /*****************************************************************************
  * Function: csi_name_value_pair_find
  * 
@@ -149,6 +179,7 @@ done:
 static AVD_CSI_ATTR * csi_name_value_pair_find(AVD_CSI *csi, SaNameT *csiattr_name, char *value)
 {
         AVD_CSI_ATTR *i_attr = csi->list_attributes;
+	TRACE_ENTER();
 
         while (i_attr != NULL) {
 		if ((strncmp((char *)&i_attr->name_value.name.value, (char *)&csiattr_name->value, 
@@ -506,7 +537,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	const SaImmAttrValuesT_2 *attribute;
-	AVD_CSI_ATTR *csiattr = NULL, *i_attr;
+	AVD_CSI_ATTR *csiattr = NULL, *i_attr, *tmp_csi_attr = NULL;
         SaNameT csi_attr_name, csi_dn;
 	int i, counter = 0;
 	AVD_CSI *csi;
@@ -524,6 +555,17 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 	while ((attr_mod = opdata->param.modify.attrMods[counter++]) != NULL) {
 		attribute = &attr_mod->modAttr;
 		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
+			tmp_csi_attr = csi_name_value_pair_find_last_entry(csi, &csi_attr_name);
+			if((NULL != tmp_csi_attr)&&  (!tmp_csi_attr->name_value.value.length)) {
+				/* dummy csi_attr_name+value node is present in the csi->list_attributes
+				* use this node for adding the first value
+				*/
+				char *value = *(char **)attribute->attrValues[0];
+				tmp_csi_attr->name_value.value.length = strlen(value);
+				memcpy(tmp_csi_attr->name_value.value.value, value,
+				tmp_csi_attr->name_value.value.length );
+				i = 1;
+			}
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
 				char *value = *(char **)attribute->attrValues[i++];
 				if ((i_attr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
@@ -540,13 +582,26 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 				memcpy(csiattr->name_value.value.value, value, csiattr->name_value.value.length );
 			} /* for  */
 			/* add the modified csiattr values to parent csi */
-			avd_csi_add_csiattr(csi, csiattr);
+			if(csiattr) {
+				avd_csi_add_csiattr(csi, csiattr);
+			}
 		} else if (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType) {
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
 				char *value = *(char **)attribute->attrValues[i++];
 
 				if ((csiattr = csi_name_value_pair_find(csi, &csi_attr_name, value))) {
-					avd_csi_remove_csiattr(csi, csiattr);
+					tmp_csi_attr = csi_name_value_pair_find_last_entry(csi,
+								&csiattr->name_value.name);
+					if(tmp_csi_attr) {
+						/* Only one entry with this csi_attr_name is present, so set NULL value.
+						 * This is to make  sure that csi_attr node in the csi->list_attributes
+						 * wont be deleted when there is only  one name+value pair is found
+						 */
+						memset(&tmp_csi_attr->name_value.value,0,
+						sizeof(tmp_csi_attr->name_value.value));
+					} else {
+							avd_csi_remove_csiattr(csi, csiattr);
+					}
 				}
 
 			}
