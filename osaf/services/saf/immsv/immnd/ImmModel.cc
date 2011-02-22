@@ -7512,8 +7512,10 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                     /* Add extra wait time for large PBE transactions. */
                     unsigned int mutations = (unsigned int) (*i3)->mMutations.size();
                     int addSecs = mutations/800;
-                    TRACE("Adding %u secconds to timeout on large ccb (%u) ccbId:%u",
-                        addSecs, mutations, (*i3)->mId);
+                    if(addSecs) {
+                        TRACE("Adding %u secconds to timeout on large ccb (%u) ccbId:%u",
+                            addSecs, mutations, (*i3)->mId);
+                    }
                     if((*i3)->mPbeRestartId) {
                         LOG_WA("Ccb: %u in critical state when PBE restarted", (*i3)->mId);
                         ccbsStuck=1;
