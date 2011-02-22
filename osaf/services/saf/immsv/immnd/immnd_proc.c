@@ -945,7 +945,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 				SaUint32T ccbIdArrSize = 0;
 				immModel_getOldCriticalCcbs(cb, &ccbIdArr, &ccbIdArrSize,
 					&pbeConn, &pbeNodeId, &pbeId);
-				if(pbeConn) {
+				if(ccbIdArrSize) {
+					assert(pbeConn);
 					IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
 					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 					IMMSV_EVT send_evt;
@@ -956,8 +957,6 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 					send_evt.info.imma.info.ccbCompl.implId = pbeId;
 					send_evt.info.imma.info.ccbCompl.invocation = 0;/* anonymous */
 
-
-					assert(ccbIdArrSize);
 					/*Fetch client node for PBE */
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
 					assert(oi_cl_node);
