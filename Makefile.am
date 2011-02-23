@@ -176,10 +176,16 @@ dist_pkgimmxml_DATA = \
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/amf-adm \
 	$(top_srcdir)/scripts/amf-find \
-	$(top_srcdir)/scripts/amf-state \
+	$(top_srcdir)/scripts/amf-state
+
+if ENABLE_AIS_SMF
+
+dist_bin_SCRIPTS += \
 	$(top_srcdir)/scripts/smf-adm \
 	$(top_srcdir)/scripts/smf-find \
 	$(top_srcdir)/scripts/smf-state
+
+endif
 
 dist_pkgimmxml_SCRIPTS = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/baseimm.py \
