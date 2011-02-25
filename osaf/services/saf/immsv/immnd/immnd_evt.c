@@ -3910,7 +3910,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			send_evt.info.immnd.info.fevsReq.msg.size = size;
 			send_evt.info.immnd.info.fevsReq.msg.buf = data;
 
-			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, sinfo);
+			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				TRACE_2("Failed send fevs message");	/*Error already logged in fevs_fo */
 				uba.start = NULL;
