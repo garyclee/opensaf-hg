@@ -162,7 +162,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 				      IMMSV_SEND_INFO *sinfo, SaBoolT async, SaBoolT local);
 
-static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack);
 static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -529,7 +529,7 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_IMM_FEVS:
 	case IMMND_EVT_A2ND_IMM_FEVS_2:
-		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo);
+		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
 		break;
 
 	case IMMND_EVT_A2ND_CLASS_DESCR_GET:
@@ -2209,10 +2209,12 @@ static void dump_usrbuf(USRBUF *ub)
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
+ *                 onStack - SA_TRUE => message resides on stack.
+ *                           SA_FALSE => message resides on heap.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
+static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack)
 {
 	IMMSV_EVT send_evt;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -2286,6 +2288,13 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
 		if(asyncReq) {
+			if(onStack) {
+				/* Delaying the send => message must be copied to heap. */
+				char * buf = malloc(evt->info.fevsReq.msg.size);
+				memcpy(buf, evt->info.fevsReq.msg.buf, evt->info.fevsReq.msg.size);
+				evt->info.fevsReq.msg.buf = buf;
+
+			}
 			unsigned int backlog = 
 				immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
 
@@ -3910,7 +3919,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			send_evt.info.immnd.info.fevsReq.msg.size = size;
 			send_evt.info.immnd.info.fevsReq.msg.buf = data;
 
-			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL);
+			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL, SA_TRUE);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				TRACE_2("Failed send fevs message");	/*Error already logged in fevs_fo */
 				uba.start = NULL;
@@ -6178,7 +6187,7 @@ void dequeue_outgoing(IMMND_CB *cb)
 		unsigned int backlog = 
 			immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
 
-		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL) != NCSCC_RC_SUCCESS) {
+		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL, SA_FALSE) != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to process delayed asyncronous fevs message - discarded");
 		}
 		--space;
