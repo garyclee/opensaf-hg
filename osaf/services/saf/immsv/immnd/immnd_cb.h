@@ -113,6 +113,7 @@ typedef struct immnd_cb_tag {
 	uns8 mIntroduced;	//Ack received on introduce message
 	uns8 mSyncRequested;	//true=> I am coord, other req sync
 	uns8 mPendSync;		//1=>sync announced but not received.
+	uns8 mSyncFinalizing;   //1=>finalizeSync sent but not received.
 	uns8 mSync;		//true => this node is being synced (client).
 	uns8 mCanBeCoord;
 	uns8 mIsCoord;
