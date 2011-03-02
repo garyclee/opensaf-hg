@@ -162,7 +162,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 				      IMMSV_SEND_INFO *sinfo, SaBoolT async, SaBoolT local);
 
-static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack);
+static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, 
+	SaBoolT onStack, SaBoolT newMsg);
 static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -529,7 +530,7 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_IMM_FEVS:
 	case IMMND_EVT_A2ND_IMM_FEVS_2:
-		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_TRUE);
 		break;
 
 	case IMMND_EVT_A2ND_CLASS_DESCR_GET:
@@ -2209,12 +2210,24 @@ static void dump_usrbuf(USRBUF *ub)
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 onStack - SA_TRUE => message resides on stack.
+ *                 sinfo    - Reply address for syncronous call.
+ *                 onStack - SA_TRUE => Message resides on stack. 
  *                           SA_FALSE => message resides on heap.
+ *                 newMsg  - SA_TRUE => If the fevs out-queue is not empty,
+ *                                      New messages can be forced to go via
+ *                                      the out-queue even when there is no 
+ *                                      fevs overflow. This to maintain sender
+ *                                      order and not only IMMD fevs order.
+ *                                      Sender order is currently used during
+ *                                      sync to avoid finalizeSync bypassing
+ *                                      any part of the sync contents.
+ *                           SA_FALSE =>Message has already passed queue.
+ *                                      Fevs order through IMMD is enough.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack)
+static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack,
+	SaBoolT newMsg)
 {
 	IMMSV_EVT send_evt;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -2286,8 +2299,11 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		}
 	}
 
-	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
+	/* If overflow .....OR sync is on-going AND out-queue is not empty => go via out-queue */
+	if ((cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) || 
+		((cb->mState == IMM_SERVER_SYNC_SERVER) && cb->fevs_out_count && asyncReq && newMsg)) {
 		if(asyncReq) {
+
 			if(onStack) {
 				/* Delaying the send => message must be copied to heap. */
 				char * buf = malloc(evt->info.fevsReq.msg.size);
@@ -2310,6 +2326,8 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 			return NCSCC_RC_SUCCESS;
 		} else {
+			/* Syncronous message, never goes to out-queue, instead push back to user.
+			   Should only be for the overflow case. */
 			TRACE_2("ERR_TRY_AGAIN: Too many pending FEVS message replies (> %u) rejecting request",
 				IMMSV_DEFAULT_FEVS_MAX_PENDING);
 			error = SA_AIS_ERR_TRY_AGAIN;
@@ -3865,6 +3883,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 
 	if (cl_node->mIsSync) {
 		assert(cb->mIsCoord);
+		assert(!(cb->mSyncFinalizing));
 		memset(&send_evt, 0, sizeof(IMMSV_EVT));	/*No pointers=>no leak */
 		send_evt.type = IMMSV_EVT_TYPE_IMMND;
 		send_evt.info.immnd.type = IMMND_EVT_ND2ND_SYNC_FINALIZE_2;
@@ -3919,7 +3938,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			send_evt.info.immnd.info.fevsReq.msg.size = size;
 			send_evt.info.immnd.info.fevsReq.msg.buf = data;
 
-			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL, SA_TRUE);
+			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL, SA_TRUE, SA_TRUE);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				TRACE_2("Failed send fevs message");	/*Error already logged in fevs_fo */
 				uba.start = NULL;
@@ -3927,6 +3946,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			}
 
 			free(tmpData);
+			cb->mSyncFinalizing = 0x1;
 		}
 	} else {
 		LOG_ER("Will not allow sync messages from any process except sync process");
@@ -4556,10 +4576,10 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 		err = immModel_rtObjectUpdate(cb, &(evt->info.objModify), reqConn, nodeId, &isLocal,
 			&continuationId, &pbeConn, pbeNodeIdPtr);
 		if(err != SA_AIS_OK) {
-			LOG_WA("Got error on non local rt object update");
+			LOG_WA("Got error on non local rt object update err: %u", err);
 			if(cb->mIsCoord && immModel_immNotWritable(cb) && 
 				(cb->mState == IMM_SERVER_SYNC_SERVER)) {
-				LOG_WA("Failed RtObject update has to abbort sync");
+				LOG_WA("Failed RtObject update has to abort sync");
 				immnd_abortSync(cb);
 			}
 		}
@@ -5811,6 +5831,7 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *s
 
 	if (cb->mIsCoord) {	/* coord should already be up to date. */
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
+		assert(!(cb->mSyncFinalizing));
 	} else {		/* Noncoord IMMNDs */
 		if (cb->mState == IMM_SERVER_SYNC_CLIENT) {	/* Sync client will have to restart the sync */
 			cb->mState = IMM_SERVER_LOADING_PENDING;
@@ -6187,7 +6208,7 @@ void dequeue_outgoing(IMMND_CB *cb)
 		unsigned int backlog = 
 			immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
 
-		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL, SA_FALSE) != NCSCC_RC_SUCCESS) {
+		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL, SA_FALSE, SA_FALSE) != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed to process delayed asyncronous fevs message - discarded");
 		}
 		--space;
@@ -6535,6 +6556,10 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		TRACE_2("Triggered %u active resurrects", count);
 	} else {
 		if (cb->mIsCoord) {
+			if(!(cb->mSyncFinalizing)) {
+				LOG_WA("Received unexpected syncFinalize (sync aborted ?) - ignoring");
+				goto done;
+			}
 			IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 			immnd_client_node_get(cb, clnt_hdl, &cl_node);
 			if (cl_node == NULL || cl_node->mIsStale) {
@@ -6549,6 +6574,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			}
 			/*This adjust-epoch will persistify the new epoch for: coord. */
 			immnd_adjustEpoch(cb, SA_TRUE); /* Will assert if immd is down. */
+			cb->mSyncFinalizing = 0x0;
 		} else {
 			TRACE_2("FinalizeSync for veteran node that is non coord");
 			/* In this case we use the sync message to verify the state 
@@ -6564,6 +6590,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		}
 	}
 
+ done:
 	TRACE_LEAVE();
 }
 

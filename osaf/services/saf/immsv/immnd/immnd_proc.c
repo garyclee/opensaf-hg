@@ -723,12 +723,25 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
 	completed = immModel_syncComplete(cb);
 	if (completed) {
 		if (cb->mSync) {
-			cb->mSync = SA_FALSE;;
+			cb->mSync = SA_FALSE;
 
 			/*cb->mAccepted = SA_TRUE; */
 			/*BUGFIX this is too late! We arrive here not on fevs basis, 
 			   but on timing basis from immnd_proc. */
 			assert(cb->mAccepted);
+		} else if(coordinator) {
+			if(cb->mSyncFinalizing) {
+				assert(cb->mState == IMM_SERVER_SYNC_SERVER);
+				TRACE("Coord: Sync done, but waiting for confirmed "
+					"finalizeSync. Out queue:%u", cb->fevs_out_count);
+				/* We are FULLY_AVAIL in model, but wait for 
+				   finalizeSync to come back to coord over fevs
+				   before allowing server state to change. This
+				   to avoid the start of a new sync before the
+				   current sync is cleared form the system.
+				 */
+				completed = SA_FALSE;
+			}
 		}
 	}
 	return completed;
@@ -744,6 +757,22 @@ void immnd_abortSync(IMMND_CB *cb)
 	TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);
 	assert(cb->mIsCoord);
 	cb->mPendSync = 0;
+	if(cb->mSyncFinalizing) {
+		cb->mSyncFinalizing = 0x0;
+
+		LOG_WA("AbortSync when finalizesync already generated, possibly sent. "
+			" Epoch before adjust:%u", cb->mMyEpoch);
+		/* Clear the out-queue */
+		while(cb->fevs_out_count) {
+			IMMSV_OCTET_STRING msg;
+			SaImmHandleT clnt_hdl;
+			LOG_WA("immnd_abortSync: Discarding message from fevs out-queue, remaining:%u",
+				immnd_dequeue_outgoing_fevs_msg(cb, &msg, &clnt_hdl));
+
+			free(msg.buf);
+			msg.size=0;
+		}
+	}
 	immModel_abortSync(cb);
 
 	if (cb->mRulingEpoch == cb->mMyEpoch + 1) {
@@ -1693,7 +1722,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
 					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
-				} else {
+				} else if (!(cb->mSyncFinalizing)) {
 					int status = 0;
 					if (waitpid(cb->syncPid, &status, WNOHANG) > 0) {
 						LOG_ER("SYNC APPARENTLY FAILED status:%i", WEXITSTATUS(status));
