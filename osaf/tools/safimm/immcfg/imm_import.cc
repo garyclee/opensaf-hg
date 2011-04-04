@@ -41,19 +41,21 @@
 #define LOG_IN(format, args...) log_stderr(LOG_INFO, format, ##args)
 #define LOG_WA(format, args...) log_stderr(LOG_WARNING, format, ##args)
 #define LOG_ER(format, args...) log_stderr(LOG_ERR, format, ##args)
+#define LOG_NO(format, args...) log_stderr(LOG_NOTICE, format, ##args)
 // Trace statements not that informative, lets skip them...
 #define TRACE_8(format, args...)
 
 
 extern "C"
 {
-	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates);
+	int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe);
 }
 
 extern ImmutilErrorFnT immutilError;
 char* imm_import_adminOwnerName;
 static bool imm_import_verbose = false;
 static bool imm_import_ignore_duplicates = false;
+static bool imm_import_ccb_safe = true;
 
 /* The possible states of the parser */
 typedef enum
@@ -490,8 +492,11 @@ static void createImmObject(ParserState* state)
         {
             LOG_IN("IGNORE EXISTING OBJECT %s", state->objectName);
         }
-        else
-        {
+        else 
+	{
+	    if((errorCode == SA_AIS_ERR_NOT_EXIST) && imm_import_ccb_safe) {
+		    LOG_NO("Missing: implementer, or object, or attribute (see immcfg -h under '--unsafe')\n");
+	    }
             LOG_ER("Failed to create the imm object %s, rc =  %d", state->objectName, errorCode);
             exit(1);
         }
@@ -926,9 +931,7 @@ static void endElementHandler(void* userData,
 
             /* ... and initialize the imm ccb api  */
             errorCode = saImmOmCcbInitialize(state->ownerHandle,
-                                             0
-                                             /*(SaImmCcbFlagsT)
-                                               SA_IMM_CCB_REGISTERED_OI*/,
+                                             imm_import_ccb_safe?SA_IMM_CCB_REGISTERED_OI:0x0,
                                              &state->ccbHandle);
             if (errorCode != SA_AIS_OK)
             {
@@ -1821,12 +1824,13 @@ int loadImmXML(std::string xmlfile)
 // C and c++ caller wrapper
 //  The objective is to keep the code copied from imm_load.cc as close to original as possible
 //  to ease a future refactoring towards common codebase
-int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates)
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose, int ignore_duplicates, int ccb_safe)
 {
 	std::string xmlfile(xmlfileC);
 	imm_import_adminOwnerName = adminOwnerName;
 	imm_import_verbose = verbose;
         imm_import_ignore_duplicates = ignore_duplicates;
+        imm_import_ccb_safe = ccb_safe;
 	LOG_IN("file: %s adminOwner: %s", xmlfileC, adminOwnerName);
 
 	// assign own immutil errorhandler (no call to abort())
