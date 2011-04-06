@@ -20,6 +20,10 @@
 
 #include <saAis.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Log to SAF LOG system stream with priority and usr name
  * @param priority
@@ -28,5 +32,9 @@
  */
 extern void saflog(int priority, const SaNameT *logSvcUsrName,
 	const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
