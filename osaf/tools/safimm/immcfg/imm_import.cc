@@ -488,18 +488,24 @@ static void createImmObject(ParserState* state)
 
     if (SA_AIS_OK != errorCode)
     {
-        if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
-        {
-            LOG_IN("IGNORE EXISTING OBJECT %s", state->objectName);
-        }
-        else 
-	{
+	/* This implementation of ignore-duplicates only matches on object DN,
+           which is unsafe. A proper implementation must match the entire
+           object contents. 
+	   See #1560.
+	*/
+
+        //if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
+        //{
+        //    LOG_IN("IGNORE EXISTING OBJECT %s", state->objectName);
+        //}
+        //else 
+	//{
 	    if((errorCode == SA_AIS_ERR_NOT_EXIST) && imm_import_ccb_safe) {
 		    LOG_NO("Missing: implementer, or object, or attribute (see immcfg -h under '--unsafe')\n");
 	    }
             LOG_ER("Failed to create the imm object %s, rc =  %d", state->objectName, errorCode);
             exit(1);
-        }
+        //}
     }
 
 
@@ -588,15 +594,23 @@ static void createImmClass(ParserState* state)
 
     if (SA_AIS_OK != errorCode)
     {
-        if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
-        {
-            LOG_IN("IGNORE EXISTING CLASS %s", state->className);
-        } 
-        else
-        {
+	/* This implementation of ignore-duplicates only matches on class-name,
+           which is unsafe. It can cause an upgrade campaign to succeed when it 
+           should not succeed. A proper implementation must match the entire
+           class definition. This both for schema change situations but also 
+	   for the more basic class-nmame collision case between applications.
+	   See #1560.
+	*/
+
+        //if (imm_import_ignore_duplicates && (SA_AIS_ERR_EXIST == errorCode))
+        //{
+        //    LOG_IN("IGNORE EXISTING CLASS %s", state->className);
+        //} 
+        //else
+        //{
             LOG_ER("FAILED to create IMM class %s, rc = %d", state->className, errorCode);
             exit(1);
-        }
+        //}
     }
 
 
