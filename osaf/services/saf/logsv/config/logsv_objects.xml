@@ -73,7 +73,7 @@
 		</attr>
 		<attr>
 			<name>saLogStreamFixedLogRecordSize</name>
-			<value>200</value>
+			<value>0</value>
 		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
