@@ -58,6 +58,7 @@ extern "C" {
  * ========================================================================
  */
 	extern smfd_cb_t *smfd_cb;
+	extern const SaNameT *smfApplDN;
 	extern uns32 smfd_amf_init(smfd_cb_t *);
 	extern uns32 smfd_mds_init(smfd_cb_t *);
 	extern uns32 smfd_mds_finalize(smfd_cb_t *);

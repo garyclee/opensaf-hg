@@ -68,6 +68,7 @@
 
 SmfUpgradeStep::SmfUpgradeStep():
    m_state(SmfStepStateInitial::instance()),
+   m_stepState(SA_SMF_STEP_INITIAL),
    m_maxRetry(0), 
    m_retryCount(0), 
    m_restartOption(1), //True 
@@ -354,9 +355,12 @@ SmfUpgradeStep::setImmStateAndSendNotification(SaSmfStepStateT i_state)
 		return;
 	}
 
+	SaSmfStepStateT oldState = m_stepState;
+	m_stepState = i_state;
+
 	m_procedure->getProcThread()->updateImmAttr(this->getDn().c_str(), (char*)"saSmfStepState", SA_IMM_ATTR_SAUINT32T, &i_state);
 
-	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_STEP, SA_NTF_MANAGEMENT_OPERATION, SA_SMF_STEP_STATE, i_state);
+	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_STEP, SA_NTF_MANAGEMENT_OPERATION, SA_SMF_STEP_STATE, i_state, oldState);
 	TRACE_LEAVE();
 }
 

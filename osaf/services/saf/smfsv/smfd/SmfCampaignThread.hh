@@ -173,7 +173,7 @@ class SmfCampaignThread {
 /// @return  An interger returning 0 on success.
 ///
 	int sendStateNotification(const std::string & dn, uns32 classId, SaNtfSourceIndicatorT sourceInd, uns32 stateId,
-				  uns32 newState);
+				  uns32 newState, uns32 oldState);
 
 	SaImmOiHandleT getImmHandle();
 	SYSF_MBX & getCbkMbx();

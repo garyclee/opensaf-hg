@@ -19,6 +19,7 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
+#include <saflog.h>
 
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
@@ -26,10 +27,12 @@
 #include <logtrace.h>
 #include <rda_papi.h>
 
+#include "smfd.h"
 #include "SmfCampaignThread.hh"
 #include "SmfCampaign.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
+#include "SmfUtils.hh"
 
 SmfCampaignThread *SmfCampaignThread::s_instance = NULL;
 
@@ -418,7 +421,7 @@ SmfCampaignThread::getCbkMbx()
  * send state change notification to NTF.
  */
 int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 classId, SaNtfSourceIndicatorT sourceInd,
-					     uns32 stateId, uns32 newState)
+					     uns32 stateId, uns32 newState, uns32 oldState)
 {
 	SaAisErrorT rc;
 	int result = 0;
@@ -485,6 +488,9 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 class
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saNtfNotificationFree FAILED %d", rc);
 	}
+
+	updateSaflog(dn, stateId, newState, oldState);
+
 	return result;
 }
 
@@ -647,6 +653,7 @@ void SmfCampaignThread::main(void)
 		}
 	
                 LOG_NO("CAMP: Wait for RDA role to be Active");
+
 		while (numOfTries > 0) {
 			/* Rda get Role */
 			if ((rc = rda_get_role(&smfd_rda_role)) != NCSCC_RC_SUCCESS) {

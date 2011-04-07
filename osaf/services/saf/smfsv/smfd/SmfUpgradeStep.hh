@@ -680,6 +680,7 @@ class SmfUpgradeStep {
 	SmfUpgradeStep & operator=(const SmfUpgradeStep &);
 
 	SmfStepState *m_state;	          // Pointer to current step state class
+	SaSmfStepStateT m_stepState;      // The step state in IMM
 	unsigned int m_maxRetry;	  // Max Retry
 	unsigned int m_retryCount; 	  // Retry count
 	unsigned int m_restartOption;	  // Restart option

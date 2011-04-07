@@ -610,13 +610,14 @@ void
 SmfCampaign::setState(SaSmfCmpgStateT state)
 {
 	TRACE("Update campaign state from %u to %u", m_cmpgState, state);
+	SaSmfCmpgStateT oldState = m_cmpgState;
 
 	m_cmpgState = state;
 
 	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
 
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_CAMPAIGN, SA_NTF_MANAGEMENT_OPERATION,
-							     SA_SMF_CAMPAIGN_STATE, m_cmpgState);
+							     SA_SMF_CAMPAIGN_STATE, m_cmpgState, oldState);
 
         switch (state) {
         case SA_SMF_CMPG_EXECUTING:

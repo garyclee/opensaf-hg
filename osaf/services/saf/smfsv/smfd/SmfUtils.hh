@@ -27,7 +27,9 @@
 #include <list>
 #include <saImmOm.h>
 #include <saAis.h>
+#include <saflog.h>
 
+#include "smfd.h"
 #include "smfd_smfnd.h"
 
 /* ========================================================================
@@ -61,7 +63,9 @@ extern "C" {
         extern std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type);
         extern int  smf_opStringToInt(const char* i_str);
         extern int  smf_system(std::string i_cmd);
-        
+	extern void updateSaflog(const std::string& i_dn, const uns32& i_stateId, const uns32& i_newState, const uns32& i_oldState);
+	extern const std::string smfStateToString(const uns32& i_stateId, const uns32& i_state);
+
 #ifdef __cplusplus
 }
 #endif
