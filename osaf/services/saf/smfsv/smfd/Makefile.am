@@ -55,10 +55,12 @@ osafsmfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafsmfd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	$(top_srcdir)/osaf/tools/saflog/src/saflog.c \
 	smfd_amf.c \
 	smfd_evt.c \
 	smfd_main.c \
@@ -91,11 +93,12 @@ osafsmfd_LDFLAGS = \
 	@XML2_LIBS@
 
 osafsmfd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
-	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la
+	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

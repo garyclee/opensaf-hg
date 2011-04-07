@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <saAmf.h>
+#include <saSmf.h>
 #include <saAis.h>
 
 #include <immutil.h>
@@ -859,4 +860,157 @@ smf_system(std::string i_cmd)
 	}
 
 	return rc;
+}
+
+//------------------------------------------------------------------------------
+// updateSaflog()
+//------------------------------------------------------------------------------
+void
+updateSaflog(const std::string& i_dn, const uns32& i_stateId, const uns32& i_newState, const uns32& i_oldState)
+{
+	const std::string newStateStr = smfStateToString(i_stateId, i_newState);
+	const std::string oldStateStr = smfStateToString(i_stateId, i_oldState);
+	saflog(LOG_NOTICE, smfApplDN, "%s State %s => %s", i_dn.c_str(), oldStateStr.c_str(), newStateStr.c_str());
+}
+
+//------------------------------------------------------------------------------
+// smfStateToString()
+//------------------------------------------------------------------------------
+const std::string 
+smfStateToString(const uns32& i_stateId, const uns32& i_state)
+{
+	if (i_stateId == SA_SMF_STEP_STATE) {
+		switch (i_state) {
+		case 1:
+			return "INITIAL";
+			break;
+		case 2:
+			return "EXECUTING";
+			break;
+		case 3:
+			return "UNDOING";
+			break;
+		case 4:
+			return "COMPLETED";
+			break;
+		case 5:
+			return "UNDONE";
+			break;
+		case 6:
+			return "FAILED";
+			break;
+		case 7:
+			return "ROLLING_BACK";
+			break;
+		case 8:
+			return "UNDOING_ROLLBACK";
+			break;
+		case 9:
+			return "ROLLED_BACK";
+			break;
+		case 10:
+			return "ROLLBACK_UNDONE";
+			break;
+		case 11:
+			return "ROLLBACK_FAILED";
+			break;
+		default:
+			return "Unknown step state";
+			break;
+		}
+			
+	} else if (i_stateId == SA_SMF_PROCEDURE_STATE) {
+		switch (i_state) {
+		case 1:
+			return "INITIAL";
+			break;
+		case 2:
+			return "EXECUTING";
+			break;
+		case 3:
+			return "SUSPENDED";
+			break;
+		case 4:
+			return "COMPLETED";
+			break;
+		case 5:
+			return "STEP_UNDONE";
+			break;
+		case 6:
+			return "FAILED";
+			break;
+		case 7:
+			return "ROLLING_BACK";
+			break;
+		case 8:
+			return "ROLLBACK_SUSPENDED";
+			break;
+		case 9:
+			return "ROLLED_BACK";
+			break;
+		case 10:
+			return "ROLLBACK_FAILED";
+			break;
+		default:
+			return "Unknown procedure state";
+			break;
+		}
+
+	} else if (i_stateId == SA_SMF_CAMPAIGN_STATE) {
+		switch (i_state) {
+		case 1:
+			return "INITIAL";
+			break;
+		case 2:
+			return "EXECUTING";
+			break;
+		case 3:
+			return "SUSPENDING_EXECUTION";
+			break;
+		case 4:
+			return "EXECUTION_SUSPENDED";
+			break;
+		case 5:
+			return "EXECUTION_COMPLETED";
+			break;
+		case 6:
+			return "CAMPAIGN_COMMITTED";
+			break;
+		case 7:
+			return "ERROR_DETECTED";
+			break;
+		case 8:
+			return "SUSPENDED_BY_ERROR_DETECTED";
+			break;
+		case 9:
+			return "ERROR_DETECTED_IN_SUSPENDING";
+			break;
+		case 10:
+			return "EXECUTION_FAILED";
+			break;
+		case 11:
+			return "ROLLING_BACK";
+			break;
+		case 12:
+			return "SUSPENDING_ROLLBACK";
+			break;
+		case 13:
+			return "ROLLBACK_SUSPENDED";
+			break;
+		case 14:
+			return "ROLLBACK_COMPLETED";
+			break;
+		case 15:
+			return "ROLLBACK_COMMITTED";
+			break;
+		case 16:
+			return "ROLLBACK_FAILED";
+			break;
+		default:
+			return "Unknown campaign state";
+			break;
+		}
+	} else {
+		return "Unknown state ID";
+	}
 }
