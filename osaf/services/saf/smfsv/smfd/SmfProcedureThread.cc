@@ -174,7 +174,7 @@ SmfProcedureThread::init(void)
 	if (result == SA_AIS_ERR_NOT_EXIST) {
 		/* Create our Imm runtime object */
 		if ((result = createImmProcedure(m_procedure)) != SA_AIS_OK) {
-			LOG_ER("createImmProcedure FAILED %d", rc);
+			LOG_ER("createImmProcedure FAILED %d", result);
 			return -1;
 		}
 	} else if (result == SA_AIS_OK) {
