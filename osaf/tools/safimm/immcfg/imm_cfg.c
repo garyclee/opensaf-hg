@@ -662,7 +662,7 @@ static void ccb_create_obj(SaNameT* parentDn, SaNameT* rdnVal, SaImmCcbHandleT c
 	} while ((err == SA_AIS_ERR_TRY_AGAIN) && (retries < 15));
 
 	if(err != SA_AIS_OK) {
-		if((error == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
+		if((err == SA_AIS_ERR_NOT_EXIST) && ccb_safe) {
 			fprintf(stderr, "Missing: implementer, or object, or attribute "
 				"(see immcfg -h under '--unsafe')\n");
 		}
@@ -889,7 +889,7 @@ int main(int argc, char *argv[])
 		case 'p':
 			op = POPULATE_IMM;
 			population = atol(optarg);
-			className = argv[3];
+			className = strdup(argv[ccb_safe?3:4]);
 			break;
 		}
 		default:
