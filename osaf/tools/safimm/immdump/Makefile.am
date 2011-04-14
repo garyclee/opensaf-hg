@@ -29,7 +29,8 @@ immdump_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	imm_dumper.cc \
 	imm_pbe_dump.cc \
-	imm_pbe_daemon.cc
+	imm_pbe_daemon.cc \
+	imm_xmlw_dump.cc
 
 immdump_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

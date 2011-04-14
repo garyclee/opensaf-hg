@@ -59,6 +59,8 @@ static void usage(const char *progname)
     printf("\nOPTIONS\n");
     printf("\t-h, --help\n");
     printf("\t\tthis help\n\n");
+    printf("\t-x, --xmlwriter   {<file name>}\n");
+    printf("\t\tGenerate xml file using xmlWriter instead of xmlDoc (saves memory)\n\n");
     printf("\t-p, --pbe   {<file name>}\n");
     printf("\t\tInstead of xml file, generate/populate persistent back-end database/file\n");
 
@@ -102,6 +104,7 @@ int main(int argc, char* argv[])
         {"daemon", no_argument, 0, 'd'},
         {"pbe", required_argument, 0, 'p'},
         {"recover", no_argument, 0, 'r'},
+        {"xmlwriter", no_argument, 0, 'x'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
@@ -130,6 +133,7 @@ int main(int argc, char* argv[])
     bool pbeDumpCase = false;
     bool pbeDaemonCase = false;
     bool pbeRecoverFile = false;
+    bool xmlwDumpCase = false;
     void* dbHandle=NULL;
     const char* dump_trace_label = "immdump";
     const char* pbe_daemon_trace_label = "immpbe";
@@ -158,11 +162,12 @@ int main(int argc, char* argv[])
     if ((argc < 2) || (argc > 5))
     {
         printf("Usage: %s <xmldumpfile>\n", argv[0]);
+	usage(argv[0]);
         exit(1);
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hdrp:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hdrp:x:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -181,13 +186,17 @@ int main(int argc, char* argv[])
 			    pbeDumpCase = true;
 		    }
 
-		    //filename.append(argv[3]);
 		    filename.append(optarg);
                     break;
 
                 case 'r':
 		    pbeDumpCase = false;
 		    pbeRecoverFile = true;
+                    break;
+
+                case 'x':
+                    xmlwDumpCase = true;
+                    filename.append(optarg);
                     break;
 
                 default:
@@ -339,12 +348,65 @@ int main(int argc, char* argv[])
 
     assert(!pbeDumpCase && !pbeDaemonCase);
 
+
+
+    if(xmlwDumpCase) {
+        std::cout << "Dumping current IMM state to XML file " << filename << 
+            " using XMLWriter" << std::endl;
+
+        xmlTextWriterPtr writer=xmlNewTextWriterFilename(filename.c_str(),0);
+
+        if(writer == NULL)  {
+            std::cout << "Error at xmlNewTextWriterFilename" << std::endl;
+            exit(1);
+        }
+
+        if(xmlTextWriterSetIndent(writer,1) < 0)  {
+            std::cout << "Error at xmlTextWriterSetIndent" << std::endl;
+            exit(1);
+        }
+ 
+        if(xmlTextWriterSetIndentString(writer,(xmlChar *)"  ") < 0)  {
+            std::cout << "Error at xmlTextWriterSetIndentString" << std::endl;
+            exit(1);
+        }
+
+        /* Create a new xml document */
+        if(xmlTextWriterStartDocument(writer,NULL,NULL,NULL) < 0) {
+            std::cout << "Error at xmlTextWriterStartDocument" << std::endl;
+            exit(1);
+        }
+
+        if(xmlTextWriterStartElement(writer, (xmlChar*) "imm:IMM-contents") <0) {
+            std::cout <<"Error at xmlTextWriterStartElement (IMM-contents)" << std::endl;
+            exit(1);
+        }
+
+        classRDNMap = cacheRDNs(immHandle);
+
+        dumpClassesXMLw(immHandle, writer);
+
+        dumpObjectsXMLw(immHandle, classRDNMap, writer);
+
+        /* Close element named imm:IMM-contents */
+        if( xmlTextWriterEndElement(writer) < 0) {
+          std::cout << "Error at xmlTextWriterEndElement" << std::endl;
+          exit(1);
+        }
+
+        xmlFreeTextWriter(writer);
+        xmlCleanupParser();
+        xmlMemoryDump();
+
+        exit(0);
+    }
+
     /* Normal dump/export case to XML file. */
     xmlDocPtr xmlDoc;
     xmlNodePtr xmlImmRoot;
 
     filename.append(argv[1]);
-    std::cout << "Dumping the current IMM state" << std::endl;
+    std::cout << "Dumping the current IMM state to XML" << std::endl;
 
     /* Create a new xml document */
     xmlDoc = xmlNewDoc((xmlChar*)XML_VERSION);
