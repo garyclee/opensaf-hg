@@ -22,6 +22,8 @@
 #include <saImmOm.h>
 #include <immsv_api.h>
 #include <logtrace.h>
+#include <libxml/xmlwriter.h>
+
 
 #define RELEASE_CODE 'A'
 #define MAJOR_VERSION 2
@@ -29,6 +31,7 @@
 
 /* Prototypes */
 typedef std::map<std::string, SaImmAttrFlagsT> AttrMap;
+
 struct ClassInfo
 {
 	ClassInfo(unsigned int class_id) : mClassId(class_id) { }
@@ -42,6 +45,8 @@ typedef std::map<std::string, ClassInfo*> ClassMap;
 std::list<std::string> getClassNames(SaImmHandleT handle);
 std::string getClassName(const SaImmAttrValuesT_2** attrs);
 std::string valueToString(SaImmAttrValueT, SaImmValueTypeT);
+
+/* PBE related functions. */
 
 void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename);
 void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename);
@@ -97,3 +102,19 @@ void stampObjectWithCcbId(void* db_handle, const char* object_id,
 	SaUint64T ccb_id);
 	
 SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epoch);
+
+/* XML-Writer related functions */
+
+void dumpClassesXMLw(SaImmHandleT, xmlTextWriterPtr);
+void classToXMLw(std::string, SaImmHandleT, xmlTextWriterPtr);
+void objectToXMLw(std::string, 
+                        SaImmAttrValuesT_2**, 
+                        SaImmHandleT, 
+                        std::map<std::string, std::string>,
+                     	xmlTextWriterPtr);
+void valuesToXMLw(SaImmAttrValuesT_2* p, xmlTextWriterPtr );
+void dumpObjectsXMLw(SaImmHandleT, 
+                        std::map<std::string, std::string>,
+                        xmlTextWriterPtr);
+void flagsToXMLw(SaImmAttrDefinitionT_2*, xmlTextWriterPtr);
+void typeToXMLw(SaImmAttrDefinitionT_2*, xmlTextWriterPtr);
