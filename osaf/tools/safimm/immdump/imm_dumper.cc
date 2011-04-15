@@ -377,8 +377,22 @@ int main(int argc, char* argv[])
             exit(1);
         }
 
-        if(xmlTextWriterStartElement(writer, (xmlChar*) "imm:IMM-contents") <0) {
-            std::cout <<"Error at xmlTextWriterStartElement (IMM-contents)" << std::endl;
+        if(xmlTextWriterStartElementNS(writer, (xmlChar*) "imm",(xmlChar *)"IMM-contents"
+           ,(xmlChar *)"http://www.saforum.org/IMMSchema") < 0) {
+            std::cout <<"Error at xmlTextWriterStartElementNS (IMM-contents)" << std::endl;
+            exit(1);
+        }
+
+        if(xmlTextWriterWriteAttributeNS(writer, (xmlChar*) "xmlns",(xmlChar *)"xsi", NULL,
+           (xmlChar *)"http://www.w3.org/2001/XMLSchema-instance") < 0) {
+            std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 1)" << std::endl;
+            exit(1);
+        }
+
+        if(xmlTextWriterWriteAttributeNS(writer,
+           (xmlChar*)"xsi",(xmlChar *)"noNamespaceSchemaLocation", NULL,
+           (xmlChar*)"SAI-AIS-IMM-XSD-A.01.01.xsd") < 0) {
+            std::cout <<"Error at xmlTextWriterWriteAttribute (attribute 2)" << std::endl;
             exit(1);
         }
 
