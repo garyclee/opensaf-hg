@@ -711,7 +711,7 @@ static void immnd_abortLoading(IMMND_CB *cb)
 	}
 }
 
-SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
+SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDuration)
 {				/*Invoked by sync-coordinator and sync-clients.
 				   Other old-member nodes do not invoke.
 				*/
@@ -749,6 +749,19 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
 				 */
 				completed = SA_FALSE;
 			}
+		}
+	} else if(jobDuration > 300) { /* Five minutes! */
+		/* Avoid having entire cluster write locked indefinitely.
+		   Note that loader and sync *client* wait indefinitely.
+		   These two are monitored by NID. 
+
+		   But the sync server side (coord plus rest of cluster that is up and running)
+		   are not monitored by NID and must not be blocked indefinitely due to a hung
+		   (or extreeemely slow) sync.
+		 */
+		if(cb->syncPid != 0) {
+			LOG_WA("STOPPING sync process pid %u after three minutes", cb->syncPid);
+			kill(cb->syncPid, SIGTERM);
 		}
 	}
 	return completed;
@@ -1551,12 +1564,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 			cb->mState = IMM_SERVER_SYNC_CLIENT;
 		} else {
 			/* Sync has not started yet. */
-			if (jobDuration > 100) { /*This timeout value should not be hard-coded. */
-				LOG_WA("This node failed to be sync'ed. "
-				       "Giving up after %u seconds, restarting..", jobDuration);
-				rc = NCSCC_RC_FAILURE;	/*terminate. */
-				immnd_ackToNid(rc);
-			}
+			/* Sync client timeout removed. Any timeout handled by nid. */
+
 
 			if (!(cb->mStep % 1000)) {/* Once 1000 steps. */
 				LOG_IN("REQUESTING SYNC AGAIN %u", cb->mStep);
@@ -1624,14 +1633,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			}
 		}
-		if (jobDuration > 300) {/*Waited 5 minutes for loading to complete */
-			LOG_ER("LOADING IS APPARENTLY HUNG");
-			cb->loaderPid = 0;
-			/*immModel_setLoader(cb, 0); */
-			immnd_abortLoading(cb);
-			rc = NCSCC_RC_FAILURE;	/*terminate. */
-			immnd_ackToNid(rc);
-		}
+		/* IMMND internal timeout for loading removed. Any timeout handled by nid.
+		 */
 
 		break;
 
@@ -1667,7 +1670,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	case IMM_SERVER_SYNC_CLIENT:
 		TRACE_5("IMM_SERVER_SYNC_CLIENT");
-		if (immnd_syncComplete(cb, SA_FALSE, cb->mStep)) {
+		if (immnd_syncComplete(cb, SA_FALSE, 0)) {
 			cb->mStep = 0;
 			cb->mJobStart = now;
 			cb->mState = IMM_SERVER_READY;
@@ -1745,7 +1748,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				if (!(cb->mStep % 60)) {
 					LOG_IN("Sync Phase-3: step:%u", cb->mStep);
 				}
-				if (immnd_syncComplete(cb, TRUE, cb->mStep)) {
+				if (immnd_syncComplete(cb, TRUE, jobDuration)) {
 					cb->mStep = 0;
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
