@@ -776,7 +776,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, su_name->value, op_id);
 
-	if ( op_id > SA_AMF_ADMIN_SHUTDOWN ) {
+	if ( op_id > SA_AMF_ADMIN_SHUTDOWN && op_id != SA_AMF_ADMIN_REPAIRED) {
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		LOG_WA("Unsupported admin op for SU: %llu", op_id);
 		goto done;
@@ -823,12 +823,19 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		goto done;
 	}
 
-	if ( ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) && (op_id != SA_AMF_ADMIN_LOCK) && (op_id != SA_AMF_ADMIN_SHUTDOWN))    ||
-	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)   &&
-	      ((op_id != SA_AMF_ADMIN_UNLOCK) && (op_id != SA_AMF_ADMIN_LOCK_INSTANTIATION)))  ||
+	if (((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+		  (op_id != SA_AMF_ADMIN_LOCK) &&
+		  (op_id != SA_AMF_ADMIN_SHUTDOWN) &&
+		  (op_id != SA_AMF_ADMIN_REPAIRED)) ||
+	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) &&
+		  (op_id != SA_AMF_ADMIN_UNLOCK) &&
+		  (op_id != SA_AMF_ADMIN_REPAIRED) &&
+		  (op_id != SA_AMF_ADMIN_LOCK_INSTANTIATION))  ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-	      (op_id != SA_AMF_ADMIN_UNLOCK_INSTANTIATION))                                    ||
-	     ((su->saAmfSUAdminState != SA_AMF_ADMIN_UNLOCKED) && (op_id == SA_AMF_ADMIN_SHUTDOWN))  ) {
+		  (op_id != SA_AMF_ADMIN_UNLOCK_INSTANTIATION) &&
+		  (op_id != SA_AMF_ADMIN_REPAIRED)) ||
+	     ((su->saAmfSUAdminState != SA_AMF_ADMIN_UNLOCKED) &&
+		  (op_id == SA_AMF_ADMIN_SHUTDOWN))) {
 
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		LOG_WA("State transition invalid, state %u, op %llu", su->saAmfSUAdminState, op_id);
@@ -1052,6 +1059,25 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			m_AVD_SET_SU_TERM(cb, su, FALSE);
 		}
 
+		break;
+	case SA_AMF_ADMIN_REPAIRED:
+		if (su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) {
+			LOG_NO("Admin repair request for '%s', op state already enabled", su_name->value);
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		/* forward the admin op req to the node director */
+		if (avd_admin_op_msg_snd(su_name, AVSV_SA_AMF_SU, op_id,
+			su->su_on_node) == NCSCC_RC_SUCCESS) {
+			su->pend_cbk.admin_oper = op_id;
+			su->pend_cbk.invocation = invocation;
+			rc = SA_AIS_OK;
+		}
+		else {
+			LOG_WA("Admin op request send failed '%s'", su_name->value);
+			rc = SA_AIS_ERR_TIMEOUT;
+		}
 		break;
 	default:
 		LOG_ER("Unsupported admin op");

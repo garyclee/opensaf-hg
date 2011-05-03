@@ -429,6 +429,34 @@ uns32 avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	assert(su != NULL);
 
 	switch(info->oper_id) {
+	case SA_AMF_ADMIN_REPAIRED: {
+		AVND_COMP *comp;
+
+		/* SU has been repaired. Reset states and update AMF director accordingly. */
+
+		for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
+		      comp;
+		      comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node))) {
+
+			m_AVND_COMP_STATE_RESET(comp);
+			m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+			
+			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
+				avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompOperState_ID, &comp->name, comp->oper);
+			}
+		}
+
+		m_AVND_SU_STATE_RESET(su);
+		m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, &su->name, su->oper);
+
+		m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, &su->name, su->pres);
+
+		break;
+	}
 	default:
 		LOG_NO("%s: unsupported adm op %u", __FUNCTION__, info->oper_id);
 		rc = NCSCC_RC_FAILURE;

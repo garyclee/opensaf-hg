@@ -1658,14 +1658,16 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			} else if ((i_su->saAmfSUPreInstantiable == TRUE) &&
 				   (sg->saAmfSGNumPrefInserviceSUs > (num_insvc_su + num_try_insvc_su)) &&
 				   (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
-				   (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+				   ((i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) ||
+				    (i_su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED)) &&
 				   (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 				   (i_su->term_state == FALSE)) {
 				/* Try to Instantiate this SU */
 				if (avd_snd_presence_msg(cb, i_su, FALSE) == NCSCC_RC_SUCCESS) {
 					num_try_insvc_su++;
 				}
-			}
+			} else
+				TRACE("nop for %s", i_su->name.value);
 		}
 		/* else if (i_su->num_of_comp == i_su->curr_num_comp) */
 		i_su = i_su->sg_list_su_next;

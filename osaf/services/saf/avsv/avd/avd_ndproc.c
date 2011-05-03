@@ -431,6 +431,21 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 			su->pend_cbk.admin_oper = 0;
 		}
 		break;
+	case SA_AMF_ADMIN_REPAIRED:
+		if (pres == SA_AMF_PRESENCE_UNINSTANTIATED) {
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle,
+				su->pend_cbk.invocation, SA_AIS_OK);
+			
+			/* Hand over to SG and let it do the rest */
+			(void) avd_sg_app_su_inst_func(cb, su->sg);
+		} else {
+			LOG_WA("Bad presence state %u after '%s' adm repaired", pres, su->name.value);
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle,
+				su->pend_cbk.invocation, SA_AIS_ERR_BAD_OPERATION);
+		}
+		su->pend_cbk.invocation = 0;
+		su->pend_cbk.admin_oper = 0;
+		break;
 	default:
 		break;
 	}
@@ -702,6 +717,13 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 
 			switch (n2d_msg->msg_info.n2d_data_req.param_info.attr_id) {
+			case saAmfSUOperState_ID:
+				TRACE("oper pres state");
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
+					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+					avd_su_oper_state_set(su, l_val);
+				}
+				break;
 			case saAmfSUPresenceState_ID:
 				TRACE("su pres state");
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {

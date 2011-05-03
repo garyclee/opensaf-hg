@@ -1622,7 +1622,7 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uns32 rank)
 						   !m_AVND_COMP_PRES_STATE_IS_ORPHANED
 						   (csi->comp)))))) {
 
-			LOG_ER("Ignoring Failed/Unreg Comp'%s' comp pres state=%u, comp flag %u, su pres state %u", 
+			LOG_IN("Ignoring Failed/Unreg Comp'%s' comp pres state=%u, comp flag %x, su pres state %u", 
 				csi->comp->name.value, csi->comp->pres, csi->comp->flag, csi->comp->su->pres);
 			} else {
 				TRACE_LEAVE2("false");

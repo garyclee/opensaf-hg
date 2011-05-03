@@ -622,6 +622,29 @@ uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	return rc;
 }
 
+/**
+ * Send update message for an uns32 value
+ * @param class_id - as specified in avsv_def.h
+ * @param attr_id - as specified in avsv_def.h
+ * @param dn - dn of object to update
+ * @param value - ptr to uns32 value to be sent
+ * 
+ */
+void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 value)
+{
+	AVSV_PARAM_INFO param = {0};
+
+	param.class_id = class_id;
+	param.attr_id = attr_id;
+	param.name = *dn;
+	param.act = AVSV_OBJ_OPR_MOD;
+	*((uns32 *)param.value) = m_NCS_OS_HTONL(value);
+	param.value_len = sizeof(uns32);
+
+	if (avnd_di_object_upd_send(avnd_cb, &param) != NCSCC_RC_SUCCESS)
+		LOG_WA("Could not send update msg for '%s'", dn->value);
+}
+
 /****************************************************************************
   Name          : avnd_di_pg_act_send
  
@@ -1219,7 +1242,6 @@ uns32 avnd_evt_avd_admin_op_req_evh(AVND_CB *cb, AVND_EVT *evt)
 	TRACE_LEAVE();
 	return rc;
 }
-
 
 /**
  * Handle a received heart beat message, just reset the duration timer.

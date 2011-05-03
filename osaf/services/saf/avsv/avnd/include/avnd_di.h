@@ -82,5 +82,6 @@ EXTERN_C uns32 avnd_diq_rec_send(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec)
 EXTERN_C uns32 avnd_di_reg_su_rsp_snd(struct avnd_cb_tag *cb, SaNameT *su_name, uns32 ret_code);
 EXTERN_C uns32 avnd_di_reg_comp_rsp_snd(struct avnd_cb_tag *cb, SaNameT *comp_name, uns32 ret_code);
 EXTERN_C uns32 avnd_di_ack_nack_msg_send(struct avnd_cb_tag *cb, uns32 rcv_id, uns32 view_num);
+extern void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 value);
 
 #endif   /* !AVND_OPER_H */
