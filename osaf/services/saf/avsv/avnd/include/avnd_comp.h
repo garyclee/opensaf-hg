@@ -464,6 +464,7 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_INST_CMD_SUCC_RESET(x)  (((x)->flag) &= ~AVND_COMP_FLAG_INST_CMD_SUCC)
 #define m_AVND_COMP_ALL_CSI_RESET(x)        (((x)->flag) &= ~AVND_COMP_FLAG_ALL_CSI)
 #define m_AVND_COMP_TERM_FAIL_RESET(x)      (((x)->flag) &= ~AVND_COMP_FLAG_TERM_FAIL)
+#define m_AVND_COMP_STATE_RESET(x)          (((x)->flag) &= 0xff)
 
 /* macros for comp csi assignment state */
 #define m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_UNASSIGNED(x) \

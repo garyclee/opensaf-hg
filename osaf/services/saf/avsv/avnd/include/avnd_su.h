@@ -284,6 +284,7 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ADMN_TERM_RESET(x)   (((x)->flag) &= ~AVND_SU_ADMN_TERM)
 #define m_AVND_SU_ASSIGN_PEND_RESET(x) (((x)->flag) &= ~AVND_SU_ASSIGN_PEND)
 #define m_AVND_SU_ALL_TERM_RESET(x)    (((x)->flag) &= ~AVND_SU_ALL_TERM)
+#define m_AVND_SU_STATE_RESET(x)       (((x)->flag) &= 0xff)
 
 /* macros for checking the su params */
 #define m_AVND_SU_IS_SU_RESTART_DIS(x)    (((x)->flag) & AVND_SU_FLAG_RESTART_DIS)
