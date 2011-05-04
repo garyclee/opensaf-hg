@@ -29,7 +29,6 @@ EXTRA_DIST = \
 bin_PROGRAMS = amf_demo
 
 amf_demo_CPPFLAGS = \
-	-DNCS_SAF=1 \
 	$(AM_CPPFLAGS)
 
 amf_demo_SOURCES = \

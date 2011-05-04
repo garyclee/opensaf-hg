@@ -1,26 +1,26 @@
-This directory contains two different AMF component implementations:
-	1) amf_comp_template.c
+This directory contains an AMF component sample implementation.
 
-amf_comp_template.c contains a sample implementation of an AMF component.
-All required callbacks are implemented and responds OK when requested
-To be used with with any of the configuration files. Use this implementation
-if you are interested in what happens when you do admin operations such as
-lock, lock-instantiation etc on SU or any other level containing the component.
+amf_comp_template.c contains the skeleton of an AMF
+component. All required callbacks are implemented and responds OK when
+requested. To be used with with any of the configuration files mentioned below.
+This implementation can be used as a starting point to see what happens when you
+do admin operations such as lock, lock-instantiation etc on SU or any other level
+containing the component.
 
-amf_demo_script: This script is provided to control the CLC of the amf_demo
-application component. The path to amf_demo binary can be edited in this file.
+Loggin output is done to the system log (normally /var/log/message).
 
-Appconfig-2N.xml: This file contains sample Application configuration for 
-2N redundancy model. By default the amf_demo is configured to run on
+Appconfig-2N.xml: This file contains the AMF model for an application running in
+a 2N redundancy model. The amf_demo is configured to run on
 the 2 controllers.
  
-Appconfig-nwayactive.xml: This contains sample Application configuration for
-NWayActive.
+Appconfig-nwayactive.xml: This file contains the AMF model for an application running
+in an NWayActive redundancy model. The configuration contains 5 SUs that will run on
+the "allnodes" AMF node group.
 
-To run the sample amf_demo,
-1) do make install to install the amf_demo binary.
-2) merge Appconfig-2N.xml with the main imm.xml using immxml-merge tool.
-3) bring up the cluster, then amf_demo components will come up on both
-   the controllers.
+Note that the SU admin state has no value which means default => UNLOCKED. This means
+that AMF will automatically instantiate and assign the components.
 
-amf_demo will output to /var/opt/amf_demo/amf_demo.log.
+Note that AMF does not support runtime addition of UNLOCKED SUs. Therefore the model
+needs to be merged offline before starting OpenSAF. This can be done with the 
+immxml-merge tool.
+

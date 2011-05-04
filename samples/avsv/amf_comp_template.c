@@ -31,6 +31,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <poll.h>
+#include <syslog.h>
 #include <libgen.h>
 #include <signal.h>
 
@@ -82,7 +83,7 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 	SaAisErrorT rc;
 	SaAmfHAStateT my_ha_state;
 
-	printf("\n Dispatched 'CSI Set' in '%s' CSIName: '%s' HAState: %s CSIFlags: %s", 
+	syslog(LOG_INFO, " Dispatched 'CSI Set' in '%s' CSIName: '%s' HAState: %s CSIFlags: %s", 
 		comp_name->value, csi_desc.csiName.value, ha_state_str[ha_state],
 		csi_flag_str[csi_desc.csiFlags]);
 
@@ -90,7 +91,7 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 
 	rc = saAmfResponse(gl_amf_hdl, inv, SA_AIS_OK);
 	if ( SA_AIS_OK != rc ) {
-		printf("\nsaAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
 
@@ -99,7 +100,7 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 		int i;
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
-			printf("\n\tname: %s, value: %s", attr->attrName, attr->attrValue);
+			syslog(LOG_DEBUG, "\tname: %s, value: %s", attr->attrName, attr->attrValue);
 		}
 	}
 
@@ -108,17 +109,17 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 		sleep(1);
 		rc = saAmfCSIQuiescingComplete(gl_amf_hdl, inv, SA_AIS_OK);
 		if ( SA_AIS_OK != rc ) {
-			printf("\nsaAmfCSIQuiescingComplete FAILED - %u", rc);
+			syslog(LOG_ERR, "saAmfCSIQuiescingComplete FAILED - %u", rc);
 			exit(1);
 		}
 
 		rc = saAmfHAStateGet(gl_amf_hdl, &gl_comp_name, &csi_desc.csiName, &my_ha_state);
 		if ( SA_AIS_OK != rc ) {
-			printf("\nsaAmfHAStateGet FAILED - %u", rc);
+			syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u", rc);
 			exit(1);
 		}
 
-		printf("\nMy HA state is %s", ha_state_str[my_ha_state]);
+		syslog(LOG_INFO, "My HA state is %s", ha_state_str[my_ha_state]);
 	}
 }
 
@@ -134,7 +135,7 @@ static void amf_csi_remove_callback(SaInvocationT inv, const SaNameT *comp_name,
 {
 	SaAisErrorT rc;
 
-	printf("\nDispatched 'CSI Remove' in '%s' CSI: '%s' CSIFlags: %s",
+	syslog(LOG_INFO, "Dispatched 'CSI Remove' in '%s' CSI: '%s' CSIFlags: %s",
 	       comp_name->value, csi_name->value, csi_flag_str[csi_flags]);
 
 	/* Reset the ha state */
@@ -142,7 +143,7 @@ static void amf_csi_remove_callback(SaInvocationT inv, const SaNameT *comp_name,
 
 	rc = saAmfResponse(gl_amf_hdl, inv, SA_AIS_OK);
 	if ( SA_AIS_OK != rc ) {
-		printf("\nsaAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
 }
@@ -162,12 +163,12 @@ static void amf_healthcheck_callback(SaInvocationT        inv,
 
 	healthcheck_count++;
 
-	printf("\nDispatched healthCheck %u in '%s'", 
+	syslog(LOG_DEBUG, "Dispatched healthCheck %u in '%s'", 
 		healthcheck_count, comp_name->value);
 
 	rc = saAmfResponse(gl_amf_hdl, inv, SA_AIS_OK);
 	if ( SA_AIS_OK != rc ) {
-		printf("\nsaAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
 }
@@ -181,12 +182,12 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 {
 	SaAisErrorT rc;
 
-	printf("\nDispatched 'Component Terminate' in '%s'", 
+	syslog(LOG_NOTICE, "Dispatched 'Component Terminate' in '%s'", 
 	       comp_name->value);
 
 	rc = saAmfResponse(gl_amf_hdl, inv, SA_AIS_OK);
 	if ( SA_AIS_OK != rc ) {
-		printf("\nsaAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
 
@@ -201,7 +202,7 @@ static void create_pid_file(const char *filename_prefix)
 	snprintf(path, sizeof(path), "/var/run/%s.pid", filename_prefix);
 	fp = fopen(path, "w");
 	if (fp == NULL)	{
-		printf("\nfopen failed: %s", strerror(errno));
+		syslog(LOG_ERR, "fopen failed: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	fprintf(fp, "%d\n", getpid());
@@ -210,7 +211,7 @@ static void create_pid_file(const char *filename_prefix)
 
 static void sigterm_handler(int sig)
 {
-	printf("\nexiting");
+	syslog(LOG_NOTICE, "exiting");
 	exit(EXIT_SUCCESS);
 }
 
@@ -228,22 +229,19 @@ int main(int argc, char **argv)
 	SaAisErrorT        rc;
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[1];
-	char args[256] = {0};
-	int i, j = 0;
 	char *comp_name = getenv("SA_AMF_COMPONENT_NAME");
 
 	if ((signal(SIGTERM, sigterm_handler)) == SIG_ERR) {
-		printf("\nsignal TERM failed: %s", strerror(errno));
+		syslog(LOG_ERR, "signal TERM failed: %s", strerror(errno));
 		goto done;
 	}
 
 	create_pid_file(comp_name);
 
-	/* The args are printed just to test the argv "augmentation" between comp type and instance */
-	for (i = 0; i < argc; i++)
-		j += sprintf(&args[j], " %s", argv[i]);
+	/* Use syslog for logging. */
+	openlog(basename(argv[0]), LOG_PID, LOG_USER);
 
-	printf("\n'%s' started with args: '%s'", comp_name, args);
+	syslog(LOG_INFO, "'%s' started", comp_name);
 
 	memset(&amf_callbacks, 0, sizeof(SaAmfCallbacksT));
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
@@ -253,36 +251,36 @@ int main(int argc, char **argv)
 
 	rc = saAmfInitialize(&gl_amf_hdl, &amf_callbacks, &ver);
 	if (SA_AIS_OK != rc) {
-		printf("\n saAmfInitialize FAILED %u", rc);
+		syslog(LOG_ERR, " saAmfInitialize FAILED %u", rc);
 		goto done;
 	}
 
 	rc = saAmfSelectionObjectGet(gl_amf_hdl, &amf_sel_obj);
 	if (SA_AIS_OK != rc) {
-		printf("\nsaAmfSelectionObjectGet FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfSelectionObjectGet FAILED %u", rc);
 		goto done;
 	}
 
 	rc = saAmfComponentNameGet(gl_amf_hdl, &gl_comp_name);
 	if (SA_AIS_OK != rc) {
-		printf("\nsaAmfComponentNameGet FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfComponentNameGet FAILED %u", rc);
 		goto done;
 	}
 
 	rc = saAmfComponentRegister(gl_amf_hdl, &gl_comp_name, 0);
 	if (SA_AIS_OK != rc) {
-		printf("\nsaAmfComponentRegister FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfComponentRegister FAILED %u", rc);
 		goto done;
 	}
 	
 	rc = saAmfHealthcheckStart(gl_amf_hdl, &gl_comp_name, &gl_healthcheck_key,
 		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if ( SA_AIS_OK != rc ) {
-		printf("\nsaAmfHealthcheckStart FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfHealthcheckStart FAILED - %u", rc);
 		goto done;
 	}
 
-	printf("\n'%s' registered with AMF", gl_comp_name.value);
+	syslog(LOG_INFO, "'%s' registered with AMF", gl_comp_name.value);
 
 	fds[0].fd = amf_sel_obj;
 	fds[0].events = POLLIN;
@@ -294,7 +292,7 @@ int main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			else {
-				printf("\npoll FAILED - %s", strerror(errno));
+				syslog(LOG_ERR, "poll FAILED - %s", strerror(errno));
 				goto done;
 			}
 		}
@@ -302,7 +300,7 @@ int main(int argc, char **argv)
 		if (fds[0].revents & POLLIN) {
 			rc = saAmfDispatch(gl_amf_hdl, SA_DISPATCH_ONE);
 			if (SA_AIS_OK != rc) {
-				printf("\nsaAmfDispatch FAILED %u", rc);
+				syslog(LOG_ERR, "saAmfDispatch FAILED %u", rc);
 				goto done;
 			}
 		}
