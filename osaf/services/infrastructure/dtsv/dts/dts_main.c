@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
-	}
+	dts_do_evts(&gl_dts_mbx);
+
+	LOG_ER("DTS is exiting");
 
 	exit(1);
 }

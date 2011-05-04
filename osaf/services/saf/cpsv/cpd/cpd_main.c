@@ -21,7 +21,7 @@
 #include <daemon.h>
 
 #include "cpd.h"
-
+extern void cpd_main_process(CPD_CB *cb);
 static int __init_cpd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -47,6 +47,7 @@ static int __init_cpd(void)
 
 int main(int argc, char *argv[])
 {
+	CPD_CB *cb;
 	daemonize(argc, argv);
 
 	if (__init_cpd() != NCSCC_RC_SUCCESS) {
@@ -54,9 +55,13 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
+	if (!cb) {
+		LOG_ER("Handle get failed");
+		return 0;
 	}
+	ncshm_give_hdl(cb->cpd_hdl);
+	cpd_main_process(cb);
 
 	exit(1);
 }

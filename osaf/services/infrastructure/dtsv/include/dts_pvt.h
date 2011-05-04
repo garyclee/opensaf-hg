@@ -453,7 +453,6 @@ typedef struct dts_cb {
 	char cb_log_str[SYSF_FL_LOG_BUFF_SIZE];
 
 	MDS_HDL mds_hdl;
-	NCSCONTEXT task_handle;
 
 	/* AMF variables */
 	NCS_BOOL amf_init;

@@ -150,44 +150,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	} else
 		m_LOG_EDSV_S(EDS_MBCSV_INIT_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
-	/* Create EDS's thread */
-	if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)eds_main_process,
-							&eds_cb->mbx,
-							"EDS",
-							EDS_TASK_PRIORITY, NCS_STACKSIZE_HUGE, &eds_cb->task_hdl))) {
-		m_LOG_EDSV_S(EDS_TASK_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		LOG_ER("Trask create of eds_main_process() failed");
-		eds_mds_finalize(eds_cb);
-		/* release the IPC */
-		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
-		/* Release EDU handle */
-		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
-		/* Free the control block */
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		return rc;
-	}
-
-	/* Put the EDS thread in the start state */
-	if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_START(eds_cb->task_hdl))) {
-		m_LOG_EDSV_S(EDS_TASK_START_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		LOG_ER("Trask start of eds_main_process() failed");
-		eds_mds_finalize(eds_cb);
-		/* kill the created task */
-		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
-		/* release the IPC */
-		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
-		/* Release EDU handle */
-		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
-		/* Destroy the hdl for this CB */
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		/* clean up the CB */
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		/* log the error */
-		return rc;
-	}
 	m_LOG_EDSV_S(EDS_MAIN_PROCESS_START_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
 	return (rc);
@@ -270,10 +232,6 @@ static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 
 		/* Disconnect from MDS */
 		eds_mds_finalize(eds_cb);
-
-		/* stop & kill the created task */
-		m_NCS_TASK_STOP(eds_cb->task_hdl);
-		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
 
 		/* Release the IPC */
 		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);

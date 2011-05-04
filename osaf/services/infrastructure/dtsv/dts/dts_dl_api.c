@@ -94,7 +94,7 @@ uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info)
  *****************************************************************************/
 uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
-	NCSCONTEXT task_handle;
+	NCSCONTEXT task_handle=0;
 	DTS_CB *inst = &dts_cb;
 	PCS_RDA_REQ pcs_rda_req;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -209,31 +209,12 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 		}
 	}
 
-	/* Create DTS's task */
-	if (m_NCS_TASK_CREATE((NCS_OS_CB)dts_do_evts,
-			      &gl_dts_mbx, NCS_DTS_TASKNAME,
-			      NCS_DTS_PRIORITY, NCS_DTS_STACKSIZE, &task_handle) != NCSCC_RC_SUCCESS) {
-		m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
-		m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to create DTS thread.");
-	}
 
-	/* Start DTS task */
-	if (m_NCS_TASK_START(task_handle) != NCSCC_RC_SUCCESS) {
-		m_NCS_TASK_RELEASE(task_handle);
-		m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
-		m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to start DTS task");
-	}
-
-	inst->task_handle = task_handle;
 
 	if (dts_log_bind() != NCSCC_RC_SUCCESS) {
 		m_DTS_LK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
 		/* Do cleanup activities */
-		m_NCS_TASK_STOP(task_handle);
-		m_NCS_TASK_RELEASE(task_handle);
 		m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
 		m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
 		inst->created = FALSE;
@@ -283,9 +264,6 @@ uns32 dts_lib_destroy(void)
 	/*}
 	   #endif */
 
-	m_NCS_TASK_STOP(dts_cb.task_handle);
-
-	m_NCS_TASK_RELEASE(dts_cb.task_handle);
 
 	m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, &dts_cb);
 

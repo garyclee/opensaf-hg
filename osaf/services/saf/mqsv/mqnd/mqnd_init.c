@@ -51,7 +51,7 @@ static uns32 mqnd_cb_namedb_destroy(MQND_CB *cb);
 static uns32 mqnd_cb_qevt_node_db_destroy(MQND_CB *cb);
 static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 static uns32 mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist);
-static void mqnd_main_process(NCSCONTEXT info);
+void mqnd_main_process(uns32 hdl);
 static void mqnd_asapi_bind(MQND_CB *cb);
 static void mqnd_asapi_unbind(void);
 
@@ -326,23 +326,6 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	/* IMM Declare the Implementor */
 	mqnd_imm_declare_implementer(cb);
-
-	/* Create the task for MQND */
-	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqnd_main_process,
-				    (NCSCONTEXT)(long)cb->cb_hdl, m_MQND_TASKNAME, m_MQND_TASK_PRI,
-				    m_MQND_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_TASK_CREATE_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto mqnd_task_create_fail;
-	}
-	m_LOG_MQSV_ND(MQND_TASK_CREATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
-
-	if ((rc = m_NCS_TASK_START(cb->task_hdl))
-	    != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_TASK_START_FAIL, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto mqnd_task_start_fail;
-	}
-	m_LOG_MQSV_ND(MQND_TASK_START_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
-
 	if ((rc = mqnd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_ND(MQND_MDS_REGISTER_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		goto mqnd_mds_fail;
@@ -379,11 +362,6 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	return NCSCC_RC_SUCCESS;
 
  mqnd_mds_fail:
-	m_NCS_TASK_STOP(cb->task_hdl);
-
- mqnd_task_start_fail:
-	m_NCS_TASK_RELEASE(cb->task_hdl);
- mqnd_task_create_fail:
 	/* IMM FInalize. */
 	saImmOiFinalize(cb->immOiHandle);
  mqnd_clm_fail:
@@ -447,10 +425,6 @@ static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 
 	saClmFinalize(cb->clm_hdl);
 	cb->clm_node_joined = 0;
-
-	m_NCS_TASK_STOP(cb->task_hdl);
-
-	m_NCS_TASK_RELEASE(cb->task_hdl);
 
 	m_NCS_IPC_DETACH(&cb->mbx, mqnd_clear_mbx, cb);
 
@@ -746,7 +720,7 @@ static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Notes         : None.
  *****************************************************************************/
-static void mqnd_main_process(NCSCONTEXT info)
+void mqnd_main_process(uns32 hdl)
 {
 	MQND_CB *cb = 0;
 	NCS_SEL_OBJ mbx_fd;
@@ -755,7 +729,7 @@ static void mqnd_main_process(NCSCONTEXT info)
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
 	SaAisErrorT clm_error, err;
 
-	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, ((long)info));
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, hdl);
 	if (!cb) {
 		return;
 	}

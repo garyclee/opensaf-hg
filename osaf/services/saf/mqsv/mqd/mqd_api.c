@@ -61,7 +61,7 @@ static nfds_t nfds = 3;
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 mqd_lib_init(void);
 static void mqd_lib_destroy(void);
-static void mqd_main_process(NCSCONTEXT);
+void mqd_main_process(uns32);
 static uns32 mqd_cb_init(MQD_CB *);
 static void mqd_cb_shut(MQD_CB *);
 static uns32 mqd_lm_init(MQD_CB *);
@@ -394,7 +394,7 @@ static void mqd_lib_destroy(void)
  
  RETURNS        : None.
 \*****************************************************************************/
-static void mqd_main_process(NCSCONTEXT hdl)
+void mqd_main_process(uns32 hdl)
 {
 	MQD_CB *pMqd = NULL;
 	NCS_SEL_OBJ mbxFd;
@@ -404,7 +404,7 @@ static void mqd_main_process(NCSCONTEXT hdl)
 	SaSelectionObjectT amfSelObj;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* Get the controll block */
-	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, *((uns32 *)hdl));
+	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, hdl);
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
 		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -549,22 +549,7 @@ static uns32 mqd_lm_init(MQD_CB *pMqd)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	/* Create MQD Task */
-	rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqd_main_process,
-			       (NCSCONTEXT)&pMqd->hdl,
-			       MQD_COMP_NAME, MQD_TASK_PRIORITY, MQD_TASK_STACKSIZE, &gl_mqdinfo.task_hdl);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-		return rc;
-	}
 
-	/* Start the MQD task */
-	rc = m_NCS_TASK_START(gl_mqdinfo.task_hdl);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
-		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-		return rc;
-	}
 	return rc;
 }	/* End of mqd_lm_init() */
 
@@ -580,12 +565,9 @@ static uns32 mqd_lm_init(MQD_CB *pMqd)
 \*****************************************************************************/
 static void mqd_lm_shut(MQD_CB *pMqd)
 {
-	/* Stop the task */
-	m_NCS_TASK_STOP(gl_mqdinfo.task_hdl);
 
 	/* Free up all the resources */
 	m_NCS_IPC_DETACH(&pMqd->mbx, mqd_clear_mbx, pMqd);
-	m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
 	m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
 	return;
 }	/* End of mqd_lm_shut() */

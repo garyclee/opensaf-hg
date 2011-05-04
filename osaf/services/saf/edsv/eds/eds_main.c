@@ -47,16 +47,25 @@ static int __init_eds(void)
 
 int main(int argc, char *argv[])
 {
+	EDS_CB *eds_cb = NULL;
 	daemonize(argc, argv);
 
 	if (__init_eds() != NCSCC_RC_SUCCESS) {
 		LOG_ER("EDS Initialization failed");
 		exit(EXIT_FAILURE);
 	}
-
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
+        
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		exit(EXIT_FAILURE);
 	}
+
+	/* Give back the handle */
+	ncshm_give_hdl(gl_eds_hdl);
+
+	eds_main_process(&eds_cb->mbx);
+
+	LOG_ER("eds_main_process() returned ..Exiting");
 
 	exit(1);
 }
