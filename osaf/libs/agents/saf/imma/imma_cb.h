@@ -34,16 +34,10 @@ typedef struct imma_client_node {
 	union {
 		SaImmCallbacksT mCallbk;
 		SaImmOiCallbacksT_2 iCallbk;
-#ifdef IMM_A_01_01
-		SaImmOiCallbacksT iCallbk1;
-#endif
 	} o;
 	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaBoolT isOm;		/*If true => then this is an OM client */
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
-#ifdef IMM_A_01_01
-	SaBoolT isOiA1;
-#endif
 	uns8 stale;		/*Loss of connection with immnd 
 					  will set this to true for the 
 					  connection. A resurrect can remove it.*/

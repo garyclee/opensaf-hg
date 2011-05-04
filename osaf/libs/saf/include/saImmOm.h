@@ -100,37 +100,18 @@ extern "C" {
 	 saImmOmFinalize(SaImmHandleT immHandle);
 
 	/* 4.4.1 saImmOmClassCreate() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmClassCreate(SaImmHandleT immHandle,
-			    const SaImmClassNameT className,
-			    SaImmClassCategoryT classCategory, const SaImmAttrDefinitionT ** attrDefinitions) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmClassCreate_2(SaImmHandleT immHandle,
 			      const SaImmClassNameT className,
 			      SaImmClassCategoryT classCategory, const SaImmAttrDefinitionT_2 **attrDefinitions);
 
 	/* 4.4.2 saImmOmClassDescriptionGet() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmClassDescriptionGet(SaImmHandleT immHandle,
-				    const SaImmClassNameT className,
-				    SaImmClassCategoryT *classCategory, SaImmAttrDefinitionT *** attrDefinitions) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 				      const SaImmClassNameT className,
 				      SaImmClassCategoryT *classCategory, SaImmAttrDefinitionT_2 ***attrDefinitions);
 
 	/* 4.4.3 saImmOmClassDescriptionMemoryFree() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmClassDescriptionMemoryFree(SaImmHandleT immHandle, SaImmAttrDefinitionT ** attrDefinitions) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAttrDefinitionT_2 **attrDefinitions);
 
@@ -140,16 +121,6 @@ extern "C" {
 	 saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT className);
 
 	/* 4.5.1 saImmOmSearchInitialize() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmSearchInitialize(SaImmHandleT immHandle,
-				 const SaNameT *rootName,
-				 SaImmScopeT scope,
-				 SaImmSearchOptionsT searchOptions,
-				 const SaImmSearchParametersT * searchParam,
-				 const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 				   const SaNameT *rootName,
@@ -159,11 +130,6 @@ extern "C" {
 				   const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
 
 	/* 4.5.2 saImmOmSearchNext() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmSearchNext(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT *** attributes) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT_2 ***attributes);
 
@@ -178,13 +144,6 @@ extern "C" {
 	 saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandleT *accessorHandle);
 
 	/* 4.6.2 saImmOmAccessorGet() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmAccessorGet(SaImmAccessorHandleT accessorHandle,
-			    const SaNameT *objectName,
-			    const SaImmAttrNameT *attributeNames, SaImmAttrValuesT *** attributes) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 			      const SaNameT *objectName,
@@ -228,13 +187,6 @@ extern "C" {
 	 saImmOmCcbInitialize(SaImmAdminOwnerHandleT ownerHandle, SaImmCcbFlagsT ccbFlags, SaImmCcbHandleT *ccbHandle);
 
 	/* 4.8.2 saImmOmCcbObjectCreate() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmCcbObjectCreate(SaImmCcbHandleT ccbHandle,
-				const SaImmClassNameT className,
-				const SaNameT *parentName, const SaImmAttrValuesT ** attrValues) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 				  const SaImmClassNameT className,
@@ -246,12 +198,6 @@ extern "C" {
 	 saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *objectName);
 
 	/* 4.8.4 saImmOmCcbObjectModify() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmCcbObjectModify(SaImmCcbHandleT ccbHandle,
-				const SaNameT *objectName, const SaImmAttrModificationT ** attrMods) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 				  const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods);
@@ -268,15 +214,6 @@ extern "C" {
 
 	/* 4.9.1 saImmOmAdminOperationInvoke[_2](),
 	   saImmOmAdminOperationInvokeAsync() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmAdminOperationInvoke(SaImmAdminOwnerHandleT ownerHandle,
-				     const SaNameT *objectName,
-				     SaImmAdminOperationIdT operationId,
-				     const SaImmAdminOperationParamsT ** params,
-				     SaAisErrorT *operationReturnValue, SaTimeT timeout) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 				       const SaNameT *objectName,
@@ -284,15 +221,6 @@ extern "C" {
 				       SaImmAdminOperationIdT operationId,
 				       const SaImmAdminOperationParamsT_2 **params,
 				       SaAisErrorT *operationReturnValue, SaTimeT timeout);
-
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOmAdminOperationInvokeAsync(SaImmAdminOwnerHandleT ownerHandle,
-					  SaInvocationT invocation,
-					  const SaNameT *objectName,
-					  SaImmAdminOperationIdT operationId,
-					  const SaImmAdminOperationParamsT ** params) __attribute__ ((deprecated));
-#endif
 
 	extern SaAisErrorT
 	 saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandle,

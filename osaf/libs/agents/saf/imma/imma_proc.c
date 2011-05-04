@@ -57,11 +57,10 @@ uns32 imma_version_validate(SaVersionT *version)
 		version->majorVersion = IMMA_MAJOR_VERSION;
 		version->minorVersion = IMMA_MINOR_VERSION;
 
-#ifndef IMM_A_01_01
 		if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
 			return SA_AIS_ERR_VERSION;
 		}
-#endif
+
 		return SA_AIS_OK;
 	} else {
 		TRACE_2("ERR_VERSION: IMMA - Version Incompatible");
@@ -1838,24 +1837,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 		assert(cl_node->isPbe);
 		TRACE("PBE Admin OP callback");
 	case IMMA_CALLBACK_OM_ADMIN_OP:
-#ifdef IMM_A_01_01
-		TRACE("Admin op callback isOiA1:%u, iCallbk1:%p iCallbk:%p",
-		      cl_node->isOiA1,
-		      cl_node->o.iCallbk1.saImmOiAdminOperationCallback,
-		      cl_node->o.iCallbk.saImmOiAdminOperationCallback);
-
-		if (cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiAdminOperationCallback) {
-			cl_node->o.iCallbk1.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
-									  callback->invocation,
-									  &(callback->name),
-									  callback->operationId,
-									  (const SaImmAdminOperationParamsT **)
-									  callback->params);
-
-		} else if (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
-#else
 		if (cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
-#endif
 			cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
 									 callback->invocation,
 									 &(callback->name),
@@ -1888,12 +1870,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbCompletedRpl;
 			NCS_BOOL locked = FALSE;
-#ifdef IMM_A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbCompletedCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbCompletedCallback))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
-#endif
 			{
 				SaImmOiCcbIdT ccbid = 0LL;
 
@@ -1928,14 +1905,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						goto skip_completed_upcall;
 					}					
 				}
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1)
-					localEr = cl_node->o.iCallbk1.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl,
-												  ccbid);
-				else
-#endif
-					localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl,
-												 ccbid);
+
+				localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
@@ -2013,21 +1984,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 	case IMMA_CALLBACK_OI_CCB_APPLY:
 		TRACE("ccb-apply op callback");
 		do {
-#ifdef IMM_A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbApplyCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbApplyCallback))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbApplyCallback)
-#endif
 			{
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1)
-					cl_node->o.iCallbk1.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
-				else
-#endif
-					cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
+				cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
 			} else {
 				/* No callback function registered for apply upcall.
 				   There is nothing we can do about this since the CCB is
@@ -2053,12 +2014,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			SaImmAttrValuesT_2 **attr = NULL;
 			size_t attrDataSize = 0;
 			int i = 0;
-#ifdef A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbObjectCreateCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbObjectCreateCallbac))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback)
-#endif
 			{
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
@@ -2116,31 +2072,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				 */
 
 				TRACE("ccb-object-create make the callback");
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1) {
-					const SaImmAttrValuesT **constPtrForStupidCompiler =
-					    (const SaImmAttrValuesT **)attr;
+				const SaImmAttrValuesT_2 **constPtrForStupidCompiler =
+					(const SaImmAttrValuesT_2 **)attr;
 
-					localEr =
-					    cl_node->o.iCallbk1.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
-											       ccbid,
-											       className,
-											       &parentName,
-											       constPtrForStupidCompiler);
-				} else {
-#endif
-					const SaImmAttrValuesT_2 **constPtrForStupidCompiler =
-					    (const SaImmAttrValuesT_2 **)attr;
-
-					localEr =
-					    cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
+				localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
 											      ccbid,
 											      className,
 											      &parentName,
 											      constPtrForStupidCompiler);
-#ifdef IMM_A_01_01
-				}
-#endif
 				TRACE("ccb-object-create callback returned RC:%u", localEr);
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
@@ -2234,12 +2173,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			SaAisErrorT localEr = SA_AIS_OK;
 			IMMSV_EVT ccbObjDelRpl;
 			NCS_BOOL locked = FALSE;
-#ifdef IMM_A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbObjectDeleteCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback)
-#endif
 			{
 				SaImmOiCcbIdT ccbid = 0LL;
 				if(isPbeOp) {
@@ -2254,16 +2188,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				} else {
 					ccbid = callback->ccbID;
 				}
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1)
-					localEr =
-					    cl_node->o.iCallbk1.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
-											       ccbid,
-											       &(callback->name));
-				else
-#endif
-					localEr =
-					    cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
+
+				localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
 											      ccbid, &(callback->name));
 
 				TRACE("ccb-object-delete callback returned RC:%u", localEr);
@@ -2332,12 +2258,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			NCS_BOOL locked = FALSE;
 			SaImmAttrModificationT_2 **attr = NULL;
 			int i = 0;
-#ifdef A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbObjectModifyCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback)
-#endif
 			{
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
@@ -2393,29 +2314,12 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				   non-const so assigning to a const should ALWAYS be allowed. 
 				 */
 				TRACE("ccb-object-modify: make the callback");
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1) {
-					const SaImmAttrModificationT **constPtrForStupidCompiler =
-					    (const SaImmAttrModificationT **)attr;
+				const SaImmAttrModificationT_2 **constPtrForStupidCompiler =
+					(const SaImmAttrModificationT_2 **)attr;
 
-					localEr =
-					    cl_node->o.iCallbk1.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
-											       ccbid,
-											       &objectName,
-											       constPtrForStupidCompiler);
-				} else {
-#endif
-					const SaImmAttrModificationT_2 **constPtrForStupidCompiler =
-					    (const SaImmAttrModificationT_2 **)attr;
+				localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl, ccbid, &objectName,
+					constPtrForStupidCompiler);
 
-					localEr =
-					    cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
-											      ccbid,
-											      &objectName,
-											      constPtrForStupidCompiler);
-#ifdef IMM_A_01_01
-				}
-#endif
 				TRACE("ccb-object-modify callback returned RC:%u", localEr);
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
@@ -2499,21 +2403,11 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 	case IMMA_CALLBACK_OI_CCB_ABORT:
 		TRACE("ccb-abort op callback");
 		do {
-#ifdef IMM_A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiCcbAbortCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiCcbAbortCallback))
-#else
 			if (cl_node->o.iCallbk.saImmOiCcbAbortCallback)
-#endif
 			{
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1)
-					cl_node->o.iCallbk1.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
-				else
-#endif
-					cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
+				cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
 			} else {
 				/* No callback function registered for apply upcall.
 				   There is nothing we can do about this since the CCB is
@@ -2533,12 +2427,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			SaAisErrorT localEr = SA_AIS_OK;
 			uns32 proc_rc = NCSCC_RC_SUCCESS;
 			IMMSV_EVT rtAttrUpdRpl;
-#ifdef IMM_A_01_01
-			if ((cl_node->isOiA1 && cl_node->o.iCallbk1.saImmOiRtAttrUpdateCallback) ||
-			    (!cl_node->isOiA1 && cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback))
-#else
+
 			if (cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback)
-#endif
 			{
 				SaImmAttrNameT *attributeNames;
 				int noOfAttrNames = 0;
@@ -2559,16 +2449,9 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				/*attributeNames[noOfAttrNames] = NULL; calloc=> redundant */
 
 				TRACE("Invoking saImmOiRtAttrUpdateCallback");
-#ifdef IMM_A_01_01
-				if (cl_node->isOiA1)
-					localEr = cl_node->o.iCallbk1.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
-												  &callback->name,
-												  attributeNames);
-				else
-#endif
-					localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
-												 &callback->name,
-												 attributeNames);
+				localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
+					&callback->name,
+					attributeNames);
 
 				TRACE("saImmOiRtAttrUpdateCallback returned RC:%u", localEr);
 				if (!(localEr == SA_AIS_OK ||
