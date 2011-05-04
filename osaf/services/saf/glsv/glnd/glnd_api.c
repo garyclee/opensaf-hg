@@ -34,7 +34,7 @@
 
 #include "glnd.h"
 
-static void glnd_main_process(SYSF_MBX *mbx);
+void glnd_main_process(SYSF_MBX *mbx);
 
 /****************************************************************************
  * Name          : glnd_se_lib_init
@@ -60,22 +60,6 @@ uns32 glnd_se_lib_create(uns8 pool_id)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* create the task */
-	if (m_NCS_TASK_CREATE((NCS_OS_CB)glnd_main_process,
-			      &glnd_cb->glnd_mbx,
-			      "GLND", m_GLND_TASK_PRIORITY, m_GLND_STACKSIZE, &gl_glnd_task_hdl) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_TASK_CREATE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		glnd_cb_destroy(glnd_cb);
-		return (NCSCC_RC_FAILURE);
-	}
-
-	if (m_NCS_TASK_START(m_GLND_RETRIEVE_GLND_TASK_HDL) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLND_HEADLINE(GLND_TASK_START_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		m_NCS_TASK_STOP(m_GLND_RETRIEVE_GLND_TASK_HDL);
-		m_NCS_TASK_RELEASE(m_GLND_RETRIEVE_GLND_TASK_HDL);
-		glnd_cb_destroy(glnd_cb);
-		return (NCSCC_RC_FAILURE);
-	}
 
 	return (NCSCC_RC_SUCCESS);
 }
@@ -107,8 +91,6 @@ uns32 glnd_se_lib_destroy()
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* release the task */
-	m_NCS_TASK_RELEASE(m_GLND_RETRIEVE_GLND_TASK_HDL);
 
 	return (NCSCC_RC_SUCCESS);
 }
@@ -186,7 +168,7 @@ void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
  *
  * Notes         : None.
  *****************************************************************************/
-static void glnd_main_process(SYSF_MBX *mbx)
+void glnd_main_process(SYSF_MBX *mbx)
 {
 	NCS_SEL_OBJ mbx_fd = m_NCS_IPC_GET_SEL_OBJ(mbx);
 	GLND_CB *glnd_cb = NULL;

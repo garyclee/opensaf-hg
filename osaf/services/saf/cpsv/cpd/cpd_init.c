@@ -53,7 +53,7 @@ static uns32 cpd_lib_destroy(CPD_DESTROY_INFO *info);
 
 static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
-static void cpd_main_process(NCSCONTEXT info);
+void cpd_main_process(CPD_CB *cb);
 
 /****************************************************************************
  * Name          : cpd_lib_req
@@ -251,19 +251,6 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_imm_fail;
 	}
 
-	/* Create the task for CPD */
-	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB)cpd_main_process,
-				    (NCSCONTEXT)cb, m_CPD_TASKNAME, m_CPD_TASK_PRI,
-				    m_CPD_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_TASK_CREATE_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		goto cpd_task_create_fail;
-	}
-
-	if ((rc = m_NCS_TASK_START(cb->task_hdl))
-	    != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_TASK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		goto cpd_task_start_fail;
-	}
 
 	/* Register with CLM */
 
@@ -298,10 +285,6 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
  cpd_clm_fail:
 	saClmFinalize(cb->clm_hdl);
 
- cpd_task_start_fail:
-	m_NCS_TASK_RELEASE(cb->task_hdl);
-
- cpd_task_create_fail:
 	cpd_mbcsv_finalize(cb);
 
  mbcsv_reg_err:
@@ -360,10 +343,6 @@ static uns32 cpd_lib_destroy(CPD_DESTROY_INFO *info)
 		m_LOG_CPD_CL(CPD_DESTROY_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
-
-	m_NCS_TASK_STOP(cb->task_hdl);
-
-	m_NCS_TASK_RELEASE(cb->task_hdl);
 
 	m_NCS_IPC_DETACH(&cb->cpd_mbx, cpd_clear_mbx, cb);
 
@@ -445,9 +424,8 @@ static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Notes         : None.
  *****************************************************************************/
-static void cpd_main_process(NCSCONTEXT info)
+void cpd_main_process(CPD_CB *cb)
 {
-	CPD_CB *cb = (CPD_CB *)info;
 	CPSV_EVT *evt = NULL;
 	NCS_SEL_OBJ mbx_fd;
 	SYSF_MBX mbx = cb->cpd_mbx;

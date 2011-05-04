@@ -21,7 +21,7 @@
 #include <daemon.h>
 
 #include "gld.h"
-
+extern void gld_main_process(SYSF_MBX *);
 static int __init_gld(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -47,6 +47,7 @@ static int __init_gld(void)
 
 int main(int argc, char *argv[])
 {
+	GLSV_GLD_CB *gld_cb;
 	daemonize(argc, argv);
 
 	if (__init_gld() != NCSCC_RC_SUCCESS) {
@@ -54,9 +55,15 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
-	}
+	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))== NULL) {
+		LOG_ER("cb take hdl failed");
+		exit(EXIT_FAILURE);
+	} 
+	ncshm_give_hdl(gl_gld_hdl);
+
+	gld_main_process(&gld_cb->mbx);
+
+	LOG_ER("GLD is exiting");
 
 	exit(1);
 }

@@ -22,6 +22,8 @@
 
 #include "mqd.h"
 
+extern void mqd_main_process(uns32);
+extern MQDLIB_INFO gl_mqdinfo;
 static int __init_mqd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -54,9 +56,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
-	}
+	mqd_main_process(gl_mqdinfo.inst_hdl);
 
 	exit(1);
 }

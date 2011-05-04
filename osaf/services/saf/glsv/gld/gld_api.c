@@ -29,7 +29,7 @@
 #include <poll.h>
 uns32 gl_gld_hdl;
 
-static void gld_main_process(SYSF_MBX *mbx);
+void gld_main_process(SYSF_MBX *mbx);
 
 #define FD_AMF 0
 #define FD_MBCSV 1
@@ -175,18 +175,12 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	/* TASK CREATION AND INITIALIZING THE MAILBOX */
 	if ((m_NCS_IPC_CREATE(&gld_cb->mbx) != NCSCC_RC_SUCCESS) ||
-	    (m_NCS_IPC_ATTACH(&gld_cb->mbx) != NCSCC_RC_SUCCESS) ||
-	    (m_NCS_TASK_CREATE((NCS_OS_CB)gld_main_process,
-			       &gld_cb->mbx, "GLD", m_GLD_TASK_PRIORITY,
-			       m_GLD_STACKSIZE,
-			       &gld_cb->task_hdl) != NCSCC_RC_SUCCESS) ||
-	    (m_NCS_TASK_START(gld_cb->task_hdl) != NCSCC_RC_SUCCESS)) {
+	    (m_NCS_IPC_ATTACH(&gld_cb->mbx) != NCSCC_RC_SUCCESS)) {
 		m_LOG_GLD_HEADLINE(GLD_IPC_TASK_INIT, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		saImmOiFinalize(gld_cb->immOiHandle);
 		glsv_gld_mbcsv_unregister(gld_cb);
 		gld_mds_shut(gld_cb);
 		saAmfFinalize(gld_cb->amf_hdl);
-		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return (NCSCC_RC_FAILURE);
@@ -199,7 +193,6 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	if (amf_error != SA_AIS_OK) {
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
-		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		saImmOiFinalize(gld_cb->immOiHandle);
 		glsv_gld_mbcsv_unregister(gld_cb);
@@ -229,7 +222,6 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_FAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
-		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		saImmOiFinalize(gld_cb->immOiHandle);
 		glsv_gld_mbcsv_unregister(gld_cb);
@@ -454,7 +446,7 @@ void gld_process_mbx(SYSF_MBX *mbx)
  *
  * Notes         : None.
  *****************************************************************************/
-static void gld_main_process(SYSF_MBX *mbx)
+void gld_main_process(SYSF_MBX *mbx)
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;

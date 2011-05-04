@@ -21,7 +21,7 @@
 #include <daemon.h>
 
 #include "glnd.h"
-
+extern void glnd_main_process(SYSF_MBX *);
 static int __init_glnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -47,16 +47,32 @@ static int __init_glnd(void)
 
 int main(int argc, char *argv[])
 {
+	GLND_CB *glnd_cb = NULL;
+	uns32 cb_hdl = 0;
+
 	daemonize(argc, argv);
 
 	if (__init_glnd() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "__init_glnd() failed");
 		exit(EXIT_FAILURE);
 	}
+        
+	cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL; 
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
+	/* Get the CB from the handle */
+	glnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_GLND, cb_hdl);
+
+	if (!glnd_cb) {
+		LOG_ER("cb take hdl failed");
+		exit(EXIT_FAILURE);
 	}
+
+	/* giveup the handle */
+	ncshm_give_hdl(cb_hdl);
+
+	glnd_main_process(&glnd_cb->glnd_mbx);
+
+	LOG_ER("exiting the select loop of GLND...");
 
 	exit(1);
 }

@@ -22,6 +22,7 @@
 
 #include "cpnd.h"
 
+extern void cpnd_main_process(CPND_CB *cb);
 static int __init_cpnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -47,6 +48,8 @@ static int __init_cpnd(void)
 
 int main(int argc, char *argv[])
 {
+	CPND_CB *cpnd_cb = NULL;
+	uns32 cb_hdl = 0;
 	daemonize(argc, argv);
 
 	if (__init_cpnd() != NCSCC_RC_SUCCESS) {
@@ -54,9 +57,19 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
-		m_NCS_TASK_SLEEP(0xfffffff0);
+	cb_hdl = m_CPND_GET_CB_HDL;
+	 /* Get the CB from the handle */
+	cpnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, cb_hdl);
+
+	if (!cpnd_cb) {
+		LOG_ER("Handle get failed");
+		exit(EXIT_FAILURE);
 	}
+	/* giveup the handle */
+	ncshm_give_hdl(cb_hdl);
+
+	cpnd_main_process(cpnd_cb);
+	LOG_ER("CPND is Exiting");
 
 	exit(1);
 }

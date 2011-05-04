@@ -47,7 +47,7 @@ static uns32 cpnd_cb_db_destroy(CPND_CB *cb);
 
 static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
-static void cpnd_main_process(NCSCONTEXT info);
+void cpnd_main_process(CPND_CB *cb);
 
 /****************************************************************************
  * Name          : cpnd_lib_req
@@ -252,20 +252,6 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 		goto amf_reg_err;
 	}
 
-	/* Create the task for CPND */
-	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB)cpnd_main_process,
-				    (NCSCONTEXT)cb, m_CPND_TASKNAME, m_CPND_TASK_PRI,
-				    m_CPND_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_TASK_CREATE_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		goto cpnd_task_create_fail;
-	}
-
-	if ((rc = m_NCS_TASK_START(cb->task_hdl))
-	    != NCSCC_RC_SUCCESS) {
-		m_LOG_CPND_CL(CPND_TASK_START_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		goto cpnd_task_start_fail;
-	}
-
 	/* CODE  FOR THE NO REDUNDANCY */
 	memset(&gbl_shm_addr, 0, sizeof(GBL_SHM_PTR));
 	shm_ptr = cpnd_restart_shm_create(&cpnd_open_req, cb, cluster_node.nodeId);
@@ -323,10 +309,6 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
 	saClmFinalize(cb->clm_hdl);
 
  cpnd_clm_init_fail:
- cpnd_task_start_fail:
-	m_NCS_TASK_RELEASE(cb->task_hdl);
-
- cpnd_task_create_fail:
 	m_NCS_IPC_DETACH(&cb->cpnd_mbx, cpnd_clear_mbx, cb);
 
  cpnd_ipc_att_fail:
@@ -370,10 +352,6 @@ static uns32 cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 		m_LOG_CPND_CL(CPND_DESTROY_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return (NCSCC_RC_FAILURE);
 	}
-
-	m_NCS_TASK_STOP(cb->task_hdl);
-
-	m_NCS_TASK_RELEASE(cb->task_hdl);
 
 	m_NCS_IPC_DETACH(&cb->cpnd_mbx, cpnd_clear_mbx, cb);
 
@@ -505,9 +483,8 @@ static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Notes         : None.
  *****************************************************************************/
-static void cpnd_main_process(NCSCONTEXT info)
+void cpnd_main_process(CPND_CB *cb)
 {
-	CPND_CB *cb = (CPND_CB *)info;
 	NCS_SEL_OBJ_SET all_sel_obj;
 	NCS_SEL_OBJ mbx_fd;
 	SYSF_MBX mbx = cb->cpnd_mbx;
