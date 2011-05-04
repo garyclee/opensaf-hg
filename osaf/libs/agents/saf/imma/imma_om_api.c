@@ -1399,15 +1399,6 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
   Return Values :  Refer to SAI-AIS specification for various return values.
 ******************************************************************************/
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmCcbObjectCreate(SaImmCcbHandleT ccbHandle,
-				   const SaImmClassNameT className,
-				   const SaNameT *parentName, const SaImmAttrValuesT ** attrValues)
-{
-	return saImmOmCcbObjectCreate_2(ccbHandle, className, parentName, (const SaImmAttrValuesT_2 **)attrValues);
-}
-#endif
-
 SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 				     const SaImmClassNameT className,
 				     const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
@@ -1883,16 +1874,6 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
   Return Values :  Refer to SAI-AIS specification for various return values.
 ******************************************************************************/
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmCcbObjectModify(SaImmCcbHandleT ccbHandle,
-				   const SaNameT *objectName, const SaImmAttrModificationT ** attrMods)
-{
-
-	return saImmOmCcbObjectModify_2(ccbHandle, objectName, (const SaImmAttrModificationT_2 **)
-					attrMods);
-}
-#endif
-
 SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 				     const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
@@ -2994,20 +2975,6 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
  
   Notes         : Note the TWO return values!
 ******************************************************************************/
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmAdminOperationInvoke(SaImmAdminOwnerHandleT ownerHandle,
-					const SaNameT *objectName,
-					SaImmAdminOperationIdT operationId,
-					const SaImmAdminOperationParamsT
-					** params, SaAisErrorT *operationReturnValue, SaTimeT timeout)
-{
-	/* convert the SaImmAdminOperationParamsT to SaImmAdminOperationParamsT_2 */
-	return saImmOmAdminOperationInvoke_2(ownerHandle, objectName, 0, operationId,
-					     (const SaImmAdminOperationParamsT_2 **)params, operationReturnValue,
-					     timeout);
-}
-#endif
-
 SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 					  const SaNameT *objectName,
 					  SaImmContinuationIdT continuationId,
@@ -3336,19 +3303,6 @@ static int push_async_adm_op_continuation(IMMA_CB *cb,	//in
  
   Notes         :
 ******************************************************************************/
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmAdminOperationInvokeAsync(SaImmAdminOwnerHandleT ownerHandle,
-					     SaInvocationT userInvocation,
-					     const SaNameT *objectName,
-					     SaImmAdminOperationIdT operationId,
-					     const SaImmAdminOperationParamsT ** params)
-{
-	/* convert the SaImmAdminOperationParamsT to SaImmAdminOperationParamsT_2 */
-	return saImmOmAdminOperationInvokeAsync_2(ownerHandle, userInvocation, objectName, 0,
-						  operationId, (const SaImmAdminOperationParamsT_2 **)params);
-}
-#endif
-
 SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandle,
 					       SaInvocationT userInvocation,
 					       const SaNameT *objectName,
@@ -3639,47 +3593,6 @@ SaAisErrorT saImmOmAdminOperationContinuationClear(SaImmAdminOwnerHandleT ownerH
 	TRACE_2("saImmOmAdminOperationContinuationClear not yet implemented");
 	return SA_AIS_ERR_NOT_SUPPORTED;
 }
-
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmClassCreate(SaImmHandleT immHandle,
-			       const SaImmClassNameT className,
-			       SaImmClassCategoryT classCategory, const SaImmAttrDefinitionT ** attrDefinitions)
-{
-	const SaImmAttrDefinitionT *attr;
-	SaImmAttrDefinitionT_2 *attr2;
-	const SaImmAttrDefinitionT_2 *attr2c;
-	int nrofAttrDefs = 0;
-	int ix = 0;
-	SaAisErrorT rc = SA_AIS_OK;
-
-	for (attr = attrDefinitions[0]; attr != 0; attr = attrDefinitions[++ix]) {
-		++nrofAttrDefs;
-	}
-
-	const SaImmAttrDefinitionT_2 **attrDefinitions2 = (const SaImmAttrDefinitionT_2 **)
-	    calloc(nrofAttrDefs + 1, sizeof(SaImmAttrDefinitionT_2 *));
-
-	for (attr = attrDefinitions[0], ix = 0; attr != 0; attr = attrDefinitions[++ix]) {
-		attrDefinitions2[ix] = (SaImmAttrDefinitionT_2 *)
-		    calloc(1, sizeof(SaImmAttrDefinitionT_2));
-
-		attr2 = (SaImmAttrDefinitionT_2 *)attrDefinitions2[ix];
-		attr2->attrName = attr->attrName;
-		attr2->attrValueType = attr->attrValueType;
-		attr2->attrFlags = attr->attrFlags;
-		attr2->attrDefaultValue = attr->attrDefaultValue;
-	}
-
-	rc = saImmOmClassCreate_2(immHandle, className, classCategory, attrDefinitions2);
-
-	for (attr2c = attrDefinitions2[0], ix = 0; attr2c != 0; attr2c = attrDefinitions2[++ix]) {
-		free((SaImmAttrDefinitionT_2 *)attr2c);
-	}
-
-	free(attrDefinitions2);
-	return rc;
-}
-#endif
 
 SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 				 const SaImmClassNameT className,
@@ -3997,53 +3910,6 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	TRACE_LEAVE();
 	return rc;
 }
-
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmClassDescriptionGet(SaImmHandleT immHandle,
-				       const SaImmClassNameT className,
-				       SaImmClassCategoryT *classCategory, SaImmAttrDefinitionT *** attrDefinition)
-{
-	SaImmAttrDefinitionT_2 **attrDefinitions2;
-	SaAisErrorT rc = SA_AIS_OK;
-
-	rc = saImmOmClassDescriptionGet_2(immHandle, className, classCategory, &attrDefinitions2);
-
-	if (rc == SA_AIS_OK) {
-		const SaImmAttrDefinitionT_2 *attr2c;
-		SaImmAttrDefinitionT_2 *attr2;
-		SaImmAttrDefinitionT *attr;
-		int nrofAttrDefs = 0;
-		int ix = 0;
-
-		for (attr2c = attrDefinitions2[0]; attr2c; attr2c = attrDefinitions2[++ix]) {
-			++nrofAttrDefs;
-		}
-
-		SaImmAttrDefinitionT **attrDefinitions = (SaImmAttrDefinitionT **)
-		    calloc(nrofAttrDefs + 1, sizeof(SaImmAttrDefinitionT *));
-
-		for (attr2c = attrDefinitions2[0], ix = 0; attr2c; attr2c = attrDefinitions2[++ix]) {
-			attrDefinitions[ix] = (SaImmAttrDefinitionT *)
-			    calloc(1, sizeof(SaImmAttrDefinitionT));
-
-			attr = (SaImmAttrDefinitionT *) attrDefinitions[ix];
-			attr2 = (SaImmAttrDefinitionT_2 *)attr2c;
-			attr->attrName = attr2->attrName;
-			attr2->attrName = NULL;	//Steal the string
-			attr->attrValueType = attr2->attrValueType;
-			attr->attrFlags = attr2->attrFlags;
-			attr->attrDefaultValue = attr2->attrDefaultValue;
-			attr2->attrDefaultValue = NULL;	//Steal the value
-		}
-
-		*attrDefinition = attrDefinitions;
-
-		saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions2);
-	}
-
-	return rc;
-}
-#endif
 
 SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 					 const SaImmClassNameT className,
@@ -4371,87 +4237,6 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	TRACE_LEAVE();
 	return rc;
 }
-
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmClassDescriptionMemoryFree(SaImmHandleT immHandle, SaImmAttrDefinitionT ** attrDefinition)
-{
-	IMMA_CB *cb = &imma_cb;
-	IMMA_CLIENT_NODE *cl_node = NULL;
-	TRACE_ENTER();
-	/* ABT The code from here.. */
-
-	/* get the CB Lock */
-	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERR_LIBRARY: Lock failed");
-		TRACE_LEAVE();
-		return SA_AIS_ERR_LIBRARY;
-	}
-
-	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-	if (!(cl_node && cl_node->isOm)) {
-		TRACE_2("ERR_BAD_HANDLE: Client not found");
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_LEAVE();
-		return SA_AIS_ERR_BAD_HANDLE;
-	}
-
-	if (cl_node->stale) {
-		TRACE_1("IMM Handle %llx is stale", immHandle);
-		/*return SA_AIS_ERR_BAD_HANDLE;*/
-		/* Dont let a stale handle prevent the deallocation. */
-	}
-
-	/* ABT ...to here does not do anything except check handle.
-	   Perhaps we should just ignore the handle. */
-
-	if (attrDefinition) {
-		int i;
-		for (i = 0; attrDefinition[i]; ++i) {
-			if (attrDefinition[i]->attrDefaultValue) {
-				SaStringT *strp;
-				SaAnyT *anyp;
-				switch (attrDefinition[i]->attrValueType) {
-				case SA_IMM_ATTR_SAINT32T:	//intended fall through
-				case SA_IMM_ATTR_SAUINT32T:	//intended fall through
-				case SA_IMM_ATTR_SAINT64T:	//intended fall through
-				case SA_IMM_ATTR_SAUINT64T:	//intended fall through
-				case SA_IMM_ATTR_SATIMET:	//intended fall through
-				case SA_IMM_ATTR_SAFLOATT:	//intended fall through
-				case SA_IMM_ATTR_SADOUBLET:
-				case SA_IMM_ATTR_SANAMET:
-					free(attrDefinition[i]->attrDefaultValue);	/*free-4 */
-					break;
-
-				case SA_IMM_ATTR_SASTRINGT:
-					strp = (SaStringT *)attrDefinition[i]->attrDefaultValue;
-					free(*strp);	/*free-5 */
-					free(strp);	/*free-4 */
-					break;
-
-				case SA_IMM_ATTR_SAANYT:
-					anyp = (SaAnyT *)attrDefinition[i]->attrDefaultValue;
-					free(anyp->bufferAddr);	/*free-5 */
-					anyp->bufferAddr = 0;
-					free(anyp);	/*free-4 */
-					break;
-
-				default:
-					abort();
-				}	//switch
-				attrDefinition[i]->attrDefaultValue = 0;
-			}
-			free(attrDefinition[i]->attrName);	/*free-3 */
-			attrDefinition[i]->attrName = 0;
-			free(attrDefinition[i]);	/*free-2 */
-			attrDefinition[i] = 0;
-		}
-		free(attrDefinition);	/*free-1 */
-	}
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	TRACE_LEAVE();
-	return SA_AIS_OK;
-}
-#endif
 
 SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAttrDefinitionT_2 **attrDefinition)
 {
@@ -4822,15 +4607,6 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 	TRACE_LEAVE();
 	return rc;
 }
-
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmAccessorGet(SaImmAccessorHandleT accessorHandle,
-			       const SaNameT *objectName,
-			       const SaImmAttrNameT *attributeNames, SaImmAttrValuesT *** attributes)
-{
-	return saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, (SaImmAttrValuesT_2 ***)attributes);
-}
-#endif
 
 SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				 const SaNameT *objectName,
@@ -5392,35 +5168,6 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	return rc;
 }
 
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmSearchInitialize(SaImmHandleT immHandle,
-				    const SaNameT *rootName,
-				    SaImmScopeT scope,
-				    SaImmSearchOptionsT searchOptions,
-				    const SaImmSearchParametersT * searchParam,
-				    const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	SaImmSearchParametersT_2 searchParam2;
-	TRACE_ENTER();
-
-	if (searchParam) {
-		searchParam2.searchOneAttr.attrName = searchParam->searchOneAttr.attrName;
-		searchParam2.searchOneAttr.attrValueType = searchParam->searchOneAttr.attrValueType;
-		searchParam2.searchOneAttr.attrValue = searchParam->searchOneAttr.attrValue;
-
-		rc = saImmOmSearchInitialize_2(immHandle, rootName, scope,
-					       searchOptions, &searchParam2, attributeNames, searchHandle);
-
-	} else {
-		rc = saImmOmSearchInitialize_2(immHandle, rootName, scope,
-					       searchOptions, NULL, attributeNames, searchHandle);
-	}
-	TRACE_LEAVE();
-	return rc;
-}
-#endif
-
 SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 				      const SaNameT *rootName,
 				      SaImmScopeT scope,
@@ -5765,17 +5512,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	TRACE_LEAVE();
 	return rc;
 }
-
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOmSearchNext(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT *** attributes)
-{
-	SaAisErrorT error = SA_AIS_OK;
-
-	error = saImmOmSearchNext_2(searchHandle, objectName, (SaImmAttrValuesT_2 ***)attributes);
-
-	return error;
-}
-#endif
 
 SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *objectName, SaImmAttrValuesT_2 ***attributes)
 {

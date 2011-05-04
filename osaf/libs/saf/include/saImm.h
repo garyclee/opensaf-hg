@@ -79,16 +79,6 @@ extern "C" {
 	typedef void *SaImmAttrValueT;
 
 	/* 4.2.7 SaImmAttrDefinitionT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		SaImmAttrNameT attrName;
-		SaImmValueTypeT attrValueType;
-		SaImmAttrFlagsT attrFlags;
-		SaUint32T attrNtfId;
-		SaImmAttrValueT attrDefaultValue;
-	} SaImmAttrDefinitionT;
-#endif
-
 	typedef struct {
 		SaImmAttrNameT attrName;
 		SaImmValueTypeT attrValueType;
@@ -97,17 +87,6 @@ extern "C" {
 	} SaImmAttrDefinitionT_2;
 
 	/* 4.2.8 SaImmAttrValuesT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		SaImmAttrNameT attrName;
-		/* BUGBUG ABT REMOVE USE OF THIS TYPE */
-		SaImmValueTypeT attrValueType;	/* Non standard addition to faulty type */
-		/* Corrected by add of SaImmAttrValues_2 */
-		SaUint32T attrValuesNumber;
-		SaImmAttrValueT *attrValues;
-	} SaImmAttrValuesT;
-#endif
-
 	typedef struct {
 		SaImmAttrNameT attrName;
 		SaImmValueTypeT attrValueType;
@@ -123,13 +102,6 @@ extern "C" {
 	} SaImmAttrModificationTypeT;
 
 	/* 4.2.10 SaImmAttrModificationT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		SaImmAttrModificationTypeT modType;
-		SaImmAttrValuesT modAttr;
-	} SaImmAttrModificationT;
-#endif
-
 	typedef struct {
 		SaImmAttrModificationTypeT modType;
 		SaImmAttrValuesT_2 modAttr;
@@ -150,19 +122,6 @@ extern "C" {
 	typedef SaUint64T SaImmSearchOptionsT;
 
 	/* 4.2.13 SaImmSearchParametersT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		/*SaImmAttrNameT *attrName; */
-		SaImmAttrNameT attrName;	/*BUGBUG ABT REMOVE USE OF THIS TYPE */
-		SaImmValueTypeT attrValueType;
-		SaImmAttrValueT attrValue;
-	} SaImmSearchOneAttrT;
-
-	typedef union {
-		SaImmSearchOneAttrT searchOneAttr;
-	} SaImmSearchParametersT;
-#endif
-
 	typedef struct {
 		SaImmAttrNameT attrName;
 		SaImmValueTypeT attrValueType;
@@ -185,14 +144,6 @@ extern "C" {
 	typedef SaUint64T SaImmAdminOperationIdT;
 
 	/* 4.2.17 SaImmAdminOperationParamsT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		SaStringT paramName;
-		SaImmValueTypeT paramType;
-		void *paramBuffer;
-		SaUint32T paramSize;
-	} SaImmAdminOperationParamsT;
-#endif
 
 	typedef struct {
 		SaStringT paramName;

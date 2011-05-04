@@ -68,21 +68,6 @@ static int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, NCS_BOOL *l
  
   Notes         :
 ******************************************************************************/
-#ifdef IMM_A_01_01
-SaAisErrorT saImmOiInitialize(SaImmOiHandleT *immOiHandle,
-			      const SaImmOiCallbacksT * immOiCallbacks, SaVersionT *version)
-{
-	if ((version->releaseCode != 'A') || (version->majorVersion != 0x01)) {
-		TRACE_2("ERR_VERSION: THIS SHOULD BE A VERSION A.1.x implementer but claims to be"
-		      "%c %u %u", version->releaseCode, version->majorVersion, 
-			version->minorVersion);
-		return SA_AIS_ERR_VERSION;
-	}
-
-	return saImmOiInitialize_2(immOiHandle, (const SaImmOiCallbacksT_2 *)immOiCallbacks, version);
-}
-#endif
-
 SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 				const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version)
 {
@@ -126,7 +111,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	}
 
 	cl_node->isOm = FALSE;
-#ifdef IMM_A_01_01
+/*
 	if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
 		TRACE_1("THIS IS A VERSION A.1.x implementer %c %u %u",
 		      version->releaseCode, version->majorVersion, version->minorVersion);
@@ -136,7 +121,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		      version->releaseCode, version->majorVersion, version->minorVersion);
 		cl_node->isOiA1 = FALSE;
 	}
-#endif
+*/
 
 	/* Take the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -156,24 +141,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 	/* Store the callback functions, if set */
 	if (immOiCallbacks) {
-#ifdef IMM_A_01_01
-		if (cl_node->isOiA1) {
-			cl_node->o.iCallbk1 = *((const SaImmOiCallbacksT *)immOiCallbacks);
-			TRACE("Version A.1.x callback registered:");
-			TRACE("RtAttrUpdateCb:%p", cl_node->o.iCallbk1.saImmOiRtAttrUpdateCallback);
-			TRACE("CcbObjectCreateCb:%p", cl_node->o.iCallbk1.saImmOiCcbObjectCreateCallback);
-			TRACE("CcbObjectDeleteCb:%p", cl_node->o.iCallbk1.saImmOiCcbObjectDeleteCallback);
-			TRACE("CcbObjectModifyCb:%p", cl_node->o.iCallbk1.saImmOiCcbObjectModifyCallback);
-			TRACE("CcbCompletedCb:%p", cl_node->o.iCallbk1.saImmOiCcbCompletedCallback);
-			TRACE("CcbApplyCb:%p", cl_node->o.iCallbk1.saImmOiCcbApplyCallback);
-			TRACE("CcbAbortCb:%p", cl_node->o.iCallbk1.saImmOiCcbAbortCallback);
-			TRACE("AdminOperationCb:%p", cl_node->o.iCallbk1.saImmOiAdminOperationCallback);
-		} else {
-			cl_node->o.iCallbk = *immOiCallbacks;
-		}
-#else
 		cl_node->o.iCallbk = *immOiCallbacks;
-#endif
 	}
 
 	proc_rc = imma_callback_ipc_init(cl_node);
@@ -1958,15 +1926,6 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	return rc;
 }
 
-#ifdef IMM_A_01_01
-extern SaAisErrorT saImmOiRtObjectUpdate(SaImmOiHandleT immOiHandle,
-					 const SaNameT *objectName, const SaImmAttrModificationT ** attrMods)
-{
-	return saImmOiRtObjectUpdate_2(immOiHandle, objectName, (const SaImmAttrModificationT_2 **)
-				       attrMods);
-}
-#endif
-
 SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 				    const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
@@ -2238,15 +2197,6 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	TRACE_LEAVE();
 	return rc;
 }
-
-#ifdef IMM_A_01_01
-extern SaAisErrorT saImmOiRtObjectCreate(SaImmOiHandleT immOiHandle,
-					 const SaImmClassNameT className,
-					 const SaNameT *parentName, const SaImmAttrValuesT ** attrValues)
-{
-	return saImmOiRtObjectCreate_2(immOiHandle, className, parentName, (const SaImmAttrValuesT_2 **)attrValues);
-}
-#endif
 
 extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 					   const SaImmClassNameT className,

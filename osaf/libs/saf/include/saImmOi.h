@@ -56,14 +56,6 @@ extern "C" {
 	 (*SaImmOiRtAttrUpdateCallbackT) (SaImmOiHandleT immOiHandle,
 					  const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
 	/* From 5.6.1 */
-#ifdef IMM_A_01_01
-	typedef SaAisErrorT
-	 (*SaImmOiCcbObjectCreateCallbackT) (SaImmOiHandleT immOiHandle,
-					     SaImmOiCcbIdT ccbId,
-					     const SaImmClassNameT className,
-					     const SaNameT *parentName, const SaImmAttrValuesT ** attr);
-#endif
-
 	typedef SaAisErrorT
 	 (*SaImmOiCcbObjectCreateCallbackT_2) (SaImmOiHandleT immOiHandle,
 					       SaImmOiCcbIdT ccbId,
@@ -75,13 +67,6 @@ extern "C" {
 	 (*SaImmOiCcbObjectDeleteCallbackT) (SaImmOiHandleT immOiHandle,
 					     SaImmOiCcbIdT ccbId, const SaNameT *objectName);
 	/* From 5.6.3  */
-#ifdef IMM_A_01_01
-	typedef SaAisErrorT
-	 (*SaImmOiCcbObjectModifyCallbackT) (SaImmOiHandleT immOiHandle,
-					     SaImmOiCcbIdT ccbId,
-					     const SaNameT *objectName, const SaImmAttrModificationT ** attrMods);
-#endif
-
 	typedef SaAisErrorT
 	 (*SaImmOiCcbObjectModifyCallbackT_2) (SaImmOiHandleT immOiHandle,
 					       SaImmOiCcbIdT ccbId,
@@ -100,35 +85,12 @@ extern "C" {
 	 (*SaImmOiCcbAbortCallbackT) (SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId);
 
 	/* From 5.7.1  */
-#ifdef IMM_A_01_01
-	typedef void
-	 (*SaImmOiAdminOperationCallbackT) (SaImmOiHandleT immOiHandle,
-					    SaInvocationT invocation,
-					    const SaNameT *objectName,
-					    SaImmAdminOperationIdT operationId,
-					    const SaImmAdminOperationParamsT ** params);
-#endif
-
 	typedef void
 	 (*SaImmOiAdminOperationCallbackT_2) (SaImmOiHandleT immOiHandle,
 					      SaInvocationT invocation,
 					      const SaNameT *objectName,
 					      SaImmAdminOperationIdT operationId,
 					      const SaImmAdminOperationParamsT_2 **params);
-
-	/* SaImmOiCallbacksT */
-#ifdef IMM_A_01_01
-	typedef struct {
-		SaImmOiRtAttrUpdateCallbackT saImmOiRtAttrUpdateCallback;
-		SaImmOiCcbObjectCreateCallbackT saImmOiCcbObjectCreateCallback;
-		SaImmOiCcbObjectDeleteCallbackT saImmOiCcbObjectDeleteCallback;
-		SaImmOiCcbObjectModifyCallbackT saImmOiCcbObjectModifyCallback;
-		SaImmOiCcbCompletedCallbackT saImmOiCcbCompletedCallback;
-		SaImmOiCcbApplyCallbackT saImmOiCcbApplyCallback;
-		SaImmOiCcbAbortCallbackT saImmOiCcbAbortCallback;
-		SaImmOiAdminOperationCallbackT saImmOiAdminOperationCallback;
-	} SaImmOiCallbacksT;
-#endif
 
 	/* SaImmOiCallbacksT_2 */
 	typedef struct {
@@ -145,11 +107,6 @@ extern "C" {
 	} SaImmOiCallbacksT_2;
 
 	/* 5.3.1 saImmOiInitialize() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOiInitialize(SaImmOiHandleT *immOiHandle, const SaImmOiCallbacksT * immOiCallbacks, SaVersionT *version) __attribute__ ((deprecated));
-#endif
-
 	extern SaAisErrorT
 	 saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 			     const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version);
@@ -205,12 +162,6 @@ extern "C" {
 	 */
 
 	/* 5.5.1 saImmOiRtObjectCreate() */
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOiRtObjectCreate(SaImmOiHandleT immOiHandle,
-			       const SaImmClassNameT className,
-			       const SaNameT *parentName, const SaImmAttrValuesT ** attrValues) __attribute__ ((deprecated));
-#endif
 
 	extern SaAisErrorT
 	 saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
@@ -224,11 +175,6 @@ extern "C" {
 
 	/* 5.5.3 saImmOiRtObjectUpdate() */
 
-#ifdef IMM_A_01_01
-	extern SaAisErrorT
-	 saImmOiRtObjectUpdate(SaImmOiHandleT immOiHandle,
-			       const SaNameT *objectName, const SaImmAttrModificationT ** attrMods) __attribute__ ((deprecated));
-#endif
 	extern SaAisErrorT
 	 saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 				 const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods);
