@@ -453,12 +453,16 @@ SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
     const SaNameT* objName,
     SaUint32T ccbId,
-    SaUint32T **aplConnArr)
+    SaUint32T **aplConnArr,
+    SaBoolT externalRep)
 {
     ConnVector cv;
     ConnVector::iterator cvi;
     unsigned int ix = 0;
-    ImmModel::instance(&cb->immModel)->getLocalAppliersForObj(objName, ccbId, cv);
+
+    ImmModel::instance(&cb->immModel)->
+        getLocalAppliersForObj(objName, ccbId, cv, externalRep==SA_TRUE);
+
     SaUint32T arrSize = cv.size();
 
     if(arrSize) {
@@ -4013,7 +4017,7 @@ ImmModel::eduAtValToOs(immsv_octet_string* tmpos,
 }
 
 void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
-    ConnVector& cv)
+    ConnVector& cv, bool externalRep)
 {
     /* Probably need ccb-id to avoid joining pre-existing ccbs. 
        AND for adding to ccb->mLocalAppliers.
@@ -4021,11 +4025,25 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
     cv.clear(); 
+
     std::string objectName((const char *)objName->value);
+    if(externalRep && !(nameCheck(objectName)||nameToInternal(objectName))) {
+        LOG_NO("Not a proper object name");
+	abort();
+    }
+
     ObjectMap::iterator i5 = sObjectMap.find(objectName);
     if(i5 == sObjectMap.end()) {
         LOG_ER("Could not find expected object:%s", objName->value);
         abort();
+    }
+
+    ObjectInfo* object = i5->second;
+    ClassInfo* classInfo = object->mClassInfo;
+
+    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+        TRACE("Ignoring runtime object %s", objectName.c_str());
+        return;
     }
 
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
@@ -4036,8 +4054,6 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
 
     ccb = *i1;
 
-    ObjectInfo* object = i5->second;
-    ClassInfo* classInfo = object->mClassInfo;
     if(!classInfo->mAppliers.empty()) {
         ImplementerSet::iterator ii;
         for(ii = classInfo->mAppliers.begin(); ii != classInfo->mAppliers.end(); ++ii) {
@@ -5558,24 +5574,42 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             } 
         }
 
-        if(pbeIsLocal && !localImpl && 
-          (configObj || (oi->second->mObjFlags & IMM_PRTO_FLAG))) {
-            /* No regular and local implementer, but we have a PBE. 
-               The object is a config object or a persistent RT object.
+        if(!localImpl && (configObj || (oi->second->mObjFlags & IMM_PRTO_FLAG))) {
+            /* Object not yet included in upcall list since there was no regular 
+               local implementer. But object is persistent.
             */
-            if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
-                std::string objectName(oi->first);
-                nameToExternal(objectName);
-                objNameVector.push_back(objectName);
-            } else {
-                objNameVector.push_back(oi->first);
+            if(pbeIsLocal || (!(oi->second->mClassInfo->mAppliers.empty()) && 
+                hasLocalAppliers(oi->second->mClassInfo))) {
+                /* PBE is local and/or possibly local appliers. 
+                   Add object to upcall list with zeroed connection and
+                   zeroed continuation (no reply wanted). 
+                */
+                if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                    std::string objectName(oi->first);
+                    nameToExternal(objectName);
+                    objNameVector.push_back(objectName);
+                } else {
+                    objNameVector.push_back(oi->first);
+                }
+                connVector.push_back(0);
+                continuations.push_back(0);
             }
-            connVector.push_back(0);
-            continuations.push_back(0);
         }
     }
     /*TRACE_LEAVE();*/
     return SA_AIS_OK;
+}
+
+bool
+ImmModel::hasLocalAppliers(ClassInfo* classInfo)
+{
+    ImplementerSet::iterator ii;
+    for(ii = classInfo->mAppliers.begin(); 
+       ii != classInfo->mAppliers.end(); ++ii) {
+        ImplementerInfo* impl = *ii;
+        if(impl->mConn && !impl->mDying && impl->mId) {return true;}
+    }
+    return false;
 }
 
 bool 
