@@ -212,8 +212,8 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 		if(!inv) {
 			new_ccb->opCount++;
 			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
-			if(!(cl_node->isPbe)) {
-				LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is FALSE!");
+			if(!(cl_node->isPbe || cl_node->isApplier)) {
+				LOG_ER("imma_oi_ccb_record_add inv==0 yet both isPbe and isApplier are FALSE");
 				assert(cl_node->isPbe);
 			}
 		}
@@ -222,10 +222,10 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 
 	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
-	if(!inv) {/* zero inv =>PBE => count ops. */
+	if(!inv) {/* zero inv =>PBE or Applier => count ops. */
 		new_ccb->opCount = 1; 
-		TRACE_2("Zero inv => PBE initialized opcount to 1");
-		if(!(cl_node->isPbe)) {
+		TRACE_2("Zero inv => PBE/Applier initialized opcount to 1");
+		if(!(cl_node->isPbe || cl_node->isApplier)) {
 			LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is FALSE!");
 			assert(cl_node->isPbe);
 		}
@@ -292,7 +292,7 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 		assert(!tmp->isCritical);
 		rs = 1;
 		if(tmp->opCount) {
-			if(!(cl_node->isPbe)) {
+			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_ok_for_critical opCount!=0 yet cl_node->isPbe "
 					"is FALSE! ccb:%llx", ccbId);
 				rs = 0;
@@ -306,6 +306,8 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
+	} else {
+LOG_NO("Record for ccb %llx not found in ok_for_critical", ccbId);
 	}
 
 	TRACE_LEAVE();
@@ -323,7 +325,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 		tmp->isCritical = 1;
 		rs = 1;
 		if(tmp->opCount) {
-			if(!(cl_node->isPbe)) {
+			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is FALSE! "
 					"ccbId:%llx", ccbId);
 				assert(cl_node->isPbe);

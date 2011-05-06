@@ -476,6 +476,32 @@ immModel_getLocalAppliersForObj(IMMND_CB *cb,
     return arrSize;
 }
 
+SaUint32T
+immModel_getLocalAppliersForCcb(IMMND_CB *cb,
+    SaUint32T ccbId,
+    SaUint32T **aplConnArr,
+    SaUint32T* applCtnPtr)
+{
+    ConnVector cv;
+    ConnVector::iterator cvi;
+    unsigned int ix = 0;
+
+    ImmModel::instance(&cb->immModel)->
+        getLocalAppliersForCcb(ccbId, cv, applCtnPtr);
+
+    SaUint32T arrSize = cv.size();
+
+    if(arrSize) {
+        *aplConnArr = (SaUint32T *) malloc((arrSize) * sizeof(SaUint32T));
+
+        for(cvi = cv.begin(); cvi!=cv.end(); ++cvi, ++ix) {
+            (*aplConnArr)[ix] = (*cvi);
+        }
+    }
+
+    return arrSize;
+}
+
 SaAisErrorT
 immModel_ccbObjectModify(IMMND_CB *cb, 
     const struct ImmsvOmCcbObjectModify* req,
@@ -4016,12 +4042,37 @@ ImmModel::eduAtValToOs(immsv_octet_string* tmpos,
     }
 }
 
+void ImmModel::getLocalAppliersForCcb(SaUint32T ccbId, ConnVector& cv, SaUint32T* applCtnPtr)
+{
+    CcbInfo* ccb = 0;
+    CcbVector::iterator i1;
+    cv.clear(); 
+    *applCtnPtr = 0;
+
+    i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+    if(i1 == sCcbVector.end()) {
+        LOG_IN("Ccb id %u does not exist", ccbId);
+        abort();
+    }
+
+    ccb = *i1;
+
+    if(!ccb->mLocalAppliers.empty()) {
+        ImplementerSet::iterator ii;
+        for(ii = ccb->mLocalAppliers.begin(); ii != ccb->mLocalAppliers.end(); ++ii) {
+            ImplementerInfo* impl = *ii;
+            if(impl->mConn && !impl->mDying && impl->mId) {
+                cv.push_back(impl->mConn);
+            }
+        }
+    }
+
+    *applCtnPtr = ccb->mOpCount;
+}
+
 void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     ConnVector& cv, bool externalRep)
 {
-    /* Probably need ccb-id to avoid joining pre-existing ccbs. 
-       AND for adding to ccb->mLocalAppliers.
-     */
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
     cv.clear(); 
@@ -4029,7 +4080,7 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     std::string objectName((const char *)objName->value);
     if(externalRep && !(nameCheck(objectName)||nameToInternal(objectName))) {
         LOG_NO("Not a proper object name");
-	abort();
+        abort();
     }
 
     ObjectMap::iterator i5 = sObjectMap.find(objectName);

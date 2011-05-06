@@ -2639,7 +2639,6 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 		   lookup of the pbe implementer and does not make us wait for it.
 		 */
 	}
-
 	if (immModel_ccbWaitForCompletedAck(cb, evt->info.ccbUpcallRsp.ccbId, &err,
 		    &pbeConn, pbeNodeIdPtr, &pbeId, &pbeCtn)) {
 		/* We still need to wait for some implementer replies, possibly also the PBE.*/
@@ -2697,7 +2696,41 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			   to commit and all immnds are prepared to commit this ccb. Fevs must
 			   guarantee that all have seen the same replies from implementers. 
 			   If there is a PBE then it has also decided to commit.
+			   Appliers now receive completed upcall (any replies from apploers are ignored).
+			   Then we do the internal commit, then send the apply to implementers then the 
+			   apply to appliers.
 			*/
+			SaUint32T applCtn = 0;
+			SaUint32T *applConnArr = NULL;
+			SaUint32T applArrSize =
+				immModel_getLocalAppliersForCcb(cb, evt->info.ccbUpcallRsp.ccbId, &applConnArr, &applCtn);
+
+			if(applArrSize) {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
+				send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbUpcallRsp.ccbId;
+				send_evt.info.imma.info.ccbCompl.implId = 0;
+				send_evt.info.imma.info.ccbCompl.invocation = applCtn;
+				int ix = 0;
+				for (; ix < applArrSize && err == SA_AIS_OK; ++ix) {
+					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+
+					/*Fetch client node for Applier OI ! */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					assert(oi_cl_node != NULL);
+					if (oi_cl_node->mIsStale) {
+						LOG_WA("Applier client went down so completed upcall not sent");
+						continue;
+					} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							   oi_cl_node->agent_mds_dest,
+							   &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Completed upcall for applier failed");
+					}
+				}
+			}
+
 			TRACE_2("DELAYED COMMIT TAKING EFFECT");
 			SaUint32T *implConnArr = NULL;
 			SaUint32T arrSize = 0;
@@ -2761,6 +2794,38 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				}	//for
 				free(implConnArr);
 			}	//if(arrSize
+
+			if(applArrSize) {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_APPLY_UC;
+				send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbUpcallRsp.ccbId;
+				send_evt.info.imma.info.ccbCompl.implId = 0;
+				send_evt.info.imma.info.ccbCompl.invocation = 0;
+				int ix = 0;
+				for (; ix < applArrSize && err == SA_AIS_OK; ++ix) {
+					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+
+					/*Fetch client node for Applier OI ! */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					assert(oi_cl_node != NULL);
+					if (oi_cl_node->mIsStale) {
+						LOG_WA("Applier client went down so completed upcall not sent");
+						continue;
+					} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							   oi_cl_node->agent_mds_dest,
+							   &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Completed upcall for applier failed");
+					}
+				}
+
+				free(applConnArr);
+				applConnArr = NULL;
+			}
+
+			
+
 		} else {	/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
 				   for all local implementers involved in the Ccb */
 			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, SA_FALSE, NULL);
@@ -4333,11 +4398,11 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 
 	if((objName.length) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object create */
-		SaUint32T *aplConnArr = NULL;
+		SaUint32T *applConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objCreate.ccbId, &aplConnArr, SA_FALSE);
+				evt->info.objCreate.ccbId, &applConnArr, SA_FALSE);
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -4349,7 +4414,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			  invocation id. In this case, 0 => no reply is expected. */
 
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
-				implHandle = m_IMMSV_PACK_HANDLE(aplConnArr[ix], cb->node_id);
+				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objCreate.immHandle = implHandle;
 
 				/*Fetch client node for Applier OI ! */
@@ -4365,8 +4430,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 				}
 			}
 
-			free(aplConnArr);
-			aplConnArr = NULL;
+			free(applConnArr);
+			applConnArr = NULL;
 		}
 	}
 
@@ -4552,11 +4617,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 	if((objName.length) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object modify */
-		SaUint32T *aplConnArr = NULL;
+		SaUint32T *applConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objModify.ccbId, &aplConnArr, SA_FALSE);
+				evt->info.objModify.ccbId, &applConnArr, SA_FALSE);
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -4568,7 +4633,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			  invocation id. In this case, 0 => no reply is expected. */
 
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
-				implHandle = m_IMMSV_PACK_HANDLE(aplConnArr[ix], cb->node_id);
+				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
 
 				/*Fetch client node for Applier OI ! */
@@ -4584,8 +4649,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 				}
 			}
 
-			free(aplConnArr);
-			aplConnArr = NULL;
+			free(applConnArr);
+			applConnArr = NULL;
 		}
 	}
 
@@ -5087,7 +5152,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		   invocation id. In this case, 0 => no reply is expected. */
 		int ix = 0;
 		for (; ix < arrSize && err == SA_AIS_OK; ++ix) { /* Iterate over deleted objects */
-			SaUint32T *aplConnArr = NULL;
+			SaUint32T *applConnArr = NULL;
 			SaNameT objName;
 			objName.length = strlen(objNameArr[ix]);
 			send_evt.info.imma.info.objDelete.objectName.size = objName.length;
@@ -5096,13 +5161,13 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 			
 			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objDelete.ccbId, &aplConnArr, SA_TRUE);
+				evt->info.objDelete.ccbId, &applConnArr, SA_TRUE);
 
 			int ix2 = 0;
 			for (; ix2 < arrSize2 && err == SA_AIS_OK; ++ix2) { /* Iterate over applier connections for object */
 
 				/* Look up the client node for the applier */
-				implHandle = m_IMMSV_PACK_HANDLE(aplConnArr[ix2], cb->node_id);
+				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix2], cb->node_id);
 
 				/*Fetch client node for OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -5120,12 +5185,12 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 							       oi_cl_node->agent_mds_dest,
 							       &send_evt) != NCSCC_RC_SUCCESS) {
-						LOG_WA("Delete upcall for applier failed conn:%u", aplConnArr[ix2]);
+						LOG_WA("Delete upcall for applier failed conn:%u", applConnArr[ix2]);
 					}
 				}
 			}	/* for(; ix2.. */
-			free(aplConnArr);
-			aplConnArr = NULL;
+			free(applConnArr);
+			applConnArr = NULL;
 		} /* for(; ix... */
 	}
 
@@ -5576,9 +5641,41 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 	/*REPLY can not be sent immediately if there are implementers or PBE.
 	   Must wait for prepare votes. */
 	if (!delayedReply) {
-		SaUint32T client = 0;
 		if (err == SA_AIS_OK) {
 			/*No implementers anywhere and all is OK */
+			/* Check for appliers. */
+			SaUint32T applCtn = 0;
+			SaUint32T *applConnArr = NULL;
+			SaUint32T applArrSize =
+				immModel_getLocalAppliersForCcb(cb, evt->info.objModify.ccbId, &applConnArr, &applCtn);
+
+			if(applArrSize) {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
+				send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
+				send_evt.info.imma.info.ccbCompl.implId = 0;
+				send_evt.info.imma.info.ccbCompl.invocation = applCtn;
+				int ix = 0;
+				for (; ix < applArrSize && err == SA_AIS_OK; ++ix) {
+					implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+
+					/*Fetch client node for Applier OI ! */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					assert(oi_cl_node != NULL);
+					if (oi_cl_node->mIsStale) {
+						LOG_WA("Applier client went down so completed upcall not sent");
+						continue;
+					} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							   oi_cl_node->agent_mds_dest,
+							   &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Completed upcall for applier failed");
+					}
+				}
+			}
+
+
 			TRACE_2("DIRECT COMMIT");
 			/* TODO:
 			   This is a dangerous variant of commit. If any other ND fails
@@ -5613,9 +5710,37 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 					}
 				}
 			}
-			/* TODO: INFORM DIRECTOR OF CCB-COMMIT DECISION */
 			assert(arrSize == 0);
+			if(applArrSize) {
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_APPLY_UC;
+				send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
+				send_evt.info.imma.info.ccbCompl.implId = 0;
+				send_evt.info.imma.info.ccbCompl.invocation = 0;
+				int ix = 0;
+				for (; ix < applArrSize && err == SA_AIS_OK; ++ix) {
+					implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+
+					/*Fetch client node for Applier OI ! */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					assert(oi_cl_node != NULL);
+					if (oi_cl_node->mIsStale) {
+						LOG_WA("Applier client went down so completed upcall not sent");
+						continue;
+					} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							   oi_cl_node->agent_mds_dest,
+							   &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Completed upcall for applier failed");
+					}
+				}
+
+				free(applConnArr);
+				applConnArr = NULL;
+			}
 		} else {
+			SaUint32T client = 0;
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcalls
 			 */
 			immnd_evt_ccb_abort(cb, evt->info.ccbId, SA_FALSE, &client);
