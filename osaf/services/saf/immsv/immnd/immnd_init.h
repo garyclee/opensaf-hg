@@ -168,7 +168,8 @@ extern "C" {
 	SaAisErrorT
 	    immModel_ccbObjectModify(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectModify *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
-		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId,
+                    SaNameT* objName);
 
 	void immModel_ccbCompletedContinuation(IMMND_CB *cb,
 					       const struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);

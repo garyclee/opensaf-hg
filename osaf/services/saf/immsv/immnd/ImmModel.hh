@@ -183,7 +183,8 @@ public:
                                         unsigned int* implNodeId,
                                         SaUint32T* continuationId,
                                         SaUint32T* pbeConn,
-                                        unsigned int* pbeNodeId);
+                                        unsigned int* pbeNodeId,
+                                        std::string& objectName);
     
     SaAisErrorT         ccbObjectDelete(
                                         const ImmsvOmCcbObjectDelete* req,

@@ -1214,7 +1214,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
-		if(!isPrtAttrs) {
+		if(!isPrtAttrs && !(cl_node->isApplier)) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
 		}
 	}
@@ -2390,7 +2390,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
 				/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
-				assert(cl_node->isPbe);
+				assert(cl_node->isPbe || cl_node->isApplier);
 			}
 
 			if (locked) {
