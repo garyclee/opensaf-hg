@@ -45,6 +45,8 @@ typedef struct imma_client_node {
 	uns8 selObjUsable; /* Active resurrect possible for this client */
 	uns8 replyPending; /* Syncronous or asyncronous call made towards IMMND */
 	uns8 isPbe;  /* True => This is the PBE-OI */
+	uns8 isImmA2b;       /* Version A.02.11 */
+	uns8 isApplier; /* True => This is an Applier-OI */
 	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;

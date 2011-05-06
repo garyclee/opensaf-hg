@@ -204,6 +204,13 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 	}
 
+	if ((version->releaseCode == 'A') &&
+            (version->majorVersion == 0x02) &&
+	    (version->minorVersion >= 0x0b)) {
+		TRACE_2("OM client version A.2.11");
+		cl_node->isImmA2b = 0x1;
+	}
+
 	/* populate the EVT structure */
 	memset(&init_evt, 0, sizeof(IMMSV_EVT));
 	init_evt.type = IMMSV_EVT_TYPE_IMMND;

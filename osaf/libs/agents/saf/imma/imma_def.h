@@ -21,12 +21,7 @@
 /* Macros for Validating Version */
 #define IMMA_RELEASE_CODE 'A'
 #define IMMA_MAJOR_VERSION 0x02
-#define IMMA_MINOR_VERSION 0x01
-
-#define m_IMMA_VER_IS_VALID(ver) \
-   ((ver->releaseCode == IMMA_RELEASE_CODE) && \
-    (ver->majorVersion == IMMA_MAJOR_VERSION || ver->majorVersion == 0xff) && \
-     (ver->minorVersion == IMMA_MINOR_VERSION || ver->minorVersion == 0xff) )
+#define IMMA_MINOR_VERSION 0x0b
 
 #define IMMSV_WAIT_TIME  1000	/* MDS wait time in case of syncronous call */
 
