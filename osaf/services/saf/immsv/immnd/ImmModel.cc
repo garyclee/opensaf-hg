@@ -479,11 +479,20 @@ immModel_ccbObjectModify(IMMND_CB *cb,
     SaClmNodeIdT* implNodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId)
+    SaClmNodeIdT* pbeNodeId,
+    SaNameT* objName)
 {
-    return ImmModel::instance(&cb->immModel)->
+    std::string objectName;
+    SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         ccbObjectModify(req, implConn, implNodeId, continuationId,
-            pbeConn, pbeNodeId);
+            pbeConn, pbeNodeId, objectName);
+
+    if(err == SA_AIS_OK) {
+        objName->length = objectName.size();
+        strncpy((char *)objName->value, objectName.c_str(), objName->length+1);
+    }
+
+    return err;
 }
 
 
@@ -4746,7 +4755,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     unsigned int* implNodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConnPtr,
-    unsigned int* pbeNodeIdPtr)
+    unsigned int* pbeNodeIdPtr,
+    std::string& objectName)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -4754,10 +4764,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     //assert(!immNotWritable());
     //It should be safe to allow old ccbs to continue to mutate the IMM.
     //The sync does not realy start until all ccb's are completed.
-    
-    size_t sz = strnlen((char *) req->objectName.buf, 
-        (size_t)req->objectName.size);
-    std::string objectName((const char*)req->objectName.buf, sz);
+    size_t sz = 0; 
+    objectName.append((const char*)req->objectName.buf);
     
     SaUint32T ccbId = req->ccbId;
     SaUint32T ccbIdOfObj = 0;
@@ -4940,7 +4948,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             afim->mAttrValueMap[oavi->first] = newValue;
         }
     }
-    
+
     for (p = req->attrMods; p; p=p->next) {
         sz = strnlen((char *) p->attrValue.attrName.buf,
             (size_t) p->attrValue.attrName.size);
@@ -5221,6 +5229,10 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
 
  ccbObjectModifyExit:
+    if((err != SA_AIS_OK) || !classInfo || classInfo->mAppliers.empty()) {
+        /* ##### BUGBUG check for object implementors also */
+        objectName.clear();
+    }
     TRACE_LEAVE(); 
     return err;
 }
