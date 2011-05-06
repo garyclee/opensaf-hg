@@ -917,14 +917,6 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_APPLY");
 	}
 
-	if (imma_oi_ccb_record_terminate(cl_node, evt->info.ccbCompl.ccbId)) {
-		TRACE_2("CCB-APPLY-UC for %u received from IMMND - oi_ccb_record terminated",
-			evt->info.ccbCompl.ccbId);
-	} else {
-		TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %u",
-			evt->info.ccbCompl.ccbId);
-	}
-
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 }
 
@@ -1045,11 +1037,11 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 			ccbId = callback->inv + 0x100000000LL;  /* pseudo ccb-id */
 
 			imma_oi_ccb_record_add(cl_node, ccbId, 0);			
-		} else if(cl_node->isApplier) { /* applier delete UC not secure not counted. */
-			assert(callback->inv == 0);
 		} else {
 			/* Regular CCB object delete arrives at... */
-			if(cl_node->isPbe) { /* PBE. */
+			if(cl_node->isApplier) { /* applier*/
+				assert(callback->inv == 0);
+			} else if(cl_node->isPbe) { /* PBE. */
 				assert(callback->inv == 0);
 			} else {/*regular OI. */
 				assert(callback->inv);
@@ -1134,7 +1126,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		if(!isPrtObj && !(cl_node->isApplier)) {
+		if(!isPrtObj) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
 		}
 	}
@@ -1216,7 +1208,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
-		if(!isPrtAttrs && !(cl_node->isApplier)) {
+		if(!isPrtAttrs) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
 		}
 	}
@@ -1973,15 +1965,17 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);
 			}
 
-			localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			if(!(cl_node->isApplier)) {
+				localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+				if (localEr != NCSCC_RC_SUCCESS) {
+					/*Cant do anything but log error and drop this reply. */
+					TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
+				}
+			}
 
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = FALSE;
-			}
-			if (localEr != NCSCC_RC_SUCCESS) {
-				/*Cant do anything but log error and drop this reply. */
-				TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
 			}
 		} while (0);
 
@@ -1994,6 +1988,15 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			{
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
+
+				if (imma_oi_ccb_record_terminate(cl_node, ccbid)) {
+					TRACE_2("CCB-APPLY-UC for %llu received from IMMND - oi_ccb_record terminated",
+						ccbid);
+				} else {
+					TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %llu",
+						ccbid);
+				}
+				
 				cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
 			} else {
 				/* No callback function registered for apply upcall.

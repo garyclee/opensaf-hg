@@ -178,6 +178,11 @@ public:
                                         ConnVector& connVector,
                                         bool externalRep);
     
+    void                getLocalAppliersForCcb(
+					SaUint32T ccbId,
+                                        ConnVector& connVector,
+					SaUint32T* appCtnPtr);
+    
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
                                         SaUint32T* implConn,
