@@ -2822,10 +2822,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 
 				free(applConnArr);
 				applConnArr = NULL;
-			}
-
-			
-
+			}			
 		} else {	/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
 				   for all local implementers involved in the Ccb */
 			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, SA_FALSE, NULL);
@@ -4878,6 +4875,8 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 	SaImmOiHandleT implHandle = 0LL;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
+
 	TRACE_ENTER();
 
 	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
@@ -4895,7 +4894,6 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 	}
 
 	if (arrSize) {
-		IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
 
 		TRACE_2("THERE ARE LOCAL IMPLEMENTERS in ccb:%u", ccbId);
 
@@ -4925,6 +4923,41 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 		}		//for
 		free(implConnArr);
 	}			//if(arrSize
+
+	SaUint32T applCtn = 0;
+	SaUint32T *applConnArr = NULL;
+	SaUint32T applArrSize =
+		immModel_getLocalAppliersForCcb(cb, ccbId, &applConnArr, &applCtn);
+
+	if(applArrSize) {
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_ABORT_UC;
+		send_evt.info.imma.info.ccbCompl.ccbId = ccbId;
+		int ix = 0;
+		for (; ix < applArrSize; ++ix) {
+			SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
+			send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+			send_evt.info.imma.info.ccbCompl.implId = applConnArr[ix];
+
+			/*Fetch client node for Applier OI ! */
+			immnd_client_node_get(cb, implHandle, &oi_cl_node);
+			if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
+				LOG_WA("Applier client went down so completed upcall not sent");
+				continue;
+			} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					   oi_cl_node->agent_mds_dest,
+					   &send_evt) != NCSCC_RC_SUCCESS) {
+				LOG_WA("Completed upcall for applier failed");
+			}
+		}
+
+		free(applConnArr);
+		applConnArr = NULL;
+	}
+
+
+
 
 	if (dummyClient) {	/* Apparently abort during an ongoing client call. */
 		IMMND_IMM_CLIENT_NODE *om_cl_node = NULL;
