@@ -122,16 +122,16 @@ void NtfReader::filterCacheList(NtfLogger& ntfLogger)
 	{
 		unsigned int nId;
 		 
-		NtfNotification n (*rpos);
+		NtfSmartPtr n (*rpos);
 		bool rv = false;
-		FilterMap::iterator pos = filterMap.find(n.getNotificationType());
+		FilterMap::iterator pos = filterMap.find(n->getNotificationType());
 		if (pos != filterMap.end()) {
 			NtfFilter* filter = pos->second;
 			assert(filter); 
-			rv = filter->checkFilter(&n);
+			rv = filter->checkFilter(n);
 		}
 		if (rv){
-			nId =  n.getNotificationId();
+			nId =  n->getNotificationId();
 			coll_.push_back(n);
 			TRACE_3("nId: %u added to readerList", nId);
 		}
@@ -147,7 +147,7 @@ void NtfReader::filterCacheList(NtfLogger& ntfLogger)
  *   @return NtfNotification - an empty non initialized
  *           notification will be returned if error != SA_AIS_OK
  */
-NtfNotification
+NtfSmartPtr
 NtfReader::next(SaNtfSearchDirectionT direction,
                 SaAisErrorT* error)
 {
@@ -162,10 +162,10 @@ NtfReader::next(SaNtfSearchDirectionT direction,
             *error = SA_AIS_ERR_NOT_EXIST;
             lastRead=true;
             TRACE_LEAVE();
-            NtfNotification notif;
+            NtfSmartPtr notif;
             return notif;
         }
-        NtfNotification notif(*ffIter);
+        NtfSmartPtr notif(*ffIter);
         ffIter++;
         *error = SA_AIS_OK;
         TRACE_LEAVE();
@@ -179,10 +179,10 @@ NtfReader::next(SaNtfSearchDirectionT direction,
             *error = SA_AIS_ERR_NOT_EXIST;
             ffIter = rIter.base();
             TRACE_LEAVE();
-            NtfNotification notif;
+            NtfSmartPtr notif;
             return notif;
         }
-        NtfNotification notif(*rIter);
+        NtfSmartPtr notif(*rIter);
         ffIter = rIter.base();
         *error = SA_AIS_OK;
         TRACE_LEAVE();

@@ -150,7 +150,7 @@ void NtfClient::subscriptionAdded(NtfSubscription* subscription,
  *                 Pointer to the notification object.
  */
 void NtfClient::notificationReceived(unsigned int clientId,
-                                     NtfNotification* notification,
+                                     NtfSmartPtr& notification,
                                      MDS_SYNC_SND_CTXT *mdsCtxt)
 {
     TRACE_ENTER2("%u %u", clientId_, clientId);
@@ -290,7 +290,7 @@ void NtfClient::syncRequest(NCS_UBAID *uba)
     }
 }
 
-void NtfClient::sendNotConfirmedNotification(NtfNotification* notification, SaNtfSubscriptionIdT subscriptionId)
+void NtfClient::sendNotConfirmedNotification(NtfSmartPtr notification, SaNtfSubscriptionIdT subscriptionId)
 {
     TRACE_ENTER();
     // if active, send out the notification
@@ -361,11 +361,15 @@ void NtfClient::newReaderResponse(SaAisErrorT* error,
 }
 
 void NtfClient::readNextResponse(SaAisErrorT* error,
-                                 NtfNotification& notification,
+                                 NtfSmartPtr& notification,
                                  MDS_SYNC_SND_CTXT *mdsCtxt)
 {
     TRACE_ENTER();
-    read_next_res_lib(*error, notification.sendNotInfo_, mdsDest_, mdsCtxt);
+	 if (*error == SA_AIS_OK) {
+		 read_next_res_lib(*error, notification->sendNotInfo_, mdsDest_, mdsCtxt);
+	 } else {
+		 read_next_res_lib(*error, NULL, mdsDest_, mdsCtxt);
+	 }
     TRACE_ENTER();
 }
 
@@ -407,14 +411,14 @@ void NtfClient::readNext(unsigned int readerId,
         TRACE_3("NtfClient::readNext readerId %u FOUND!",
                 readerId);
         NtfReader* reader = pos->second;
-        NtfNotification notif(reader->next(searchDirection, &error));
+        NtfSmartPtr notif(reader->next(searchDirection, &error));
         readNextResponse(&error, notif, mdsCtxt);
         TRACE_LEAVE();
         return;
     }
     else
     {
-        NtfNotification notif;
+        NtfSmartPtr notif;
         // reader not found
         TRACE_3("NtfClient::readNext readerId %u not found",
                 readerId);

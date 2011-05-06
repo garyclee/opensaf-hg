@@ -36,7 +36,7 @@ public:
     void subscriptionAdded(NtfSubscription* subscription,
                            MDS_SYNC_SND_CTXT *mdsCtxt);
     void notificationReceived(unsigned int clientId,
-                              NtfNotification* notification,
+                              NtfSmartPtr& notification,
                               MDS_SYNC_SND_CTXT *mdsCtxt);
     void confirmNtfSend();
     unsigned int getClientId() const;
@@ -44,7 +44,7 @@ public:
     void subscriptionRemoved(SaNtfSubscriptionIdT subscriptionId,
                              MDS_SYNC_SND_CTXT *mdsCtxt);
     void syncRequest(NCS_UBAID *uba);
-    void sendNotConfirmedNotification(NtfNotification* notification, SaNtfSubscriptionIdT subscriptionId);
+    void sendNotConfirmedNotification(NtfSmartPtr notification, SaNtfSubscriptionIdT subscriptionId);
 
     void confirmNtfNotification(SaNtfIdentifierT notificationId,
                                 MDS_SYNC_SND_CTXT *mdsCtxt,
@@ -72,11 +72,11 @@ private:
                            unsigned int readerId,
                            MDS_SYNC_SND_CTXT *mdsCtxt);
     void readNextResponse(SaAisErrorT* error,
-                          NtfNotification& notification,
+                          NtfSmartPtr& notification,
                           MDS_SYNC_SND_CTXT *mdsCtxt);
     void deleteReaderResponse(SaAisErrorT* error,
                               MDS_SYNC_SND_CTXT *mdsCtxt);
-	 void addDiscardedNotification(NtfNotification* notification);
+	 void addDiscardedNotification(NtfSmartPtr notification);
 	 
     unsigned int clientId_;
     unsigned int readerId_;

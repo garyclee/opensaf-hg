@@ -28,6 +28,7 @@
 #include <queue>
 #include "ntfs_com.h"
 #include "ntfsv_msg.h"
+#include <tr1/memory>
 
 #define NACK_THRESHOLD 4
 
@@ -78,6 +79,8 @@ private:
     SubscriptionList subscriptionList;
     SubscriptionList::iterator idListPos;
 };
+
+typedef std::tr1::shared_ptr<NtfNotification> NtfSmartPtr;
 
 #endif // NTFNOTIFICATION_H
 

@@ -137,7 +137,7 @@ ntfsv_subscribe_req_t* NtfSubscription::getSubscriptionInfo()
  * @return true if the subscription matches the notification
  *         false if the subscription does not match the notification
  */
-bool NtfSubscription::checkSubscription(NtfNotification* notification)
+bool NtfSubscription::checkSubscription(NtfSmartPtr& notification)
 {
 	bool rv = false;
    
@@ -216,7 +216,7 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba)
  * @param notification
  *               Pointer to the notification object.
  */
-void NtfSubscription::sendNotification(NtfNotification* notification, NtfClient *client)
+void NtfSubscription::sendNotification(NtfSmartPtr& notification, NtfClient *client)
 {
     TRACE_ENTER();
 	 // store the matching subscriptionId in the notification
