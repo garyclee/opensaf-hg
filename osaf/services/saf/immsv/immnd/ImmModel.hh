@@ -175,7 +175,8 @@ public:
     void                getLocalAppliersForObj(
                                         const SaNameT* objName,
 					SaUint32T ccbId,
-                                        ConnVector& connVector);
+                                        ConnVector& connVector,
+                                        bool externalRep);
     
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
@@ -206,6 +207,8 @@ public:
                                      IdVector& continuations,
                                      unsigned int pbeIsLocal);
     
+    bool                hasLocalAppliers(ClassInfo* classInfo);
+
     bool                ccbWaitForDeleteImplAck(
                                                 SaUint32T ccbId, 
                                                 SaAisErrorT* err);

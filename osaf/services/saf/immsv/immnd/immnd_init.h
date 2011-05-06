@@ -161,9 +161,8 @@ extern "C" {
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
                     SaNameT* objName);
 
-	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb,
-                const SaNameT* objName, SaUint32T ccbId,
-                SaUint32T **aplConnArr);
+	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb, const SaNameT* objName, SaUint32T ccbId,
+                SaUint32T **aplConnArr, SaBoolT externalRep);
 
 	SaAisErrorT
 	    immModel_ccbObjectModify(IMMND_CB *cb,

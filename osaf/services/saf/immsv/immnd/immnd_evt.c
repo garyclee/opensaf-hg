@@ -4336,7 +4336,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		SaUint32T *aplConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
-			immModel_getLocalAppliersForObj(cb, &objName, evt->info.objCreate.ccbId, &aplConnArr);
+			immModel_getLocalAppliersForObj(cb, &objName,
+				evt->info.objCreate.ccbId, &aplConnArr, SA_FALSE);
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -4344,7 +4345,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
 			send_evt.info.imma.info.objCreate = evt->info.objCreate;
 			send_evt.info.imma.info.objCreate.adminOwnerId = 0;
-			/*We re-use the adminOwner member of the ccbCreate message to hold the 
+			/* Re-use the adminOwner member of the ccbCreate message to hold the 
 			  invocation id. In this case, 0 => no reply is expected. */
 
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
@@ -4554,7 +4555,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		SaUint32T *aplConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
-			immModel_getLocalAppliersForObj(cb, &objName, evt->info.objModify.ccbId, &aplConnArr);
+			immModel_getLocalAppliersForObj(cb, &objName,
+				evt->info.objModify.ccbId, &aplConnArr, SA_FALSE);
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -4562,7 +4564,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 			send_evt.info.imma.info.objModify = evt->info.objModify;
 			send_evt.info.imma.info.objModify.adminOwnerId = 0;
-			/*We re-use the adminOwner member of the ccbModify message to hold the 
+			/* Re-use the adminOwner member of the ccbModify message to hold the 
 			  invocation id. In this case, 0 => no reply is expected. */
 
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
@@ -5064,13 +5066,69 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					}
 				}
 			}	/*for */
-		} else if (immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err)) {
+		}
+
+		if (!delayedReply && (err == SA_AIS_OK) && immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err)) {
 			TRACE_2("No local implementers but wait for remote ones. ccb: %u", evt->info.ccbId);
 			delayedReply = (err==SA_AIS_OK);
 		} else {
 			TRACE_2("NO IMPLEMENTERS AT ALL. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
 		}
 	}
+
+	if((err == SA_AIS_OK) && arrSize) {
+	/* Generate applier delete upcalls. */
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_DELETE_UC;
+		send_evt.info.imma.info.objDelete.ccbId = evt->info.objDelete.ccbId;
+		send_evt.info.imma.info.objDelete.adminOwnerId = 0;
+		/* Re-use the adminOwner member of the ccbDelete message to hold the 
+		   invocation id. In this case, 0 => no reply is expected. */
+		int ix = 0;
+		for (; ix < arrSize && err == SA_AIS_OK; ++ix) { /* Iterate over deleted objects */
+			SaUint32T *aplConnArr = NULL;
+			SaNameT objName;
+			objName.length = strlen(objNameArr[ix]);
+			send_evt.info.imma.info.objDelete.objectName.size = objName.length;
+			assert(objName.length < SA_MAX_NAME_LENGTH);
+			strncpy((char *) objName.value, objNameArr[ix], SA_MAX_NAME_LENGTH);
+			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
+			
+			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, &objName,
+				evt->info.objDelete.ccbId, &aplConnArr, SA_TRUE);
+
+			int ix2 = 0;
+			for (; ix2 < arrSize2 && err == SA_AIS_OK; ++ix2) { /* Iterate over applier connections for object */
+
+				/* Look up the client node for the applier */
+				implHandle = m_IMMSV_PACK_HANDLE(aplConnArr[ix2], cb->node_id);
+
+				/*Fetch client node for OI ! */
+				immnd_client_node_get(cb, implHandle, &oi_cl_node);
+				assert(oi_cl_node != NULL);
+				if (oi_cl_node->mIsStale) {
+					LOG_WA("Applier went down so no delete upcall to one client");
+					continue;
+				} else {
+					send_evt.info.imma.info.objDelete.immHandle = implHandle;
+					/*Yes that was a bit ugly. But the upcall message is the same 
+					   structure as the request message, except the semantics of one 
+					   integer member differs.
+					 */
+					TRACE_2("MAKING OI-APPLIER OBJ DELETE upcall ");
+					if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+							       oi_cl_node->agent_mds_dest,
+							       &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_WA("Delete upcall for applier failed conn:%u", aplConnArr[ix2]);
+					}
+				}
+			}	/* for(; ix2.. */
+			free(aplConnArr);
+			aplConnArr = NULL;
+		} /* for(; ix... */
+	}
+
 
 	if (arrSize) {
 		int ix;
@@ -5086,8 +5144,6 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		objNameArr = NULL;
 		arrSize = 0;
 	}
-
-	/* Here generate applier delete upcalls. */
 
 	/* err!=SA_AIS_OK or no implementers =>immediate reply */
 	if (originatedAtThisNd && !delayedReply) {

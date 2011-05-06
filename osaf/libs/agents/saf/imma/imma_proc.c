@@ -1045,6 +1045,8 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 			ccbId = callback->inv + 0x100000000LL;  /* pseudo ccb-id */
 
 			imma_oi_ccb_record_add(cl_node, ccbId, 0);			
+		} else if(cl_node->isApplier) { /* applier delete UC not secure not counted. */
+			assert(callback->inv == 0);
 		} else {
 			/* Regular CCB object delete arrives at... */
 			if(cl_node->isPbe) { /* PBE. */
@@ -2237,8 +2239,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				/*async  fevs */
 				localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 			} else {
-				/* callback->inv == 0 means PBE (CCB or PRTO) delete upcall, no reply. */
-				assert(cl_node->isPbe);
+				/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
+				assert(cl_node->isPbe || cl_node->isApplier);
 			}
 
 			if (locked) {
