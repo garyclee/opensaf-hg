@@ -3972,6 +3972,8 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
             }
             ccb->mImplementers.clear();
         }
+
+        ccb->mLocalAppliers.clear();
         /*  Retain the ccb info to allow ccb result recovery. */
 
         if(ccb->mWaitStartTime == 0)  {
