@@ -111,17 +111,13 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	}
 
 	cl_node->isOm = FALSE;
-/*
-	if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
-		TRACE_1("THIS IS A VERSION A.1.x implementer %c %u %u",
-		      version->releaseCode, version->majorVersion, version->minorVersion);
-		cl_node->isOiA1 = TRUE;
-	} else {
-		TRACE_1("THIS IS A VERSION A.2.x implementer %c %u %u",
-		      version->releaseCode, version->majorVersion, version->minorVersion);
-		cl_node->isOiA1 = FALSE;
+
+	if ((version->releaseCode == 'A') &&
+	    (version->majorVersion == 0x02) &&
+            (version->minorVersion >= 0x0b)) {
+		TRACE_2("OI client version A.2.11");
+		cl_node->isImmA2b = 0x1;
 	}
-*/
 
 	/* Take the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -818,7 +814,11 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 			adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ADMOP_RSP;
 		} else {
 			TRACE_1("PBE_ADMOP_RSP");
-			assert(cl_node->isPbe);
+			if(!(cl_node->isPbe)) {
+				TRACE_1("Illegal SaInvocationT value provided in saImmOiAdminOperationResult");
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				goto mds_send_fail;
+			}
 			adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_PBE_ADMOP_RSP;
 		}
 	}
@@ -952,6 +952,14 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		goto bad_handle;
 	}
 
+	/* Check for API Version! Appliers only allow for A.02.11 and above. */
+	if((implementerName[0] == '@') && !(cl_node->isImmA2b)) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE_2("ERR_INVALID_PARAM: Applier OIs only supported for A.02.11 and above");
+		goto bad_handle;
+	}
+	/*cl_node->isApplier  is set only after successfull reply from server.*/
+
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
 		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
@@ -1060,7 +1068,10 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 				cl_node->mImplementerId = out_evt->info.imma.info.implSetRsp.implId;
 				cl_node->mImplementerName = calloc(1, nameLen);
 				strncpy(cl_node->mImplementerName, implementerName, nameLen);
-				if(strncmp(implementerName, OPENSAF_IMM_PBE_IMPL_NAME, nameLen) == 0) {
+				if(implementerName[0] == '@') {
+					TRACE("Applier implementer %s detected and noted.", implementerName);
+					cl_node->isApplier = 0x1;
+				} else if(strncmp(implementerName, OPENSAF_IMM_PBE_IMPL_NAME, nameLen) == 0) {
 					TRACE("Special implementer %s detected and noted.", OPENSAF_IMM_PBE_IMPL_NAME);
 					cl_node->isPbe = 0x1;
 				}

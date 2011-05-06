@@ -54,23 +54,27 @@ static int popAsyncAdmOpContinuation(IMMA_CB *cb,
 uns32 imma_version_validate(SaVersionT *version)
 {
 	if ((version->releaseCode == IMMA_RELEASE_CODE) && (version->majorVersion <= IMMA_MAJOR_VERSION)) {
-		version->majorVersion = IMMA_MAJOR_VERSION;
-		version->minorVersion = IMMA_MINOR_VERSION;
-
 		if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
+			LOG_NO("ERR_VERSION: Version SAI-AIS-IMM-A.01.01 is not supported");
 			return SA_AIS_ERR_VERSION;
+		}
+
+		if(version->majorVersion != IMMA_MAJOR_VERSION) {
+			version->majorVersion = IMMA_MAJOR_VERSION;
+			version->minorVersion = IMMA_MINOR_VERSION;
+		} else if(version->minorVersion != IMMA_MINOR_VERSION) {
+			version->minorVersion = IMMA_MINOR_VERSION;
 		}
 
 		return SA_AIS_OK;
 	} else {
-		TRACE_2("ERR_VERSION: IMMA - Version Incompatible");
+		TRACE_2("ERR_VERSION: IMMA - Version Incompatible %c %u not suported",
+			version->releaseCode, version->majorVersion);
 
-		/* Implementation is supporting the required release code */
-		if (IMMA_RELEASE_CODE > version->releaseCode) {
-			version->releaseCode = IMMA_RELEASE_CODE;
-		} else if (IMMA_RELEASE_CODE < version->releaseCode) {
+		if (IMMA_RELEASE_CODE < version->releaseCode) {
 			version->releaseCode = IMMA_RELEASE_CODE;
 		}
+
 		version->majorVersion = IMMA_MAJOR_VERSION;
 		version->minorVersion = IMMA_MINOR_VERSION;
 
