@@ -199,9 +199,9 @@ void NtfAdmin::processNotification(unsigned int clientId,
     // NtfAdmin::notificationSentConfirmed
     // NtfAdmin::clientRemoved
     // NtfAdmin::subscriptionRemoved
-    NtfNotification* notification = new NtfNotification(notificationId,
-                                                        notificationType,
-                                                        sendNotInfo);
+    NtfSmartPtr notification(new NtfNotification(notificationId,
+                                                 notificationType,
+                                                 sendNotInfo));
     // store notification in a map for tracking purposes
     notificationMap[notificationId] = notification;
     TRACE_2("notification %llu with type %d added, notificationMap size is %u",
@@ -210,7 +210,7 @@ void NtfAdmin::processNotification(unsigned int clientId,
             (unsigned int)notificationMap.size());
 
     // log the notification. Callback from SAF log will confirm later.
-    logger.log(*notification, activeController());
+    logger.log(notification, activeController());
 
     /* send notification to standby */
     sendNotificationUpdate(clientId, notification->getNotInfo());
@@ -236,7 +236,6 @@ void NtfAdmin::processNotification(unsigned int clientId,
             TRACE_2("NtfAdmin::notificationReceived notification %llu removed,"
                     " notificationMap size is %u",
                     notificationId, (unsigned int)notificationMap.size());
-            delete notification;
         }
     }
     TRACE_LEAVE();
@@ -354,10 +353,9 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
         // NtfAdmin::notificationSentConfirmed
         // NtfAdmin::clientRemoved
         // NtfAdmin::subscriptionRemoved
-        NtfNotification* notification =
-        new NtfNotification(notificationId,
-                            notificationType,
-                            sendNotInfo);
+        NtfSmartPtr notification(new NtfNotification(notificationId,
+                                                     notificationType,
+                                                     sendNotInfo));
         // store notification in a map for tracking purposes
         notificationMap[notificationId] = notification;
         TRACE_2("notification %llu with type %d"
@@ -395,7 +393,7 @@ void NtfAdmin::notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptio
     if (pos != notificationMap.end())
     {
         // we have got the notification
-        NtfNotification* notification = pos->second;
+        NtfSmartPtr notification = pos->second;
         notification->notificationSentConfirmed(clientId,
                                                 subscriptionId);
         if (activeController())
@@ -432,7 +430,7 @@ void NtfAdmin::notificationLoggedConfirmed(SaNtfIdentifierT notificationId)
 
     if (pos != notificationMap.end())
     {
-        NtfNotification* notification = pos->second;
+        NtfSmartPtr notification = pos->second;
         notification->notificationLoggedConfirmed();
         if (activeController())
         {
@@ -485,7 +483,7 @@ void NtfAdmin::clientRemoved(unsigned int clientId)
     NotificationMap::iterator posN = notificationMap.begin();
     while (posN != notificationMap.end())
     {
-        NtfNotification* notification = posN->second;
+        NtfSmartPtr notification = posN->second;
         notification->removeSubscription(clientId);
         deleteConfirmedNotification(notification, posN++);
     }
@@ -557,7 +555,7 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
     NotificationMap::iterator posN = notificationMap.begin();
     while (posN != notificationMap.end())
     {
-        NtfNotification* notification = posN->second;
+        NtfSmartPtr notification = posN->second;
         notification->removeSubscription(clientId,
                                          subscriptionId);
         deleteConfirmedNotification(notification, posN++);
@@ -647,7 +645,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba)
         posNot != notificationMap.end();
         posNot++)
     {
-        NtfNotification* notification = posNot->second;
+        NtfSmartPtr notification = posNot->second;
         notification->syncRequest( uba);
     }
     TRACE_LEAVE();
@@ -667,7 +665,7 @@ void NtfAdmin::syncGlobals(const struct NtfGlobals& ntfGlobals)
     clientIdCounter = ntfGlobals.clientIdCounter;
 }
 
-void NtfAdmin::deleteConfirmedNotification(NtfNotification* notification,
+void NtfAdmin::deleteConfirmedNotification(NtfSmartPtr notification,
                                            NotificationMap::iterator pos)
 {
     TRACE_ENTER();
@@ -679,7 +677,6 @@ void NtfAdmin::deleteConfirmedNotification(NtfNotification* notification,
         TRACE_2("Notification %llu removed, notificationMap size is %u",
                 notification->getNotificationId(),
                 (unsigned int)notificationMap.size());
-        delete notification;
     }
     TRACE_LEAVE();
 }
@@ -696,11 +693,11 @@ void NtfAdmin::checkNotificationList()
         posNot != notificationMap.end();
         posNot++)
     {
-        NtfNotification* notification = posNot->second;
+        NtfSmartPtr notification = posNot->second;
         if (notification->loggedOk() == false)
         {
             /* When reader API works check if already logged */
-            logger.log(*notification, true);
+            logger.log(notification, true);
         }
         if (!notification->isSubscriptionListEmpty())
         {
@@ -850,7 +847,7 @@ void NtfAdmin::deleteReader(unsigned int clientId,
  * @param mdsCtxt 
  * @return pointer to NtfNotification object 
  */
-NtfNotification* NtfAdmin::getNotificationById(SaNtfIdentifierT id)
+NtfSmartPtr NtfAdmin::getNotificationById(SaNtfIdentifierT id)
 {
     NotificationMap::iterator posNot;
 
@@ -861,7 +858,7 @@ NtfNotification* NtfAdmin::getNotificationById(SaNtfIdentifierT id)
         posNot != notificationMap.end();
         posNot++)
     {
-        NtfNotification* notification = posNot->second;
+        NtfSmartPtr notification = posNot->second;
 
         if (notification->getNotificationId() == id)
         {
@@ -871,7 +868,8 @@ NtfNotification* NtfAdmin::getNotificationById(SaNtfIdentifierT id)
 
     if (posNot == notificationMap.end())
     {
-        return NULL;
+        NtfSmartPtr tmp;
+        return tmp;
     }
 
     return(posNot->second);
@@ -902,7 +900,7 @@ void NtfAdmin::printInfo()
         posNot != notificationMap.end();
         posNot++)
     {
-        NtfNotification* notification = posNot->second;
+        NtfSmartPtr notification = posNot->second;
         notification->printInfo();
     }
 }
@@ -918,8 +916,8 @@ void NtfAdmin::storeMatchingSubscription(SaNtfIdentifierT notificationId,
                                          unsigned int clientId,
                                          SaNtfSubscriptionIdT subscriptionId)
 {
-    NtfNotification* notification = getNotificationById(notificationId);
-    if (NULL != notification)
+    NtfSmartPtr notification = getNotificationById(notificationId);
+    if (NULL != notification.get())
     {
         notification->storeMatchingSubscription(clientId, subscriptionId);
     }

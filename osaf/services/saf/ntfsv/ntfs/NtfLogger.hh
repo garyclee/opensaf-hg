@@ -57,10 +57,10 @@ public:
     NtfLogger();
 //    virtual ~NtfLogger();
 
-    void log(NtfNotification& notif, bool isLocal);
-    void checkQueueAndLog(NtfNotification& notif);
-    SaAisErrorT logNotification(NtfNotification& notif);    
-    void queueNotifcation(NtfNotification& notif);
+    void log(NtfSmartPtr& notif, bool isLocal);
+    void checkQueueAndLog(NtfSmartPtr& notif);
+    SaAisErrorT logNotification(NtfSmartPtr& notif);    
+    void queueNotifcation(NtfSmartPtr& notif);
     void printInfo();
 
 private:
@@ -69,7 +69,7 @@ private:
     readerNotificationListT coll_;
     unsigned int readCounter;
     bool first;
-    typedef std::list<NtfNotification*> QueuedNotificationsList;
+    typedef std::list<NtfSmartPtr> QueuedNotificationsList;
     QueuedNotificationsList queuedNotificationList;
 };
 

@@ -222,7 +222,7 @@ bool NtfFilter::checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh, const S
 	return false; 
 }
 
-bool NtfFilter::checkHeader(SaNtfNotificationFilterHeaderT *fh, NtfNotification *notif)
+bool NtfFilter::checkHeader(SaNtfNotificationFilterHeaderT *fh, NtfSmartPtr& notif)
 {
 	const SaNtfNotificationHeaderT *h = notif->header();
 	if (notif->getNotificationType() != this->type()) 
@@ -304,7 +304,7 @@ bool NtfAlarmFilter::checkprobableCause(SaNtfAlarmNotificationT *a)
  * @return bool 
  *    true if the filter matches the notification
  */
-bool NtfAlarmFilter::checkFilter(NtfNotification *notif)
+bool NtfAlarmFilter::checkFilter(NtfSmartPtr& notif)
 {
 	bool rv = false;
 	TRACE_ENTER();
@@ -337,7 +337,7 @@ NtfSecurityAlarmFilter::~NtfSecurityAlarmFilter()
  * @return bool 
  *    true if the filter matches the notification
  */
-bool NtfSecurityAlarmFilter::checkFilter(NtfNotification *notif)
+bool NtfSecurityAlarmFilter::checkFilter(NtfSmartPtr& notif)
 {
 	bool rv = false;
 	TRACE_ENTER();
@@ -454,7 +454,7 @@ NtfObjectCreateDeleteFilter::~NtfObjectCreateDeleteFilter()
  * @return bool 
  *    true if the filter matches the notification
  */
-bool NtfObjectCreateDeleteFilter::checkFilter(NtfNotification *notif)
+bool NtfObjectCreateDeleteFilter::checkFilter(NtfSmartPtr& notif)
 {
 	bool rv = false;
 	TRACE_ENTER();
@@ -488,7 +488,7 @@ NtfStateChangeFilter::~NtfStateChangeFilter()
  * @return bool 
  *    true if the filter matches the notification
  */
-bool NtfStateChangeFilter::checkFilter(NtfNotification *notif)
+bool NtfStateChangeFilter::checkFilter(NtfSmartPtr& notif)
 {
 	bool rv = false;
 	TRACE_ENTER();
@@ -532,7 +532,7 @@ NtfFilter(SA_NTF_TYPE_ATTRIBUTE_CHANGE), filter_(f)
  * @return bool 
  *    true if the filter matches the notification
  */
-bool NtfAttributeChangeFilter::checkFilter(NtfNotification *notif)
+bool NtfAttributeChangeFilter::checkFilter(NtfSmartPtr& notif)
 {
 	bool rv = false;
 	TRACE_ENTER();

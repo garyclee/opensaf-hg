@@ -31,12 +31,12 @@
 #include "assert.h"
 #include "NtfLogger.hh"
 
-
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
  */ 
-typedef std::map<SaNtfIdentifierT,NtfNotification*> NotificationMap;
+  
+typedef std::map<SaNtfIdentifierT,NtfSmartPtr> NotificationMap;
 
 class NtfAdmin{
 public:
@@ -85,10 +85,10 @@ public:
                                    unsigned int clientId,
                                    SaNtfSubscriptionIdT subscriptionId);
 
-    NtfNotification* getNotificationById(SaNtfIdentifierT id);
+    NtfSmartPtr getNotificationById(SaNtfIdentifierT id);
     void checkNotificationList();
     NtfClient* getClient(unsigned int clientId);
-    void deleteConfirmedNotification(NtfNotification* notification,
+    void deleteConfirmedNotification(NtfSmartPtr notification,
                                      NotificationMap::iterator pos);
 	 void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId); 
 	 void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);	 

@@ -40,9 +40,9 @@
 // typedef std::deque<ntfsv_send_not_req_t>::reverse_iterator
 //         readerNotReverseIterT;
 
-typedef std::deque<NtfNotification> readerNotificationListT;
-typedef std::deque<NtfNotification>::iterator readerNotificationListTIter;
-typedef std::deque<NtfNotification>::reverse_iterator readerNotReverseIterT;
+typedef std::deque<NtfSmartPtr> readerNotificationListT;
+typedef std::deque<NtfSmartPtr>::iterator readerNotificationListTIter;
+typedef std::deque<NtfSmartPtr>::reverse_iterator readerNotReverseIterT;
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
@@ -61,7 +61,7 @@ public:
 	 void filterCacheList(NtfLogger& ntfLogger);
 	 void sortCacheList();
 	 void setStartPoint();
-    NtfNotification next(SaNtfSearchDirectionT direction,
+    NtfSmartPtr next(SaNtfSearchDirectionT direction,
                                            SaAisErrorT* error);
     unsigned int getId();
 

@@ -101,7 +101,7 @@ void saLogWriteLogCallback(SaInvocationT invocation,
 
     if (SA_AIS_OK != error)
     {
-        NtfNotification* notification;
+        NtfSmartPtr notification;
 
         LOG_WA( "Error when logging (%d), queue for relogging", error);
 
@@ -112,7 +112,7 @@ void saLogWriteLogCallback(SaInvocationT invocation,
 
         if (!notification->loggedOk())
         {
-            NtfAdmin::theNtfAdmin->logger.queueNotifcation(*notification);
+            NtfAdmin::theNtfAdmin->logger.queueNotifcation(notification);
             TRACE_LEAVE();
             return;
         }
@@ -129,14 +129,14 @@ void saLogWriteLogCallback(SaInvocationT invocation,
 }
 
 
-void NtfLogger::log(NtfNotification& notif, bool isLocal)
+void NtfLogger::log(NtfSmartPtr& notif, bool isLocal)
 {
     // TODO: add coll_ again
     unsigned int collSize = (unsigned int)coll_.size();
     first = false;
     TRACE_ENTER();
     TRACE_2("notification Id=%llu received in logger with size %d",
-            notif.getNotificationId(), collSize);
+            notif->getNotificationId(), collSize);
 
     if (isLocal)
     {
@@ -145,8 +145,8 @@ void NtfLogger::log(NtfNotification& notif, bool isLocal)
         this->checkQueueAndLog(notif);
     }
 
-    if ((notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
-		(notif.sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
+    if ((notif->sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
+		(notif->sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
     {
         TRACE_2("template queue handling...");
         if (coll_.size() < NTF_LOG_CASH_SIZE)
@@ -166,23 +166,23 @@ void NtfLogger::log(NtfNotification& notif, bool isLocal)
 }
 
 
-void NtfLogger::queueNotifcation(NtfNotification& notif)
+void NtfLogger::queueNotifcation(NtfSmartPtr& notif)
 {
-	TRACE_2("Queue notification: %llu", notif.getNotificationId());    
-	queuedNotificationList.push_back(&notif);	
+	TRACE_2("Queue notification: %llu", notif->getNotificationId());    
+	queuedNotificationList.push_back(notif);	
 }
 
 
-void NtfLogger::checkQueueAndLog(NtfNotification& newNotif)
+void NtfLogger::checkQueueAndLog(NtfSmartPtr& newNotif)
 {
     TRACE_ENTER();
     /* Check if there are not logged notifications in queue */
     while (!queuedNotificationList.empty())
     {
-        NtfNotification* notification = queuedNotificationList.front();
+        NtfSmartPtr notification = queuedNotificationList.front();
         queuedNotificationList.pop_front();
         TRACE_2("Log queued notification: %llu", notification->getNotificationId());
-        if (SA_AIS_OK != this->logNotification(*notification))
+        if (SA_AIS_OK != this->logNotification(notification))
         {
             TRACE_2("Push back queued notification: %llu", notification->getNotificationId());
             queuedNotificationList.push_front(notification); /* keep order */
@@ -200,7 +200,7 @@ void NtfLogger::checkQueueAndLog(NtfNotification& newNotif)
 }
 
 
-SaAisErrorT NtfLogger::logNotification(NtfNotification& notif)
+SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif)
 {
     /* Write to the log if we're the local node */
     SaAisErrorT  errorCode = SA_AIS_OK;
@@ -212,7 +212,7 @@ SaAisErrorT NtfLogger::logNotification(NtfNotification& notif)
     SaNtfNotificationHeaderT *ntfHeader;
     TRACE_ENTER();
 
-    sendNotInfo = notif.getNotInfo();
+    sendNotInfo = notif->getNotInfo();
     ntfsv_get_ntf_header(sendNotInfo, &ntfHeader);
     logBuffer.logBufSize = ntfHeader->lengthAdditionalText;
     logBuffer.logBuf = (SaUint8T*)&addTextBuf[0];
@@ -246,12 +246,12 @@ SaAisErrorT NtfLogger::logNotification(NtfNotification& notif)
     timeout = LOG_NOTIFICATION_TIMEOUT;
 
     /* Also write alarms and security alarms to the alarm log */
-    if ((notif.sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
-		(notif.sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
+    if ((notif->sendNotInfo_->notificationType == SA_NTF_TYPE_ALARM) ||
+		(notif->sendNotInfo_->notificationType == SA_NTF_TYPE_SECURITY_ALARM))
     {
         TRACE_2("Logging notification to alarm stream");
         errorCode = saLogWriteLogAsync(alarmStreamHandle,
-                                       notif.getNotificationId(),
+                                       notif->getNotificationId(),
                                        SA_LOG_RECORD_WRITE_ACK,
                                        &logRecord);
         if (SA_AIS_OK != errorCode)

@@ -33,12 +33,12 @@ class NtfSubscription{
 public:
     NtfSubscription(ntfsv_subscribe_req_t* s);
     virtual ~NtfSubscription();
-    bool checkSubscription(NtfNotification* notification);
+    bool checkSubscription(NtfSmartPtr& notification);
     void confirmNtfSend();
 	 SaNtfSubscriptionIdT getSubscriptionId() const;
 	 ntfsv_subscribe_req_t* getSubscriptionInfo();
     void printInfo();	 
-	 void sendNotification(NtfNotification* notification, NtfClient *client);	 
+	 void sendNotification(NtfSmartPtr& notification, NtfClient *client);	 
 	 void discardedAdd(SaNtfIdentifierT n_id);
 	 void discardedClear();
 	 void syncRequest(NCS_UBAID *uba);
