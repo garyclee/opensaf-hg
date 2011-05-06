@@ -1132,7 +1132,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		if(!isPrtObj) {
+		if(!isPrtObj && !(cl_node->isApplier)) {
 			imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
 		}
 	}
@@ -2151,8 +2151,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			} else {
 				/* callback->inv == 0 means PBE CCB obj create upcall, NO reply.
 				   But note that for PBE PRTO, callback->inv != 0 and we reply
-				   immediately (no completed upcall. */
-				assert(cl_node->isPbe);
+				   immediately (no completed upcall. 
+				   Added support for applier OI. No reply to server there either.
+				*/
+				assert(cl_node->isPbe || cl_node->isApplier);
 			}
 
 			if (locked) {

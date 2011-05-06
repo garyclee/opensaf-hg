@@ -169,7 +169,13 @@ public:
                                         unsigned int* implNodeId,
                                         SaUint32T* continuationId,
                                         SaUint32T* pbeConn,
-                                        unsigned int* pbeNodeId);
+                                        unsigned int* pbeNodeId,
+                                        std::string& objectName);
+
+    void                getLocalAppliersForObj(
+                                        const SaNameT* objName,
+					SaUint32T ccbId,
+                                        ConnVector& connVector);
     
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
