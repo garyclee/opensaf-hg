@@ -4217,6 +4217,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaNameT objName;
+	objName.length=0;
 	TRACE_ENTER();
 
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -4246,7 +4248,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	}
 
 	err = immModel_ccbObjectCreate(cb, &(evt->info.objCreate), &implConn, &implNodeId, 
-		&continuationId, &pbeConn, pbeNodeIdPtr);
+		&continuationId, &pbeConn, pbeNodeIdPtr, &objName);
 
 	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
 		/*The persistent back-end is present and executing at THIS node. */
@@ -4326,6 +4328,45 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 					err = SA_AIS_ERR_FAILED_OPERATION;
 				}
 			}
+		}
+	}
+
+	if((objName.length) && (err == SA_AIS_OK)) {
+		/* Generate applier upcalls for the object create */
+		evt->info.objCreate.adminOwnerId = continuationId;
+		SaUint32T *aplConnArr = NULL;
+		int ix = 0;
+		SaUint32T arrSize =
+			immModel_getLocalAppliersForObj(cb, &objName, evt->info.objCreate.ccbId, &aplConnArr);
+
+		if(arrSize) {
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
+			send_evt.info.imma.info.objCreate = evt->info.objCreate;
+			send_evt.info.imma.info.objCreate.adminOwnerId = 0;
+			/*We re-use the adminOwner member of the ccbCreate message to hold the 
+			  invocation id. In this case, 0 => no reply is expected. */
+
+			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
+				implHandle = m_IMMSV_PACK_HANDLE(aplConnArr[ix], cb->node_id);
+				send_evt.info.imma.info.objCreate.immHandle = implHandle;
+
+				/*Fetch client node for Applier OI ! */
+				immnd_client_node_get(cb, implHandle, &oi_cl_node);
+				assert(oi_cl_node != NULL);
+				if (oi_cl_node->mIsStale) {
+					LOG_WA("Applier client went down so create upcall not sent");
+					continue;
+				} else if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+						   oi_cl_node->agent_mds_dest,
+						   &send_evt) != NCSCC_RC_SUCCESS) {
+					LOG_WA("Create upcall for applier failed");
+				}
+			}
+
+			free(aplConnArr);
+			aplConnArr = NULL;
 		}
 	}
 
@@ -4506,6 +4547,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			}
 		}
 	}
+
+	/* Here generate applier modify upcalls. */
 
 	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
@@ -5006,6 +5049,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		objNameArr = NULL;
 		arrSize = 0;
 	}
+
+	/* Here generate applier delete upcalls. */
 
 	/* err!=SA_AIS_OK or no implementers =>immediate reply */
 	if (originatedAtThisNd && !delayedReply) {

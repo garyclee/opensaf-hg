@@ -81,9 +81,11 @@ struct ImplementerInfo
     SaUint64T       mMds_dest;
     unsigned int    mAdminOpBusy;
     bool            mDying;
+    bool            mApplier; //This is an applier OI
 };
 
 typedef std::vector<ImplementerInfo*> ImplementerVector;
+typedef std::set<ImplementerInfo*> ImplementerSet;
 
 struct ImplementerCcbAssociation
 {
@@ -107,8 +109,9 @@ struct ClassInfo
     
     SaUint32T        mCategory;
     AttrMap          mAttrMap;   //<-Each AttrInfo requires explicit delete
-    ImplementerInfo* mImplementer;//<- Points INTO ImplementerVector
+    ImplementerInfo* mImplementer;//<- Main OI points INTO sImplementerVector
     ObjectSet        mExtent;
+    ImplementerSet   mAppliers; //OIs did classImplementerSet on this class
 };
 typedef std::map<std::string, ClassInfo*> ClassMap;
 
@@ -261,6 +264,7 @@ struct CcbInfo
     time_t            mWaitStartTime;
     SaUint32T         mOpCount;
     SaUint32T         mPbeRestartId;
+    ImplementerSet    mLocalAppliers;
 };
 typedef std::vector<CcbInfo*> CcbVector;
 
@@ -429,11 +433,43 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
     SaClmNodeIdT* implNodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId)
+    SaClmNodeIdT* pbeNodeId,
+    SaNameT* objName)
 {
-    return ImmModel::instance(&cb->immModel)->
+    std::string objectName;
+    SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         ccbObjectCreate(req, implConn, implNodeId, continuationId, 
-            pbeConn, pbeNodeId);
+            pbeConn, pbeNodeId, objectName);
+
+    if(err == SA_AIS_OK) {
+        objName->length = objectName.size();
+        strncpy((char *)objName->value, objectName.c_str(), objName->length+1);
+    }
+
+    return err;
+}
+
+SaUint32T
+immModel_getLocalAppliersForObj(IMMND_CB *cb,
+    const SaNameT* objName,
+    SaUint32T ccbId,
+    SaUint32T **aplConnArr)
+{
+    ConnVector cv;
+    ConnVector::iterator cvi;
+    unsigned int ix = 0;
+    ImmModel::instance(&cb->immModel)->getLocalAppliersForObj(objName, ccbId, cv);
+    SaUint32T arrSize = cv.size();
+
+    if(arrSize) {
+        *aplConnArr = (SaUint32T *) malloc((arrSize) * sizeof(SaUint32T));
+
+        for(cvi = cv.begin(); cvi!=cv.end(); ++cvi, ++ix) {
+            (*aplConnArr)[ix] = (*cvi);
+        }
+    }
+
+    return arrSize;
 }
 
 SaAisErrorT
@@ -2786,7 +2822,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
             LOG_NO("ERR_INVALID_PARAM: attr def for '%s' is duplicated",
                 attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
-	    goto done;
+            goto done;
         }
 
         /* Verify attribute name is unique within class case-insensitive. */
@@ -3967,6 +4003,46 @@ ImmModel::eduAtValToOs(immsv_octet_string* tmpos,
     }
 }
 
+void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
+    ConnVector& cv)
+{
+    /* Probably need ccb-id to avoid joining pre-existing ccbs. 
+       AND for adding to ccb->mLocalAppliers.
+     */
+    CcbInfo* ccb = 0;
+    CcbVector::iterator i1;
+    cv.clear(); 
+    std::string objectName((const char *)objName->value);
+    ObjectMap::iterator i5 = sObjectMap.find(objectName);
+    if(i5 == sObjectMap.end()) {
+        LOG_ER("Could not find expected object:%s", objName->value);
+        abort();
+    }
+
+    i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+    if(i1 == sCcbVector.end()) {
+        LOG_IN("Ccb id %u does not exist", ccbId);
+        abort();
+    }
+
+    ccb = *i1;
+
+    ObjectInfo* object = i5->second;
+    ClassInfo* classInfo = object->mClassInfo;
+    if(!classInfo->mAppliers.empty()) {
+        ImplementerSet::iterator ii;
+        for(ii = classInfo->mAppliers.begin(); ii != classInfo->mAppliers.end(); ++ii) {
+            ImplementerInfo* impl = *ii;
+            if(impl->mConn && !impl->mDying && impl->mId) {
+                cv.push_back(impl->mConn);
+                ccb->mLocalAppliers.insert(impl);
+            }
+        }
+    }
+
+    /* Should also check for pure object implementers here. */
+}
+
 /** 
  * Creates an object
  */
@@ -3975,7 +4051,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     unsigned int* implNodeId,
     SaUint32T* continuationId,
     SaUint32T* pbeConnPtr,
-    unsigned int* pbeNodeIdPtr)
+    unsigned int* pbeNodeIdPtr,
+    std::string& objectName)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -3991,7 +4068,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     std::string parentName((const char*)req->parentName.buf, sz);
     
     TRACE_2("parentName:%s\n", parentName.c_str());
-    std::string objectName;
+    objectName.clear();
     SaUint32T ccbId = req->ccbId;  //Warning: SaImmOiCcbIdT is 64-bits
     SaUint32T adminOwnerId = req->adminOwnerId;
     
@@ -4412,6 +4489,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                         impl->mMds_dest = 0LL;
                         impl->mAdminOpBusy = 0; 
                         impl->mDying = false;
+                        impl->mApplier = false;
                     }
                     //Reconenct implementer.
                     object->mImplementer = impl;
@@ -4562,6 +4640,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     "flag SA_IMM_CCB_REGISTERED_OI is set", 
                     objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
+            } else {
+                TRACE_7("object '%s' does not have an implementer and "
+                    "flag SA_IMM_CCB_REGISTERED_OI is NOT set - OK!",
+                    objectName.c_str());
             }
         }
         
@@ -4642,10 +4724,15 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             if(oMut) {
                 oMut->mAfterImage = NULL;
                 delete oMut;
+                oMut = NULL;
             }
         }
     }
  ccbObjectCreateExit:
+    if((err != SA_AIS_OK) || !classInfo || classInfo->mAppliers.empty()) {
+        /* Only class implementors can exist for object create. */
+        objectName.clear();
+    }
     TRACE_LEAVE(); 
     return err;
 }
@@ -7237,6 +7324,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             info->mNodeId = 0;
             info->mMds_dest = 0LL;
             info->mAdminOpBusy = 0; 
+            info->mApplier = false;
             info->mDying = false; //We are so dead now we dont need to remember
             //We dont need the dying phase for implementer when an entire node
             //is gone. Thew dying phase is only needed to handle trailing evs
@@ -7296,6 +7384,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             info->mNodeId = 0;
             info->mMds_dest = 0LL;
             info->mAdminOpBusy = 0; 
+            info->mApplier = false;
             info->mDying = false;//We are so dead now, we dont need to remember
             //We keep the ImplementerInfo entry with the implementer name, 
             //for now. The ImplementerInfo is pointed to by ClassInfo or 
@@ -7816,9 +7905,17 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mMds_dest = mds_dest;
     info->mDying = false;
     
-    
-    LOG_NO("Implementer connected: %u (%s) <%u, %x>", 
-        info->mId, info->mImplementerName.c_str(), info->mConn, info->mNodeId);
+    if(implName.at(0) == '@') {
+        info->mApplier = true;
+        LOG_NO("Implementer (applier) connected: %u (%s) <%u, %x>",
+            info->mId, info->mImplementerName.c_str(), info->mConn,
+            info->mNodeId);
+    } else {
+        info->mApplier = false;
+        LOG_NO("Implementer connected: %u (%s) <%u, %x>",
+            info->mId, info->mImplementerName.c_str(), info->mConn,
+            info->mNodeId);
+    }
 
     if(implName == std::string(OPENSAF_IMM_PBE_IMPL_NAME)) {
         TRACE_7("Implementer %s for PBE created - "
@@ -7871,6 +7968,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     return err;
 }
 
+
 /** 
  * Registers a specific implementer for a class and all its instances
  */
@@ -7882,6 +7980,10 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
     
+    ClassInfo* classInfo = NULL;
+    ClassMap::iterator i1;
+    ImplementerInfo* info = NULL;
+
     if(immNotWritable()) {
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
@@ -7893,97 +7995,107 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
-    } else {
-        ImplementerInfo* info = findImplementer(req->impl_id);
-        if(!info) {
-            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
-            err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    } 
+
+    info = findImplementer(req->impl_id);
+    if(!info) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    } 
+
+    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
+            "conn:%u nodeId:%x", conn, nodeId);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    }
+
+    //conn is NULL on all nodes except primary.
+    //At these other nodes the only info on implementer existence
+    //is that the nodeId is non-zero. The nodeId is the nodeId of
+    //the node where the implementer resides.
+
+    i1 = sClassMap.find(className);
+    if(i1 == sClassMap.end()) {
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
+            className.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    }
+
+    classInfo = i1->second;
+    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime "
+            "class, not allowed to set class implementer.", 
+            className.c_str());
+        err = SA_AIS_ERR_BAD_OPERATION;
+        goto done;
+    }
+
+    if(info->mApplier) {
+        if(classInfo->mAppliers.find(info) == classInfo->mAppliers.end()) {
+            /* Check for writability. */
+            LOG_NO("Applier %s set for class %s", info->mImplementerName.c_str(),
+                className.c_str());
+            classInfo->mAppliers.insert(info);
         } else {
-            if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
-                    "conn:%u nodeId:%x", conn, nodeId);
-                err = SA_AIS_ERR_BAD_HANDLE;
-            } else {
-                //conn is NULL on all nodes except primary.
-                //At these other nodes the only info on implementer existence
-                //is that the nodeId is non-zero. The nodeId is the nodeId of
-                //the node where the implementer resides.
-                
-                ClassMap::iterator i1 = sClassMap.find(className);
-                if (i1 == sClassMap.end()) {
-                    TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
-                        className.c_str());
-                    err = SA_AIS_ERR_NOT_EXIST;
-                } else {
-                    ClassInfo* classInfo = i1->second;
-                    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime "
-                            "class, not allowed to set class implementer.", 
-                            className.c_str());
-                        err = SA_AIS_ERR_BAD_OPERATION;
-                    } else {
-                        if(classInfo->mImplementer && 
-                            (classInfo->mImplementer != info)) {
-                            TRACE_7("ERR_EXIST: Class '%s' already has class implementer "
-                                "%s != %s", className.c_str(), 
-                                classInfo->mImplementer->
-                                mImplementerName.c_str(),
-                                info->mImplementerName.c_str());
-                            err = SA_AIS_ERR_EXIST;
-                        } else {
+            LOG_NO("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
+                className.c_str());
+        }
+    } else { /* Regular OI */
+        if(classInfo->mImplementer && (classInfo->mImplementer != info)) {
+            TRACE_7("ERR_EXIST: Class '%s' already has class implementer "
+                "%s != %s", className.c_str(), classInfo->mImplementer->
+                mImplementerName.c_str(), info->mImplementerName.c_str());
+            err = SA_AIS_ERR_EXIST;
+            goto done;
+        } 
 
-                            ObjectSet::iterator os;
-                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
-                               ++os) {
-                                ObjectInfo* obj = *os;
-                                assert(obj->mClassInfo == classInfo);
-                                if(obj->mImplementer && obj->mImplementer != info) {
-                                    std::string objDn;
-                                    getObjectName(obj, objDn); /* External name form */
-                                    TRACE_7("ERR_EXIST: Object '%s' already has implementer "
-                                        "%s != %s", objDn.c_str(), 
-                                        obj->mImplementer->mImplementerName.c_str(),
-                                        info->mImplementerName.c_str());
-                                    err = SA_AIS_ERR_EXIST;
-                                }
-                            }
-
-                            if(err == SA_AIS_OK) {
-                                classInfo->mImplementer = info;
-                                TRACE_5("implementer for class '%s' is %s",
-                                    className.c_str(),
-                                    info->mImplementerName.c_str());
-                                //ABT090225
-                                //classImplementerSet and objectImplementerSet
-                                //are mutually exclusive. This has not been 
-                                //explicitly clear in the IMM standard until 
-                                //release A.03.01.
-                                //This implementation is release A.02.01 and
-                                //has up until now provided the semantics that
-                                //classImplementerSet overrides objectImplementerSet.
-                                //We realize that this change is not backwards 
-                                //compatible, but (1) the risk for problems should
-                                //be minimal (backwards incompatibility on an 
-                                //error case), and (2) the old solution was not
-                                //good because it removed the object-implementorship
-                                //without notifying that object-implementor.
-
-                                for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
-                                    ++os) {
-                                    (*os)->mImplementer = classInfo->mImplementer;
-                                }
-                            }
-                        }
-                    }
-                }
+        ObjectSet::iterator os;
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            ObjectInfo* obj = *os;
+            assert(obj->mClassInfo == classInfo);
+            if(obj->mImplementer && obj->mImplementer != info) {
+                std::string objDn;
+                getObjectName(obj, objDn); /* External name form */
+                TRACE_7("ERR_EXIST: Object '%s' already has implementer "
+                    "%s != %s", objDn.c_str(), obj->mImplementer->mImplementerName.c_str(),
+                    info->mImplementerName.c_str());
+                err = SA_AIS_ERR_EXIST;
+                goto done;
             }
         }
+
+        assert(err == SA_AIS_OK);
+        classInfo->mImplementer = info;
+        TRACE_5("implementer for class '%s' is %s", className.c_str(),
+            info->mImplementerName.c_str());
+        //ABT090225
+        //classImplementerSet and objectImplementerSet
+        //are mutually exclusive. This has not been 
+        //explicitly clear in the IMM standard until 
+        //release A.03.01.
+        //This implementation is release A.02.01 and
+        //has up until now provided the semantics that
+        //classImplementerSet overrides objectImplementerSet.
+        //We realize that this change is not backwards 
+        //compatible, but (1) the risk for problems should
+        //be minimal (backwards incompatibility on an 
+        //error case), and (2) the old solution was not
+        //good because it removed the object-implementorship
+        //without notifying that object-implementor.
+
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            (*os)->mImplementer = classInfo->mImplementer;
+        }
     }
-    
+
+ done:
     TRACE_LEAVE();
     return err;
 }
-
 
 /** 
  * Releases a specific implementer for a class and all its instances
