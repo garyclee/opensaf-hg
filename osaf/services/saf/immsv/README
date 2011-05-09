@@ -287,6 +287,11 @@ To enable this feature the folowing three steps are needed.
 	Note that IMMSV_LOAD_FILE must still also be defined. Even with PBE
 	enabled, you typically initial start from an imm.xml file.
 
+	Optionally define IMMSV_PBE_TMP_DIR (see immnd.conf). The PBE sometimes
+        needs to regenerate the imm.db file. This is much faster (10 times) if
+        the file is generated in a non replicated file system and then copied
+        to the replicated file system.
+
 	Initial start the system.
 	Ensure that it comes up (that the immsv loads properly from imm.xml).
 
@@ -405,6 +410,79 @@ there is no regular implementer attached. But the above admin operations are
 still handled by the immsv and the schema change behavior is still controlled
 the same way.
 
+MULTIPLE APPLIERS
+=================
+OpenSAF 4.2 adds the immsv enhancement of supporting multiple appliers for
+configuration objects. An applier is an OI (object implementer) of lower
+rank than the primary OI. The primary OI validates the CCB and has veto
+rights to abort any CCB it participates in. If the CCB commits then the
+pimary OI will apply the changes into the service/application it represents.
+If the CCB aborts then the primary OI discards the changes. 
+
+The most signifficant deficiency of having only a primary OI per class/object
+is that it is not simple to implement hot-standby solutions.
+A hot-standby solution requires the primary OI to inform the standby by
+implementing some form of message protocol at the service/application level.
+The concept of an "applier OI" removes this deficiency and allows the
+service/application to use the imm to disseminate the changes. 
+
+An applier OI registers the same way as the main OI and receives exactly
+the same upcalls as the primary OI. The difference is that an applier
+OI does not participate in CCB validation. The imm-service ignores any
+reply on the create,delete,modify and completed upcalls, from applier OIs.
+
+The applier OI is thus informed of the same changes as the primary OI
+and will be able to apply the changes if the CCB commits and discard them
+if the CCB aborts. Exaclty what "apply" here means is up to the application.
+The main point here is that it means that the applier has the tools to be
+a hot standby. 
+
+There may be any number of appliers for any given class/object. Thus the
+applier OI concept may be used not just to solve the "hot standby" problem
+but also for the more general problem of effecting the apply of a CCB over
+the applications components in the cluster. In the AMF example above, the
+osafamfnd processes (node director processes) could in principle also 
+attach as applier OIs and register any configuration changes that apply
+to the specific node. 
+
+Another way of stating this is that the applier-OI concept allows IMM 
+users to leverage the the IMM CCB protocol for more than the primary 
+purpose of that protocol. 
+
+The A.02 API is used but the applier concept is only available to an OI
+that registers with version A.02.11 (or higher minor version). 
+An OI-name is recognized as the name for an applier OI by the imm-service
+if the first character in the name is '@'. For example, the AMF OI is 
+named 'safAmfService' and implemented by the osafamfd process at the
+active SC. The osafamfd at the standby SC could become more of a hot
+standby by registering as teh applier OI '@safAmfService'.
+
+As always, only one process/OI-handle may at any point in time be 
+associated with a particular OI-name. This holds also for applier-OI
+names. And as always, an OI-handle may be associated with at most one
+implementer-name at a time. So in case of a switch-over (si-swap),
+the osafamfd processes would close their current OI-handles (or invoke 
+saImmOiImplementerClear). Then the osafamfd processes would attach to
+either the main OI (safAmfService) or the applier OI (@safAmfService),
+using saImmOiImplementerSet. 
+
+A word of caution about implementer names. Implementer names are to
+be re-used. They are never garbage collected by the imm service.
+An implementer-name may have no current live implementer handle attached,
+but once created, it lives "forever" ready for the next attach,
+(SaImmOiImplementerSet). Implementer-names could be compared to Unix port
+numbers. A port number on some particular host is (in general)
+statically mapped to a service on that host. The service may not always
+be up and running, but there should never be any *other* service bound
+to the port number. Similarly, an implementer-name is in a given cluster
+generally mapped to a service. A service should avoid spawning "dynamic"
+implementer names, incorporating volatile name spaces such as process-id
+or time. This may have been obvious for regular OIs. But with the addition
+of multiple appliers, there is a risk is that this is interpreted as an
+open-ended set of appliers, consuming an open ended ammount of resources. 
+This would be incorrect design. An application/service must design for
+a static set of OIs, including a static set of applier OIs. 
+
 
 DEPENDENCIES
 ============
@@ -416,6 +494,7 @@ immsv depends of the following other services:
 - AvSv
 - logtrace
 - libxml2
+- sqlite3
 
 
 DATA STRUCTURES
