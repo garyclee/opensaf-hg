@@ -19,6 +19,7 @@
 #define FM_H
 
 #include <stdio.h>
+#include <poll.h>
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
@@ -59,7 +60,7 @@
 #include "nid_api.h"
 #include "mds_papi.h"
 #include "logtrace.h"
-
+#include "nid_start_util.h"
 /* SAF Include file. */
 #include "saAis.h"
 #include "saAmf.h"

@@ -33,6 +33,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
 	uns32 rc;
 	uns32 status = NCSCC_RC_SUCCESS;
 	PCS_RDA_REQ rda_req;
+	TRACE_ENTER();
 
 	/* initialize the RDA Library */
 	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
@@ -77,7 +78,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
 		syslog(LOG_ERR, "RDA lib destroy failed in fm_rda_init");
 		return NCSCC_RC_FAILURE;
 	}
-
+	TRACE_LEAVE();
 	/* return the final status */
 	return status;
 }
@@ -98,7 +99,7 @@ uns32 fm_rda_finalize(FM_CB *fm_cb)
 	uns32 rc;
 	uns32 status = NCSCC_RC_SUCCESS;
 	PCS_RDA_REQ rda_req;
-
+	TRACE_ENTER();
 	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
 	rda_req.req_type = PCS_RDA_LIB_DESTROY;
 	rc = pcs_rda_request(&rda_req);
@@ -106,7 +107,7 @@ uns32 fm_rda_finalize(FM_CB *fm_cb)
 		syslog(LOG_INFO, "RDA lib destroy failed in fm_rda_finalize ");
 		status = NCSCC_RC_FAILURE;
 	}
-
+	TRACE_LEAVE();
 	return status;
 }
 
@@ -125,7 +126,7 @@ uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
 {
 	PCS_RDA_REQ rda_req;
 	uns32 rc;
-
+	TRACE_ENTER();
 	/* set the RDA role to active */
 	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
 	rda_req.req_type = PCS_RDA_SET_ROLE;
@@ -143,5 +144,6 @@ uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
 	       "fm_rda_set_role() Success: CurrentState: %s, AskedState: %s",
 	       role_string[fm_cb->role], role_string[role]);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
