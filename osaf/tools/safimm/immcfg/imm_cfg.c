@@ -41,13 +41,11 @@
 
 #include "saf_error.h"
 #include "ncsgl_defs.h"
-//#ifdef HAVE_CONFIG_H
-//#include <config.h>
-//#endif
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-//#define HAVE_TESTS
-
-static SaVersionT immVersion = { 'A', 2, 1 };
+static SaVersionT immVersion = { 'A', 2, 11 };
 int verbose = 0;
 int ccb_safe = 1;
 int population = 0;
