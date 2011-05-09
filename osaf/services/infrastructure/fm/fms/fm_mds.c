@@ -263,7 +263,7 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 {
 	uns32 return_val = NCSCC_RC_SUCCESS;
 	FM_EVT *fm_evt;
-
+	TRACE_ENTER();
 	if (NULL == node_evt) {
 		syslog(LOG_INFO, "fm_mds_node_evt: node_evt NULL.");
 		return NCSCC_RC_FAILURE;
@@ -296,6 +296,7 @@ static uns32 fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt)
 		LOG_IN("Wrong MDS event from GFM.");
 		break;
 	}
+	TRACE_LEAVE();
 	return return_val;
 }
 
@@ -314,7 +315,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	uns32 return_val = NCSCC_RC_SUCCESS;
 	FM_EVT *fm_evt;
-
+        TRACE_ENTER();
 	if (NULL == svc_evt) {
 		syslog(LOG_INFO, "fm_mds_svc_evt: svc_evt NULL.");
 		return NCSCC_RC_FAILURE;
@@ -365,6 +366,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		break;
 	}
 
+	TRACE_LEAVE();
 	return return_val;
 }
 

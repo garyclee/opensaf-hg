@@ -30,10 +30,10 @@ else
 fi	
 
 if [ -f $nodeinfofile ]; then
-        ee_id=`grep -i safEE $nodeinfofile`
-        if [ $? -eq 0 ]; then
-        export EE_ID=$ee_id
-        fi
+	ee_id=`grep -i safEE $nodeinfofile`
+	if [ $? -eq 0 ]; then
+		export EE_ID=$ee_id
+	fi
 fi
          
 binary=$pkglibdir/$prog
@@ -44,7 +44,6 @@ RETVAL=0
 NIDSERV="HLFM"
 COMPNAMEFILE=$pkglocalstatedir/fmd_comp_name
 
-
 start() {
 	export LD_LIBRARY_PATH=$pkglibdir:$LD_LIBRARY_PATH
 	[ -p $NIDFIFO ] || exit 1
@@ -52,6 +51,7 @@ start() {
 		echo "$NID_MAGIC:$NIDSERV:$DAEMON_NOT_FND" > $NIDFIFO
 		exit 5
 	fi
+	export FM_COMP_NAME_FILE=$COMPNAMEFILE
 	echo -n "Starting $prog: "
 	start_daemon -p $pidfile $binary $args
 	RETVAL=$?
@@ -59,25 +59,25 @@ start() {
 		touch $lockfile
 		log_success_msg
 	else
-		log_failure_msg
-		echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
+	log_failure_msg
+	echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
 	fi
 	return $RETVAL
 }
 
 instantiate() {
-	[ -p $COMPNAMEFILE ] || mkfifo -m 0644 $COMPNAMEFILE
 	echo -n "AMF Instantiating $prog: "
-	if [ ! -e $lockfile ]; then
+	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
+	if [ -e $lockfile ]; then
+		killproc -p $pidfile $binary -USR1
+	else
 		start_daemon -p $pidfile $binary $args
-		RETVAL=$?
-		sleep 1s
 	fi
-	echo -n "$SA_AMF_COMPONENT_NAME|$FMS_HA_ENV_HEALTHCHECK_KEY" > $COMPNAMEFILE &
-        if [ $RETVAL -eq 0 ]; then
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
 		log_success_msg
 	else
-		log_failure_msg
+	log_failure_msg
 	fi
 	return $RETVAL
 }
