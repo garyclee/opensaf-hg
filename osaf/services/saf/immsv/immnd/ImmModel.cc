@@ -8257,6 +8257,10 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    ClassInfo* classInfo = NULL;
+    ClassMap::iterator i1;
+    ImplementerInfo* info = NULL;
+    ObjectSet::iterator os;
     TRACE_ENTER();
     
     if(immNotWritable()) {
@@ -8270,81 +8274,153 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
-    } else {
-        ImplementerInfo* info = findImplementer(req->impl_id);
-        if(!info) {
-            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
-            err = SA_AIS_ERR_BAD_HANDLE;
-        } else {
-            if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
-                    conn, nodeId);
-                err = SA_AIS_ERR_BAD_HANDLE;
-            } else {
-                //conn is NULL on all nodes except primary.
-                //At these other nodes the only info on implementer existence
-                //is that the nodeId is non-zero. The nodeId is the nodeId of
-                //the node where the implementer resides.
-                
-                ClassMap::iterator i1 = sClassMap.find(className);
-                if (i1 == sClassMap.end()) {
-                    TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
-                    err = SA_AIS_ERR_NOT_EXIST;
-                } else {
-                    ClassInfo* classInfo = i1->second;
-                    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime class.", 
-                            className.c_str());
-                        err = SA_AIS_ERR_BAD_OPERATION;
-                    } else {
-                        if(!classInfo->mImplementer) {
-                            TRACE_7("ERR_NOT_EXIST: Class '%s' has no implementer", 
-                                className.c_str());
-                            err = SA_AIS_ERR_NOT_EXIST;
-                        } else if(classInfo->mImplementer != info) {
-                            TRACE_7("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
-                                className.c_str(), 
-                                classInfo->mImplementer->
-                                mImplementerName.c_str(),
-                                info->mImplementerName.c_str());
-                            err = SA_AIS_ERR_NOT_EXIST;
-                        } else {
-                            TRACE_5("implementer for class '%s' is released", 
-                                className.c_str());
-                            ObjectSet::iterator os;
-                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
-                                ++os) {
-                                ObjectInfo* obj = *os;
-                                assert(obj->mClassInfo == classInfo);
-                                assert(obj->mImplementer == classInfo->mImplementer);
-                                if(obj->mCcbId) {
-                                     CcbVector::iterator i1 = 
-                                        std::find_if(sCcbVector.begin(), sCcbVector.end(),
-                                            CcbIdIs(obj->mCcbId));
-                                    if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                                        std::string objDn;
-                                        getObjectName(obj, objDn); /* External name form */
-                                        LOG_IN("ERR_BUSY: ccb %u is active on object %s",
-                                            obj->mCcbId, objDn.c_str());
-                                        TRACE_LEAVE();
-                                        return SA_AIS_ERR_BUSY;
-                                    }
-                                }
-                            }//for
+        goto done;
+    } 
 
-                            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end();
-                                ++os) {
-                                (*os)->mImplementer = 0;
-                                this->clearImplName(*os);
-                            }
-                            classInfo->mImplementer = 0;
-                        }
+    info = findImplementer(req->impl_id);
+    if(!info) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    } 
+
+    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
+                conn, nodeId);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    } 
+
+    //conn is NULL on all nodes except primary.
+    //At these other nodes the only info on implementer existence
+    //is that the nodeId is non-zero. The nodeId is the nodeId of
+    //the node where the implementer resides.
+                
+    i1 = sClassMap.find(className);
+    if (i1 == sClassMap.end()) {
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    } 
+
+    classInfo = i1->second;
+    if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
+        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime class.", 
+             className.c_str());
+            err = SA_AIS_ERR_BAD_OPERATION;
+        goto done;
+    }
+
+    if(info->mApplier) {
+        if(classInfo->mAppliers.find(info) == classInfo->mAppliers.end()) {
+            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+                ObjectInfo* obj = *os;
+                assert(obj->mClassInfo == classInfo);
+                std::string objDn;
+                getObjectName(obj, objDn); /* External name form */
+                ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objDn);
+                if(ismIter != sObjAppliersMap.end()) {
+                    ImplementerSet *implSet = ismIter->second;
+                    if(implSet->find(info) != implSet->end()) {
+                        /* No mixing of ClassImplementerSet & ObjectImplementerSet */
+                        LOG_IN("ERR_NOT_EXIST: Applier %s is already object applier "
+                            "for object %s => can not also be applier for class",
+                            info->mImplementerName.c_str(),  objDn.c_str());
+                        err = SA_AIS_ERR_NOT_EXIST;
+                        goto done;
                     }
                 }
             }
+            /* Idempotency. */
+            TRACE_7("Applier %s was not set for class %s",
+                info->mImplementerName.c_str(), className.c_str());
+            goto done;
         }
+
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            ObjectInfo* obj = *os;
+            assert(obj->mClassInfo == classInfo);
+            if(obj->mCcbId) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
+                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                    std::string objDn;
+                    getObjectName(obj, objDn); /* External name form */
+                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                           "of class %s. Can not release class applier",
+                        obj->mCcbId, objDn.c_str(), className.c_str());
+                    err = SA_AIS_ERR_BUSY;
+                    goto done;
+                }
+            }
+        }//for
+
+        TRACE_7("Applier %s released from class %s", info->mImplementerName.c_str(),
+            className.c_str());
+        classInfo->mAppliers.erase(info);
+        goto done;
+    } 
+
+    /* Regular OI */
+
+    if(!classInfo->mImplementer) {
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            ObjectInfo* obj = *os;
+            assert(obj->mClassInfo == classInfo);
+            if(obj->mImplementer) {
+                std::string objDn;
+                getObjectName(obj, objDn); /* External name form */
+                LOG_IN("ERR_NOT_EXIST: Release of class implementer for "
+                    "class %s conflicts with current object implementorship "
+                    "for object %s", className.c_str(), objDn.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                /* I would have preferred ERR_BAD_OPERATION for this case, 
+                   but the spec is so explicit on what that error code means for
+                   ObjectImplementerRelease, see first check in this function.
+                */
+                goto done;
+            }
+
+        }
+        /* Idempotency */
+        TRACE_7("Class '%s' has no implementer", className.c_str());
+        goto done;
+    } 
+
+    if(classInfo->mImplementer != info) {
+        TRACE_7("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
+            className.c_str(), classInfo->mImplementer->mImplementerName.c_str(),
+            info->mImplementerName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    } else {
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            ObjectInfo* obj = *os;
+            assert(obj->mClassInfo == classInfo);
+            assert(obj->mImplementer == classInfo->mImplementer);
+            if(obj->mCcbId) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
+                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                    std::string objDn;
+                    getObjectName(obj, objDn); /* External name form */
+                    LOG_IN("ERR_BUSY: ccb %u is active on object %s "
+                       "of class %s. Can not release class implementer",
+                        obj->mCcbId, objDn.c_str(), className.c_str());
+                    err = SA_AIS_ERR_BUSY;
+                    goto done;
+                }
+            }
+        }//for
+
+        TRACE_5("implementer for class '%s' is released", className.c_str());
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            (*os)->mImplementer = 0; this->clearImplName(*os);
+        }
+        classInfo->mImplementer = 0;
     }
-    
+
+ done:    
     TRACE_LEAVE();
     return err;
 }
