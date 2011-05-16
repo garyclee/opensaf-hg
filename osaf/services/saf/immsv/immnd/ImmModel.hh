@@ -212,7 +212,8 @@ public:
                                      IdVector& continuations,
                                      unsigned int pbeIsLocal);
     
-    bool                hasLocalAppliers(ClassInfo* classInfo);
+    bool                hasLocalClassAppliers(ClassInfo* classInfo);
+    bool                hasLocalObjAppliers(const std::string& objName);
 
     bool                ccbWaitForDeleteImplAck(
                                                 SaUint32T ccbId, 
