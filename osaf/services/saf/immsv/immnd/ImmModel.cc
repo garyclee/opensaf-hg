@@ -86,6 +86,7 @@ struct ImplementerInfo
 
 typedef std::vector<ImplementerInfo*> ImplementerVector;
 typedef std::set<ImplementerInfo*> ImplementerSet;
+typedef std::map<std::string, ImplementerSet*> ImplementerSetMap;
 
 struct ImplementerCcbAssociation
 {
@@ -324,6 +325,8 @@ static IdVector         sImplsDeadDuringSync; // die after finalizeSync is sent 
                                               // re-create by finalizeSync (at non coord). 
 
 static DeferredObjUpdatesMap sDeferredObjUpdatesMap;
+
+static ImplementerSetMap sObjAppliersMap;
 
 static SaUint32T        sLastContinuationId = 0;
 
@@ -8067,7 +8070,6 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     return err;
 }
 
-
 /** 
  * Registers a specific implementer for a class and all its instances
  */
@@ -8077,6 +8079,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    ObjectSet::iterator os;
     TRACE_ENTER();
     
     ClassInfo* classInfo = NULL;
@@ -8134,25 +8137,64 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     }
 
     if(info->mApplier) {
-        if(classInfo->mAppliers.find(info) == classInfo->mAppliers.end()) {
-            /* Check for writability. */
-            LOG_NO("Applier %s set for class %s", info->mImplementerName.c_str(),
+        if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
+            /* Idempotency */
+            TRACE_7("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
                 className.c_str());
-            classInfo->mAppliers.insert(info);
-        } else {
-            LOG_NO("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
-                className.c_str());
-        }
-    } else { /* Regular OI */
-        if(classInfo->mImplementer && (classInfo->mImplementer != info)) {
-            TRACE_7("ERR_EXIST: Class '%s' already has class implementer "
-                "%s != %s", className.c_str(), classInfo->mImplementer->
-                mImplementerName.c_str(), info->mImplementerName.c_str());
-            err = SA_AIS_ERR_EXIST;
             goto done;
-        } 
+	}
 
-        ObjectSet::iterator os;
+        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+            ObjectInfo* obj = *os;
+            assert(obj->mClassInfo == classInfo);
+            std::string objDn;
+            getObjectName(obj, objDn); /* External name form */
+            if(obj->mCcbId) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
+                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                           "of class %s. Can not add class applier",
+                        obj->mCcbId, objDn.c_str(), className.c_str());
+                    err = SA_AIS_ERR_BUSY;
+                    goto done;
+                }
+            }
+
+            ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objDn);
+            if(ismIter != sObjAppliersMap.end()) {
+                ImplementerSet *implSet = ismIter->second;
+                if(implSet->find(info) != implSet->end()) {
+                    /* No mixing of ClassImplementerSet & ObjectImplementerSet */
+                    LOG_IN("ERR_EXIST: Applier %s is already object applier "
+                        "for object %s => can not also be applier for class",
+                        info->mImplementerName.c_str(),  objDn.c_str());
+                    err = SA_AIS_ERR_EXIST;
+                    goto done;
+                }
+            }
+        }//for
+
+        LOG_IN("Applier %s set for class %s", info->mImplementerName.c_str(),
+            className.c_str());
+        classInfo->mAppliers.insert(info);
+
+    } else { /* Regular OI */
+        if(classInfo->mImplementer) { /* Class implementer is already set. */
+            if(classInfo->mImplementer == info) {
+                /* Idempotency */
+                TRACE_7("Class '%s' already has %s as class implementer ",
+                className.c_str(), info->mImplementerName.c_str());
+            } else {
+                TRACE_7("ERR_EXIST: Class '%s' already has other class implementer "
+                    "%s != %s", className.c_str(), classInfo->mImplementer->
+                    mImplementerName.c_str(), info->mImplementerName.c_str());
+                err = SA_AIS_ERR_EXIST;
+            }
+
+            goto done;
+        }        
+
         for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
             ObjectInfo* obj = *os;
             assert(obj->mClassInfo == classInfo);
@@ -8165,7 +8207,26 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                 err = SA_AIS_ERR_EXIST;
                 goto done;
             }
-        }
+
+            if(obj->mCcbId) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
+                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                    std::string objDn;
+                    getObjectName(obj, objDn); /* External name form */
+                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                           "of class %s. Can not add class implementer",
+                        obj->mCcbId, objDn.c_str(), className.c_str());
+                    err = SA_AIS_ERR_BUSY;
+                    /* Note: ERR_BUSY is actually not allowed here according to the 
+                       IMM standard for saImmOiClassImplementerSet.
+                       But ERR_BUSY *is* allowed in the corresponding situation for
+                       saImmOiClassImplementerRelease !!
+                    */
+                    goto done;
+                }
+            }
+        }//for
 
         assert(err == SA_AIS_OK);
         classInfo->mImplementer = info;
@@ -8176,15 +8237,6 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
         //are mutually exclusive. This has not been 
         //explicitly clear in the IMM standard until 
         //release A.03.01.
-        //This implementation is release A.02.01 and
-        //has up until now provided the semantics that
-        //classImplementerSet overrides objectImplementerSet.
-        //We realize that this change is not backwards 
-        //compatible, but (1) the risk for problems should
-        //be minimal (backwards incompatibility on an 
-        //error case), and (2) the old solution was not
-        //good because it removed the object-implementorship
-        //without notifying that object-implementor.
 
         for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
             (*os)->mImplementer = classInfo->mImplementer;

@@ -299,9 +299,15 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 			}
 
 			if(tmp->opCount != inv) {
-				LOG_ER("Mismatch in PBE op-count %u should be %u for Ccbid:%llx",  
-					tmp->opCount, inv, ccbId);
-				rs = 0;
+				if(cl_node->isApplier) {
+					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:%llx"
+						" - opcount not reliable for appliers. => Need a fix for #1795",  
+					    tmp->opCount, inv, ccbId);
+				} else {
+					LOG_ER("Mismatch in PBE op-count %u should be %u for Ccbid:%llx",  
+					    tmp->opCount, inv, ccbId);
+					rs = 0;
+				}
 			} else {
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
@@ -332,9 +338,15 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 			}
 
 			if(tmp->opCount != inv) {
-				LOG_ER("Mismatch in PBE op-count %u should be %u for CCBid:%llx (isPbe:%u)", 
-					tmp->opCount, inv, ccbId, cl_node->isPbe);
-				rs = 0;
+				if(cl_node->isApplier) {
+					TRACE_5("Mismatch in applier op-count %u should be %u for Ccbid:%llx"
+						" - opcount not reliable for appliers. => Need a fix for #1795",  
+						tmp->opCount, inv, ccbId);
+				} else {
+					LOG_ER("Mismatch in PBE op-count %u should be %u for CCBid:%llx (isPbe:%u)", 
+						tmp->opCount, inv, ccbId, cl_node->isPbe);
+					rs = 0;
+				}
 			} else {
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
