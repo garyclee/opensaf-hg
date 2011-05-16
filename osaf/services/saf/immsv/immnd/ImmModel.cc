@@ -8240,17 +8240,23 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             }
 
             goto done;
-        }        
+        }
 
         for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
             ObjectInfo* obj = *os;
             assert(obj->mClassInfo == classInfo);
-            if(obj->mImplementer && obj->mImplementer != info) {
+            if(obj->mImplementer) {
                 std::string objDn;
                 getObjectName(obj, objDn); /* External name form */
-                TRACE_7("ERR_EXIST: Object '%s' already has implementer "
-                    "%s != %s", objDn.c_str(), obj->mImplementer->mImplementerName.c_str(),
-                    info->mImplementerName.c_str());
+                if(obj->mImplementer == info) {
+                    TRACE_7("ERR_EXIST: Implementer %s is already OBJECT implementer "
+                       "for Object '%s'. Can not be CLASS implementer at same time.", 
+                       info->mImplementerName.c_str(), objDn.c_str());
+                } else {
+                    TRACE_7("ERR_EXIST: Object '%s' already has implementer "
+                        "%s != %s", objDn.c_str(), obj->mImplementer->mImplementerName.c_str(),
+                        info->mImplementerName.c_str());
+		}
                 err = SA_AIS_ERR_EXIST;
                 goto done;
             }
@@ -8370,8 +8376,8 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                     ImplementerSet *implSet = ismIter->second;
                     if(implSet->find(info) != implSet->end()) {
                         /* No mixing of ClassImplementerSet & ObjectImplementerSet */
-                        LOG_IN("ERR_NOT_EXIST: Applier %s is already object applier "
-                            "for object %s => can not also be applier for class",
+                        LOG_IN("ERR_NOT_EXIST: Applier %s is object applier "
+                            "for object %s => can not release applier for class",
                             info->mImplementerName.c_str(),  objDn.c_str());
                         err = SA_AIS_ERR_NOT_EXIST;
                         goto done;
@@ -8569,6 +8575,9 @@ SaAisErrorT ImmModel::objectImplementerRelease(
                                                unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    ObjectInfo* rootObj = NULL;
+    ImplementerInfo* info = NULL;
+    ObjectMap::iterator i1;
     TRACE_ENTER();
     
     if(immNotWritable()) {
@@ -8582,64 +8591,67 @@ SaAisErrorT ImmModel::objectImplementerRelease(
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper object DN");
         err = SA_AIS_ERR_INVALID_PARAM;
-    } else {
-        ImplementerInfo* info = findImplementer(req->impl_id);
-        if(!info) {
-            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
-            err = SA_AIS_ERR_BAD_HANDLE;
-        } else {
-            if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
-                    conn, nodeId);
-                err = SA_AIS_ERR_BAD_HANDLE;
-            } else {
-                //conn is NULL on all nodes except primary.
-                //At these other nodes the only info on implementer existence 
-                //is that the nodeId is non-zero. The nodeId is the nodeId of
-                //the node where the implementer resides.
-                
-                //I need to run two passes if scope != ONE
-                //This because if I fail on ONE object then I have to revert
-                //the implementer on all previously set in this op.
-                
-                ObjectMap::iterator i1 = sObjectMap.find(objectName);
-                if (i1 == sObjectMap.end()) {
-                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
-                    err = SA_AIS_ERR_NOT_EXIST;
-                } else {
-                    ObjectInfo* rootObj = i1->second;
-                    for(int doIt=0; doIt<2 && err == SA_AIS_OK; ++doIt) {
-                        //ObjectInfo* objectInfo = i1->second;
-                        err = releaseImplementer(objectName, rootObj, info, 
-                            doIt);
-                        SaImmScopeT scope = (SaImmScopeT) req->scope;
-                        if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
-                            // Find all sub objects to the root object
-                            // Warning re-using iterator i1 inside this loop
-                            for (i1 = sObjectMap.begin(); 
-                                 i1 != sObjectMap.end() && err == SA_AIS_OK; 
-                                 i1++) {
-                                std::string subObjName = i1->first;
-                                if (subObjName.length() > objectName.length()){
-                                    size_t pos = subObjName.length() - 
-                                        objectName.length();
-                                    if ((subObjName.rfind(objectName, pos) == 
-                                            pos)&&(subObjName[pos-1] == ',')){
-                                        if(scope==SA_IMM_SUBTREE || 
-                                            checkSubLevel(subObjName, pos)){
-                                            ObjectInfo* subObj = i1->second;
-                                            err =releaseImplementer(subObjName,
-                                                subObj, info, doIt);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        goto done;
+    } 
+ 
+   info = findImplementer(req->impl_id);
+    if(!info) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
     }
+
+    if((info->mConn != conn) || (info->mNodeId != nodeId)) {
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
+            conn, nodeId);
+        err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    }
+
+    //conn is NULL on all nodes except primary.
+    //At these other nodes the only info on implementer existence 
+    //is that the nodeId is non-zero. The nodeId is the nodeId of
+    //the node where the implementer resides.
+
+    //I need to run two passes if scope != ONE
+    //This because if I fail on ONE object then I have to revert
+    //the implementer on all previously set in this op.
+
+    i1 = sObjectMap.find(objectName);
+    if (i1 == sObjectMap.end()) {
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
+        err = SA_AIS_ERR_NOT_EXIST;
+        goto done;
+    } 
+
+    rootObj = i1->second;
+    for(int doIt=0; doIt<2 && err == SA_AIS_OK; ++doIt) {
+        //ObjectInfo* objectInfo = i1->second;
+        err = releaseImplementer(objectName, rootObj, info, doIt);
+        SaImmScopeT scope = (SaImmScopeT) req->scope;
+        if(err == SA_AIS_OK && scope != SA_IMM_ONE) {
+            // Find all sub objects to the root object
+            // Warning re-using iterator i1 inside this loop
+            for (i1 = sObjectMap.begin(); 
+                 i1 != sObjectMap.end() && err == SA_AIS_OK; i1++) {
+                std::string subObjName = i1->first;
+                if(subObjName.length() > objectName.length()) {
+                    size_t pos = subObjName.length() - objectName.length();
+                    if((subObjName.rfind(objectName, pos) == pos) &&
+                       (subObjName[pos-1] == ',')) {
+                        if(scope==SA_IMM_SUBTREE || 
+                           checkSubLevel(subObjName, pos)){
+                            ObjectInfo* subObj = i1->second;
+                            err =releaseImplementer(subObjName, subObj,
+                               info, doIt);
+                        }//if
+                    }//if
+                }//if
+            }//for
+        }//if
+    }//for
+
+ done:
     TRACE_LEAVE();
     return err;
 }
@@ -8771,38 +8783,90 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
             "not allowed to release object implementer.", 
             objectName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
-    } else {
-        if(obj->mImplementer && 
-            (obj->mImplementer != info)) {
+        goto done;
+    } 
+
+    if(obj->mCcbId && !doIt) {
+        /* Dont allow implementer or applier to detatch to objects with
+           an active CCB. The result could be that the OI is left "hanging"
+           with a non terminated CCB.
+        */
+        CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+               sCcbVector.end(), CcbIdIs(obj->mCcbId));
+
+        if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+            assert(!doIt);
+            LOG_IN("ERR_BUSY: ccb %u is active on object %s", obj->mCcbId,
+                objectName.c_str());
+            err = SA_AIS_ERR_BUSY;
+            goto done;
+        }
+    }
+
+    if(info->mApplier) {
+        ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objectName);
+        if(doIt) {
+            if(ismIter == sObjAppliersMap.end()) {
+                /* Idempotency. */
+                TRACE_7("Applier %s was not set for object %s",
+                    info->mImplementerName.c_str(), objectName.c_str());
+	    } else {
+                ImplementerSet *implSet = ismIter->second;
+                implSet->erase(info);
+                if(implSet->empty()) {
+                    delete implSet;
+                    sObjAppliersMap.erase(ismIter);
+                }
+	    }
+        } else { //!doIt => do checks
+            if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
+                /* No mixing of ClassImplementerRelease & ObjectImplementerRelease */
+                LOG_IN("ERR_NOT_EXIST: Applier %s is >>class<< applier for the class of "
+                    "object %s. Will not allow ObjectImplementerRelease", 
+                     info->mImplementerName.c_str(), objectName.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                goto done;
+	    }
+        }
+    } else { /* regular OI */
+        if(obj->mImplementer == NULL) {
+            /* Idempotency */
+            TRACE_5("object '%s' has no implementer", objectName.c_str());
+            goto done;
+	}
+
+        if(obj->mImplementer != info) {
             assert(!doIt);
             TRACE_7("ERR_NOT_EXIST: Object '%s' has different implementer %s != %s",
                 objectName.c_str(), 
                 obj->mImplementer->mImplementerName.c_str(),
                 info->mImplementerName.c_str());
+            /* This covers both different class implementer and different object
+               implementer.*/
             err = SA_AIS_ERR_NOT_EXIST;
-        } else {
-            if(obj->mCcbId) {
-                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
-                    sCcbVector.end(), CcbIdIs(obj->mCcbId));
-                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                    assert(!doIt);
-                    LOG_IN("ERR_BUSY: ccb %u is active on object %s",
-                        obj->mCcbId, objectName.c_str());
-                    return SA_AIS_ERR_BUSY;
-                }
-            }
+            goto done;
 
+        } else { /* obj->mImplementer == info. But check that it is not class-impl */
             if(classInfo->mImplementer) {
+                /* User has set class impl but tries to release object impl */
+                assert(!doIt);
+
+                /* Get class name. */
                 ClassMap::iterator ci;
                 for(ci=sClassMap.begin(); ci!= sClassMap.end(); ++ci) {
                     if(ci->second == classInfo) break;
                 }
                 assert(ci!=sClassMap.end());
 
-                LOG_IN("ERR_BAD_OPERATION: Release of object implementer for "
+                LOG_IN("ERR_NOT_EXIST: Release of object implementer for "
                     "object %s conflicts with current class implementorship "
                     "for class %s", objectName.c_str(), ci->first.c_str());
-                return SA_AIS_ERR_BAD_OPERATION;
+                err = SA_AIS_ERR_NOT_EXIST;
+                /* I would have preferred ERR_BAD_OPERATION for this case, 
+                   but the spec is so explicit on what that error code means for
+                   ObjectImplementerRelease, see first check in this function.
+                */
+                goto done;
             }
 
             if(doIt) {
@@ -8814,6 +8878,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
         }
     }
     /*TRACE_LEAVE();*/
+ done:
     return err;
 }
 
@@ -11342,10 +11407,11 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 //Yes, because the existence of a rt object is noted at 
                 //all nodes.
                 if((int) ci->mExtent.size() != (int) ioci->nrofInstances) {
-			LOG_IN("Synced class %s has %u instances should have %u", className.c_str(),
-				(unsigned int) ci->mExtent.size(), ioci->nrofInstances);
-			abort();
-		}
+                    LOG_IN("Synced class %s has %u instances should have %u",
+                       className.c_str(), (unsigned int) ci->mExtent.size(),
+                       ioci->nrofInstances);
+                    abort();
+                }
                 ++classCount;
                 if(ioci->classImplName.size) {
                     sz = strnlen((char *) ioci->classImplName.buf, 
