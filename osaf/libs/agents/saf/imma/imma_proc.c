@@ -407,101 +407,101 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
 {
-    /* We are LOCKED already, but we may unlock here => locked will be false*/
-    IMMA_CLIENT_NODE  * clnode;
-    SaImmHandleT *temp_ptr=0;
-    SaImmHandleT temp_hdl=0;
-    SaUint32T clientHigh=0;
-    IMMSV_EVT clientHigh_evt;
+	/* We are LOCKED already, but we may unlock here => locked will be false*/
+	IMMA_CLIENT_NODE  * clnode;
+	SaImmHandleT *temp_ptr=0;
+	SaImmHandleT temp_hdl=0;
+	SaUint32T clientHigh=0;
+	IMMSV_EVT clientHigh_evt;
 
-    TRACE_ENTER();
-    assert(locked && *locked);  /* We must be entering locked. */
+	TRACE_ENTER();
+	assert(locked && *locked);  /* We must be entering locked. */
 
-    /* Determine clientHigh count and if there are any clients with
-       selection objects that can be resurrected */
+	/* Determine clientHigh count and if there are any clients with
+	   selection objects that can be resurrected */
 
-    if (cb->dispatch_clients_to_resurrect) {
-        /* 
-           Resurrections alredy in progress, possibly due to repeated
-           init/close of IMMA library (first/last handle).
-        */
+	if (cb->dispatch_clients_to_resurrect) {
+		/* 
+		   Resurrections alredy in progress, possibly due to repeated
+		   init/close of IMMA library (first/last handle).
+		*/
 
-        TRACE_3("Active resurrection of %u clients already ongoing",
-            cb->dispatch_clients_to_resurrect);
-        return;
-    } 
+		TRACE_3("Active resurrection of %u clients already ongoing",
+			cb->dispatch_clients_to_resurrect);
+		return;
+	}
 
-    while ((clnode = (IMMA_CLIENT_NODE *)
-            ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
-    {
-        temp_hdl = clnode->handle;
-        temp_ptr = &temp_hdl;
-        SaUint32T clientId = m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle);
-        SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle);
-        if (clientId > clientHigh) {
-            clientHigh = clientId;
-        }
+	while ((clnode = (IMMA_CLIENT_NODE *)
+		       ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
+	{
+		temp_hdl = clnode->handle;
+		temp_ptr = &temp_hdl;
+		SaUint32T clientId = m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle);
+		SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle);
+		if (clientId > clientHigh) {
+			clientHigh = clientId;
+		}
 
-        if (!clnode->stale) {
-            TRACE_3("Found NON stale handle <%u, %x> when analyzing handles, "
-                "bailing from attempt to actively resurrect.", 
-                clientId, nodeId);
+		if (!clnode->stale) {
+			TRACE_3("Found NON stale handle <%u, %x> when analyzing handles, "
+				"bailing from attempt to actively resurrect.", 
+				clientId, nodeId);
 
-            /* This case means we must have gotten IMMND DOWN/UP at least 
-               twice in quick succession.
-             */
+			/* This case means we must have gotten IMMND DOWN/UP at least 
+			   twice in quick succession.
+			*/
 
-            cb->dispatch_clients_to_resurrect = 0; /* Reset. */
-            goto done;
-        }
+			cb->dispatch_clients_to_resurrect = 0; /* Reset. */
+			goto done;
+		}
 
-        if (isExposed(cb, clnode)) {continue;}
-        if (!clnode->selObjUsable) {continue;}
-        ++(cb->dispatch_clients_to_resurrect);
-        /* Only clients with selection objects can be resurrected actively.
-           If selObjUsable is false then it means an attempt to actively 
-           resurrect has already started. 
-         */
-    }
+		if (isExposed(cb, clnode)) {continue;}
+		if (!clnode->selObjUsable) {continue;}
+		++(cb->dispatch_clients_to_resurrect);
+		/* Only clients with selection objects can be resurrected actively.
+		   If selObjUsable is false then it means an attempt to actively 
+		   resurrect has already started. 
+		*/
+	}
 
-    if (clientHigh) 
-    {
-        /* Inform the IMMND of highest used client ID. */
-        memset(&clientHigh_evt, 0, sizeof(IMMSV_EVT));
-        clientHigh_evt.type = IMMSV_EVT_TYPE_IMMND;
-        clientHigh_evt.info.immnd.type = (cb->sv_id == NCSMDS_SVC_ID_IMMA_OM)?
-		IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH;
-        clientHigh_evt.info.immnd.info.initReq.client_pid = clientHigh;
-        TRACE_1("ClientHigh message high %u", clientHigh);
-        /* Unlock before MDS Send */
-        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-        *locked = FALSE;
-        clnode = NULL;
+	if (clientHigh) 
+	{
+		/* Inform the IMMND of highest used client ID. */
+		memset(&clientHigh_evt, 0, sizeof(IMMSV_EVT));
+		clientHigh_evt.type = IMMSV_EVT_TYPE_IMMND;
+		clientHigh_evt.info.immnd.type = (cb->sv_id == NCSMDS_SVC_ID_IMMA_OM)?
+			IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH;
+		clientHigh_evt.info.immnd.info.initReq.client_pid = clientHigh;
+		TRACE_1("ClientHigh message high %u", clientHigh);
+		/* Unlock before MDS Send */
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		*locked = FALSE;
+		clnode = NULL;
 
-        if (cb->is_immnd_up == FALSE)
-        {
-            TRACE_3("IMMND is DOWN - clientHigh attempt failed. ");
-            goto done;
-        }
+		if (cb->is_immnd_up == FALSE)
+		{
+			TRACE_3("IMMND is DOWN - clientHigh attempt failed. ");
+			goto done;
+		}
 
-        /* send the clientHigh message to the IMMND asyncronously */
-        if (imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, 
-               &clientHigh_evt, NCSMDS_SVC_ID_IMMND) != NCSCC_RC_SUCCESS)
-        {
-            /* Failure to send clientHigh simply means the risk is higher that
-               resurrects will fail, exposing the handle as BAD to the client.
-            */
-            TRACE_3("imma_determine_clients_to_resurrect: send failed");
-        }
-    }
+		/* send the clientHigh message to the IMMND asyncronously */
+		if (imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, 
+			    &clientHigh_evt, NCSMDS_SVC_ID_IMMND) != NCSCC_RC_SUCCESS)
+		{
+			/* Failure to send clientHigh simply means the risk is higher that
+			   resurrects will fail, exposing the handle as BAD to the client.
+			*/
+			TRACE_3("imma_determine_clients_to_resurrect: send failed");
+		}
+	}
 
  done:
-    TRACE_LEAVE();
+	TRACE_LEAVE();
 }
 
 void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 	/* We are NOT LOCKED on entry */
 	assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 
@@ -585,7 +585,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 	}
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    TRACE_LEAVE();
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -595,10 +595,10 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 	/* We are LOCKED already */
 	IMMA_CALLBACK_INFO *callback = NULL;
-    if (cl_node->selObjUsable) {
+	if (cl_node->selObjUsable) {
 		struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
 
 		/* Send the stale handle triggering ipc-message */
@@ -728,7 +728,7 @@ SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId)
 	TRACE_5("imma_proc_recover_ccb_result returning err %u after waiting %u secs",
 		err, msecs_waited/1000);
 
-    TRACE_LEAVE();
+	TRACE_LEAVE();
 	return err;
 }
 /****************************************************************************
@@ -1222,77 +1222,77 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	TRACE_ENTER();
 	switch (evt->type) {
-	case IMMA_EVT_ND2A_IMM_ADMOP:
-	case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
-		/*TODO See TODO 12345 code repeated (almost) in imma_om_api.c
-		   free-1 */
-		if (evt->info.admOpReq.objectName.size) {
-			free(evt->info.admOpReq.objectName.buf);
-			evt->info.admOpReq.objectName.buf = NULL;
-			evt->info.admOpReq.objectName.size = 0;
-		}
-		while (evt->info.admOpReq.params) {
-			IMMSV_ADMIN_OPERATION_PARAM *p = evt->info.admOpReq.params;
-			evt->info.admOpReq.params = p->next;
-
-			if (p->paramName.buf) {	/*free-3 */
-				free(p->paramName.buf);
-				p->paramName.buf = NULL;
-				p->paramName.size = 0;
+		case IMMA_EVT_ND2A_IMM_ADMOP:
+		case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
+			/*TODO See TODO 12345 code repeated (almost) in imma_om_api.c
+			  free-1 */
+			if (evt->info.admOpReq.objectName.size) {
+				free(evt->info.admOpReq.objectName.buf);
+				evt->info.admOpReq.objectName.buf = NULL;
+				evt->info.admOpReq.objectName.size = 0;
 			}
-			immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);	/*free-4 */
-			p->next = NULL;
-			free(p);	/*free-2 */
-		}
-		break;
+			while (evt->info.admOpReq.params) {
+				IMMSV_ADMIN_OPERATION_PARAM *p = evt->info.admOpReq.params;
+				evt->info.admOpReq.params = p->next;
 
-	case IMMA_EVT_ND2A_ADMOP_RSP:
-		break;
+				if (p->paramName.buf) {	/*free-3 */
+					free(p->paramName.buf);
+					p->paramName.buf = NULL;
+					p->paramName.size = 0;
+				}
+				immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);/*free-4 */
+				p->next = NULL;
+				free(p);  /*free-2 */
+			}
+			break;
 
-	case IMMA_EVT_ND2A_SEARCH_REMOTE:
-		free(evt->info.searchRemote.objectName.buf);
-		evt->info.searchRemote.objectName.buf = NULL;
-		evt->info.searchRemote.objectName.size = 0;
-		immsv_evt_free_attrNames(evt->info.searchRemote.attributeNames);
-		evt->info.searchRemote.attributeNames = NULL;
-		break;
+		case IMMA_EVT_ND2A_ADMOP_RSP:
+			break;
 
-	case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC:
-		free(evt->info.objCreate.className.buf);
-		evt->info.objCreate.className.buf = NULL;
-		evt->info.objCreate.className.size = 0;
+		case IMMA_EVT_ND2A_SEARCH_REMOTE:
+			free(evt->info.searchRemote.objectName.buf);
+			evt->info.searchRemote.objectName.buf = NULL;
+			evt->info.searchRemote.objectName.size = 0;
+			immsv_evt_free_attrNames(evt->info.searchRemote.attributeNames);
+			evt->info.searchRemote.attributeNames = NULL;
+			break;
 
-		free(evt->info.objCreate.parentName.buf);
-		evt->info.objCreate.parentName.buf = NULL;
-		evt->info.objCreate.parentName.size = 0;
+		case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC:
+			free(evt->info.objCreate.className.buf);
+			evt->info.objCreate.className.buf = NULL;
+			evt->info.objCreate.className.size = 0;
 
-		immsv_free_attrvalues_list(evt->info.objCreate.attrValues);
-		evt->info.objCreate.attrValues = NULL;
-		break;
+			free(evt->info.objCreate.parentName.buf);
+			evt->info.objCreate.parentName.buf = NULL;
+			evt->info.objCreate.parentName.size = 0;
 
-	case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC:
-		free(evt->info.objDelete.objectName.buf);
-		evt->info.objDelete.objectName.buf = NULL;
-		evt->info.objDelete.objectName.size = 0;
-		break;
+			immsv_free_attrvalues_list(evt->info.objCreate.attrValues);
+			evt->info.objCreate.attrValues = NULL;
+			break;
 
-	case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC:
-		free(evt->info.objModify.objectName.buf);
-		evt->info.objModify.objectName.buf = NULL;
-		evt->info.objModify.objectName.size = 0;
+		case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC:
+			free(evt->info.objDelete.objectName.buf);
+			evt->info.objDelete.objectName.buf = NULL;
+			evt->info.objDelete.objectName.size = 0;
+			break;
 
-		immsv_free_attrmods(evt->info.objModify.attrMods);
-		evt->info.objModify.attrMods = NULL;
-		break;
+		case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC:
+			free(evt->info.objModify.objectName.buf);
+			evt->info.objModify.objectName.buf = NULL;
+			evt->info.objModify.objectName.size = 0;
 
-	case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC:
-	case IMMA_EVT_ND2A_OI_CCB_APPLY_UC:
-	case IMMA_EVT_ND2A_OI_CCB_ABORT_UC:
-		break;
+			immsv_free_attrmods(evt->info.objModify.attrMods);
+			evt->info.objModify.attrMods = NULL;
+			break;
 
-	default:
-		TRACE_4("Unknown event type %u", evt->type);
-		break;
+		case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC:
+		case IMMA_EVT_ND2A_OI_CCB_APPLY_UC:
+		case IMMA_EVT_ND2A_OI_CCB_ABORT_UC:
+			break;
+
+		default:
+			TRACE_4("Unknown event type %u", evt->type);
+			break;
 	}
 	TRACE_LEAVE();
 }
@@ -1310,51 +1310,51 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 {
 	TRACE("** Event type:%u", evt->info.imma.type);
 	switch (evt->info.imma.type) {
-	case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
-	case IMMA_EVT_ND2A_IMM_ADMOP:
-		imma_proc_admop(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_IMM_PBE_ADMOP:
+		case IMMA_EVT_ND2A_IMM_ADMOP:
+			imma_proc_admop(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_ADMOP_RSP:
-		imma_proc_admin_op_async_rsp(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_ADMOP_RSP:
+			imma_proc_admin_op_async_rsp(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_SEARCH_REMOTE:
-		imma_proc_rt_attr_update(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_SEARCH_REMOTE:
+			imma_proc_rt_attr_update(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC:
-		imma_proc_obj_create(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC:
+			imma_proc_obj_create(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC:
-		imma_proc_obj_delete(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC:
+			imma_proc_obj_delete(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC:
-		imma_proc_obj_modify(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC:
+			imma_proc_obj_modify(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC:
-		imma_proc_ccb_completed(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC:
+			imma_proc_ccb_completed(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_CCB_APPLY_UC:
-		imma_proc_ccb_apply(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_CCB_APPLY_UC:
+			imma_proc_ccb_apply(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_OI_CCB_ABORT_UC:
-		imma_proc_ccb_abort(cb, &evt->info.imma);
-		break;
+		case IMMA_EVT_ND2A_OI_CCB_ABORT_UC:
+			imma_proc_ccb_abort(cb, &evt->info.imma);
+			break;
 
-	case IMMA_EVT_ND2A_PROC_STALE_CLIENTS:
-		LOG_IN("Received PROC_STALE_CLIENTS");
-		imma_process_stale_clients(cb);
-		break;
+		case IMMA_EVT_ND2A_PROC_STALE_CLIENTS:
+			LOG_IN("Received PROC_STALE_CLIENTS");
+			imma_process_stale_clients(cb);
+			break;
 
-	default:
-		TRACE_4("Unknown event type %u", evt->info.imma.type);
-		break;
+		default:
+			TRACE_4("Unknown event type %u", evt->info.imma.type);
+			break;
 	}
 	imma_proc_free_pointers(cb, &evt->info.imma);
 	return;
@@ -1376,7 +1376,7 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
 
 	/* remove it to the queue */
 	cb_info = (IMMA_CALLBACK_INFO *)
-	    m_NCS_IPC_NON_BLK_RECEIVE(&cl_node->callbk_mbx, NULL);
+		m_NCS_IPC_NON_BLK_RECEIVE(&cl_node->callbk_mbx, NULL);
 
 	return cb_info;
 }
@@ -1410,30 +1410,30 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 {
-    TRACE_ENTER();
-    IMMA_CLIENT_NODE    *cl_node=NULL;
-    IMMSV_EVT resurrect_evt;
-    IMMSV_EVT *out_evt=NULL;
-    NCS_BOOL locked = FALSE;
-    SaAisErrorT err;
-    unsigned int sleep_delay_ms = 500;
-    unsigned int max_waiting_time_ms = 2 * 1000; /* 2 secs */
-    unsigned int msecs_waited = 0;
+	TRACE_ENTER();
+	IMMA_CLIENT_NODE    *cl_node=NULL;
+	IMMSV_EVT resurrect_evt;
+	IMMSV_EVT *out_evt=NULL;
+	NCS_BOOL locked = FALSE;
+	SaAisErrorT err;
+	unsigned int sleep_delay_ms = 500;
+	unsigned int max_waiting_time_ms = 2 * 1000; /* 2 secs */
+	unsigned int msecs_waited = 0;
 
-    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-    {
-        TRACE_3("Lock failure");
-        goto lock_fail;
-    }
-    locked = TRUE;
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+	{
+		TRACE_3("Lock failure");
+		goto lock_fail;
+	}
+	locked = TRUE;
 
-    imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-    if (cl_node == NULL || (cl_node->stale && cl_node->exposed))
-    {
-        TRACE_3("Client not found %p or already exposed %u - cant resurrect", cl_node,
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (cl_node == NULL || (cl_node->stale && cl_node->exposed))
+	{
+		TRACE_3("Client not found %p or already exposed %u - cant resurrect", cl_node,
 			cl_node?cl_node->exposed:0);
-        goto failure;
-    }
+		goto failure;
+	}
 	
 	if (!cl_node->stale) {
 		TRACE_3("imma_proc_resurrect_client: Handle %llx was not stale, "
@@ -1448,119 +1448,108 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 		goto failure;
 	}
 
-    /* populate the structure */
-    memset(&resurrect_evt, 0, sizeof(IMMSV_EVT));
-    resurrect_evt.type = IMMSV_EVT_TYPE_IMMND;
-    resurrect_evt.info.immnd.type = (isOm)?IMMND_EVT_A2ND_IMM_OM_RESURRECT:
-        IMMND_EVT_A2ND_IMM_OI_RESURRECT;
-    resurrect_evt.info.immnd.info.finReq.client_hdl = immHandle;
-    TRACE_1("Resurrect message for immHandle: %llx isOm: %u",
-        immHandle, isOm);
-    /* Unlock before MDS Send */
-    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    locked = FALSE;
-    cl_node = NULL;
+	/* populate the structure */
+	memset(&resurrect_evt, 0, sizeof(IMMSV_EVT));
+	resurrect_evt.type = IMMSV_EVT_TYPE_IMMND;
+	resurrect_evt.info.immnd.type = (isOm)?IMMND_EVT_A2ND_IMM_OM_RESURRECT:
+		IMMND_EVT_A2ND_IMM_OI_RESURRECT;
+	resurrect_evt.info.immnd.info.finReq.client_hdl = immHandle;
+	TRACE_1("Resurrect message for immHandle: %llx isOm: %u",
+		immHandle, isOm);
+	/* Unlock before MDS Send */
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	locked = FALSE;
+	cl_node = NULL;
 
-    if (cb->is_immnd_up == FALSE)
-    {
-        TRACE_3("IMMND is DOWN - resurrect attempt failed. ");
-        goto exposed;
-    }
+	if (cb->is_immnd_up == FALSE) {
+		TRACE_3("IMMND is DOWN - resurrect attempt failed. ");
+		goto exposed;
+	}
 
-    err = SA_AIS_ERR_TRY_AGAIN;
-    while ((err == SA_AIS_ERR_TRY_AGAIN) && 
-        (msecs_waited < max_waiting_time_ms))
-    {
-        /* send the request to the IMMND */
-        if (imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), 
-               &resurrect_evt,&out_evt, IMMSV_WAIT_TIME) !=  NCSCC_RC_SUCCESS)
-        {
-            TRACE_3("Failure in MDS send");
-            goto exposed;
-        }
+	err = SA_AIS_ERR_TRY_AGAIN;
+	while ((err == SA_AIS_ERR_TRY_AGAIN) && 
+		(msecs_waited < max_waiting_time_ms))
+	{
+		/* send the request to the IMMND */
+		if (imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), 
+			    &resurrect_evt,&out_evt, IMMSV_WAIT_TIME) !=  NCSCC_RC_SUCCESS) {
+			TRACE_3("Failure in MDS send");
+			goto exposed;
+		}
 
-        if (!out_evt) 
-        {
-            TRACE_3("Empty reply");
-            goto exposed;
-        }
+		if (!out_evt) {
+			TRACE_3("Empty reply");
+			goto exposed;
+		}
 
-        err = out_evt->info.imma.info.errRsp.error;
-        if (err == SA_AIS_ERR_TRY_AGAIN)
-        {
-            usleep(sleep_delay_ms * 1000);
-            msecs_waited += sleep_delay_ms;
-        }
+		err = out_evt->info.imma.info.errRsp.error;
+		if (err == SA_AIS_ERR_TRY_AGAIN) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+		}
 		free(out_evt);
 		out_evt = NULL;
-    }
+	}
 
-    if (err != SA_AIS_OK)
-    {
-        TRACE_3("Recieved negative reply from IMMND %u", err);
-        goto exposed;
-    }
+	if (err != SA_AIS_OK) {
+		TRACE_3("Recieved negative reply from IMMND %u", err);
+		goto exposed;
+	}
 
-    TRACE("OK reply from IMMND on resurrect of handle %llx", immHandle);
+	TRACE("OK reply from IMMND on resurrect of handle %llx", immHandle);
 
-    /* OK reply */
+	/* Take the lock again. */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_3("Lock failure");
+		goto lock_fail;
+	}
+	locked = TRUE;
 
-    /* Take the lock again. */
-    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-    {
-        TRACE_3("Lock failure");
-        goto lock_fail;
-    }
-    locked = TRUE;
+	/* Look up the client node again. */
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (cl_node == NULL) {
+		TRACE_3("Client node missing after reply");
+		goto failure;
+	}
 
-    /* Look up the client node again. */
-    imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-    if (cl_node == NULL)
-    {
-        TRACE_3("Client node missing after reply");
-        goto failure;
-    }
+	if (cl_node->exposed) {
+		TRACE_3("Client node got exposed DURING resurrect attempt");
+		/* Could happen in a separate thread trying to use the same handle */
+		goto failure;
+	}
 
-    if (cl_node->exposed)
-    {
-        TRACE_3("Client node got exposed DURING resurrect attempt");
-        /* Could happen in a separate thread trying to use the same handle */
-        goto failure;
-    }
+	/* Clear away stale marking */
+	cl_node->stale = FALSE;
 
-    /* Clear away stale marking */
-    cl_node->stale = FALSE;
-
-    /*cl_node->selObjUsable = TRUE;   Done in OM/OI dispatch if relevant. */
+	/*cl_node->selObjUsable = TRUE;   Done in OM/OI dispatch if relevant. */
 
  skip_resurrect:
-    if (locked) {
-        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    }
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
 
-    TRACE_LEAVE();
-    return TRUE;
+	TRACE_LEAVE();
+	return TRUE;
 
- exposed: 
-    /* Try to mark client as exposed */
-    if (locked || 
-        (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)) {
-        locked = TRUE;
-        imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-        if (cl_node != NULL && cl_node->stale) 
-        {
-            cl_node->exposed = TRUE; 
-        }
-    }
+ exposed:
+	/* Try to mark client as exposed */
+	if (locked || 
+		(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)) {
+		locked = TRUE;
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+		if (cl_node != NULL && cl_node->stale) {
+			cl_node->exposed = TRUE; 
+		}
+	}
 
  failure:
-    if (locked) {
-        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    }
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
 
  lock_fail:
-    TRACE_LEAVE();
-    return FALSE;
+	TRACE_LEAVE();
+	return FALSE;
 }
 
 /****************************************************************************
@@ -1802,740 +1791,734 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 	/* invoke the corresponding callback */
 #ifdef IMMA_OM
 	switch (callback->type) {
-	case IMMA_CALLBACK_OM_ADMIN_OP_RSP:	/*Async reply via OM. */
-		if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback) {
-			TRACE("Upcall for callback for async admop inv:%llx rslt:%u err:%u",
-			      callback->invocation, callback->retval, callback->sa_err);
+		case IMMA_CALLBACK_OM_ADMIN_OP_RSP:	/*Async reply via OM. */
+			if (cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback) {
+				TRACE("Upcall for callback for async admop inv:%llx rslt:%u err:%u",
+					callback->invocation, callback->retval, callback->sa_err);
 
-			cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback(callback->invocation,
-									       callback->retval, callback->sa_err);
-		} else {
-			TRACE_3("No callback to deliver AdminOperationInvokeAsync - invoc:%llx ret:%u err:%u",
-				callback->invocation, callback->retval, callback->sa_err);
-		}
+				cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback(callback->invocation,
+					callback->retval, callback->sa_err);
+			} else {
+				TRACE_3("No callback to deliver AdminOperationInvokeAsync - invoc:%llx ret:%u err:%u",
+					callback->invocation, callback->retval, callback->sa_err);
+			}
 
-		break;
+			break;
 
-	case IMMA_CALLBACK_STALE_HANDLE:
-        TRACE("Stale OM handle upcall completed");
-        /* Do nothing. */
-		break;
+		case IMMA_CALLBACK_STALE_HANDLE:
+			TRACE("Stale OM handle upcall completed");
+			/* Do nothing. */
+			break;
 
-	default:
-		TRACE_3("Unrecognized OM callback type:%u", callback->type);
-		break;
+		default:
+			TRACE_3("Unrecognized OM callback type:%u", callback->type);
+			break;
 	}
 #endif
 
 #ifdef IMMA_OI
 	SaBoolT isPbeOp = SA_FALSE;
 	switch (callback->type) {
-	case IMMA_CALLBACK_PBE_ADMIN_OP:
-		isPbeOp = SA_TRUE;
-		assert(cl_node->isPbe);
-		TRACE("PBE Admin OP callback");
-	case IMMA_CALLBACK_OM_ADMIN_OP:
-		if (cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
-			cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
-									 callback->invocation,
-									 &(callback->name),
-									 callback->operationId,
-									 (const SaImmAdminOperationParamsT_2 **)
-									 callback->params);
-
-		} else {
-			/*No callback registered for admin-op!! */
-			SaAisErrorT localErr = saImmOiAdminOperationResult(callback->lcl_imm_hdl,
-									   callback->invocation,
-									   SA_AIS_ERR_FAILED_OPERATION);
-			if (localErr == SA_AIS_OK) {
-				TRACE_3("Object %s has implementer but "
-				      "saImmOiAdminOperationCallback is set to NULL", callback->name.value);
+		case IMMA_CALLBACK_PBE_ADMIN_OP:
+			isPbeOp = SA_TRUE;
+			assert(cl_node->isPbe);
+			TRACE("PBE Admin OP callback");
+		case IMMA_CALLBACK_OM_ADMIN_OP:
+			if (cl_node->o.iCallbk.saImmOiAdminOperationCallback) {
+				cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
+					callback->invocation,
+					&(callback->name),
+					callback->operationId,
+					(const SaImmAdminOperationParamsT_2 **)
+					callback->params);
 			} else {
-				TRACE_3("Object %s has implementer but "
-				      "saImmOiAdminOperationCallback is set to NULL "
-				      "and could not send error result, error: %u", callback->name.value, localErr);
-			}
-		}
-		break;
-
-	case IMMA_CALLBACK_PBE_PRTO_DELETES_COMPLETED:
-		isPbeOp = SA_TRUE;
-		assert(cl_node->isPbe);
-	case IMMA_CALLBACK_OI_CCB_COMPLETED:
-		TRACE("%s-completed op callback", isPbeOp?"Pbe-Prto-Deletes":"ccb");
-		do {
-			SaAisErrorT localEr = SA_AIS_OK;
-			IMMSV_EVT ccbCompletedRpl;
-			NCS_BOOL locked = FALSE;
-			if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
-			{
-				SaImmOiCcbIdT ccbid = 0LL;
-
-				if(isPbeOp) {
-					assert(callback->ccbID == 0);
-					/* Pseudo ccb towards PBE for PRTO deletes */
-					ccbid = callback->inv + 0x100000000LL;
-
-					/* PRTO delete reply only on completed*/
-					//callback->inv = 0; 
-					TRACE("Pseudo ccb %llx for PRTO deletes completed upcall on %s",
-						ccbid, callback->name.value);
-					if(!imma_oi_ccb_record_ok_for_critical(cl_node, ccbid, callback->implId)) {
-						TRACE("ERROR: RtObjectDelete record for pseudo-ccb %llx does not have"
-							"correct op-count", ccbid); /* Already logged in ok_for_critical */
-						imma_oi_ccb_record_terminate(cl_node, ccbid);
-						localEr = SA_AIS_ERR_FAILED_OPERATION;
-						goto skip_completed_upcall;
-					}
-
-					imma_oi_ccb_record_terminate(cl_node, ccbid);
+				/*No callback registered for admin-op!! */
+				SaAisErrorT localErr = saImmOiAdminOperationResult(callback->lcl_imm_hdl,
+					callback->invocation,
+					SA_AIS_ERR_FAILED_OPERATION);
+				if (localErr == SA_AIS_OK) {
+					TRACE_3("Object %s has implementer but "
+						"saImmOiAdminOperationCallback is set to NULL", callback->name.value);
 				} else {
-					ccbid = callback->ccbID;
-					/*Verify op-count before PBE commit of ccb. 
-					  This to eliminate the risk of the CCB committing in PBE
-					  yet failing in imma_oi_ccb_record_set_critical below after the
-					  PBE transaction. */
-					if(!imma_oi_ccb_record_ok_for_critical(cl_node, ccbid, callback->inv)) {
-						LOG_ER("ERROR: CCB record for %u does not have correct op-count",
-							callback->ccbID);
-						localEr = SA_AIS_ERR_FAILED_OPERATION;
-						goto skip_completed_upcall;
-					}					
-				}
-
-				localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
-				if (!(localEr == SA_AIS_OK ||
-				      localEr == SA_AIS_ERR_NO_MEMORY ||
-				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_3("Illegal return value from "
-						"saImmOiCcbCompletedCallback %u. "
-						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
-						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
-						SA_AIS_ERR_BAD_OPERATION);
-					localEr = SA_AIS_ERR_FAILED_OPERATION;
-				}
-
-			} else {
-				/* No callback function registered for completed upcall.
-				   The standard is not clear on how this case should be handled.
-				   We take the strict approach of demanding that, if there is
-				   a registered implementer, then that implementer must 
-				   implement the completed callback, for the callback to succeed
-				 */
-				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbCompletedCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. Ccb will fail");
-				localEr = SA_AIS_ERR_FAILED_OPERATION;
-			}
-		skip_completed_upcall:
-
-			memset(&ccbCompletedRpl, 0, sizeof(IMMSV_EVT));
-			ccbCompletedRpl.type = IMMSV_EVT_TYPE_IMMND;
-			if(isPbeOp) {
-				ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP;
-			} else {
-				ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP;
-				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-			}
-			ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-			ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-			ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.implId = callback->implId;
-			ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			locked = TRUE;
-			/*async  fevs */
-
-			imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
-			assert(cl_node);
-			if (localEr == SA_AIS_OK)  {
-				/* replying OK => entering critical phase for this OI and this CCB.
-				   There can be many simultaneous OM clients starting CCBs that impact the same OI. 
-				   Some OIs may not accept this and may reject overlapping CCBs, but we can not
-				   assume this in the IMMSv implementation. 
-				*/
-				if (isPbeOp || imma_oi_ccb_record_set_critical(cl_node, callback->ccbID, callback->inv)) {
-					TRACE_2("Sending normal OK response on completed for ccb %u. ", callback->ccbID);
-					if(!isPbeOp) {TRACE_2("The oi_ccb_record now marked as critical.");}
-				} else {
-					LOG_ER("ERROR: CCB record for %u non existent - exiting", callback->ccbID);
-					abort();
-				}
-			} else {
-				TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);
-			}
-
-			if(!(cl_node->isApplier)) {
-				localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-				if (localEr != NCSCC_RC_SUCCESS) {
-					/*Cant do anything but log error and drop this reply. */
-					TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
+					TRACE_3("Object %s has implementer but "
+						"saImmOiAdminOperationCallback is set to NULL "
+						"and could not send error result, error: %u", callback->name.value, localErr);
 				}
 			}
+			break;
 
-			if (locked) {
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = FALSE;
-			}
-		} while (0);
+		case IMMA_CALLBACK_PBE_PRTO_DELETES_COMPLETED:
+			isPbeOp = SA_TRUE;
+			assert(cl_node->isPbe);
+		case IMMA_CALLBACK_OI_CCB_COMPLETED:
+			TRACE("%s-completed op callback", isPbeOp?"Pbe-Prto-Deletes":"ccb");
+			do {
+				SaAisErrorT localEr = SA_AIS_OK;
+				IMMSV_EVT ccbCompletedRpl;
+				NCS_BOOL locked = FALSE;
+				if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
+				{
+					SaImmOiCcbIdT ccbid = 0LL;
 
-		break;
+					if(isPbeOp) {
+						assert(callback->ccbID == 0);
+						/* Pseudo ccb towards PBE for PRTO deletes */
+						ccbid = callback->inv + 0x100000000LL;
 
-	case IMMA_CALLBACK_OI_CCB_APPLY:
-		TRACE("ccb-apply op callback");
-		do {
-			if (cl_node->o.iCallbk.saImmOiCcbApplyCallback)
-			{
-				/* Anoying type diff for ccbid between OM and OI */
-				SaImmOiCcbIdT ccbid = callback->ccbID;
-
-				if (imma_oi_ccb_record_terminate(cl_node, ccbid)) {
-					TRACE_2("CCB-APPLY-UC for %llu received from IMMND - oi_ccb_record terminated",
-						ccbid);
-				} else {
-					TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %llu",
-						ccbid);
-				}
-				
-				cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
-			} else {
-				/* No callback function registered for apply upcall.
-				   There is nothing we can do about this since the CCB is
-				   commited already. It also makes sense that some applications
-				   may want to ignore the apply upcall.
-				 */
-				TRACE_3("saImmOiCcbApplyCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. Ccb will commit in any case");
-			}
-		} while (0);
-
-		break;
-
-	case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
-		isPbeOp = SA_TRUE;
-		assert(cl_node->isPbe);
-	case IMMA_CALLBACK_OI_CCB_CREATE:
-		TRACE("%sobject-create callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
-		do {
-			SaAisErrorT localEr = SA_AIS_OK;
-			IMMSV_EVT ccbObjCrRpl;
-			NCS_BOOL locked = FALSE;
-			SaImmAttrValuesT_2 **attr = NULL;
-			size_t attrDataSize = 0;
-			int i = 0;
-			if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback)
-			{
-				/* Anoying type diff for ccbid between OM and OI */
-				SaImmOiCcbIdT ccbid = callback->ccbID;
-
-				SaNameT parentName = callback->name;
-				const SaImmClassNameT className = callback->className;	/*0 */
-				callback->className = NULL;
-				int noOfAttributes = 0;
-
-				/* NOTE: The code below is practically a copy of the code
-				   in immOm searchNext, for serving the attrValues structure.
-				   This code should be factored out into some common function.
-				 */
-				IMMSV_ATTR_VALUES_LIST *p = callback->attrValues;
-				while (p) {
-					++noOfAttributes;
-					p = p->next;
-				}
-
-				attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
-				attr = calloc(1, attrDataSize);	/*alloc-1 */
-				p = callback->attrValues;
-				for (; i < noOfAttributes; i++, p = p->next) {
-					IMMSV_ATTR_VALUES *q = &(p->n);
-					attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
-					attr[i]->attrName = malloc(q->attrName.size + 1);	/*alloc-3 */
-					strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
-					attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
-					attr[i]->attrValuesNumber = q->attrValuesNumber;
-					attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
-					if (q->attrValuesNumber) {
-						attr[i]->attrValues = calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
-						/*alloc-5 */
-						attr[i]->attrValues[0] =
-						    imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
-
-						if (q->attrValuesNumber > 1) {
-							int ix;
-							IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
-							for (ix = 1; ix < q->attrValuesNumber; ++ix) {
-								assert(r);
-								attr[i]->attrValues[ix] = imma_copyAttrValue3(q->attrValueType, &(r->n));	/*alloc-5 */
-								r = r->next;
-							}	//for
-						}	//if
-					}	//if
-				}	//for
-				attr[noOfAttributes] = NULL;	/*redundant */
-
-				/*Need a separate const pointer just to avoid an INCORRECT warning
-				   by the stupid compiler. This compiler warns when assigning 
-				   non-const to a const !!!! and it is not even possible to do the 
-				   cast in the function call. Note: const is MORE restrictive than 
-				   non-const so assigning to a const should ALWAYS be allowed. 
-				 */
-
-				TRACE("ccb-object-create make the callback");
-				const SaImmAttrValuesT_2 **constPtrForStupidCompiler =
-					(const SaImmAttrValuesT_2 **)attr;
-
-				localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
-											      ccbid,
-											      className,
-											      &parentName,
-											      constPtrForStupidCompiler);
-				TRACE("ccb-object-create callback returned RC:%u", localEr);
-				if (!(localEr == SA_AIS_OK ||
-				      localEr == SA_AIS_ERR_NO_MEMORY ||
-				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
-						"saImmOiCcbObjectCreateCallback %u. "
-						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
-						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
-						SA_AIS_ERR_BAD_OPERATION);
-					localEr = SA_AIS_ERR_FAILED_OPERATION;
-					/*Change to BAD_OP if only aborting create and not ccb. */
-				}
-
-				free(className);	/*free-0 */
-				for (i = 0; attr[i]; ++i) {
-					free(attr[i]->attrName);	/*free-3 */
-					attr[i]->attrName = 0;
-					if (attr[i]->attrValuesNumber) {
-						int j;
-						for (j = 0; j < attr[i]->attrValuesNumber; ++j) {
-							imma_freeAttrValue3(attr[i]->attrValues[j], attr[i]->attrValueType);	/*free-5 */
-							attr[i]->attrValues[j] = 0;
+						/* PRTO delete reply only on completed*/
+						//callback->inv = 0; 
+						TRACE("Pseudo ccb %llx for PRTO deletes completed upcall on %s",
+							ccbid, callback->name.value);
+						if(!imma_oi_ccb_record_ok_for_critical(cl_node, ccbid, callback->implId)) {
+							TRACE("ERROR: RtObjectDelete record for pseudo-ccb %llx does not have"
+								"correct op-count", ccbid); /* Already logged in ok_for_critical */
+							imma_oi_ccb_record_terminate(cl_node, ccbid);
+							localEr = SA_AIS_ERR_FAILED_OPERATION;
+							goto skip_completed_upcall;
 						}
-						free(attr[i]->attrValues);	/*4 */
-						/* SaImmAttrValueT[] array-of-void* */
-						attr[i]->attrValues = 0;
+
+						imma_oi_ccb_record_terminate(cl_node, ccbid);
+					} else {
+						ccbid = callback->ccbID;
+						/*Verify op-count before PBE commit of ccb. 
+						  This to eliminate the risk of the CCB committing in PBE
+						  yet failing in imma_oi_ccb_record_set_critical below after the
+						  PBE transaction. */
+						if(!imma_oi_ccb_record_ok_for_critical(cl_node, ccbid, callback->inv)) {
+							LOG_ER("ERROR: CCB record for %u does not have correct op-count",
+								callback->ccbID);
+							localEr = SA_AIS_ERR_FAILED_OPERATION;
+							goto skip_completed_upcall;
+						}
 					}
-					free(attr[i]);	/*2 */
-					/* SaImmAttrValuesT struct */
-					attr[i] = 0;
-				}
-				free(attr);	/*1 */
-				/* SaImmAttrValuesT*[]  array-off-pointers */
 
-			} else {
-				/* No callback function registered for obj-create upcall.
-				   The standard is not clear on how this case should be 
-				   handled. We take the strict approach of demanding that, 
-				   if there is a registered implementer, then that 
-				   implementer must implement the create callback, for the
-				   callback to succeed.
-				 */
-				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectCreateCallback is not implemented, "
-					"yet implementer is registered and CCBs are used. Ccb will fail");
+					localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
+					if (!(localEr == SA_AIS_OK ||
+						    localEr == SA_AIS_ERR_NO_MEMORY ||
+						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
+						TRACE_3("Illegal return value from "
+							"saImmOiCcbCompletedCallback %u. "
+							"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
+							SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
+							SA_AIS_ERR_BAD_OPERATION);
+						localEr = SA_AIS_ERR_FAILED_OPERATION;
+					}
 
-				localEr = SA_AIS_ERR_FAILED_OPERATION;
-			}
-			if(callback->inv) { 
-				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = TRUE;
-				memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
-				ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
-				if(isPbeOp) {
-					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP;
 				} else {
-					ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
-					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-				}
-				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-
-				/*async fevs */
-				localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-			} else {
-				/* callback->inv == 0 means PBE CCB obj create upcall, NO reply.
-				   But note that for PBE PRTO, callback->inv != 0 and we reply
-				   immediately (no completed upcall. 
-				   Added support for applier OI. No reply to server there either.
-				*/
-				assert(cl_node->isPbe || cl_node->isApplier);
-			}
-
-			if (locked) {
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = FALSE;
-			}
-
-			if (localEr != NCSCC_RC_SUCCESS) {
-				/*Cant do anything but log error and drop this reply. */
-				TRACE_3("CcbObjectCreatedCallback: send reply to IMMND failed");
-			}
-		} while (0);
-
-		break;
-
-	case IMMA_CALLBACK_PBE_PRT_OBJ_DELETE:
-		isPbeOp = SA_TRUE;
-		assert(cl_node->isPbe);
-	case IMMA_CALLBACK_OI_CCB_DELETE:
-		TRACE("%sobject-delete op callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
-		do {
-			SaAisErrorT localEr = SA_AIS_OK;
-			IMMSV_EVT ccbObjDelRpl;
-			NCS_BOOL locked = FALSE;
-			if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback)
-			{
-				SaImmOiCcbIdT ccbid = 0LL;
-				if(isPbeOp) {
-					assert(callback->ccbID == 0);
-					/* Pseudo ccb towards PBE for PRTO deletes */
-					ccbid = callback->inv + 0x100000000LL;
-
-					/* PRTO delete reply only on completed*/
-					callback->inv = 0; 
-					TRACE("Pseudo ccb %llx for PRTO delete upcall on %s",
-						ccbid, callback->name.value);
-				} else {
-					ccbid = callback->ccbID;
-				}
-
-				localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
-											      ccbid, &(callback->name));
-
-				TRACE("ccb-object-delete callback returned RC:%u", localEr);
-				if (!(localEr == SA_AIS_OK ||
-				      localEr == SA_AIS_ERR_NO_MEMORY ||
-				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
-						"saImmOiCcbObjectDeleteCallback %u. "
-						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
-						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
-						SA_AIS_ERR_BAD_OPERATION);
+					/* No callback function registered for completed upcall.
+					   The standard is not clear on how this case should be handled.
+					   We take the strict approach of demanding that, if there is
+					   a registered implementer, then that implementer must 
+					   implement the completed callback, for the callback to succeed
+					*/
+					TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbCompletedCallback is not implemented, yet "
+						"implementer is registered and CCBs are used. Ccb will fail");
 					localEr = SA_AIS_ERR_FAILED_OPERATION;
-					/*Change to BAD_OP if only aborting delete and not ccb. */
 				}
-			} else {
-				/* No callback function registered for obj delete upcall.
-				   The standard is not clear on how this case should be handled.
-				   We take the strict approach of demanding that, if there is
-				   a registered implementer, then that implementer must 
-				   implement the delete callback, for the callback to succeed
-				 */
-				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectDeleteCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. Ccb will fail");
-				localEr = SA_AIS_ERR_FAILED_OPERATION;
-			}
+			skip_completed_upcall:
 
-			if(callback->inv) { 
-				memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
-				ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
-				ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP;
-				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
+				memset(&ccbCompletedRpl, 0, sizeof(IMMSV_EVT));
+				ccbCompletedRpl.type = IMMSV_EVT_TYPE_IMMND;
+				if(isPbeOp) {
+					ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRTO_DELETES_COMPLETED_RSP;
+				} else {
+					ccbCompletedRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_COMPLETED_RSP;
+					ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+				}
+				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.implId = callback->implId;
+				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
 				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = TRUE;
 				/*async  fevs */
-				localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-			} else {
-				/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
-				assert(cl_node->isPbe || cl_node->isApplier);
-			}
 
-			if (locked) {
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = FALSE;
-			}
-			if (localEr != NCSCC_RC_SUCCESS) {
-				/*Cant do anything but log error and drop this reply. */
-				TRACE_3("CcbObjectDeleteCallback: send reply to IMMND failed");
-			}
-		} while (0);
-
-		break;
-
-	case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
-		isPbeOp = SA_TRUE; /*Actually isPrtAttr would be better name here. */
-		assert(cl_node->isPbe);
-	case IMMA_CALLBACK_OI_CCB_MODIFY:
-		TRACE("%s op callback", isPbeOp?"Pbe-runtime update":"ccb");
-		do {
-			SaAisErrorT localEr = SA_AIS_OK;
-			IMMSV_EVT ccbObjModRpl;
-			NCS_BOOL locked = FALSE;
-			SaImmAttrModificationT_2 **attr = NULL;
-			int i = 0;
-			if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback)
-			{
-				/* Anoying type diff for ccbid between OM and OI */
-				SaImmOiCcbIdT ccbid = callback->ccbID;
-
-				SaNameT objectName = callback->name;
-				int noOfAttrMods = 0;
-
-				IMMSV_ATTR_MODS_LIST *p = callback->attrMods;
-				while (p) {
-					++noOfAttrMods;
-					p = p->next;
-				}
-
-				/*alloc-1 */
-				attr = calloc(noOfAttrMods + 1, sizeof(SaImmAttrModificationT_2 *));
-				p = callback->attrMods;
-				for (; i < noOfAttrMods; i++, p = p->next) {
-
-					attr[i] = calloc(1, sizeof(SaImmAttrModificationT_2));	/*alloc-2 */
-					attr[i]->modType = p->attrModType;
-
-					attr[i]->modAttr.attrName = p->attrValue.attrName.buf;	/* steal/alloc-3 */
-					p->attrValue.attrName.buf = NULL;
-					p->attrValue.attrName.size = 0;
-					attr[i]->modAttr.attrValuesNumber = p->attrValue.attrValuesNumber;
-					attr[i]->modAttr.attrValueType = (SaImmValueTypeT)
-					    p->attrValue.attrValueType;
-					if (p->attrValue.attrValuesNumber) {
-						attr[i]->modAttr.attrValues = calloc(p->attrValue.attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
-						/*alloc-5 */
-						attr[i]->modAttr.attrValues[0] =
-						    imma_copyAttrValue3(p->attrValue.attrValueType,
-									&(p->attrValue.attrValue));
-
-						if (p->attrValue.attrValuesNumber > 1) {
-							int ix;
-							IMMSV_EDU_ATTR_VAL_LIST *r = p->attrValue.attrMoreValues;
-							for (ix = 1; ix < p->attrValue.attrValuesNumber; ++ix) {
-								assert(r);
-								attr[i]->modAttr.attrValues[ix] = imma_copyAttrValue3(p->attrValue.attrValueType, &(r->n));	/*alloc-5 */
-
-								r = r->next;
-							}	//for all extra values
-						}	//if multivalued
-					}	//if there was any value
-				}	//for all attrMods
-				/*attr[noOfAttrMods] = NULL; redundant */
-
-				/*Need a separate const pointer just to avoid an INCORRECT warning
-				   by the stupid compiler. This compiler warns when assigning 
-				   non-const to a const !!!! and it is not even possible to do the 
-				   cast in the function call. Note: const is MORE restrictive than 
-				   non-const so assigning to a const should ALWAYS be allowed. 
-				 */
-				TRACE("ccb-object-modify: make the callback");
-				const SaImmAttrModificationT_2 **constPtrForStupidCompiler =
-					(const SaImmAttrModificationT_2 **)attr;
-
-				localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl, ccbid, &objectName,
-					constPtrForStupidCompiler);
-
-				TRACE("ccb-object-modify callback returned RC:%u", localEr);
-				if (!(localEr == SA_AIS_OK ||
-				      localEr == SA_AIS_ERR_NO_MEMORY ||
-				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
-						"saImmOiCcbObjectModifyCallback %u. "
-						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
-						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
-						SA_AIS_ERR_BAD_OPERATION);
-					localEr = SA_AIS_ERR_FAILED_OPERATION;
-				}
-
-				for (i = 0; attr[i]; ++i) {
-					free(attr[i]->modAttr.attrName);	/*free-3 */
-					attr[i]->modAttr.attrName = 0;
-					if (attr[i]->modAttr.attrValuesNumber) {
-						int j;
-						for (j = 0; j < attr[i]->modAttr.attrValuesNumber; ++j) {
-							imma_freeAttrValue3(attr[i]->modAttr.attrValues[j], attr[i]->modAttr.attrValueType);	/*free-5 */
-							attr[i]->modAttr.attrValues[j] = 0;
-						}
-						free(attr[i]->modAttr.attrValues);	/*4 */
-						/* SaImmAttrValueT[] array-of-void* */
-						attr[i]->modAttr.attrValues = 0;
+				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
+				assert(cl_node);
+				if (localEr == SA_AIS_OK)  {
+					/* replying OK => entering critical phase for this OI and this CCB.
+					   There can be many simultaneous OM clients starting CCBs that impact the same OI. 
+					   Some OIs may not accept this and may reject overlapping CCBs, but we can not
+					   assume this in the IMMSv implementation. 
+					*/
+					if (isPbeOp || imma_oi_ccb_record_set_critical(cl_node, callback->ccbID, callback->inv)) {
+						TRACE_2("Sending normal OK response on completed for ccb %u. ", callback->ccbID);
+						if(!isPbeOp) {TRACE_2("The oi_ccb_record now marked as critical.");}
+					} else {
+						LOG_ER("ERROR: CCB record for %u non existent - exiting", callback->ccbID);
+						abort();
 					}
-					free(attr[i]);	/*2 */
-					/* SaImmAttrValuesT struct */
-					attr[i] = 0;
+				} else {
+					TRACE_2("Sending FAILED_OP response on completed. for ccb %u.",	callback->ccbID);
 				}
-				free(attr);	/*1 */
-				/* SaImmAttrValuesT*[]  array-off-pointers */
-			} else {
-				/* No callback function registered for obj-modify upcall.
-				   The standard is not clear on how this case should be 
-				   handled. We take the strict approach of demanding that, 
-				   if there is a registered implementer, then that 
-				   implementer must implement the create callback, for the
-				   callback to succeed.
-				 */
-				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectModifyCallback is not implemented, "
-					"yet implementer is registered and CCBs are used. Ccb will fail");
 
-				localEr = SA_AIS_ERR_FAILED_OPERATION;
-				/*Change to BAD_OP if only aborting modify and not ccb. */
-			}
-			if(callback->inv) { 
-				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = TRUE;
-				memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
-				ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
-				if(isPbeOp) {
-					ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP;
-                               } else {
-				       ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
-				       ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-			       }
-				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+				if(!(cl_node->isApplier)) {
+					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+					if (localEr != NCSCC_RC_SUCCESS) {
+						/*Cant do anything but log error and drop this reply. */
+						TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
+					}
+				}
 
-				/*async fevs */
-				localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-			} else {
-				/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
-				assert(cl_node->isPbe || cl_node->isApplier);
-			}
+				if (locked) {
+					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = FALSE;
+				}
+			} while (0);
+			break;
 
-			if (locked) {
-				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = FALSE;
-			}
+		case IMMA_CALLBACK_OI_CCB_APPLY:
+			TRACE("ccb-apply op callback");
+			do {
+				if (cl_node->o.iCallbk.saImmOiCcbApplyCallback)
+				{
+					/* Anoying type diff for ccbid between OM and OI */
+					SaImmOiCcbIdT ccbid = callback->ccbID;
 
-			if (localEr != NCSCC_RC_SUCCESS) {
-				/*Cant do anything but log error and drop this reply. */
-				TRACE_3("CcbObjectModifyCallback: send reply to IMMND failed");
-			}
-		} while (0);
+					if (imma_oi_ccb_record_terminate(cl_node, ccbid)) {
+						TRACE_2("CCB-APPLY-UC for %llu received from IMMND - oi_ccb_record terminated",
+							ccbid);
+					} else {
+						TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %llu",
+							ccbid);
+					}
+				
+					cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
+				} else {
+					/* No callback function registered for apply upcall.
+					   There is nothing we can do about this since the CCB is
+					   commited already. It also makes sense that some applications
+					   may want to ignore the apply upcall.
+					*/
+					TRACE_3("saImmOiCcbApplyCallback is not implemented, yet "
+						"implementer is registered and CCBs are used. Ccb will commit in any case");
+				}
+			} while (0);
+			break;
 
-		break;
-
-	case IMMA_CALLBACK_OI_CCB_ABORT:
-		TRACE("ccb-abort op callback");
-		do {
-			if (cl_node->o.iCallbk.saImmOiCcbAbortCallback)
-			{
-				/* Anoying type diff for ccbid between OM and OI */
-				SaImmOiCcbIdT ccbid = callback->ccbID;
-				cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
-			} else {
-				/* No callback function registered for apply upcall.
-				   There is nothing we can do about this since the CCB is
-				   commited already. It also makes sense that some applications
-				   may want to ignore the abort upcall.
-				 */
-				TRACE_3("saImmOiCcbAbortCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. Ccb will abort anyway");
-			}
-		} while (0);
-
-		break;
-
-	case IMMA_CALLBACK_OI_RT_ATTR_UPDATE:
-		TRACE("rt-attr-update callback");
-		do {
-			SaAisErrorT localEr = SA_AIS_OK;
-			uns32 proc_rc = NCSCC_RC_SUCCESS;
-			IMMSV_EVT rtAttrUpdRpl;
-
-			if (cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback)
-			{
-				SaImmAttrNameT *attributeNames;
-				int noOfAttrNames = 0;
+		case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
+			isPbeOp = SA_TRUE;
+			assert(cl_node->isPbe);
+		case IMMA_CALLBACK_OI_CCB_CREATE:
+			TRACE("%sobject-create callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
+			do {
+				SaAisErrorT localEr = SA_AIS_OK;
+				IMMSV_EVT ccbObjCrRpl;
+				NCS_BOOL locked = FALSE;
+				SaImmAttrValuesT_2 **attr = NULL;
+				size_t attrDataSize = 0;
 				int i = 0;
+				if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback)
+				{
+					/* Anoying type diff for ccbid between OM and OI */
+					SaImmOiCcbIdT ccbid = callback->ccbID;
 
-				IMMSV_ATTR_NAME_LIST *p = callback->attrNames;
-				while (p) {
-					++noOfAttrNames;
-					p = p->next;
+					SaNameT parentName = callback->name;
+					const SaImmClassNameT className = callback->className;	/*0 */
+					callback->className = NULL;
+					int noOfAttributes = 0;
+
+					/* NOTE: The code below is practically a copy of the code
+					   in immOm searchNext, for serving the attrValues structure.
+					   This code should be factored out into some common function.
+					*/
+					IMMSV_ATTR_VALUES_LIST *p = callback->attrValues;
+					while (p) {
+						++noOfAttributes;
+						p = p->next;
+					}
+
+					attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
+					attr = calloc(1, attrDataSize);	/*alloc-1 */
+					p = callback->attrValues;
+					for (; i < noOfAttributes; i++, p = p->next) {
+						IMMSV_ATTR_VALUES *q = &(p->n);
+						attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
+						attr[i]->attrName = malloc(q->attrName.size + 1);	/*alloc-3 */
+						strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
+						attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
+						attr[i]->attrValuesNumber = q->attrValuesNumber;
+						attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
+						if (q->attrValuesNumber) {
+							attr[i]->attrValues =
+								calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
+							/*alloc-5 */
+							attr[i]->attrValues[0] =
+								imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
+
+							if (q->attrValuesNumber > 1) {
+								int ix;
+								IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
+								for (ix = 1; ix < q->attrValuesNumber; ++ix) {
+									assert(r);
+									attr[i]->attrValues[ix] = /*alloc-5 */
+										imma_copyAttrValue3(q->attrValueType, &(r->n));
+									r = r->next;
+								}//for
+							}//if
+						}//if
+					}//for
+					attr[noOfAttributes] = NULL;	/*redundant */
+
+					/*Need a separate const pointer just to avoid an INCORRECT warning
+					  by the stupid compiler. This compiler warns when assigning 
+					  non-const to a const !!!! and it is not even possible to do the 
+					  cast in the function call. Note: const is MORE restrictive than 
+					  non-const so assigning to a const should ALWAYS be allowed. 
+					*/
+
+					TRACE("ccb-object-create make the callback");
+					const SaImmAttrValuesT_2 **constPtrForStupidCompiler =
+						(const SaImmAttrValuesT_2 **)attr;
+
+					localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
+						ccbid,
+						className,
+						&parentName,
+						constPtrForStupidCompiler);
+
+					TRACE("ccb-object-create callback returned RC:%u", localEr);
+					if (!(localEr == SA_AIS_OK ||
+						    localEr == SA_AIS_ERR_NO_MEMORY ||
+						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
+						TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
+							"saImmOiCcbObjectCreateCallback %u. "
+							"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
+							SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
+							SA_AIS_ERR_BAD_OPERATION);
+						localEr = SA_AIS_ERR_FAILED_OPERATION;
+						/*Change to BAD_OP if only aborting create and not ccb. */
+					}
+
+					free(className);	/*free-0 */
+					for (i = 0; attr[i]; ++i) {
+						free(attr[i]->attrName);	/*free-3 */
+						attr[i]->attrName = 0;
+						if (attr[i]->attrValuesNumber) {
+							int j;
+							for (j = 0; j < attr[i]->attrValuesNumber; ++j) {
+								imma_freeAttrValue3(attr[i]->attrValues[j], attr[i]->attrValueType);/*free-5 */
+								attr[i]->attrValues[j] = 0;
+							}
+							free(attr[i]->attrValues);	/*4 */
+							/* SaImmAttrValueT[] array-of-void* */
+							attr[i]->attrValues = 0;
+						}
+						free(attr[i]);	/*2 */
+						/* SaImmAttrValuesT struct */
+						attr[i] = 0;
+					}
+					free(attr);	/*1 */
+					/* SaImmAttrValuesT*[]  array-off-pointers */
+				} else {
+					/* No callback function registered for obj-create upcall.
+					   The standard is not clear on how this case should be 
+					   handled. We take the strict approach of demanding that, 
+					   if there is a registered implementer, then that 
+					   implementer must implement the create callback, for the
+					   callback to succeed.
+					*/
+					TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectCreateCallback is not implemented, "
+						"yet implementer is registered and CCBs are used. Ccb will fail");
+
+					localEr = SA_AIS_ERR_FAILED_OPERATION;
 				}
-				assert(noOfAttrNames);	/*alloc-1 */
-				attributeNames = calloc(noOfAttrNames + 1, sizeof(SaImmAttrNameT));
-				p = callback->attrNames;
-				for (; i < noOfAttrNames; i++, p = p->next) {
-					attributeNames[i] = p->name.buf;
+				if(callback->inv) { 
+					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = TRUE;
+					memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
+					ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
+					if(isPbeOp) {
+						ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_OBJ_CREATE_RSP;
+					} else {
+						ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
+						ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+					}
+					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+
+					/*async fevs */
+					localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+				} else {
+					/* callback->inv == 0 means PBE CCB obj create upcall, NO reply.
+					   But note that for PBE PRTO, callback->inv != 0 and we reply
+					   immediately (no completed upcall. 
+					   Added support for applier OI. No reply to server there either.
+					*/
+					assert(cl_node->isPbe || cl_node->isApplier);
 				}
 
-				/*attributeNames[noOfAttrNames] = NULL; calloc=> redundant */
+				if (locked) {
+					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = FALSE;
+				}
 
-				TRACE("Invoking saImmOiRtAttrUpdateCallback");
-				localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
-					&callback->name,
-					attributeNames);
+				if (localEr != NCSCC_RC_SUCCESS) {
+					/*Cant do anything but log error and drop this reply. */
+					TRACE_3("CcbObjectCreatedCallback: send reply to IMMND failed");
+				}
+			} while (0);
+			break;
+			
+		case IMMA_CALLBACK_PBE_PRT_OBJ_DELETE:
+			isPbeOp = SA_TRUE;
+			assert(cl_node->isPbe);
+		case IMMA_CALLBACK_OI_CCB_DELETE:
+			TRACE("%sobject-delete op callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
+			do {
+				SaAisErrorT localEr = SA_AIS_OK;
+				IMMSV_EVT ccbObjDelRpl;
+				NCS_BOOL locked = FALSE;
+				if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback) {
+					SaImmOiCcbIdT ccbid = 0LL;
+					if(isPbeOp) {
+						assert(callback->ccbID == 0);
+						/* Pseudo ccb towards PBE for PRTO deletes */
+						ccbid = callback->inv + 0x100000000LL;
 
-				TRACE("saImmOiRtAttrUpdateCallback returned RC:%u", localEr);
-				if (!(localEr == SA_AIS_OK ||
-				      localEr == SA_AIS_ERR_NO_MEMORY ||
-				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_FAILED_OPERATION)) {
-					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
-						"saImmOiRtAttrUpdateCallback %u. "
-						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
-						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
-						SA_AIS_ERR_FAILED_OPERATION);
+						/* PRTO delete reply only on completed*/
+						callback->inv = 0; 
+						TRACE("Pseudo ccb %llx for PRTO delete upcall on %s",
+							ccbid, callback->name.value);
+					} else {
+						ccbid = callback->ccbID;
+					}
+
+					localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
+						ccbid, &(callback->name));
+
+					TRACE("ccb-object-delete callback returned RC:%u", localEr);
+					if (!(localEr == SA_AIS_OK ||
+						    localEr == SA_AIS_ERR_NO_MEMORY ||
+						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
+						TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
+							"saImmOiCcbObjectDeleteCallback %u. "
+							"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
+							SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
+							SA_AIS_ERR_BAD_OPERATION);
+						localEr = SA_AIS_ERR_FAILED_OPERATION;
+						/*Change to BAD_OP if only aborting delete and not ccb. */
+					}
+				} else {
+					/* No callback function registered for obj delete upcall.
+					   The standard is not clear on how this case should be handled.
+					   We take the strict approach of demanding that, if there is
+					   a registered implementer, then that implementer must 
+					   implement the delete callback, for the callback to succeed
+					*/
+					TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectDeleteCallback is not implemented, yet "
+						"implementer is registered and CCBs are used. Ccb will fail");
 					localEr = SA_AIS_ERR_FAILED_OPERATION;
 				}
 
-				free(attributeNames);	/*We do not leak the attr names here because they are still
-							   attached to, and deallocated by, the callback structure. */
-			} else {
-				/* No callback function registered for rt-attr-update upcall.
-				   The standard is not clear on how this case should be 
-				   handled. We take the strict approach of demanding that, 
-				   if there is a registered implementer, then that 
-				   implementer must implement the callback, for the
-				   callback to succeed.
-				 */
-				TRACE_2("ERR_FAILED_OPERATION: saImmOiRtAttrUpdateCallback is not implemented, "
-					"yet implementer is registered and pure runtime attrs are fetched.");
+				if(callback->inv) { 
+					memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
+					ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
+					ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP;
+					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
 
-				localEr = SA_AIS_ERR_FAILED_OPERATION;
-			}
-			memset(&rtAttrUpdRpl, 0, sizeof(IMMSV_EVT));
-			rtAttrUpdRpl.type = IMMSV_EVT_TYPE_IMMND;
-			rtAttrUpdRpl.info.immnd.type = IMMND_EVT_A2ND_RT_ATT_UPPD_RSP;
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.result = localEr;
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.client_hdl = callback->lcl_imm_hdl;
-
-			SaInt32T owner = m_IMMSV_UNPACK_HANDLE_HIGH(callback->invocation);
-			SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(callback->invocation);
-
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.searchId = inv;
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = owner;
-
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = callback->name.length + 1;	/*Adding one to get the terminating null sent */
-			/* Only borowing the name string from the SaName in the callback */
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.buf = (char *)callback->name.value;
-			/* Only borowing the attributeNames list from callback. */
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.attributeNames = callback->attrNames;
-			rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.requestNodeId = callback->requestNodeId;
-			/* No structures allocated, all pointers borowed => nothing to free. */
-
-			if (cb->is_immnd_up == FALSE) {
-				proc_rc = SA_AIS_ERR_NO_RESOURCES;
-				TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
-			} else {
-				/* send the reply to the IMMND asyncronously */
-				proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest,
-							    &rtAttrUpdRpl, NCSMDS_SVC_ID_IMMND);
-				if (proc_rc != NCSCC_RC_SUCCESS) {
-					/*Cant do anything but log error and drop this reply. */
-					TRACE_3("oiRtAttrUpdateCallback: send reply to IMMND failed");
+					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = TRUE;
+					/*async  fevs */
+					localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+				} else {
+					/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
+					assert(cl_node->isPbe || cl_node->isApplier);
 				}
-			}
 
-		} while (0);
+				if (locked) {
+					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = FALSE;
+				}
+				if (localEr != NCSCC_RC_SUCCESS) {
+					/*Cant do anything but log error and drop this reply. */
+					TRACE_3("CcbObjectDeleteCallback: send reply to IMMND failed");
+				}
+			} while (0);
 
-		break;
+			break;
 
-	case IMMA_CALLBACK_STALE_HANDLE:
-        TRACE("Stale OI handle upcall completed");
-		imma_proc_terminate_oi_ccbs(cb, cl_node);
-		break;
+		case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
+			isPbeOp = SA_TRUE; /*Actually isPrtAttr would be better name here. */
+			assert(cl_node->isPbe);
+		case IMMA_CALLBACK_OI_CCB_MODIFY:
+			TRACE("%s op callback", isPbeOp?"Pbe-runtime update":"ccb");
+			do {
+				SaAisErrorT localEr = SA_AIS_OK;
+				IMMSV_EVT ccbObjModRpl;
+				NCS_BOOL locked = FALSE;
+				SaImmAttrModificationT_2 **attr = NULL;
+				int i = 0;
+				if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback) {
+					/* Anoying type diff for ccbid between OM and OI */
+					SaImmOiCcbIdT ccbid = callback->ccbID;
 
-	default:
-		TRACE_3("Unrecognized OI callback type: %u", callback->type);
-		break;
+					SaNameT objectName = callback->name;
+					int noOfAttrMods = 0;
+
+					IMMSV_ATTR_MODS_LIST *p = callback->attrMods;
+					while (p) {
+						++noOfAttrMods;
+						p = p->next;
+					}
+
+					/*alloc-1 */
+					attr = calloc(noOfAttrMods + 1, sizeof(SaImmAttrModificationT_2 *));
+					p = callback->attrMods;
+					for (; i < noOfAttrMods; i++, p = p->next) {
+
+						attr[i] = calloc(1, sizeof(SaImmAttrModificationT_2));	/*alloc-2 */
+						attr[i]->modType = p->attrModType;
+
+						attr[i]->modAttr.attrName = p->attrValue.attrName.buf;	/* steal/alloc-3 */
+						p->attrValue.attrName.buf = NULL;
+						p->attrValue.attrName.size = 0;
+						attr[i]->modAttr.attrValuesNumber = p->attrValue.attrValuesNumber;
+						attr[i]->modAttr.attrValueType = (SaImmValueTypeT)
+							p->attrValue.attrValueType;
+						if (p->attrValue.attrValuesNumber) {
+							attr[i]->modAttr.attrValues =
+								calloc(p->attrValue.attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
+							/*alloc-5 */
+							attr[i]->modAttr.attrValues[0] =
+								imma_copyAttrValue3(p->attrValue.attrValueType, &(p->attrValue.attrValue));
+
+							if (p->attrValue.attrValuesNumber > 1) {
+								int ix;
+								IMMSV_EDU_ATTR_VAL_LIST *r = p->attrValue.attrMoreValues;
+								for (ix = 1; ix < p->attrValue.attrValuesNumber; ++ix) {
+									assert(r);
+									attr[i]->modAttr.attrValues[ix] =
+										imma_copyAttrValue3(p->attrValue.attrValueType, &(r->n));/*alloc-5 */
+
+									r = r->next;
+								}//for all extra values
+							}//if multivalued
+						}//if there was any value
+					}//for all attrMods
+					/*attr[noOfAttrMods] = NULL; redundant */
+
+					/*Need a separate const pointer just to avoid an INCORRECT warning
+					  by the stupid compiler. This compiler warns when assigning 
+					  non-const to a const !!!! and it is not even possible to do the 
+					  cast in the function call. Note: const is MORE restrictive than 
+					  non-const so assigning to a const should ALWAYS be allowed. 
+					*/
+					TRACE("ccb-object-modify: make the callback");
+					const SaImmAttrModificationT_2 **constPtrForStupidCompiler =
+						(const SaImmAttrModificationT_2 **)attr;
+
+					localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl, ccbid, &objectName,
+						constPtrForStupidCompiler);
+
+					TRACE("ccb-object-modify callback returned RC:%u", localEr);
+					if (!(localEr == SA_AIS_OK ||
+						    localEr == SA_AIS_ERR_NO_MEMORY ||
+						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
+						TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
+							"saImmOiCcbObjectModifyCallback %u. "
+							"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
+							SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
+							SA_AIS_ERR_BAD_OPERATION);
+						localEr = SA_AIS_ERR_FAILED_OPERATION;
+					}
+
+					for (i = 0; attr[i]; ++i) {
+						free(attr[i]->modAttr.attrName);	/*free-3 */
+						attr[i]->modAttr.attrName = 0;
+						if (attr[i]->modAttr.attrValuesNumber) {
+							int j;
+							for (j = 0; j < attr[i]->modAttr.attrValuesNumber; ++j) {
+								imma_freeAttrValue3(attr[i]->modAttr.attrValues[j],
+									attr[i]->modAttr.attrValueType);	/*free-5 */
+								attr[i]->modAttr.attrValues[j] = 0;
+							}
+							free(attr[i]->modAttr.attrValues);	/*4 */
+							/* SaImmAttrValueT[] array-of-void* */
+							attr[i]->modAttr.attrValues = 0;
+						}
+						free(attr[i]);	/*2 */
+						/* SaImmAttrValuesT struct */
+						attr[i] = 0;
+					}
+					free(attr);	/*1 */
+					/* SaImmAttrValuesT*[]  array-off-pointers */
+				} else {
+					/* No callback function registered for obj-modify upcall.
+					   The standard is not clear on how this case should be 
+					   handled. We take the strict approach of demanding that, 
+					   if there is a registered implementer, then that 
+					   implementer must implement the create callback, for the
+					   callback to succeed.
+					*/
+					TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectModifyCallback is not implemented, "
+						"yet implementer is registered and CCBs are used. Ccb will fail");
+
+					localEr = SA_AIS_ERR_FAILED_OPERATION;
+					/*Change to BAD_OP if only aborting modify and not ccb. */
+				}
+				if(callback->inv) { 
+					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = TRUE;
+					memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
+					ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
+					if(isPbeOp) {
+						ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_PBE_PRT_ATTR_UPDATE_RSP;
+					} else {
+						ccbObjModRpl.info.immnd.type=IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
+						ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+					}
+					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+					ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+
+					/*async fevs */
+					localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0,
+						cl_node->handle, &locked, FALSE);
+				} else {
+					/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
+					assert(cl_node->isPbe || cl_node->isApplier);
+				}
+
+				if (locked) {
+					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+					locked = FALSE;
+				}
+
+				if (localEr != NCSCC_RC_SUCCESS) {
+					/*Cant do anything but log error and drop this reply. */
+					TRACE_3("CcbObjectModifyCallback: send reply to IMMND failed");
+				}
+			} while (0);
+			break;
+
+		case IMMA_CALLBACK_OI_CCB_ABORT:
+			TRACE("ccb-abort op callback");
+			do {
+				if (cl_node->o.iCallbk.saImmOiCcbAbortCallback)	{
+					/* Anoying type diff for ccbid between OM and OI */
+					SaImmOiCcbIdT ccbid = callback->ccbID;
+					cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
+				} else {
+					/* No callback function registered for apply upcall.
+					   There is nothing we can do about this since the CCB is
+					   commited already. It also makes sense that some applications
+					   may want to ignore the abort upcall.
+					*/
+					TRACE_3("saImmOiCcbAbortCallback is not implemented, yet "
+						"implementer is registered and CCBs are used. Ccb will abort anyway");
+				}
+			} while (0);
+			break;
+
+		case IMMA_CALLBACK_OI_RT_ATTR_UPDATE:
+			TRACE("rt-attr-update callback");
+			do {
+				SaAisErrorT localEr = SA_AIS_OK;
+				uns32 proc_rc = NCSCC_RC_SUCCESS;
+				IMMSV_EVT rtAttrUpdRpl;
+
+				if (cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback) {
+					SaImmAttrNameT *attributeNames;
+					int noOfAttrNames = 0;
+					int i = 0;
+
+					IMMSV_ATTR_NAME_LIST *p = callback->attrNames;
+					while (p) {
+						++noOfAttrNames;
+						p = p->next;
+					}
+					assert(noOfAttrNames);	/*alloc-1 */
+					attributeNames = calloc(noOfAttrNames + 1, sizeof(SaImmAttrNameT));
+					p = callback->attrNames;
+					for (; i < noOfAttrNames; i++, p = p->next) {
+						attributeNames[i] = p->name.buf;
+					}
+
+					/*attributeNames[noOfAttrNames] = NULL; calloc=> redundant */
+
+					TRACE("Invoking saImmOiRtAttrUpdateCallback");
+					localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
+						&callback->name,
+						attributeNames);
+
+					TRACE("saImmOiRtAttrUpdateCallback returned RC:%u", localEr);
+					if (!(localEr == SA_AIS_OK ||
+						    localEr == SA_AIS_ERR_NO_MEMORY ||
+						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_FAILED_OPERATION)) {
+						TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
+							"saImmOiRtAttrUpdateCallback %u. "
+							"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
+							SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
+							SA_AIS_ERR_FAILED_OPERATION);
+						localEr = SA_AIS_ERR_FAILED_OPERATION;
+					}
+
+					free(attributeNames);	/*We do not leak the attr names here because they are still
+								  attached to, and deallocated by, the callback structure. */
+				} else {
+					/* No callback function registered for rt-attr-update upcall.
+					   The standard is not clear on how this case should be 
+					   handled. We take the strict approach of demanding that, 
+					   if there is a registered implementer, then that 
+					   implementer must implement the callback, for the
+					   callback to succeed.
+					*/
+					TRACE_2("ERR_FAILED_OPERATION: saImmOiRtAttrUpdateCallback is not implemented, "
+						"yet implementer is registered and pure runtime attrs are fetched.");
+
+					localEr = SA_AIS_ERR_FAILED_OPERATION;
+				}
+				memset(&rtAttrUpdRpl, 0, sizeof(IMMSV_EVT));
+				rtAttrUpdRpl.type = IMMSV_EVT_TYPE_IMMND;
+				rtAttrUpdRpl.info.immnd.type = IMMND_EVT_A2ND_RT_ATT_UPPD_RSP;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.result = localEr;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.client_hdl = callback->lcl_imm_hdl;
+
+				SaInt32T owner = m_IMMSV_UNPACK_HANDLE_HIGH(callback->invocation);
+				SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(callback->invocation);
+
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.searchId = inv;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = owner;
+
+				/*Adding one to get the terminating null sent */
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = callback->name.length + 1;
+				/* Only borowing the name string from the SaName in the callback */
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.buf = (char *)callback->name.value;
+				/* Only borowing the attributeNames list from callback. */
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.attributeNames = callback->attrNames;
+				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.requestNodeId = callback->requestNodeId;
+				/* No structures allocated, all pointers borowed => nothing to free. */
+
+				if (cb->is_immnd_up == FALSE) {
+					proc_rc = SA_AIS_ERR_NO_RESOURCES;
+					TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
+				} else {
+					/* send the reply to the IMMND asyncronously */
+					proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest,
+						&rtAttrUpdRpl, NCSMDS_SVC_ID_IMMND);
+					if (proc_rc != NCSCC_RC_SUCCESS) {
+						/*Cant do anything but log error and drop this reply. */
+						TRACE_3("oiRtAttrUpdateCallback: send reply to IMMND failed");
+					}
+				}
+			} while (0);
+			break;
+
+		case IMMA_CALLBACK_STALE_HANDLE:
+			TRACE("Stale OI handle upcall completed");
+			imma_proc_terminate_oi_ccbs(cb, cl_node);
+			break;
+
+		default:
+			TRACE_3("Unrecognized OI callback type: %u", callback->type);
+			break;
 	}
 #endif   /* ifdef IMMA_OI */
 
@@ -2595,24 +2578,22 @@ static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback)
  * NOTE: The CB must be UNLOCKED on entry of this function!!
  *******************************************************************/
 SaAisErrorT imma_proc_check_stale(IMMA_CB *cb, 
-                                   SaImmHandleT immHandle,
-                                   SaAisErrorT defaultEr)
+	SaImmHandleT immHandle,
+	SaAisErrorT defaultEr)
 {
-    SaAisErrorT err = defaultEr;
-    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)
-    {
-        IMMA_CLIENT_NODE  *cl_node=0;
-        imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-        if (cl_node && cl_node->stale)
-        {
-            /* We dont set exposed here because we are not exposed yet. */
-            err = SA_AIS_ERR_BAD_HANDLE;
-            TRACE_3("Client handle turned bad, IMMND restarted ?");
-        }
-        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    }
+	SaAisErrorT err = defaultEr;
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS) {
+		IMMA_CLIENT_NODE  *cl_node=0;
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+		if (cl_node && cl_node->stale) {
+			/* We dont set exposed here because we are not exposed yet. */
+			err = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_3("Client handle turned bad, IMMND restarted ?");
+		}
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
 
-    return err;
+	return err;
 }
 
 /*******************************************************************
@@ -2623,9 +2604,9 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
  *       parameter.
  *******************************************************************/
 SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
-			      IMMSV_EVT *i_evt,
-			      IMMSV_EVT **o_evt,
-			      uns32 timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable)
+	IMMSV_EVT *i_evt,
+	IMMSV_EVT **o_evt,
+	uns32 timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT fevs_evt;
@@ -2667,7 +2648,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 		fevs_evt.info.immnd.info.fevsReq.isObjSync = 0x0;
 
 		if((i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMOP) ||
-		    (i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC)) {
+			(i_evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC)) {
 			/* Overloaded use of sender_count IMMA->IMMND we use values 
 			   larger than 1 as a marker for admop to pre-register
 			   request continuation, before forwarding request over fevs
@@ -2683,7 +2664,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 			assert(saInv > 1);
 			fevs_evt.info.immnd.info.fevsReq.sender_count = (SaUint64T) saInv;
 		}
-	} 
+	}
 
 	fevs_evt.info.immnd.info.fevsReq.client_hdl = immHandle;
 
@@ -2721,16 +2702,16 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
-		break;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			break;
 
-	default:
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_1("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		break;
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_1("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			break;
 	}
 
  fail:
