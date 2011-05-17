@@ -187,49 +187,49 @@ uns32 imma_mds_callback(struct ncsmds_callback_info *info)
 		return rc;
 
 	switch (info->i_op) {
-	case MDS_CALLBACK_COPY:
-		rc = NCSCC_RC_FAILURE;
-		break;
-	case MDS_CALLBACK_ENC_FLAT:
-		if (1) {
-			rc = imma_mds_enc_flat(cb, &info->info.enc_flat);
-		} else {
-			rc = imma_mds_enc(cb, &info->info.enc_flat);
-		}
-		break;
+		case MDS_CALLBACK_COPY:
+			rc = NCSCC_RC_FAILURE;
+			break;
+		case MDS_CALLBACK_ENC_FLAT:
+			if (1) {
+				rc = imma_mds_enc_flat(cb, &info->info.enc_flat);
+			} else {
+				rc = imma_mds_enc(cb, &info->info.enc_flat);
+			}
+			break;
 
-	case MDS_CALLBACK_DEC_FLAT:
-		if (1) {
-			rc = imma_mds_dec_flat(cb, &info->info.dec_flat);
-		} else {
-			rc = imma_mds_dec(cb, &info->info.dec_flat);
-		}
-		break;
+		case MDS_CALLBACK_DEC_FLAT:
+			if (1) {
+				rc = imma_mds_dec_flat(cb, &info->info.dec_flat);
+			} else {
+				rc = imma_mds_dec(cb, &info->info.dec_flat);
+			}
+			break;
 
-	case MDS_CALLBACK_RECEIVE:
-		rc = imma_mds_rcv(cb, &info->info.receive);
-		break;
+		case MDS_CALLBACK_RECEIVE:
+			rc = imma_mds_rcv(cb, &info->info.receive);
+			break;
 
-	case MDS_CALLBACK_SVC_EVENT:
-		rc = imma_mds_svc_evt(cb, &info->info.svc_evt);
-		break;
+		case MDS_CALLBACK_SVC_EVENT:
+			rc = imma_mds_svc_evt(cb, &info->info.svc_evt);
+			break;
 
-	case MDS_CALLBACK_ENC:
-		/*ABT: This case should never occurr. IMMA should only communicate
-		   with IMMND, which is always on same processor, which means enc_flat
-		   should always be the case. BUT FEVS messsages have to be encoded
-		   for multiple hops => we have to encode non-flat. */
-		/*rc = imma_mds_enc_flat(cb, &info->info.enc_flat); */
-		rc = imma_mds_enc(cb, &info->info.enc);
-		break;
+		case MDS_CALLBACK_ENC:
+			/*ABT: This case should never occurr. IMMA should only communicate
+			  with IMMND, which is always on same processor, which means enc_flat
+			  should always be the case. BUT FEVS messsages have to be encoded
+			  for multiple hops => we have to encode non-flat. */
+			/*rc = imma_mds_enc_flat(cb, &info->info.enc_flat); */
+			rc = imma_mds_enc(cb, &info->info.enc);
+			break;
 
-	case MDS_CALLBACK_DEC:
-		rc = imma_mds_dec(cb, &info->info.dec);
-		break;
+		case MDS_CALLBACK_DEC:
+			rc = imma_mds_dec(cb, &info->info.dec);
+			break;
 
-	default:
-		TRACE_3("Invalid MDS callback");
-		break;
+		default:
+			TRACE_3("Invalid MDS callback");
+			break;
 	}
 
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -259,9 +259,9 @@ static uns32 imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
 		info->o_msg_fmt_ver =
-		    m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-					  IMMA_WRT_IMMND_SUBPART_VER_MIN,
-					  IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table);
+			m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
+				IMMA_WRT_IMMND_SUBPART_VER_MIN,
+				IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table);
 #if 0				/*ABT DOES NOT WORK */
 		if (!info->o_msg_fmt_ver) {
 			TRACE("INCOMPATIBLE  MSG FORMAT IN ENCODE FLAT VER %d "
@@ -304,16 +304,16 @@ static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 #if 0				/*NOTE ABT DOES NOT WORK */
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMND) {
 		if (!m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
-					       IMMA_WRT_IMMND_SUBPART_VER_MIN,
-					       IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table)) {
+			    IMMA_WRT_IMMND_SUBPART_VER_MIN,
+			    IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table)) {
 			TRACE_1("INVALID MSG FORMAT VERSION IN DECODE FLAT,VER %d "
 				"for IMMND->IMMA\n", info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
 	} else if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMD) {
 		if (!m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
-					       IMMA_WRT_IMMD_SUBPART_VER_MIN,
-					       IMMA_WRT_IMMD_SUBPART_VER_MAX, imma_immd_msg_fmt_table)) {
+			    IMMA_WRT_IMMD_SUBPART_VER_MIN,
+			    IMMA_WRT_IMMD_SUBPART_VER_MAX, imma_immd_msg_fmt_table)) {
 			TRACE_1("INVALID MSG FORMAT VERSION IN DECODE FLAT,VER %d "
 				"for IMMD->IMMA\n", info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
@@ -387,64 +387,64 @@ static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-    NCS_BOOL locked = FALSE;
+	NCS_BOOL locked = FALSE;
 	switch (svc_evt->i_change) {
-	case NCSMDS_DOWN:
-		TRACE_3("IMMND DOWN");
-		m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
-		cb->is_immnd_up = FALSE; 
-		m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+		case NCSMDS_DOWN:
+			TRACE_3("IMMND DOWN");
+			m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+			cb->is_immnd_up = FALSE; 
+			m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
 
-        cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
-		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
-            TRACE_4("Locking failed");
-            abort();
-        }
-        locked = TRUE;
-		imma_mark_clients_stale(cb);
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-        locked = FALSE;
-		break;
+			cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
+			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
+				TRACE_4("Locking failed");
+				abort();
+			}
+			locked = TRUE;
+			imma_mark_clients_stale(cb);
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+			locked = FALSE;
+			break;
 
-	case NCSMDS_UP:
-		TRACE_3("IMMND UP");
-		m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
-		cb->is_immnd_up = TRUE;
-		cb->immnd_mds_dest = svc_evt->i_dest;
-		if (cb->immnd_sync_awaited == TRUE)
-			m_NCS_SEL_OBJ_IND(cb->immnd_sync_sel);
-		m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
+		case NCSMDS_UP:
+			TRACE_3("IMMND UP");
+			m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
+			cb->is_immnd_up = TRUE;
+			cb->immnd_mds_dest = svc_evt->i_dest;
+			if (cb->immnd_sync_awaited == TRUE)
+				m_NCS_SEL_OBJ_IND(cb->immnd_sync_sel);
+			m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
 
-		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
-            TRACE_4("Locking failed");
-            abort();
-        }
-        locked = TRUE;
-        /* Check again if some clients have been exposed during down time. 
-           Also determine if there are candidates for active resurrection.
-           Inform IMMND of highest used client id. Increases chances of success
-           in resurrections. 
-         */
-        imma_determine_clients_to_resurrect(cb, &locked);
-        if (!locked) {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-                TRACE_4("Locking failed");
-                abort();
-            }
-            locked = TRUE;
-        }
-        /*imma_process_stale_clients(cb);
-	  The active resurrect is postponed until after immnd sync is 
-	  completed. imma_process_stale_clients now invoked in imma_proc.c
-	  when event IMMA_EVT_ND2A_PROC_STALE_CLIENTS is received.
-	 */
+			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
+				TRACE_4("Locking failed");
+				abort();
+			}
+			locked = TRUE;
+			/* Check again if some clients have been exposed during down time. 
+			   Also determine if there are candidates for active resurrection.
+			   Inform IMMND of highest used client id. Increases chances of success
+			   in resurrections. 
+			*/
+			imma_determine_clients_to_resurrect(cb, &locked);
+			if (!locked) {
+				if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+					TRACE_4("Locking failed");
+					abort();
+				}
+				locked = TRUE;
+			}
+			/*imma_process_stale_clients(cb);
+			  The active resurrect is postponed until after immnd sync is 
+			  completed. imma_process_stale_clients now invoked in imma_proc.c
+			  when event IMMA_EVT_ND2A_PROC_STALE_CLIENTS is received.
+			*/
 
-        m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
-        locked = FALSE;
-		break;
+			m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
+			locked = FALSE;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -469,9 +469,9 @@ static uns32 imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
 		enc_info->o_msg_fmt_ver =
-		    m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-					  IMMA_WRT_IMMND_SUBPART_VER_MIN,
-					  IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table);
+			m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
+				IMMA_WRT_IMMND_SUBPART_VER_MIN,
+				IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table);
 	}
 #if 0				/*ABT DOES NOT WORK */
 	if (!enc_info->o_msg_fmt_ver) {
@@ -482,7 +482,7 @@ static uns32 imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	evt = (IMMSV_EVT *)enc_info->i_msg;
 
-	return immsv_evt_enc( /*&cb->edu_hdl, */ evt, uba);
+	return immsv_evt_enc(evt, uba);
 }
 
 /****************************************************************************
@@ -506,16 +506,16 @@ static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 #if 0				/*ABT DOES NOT WORK */
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_IMMND) {
 		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
-					       IMMA_WRT_IMMND_SUBPART_VER_MIN,
-					       IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table)) {
+			    IMMA_WRT_IMMND_SUBPART_VER_MIN,
+			    IMMA_WRT_IMMND_SUBPART_VER_MAX, imma_immnd_msg_fmt_table)) {
 			TRACE_1("INVALID MSG FORMAT VERSION IN DECODE FULL: %d IMMND->IMMA\n", dec_info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 
 		}
 	} else if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_IMMD) {
 		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
-					       IMMA_WRT_IMMD_SUBPART_VER_MIN,
-					       IMMA_WRT_IMMD_SUBPART_VER_MAX, imma_immd_msg_fmt_table)) {
+			    IMMA_WRT_IMMD_SUBPART_VER_MIN,
+			    IMMA_WRT_IMMD_SUBPART_VER_MAX, imma_immd_msg_fmt_table)) {
 			TRACE_1("INVALID MSG FORMAT VERSION IN DECODE FULL: %d IMMD->IMMA\n", dec_info->i_msg_fmt_ver);
 			return NCSCC_RC_FAILURE;
 		}
@@ -528,7 +528,7 @@ static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 	dec_info->o_msg = (NCSCONTEXT)evt;
 
-	rc = immsv_evt_dec( /*&cb->edu_hdl, */ uba, evt);
+	rc = immsv_evt_dec(uba, evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		free(dec_info->o_msg);

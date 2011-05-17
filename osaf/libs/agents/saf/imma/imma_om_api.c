@@ -65,19 +65,19 @@ static int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, NCS_BOOL *l
 static int is_valid_type(const SaImmValueTypeT theType)
 {
 	switch (theType) {
-	case SA_IMM_ATTR_SAINT32T:
-	case SA_IMM_ATTR_SAUINT32T:
-	case SA_IMM_ATTR_SAINT64T:
-	case SA_IMM_ATTR_SAUINT64T:
-	case SA_IMM_ATTR_SATIMET:
-	case SA_IMM_ATTR_SAFLOATT:
-	case SA_IMM_ATTR_SADOUBLET:
-	case SA_IMM_ATTR_SANAMET:
-	case SA_IMM_ATTR_SASTRINGT:
-	case SA_IMM_ATTR_SAANYT:
-		return 1;
-	default:
-		return 0;
+		case SA_IMM_ATTR_SAINT32T:
+		case SA_IMM_ATTR_SAUINT32T:
+		case SA_IMM_ATTR_SAINT64T:
+		case SA_IMM_ATTR_SAUINT64T:
+		case SA_IMM_ATTR_SATIMET:
+		case SA_IMM_ATTR_SAFLOATT:
+		case SA_IMM_ATTR_SADOUBLET:
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+			return 1;
+		default:
+			return 0;
 	}
 }
 
@@ -270,8 +270,8 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		cl_node->isOm = TRUE;
 
 		TRACE_1("Trying to add OM client id:%u node:%x",
-             m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
-             m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle));
+			m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
+			m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle));
 		proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			IMMA_CLIENT_NODE *stale_node = NULL;
@@ -281,11 +281,11 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 				TRACE_1("Removing stale client");
 				imma_finalize_client(cb, stale_node);
 				proc_rc = imma_shutdown(NCSMDS_SVC_ID_IMMA_OM);
-                if (proc_rc != NCSCC_RC_SUCCESS) {
-                    TRACE_4("ERR_LIBRARY: Call to imma_shutdown FAILED");
-                    rc = SA_AIS_ERR_LIBRARY;
+				if (proc_rc != NCSCC_RC_SUCCESS) {
+					TRACE_4("ERR_LIBRARY: Call to imma_shutdown FAILED");
+					rc = SA_AIS_ERR_LIBRARY;
 					goto node_add_fail;
-                }
+				}
 
 				TRACE_1("Retrying add of client node");
 				proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
@@ -321,7 +321,8 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 		/* send the request to the IMMND */
 		proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl,
-						 &(cb->immnd_mds_dest), &finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
+			&(cb->immnd_mds_dest), &finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
+
 		if (out_evt1) {
 			free(out_evt1);
 			out_evt1 =NULL;
@@ -358,13 +359,14 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	}
 
  end:
-	if (rc != SA_AIS_OK)
+	if (rc != SA_AIS_OK) {
 		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OM)) {
-            /* Oh boy. Failure in imma_shutdown when we already have
-               some other problem. */
-            TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
-            rc = SA_AIS_ERR_LIBRARY;
-        }
+			/* Oh boy. Failure in imma_shutdown when we already have
+			   some other problem. */
+			TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
+			rc = SA_AIS_ERR_LIBRARY;
+		}
+	}
 
 	TRACE_LEAVE();
 	return rc;
@@ -456,9 +458,9 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 	}
 
 	*selectionObject = (SaSelectionObjectT)
-	    m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&cl_node->callbk_mbx));
+		m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&cl_node->callbk_mbx));
 
-    cl_node->selObjUsable = TRUE;
+	cl_node->selObjUsable = TRUE;
 
  no_callback:
  stale_handle:
@@ -495,7 +497,7 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	NCS_BOOL locked = FALSE;
 	uns32 pend_fin = 0;
    	uns32 pend_dis = 0;
-    TRACE_ENTER();
+	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -519,7 +521,7 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	}
 
 	if (cl_node->stale) {
-        TRACE_1("Handle %llx is stale, trying to resurrect it.", immHandle);
+		TRACE_1("Handle %llx is stale, trying to resurrect it.", immHandle);
 
 		if (cb->dispatch_clients_to_resurrect == 0) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
@@ -533,9 +535,9 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 
 		if (!imma_om_resurrect(cb, cl_node, &locked)) {
 			TRACE_3("ERR_BAD_HANDLE: Failed to resurrect stale OM handle <c:%u, n:%x>",
-                m_IMMSV_UNPACK_HANDLE_HIGH(immHandle),
-                m_IMMSV_UNPACK_HANDLE_LOW(immHandle));
-            rc = SA_AIS_ERR_BAD_HANDLE;
+				m_IMMSV_UNPACK_HANDLE_HIGH(immHandle),
+				m_IMMSV_UNPACK_HANDLE_LOW(immHandle));
+			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto fail;
 		}
 
@@ -569,34 +571,34 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 	}
 
 	/* Back to normal case of non stale (possibly resurrected) handle. */
-    /* Unlock & do the dispatch to avoid deadlock in arrival callback. */
+	/* Unlock & do the dispatch to avoid deadlock in arrival callback. */
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		locked = FALSE;
 	}
-    cl_node = NULL; /* Prevent unsafe use.*/
-    /* unlocked */
+	cl_node = NULL; /* Prevent unsafe use.*/
+	/* unlocked */
 	
   	/* Increment Dispatch usgae count */
    	cb->pend_dis++;
 
 	switch (dispatchFlags) {
-	case SA_DISPATCH_ONE:
-		rc = imma_hdl_callbk_dispatch_one(cb, immHandle);
-		break;
+		case SA_DISPATCH_ONE:
+			rc = imma_hdl_callbk_dispatch_one(cb, immHandle);
+			break;
 
-	case SA_DISPATCH_ALL:
-		rc = imma_hdl_callbk_dispatch_all(cb, immHandle);
-		break;
+		case SA_DISPATCH_ALL:
+			rc = imma_hdl_callbk_dispatch_all(cb, immHandle);
+			break;
 
-	case SA_DISPATCH_BLOCKING:
-		rc = imma_hdl_callbk_dispatch_block(cb, immHandle);
-		break;
+		case SA_DISPATCH_BLOCKING:
+			rc = imma_hdl_callbk_dispatch_block(cb, immHandle);
+			break;
 
-	default:
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		break;
-	}			/* switch */
+		default:
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			break;
+	}/* switch */
 
 	/* Decrement Dispatch usage count */
    	cb->pend_dis--;
@@ -608,17 +610,18 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
  fail:
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	/* see if we are still in any dispact context */ 
-	if(pend_dis == 0)
-     	while(pend_fin != 0)
-     	{
-       		/* call agent shutdown,for each finalize done before */
-		cb->pend_fin --;
-      		imma_shutdown(NCSMDS_SVC_ID_IMMA_OM);
-       		pend_fin--;
-     	}
 
-    TRACE_LEAVE();
+	/* see if we are still in any dispact context */ 
+	if(pend_dis == 0) {
+		while(pend_fin != 0) {
+			/* call agent shutdown,for each finalize done before */
+			cb->pend_fin --;
+			imma_shutdown(NCSMDS_SVC_ID_IMMA_OM);
+			pend_fin--;
+		}
+	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -704,27 +707,27 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 
 	/* send the request to the IMMND */
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest),
-					 &finalize_evt, &out_evt, IMMSV_WAIT_TIME);
+		&finalize_evt, &out_evt, IMMSV_WAIT_TIME);
 
 	/* MDS error handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		TRACE_3("Got ERR_TIMEOUT in saImmOmFinalize - ignoring");
-        /* Yes could be a stale handle, but this is handle finalize.
-           Dont cause unnecessary problems by returnign an error code. 
-           If this is a true timeout caused by an unusually sluggish but
-           up IMMND, then this connection at the IMMND side may linger,
-           but on this IMMA side we will drop it.
-        */
-        goto stale_handle;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			TRACE_3("Got ERR_TIMEOUT in saImmOmFinalize - ignoring");
+			/* Yes could be a stale handle, but this is handle finalize.
+			   Dont cause unnecessary problems by returnign an error code. 
+			   If this is a true timeout caused by an unusually sluggish but
+			   up IMMND, then this connection at the IMMND side may linger,
+			   but on this IMMA side we will drop it.
+			*/
+			goto stale_handle;
 
-	default:
-		TRACE_4("ERR_LIBRARY: Mds returned unexpected error code: %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		/* We lose the pending reply count in this case but ERR_LIBRARY dominates. */
-		goto mds_send_fail;
+		default:
+			TRACE_4("ERR_LIBRARY: Mds returned unexpected error code: %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			/* We lose the pending reply count in this case but ERR_LIBRARY dominates. */
+			goto mds_send_fail;
 	}
 
 	/* Read the received error (if any)  */
@@ -770,11 +773,12 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 
 		imma_proc_decrement_pending_reply(cl_node); 
 		imma_finalize_client(cb, cl_node);
-		/* Fialize the environment */  
-		 if ( cb->pend_dis == 0)
-		     agent_flag = TRUE;
-		 else if(cb->pend_dis > 0)
-		     cb->pend_fin++;
+		/* Finalize the environment */  
+		if ( cb->pend_dis == 0) {
+			agent_flag = TRUE;
+		} else if(cb->pend_dis > 0) {
+			cb->pend_fin++;
+		}
 	}
 
  lock_fail1:
@@ -785,12 +789,11 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 
  lock_fail:
     /* we are not in any dispatch context, we can do agent shutdown */
-  	if(agent_flag == TRUE) 
-	if (rc == SA_AIS_OK) {
-		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OM)) {
-            TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed");
-            rc = SA_AIS_ERR_LIBRARY;
-        }
+  	if((agent_flag == TRUE) && (rc == SA_AIS_OK) &&
+		(NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OM))) {
+
+		TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed");
+		rc = SA_AIS_ERR_LIBRARY;
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -907,7 +910,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	memset(ao_node, 0, sizeof(IMMA_ADMIN_OWNER_NODE));
 	ao_node->admin_owner_hdl = (SaImmAdminOwnerHandleT)m_NCS_GET_TIME_NS;
 	/*This is the external handle that the application uses.
-	   Internally we use the gloablId provided by the director. */
+	  Internally we use the gloablId provided by the director. */
 
 	ao_node->mImmHandle = immHandle;
 
@@ -918,14 +921,14 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	evt.info.immnd.info.adminitReq.client_hdl = immHandle;
 	evt.info.immnd.info.adminitReq.i.adminOwnerName.length = nameLen;
 	memcpy(evt.info.immnd.info.adminitReq.i.adminOwnerName.value, adminOwnerName, nameLen + 1);
-    if (releaseOwnershipOnFinalize) {
-        evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = TRUE;
-        /* Release on finalize can not be undone in case of IMMND crash.
-           The om-handle can then not be resurrected unless this admin-owner
-           has been finalized before the IMMND crash.
-        */
-        ao_node->mReleaseOnFinalize = TRUE;
-    }
+	if (releaseOwnershipOnFinalize) {
+		evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = TRUE;
+		/* Release on finalize can not be undone in case of IMMND crash.
+		   The om-handle can then not be resurrected unless this admin-owner
+		   has been finalized before the IMMND crash.
+		*/
+		ao_node->mReleaseOnFinalize = TRUE;
+	}
 
 	imma_proc_increment_pending_reply(cl_node);
 
@@ -945,16 +948,16 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, IMMSV_WAIT_TIME);
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
-		break; /* i.e. goto mds_send_fail */
-	default:
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
-		goto admin_owner_node_free;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			break; /* i.e. goto mds_send_fail */
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
+			goto admin_owner_node_free;
 	}
 
  mds_send_fail:
@@ -1127,15 +1130,15 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), &evt, &out_evt, IMMSV_WAIT_TIME);
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
-		goto mds_send_fail;
-	default:
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		goto mds_send_fail;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			goto mds_send_fail;
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			goto mds_send_fail;
 	}
 
 	assert(out_evt);
@@ -1643,7 +1646,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 		if (evt.info.immnd.info.objCreate.parentName.size > SA_MAX_NAME_LENGTH) {
 			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Parent name too long for SaNameT: %u", evt.info.immnd.info.objCreate.parentName.size);
+			TRACE_2("ERR_INVALID_PARAM: Parent name too long for SaNameT: %u",
+				evt.info.immnd.info.objCreate.parentName.size);
 			goto mds_send_fail;
 
 		}
@@ -2672,7 +2676,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   The user could otherwise miss seeing the current ccb-id aborted
 		   and think the ccb was simply a continuation of the same 
 		   (actually aborted) ccb with its operations. 
-		 */
+		*/
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		TRACE_2("ERR_FAILED_OPERATION: Ccb %u has already been aborted", 
 			ccb_node->mCcbId);
@@ -4073,44 +4077,44 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 				} else {
 					int size = 0;
 					switch (q->attrValueType) {
-					case SA_IMM_ATTR_SAINT32T:	/*intended fall through */
-					case SA_IMM_ATTR_SAUINT32T:
-						size = sizeof(SaInt32T);
-						break;
+						case SA_IMM_ATTR_SAINT32T:	/*intended fall through */
+						case SA_IMM_ATTR_SAUINT32T:
+							size = sizeof(SaInt32T);
+							break;
 
-					case SA_IMM_ATTR_SAINT64T:	/*intended fall through */
-					case SA_IMM_ATTR_SAUINT64T:
-						size = sizeof(SaInt64T);
-						break;
+						case SA_IMM_ATTR_SAINT64T:	/*intended fall through */
+						case SA_IMM_ATTR_SAUINT64T:
+							size = sizeof(SaInt64T);
+							break;
 
-					case SA_IMM_ATTR_SATIMET:
-						size = sizeof(SaTimeT);
-						break;
+						case SA_IMM_ATTR_SATIMET:
+							size = sizeof(SaTimeT);
+							break;
 
-					case SA_IMM_ATTR_SAFLOATT:
-						size = sizeof(SaFloatT);
-						break;
+						case SA_IMM_ATTR_SAFLOATT:
+							size = sizeof(SaFloatT);
+							break;
 
-					case SA_IMM_ATTR_SADOUBLET:
-						size = sizeof(SaDoubleT);
-						break;
+						case SA_IMM_ATTR_SADOUBLET:
+							size = sizeof(SaDoubleT);
+							break;
 
-					case SA_IMM_ATTR_SASTRINGT:	/*A bit harsh with assert here ? */
-						assert(strlen((char *)q->attrDefaultValue->val.x.buf)
-						       <= q->attrDefaultValue->val.x.size);
-						size = sizeof(SaStringT);
-						break;
+						case SA_IMM_ATTR_SASTRINGT:	/*A bit harsh with assert here ? */
+							assert(strlen((char *)q->attrDefaultValue->val.x.buf)
+								<= q->attrDefaultValue->val.x.size);
+							size = sizeof(SaStringT);
+							break;
 
-					case SA_IMM_ATTR_SANAMET:
-						assert(q->attrDefaultValue->val.x.size <= SA_MAX_NAME_LENGTH);
-						size = sizeof(SaNameT);
-						break;
+						case SA_IMM_ATTR_SANAMET:
+							assert(q->attrDefaultValue->val.x.size <= SA_MAX_NAME_LENGTH);
+							size = sizeof(SaNameT);
+							break;
 
-					case SA_IMM_ATTR_SAANYT:
-						size = sizeof(SaAnyT);
-						break;
-					default:
-						abort();
+						case SA_IMM_ATTR_SAANYT:
+							size = sizeof(SaAnyT);
+							break;
+						default:
+							abort();
 					}	/*switch */
 
 					SaNameT *namep = NULL;
@@ -4118,61 +4122,61 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 					SaStringT *strp = NULL;
 					SaImmAttrValueT copyv;
 					copyv = (SaImmAttrValueT)	/*alloc-4 */
-					    malloc(size);
+						malloc(size);
 					switch (q->attrValueType) {
-					case SA_IMM_ATTR_SAINT32T:
-						*((SaInt32T *)copyv) = q->attrDefaultValue->val.saint32;
-						break;
-					case SA_IMM_ATTR_SAUINT32T:
-						*((SaUint32T *)copyv) = q->attrDefaultValue->val.sauint32;
-						break;
-					case SA_IMM_ATTR_SAINT64T:
-						*((SaInt64T *)copyv) = q->attrDefaultValue->val.saint64;
-						break;
-					case SA_IMM_ATTR_SAUINT64T:
-						*((SaUint64T *)copyv) = q->attrDefaultValue->val.sauint64;
-						break;
-					case SA_IMM_ATTR_SATIMET:
-						/* I once got a segv on the line below.
-						   Allignement problem ? */
-						*((SaTimeT *)copyv) = q->attrDefaultValue->val.satime;
-						break;
-					case SA_IMM_ATTR_SAFLOATT:
-						*((SaFloatT *)copyv) = q->attrDefaultValue->val.safloat;
-						break;
-					case SA_IMM_ATTR_SADOUBLET:
-						*((SaDoubleT *)copyv) = q->attrDefaultValue->val.sadouble;
-						break;
+						case SA_IMM_ATTR_SAINT32T:
+							*((SaInt32T *)copyv) = q->attrDefaultValue->val.saint32;
+							break;
+						case SA_IMM_ATTR_SAUINT32T:
+							*((SaUint32T *)copyv) = q->attrDefaultValue->val.sauint32;
+							break;
+						case SA_IMM_ATTR_SAINT64T:
+							*((SaInt64T *)copyv) = q->attrDefaultValue->val.saint64;
+							break;
+						case SA_IMM_ATTR_SAUINT64T:
+							*((SaUint64T *)copyv) = q->attrDefaultValue->val.sauint64;
+							break;
+						case SA_IMM_ATTR_SATIMET:
+							/* I once got a segv on the line below.
+							   Allignement problem ? */
+							*((SaTimeT *)copyv) = q->attrDefaultValue->val.satime;
+							break;
+						case SA_IMM_ATTR_SAFLOATT:
+							*((SaFloatT *)copyv) = q->attrDefaultValue->val.safloat;
+							break;
+						case SA_IMM_ATTR_SADOUBLET:
+							*((SaDoubleT *)copyv) = q->attrDefaultValue->val.sadouble;
+							break;
 
-					case SA_IMM_ATTR_SASTRINGT:
-						strp = (SaStringT *)copyv;
-						*strp =	/*alloc-5 */
-						    malloc(q->attrDefaultValue->val.x.size);
-						memcpy(*strp, q->attrDefaultValue->val.x.buf,
-						       q->attrDefaultValue->val.x.size);
-						break;
+						case SA_IMM_ATTR_SASTRINGT:
+							strp = (SaStringT *)copyv;
+							*strp =	/*alloc-5 */
+								malloc(q->attrDefaultValue->val.x.size);
+							memcpy(*strp, q->attrDefaultValue->val.x.buf,
+								q->attrDefaultValue->val.x.size);
+							break;
 
-					case SA_IMM_ATTR_SANAMET:
-						namep = (SaNameT *)copyv;
-						memset(namep, 0, sizeof(SaNameT));
-						namep->length = strnlen(q->attrDefaultValue->val.x.buf,
-									q->attrDefaultValue->val.x.size);
-						assert(namep->length <= SA_MAX_NAME_LENGTH);
-						memcpy(namep->value, q->attrDefaultValue->val.x.buf, namep->length);
-						break;
+						case SA_IMM_ATTR_SANAMET:
+							namep = (SaNameT *)copyv;
+							memset(namep, 0, sizeof(SaNameT));
+							namep->length = strnlen(q->attrDefaultValue->val.x.buf,
+								q->attrDefaultValue->val.x.size);
+							assert(namep->length <= SA_MAX_NAME_LENGTH);
+							memcpy(namep->value, q->attrDefaultValue->val.x.buf, namep->length);
+							break;
 
-					case SA_IMM_ATTR_SAANYT:
-						anyp = (SaAnyT *)copyv;
-						memset(anyp, 0, sizeof(SaAnyT));
-						anyp->bufferSize = q->attrDefaultValue->val.x.size;
-						anyp->bufferAddr = (SaUint8T *)
-						    malloc(anyp->bufferSize);	/*alloc-5 */
-						memcpy(anyp->bufferAddr, q->attrDefaultValue->val.x.buf,
-						       anyp->bufferSize);
-						break;
-					default:
-						abort();
-					}	/*switch */
+						case SA_IMM_ATTR_SAANYT:
+							anyp = (SaAnyT *)copyv;
+							memset(anyp, 0, sizeof(SaAnyT));
+							anyp->bufferSize = q->attrDefaultValue->val.x.size;
+							anyp->bufferAddr = (SaUint8T *)
+								malloc(anyp->bufferSize);	/*alloc-5 */
+							memcpy(anyp->bufferAddr, q->attrDefaultValue->val.x.buf,
+								anyp->bufferSize);
+							break;
+						default:
+							abort();
+					}/*switch */
 
 					attr[i]->attrDefaultValue = copyv;
 					/*Delete source attr-value */
@@ -4191,7 +4195,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 			*attrDefinition = attr;
 			/*Will return a 0 terminated array of pointers to defs */
 
-		}		/*if (out_evtt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR){}else{ */
+		}/*if (out_evtt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR){}else{ */
 
 		/*For better performance we should follow the pattern of searchNext
 		   and avoid copying the attribute values and keep the reply struct
@@ -4288,33 +4292,33 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 				SaStringT *strp;
 				SaAnyT *anyp;
 				switch (attrDefinition[i]->attrValueType) {
-				case SA_IMM_ATTR_SAINT32T:	//intended fall through
-				case SA_IMM_ATTR_SAUINT32T:	//intended fall through
-				case SA_IMM_ATTR_SAINT64T:	//intended fall through
-				case SA_IMM_ATTR_SAUINT64T:	//intended fall through
-				case SA_IMM_ATTR_SATIMET:	//intended fall through
-				case SA_IMM_ATTR_SAFLOATT:	//intended fall through
-				case SA_IMM_ATTR_SADOUBLET:
-				case SA_IMM_ATTR_SANAMET:
-					free(attrDefinition[i]->attrDefaultValue);	/*free-4 */
-					break;
+					case SA_IMM_ATTR_SAINT32T:	//intended fall through
+					case SA_IMM_ATTR_SAUINT32T:	//intended fall through
+					case SA_IMM_ATTR_SAINT64T:	//intended fall through
+					case SA_IMM_ATTR_SAUINT64T:	//intended fall through
+					case SA_IMM_ATTR_SATIMET:	//intended fall through
+					case SA_IMM_ATTR_SAFLOATT:	//intended fall through
+					case SA_IMM_ATTR_SADOUBLET:
+					case SA_IMM_ATTR_SANAMET:
+						free(attrDefinition[i]->attrDefaultValue);	/*free-4 */
+						break;
 
-				case SA_IMM_ATTR_SASTRINGT:
-					strp = (SaStringT *)attrDefinition[i]->attrDefaultValue;
-					free(*strp);	/*free-5 */
-					free(strp);	/*free-4 */
-					break;
+					case SA_IMM_ATTR_SASTRINGT:
+						strp = (SaStringT *)attrDefinition[i]->attrDefaultValue;
+						free(*strp);	/*free-5 */
+						free(strp);	/*free-4 */
+						break;
 
-				case SA_IMM_ATTR_SAANYT:
-					anyp = (SaAnyT *)attrDefinition[i]->attrDefaultValue;
-					free(anyp->bufferAddr);	/*free-5 */
-					anyp->bufferAddr = 0;
-					free(anyp);	/*free-4 */
-					break;
+					case SA_IMM_ATTR_SAANYT:
+						anyp = (SaAnyT *)attrDefinition[i]->attrDefaultValue;
+						free(anyp->bufferAddr);	/*free-5 */
+						anyp->bufferAddr = 0;
+						free(anyp);	/*free-4 */
+						break;
 
-				default:
-					abort();
-				}	//switch
+					default:
+						abort();
+				}//switch
 				attrDefinition[i]->attrDefaultValue = 0;
 			}
 			free(attrDefinition[i]->attrName);	/*free-3 */
@@ -4726,23 +4730,23 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 static unsigned int get_att_val_size(IMMSV_EDU_ATTR_VAL *p, SaImmValueTypeT t)
 {
 	switch (t) {
-	case SA_IMM_ATTR_SAINT32T:
-	case SA_IMM_ATTR_SAUINT32T:
-		return sizeof(SaUint32T);
-	case SA_IMM_ATTR_SAINT64T:
-	case SA_IMM_ATTR_SAUINT64T:
-		return sizeof(SaUint64T);
-	case SA_IMM_ATTR_SATIMET:
-		return sizeof(SaTimeT);
-	case SA_IMM_ATTR_SAFLOATT:
-		return sizeof(SaFloatT);
-	case SA_IMM_ATTR_SADOUBLET:
-		return sizeof(SaDoubleT);
+		case SA_IMM_ATTR_SAINT32T:
+		case SA_IMM_ATTR_SAUINT32T:
+			return sizeof(SaUint32T);
+		case SA_IMM_ATTR_SAINT64T:
+		case SA_IMM_ATTR_SAUINT64T:
+			return sizeof(SaUint64T);
+		case SA_IMM_ATTR_SATIMET:
+			return sizeof(SaTimeT);
+		case SA_IMM_ATTR_SAFLOATT:
+			return sizeof(SaFloatT);
+		case SA_IMM_ATTR_SADOUBLET:
+			return sizeof(SaDoubleT);
 
-	case SA_IMM_ATTR_SANAMET:
-	case SA_IMM_ATTR_SASTRINGT:
-	case SA_IMM_ATTR_SAANYT:
-		return (p->val.x.size + 4);
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+			return (p->val.x.size + 4);
 	}
 
 	abort();
@@ -5133,20 +5137,20 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 
 	/* MDS error handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-        /* No point in checking for stale here, since if the IMMND did
-           go down it had to be the coord immnd as that is the only IMMND
-           receiving the finalize sync order. If the IMMND went down we 
-           (the sync process) has to die anyway.
-        */
-		rc = SA_AIS_ERR_TIMEOUT;
-		goto mds_send_fail;
-	default:
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto mds_send_fail;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			/* No point in checking for stale here, since if the IMMND did
+			   go down it had to be the coord immnd as that is the only IMMND
+			   receiving the finalize sync order. If the IMMND went down we 
+			   (the sync process) has to die anyway.
+			*/
+			rc = SA_AIS_ERR_TIMEOUT;
+			goto mds_send_fail;
+		default:
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			goto mds_send_fail;
 	}
 
 	if (out_evt) {
@@ -5267,7 +5271,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		TRACE("Special accessor case:%llx\n", *searchHandle);
 		isAccessor = TRUE;
 		searchOptions = SA_IMM_SEARCH_ONE_ATTR |
-		    (attributeNames ? SA_IMM_SEARCH_GET_SOME_ATTR : SA_IMM_SEARCH_GET_ALL_ATTR);
+			(attributeNames ? SA_IMM_SEARCH_GET_SOME_ATTR : SA_IMM_SEARCH_GET_ALL_ATTR);
 
 		/*Look up search handle */
 		imma_search_node_get(&cb->search_tree, searchHandle, &search_node);
@@ -5339,7 +5343,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		req->searchParam.present = ImmOmSearchParameter_PR_oneAttrParam;
 		req->searchParam.choice.oneAttrParam.attrName.size = strlen(searchParam->searchOneAttr.attrName) + 1;
 		req->searchParam.choice.oneAttrParam.attrName.buf =	/*alloc-2 */
-		    malloc(req->searchParam.choice.oneAttrParam.attrName.size);
+			malloc(req->searchParam.choice.oneAttrParam.attrName.size);
 		strncpy(req->searchParam.choice.oneAttrParam.attrName.buf,
 			(char *)searchParam->searchOneAttr.attrName,
 			(size_t)req->searchParam.choice.oneAttrParam.attrName.size);
@@ -5398,17 +5402,17 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
 
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
+		case NCSCC_RC_SUCCESS:
+			break;
 
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
-		goto mds_send_fail;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			goto mds_send_fail;
 
-	default:
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		goto mds_send_fail;
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			goto mds_send_fail;
 	}
 
 	if (out_evt) {
@@ -5620,17 +5624,17 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
 
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
+		case NCSCC_RC_SUCCESS:
+			break;
 
-	case NCSCC_RC_REQ_TIMOUT:
-		error = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
-		break;
+		case NCSCC_RC_REQ_TIMOUT:
+			error = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
+			break;
 		
-	default:
-		error = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		break;
+		default:
+			error = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			break;
 	}
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -5747,7 +5751,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 					IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
 					for (ix = 1; ix < q->attrValuesNumber; ++ix) {
 						assert(r);
-						attr[i]->attrValues[ix] = imma_copyAttrValue3(q->attrValueType, &(r->n));	/*alloc-5 */
+						attr[i]->attrValues[ix] = imma_copyAttrValue3(q->attrValueType, &(r->n));/*alloc-5 */
 						r = r->next;
 					}
 				}
@@ -5906,21 +5910,21 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, &out_evt, IMMSV_WAIT_TIME);
 
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
+		case NCSCC_RC_SUCCESS:
+			break;
 
-	case NCSCC_RC_REQ_TIMOUT:
-		/*error = imma_proc_check_stale(cb, immHandle,
-		  SA_AIS_ERR_TIMEOUT);*/
-		/* Ignore the probably stale handle since this is a finalize. */
-		TRACE_3("Got ERR_TIMEOUT in saImmOmSearchFinalize - ignoring");
-		goto mds_failed;
-		break;
+		case NCSCC_RC_REQ_TIMOUT:
+			/*error = imma_proc_check_stale(cb, immHandle,
+			  SA_AIS_ERR_TIMEOUT);*/
+			/* Ignore the probably stale handle since this is a finalize. */
+			TRACE_3("Got ERR_TIMEOUT in saImmOmSearchFinalize - ignoring");
+			goto mds_failed;
+			break;
 
-	default:
-		error = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		break;
+		default:
+			error = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			break;
 	}
 
 	if (out_evt) {
@@ -6152,12 +6156,12 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	}
 
 	switch (scope) {
-	case SA_IMM_ONE:
-	case SA_IMM_SUBLEVEL:
-	case SA_IMM_SUBTREE:
-		break;
-	default:
-		return SA_AIS_ERR_INVALID_PARAM;
+		case SA_IMM_ONE:
+		case SA_IMM_SUBLEVEL:
+		case SA_IMM_SUBTREE:
+			break;
+		default:
+			return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	if (cb->is_immnd_up == FALSE) {
@@ -6191,7 +6195,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		   If the OM-handle is closed then the admin owner should also 
 		   have been closed  AUTOMATICALLY.
 		   I guess we leak the admin-owner in this case. 
-		 */
+		*/
 
 		TRACE_4("ERR_LIBRARY: Admin owner associated with closed client");
 		goto done;
@@ -6338,12 +6342,12 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	}
 
 	switch (scope) {
-	case SA_IMM_ONE:
-	case SA_IMM_SUBLEVEL:
-	case SA_IMM_SUBTREE:
-		break;
-	default:
-		return SA_AIS_ERR_INVALID_PARAM;
+		case SA_IMM_ONE:
+		case SA_IMM_SUBLEVEL:
+		case SA_IMM_SUBTREE:
+			break;
+		default:
+			return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	if (cb->is_immnd_up == FALSE) {

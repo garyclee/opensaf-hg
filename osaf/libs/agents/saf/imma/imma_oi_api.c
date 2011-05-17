@@ -113,8 +113,8 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	cl_node->isOm = FALSE;
 
 	if ((version->releaseCode == 'A') &&
-	    (version->majorVersion == 0x02) &&
-            (version->minorVersion >= 0x0b)) {
+		(version->majorVersion == 0x02) &&
+		(version->minorVersion >= 0x0b)) {
 		TRACE_2("OI client version A.2.11");
 		cl_node->isImmA2b = 0x1;
 	}
@@ -170,15 +170,15 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 	/* Error Handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		goto mds_fail;
-	default:
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto mds_fail;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = SA_AIS_ERR_TIMEOUT;
+			goto mds_fail;
+		default:
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			goto mds_fail;
 	}
 
 	if (out_evt) {
@@ -206,8 +206,8 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 		cl_node->handle = out_evt->info.imma.info.initRsp.immHandle;
 
 		TRACE_1("Trying to add OI client id:%u node:%x handle:%llx",
-            m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
-            m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle), cl_node->handle);
+			m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
+			m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle), cl_node->handle);
 		proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			IMMA_CLIENT_NODE *stale_node = NULL;
@@ -217,15 +217,15 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 				TRACE_1("Removing stale client");
 				imma_finalize_client(cb, stale_node);
 				proc_rc = imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
-                if (proc_rc != NCSCC_RC_SUCCESS) {
-                    TRACE_4("ERR_LIBRARY: Call to imma_shutdown FAILED");
-                    rc = SA_AIS_ERR_LIBRARY;
+				if (proc_rc != NCSCC_RC_SUCCESS) {
+					TRACE_4("ERR_LIBRARY: Call to imma_shutdown FAILED");
+					rc = SA_AIS_ERR_LIBRARY;
 					goto node_add_fail;
-                }
+				}
 				TRACE_1("Retrying add of client node");
 				proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
 			}
-
+			
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				rc = SA_AIS_ERR_LIBRARY;
 				TRACE_4("ERR_LIBRARY: client_node_add failed");
@@ -256,7 +256,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 		/* send the request to the IMMND */
 		imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest),
-		      &finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
+			&finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
 		if (out_evt1) {
 			free(out_evt1);
 		}
@@ -292,11 +292,11 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
  end:
 	if (rc != SA_AIS_OK) {
 		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
-            /* Oh boy. Failure in imma_shutdown when we already have
-               some other problem. */
-            TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
-            rc = SA_AIS_ERR_LIBRARY;
-        }
+			/* Oh boy. Failure in imma_shutdown when we already have
+			   some other problem. */
+			TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
+			rc = SA_AIS_ERR_LIBRARY;
+		}
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -384,7 +384,7 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 
 
 	*selectionObject = (SaSelectionObjectT)
-	    m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&cl_node->callbk_mbx));
+		m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&cl_node->callbk_mbx));
 
 	cl_node->selObjUsable = TRUE;
 
@@ -445,9 +445,9 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 	}
 
 	if (cl_node->stale) {
-        TRACE_1("Handle %llx is stale, trying to resurrect it.", immOiHandle);
+		TRACE_1("Handle %llx is stale, trying to resurrect it.", immOiHandle);
 
-        if (cb->dispatch_clients_to_resurrect == 0) {
+		if (cb->dispatch_clients_to_resurrect == 0) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			cl_node->exposed = TRUE;
 			goto fail;
@@ -458,10 +458,10 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 			cb->dispatch_clients_to_resurrect);
 
 		if (!imma_oi_resurrect(cb, cl_node, &locked)) {
-            TRACE_2("ERR_BAD_HANDLE: Failed to resurrect stale OI handle <c:%u, n:%x>",
-                m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
-                m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
-            rc = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_2("ERR_BAD_HANDLE: Failed to resurrect stale OI handle <c:%u, n:%x>",
+				m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
+				m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
+			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto fail;
 		}
 
@@ -495,35 +495,35 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 		cl_node->selObjUsable = TRUE; /* success */
 	}
 
-    /* Back to normal case of non stale (possibly resurrected) handle. */
-    /* Unlock & do the dispatch to avoid deadlock in arrival callback. */
+	/* Back to normal case of non stale (possibly resurrected) handle. */
+	/* Unlock & do the dispatch to avoid deadlock in arrival callback. */
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		locked = FALSE;
-    }
-    cl_node = NULL; /*Prevent unsafe use.*/
+	}
+	cl_node = NULL; /*Prevent unsafe use.*/
 	/* unlocked */
 
 	/* Increment Dispatch usgae count */
 	cb->pend_dis++;
 	
 	switch (dispatchFlags) {
-	case SA_DISPATCH_ONE:
-		rc = imma_hdl_callbk_dispatch_one(cb, immOiHandle);
-		break;
+		case SA_DISPATCH_ONE:
+			rc = imma_hdl_callbk_dispatch_one(cb, immOiHandle);
+			break;
 
-	case SA_DISPATCH_ALL:
-		rc = imma_hdl_callbk_dispatch_all(cb, immOiHandle);
-		break;
+		case SA_DISPATCH_ALL:
+			rc = imma_hdl_callbk_dispatch_all(cb, immOiHandle);
+			break;
 
-	case SA_DISPATCH_BLOCKING:
-		rc = imma_hdl_callbk_dispatch_block(cb, immOiHandle);
-		break;
+		case SA_DISPATCH_BLOCKING:
+			rc = imma_hdl_callbk_dispatch_block(cb, immOiHandle);
+			break;
 
-	default:
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		break;
-	}			/* switch */
+		default:
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			break;
+	}/* switch */
 
 	/* Decrement Dispatch usage count */
  	cb->pend_dis--;
@@ -536,16 +536,16 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-	/* see if we are still in any dispact context */ 
-    if(pend_dis == 0)
-      while(pend_fin != 0)
-      {
-         /* call agent shutdown,for each finalize done before */
-	 cb->pend_fin --;
-         imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
-         pend_fin--;
-      }
-
+	/* see if we are still in any dispatch context */ 
+	if(pend_dis == 0) {
+		while(pend_fin != 0)
+		{
+			/* call agent shutdown,for each finalize done before */
+			cb->pend_fin --;
+			imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
+			pend_fin--;
+		}
+	}
 	TRACE_LEAVE();
 	return rc;
 }
@@ -637,23 +637,23 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 
 	/* MDS error handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		TRACE_3("Got ERR_TIMEOUT in saImmOiFinalize - ignoring");
-        /* Yes could be a stale handle, but this is handle finalize.
-           Dont cause unnecessary problems by returning an error code. 
-           If this is a true timeout caused by an unusually sluggish but
-           up IMMND, then this connection at the IMMND side may linger,
-           but on this IMMA side we will drop it. 
-        */
-        goto stale_handle;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			TRACE_3("Got ERR_TIMEOUT in saImmOiFinalize - ignoring");
+			/* Yes could be a stale handle, but this is handle finalize.
+			   Dont cause unnecessary problems by returning an error code. 
+			   If this is a true timeout caused by an unusually sluggish but
+			   up IMMND, then this connection at the IMMND side may linger,
+			   but on this IMMA side we will drop it. 
+			*/
+			goto stale_handle;
 
-	default:
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		/* We lose the pending reply count in this case but ERR_LIBRARY dominates. */
-		goto mds_send_fail; 
+		default:
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			/* We lose the pending reply count in this case but ERR_LIBRARY dominates. */
+			goto mds_send_fail; 
 	}
 
 	/* Read the received error (if any)  */
@@ -700,11 +700,12 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 		imma_proc_decrement_pending_reply(cl_node);
 		imma_finalize_client(cb, cl_node);
 
-		/* Fialize the environment */  
-		if ( cb->pend_dis == 0)
-		   agent_flag = TRUE;
-		else if(cb->pend_dis > 0)
-		   cb->pend_fin++;
+		/* Finalize the environment */  
+		if ( cb->pend_dis == 0) {
+			agent_flag = TRUE;
+		} else if(cb->pend_dis > 0) {
+			cb->pend_fin++;
+		}
 	}
 
  lock_fail1:
@@ -716,12 +717,12 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
  lock_fail:
 	if (rc == SA_AIS_OK) {
 		
-    /* we are not in any dispatch context, we can do agent shutdown */
-  	if(agent_flag == TRUE) 
-		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
-            TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed");
-            rc = SA_AIS_ERR_LIBRARY;
-        }
+		/* we are not in any dispatch context, we can do agent shutdown */
+		if(agent_flag == TRUE) 
+			if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
+				TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed");
+				rc = SA_AIS_ERR_LIBRARY;
+			}
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -849,16 +850,16 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 
 	/* MDS error handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-        /*The timeout case should be impossible on asyncronous send.. */
-		rc = SA_AIS_ERR_TIMEOUT;
-		goto mds_send_fail;
-	default:
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto mds_send_fail;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			/*The timeout case should be impossible on asyncronous send.. */
+			rc = SA_AIS_ERR_TIMEOUT;
+			goto mds_send_fail;
+		default:
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			goto mds_send_fail;
 	}
 
  mds_send_fail:
@@ -1013,17 +1014,17 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 	/* Generate rc from proc_rc */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immOiHandle, SA_AIS_ERR_TIMEOUT);
-		break; /* i.e. goto mds_send_fail */
-	default:
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
-		goto bad_handle;
-		break; 
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immOiHandle, SA_AIS_ERR_TIMEOUT);
+			break; /* i.e. goto mds_send_fail */
+		default:
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
+			goto bad_handle;
+			break; 
 	}
 
  mds_send_fail:
@@ -1735,7 +1736,6 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 
 		/* This is an object implementer set => user expects this to be 
 		   upheld, but handle is stale => exposed.
-		   
 		 */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = TRUE;
@@ -2117,16 +2117,16 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
 	/* Error Handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = imma_proc_check_stale(cb, immOiHandle, SA_AIS_ERR_TIMEOUT);
-		break;  /* i.e. goto mds_send_fail */
-	default:
-		TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
-		goto bad_handle;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = imma_proc_check_stale(cb, immOiHandle, SA_AIS_ERR_TIMEOUT);
+			break;  /* i.e. goto mds_send_fail */
+		default:
+			TRACE_4("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
+			goto bad_handle;
 	}
 
  mds_send_fail:
@@ -2628,12 +2628,13 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	return rc;
 }
 
-/* Tries to set implementer for resurrected handle.
-   If it fails, then resurrection must be reverted
-   and stale+exposed must be set on client node by
-   invoking code.
+/*
+  Tries to set implementer for resurrected handle.
+  If it fails, then resurrection must be reverted
+  and stale+exposed must be set on client node by
+  invoking code.
 
-   cb_lock must NOT be locked on entry.
+  cb_lock must NOT be locked on entry.
 */
 static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 {
