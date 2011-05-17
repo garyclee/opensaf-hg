@@ -953,14 +953,6 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		goto bad_handle;
 	}
 
-	/* Check for API Version! Appliers only allow for A.02.11 and above. */
-	if((implementerName[0] == '@') && !(cl_node->isImmA2b)) {
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		TRACE_2("ERR_INVALID_PARAM: Applier OIs only supported for A.02.11 and above");
-		goto bad_handle;
-	}
-	/*cl_node->isApplier  is set only after successfull reply from server.*/
-
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
 		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
@@ -984,6 +976,48 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
+
+	/* Check for API Version! Appliers only allow for A.02.11 and above. */
+	if(implementerName[0] == '@') {
+		if(!(cl_node->isImmA2b)) {
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			TRACE_2("ERR_INVALID_PARAM: Applier OIs only supported for A.02.11 and above");
+			goto bad_handle;
+		}
+
+		if (cl_node->o.iCallbk.saImmOiCcbApplyCallback == NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOiCcbApplyCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> Can not register as applier!");
+			goto bad_handle;
+		}
+
+		if (cl_node->o.iCallbk.saImmOiCcbAbortCallback == NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOiCcbAbortCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> Can not register as applier!");
+			goto bad_handle;
+		}
+
+		if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback == NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOiCcbObjectModifyCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> Can not register as applier!");
+			goto bad_handle;
+		}
+
+		if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback == NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOiCcbObjectDeleteCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> Can not register as applier!");
+			goto bad_handle;
+		}
+	}
+	/*cl_node->isApplier  is set only after successfull reply from server.*/
 
 	/* Populate & Send the Open Event to IMMND */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -1345,6 +1379,16 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: No implementer is set for this handle");
 		goto bad_handle;
+	}
+
+	if(cl_node->isApplier) {
+		if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback == NULL) {
+			rc = SA_AIS_ERR_INIT;
+			TRACE_2("ERR_INIT: The SaImmOiCcbObjectCreateCallbackT "
+				"function was not set in the initialization of the handle "
+				"=> Can not register as class applier!");
+			goto bad_handle;
+		}
 	}
 
 	/* Populate & Send the Open Event to IMMND */
