@@ -8035,6 +8035,9 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         //implementer-connection must have been cleared or crashed.
         assert(!info->mConn);
         assert(!info->mNodeId);
+
+        //Check objects for attachment to this implementer and 
+        //verify that no ccb is active on them. Iterate over CCB vector!
     } else {
         info = new ImplementerInfo;
         info->mImplementerName = implName;
@@ -8189,115 +8192,136 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
             TRACE_7("Applier %s ALREADY set for class %s", info->mImplementerName.c_str(),
                 className.c_str());
             goto done;
-	}
+        }
 
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            ObjectInfo* obj = *os;
-            assert(obj->mClassInfo == classInfo);
-            std::string objDn;
-            getObjectName(obj, objDn); /* External name form */
-            if(obj->mCcbId) {
-                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
-                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
-                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
-                           "of class %s. Can not add class applier",
-                        obj->mCcbId, objDn.c_str(), className.c_str());
-                    err = SA_AIS_ERR_BUSY;
-                    goto done;
+        /* Prevent adding applier to CCBs in progress. 
+           Iterate over ccb-vector instead of class extent. */
+        CcbVector::iterator i1;
+        for(i1 = sCcbVector.begin(); i1 != sCcbVector.end(); ++i1) {
+            if((*i1)->isActive()) {
+                CcbInfo* ccb = (*i1);
+                ObjectMutationMap::iterator omit;
+                for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                    ObjectMap::iterator oi = sObjectMap.find(omit->first);
+                    assert(oi != sObjectMap.end());
+                    ObjectInfo* object = oi->second;
+                    if(object->mClassInfo == classInfo) {
+                        LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                               "of class %s. Can not add class applier",
+                            ccb->mId, omit->first.c_str(), className.c_str());
+                        err = SA_AIS_ERR_BUSY;
+                        goto done;
+                    }
                 }
             }
+        }
 
-            ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objDn);
-            if(ismIter != sObjAppliersMap.end()) {
+        /* Prevent mixing of ClassImplementerSet & ObjectImplementerSet for
+           same applier over class and instances of class. */
+        ImplementerSetMap::iterator ismIter;
+        for(ismIter = sObjAppliersMap.begin(); ismIter != sObjAppliersMap.end(); ++ismIter) {
+            ObjectMap::iterator oi = sObjectMap.find(ismIter->first);
+            assert(oi != sObjectMap.end());
+            ObjectInfo* object = oi->second;
+            if(object->mClassInfo == classInfo) {
                 ImplementerSet *implSet = ismIter->second;
                 if(implSet->find(info) != implSet->end()) {
-                    /* No mixing of ClassImplementerSet & ObjectImplementerSet */
                     LOG_IN("ERR_EXIST: Applier %s is already object applier "
                         "for object %s => can not also be applier for class",
-                        info->mImplementerName.c_str(),  objDn.c_str());
+                        info->mImplementerName.c_str(), ismIter->first.c_str());
                     err = SA_AIS_ERR_EXIST;
                     goto done;
                 }
             }
-        }//for
+        }
 
+        /* Normal class applier set. */
         LOG_IN("Applier %s set for class %s", info->mImplementerName.c_str(),
             className.c_str());
         classInfo->mAppliers.insert(info);
+        goto done;
+    }
 
-    } else { /* Regular OI */
-        if(classInfo->mImplementer) { /* Class implementer is already set. */
-            if(classInfo->mImplementer == info) {
-                /* Idempotency */
-                TRACE_7("Class '%s' already has %s as class implementer ",
-                className.c_str(), info->mImplementerName.c_str());
-            } else {
-                TRACE_7("ERR_EXIST: Class '%s' already has other class implementer "
-                    "%s != %s", className.c_str(), classInfo->mImplementer->
-                    mImplementerName.c_str(), info->mImplementerName.c_str());
-                err = SA_AIS_ERR_EXIST;
-            }
+    /* Regular OI */
 
-            goto done;
+    if(classInfo->mImplementer) { /* Class implementer is already set. */
+        if(classInfo->mImplementer == info) {
+            /* Idempotency */
+            TRACE_7("Class '%s' already has %s as class implementer ",
+            className.c_str(), info->mImplementerName.c_str());
+        } else {
+            LOG_NO("ERR_EXIST: Class '%s' already has OTHER class implementer "
+                "%s != %s", className.c_str(), classInfo->mImplementer->
+                mImplementerName.c_str(), info->mImplementerName.c_str());
+            err = SA_AIS_ERR_EXIST;
         }
 
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            ObjectInfo* obj = *os;
-            assert(obj->mClassInfo == classInfo);
-            if(obj->mImplementer) {
-                std::string objDn;
-                getObjectName(obj, objDn); /* External name form */
-                if(obj->mImplementer == info) {
-                    TRACE_7("ERR_EXIST: Implementer %s is already OBJECT implementer "
-                       "for Object '%s'. Can not be CLASS implementer at same time.", 
-                       info->mImplementerName.c_str(), objDn.c_str());
-                } else {
-                    TRACE_7("ERR_EXIST: Object '%s' already has implementer "
-                        "%s != %s", objDn.c_str(), obj->mImplementer->mImplementerName.c_str(),
-                        info->mImplementerName.c_str());
-		}
+        goto done;
+    }
+
+    /* Prevent mixing of ClassImplementerSet has to override 
+       any previous ObjectImplementerSet for same main-implementer
+       over the class and instances of class. But ClassImplementerSet
+       can not override previous ObjectImplementerSet by *other* OI.
+       At the same time check for CCB interference. We do class extent
+       iteration here since there is nothing like sObjAppliersMap for
+       main implementers. The main implementer mapping is expected
+       to be more long term stable than the applier maping.
+    */
+    for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+        ObjectInfo* obj = *os;
+        assert(obj->mClassInfo == classInfo);
+        if(obj->mImplementer) {
+            std::string objDn;
+            getObjectName(obj, objDn); /* External name form */
+            if(obj->mImplementer != info) {
+                LOG_NO("ERR_EXIST: Object '%s' already has implementer "
+                    "%s != %s", objDn.c_str(), obj->mImplementer->mImplementerName.c_str(),
+                    info->mImplementerName.c_str());
                 err = SA_AIS_ERR_EXIST;
                 goto done;
             }
-
-            if(obj->mCcbId) {
-                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
-                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
-                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                    std::string objDn;
-                    getObjectName(obj, objDn); /* External name form */
-                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
-                           "of class %s. Can not add class implementer",
-                        obj->mCcbId, objDn.c_str(), className.c_str());
-                    err = SA_AIS_ERR_BUSY;
-                    /* Note: ERR_BUSY is actually not allowed here according to the 
-                       IMM standard for saImmOiClassImplementerSet.
-                       But ERR_BUSY *is* allowed in the corresponding situation for
-                       saImmOiClassImplementerRelease !!
-                    */
-                    goto done;
-                }
-            }
-        }//for
-
-        assert(err == SA_AIS_OK);
-        classInfo->mImplementer = info;
-        TRACE_5("implementer for class '%s' is %s", className.c_str(),
-            info->mImplementerName.c_str());
-        //ABT090225
-        //classImplementerSet and objectImplementerSet
-        //are mutually exclusive. This has not been 
-        //explicitly clear in the IMM standard until 
-        //release A.03.01.
-
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            (*os)->mImplementer = classInfo->mImplementer;
         }
+
+        if(obj->mCcbId) {
+            CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                  sCcbVector.end(), CcbIdIs(obj->mCcbId));
+            if(i1 != sCcbVector.end() && (*i1)->isActive()) {
+                std::string objDn;
+                getObjectName(obj, objDn); /* External name form */
+                LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                       "of class %s. Can not add class implementer",
+                    obj->mCcbId, objDn.c_str(), className.c_str());
+                err = SA_AIS_ERR_BUSY;
+                /* Note: ERR_BUSY is actually not allowed here according to the 
+                   IMM standard for saImmOiClassImplementerSet.
+                   But ERR_BUSY *is* allowed in the corresponding situation for
+                   saImmOiClassImplementerRelease !!
+                */
+                goto done;
+            }
+        }
+    }//for
+
+    assert(err == SA_AIS_OK);
+    classInfo->mImplementer = info;
+    TRACE_5("implementer for class '%s' is %s", className.c_str(),
+        info->mImplementerName.c_str());
+    /*ABT090225
+      classImplementerSet and objectImplementerSet
+      are mutually exclusive. This has not been 
+      explicitly clear in the IMM standard until 
+      release A.03.01.
+    */
+
+    /* Set the main implementer pointer in each object of the class extent. */
+    for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+        (*os)->mImplementer = classInfo->mImplementer;
     }
 
  done:
     TRACE_LEAVE();
+
     return err;
 }
 
@@ -8314,6 +8338,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     ClassMap::iterator i1;
     ImplementerInfo* info = NULL;
     ObjectSet::iterator os;
+    CcbVector::iterator ccbi;
     TRACE_ENTER();
     
     if(immNotWritable()) {
@@ -8366,48 +8391,56 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
 
     if(info->mApplier) {
         if(classInfo->mAppliers.find(info) == classInfo->mAppliers.end()) {
-            for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-                ObjectInfo* obj = *os;
-                assert(obj->mClassInfo == classInfo);
-                std::string objDn;
-                getObjectName(obj, objDn); /* External name form */
-                ImplementerSetMap::iterator ismIter = sObjAppliersMap.find(objDn);
-                if(ismIter != sObjAppliersMap.end()) {
+            /* No class applier set. 
+               Prevent class applier release when set as individual object applier. */
+
+            ImplementerSetMap::iterator ismIter;
+            for(ismIter = sObjAppliersMap.begin(); ismIter != sObjAppliersMap.end();
+               ++ismIter) {
+                ObjectMap::iterator oi = sObjectMap.find(ismIter->first);
+                assert(oi != sObjectMap.end());
+                ObjectInfo* object = oi->second;
+                if(object->mClassInfo == classInfo) {
                     ImplementerSet *implSet = ismIter->second;
                     if(implSet->find(info) != implSet->end()) {
-                        /* No mixing of ClassImplementerSet & ObjectImplementerSet */
+                        /* No mixing of ClassImplementerRelease & ObjectImplementerRelease */
                         LOG_IN("ERR_NOT_EXIST: Applier %s is object applier "
-                            "for object %s => can not release applier for class",
-                            info->mImplementerName.c_str(),  objDn.c_str());
+                            "for object %s => can not release as applier for class",
+                            info->mImplementerName.c_str(),  ismIter->first.c_str());
                         err = SA_AIS_ERR_NOT_EXIST;
                         goto done;
-                    }
+                   }
                 }
             }
+
             /* Idempotency. */
             TRACE_7("Applier %s was not set for class %s",
                 info->mImplementerName.c_str(), className.c_str());
             goto done;
         }
 
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            ObjectInfo* obj = *os;
-            assert(obj->mClassInfo == classInfo);
-            if(obj->mCcbId) {
-                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
-                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
-                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                    std::string objDn;
-                    getObjectName(obj, objDn); /* External name form */
-                    LOG_NO("ERR_BUSY: ccb %u is active on object %s "
-                           "of class %s. Can not release class applier",
-                        obj->mCcbId, objDn.c_str(), className.c_str());
-                    err = SA_AIS_ERR_BUSY;
-                    goto done;
+        /* Prevent release of applier when CCBs are in progress.
+           Iterate over ccb-vector instead of class extent. */
+        for(ccbi = sCcbVector.begin(); ccbi != sCcbVector.end(); ++ccbi) {
+            if((*ccbi)->isActive()) {
+                CcbInfo* ccb = (*ccbi);
+                ObjectMutationMap::iterator omit;
+                for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                    ObjectMap::iterator oi = sObjectMap.find(omit->first);
+                    assert(oi != sObjectMap.end());
+                    ObjectInfo* object = oi->second;
+                    if(object->mClassInfo == classInfo) {
+                        LOG_NO("ERR_BUSY: ccb %u is active on object %s "
+                               "of class %s. Can not release class applier",
+                            ccb->mId, omit->first.c_str(), className.c_str());
+                        err = SA_AIS_ERR_BUSY;
+                        goto done;
+                    }
                 }
             }
-        }//for
+        }
 
+        /* Normal release of class-applier. */
         TRACE_7("Applier %s released from class %s", info->mImplementerName.c_str(),
             className.c_str());
         classInfo->mAppliers.erase(info);
@@ -8416,62 +8449,62 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
 
     /* Regular OI */
 
-    if(!classInfo->mImplementer) {
+    if(!classInfo->mImplementer) { /* NO Class implementer is set. */
+        /* Prevent class implementer release when other individual object implementer set */
         for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
             ObjectInfo* obj = *os;
             assert(obj->mClassInfo == classInfo);
-            if(obj->mImplementer) {
+            if(obj->mImplementer && obj->mImplementer != info) {
                 std::string objDn;
                 getObjectName(obj, objDn); /* External name form */
                 LOG_IN("ERR_NOT_EXIST: Release of class implementer for "
                     "class %s conflicts with current object implementorship "
-                    "for object %s", className.c_str(), objDn.c_str());
+                    "%s for object %s", className.c_str(), 
+                    obj->mImplementer->mImplementerName.c_str(),
+                    objDn.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
-                /* I would have preferred ERR_BAD_OPERATION for this case, 
-                   but the spec is so explicit on what that error code means for
-                   ObjectImplementerRelease, see first check in this function.
-                */
                 goto done;
             }
-
         }
         /* Idempotency */
         TRACE_7("Class '%s' has no implementer", className.c_str());
         goto done;
-    } 
+    }
 
-    if(classInfo->mImplementer != info) {
+    if(classInfo->mImplementer != info) { /* DIFFERENT Class implementer is set. */
         TRACE_7("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
             className.c_str(), classInfo->mImplementer->mImplementerName.c_str(),
             info->mImplementerName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto done;
-    } else {
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            ObjectInfo* obj = *os;
-            assert(obj->mClassInfo == classInfo);
-            assert(obj->mImplementer == classInfo->mImplementer);
-            if(obj->mCcbId) {
-                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
-                      sCcbVector.end(), CcbIdIs(obj->mCcbId));
-                if(i1 != sCcbVector.end() && (*i1)->isActive()) {
-                    std::string objDn;
-                    getObjectName(obj, objDn); /* External name form */
+    }
+
+    /* Prevent release of class implementer when CCBs are in progress on instances.
+       Iterate over ccb-vector instead of class extent. */
+    for(ccbi = sCcbVector.begin(); ccbi != sCcbVector.end(); ++ccbi) {
+        if((*ccbi)->isActive()) {
+            CcbInfo* ccb = (*ccbi);
+            ObjectMutationMap::iterator omit;
+            for(omit=ccb->mMutations.begin(); omit!=ccb->mMutations.end(); ++omit) {
+                ObjectMap::iterator oi = sObjectMap.find(omit->first);
+                assert(oi != sObjectMap.end());
+                ObjectInfo* object = oi->second;
+                if(object->mClassInfo == classInfo) {
                     LOG_IN("ERR_BUSY: ccb %u is active on object %s "
                        "of class %s. Can not release class implementer",
-                        obj->mCcbId, objDn.c_str(), className.c_str());
+                        ccb->mId, omit->first.c_str(), className.c_str());
                     err = SA_AIS_ERR_BUSY;
                     goto done;
                 }
             }
-        }//for
-
-        TRACE_5("implementer for class '%s' is released", className.c_str());
-        for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
-            (*os)->mImplementer = 0; this->clearImplName(*os);
         }
-        classInfo->mImplementer = 0;
     }
+
+    TRACE_5("implementer for class '%s' is released", className.c_str());
+    for(os=classInfo->mExtent.begin(); os!=classInfo->mExtent.end(); ++os) {
+        (*os)->mImplementer = 0; this->clearImplName(*os);
+    }
+    classInfo->mImplementer = 0;
 
  done:    
     TRACE_LEAVE();
@@ -8757,7 +8790,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
                         objectName.c_str(),
                         obj->mImplementer->mImplementerName.c_str());
                 }
-	    }
+            }
         }
     }
 
@@ -8810,14 +8843,14 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                 /* Idempotency. */
                 TRACE_7("Applier %s was not set for object %s",
                     info->mImplementerName.c_str(), objectName.c_str());
-	    } else {
+            } else {
                 ImplementerSet *implSet = ismIter->second;
                 implSet->erase(info);
                 if(implSet->empty()) {
                     delete implSet;
                     sObjAppliersMap.erase(ismIter);
                 }
-	    }
+            }
         } else { //!doIt => do checks
             if(classInfo->mAppliers.find(info) != classInfo->mAppliers.end()) {
                 /* No mixing of ClassImplementerRelease & ObjectImplementerRelease */
@@ -8826,14 +8859,14 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
                      info->mImplementerName.c_str(), objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 goto done;
-	    }
+            }
         }
     } else { /* regular OI */
         if(obj->mImplementer == NULL) {
             /* Idempotency */
             TRACE_5("object '%s' has no implementer", objectName.c_str());
             goto done;
-	}
+        }
 
         if(obj->mImplementer != info) {
             assert(!doIt);
@@ -11386,7 +11419,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                         //Implementer name may be assigned but none attached 
                         obj->mImplementer = impl;
                     } else {
-                      TRACE_5("Implementer %s for object %s is MISSING",
+                      LOG_WA("Implementer %s for object %s is MISSING",
                       implName.c_str(), oi->first.c_str());
                     }
                 }
