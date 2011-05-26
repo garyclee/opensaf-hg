@@ -68,7 +68,7 @@ typedef struct edsv_eds_evt_tag {
 /* These are the function prototypes for event handling */
 typedef uns32 (*EDSV_EDS_EDA_API_MSG_HANDLER) (EDS_CB *, struct edsv_eds_evt_tag * evt);
 typedef uns32 (*EDSV_EDS_EVT_HANDLER) (struct edsv_eds_evt_tag * evt);
-EXTERN_C uns32 eds_process_evt(EDSV_EDS_EVT *evt);
-EXTERN_C void eds_evt_destroy(struct edsv_eds_evt_tag *);
+uns32 eds_process_evt(EDSV_EDS_EVT *evt);
+void eds_evt_destroy(struct edsv_eds_evt_tag *);
 
 #endif   /*!EDS_EVT_H */

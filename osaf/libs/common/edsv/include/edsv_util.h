@@ -30,21 +30,21 @@
 #ifndef EDSV_UTIL_H
 #define EDSV_UTIL_H
 
-EXTERN_C SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArrayT *src_pattern_array,
+SaEvtEventPatternArrayT *edsv_copy_evt_pattern_array(const SaEvtEventPatternArrayT *src_pattern_array,
 							      SaAisErrorT *error);
 
-EXTERN_C void edsv_free_evt_pattern_array(SaEvtEventPatternArrayT *free_pattern_array);
+void edsv_free_evt_pattern_array(SaEvtEventPatternArrayT *free_pattern_array);
 
-EXTERN_C SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT *src_filter_array,
+SaEvtEventFilterArrayT *edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT *src_filter_array,
 							    SaAisErrorT *error);
 
-EXTERN_C void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array);
+void edsv_free_evt_filter_array(SaEvtEventFilterArrayT *free_filter_array);
 
-EXTERN_C MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uns32 evt_prio);
+MDS_SEND_PRIORITY_TYPE edsv_map_ais_prio_to_mds_snd_prio(uns32 evt_prio);
 
-EXTERN_C uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *);
+uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *);
 
-EXTERN_C void eda_free_event_patterns(SaEvtEventPatternT *, SaSizeT);
+void eda_free_event_patterns(SaEvtEventPatternT *, SaSizeT);
 
 /* Macro to fill in the attributes of a lost event */
 #define m_EDSV_LOST_EVENT_FILL(m) \

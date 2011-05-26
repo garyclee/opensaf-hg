@@ -83,6 +83,6 @@
 #include "saImmOi.h"
 
 /* EDS CB global handle declaration */
-EXTERN_C uns32 gl_eds_hdl;
+uns32 gl_eds_hdl;
 
 #endif   /* _EDS_H */

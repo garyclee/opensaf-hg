@@ -35,7 +35,7 @@ typedef struct mqnd_tmr {
 	NCS_BOOL is_active;
 } MQND_TMR;
 
-EXTERN_C uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);
-EXTERN_C void mqnd_tmr_stop(MQND_TMR *tmr);
+uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);
+void mqnd_tmr_stop(MQND_TMR *tmr);
 
 #endif

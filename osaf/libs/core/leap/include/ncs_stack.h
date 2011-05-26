@@ -88,6 +88,6 @@ typedef struct ncs_se_backto {
  *
  ***************************************************************************/
 
-EXTERN_C NCS_SE *get_top_se(NCS_STACK *st);
+NCS_SE *get_top_se(NCS_STACK *st);
 
 #endif   /* NCS_STACK_H */

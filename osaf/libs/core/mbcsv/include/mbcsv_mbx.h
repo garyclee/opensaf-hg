@@ -51,11 +51,11 @@
  * Related function prototypes.
  */
 
-EXTERN_C uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx);
-EXTERN_C uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id);
-EXTERN_C SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id);
-EXTERN_C SYSF_MBX mbcsv_get_next_entry_for_pwe(uns32 pwe_hdl, SS_SVC_ID *svc_id);
-EXTERN_C uns32 mbcsv_initialize_mbx_list(void);
-EXTERN_C uns32 mbcsv_destroy_mbx_list(void);
+uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx);
+uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id);
+SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id);
+SYSF_MBX mbcsv_get_next_entry_for_pwe(uns32 pwe_hdl, SS_SVC_ID *svc_id);
+uns32 mbcsv_initialize_mbx_list(void);
+uns32 mbcsv_destroy_mbx_list(void);
 
 #endif

@@ -35,6 +35,6 @@
 #define AVD_DL_API_H
 
 /* DL SE API for init and destroy of the AVD module */
-EXTERN_C uns32 avd_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 avd_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* AVD_DL_API_H */

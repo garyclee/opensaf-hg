@@ -126,17 +126,17 @@ typedef struct avnd_dnd_list_tag {
 
 struct avnd_cb_tag;
 
-EXTERN_C uns32 avnd_mds_reg(struct avnd_cb_tag *);
+uns32 avnd_mds_reg(struct avnd_cb_tag *);
 
-EXTERN_C uns32 avnd_mds_unreg(struct avnd_cb_tag *);
+uns32 avnd_mds_unreg(struct avnd_cb_tag *);
 
-EXTERN_C uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info);
+uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info);
 
-EXTERN_C uns32 avnd_mds_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_SYNC_SND_CTXT *);
+uns32 avnd_mds_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_SYNC_SND_CTXT *);
 
-EXTERN_C uns32 avnd_mds_red_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_DEST *);
-EXTERN_C uns32 avnd_avnd_mds_send(struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
-EXTERN_C uns32 avnd_mds_vdest_reg(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_mds_set_vdest_role(struct avnd_cb_tag *cb, SaAmfHAStateT role);
+uns32 avnd_mds_red_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_DEST *);
+uns32 avnd_avnd_mds_send(struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
+uns32 avnd_mds_vdest_reg(struct avnd_cb_tag *cb);
+uns32 avnd_mds_set_vdest_role(struct avnd_cb_tag *cb, SaAmfHAStateT role);
 
 #endif   /* !AVND_MDS_H */

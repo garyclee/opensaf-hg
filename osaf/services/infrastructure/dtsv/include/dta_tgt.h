@@ -47,8 +47,8 @@
 
 #if (DTA_DEBUG == 1)
 
-EXTERN_C uns32 dta_dbg_sink(uns32, char *, uns32, char *);
-EXTERN_C uns32 dta_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
+uns32 dta_dbg_sink(uns32, char *, uns32, char *);
+uns32 dta_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
 
 /* m_DTA_DBG_VOID() used to keep compiler happy @ void return functions */
 

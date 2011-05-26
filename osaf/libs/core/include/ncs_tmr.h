@@ -134,34 +134,34 @@ extern "C" {
 #define m_NCS_RP_TMR_EXP(tmr_cb) ncs_rp_tmr_exp(tmr_cb)
 
 /* function prototypes. */
-	EXTERN_C NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info);
+	NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info);
 
-	EXTERN_C NCS_RP_TMR_HDL
+	NCS_RP_TMR_HDL
 	 ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uns32 period, RP_TMR_CALLBACK callbk,
 			  void *arg);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_destory(NCS_RP_TMR_CB **tmr_cb);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
 /* This is the utill function which will give the time left by taking in the 
  * time at which that particular timer is triggered 
  */
-	EXTERN_C uns32
+	uns32
 	 rp_tmr_time_left_in_sec(time_t tmr_trig_at, uns32 tmr_val);
 
 #ifdef  __cplusplus

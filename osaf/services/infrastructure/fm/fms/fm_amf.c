@@ -34,7 +34,7 @@
 ******************************************************************************/
 
 #include "fm.h"
-EXTERN_C uns32 gl_fm_hdl;
+uns32 gl_fm_hdl;
 
 uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb);
 static uns32 fm_amf_register(FM_AMF_CB *fm_amf_cb);

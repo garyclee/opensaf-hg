@@ -38,18 +38,18 @@
 #define DTS_SERVICE_CLASS_NAME "OpenSAFDtsvServiceLogPolicy"
 
 /* function prototypes */
-EXTERN_C void dts_imm_declare_implementer(DTS_CB *cb);
-EXTERN_C SaAisErrorT dts_imm_initialize(DTS_CB *cb);
-EXTERN_C void dts_imm_reinit_bg(DTS_CB * cb);
-EXTERN_C SaAisErrorT dts_read_log_policies(char *className);
-EXTERN_C SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
-EXTERN_C unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
-EXTERN_C unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
-EXTERN_C unsigned int dts_configure_global_policy();
-EXTERN_C unsigned int dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
-EXTERN_C unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
-EXTERN_C unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
-EXTERN_C unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData);
+void dts_imm_declare_implementer(DTS_CB *cb);
+SaAisErrorT dts_imm_initialize(DTS_CB *cb);
+void dts_imm_reinit_bg(DTS_CB * cb);
+SaAisErrorT dts_read_log_policies(char *className);
+SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
+unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
+unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
+unsigned int dts_configure_global_policy();
+unsigned int dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
+unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
+unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
+unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData);
 
 /******************************************************************************
                            Global Policy Table

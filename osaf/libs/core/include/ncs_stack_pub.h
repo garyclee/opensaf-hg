@@ -85,11 +85,11 @@ extern "C" {
  * NCSMEM_AID  public member function prototypes
  ***************************************************************************/
 
-	EXTERN_C void ncsmem_aid_init(NCSMEM_AID *ma, uns8 *space, uns32 len);
+	void ncsmem_aid_init(NCSMEM_AID *ma, uns8 *space, uns32 len);
 
-	EXTERN_C uns8 *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
+	uns8 *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
 
-	EXTERN_C uns8 *ncsmem_aid_cpy(NCSMEM_AID *ma, const uns8 *ref, uns32 len);
+	uns8 *ncsmem_aid_cpy(NCSMEM_AID *ma, const uns8 *ref, uns32 len);
 
 /***************************************************************************
  ***************************************************************************
@@ -135,19 +135,19 @@ extern "C" {
 
 #define m_NCSSTACK_SPACE(se)        ((uns8*)((uns8*)se + sizeof(NCS_SE)))
 
-	EXTERN_C void ncsstack_init(NCS_STACK *st, uns16 max_size);
+	void ncsstack_init(NCS_STACK *st, uns16 max_size);
 
-	EXTERN_C NCS_SE *ncsstack_peek(NCS_STACK *st);
+	NCS_SE *ncsstack_peek(NCS_STACK *st);
 
-	EXTERN_C NCS_SE *ncsstack_push(NCS_STACK *st, uns16 type, uns16 size);
+	NCS_SE *ncsstack_push(NCS_STACK *st, uns16 type, uns16 size);
 
-	EXTERN_C NCS_SE *ncsstack_pop(NCS_STACK *st);
-	EXTERN_C uns32 ncsstack_get_utilization(NCS_STACK *st);
-	EXTERN_C uns32 ncsstack_get_element_count(NCS_STACK *st);
+	NCS_SE *ncsstack_pop(NCS_STACK *st);
+	uns32 ncsstack_get_utilization(NCS_STACK *st);
+	uns32 ncsstack_get_element_count(NCS_STACK *st);
 
-	EXTERN_C uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba);
+	uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba);
 
-	EXTERN_C uns32 ncsstack_decode(NCS_STACK *st, struct ncs_ubaid *uba);
+	uns32 ncsstack_decode(NCS_STACK *st, struct ncs_ubaid *uba);
 
 #ifdef  __cplusplus
 }

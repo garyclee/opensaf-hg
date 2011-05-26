@@ -32,7 +32,7 @@
 
 #include <saClm.h>
 
-EXTERN_C void mqd_clm_cluster_track_callback(const SaClmClusterNotificationBufferT *notificationBuffer,
+void mqd_clm_cluster_track_callback(const SaClmClusterNotificationBufferT *notificationBuffer,
 					     SaUint32T numberOfMembers, SaAisErrorT error);
 
 #endif   /* MQD_CLM_H */

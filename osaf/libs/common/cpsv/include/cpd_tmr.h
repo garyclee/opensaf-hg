@@ -35,8 +35,8 @@ typedef struct cpd_tmr {
 	} info;
 } CPD_TMR;
 
-EXTERN_C uns32 cpd_tmr_start(CPD_TMR *tmr, uns32 duration);
-EXTERN_C void cpd_timer_expiry(NCSCONTEXT uarg);
-EXTERN_C void cpd_tmr_stop(CPD_TMR *tmr);
+uns32 cpd_tmr_start(CPD_TMR *tmr, uns32 duration);
+void cpd_timer_expiry(NCSCONTEXT uarg);
+void cpd_tmr_stop(CPD_TMR *tmr);
 
 #endif

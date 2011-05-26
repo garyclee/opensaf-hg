@@ -30,7 +30,7 @@ typedef struct SaPlmNtfStateChange {
 
 /************************ Function Prototypes *********************************/
 
-EXTERN_C SaAisErrorT plms_state_change_ntf_send(SaNtfHandleT      plm_ntf_hdl,
+SaAisErrorT plms_state_change_ntf_send(SaNtfHandleT      plm_ntf_hdl,
                                            SaNameT               *object,
                                            SaNtfIdentifierT      *ntf_id,
                                            SaUint16T             source_indicator,
@@ -42,7 +42,7 @@ EXTERN_C SaAisErrorT plms_state_change_ntf_send(SaNtfHandleT      plm_ntf_hdl,
                                            SaNameT               *dn_name /* DN of root state change PLM entity obj */
                                            );
 
-EXTERN_C SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
+SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
                                         SaNameT           *object,
                                         SaUint32T         event_type,
                                         SaInt8T           *entity_path,
@@ -53,7 +53,7 @@ EXTERN_C SaAisErrorT plms_hpi_evt_ntf_send(SaNtfHandleT      plm_ntf_hdl,
                                         SaNtfIdentifierT  *ntf_id
                                         );
 
-EXTERN_C SaAisErrorT plms_alarm_ntf_send(SaNtfHandleT  plm_ntf_hdl,
+SaAisErrorT plms_alarm_ntf_send(SaNtfHandleT  plm_ntf_hdl,
                                      SaNameT       *object,
                                      SaUint32T     event_type,
                                       SaInt8T      *entity_path,

@@ -32,6 +32,6 @@
 #ifndef _EDS_DL_API_H
 #define _EDS_DL_API_H
 
-EXTERN_C uns32 ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *);
+uns32 ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* _EDS_DL_API_H */

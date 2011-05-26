@@ -41,6 +41,8 @@
 
 #include <configmake.h>
 
+#include <dlfcn.h>
+
 #include "ncsgl_defs.h"
 #include "mds_papi.h"
 #include "ncs_main_papi.h"
@@ -139,7 +141,7 @@ typedef struct ncs_agent_data {
 } NCS_AGENT_DATA;
 
 typedef struct ncs_main_pub_cb {
-	NCS_OS_DLIB_HDL *lib_hdl;
+	void *lib_hdl;
 
 	NCS_LOCK lock;
 	uns32 lock_create;
@@ -272,7 +274,7 @@ unsigned int ncs_leap_startup(void)
 	m_NCS_AGENT_UNLOCK;
 
 	/* start initializing all the required agents */
-	gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD(NULL, m_NCS_OS_DLIB_ATTR);
+	gl_ncs_main_pub_cb.lib_hdl = dlopen(NULL, RTLD_LAZY|RTLD_GLOBAL);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -450,7 +452,7 @@ unsigned int ncs_mbca_startup(void)
 		gl_ncs_main_pub_cb.mbca.use_count++;
 	} else {
 		gl_ncs_main_pub_cb.mbca.lib_req =
-		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
+		    (LIB_REQ)dlsym(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
 		if (gl_ncs_main_pub_cb.mbca.lib_req == NULL) {
 			TRACE_4("\nMBCSV:MBCA:OFF");
 		} else {
@@ -524,7 +526,7 @@ void ncs_leap_shutdown()
 	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 	lib_destroy.info.destroy.dummy = 0;
 
-	m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
+	dlclose(gl_ncs_main_pub_cb.lib_hdl);
 	gl_ncs_main_pub_cb.lib_hdl = NULL;
 
 	sprr_lib_req(&lib_destroy);

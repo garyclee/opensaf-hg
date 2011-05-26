@@ -512,44 +512,44 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C void sysf_free_pkt(USRBUF *pb);
+	void sysf_free_pkt(USRBUF *pb);
 
-	EXTERN_C USRBUF *sysf_alloc_pkt(unsigned char pool_id,
+	USRBUF *sysf_alloc_pkt(unsigned char pool_id,
 						    unsigned char priority, int num, unsigned int line, char *file);
 
-	EXTERN_C char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
-	EXTERN_C char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
-	EXTERN_C void sysf_remove_from_end(USRBUF *pb, unsigned int size);
-	EXTERN_C char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
-	EXTERN_C void sysf_remove_from_start(USRBUF **ppb, unsigned int size);
-	EXTERN_C char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare);
-	EXTERN_C char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare);
-	EXTERN_C USRBUF *sysf_ditto_pkt(USRBUF *);
-	EXTERN_C USRBUF *sysf_copy_pkt(USRBUF *dup_me);
-	EXTERN_C char *sysf_data_in_mid(USRBUF *pb,
+	char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
+	char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
+	void sysf_remove_from_end(USRBUF *pb, unsigned int size);
+	char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
+	void sysf_remove_from_start(USRBUF **ppb, unsigned int size);
+	char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare);
+	char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare);
+	USRBUF *sysf_ditto_pkt(USRBUF *);
+	USRBUF *sysf_copy_pkt(USRBUF *dup_me);
+	char *sysf_data_in_mid(USRBUF *pb,
 						    unsigned int offset,
 						    unsigned int size, char *spare, unsigned int copy_flag);
-	EXTERN_C char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata);
-	EXTERN_C char *sysf_insert_in_mid(USRBUF *pb,
+	char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata);
+	char *sysf_insert_in_mid(USRBUF *pb,
 						      unsigned int offset, unsigned int size, char *ins_data);
-	EXTERN_C unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_sz, SYSF_UBQ *q);
-	EXTERN_C void sysf_append_data(USRBUF *p1, USRBUF *p2);
-	EXTERN_C USRBUF *sysf_ubq_dq_head(SYSF_UBQ *q);
-	EXTERN_C void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
-	EXTERN_C USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
+	unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_sz, SYSF_UBQ *q);
+	void sysf_append_data(USRBUF *p1, USRBUF *p2);
+	USRBUF *sysf_ubq_dq_head(SYSF_UBQ *q);
+	void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
+	USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
 
-	EXTERN_C uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
-	EXTERN_C USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
+	uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
+	USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
 
 /** Computational routines **/
-	EXTERN_C uns32 sysf_get_chain_len(const USRBUF *);
-	EXTERN_C void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
+	uns32 sysf_get_chain_len(const USRBUF *);
+	void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
 
-	EXTERN_C void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
+	void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 
-	EXTERN_C uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
+	uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
 
-	EXTERN_C uns32 sysf_pick_output(char *str, char *fname);
+	uns32 sysf_pick_output(char *str, char *fname);
 
 #ifdef  __cplusplus
 }

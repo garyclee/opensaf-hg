@@ -27,17 +27,17 @@ uns32 FUNC_NAME(CPSV_CKPT_RDSET) ();
 uns32 FUNC_NAME(CPSV_CKPT_DEST_INFO) ();
 uns32 FUNC_NAME(CPD_A2S_CKPT_USR_INFO) ();
 
-EXTERN_C uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-EXTERN_C uns32 cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+uns32 cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg);
 
-EXTERN_C uns32 cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
-EXTERN_C uns32 cpd_mbcsv_init(CPD_CB *cb);
-EXTERN_C uns32 cpd_mbcsv_open(CPD_CB *cb);
-EXTERN_C uns32 cpd_mbcsv_selobj_get(CPD_CB *cb);
-EXTERN_C uns32 cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-EXTERN_C uns32 cpd_mbcsv_register(CPD_CB *cb);
-EXTERN_C uns32 cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
-EXTERN_C uns32 cpd_mbcsv_finalize(CPD_CB *cb);
-EXTERN_C uns32 cpd_mbcsv_chgrole(CPD_CB *cb);
+uns32 cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
+uns32 cpd_mbcsv_init(CPD_CB *cb);
+uns32 cpd_mbcsv_open(CPD_CB *cb);
+uns32 cpd_mbcsv_selobj_get(CPD_CB *cb);
+uns32 cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+uns32 cpd_mbcsv_register(CPD_CB *cb);
+uns32 cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
+uns32 cpd_mbcsv_finalize(CPD_CB *cb);
+uns32 cpd_mbcsv_chgrole(CPD_CB *cb);
 
 #endif

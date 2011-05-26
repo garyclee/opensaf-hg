@@ -54,10 +54,10 @@ typedef struct glnd_tmr {
 
 /*** Extern function declarations ***/
 
-EXTERN_C void glnd_tmr_exp(void *);
+void glnd_tmr_exp(void *);
 
-EXTERN_C uns32 glnd_start_tmr(struct glnd_cb_tag *, GLND_TMR *, GLND_TMR_TYPE, SaTimeT, uns32);
+uns32 glnd_start_tmr(struct glnd_cb_tag *, GLND_TMR *, GLND_TMR_TYPE, SaTimeT, uns32);
 
-EXTERN_C void glnd_stop_tmr(GLND_TMR *);
+void glnd_stop_tmr(GLND_TMR *);
 
 #endif   /* !GLND_TMR_H */

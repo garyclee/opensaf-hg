@@ -552,9 +552,9 @@ typedef struct plms_epath_to_entity_map_info
 
 
 
-EXTERN_C PLMS_CB *plms_cb;
-EXTERN_C HSM_HA_STATE hsm_ha_state;
-EXTERN_C HRB_HA_STATE hrb_ha_state;
+PLMS_CB *plms_cb;
+HSM_HA_STATE hsm_ha_state;
+HRB_HA_STATE hrb_ha_state;
 
 typedef SaUint32T (*PLMS_ADM_FUNC_PTR) (PLMS_EVT *);
 typedef SaUint32T (*PLMS_PRES_FUNC_PTR) (PLMS_EVT *);
@@ -601,51 +601,51 @@ extern uns32 plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                         NCSCONTEXT ptr, uns32 *ptr_data_len,
 	                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 			         EDU_ERR *o_err);
-EXTERN_C SaUint32T plms_amf_register();
-EXTERN_C SaUint32T plms_mds_register();
-EXTERN_C void plms_mds_unregister();
-EXTERN_C SaUint32T plms_mds_change_role();
-EXTERN_C SaUint32T plms_mds_enc(MDS_CALLBACK_ENC_INFO *info, EDU_HDL *edu_hdl);
-EXTERN_C SaUint32T plms_mds_dec(MDS_CALLBACK_DEC_INFO *info, EDU_HDL *edu_hdl);
-EXTERN_C SaUint32T plms_mds_enc_flat(struct ncsmds_callback_info *, EDU_HDL *);
-EXTERN_C SaUint32T plms_mds_dec_flat(struct ncsmds_callback_info *, EDU_HDL *);
-EXTERN_C SaUint32T plm_send_mds_rsp(MDS_HDL mds_hdl,
+SaUint32T plms_amf_register();
+SaUint32T plms_mds_register();
+void plms_mds_unregister();
+SaUint32T plms_mds_change_role();
+SaUint32T plms_mds_enc(MDS_CALLBACK_ENC_INFO *info, EDU_HDL *edu_hdl);
+SaUint32T plms_mds_dec(MDS_CALLBACK_DEC_INFO *info, EDU_HDL *edu_hdl);
+SaUint32T plms_mds_enc_flat(struct ncsmds_callback_info *, EDU_HDL *);
+SaUint32T plms_mds_dec_flat(struct ncsmds_callback_info *, EDU_HDL *);
+SaUint32T plm_send_mds_rsp(MDS_HDL mds_hdl,
                         NCSMDS_SVC_ID  from_svc,
 			PLMS_SEND_INFO *s_info,
 			PLMS_EVT       *evt);
-EXTERN_C void  plms_cb_dump_routine();
-EXTERN_C SaUint32T  plms_free_evt(PLMS_EVT *evt);
-EXTERN_C SaUint32T plms_cbk_validate_resp_ok_err_proc(PLMS_TRACK_INFO *);
-EXTERN_C SaUint32T plms_cbk_start_resp_ok_err_proc(PLMS_TRACK_INFO *);
+void  plms_cb_dump_routine();
+SaUint32T  plms_free_evt(PLMS_EVT *evt);
+SaUint32T plms_cbk_validate_resp_ok_err_proc(PLMS_TRACK_INFO *);
+SaUint32T plms_cbk_start_resp_ok_err_proc(PLMS_TRACK_INFO *);
 uns32 plms_mds_normal_send(MDS_HDL, NCSMDS_SVC_ID,NCSCONTEXT, MDS_DEST,
 						NCSMDS_SVC_ID);
-EXTERN_C SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
+SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
 					SaUint32T from_svc,
 					SaUint32T to_svc,
 					MDS_DEST    to_dest,
 					PLMS_HPI_REQ *i_evt,
 					PLMS_HPI_RSP **o_evt,
 					SaUint32T timeout);
-EXTERN_C SaUint32T plms_proc_standby_active_role_change();
-EXTERN_C void plms_proc_quiesced_standby_role_change();
-EXTERN_C void plms_proc_quiesced_active_role_change();
-EXTERN_C void plms_proc_active_quiesced_role_change();
-EXTERN_C SaUint32T plms_proc_quiesced_ack_evt();
-EXTERN_C SaUint32T plms_imm_intf_initialize();
-EXTERN_C void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state);
-EXTERN_C SaUint32T convert_string_to_epath(SaInt8T *epath_str,
+SaUint32T plms_proc_standby_active_role_change();
+void plms_proc_quiesced_standby_role_change();
+void plms_proc_quiesced_active_role_change();
+void plms_proc_active_quiesced_role_change();
+SaUint32T plms_proc_quiesced_ack_evt();
+SaUint32T plms_imm_intf_initialize();
+void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state);
+SaUint32T convert_string_to_epath(SaInt8T *epath_str,
                                       SaHpiEntityPathT *epath_ptr);
-EXTERN_C void plms_ee_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[]
+void plms_ee_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_EE_adm_state_op[]
                                                 [SA_PLM_ADMIN_OP_MAX]);
-EXTERN_C void plms_he_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[]
+void plms_he_adm_fsm_init(PLMS_ADM_FUNC_PTR plm_HE_adm_state_op[]
                                                 [SA_PLM_ADMIN_OP_MAX]);
-EXTERN_C void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
+void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
                                                 [SA_PLM_HPI_HE_PRES_STATE_MAX]);
-EXTERN_C SaUint32T plms_tmr_handler_install();
-EXTERN_C SaUint32T plms_hsm_hrb_init();
+SaUint32T plms_tmr_handler_install();
+SaUint32T plms_hsm_hrb_init();
 
-EXTERN_C SaUint64T  plm_handle_pool;
-EXTERN_C SaUint64T  entity_grp_hdl_pool;
-EXTERN_C void plm_imm_reinit_bg(PLMS_CB *cb);
-EXTERN_C SaUint32T plms_build_epath_to_entity_map_tree();
+SaUint64T  plm_handle_pool;
+SaUint64T  entity_grp_hdl_pool;
+void plm_imm_reinit_bg(PLMS_CB *cb);
+SaUint32T plms_build_epath_to_entity_map_tree();
 #endif   /* PLMS_H */

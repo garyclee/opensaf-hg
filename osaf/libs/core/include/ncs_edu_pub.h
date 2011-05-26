@@ -309,35 +309,35 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 /************* EDU EXTERNAL API (to Service Users) *************/
 
 /************ EDU external macro-related functions. ************/
-	EXTERN_C uns32
+	uns32
 	 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET prog[],
 			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
 			   EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count);
 
-	EXTERN_C 
+	
 	    uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
 				      EDU_HDL_NODE **p_hdl_node, EDU_ERR *o_err);
 
-	EXTERN_C uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
+	uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
 
-	EXTERN_C uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
+	uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
 
 #if 0
-	EXTERN_C uns32
+	uns32
 	 ncs_edu_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 		      EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 #endif
 
-	EXTERN_C uns32
+	uns32
 	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
 			  uns8 var_cnt, ...);
 
-	EXTERN_C uns32
+	uns32
 	 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp,
 			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 
-	EXTERN_C void ncs_edu_print_error_string(int enum_val);
+	void ncs_edu_print_error_string(int enum_val);
 /************ EDU external macro-related functions. ************/
 
 /************* NCS Built-in EDU Program Prototypes *************/

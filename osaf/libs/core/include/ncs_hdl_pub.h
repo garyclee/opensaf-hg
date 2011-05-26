@@ -79,20 +79,20 @@ extern "C" {
  *
  ***************************************************************************/
 
-	EXTERN_C uns32 ncshm_init(void);
+	uns32 ncshm_init(void);
 
-	EXTERN_C void ncshm_delete(void);
+	void ncshm_delete(void);
 
 /* p_id is the pool ID from where the handles would be created from. */
-	EXTERN_C uns32 ncshm_create_hdl(uns8 p_id, NCS_SERVICE_ID id, NCSCONTEXT save);
+	uns32 ncshm_create_hdl(uns8 p_id, NCS_SERVICE_ID id, NCSCONTEXT save);
 
-	EXTERN_C uns32 ncshm_declare_hdl(uns32 hdl, NCS_SERVICE_ID id, NCSCONTEXT save);
+	uns32 ncshm_declare_hdl(uns32 hdl, NCS_SERVICE_ID id, NCSCONTEXT save);
 
-	EXTERN_C NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 hdl);
+	NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 hdl);
 
-	EXTERN_C NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 hdl);
+	NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 hdl);
 
-	EXTERN_C void ncshm_give_hdl(uns32 hdl);
+	void ncshm_give_hdl(uns32 hdl);
 
 /************************************************************************/
 /* NCSLPG_OBJ - this structure is embedded in known, persistent thing    */
@@ -110,10 +110,10 @@ extern "C" {
  *
  ***************************************************************************/
 
-	EXTERN_C NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg);
-	EXTERN_C uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret);
-	EXTERN_C uns32 ncslpg_create(NCSLPG_OBJ *pg);
-	EXTERN_C NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg);
+	NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg);
+	uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret);
+	uns32 ncslpg_create(NCSLPG_OBJ *pg);
+	NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg);
 
 #ifdef  __cplusplus
 }

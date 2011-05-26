@@ -96,10 +96,10 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	EXTERN_C uns32 decode_32bitOS_inc(uns8 **stream);
-	EXTERN_C uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
-	EXTERN_C uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
-	EXTERN_C uns16 decode_16bitOS_inc(uns8 **stream);
+	uns32 decode_32bitOS_inc(uns8 **stream);
+	uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
+	uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
+	uns16 decode_16bitOS_inc(uns8 **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
 #define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)
@@ -191,7 +191,7 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **/
 #define sysf_time_stamp  ncs_time_stamp()
 
-	EXTERN_C time_t ncs_time_stamp(void);
+	time_t ncs_time_stamp(void);
 
 /*****************************************************************************
  **                                                                         **
@@ -337,8 +337,8 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **                                                                         **
  ****************************************************************************/
 
-	EXTERN_C int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
-	EXTERN_C int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
+	int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
+	int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
 
 #ifdef  __cplusplus
 }
@@ -348,7 +348,7 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **             LEAP ENVIRONMENT INITIALIZATION AND CLEAN UP                **
  **                                                                         **
  ****************************************************************************/
-    EXTERN_C uns32 leap_env_init(void);
-EXTERN_C uns32 leap_env_destroy(void);
+    uns32 leap_env_init(void);
+uns32 leap_env_destroy(void);
 
 #endif

@@ -53,29 +53,29 @@ extern "C" {
                     (etc.)
 
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_agents_startup(void);
+	unsigned int ncs_agents_startup(void);
 
 /***********************************************************************\
    ncs_agents_shutdown: This function shutdown agents. 
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_agents_shutdown(void);
+	unsigned int ncs_agents_shutdown(void);
 
 /***********************************************************************\
    Individual agents startup and shutdown functions  
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_core_agents_startup(void);
-	EXTERN_C unsigned int ncs_mbca_startup(void);
+	unsigned int ncs_core_agents_startup(void);
+	unsigned int ncs_mbca_startup(void);
 
-	EXTERN_C unsigned int ncs_leap_startup(void);
-	EXTERN_C unsigned int ncs_mds_startup(void);
-	EXTERN_C unsigned int ncs_dta_startup(void);
+	unsigned int ncs_leap_startup(void);
+	unsigned int ncs_mds_startup(void);
+	unsigned int ncs_dta_startup(void);
 
-	EXTERN_C unsigned int ncs_mbca_shutdown(void);
-	EXTERN_C unsigned int ncs_core_agents_shutdown(void);
+	unsigned int ncs_mbca_shutdown(void);
+	unsigned int ncs_core_agents_shutdown(void);
 
-	EXTERN_C void ncs_dta_shutdown(void);
-	EXTERN_C void ncs_mds_shutdown(void);
-	EXTERN_C void ncs_leap_shutdown(void);
+	void ncs_dta_shutdown(void);
+	void ncs_mds_shutdown(void);
+	void ncs_leap_shutdown(void);
 
 #define m_NCS_GET_CHASSIS_TYPE(i_max_len, o_chassis_type )\
                          ncs_get_chassis_type( i_max_len, o_chassis_type )
@@ -113,7 +113,7 @@ Description:
              characters comprising the chassis-type string followed by a  
              newline character.)
 \***********************************************************************/
-	EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type);
+	uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type);
 
 /* Excluding null character byte for string termination */
 #define NCS_MAX_CHASSIS_TYPE_LEN  (40)
@@ -153,7 +153,7 @@ Description:
  Notes         :  None.
  ******************************************************************************/
 
-	EXTERN_C uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id,
+	uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id,
 						   NCS_PHY_SLOT_ID i_phy_slot_id,
 						   NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id);
 
@@ -176,7 +176,7 @@ Description:
 
   Notes         :  None.
 ******************************************************************************/
-	EXTERN_C uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
+	uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
 						   NCS_CHASSIS_ID *o_chassis_id,
 						   NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 

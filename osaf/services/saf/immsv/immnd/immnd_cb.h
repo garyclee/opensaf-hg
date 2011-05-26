@@ -160,21 +160,21 @@ typedef struct immnd_cb_tag {
 } IMMND_CB;
 
 /* CB prototypes */
-EXTERN_C IMMND_CB *immnd_cb_create(uns32 pool_id);
-EXTERN_C NCS_BOOL immnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-EXTERN_C uns32 immnd_cb_destroy(IMMND_CB *immnd_cb);
-EXTERN_C void immnd_dump_cb(IMMND_CB *immnd_cb);
+IMMND_CB *immnd_cb_create(uns32 pool_id);
+NCS_BOOL immnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+uns32 immnd_cb_destroy(IMMND_CB *immnd_cb);
+void immnd_dump_cb(IMMND_CB *immnd_cb);
 
-EXTERN_C uns32 immnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
+uns32 immnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
 
-EXTERN_C void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
-EXTERN_C void immnd_client_node_getnext(IMMND_CB *cb,
+void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
+void immnd_client_node_getnext(IMMND_CB *cb,
 					SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
-EXTERN_C uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
-EXTERN_C uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
-EXTERN_C uns32 immnd_client_node_tree_init(IMMND_CB *cb);
-EXTERN_C void immnd_client_node_tree_cleanup(IMMND_CB *cb);
-EXTERN_C void immnd_client_node_tree_destroy(IMMND_CB *cb);
+uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uns32 immnd_client_node_tree_init(IMMND_CB *cb);
+void immnd_client_node_tree_cleanup(IMMND_CB *cb);
+void immnd_client_node_tree_destroy(IMMND_CB *cb);
 
 /*
   #define m_IMMSV_CONVERT_EXPTIME_TEN_MILLI_SEC(t) \

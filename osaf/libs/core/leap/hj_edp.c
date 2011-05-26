@@ -36,7 +36,7 @@
 #include "sysf_def.h"
 #include "ncs_ubaid.h"
 
-EXTERN_C char gl_log_string[];
+extern char gl_log_string[];
 
 /*****************************************************************************
 

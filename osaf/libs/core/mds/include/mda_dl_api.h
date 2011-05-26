@@ -32,6 +32,6 @@
                    The MDA module implements the ADA/VDA APIs defined
                    in ncs_mda_papi.h
 \***********************************************************************/
-EXTERN_C uns32 mda_lib_req(NCS_LIB_REQ_INFO *req);
+uns32 mda_lib_req(NCS_LIB_REQ_INFO *req);
 
 #endif

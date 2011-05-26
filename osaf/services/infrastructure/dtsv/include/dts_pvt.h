@@ -142,7 +142,7 @@ extern uns32 gl_severity_filter;	/* To allow manipulat at init-time */
 typedef struct ascii_spec_lib {
 	NCS_PATRICIA_NODE libname_node;
 	char lib_name[255];
-	NCS_OS_DLIB_HDL *lib_hdl;
+	void *lib_hdl;
 	uns32 use_count;
 } ASCII_SPEC_LIB;
 
@@ -543,7 +543,7 @@ typedef struct dts_cb {
 
 } DTS_CB;
 
-EXTERN_C DTS_CB dts_cb;
+DTS_CB dts_cb;
 
 /* Macro to get file name, can be used during logging */
 #define m_DTS_LOG_FILE_NAME(dev)  dev->log_file_list.tail->file_name
@@ -880,100 +880,100 @@ typedef enum {
 DTS tasking loop function
 *************************************************************************/
 
-EXTERN_C void dts_do_evts(SYSF_MBX *mbx);
-EXTERN_C uns32 dts_do_evt(DTSV_MSG *msg);
+void dts_do_evts(SYSF_MBX *mbx);
+uns32 dts_do_evt(DTSV_MSG *msg);
 
 /************************************************************************
 DTSv Message Processing functions
 ************************************************************************/
-EXTERN_C uns32 dts_handle_signal(void);
-EXTERN_C uns32 dts_handle_dta_event(DTSV_MSG *msg);
-EXTERN_C uns32 dts_handle_immnd_event(DTSV_MSG *msg);
-EXTERN_C uns32 dts_register_service(DTSV_MSG *msg);
-EXTERN_C uns32 dts_unregister_service(DTSV_MSG *msg);
-EXTERN_C uns32 dts_log_data(DTSV_MSG *msg);
+uns32 dts_handle_signal(void);
+uns32 dts_handle_dta_event(DTSV_MSG *msg);
+uns32 dts_handle_immnd_event(DTSV_MSG *msg);
+uns32 dts_register_service(DTSV_MSG *msg);
+uns32 dts_unregister_service(DTSV_MSG *msg);
+uns32 dts_log_data(DTSV_MSG *msg);
 
-EXTERN_C uns32 dts_log_my_data(DTSV_MSG *msg);
-EXTERN_C uns32 dts_close_opened_files(void);
-EXTERN_C uns32 dts_close_files_quiesced(void);
+uns32 dts_log_my_data(DTSV_MSG *msg);
+uns32 dts_close_opened_files(void);
+uns32 dts_close_files_quiesced(void);
 
 /************************************************************************
 DTSv Message logging policy functions
 ************************************************************************/
-EXTERN_C void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy);
-EXTERN_C void dts_global_policy_set(GLOBAL_POLICY *gpolicy);
-EXTERN_C void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service);
-EXTERN_C void dts_default_node_policy_set(POLICY *policy, OP_DEVICE *device, uns32 node_id);
+void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy);
+void dts_global_policy_set(GLOBAL_POLICY *gpolicy);
+void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service);
+void dts_default_node_policy_set(POLICY *policy, OP_DEVICE *device, uns32 node_id);
 
-EXTERN_C uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type);
-EXTERN_C uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_type, NCSFL_ASCII_SPEC *spec);
-EXTERN_C uns32
+uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type);
+uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_type, NCSFL_ASCII_SPEC *spec);
+uns32
 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level);
 
 /************************************************************************
 DTSv Circular buffer functions.
 ************************************************************************/
-EXTERN_C uns32 dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uns32 buffer_size);
-EXTERN_C uns32 dts_circular_buffer_free(CIR_BUFFER *cir_buff);
-EXTERN_C uns32 dts_circular_buffer_clear(CIR_BUFFER *cir_buff);
-EXTERN_C uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff);
-EXTERN_C uns32 dts_dump_to_cir_buffer(CIR_BUFFER *buffer, char *str);
-EXTERN_C uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file);
-EXTERN_C uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size);
-EXTERN_C uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size);
-EXTERN_C uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uns32 number);
+uns32 dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uns32 buffer_size);
+uns32 dts_circular_buffer_free(CIR_BUFFER *cir_buff);
+uns32 dts_circular_buffer_clear(CIR_BUFFER *cir_buff);
+uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff);
+uns32 dts_dump_to_cir_buffer(CIR_BUFFER *buffer, char *str);
+uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file);
+uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size);
+uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size);
+uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uns32 number);
 
 /************************************************************************
 DTSv Message Sequencing functions.
 ************************************************************************/
-EXTERN_C void dts_sort_msgs(SEQ_ARRAY *msg_seq, uns32 array_size);
-EXTERN_C void dts_sift_down(SEQ_ARRAY *msg_seq, uns32 root, uns32 bottom);
-EXTERN_C void dts_cpy_seq_struct(SEQ_ARRAY *dst, SEQ_ARRAY *src);
-EXTERN_C uns32 dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg);
-EXTERN_C uns32 dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all);
-EXTERN_C uns32 dts_enable_sequencing(DTS_CB *inst);
-EXTERN_C uns32 dts_disable_sequencing(DTS_CB *inst);
-EXTERN_C uns32 dts_free_msg_content(NCSFL_NORMAL *msg);
+void dts_sort_msgs(SEQ_ARRAY *msg_seq, uns32 array_size);
+void dts_sift_down(SEQ_ARRAY *msg_seq, uns32 root, uns32 bottom);
+void dts_cpy_seq_struct(SEQ_ARRAY *dst, SEQ_ARRAY *src);
+uns32 dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg);
+uns32 dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all);
+uns32 dts_enable_sequencing(DTS_CB *inst);
+uns32 dts_disable_sequencing(DTS_CB *inst);
+uns32 dts_free_msg_content(NCSFL_NORMAL *msg);
 
 
 /************************************************************************
 Basic DTS Layer Management Service entry points off std LM API
 *************************************************************************/
 
-EXTERN_C uns32 dts_svc_create(DTS_CREATE *create);
-EXTERN_C uns32 dts_svc_destroy(DTS_DESTROY *destroy);
+uns32 dts_svc_create(DTS_CREATE *create);
+uns32 dts_svc_destroy(DTS_DESTROY *destroy);
 
 /*****************************************************************************
 * Patricia deletion functions
 ******************************************************************************/
-EXTERN_C uns32 dtsv_clear_asciispec_tree(DTS_CB *cb);
-EXTERN_C uns32 dtsv_clear_libname_tree(DTS_CB *cb);
+uns32 dtsv_clear_asciispec_tree(DTS_CB *cb);
+uns32 dtsv_clear_libname_tree(DTS_CB *cb);
 
 /*****************************************************************************
 * Flex log log
 ******************************************************************************/
-EXTERN_C void log_my_msg(NCSFL_NORMAL *lmsg, DTS_CB *inst);
+void log_my_msg(NCSFL_NORMAL *lmsg, DTS_CB *inst);
 
 #define m_NCS_DTS_LOG(m, i)       log_my_msg(m, i)
 
 /*****************************************************************************
 * DTS configured console opening 
 ******************************************************************************/
-EXTERN_C int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str);
+int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str);
 
 
 /************************************************************************
 DTS fail over related 
 *************************************************************************/
-EXTERN_C uns32 dts_handle_fail_over(void);
-EXTERN_C uns32 dts_chk_file_size(char *file);
-EXTERN_C uns32 dts_fail_over_enc_msg(DTSV_MSG *mm);
-EXTERN_C uns32 dts_stby_update_dta_config(void);
+uns32 dts_handle_fail_over(void);
+uns32 dts_chk_file_size(char *file);
+uns32 dts_fail_over_enc_msg(DTSV_MSG *mm);
+uns32 dts_stby_update_dta_config(void);
 
 /************************************************************************
 Function to clear svc registration and associated datastructures 
 *************************************************************************/
-EXTERN_C void dtsv_clear_registration_table(DTS_CB *inst);
+void dtsv_clear_registration_table(DTS_CB *inst);
 
 /************************************************************************
 MDS bindary stuff for DTS
@@ -984,95 +984,95 @@ MDS bindary stuff for DTS
 #define DTS_MDS_MIN_MSG_FMAT_VER_SUPPORT 1
 #define DTS_MDS_MAX_MSG_FMAT_VER_SUPPORT 2
 
-EXTERN_C uns32 dts_mds_reg(DTS_CB *cb);
+uns32 dts_mds_reg(DTS_CB *cb);
 
-/*EXTERN_C uns32 dts_mds_change_role(V_DEST_RL role);*/
-EXTERN_C uns32 dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role);
+/*uns32 dts_mds_change_role(V_DEST_RL role);*/
+uns32 dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role);
 
-EXTERN_C void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install);
+void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install);
 
-EXTERN_C uns32 dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl);
+uns32 dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl);
 
-EXTERN_C uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
+uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
 
-EXTERN_C uns32 dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
+uns32 dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
 
-EXTERN_C void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
+void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
 
-EXTERN_C void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down);
+void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down);
 
-EXTERN_C uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba,
 			   MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-EXTERN_C uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
 
-EXTERN_C uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 			   NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
-EXTERN_C uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa);
+uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa);
 
-EXTERN_C uns32 dts_log_str_decode(NCS_UBAID *uba, char **str);
+uns32 dts_log_str_decode(NCS_UBAID *uba, char **str);
 
-EXTERN_C uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
+uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
-EXTERN_C NCS_BOOL dts_find_reg(void *key, void *qelem);
+NCS_BOOL dts_find_reg(void *key, void *qelem);
 
-EXTERN_C uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
+uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
 
-EXTERN_C NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key);
-EXTERN_C NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key);
+NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key);
+NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key);
 
-EXTERN_C void dts_log_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy);
+void dts_log_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy);
 
-EXTERN_C void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy);
+void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy);
 
-EXTERN_C uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst,
+uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst,
 						DTS_SVC_REG_TBL *service,
 						unsigned int param_id, uns32 node_id, SS_SVC_ID svc_id);
 
-EXTERN_C uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value);
+uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value);
 
-EXTERN_C uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value);
+uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value);
 
 /************************************************************************
  Funtions to add/delete elements from the linked-list of services for DTA
 ************************************************************************/
-EXTERN_C void dts_add_svc_to_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc);
-EXTERN_C NCSCONTEXT dts_del_svc_frm_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc);
+void dts_add_svc_to_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc);
+NCSCONTEXT dts_del_svc_frm_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc);
 
 /************************************************************************
  Funtions to add/delete/find elements from the linked-list of dta for svc_reg
 ************************************************************************/
-EXTERN_C void dts_enqueue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
-EXTERN_C NCSCONTEXT dts_dequeue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
-EXTERN_C NCSCONTEXT dts_find_dta(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
+void dts_enqueue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
+NCSCONTEXT dts_dequeue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
+NCSCONTEXT dts_find_dta(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
 
 /************************************************************************
  Funtions to delete/find elements from the spec list of svc_reg_tbl
 ************************************************************************/
-EXTERN_C NCSCONTEXT dts_find_spec(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
-EXTERN_C NCSCONTEXT dts_find_spec_entry(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
-EXTERN_C uns32 dts_del_spec_frm_svc(DTS_SVC_REG_TBL *svc, MDS_DEST dta_addr, SPEC_CKPT *ver);
+NCSCONTEXT dts_find_spec(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
+NCSCONTEXT dts_find_spec_entry(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key);
+uns32 dts_del_spec_frm_svc(DTS_SVC_REG_TBL *svc, MDS_DEST dta_addr, SPEC_CKPT *ver);
 
 /************************************************************************
  Funtions to print the Patricia Tree contents 
 ************************************************************************/
-EXTERN_C void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp);
-EXTERN_C void dts_print_cb(DTS_CB *cb, FILE *fp);
-EXTERN_C void dts_print_cb_dbg(void);
-EXTERN_C void dts_print_dta_dest_pat(void);
-EXTERN_C void dts_print_reg_tbl_dbg(void);
-EXTERN_C void dts_print_next_svc_dta_list(NCS_PATRICIA_TREE *node, SVC_KEY *key);
-EXTERN_C void dts_printall_svc_per_node(uns32 node_id);
-EXTERN_C uns32 dts_print_current_config(DTS_CB *cb);
+void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp);
+void dts_print_cb(DTS_CB *cb, FILE *fp);
+void dts_print_cb_dbg(void);
+void dts_print_dta_dest_pat(void);
+void dts_print_reg_tbl_dbg(void);
+void dts_print_next_svc_dta_list(NCS_PATRICIA_TREE *node, SVC_KEY *key);
+void dts_printall_svc_per_node(uns32 node_id);
+uns32 dts_print_current_config(DTS_CB *cb);
 
 /************************************************************************
 * DTS ascii_spec reload 
 ************************************************************************/
-EXTERN_C uns32 dts_ascii_spec_reload(DTS_CB *cb);
+uns32 dts_ascii_spec_reload(DTS_CB *cb);
 
 /************************************************************************
 * Defines used for converting the log data into strings 

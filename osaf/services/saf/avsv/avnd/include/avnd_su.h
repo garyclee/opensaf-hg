@@ -350,42 +350,42 @@ typedef struct avnd_su_tag {
 
 struct avnd_cb_tag;
 
-EXTERN_C uns32 avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, AVND_COMP *, AVND_SU_PRES_FSM_EV);
+uns32 avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, AVND_COMP *, AVND_SU_PRES_FSM_EV);
 
-EXTERN_C uns32 avnd_sudb_init(struct avnd_cb_tag *);
-EXTERN_C uns32 avnd_sudb_destroy(struct avnd_cb_tag *);
-EXTERN_C AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uns32 *);
-EXTERN_C uns32 avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
+uns32 avnd_sudb_init(struct avnd_cb_tag *);
+uns32 avnd_sudb_destroy(struct avnd_cb_tag *);
+AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uns32 *);
+uns32 avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
 
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
-EXTERN_C uns32 avnd_su_si_all_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_add(struct avnd_cb_tag *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc);
-EXTERN_C uns32 avnd_su_si_rec_del(struct avnd_cb_tag *, SaNameT *, SaNameT *);
-EXTERN_C uns32 avnd_su_si_del(struct avnd_cb_tag *, SaNameT *);
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
-EXTERN_C uns32 avnd_su_si_msg_prc(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
+AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
+uns32 avnd_su_si_all_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
+AVND_SU_SI_REC *avnd_su_si_rec_add(struct avnd_cb_tag *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc);
+uns32 avnd_su_si_rec_del(struct avnd_cb_tag *, SaNameT *, SaNameT *);
+uns32 avnd_su_si_del(struct avnd_cb_tag *, SaNameT *);
+AVND_SU_SI_REC *avnd_su_si_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
+uns32 avnd_su_si_msg_prc(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
 
-EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_add(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
-EXTERN_C void avnd_su_siq_rec_del(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SIQ_REC *);
-EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
-EXTERN_C uns32 avnd_su_siq_prc(struct avnd_cb_tag *, AVND_SU *);
+AVND_SU_SIQ_REC *avnd_su_siq_rec_add(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
+void avnd_su_siq_rec_del(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SIQ_REC *);
+AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
+uns32 avnd_su_siq_prc(struct avnd_cb_tag *, AVND_SU *);
 
-EXTERN_C uns32 avnd_su_si_assign(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_su_si_remove(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_su_si_oper_done(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+uns32 avnd_su_si_assign(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+uns32 avnd_su_si_remove(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+uns32 avnd_su_si_oper_done(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
 
-EXTERN_C uns32 avnd_su_si_unmark(struct avnd_cb_tag *, AVND_SU *);
-EXTERN_C uns32 avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
-EXTERN_C uns32 avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
+uns32 avnd_su_si_unmark(struct avnd_cb_tag *, AVND_SU *);
+uns32 avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+uns32 avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
+uns32 avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-EXTERN_C void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL);
-EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
+void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL);
+AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
 							 AVND_SU *su,
 							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uns32 *rc);
-EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
+uns32 avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
 					    AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec);
-EXTERN_C uns32 avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
+uns32 avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern uns32 avnd_evt_su_admin_op_req(struct avnd_cb_tag *cb, struct avnd_evt_tag  *evt);
 extern struct avnd_comp_csi_rec *avnd_su_si_csi_rec_add(struct avnd_cb_tag *, AVND_SU *,
                                                  struct avnd_su_si_rec *, struct avsv_susi_asgn *, uns32 *);

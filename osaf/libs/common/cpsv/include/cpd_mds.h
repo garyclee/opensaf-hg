@@ -33,18 +33,18 @@
 #ifndef CPD_MDS_H
 #define CPD_MDS_H
 
-EXTERN_C uns32 cpd_mds_callback(struct ncsmds_callback_info *info);
-EXTERN_C uns32 cpd_mds_register(CPD_CB *cb);
-EXTERN_C void cpd_mds_unregister(CPD_CB *cb);
-EXTERN_C uns32 cpd_mds_callback(struct ncsmds_callback_info *info);
-EXTERN_C uns32 cpd_mds_msg_sync_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest,
+uns32 cpd_mds_callback(struct ncsmds_callback_info *info);
+uns32 cpd_mds_register(CPD_CB *cb);
+void cpd_mds_unregister(CPD_CB *cb);
+uns32 cpd_mds_callback(struct ncsmds_callback_info *info);
+uns32 cpd_mds_msg_sync_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest,
 				     CPSV_EVT *i_evt, CPSV_EVT **o_evt, uns32 timeout);
 
-EXTERN_C uns32 cpd_mds_msg_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest, CPSV_EVT *evt);
+uns32 cpd_mds_msg_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest, CPSV_EVT *evt);
 
-EXTERN_C uns32 cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt);
+uns32 cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt);
 
-EXTERN_C uns32 cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc);
-EXTERN_C uns32 cpd_mds_vdest_create(CPD_CB *cb);
+uns32 cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc);
+uns32 cpd_mds_vdest_create(CPD_CB *cb);
 
 #endif   /* CPD_DL_API_H */

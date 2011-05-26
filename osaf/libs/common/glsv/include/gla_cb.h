@@ -132,9 +132,9 @@ void gla_client_tree_destroy(GLA_CB *gla_cb);
 void gla_client_tree_cleanup(GLA_CB *gla_cb);
 GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_id, NCS_BOOL flag);
 uns32 gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl);
-EXTERN_C GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_info, SaLckResourceIdT res_id,
+GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_info, SaLckResourceIdT res_id,
 							       NCS_BOOL flag);
-EXTERN_C uns32 gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info);
+uns32 gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info);
 
 /* queue prototypes */
 
@@ -169,10 +169,10 @@ GLA_LOCK_ID_INFO *gla_lock_tree_reverse_find(GLA_CB *gla_cb,
 void gla_lock_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle);
 void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info, SaLckHandleT handle);
 
-EXTERN_C uns32 gla_client_info_send(GLA_CB *gla_cb);
+uns32 gla_client_info_send(GLA_CB *gla_cb);
 
-EXTERN_C uns32 gla_start_tmr(GLA_TMR *tmr);
-EXTERN_C void gla_stop_tmr(GLA_TMR *tmr);
-EXTERN_C void gla_tmr_exp(NCSCONTEXT uarg);
+uns32 gla_start_tmr(GLA_TMR *tmr);
+void gla_stop_tmr(GLA_TMR *tmr);
+void gla_tmr_exp(NCSCONTEXT uarg);
 
 #endif

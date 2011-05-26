@@ -40,14 +40,14 @@
 #define NCSFL_LC_EDSV_CONTROL    0x00004000	/* EDSV Misc APIs logging */
 #define NCSFL_LC_EDSV_INIT       0x00002000	/* EDSV Registrations with other services */
 
-EXTERN_C uns32 eda_flx_log_ascii_set_reg(void);
-EXTERN_C uns32 eda_flx_log_ascii_set_dereg(void);
+uns32 eda_flx_log_ascii_set_reg(void);
+uns32 eda_flx_log_ascii_set_dereg(void);
 
-EXTERN_C uns32 eds_flx_log_ascii_set_reg(void);
-EXTERN_C uns32 eds_flx_log_ascii_set_dereg(void);
+uns32 eds_flx_log_ascii_set_reg(void);
+uns32 eds_flx_log_ascii_set_dereg(void);
 
-EXTERN_C uns32 eda_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 eds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 edsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 eda_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 eds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 edsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif

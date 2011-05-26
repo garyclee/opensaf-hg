@@ -68,9 +68,9 @@ typedef struct avsv_nd2nd_avnd_msg {
 
 } AVSV_ND2ND_AVND_MSG;
 
-EXTERN_C void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg);
-EXTERN_C uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
-EXTERN_C uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg);
+uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
+uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				 NCSCONTEXT ptr, uns32 *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 

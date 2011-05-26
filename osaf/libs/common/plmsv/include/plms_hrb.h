@@ -56,21 +56,21 @@ typedef struct plms_hrb_cb
 }PLMS_HRB_CB;
 
 
-EXTERN_C PLMS_HRB_CB *hrb_cb;
+PLMS_HRB_CB *hrb_cb;
 
 /* Function Declarations */
-EXTERN_C SaUint32T  plms_hrb_initialize(void);
-EXTERN_C SaUint32T  plms_hrb_finalize(void);
-EXTERN_C SaUint32T hrb_mds_initialize();
-EXTERN_C SaUint32T hrb_mds_finalize();
+SaUint32T  plms_hrb_initialize(void);
+SaUint32T  plms_hrb_finalize(void);
+SaUint32T hrb_mds_initialize();
+SaUint32T hrb_mds_finalize();
 
-EXTERN_C SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
+SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
 			SaUint32T from_svc,
 			SaUint32T to_svc,
 			MDS_DEST    to_dest,
 			PLMS_HPI_REQ *i_evt,
 			PLMS_HPI_RSP **o_evt,
 			SaUint32T timeout);
-EXTERN_C SaUint32T hrb_mds_msg_send(PLMS_HPI_RSP *response, MDS_SYNC_SND_CTXT context);
+SaUint32T hrb_mds_msg_send(PLMS_HPI_RSP *response, MDS_SYNC_SND_CTXT context);
 #endif   /* PLMS_HRB_H */
 

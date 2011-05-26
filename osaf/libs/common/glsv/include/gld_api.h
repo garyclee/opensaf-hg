@@ -17,9 +17,9 @@
 
 #ifndef GLD_API_H
 #define GLD_API_H
-EXTERN_C uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C void gld_process_mbx(SYSF_MBX *mbx);
+uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info);
+uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info);
+void gld_process_mbx(SYSF_MBX *mbx);
 
 uns32 gld_cb_init(GLSV_GLD_CB *gld_cb);
 uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb);

@@ -406,7 +406,7 @@ extern  ASAPi_CB asapi;
  This API is used by the USER of the ASAPi layer, who want's to use the ASAPi
  functionality. This is a SE API with diffrent request options. 
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-EXTERN_C uns32 asapi_opr_hdlr(struct asapi_opr_info *);
+uns32 asapi_opr_hdlr(struct asapi_opr_info *);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*\
                       MDS ENCODE/DECODE/COPY ROUTINES
@@ -414,16 +414,16 @@ EXTERN_C uns32 asapi_opr_hdlr(struct asapi_opr_info *);
  These routines are to be only used by MDS for Encoding / Decoding / Copying 
  ASAPi messages.
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-EXTERN_C void asapi_msg_enc(ASAPi_MSG_INFO *, NCS_UBAID *);
-EXTERN_C uns32 asapi_msg_dec(NCS_UBAID *, ASAPi_MSG_INFO **);
-EXTERN_C uns32 asapi_msg_cpy(ASAPi_MSG_INFO *, ASAPi_MSG_INFO **);
+void asapi_msg_enc(ASAPi_MSG_INFO *, NCS_UBAID *);
+uns32 asapi_msg_dec(NCS_UBAID *, ASAPi_MSG_INFO **);
+uns32 asapi_msg_cpy(ASAPi_MSG_INFO *, ASAPi_MSG_INFO **);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*\
                            ASAPi ROUTINES
         These routines are to be only used by ASAPi & MQSv internally
 \*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-EXTERN_C void asapi_msg_free(ASAPi_MSG_INFO **);
-EXTERN_C uns32 asapi_queue_select(ASAPi_GROUP_INFO *);
+void asapi_msg_free(ASAPi_MSG_INFO **);
+uns32 asapi_queue_select(ASAPi_GROUP_INFO *);
 
 /*
  * m_ASAPi_DBG_SINK
@@ -440,7 +440,7 @@ EXTERN_C uns32 asapi_queue_select(ASAPi_GROUP_INFO *);
 */
 #if (ASAPi_DEBUG == 1)
 
-EXTERN_C uns32 asapi_dbg_sink(uns32, char *, uns32);
+uns32 asapi_dbg_sink(uns32, char *, uns32);
 
 /* m_ASAPi_DBG_VOID() used to keep compiler happy @ void return functions */
 

@@ -81,10 +81,10 @@ typedef struct avd_tmr_tag {
 
 struct cl_cb_tag;
 
-EXTERN_C void avd_tmr_exp(void *);
+void avd_tmr_exp(void *);
 
-EXTERN_C uns32 avd_start_tmr(struct cl_cb_tag *, AVD_TMR *, SaTimeT);
+uns32 avd_start_tmr(struct cl_cb_tag *, AVD_TMR *, SaTimeT);
 
-EXTERN_C void avd_stop_tmr(struct cl_cb_tag *, AVD_TMR *);
+void avd_stop_tmr(struct cl_cb_tag *, AVD_TMR *);
 
 #endif

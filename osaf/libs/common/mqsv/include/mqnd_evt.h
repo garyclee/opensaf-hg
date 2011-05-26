@@ -18,7 +18,7 @@
 #ifndef MQND_EVT_H
 #define MQND_EVT_H
 
-EXTERN_C void mqnd_process_evt(MQSV_EVT *evt);
-EXTERN_C void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
+void mqnd_process_evt(MQSV_EVT *evt);
+void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
 
 #endif

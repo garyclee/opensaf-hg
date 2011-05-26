@@ -178,11 +178,11 @@ typedef struct avnd_evt_tag {
 
 struct avnd_cb_tag;
 
-EXTERN_C AVND_EVT *avnd_evt_create(struct avnd_cb_tag *, AVND_EVT_TYPE,
+AVND_EVT *avnd_evt_create(struct avnd_cb_tag *, AVND_EVT_TYPE,
 				   MDS_SYNC_SND_CTXT *, MDS_DEST *, void *, AVND_CLC_EVT *, AVND_COMP_FSM_EVT *);
 
-EXTERN_C void avnd_evt_destroy(AVND_EVT *);
+void avnd_evt_destroy(AVND_EVT *);
 
-EXTERN_C uns32 avnd_evt_send(struct avnd_cb_tag *, AVND_EVT *);
+uns32 avnd_evt_send(struct avnd_cb_tag *, AVND_EVT *);
 
 #endif   /* !AVND_EVT_H */

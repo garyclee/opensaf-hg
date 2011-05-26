@@ -31,7 +31,7 @@ static PLMA_CB _plma_cb;
 PLMA_CB   *plma_ctrlblk;
 
 uns32 plma_use_count = 0;
-EXTERN_C void plma_sync_with_plms(void);
+void plma_sync_with_plms(void);
 /** PLMA Agent creation specific LOCK */
 static uns32 plm_agent_lock_create = 0;
 NCS_LOCK plm_agent_lock;

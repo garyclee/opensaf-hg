@@ -33,6 +33,8 @@
   ncs_dtsv_ascii_spec_api      - ASCII spec registration SE API.
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
+#include <dlfcn.h>
+
 #include "dts.h"
 
 /*****************************************************************************
@@ -519,7 +521,7 @@ uns32 dtsv_clear_libname_tree(DTS_CB *cb)
 
 	while (NULL != (lib_entry = (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, NULL))) {
 		if (lib_entry->lib_hdl != NULL)
-			m_NCS_OS_DLIB_CLOSE(lib_entry->lib_hdl);
+			dlclose(lib_entry->lib_hdl);
 		ncs_patricia_tree_del(&cb->libname_asciispec_tree, (NCS_PATRICIA_NODE *)lib_entry);
 		m_MMGR_FREE_DTS_LIBNAME(lib_entry);
 	}

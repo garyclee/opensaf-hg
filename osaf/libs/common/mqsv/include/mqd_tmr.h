@@ -34,8 +34,8 @@ typedef struct mqd_tmr {
 	NCS_BOOL is_expired;
 } MQD_TMR;
 
-EXTERN_C uns32 mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);
-EXTERN_C void mqd_tmr_stop(MQD_TMR *tmr);
-EXTERN_C void mqd_timer_expiry(NCSCONTEXT uarg);
+uns32 mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);
+void mqd_tmr_stop(MQD_TMR *tmr);
+void mqd_timer_expiry(NCSCONTEXT uarg);
 
 #endif

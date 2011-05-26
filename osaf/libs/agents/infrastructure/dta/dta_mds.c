@@ -43,7 +43,7 @@
 #include "dta.h"
 #include "ncssysf_mem.h"
 
-EXTERN_C DTA_CB dta_cb;
+DTA_CB dta_cb;
 
 /****************************************************************************
  * Name          : dta_get_ada_hdl

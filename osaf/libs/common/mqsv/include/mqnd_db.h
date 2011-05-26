@@ -33,7 +33,7 @@
 #include <saClm.h>
 #include <saImmOi.h>
 /* Decleration for global variable */
-EXTERN_C uns32 gl_mqnd_cb_hdl;
+uns32 gl_mqnd_cb_hdl;
 
 /* Macros for reading global database */
 #define m_MQND_STORE_HDL(hdl) (gl_mqnd_cb_hdl = (hdl))
@@ -214,42 +214,42 @@ typedef struct mqnd_cb {
 
 /* Function Declerations */
 /* Queue name to Handle mapping database related functions */
-EXTERN_C void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
-EXTERN_C uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode);
-EXTERN_C uns32 mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode);
-EXTERN_C void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
+void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
+uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode);
+uns32 mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode);
+void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode);
 /* end */
 
-EXTERN_C void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
-EXTERN_C uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
-EXTERN_C uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
-EXTERN_C void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
-EXTERN_C void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
-EXTERN_C void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
-EXTERN_C uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
-EXTERN_C uns32 mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
-EXTERN_C uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
+void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
+uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode);
+void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
+void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode);
+uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
+uns32 mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node);
+uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
 
-EXTERN_C uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
+uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa);
 
 /* Functions from mqnd_mq.c */
-EXTERN_C uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info);
-EXTERN_C uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info);
-EXTERN_C uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info);
-EXTERN_C uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *i_msg, uns32 i_len);
-EXTERN_C uns32 mqnd_mq_empty(SaMsgQueueHandleT handle);
-EXTERN_C uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle);
+uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info);
+uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info);
+uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info);
+uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *i_msg, uns32 i_len);
+uns32 mqnd_mq_empty(SaMsgQueueHandleT handle);
+uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle);
 
-EXTERN_C uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info);
-EXTERN_C uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info);
+uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info);
+uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info);
 
 /* AMF Functions */
-EXTERN_C uns32 mqnd_amf_init(MQND_CB *mqnd_cb);
-EXTERN_C void mqnd_amf_de_init(MQND_CB *mqnd_cb);
-EXTERN_C uns32 mqnd_amf_register(MQND_CB *mqnd_cb);
-EXTERN_C uns32 mqnd_amf_deregister(MQND_CB *mqnd_cb);
+uns32 mqnd_amf_init(MQND_CB *mqnd_cb);
+void mqnd_amf_de_init(MQND_CB *mqnd_cb);
+uns32 mqnd_amf_register(MQND_CB *mqnd_cb);
+uns32 mqnd_amf_deregister(MQND_CB *mqnd_cb);
 
 /*OTHER FUNCTIONS*/
-EXTERN_C uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt);
+uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt);
 
 #endif   /* MQND_DB_H */

@@ -95,13 +95,13 @@ typedef struct ncs_dtsv_rq {
  * DTA public API's for binding service and logging message.
  ***************************************************************************/
 
-EXTERN_C uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg);
+uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg);
 
-EXTERN_C uns32 ncs_logmsg(SS_SVC_ID svc_id,
+uns32 ncs_logmsg(SS_SVC_ID svc_id,
 				     uns8 fmat_id,
 				     uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);
 
-EXTERN_C uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
+uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
 					uns32 inst_id,
 					uns8 fmat_id,
 					uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);

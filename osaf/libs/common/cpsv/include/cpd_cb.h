@@ -217,65 +217,65 @@ CPD_CKPT_INFO_NODE *cpd_find_add_ckpt_name(CPD_CB *cpd_cb, SaNameT ckpt_name);
 void cpd_free_ckpt_node(CPD_CB *gld_cb, CPD_CKPT_INFO_NODE *ckpt_info);
 
 /* CPD Function declerations */
-EXTERN_C uns32 cpd_ckpt_tree_init(CPD_CB *cb);
-EXTERN_C uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree,
+uns32 cpd_ckpt_tree_init(CPD_CB *cb);
+uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree,
 				 SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node);
-EXTERN_C void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
+void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
 				    SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node);
 
-EXTERN_C uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
-EXTERN_C uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
-EXTERN_C void cpd_ckpt_tree_cleanup(CPD_CB *cb);
-EXTERN_C void cpd_ckpt_tree_destroy(CPD_CB *cb);
-EXTERN_C void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
+uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
+uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
+void cpd_ckpt_tree_cleanup(CPD_CB *cb);
+void cpd_ckpt_tree_destroy(CPD_CB *cb);
+void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
 
-EXTERN_C uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb);
-EXTERN_C uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
+uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb);
+uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				   CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
-EXTERN_C void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
+void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				      CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
-EXTERN_C uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
-EXTERN_C uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
-EXTERN_C void cpd_ckpt_reploc_cleanup(CPD_CB *cb);
-EXTERN_C void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
+uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
+uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
+void cpd_ckpt_reploc_cleanup(CPD_CB *cb);
+void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
 
-EXTERN_C uns32 cpd_ckpt_map_tree_init(CPD_CB *cb);
-EXTERN_C uns32 cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree,
+uns32 cpd_ckpt_map_tree_init(CPD_CB *cb);
+uns32 cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree,
 				     SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
-EXTERN_C void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree,
+void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree,
 					SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
 
-EXTERN_C uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node);
-EXTERN_C uns32 cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node);
-EXTERN_C void cpd_ckpt_map_tree_cleanup(CPD_CB *cb);
-EXTERN_C void cpd_ckpt_map_tree_destroy(CPD_CB *cb);
-EXTERN_C uns32 cpd_cpnd_info_tree_init(CPD_CB *cb);
-EXTERN_C uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree,
+uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node);
+uns32 cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node);
+void cpd_ckpt_map_tree_cleanup(CPD_CB *cb);
+void cpd_ckpt_map_tree_destroy(CPD_CB *cb);
+uns32 cpd_cpnd_info_tree_init(CPD_CB *cb);
+uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree,
 				      MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node);
-EXTERN_C void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree,
+void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree,
 					 MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node);
-EXTERN_C void cpd_ckpt_node_and_ref_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
+void cpd_ckpt_node_and_ref_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 
-EXTERN_C uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node);
-EXTERN_C uns32 cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node);
-EXTERN_C void cpd_cpnd_info_tree_cleanup(CPD_CB *cb);
-EXTERN_C void cpd_cpnd_info_tree_destroy(CPD_CB *cb);
-EXTERN_C uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,
+uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node);
+uns32 cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node);
+void cpd_cpnd_info_tree_cleanup(CPD_CB *cb);
+void cpd_cpnd_info_tree_destroy(CPD_CB *cb);
+uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,
 					   MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node, NCS_BOOL *add_flag);
 
-EXTERN_C uns32 cpd_cb_db_init(CPD_CB *cb);
+uns32 cpd_cb_db_init(CPD_CB *cb);
 
-EXTERN_C uns32 cpd_cb_db_destroy(CPD_CB *cb);
+uns32 cpd_cb_db_destroy(CPD_CB *cb);
 
-EXTERN_C void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
+void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
 
-EXTERN_C void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
-EXTERN_C void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
-EXTERN_C void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
+void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
+void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
+void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info);
 
-EXTERN_C void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
+void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
 				       SaUint32T numberOfMembers, SaAisErrorT error);
 
-EXTERN_C void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
+void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
 
 #endif

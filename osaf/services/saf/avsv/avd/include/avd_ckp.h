@@ -120,28 +120,28 @@ typedef uns32 (*AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct cl_cb_tag * cb,
 
 /* Function Definations of avd_chkop.c */
 extern uns32 avd_active_role_initialization(struct cl_cb_tag *cb, SaAmfHAStateT role);
-EXTERN_C void avd_role_change_evh(struct cl_cb_tag *cb, struct avd_evt_tag *evt);
-EXTERN_C uns32 avsv_mbcsv_register(struct cl_cb_tag *cb);
-EXTERN_C uns32 avsv_mbcsv_deregister(struct cl_cb_tag *cb);
-EXTERN_C uns32 avsv_set_ckpt_role(struct cl_cb_tag *cb, uns32 role);
-EXTERN_C uns32 avsv_mbcsv_dispatch(struct cl_cb_tag *cb, uns32 flag);
-EXTERN_C uns32 avsv_send_ckpt_data(struct cl_cb_tag *cb,
+void avd_role_change_evh(struct cl_cb_tag *cb, struct avd_evt_tag *evt);
+uns32 avsv_mbcsv_register(struct cl_cb_tag *cb);
+uns32 avsv_mbcsv_deregister(struct cl_cb_tag *cb);
+uns32 avsv_set_ckpt_role(struct cl_cb_tag *cb, uns32 role);
+uns32 avsv_mbcsv_dispatch(struct cl_cb_tag *cb, uns32 flag);
+uns32 avsv_send_ckpt_data(struct cl_cb_tag *cb,
 				   uns32 action, MBCSV_REO_HDL reo_hdl, uns32 reo_type, uns32 send_type);
-EXTERN_C uns32 avsv_send_hb_ntfy_msg(struct cl_cb_tag *cb);
-EXTERN_C uns32 avsv_mbcsv_obj_set(struct cl_cb_tag *cb, uns32 obj, uns32 val);
-EXTERN_C uns32 avsv_send_data_req(struct cl_cb_tag *cb);
-EXTERN_C uns32 avsv_dequeue_async_update_msgs(struct cl_cb_tag *cb, NCS_BOOL pr_or_fr);
+uns32 avsv_send_hb_ntfy_msg(struct cl_cb_tag *cb);
+uns32 avsv_mbcsv_obj_set(struct cl_cb_tag *cb, uns32 obj, uns32 val);
+uns32 avsv_send_data_req(struct cl_cb_tag *cb);
+uns32 avsv_dequeue_async_update_msgs(struct cl_cb_tag *cb, NCS_BOOL pr_or_fr);
 
 /* Function Definations of avd_ckpt_enc.c */
-EXTERN_C uns32 avsv_encode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-EXTERN_C uns32 avsv_encode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-EXTERN_C uns32 avsv_encode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avsv_encode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avsv_encode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avsv_encode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
 
 /* Function Definations of avd_ckpt_dec.c */
-EXTERN_C uns32 avsv_decode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avsv_decode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avsv_decode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avsv_decode_data_req(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avd_avnd_send_role_change(struct cl_cb_tag *cb, NODE_ID, uns32 role);
+uns32 avsv_decode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avsv_decode_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avsv_decode_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avsv_decode_data_req(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avd_avnd_send_role_change(struct cl_cb_tag *cb, NODE_ID, uns32 role);
 
 #endif

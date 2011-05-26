@@ -358,18 +358,18 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C uns32 ncs_ipc_create(SYSF_MBX *mbx);
-	EXTERN_C uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
-	EXTERN_C NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
-	EXTERN_C uns32 ncs_ipc_attach(SYSF_MBX *mbx);
-	EXTERN_C uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name);
-	EXTERN_C uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
-	EXTERN_C NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
-	EXTERN_C uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
-	EXTERN_C NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
-	EXTERN_C uns32 ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
-	EXTERN_C uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_limit);
-	EXTERN_C uns32 ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
+	uns32 ncs_ipc_create(SYSF_MBX *mbx);
+	uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
+	NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
+	uns32 ncs_ipc_attach(SYSF_MBX *mbx);
+	uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name);
+	uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
+	NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
+	uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
+	uns32 ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_limit);
+	uns32 ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
 							       uns32 *i_usr_counter);
 #ifdef  __cplusplus
 }

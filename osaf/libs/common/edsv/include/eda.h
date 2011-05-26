@@ -51,7 +51,7 @@
 #include "edsv_util.h"
 
 /* EDA CB global handle declaration */
-EXTERN_C uns32 gl_eda_hdl;
+uns32 gl_eda_hdl;
 
 /* EDA Default MDS timeout value */
 #define EDA_MDS_DEF_TIMEOUT 100

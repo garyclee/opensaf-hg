@@ -24,8 +24,8 @@
 #include "glnd_evt.h"
 
 /* global variables */
-EXTERN_C uns32 gl_glnd_hdl;
-EXTERN_C NCSCONTEXT gl_glnd_task_hdl;
+uns32 gl_glnd_hdl;
+NCSCONTEXT gl_glnd_task_hdl;
 
 /* macros for the global varibales */
 #define m_GLND_RETRIEVE_GLND_CB_HDL      gl_glnd_hdl
@@ -197,40 +197,40 @@ typedef struct glnd_cb_tag {
 } GLND_CB;
 
 /* prototypes */
-EXTERN_C GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest);
-EXTERN_C GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uns32 process_id);
-EXTERN_C void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info);
+GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest);
+GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uns32 process_id);
+void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info);
 
 /* CB prototypes */
-EXTERN_C GLND_CB *glnd_cb_create(uns32 pool_id);
-EXTERN_C NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-EXTERN_C uns32 glnd_cb_destroy(GLND_CB *glnd_cb);
-EXTERN_C void glnd_dump_cb(void);
+GLND_CB *glnd_cb_create(uns32 pool_id);
+NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+uns32 glnd_cb_destroy(GLND_CB *glnd_cb);
+void glnd_dump_cb(void);
 
 struct glsv_evt_rsc_info_tag;	/* forward declaration required. */
-EXTERN_C GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
+GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 							    struct glsv_evt_rsc_info_tag *rsc_info,
 							    MDS_SYNC_SND_CTXT *mds_ctxt,
 							    SaLckResourceIdT lcl_resource_id);
-EXTERN_C GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *resource_name);
-EXTERN_C void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl);
+GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *resource_name);
+void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl);
 
 /* Amf prototypes */
-EXTERN_C uns32 glnd_amf_init(GLND_CB *glnd_cb);
-EXTERN_C void glnd_amf_de_init(GLND_CB *glnd_cb);
-EXTERN_C uns32 glnd_amf_register(GLND_CB *glnd_cb);
-EXTERN_C uns32 glnd_amf_deregister(GLND_CB *glnd_cb);
+uns32 glnd_amf_init(GLND_CB *glnd_cb);
+void glnd_amf_de_init(GLND_CB *glnd_cb);
+uns32 glnd_amf_register(GLND_CB *glnd_cb);
+uns32 glnd_amf_deregister(GLND_CB *glnd_cb);
 
 /* Queue Prototypes */
-EXTERN_C void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, struct glsv_glnd_evt *glnd_evt);
-EXTERN_C uns32 glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
+void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, struct glsv_glnd_evt *glnd_evt);
+uns32 glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
 						     SaLckHandleT hldId, SaLckResourceIdT resId, SaLckLockModeT type);
-EXTERN_C void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
+void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
 						      SaLckLockIdT lockid, SaLckHandleT hldId, SaLckResourceIdT resId);
-EXTERN_C void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb);
-EXTERN_C void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb);
-EXTERN_C uns8 glnd_cpsv_initilize(GLND_CB *glnd_cb);
-EXTERN_C uns32 glnd_shm_create(GLND_CB *cb);
-EXTERN_C uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[]);
+void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb);
+void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb);
+uns8 glnd_cpsv_initilize(GLND_CB *glnd_cb);
+uns32 glnd_shm_create(GLND_CB *cb);
+uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[]);
 
 #endif

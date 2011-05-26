@@ -46,7 +46,7 @@ extern "C" {
 #define m_NCS_MEM_ALLOC(nbytes, mem_region, service_id, sub_id) malloc((nbytes))
 #define m_NCS_MEM_FREE(free_me, mem_region, service_id, sub_id) free((free_me))
 
-EXTERN_C char *ncs_fname(char *fpath);
+char *ncs_fname(char *fpath);
 
 #ifdef  __cplusplus
 }

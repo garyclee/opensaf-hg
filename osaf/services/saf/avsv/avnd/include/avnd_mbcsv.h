@@ -93,27 +93,27 @@ typedef uns32 (*AVND_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct avnd_cb_tag * c
 typedef uns32 (*AVND_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct avnd_cb_tag * cb,
 							  NCS_MBCSV_CB_DEC *enc, uns32 num_of_obj);
 
-EXTERN_C uns32 avnd_mbcsv_register(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_mbcsv_deregister(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_set_mbcsv_ckpt_role(struct avnd_cb_tag *cb, uns32 role);
-EXTERN_C uns32 avnd_mbcsv_dispatch(struct avnd_cb_tag *cb, uns32 flag);
-EXTERN_C uns32 avnd_send_ckpt_data(struct avnd_cb_tag *cb,
+uns32 avnd_mbcsv_register(struct avnd_cb_tag *cb);
+uns32 avnd_mbcsv_deregister(struct avnd_cb_tag *cb);
+uns32 avnd_set_mbcsv_ckpt_role(struct avnd_cb_tag *cb, uns32 role);
+uns32 avnd_mbcsv_dispatch(struct avnd_cb_tag *cb, uns32 flag);
+uns32 avnd_send_ckpt_data(struct avnd_cb_tag *cb,
 				   uns32 action, MBCSV_REO_HDL reo_hdl, uns32 reo_type, uns32 send_type);
-EXTERN_C uns32 avnd_send_hb_ntfy_msg(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_mbcsv_obj_set(struct avnd_cb_tag *cb, uns32 obj, uns32 val);
-EXTERN_C uns32 avnd_send_data_req(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_dequeue_async_update_msgs(struct avnd_cb_tag *cb, NCS_BOOL pr_or_fr);
+uns32 avnd_send_hb_ntfy_msg(struct avnd_cb_tag *cb);
+uns32 avnd_mbcsv_obj_set(struct avnd_cb_tag *cb, uns32 obj, uns32 val);
+uns32 avnd_send_data_req(struct avnd_cb_tag *cb);
+uns32 avnd_dequeue_async_update_msgs(struct avnd_cb_tag *cb, NCS_BOOL pr_or_fr);
 
-EXTERN_C uns32 avnd_encode_cold_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-EXTERN_C uns32 avnd_encode_warm_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
-EXTERN_C uns32 avnd_encode_data_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avnd_encode_cold_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avnd_encode_warm_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
+uns32 avnd_encode_data_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
 
-EXTERN_C uns32 avnd_decode_cold_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avnd_decode_warm_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avnd_decode_data_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-EXTERN_C uns32 avnd_decode_data_req(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avnd_decode_cold_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avnd_decode_warm_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avnd_decode_data_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
+uns32 avnd_decode_data_req(struct avnd_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 
-EXTERN_C uns32 avnd_mds_mbcsv_reg(struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_ckpt_for_ext(struct avnd_cb_tag *cb, MBCSV_REO_HDL reo_hdl, uns32 reo_type);
+uns32 avnd_mds_mbcsv_reg(struct avnd_cb_tag *cb);
+uns32 avnd_ckpt_for_ext(struct avnd_cb_tag *cb, MBCSV_REO_HDL reo_hdl, uns32 reo_type);
 
 #endif

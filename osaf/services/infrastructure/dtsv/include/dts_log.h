@@ -297,22 +297,22 @@ typedef enum dts_log_ids {
 
 #if (DTS_LOG == 1)
 
-EXTERN_C uns32 dts_reg_strings(void);
-EXTERN_C uns32 dts_dereg_strings(void);
-EXTERN_C uns32 dts_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 dts_log_bind(void);
-EXTERN_C uns32 dts_log_unbind(void);
+uns32 dts_reg_strings(void);
+uns32 dts_dereg_strings(void);
+uns32 dts_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 dts_log_bind(void);
+uns32 dts_log_unbind(void);
 
-EXTERN_C void log_dts_headline(uns8 hdln_id);
-EXTERN_C void log_dts_svc_prvdr(uns8 sp_id);
-EXTERN_C void log_dts_lock(uns8 lck_id, void *lck);
-EXTERN_C void log_dts_memfail(uns8 mf_id);
-EXTERN_C void log_dts_api(uns8 api_id);
-EXTERN_C void log_dts_evt(uns8 evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest);
-EXTERN_C void log_dts_cbop(uns8 op_id, SS_SVC_ID svc_id, uns32 node);
-EXTERN_C void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc);
-EXTERN_C void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc);
-EXTERN_C void log_dts_chkp_evt(uns8 id);
+void log_dts_headline(uns8 hdln_id);
+void log_dts_svc_prvdr(uns8 sp_id);
+void log_dts_lock(uns8 lck_id, void *lck);
+void log_dts_memfail(uns8 mf_id);
+void log_dts_api(uns8 api_id);
+void log_dts_evt(uns8 evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest);
+void log_dts_cbop(uns8 op_id, SS_SVC_ID svc_id, uns32 node);
+void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc);
+void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc);
+void log_dts_chkp_evt(uns8 id);
 
 #define dts_log(severity, format, args...) _dts_log((severity), __FUNCTION__, (format), ##args)
 void _dts_log(uns8 severity, const char *function, const char *format, ...);
@@ -338,7 +338,7 @@ void _dts_log(uns8 severity, const char *function, const char *format, ...);
 #define m_LOG_DTS_SVCREG_ADD_FAIL(id, sid, node, ad) ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_ERROR, "TILLL", id, sid, node, ad);
 #else
 
-EXTERN_C uns32 dts_reg_strings(char *fname);
+uns32 dts_reg_strings(char *fname);
 
 #define m_LOG_DTS_HEADLINE(id)
 #define m_LOG_DTS_SVC_PRVDR(id)

@@ -29,11 +29,11 @@
 
 #ifndef MQSV_MBEDU_H
 #define MQSV_MBEDU_H
-EXTERN_C uns32 mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+uns32 mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uns32 *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-EXTERN_C uns32 mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+uns32 mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					   NCSCONTEXT ptr, uns32 *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 

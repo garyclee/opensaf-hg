@@ -27,7 +27,7 @@
 #include "plms_utils.h"
 #include "plms_notifications.h"
 
-EXTERN_C PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[SA_PLM_HE_PRES_STATE_MAX]
+PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[SA_PLM_HE_PRES_STATE_MAX]
 						[SA_PLM_HPI_HE_PRES_STATE_MAX];
 
 static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *);

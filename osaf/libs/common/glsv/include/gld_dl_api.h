@@ -33,7 +33,7 @@
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
 
-EXTERN_C uns32 gl_gld_hdl;
-EXTERN_C uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 gl_gld_hdl;
+uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* !GLD_DL_API_H */

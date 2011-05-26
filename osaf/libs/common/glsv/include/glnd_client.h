@@ -41,42 +41,42 @@ typedef struct glnd_client_info_tag {
 } GLND_CLIENT_INFO;
 
 /*prototypes */
-EXTERN_C GLND_CLIENT_INFO *glnd_client_node_find(GLND_CB *glnd_cb, SaLckHandleT handle_id);
+GLND_CLIENT_INFO *glnd_client_node_find(GLND_CB *glnd_cb, SaLckHandleT handle_id);
 
-EXTERN_C GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb,
+GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB *glnd_cb,
 						      SaLckHandleT handle_id, MDS_DEST agent_mds_dest);
 
-EXTERN_C GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, SaLckHandleT app_handle_id);
+GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, SaLckHandleT app_handle_id);
 
-EXTERN_C uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info);
+uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info);
 
-EXTERN_C uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, struct glnd_resource_info_tag *res_info);
+uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, struct glnd_resource_info_tag *res_info);
 
-EXTERN_C uns32 glnd_client_node_resource_del(GLND_CB *glnd_cb,
+uns32 glnd_client_node_resource_del(GLND_CB *glnd_cb,
 					     GLND_CLIENT_INFO *client_info, struct glnd_resource_info_tag *res_info);
 
-EXTERN_C uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
+uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 						 GLND_CLIENT_INFO *client_info,
 						 struct glnd_resource_info_tag *res_info,
 						 SaLckResourceIdT lcl_resource_id,
 						 uns32 lcl_res_id_count, NCS_BOOL *resource_del_flag);
 
-EXTERN_C uns32 glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
+uns32 glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 						      struct glnd_resource_info_tag *res_info,
 						      GLND_RES_LOCK_LIST_INFO *lock_req_info);
 
-EXTERN_C uns32 glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
+uns32 glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
 						      GLND_CLIENT_LIST_RESOURCE *res_list,
 						      GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list);
 
-EXTERN_C GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *glnd_client_node_resource_lock_req_find(GLND_CLIENT_INFO *client_info,
+GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *glnd_client_node_resource_lock_req_find(GLND_CLIENT_INFO *client_info,
 										     SaLckResourceIdT res_id,
 										     SaLckLockIdT lockid);
 
-EXTERN_C uns32 glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_info,
+uns32 glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_info,
 							       SaLckResourceIdT res_id,
 							       SaLckLockIdT lockid, SaLckResourceIdT lcl_res_id);
-EXTERN_C uns32 glnd_client_node_resource_lock_find_duplicate_ex(GLND_CLIENT_INFO *client_info,
+uns32 glnd_client_node_resource_lock_find_duplicate_ex(GLND_CLIENT_INFO *client_info,
 								SaLckResourceIdT res_id, SaLckResourceIdT lcl_res_id);
 
 #endif

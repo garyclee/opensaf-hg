@@ -30,6 +30,11 @@
 #ifndef IMMSV_EVT_H
 #define IMMSV_EVT_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <rda_papi.h>
 #include "immsv_evt_model.h"
 
@@ -536,37 +541,41 @@ typedef struct immsv_evt {
 
 /* Event Declerations */
 
-EXTERN_C uns32 immsv_evt_enc_flat( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
+uns32 immsv_evt_enc_flat( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
 				  NCS_UBAID *o_ub);
-EXTERN_C uns32 immsv_evt_dec_flat( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
+uns32 immsv_evt_dec_flat( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
 				  IMMSV_EVT *o_evt);
-EXTERN_C uns32 immsv_evt_enc( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
+uns32 immsv_evt_enc( /*EDU_HDL *edu_hdl, */ IMMSV_EVT *i_evt,
 			     NCS_UBAID *o_ub);
-EXTERN_C uns32 immsv_evt_dec( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
+uns32 immsv_evt_dec( /*EDU_HDL *edu_hdl, */ NCS_UBAID *i_ub,
 			     IMMSV_EVT *o_evt);
 
-EXTERN_C void immsv_evt_enc_inline_string(NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os);
+void immsv_evt_enc_inline_string(NCS_UBAID *o_ub, IMMSV_OCTET_STRING *os);
 
-EXTERN_C void immsv_evt_dec_inline_string(NCS_UBAID *i_ub, IMMSV_OCTET_STRING *os);
+void immsv_evt_dec_inline_string(NCS_UBAID *i_ub, IMMSV_OCTET_STRING *os);
 
-EXTERN_C void immsv_evt_free_att_val(IMMSV_EDU_ATTR_VAL *v, SaImmValueTypeT t);
+void immsv_evt_free_att_val(IMMSV_EDU_ATTR_VAL *v, SaImmValueTypeT t);
 
-EXTERN_C void immsv_msg_trace_send(MDS_DEST to, IMMSV_EVT *evt);
-EXTERN_C void immsv_msg_trace_rec(MDS_DEST from, IMMSV_EVT *evt);
+void immsv_msg_trace_send(MDS_DEST to, IMMSV_EVT *evt);
+void immsv_msg_trace_rec(MDS_DEST from, IMMSV_EVT *evt);
 
-EXTERN_C void immsv_free_attrmods(IMMSV_ATTR_MODS_LIST *p);
-EXTERN_C void immsv_evt_free_admo(IMMSV_ADMO_LIST *p);
-EXTERN_C void immsv_evt_free_impl(IMMSV_IMPL_LIST *p);
-EXTERN_C void immsv_evt_free_classList(IMMSV_CLASS_LIST *p);
-EXTERN_C void immsv_evt_free_attrNames(IMMSV_ATTR_NAME_LIST *p);
-EXTERN_C void immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST *avl);
-EXTERN_C void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST *adp);
-EXTERN_C void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST *p);
-EXTERN_C void immsv_evt_free_ccbOutcomeList(IMMSV_CCB_OUTCOME_LIST *o);
+void immsv_free_attrmods(IMMSV_ATTR_MODS_LIST *p);
+void immsv_evt_free_admo(IMMSV_ADMO_LIST *p);
+void immsv_evt_free_impl(IMMSV_IMPL_LIST *p);
+void immsv_evt_free_classList(IMMSV_CLASS_LIST *p);
+void immsv_evt_free_attrNames(IMMSV_ATTR_NAME_LIST *p);
+void immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST *avl);
+void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST *adp);
+void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST *p);
+void immsv_evt_free_ccbOutcomeList(IMMSV_CCB_OUTCOME_LIST *o);
 
 /* Macros to pack and unpack imm handles */
 #define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | ((SaUint32T) low))
 #define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) (SaUint32T) ((imm_handle) >> 32)
 #define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) (SaUint32T) ((imm_handle) & 0x00000000ffffffff)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

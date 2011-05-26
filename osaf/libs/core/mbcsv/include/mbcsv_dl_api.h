@@ -34,6 +34,6 @@
 #ifndef MBCSV_DL_API_H
 #define MBCSV_DL_API_H
 
-EXTERN_C uns32 mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info);
+uns32 mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* MBCSV_DL_API_H */

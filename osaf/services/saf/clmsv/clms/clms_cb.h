@@ -185,11 +185,11 @@ typedef struct clms_lock_tmr_t {
 	SaClmNodeIdT node_id;
 } CLMS_LOCK_TMR;
 
-EXTERN_C uns32 clm_snd_track_changes(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
+uns32 clm_snd_track_changes(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
 				     SaImmAdminOperationIdT opId, SaClmChangeStepT step);
-EXTERN_C void clms_track_send_node_down(CLMS_CLUSTER_NODE * node);
-EXTERN_C void clms_reboot_remote_node(CLMS_CLUSTER_NODE * op_node, char *str);
-EXTERN_C void * clms_rem_reboot(void * _rem_reboot); 
+void clms_track_send_node_down(CLMS_CLUSTER_NODE * node);
+void clms_reboot_remote_node(CLMS_CLUSTER_NODE * op_node, char *str);
+void * clms_rem_reboot(void * _rem_reboot); 
 #define m_CLMSV_PACK_INV(inv, nodeid) ((((SaUint64T) inv) << 32) | nodeid)
 #define  m_CLMSV_INV_UNPACK_INVID(inv) ((inv) >> 32)
 #define  m_CLMSV_INV_UNPACK_NODEID(inv) ((inv) & 0x00000000ffffffff)

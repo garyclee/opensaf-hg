@@ -18,19 +18,19 @@
 #ifndef IMMD_SBEDU_H
 #define IMMD_SBEDU_H
 
-EXTERN_C uns32 immd_sb_proc_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
-EXTERN_C uns32 immd_process_sb_msg(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
-EXTERN_C uns32 immd_mbcsv_init(IMMD_CB *cb);
-EXTERN_C uns32 immd_mbcsv_open(IMMD_CB *cb);
-EXTERN_C uns32 immd_mbcsv_selobj_get(IMMD_CB *cb);
-EXTERN_C uns32 immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
-EXTERN_C uns32 immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
-EXTERN_C uns32 immd_mbcsv_register(IMMD_CB *cb);
-EXTERN_C uns32 immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
-EXTERN_C uns32 immd_mbcsv_finalize(IMMD_CB *cb);
-EXTERN_C uns32 immd_mbcsv_chgrole(IMMD_CB *cb);
-EXTERN_C uns32 immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
-EXTERN_C uns32 immd_process_sb_count(IMMD_CB *cb, uns32 count, uns32 evt_type);
-EXTERN_C uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl);
+uns32 immd_sb_proc_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
+uns32 immd_process_sb_msg(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
+uns32 immd_mbcsv_init(IMMD_CB *cb);
+uns32 immd_mbcsv_open(IMMD_CB *cb);
+uns32 immd_mbcsv_selobj_get(IMMD_CB *cb);
+uns32 immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
+uns32 immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
+uns32 immd_mbcsv_register(IMMD_CB *cb);
+uns32 immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
+uns32 immd_mbcsv_finalize(IMMD_CB *cb);
+uns32 immd_mbcsv_chgrole(IMMD_CB *cb);
+uns32 immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
+uns32 immd_process_sb_count(IMMD_CB *cb, uns32 count, uns32 evt_type);
+uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl);
 
 #endif

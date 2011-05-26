@@ -26,7 +26,7 @@
   This file consists of constats, enums and data structs used by cpd_init.c
 ******************************************************************************/
 
-EXTERN_C uns32 gl_cpd_cb_hdl;
+uns32 gl_cpd_cb_hdl;
 
 /* Macro to get the component name for the component type */
 #define m_CPD_TASKNAME "CPD"

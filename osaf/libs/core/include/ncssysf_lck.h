@@ -259,27 +259,27 @@ Your code
 #define m_NCS_ATOMIC_DEC(c)  m_NCS_OS_ATOMIC_DEC(c)
 
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-	EXTERN_C unsigned int ncs_lock_init(NCS_LOCK * lock,
+	unsigned int ncs_lock_init(NCS_LOCK * lock,
 							NCS_SERVICE_ID service_id,
 							unsigned int local_id, unsigned int line, char *file);
 
-	EXTERN_C unsigned int ncs_lock_destroy(NCS_LOCK * lock,
+	unsigned int ncs_lock_destroy(NCS_LOCK * lock,
 							   NCS_SERVICE_ID service_id,
 							   unsigned int local_id, unsigned int line, char *file);
 
-	EXTERN_C unsigned int ncs_lock(NCS_LOCK * lock,
+	unsigned int ncs_lock(NCS_LOCK * lock,
 						   unsigned int flag,
 						   NCS_SERVICE_ID service_id,
 						   unsigned int local_id, unsigned int line, char *file);
 
-	EXTERN_C unsigned int ncs_unlock(NCS_LOCK * lock,
+	unsigned int ncs_unlock(NCS_LOCK * lock,
 						     unsigned int flag,
 						     NCS_SERVICE_ID service_id,
 						     unsigned int local_id, unsigned int line, char *file);
 #endif
-	EXTERN_C uns32 ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
-	EXTERN_C uns32 ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
-	EXTERN_C void ncs_lock_stats(char *filename);
+	uns32 ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
+	uns32 ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
+	void ncs_lock_stats(char *filename);
 
 #ifdef  __cplusplus
 }

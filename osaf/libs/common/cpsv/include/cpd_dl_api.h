@@ -36,6 +36,6 @@
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
 
-EXTERN_C uns32 cpd_lib_req(NCS_LIB_REQ_INFO *);
+uns32 cpd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* CPD_DL_API_H */

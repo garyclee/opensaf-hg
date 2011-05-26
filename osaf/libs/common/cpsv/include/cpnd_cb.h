@@ -23,7 +23,7 @@
 #include "ncs_queue.h"
 
 /* global variables */
-EXTERN_C uns32 gl_cpnd_cb_hdl;
+uns32 gl_cpnd_cb_hdl;
 
 /* macros for the CB handle */
 #define m_CPND_TAKE_CPND_CB      ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)
@@ -312,36 +312,36 @@ typedef struct cpnd_cb_tag {
 } CPND_CB;
 
 /* CB prototypes */
-EXTERN_C CPND_CB *cpnd_cb_create(uns32 pool_id);
-EXTERN_C NCS_BOOL cpnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-EXTERN_C uns32 cpnd_cb_destroy(CPND_CB *cpnd_cb);
-EXTERN_C void cpnd_dump_cb(CPND_CB *cpnd_cb);
+CPND_CB *cpnd_cb_create(uns32 pool_id);
+NCS_BOOL cpnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+uns32 cpnd_cb_destroy(CPND_CB *cpnd_cb);
+void cpnd_dump_cb(CPND_CB *cpnd_cb);
 
 /* Amf prototypes */
-EXTERN_C uns32 cpnd_amf_init(CPND_CB *cpnd_cb);
-EXTERN_C void cpnd_amf_de_init(CPND_CB *cpnd_cb);
-EXTERN_C uns32 cpnd_amf_register(CPND_CB *cpnd_cb);
-EXTERN_C uns32 cpnd_amf_deregister(CPND_CB *cpnd_cb);
-EXTERN_C uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
-EXTERN_C uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
-EXTERN_C uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
+uns32 cpnd_amf_init(CPND_CB *cpnd_cb);
+void cpnd_amf_de_init(CPND_CB *cpnd_cb);
+uns32 cpnd_amf_register(CPND_CB *cpnd_cb);
+uns32 cpnd_amf_deregister(CPND_CB *cpnd_cb);
+uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
+uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
+uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
 					    uns32 ref_cnt, CKPT_INFO *cp_info);
-EXTERN_C int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
-EXTERN_C uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts);
-EXTERN_C uns32 cpnd_cli_info_write_header(CPND_CB *cb, int32 n_clients);
-EXTERN_C uns32 cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32 offset);
-EXTERN_C uns32 cpnd_client_bitmap_set(SaCkptHandleT client_hdl);
-EXTERN_C uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl);
-EXTERN_C uns32 cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32 offset, SaCkptHandleT client_hdl);
-EXTERN_C int32 cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node);
-EXTERN_C uns32 client_bitmap_reset(uns32 *bitmap_value, uns32 client_hdl);
-EXTERN_C uns32 client_bitmap_isset(uns32 bitmap_value);
-EXTERN_C int32 cpnd_find_ckpt_exists(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
+int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
+uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts);
+uns32 cpnd_cli_info_write_header(CPND_CB *cb, int32 n_clients);
+uns32 cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32 offset);
+uns32 cpnd_client_bitmap_set(SaCkptHandleT client_hdl);
+uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl);
+uns32 cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32 offset, SaCkptHandleT client_hdl);
+int32 cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node);
+uns32 client_bitmap_reset(uns32 *bitmap_value, uns32 client_hdl);
+uns32 client_bitmap_isset(uns32 bitmap_value);
+int32 cpnd_find_ckpt_exists(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 
-EXTERN_C NCS_BOOL cpnd_match_evt(void *key, void *qelem);
-EXTERN_C NCS_BOOL cpnd_match_dest(void *key, void *qelem);
-EXTERN_C void cpnd_restart_reset_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
-EXTERN_C void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
+NCS_BOOL cpnd_match_evt(void *key, void *qelem);
+NCS_BOOL cpnd_match_dest(void *key, void *qelem);
+void cpnd_restart_reset_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
+void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
 					SaUint32T numberOfMembers, SaAisErrorT error);
 #define m_CPSV_CONVERT_EXPTIME_TEN_MILLI_SEC(t) \
      SaTimeT now; \

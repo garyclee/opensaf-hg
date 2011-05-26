@@ -115,20 +115,20 @@ typedef struct avnd_pg {
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
 
-EXTERN_C uns32 avnd_pgdb_init(struct avnd_cb_tag *);
-EXTERN_C uns32 avnd_pgdb_destroy(struct avnd_cb_tag *);
-EXTERN_C AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uns32 *);
-EXTERN_C uns32 avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
+uns32 avnd_pgdb_init(struct avnd_cb_tag *);
+uns32 avnd_pgdb_destroy(struct avnd_cb_tag *);
+AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uns32 *);
+uns32 avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
 
-EXTERN_C AVND_PG_TRK *avnd_pgdb_trk_rec_add(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_INFO *);
-EXTERN_C void avnd_pgdb_trk_rec_del(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_KEY *);
-EXTERN_C void avnd_pgdb_trk_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
+AVND_PG_TRK *avnd_pgdb_trk_rec_add(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_INFO *);
+void avnd_pgdb_trk_rec_del(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_KEY *);
+void avnd_pgdb_trk_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
 
-EXTERN_C AVND_PG_MEM *avnd_pgdb_mem_rec_add(struct avnd_cb_tag *, AVND_PG *, SaAmfProtectionGroupNotificationT *);
-EXTERN_C AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
-EXTERN_C void avnd_pgdb_mem_rec_del(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
-EXTERN_C void avnd_pgdb_mem_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
+AVND_PG_MEM *avnd_pgdb_mem_rec_add(struct avnd_cb_tag *, AVND_PG *, SaAmfProtectionGroupNotificationT *);
+AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
+void avnd_pgdb_mem_rec_del(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
+void avnd_pgdb_mem_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
 
-EXTERN_C void avnd_pg_finalize(struct avnd_cb_tag *, SaAmfHandleT, MDS_DEST *);
+void avnd_pg_finalize(struct avnd_cb_tag *, SaAmfHandleT, MDS_DEST *);
 
 #endif   /* !AVND_PG_H */

@@ -30,6 +30,8 @@
 ******************************************************************************
 */
 
+#include <dlfcn.h>
+
 #include "ncs_log.h"
 #include "dts.h"
 
@@ -264,7 +266,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 	uns32 (*reg_unreg_routine) () = NULL;
 	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
-	NCS_OS_DLIB_HDL *lib_hdl = NULL;
+	void *lib_hdl = NULL;
 	ASCII_SPEC_LIB *lib_entry = NULL;
 	char dbg_str[DTS_MAX_LIB_DBG];
 	uns32 status = NCSCC_RC_SUCCESS;
@@ -305,17 +307,16 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 	}
 
 	/* Load the library */
-	/*lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); */
-	lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, RTLD_LAZY);
-	if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
+	lib_hdl = dlopen(lib_name, RTLD_LAZY);
+	if ((dl_error = dlerror()) != NULL) {
 		/* log the error returned from dlopen() */
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Unable to load library.");
 		return NULL;
 	}
 
 	/* Load the symbols by using the entry fucntion */
-	reg_unreg_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name);
-	if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) {
+	reg_unreg_routine = dlsym(lib_hdl, func_name);
+	if ((dl_error = dlerror()) != NULL) {
 		/* log the error returned from dlopen() */
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Unable to load symbol");
 		return NULL;
@@ -371,7 +372,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 				/* Remove entry if use_count falls to 0 */
 				if (lib_entry->use_count == 0) {
 					if (lib_entry->lib_hdl != NULL)
-						m_NCS_OS_DLIB_CLOSE(lib_entry->lib_hdl);
+						dlclose(lib_entry->lib_hdl);
 					ncs_patricia_tree_del(&dts_cb.libname_asciispec_tree,
 							      (NCS_PATRICIA_NODE *)lib_entry);
 					m_MMGR_FREE_DTS_LIBNAME(lib_entry);

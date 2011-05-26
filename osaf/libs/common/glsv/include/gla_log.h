@@ -126,12 +126,12 @@ typedef enum gla_log_ids {
 void gla_flx_log_reg(void);
 void gla_flx_log_dereg(void);
 
-EXTERN_C void gla_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no);
-EXTERN_C void gla_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
-EXTERN_C void gla_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
-EXTERN_C void gla_log_lockfail(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no);
-EXTERN_C void gla_log_sys_call(uns8 id, char *file_name, uns32 line_no, SaUint64T handle_id);
-EXTERN_C void gla_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
+void gla_log_headline(uns8 hdln_id, uns8 sev, char *file_name, uns32 line_no);
+void gla_log_memfail(uns8 mf_id, char *file_name, uns32 line_no);
+void gla_log_api(uns8 api_id, uns8 sev, char *file_name, uns32 line_no);
+void gla_log_lockfail(uns8 lck_id, uns8 sev, char *file_name, uns32 line_no);
+void gla_log_sys_call(uns8 id, char *file_name, uns32 line_no, SaUint64T handle_id);
+void gla_log_data_send(uns8 id, char *file_name, uns32 line_no, uns32 node, uns32 evt);
 
 #define m_LOG_GLA_HEADLINE(id,sev,file_name,line_no)        gla_log_headline(id,sev,file_name,line_no)
 #define m_LOG_GLA_MEMFAIL(id,file_name,line_no)              gla_log_memfail(id,file_name,line_no)

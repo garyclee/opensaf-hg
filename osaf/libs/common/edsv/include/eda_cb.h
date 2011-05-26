@@ -117,11 +117,11 @@ typedef struct eda_cb_tag {
 
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *);
-EXTERN_C unsigned int ncs_eda_startup(void);
-EXTERN_C unsigned int ncs_eda_shutdown(void);
-EXTERN_C uns32 eda_create(NCS_LIB_CREATE *);
-EXTERN_C void eda_destroy(NCS_LIB_DESTROY *);
+uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *);
+unsigned int ncs_eda_startup(void);
+unsigned int ncs_eda_shutdown(void);
+uns32 eda_create(NCS_LIB_CREATE *);
+void eda_destroy(NCS_LIB_DESTROY *);
 NCS_BOOL eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 #endif   /* !EDA_CB_H */

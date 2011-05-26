@@ -68,20 +68,20 @@
 
 struct avnd_cb_tag;
 
-EXTERN_C uns32 avnd_di_oper_send(struct avnd_cb_tag *, AVND_SU *, uns32);
-EXTERN_C uns32 avnd_di_susi_resp_send(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_di_object_upd_send(struct avnd_cb_tag *, AVSV_PARAM_INFO *);
-EXTERN_C uns32 avnd_di_pg_act_send(struct avnd_cb_tag *, SaNameT *, AVSV_PG_TRACK_ACT, NCS_BOOL);
-EXTERN_C uns32 avnd_di_msg_send(struct avnd_cb_tag *, AVND_MSG *);
-EXTERN_C void avnd_di_msg_ack_process(struct avnd_cb_tag *, uns32);
-EXTERN_C void avnd_diq_del(struct avnd_cb_tag *);
-EXTERN_C void avnd_snd_shutdown_app_su_msg(struct avnd_cb_tag *);
-EXTERN_C AVND_DND_MSG_LIST *avnd_diq_rec_add(struct avnd_cb_tag *cb, AVND_MSG *msg);
-EXTERN_C void avnd_diq_rec_del(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
-EXTERN_C uns32 avnd_diq_rec_send(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
-EXTERN_C uns32 avnd_di_reg_su_rsp_snd(struct avnd_cb_tag *cb, SaNameT *su_name, uns32 ret_code);
-EXTERN_C uns32 avnd_di_reg_comp_rsp_snd(struct avnd_cb_tag *cb, SaNameT *comp_name, uns32 ret_code);
-EXTERN_C uns32 avnd_di_ack_nack_msg_send(struct avnd_cb_tag *cb, uns32 rcv_id, uns32 view_num);
+uns32 avnd_di_oper_send(struct avnd_cb_tag *, AVND_SU *, uns32);
+uns32 avnd_di_susi_resp_send(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+uns32 avnd_di_object_upd_send(struct avnd_cb_tag *, AVSV_PARAM_INFO *);
+uns32 avnd_di_pg_act_send(struct avnd_cb_tag *, SaNameT *, AVSV_PG_TRACK_ACT, NCS_BOOL);
+uns32 avnd_di_msg_send(struct avnd_cb_tag *, AVND_MSG *);
+void avnd_di_msg_ack_process(struct avnd_cb_tag *, uns32);
+void avnd_diq_del(struct avnd_cb_tag *);
+void avnd_snd_shutdown_app_su_msg(struct avnd_cb_tag *);
+AVND_DND_MSG_LIST *avnd_diq_rec_add(struct avnd_cb_tag *cb, AVND_MSG *msg);
+void avnd_diq_rec_del(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
+uns32 avnd_diq_rec_send(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
+uns32 avnd_di_reg_su_rsp_snd(struct avnd_cb_tag *cb, SaNameT *su_name, uns32 ret_code);
+uns32 avnd_di_reg_comp_rsp_snd(struct avnd_cb_tag *cb, SaNameT *comp_name, uns32 ret_code);
+uns32 avnd_di_ack_nack_msg_send(struct avnd_cb_tag *cb, uns32 rcv_id, uns32 view_num);
 extern void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 value);
 
 #endif   /* !AVND_OPER_H */

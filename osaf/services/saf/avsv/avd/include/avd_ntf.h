@@ -35,30 +35,30 @@
 #define AMF_NTF_SENDER "safApp=safAmfService"
 
 /* Alarms */
-EXTERN_C void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
-EXTERN_C void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
-EXTERN_C void avd_send_cluster_reset_alarm(const SaNameT *comp_name);
-EXTERN_C void avd_send_si_unassigned_alarm(const SaNameT *si_name);
-EXTERN_C void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name);
+void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
+void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
+void avd_send_cluster_reset_alarm(const SaNameT *comp_name);
+void avd_send_si_unassigned_alarm(const SaNameT *si_name);
+void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name);
 
 /* Notifications */
-EXTERN_C void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id,
+void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id,
 					SaAmfAdminStateT old_state, SaAmfAdminStateT new_state);
-EXTERN_C void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id, 
+void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id, 
 					SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state);
-EXTERN_C void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name, SaAmfPresenceStateT old_state,
+void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name, SaAmfPresenceStateT old_state,
 					SaAmfPresenceStateT new_state);
-EXTERN_C void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
+void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
 					SaAmfHAStateT old_state, SaAmfHAStateT new_state);
-EXTERN_C void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
+void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name,
 					SaAmfHAReadinessStateT old_state, SaAmfHAReadinessStateT new_state);
-EXTERN_C void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_state,
+void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_state,
 					SaAmfAssignmentStateT new_state);
-EXTERN_C void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
+void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 					SaAmfProxyStatusT old_state, SaAmfProxyStatusT new_state);
 
 /* general functions */
-EXTERN_C SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
+SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
 				   SaNtfEventTypeT eventType,
 				   SaNameT *comp_name,
 				   SaUint8T *add_text,
@@ -68,7 +68,7 @@ EXTERN_C SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notification
 				   NCSCONTEXT add_info,
 				   int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
-EXTERN_C uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
+uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					SaNameT comp_name,
 					SaUint8T *add_text,
 					SaUint16T majorId,
@@ -78,7 +78,7 @@ EXTERN_C uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					NCSCONTEXT add_info,
 					int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
-EXTERN_C uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
+uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaNameT comp_name,
 					      SaUint8T *add_text,
 					      SaUint16T majorId,
@@ -90,6 +90,6 @@ EXTERN_C uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 /* Clearing of alarms */
-EXTERN_C void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause);
+void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause);
 
 #endif

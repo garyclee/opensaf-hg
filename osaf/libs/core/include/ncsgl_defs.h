@@ -127,18 +127,6 @@ extern "C" {
 
 	typedef void (*PROBER) (uns32 dir_flag, void *, const void *);
 
-/* 
- * Define to allow .h files to be processed by C++ compiler.
- */
-#if (!defined EXTERN_C)
-
-#if (defined _cplusplus) || (defined __cplusplus)	/* C++ compilers define this */
-#define EXTERN_C extern "C"
-#else				/* not a C++ compiler */
-#define EXTERN_C extern
-#endif   /* _cplusplus */
-#endif   /* EXTERN_C */
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         Manifest Constants

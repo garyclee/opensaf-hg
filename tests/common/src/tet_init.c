@@ -83,10 +83,10 @@ void tet_create_cpsv_thread(void);
 void tet_create_edsv_thread(void);
 void tet_create_masv_thread(void);
 void tet_run_masv_app(void);
-EXTERN_C void tet_run_glsv_app();  
-EXTERN_C void tet_run_mqsv_app();  
-EXTERN_C void tet_run_cpsv_app();  
-EXTERN_C void tet_run_edsv_app();
+void tet_run_glsv_app();  
+void tet_run_mqsv_app();  
+void tet_run_cpsv_app();  
+void tet_run_edsv_app();
 #endif
 int tet_remotesync(SyncParameters *syncparam);
 /* This would fill the common MDS and node related config */
