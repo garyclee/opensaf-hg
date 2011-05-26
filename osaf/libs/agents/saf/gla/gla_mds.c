@@ -116,7 +116,7 @@ uint32_t gla_mds_register(GLA_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->agent_handle_id;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_INTRANODE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = gla_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;	/* GLA owns the mds queue */
+	svc_info.info.svc_install.i_mds_q_ownership = false;	/* GLA owns the mds queue */
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = GLA_PVT_SUBPART_VERSION;	/* Private Subpart Version of GLA */
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
@@ -381,7 +381,7 @@ static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 
 	GLSV_GLA_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
@@ -425,7 +425,7 @@ static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 
 	GLSV_GLA_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 	uint8_t *p8, local_data[20];
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
@@ -549,7 +549,7 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			GLA_RESOURCE_ID_INFO *res_id_node;
 
 			/* get the client_info */
-			client_info = gla_client_tree_find_and_add(cb, evt->handle, FALSE);
+			client_info = gla_client_tree_find_and_add(cb, evt->handle, false);
 			if (client_info) {
 				if (client_info->lckCallbk.saLckResourceOpenCallback) {
 					if (param->error == SA_AIS_OK) {
@@ -599,23 +599,23 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
 		if (svc_evt->i_svc_id == NCSMDS_SVC_ID_GLND) {
-			if (cb->glnd_svc_up != FALSE) {
+			if (cb->glnd_svc_up != false) {
 				memset(&cb->glnd_mds_dest, 0, sizeof(MDS_DEST));
 				/* clean up the client tree */
 				m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_DOWN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			}
-			cb->glnd_svc_up = FALSE;
-			cb->glnd_crashed = TRUE;
+			cb->glnd_svc_up = false;
+			cb->glnd_crashed = true;
 		}
 		break;
 	case NCSMDS_UP:
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GLND:
 			cb->glnd_mds_dest = svc_evt->i_dest;
-			if (cb->glnd_svc_up == FALSE) {
-				cb->glnd_svc_up = TRUE;
+			if (cb->glnd_svc_up == false) {
+				cb->glnd_svc_up = true;
 				/* send the resigteration information to the GLND */
 				m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_UP, NCSFL_SEV_INFO, __FILE__, __LINE__);
 				if (gla_agent_register(cb) != NCSCC_RC_SUCCESS) {
@@ -633,7 +633,7 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 			}
 			m_NCS_LOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
 
-			if (cb->glnd_sync_awaited == TRUE) {
+			if (cb->glnd_sync_awaited == true) {
 				m_NCS_SEL_OBJ_IND(cb->glnd_sync_sel);
 			}
 
@@ -670,7 +670,7 @@ uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
 
-	if (!i_evt || cb->glnd_svc_up == FALSE)
+	if (!i_evt || cb->glnd_svc_up == false)
 		return NCSCC_RC_FAILURE;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -712,7 +712,7 @@ uint32_t gla_mds_msg_async_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt)
 {
 	NCSMDS_INFO mds_info;
 
-	if (!i_evt || cb->glnd_svc_up == FALSE)
+	if (!i_evt || cb->glnd_svc_up == false)
 		return NCSCC_RC_FAILURE;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -749,7 +749,7 @@ uint32_t gla_agent_register(GLA_CB *cb)
 	GLSV_GLND_EVT evt;
 	NCSMDS_INFO mds_info;
 
-	if (cb->glnd_svc_up == FALSE)
+	if (cb->glnd_svc_up == false)
 		return NCSCC_RC_FAILURE;
 
 	memset(&evt, 0, sizeof(GLSV_GLND_EVT));
@@ -791,7 +791,7 @@ uint32_t gla_agent_unregister(GLA_CB *cb)
 	GLSV_GLND_EVT evt;
 	NCSMDS_INFO mds_info;
 
-	if (cb->glnd_svc_up == FALSE)
+	if (cb->glnd_svc_up == false)
 		return NCSCC_RC_FAILURE;
 
 	memset(&evt, 0, sizeof(GLSV_GLND_EVT));

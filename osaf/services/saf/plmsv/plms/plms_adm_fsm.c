@@ -425,8 +425,8 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 				plms_ent_exp_rdness_status_clear(
 				trk_info->root_entity);
 
-				ent->am_i_aff_ent = FALSE;
-				ent->adm_op_in_progress = FALSE;
+				ent->am_i_aff_ent = false;
+				ent->adm_op_in_progress = false;
 				plms_aff_ent_mark_unmark(trk_info->aff_ent_list,
 									FALSE);
 				plms_trk_info_free(trk_info);
@@ -459,8 +459,8 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 		SA_PLM_ADMIN_LOCK_OPTION_TRYLOCK))) {
 		/* Admin operation started. */
 		ent->adm_op_in_progress = SA_PLM_CAUSE_LOCK;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 		
 		ret_err = plms_try_lock(ent,evt->req_evt.admin_op,
 		aff_ent_list);
@@ -473,8 +473,8 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 	} else {/* Default lock.*/
 		/* Admin operation started. */
 		ent->adm_op_in_progress = SA_PLM_CAUSE_LOCK;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 		
 		ret_err = plms_default_lock(ent,evt->req_evt.admin_op,
 		aff_ent_list);
@@ -718,7 +718,7 @@ SaUint32T plms_HE_adm_locked_state_deact_op (  PLMS_EVT *evt)
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	/* Deactivate the HE. */
-	ret_err = plms_he_deactivate(ent,TRUE,TRUE);
+	ret_err = plms_he_deactivate(ent,true,true);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("Ent %s deactivation failed.",tmp);
 		
@@ -1003,7 +1003,7 @@ SaUint32T plms_HE_adm_lckinact_state_act_op(  PLMS_EVT *evt)
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	/* Activate the HE. */
-	ret_err = plms_he_activate(ent,TRUE,TRUE);
+	ret_err = plms_he_activate(ent,true,true);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("HE %s activation failed. ret_err = %d",ent->dn_name_str,
 		ret_err);
@@ -1174,8 +1174,8 @@ SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 	
 	/* Admin operation started. */ 
 	ent->adm_op_in_progress = SA_PLM_CAUSE_HE_RESET;
-	ent->am_i_aff_ent = TRUE;
-	plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+	ent->am_i_aff_ent = true;
+	plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 	
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_INACTIVE,NULL,
 				SA_NTF_MANAGEMENT_OPERATION,
@@ -1259,7 +1259,7 @@ SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 					chld_head->dn_name_str);
 
 					ret_err = plms_ee_reboot(chld_head,
-								FALSE,TRUE);
+								false,true);
 					if (NCSCC_RC_SUCCESS != ret_err){	
 						LOG_ER("EE reset failed.EE: %s",
 						chld_head->dn_name_str);
@@ -1325,7 +1325,7 @@ SaUint32T plms_HE_adm_reset_op(PLMS_EVT *evt)
 	/* For all the dep EEs. */
 	head = dep_chld_ee_list;
 	while (head){
-		ret_err = plms_ee_reboot(head->plm_entity,FALSE,TRUE);
+		ret_err = plms_ee_reboot(head->plm_entity,false,true);
 		plms_readiness_state_set(head->plm_entity,
 					SA_PLM_READINESS_OUT_OF_SERVICE,ent,
 					SA_NTF_MANAGEMENT_OPERATION,
@@ -1682,8 +1682,8 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 				plms_ent_exp_rdness_status_clear(
 				trk_info->root_entity);
 				
-				ent->am_i_aff_ent = FALSE;
-				ent->adm_op_in_progress = FALSE;
+				ent->am_i_aff_ent = false;
+				ent->adm_op_in_progress = false;
 				plms_aff_ent_mark_unmark(trk_info->aff_ent_list,
 									FALSE);
 				plms_trk_info_free(trk_info);
@@ -1716,8 +1716,8 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 		SA_PLM_ADMIN_LOCK_OPTION_TRYLOCK))) {
 		/* Admin operation started. */
 		ent->adm_op_in_progress = SA_PLM_CAUSE_LOCK;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 		
 		ret_err = plms_try_lock(ent,evt->req_evt.admin_op,
 							aff_ent_list);
@@ -1729,8 +1729,8 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 	}else {
 		/* Admin operation started. */
 		ent->adm_op_in_progress = SA_PLM_CAUSE_LOCK;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 
 		ret_err = plms_default_lock(ent,evt->req_evt.admin_op,
 							aff_ent_list);
@@ -1968,7 +1968,7 @@ SaUint32T plms_EE_adm_locked_state_lckinst_op(   PLMS_EVT *evt )
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	/* Terminate the EE. */
-	ret_err = plms_ee_term(ent,TRUE,1/*mngt_cbk*/);
+	ret_err = plms_ee_term(ent,true,1/*mngt_cbk*/);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("EE Termination failed. Ent: %s",tmp);
 		
@@ -2250,7 +2250,7 @@ SaUint32T plms_EE_adm_lckinst_state_unlckinst_op(  PLMS_EVT *evt)
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	/* Instantiate the EE. */
-	ret_err = plms_ee_instantiate(ent,TRUE,TRUE/*mngt_cbk*/);
+	ret_err = plms_ee_instantiate(ent,true,true/*mngt_cbk*/);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("EE instantiation failed. Ent: %s",tmp);
 		
@@ -2626,7 +2626,7 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 					if (!plms_is_chld(ent,
 							head->plm_entity)){
 						ret_err = plms_ee_term(
-						head->plm_entity,FALSE,0);
+						head->plm_entity,false,0);
 					
 						if(!plms_rdness_flag_is_set(
 						head->plm_entity,
@@ -2634,7 +2634,7 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 						
 						plms_readiness_flag_mark_unmark(
 						head->plm_entity,
-						SA_PLM_RF_DEPENDENCY,TRUE,
+						SA_PLM_RF_DEPENDENCY,true,
 						ent,SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -2674,7 +2674,7 @@ SaUint32T plms_adm_remove( PLMS_EVT *evt)
 					 SA_PLM_RF_DEPENDENCY)){
 						plms_readiness_flag_mark_unmark(
 						head->plm_entity,
-						SA_PLM_RF_DEPENDENCY, TRUE,
+						SA_PLM_RF_DEPENDENCY, true,
 						ent,SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -2959,7 +2959,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 		 * here. Hence delay that until the ent is 
 		 * activated/instantiated.*/
 		trk_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
-		ret_err = plms_ent_enable(ent,TRUE,TRUE);
+		ret_err = plms_ent_enable(ent,true,true);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			is_enabled = 0;
 			LOG_ER("Enabling the ent %s FAILED.",ent->dn_name_str);
@@ -2992,7 +2992,7 @@ SaUint32T plms_adm_repair( PLMS_EVT *evt)
 			
 			/* Admin operation started. */ 
 			ent->adm_op_in_progress = SA_PLM_CAUSE_FAILURE_CLEARED; 
-			ent->am_i_aff_ent = TRUE;
+			ent->am_i_aff_ent = true;
 			
 			if (!is_set){
 				return ret_err;
@@ -3291,9 +3291,9 @@ SaUint32T plms_forced_lock(PLMS_ENTITY *ent,PLMS_IMM_ADMIN_OP adm_op,
 		trk_info->group_info_list = NULL;
 	}else{
 		/* I am done with the admin operation.*/
-		ent->adm_op_in_progress = FALSE;
-		ent->am_i_aff_ent = FALSE;
-		plms_aff_ent_mark_unmark(trk_info->aff_ent_list,FALSE);
+		ent->adm_op_in_progress = false;
+		ent->am_i_aff_ent = false;
+		plms_aff_ent_mark_unmark(trk_info->aff_ent_list,false);
 
 		plms_trk_info_free(trk_info);
 	}
@@ -3364,7 +3364,7 @@ static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent,
 				ent,SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
+				SA_PLM_RF_DEPENDENCY,true,ent,
 				SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -3379,7 +3379,7 @@ static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent,
 		while(head){
 			if (PLMS_EE_ENTITY == head->plm_entity->entity_type){
 				ret_err = plms_ee_term(head->plm_entity,
-				FALSE,0);
+				false,0);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("EE term failed. Ent: %s",
 					head->plm_entity->dn_name_str);
@@ -3391,7 +3391,7 @@ static SaUint32T plms_forced_lock_cbk( PLMS_ENTITY *ent,
 
 	if (PLMS_EE_ENTITY == ent->entity_type){
 		/* Lock the root EE.*/
-		ret_err = plms_ee_lock(ent,TRUE,1/*mngt_cbk*/);
+		ret_err = plms_ee_lock(ent,true,1/*mngt_cbk*/);
 		if(NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("EE lock Failed. Ent: %s",ent->dn_name_str);
 		}
@@ -3564,8 +3564,8 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	
 	/* Admin operation started. */
 	ent->adm_op_in_progress = SA_PLM_CAUSE_SHUTDOWN;
-	ent->am_i_aff_ent = TRUE;
-	plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+	ent->am_i_aff_ent = true;
+	plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 	
 	trk_info =(PLMS_TRACK_INFO *)calloc(1,sizeof(PLMS_TRACK_INFO));
 	if (NULL == trk_info){
@@ -3629,7 +3629,7 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 			plms_ent_to_ent_list_add(head->plm_entity,&to_be_rmv);	
 		}
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
+				SA_PLM_RF_DEPENDENCY,true,ent,
 				SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		head = head->next;
@@ -3649,7 +3649,7 @@ static SaUint32T plms_ent_unlock_to_shutdown(PLMS_EVT *evt)
 	/*******************************************************************/
 	/* Clean up the redundant entities and groups.*/
 	if (NULL != to_be_rmv){
-		plms_aff_ent_flag_mark_unmark(to_be_rmv,FALSE);
+		plms_aff_ent_flag_mark_unmark(to_be_rmv,false);
 		plms_aff_ent_exp_rdness_status_clear(to_be_rmv);
 		head = to_be_rmv;
 		while (head){
@@ -3851,9 +3851,9 @@ static SaUint32T plms_ent_shutdown_to_lock( PLMS_EVT *evt)
 	if (NCSCC_RC_SUCCESS != ret_err){
 	}
 	/* I am done with admin operation.*/
-	ent->adm_op_in_progress = FALSE;
-	ent->am_i_aff_ent = FALSE;
-	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
+	ent->adm_op_in_progress = false;
+	ent->am_i_aff_ent = false;
+	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,false);
 	
 	/* Free track info.*/
 	plms_trk_info_free(trk_info);
@@ -4008,9 +4008,9 @@ static SaUint32T plms_ent_shutdown_to_unlock( PLMS_EVT *evt)
 	}
 	
 	/* I am done with the admin operation.*/
-	ent->adm_op_in_progress = FALSE;
-	ent->am_i_aff_ent = FALSE;
-	plms_aff_ent_flag_mark_unmark(aff_ent_list,FALSE);
+	ent->adm_op_in_progress = false;
+	ent->am_i_aff_ent = false;
+	plms_aff_ent_flag_mark_unmark(aff_ent_list,false);
 	plms_ent_list_free(aff_ent_list);
 	aff_ent_list = NULL;
 	
@@ -4219,7 +4219,7 @@ static SaUint32T plms_ent_unlock( PLMS_ENTITY *ent,PLMS_TRACK_INFO *trk_info,
 
 	if ((PLMS_EE_ENTITY == ent->entity_type) && (unlck_ee)){
 		/* Unlock the EE.*/
-		unlck_err = plms_ee_unlock(ent,TRUE,1/*mngt_cbk*/);	
+		unlck_err = plms_ee_unlock(ent,true,1/*mngt_cbk*/);	
 		if (NCSCC_RC_SUCCESS != unlck_err){
 			/* TODO: Should I return from here, sending failure to 
 			IMM and calling management lost callback.*/
@@ -4306,7 +4306,7 @@ static SaUint32T plms_ent_unlock( PLMS_ENTITY *ent,PLMS_TRACK_INFO *trk_info,
 			&& (!plms_rdness_flag_is_set(
 			head->plm_entity,SA_PLM_RF_DEPENDENCY))){
 				ret_err = plms_ee_instantiate(
-				head->plm_entity,FALSE,TRUE);
+				head->plm_entity,false,true);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("EE %s instantiation failed.",
 					head->plm_entity->dn_name_str);
@@ -4666,10 +4666,10 @@ SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 			plms_peer_async_send(trk_info->root_entity,
 			SA_PLM_CHANGE_ABORTED,SA_PLM_CAUSE_LOCK);		
 			
-			trk_info->root_entity->adm_op_in_progress = FALSE;
-			trk_info->root_entity->am_i_aff_ent = FALSE;
+			trk_info->root_entity->adm_op_in_progress = false;
+			trk_info->root_entity->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-			trk_info->aff_ent_list,FALSE);
+			trk_info->aff_ent_list,false);
 		}
 		/* If the cause is DEACTIVATION, then move the HE to M4. 
 		*/
@@ -4681,17 +4681,17 @@ SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 			res->grp_handle,grp->agent_mdest_id);
 			
 			ret_err = plms_he_activate(trk_info->root_entity,
-							FALSE,TRUE);
+							false,true);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER(" Move the ent to M4 failed.");
 			}
 			
 			plms_peer_async_send(trk_info->root_entity,
 			SA_PLM_CHANGE_ABORTED,SA_PLM_CAUSE_HE_DEACTIVATION);		
-			trk_info->root_entity->adm_op_in_progress = FALSE;
-			trk_info->root_entity->am_i_aff_ent = FALSE;
+			trk_info->root_entity->adm_op_in_progress = false;
+			trk_info->root_entity->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-			trk_info->aff_ent_list,FALSE);
+			trk_info->aff_ent_list,false);
 			
 		}
 		/* Free trk_info and grp list maintained by trk_info. */
@@ -4981,11 +4981,11 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 		plms_readiness_state_set(head->plm_entity, SA_PLM_READINESS_OUT_OF_SERVICE,
 		ent,SA_NTF_MANAGEMENT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_DEP);
 		
-		plms_readiness_flag_mark_unmark(head->plm_entity,SA_PLM_RF_DEPENDENCY,TRUE,ent,
+		plms_readiness_flag_mark_unmark(head->plm_entity,SA_PLM_RF_DEPENDENCY,true,ent,
 		SA_NTF_MANAGEMENT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_DEP);
 		
 		if (PLMS_EE_ENTITY == head->plm_entity->entity_type){
-			ret_err = plms_ee_term(head->plm_entity,FALSE,0);
+			ret_err = plms_ee_term(head->plm_entity,false,0);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE term FAILED. Ent: %s",
 				head->plm_entity->dn_name_str);
@@ -4997,7 +4997,7 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 	if (PLMS_EE_ENTITY == ent->entity_type){
 		/* Lock the root EE. I am not wating, till I get 
 		the callback.If this API returns success, I am done.  */
-		ret_err = plms_ee_lock(ent,TRUE,1/*mngt_cbk*/);
+		ret_err = plms_ee_lock(ent,true,1/*mngt_cbk*/);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			
 			LOG_ER("EE lock FAILED. Ent: %s",
@@ -5045,9 +5045,9 @@ static void plms_lock_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_
 	}
 	
 	/* I am done with the admin operation. */
-	trk_info->root_entity->adm_op_in_progress = FALSE;
-	trk_info->root_entity->am_i_aff_ent = FALSE;
-	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
+	trk_info->root_entity->adm_op_in_progress = false;
+	trk_info->root_entity->am_i_aff_ent = false;
+	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,false);
 	
 	/* TODO: Do we need to reset expected readiness state of all
 	the affected entities.*/
@@ -5090,7 +5090,7 @@ PLMS_TRACK_INFO  *trk_info)
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
+				SA_PLM_RF_DEPENDENCY,true,ent,
 				SA_NTF_MANAGEMENT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		head = head->next;
@@ -5103,7 +5103,7 @@ PLMS_TRACK_INFO  *trk_info)
 		if (PLMS_EE_ENTITY != head->plm_entity->entity_type)
 			head = head->next;
 
-		ret_err = plms_ee_term(head->plm_entity,FALSE,0);
+		ret_err = plms_ee_term(head->plm_entity,false,0);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("EE Term FAILED. Ent: %s",
 			ent->dn_name_str);
@@ -5162,9 +5162,9 @@ PLMS_TRACK_INFO  *trk_info)
 	}
 	
 	/* I am done with the admin operation. */
-	trk_info->root_entity->adm_op_in_progress = FALSE;
-	trk_info->root_entity->am_i_aff_ent = FALSE;
-	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
+	trk_info->root_entity->adm_op_in_progress = false;
+	trk_info->root_entity->am_i_aff_ent = false;
+	plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,false);
 	
 	/* TODO: Do we need to reset expected readiness state of all 
 	the affected entities.*/						
@@ -5224,7 +5224,7 @@ void plms_deact_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 		head->plm_entity->entity.ee_entity.
 		saPlmEEPresenceState)){
 		
-			ret_err = plms_ee_term(head->plm_entity, FALSE,0);
+			ret_err = plms_ee_term(head->plm_entity, false,0);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE Term FAILED.Ent: %s",
 				head->plm_entity->dn_name_str);
@@ -5235,14 +5235,14 @@ void plms_deact_completed_cbk_call(PLMS_ENTITY *ent, PLMS_TRACK_INFO *trk_info)
 	}
 		
 	/* Set the HE state to M1.*/
-	ret_err = plms_he_deactivate(trk_info->root_entity,FALSE,FALSE);
+	ret_err = plms_he_deactivate(trk_info->root_entity,false,false);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("HE Deactivate FAILED. Ent: %s",
 		trk_info->root_entity->dn_name_str);
 
-		ent->adm_op_in_progress = FALSE;
-		ent->am_i_aff_ent = FALSE;
-		plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list, FALSE);
+		ent->adm_op_in_progress = false;
+		ent->am_i_aff_ent = false;
+		plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list, false);
 
 		plms_aff_ent_exp_rdness_status_clear(trk_info->aff_ent_list);
 		plms_ent_list_free(trk_info->aff_ent_list);
@@ -5353,8 +5353,8 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 	
 	/* Admin operation started. */ 
 	ent->adm_op_in_progress = SA_PLM_CAUSE_EE_RESTART; 
-	ent->am_i_aff_ent = TRUE;
-	plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+	ent->am_i_aff_ent = true;
+	plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 
 	/* Take care of target EE. */
 	plms_presence_state_set(ent,SA_PLM_EE_PRESENCE_INSTANTIATING,NULL,
@@ -5374,7 +5374,7 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 	/* Reset all the dependent EEs.*/
 	head = aff_ent_list;
 	while(head){
-		ret_err = plms_ee_reboot(head->plm_entity,FALSE,TRUE);
+		ret_err = plms_ee_reboot(head->plm_entity,false,true);
 		if (NCSCC_RC_SUCCESS == ret_err){
 			plms_presence_state_set(head->plm_entity,
 					SA_PLM_EE_PRESENCE_UNINSTANTIATED,ent,
@@ -5471,7 +5471,7 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	TRACE_ENTER2("Entity: %s. Op: Admin restart variant: Abrupt.",
 	ent->dn_name_str);
 	/* Graceful restart. Reboot the EE itself.*/
-	ret_err = plms_ee_reboot(ent,TRUE,1/*mngt_cbk*/);
+	ret_err = plms_ee_reboot(ent,true,1/*mngt_cbk*/);
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("EE %s reset failed and hence admin restart \
 		can not be performed.",ent->dn_name_str);
@@ -5489,8 +5489,8 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	
 	/* Admin operation started. */ 
 	ent->adm_op_in_progress = SA_PLM_CAUSE_EE_RESTART; 
-	ent->am_i_aff_ent = TRUE;
-	plms_aff_ent_flag_mark_unmark(aff_ent_list,TRUE);
+	ent->am_i_aff_ent = true;
+	plms_aff_ent_flag_mark_unmark(aff_ent_list,true);
 
 	count++;
 	
@@ -5502,7 +5502,7 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	/* Reset all the dependent EEs.*/
 	head = aff_ent_list;
 	while(head){
-		ret_err = plms_ee_reboot(head->plm_entity,FALSE,TRUE);
+		ret_err = plms_ee_reboot(head->plm_entity,false,true);
 		if (NCSCC_RC_SUCCESS == ret_err){
 			head->plm_entity->trk_info = trk_info;	
 			count++;	

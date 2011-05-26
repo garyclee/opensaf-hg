@@ -221,7 +221,7 @@ static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 		goto err;
 	}
 
-	if (smfd_cb->is_quisced_set == TRUE) {
+	if (smfd_cb->is_quisced_set == true) {
 		{
 			TRACE("ipc send failed");
 			smfsv_evt_destroy(smfsv_evt);
@@ -371,7 +371,7 @@ static uint32_t mds_vdest_create(smfd_cb_t * cb)
 	cb->mds_dest = SMFD_VDEST_ID;
 
 	arg.req = NCSVDA_VDEST_CREATE;
-	arg.info.vdest_create.i_persistent = FALSE;
+	arg.info.vdest_create.i_persistent = false;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	arg.info.vdest_create.info.specified.i_vdest = cb->mds_dest;
@@ -416,7 +416,7 @@ uint32_t mds_register(smfd_cb_t * cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = 0;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 	svc_info.info.svc_install.i_mds_svc_pvt_ver =
 	    SMFD_MDS_PVT_SUBPART_VERSION;
 

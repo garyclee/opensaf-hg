@@ -101,7 +101,7 @@ typedef struct avsv_hlt_info_msg {
 	struct avsv_hlt_key_tag name;
 	SaTimeT period;
 	SaTimeT max_duration;
-	NCS_BOOL is_ext;	/* Whether this HC is for external comp */
+	bool is_ext;	/* Whether this HC is for external comp */
 	struct avsv_hlt_info_msg *next;
 } AVSV_HLT_INFO_MSG;
 
@@ -113,7 +113,7 @@ typedef struct avsv_su_info_msg {
 	SaTimeT su_restart_prob;
 	uint32_t su_restart_max;
 	SaBoolT is_ncs;
-	NCS_BOOL su_is_external;	/*indicates if this SU is external */
+	bool su_is_external;	/*indicates if this SU is external */
 	struct avsv_su_info_msg *next;
 } AVSV_SU_INFO_MSG;
 
@@ -246,7 +246,7 @@ typedef struct avsv_comp_info_tag {
 						 * cleanup callback initiation.
 						 * A value of 0 means AMF should use default value.
 						 */
-	NCS_BOOL am_enable;	/* Enable flag for AM.it also
+	bool am_enable;	/* Enable flag for AM.it also
 				 * acts as a trigger for start
 				 *  /stop EAM.
 				 * Checkpointing - Sent as a one time update.*/
@@ -270,7 +270,7 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	NCS_BOOL comp_restart;	/* disables restarting the
+	bool comp_restart;	/* disables restarting the
 				 * component as part of
 				 * recovery.
 				 * Checkpointing - Sent as a one time update.
@@ -390,13 +390,13 @@ typedef struct avsv_n2d_info_su_si_assign_msg_info_tag {
 	SaNameT si_name;
 	SaAmfHAStateT ha_state;
 	uint32_t error;
-	NCS_BOOL single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
+	bool single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
 } AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO;
 
 typedef struct avsv_n2d_pg_track_act_msg_info_tag {
 	uint32_t msg_id;
 	SaClmNodeIdT node_id;
-	NCS_BOOL msg_on_fover;	/* If TRUE indicates that message is sent on 
+	bool msg_on_fover;	/* If true indicates that message is sent on 
 				 * fail-over. So AVD should process it in
 				 * a special manner */
 	SaNameT csi_name;
@@ -419,7 +419,7 @@ typedef struct avsv_n2d_data_request_msg_info_tag {
 typedef struct avsv_n2d_verify_ack_nack_msg_info {
 	uint32_t msg_id;
 	SaClmNodeIdT node_id;
-	NCS_BOOL ack;
+	bool ack;
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
 
 typedef struct avsv_d2n_node_up_msg_info_tag {
@@ -436,7 +436,7 @@ typedef struct avsv_d2n_reboot_msg_info_tag {
 
 typedef struct avsv_d2n_reg_su_msg_info_tag {
 	uint32_t msg_id;
-	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
+	bool msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 
@@ -447,7 +447,7 @@ typedef struct avsv_d2n_reg_su_msg_info_tag {
 
 typedef struct avsv_d2n_reg_comp_msg_info_tag {
 	uint32_t msg_id;
-	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
+	bool msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 
@@ -466,7 +466,7 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 				 * all SIs of this SU only the SU name field
 				 * is filled. */
 	SaAmfHAStateT ha_state;
-	NCS_BOOL single_csi; /* To differentiate single csi assignment from SI assignment.*/
+	bool single_csi; /* To differentiate single csi assignment from SI assignment.*/
 	uint32_t num_assigns;
 	AVSV_SUSI_ASGN *list;
 } AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO;
@@ -474,19 +474,19 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 typedef struct avsv_d2n_pg_track_act_rsp_msg_info_tag {
 	uint32_t msg_id_ack;
 	SaClmNodeIdT node_id;
-	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
+	bool msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 	AVSV_PG_TRACK_ACT actn;	/* determines if rsp is sent for start/stop action */
 	SaNameT csi_name;
-	NCS_BOOL is_csi_exist;	/* indicates if the csi exists */
+	bool is_csi_exist;	/* indicates if the csi exists */
 	SaAmfProtectionGroupNotificationBufferT mem_list;	/* current member list */
 } AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO;
 
 typedef struct avsv_d2n_pg_upd_msg_info_tag {
 	SaClmNodeIdT node_id;
 	SaNameT csi_name;
-	NCS_BOOL is_csi_del;	/* indicates if the csi is deleted */
+	bool is_csi_del;	/* indicates if the csi is deleted */
 	SaAmfProtectionGroupNotificationT mem;	/* updated member */
 } AVSV_D2N_PG_UPD_MSG_INFO;
 
@@ -500,7 +500,7 @@ typedef struct avsv_d2n_presence_su_msg_info_tag {
 	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT su_name;
-	NCS_BOOL term_state;
+	bool term_state;
 } AVSV_D2N_PRESENCE_SU_MSG_INFO;
 
 typedef struct avsv_d2n_data_verify_msg_info {

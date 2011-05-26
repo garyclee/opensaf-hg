@@ -38,8 +38,8 @@
 ***************************************************************************/
 
 #define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uint16_t)) + (sizeof(uint8_t)))
-#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
-#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
+#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(bool))
+#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(bool))
 #define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uint16_t) + sizeof(uint8_t))
 #define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uint32_t)) + (sizeof(uint16_t)) + (2 * sizeof(uint8_t)))
 #define DTS_MAX_SIZE_DATA             512
@@ -180,7 +180,7 @@ typedef struct dta_log_msg {	/* Data associated with registration confirmation *
 typedef struct log_msg_fltr {	/* Data associated with the Service specific log filter   */
 
 	SS_SVC_ID svc_id;	/* Service ID of the service */
-	NCS_BOOL enable_log;	/* TRUE = Enable; FALSE = Disable */
+	bool enable_log;	/* true = Enable; false = Disable */
 	uint32_t category_bit_map;	/* Category filter Bit map  */
 	uint8_t severity_bit_map;	/* Severity filter Bit Map */
 
@@ -223,11 +223,11 @@ typedef struct dtsv_msg_data {	/* The union of all data types in a DTSV_MSG */
 
 typedef struct dtsv_msg {
 	struct dtsv_msg *next;	/* for a linked list of them                    */
-	NCS_BOOL seq_msg;	/* Set to TRUE if message is received from the 
+	bool seq_msg;	/* Set to true if message is received from the 
 				 * Sequencing buffer */
 
-	NCS_BOOL rsp_reqd;	/* TRUE if send is awaiting a response            */
-	MDS_SYNC_SND_CTXT msg_ctxt;	/* Valid only if "i_rsp_expected == TRUE"         */
+	bool rsp_reqd;	/* true if send is awaiting a response            */
+	MDS_SYNC_SND_CTXT msg_ctxt;	/* Valid only if "i_rsp_expected == true"         */
 	NODE_ID node;		/* Senders physical card number */
 	MDS_DEST dest_addr;	/* Senders destination address */
 	DTS_SVC_MSG_TYPE msg_type;	/* encoded by sender to proper subservice       */

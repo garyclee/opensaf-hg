@@ -160,7 +160,7 @@ uint32_t mqd_mds_init(MQD_CB *pMqd)
 	arg.info.svc_install.i_yr_svc_hdl = pMqd->hdl;
 	arg.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	arg.info.svc_install.i_svc_cb = mqd_mds_callback;
-	arg.info.svc_install.i_mds_q_ownership = FALSE;
+	arg.info.svc_install.i_mds_q_ownership = false;
 	arg.info.svc_install.i_mds_svc_pvt_ver = MQD_PVT_SUBPART_VERSION;
 
 	/* Bind with MDS */
@@ -214,7 +214,7 @@ static uint32_t mqd_mds_vdest_create(MQD_CB *pMqd)
 	memset(&arg, 0, sizeof(arg));
 
 	arg.req = NCSVDA_VDEST_CREATE;
-	arg.info.vdest_create.i_persistent = FALSE;
+	arg.info.vdest_create.i_persistent = false;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	arg.info.vdest_create.info.specified.i_vdest = pMqd->my_dest;
@@ -291,7 +291,7 @@ static uint32_t mqd_mds_vdest_destroy(MQD_CB *pMqd)
 	arg.req = NCSVDA_VDEST_DESTROY;
 	arg.info.vdest_destroy.i_vdest = pMqd->my_dest;
 	arg.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	arg.info.vdest_destroy.i_make_vdest_non_persistent = FALSE;
+	arg.info.vdest_destroy.i_make_vdest_non_persistent = false;
 	rc = ncsvda_api(&arg);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_MQSV_D(MQD_VDEST_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -412,7 +412,7 @@ static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 	MQSV_EVT *pEvt = 0;
 	EDU_ERR err = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -550,7 +550,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 					pNdEvent->type = MQSV_EVT_MQD_CTRL;
 					pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
 					pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = FALSE;
+					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = false;
 
 					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
 					/* Put it in MQD's Event Queue */
@@ -593,7 +593,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 					pNdEvent->type = MQSV_EVT_MQD_CTRL;
 					pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
 					pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
-					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = TRUE;
+					pNdEvent->msg.mqd_ctrl.info.nd_info.is_up = true;
 
 					m_GET_TIME_STAMP(pNdEvent->msg.mqd_ctrl.info.nd_info.event_time);
 					/* Put it in MQD's Event Queue */

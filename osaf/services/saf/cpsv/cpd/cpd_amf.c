@@ -132,8 +132,8 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	if (cb) {
 
 		if ((cb->ha_state == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_ACTIVE)) {
-			if (cb->cold_or_warm_sync_on == TRUE) {
-				TRACE("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE ");
+			if (cb->cold_or_warm_sync_on == true) {
+				TRACE("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
 				saErr = SA_AIS_ERR_TRY_AGAIN;
 				saAmfResponse(cb->amf_hdl, invocation, saErr);
 				ncshm_give_hdl(cb->cpd_hdl);
@@ -146,8 +146,8 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		}
 
 		if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
-			if (cb->cold_or_warm_sync_on == TRUE) {
-				TRACE("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE ");
+			if (cb->cold_or_warm_sync_on == true) {
+				TRACE("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == true ");
 			}
 
 			/* Give up our IMM OI implementer role */
@@ -178,7 +178,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		} else if (SA_AMF_HA_QUIESCED == cb->ha_state) {
 			mds_role = V_DEST_RL_QUIESCED;
 			cb->amf_invocation = invocation;
-			cb->is_quiesced_set = TRUE;
+			cb->is_quiesced_set = true;
 			memset(&vda_info, 0, sizeof(vda_info));
 
 			vda_info.req = NCSVDA_VDEST_CHG_ROLE;

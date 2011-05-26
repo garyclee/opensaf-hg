@@ -300,7 +300,7 @@ uint32_t avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
   Notes         : None
 ******************************************************************************/
 AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
-				   NODE_ID node_id, uint32_t *rc, NCS_BOOL pxy_for_ext_comp, NCS_BOOL comp_is_proxy)
+				   NODE_ID node_id, uint32_t *rc, bool pxy_for_ext_comp, bool comp_is_proxy)
 {
 	AVND_COMP *comp = 0;
 
@@ -335,13 +335,13 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 
 	m_AVND_COMP_TYPE_SET_INTER_NODE(comp);
 
-	if (TRUE == pxy_for_ext_comp) {
+	if (true == pxy_for_ext_comp) {
 		m_AVND_PROXY_FOR_EXT_COMP_SET(comp);
 	}
 
-	if (TRUE == comp_is_proxy) {
+	if (true == comp_is_proxy) {
 		m_AVND_COMP_TYPE_PROXY_SET(comp);
-	} else if (FALSE == comp_is_proxy) {
+	} else if (false == comp_is_proxy) {
 		m_AVND_COMP_TYPE_PROXIED_SET(comp);
 	}
 

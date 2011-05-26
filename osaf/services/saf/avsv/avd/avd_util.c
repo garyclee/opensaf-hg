@@ -336,7 +336,7 @@ uint32_t avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_a
  * 
  **************************************************************************/
 
-uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
+uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_DND_MSG *d2n_msg;
@@ -344,7 +344,7 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, node);
 
-	TRACE_ENTER2("%s '%s'", (term_state == TRUE) ? "Terminate" : "Instantiate", su->name.value);
+	TRACE_ENTER2("%s '%s'", (term_state == true) ? "Terminate" : "Instantiate", su->name.value);
 
 	/* prepare the node update message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
@@ -564,7 +564,7 @@ static uint32_t avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *c
  * 
  **************************************************************************/
 
-uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over)
+uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool *comp_sent, bool fail_over)
 {
 	AVD_SU *i_su = NULL;
 	AVD_DND_MSG *su_msg, *comp_msg;
@@ -573,7 +573,7 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent,
 
 	TRACE_ENTER();
 
-	*comp_sent = FALSE;
+	*comp_sent = false;
 
 	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (su_msg == AVD_DND_MSG_NULL) {
@@ -622,7 +622,7 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent,
 			   So, get the first external SU. */
 			temp_su_name.length = 0;
 			while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
-				if (TRUE == i_su->su_is_external)
+				if (true == i_su->su_is_external)
 					break;
 
 				temp_su_name = i_su->name;
@@ -646,7 +646,7 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent,
 				/* Get the next external SU. */
 				temp_su_name = i_su->name;
 				while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
-					if (TRUE == i_su->su_is_external)
+					if (true == i_su->su_is_external)
 						break;
 
 					temp_su_name = i_su->name;
@@ -709,7 +709,7 @@ uint32_t avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent,
 	}
 
 	/* set the flag to true as the message has been sent succesfully */
-	*comp_sent = TRUE;
+	*comp_sent = true;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 	return NCSCC_RC_SUCCESS;
@@ -981,7 +981,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_S
 	susi_msg->msg_info.d2n_su_si_assign.msg_act = actn;
 
 	if (true == single_csi) {
-		susi_msg->msg_info.d2n_su_si_assign.single_csi = TRUE;
+		susi_msg->msg_info.d2n_su_si_assign.single_csi = true;
 	}
 	switch (actn) {
 	case AVSV_SUSI_ACT_DEL:
@@ -1375,12 +1375,12 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
 	case AVSV_PG_TRACK_ACT_START:
 		{
 			if (csi != NULL) {
-				pg_msg_info->is_csi_exist = TRUE;
+				pg_msg_info->is_csi_exist = true;
 				rc = avd_prep_pg_mem_list(cb, csi, &pg_msg_info->mem_list);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 			} else
-				pg_msg_info->is_csi_exist = FALSE;
+				pg_msg_info->is_csi_exist = false;
 		}
 		break;
 
@@ -1445,8 +1445,8 @@ uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	/* populate the msg */
 	pg_msg->msg_type = AVSV_D2N_PG_UPD_MSG;
 	pg_msg_info->node_id = node->node_info.nodeId;
-	pg_msg_info->is_csi_del = (csi_name) ? TRUE : FALSE;
-	if (FALSE == pg_msg_info->is_csi_del) {
+	pg_msg_info->is_csi_del = (csi_name) ? true : false;
+	if (false == pg_msg_info->is_csi_del) {
 		pg_msg_info->csi_name = comp_csi->csi->name;
 		pg_msg_info->mem.member.compName = comp_csi->comp->comp_info.name;
 		pg_msg_info->mem.member.haState = comp_csi->susi->state;
@@ -1579,7 +1579,7 @@ uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *c
 		d2n_msg->msg_info.d2n_comp_valid_resp_info.result = AVSV_VALID_FAILURE;
 	} else {
 		/* Check whether this is an external or cluster component */
-		if (TRUE == comp_ptr->su->su_is_external) {
+		if (true == comp_ptr->su->su_is_external) {
 			/* There would not be any node associated with it. */
 			d2n_msg->msg_info.d2n_comp_valid_resp_info.node_id = 0;
 			su_node_ptr = cb->ext_comp_info.local_avnd_node;

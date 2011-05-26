@@ -45,7 +45,7 @@
 #define m_CPND_CKPTHDR_UPDATE(ckpt_hdr,offset)  memcpy(offset,&ckpt_hdr,sizeof(CKPT_HDR))
 
 static uint32_t cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node);
-static NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset,
+static bool cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset,
 					 uint32_t *offset, uint32_t *prev_offset);
 static void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uint32_t curr_offset, uint32_t prev_offset);
 
@@ -358,7 +358,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 			m_MMGR_FREE_CPND_DEFAULT(buffer);
 			return NULL;
 		}
-		cb->cpnd_first_time = TRUE;
+		cb->cpnd_first_time = true;
 
 		memset(cpnd_open_req->info.open.o_addr, 0,
 		       sizeof(CLIENT_HDR) + (MAX_CLIENTS * sizeof(CLIENT_INFO)) + sizeof(CKPT_HDR) +
@@ -792,13 +792,13 @@ uint32_t cpnd_client_bitmap_set(SaCkptHandleT client_hdl)
  *
 **************************************************************************************************/
 
-NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset, uint32_t *offset,
+bool cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset, uint32_t *offset,
 				  uint32_t *prev_offset)
 {
 	int32_t next;
 	CKPT_INFO prev_ckpt_info;
 	uint32_t i_offset;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
 	memset(&prev_ckpt_info, 0, sizeof(ckpt_info));
 	memcpy(&prev_ckpt_info, ckpt_info, sizeof(CKPT_INFO));
@@ -810,7 +810,7 @@ NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bi
 		i_offset = next * sizeof(CKPT_INFO);
 		m_CPND_CKPTINFO_READ(prev_ckpt_info, (char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), i_offset);
 		if (prev_ckpt_info.bm_offset == bitmap_offset) {
-			found = TRUE;
+			found = true;
 			*offset = prev_ckpt_info.offset;
 			break;
 		}
@@ -837,7 +837,7 @@ uint32_t cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, S
 {
 	CKPT_INFO ckpt_info, prev_ckpt_info, new_ckpt_info;
 	uint32_t bitmap_offset = 0, bitmap_value = 0, i_offset, prev_offset, offset, rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
 	memset(&ckpt_info, '\0', sizeof(CKPT_INFO));
 	memset(&prev_ckpt_info, '\0', sizeof(CKPT_INFO));
@@ -895,7 +895,7 @@ uint32_t cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, S
 		new_ckpt_info.client_bitmap = bitmap_value;
 		new_ckpt_info.bm_offset = bitmap_offset;
 		new_ckpt_info.is_valid = 1;
-		new_ckpt_info.is_first = FALSE;
+		new_ckpt_info.is_first = false;
 		new_ckpt_info.next = SHM_NEXT;
 
 		i_offset = offset * sizeof(CKPT_INFO);
@@ -936,7 +936,7 @@ uint32_t cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32_t offs
 	ckpt_info.cpnd_rep_create = cp_node->cpnd_rep_create;
 	ckpt_info.offset = offset;
 	ckpt_info.node_id = cb->nodeid;
-	ckpt_info.is_first = TRUE;
+	ckpt_info.is_first = true;
 
 	if (client_hdl) {
 		ckpt_info.bm_offset = client_hdl / 32;
@@ -1142,7 +1142,7 @@ void cpnd_restart_ckpt_name_length_reset(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	if (cp_node->offset >= 0) {
 		m_CPND_CKPTINFO_READ(ckpt_info, (char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR),
 				     cp_node->offset * sizeof(CKPT_INFO));
-		ckpt_info.is_unlink = TRUE;
+		ckpt_info.is_unlink = true;
 		m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), ckpt_info,
 				       cp_node->offset * sizeof(CKPT_INFO));
 	}
@@ -1166,7 +1166,7 @@ void cpnd_restart_set_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	if (cp_node->offset >= 0) {
 		m_CPND_CKPTINFO_READ(ckpt_info, (char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR),
 				     cp_node->offset * sizeof(CKPT_INFO));
-		ckpt_info.is_close = TRUE;
+		ckpt_info.is_close = true;
 		m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), ckpt_info,
 				       cp_node->offset * sizeof(CKPT_INFO));
 	}
@@ -1190,7 +1190,7 @@ void cpnd_restart_reset_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	if (cp_node->offset >= 0) {
 		m_CPND_CKPTINFO_READ(ckpt_info, (char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR),
 				     cp_node->offset * sizeof(CKPT_INFO));
-		ckpt_info.is_close = FALSE;
+		ckpt_info.is_close = false;
 		m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR),
 				       ckpt_info, cp_node->offset * sizeof(CKPT_INFO));
 	}
@@ -1256,7 +1256,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uint32_t curr_of
 			next_ckpt_info.is_close = curr_ckpt_info.is_close;
 			next_ckpt_info.is_unlink = curr_ckpt_info.is_unlink;
 			next_ckpt_info.close_time = curr_ckpt_info.close_time;
-			next_ckpt_info.is_first = TRUE;
+			next_ckpt_info.is_first = true;
 			m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), next_ckpt_info,
 					       i_offset);
 
@@ -1287,7 +1287,7 @@ void cpnd_restart_client_reset(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_C
 {
 	CKPT_INFO ckpt_info;
 	uint32_t bitmap_offset = 0, num_bitset = 0;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 	uint32_t offset, prev_offset;
 	SaCkptHandleT client_hdl = cl_node->ckpt_app_hdl;
 

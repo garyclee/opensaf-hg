@@ -49,7 +49,7 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb);
 static uint32_t mqnd_cb_db_destroy(MQND_CB *cb);
 static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb);
 static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb);
-static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist);
 void mqnd_main_process(uint32_t hdl);
 static void mqnd_asapi_bind(MQND_CB *cb);
@@ -483,7 +483,7 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 		m_LOG_MQSV_ND(MQND_CB_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
-	cb->is_qhdl_db_up = TRUE;
+	cb->is_qhdl_db_up = true;
 	/* Initialise the queuename tree */
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
@@ -491,7 +491,7 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 		rc = NCSCC_RC_FAILURE;
 	}
 
-	cb->is_qname_db_up = TRUE;
+	cb->is_qname_db_up = true;
 	/*Initialize the qevt node tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
 	params.info_size = 0;
@@ -500,7 +500,7 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 		m_LOG_MQSV_ND(MQND_CB_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return rc;
 	}
-	cb->is_qevt_hdl_db_up = TRUE;
+	cb->is_qevt_hdl_db_up = true;
 	cb->mqa_dfrd_evt_rsp_list_head = NULL;
 	rc = mqnd_mqa_list_init(&cb->mqa_list_info);
 
@@ -567,7 +567,7 @@ static uint32_t mqnd_cb_db_destroy(MQND_CB *cb)
 	if (cb->is_qhdl_db_up)
 		ncs_patricia_tree_destroy(&cb->qhndl_db);
 
-	cb->is_qhdl_db_up = FALSE;
+	cb->is_qhdl_db_up = false;
 
 	/* deregister with the AMF */
 	if (mqnd_amf_deregister(cb) != NCSCC_RC_SUCCESS)
@@ -607,7 +607,7 @@ static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb)
 
 	if (cb->is_qname_db_up)
 		ncs_patricia_tree_destroy(&cb->qname_db);
-	cb->is_qname_db_up = FALSE;
+	cb->is_qname_db_up = false;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -638,7 +638,7 @@ static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 
 	if (cb->is_qevt_hdl_db_up)
 		ncs_patricia_tree_destroy(&cb->q_transfer_evt_db);
-	cb->is_qevt_hdl_db_up = FALSE;
+	cb->is_qevt_hdl_db_up = false;
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -695,13 +695,13 @@ static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

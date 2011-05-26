@@ -99,7 +99,7 @@ extern "C" {
 /************************************************************************/
 
 	typedef struct ncslpg_obj {
-		NCS_BOOL open;	/* Is the object (still) open/available     */
+		bool open;	/* Is the object (still) open/available     */
 		uint8_t inhere;	/* use-count of clients 'inside' object now */
 
 	} NCSLPG_OBJ;		/* Local Persistence Guard */
@@ -110,10 +110,10 @@ extern "C" {
  *
  ***************************************************************************/
 
-	NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg);
+	bool ncslpg_take(NCSLPG_OBJ *pg);
 	uint32_t ncslpg_give(NCSLPG_OBJ *pg, uint32_t ret);
 	uint32_t ncslpg_create(NCSLPG_OBJ *pg);
-	NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg);
+	bool ncslpg_destroy(NCSLPG_OBJ *pg);
 
 #ifdef  __cplusplus
 }

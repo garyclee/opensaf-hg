@@ -196,11 +196,11 @@ clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t * clma_cb, uint3
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL clma_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool clma_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	CLMSV_MSG *cbk, *pnext;
 
@@ -210,7 +210,7 @@ static NCS_BOOL clma_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		clma_msg_destroy(cbk);	/*need to do */
 		cbk = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

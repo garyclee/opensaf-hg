@@ -52,7 +52,7 @@ typedef struct avd_pg_node_csi {
 void avd_pg_trk_act_evh(AVD_CL_CB *, struct avd_evt_tag *);
 
 uint32_t avd_pg_susi_chg_prc(AVD_CL_CB *, AVD_SU_SI_REL *);
-uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *, struct avd_comp_csi_rel_tag *, NCS_BOOL);
+uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *, struct avd_comp_csi_rel_tag *, bool);
 
 uint32_t avd_pg_csi_node_add(AVD_CL_CB *, struct avd_csi_tag *, AVD_AVND *);
 void avd_pg_csi_node_del(AVD_CL_CB *, struct avd_csi_tag *, AVD_AVND *);

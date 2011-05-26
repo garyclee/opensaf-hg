@@ -71,17 +71,17 @@
 extern int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int kind);
 NCS_OS_LOCK gl_ncs_atomic_mtx;
 #ifndef NDEBUG
-NCS_BOOL gl_ncs_atomic_mtx_initialise = FALSE;
+bool gl_ncs_atomic_mtx_initialise = false;
 #endif
 
 NCS_OS_LOCK ncs_fd_cloexec_lock;
 
 NCS_OS_LOCK *get_cloexec_lock()
 {
-	static int lock_inited = FALSE;
+	static int lock_inited = false;
 	if (!lock_inited) {
 		m_NCS_OS_LOCK(&ncs_fd_cloexec_lock, NCS_OS_LOCK_CREATE, 0);
-		lock_inited = TRUE;
+		lock_inited = true;
 	}
 	return &ncs_fd_cloexec_lock;
 }
@@ -203,7 +203,7 @@ int getversion(void)
 #endif
 /***************************************************************************
  *
- * NCS_BOOL
+ * bool
  * ncs_is_root(void)
  *
  * Description:
@@ -218,7 +218,7 @@ int getversion(void)
  *    None
  *
  * Returns:
- *   Returns NCS_BOOL; TRUE if running as root, else FALSE
+ *   Returns bool; true if running as root, else false
  *
  * Notes:
  *   Too many times someone complans that a demo is broken only to
@@ -230,22 +230,22 @@ int getversion(void)
 #define ROOT_UID 0
  /*  stores user id */
 static uid_t gl_ncs_user_id = -1;
-NCS_BOOL ncs_is_root(void)
+bool ncs_is_root(void)
 {
 	if (-1 == gl_ncs_user_id) {
 		gl_ncs_user_id = getuid();
 	}
 	if (ROOT_UID != gl_ncs_user_id) {
-		return FALSE;
+		return false;
 	} else {
-		return TRUE;
+		return true;
 	}
-	return TRUE;
+	return true;
 }
 #else
-NCS_BOOL ncs_is_root(void)
+bool ncs_is_root(void)
 {
-	return TRUE;
+	return true;
 }
 #endif
 
@@ -272,7 +272,7 @@ NCS_BOOL ncs_is_root(void)
 
 int ncs_dbg_logscreen(const char *fmt, ...)
 {
-	static int dbg_printf_init = FALSE;
+	static int dbg_printf_init = false;
 	int logmessage_length = 0;
 	char *p_op = NULL;
 
@@ -281,13 +281,13 @@ int ncs_dbg_logscreen(const char *fmt, ...)
 		   if set to 0 ,dbg_printf_init flag is set to -1 */
 		return 0;
 	} else {
-		if (dbg_printf_init == FALSE) {
+		if (dbg_printf_init == false) {
 			p_op = (char *)getenv("NCS_DBG_PRINTF_ENABLE");
 			if (p_op == NULL || atoi(p_op) != 1) {
 				dbg_printf_init = -1;
 				return 0;
 			}
-			dbg_printf_init = TRUE;
+			dbg_printf_init = true;
 		}
 	}
 
@@ -453,7 +453,7 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			/* if we opted for lowest priority then change that process
 			   SCHED policy to SCHED_OTHER */
 
-			if (ncs_is_root() == FALSE || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16)
+			if (ncs_is_root() == false || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16)
 				policy = SCHED_OTHER;	/* This policy is for normal user */
 
 			pthread_attr_t attr;
@@ -479,7 +479,7 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 
 			max_prio = sched_get_priority_max(policy);
 			min_prio = sched_get_priority_min(policy);
-			if (ncs_is_root() == TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
+			if (ncs_is_root() == true && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
 				assert(min_prio != 0 && max_prio != 0);
 
 			if (task->info.create.i_priority < min_prio)
@@ -489,7 +489,7 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
 
 			sp.sched_priority = max_prio - (task->info.create.i_priority * ((max_prio - min_prio) / 17));
-			if (ncs_is_root() == TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
+			if (ncs_is_root() == true && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
 				assert(min_prio <= task->info.create.i_priority
 				       && max_prio >= task->info.create.i_priority);
 
@@ -722,7 +722,7 @@ unsigned int ncs_os_sem(NCS_OS_SEM *sem, NCS_OS_SEM_REQUEST request)
 void ncs_os_atomic_init(void)
 {
 #ifndef NDEBUG
-	gl_ncs_atomic_mtx_initialise = TRUE;
+	gl_ncs_atomic_mtx_initialise = true;
 #endif
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_CREATE, 0);
 }
@@ -747,7 +747,7 @@ void ncs_os_atomic_dec(void *p_uns32)
 void ncs_os_atomic_destroy(void)
 {
 #ifndef NDEBUG
-	gl_ncs_atomic_mtx_initialise = FALSE;
+	gl_ncs_atomic_mtx_initialise = false;
 #endif
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_RELEASE, 0);
 }
@@ -1472,9 +1472,9 @@ unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
 
 			file_handle = fopen((const char *)pfile->info.file_exists.i_file_name, "r");
 			if (NULL == file_handle)
-				pfile->info.file_exists.o_file_exists = FALSE;
+				pfile->info.file_exists.o_file_exists = false;
 			else {
-				pfile->info.file_exists.o_file_exists = TRUE;
+				pfile->info.file_exists.o_file_exists = true;
 				fclose(file_handle);
 			}
 			return NCSCC_RC_SUCCESS;
@@ -1549,12 +1549,12 @@ unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
 
 			dir = opendir((const char *)pfile->info.dir_exists.i_dir_name);
 			if (dir != NULL) {
-				pfile->info.dir_exists.o_exists = TRUE;
+				pfile->info.dir_exists.o_exists = true;
 				closedir(dir);
 				return NCSCC_RC_SUCCESS;
 			} else {
 				if (errno == ENOENT) {
-					pfile->info.dir_exists.o_exists = FALSE;
+					pfile->info.dir_exists.o_exists = false;
 					return NCSCC_RC_SUCCESS;
 				} else
 					return NCSCC_RC_FAILURE;
@@ -1567,19 +1567,19 @@ unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
 		{
 			int i, n;
 			struct dirent **namelist;
-			NCS_BOOL found = FALSE;
+			bool found = false;
 
 			pfile->info.get_next.io_next_file[0] = '\0';
 			if (pfile->info.get_next.i_file_name == NULL)
-				found = TRUE;
+				found = true;
 
 			n = scandir((const char *)pfile->info.get_next.i_dir_name, &namelist, NULL, NULL);
 			if (n < 0)
 				return NCSCC_RC_FAILURE;
 
 			for (i = 0; i < n; i++) {
-				if (found == TRUE) {
-					found = FALSE;
+				if (found == true) {
+					found = false;
 					strncpy((char *)pfile->info.get_next.io_next_file, namelist[i]->d_name,
 						pfile->info.get_next.i_buf_size);
 				}
@@ -1587,7 +1587,7 @@ unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
 				if (pfile->info.get_next.i_file_name != NULL) {
 					if (strcmp(namelist[i]->d_name,
 						   (const char *)pfile->info.get_next.i_file_name) == 0)
-						found = TRUE;
+						found = true;
 				}
 
 				free(namelist[i]);
@@ -2206,7 +2206,7 @@ uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 	m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
-	if (module_cb.init != TRUE) {
+	if (module_cb.init != true) {
 		/* this will initializes the execute module control block */
 		if (start_exec_mod_cb() != NCSCC_RC_SUCCESS) {
 			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
@@ -2463,7 +2463,7 @@ uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ i_ind_obj)
 	return NCSCC_RC_SUCCESS;
 }
 
-int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, NCS_BOOL nonblock, NCS_BOOL one_at_a_time)
+int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, bool nonblock, bool one_at_a_time)
 {
 	char tmp[MAX_INDS_AT_A_TIME];
 	int ind_count, tot_inds_rmvd;
@@ -2473,22 +2473,22 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, NCS_BOOL nonblock, NCS_BOOL one_a
 	tot_inds_rmvd = 0;
 	num_at_a_time = (one_at_a_time ? 1 : MAX_INDS_AT_A_TIME);
 
-	/* If one_at_a_time == FALSE, remove MAX_INDS_AT_A_TIME in a 
+	/* If one_at_a_time == false, remove MAX_INDS_AT_A_TIME in a 
 	 * non-blocking way and count the number of indications 
 	 * so removed using "tot_inds_rmvd"
 	 *
-	 * If one_at_a_time == TRUE,  then quit the infinite loop 
+	 * If one_at_a_time == true,  then quit the infinite loop 
 	 * after removing at most 1 indication.
 	 */
 	flags = fcntl(i_ind_obj.raise_obj, F_GETFL, 0);
 	if ((flags & O_NONBLOCK) != O_NONBLOCK) {
 		fcntl(i_ind_obj.raise_obj, F_SETFL, (flags | O_NONBLOCK));
-		raise_non_block_flag_set = TRUE;
+		raise_non_block_flag_set = true;
 	}
 	flags = fcntl(i_ind_obj.rmv_obj, F_GETFL, 0);
 	if ((flags & O_NONBLOCK) != O_NONBLOCK) {
 		fcntl(i_ind_obj.rmv_obj, F_SETFL, (flags | O_NONBLOCK));
-		rmv_non_block_flag_set = TRUE;
+		rmv_non_block_flag_set = true;
 	}
 	for (;;) {
 		ind_count = recv(i_ind_obj.rmv_obj, &tmp, num_at_a_time, 0);
@@ -2520,12 +2520,12 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, NCS_BOOL nonblock, NCS_BOOL one_a
 		}
 	}			/* End of infinite loop */
 
-	if (raise_non_block_flag_set == TRUE) {
+	if (raise_non_block_flag_set == true) {
 		flags = fcntl(i_ind_obj.raise_obj, F_GETFL, 0);
 		flags = flags & ~(O_NONBLOCK);
 		fcntl(i_ind_obj.raise_obj, F_SETFL, flags);	
 	}
-	if (rmv_non_block_flag_set == TRUE) {
+	if (rmv_non_block_flag_set == true) {
 		flags = fcntl(i_ind_obj.rmv_obj, F_GETFL, 0);
 		flags = flags & ~(O_NONBLOCK);
 		fcntl(i_ind_obj.rmv_obj, F_SETFL, flags);	

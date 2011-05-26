@@ -742,9 +742,9 @@ void smfa_evt_free(SMF_EVT *evt)
 @brief		: Clean up the MBX before destroying it. Free all the msgs in the MBX.
 @param[in]	: arg - 
 @param[in]	: msg - 
-@return		: TRUE
+@return		: true
 ***************************************************************************/ 
-NCS_BOOL smfa_client_mbx_clnup(NCSCONTEXT arg, NCSCONTEXT msg)
+bool smfa_client_mbx_clnup(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	SMF_EVT *evt = (SMF_EVT *)msg;
 	SMF_EVT *next = evt;
@@ -755,6 +755,6 @@ NCS_BOOL smfa_client_mbx_clnup(NCSCONTEXT arg, NCSCONTEXT msg)
 		smfa_evt_free(evt);
 		evt = next;
 	}
-	return TRUE;
+	return true;
 }
 

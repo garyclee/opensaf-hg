@@ -108,7 +108,7 @@ extern "C" {
 #define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
 #endif
 
-	extern NCS_BOOL ncs_is_root(void);
+	extern bool ncs_is_root(void);
 #define m_GET_MSEC_TIME_STAMP(seconds, millisec) get_msec_time(seconds, millisec)
 
 /*****************************************************************************

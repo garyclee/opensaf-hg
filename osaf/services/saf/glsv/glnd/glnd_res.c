@@ -37,7 +37,7 @@
 static void glnd_master_process_lock_initiate_waitercallbk(GLND_CB *cb,
 							   GLND_RESOURCE_INFO *res_info,
 							   GLSV_LOCK_REQ_INFO lock_info, SaLckLockIdT lockid);
-static NCS_BOOL glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res_info);
+static bool glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res_info);
 
 static uint32_t glnd_initiate_deadlock_algorithm(GLND_CB *cb,
 					      GLND_RESOURCE_INFO *res_info,
@@ -113,7 +113,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT *r
 *****************************************************************************/
 GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 					   SaLckResourceIdT res_id,
-					   SaNameT *resource_name, NCS_BOOL is_master, MDS_DEST master_mds_dest)
+					   SaNameT *resource_name, bool is_master, MDS_DEST master_mds_dest)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 
@@ -181,9 +181,9 @@ uint32_t glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 	while (grant_list != NULL) {
 		if ((grant_list->lock_info.lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN) {
 			if (grant_list->lock_info.lock_type == SA_LCK_EX_LOCK_MODE)
-				res_info->lck_master_info.ex_orphaned = TRUE;
+				res_info->lck_master_info.ex_orphaned = true;
 			if (grant_list->lock_info.lock_type == SA_LCK_PR_LOCK_MODE)
-				res_info->lck_master_info.pr_orphaned = TRUE;
+				res_info->lck_master_info.pr_orphaned = true;
 
 			glnd_restart_resource_info_ckpt_overwrite(glnd_cb, res_info);
 			/* send notification to the GLD about the orphan locks */
@@ -191,7 +191,7 @@ uint32_t glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 
 			memset(&gld_evt, 0, sizeof(GLSV_GLD_EVT));
 			m_GLND_RESOURCE_LCK_FILL(gld_evt, GLSV_GLD_EVT_SET_ORPHAN,
-						 res_info->resource_id, TRUE, grant_list->lock_info.lock_type);
+						 res_info->resource_id, true, grant_list->lock_info.lock_type);
 			glnd_mds_msg_send_gld(glnd_cb, &gld_evt, glnd_cb->gld_mdest_id);
 
 		}
@@ -265,7 +265,7 @@ void glnd_resource_lock_req_unset_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *r
   NOTES         : Decrements the reference count and deletes the node when it reaches
                   zero.
 *****************************************************************************/
-uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan)
+uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, bool orphan)
 {
 	GLSV_GLD_EVT evt;
 	GLND_CLIENT_INFO *client_info = NULL;
@@ -661,7 +661,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 	case SA_LCK_EX_LOCK_MODE:
 		/* check if we can add it to the grant list */
 		if (res_info->lck_master_info.grant_list == NULL &&
-		    glnd_resource_grant_list_orphan_locks(res_info, &mode) == FALSE) {
+		    glnd_resource_grant_list_orphan_locks(res_info, &mode) == false) {
 			/* add it to the grant list */
 			TRACE("LOCK_GRANTED handle - %d res - %d lockid- %d",
 			      (uint32_t)lock_info.handleId, (uint32_t)res_info->resource_id,
@@ -676,7 +676,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			/* send back the request as it can't be queued */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_NOT_QUEUED;
 		} else if (((lock_info.lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN) &&
-			   glnd_resource_grant_list_orphan_locks(res_info, &mode) == TRUE) {
+			   glnd_resource_grant_list_orphan_locks(res_info, &mode) == true) {
 			/* check if there are any orphan locks in the grant queue */
 			/* send back the request as it can't be queued as it is orphaned */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_ORPHANED;
@@ -764,8 +764,8 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 		break;
 	case SA_LCK_PR_LOCK_MODE:
 		/* check if we can add it to the grant list */
-		if (glnd_resource_grant_list_exclusive_locks(res_info) != TRUE &&
-		    res_info->lck_master_info.ex_orphaned != TRUE) {
+		if (glnd_resource_grant_list_exclusive_locks(res_info) != true &&
+		    res_info->lck_master_info.ex_orphaned != true) {
 			/* add it in the grant list */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_GRANTED;
 			lck_list_info->next = res_info->lck_master_info.grant_list;
@@ -783,7 +783,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_master_process_lock_req(GLND_CB *cb,
 			/* send back the request as it can't be queued */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_NOT_QUEUED;
 		} else if (((lock_info.lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN) &&
-			   glnd_resource_grant_list_orphan_locks(res_info, &mode) == TRUE) {
+			   glnd_resource_grant_list_orphan_locks(res_info, &mode) == true) {
 			/* check if there are any orphan locks in the grant queue */
 			/* send back the request as it can't be queued as it is orphaned */
 			lck_list_info->lock_info.lockStatus = SA_LCK_LOCK_ORPHANED;
@@ -1078,21 +1078,21 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB *cb,
   ARGUMENTS      : res_info      - ptr to the Resource Node.
                    mode          - the mode of the orphan lock.  
 
-  RETURNS        : TRUE/FALSE
+  RETURNS        : true/false
 
   NOTES         : None
 *****************************************************************************/
-NCS_BOOL glnd_resource_grant_list_orphan_locks(GLND_RESOURCE_INFO *res_info, SaLckLockModeT *mode)
+bool glnd_resource_grant_list_orphan_locks(GLND_RESOURCE_INFO *res_info, SaLckLockModeT *mode)
 {
-	if (res_info->lck_master_info.ex_orphaned == TRUE) {
+	if (res_info->lck_master_info.ex_orphaned == true) {
 		*mode = SA_LCK_EX_LOCK_MODE;
-		return TRUE;
+		return true;
 	}
-	if (res_info->lck_master_info.pr_orphaned == TRUE) {
+	if (res_info->lck_master_info.pr_orphaned == true) {
 		*mode = SA_LCK_PR_LOCK_MODE;
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 /*****************************************************************************
@@ -1103,19 +1103,19 @@ NCS_BOOL glnd_resource_grant_list_orphan_locks(GLND_RESOURCE_INFO *res_info, SaL
                   res_info      - ptr to the Resource Node.
                  
 
-  RETURNS        : TRUE/FALSE
+  RETURNS        : true/false
 
   NOTES         : None
 *****************************************************************************/
-static NCS_BOOL glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res_info)
+static bool glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RES_LOCK_LIST_INFO *lock_list_info;
 	for (lock_list_info = res_info->lck_master_info.grant_list; lock_list_info != NULL;
 	     lock_list_info = lock_list_info->next) {
 		if (lock_list_info->lock_info.lock_type == SA_LCK_EX_LOCK_MODE)
-			return TRUE;
+			return true;
 	}
-	return FALSE;
+	return false;
 }
 
 /*****************************************************************************
@@ -1126,7 +1126,7 @@ static NCS_BOOL glnd_resource_grant_list_exclusive_locks(GLND_RESOURCE_INFO *res
   ARGUMENTS      :cb - ptr to the GLND control block 
                   res_info      - ptr to the Resource Node.
                  
-  RETURNS        : TRUE/FALSE
+  RETURNS        : true/false
 
   NOTES         : None
 *****************************************************************************/
@@ -1187,36 +1187,36 @@ static void glnd_master_process_lock_initiate_waitercallbk(GLND_CB *cb,
 
   ARGUMENTS      : glnd_cb      - ptr to the Control Block
                    res_info     - pointer to the resource info
-                   is_local  - TRUE/FALSE
+                   is_local  - true/false
 
   RETURNS        : None.
 
   NOTES         : None
 *****************************************************************************/
-void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL is_local)
+void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, bool is_local)
 {
-	NCS_BOOL orphan = TRUE;
-	if (res_info->lck_master_info.ex_orphaned == TRUE) {
-		res_info->lck_master_info.ex_orphaned = FALSE;
+	bool orphan = true;
+	if (res_info->lck_master_info.ex_orphaned == true) {
+		res_info->lck_master_info.ex_orphaned = false;
 
-		if (is_local == TRUE && res_info->lck_master_info.ex_orphan_req_count == 0) {
+		if (is_local == true && res_info->lck_master_info.ex_orphan_req_count == 0) {
 			/* send notification to the GLD about the shared locks */
 			GLSV_GLD_EVT gld_evt;
 			memset(&gld_evt, 0, sizeof(GLSV_GLD_EVT));
 			m_GLND_RESOURCE_LCK_FILL(gld_evt, GLSV_GLD_EVT_SET_ORPHAN,
-						 res_info->resource_id, FALSE, SA_LCK_EX_LOCK_MODE);
+						 res_info->resource_id, false, SA_LCK_EX_LOCK_MODE);
 			glnd_mds_msg_send_gld(glnd_cb, &gld_evt, glnd_cb->gld_mdest_id);
 		}
 	}
-	if (res_info->lck_master_info.pr_orphaned == TRUE) {
-		res_info->lck_master_info.pr_orphaned = FALSE;
+	if (res_info->lck_master_info.pr_orphaned == true) {
+		res_info->lck_master_info.pr_orphaned = false;
 
-		if (is_local == TRUE && res_info->lck_master_info.pr_orphan_req_count == 0) {
+		if (is_local == true && res_info->lck_master_info.pr_orphan_req_count == 0) {
 			/* send notification to the GLD about the shared locks */
 			GLSV_GLD_EVT gld_evt;
 			memset(&gld_evt, 0, sizeof(GLSV_GLD_EVT));
 			m_GLND_RESOURCE_LCK_FILL(gld_evt, GLSV_GLD_EVT_SET_ORPHAN,
-						 res_info->resource_id, FALSE, SA_LCK_PR_LOCK_MODE);
+						 res_info->resource_id, false, SA_LCK_PR_LOCK_MODE);
 			glnd_mds_msg_send_gld(glnd_cb, &gld_evt, glnd_cb->gld_mdest_id);
 		}
 	}
@@ -1410,10 +1410,10 @@ void glnd_resource_master_lock_resync_grant_list(GLND_CB *glnd_cb, GLND_RESOURCE
 		return;
 
 	/* check and see if any orphan locks are present */
-	if (res_info->lck_master_info.ex_orphaned == TRUE)
+	if (res_info->lck_master_info.ex_orphaned == true)
 		return;
 
-	if (res_info->lck_master_info.grant_list == NULL && res_info->lck_master_info.pr_orphaned == FALSE) {
+	if (res_info->lck_master_info.grant_list == NULL && res_info->lck_master_info.pr_orphaned == false) {
 		/* can move the exclusive lock list into the grant list */
 		if (res_info->lck_master_info.wait_exclusive_list) {
 			if (res_info->lck_master_info.wait_exclusive_list->res_info == res_info)
@@ -1421,7 +1421,7 @@ void glnd_resource_master_lock_resync_grant_list(GLND_CB *glnd_cb, GLND_RESOURCE
 		}
 	}
 	/* check to see if we move pr locks */
-	if (glnd_resource_grant_list_exclusive_locks(res_info) != TRUE) {
+	if (glnd_resource_grant_list_exclusive_locks(res_info) != true) {
 		if (res_info->lck_master_info.wait_read_list) {
 			if (res_info->lck_master_info.wait_read_list->res_info == res_info)
 				glnd_resource_master_move_pr_locks_to_grant_list(glnd_cb, res_info);
@@ -1640,12 +1640,12 @@ void glnd_resource_master_process_resend_lock_req(GLND_CB *glnd_cb,
 
   NOTES         : 
 *****************************************************************************/
-NCS_BOOL glnd_deadlock_detect(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, GLSV_EVT_GLND_DD_PROBE_INFO *dd_probe)
+bool glnd_deadlock_detect(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, GLSV_EVT_GLND_DD_PROBE_INFO *dd_probe)
 {
 	GLSV_GLND_DD_INFO_LIST *dd_info_list = NULL;
 	GLND_CLIENT_LIST_RESOURCE *client_res_list = NULL;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lck_req_info = NULL;
-	NCS_BOOL deadlock_present = FALSE, ignore_probe = FALSE;
+	bool deadlock_present = false, ignore_probe = false;
 	GLSV_GLA_EVT gla_evt;
 	GLSV_GLND_EVT glnd_evt;
 
@@ -1666,9 +1666,9 @@ NCS_BOOL glnd_deadlock_detect(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, G
 							    SA_LCK_LOCK_GRANTED) {
 								lck_req_info->lck_req->lock_info.lockStatus =
 								    SA_LCK_LOCK_DEADLOCK;
-								deadlock_present = TRUE;
+								deadlock_present = true;
 							} else
-								ignore_probe = TRUE;
+								ignore_probe = true;
 							break;
 						}
 						lck_req_info = lck_req_info->next;
@@ -1737,9 +1737,9 @@ NCS_BOOL glnd_deadlock_detect(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, G
 	}
 
 	if (deadlock_present || ignore_probe)
-		return TRUE;
+		return true;
 	else
-		return FALSE;
+		return false;
 }
 
 /*****************************************************************************
@@ -1765,7 +1765,7 @@ void glnd_resource_check_lost_unlock_requests(GLND_CB *glnd_cb, GLND_RESOURCE_IN
 	     lck_list_nm_info != NULL; lck_list_nm_info = lck_list_nm_info->next) {
 		/* check for unlock sent flag */
 		if (m_GLND_IS_LOCAL_NODE(&lck_list_nm_info->req_mdest_id, &glnd_cb->glnd_mdest_id) == 0 &&
-		    lck_list_nm_info->unlock_req_sent == TRUE) {
+		    lck_list_nm_info->unlock_req_sent == true) {
 			/* generate the unlck rsp event */
 			glnd_evt = m_MMGR_ALLOC_GLND_EVT;
 			if (glnd_evt == NULL) {

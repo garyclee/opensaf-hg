@@ -69,7 +69,7 @@ uint32_t avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 			goto done;
 		}
 
-		avnd_comp_cbq_rec_pop_and_del(cb, o_comp, cbk_rec, FALSE);
+		avnd_comp_cbq_rec_pop_and_del(cb, o_comp, cbk_rec, false);
 		goto done;
 	}
 
@@ -137,7 +137,7 @@ uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			AVSV_AMF_COMP_REG_PARAM *reg = &api_info->param.reg;
 			AVND_COMP *comp = 0;
 			SaAisErrorT amf_rc = SA_AIS_OK;
-			NCS_BOOL msg_from_avnd = TRUE;
+			bool msg_from_avnd = true;
 
 			comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
 			if (NULL == comp)
@@ -220,9 +220,9 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			}
 			reg_dest = o_comp->reg_dest;
 			/* Reg reg SUCCESS. Add proxied information to proxy */
-			o_comp->reg_resp_pending = FALSE;
+			o_comp->reg_resp_pending = false;
 			m_AVND_COMP_REG_SET(o_comp);
-			res = avnd_comp_proxied_add(cb, o_comp, o_comp->pxy_comp, FALSE);
+			res = avnd_comp_proxied_add(cb, o_comp, o_comp->pxy_comp, false);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_ADD);
 		}
 	}
@@ -241,7 +241,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			}
 			reg_dest = o_comp->reg_dest;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, FALSE, NULL);
+			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, NULL);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, o_comp, AVND_CKPT_COMP_CONFIG);
 			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name));
 		}
@@ -257,7 +257,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 	/* We have to fprwrd this message to AvA.  */
 	res = avnd_amf_resp_send(cb, resp_info->type, resp_info->rc, (uint8_t *)ha_state,
-				 &reg_dest, &avnd_msg->mds_ctxt, NULL, FALSE);
+				 &reg_dest, &avnd_msg->mds_ctxt, NULL, false);
 
 	if (NCSCC_RC_SUCCESS != res) {
 		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%" PRIu64 ,__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
@@ -339,7 +339,7 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		   comp moves back to instantiated. we will free it, if the comp
 		   doesnt move to instantiated */
 		if (!m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp)) {
-			rc = avnd_comp_cbq_rec_send(cb, comp, rec, FALSE);
+			rc = avnd_comp_cbq_rec_send(cb, comp, rec, false);
 		}
 
 		if (NCSCC_RC_SUCCESS != rc) {

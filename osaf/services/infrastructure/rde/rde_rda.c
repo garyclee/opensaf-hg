@@ -338,7 +338,7 @@ static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 	/*
 	 ** Asynchronous callback registered by RDA
 	 */
-	rde_rda_cb->clients[index].is_async = TRUE;
+	rde_rda_cb->clients[index].is_async = true;
 
 	/*
 	 ** Format ACK

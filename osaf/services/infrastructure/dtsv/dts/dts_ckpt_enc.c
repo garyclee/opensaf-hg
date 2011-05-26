@@ -410,7 +410,7 @@ uint32_t dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_START);
 
-	return dtsv_encode_all(cb, enc, TRUE);
+	return dtsv_encode_all(cb, enc, true);
 }
 
 /****************************************************************************\
@@ -420,8 +420,8 @@ uint32_t dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * Input: cb  - CB pointer.
  *        enc - Encode arguments passed by MBCSV.
- *        c_sync - TRUE - Called while in cold sync.
- *                 FALSE - Called while in data response.
+ *        c_sync - true - Called while in cold sync.
+ *                 false - Called while in data response.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -429,7 +429,7 @@ uint32_t dtsv_encode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync)
+uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, bool csync)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_obj = 0;
@@ -806,5 +806,5 @@ uint32_t dtsv_encode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 uint32_t dtsv_encode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	m_LOG_DTS_CHKOP(DTS_ENC_DATA_RESP);
-	return dtsv_encode_all(cb, enc, FALSE);
+	return dtsv_encode_all(cb, enc, false);
 }

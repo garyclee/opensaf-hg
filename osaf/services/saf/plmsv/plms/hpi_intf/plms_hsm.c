@@ -225,7 +225,7 @@ static void *plms_hsm(void)
 	SaHpiPowerStateT  power_state;
 	SaUint32T	  retriev_idr_info = 0;
 	SaInt32T	  rc,ret;
-	SaInt32T	  got_new_active = FALSE;
+	SaInt32T	  got_new_active = false;
 
 	TRACE_ENTER();
 
@@ -266,12 +266,12 @@ static void *plms_hsm(void)
                         rc = NCSCC_RC_FAILURE;
                         exit(0);
                 }
-		plms_cb->plmc_initialized = TRUE;
+		plms_cb->plmc_initialized = true;
 		TRACE("PLMC initialization Success.");
         }
 
 	TRACE("HSM:Blocking to receive events on HPI session");
-	while(TRUE){
+	while(true){
 		rc = pthread_mutex_lock(&hsm_ha_state.mutex);
 		if(rc){
 			LOG_CR("HSM: Failed to take hsm_ha_state lock, exiting \
@@ -282,7 +282,7 @@ static void *plms_hsm(void)
 			/* Wait on condition variable for the HA role from PLMS main thread */
 			TRACE("HSM:Received Standby state,thread going to block till Active state is set");
 			pthread_cond_wait(&hsm_ha_state.cond,&hsm_ha_state.mutex);
-			got_new_active = TRUE;
+			got_new_active = true;
 		}
 		rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
 		if(rc){
@@ -297,7 +297,7 @@ static void *plms_hsm(void)
 			/* Rediscover the resources */
 			hsm_discover_and_dispatch();
 
-			got_new_active = FALSE;
+			got_new_active = false;
 
 			/* PLMC initialize */
 			if( !plms_cb->plmc_initialized ) {
@@ -307,7 +307,7 @@ static void *plms_hsm(void)
 					rc = NCSCC_RC_FAILURE;
 					exit(0);
 				}
-				plms_cb->plmc_initialized = TRUE;
+				plms_cb->plmc_initialized = true;
 				TRACE("PLMC initialization Success.");
 			}
 		}
@@ -455,7 +455,7 @@ static SaUint32T hsm_discover_and_dispatch()
 	SaHpiHsStateT  	  state;
 	SaHpiPowerStateT  power_state;
 	SaHpiHsStateT  	  previous_state = 0;
-	SaUint32T	  retriev_idr_info = FALSE;
+	SaUint32T	  retriev_idr_info = false;
 	SaUint32T	  prev_domain_op_status = NCSCC_RC_SUCCESS;
 	SaUint32T	  rc = NCSCC_RC_SUCCESS;
 	static SaUint32T	rpt_retry_count = 0;
@@ -603,7 +603,7 @@ static SaUint32T hsm_discover_and_dispatch()
 		SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_ACTIVE */
 		if ( SAHPI_HS_STATE_INSERTION_PENDING == state ||
 		     SAHPI_HS_STATE_ACTIVE == state )
-			retriev_idr_info = TRUE;
+			retriev_idr_info = true;
 			
 		/* Send the outstanding hot_swap event*/
 		hsm_send_hotswap_event(&rpt_entry, hotswap_state_model, state,
@@ -770,14 +770,14 @@ static SaUint32T hsm_send_hotswap_event(SaHpiRptEntryT   *rpt_entry,
 	memcpy(&req_evt.hpi_evt.epath_key, &entity_path, sizeof(entity_path));
 	req_evt.hpi_evt.state_model = hotswap_state_model; 
 
-	if(TRUE != retriev_idr_info){
+	if(true != retriev_idr_info){
 		if((( hotswap_state_model == PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL ||
 		hotswap_state_model == PLMS_HPI_PARTIAL_FIVE_HOTSWAP_MODEL )  &&
 		hotswap_state == SAHPI_HS_STATE_INSERTION_PENDING)  ||
 		( (hotswap_state_model == PLMS_HPI_THREE_HOTSWAP_MODEL  ||
 		hotswap_state_model == PLMS_HPI_TWO_HOTSWAP_MODEL)   &&   
 		hotswap_state == SAHPI_HS_STATE_ACTIVE )){
-			retriev_idr_info = TRUE;
+			retriev_idr_info = true;
 		}
 	}
 	

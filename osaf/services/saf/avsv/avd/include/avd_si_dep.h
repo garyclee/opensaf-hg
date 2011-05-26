@@ -79,7 +79,7 @@ typedef struct avd_si_si_dep {
 	uint32_t si_dep_hdl;
 	SaTimeT saAmfToleranceTime;
 	AVD_TMR si_dep_timer;	/* SI-SI dep. tol timer */
-	NCS_BOOL unassign_event;
+	bool unassign_event;
 } AVD_SI_SI_DEP;
 
 /* Spons-SI node of the spons-list in SI struct */
@@ -96,20 +96,20 @@ if ((state != AVD_SI_TOL_TIMER_RUNNING) && (state != AVD_SI_READY_TO_UNASSIGN)) 
    avd_si_dep_stop_tol_timer(cb, si); \
 si->si_dep_state = state; \
 if (state == AVD_SI_SPONSOR_UNASSIGNED)  \
-   avd_screen_sponsor_si_state(cb, si, FALSE); \
+   avd_screen_sponsor_si_state(cb, si, false); \
 }
 
 uint32_t avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, struct avd_si_tag *dep_si, struct avd_si_tag *spons_si, AVD_SI_SI_DEP *sidep);
 void avd_si_dep_delete(AVD_CL_CB *cb, struct avd_si_tag *si);
 void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec);
 AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
-AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
-AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
+AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx);
+AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx);
 uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec);
 void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_si_dep_spons_unassign(AVD_CL_CB *cb, struct avd_si_tag *si, struct avd_si_tag *si_dep);
 void avd_process_si_dep_state_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_screen_sponsor_si_state(AVD_CL_CB *cb, struct avd_si_tag *si, NCS_BOOL start_assignment);
+void avd_screen_sponsor_si_state(AVD_CL_CB *cb, struct avd_si_tag *si, bool start_assignment);
 void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, struct avd_sg_tag *sg);
 void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, struct avd_si_tag *si);
 extern SaAisErrorT avd_sidep_config_get(void);

@@ -85,7 +85,7 @@ uint32_t mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* If timer is running free TMR_REQ_INFO */
-		if (vdest_info->tmr_running == TRUE) {
+		if (vdest_info->tmr_running == true) {
 			/* Delete Handle */
 			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
 			/* Free tmr_req_info */
@@ -108,7 +108,7 @@ uint32_t mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 /*********************************************************
   Function NAME: mds_vdest_tbl_update_role
 *********************************************************/
-uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL del_tmr_info)
+uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, bool del_tmr_info)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_TMR_REQ_INFO *tmr_req_info = NULL;
@@ -124,7 +124,7 @@ uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BO
 		if (role == V_DEST_RL_QUIESCED) {	/* New role is quiesced */
 
 			/* Start Quiesced timer */
-			vdest_info->tmr_running = TRUE;
+			vdest_info->tmr_running = true;
 
 			tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
 			memset(tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
@@ -142,7 +142,7 @@ uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BO
 
 		} else if (vdest_info->role == V_DEST_RL_QUIESCED) {	/* Old role is quiesced */
 
-			if (del_tmr_info == TRUE) {
+			if (del_tmr_info == true) {
 				/* This is not called by the expiry function */
 				/* So free tmr_info and stop timer */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
@@ -150,7 +150,7 @@ uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BO
 				m_MMGR_FREE_TMR_INFO(vdest_info->tmr_req_info);
 			}
 			/* Stop timer and free tmr_req_info */
-			vdest_info->tmr_running = FALSE;
+			vdest_info->tmr_running = false;
 			vdest_info->tmr_req_info = NULL;
 
 		}
@@ -337,7 +337,7 @@ uint32_t mds_vdest_tbl_cleanup(void)
 	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	while (vdest_info != NULL) {
 		/* If timer is running free TMR_REQ_INFO */
-		if (vdest_info->tmr_running == TRUE) {
+		if (vdest_info->tmr_running == true) {
 			/* Delete Handle */
 			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
 
@@ -828,7 +828,7 @@ uint32_t mds_svc_tbl_cleanup(void)
 			svc_info->subtn_info = svc_info->subtn_info->next;
 
 			/* Stop Timers and delete pending Messages, if any. */
-			if (temp_current_subtn_info->tmr_flag == TRUE) {
+			if (temp_current_subtn_info->tmr_flag == true) {
 				/* Destroy Handle */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
 						  (uint32_t)temp_current_subtn_info->tmr_req_info_hdl);
@@ -945,7 +945,7 @@ uint32_t mds_subtn_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS
 
 	/*  STEP 2.b: Start Subscription Timer */
 
-	subtn_info->tmr_flag = TRUE;
+	subtn_info->tmr_flag = true;
 
 	tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
 	memset(tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
@@ -1013,7 +1013,7 @@ uint32_t mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uint32_t subscr_svc_id)
 			}
 
 			/* Stop Timers and delete pending Messages, if any. */
-			if (temp_current_subtn_info->tmr_flag == TRUE) {
+			if (temp_current_subtn_info->tmr_flag == true) {
 				/* Destroy Handle */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
 						  (uint32_t)temp_current_subtn_info->tmr_req_info_hdl);
@@ -1101,7 +1101,7 @@ uint32_t mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 			       temp_subtn_result_info->key.sub_svc_id == subscr_svc_id) {
 				if (temp_subtn_result_info->key.adest == 0) {	/* This is active entry for a VDEST */
 
-					if (temp_subtn_result_info->info.active_vdest.active_route_info->tmr_running == TRUE) {	/* Await Active Timer is running */
+					if (temp_subtn_result_info->info.active_vdest.active_route_info->tmr_running == true) {	/* Await Active Timer is running */
 
 						/* so just give Await Active to user no matter vdest policy */
 						if (NCSCC_RC_SUCCESS != mds_mcm_user_event_callback(svc_hdl,
@@ -1485,9 +1485,9 @@ uint32_t mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				active_info->next_active_in_turn = subtn_res_info;
 
 				if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
-					active_info->dest_is_n_way = FALSE;
+					active_info->dest_is_n_way = false;
 				} else {
-					active_info->dest_is_n_way = TRUE;
+					active_info->dest_is_n_way = true;
 				}
 				active_info->last_active_svc_sub_part_ver = svc_sub_part_ver;
 
@@ -1502,12 +1502,12 @@ uint32_t mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 						      (NCS_PATRICIA_NODE *)&active_subtn_res_info->node);
 			} else {	/* Active entry Or Await active entry exist */
 
-				if (active_subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {	/* Present entry is Await Active Entry */
+				if (active_subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {	/* Present entry is Await Active Entry */
 
 					/* Stop await active timer */
 
 					/* Trun tmr_running flag off */
-					active_subtn_res_info->info.active_vdest.active_route_info->tmr_running = FALSE;
+					active_subtn_res_info->info.active_vdest.active_route_info->tmr_running = false;
 					/* Destroy Handle */
 					ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
 							  (uint32_t)active_subtn_res_info->info.active_vdest.
@@ -1678,12 +1678,12 @@ uint32_t mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_
 		   standby or forced standby, as it will get respective events seperately */
 
 		/* Stop timer if running */
-		if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {	/* Present entry is Await Active Entry */
+		if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {	/* Present entry is Await Active Entry */
 
 			/* Stop await active timer */
 
 			/* Trun tmr_running flag off */
-			subtn_res_info->info.active_vdest.active_route_info->tmr_running = FALSE;
+			subtn_res_info->info.active_vdest.active_route_info->tmr_running = false;
 			/* Destroy Handle */
 			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
 					  (uint32_t)subtn_res_info->info.active_vdest.active_route_info->tmr_req_info_hdl);
@@ -1740,7 +1740,7 @@ uint32_t mds_subtn_res_tbl_remove_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_
 	} else {
 		subtn_res_info->info.active_vdest.active_route_info->next_active_in_turn = NULL;
 		/* Start Await Active timer */
-		subtn_res_info->info.active_vdest.active_route_info->tmr_running = TRUE;
+		subtn_res_info->info.active_vdest.active_route_info->tmr_running = true;
 
 		/* Start no active timer */
 		tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
@@ -1827,9 +1827,9 @@ uint32_t mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 		m_MDS_LOG_DBG("Await active tmr=0x%08x", active_info->await_active_tmr);
 
 		if (vdest_policy == NCS_VDEST_TYPE_MxN) {
-			active_info->dest_is_n_way = FALSE;
+			active_info->dest_is_n_way = false;
 		} else {
-			active_info->dest_is_n_way = TRUE;
+			active_info->dest_is_n_way = true;
 		}
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_subtn_res_tbl_add_active");
@@ -1879,8 +1879,8 @@ uint32_t mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
   Function NAME: mds_subtn_res_tbl_get
 *********************************************************/
 uint32_t mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
-			    MDS_VDEST_ID vdest_id, MDS_DEST *adest, NCS_BOOL *tmr_running,
-			    MDS_SUBSCRIPTION_RESULTS_INFO **result, NCS_BOOL call_ref_val)
+			    MDS_VDEST_ID vdest_id, MDS_DEST *adest, bool *tmr_running,
+			    MDS_SUBSCRIPTION_RESULTS_INFO **result, bool call_ref_val)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info;
@@ -1908,7 +1908,7 @@ uint32_t mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 		active_subtn_res_info = subtn_res_info->info.active_vdest.active_route_info->next_active_in_turn;
 		*tmr_running = subtn_res_info->info.active_vdest.active_route_info->tmr_running;
 
-		if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {
+		if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {
 			*adest = 0;
 			*result = subtn_res_info;
 		} else {
@@ -1916,9 +1916,9 @@ uint32_t mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 			*result = active_subtn_res_info;
 		}
 
-		if (call_ref_val == FALSE &&
-		    subtn_res_info->info.active_vdest.active_route_info->dest_is_n_way == TRUE &&
-		    subtn_res_info->info.active_vdest.active_route_info->tmr_running == FALSE) {
+		if (call_ref_val == false &&
+		    subtn_res_info->info.active_vdest.active_route_info->dest_is_n_way == true &&
+		    subtn_res_info->info.active_vdest.active_route_info->tmr_running == false) {
 			status = NCSCC_RC_SUCCESS;
 			status = mds_subtn_res_tbl_query_next_active(svc_hdl, subscr_svc_id, vdest_id,
 								     active_subtn_res_info, &next_active_result_info);
@@ -2001,7 +2001,7 @@ uint32_t mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr
 		    subscr_svc_id == subtn_res_info->key.sub_svc_id &&
 		    V_DEST_RL_ACTIVE == subtn_res_info->info.vdest_inst.role) {
 			if (subtn_res_info->key.adest == 0) {	/* Entry is Active/Await Active result entry */
-				if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {	/* It is Await Active entry */
+				if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {	/* It is Await Active entry */
 					*result = subtn_res_info;
 					m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_subtn_res_tbl_getnext_active");
 					return NCSCC_RC_SUCCESS;
@@ -2174,7 +2174,7 @@ uint32_t mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 			/* Delete this entry */
 			if (subtn_res_info->key.adest == 0) {
 				/* This is active result entry */
-				if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {
+				if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {
 					/* Destroy Handle */
 					ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
 							  (uint32_t)subtn_res_info->info.active_vdest.active_route_info->
@@ -2242,7 +2242,7 @@ uint32_t mds_subtn_res_tbl_cleanup(void)
 		/* Delete this entry */
 		if (subtn_res_info->key.adest == 0) {
 			/* This is active result entry */
-			if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {
+			if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == true) {
 				/* Stop Timer */
 				m_NCS_TMR_STOP(subtn_res_info->info.active_vdest.active_route_info->await_active_tmr);
 				/* Destroy Handle */
@@ -2418,7 +2418,7 @@ void ncsmds_pp()
 
 							if (subtn_res_info->key.adest == 0) {	/* This is active instance entry */
 								if (subtn_res_info->info.active_vdest.
-								    active_route_info->tmr_running == FALSE) {
+								    active_route_info->tmr_running == false) {
 									printf("|CUR_ACTIVE| 0x%08x | %10d |######|\n",
 									       m_MDS_GET_NODE_ID_FROM_ADEST
 									       (subtn_res_info->info.active_vdest.

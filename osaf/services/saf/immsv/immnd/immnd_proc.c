@@ -71,7 +71,7 @@ void immnd_proc_immd_down(IMMND_CB *cb)
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMND_IMM_CLIENT_NODE *cl_node - a client node.
  *
- * Return Values : FALSE => connection was NOT completely removed (IMMD down)
+ * Return Values : false => connection was NOT completely removed (IMMD down)
  * Notes         : Policy used for handling immd down is to blindly cleanup 
  *                :immnd_cb 
  ****************************************************************************/
@@ -136,7 +136,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 				LOG_WA("Discard implementer failed for implId:%u "
 				       "(immd_down)- will retry later", implId);
 			}
-			cl_node->mIsStale = TRUE;
+			cl_node->mIsStale = true;
 		}
 		/*Discard the local implementer directly and redundantly to avoid 
 		   race conditions using this implementer (ccb's causing abort upcalls).
@@ -146,7 +146,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 
 	if (cl_node->mIsStale) {
 		TRACE_LEAVE();
-		return FALSE;
+		return false;
 	}
 
 	/* 4. Check for Ccbs that where originated from the dead connection.
@@ -172,7 +172,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 					LOG_WA("Failure to broadcast discard Ccb for ccbId:%u "
 					       "(immd down)- will retry later", idArr[ix]);
 				}
-				cl_node->mIsStale = TRUE;
+				cl_node->mIsStale = true;
 			}
 		}
 		free(idArr);
@@ -182,7 +182,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 
 	if (cl_node->mIsStale) {
 		TRACE_LEAVE();
-		return FALSE;
+		return false;
 	}
 
 	/* 5. 
@@ -209,7 +209,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 					LOG_WA("Failure to broadcast discard admowner for id:%u "
 					       "(immd down)- will retry later", idArr[ix]);
 				}
-				cl_node->mIsStale = TRUE;
+				cl_node->mIsStale = true;
 			}
 		}
 		free(idArr);
@@ -298,7 +298,7 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 	while (cl_node) {
 		prev_hdl = cl_node->imm_app_hdl;
 		if (cl_node->mIsStale) {
-			cl_node->mIsStale = FALSE;
+			cl_node->mIsStale = false;
 			if (immnd_proc_imma_discard_connection(cb, cl_node)) {
 				TRACE_5("Removing client id:%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
 				immnd_client_node_del(cb, cl_node);
@@ -311,7 +311,7 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 				TRACE_5("Stale marked (again) client id:%llx sv_id:%u",
 					cl_node->imm_app_hdl, cl_node->sv_id);
 				++failed;
-				/*cl_node->mIsStale = TRUE; done in discard_connection */
+				/*cl_node->mIsStale = true; done in discard_connection */
 			}
 		} else if (cl_node->mIsSync && cl_node->mSyncBlocked) {
 			IMMSV_EVT send_evt;
@@ -334,7 +334,7 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 			if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failed to send result to Sync Agent");
 			}
-			cl_node->mSyncBlocked = FALSE;
+			cl_node->mSyncBlocked = false;
 		} else {
 			TRACE_5("No action client id :%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
 		}
@@ -423,7 +423,7 @@ static int32_t immnd_iAmLoader(IMMND_CB *cb)
 
 	/*Loading is possible.
 	   Allow all fevs messages to be handled by this node. */
-	cb->mAccepted = TRUE;
+	cb->mAccepted = true;
 
 	if (coord == 1) {
 		if ((cb->mRulingEpoch != 0) || (cb->mMyEpoch != 0)) {
@@ -524,7 +524,7 @@ static SaInt32T immnd_syncNeeded(IMMND_CB *cb)
 			LOG_IN("Postponing sync, waiting for %u nodes", cb->mLostNodes);
 			cb->mLostNodes--; 
 		} else {
-			cb->mSyncRequested = FALSE;	/*reset sync request marker */
+			cb->mSyncRequested = false;	/*reset sync request marker */
 			return (cb->mMyEpoch + 1);
 		}
 	}
@@ -1159,7 +1159,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration)
 {
 	assert(cb->mIsCoord);
 	if (cb->mPendSync) {
-		TRACE("ccbsTerminated false because cb->mPendSync is still TRUE");
+		TRACE("ccbsTerminated false because cb->mPendSync is still true");
 		return SA_FALSE;
 	}
 
@@ -1748,7 +1748,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				if (!(cb->mStep % 60)) {
 					LOG_IN("Sync Phase-3: step:%u", cb->mStep);
 				}
-				if (immnd_syncComplete(cb, TRUE, jobDuration)) {
+				if (immnd_syncComplete(cb, true, jobDuration)) {
 					cb->mStep = 0;
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
@@ -1883,7 +1883,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
  * Description   : This is the function dumps the contents of the control block. *
  * Arguments     : immnd_cb     -  Pointer to the control block
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -1929,7 +1929,7 @@ void immnd_cb_dump(void)
  * Description   : This is the function dumps the Ckpt Client info
  * Arguments     : cl_node  -  Pointer to the IMMND_IMM_CLIENT_NODE
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/

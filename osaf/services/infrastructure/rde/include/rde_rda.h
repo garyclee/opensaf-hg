@@ -70,7 +70,7 @@ typedef enum {
 typedef struct {
 
 	int fd;
-	NCS_BOOL is_async;
+	bool is_async;
 
 } RDE_RDA_CLIENT;
 

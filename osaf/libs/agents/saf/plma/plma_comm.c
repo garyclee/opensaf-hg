@@ -10,7 +10,7 @@
 * @return	0 - If failure
 * @return	1 - If success
 ***************************************************************************/
-static NCS_BOOL plma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool plma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
         PLMS_EVT *cbk_msg, *pnext;
         TRACE_ENTER();
@@ -21,7 +21,7 @@ static NCS_BOOL plma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
                 cbk_msg = pnext;
         }
         TRACE_LEAVE();
-        return TRUE;
+        return true;
 
 }
 

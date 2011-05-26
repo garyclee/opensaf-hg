@@ -65,7 +65,7 @@ static SaAisErrorT ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 	comp = avd_comp_get(&comp_name);
 
-	if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
+	if (comp->su->sg_of_su->sg_ncs_spec == true) {
 		/* Middleware component */
 		if (comp->su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) {
 			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);

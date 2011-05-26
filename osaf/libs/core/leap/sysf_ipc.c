@@ -50,7 +50,7 @@
 #include "usrbuf.h"
 #include "ncssysf_mem.h"
 
-static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block);
+static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, bool block);
 static uint32_t ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
 static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
 
@@ -115,7 +115,7 @@ static uint32_t ipc_flush(NCS_IPC *ncs_ipc, NCS_IPC_CB remove_from_queue_cb, voi
 		while (NULL != msg) {
 			p_next = msg->next;
 			msg->next = NULL;
-			if (FALSE == remove_from_queue_cb(arg, (void *)msg)) {
+			if (false == remove_from_queue_cb(arg, (void *)msg)) {
 				msg->next = p_next;	/* restore next pointer */
 				p_prev = msg;
 			} else {	/* remove */
@@ -299,15 +299,15 @@ uint32_t ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb, void *cb
 
 NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx)
 {
-	return ncs_ipc_recv_common(mbx, TRUE);
+	return ncs_ipc_recv_common(mbx, true);
 }
 
 NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx)
 {
-	return ncs_ipc_recv_common(mbx, FALSE);
+	return ncs_ipc_recv_common(mbx, false);
 }
 
-static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
+static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, bool block)
 {
 	NCS_IPC *ncs_ipc;
 	NCS_IPC_MSG *msg;
@@ -328,7 +328,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 		if (ncs_ipc == NULL)
 			return NULL;
 
-		if (block == TRUE) {
+		if (block == true) {
 			m_NCS_SEL_OBJ_ZERO(&obj_set);
 			m_NCS_SEL_OBJ_SET(mbx_obj, &obj_set);
 
@@ -361,7 +361,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 			   In such a case by the time we reach here, all indications
 			   must have been removed.
 			 */
-			inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(ncs_ipc->sel_obj, TRUE, TRUE);
+			inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(ncs_ipc->sel_obj, true, true);
 			if (inds_rmvd != 0) {
 				/* Should never reach here */
 				assert(0);
@@ -471,7 +471,7 @@ static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active
 	ncs_ipc->msg_count--;
 
 	if (ncs_ipc->msg_count == 0) {
-		inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(ncs_ipc->sel_obj, TRUE, TRUE);
+		inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(ncs_ipc->sel_obj, true, true);
 		if (inds_rmvd <= 0) {
 			if (inds_rmvd != -1) {
 				/* The object has not been destroyed and it has no indication

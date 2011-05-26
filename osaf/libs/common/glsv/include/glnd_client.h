@@ -59,7 +59,7 @@ uint32_t glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 						 GLND_CLIENT_INFO *client_info,
 						 struct glnd_resource_info_tag *res_info,
 						 SaLckResourceIdT lcl_resource_id,
-						 uint32_t lcl_res_id_count, NCS_BOOL *resource_del_flag);
+						 uint32_t lcl_res_id_count, bool *resource_del_flag);
 
 uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 						      struct glnd_resource_info_tag *res_info,

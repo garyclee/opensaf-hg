@@ -47,7 +47,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 		mqnd_hdl = tmr->uarg;
 
 		if (tmr->is_active)
-			tmr->is_active = FALSE;
+			tmr->is_active = false;
 		/* Destroy the timer if it exists.. */
 		if (tmr->tmr_id != TMR_T_NULL) {
 			m_NCS_TMR_DESTROY(tmr->tmr_id);
@@ -96,9 +96,9 @@ uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqnd_timer_expiry, (void *)tmr);
 	}
 
-	if (tmr->is_active == FALSE) {
+	if (tmr->is_active == false) {
 		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, mqnd_timer_expiry, (void *)tmr);
-		tmr->is_active = TRUE;
+		tmr->is_active = true;
 	}
 
 	return (NCSCC_RC_SUCCESS);
@@ -117,9 +117,9 @@ uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
  *****************************************************************************/
 void mqnd_tmr_stop(MQND_TMR *tmr)
 {
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 	if (tmr->tmr_id != TMR_T_NULL) {
 		m_NCS_TMR_DESTROY(tmr->tmr_id);

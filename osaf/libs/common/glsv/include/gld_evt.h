@@ -50,7 +50,7 @@ typedef struct glsv_rsc_open_info {
 
 typedef struct glsv_rsc_details {
 	SaLckResourceIdT rsc_id;
-	NCS_BOOL orphan;
+	bool orphan;
 	SaLckLockModeT lck_mode;
 	uint32_t lcl_ref_cnt;
 } GLSV_RSC_DETAILS;

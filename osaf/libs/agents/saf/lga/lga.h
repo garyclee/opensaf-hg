@@ -101,7 +101,7 @@ extern lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t
 extern void lga_hdl_list_del(lga_client_hdl_rec_t **);
 extern uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **, lga_client_hdl_rec_t *);
 extern uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **, lga_log_stream_hdl_rec_t *);
-extern NCS_BOOL lga_validate_lga_client_hdl(lga_cb_t *lga_cb, lga_client_hdl_rec_t *find_hdl_rec);
+extern bool lga_validate_lga_client_hdl(lga_cb_t *lga_cb, lga_client_hdl_rec_t *find_hdl_rec);
 
 /* lga_util.c */
 extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t client_id);

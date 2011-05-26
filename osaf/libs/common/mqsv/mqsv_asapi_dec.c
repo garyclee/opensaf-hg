@@ -151,7 +151,7 @@ static uint32_t asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
-	NCS_BOOL gflag = FALSE;
+	bool gflag = false;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
@@ -169,7 +169,7 @@ static uint32_t asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 	/* Decode Group Information */
 	rc = asapi_ginfo_dec(pBuff, &msg->group, &msg->policy);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = TRUE;	/* Group present */
+		gflag = true;	/* Group present */
 	}
 
 	/* Decode Queue Information */
@@ -205,7 +205,7 @@ static uint32_t asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 	uint8_t space[64];		/* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
-	NCS_BOOL gflag = FALSE;
+	bool gflag = false;
 
 	/* Decode the Error flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
@@ -223,7 +223,7 @@ static uint32_t asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = TRUE;	/* Group present */
+		gflag = true;	/* Group present */
 	}
 
 	/* Decode Queue Name & Length */
@@ -267,7 +267,7 @@ static uint32_t asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 	uint8_t space[64], flag = 0;	/* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
-	NCS_BOOL gflag = FALSE;
+	bool gflag = false;
 
 	/* Decode the flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
@@ -285,7 +285,7 @@ static uint32_t asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = TRUE;	/* Group present */
+		gflag = true;	/* Group present */
 	}
 
 	/* Decode Queue Name & Length */
@@ -321,7 +321,7 @@ static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *ms
 	uint8_t space[64];		/* sufficient space to decode data */
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t len = 0;
-	NCS_BOOL gflag = FALSE;
+	bool gflag = false;
 
 	/* Decode the Error flag */
 	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
@@ -339,7 +339,7 @@ static uint32_t asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *ms
 	/* Decode Group Name & Length */
 	rc = asapi_name_dec(pBuff, &msg->group);
 	if (NCSCC_RC_SUCCESS == rc) {
-		gflag = TRUE;	/* Group present */
+		gflag = true;	/* Group present */
 	}
 
 	/* Decode Queue Name & Length */

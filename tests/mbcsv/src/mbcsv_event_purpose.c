@@ -141,7 +141,7 @@ uint32_t mbcstm_event_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t 
     
   mbcstm_cb.svces[svc_index].ssns[ssn_index].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[svc_index].ssns[ssn_index].ws_flag = FALSE;
+  mbcstm_cb.svces[svc_index].ssns[ssn_index].ws_flag = false;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_flag = 0;

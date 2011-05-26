@@ -53,7 +53,7 @@ typedef struct avnd_tmr {
 	tmr_t tmr_id;
 	AVND_TMR_TYPE type;	/* timer type */
 	uint32_t opq_hdl;		/* hdl to retrive the timer context */
-	NCS_BOOL is_active;
+	bool is_active;
 } AVND_TMR;
 
 /* Macro to determine if AvND timer is active */

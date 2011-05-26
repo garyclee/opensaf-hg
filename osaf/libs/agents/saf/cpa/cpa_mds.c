@@ -116,7 +116,7 @@ uint32_t cpa_mds_register(CPA_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->agent_handle_id;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = cpa_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;	/* CPA owns the mds queue */
+	svc_info.info.svc_install.i_mds_q_ownership = false;	/* CPA owns the mds queue */
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPA_MDS_PVT_SUBPART_VERSION;	/* Private Subpart Version of CPA for Versioning infrastructure */
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
@@ -313,7 +313,7 @@ static uint32_t cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	CPSV_EVT *evt = NULL;
 	NCS_UBAID *uba = info->io_uba;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
@@ -414,7 +414,7 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 		case NCSMDS_SVC_ID_CPND:
 			if (m_NCS_GET_NODE_ID == m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
 				m_NCS_LOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
-				cb->is_cpnd_up = FALSE;
+				cb->is_cpnd_up = false;
 				m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
 			}
 			break;
@@ -430,9 +430,9 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 			/* get the node_id and compare with the node_id of the mdest */
 			if (m_NCS_GET_NODE_ID == m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
 				m_NCS_LOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
-				cb->is_cpnd_up = TRUE;
+				cb->is_cpnd_up = true;
 				cb->cpnd_mds_dest = svc_evt->i_dest;
-				if (cb->cpnd_sync_awaited == TRUE) {
+				if (cb->cpnd_sync_awaited == true) {
 					m_NCS_SEL_OBJ_IND(cb->cpnd_sync_sel);
 				}
 				m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
@@ -592,7 +592,7 @@ static uint32_t cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t local_data[20];
 	uint8_t *pstream;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,

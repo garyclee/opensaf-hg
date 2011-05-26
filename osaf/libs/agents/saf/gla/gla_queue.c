@@ -33,7 +33,7 @@
 
 #include "gla.h"
 
-NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /****************************************************************************
   Name          : glsv_gla_callback_queue_init
@@ -69,7 +69,7 @@ uint32_t glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+bool gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	GLSV_GLA_CALLBACK_INFO *prev, *node = (GLSV_GLA_CALLBACK_INFO *)msg;
 
@@ -79,7 +79,7 @@ NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		node = node->next;
 		m_MMGR_FREE_GLA_CALLBACK_INFO(prev);
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

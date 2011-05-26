@@ -917,13 +917,13 @@ JNIEXPORT jboolean JNICALL Java_org_opensaf_ais_amf_AmfHandleImpl_checkSelection
     }
     if( _selectStatus == 1 ){
 
-        _TRACE2( "NATIVE: Java_org_opensaf_ais_amf_AmfHandleImpl_checkSelectionObject() returning TRUE\n" );
+        _TRACE2( "NATIVE: Java_org_opensaf_ais_amf_AmfHandleImpl_checkSelectionObject() returning true\n" );
 
         return JNI_TRUE;
     }
     else{
 
-        _TRACE2( "NATIVE: Java_org_opensaf_ais_amf_AmfHandleImpl_checkSelectionObject() returning FALSE\n" );
+        _TRACE2( "NATIVE: Java_org_opensaf_ais_amf_AmfHandleImpl_checkSelectionObject() returning false\n" );
 
         return JNI_FALSE;
     }

@@ -42,7 +42,7 @@ static void clm_node_join_complete(AVD_AVND *node)
 	su = node->list_of_su;
 	while (su != NULL) {
 		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
-		if ( su->saAmfSUPreInstantiable == FALSE ) {
+		if ( su->saAmfSUPreInstantiable == false ) {
 			/* Skip the instantiation. */
 		} else {
 
@@ -51,8 +51,8 @@ static void clm_node_join_complete(AVD_AVND *node)
 					(node->node_state == AVD_AVND_STATE_NCS_INIT)) {
 				/* When the SU will instantiate then prescence state change message will come
 				   and so store the callback parameters to send response later on. */
-				if (avd_snd_presence_msg(avd_cb, su, FALSE) == NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SU_TERM(avd_cb, su, FALSE);
+				if (avd_snd_presence_msg(avd_cb, su, false) == NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SU_TERM(avd_cb, su, false);
 				} else {
 					LOG_ER("Internal error, could not send message to avnd");
 				}
@@ -240,7 +240,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				clm_node_exit_start(node, notifItem->clusterChange);
 				if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
 					/* We need to differentiate between CLM lock and error scenario.*/
-					node->clm_change_start_preceded = TRUE;
+					node->clm_change_start_preceded = true;
 				}
 			}
 			else
@@ -263,11 +263,11 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					clm_node_exit_complete(notifItem->clusterNode.nodeId);
 				} else if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
 					/* This callback is because of operation on CLM.*/
-					if(TRUE == node->clm_change_start_preceded) {
+					if(true == node->clm_change_start_preceded) {
 						/* We have got a completed callback with start cbk step before, so 
 						   already locking applications might have been done. So, no action
 						   is needed.*/
-						node->clm_change_start_preceded = FALSE; 
+						node->clm_change_start_preceded = false; 
 						node->node_info.member = SA_FALSE;
 					}
 					else

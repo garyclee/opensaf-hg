@@ -105,7 +105,7 @@ void cpa_sync_with_cpnd(CPA_CB *cb)
 		return;
 	}
 
-	cb->cpnd_sync_awaited = TRUE;
+	cb->cpnd_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->cpnd_sync_sel);
 	m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -117,7 +117,7 @@ void cpa_sync_with_cpnd(CPA_CB *cb)
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
 
-	cb->cpnd_sync_awaited = FALSE;
+	cb->cpnd_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->cpnd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
@@ -208,12 +208,12 @@ static uint32_t cpa_create(NCS_LIB_CREATE *create_info)
 	cpa_mds_unregister(cb);
 
  mds_reg_fail:
-	cb->is_cpnd_joined_clm = FALSE;
+	cb->is_cpnd_joined_clm = false;
 	cpa_db_destroy(cb);
 
  db_init_fail:
 	/* destroy the lock */
-	cb->is_cpnd_joined_clm = FALSE;
+	cb->is_cpnd_joined_clm = false;
 	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
  lock_init_fail:

@@ -153,7 +153,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uint32_t *rc)
 	 */
 	m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 	su->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
-	su->avd_updt_flag = FALSE;
+	su->avd_updt_flag = false;
 
 	/* 
 	 * Initialize the comp-list.

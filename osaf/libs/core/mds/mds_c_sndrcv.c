@@ -109,7 +109,7 @@ static uint32_t mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 static uint32_t mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 				       MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver,
 				       MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word, MDS_BCAST_BUFF_LIST **mds_mcm_bcast_ptr,
-				       NCS_BOOL flag);
+				       bool flag);
 
 static uint32_t mds_mcm_del_all_bcast_list(SEND_MSG *msg);
 
@@ -270,7 +270,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 
 static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 					       MDS_DEST i_dest, MDS_SEND_INFO *req, MDS_DEST *o_dest,
-					       NCS_BOOL *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl);
+					       bool *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl);
 
 static uint32_t mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RESULTS_INFO *send_hdl,
 				      MDS_SVC_ID to_svc_id, SEND_MSG *msg, MDS_VDEST_ID to_vdest,
@@ -920,7 +920,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 	MDS_SVC_ID dest_svc_id, src_svc_id;
 	MDS_VDEST_ID dest_vdest_id;
 	MDS_DEST dest, ret_adest = 0;
-	NCS_BOOL timer_running = 0;
+	bool timer_running = 0;
 	uint8_t to = 0;		/* Destination on same process, node or off node */
 	NCSCONTEXT hdl;
 
@@ -984,7 +984,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 		/* Check dest_svc_id, dest_pwe_id, Destination <ADEST, VDEST>,
 		   exists in subscription result table */
 		dest = 0;	/* CAUTION  is this correct */
-		NCS_BOOL flag = 0;
+		bool flag = 0;
 		if (svc_cb->parent_vdest_info->policy == NCS_VDEST_TYPE_MxN)
 			flag = 1;
 		if (NCSCC_RC_SUCCESS != mds_subtn_res_tbl_get(svc_cb->svc_hdl, dest_svc_id, dest_vdest_id,
@@ -1007,7 +1007,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 			}
 			return NCSCC_RC_FAILURE;
 		}
-	} else if ((tx_send_hdl != NULL) && (timer_running == TRUE)) {
+	} else if ((tx_send_hdl != NULL) && (timer_running == true)) {
 		/* Route Exists active or timer running */
 		m_MDS_LOG_INFO("MDS_SND_RCV:Destination is in await active mode so queuing in await active\n");
 		status =
@@ -1586,7 +1586,7 @@ static uint32_t mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV 
  ***************************************************************************/
 static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 					       MDS_DEST i_dest, MDS_SEND_INFO *req, MDS_DEST *o_dest,
-					       NCS_BOOL *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl)
+					       bool *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl)
 {
 	MDS_VDEST_ID dest_vdest_id;
 	MDS_SUBSCRIPTION_INFO *sub_info = NULL;
@@ -1621,7 +1621,7 @@ static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_
 			m_MDS_LOG_DBG("MDS_SND_RCV :L  mds_mcm_process_disc_queue_checks\n");
 			return NCSCC_RC_FAILURE;
 		}
-	} else if (sub_info->tmr_flag != TRUE) {
+	} else if (sub_info->tmr_flag != true) {
 		m_MDS_LOG_INFO("MDS_SND_RCV:Subscription exists but no timer running\n");
 		m_MDS_LOG_DBG("MDS_SND_RCV :L  mds_mcm_process_disc_queue_checks\n");
 		return NCSCC_RC_FAILURE;
@@ -1676,7 +1676,7 @@ static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_
 			/* Check dest_svc_id, dest_pwe_id, Destination <ADEST, VDEST>,
 			   exists in subscription result table */
 			dest = 0;	/* CAUTION  is this correct */
-			NCS_BOOL flag_t = 0;
+			bool flag_t = 0;
 			if (svc_cb->parent_vdest_info->policy == NCS_VDEST_TYPE_MxN)
 				flag_t = 1;
 			if (NCSCC_RC_SUCCESS != mds_subtn_res_tbl_get(svc_cb->svc_hdl, dest_svc_id, dest_vdest_id,
@@ -2279,7 +2279,7 @@ static uint32_t mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb
 			m_MDS_LOG_INFO("MDS_SND_RCV: Subscription made but no pointer available\n");
 			return NCSCC_RC_FAILURE;
 		}
-	} else if (sub_info->tmr_flag != TRUE) {
+	} else if (sub_info->tmr_flag != true) {
 		m_MDS_LOG_INFO("MDS_SND_RCV: Subscription exists but Timer has expired\n");
 		return NCSCC_RC_FAILURE;
 	}
@@ -2471,9 +2471,9 @@ static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID f
 	MDS_SVC_INFO *svc_cb = NULL;
 	NCSCONTEXT hdl;
 	MDS_DEST dest = 0;
-	NCS_BOOL timer_running = 0;
+	bool timer_running = 0;
 	MDS_SUBSCRIPTION_RESULTS_INFO *result = NULL;
-	NCS_BOOL flag_t = 0;
+	bool flag_t = 0;
 
 	/* Get SVC_cb */
 	if (NCSCC_RC_SUCCESS != (mds_svc_tbl_get(env_hdl, fr_svc_id, &hdl))) {
@@ -2544,7 +2544,7 @@ static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uint32_t time_val)
 		m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or Error occured\n");
 		return NCSCC_RC_FAILURE;
 	} else if (count == 1) {	/* Success case */
-		m_NCS_SEL_OBJ_RMV_IND(sel_obj, TRUE, TRUE);
+		m_NCS_SEL_OBJ_RMV_IND(sel_obj, true, true);
 		return NCSCC_RC_SUCCESS;
 	}
 	return NCSCC_RC_FAILURE;
@@ -4219,7 +4219,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 
 	m_MDS_LOG_DBG("MDS_SND_RCV : Entering  mds_mcm_process_recv_snd_msg_common\n");
 
-	if (TRUE == svccb->q_ownership) {
+	if (true == svccb->q_ownership) {
 		if (NCSCC_RC_SUCCESS != mds_mcm_mailbox_post(svccb, recv, recv->pri)) {
 			m_MDS_LOG_ERR("Mailbox post failed\n");
 			mds_mcm_free_msg_memory(recv->msg);
@@ -4258,13 +4258,13 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			cbinfo.info.receive.i_msg = msg;
 			if (recv->snd_type == MDS_SENDTYPE_SNDRSP || recv->snd_type == MDS_SENDTYPE_REDRSP) {
 				uint8_t *data;
-				cbinfo.info.receive.i_rsp_reqd = TRUE;
+				cbinfo.info.receive.i_rsp_reqd = true;
 				cbinfo.info.receive.i_msg_ctxt.length = MDS_SYNC_SND_CTXT_LEN_MAX;
 				data = cbinfo.info.receive.i_msg_ctxt.data;
 				ncs_encode_32bit(&data, recv->exchange_id);
 				ncs_encode_64bit(&data, recv->src_adest);
 			} else {
-				cbinfo.info.receive.i_rsp_reqd = FALSE;
+				cbinfo.info.receive.i_rsp_reqd = false;
 				cbinfo.info.receive.i_msg_ctxt.length = 0;
 			}
 			cbinfo.info.receive.i_node_id = MDS_GET_NODE_ID(recv->src_adest);
@@ -4287,13 +4287,13 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 
 			if (recv->snd_type == MDS_SENDTYPE_SNDRSP || recv->snd_type == MDS_SENDTYPE_REDRSP) {
 				uint8_t *data;
-				cbinfo.info.direct_receive.i_rsp_reqd = TRUE;
+				cbinfo.info.direct_receive.i_rsp_reqd = true;
 				cbinfo.info.direct_receive.i_msg_ctxt.length = MDS_SYNC_SND_CTXT_LEN_MAX;
 				data = cbinfo.info.direct_receive.i_msg_ctxt.data;
 				ncs_encode_32bit(&data, recv->exchange_id);
 				ncs_encode_64bit(&data, recv->src_adest);
 			} else {
-				cbinfo.info.direct_receive.i_rsp_reqd = FALSE;
+				cbinfo.info.direct_receive.i_rsp_reqd = false;
 				cbinfo.info.direct_receive.i_msg_ctxt.length = 0;
 			}
 
@@ -4315,13 +4315,13 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			cbinfo.info.receive.i_msg = recv->msg.data.cpy_msg;
 			if (recv->snd_type == MDS_SENDTYPE_SNDRSP || recv->snd_type == MDS_SENDTYPE_REDRSP) {
 				uint8_t *data;
-				cbinfo.info.receive.i_rsp_reqd = TRUE;
+				cbinfo.info.receive.i_rsp_reqd = true;
 				cbinfo.info.receive.i_msg_ctxt.length = MDS_SYNC_SND_CTXT_LEN_MAX;
 				data = cbinfo.info.receive.i_msg_ctxt.data;
 				ncs_encode_32bit(&data, recv->exchange_id);
 				ncs_encode_64bit(&data, recv->src_adest);
 			} else {
-				cbinfo.info.receive.i_rsp_reqd = FALSE;
+				cbinfo.info.receive.i_rsp_reqd = false;
 				cbinfo.info.receive.i_msg_ctxt.length = 0;
 			}
 			cbinfo.info.receive.i_node_id = MDS_GET_NODE_ID(recv->src_adest);
@@ -4879,7 +4879,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 		cbinfo->i_op = MDS_CALLBACK_DEC;
 		cbinfo->info.dec.i_fr_svc_id = recv_msg->src_svc_id;
 		cbinfo->info.dec.io_uba = &recv_msg->msg.data.fullenc_uba;
-		cbinfo->info.dec.i_is_resp = FALSE;
+		cbinfo->info.dec.i_is_resp = false;
 		cbinfo->info.dec.i_node_id = MDS_GET_NODE_ID(recv_msg->src_adest);	/* caution */
 		cbinfo->info.dec.o_msg = orig_msg;
 
@@ -4898,7 +4898,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 		cbinfo->i_op = MDS_CALLBACK_DEC_FLAT;
 		cbinfo->info.dec_flat.i_fr_svc_id = recv_msg->src_svc_id;
 		cbinfo->info.dec_flat.io_uba = &recv_msg->msg.data.flat_uba;
-		cbinfo->info.dec_flat.i_is_resp = FALSE;
+		cbinfo->info.dec_flat.i_is_resp = false;
 		cbinfo->info.dec_flat.i_node_id = MDS_GET_NODE_ID(recv_msg->src_adest);
 		cbinfo->info.dec_flat.o_msg = orig_msg;
 
@@ -5759,7 +5759,7 @@ uint32_t mds_retrieve(NCSMDS_INFO *info)
 	svc_cb = (MDS_SVC_INFO *)hdl;
 	local_mbx = svc_cb->q_mbx;
 
-	if (svc_cb->q_ownership != TRUE) {
+	if (svc_cb->q_ownership != true) {
 		m_MDS_LOG_ERR("MDS_SND_RCV: Service was not installed with MDS Q-Ownership option\n");
 		return NCSCC_RC_FAILURE;
 	}
@@ -5767,7 +5767,7 @@ uint32_t mds_retrieve(NCSMDS_INFO *info)
 	if (info->info.retrieve_msg.i_dispatchFlags == SA_DISPATCH_BLOCKING) {
 
 		/*  SA_DISPATCH_BLOCKING resulting in to deadlock */
-		while (TRUE) {
+		while (true) {
 			/* Unlock the mds_lock first */
 			m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
 
@@ -5799,7 +5799,7 @@ uint32_t mds_retrieve(NCSMDS_INFO *info)
 					m_MMGR_FREE_MSGELEM(msgelem);
 					return NCSCC_RC_SUCCESS;
 				}
-				if (svc_cb->q_ownership != TRUE) {
+				if (svc_cb->q_ownership != true) {
 					m_MDS_LOG_INFO
 					    ("MDS_SND_RCV: Service doesnt exists : Service uninstalled and installed again without mds Q-Ownership model\n");
 					m_MMGR_FREE_MSGELEM(msgelem);
@@ -5874,7 +5874,7 @@ static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb
 				cbinfo.info.dec.i_fr_svc_id = msgelem->info.data.fr_svc_id;
 				cbinfo.info.dec.io_uba = &msgelem->info.data.enc_msg.data.fullenc_uba;
 
-				cbinfo.info.dec.i_is_resp = FALSE;
+				cbinfo.info.dec.i_is_resp = false;
 
 				cbinfo.info.dec.i_node_id = MDS_GET_NODE_ID(msgelem->info.data.adest);
 				cbinfo.info.dec.i_msg_fmt_ver = msgelem->info.data.msg_fmt_ver;
@@ -5912,7 +5912,7 @@ static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb
 				cbinfo.info.dec_flat.i_fr_svc_id = msgelem->info.data.fr_svc_id;
 				cbinfo.info.dec_flat.io_uba = &msgelem->info.data.enc_msg.data.flat_uba;
 
-				cbinfo.info.dec_flat.i_is_resp = FALSE;
+				cbinfo.info.dec_flat.i_is_resp = false;
 
 				cbinfo.info.dec_flat.i_node_id = MDS_GET_NODE_ID(msgelem->info.data.adest);
 				cbinfo.info.dec_flat.i_msg_fmt_ver = msgelem->info.data.msg_fmt_ver;
@@ -5966,14 +5966,14 @@ static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb
 				if (msgelem->info.data.snd_type == MDS_SENDTYPE_SNDRSP
 				    || msgelem->info.data.snd_type == MDS_SENDTYPE_REDRSP) {
 					uint8_t *data;
-					cbinfo.info.receive.i_rsp_reqd = TRUE;
+					cbinfo.info.receive.i_rsp_reqd = true;
 					cbinfo.info.receive.i_msg_ctxt.length = MDS_SYNC_SND_CTXT_LEN_MAX;
 
 					data = cbinfo.info.receive.i_msg_ctxt.data;
 					ncs_encode_32bit(&data, msgelem->info.data.xch_id);
 					ncs_encode_64bit(&data, msgelem->info.data.adest);
 				} else
-					cbinfo.info.receive.i_rsp_reqd = FALSE;
+					cbinfo.info.receive.i_rsp_reqd = false;
 
 				if (msgelem->info.data.fr_vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY)
 					cbinfo.info.receive.i_fr_dest = msgelem->info.data.adest;
@@ -5998,14 +5998,14 @@ static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb
 				if (msgelem->info.data.snd_type == MDS_SENDTYPE_SNDRSP
 				    || msgelem->info.data.snd_type == MDS_SENDTYPE_REDRSP) {
 					uint8_t *data;
-					cbinfo.info.direct_receive.i_rsp_reqd = TRUE;
+					cbinfo.info.direct_receive.i_rsp_reqd = true;
 					cbinfo.info.direct_receive.i_msg_ctxt.length = MDS_SYNC_SND_CTXT_LEN_MAX;
 
 					data = cbinfo.info.direct_receive.i_msg_ctxt.data;
 					ncs_encode_32bit(&data, msgelem->info.data.xch_id);
 					ncs_encode_64bit(&data, msgelem->info.data.adest);
 				} else
-					cbinfo.info.direct_receive.i_rsp_reqd = FALSE;
+					cbinfo.info.direct_receive.i_rsp_reqd = false;
 
 				if (msgelem->info.data.fr_vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY)
 					cbinfo.info.direct_receive.i_fr_dest = msgelem->info.data.adest;
@@ -6383,7 +6383,7 @@ static uint32_t mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 static uint32_t mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 				       MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver,
 				       MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word, MDS_BCAST_BUFF_LIST **mds_mcm_bcast_ptr,
-				       NCS_BOOL flag)
+				       bool flag)
 {
 	MDS_BCAST_BUFF_LIST *tmp_bcast_ptr = NULL;
 

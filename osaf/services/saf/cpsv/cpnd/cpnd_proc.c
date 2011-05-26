@@ -55,7 +55,7 @@ uint32_t cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl
 	while (ptr_cl_node) {
 		if (ptr_cl_node->cnode->ckpt_app_hdl == cl_node->ckpt_app_hdl) {
 			ptr_cl_node->cl_ref_cnt++;
-			cl_node->upd_shm = FALSE;
+			cl_node->upd_shm = false;
 			return rc;
 		} else {
 			if (ptr_cl_node->next == NULL)
@@ -72,7 +72,7 @@ uint32_t cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl
 	clist_node->cnode = cl_node;
 	clist_node->cl_ref_cnt = 1;
 	cp_node->clist = clist_node;
-	cl_node->upd_shm = TRUE;
+	cl_node->upd_shm = true;
 
 	return rc;
 
@@ -260,7 +260,7 @@ uint32_t cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while (ptr_cl_node != NULL) {
-		if (ptr_cl_node->cnode->arrival_cb_flag == TRUE) {
+		if (ptr_cl_node->cnode->arrival_cb_flag == true) {
 			send_evt.type = CPSV_EVT_TYPE_CPA;
 			send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY;
 			send_evt.info.cpa.info.arr_msg.client_hdl = ptr_cl_node->cnode->ckpt_app_hdl;
@@ -282,7 +282,7 @@ uint32_t cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
 	CPSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	cb->is_joined_cl = FALSE;
+	cb->is_joined_cl = false;
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
 	rc = cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
@@ -294,7 +294,7 @@ uint32_t cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
 	CPSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	cb->is_joined_cl = TRUE;
+	cb->is_joined_cl = true;
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
 	rc = cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
@@ -807,7 +807,7 @@ void cpnd_proc_cpa_up(CPND_CB *cb, MDS_DEST dest)
 	while (cl_node) {
 		prev_ckpt_hdl = cl_node->ckpt_app_hdl;
 		if (memcmp(&dest, &cl_node->agent_mds_dest, sizeof(MDS_DEST)) == 0) {
-			cl_node->app_status = TRUE;
+			cl_node->app_status = true;
 		}
 		cpnd_client_node_getnext(cb, prev_ckpt_hdl, &cl_node);
 	}
@@ -1225,7 +1225,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 	SaSizeT datasize = 0;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
-	if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE) {
+	if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == true) {
 		if (cp_node->cpnd_dest_list != NULL) {
 			CPSV_CPND_DEST_INFO *tmp = NULL;
 
@@ -1239,7 +1239,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 				timeout = CPND_WAIT_TIME(datasize);
 			}
 			/*Flag set to distinguish ALL_REPL case on response side */
-			send_evt.info.cpnd.info.ckpt_nd2nd_data.all_repl_evt_flag = TRUE;
+			send_evt.info.cpnd.info.ckpt_nd2nd_data.all_repl_evt_flag = true;
 			send_evt.info.cpnd.info.ckpt_nd2nd_data.agent_mdest = sinfo->dest;
 			/*Allocate memory to store the ALL REPL event node */
 			all_repl_evt = m_MMGR_ALLOC_CPND_ALL_REPL_EVT_NODE;
@@ -1303,8 +1303,8 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 		}
 	}
 
-	else if ((m_CPND_IS_ACTIVE_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE) ||
-		 (m_CPND_IS_ACTIVE_REPLICA_WEAK_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE)) {
+	else if ((m_CPND_IS_ACTIVE_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == true) ||
+		 (m_CPND_IS_ACTIVE_REPLICA_WEAK_ATTR_SET(cp_node->create_attrib.creationFlags) == true)) {
 		/* send rsp to agent */
 		/* send to all other cpnd's using mds send */
 		if (cp_node->cpnd_dest_list != NULL) {
@@ -1326,7 +1326,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 								  cp_node->ckpt_id, rc, __FILE__, __LINE__);
 					}
 
-					/*  mds_failure=TRUE;
+					/*  mds_failure= true;
 					   goto mds_failure; */
 				}
 				tmp = tmp->next;
@@ -1798,7 +1798,7 @@ uint32_t cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *c
  * Description   : This is the function dumps the contents of the control block. *
  * Arguments     : cpnd_cb     -  Pointer to the control block
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -1878,7 +1878,7 @@ void cpnd_cb_dump(void)
  * Description   : This is the function dumps the ckpt attri
  * Arguments     : cp_node    -  Pointer to the Ckpt Node
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -1926,7 +1926,7 @@ void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node)
  * Description   : This is the function dumps the shared Memory Info 
  * Arguments     : open    -  Pointer to the NCS_OS_POSIX_SHM_REQ_INFO
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -1949,7 +1949,7 @@ void cpnd_dump_shm_info(NCS_OS_POSIX_SHM_REQ_INFO *open)
  * Description   : This is the function dumps the Ckpt Section info
  * Arguments     : sec_info    -  Pointer to the CPND_CKPT_SECTION_INFO
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -1987,7 +1987,7 @@ void cpnd_dump_section_info(CPND_CKPT_SECTION_INFO *sec_info)
  * Description   : This is the function dumps the Ckpt Replica Info
  * Arguments     : ckp_replica_node   -  Pointer to the CPND_CKPT_REPLICA_INFO
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -2012,7 +2012,7 @@ void cpnd_dump_replica_info(CPND_CKPT_REPLICA_INFO *ckpt_replica_node)
  * Description   : This is the function dumps the Ckpt Client info
  * Arguments     : cl_node  -  Pointer to the CPND_CKPT_CLIENT_NODE
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -2057,22 +2057,22 @@ void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node)
  * Description   : This is the function dumps the Ckpt Replica Info
  * Arguments     : key    - mds_dest of cpnd which has done a sync send to this cpnd
  *                 qelem  - item in the cb->cpnd_sync_send_list
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL cpnd_match_dest(void *key, void *qelem)
+bool cpnd_match_dest(void *key, void *qelem)
 {
 	CPND_SYNC_SEND_NODE *node = (CPND_SYNC_SEND_NODE *)qelem;
 	MDS_DEST *dest = (MDS_DEST *)key;
 
 	if (!qelem)
-		return FALSE;
+		return false;
 
 	if (*dest == node->dest)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -2081,22 +2081,22 @@ NCS_BOOL cpnd_match_dest(void *key, void *qelem)
  * Description   : This is the function dumps the Ckpt Replica Info
  * Arguments     : key    - CPSV_EVT* sync send request to this cpnd
  *                 qelem  - item in the cb->cpnd_sync_send_list
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL cpnd_match_evt(void *key, void *qelem)
+bool cpnd_match_evt(void *key, void *qelem)
 {
 	CPND_SYNC_SEND_NODE *node = (CPND_SYNC_SEND_NODE *)qelem;
 	CPSV_EVT *evt = (CPSV_EVT *)key;
 
 	if (!qelem)
-		return FALSE;
+		return false;
 
 	if (evt == node->evt)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -2106,9 +2106,9 @@ NCS_BOOL cpnd_match_evt(void *key, void *qelem)
  * Arguments     : cb       - CPND Control Block pointer
  *                 cp_node  - pointer to checkpoint node
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *****************************************************************************/
-NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
+bool cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 {
 	CPSV_CPND_DEST_INFO *dest_list = NULL;
 
@@ -2125,14 +2125,14 @@ NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT
 			    &&
 			    (!m_CPND_IS_ON_SCXB
 			     (cb->cpnd_standby_id, cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest)))) {
-				return TRUE;
+				return true;
 			}
 
 			dest_list = dest_list->next;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************************
@@ -2195,10 +2195,10 @@ uint32_t cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErro
 
 	if (cp_node->ckpt_lcl_ref_cnt == 0) {
 
-		cp_node->is_close = TRUE;
+		cp_node->is_close = true;
 		cpnd_restart_set_close_flag(cb, cp_node);
 
-		if (cp_node->is_unlink != TRUE &&
+		if (cp_node->is_unlink != true &&
 		    (m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(cp_node->create_attrib.retentionDuration) != 0)) {
 			m_GET_TIME_STAMP(presentTime);
 			cpnd_restart_update_timer(cb, cp_node, presentTime);
@@ -2252,10 +2252,10 @@ uint32_t cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_n
 
 	if (cp_node->ckpt_lcl_ref_cnt == 0) {
 
-		cp_node->is_close = TRUE;
+		cp_node->is_close = true;
 		cpnd_restart_set_close_flag(cb, cp_node);
 
-		if (cp_node->is_unlink != TRUE &&
+		if (cp_node->is_unlink != true &&
 		    (m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(cp_node->create_attrib.retentionDuration) != 0)) {
 			m_GET_TIME_STAMP(presentTime);
 			cpnd_restart_update_timer(cb, cp_node, presentTime);

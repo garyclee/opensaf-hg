@@ -218,7 +218,7 @@ uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 	case SA_AMF_HA_ACTIVE:
 		{
 			ckpt->my_role = SA_AMF_HA_ACTIVE;
-			ckpt->in_quiescing = FALSE;
+			ckpt->in_quiescing = false;
 			ckpt->fsm = (NCS_MBCSV_STATE_ACTION_FUNC_PTR *)ncsmbcsv_active_state_tbl;
 
 			peer = ckpt->peer_list;
@@ -245,7 +245,7 @@ uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 	case SA_AMF_HA_QUIESCED:
 		{
 			ckpt->my_role = rcvd_evt->info.peer_msg.info.chg_role.new_role;
-			ckpt->in_quiescing = FALSE;
+			ckpt->in_quiescing = false;
 			ckpt->fsm = (NCS_MBCSV_STATE_ACTION_FUNC_PTR *)ncsmbcsv_standby_state_tbl;
 
 			/*
@@ -278,7 +278,7 @@ uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 			 * Do Nothing. Just set the varibale in_quiescing which will tell us that
 			 * the HA role was set to quiescing some time.
 			 */
-			ckpt->in_quiescing = TRUE;
+			ckpt->in_quiescing = true;
 			rc = NCSCC_RC_SUCCESS;
 			goto done;
 		}
@@ -290,7 +290,7 @@ uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 	}
 
 	if (rc == NCSCC_RC_SUCCESS)
-		ckpt->role_set = TRUE;
+		ckpt->role_set = true;
 
 	/*
 	 * Send this change role information to all the peers so that they will 
@@ -299,7 +299,7 @@ uint32_t mbcsv_process_chg_role(MBCSV_EVT *rcvd_evt, MBCSV_REG *mbc_inst)
 	if (ckpt->peer_up_sent)
 		mbcsv_send_peer_disc_msg(MBCSV_PEER_CHG_ROLE_MSG, mbc_inst, ckpt, NULL, MDS_SENDTYPE_RBCAST, 0);
 	else {
-		ckpt->peer_up_sent = TRUE;
+		ckpt->peer_up_sent = true;
 		mbcsv_send_peer_disc_msg(MBCSV_PEER_UP_MSG, mbc_inst, ckpt, NULL, MDS_SENDTYPE_RBCAST, 0);
 	}
 
@@ -331,7 +331,7 @@ uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKP
 	MBCSV_EVT evt_msg;
 
 	if (NULL == ckpt_inst->peer_list) {
-		if (msg_to_send->io_no_peer == TRUE) {
+		if (msg_to_send->io_no_peer == true) {
 			/* Application requested to let it know if the peer doesn't exist */
 			parg.i_client_hdl = ckpt_inst->client_hdl;
 			parg.i_ckpt_hdl = ckpt_inst->ckpt_hdl;
@@ -353,8 +353,8 @@ uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKP
 	 * Mark all peers for message to be sent.
 	 */
 	while (NULL != tmp_ptr) {
-		tmp_ptr->ckpt_msg_sent = FALSE;
-		tmp_ptr->okay_to_async_updt = FALSE;
+		tmp_ptr->ckpt_msg_sent = false;
+		tmp_ptr->okay_to_async_updt = false;
 		tmp_ptr = tmp_ptr->next;
 	}
 
@@ -366,15 +366,15 @@ uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKP
 		 * Check whether we have to send the message to this peer. If not then
 		 * go to next peer.
 		 */
-		if (TRUE == peer_ptr->ckpt_msg_sent) {
+		if (true == peer_ptr->ckpt_msg_sent) {
 			peer_ptr = peer_ptr->next;
 			continue;
 		}
 
 		m_NCS_MBCSV_FSM_DISPATCH(peer_ptr, NCSMBCSV_SEND_ASYNC_UPDATE, &evt_msg);
 
-		if (FALSE == peer_ptr->okay_to_async_updt) {
-			peer_ptr->ckpt_msg_sent = TRUE;
+		if (false == peer_ptr->okay_to_async_updt) {
+			peer_ptr->ckpt_msg_sent = true;
 			peer_ptr = peer_ptr->next;
 			continue;
 		}
@@ -421,8 +421,8 @@ uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKP
 		while (NULL != tmp_ptr) {
 			m_NCS_MBCSV_FSM_DISPATCH(tmp_ptr, NCSMBCSV_SEND_ASYNC_UPDATE, &evt_msg);
 
-			if (FALSE == tmp_ptr->okay_to_async_updt) {
-				tmp_ptr->ckpt_msg_sent = TRUE;
+			if (false == tmp_ptr->okay_to_async_updt) {
+				tmp_ptr->ckpt_msg_sent = true;
 				tmp_ptr = tmp_ptr->next;
 				continue;
 			}
@@ -455,7 +455,7 @@ uint32_t mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send, CKP
 					return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 								    "Send type received is wrong ", mbc_inst->svc_id);
 				}
-				tmp_ptr->ckpt_msg_sent = TRUE;
+				tmp_ptr->ckpt_msg_sent = true;
 			}
 			tmp_ptr = tmp_ptr->next;
 		}
@@ -521,11 +521,11 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 			 * So I am in standby role. So send message to active peer.
 			 */
 			if (NULL != ckpt_inst->active_peer) {
-				ckpt_inst->active_peer->okay_to_send_ntfy = FALSE;
+				ckpt_inst->active_peer->okay_to_send_ntfy = false;
 
 				m_NCS_MBCSV_FSM_DISPATCH(ckpt_inst->active_peer, NCSMBCSV_SEND_NOTIFY, &evt_msg);
 
-				if (TRUE == ckpt_inst->active_peer->okay_to_send_ntfy) {
+				if (true == ckpt_inst->active_peer->okay_to_send_ntfy) {
 					/*
 					 * Call encode callback to encode message to be sent.
 					 */
@@ -565,7 +565,7 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 		{
 			uint16_t peer_count = 0;
 			uint16_t tmp_peer_version = 0;
-			uint8_t set_peer_version = TRUE;
+			uint8_t set_peer_version = true;
 			USRBUF *dup_ub = NULL;
 			PEER_INST *peer = ckpt_inst->peer_list;
 
@@ -574,7 +574,7 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 			 */
 			while (peer) {
 				peer_count++;
-				peer->notify_msg_sent = FALSE;
+				peer->notify_msg_sent = false;
 				peer = peer->next;
 			}
 
@@ -584,7 +584,7 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 				   start of the peerlist to traverse for another version of peers */
 				if (peer == NULL) {
 					tmp_peer_version = 0;
-					set_peer_version = TRUE;
+					set_peer_version = true;
 					peer = ckpt_inst->peer_list;
 
 					/* Now delete the redundant ditto buffer */
@@ -595,25 +595,25 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 				}
 
 				/* peer already checked ?? */
-				if (peer->notify_msg_sent == TRUE) {
+				if (peer->notify_msg_sent == true) {
 					peer = peer->next;
 					continue;
 				}
 
 				if ((msg_dest == NCS_MBCSV_STANDBY) && (SA_AMF_HA_STANDBY != peer->peer_role)) {
-					peer->notify_msg_sent = TRUE;
+					peer->notify_msg_sent = true;
 					peer_count--;
 					peer = peer->next;
 					continue;
 				}
 
-				peer->okay_to_send_ntfy = FALSE;
+				peer->okay_to_send_ntfy = false;
 
 				m_NCS_MBCSV_FSM_DISPATCH(peer, NCSMBCSV_SEND_NOTIFY, &evt_msg);
 
-				if (TRUE == peer->okay_to_send_ntfy) {
+				if (true == peer->okay_to_send_ntfy) {
 					if (set_peer_version) {
-						set_peer_version = FALSE;
+						set_peer_version = false;
 						tmp_peer_version = peer->version;
 
 						/*
@@ -656,7 +656,7 @@ uint32_t mbcsv_send_notify_msg(uint32_t msg_dest, CKPT_INST *ckpt_inst, MBCSV_RE
 				}
 
 				peer_count--;
-				peer->notify_msg_sent = TRUE;
+				peer->notify_msg_sent = true;
 				peer = peer->next;
 			}
 
@@ -832,7 +832,7 @@ uint32_t ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *
 		break;
 
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-		peer->data_resp_process = FALSE;
+		peer->data_resp_process = false;
 		peer->call_again_action = NCS_MBCSV_ACT_DONT_CARE;
 		peer->call_again_reo_hdl = 0;
 		peer->call_again_reo_type = 0;
@@ -840,7 +840,7 @@ uint32_t ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *
 		break;
 
 	case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
-		peer->w_syn_resp_process = FALSE;
+		peer->w_syn_resp_process = false;
 		peer->call_again_action = NCS_MBCSV_ACT_DONT_CARE;
 		peer->call_again_reo_hdl = 0;
 		peer->call_again_reo_type = 0;
@@ -848,7 +848,7 @@ uint32_t ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *
 		break;
 
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-		peer->c_syn_resp_process = FALSE;
+		peer->c_syn_resp_process = false;
 		peer->call_again_action = NCS_MBCSV_ACT_DONT_CARE;
 		peer->call_again_reo_hdl = 0;
 		peer->call_again_reo_type = 0;
@@ -927,7 +927,7 @@ uint32_t mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 
 	/* Start the transmit timer for the events that have
 	 * multi-part responses and if the redundant entity has
-	 * more data to send ie call_again is TRUE
+	 * more data to send ie call_again is true
 	 */
 	switch (event) {
 	case NCSMBCSV_EVENT_COLD_SYNC_RESP:
@@ -943,8 +943,8 @@ uint32_t mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 	case NCSMBCSV_EVENT_COLD_SYNC_RESP_COMPLETE:
 	case NCSMBCSV_EVENT_WARM_SYNC_RESP_COMPLETE:
 	case NCSMBCSV_EVENT_DATA_RESP_COMPLETE:
-		peer->new_msg_seq = FALSE;
-		peer->cold_sync_done = TRUE;
+		peer->new_msg_seq = false;
+		peer->cold_sync_done = true;
 		break;
 
 	default:

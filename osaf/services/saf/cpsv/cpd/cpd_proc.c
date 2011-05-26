@@ -76,7 +76,7 @@ uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 	if (d2nd_info->is_active_exists)
 		d2nd_info->active_dest = ckpt_node->active_dest;
 	d2nd_info->attributes = map_info->attributes;
-	d2nd_info->ckpt_rep_create = TRUE;
+	d2nd_info->ckpt_rep_create = true;
 
 	if (ckpt_node->dest_cnt) {
 		CPD_NODE_REF_INFO *node_list = ckpt_node->node_list;
@@ -108,7 +108,7 @@ uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_ADD;
 	send_evt.info.cpnd.info.ckpt_add.ckpt_id = ckpt_node->ckpt_id;
 	send_evt.info.cpnd.info.ckpt_add.mds_dest = *cpnd_dest;
-	send_evt.info.cpnd.info.ckpt_add.is_cpnd_restart = FALSE;
+	send_evt.info.cpnd.info.ckpt_add.is_cpnd_restart = false;
 
 	rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
 
@@ -140,7 +140,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaCkptCheckpointHandleT ckpt_id = 0;
-	NCS_BOOL add_flag = TRUE, create_reploc_node = FALSE;
+	bool add_flag = true, create_reploc_node = false;
 	SaClmClusterNodeT cluster_node;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
@@ -252,7 +252,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 			}
 
 		}
-		create_reploc_node = TRUE;
+		create_reploc_node = true;
 	}
 
 	if (*io_map_info) {
@@ -294,7 +294,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 		memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
 		ckpt_node->ckpt_id = map_info->ckpt_id;
 		ckpt_node->ckpt_name = ckpt_create->ckpt_name;
-		ckpt_node->is_unlink_set = FALSE;
+		ckpt_node->is_unlink_set = false;
 		ckpt_node->attributes = ckpt_create->attributes;
 		if (ckpt_node->attributes.maxSections == 1)
 			ckpt_node->num_sections = 1;
@@ -305,7 +305,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 		if (!(m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_create->attributes) &&
 		      m_IS_ASYNC_UPDATE_OPTION(&ckpt_create->attributes))) {
 			/* The policy is to make the first replica as active replica */
-			ckpt_node->is_active_exists = TRUE;
+			ckpt_node->is_active_exists = true;
 			ckpt_node->active_dest = *cpnd_dest;
 		}
 
@@ -394,7 +394,7 @@ uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL ckptid_flag = FALSE;
+	bool ckptid_flag = false;
 	SaNameT ckpt_name, node_name;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
@@ -476,11 +476,11 @@ uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node
  *****************************************************************************/
 uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 			      CPD_CKPT_INFO_NODE *ckpt_node,
-			      CPSV_SEND_INFO *sinfo, NCS_BOOL *o_ckpt_node_deleted, NCS_BOOL *o_is_active_changed)
+			      CPSV_SEND_INFO *sinfo, bool *o_ckpt_node_deleted, bool *o_is_active_changed)
 {
 	CPD_NODE_REF_INFO *nref_info;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
-	NCS_BOOL match_found = FALSE;
+	bool match_found = false;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	SaCkptCheckpointCreationAttributesT create_attr;
@@ -493,7 +493,7 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 	memset(&create_attr, 0, sizeof(SaCkptCheckpointCreationAttributesT));
 
-	if (ckpt_node->is_unlink_set != TRUE) {
+	if (ckpt_node->is_unlink_set != true) {
 		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
 		if (map_info == NULL) {
 			m_LOG_CPD_FCL(CPD_DB_DEL_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__,
@@ -507,12 +507,12 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	for (nref_info = ckpt_node->node_list; nref_info != NULL; nref_info = nref_info->next) {
 		if (m_NCS_MDS_DEST_EQUAL(&nref_info->dest, &sinfo->dest)) {
 			/* MDS Dest is matching, Free this node */
-			match_found = TRUE;
+			match_found = true;
 			break;
 		}
 	}
 
-	if (match_found == FALSE) {
+	if (match_found == false) {
 		m_LOG_CPD_FCL(CPD_DB_DEL_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
@@ -528,17 +528,17 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	if (ckpt_node->dest_cnt) {
 		/* Inform other CPNDs, that the replica received from this (sinfo->dest)
 		   CPND is deleted */
-		*o_ckpt_node_deleted = TRUE;
+		*o_ckpt_node_deleted = true;
 
 		/* If the deleted replica is active, Select the new active replica */
 		if (m_NCS_MDS_DEST_NODEID_EQUAL
 		    (m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest), m_NCS_NODE_ID_FROM_MDS_DEST(sinfo->dest))) {
-			ckpt_node->is_active_exists = FALSE;
+			ckpt_node->is_active_exists = false;
 			memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
 		}
 
 		/* Select the New Active Dest */
-		if (ckpt_node->is_active_exists == FALSE) {
+		if (ckpt_node->is_active_exists == false) {
 			nref_info = ckpt_node->node_list;
 
 			/* Non-collocated so make scxb as active */
@@ -549,9 +549,9 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 					    ||
 					    (m_CPND_IS_ON_SCXB
 					     (cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(nref_info->dest)))) {
-						ckpt_node->is_active_exists = TRUE;
+						ckpt_node->is_active_exists = true;
 						ckpt_node->active_dest = nref_info->dest;
-						*o_is_active_changed = TRUE;
+						*o_is_active_changed = true;
 						break;
 					}
 					nref_info = nref_info->next;
@@ -568,19 +568,19 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 					}
 
 					if (nref_info) {
-						ckpt_node->is_active_exists = TRUE;
+						ckpt_node->is_active_exists = true;
 						ckpt_node->active_dest = nref_info->dest;
-						*o_is_active_changed = TRUE;
+						*o_is_active_changed = true;
 					}
 				}
 
 				else {
-					ckpt_node->is_active_exists = FALSE;
+					ckpt_node->is_active_exists = false;
 					memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
 
 					if (nref_info) {
 						/* Need to send this info to CPNDs */
-						*o_is_active_changed = TRUE;
+						*o_is_active_changed = true;
 					}
 				}
 			}
@@ -623,8 +623,8 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	}
 
 	if (ckpt_node->dest_cnt == 0) {
-		*o_ckpt_node_deleted = FALSE;
-		*o_is_active_changed = FALSE;
+		*o_ckpt_node_deleted = false;
+		*o_is_active_changed = false;
 		m_LOG_CPD_FCL(CPD_CKPT_DEL_SUCCESS, CPD_FC_DB, NCSFL_SEV_INFO, ckpt_node->ckpt_id, __FILE__, __LINE__);
 		/* Remove the ckpt_node */
 		cpd_ckpt_node_delete(cb, ckpt_node);
@@ -653,8 +653,8 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 	CPD_CKPT_REF_INFO *cref_info;
 	uint32_t proc_rc;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	NCS_BOOL ckptid_flag = TRUE;
-	NCS_BOOL add_flag = FALSE;
+	bool ckptid_flag = true;
+	bool add_flag = false;
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
@@ -670,7 +670,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 
 	while (cref_info) {
 		CPD_NODE_REF_INFO *nref_info;
-		NCS_BOOL match_found = FALSE;
+		bool match_found = false;
 		CPSV_EVT send_evt;
 
 		/* Update the ckpt reference list in the cpnd node after removing the first cref_info */
@@ -681,7 +681,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 			if (m_NCS_MDS_DEST_NODEID_EQUAL
 			    (m_NCS_NODE_ID_FROM_MDS_DEST(nref_info->dest), m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest))) {
 				/* MDS Dest is matching, Free this node */
-				match_found = TRUE;
+				match_found = true;
 				break;
 			}
 		}
@@ -689,7 +689,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 		key_info.ckpt_name = ckpt_node->ckpt_name;
 		key_info.node_name = cpnd_info->node_name;
 
-		if (match_found == TRUE) {
+		if (match_found == true) {
 			/* Remove the node reference from the ckpt_node */
 			cpd_node_ref_info_del(ckpt_node, nref_info);
 
@@ -707,11 +707,11 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 				if (m_NCS_MDS_DEST_NODEID_EQUAL
 				    (m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),
 				     m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest))) {
-					ckpt_node->is_active_exists = FALSE;
+					ckpt_node->is_active_exists = false;
 					memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
 				}
 
-				if (ckpt_node->is_active_exists == FALSE) {
+				if (ckpt_node->is_active_exists == false) {
 
 					CPD_NODE_REF_INFO *nref_info2;
 					nref_info2 = ckpt_node->node_list;
@@ -726,7 +726,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 							    (m_CPND_IS_ON_SCXB
 							     (cb->cpd_remote_id,
 							      cpd_get_slot_sub_id_from_mds_dest(nref_info2->dest)))) {
-								ckpt_node->is_active_exists = TRUE;
+								ckpt_node->is_active_exists = true;
 								ckpt_node->active_dest = nref_info2->dest;
 								break;
 							}
@@ -752,7 +752,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 					proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
 
 				}
-				/* if(ckpt_node->is_active_exists == FALSE) */
+				/* if(ckpt_node->is_active_exists == false) */
 				if ((ckpt_node->ckpt_on_scxb1 == 0) && (ckpt_node->ckpt_on_scxb2 == 0)) {
 					if (!cpd_is_noncollocated_replica_present_on_payload(cb, ckpt_node)) {
 
@@ -808,11 +808,11 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 				if (m_NCS_MDS_DEST_NODEID_EQUAL
 				    (m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),
 				     m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest))) {
-					ckpt_node->is_active_exists = FALSE;
+					ckpt_node->is_active_exists = false;
 					memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
 				}
 
-				if (ckpt_node->is_active_exists == FALSE) {
+				if (ckpt_node->is_active_exists == false) {
 					CPD_NODE_REF_INFO *nref_info2;
 					nref_info2 = ckpt_node->node_list;
 
@@ -827,7 +827,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 						}
 
 						if (nref_info2) {
-							ckpt_node->is_active_exists = TRUE;
+							ckpt_node->is_active_exists = true;
 							ckpt_node->active_dest = nref_info2->dest;
 						}
 					}
@@ -850,11 +850,11 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 					send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
 					send_evt.info.cpa.info.ackpt_info.mds_dest = ckpt_node->active_dest;
 					proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
-				}	/* if(ckpt_node->is_active_exists == FALSE) */
+				}	/* if(ckpt_node->is_active_exists == false) */
 			}	/* else of if(ckpt_node->dest_cnt == 0) */
 		}
 
-		/* if(match_found == TRUE) */
+		/* if(match_found == true) */
 		/* Send it to CPD(s), by sending ckpt_id = 0 */
 		/* This is to delete the node from reploc_tree */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
@@ -919,7 +919,7 @@ uint32_t cpd_proc_active_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, MDS_DE
 		}
 	}
 
-	(*ckpt_node)->is_active_exists = TRUE;
+	(*ckpt_node)->is_active_exists = true;
 	(*ckpt_node)->active_dest = mds_dest;
 
 	if (mds_dest) {
@@ -1000,7 +1000,7 @@ uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKP
 		return SA_AIS_ERR_NOT_EXIST;
 	}
 
-	(*ckpt_node)->is_unlink_set = TRUE;
+	(*ckpt_node)->is_unlink_set = true;
 	(*ckpt_node)->attributes = map_info->attributes;
 	/* Delete the MAP Info */
 	rc = cpd_ckpt_map_node_delete(cb, map_info);
@@ -1014,9 +1014,9 @@ uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKP
  * Arguments     : cb       - CPD Control Block pointer
  *                 ckpt_node  - pointer to checkpoint node
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *****************************************************************************/
-NCS_BOOL cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
+bool cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_NODE_REF_INFO *nref_info = ckpt_node->node_list;
 
@@ -1024,13 +1024,13 @@ NCS_BOOL cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_IN
 		/* Check if a replica is present on one of the payload blades */
 		if ((!m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(nref_info->dest))) &&
 		    (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(nref_info->dest)))) {
-			return TRUE;
+			return true;
 		}
 
 		nref_info = nref_info->next;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -1210,14 +1210,14 @@ void cpd_cb_dump(void)
   Return Values : NCSCC_RC_FAILURE /NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
+uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, bool is_unlink_set)
 {
 
 	SaNameT replica_dn, node_name;
 	memset(&replica_dn, 0, sizeof(SaNameT));
 	memset(&node_name, 0, sizeof(SaNameT));
 	/* delete imm runtime object */
-	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (is_unlink_set != TRUE)) {
+	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (is_unlink_set != true)) {
 		/* escapes rdn's  ',' with '\'   */
 		node_name.length = m_NCS_OS_NTOHS(ckpt_reploc_node->rep_key.node_name.length);
 		strcpy((char *)node_name.value, (char *)ckpt_reploc_node->rep_key.node_name.value);

@@ -125,7 +125,7 @@ static void mqa_sync_with_mqd(MQA_CB *cb)
 		return;
 	}
 
-	cb->mqd_sync_awaited = TRUE;
+	cb->mqd_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->mqd_sync_sel);
 	m_NCS_UNLOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 
@@ -137,7 +137,7 @@ static void mqa_sync_with_mqd(MQA_CB *cb)
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 
-	cb->mqd_sync_awaited = FALSE;
+	cb->mqd_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->mqd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
@@ -164,7 +164,7 @@ static void mqa_sync_with_mqnd(MQA_CB *cb)
 		return;
 	}
 
-	cb->mqnd_sync_awaited = TRUE;
+	cb->mqnd_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->mqnd_sync_sel);
 	m_NCS_UNLOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -176,7 +176,7 @@ static void mqa_sync_with_mqnd(MQA_CB *cb)
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 
-	cb->mqnd_sync_awaited = FALSE;
+	cb->mqnd_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->mqnd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
@@ -524,12 +524,12 @@ static void mqa_client_tree_cleanup(MQA_CB *mqa_cb)
   Arguments     : mqa_cb - MQA Control block.
                   queueGroupName - Group name
  
-  Return Values : TRUE if this is no tracking enabled for this group. FALSE
+  Return Values : true if this is no tracking enabled for this group. false
                   otherwise
  
   Notes         : None
 ******************************************************************************/
-NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
+bool mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
 {
 	MQA_CLIENT_INFO *client_info;
 	MQA_TRACK_INFO *track_info;
@@ -539,16 +539,16 @@ NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
 	/* scan the entire handle db & delete each record */
 	while ((client_info = (MQA_CLIENT_INFO *)
 		ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uint8_t *const)temp_ptr))) {
-		track_info = mqa_track_tree_find_and_add(client_info, queueGroupName, FALSE);
+		track_info = mqa_track_tree_find_and_add(client_info, queueGroupName, false);
 		if (!track_info) {
 			temp_hdl = client_info->msgHandle;
 			temp_ptr = &temp_hdl;
 			continue;
 		} else
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -609,7 +609,7 @@ uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_inf
   Arguments     : 
                   mqa_cb : pointer to the mqa control block.
                   hdl_id : the handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node if node 
+                  flag   : true/false if true create the new node if node 
                            doesn't exist.FALSE -> search for an existing node.
  
   Return Values : returns the MQA_CLIENT_INFO node.
@@ -617,7 +617,7 @@ uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_inf
   Notes         : The caller takes the cb lock before calling this function
                   
 ******************************************************************************/
-MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, NCS_BOOL flag)
+MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, bool flag)
 {
 	MQA_CLIENT_INFO *client_info = NULL;
 	NCS_PATRICIA_PARAMS param;
@@ -625,7 +625,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 
 	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&hdl_id);
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		if (!client_info) {
 			client_info = (MQA_CLIENT_INFO *)m_MMGR_ALLOC_MQA_CLIENT_INFO;
@@ -670,7 +670,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
   Arguments     :
                   client_info : pointer to the mqa client.
                   hdl_id : the handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node if node
+                  flag   : true/false if true create the new node if node
                            doesn't exist.FALSE -> search for an existing node.
 
   Return Values : returns the MQA_TRACK_INFO node.
@@ -678,14 +678,14 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
   Notes         : The caller takes the cb lock before calling this function
 
 ******************************************************************************/
-MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, NCS_BOOL flag)
+MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, bool flag)
 {
 	MQA_TRACK_INFO *track_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		if (!track_info) {
 			track_info = (MQA_TRACK_INFO *)m_MMGR_ALLOC_MQA_TRACK_INFO;
@@ -723,12 +723,12 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
                   client_info : pointer to the mqa client.
                   group : the group name to delete from track list.
 
-  Return Values : returns status of deletion, TRUE if deleted, FALSE otherwise
+  Return Values : returns status of deletion, true if deleted, false otherwise
 
   Notes         : The caller takes the cb lock before calling this function
 
 ******************************************************************************/
-NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
+bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 {
 	MQA_TRACK_INFO *track_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -736,21 +736,21 @@ NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *grou
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
 	if (!track_info)
-		return FALSE;
+		return false;
 
 	if ((rc = ncs_patricia_tree_del(&client_info->mqa_track_tree, &track_info->patnode)) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_A(MQA_TRACK_TREE_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		if (track_info->notificationBuffer.notification)
 			m_MMGR_FREE_MQA_TRACK_BUFFER_INFO(track_info->notificationBuffer.notification);
 		m_MMGR_FREE_MQA_TRACK_INFO(track_info);
-		return FALSE;
+		return false;
 	}
 
 	if (track_info->notificationBuffer.notification)
 		m_MMGR_FREE_MQA_TRACK_BUFFER_INFO(track_info->notificationBuffer.notification);
 	m_MMGR_FREE_MQA_TRACK_INFO(track_info);
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -855,26 +855,26 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
   Arguments     : 
                   mqa_cb : pointer to the mqa control block.
                   hdl_id : the handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node if node 
+                  flag   : true/false if true create the new node if node 
                            doesn't exist.FALSE -> search for an existing node.
                  MQA_CLIENT_INFO *client_info : Info about the client.
                  SaMsgQueueOpenFlagsT openFlags : 
-                          If flag == TRUE, openFlags is IN parameter.
-                          If flag != TRUE, openFlags is ignored.
+                          If flag == true, openFlags is IN parameter.
+                          If flag != true, openFlags is ignored.
   Return Values : returns the MQA_QUEUE_INFO node.
  
   Notes         : None
 ******************************************************************************/
 MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 					    SaMsgQueueHandleT hdl_id,
-					    NCS_BOOL flag, MQA_CLIENT_INFO *client_info, SaMsgQueueOpenFlagsT openFlags)
+					    bool flag, MQA_CLIENT_INFO *client_info, SaMsgQueueOpenFlagsT openFlags)
 {
 	MQA_QUEUE_INFO *queue_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* read lock taken by the caller. */
 	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		if (!queue_info) {
 			queue_info = (MQA_QUEUE_INFO *)m_MMGR_ALLOC_MQA_QUEUE_INFO;

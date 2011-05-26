@@ -40,7 +40,7 @@ typedef struct glsv_gld_rsc_info_tag {
 	SaLckResourceIdT rsc_id;	/* unique resource id - Index for            */
 	SaNameT lck_name;	/* Cluster-wide unique lock name             */
 	GLSV_NODE_LIST *node_list;	/* Nodes on which this resource is reffered  */
-	NCS_BOOL can_orphan;	/* is this resource allocated in orphan mode */
+	bool can_orphan;	/* is this resource allocated in orphan mode */
 	SaLckLockModeT orphan_lck_mode;	/* related to orphan mode                    */
 	GLD_TMR reelection_timer;
 	uint32_t status;
@@ -88,11 +88,11 @@ typedef struct glsv_gld_cb_tag {
 	V_DEST_QA my_anc;
 	MDS_VDEST_ID my_dest_id;	/* My identification in MDS                  */
 
-	NCS_BOOL glnd_details_tree_up;
+	bool glnd_details_tree_up;
 	NCS_PATRICIA_TREE glnd_details;	/* Details of nodes on which NDs are up      */
-	NCS_BOOL rsc_info_id_tree_up;
+	bool rsc_info_id_tree_up;
 	NCS_PATRICIA_TREE rsc_info_id;	/* Resource info indexed by rsc_id           */
-	NCS_BOOL rsc_map_info_tree_up;
+	bool rsc_map_info_tree_up;
 	NCS_PATRICIA_TREE rsc_map_info;	/* Resource info indexed by rsc_name           */
 	GLSV_GLD_RSC_INFO *rsc_info;	/* List of resources referred to             */
 	SaLckResourceIdT nxt_rsc_id;	/* Next rsc id to be generated               */
@@ -130,7 +130,7 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info);
 
 void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb,
 			  GLSV_GLD_RSC_INFO *rsc_info,
-			  GLSV_GLD_GLND_RSC_REF *glnd_rsc, GLSV_GLD_GLND_DETAILS *node_details, NCS_BOOL orphan_flag);
+			  GLSV_GLD_GLND_RSC_REF *glnd_rsc, GLSV_GLD_GLND_DETAILS *node_details, bool orphan_flag);
 
 void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, GLSV_GLD_RSC_INFO *rsc_info);
 
@@ -138,7 +138,7 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 #define m_GLSV_GLD_GIVEUP_GLD_CB    ncshm_give_hdl(gl_gld_hdl)
 
 #define GLD_RESOURCE_INFO_NODE_NULL ((GLSV_GLD_RSC_INFO *)0)
-uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
+uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, bool orphan,
 				      SaLckLockModeT lck_mode);
 GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id,
 					     SaAisErrorT *error);

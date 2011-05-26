@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
 				}
 			} else {
 				TRACE("SIGUSR1 event rec");
-				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
+				ncs_sel_obj_rmv_ind(usr1_sel_obj, true, true);
 				ncs_sel_obj_destroy(usr1_sel_obj);
 
 				if (lgs_amf_init(lgs_cb) != NCSCC_RC_SUCCESS)

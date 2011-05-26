@@ -223,7 +223,7 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	osaf_cluster = NULL;
 	clms_cb->reg_with_plm = SA_FALSE;
 	clms_cb->cluster_view_num = 0;
-	clms_cb->csi_assigned = FALSE;
+	clms_cb->csi_assigned = false;
 	clms_cb->curr_invid = 1;
 	clms_cb->immOiHandle = 0;
 
@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 				}
 			} else {
 				TRACE("SIGUSR1 event rec");
-				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
+				ncs_sel_obj_rmv_ind(usr1_sel_obj, true, true);
 				ncs_sel_obj_destroy(usr1_sel_obj);
 
 				if (clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {

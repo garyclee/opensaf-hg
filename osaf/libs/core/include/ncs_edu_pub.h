@@ -151,7 +151,7 @@ extern "C" {
         - EDCOMPILE status of EDP
  */
 	typedef struct edu_hdl_tag {
-		NCS_BOOL is_inited;	/* Is the tree initialised */
+		bool is_inited;	/* Is the tree initialised */
 		NCS_PATRICIA_TREE tree;
 		EDU_MSG_VERSION to_version;
 	} EDU_HDL;
@@ -167,7 +167,7 @@ extern "C" {
 
 /* Definition of envelope of EDU_TLV_ENV and NCS_UBAID */
 	typedef struct edu_buf_env_tag {
-		NCS_BOOL is_ubaid;	/* Is this NCS_UBAID or not? */
+		bool is_ubaid;	/* Is this NCS_UBAID or not? */
 		union {
 			NCS_UBAID *uba;
 			EDU_TLV_ENV tlv_env;
@@ -186,7 +186,7 @@ extern "C" {
 #if (NCS_EDU_VERBOSE_PRINT == 1)
 	typedef struct edu_ppdb {
 		NCS_PATRICIA_TREE tree;
-		NCS_BOOL is_up;	/* Has the tree been init'ed */
+		bool is_up;	/* Has the tree been init'ed */
 	} EDU_PPDB;
 
 /* Key to the EDU_PPDB database. */
@@ -262,7 +262,7 @@ extern "C" {
 
 		uint32_t size;	/* Size of data structure */
 
-		NCS_BOOL edcompile_pass;	/* Updated by EDU */
+		bool edcompile_pass;	/* Updated by EDU */
 
 		uint32_t attrb;	/* EDP attributes */
 

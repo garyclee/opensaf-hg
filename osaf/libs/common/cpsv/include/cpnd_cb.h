@@ -40,20 +40,20 @@ uint32_t gl_cpnd_cb_hdl;
 #define m_CPND_IS_LOCAL_NODE(m,n)   memcmp(m,n,sizeof(MDS_DEST))
 
 #define m_CPND_IS_ALL_REPLICA_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_WR_ALL_REPLICAS) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_WR_ALL_REPLICAS) != 0)?true:false)
 #define m_CPND_IS_ACTIVE_REPLICA_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_WR_ACTIVE_REPLICA) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_WR_ACTIVE_REPLICA) != 0)?true:false)
 #define m_CPND_IS_ACTIVE_REPLICA_WEAK_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_WR_ACTIVE_REPLICA_WEAK) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_WR_ACTIVE_REPLICA_WEAK) != 0)?true:false)
 #define m_CPND_IS_COLLOCATED_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_CHECKPOINT_COLLOCATED) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_CHECKPOINT_COLLOCATED) != 0)?true:false)
 
 #define m_CPND_IS_CHECKPOINT_READ_SET(attr)   \
-            (((attr & SA_CKPT_CHECKPOINT_READ) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_CHECKPOINT_READ) != 0)?true:false)
 #define m_CPND_IS_CHECKPOINT_WRITE_SET(attr)   \
-            (((attr & SA_CKPT_CHECKPOINT_WRITE) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_CHECKPOINT_WRITE) != 0)?true:false)
 #define m_CPND_IS_CHECKPOINT_CREATE_SET(attr)   \
-            (((attr & SA_CKPT_CHECKPOINT_CREATE) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_CHECKPOINT_CREATE) != 0)?true:false)
 
 /* attribute check */
 
@@ -62,14 +62,14 @@ uint32_t gl_cpnd_cb_hdl;
             (x_attr1.checkpointSize == x_attr2.checkpointSize ) && \
             (x_attr1.maxSections == x_attr2.maxSections) && \
             (x_attr1.maxSectionSize == x_attr2.maxSectionSize ) && \
-            (x_attr1.maxSectionIdSize == x_attr2.maxSectionIdSize )!= 0)?TRUE:FALSE)
+            (x_attr1.maxSectionIdSize == x_attr2.maxSectionIdSize )!= 0)?true:false)
 #define m_CPND_IS_CREAT_ATTRIBUTE_EQUAL_B_1_1(x_attr1,x_attr2) \
        (((x_attr1.creationFlags == x_attr2.creationFlags)&& \
             (x_attr1.checkpointSize == x_attr2.checkpointSize ) && \
             (x_attr1.retentionDuration == x_attr2.retentionDuration ) && \
             (x_attr1.maxSections == x_attr2.maxSections) && \
             (x_attr1.maxSectionSize == x_attr2.maxSectionSize ) && \
-            (x_attr1.maxSectionIdSize == x_attr2.maxSectionIdSize )!= 0)?TRUE:FALSE)
+            (x_attr1.maxSectionIdSize == x_attr2.maxSectionIdSize )!= 0)?true:false)
 
 #define m_CPND_FREE_CKPT_SECTION(p) \
         do{ \
@@ -175,27 +175,27 @@ typedef struct cpnd_ckpt_node {
 	struct cpnd_ckpt_cllist_node *clist;	/* List of the clients */
 	CPSV_CPND_DEST_INFO *cpnd_dest_list;	/* List maintans remote client MDEST informations */
 
-	NCS_BOOL cpnd_rep_create;
+	bool cpnd_rep_create;
 
-	NCS_BOOL is_unlink;	/* Set to TRUE if it is already closed */
-	NCS_BOOL is_close;	/* Set to TRUE if it is already closed */
+	bool is_unlink;	/* Set to true if it is already closed */
+	bool is_close;	/* Set to true if it is already closed */
 	CPND_TMR ret_tmr;
-	NCS_BOOL is_restart;
-	NCS_BOOL is_ckpt_onscxb;
+	bool is_restart;
+	bool is_ckpt_onscxb;
 	uint32_t cur_state;
 	uint32_t oth_state;
 /*   uint32_t                               read_lck_cnt; */
 	CPSV_CPND_DEST_INFO *agent_dest_list;
 	SaTimeT close_time;
-	NCS_BOOL is_rdset;
+	bool is_rdset;
 
 	int32_t offset;		/* for restart mechanism - shared memory offset */
 	SaNameT node_name;	
 
-	NCS_BOOL is_cpa_created_ckpt_replica;	/* Flag to indicate whether replica created by CPA/CPD */
+	bool is_cpa_created_ckpt_replica;	/* Flag to indicate whether replica created by CPA/CPD */
 	CPSV_EVT *evt_bckup_q;
 	CPSV_SEND_INFO cpa_sinfo;	/* Used in unlink flow while sending response to CPA */
-	NCS_BOOL cpa_sinfo_flag;
+	bool cpa_sinfo_flag;
 	CPND_TMR open_active_sync_tmr;
 } CPND_CKPT_NODE;
 
@@ -218,12 +218,12 @@ typedef struct cpnd_ckpt_client_node {
 	uint32_t proc_id;		/* TBD Delete this */
 	SaVersionT version;
 	uint16_t cbk_reg_info;	/* bit-wise data */
-	NCS_BOOL arrival_cb_flag;
+	bool arrival_cb_flag;
 
 	CPND_CKPT_CKPT_LIST_NODE *ckpt_list;	/* List of ckpts opened by this client */
 	uint32_t offset;		/* shared memory offset */
-	NCS_BOOL app_status;
-	NCS_BOOL upd_shm;
+	bool app_status;
+	bool upd_shm;
 } CPND_CKPT_CLIENT_NODE;
 
 /******************************************************************************
@@ -268,8 +268,8 @@ typedef struct cpnd_cb_tag {
 	GBL_SHM_PTR shm_addr;
 	/* Information about the CPD */
 	MDS_DEST cpd_mdest_id;
-	NCS_BOOL is_cpd_up;
-	NCS_BOOL is_joined_cl;
+	bool is_cpd_up;
+	bool is_joined_cl;
 	uint32_t num_rep;		/* Number of shared memory segments */
 
 	uint32_t gl_cpnd_shm_id;	/* the global Checkpoint Shared
@@ -286,8 +286,8 @@ typedef struct cpnd_cb_tag {
 	SaClmNodeIdT nodeid;
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	uint8_t *cpnd_res_shm_name;
-	NCS_BOOL cpnd_first_time;
-	NCS_BOOL read_lck_flag;
+	bool cpnd_first_time;
+	bool read_lck_flag;
 
 	uint32_t cpnd_active_id;
 	uint32_t cpnd_standby_id;
@@ -302,7 +302,7 @@ typedef struct cpnd_cb_tag {
 
 	NCS_LOCK cpnd_sync_send_lock;	/* Lock to protect access to the CPND deadlock prevention structures */
 	NCS_QUEUE cpnd_sync_send_list;	/* List of sync sends coming in from other CONDs */
-	NCS_BOOL cpnd_sync_send_in_progress;	/* Flag indicates whether sync send to another COND is in progress */
+	bool cpnd_sync_send_in_progress;	/* Flag indicates whether sync send to another COND is in progress */
 	MDS_DEST target_cpnd_dest;	/* MDS_DEST of the target CPND to which the sync send is in progress */
 
 	NCS_LOCK cpnd_cpd_up_lock;
@@ -313,7 +313,7 @@ typedef struct cpnd_cb_tag {
 
 /* CB prototypes */
 CPND_CB *cpnd_cb_create(uint32_t pool_id);
-NCS_BOOL cpnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool cpnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 uint32_t cpnd_cb_destroy(CPND_CB *cpnd_cb);
 void cpnd_dump_cb(CPND_CB *cpnd_cb);
 
@@ -338,8 +338,8 @@ uint32_t client_bitmap_reset(uint32_t *bitmap_value, uint32_t client_hdl);
 uint32_t client_bitmap_isset(uint32_t bitmap_value);
 int32_t cpnd_find_ckpt_exists(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 
-NCS_BOOL cpnd_match_evt(void *key, void *qelem);
-NCS_BOOL cpnd_match_dest(void *key, void *qelem);
+bool cpnd_match_evt(void *key, void *qelem);
+bool cpnd_match_dest(void *key, void *qelem);
 void cpnd_restart_reset_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
 					SaUint32T numberOfMembers, SaAisErrorT error);

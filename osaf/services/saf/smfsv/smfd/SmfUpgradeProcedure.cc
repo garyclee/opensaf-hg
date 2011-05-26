@@ -1203,7 +1203,7 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 										if (getUpgradeMethod()->getStepRestartOption() == 0) { //saSmfStepRestartOption is set to false, use SU level
 											std::string parentDn = (*objit).substr((*objit).find(',') + 1, std::string::npos);
 											TRACE("Component %s is hosted on node within the targetNodeTemplate", (*objit).c_str());
-											TRACE("The stepRestartOption was set to FALSE(0), use parent %s, as act/deactComponent", parentDn.c_str());
+											TRACE("The stepRestartOption was set to false(0), use parent %s, as act/deactComponent", parentDn.c_str());
 											o_actDeactUnits.push_back(parentDn);
 											removeDuplicates = true;  //Duplicates must be removed from list when the loop is finished
 										} else { // saSmfStepRestartOption is set to true
@@ -1222,7 +1222,7 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                         } else { //Scope (of nodes) unknown, add the hosting node to the output node list
 								if (getUpgradeMethod()->getStepRestartOption() == 0) { //saSmfStepRestartOption is set to false, use SU level
 									std::string parentDn = (*objit).substr((*objit).find(',') + 1, std::string::npos);
-									TRACE("The stepRestartOption was set to FALSE(0), use parent %s, as act/deactComponent", parentDn.c_str());
+									TRACE("The stepRestartOption was set to false(0), use parent %s, as act/deactComponent", parentDn.c_str());
 									o_actDeactUnits.push_back(parentDn);
 									removeDuplicates = true;  //Duplicates must be removed from list when the loop is finished
 								} else { // saSmfStepRestartOption is set to true
@@ -2853,7 +2853,7 @@ SmfUpgradeProcedure::getActDeactUnitsAndNodes(const std::string &i_dn, std::stri
 		io_node = getNodeForCompSu(i_dn);
 		if (getUpgradeMethod()->getStepRestartOption() == 0) { //saSmfStepRestartOption is set to false, use SU level
 			io_unit = i_dn.substr(i_dn.find(',') + 1, std::string::npos);
-			TRACE("The stepRestartOption was set to FALSE(0), use parent %s, as act/deactComponent", io_unit.c_str());
+			TRACE("The stepRestartOption was set to false(0), use parent %s, as act/deactComponent", io_unit.c_str());
 		} else { // saSmfStepRestartOption is set to true
 			//Check if component is restartable
 			if (isCompRestartable(i_dn) == false) {

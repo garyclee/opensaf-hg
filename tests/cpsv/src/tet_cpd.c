@@ -63,7 +63,7 @@ void tet_create_cpd()
             ncs_mem_whatsout_dump();
             break;
          case 'i':
-            ncs_mem_ignore(TRUE);
+            ncs_mem_ignore(true);
             break;
 
          default:

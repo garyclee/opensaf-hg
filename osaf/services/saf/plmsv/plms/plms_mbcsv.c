@@ -169,7 +169,7 @@ SaUint32T plms_mbcsv_open()
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	arg.info.obj_set.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
 	arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
-	arg.info.obj_set.i_val = FALSE;
+	arg.info.obj_set.i_val = false;
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -1336,8 +1336,8 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 		}
                 cb->prev_trk_step_rec = NULL;
 		cb->prev_ent_grp_hdl = 0;
-		cb->entity_grp_cold_sync_done = FALSE;
-		cb->client_info_cold_sync_done = FALSE;
+		cb->entity_grp_cold_sync_done = false;
+		cb->client_info_cold_sync_done = false;
         }
 	TRACE_LEAVE2("Encoded %d entity grp records :",num_rec);
 	return NCSCC_RC_SUCCESS;
@@ -1474,7 +1474,7 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 						NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 			}
 		} else {
-			cb->client_info_cold_sync_done = TRUE;
+			cb->client_info_cold_sync_done = true;
 		}
                 cb->prev_trk_step_rec = NULL;
 		cb->prev_ent_grp_hdl = 0;
@@ -1676,7 +1676,7 @@ SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg)
 	TRACE("COLD SYNC ENCODE START........\n");
 	
 	/* Encode client info list */
-	if (cb->client_info_cold_sync_done == FALSE)
+	if (cb->client_info_cold_sync_done == false)
 	{
 		rc = plms_edu_enc_client_info_data(arg);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -1684,7 +1684,7 @@ SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg)
 			return NCSCC_RC_FAILURE;
 		}
 	}
-	else if (cb->entity_grp_cold_sync_done == FALSE)
+	else if (cb->entity_grp_cold_sync_done == false)
 	{
 		/* Encode entity Group info list */
 		rc = plms_edu_enc_entity_grp_info_data(arg);
@@ -1695,7 +1695,7 @@ SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg)
 	} /* End of if entity_grp_cold_sync_done  */
 #if 0
 	/* Encode track_step_info data */
-	else if (cb->trk_step_info_cold_sync_done == FALSE)
+	else if (cb->trk_step_info_cold_sync_done == false)
 	{
 		rc = plms_edu_enc_trk_step_info_data(arg);
 		if (rc != NCSCC_RC_SUCCESS) {

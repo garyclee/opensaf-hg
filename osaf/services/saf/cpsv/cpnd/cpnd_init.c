@@ -45,7 +45,7 @@ static uint32_t cpnd_cb_db_init(CPND_CB *cb);
 
 static uint32_t cpnd_cb_db_destroy(CPND_CB *cb);
 
-static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 void cpnd_main_process(CPND_CB *cb);
 
@@ -449,11 +449,11 @@ static uint32_t cpnd_cb_db_destroy(CPND_CB *cb)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	CPSV_EVT *pEvt = (CPSV_EVT *)msg;
 	CPSV_EVT *pnext;
@@ -464,7 +464,7 @@ static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		pEvt = pnext;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

@@ -207,7 +207,7 @@ struct ncs_sar_ctrl_info_tag;
     - ncsfloat  (C/NCS-type. float.)
     - octet     (C/NCS-type, uint8_t *)
  */
-#define m_MMGR_ALLOC_EDP_NCS_BOOL   m_NCS_MEM_ALLOC(sizeof(NCS_BOOL),\
+#define m_MMGR_ALLOC_EDP_bool   m_NCS_MEM_ALLOC(sizeof(bool),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #define m_MMGR_ALLOC_EDP_CHAR(n)  m_NCS_MEM_ALLOC(n * sizeof(char),\

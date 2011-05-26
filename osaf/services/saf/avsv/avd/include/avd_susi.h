@@ -61,7 +61,7 @@ typedef struct avd_su_si_rel_tag {
 	struct avd_comp_csi_rel_tag *list_of_csicomp;	/* The List of component CSI assignments that
 							 * belong to this SU SI relationship */
 	AVD_SU_SI_STATE fsm;	/* The SU SI FSM state */
-	NCS_BOOL is_per_si;	/* indicates if the susi rel is added as per 
+	bool is_per_si;	/* indicates if the susi rel is added as per 
 				   the su rank in the per si list */
 	struct avd_su_si_rel_tag *su_next;	/* The next element in the list w.r.t to SU */
 	struct avd_su_si_rel_tag *si_next;	/* The next element in the list w.r.t to SI */
@@ -101,13 +101,13 @@ typedef struct avd_sus_per_si_rank_tag {
 {\
    AVD_SU_SI_REL *i_susi;\
    i_susi = (l_su)->list_of_susi;\
-   flag = TRUE;\
-   while ((i_susi != AVD_SU_SI_REL_NULL) && (flag == TRUE))\
+   flag = true;\
+   while ((i_susi != AVD_SU_SI_REL_NULL) && (flag == true))\
    {\
       if ((i_susi->fsm != AVD_SU_SI_STATE_UNASGN) &&\
          (i_susi->state != SA_AMF_HA_QUIESCED))\
       {\
-         flag = FALSE;\
+         flag = false;\
          continue;\
       }\
       i_susi = i_susi->su_next;\
@@ -118,12 +118,12 @@ typedef struct avd_sus_per_si_rank_tag {
 {\
    AVD_SU_SI_REL *i_susi;\
    i_susi = (l_su)->list_of_susi;\
-   flag = TRUE;\
-   while ((i_susi != AVD_SU_SI_REL_NULL) && (flag == TRUE))\
+   flag = true;\
+   while ((i_susi != AVD_SU_SI_REL_NULL) && (flag == true))\
    {\
       if (i_susi->fsm != AVD_SU_SI_STATE_ASGND)\
       {\
-         flag = FALSE;\
+         flag = false;\
          continue;\
       }\
       i_susi = i_susi->su_next;\
@@ -133,16 +133,16 @@ typedef struct avd_sus_per_si_rank_tag {
 #define m_AVD_SU_SI_TRG_DEL(cb,susi) \
 {\
    m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, susi, AVSV_CKPT_AVD_SI_ASS);\
-   avd_susi_delete(cb,susi,FALSE);\
+   avd_susi_delete(cb,susi,false);\
 }
 
-AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, NCS_BOOL ckpt);
+AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, bool ckpt);
 AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaNameT *si_name);
 extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
 AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name);
-uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt);
+uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt);
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su);
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);

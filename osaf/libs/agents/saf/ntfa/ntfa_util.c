@@ -94,11 +94,11 @@ static void ntfa_destroy(void)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	ntfsv_msg_t *cbk, *pnext;
 
@@ -108,7 +108,7 @@ static NCS_BOOL ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		ntfa_msg_destroy(cbk);
 		cbk = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

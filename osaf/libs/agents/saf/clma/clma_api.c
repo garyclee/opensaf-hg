@@ -265,7 +265,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_
 
 		if (!buf) {
 			TRACE("Tracking requested for buffer NULL");
-			i_msg.info.api_info.param.track_start.sync_resp = FALSE;
+			i_msg.info.api_info.param.track_start.sync_resp = false;
 
 			if (!hdl_rec->cbk_param.reg_cbk.saClmClusterTrackCallback) {
 				rc = SA_AIS_ERR_INIT;
@@ -292,7 +292,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_
 		 * nodes that are currently members in the cluster 
 		 */
 		TRACE("Tracking requested for buffer != NULL");
-		i_msg.info.api_info.param.track_start.sync_resp = TRUE;
+		i_msg.info.api_info.param.track_start.sync_resp = true;
 		mds_rc = clma_mds_msg_sync_send(&clma_cb, &i_msg, &o_msg, CLMS_WAIT_TIME);
 		switch (mds_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -327,7 +327,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_
 		}
 
 	} else {
-		i_msg.info.api_info.param.track_start.sync_resp = FALSE;
+		i_msg.info.api_info.param.track_start.sync_resp = false;
 
 		if (!hdl_rec->cbk_param.reg_cbk.saClmClusterTrackCallback) {
 			rc = SA_AIS_ERR_INIT;
@@ -366,7 +366,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hd
 	if (flags & SA_TRACK_CURRENT) {
 
 		if (!buf_4) {
-			i_msg.info.api_info.param.track_start.sync_resp = FALSE;
+			i_msg.info.api_info.param.track_start.sync_resp = false;
 
 			if (!hdl_rec->cbk_param.reg_cbk_4.saClmClusterTrackCallback) {
 				rc = SA_AIS_ERR_INIT;
@@ -392,7 +392,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hd
 		/* Do a sync mds send and get information about all
 		 * nodes that are currently members in the cluster 
 		 */
-		i_msg.info.api_info.param.track_start.sync_resp = TRUE;
+		i_msg.info.api_info.param.track_start.sync_resp = true;
 		mds_rc = clma_mds_msg_sync_send(&clma_cb, &i_msg, &o_msg, CLMS_WAIT_TIME);
 		switch (mds_rc) {
 		case NCSCC_RC_SUCCESS:
@@ -427,7 +427,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hd
 		}
 
 	} else {
-		i_msg.info.api_info.param.track_start.sync_resp = FALSE;
+		i_msg.info.api_info.param.track_start.sync_resp = false;
 
 		if (!hdl_rec->cbk_param.reg_cbk_4.saClmClusterTrackCallback) {
 			rc = SA_AIS_ERR_INIT;
@@ -700,7 +700,7 @@ SaAisErrorT saClmSelectionObjectGet(SaClmHandleT clmHandle, SaSelectionObjectT *
 		goto done;
 	}
 
-	if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+	if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
 		TRACE("Node is unconfigured");
 		rc = SA_AIS_ERR_UNAVAILABLE;
 		goto done_give_hdl;
@@ -757,7 +757,7 @@ SaAisErrorT saClmDispatch(SaClmHandleT clmHandle, SaDispatchFlagsT dispatchFlags
 		goto done;
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 
@@ -991,7 +991,7 @@ static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
 			goto done_give_hdl;
 	}
 
-	if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+	if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
 		TRACE("Node is unconfigured");
 		rc = SA_AIS_ERR_UNAVAILABLE;
 		goto done_give_hdl; 
@@ -1058,7 +1058,7 @@ SaAisErrorT saClmClusterTrackStop(SaClmHandleT clmHandle)
 		goto done_give_hdl;
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 
@@ -1276,13 +1276,13 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		}
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 
         }
 
-	if((hdl_rec->is_member == FALSE) && (!clma_validate_version(hdl_rec->version))) { 
+	if((hdl_rec->is_member == false) && (!clma_validate_version(hdl_rec->version))) { 
 		TRACE("Node is not a member");
 		rc = SA_AIS_ERR_UNAVAILABLE;
 		goto done_give_hdl;
@@ -1392,13 +1392,13 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
 		}
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 
         }
 
-        if((hdl_rec->is_member == FALSE) && (!clma_validate_version(hdl_rec->version))) {     
+        if((hdl_rec->is_member == false) && (!clma_validate_version(hdl_rec->version))) {     
                 TRACE("Node is not a member");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl;
@@ -1477,7 +1477,7 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 		goto done_give_hdl;
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 
@@ -1545,7 +1545,7 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 		goto done;
 	}
 
-        if((hdl_rec->is_configured == FALSE) && (!clma_validate_version(hdl_rec->version))) {
+        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
                 TRACE("Node is unconfigured");
                 rc = SA_AIS_ERR_UNAVAILABLE;
                 goto done_give_hdl; 

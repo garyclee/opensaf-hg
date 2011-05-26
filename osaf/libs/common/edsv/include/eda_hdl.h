@@ -52,7 +52,7 @@ uint32_t eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **, EDA_EVENT_HDL_REC *);
 
 int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const SaNameT *channelName);
 
-NCS_BOOL eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec);
+bool eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec);
 
 EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *, uint32_t sub_id);
 

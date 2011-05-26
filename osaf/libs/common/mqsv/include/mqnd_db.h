@@ -173,29 +173,29 @@ typedef struct mqnd_cb {
 	MDS_DEST my_dest;	/* MDS Destination ID of self */
 
 	MDS_DEST mqd_dest;	/* MDS Destination ID of MQD */
-	NCS_BOOL is_mqd_up;	/* TRUE/FALSE) */
+	bool is_mqd_up;	/* true/false) */
 
 	NCS_LOCK cb_lock;
 
 	EDU_HDL edu_hdl;	/* Handle used in EDU operations */
 
 	NCS_PATRICIA_TREE qhndl_db;	/* Stores MQND_QUEUE_NODE */
-	NCS_BOOL is_qhdl_db_up;	/* TRUE/FALSE */
-	NCS_BOOL is_qevt_hdl_db_up;	/* TRUE/FALSE */
+	bool is_qhdl_db_up;	/* true/false */
+	bool is_qevt_hdl_db_up;	/* true/false */
 
 	NCS_PATRICIA_TREE qname_db;	/* Stores Mapping between name and handle */
 	NCS_PATRICIA_TREE q_transfer_evt_db;	/* Stores Mapping between qtransfer_req_evt and queue_name */
-	NCS_BOOL is_qname_db_up;	/* TRUE/FALSE */
+	bool is_qname_db_up;	/* true/false */
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	SaNameT comp_name;
 	NCS_DB_LINK_LIST mqa_list_info;	/* List of MQAs which are up */
 	MQA_RSP_CNTXT *mqa_dfrd_evt_rsp_list_head;	/* List of Deferred Event responses to mqa */
-	NCS_BOOL is_restart_done;
+	bool is_restart_done;
 	MDS_DEST up_mqa_dest;
 	MQND_TMR mqa_timer;
-	NCS_BOOL is_mqa_all_up;
-	NCS_BOOL is_create_ckpt;
+	bool is_mqa_all_up;
+	bool is_create_ckpt;
 	uint32_t mqa_counter;
 	MQND_SHM_INFO mqnd_shm;
 	SaClmHandleT clm_hdl;

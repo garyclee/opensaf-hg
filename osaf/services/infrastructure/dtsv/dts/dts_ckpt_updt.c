@@ -432,8 +432,8 @@ uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 					node_reg_ptr->svc_policy.file_log_fmt = NODE_FILE_LOG_FMT;
 					node_reg_ptr->svc_policy.cir_buff_size = NODE_CIR_BUFF_SIZE;
 					node_reg_ptr->svc_policy.buff_log_fmt = NODE_BUFF_LOG_FMT;
-					node_reg_ptr->device.new_file = TRUE;
-					node_reg_ptr->device.file_open = FALSE;
+					node_reg_ptr->device.new_file = true;
+					node_reg_ptr->device.file_open = false;
 					node_reg_ptr->device.last_rec_id = 0;
 				}
 
@@ -544,8 +544,8 @@ uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 						while ((svc_ptr != NULL) && (svc_ptr->my_key.node == key.node)) {
 							switch (cb->cli_bit_map) {
 							case osafDtsvNodeMessageLogging_ID:
-								if (svcreg->per_node_logging == FALSE)
-									svc_ptr->device.new_file = TRUE;
+								if (svcreg->per_node_logging == false)
+									svc_ptr->device.new_file = true;
 								break;
 
 							case osafDtsvNodeCategoryBitMap_ID:
@@ -672,7 +672,7 @@ uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 						dta_entry = dta_entry->next_in_svc_entry;
 
 						/*Check if the MDS_DEST for the dta to be removed matches */
-						if (dts_find_reg(vkey, to_reg) == TRUE) {
+						if (dts_find_reg(vkey, to_reg) == true) {
 							if ((svc_ptr =
 							     (DTS_SVC_REG_TBL *)dts_del_svc_frm_dta(to_reg,
 												    svc_ptr)) == NULL) {
@@ -732,7 +732,7 @@ uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 
 							/*Since the dta is found and deleted exit the while loop */
 							break;
-						}	/*end of if(dts_find_reg() == TRUE) */
+						}	/*end of if(dts_find_reg() == true) */
 					}	/*end of while */
 				}	/*end of else (cb->svc_rmv_mds_dest == 0) */
 
@@ -743,7 +743,7 @@ uint32_t dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg,
 				 * In that case all services which have dta_count = 0 will be 
 				 * cleaned at the end of completion of DTA list data-sync.
 				 */
-				if ((cb->in_sync == FALSE) && (cb->cold_sync_done < DTSV_CKPT_DTA_DEST_LIST_CONFIG)) {
+				if ((cb->in_sync == false) && (cb->cold_sync_done < DTSV_CKPT_DTA_DEST_LIST_CONFIG)) {
 					/* Whatever is needed has been done so return success */
 					m_DTS_UNLK(&cb->lock);
 					m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
@@ -906,8 +906,8 @@ uint32_t dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS
 			cb->g_policy.g_policy.buff_log_fmt = gp->g_policy.buff_log_fmt;
 			cb->g_policy.g_enable_seq = gp->g_enable_seq;
 			cb->g_policy.g_num_log_files = gp->g_num_log_files;
-			cb->g_policy.device.new_file = TRUE;
-			cb->g_policy.device.file_open = FALSE;
+			cb->g_policy.device.new_file = true;
+			cb->g_policy.device.file_open = false;
 			cb->g_policy.device.last_rec_id = gp->device.last_rec_id;
 
 			/* Check for cb->cli_bit_map, if it is set to non-zero,
@@ -915,7 +915,7 @@ uint32_t dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS
 			if (cb->cli_bit_map != 0) {
 				switch (cb->cli_bit_map) {
 				case osafDtsvGlobalMessageLogging_ID:
-					cb->g_policy.device.new_file = TRUE;
+					cb->g_policy.device.new_file = true;
 					/*dts_circular_buffer_clear(&cb->g_policy.device.cir_buffer); */
 				case osafDtsvGlobalCategoryBitMap_ID:
 				case osafDtsvGlobalLoggingState_ID:
@@ -991,7 +991,7 @@ static uint32_t dts_stby_global_filtering_policy_change(DTS_CB *cb)
 		if (cb->cli_bit_map == osafDtsvGlobalSeverityBitMap_ID)
 			service->svc_policy.severity_bit_map = cb->g_policy.g_policy.severity_bit_map;
 		if (cb->cli_bit_map == osafDtsvGlobalMessageLogging_ID) {
-			service->device.new_file = TRUE;
+			service->device.new_file = true;
 		}
 		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 	}			/* end of while */

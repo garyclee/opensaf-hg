@@ -152,7 +152,7 @@ SaUint32T hrb_mds_register()
 	mds_info.i_op 	   = MDS_INSTALL;
 	mds_info.info.svc_install.i_install_scope =  NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_svc_cb = hrb_mds_callback;
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	mds_info.info.svc_install.i_mds_q_ownership = false;
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = PLMS_MDS_SUB_PART_VERSION;
 
 	if ( NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info)))
@@ -337,14 +337,14 @@ SaUint32T hrb_mds_svc_evt (struct ncsmds_callback_info *mds_cb_info)
 	{
 		case NCSMDS_DOWN:
 			LOG_ER("HRB:MDS down received from PLMS ");
-			cb->plms_up = FALSE;
+			cb->plms_up = false;
 			memset(&cb->plms_mdest, 0, sizeof(MDS_DEST));
 			break;
 			
 		case NCSMDS_UP:
 			LOG_ER("HRB:MDS up received from PLMS ");
 			cb->plms_mdest = mds_cb_info->info.svc_evt.i_dest;
-			cb->plms_up = TRUE;
+			cb->plms_up = true;
 			break;
 		default:
 			break;

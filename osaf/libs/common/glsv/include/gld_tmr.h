@@ -52,7 +52,7 @@ typedef struct gld_tmr {
 	GLD_TMR_TYPE type;	/* timer type */
 	uint32_t cb_hdl;		/* cb hdl to retrieve the GLD cb ptr */
 	uint32_t opq_hdl;		/* hdl to retrive the timer context */
-	NCS_BOOL is_active;
+	bool is_active;
 	MDS_DEST mdest_id;
 	SaLckResourceIdT resource_id;
 } GLD_TMR;

@@ -131,20 +131,20 @@ uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_ERR_INFO err;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -162,7 +162,7 @@ uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp)))
 		amf_rc = SA_AIS_ERR_INVALID_PARAM;
 
-	if (comp && (TRUE == comp->su->su_is_external) && ((TRUE == msg_from_avnd))) {
+	if (comp && (true == comp->su->su_is_external) && ((true == msg_from_avnd))) {
 		/* This request has come from other AvND and it is for external component.
 		   Recommended recovery SA_AMF_NODE_SWITCHOVER, 
 		   SA_AMF_NODE_FAILOVER, SA_AMF_NODE_FAILFAST or SA_AMF_CLUSTER_RESET
@@ -223,20 +223,20 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_CERR_INFO *err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -311,7 +311,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	if ((cb->node_err_esc_level == AVND_ERR_ESC_LEVEL_3) &&
 	    (comp->su->is_ncs == SA_FALSE) && (esc_rcvr != SA_AMF_NODE_FAILFAST) &&
 					(AVND_ERR_SRC_AVA_DN != err_info->src)) {
-		/* For external component, comp->su->is_ncs is FALSE, so no need to
+		/* For external component, comp->su->is_ncs is false, so no need to
 		   put a check here for external component explicitely. */
 		goto done;
 	} else if ((cb->node_err_esc_level == AVND_ERR_ESC_LEVEL_3) && (esc_rcvr != SA_AMF_NODE_FAILFAST)) {
@@ -342,7 +342,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	LOG_NO("'%s' faulted due to '%s' : Recovery is '%s'",
 		comp->name.value, g_comp_err[err_info->src], g_comp_rcvr[esc_rcvr - 1]);
 
-	if (((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
+	if (((comp->su->is_ncs == true) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
 		LOG_ER("%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 		/* do the local node reboot for node_failfast or ncs component failure*/
@@ -849,7 +849,7 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 uint32_t avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_COMP *comp = 0;
-	NCS_BOOL is_en;
+	bool is_en;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
@@ -885,7 +885,7 @@ uint32_t avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	/* if a mix pi su has all the comps enabled, inform AvD */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		m_AVND_SU_IS_ENABLED(su, is_en);
-		if (TRUE == is_en) {
+		if (true == is_en) {
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			rc = avnd_di_oper_send(cb, su, 0);
@@ -1005,7 +1005,7 @@ uint32_t avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 			goto done;
 		}
 
-		if ((cb->su_failover_max != 0) || (TRUE == su->su_is_external)) {
+		if ((cb->su_failover_max != 0) || (true == su->su_is_external)) {
 			/* External component should not contribute to NODE FAILOVER of cluster
 			   component. Maximum it can go to SU FAILOVER. */
 			*esc_level = AVND_ERR_ESC_LEVEL_2;
@@ -1048,7 +1048,7 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	if (su->pres == SA_AMF_PRESENCE_INSTANTIATING || su->pres == SA_AMF_PRESENCE_RESTARTING
 	    || m_AVND_SU_IS_ASSIGN_PEND(su)) {
 		/* go to the next possible level, get escalted recovery and modify count */
-		if ((cb->su_failover_max != 0) || (TRUE == su->su_is_external)) {
+		if ((cb->su_failover_max != 0) || (true == su->su_is_external)) {
 			/* External component should not contribute to NODE FAILOVER of cluster
 			   component. Maximum it can go to SU FAILOVER. */
 			*esc_level = AVND_ERR_ESC_LEVEL_2;
@@ -1088,7 +1088,7 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 		su->su_restart_cnt = 0;
 
 		/* go to the next possible level, get escalted recovery and modify count */
-		if ((cb->su_failover_max != 0) || (TRUE == su->su_is_external)) {
+		if ((cb->su_failover_max != 0) || (true == su->su_is_external)) {
 			/* External component should not contribute to NODE FAILOVER of cluster
 			   component. Maximum it can go to SU FAILOVER. */
 			*esc_level = AVND_ERR_ESC_LEVEL_2;
@@ -1132,7 +1132,7 @@ uint32_t avnd_err_restart_esc_level_2(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	/* External components are not supposed to escalate SU Failover of
 	   cluster components. For Ext component, SU Failover will be limited to
 	   them only. */
-	if (TRUE == su->su_is_external) {
+	if (true == su->su_is_external) {
 		/* Once it had been escalted to AVND_ERR_ESC_LEVEL_2, then reset to 
 		   AVND_ERR_ESC_LEVEL_0  */
 		if (AVND_ERR_ESC_LEVEL_2 == su->su_err_esc_level)
@@ -1191,7 +1191,7 @@ AVSV_ERR_RCVR avnd_err_esc_su_failover(AVND_CB *cb, AVND_SU *su, AVSV_ERR_RCVR *
 	/* initalize */
 	*esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
 
-	if (TRUE == su->su_is_external) {
+	if (true == su->su_is_external) {
 		/* External component should not contribute to NODE FAILOVER of cluster
 		   component. Maximum it can go to SU FAILOVER. */
 		return rc;

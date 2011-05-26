@@ -138,7 +138,7 @@ uint32_t dts_amf_finalize(DTS_CB *dts_cb_inst)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_finalize: Component Finalized failed!!");
 	}
 
-	dts_cb_inst->amf_init = FALSE;
+	dts_cb_inst->amf_init = false;
 	m_LOG_DTS_API(DTS_AMF_FINALIZE);
 
 	return NCSCC_RC_SUCCESS;
@@ -226,7 +226,7 @@ uint32_t dts_amf_register(DTS_CB *inst)
 
 	m_LOG_DTS_API(DTS_AMF_INIT_SUCCESS);
 
-	inst->amf_init = TRUE;
+	inst->amf_init = true;
 
 	m_DTS_UNLK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
@@ -283,13 +283,13 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
 	SaAmfHAStateT prev_haState = dts_cb_inst->ha_state;
 
 	if (((SA_AMF_CSI_ADD_ONE == csiDescriptor.csiFlags) &&
-	     (dts_cb_inst->csi_set == TRUE)) ||
-	    (((SA_AMF_CSI_ADD_ONE != csiDescriptor.csiFlags) && (dts_cb_inst->csi_set == FALSE)))) {
+	     (dts_cb_inst->csi_set == true)) ||
+	    (((SA_AMF_CSI_ADD_ONE != csiDescriptor.csiFlags) && (dts_cb_inst->csi_set == false)))) {
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: ERROR in operation!!");
 		return;
 	} else {
-		if (FALSE == dts_cb_inst->csi_set) {
-			dts_cb_inst->csi_set = TRUE;
+		if (false == dts_cb_inst->csi_set) {
+			dts_cb_inst->csi_set = true;
 		}
 
 		/* Store CSI set cb invocation hdl to dts_cb for use of giving 
@@ -369,7 +369,7 @@ dts_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, S
 	DTS_CB *dts_cb_inst = &dts_cb;
 	SaAisErrorT error = SA_AIS_OK;
 
-	if (dts_cb_inst->created == FALSE) {
+	if (dts_cb_inst->created == false) {
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_health_chk_callback: DTS does not exist");
 		return;
 	} else {
@@ -418,11 +418,11 @@ static void dts_saf_CSI_rem_callback(SaInvocationT invocation,
 	DTS_CB *dts_cb_inst = &dts_cb;
 	SaAisErrorT error = SA_AIS_OK;
 
-	if (dts_cb_inst->created == FALSE) {
+	if (dts_cb_inst->created == false) {
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_rem_callback : DTS does not exist");
 		return;
 	} else {
-		dts_cb_inst->csi_set = FALSE;
+		dts_cb_inst->csi_set = false;
 		saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
 
 		m_LOG_DTS_API(DTS_CSI_RMV_CB_RESP);
@@ -480,7 +480,7 @@ static uint32_t dts_healthcheck_start(DTS_CB *cb)
 {
 	SaAisErrorT saf_status = SA_AIS_OK;
 
-	if (cb->healthCheckStarted == TRUE) {
+	if (cb->healthCheckStarted == true) {
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -493,7 +493,7 @@ static uint32_t dts_healthcheck_start(DTS_CB *cb)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_healthcheck_start: Failed to start health check.");
 	}
 
-	cb->healthCheckStarted = TRUE;
+	cb->healthCheckStarted = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -523,6 +523,6 @@ void dts_amf_sigusr1_handler(int i_sig_num)
 	   return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_sigusr1_handler: AMF Initialization failed.");
 	   }
 
-	   inst->amf_init = TRUE; */
+	   inst->amf_init = true; */
 
 }

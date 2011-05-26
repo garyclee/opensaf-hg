@@ -51,7 +51,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info);
 
 static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info);
 
-static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 void cpd_main_process(CPD_CB *cb);
 
@@ -224,7 +224,7 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 		goto amf_init_err;
 	}
 
-	cb->cold_or_warm_sync_on = TRUE;
+	cb->cold_or_warm_sync_on = true;
 
 	/* register with the AMF service */
 	if (cpd_amf_register(cb) != NCSCC_RC_SUCCESS) {
@@ -390,11 +390,11 @@ static uint32_t cpd_lib_destroy(CPD_DESTROY_INFO *info)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	CPSV_EVT *pEvt = (CPSV_EVT *)msg;
 	CPSV_EVT *pnext = NULL;
@@ -405,7 +405,7 @@ static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		pEvt = pnext;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

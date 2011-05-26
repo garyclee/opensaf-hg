@@ -137,11 +137,11 @@ typedef struct clms_cb_t {
 	SaNameT comp_name;	/* My AMF name */
 	SaAmfHandleT amf_hdl;	/* Handle obtained from AMF */
 	SaInvocationT amf_inv;	/* AMF Invocation Id */
-	NCS_BOOL is_quiesced_set;	/* */
+	bool is_quiesced_set;	/* */
 	SaSelectionObjectT amf_sel_obj;	/* AMF provided selection object */
 	NCS_SEL_OBJ sighdlr_sel_obj;	/* Selection object to handle SIGUSR1 */
 	SaAmfHAStateT ha_state;	/* My current AMF HA state */
-	NCS_BOOL csi_assigned;
+	bool csi_assigned;
 	NCS_MBCSV_HDL mbcsv_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;	/* MBCSv Selection Object to maintain a HotStandBy CLMS */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;

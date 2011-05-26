@@ -337,7 +337,7 @@ jboolean JNU_TrackFlagsForChanges_OK(
 
 
 
-    _TRACE2( "NATIVE: JNU_TrackFlagsForChanges_OK(...) returning TRUE\n" );
+    _TRACE2( "NATIVE: JNU_TrackFlagsForChanges_OK(...) returning true\n" );
 
     return JNI_TRUE;
 }

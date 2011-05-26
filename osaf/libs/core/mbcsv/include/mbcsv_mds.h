@@ -83,7 +83,7 @@ uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			     SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver);
 uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			     SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-			     NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
+			     bool last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
 			     MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver);
 uint32_t mbcsv_encode_version(NCS_UBAID *uba, uint16_t version);
 uint32_t mbcsv_decode_version(NCS_UBAID *uba, uint16_t *version);

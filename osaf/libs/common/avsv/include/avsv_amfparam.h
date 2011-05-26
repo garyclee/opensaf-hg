@@ -192,7 +192,7 @@ typedef struct avsv_amf_pg_start_param_tag {
 	SaAmfHandleT hdl;	/* AMF handle */
 	SaNameT csi_name;	/* csi name */
 	SaUint8T flags;		/* track flags */
-	NCS_BOOL is_syn;	/* indicates if the appln synchronously
+	bool is_syn;	/* indicates if the appln synchronously
 				   waits for the pg members (extra param) */
 } AVSV_AMF_PG_START_PARAM;
 

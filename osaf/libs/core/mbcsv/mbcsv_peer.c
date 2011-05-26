@@ -126,11 +126,11 @@ PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 
 	m_INIT_NCS_MBCSV_TMR(new_peer, NCS_MBCSV_TMR_TRANSMIT, NCS_MBCSV_TMR_TRANSMIT_PERIOD);
 
-	new_peer->warm_sync_sent = FALSE;
-	new_peer->cold_sync_done = FALSE;
-	new_peer->data_resp_process = FALSE;
-	new_peer->c_syn_resp_process = FALSE;
-	new_peer->w_syn_resp_process = FALSE;
+	new_peer->warm_sync_sent = false;
+	new_peer->cold_sync_done = false;
+	new_peer->data_resp_process = false;
+	new_peer->c_syn_resp_process = false;
+	new_peer->w_syn_resp_process = false;
 
 	return new_peer;
 }
@@ -157,17 +157,17 @@ uint32_t mbcsv_shutdown_peer(PEER_INST *peer_ptr)
 	 * with this peer then give error indication callback to clear contxt.
 	 */
 	if (SA_AMF_HA_ACTIVE == peer_ptr->my_ckpt_inst->my_role) {
-		if (TRUE == peer_ptr->data_resp_process) {
+		if (true == peer_ptr->data_resp_process) {
 			m_MBCSV_INDICATE_ERROR(peer_ptr, peer_ptr->my_ckpt_inst->client_hdl,
-					       NCS_MBCSV_DATA_RESP_TERMINATED, FALSE,
+					       NCS_MBCSV_DATA_RESP_TERMINATED, false,
 					       peer_ptr->version, peer_ptr->req_context, rc);
-		} else if (TRUE == peer_ptr->c_syn_resp_process) {
+		} else if (true == peer_ptr->c_syn_resp_process) {
 			m_MBCSV_INDICATE_ERROR(peer_ptr, peer_ptr->my_ckpt_inst->client_hdl,
-					       NCS_MBCSV_COLD_SYNC_RESP_TERMINATED, FALSE,
+					       NCS_MBCSV_COLD_SYNC_RESP_TERMINATED, false,
 					       peer_ptr->version, peer_ptr->req_context, rc);
-		} else if (TRUE == peer_ptr->w_syn_resp_process) {
+		} else if (true == peer_ptr->w_syn_resp_process) {
 			m_MBCSV_INDICATE_ERROR(peer_ptr, peer_ptr->my_ckpt_inst->client_hdl,
-					       NCS_MBCSV_WARM_SYNC_RESP_TERMINATED, FALSE,
+					       NCS_MBCSV_WARM_SYNC_RESP_TERMINATED, false,
 					       peer_ptr->version, peer_ptr->req_context, rc);
 		}
 	}
@@ -267,7 +267,7 @@ uint32_t mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg
 		case MBCSV_PEER_UP_MSG:
 			m_LOG_MBCSV_PEER_EVT(ckpt->my_role, ckpt->my_mbcsv_inst->svc_id,
 					     ckpt->pwe_hdl, msg->rcvr_peer_key.peer_anchor, MBCSV_PEER_EV_PEER_UP);
-			mbcsv_process_peer_up_info(msg, ckpt, TRUE);
+			mbcsv_process_peer_up_info(msg, ckpt, true);
 			break;
 
 		case MBCSV_PEER_DOWN_MSG:
@@ -279,7 +279,7 @@ uint32_t mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg
 		case MBCSV_PEER_INFO_MSG:
 			m_LOG_MBCSV_PEER_EVT(ckpt->my_role, ckpt->my_mbcsv_inst->svc_id,
 					     ckpt->pwe_hdl, msg->rcvr_peer_key.peer_anchor, MBCSV_PEER_EV_PEER_INFO);
-			mbcsv_process_peer_up_info(msg, ckpt, FALSE);
+			mbcsv_process_peer_up_info(msg, ckpt, false);
 			break;
 
 		case MBCSV_PEER_INFO_RSP_MSG:
@@ -425,7 +425,7 @@ void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer)
 		/* Send Warm sync req and set FSM state to wait to warm sync */
 		m_MBCSV_SEND_CLIENT_MSG(new_act_peer, NCSMBCSV_SEND_WARM_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
-		new_act_peer->warm_sync_sent = TRUE;
+		new_act_peer->warm_sync_sent = true;
 
 		/* When we get a warm sync response - this timer will be cancelled */
 		ncs_mbcsv_start_timer(new_act_peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
@@ -458,12 +458,12 @@ void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer)
 *
 *  INPUT              ckpt - Checkpoint instance.
 *                     peer - Peer Instance.
-*                     peer_up - TRUE implies  PEER_UP processing 
-*                             - FALSE implies PEER_INFO processing
+*                     peer_up - true implies  PEER_UP processing 
+*                             - false implies PEER_INFO processing
 *  RETURNS:           NONE
 *
 \*****************************************************************************/
-void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up)
+void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, bool peer_up)
 {
 	PEER_INST *peer_ptr = NULL;
 
@@ -596,8 +596,8 @@ void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up)
 *
 *  INPUT              msg  - MBCSv peer message.
 *                     ckpt - Checkpoint Instance.
-*                     peer_up - TRUE implies  PEER_UP processing 
-*                             - FALSE implies PEER_INFO processing
+*                     peer_up - true implies  PEER_UP processing 
+*                             - false implies PEER_INFO processing
 *
 *  RETURNS:           SUCCESS - All went well
 *                     FAILURE - fail to process PEER_UP.
@@ -612,7 +612,7 @@ uint32_t mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t pee
 	 * to process this mesage. Also check that my role is set. If no then drop 
 	 * this request and wait for client to set my role.
 	 */
-	if ((ckpt->my_anchor == msg->rcvr_peer_key.peer_anchor) || (ckpt->role_set == FALSE))
+	if ((ckpt->my_anchor == msg->rcvr_peer_key.peer_anchor) || (ckpt->role_set == false))
 		return NCSCC_RC_SUCCESS;
 
 	if (NULL != (peer = mbcsv_search_and_return_peer(ckpt->peer_list, msg->rcvr_peer_key.peer_anchor))) {
@@ -649,7 +649,7 @@ uint32_t mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t pee
 
 	if (peer_up) {
 		/* Set initial state of this new peer */
-		mbcsv_set_peer_state(ckpt, peer, TRUE);
+		mbcsv_set_peer_state(ckpt, peer, true);
 
 		mbcsv_send_peer_disc_msg(MBCSV_PEER_INFO_MSG, ckpt->my_mbcsv_inst, ckpt,
 					 peer, MDS_SENDTYPE_RED, msg->rcvr_peer_key.peer_anchor);
@@ -681,7 +681,7 @@ void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer)
 	mbcsv_send_peer_disc_msg(MBCSV_PEER_INFO_RSP_MSG, ckpt->my_mbcsv_inst, ckpt,
 				 peer, MDS_SENDTYPE_RED, msg->rcvr_peer_key.peer_anchor);
 
-	mbcsv_set_peer_state(ckpt, peer, FALSE);
+	mbcsv_set_peer_state(ckpt, peer, false);
 }
 
 /*****************************************************************************\
@@ -704,7 +704,7 @@ void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer)
 uint32_t mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
 	PEER_INST *peer, *peer_ptr;
-	NCS_BOOL act_peer = FALSE;
+	bool act_peer = false;
 	SaAmfHAStateT role;
 
 	if (NULL == (peer = mbcsv_search_and_return_peer(ckpt->peer_list, msg->rcvr_peer_key.peer_anchor))) {
@@ -712,7 +712,7 @@ uint32_t mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt)
 	}
 
 	if ((NULL != ckpt->active_peer) && (peer->peer_anchor == ckpt->active_peer->peer_anchor))
-		act_peer = TRUE;
+		act_peer = true;
 
 	role = peer->peer_role;
 
@@ -785,7 +785,7 @@ uint32_t mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt)
 	peer->incompatible = msg->info.peer_msg.info.peer_disc.info.peer_info_rsp.compatible;
 	peer->peer_role = msg->info.peer_msg.info.peer_disc.peer_role;
 
-	mbcsv_set_peer_state(ckpt, peer, FALSE);
+	mbcsv_set_peer_state(ckpt, peer, false);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -819,7 +819,7 @@ uint32_t mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt)
 
 	peer->peer_role = msg->info.peer_msg.info.peer_disc.peer_role;
 
-	mbcsv_set_peer_state(ckpt, peer, FALSE);
+	mbcsv_set_peer_state(ckpt, peer, false);
 
 	return NCSCC_RC_SUCCESS;
 }

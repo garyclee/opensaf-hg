@@ -98,7 +98,7 @@ uint32_t mbcstm_config()
 #endif
       mbcstm_cb.svces[svc_count].version = 1;
       mbcstm_cb.svces[svc_count].disp_flags =  SA_DISPATCH_BLOCKING;
-      mbcstm_cb.svces[svc_count].task_flag = TRUE;
+      mbcstm_cb.svces[svc_count].task_flag = true;
       /* DISPATCH_ONE, DISPATCH_ALL, DISPATCH_BLOCKING */
       vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
       for(ssn_index = 1; ssn_index < MBCSTM_SSN_MAX; ssn_index++)
@@ -114,7 +114,7 @@ uint32_t mbcstm_config()
         mbcstm_cb.svces[svc_count].ssns[ssn_count].csi_role = SA_AMF_HA_STANDBY;
         /* SA_AMF_HA_ACTIVE, SA_AMF_HA_STANDBY, SA_AMF_HA_QUIESCED, SA_AMF_HA_STOPPING */
         mbcstm_cb.svces[svc_count].ssns[ssn_count].ssn_index = ssn_count;
-        mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_flag = TRUE; 
+        mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_flag = true; 
         mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_timer =  MBCSTM_TIMER_SEND_WARM_SYNC_PERIOD*100;
         
         switch(mbcstm_cb.sys)
@@ -182,7 +182,7 @@ uint32_t tet_mbcsv_config()
 #endif
       mbcstm_cb.svces[svc_count].version = 1;
       mbcstm_cb.svces[svc_count].disp_flags =  SA_DISPATCH_BLOCKING;
-      mbcstm_cb.svces[svc_count].task_flag = TRUE;
+      mbcstm_cb.svces[svc_count].task_flag = true;
       /* DISPATCH_ONE, DISPATCH_ALL, DISPATCH_BLOCKING */
       vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
       for(ssn_index = 1; ssn_index <=1; ssn_index++)
@@ -198,7 +198,7 @@ uint32_t tet_mbcsv_config()
         mbcstm_cb.svces[svc_count].ssns[ssn_count].csi_role = SA_AMF_HA_STANDBY;
         /* SA_AMF_HA_ACTIVE, SA_AMF_HA_STANDBY, SA_AMF_HA_QUIESCED, SA_AMF_HA_STOPPING */
         mbcstm_cb.svces[svc_count].ssns[ssn_count].ssn_index = ssn_count;
-        mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_flag = TRUE; 
+        mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_flag = true; 
         mbcstm_cb.svces[svc_count].ssns[ssn_count].ws_timer =  MBCSTM_TIMER_SEND_WARM_SYNC_PERIOD*100;
         
         switch(mbcstm_cb.sys)

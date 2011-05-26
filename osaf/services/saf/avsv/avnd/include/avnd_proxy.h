@@ -49,13 +49,13 @@ uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb);
 uint32_t avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb);
 uint32_t avnd_internode_avail_comp_db_destroy(AVND_CB *cb);
 uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
-			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, NCS_BOOL *int_ext_comp);
+			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, bool *int_ext_comp);
 uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE type, MDS_SYNC_SND_CTXT *ctxt, NODE_ID node_id);
 uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uint32_t *opq_hdl, NODE_ID *node_id);
 MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id);
 uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt);
-AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name, NODE_ID node_id, uint32_t *rc, NCS_BOOL,
-				   NCS_BOOL);
+AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name, NODE_ID node_id, uint32_t *rc, bool,
+				   bool);
 uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name_net);
 uint32_t avnd_evt_mds_avnd_up_evh(AVND_CB *cb, AVND_EVT *evt);
 uint32_t avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt);

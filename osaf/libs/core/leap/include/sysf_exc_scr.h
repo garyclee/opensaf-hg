@@ -80,7 +80,7 @@ typedef struct sysf_execute_module_cb {
 	NCS_PATRICIA_TREE pid_list;
 	int read_fd;
 	int write_fd;
-	NCS_BOOL init;
+	bool init;
 } SYSF_EXECUTE_MODULE_CB;
 
 #define m_MMGR_ALLOC_PRO_EXC      (SYSF_PID_LIST*) m_NCS_MEM_ALLOC(sizeof(SYSF_PID_LIST),\

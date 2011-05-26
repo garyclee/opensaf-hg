@@ -420,9 +420,9 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 {
 	TRACE_ENTER();
 
-	if (lgs_cb->is_quiesced_set == TRUE) {
+	if (lgs_cb->is_quiesced_set == true) {
 		/* Update control block */
-		lgs_cb->is_quiesced_set = FALSE;
+		lgs_cb->is_quiesced_set = false;
 		lgs_cb->ha_state = SA_AMF_HA_QUIESCED;
 
 		/* Inform MBCSV of HA state change */
@@ -539,7 +539,7 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 
 	/* Assign Initial HA state */
 	lgs_cb->ha_state = LGS_HA_INIT_STATE;
-	lgs_cb->csi_assigned = FALSE;
+	lgs_cb->csi_assigned = false;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
 	lgs_cb->log_version.releaseCode = LOG_RELEASE_CODE;
@@ -862,7 +862,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_stream_open_req_t *open_sync_param = &(evt->info.msg.info.api_info.param.lstr_open_sync);
 	log_stream_t *logStream;
 	char name[SA_MAX_NAME_LENGTH + 1];
-	NCS_BOOL app_stream_created = FALSE;
+	bool app_stream_created = false;
 
 	/* Create null-terminated stream name */
 	memcpy(name, open_sync_param->lstr_name.value, open_sync_param->lstr_name.length);
@@ -902,7 +902,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ais_rv = create_new_app_stream(open_sync_param, &logStream);
 		if (ais_rv != SA_AIS_OK)
 			goto snd_rsp;
-		app_stream_created = TRUE;
+		app_stream_created = true;
 	}
 
 	ais_rv = log_stream_open(logStream);

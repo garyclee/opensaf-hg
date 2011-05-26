@@ -108,7 +108,7 @@ uint32_t mqa_mds_register(MQA_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->agent_handle_id;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = mqa_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;	/* MQA owns the mds queue */
+	svc_info.info.svc_install.i_mds_q_ownership = false;	/* MQA owns the mds queue */
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = MQA_PVT_SUBPART_VERSION;	/* Private Subpart Version of MQA */
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
@@ -352,7 +352,7 @@ static uint32_t mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_MQND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -508,11 +508,11 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 				     m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest), __FILE__, __LINE__);
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(cb->mqa_mds_dest) ==
 			    m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_dest)) {
-				cb->is_mqnd_up = FALSE;
+				cb->is_mqnd_up = false;
 			}
 			break;
 		case NCSMDS_SVC_ID_MQD:
-			cb->is_mqd_up = FALSE;
+			cb->is_mqd_up = false;
 			m_LOG_MQSV_A(MQA_MQD_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, 0, __FILE__, __LINE__);
 			break;
 
@@ -542,9 +542,9 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 				m_NCS_LOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 
 				cb->mqnd_mds_dest = svc_evt->i_dest;
-				cb->is_mqnd_up = TRUE;
+				cb->is_mqnd_up = true;
 
-				if (cb->mqnd_sync_awaited == TRUE) {
+				if (cb->mqnd_sync_awaited == true) {
 					m_NCS_SEL_OBJ_IND(cb->mqnd_sync_sel);
 				}
 
@@ -570,9 +570,9 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 					     NCSFL_SEV_ERROR, to_dest_slotid, __FILE__, __LINE__);
 
 			cb->mqd_mds_dest = svc_evt->i_dest;
-			cb->is_mqd_up = TRUE;
+			cb->is_mqd_up = true;
 
-			if (cb->mqd_sync_awaited == TRUE) {
+			if (cb->mqd_sync_awaited == true) {
 				m_NCS_SEL_OBJ_IND(cb->mqd_sync_sel);
 			}
 			m_LOG_MQSV_A(MQA_MQD_UP, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, 0, __FILE__, __LINE__);
@@ -688,7 +688,7 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 	uint32_t rc;
 	MQA_CB *mqa_cb;
 	MQSV_DSEND_EVT *pEvt = NULL;
-	NCS_BOOL endianness = machineEndianness(), is_valid_msg_fmt = FALSE;
+	bool endianness = machineEndianness(), is_valid_msg_fmt = false;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;

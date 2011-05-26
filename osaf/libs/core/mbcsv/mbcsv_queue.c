@@ -71,7 +71,7 @@ uint32_t mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
  
   Notes         : None
 ******************************************************************************/
-NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+bool mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	MBCSV_EVT *node = (MBCSV_EVT *)msg;
 
@@ -79,7 +79,7 @@ NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 	if (NULL != node) {
 		m_MMGR_FREE_MBCSV_EVT(node);
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

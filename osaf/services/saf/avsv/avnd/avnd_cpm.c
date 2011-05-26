@@ -173,7 +173,7 @@ void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* No passive monitoring for external component. */
-	if (TRUE == comp->su->su_is_external)
+	if (true == comp->su->su_is_external)
 		return;
 
 	/* scan & delete each pm_rec record */
@@ -363,7 +363,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
   Notes         : This routine does not check the hdl with PM Start hdl.
                   If the handle differ, the modify routine will throw error.
 ******************************************************************************/
-NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec)
+bool avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec)
 {
 
 	if (pm_start->desc_tree_depth != rec->desc_tree_depth)
@@ -399,20 +399,20 @@ uint32_t avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP *comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -459,20 +459,20 @@ uint32_t avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_PM_REC *rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -532,7 +532,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 				return;
 			}
 
-			if (TRUE == (*o_comp)->su->su_is_external) {
+			if (true == (*o_comp)->su->su_is_external) {
 				/* This is the case when pm start request has come to controller
 				   for external component. We don't support pm start for external
 				   component. */
@@ -562,7 +562,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 				return;
 			}
 
-			if (TRUE == (*o_comp)->su->su_is_external) {
+			if (true == (*o_comp)->su->su_is_external) {
 				/* This is the case when pm stop request has come to controller
 				   for external component. We don't support pm stop for external
 				   component. */
@@ -616,7 +616,7 @@ void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* No passive monitoring for external component. */
-	if (TRUE == comp->su->su_is_external)
+	if (true == comp->su->su_is_external)
 		return;
 
 	while (0 != (rec = (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list))) {

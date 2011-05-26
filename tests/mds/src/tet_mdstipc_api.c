@@ -65,7 +65,7 @@ void tet_vdest_install_thread()
   printf(" Inside Thread");
   if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                           NCSMDS_SVC_ID_EXTERNAL_MIN,1,
-                          NCSMDS_SCOPE_NONE,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                          NCSMDS_SCOPE_NONE,true,false)!=NCSCC_RC_SUCCESS)
     {
       perror("Install Failed");
     }
@@ -85,14 +85,14 @@ void  tet_svc_install_tp(int choice)
     case 1:
       tet_printf("Case 1 : \tInstalling the service 500");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,500,1,
-                              NCSMDS_SCOPE_NONE,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
         }  
       tet_printf("\tNot able to Install an ALREADY installed service 500");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,500,1,
-                              NCSMDS_SCOPE_NONE,TRUE,FALSE)==NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,true,false)==NCSCC_RC_SUCCESS)
         { 
           tet_printf("Fail");
           FAIL=1;
@@ -112,7 +112,7 @@ void  tet_svc_install_tp(int choice)
 NODE scope without MDS Q ownership and failing to Retrieve");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN,1,
-                              NCSMDS_SCOPE_INTRANODE,FALSE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,false,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("INstall Fail");
           FAIL=1; 
@@ -139,7 +139,7 @@ NODE scope without MDS Q ownership and failing to Retrieve");
 CHASSIS scope");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN,1,
-                              NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -159,7 +159,7 @@ CHASSIS scope");
 CHASSIS scope");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,NCSMDS_MAX_SVCS,1,
                               NCSMDS_SCOPE_INTRACHASSIS,
-                              TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -179,7 +179,7 @@ CHASSIS scope");
  32767 with CHASSIS scope");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,NCSMDS_MAX_SVCS+1,1,
                               NCSMDS_SCOPE_INTRACHASSIS,
-                              TRUE,FALSE)==NCSCC_RC_SUCCESS)
+                              true,false)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -190,7 +190,7 @@ CHASSIS scope");
     case 7:
       tet_printf("Case 7 : \t Not able to Install the service with id =0 ");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,0,1,NCSMDS_SCOPE_NONE,
-                              FALSE,FALSE)==NCSCC_RC_SUCCESS)
+                              false,false)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -201,7 +201,7 @@ CHASSIS scope");
     case 8:
       tet_printf("Case 8 : \tNot able to Install the service with Invalid PWE \
  Handle");
-      if( mds_service_install((MDS_HDL)(long)NULL,100,1,NCSMDS_SCOPE_NONE,FALSE,FALSE)==
+      if( mds_service_install((MDS_HDL)(long)NULL,100,1,NCSMDS_SCOPE_NONE,false,false)==
           NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -209,7 +209,7 @@ CHASSIS scope");
         }  
       else
         tet_printf("Success");  
-      if( mds_service_install(0,100,1,NCSMDS_SCOPE_NONE,FALSE,FALSE)==
+      if( mds_service_install(0,100,1,NCSMDS_SCOPE_NONE,false,false)==
           NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -218,7 +218,7 @@ CHASSIS scope");
       else
         tet_printf("Success");  
       if( mds_service_install(gl_tet_vdest[0].mds_vdest_hdl,100,1,
-                              NCSMDS_SCOPE_NONE,FALSE,FALSE)== NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,false,false)== NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -231,7 +231,7 @@ CHASSIS scope");
 External  MIN 2000 which doesn't chose MDS Q Ownership");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN+1,1,
-                              NCSMDS_SCOPE_INTRANODE,FALSE,FALSE)==NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,false,false)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -281,14 +281,14 @@ a seperate thread and Uninstalling it here");
 sub-part versions on the same pwe handle, must fail");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,2,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!= NCSCC_RC_FAILURE)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!= NCSCC_RC_FAILURE)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -309,14 +309,14 @@ sub-part versions on the same pwe handle, must fail");
 sub-part versions on the same pwe handle, must fail");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!= NCSCC_RC_FAILURE)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!= NCSCC_RC_FAILURE)
         {
           tet_printf("Fail1");
           FAIL=1;
@@ -342,7 +342,7 @@ sub-part versions on the same pwe handle, must fail");
         }
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,0,
-                              NCSMDS_SCOPE_NONE,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -356,7 +356,7 @@ sub-part versions on the same pwe handle, must fail");
 
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,255,
-                              NCSMDS_SCOPE_INTRACHASSIS,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRACHASSIS,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -369,7 +369,7 @@ sub-part versions on the same pwe handle, must fail");
         }
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,125,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -394,7 +394,7 @@ sub-part versions on the same pwe handle, must fail");
         }
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_NONE,TRUE,FAIL)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,true,FAIL)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -407,7 +407,7 @@ sub-part versions on the same pwe handle, must fail");
         }
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRACHASSIS,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRACHASSIS,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -427,14 +427,14 @@ sub-part versions on the same pwe handle, must fail");
                       i_fail_no_active_sends again on the same pwe handle, must fail");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,TRUE)!= NCSCC_RC_FAILURE)
+                              NCSMDS_SCOPE_INTRANODE,true,true)!= NCSCC_RC_FAILURE)
         {
           tet_printf("Fail1");
           FAIL=1;
@@ -455,14 +455,14 @@ sub-part versions on the same pwe handle, must fail");
  different i_fail_no_active_sends again on the same pwe handle, must fail");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FAIL)!= NCSCC_RC_FAILURE)
+                              NCSMDS_SCOPE_INTRANODE,true,FAIL)!= NCSCC_RC_FAILURE)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -484,7 +484,7 @@ i_yr_svc_hdl = (2^32) and i_yr_svc_hdl = (2^64 -1)");
       gl_tet_svc.yr_svc_hdl = 4294967296ULL; 
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,TRUE)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,true)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -492,7 +492,7 @@ i_yr_svc_hdl = (2^32) and i_yr_svc_hdl = (2^64 -1)");
       gl_tet_svc.yr_svc_hdl = 18446744073709551615ULL;
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_INTERNAL_MIN ,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FAIL)!= NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,FAIL)!= NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -547,7 +547,7 @@ void tet_svc_install_upto_MAX()
         (!FAIL);id++)
     {
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,id,1,
-                              NCSMDS_SCOPE_NONE,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_NONE,true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -610,7 +610,7 @@ void tet_svc_unstall_tp(int choice)
     case 1:
       tet_printf("Case 1 :\n\tInstalling the service 500");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,500,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!=NCSCC_RC_SUCCESS)
         { 
           tet_printf("Fail");
           FAIL=1;
@@ -656,7 +656,7 @@ void tet_svc_unstall_tp(int choice)
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN,1,
                               NCSMDS_SCOPE_INTRACHASSIS,
-                              TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              true,false)!=NCSCC_RC_SUCCESS)
         {    tet_printf("Fail");FAIL=1;  }
       
       tet_printf("\tNot able to Uninstall the above Service with NULL PWE \
@@ -697,7 +697,7 @@ void tet_svc_unstall_tp(int choice)
     case 5:
       tet_printf("Case 5 :\n\tInstalling the service 500");
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,500,1,
-                              NCSMDS_SCOPE_INTRANODE,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRANODE,true,false)!=NCSCC_RC_SUCCESS)
         { 
           tet_printf("Fail");
           FAIL=1;
@@ -817,7 +817,7 @@ void tet_svc_subscr_VDEST(int choice)
   for(id=500;id<=700;id=id+100)
     {  
       if( mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,id,1,
-                              NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -1012,19 +1012,19 @@ event callback, matches the service private sub-part version of the remote servi
       gl_tet_adest.svc_count=0; /*fix for blocking regression*/
       tet_printf("\tInstalling the services");
       if(mds_service_install(gl_tet_adest.mds_pwe1_hdl,500,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,600,1,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,700,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1141,19 +1141,19 @@ event callback, matches the service private sub-part version of the remote servi
       gl_tet_adest.svc_count=0; /*fix for blocking regression*/
       tet_printf("\tInstalling the services");
       if(mds_service_install(gl_tet_adest.mds_pwe1_hdl,500,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,600,1,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,700,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1201,13 +1201,13 @@ event callback, matches the service private sub-part version of the remote servi
             }
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,600,3,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,700,4,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1275,19 +1275,19 @@ event callback, matches the service private sub-part version of the remote servi
 
       tet_printf("\tInstalling the services");
       if(mds_service_install(gl_tet_adest.mds_pwe1_hdl,500,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,600,1,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
         }
       if(mds_service_install(gl_tet_vdest[1].mds_pwe1_hdl,600,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail");
           FAIL=1;
@@ -1451,7 +1451,7 @@ void tet_svc_subscr_ADEST(int choice)
   for(id=500;id<=700;id=id+100)
     {  
       if( mds_service_install(gl_tet_adest.mds_pwe1_hdl,id,1,
-                              NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                              NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -1754,7 +1754,7 @@ void tet_svc_subscr_ADEST(int choice)
       mds_service_uninstall(gl_tet_adest.mds_pwe1_hdl,700);
       tet_printf("\tInstalling serive 700");
       if(mds_service_install(gl_tet_adest.mds_pwe1_hdl,700,2,
-                             NCSMDS_SCOPE_INTRACHASSIS,TRUE,FALSE)!=NCSCC_RC_SUCCESS)
+                             NCSMDS_SCOPE_INTRACHASSIS,true,false)!=NCSCC_RC_SUCCESS)
         {
           tet_printf("Fail ");
           FAIL=1;
@@ -1845,7 +1845,7 @@ subscribe for 600, 700");
     tet_result(TET_PASS);
   printf("\n*************************************************************\n");
 }
-uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
+uint32_t tet_initialise_setup(bool fail_no_active_sends)
 {
   int i,FAIL=0;
   gl_vdest_indx=0;
@@ -1882,7 +1882,7 @@ uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
   for(i=NCSMDS_SVC_ID_INTERNAL_MIN;i<=NCSMDS_SVC_ID_EXTERNAL_MIN;
       i=i+(NCSMDS_SVC_ID_EXTERNAL_MIN-NCSMDS_SVC_ID_INTERNAL_MIN))
     if(mds_service_install(gl_tet_adest.mds_pwe1_hdl,i,3,NCSMDS_SCOPE_NONE,
-                           TRUE,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
+                           true,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
       {
         tet_printf("Fail");
         FAIL=1;
@@ -1893,7 +1893,7 @@ uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
   for(i=NCSMDS_SVC_ID_INTERNAL_MIN;i<=NCSMDS_SVC_ID_EXTERNAL_MIN;
       i=i+(NCSMDS_SVC_ID_EXTERNAL_MIN-NCSMDS_SVC_ID_INTERNAL_MIN))
     if(mds_service_install(gl_tet_adest.pwe[0].mds_pwe_hdl,i,3,NCSMDS_SCOPE_NONE,
-                           TRUE,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
+                           true,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
       {    
         tet_printf("Fail");
         FAIL=1; 
@@ -1901,7 +1901,7 @@ uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
   
   if(mds_service_install(gl_tet_vdest[0].mds_pwe1_hdl,
                          NCSMDS_SVC_ID_EXTERNAL_MIN,2,NCSMDS_SCOPE_NONE,
-                         TRUE,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
+                         true,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -1909,14 +1909,14 @@ uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends)
   
   if(mds_service_install(gl_tet_vdest[1].mds_pwe1_hdl,
                          NCSMDS_SVC_ID_INTERNAL_MIN,1,NCSMDS_SCOPE_NONE,
-                         TRUE,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
+                         true,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
     }
   if(mds_service_install(gl_tet_vdest[1].mds_pwe1_hdl,
                          NCSMDS_SVC_ID_EXTERNAL_MIN,1,NCSMDS_SCOPE_NONE,
-                         TRUE,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
+                         true,fail_no_active_sends)!=NCSCC_RC_SUCCESS)
     {    
       tet_printf("Fail");
       FAIL=1; 
@@ -2026,7 +2026,7 @@ void tet_just_send_tp(int choice)
   printf("\n\n************* tet_just_send_tp_ADEST %d ************\n",choice);
   tet_printf("\t\t\t tet_just_send_tp");
   /*start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -2401,7 +2401,7 @@ void tet_send_ack_tp(int choice)
   printf("\n\n************** tet_send_ack_tp_ADEST %d *************\n",choice);
   tet_printf("\t\t\t tet_send_ack_tp");
   /*start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -2747,7 +2747,7 @@ void tet_query_pwe_tp(int choice)
   printf("\n\n************************* tet_query_pwe_tp ****************\n");
   tet_printf("\t\t\ttet_query_pwe_tp : %d",choice);
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -2966,7 +2966,7 @@ void tet_send_response_tp(int choice)
   printf("\n\n*********** tet_send_response_tp %d ****************\n",choice);
   tet_printf("\t\t\ttet_send_response_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -3950,11 +3950,11 @@ void tet_send_all_tp(int choice)
   switch(choice)
     {
     case 1:
-      tet_printf("\tCase 1 :Sender service installed with i_fail_no_active_sends = TRUE \
+      tet_printf("\tCase 1 :Sender service installed with i_fail_no_active_sends = true \
                                             and there is no-active instance of the receiver service");
 
       tet_printf("\tSetting up the setup");
-      if(tet_initialise_setup(TRUE))
+      if(tet_initialise_setup(true))
         {
           tet_printf("\n\t\t Setup Initialisation has Failed \n");
       
@@ -4127,10 +4127,10 @@ void tet_send_all_tp(int choice)
       break;
 
     case 2:
-      tet_printf("\tCase 2 :Sender service installed with i_fail_no_active_sends = FALSE \
+      tet_printf("\tCase 2 :Sender service installed with i_fail_no_active_sends = false \
                                             and there is no-active instance of the receiver service");
 
-      if(tet_initialise_setup(FALSE))
+      if(tet_initialise_setup(false))
         {
           tet_printf("\n\t\t Setup Initialisation has Failed \n");
           FAIL=1;
@@ -4372,7 +4372,7 @@ void tet_send_response_ack_tp(int choice)
   printf("\n\n************** tet_send_response_ack_tp %d ********\n",choice);
   tet_printf("\t\t\ttet_send_response_ack_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -4889,7 +4889,7 @@ void tet_broadcast_to_svc_tp(int choice)
   printf("\n\n************ tet_broadcast_to_svc_tp %d ************\n",choice);
   tet_printf("\t\t\ttet_broadcast_to_svc_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -5149,7 +5149,7 @@ void tet_direct_just_send_tp(int choice)
   printf("\n\n********** tet_direct_just_send_tp %d ***********\n",choice);
   tet_printf("\t\t\t tet_direct_just_send_tp");
   /*start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     { 
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -5590,7 +5590,7 @@ void tet_direct_send_all_tp(int choice)
   printf("\n\n********** tet_direct_send_all_tp %d ***********\n",choice);
   tet_printf("\t\t\t tet_direct_send_all_tp");
   /*start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     { 
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -5961,7 +5961,7 @@ void tet_direct_send_all_tp(int choice)
 
         case 5:
           gl_set_msg_fmt_ver=1;
-          tet_printf("\tCase 5 : Direct send when Sender service installed with i_fail_no_active_sends = FALSE \
+          tet_printf("\tCase 5 : Direct send when Sender service installed with i_fail_no_active_sends = false \
                           and there is no-active instance of the receiver service");
           if(vdest_change_role(200,V_DEST_RL_STANDBY)!=NCSCC_RC_SUCCESS)
             {
@@ -6182,7 +6182,7 @@ void tet_direct_send_all_tp(int choice)
         case 6:
           gl_set_msg_fmt_ver=1;
           tet_printf("\tCase 6 : Direct send when Sender service installed with \
-                                            i_fail_no_active_sends = TRUE and there is no-active instance of the receiver service");
+                                            i_fail_no_active_sends = true and there is no-active instance of the receiver service");
           if(mds_service_cancel_subscription(gl_tet_adest.mds_pwe1_hdl,
                                              NCSMDS_SVC_ID_EXTERNAL_MIN,1,
                                              svcids)!=NCSCC_RC_SUCCESS)
@@ -6196,7 +6196,7 @@ void tet_direct_send_all_tp(int choice)
               printf("\n\t\t Setup Clean Up has Failed \n");
               FAIL=1;
             }
-          if(tet_initialise_setup(TRUE))
+          if(tet_initialise_setup(true))
             { 
               tet_printf("\n\t\t Setup Initialisation has Failed \n");
               FAIL=1;
@@ -6403,7 +6403,7 @@ void tet_direct_send_ack_tp(int choice)
   printf("\n\n*********** tet_direct_send_ack_tp %d *************\n",choice);
   tet_printf("\t\t\t tet_direct_send_ack_tp");
   /*start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     { 
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -7061,7 +7061,7 @@ void tet_direct_send_response_tp(int choice)
   printf("\n\n*********** tet_direct_send_response_tp %d *********\n",choice);
   tet_printf("\t\t\ttet_direct_send_response_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     { 
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -7313,7 +7313,7 @@ void tet_direct_send_response_ack_tp(int choice)
   printf("\n\n*********** tet_direct_send_response_ack_tp %d ******\n",choice);
   tet_printf("\t\t\ttet_direct_send_response_ack_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     {
       tet_printf("\n\t\t Setup Initialisation has Failed \n");
       FAIL=1;
@@ -7571,7 +7571,7 @@ void tet_direct_broadcast_to_svc_tp(int choice)
   printf("\n\n******* tet_direct_broadcast_to_svc_tp %d **********\n",choice);
   tet_printf("\t\t\ttet_direct_broadcast_to_svc_tp");
   /*Start up*/
-  if(tet_initialise_setup(FALSE))
+  if(tet_initialise_setup(false))
     { printf("\n\t\t Setup Initialisation has Failed \n");}
   else
     {
@@ -8488,7 +8488,7 @@ void tet_create_named_VDEST(int choice)
     {
     case 1:
       tet_printf("Not able to Create a Named VDEST in MxN model with \
- Persistence Flag=TRUE");
+ Persistence Flag= true");
       if(create_named_vdest(TRUE,NCS_VDEST_TYPE_MxN,
                             vname)==NCSCC_RC_SUCCESS)
         {    
@@ -8500,7 +8500,7 @@ void tet_create_named_VDEST(int choice)
       break;    
     case 2:
       tet_printf("Not able to Create a Named VDEST in N-Way model with\
- Persistence Flag=TRUE");
+ Persistence Flag= true");
       if(create_named_vdest(TRUE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)==NCSCC_RC_SUCCESS)
         {    
@@ -8512,8 +8512,8 @@ void tet_create_named_VDEST(int choice)
       break;    
     case 3:
       tet_printf("Able to Create a Named VDEST in MxN model with Persistence\
- Flag=FALSE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
+ Flag=false");
+      if(create_named_vdest(false,NCS_VDEST_TYPE_MxN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8531,7 +8531,7 @@ void tet_create_named_VDEST(int choice)
           FAIL=1; 
         }
       tet_printf("Destroying the above Named VDEST in MxN model");
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8539,8 +8539,8 @@ void tet_create_named_VDEST(int choice)
       break;
     case 4:
       tet_printf("Able to Create a Named VDEST in MxN model with OAC \
- Flag=TRUE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
+ Flag= true");
+      if(create_named_vdest(false,NCS_VDEST_TYPE_MxN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8558,7 +8558,7 @@ void tet_create_named_VDEST(int choice)
           FAIL=1; 
         }
       tet_printf("Destroying the above Named VDEST in MxN model");
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8566,8 +8566,8 @@ void tet_create_named_VDEST(int choice)
       break;    
     case 5:
       tet_printf("Able to Create a Named VDEST in N-Way model with \
-  Persistence Flag=FALSE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
+  Persistence Flag=false");
+      if(create_named_vdest(false,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8585,7 +8585,7 @@ void tet_create_named_VDEST(int choice)
           FAIL=1; 
         }
       tet_printf("Destroying the above Named VDEST in MxN model");
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8593,8 +8593,8 @@ void tet_create_named_VDEST(int choice)
       break;
     case 6:
       tet_printf("Able to Create a Named VDEST in N-Way model with OAC \
- Flag=TRUE");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
+ Flag= true");
+      if(create_named_vdest(false,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8612,7 +8612,7 @@ void tet_create_named_VDEST(int choice)
           FAIL=1; 
         }
       tet_printf("Destroying the above Named VDEST in MxN model");
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8621,7 +8621,7 @@ void tet_create_named_VDEST(int choice)
     case 7:
       tet_printf("Check the vdest_id returned: if we Create a Named VDEST in\
  N-Way model for the second time");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
+      if(create_named_vdest(false,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8629,7 +8629,7 @@ void tet_create_named_VDEST(int choice)
         }
       vdest_id=vdest_lookup(vname);
       tet_printf("First time : Named VDEST= %s : %d Vdest id",vname,vdest_id); 
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
+      if(create_named_vdest(false,NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,
                             vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8644,12 +8644,12 @@ void tet_create_named_VDEST(int choice)
           tet_printf("Not The Same Vdest_id returned");  
           FAIL=1;
         }  
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
         }
-      if(destroy_named_vdest(FALSE,vdest_id,vname)!=NCSCC_RC_SUCCESS)
+      if(destroy_named_vdest(false,vdest_id,vname)!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
           FAIL=1; 
@@ -8667,7 +8667,7 @@ void tet_create_named_VDEST(int choice)
     case 9:
       tet_printf("Not able to Create a Named VDEST in MxN model with NULL\
  name");
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
+      if(create_named_vdest(false,NCS_VDEST_TYPE_MxN,
                             NULL)==NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -8922,7 +8922,7 @@ void tet_VDS(int choice)
   tet_printf("Creating a Named VDEST in MxN model");
   for(j=0;j<5;j++)
     {
-      if(create_named_vdest(FALSE,NCS_VDEST_TYPE_MxN,
+      if(create_named_vdest(false,NCS_VDEST_TYPE_MxN,
                             vname[j])!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");
@@ -9002,7 +9002,7 @@ void tet_VDS(int choice)
   tet_printf("Destroying the above Named VDEST in MxN model");
   for(j=4;j>=0;j--)
     {
-      if(destroy_named_vdest(FALSE,vdest_id[gl_vdest_indx-1],
+      if(destroy_named_vdest(false,vdest_id[gl_vdest_indx-1],
                              vname[j])!=NCSCC_RC_SUCCESS)
         {    
           tet_printf("Fail");

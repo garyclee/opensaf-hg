@@ -53,13 +53,13 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		       uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	NCS_BOOL u32 = 0;
-	NCS_BOOL *uptr = NULL;
+	bool u32 = 0;
+	bool *uptr = NULL;
 
-	/* Note that, NCS_BOOL is defined as "unsigned int" in ncsgl_defs.h. */
+	/* Note that, bool is defined as "unsigned int" in ncsgl_defs.h. */
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
-		u32 = *(NCS_BOOL *)ptr;
+		u32 = *(bool *)ptr;
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 4);
 			ncs_encode_32bit(&p8, u32);
@@ -71,24 +71,24 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		}
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 		memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-		sprintf(gl_log_string, "Encoded NCS_BOOL: 0x%x \n", u32);
+		sprintf(gl_log_string, "Encoded bool: 0x%x \n", u32);
 		ncs_edu_log_msg(gl_log_string);
 #endif
 		break;
 	case EDP_OP_TYPE_DEC:
 		{
-			if (*(NCS_BOOL **)ptr == NULL) {
+			if (*(bool **)ptr == NULL) {
 				/* Since "ncs_edp_ncs_bool" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(NCS_BOOL **)ptr) = uptr = m_MMGR_ALLOC_EDP_NCS_BOOL;
+				(*(bool **)ptr) = uptr = m_MMGR_ALLOC_EDP_bool;
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(NCS_BOOL));
+				memset(uptr, '\0', sizeof(bool));
 			} else {
-				uptr = *((NCS_BOOL **)ptr);
+				uptr = *((bool **)ptr);
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
@@ -102,7 +102,7 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			*uptr = u32;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			sprintf(gl_log_string, "Decoded NCS_BOOL: 0x%x \n", u32);
+			sprintf(gl_log_string, "Decoded bool: 0x%x \n", u32);
 			ncs_edu_log_msg(gl_log_string);
 #endif
 		}
@@ -114,13 +114,13 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				/* We need populate the pointer here, so that it can
 				   be sent back to the parent invoker(most likely
 				   to be able to perform the TEST condition). */
-				uptr = m_MMGR_ALLOC_EDP_NCS_BOOL;
+				uptr = m_MMGR_ALLOC_EDP_bool;
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(NCS_BOOL));
+				memset(uptr, '\0', sizeof(bool));
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
@@ -133,13 +133,13 @@ uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			}
 			if (uptr != NULL) {
 				*uptr = u32;
-				(*(NCS_BOOL **)ptr) = uptr;
+				(*(bool **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				sprintf(gl_log_string, "Populated NCS_BOOL in PPDB: 0x%x \n", u32);
+				sprintf(gl_log_string, "Populated bool in PPDB: 0x%x \n", u32);
 				ncs_edu_log_msg(gl_log_string);
 			}
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-			sprintf(gl_log_string, "PP NCS_BOOL: 0x%x \n", u32);
+			sprintf(gl_log_string, "PP bool: 0x%x \n", u32);
 			ncs_edu_log_msg(gl_log_string);
 		}
 		break;

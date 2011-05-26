@@ -324,7 +324,7 @@ static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 					 * we have received sync commit message. So process all async
 					 * ckpt updates received till now.
 					 */
-					avsv_dequeue_async_update_msgs(cb, TRUE);
+					avsv_dequeue_async_update_msgs(cb, true);
 				}
 			} else {
 				/* Nothing is there to decode in this case */
@@ -425,7 +425,7 @@ static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			/* Decode Warm Sync Response message */
 			status = avsv_decode_warm_sync_rsp(cb, &arg->info.decode);
 
-			/* If we find mismatch in data or warm sync fails set in_sync to FALSE */
+			/* If we find mismatch in data or warm sync fails set in_sync to false */
 			if (NCSCC_RC_FAILURE == status) {
 				LOG_ER("%s: warm sync decode failed %u", __FUNCTION__, status);
 				cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
@@ -1076,8 +1076,8 @@ static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  * Purpose:  De-queue async update messages.
  *
  * Input: cb - AVD CB pointer.
- *        pr_or_fr - TRUE - If we have to process the message.
- *                   FALSE - If we have to FREE the message.
+ *        pr_or_fr - true - If we have to process the message.
+ *                   false - If we have to FREE the message.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -1085,7 +1085,7 @@ static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
  *
  * 
 \**************************************************************************/
-uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
+uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, bool pr_or_fr)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;

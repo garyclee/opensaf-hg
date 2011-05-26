@@ -43,7 +43,7 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	uint8_t i = 0;
 	MQND_QNAME_NODE *pnode = NULL;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
-	NCS_BOOL is_q_reopen = FALSE;
+	bool is_q_reopen = false;
 	SaAisErrorT error;
 
 	qnode = m_MMGR_ALLOC_MQND_QUEUE_NODE;
@@ -209,24 +209,24 @@ uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
  * Arguments     : SaMsgQueueCreationAttributesT *open_ca - Attributes in Open.
  *                 SaMsgQueueCreationAttributesT *open_ca - Existing Attributes.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca, SaMsgQueueCreationAttributesT *curr_ca)
+bool mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca, SaMsgQueueCreationAttributesT *curr_ca)
 {
 	uint32_t i = 0;
 
 	if (open_ca->creationFlags != curr_ca->creationFlags)
-		return FALSE;
+		return false;
 /* With the introduction of API to set the retention time dynamically
    check for retention time nolonger exists */
 	for (i = 0; i < SA_MSG_MESSAGE_LOWEST_PRIORITY; i++) {
 		if (open_ca->size[i] != curr_ca->size[i])
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -237,11 +237,11 @@ NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca, SaMsgQ
  * Arguments     : SaMsgQueueCreationAttributesT *open_ca - Attributes in Open.
  *                 SaMsgQueueCreationAttributesT *open_ca - Existing Attributes.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen)
+uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, bool is_q_reopen)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_OPR_INFO opr;

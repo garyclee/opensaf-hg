@@ -68,8 +68,8 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 	comp->comp_info.category = AVSV_COMP_TYPE_NON_SAF;
 	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
 	comp->comp_info.inst_level = 1;
-	comp->comp_info.comp_restart = TRUE;
-	comp->nodefail_cleanfail = FALSE;
+	comp->comp_info.comp_restart = true;
+	comp->nodefail_cleanfail = false;
 	comp->saAmfCompOperState = SA_AMF_OPERATIONAL_DISABLED;
 	comp->saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 	comp->saAmfCompPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
@@ -193,7 +193,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	AVSV_PARAM_INFO param;
 	AVD_AVND *avnd;
 	uint32_t min_si = 0;
-	NCS_BOOL isPre;
+	bool isPre;
 	AVD_AVND *su_node_ptr = NULL;
 
 	/* check the ack message for errors. If error find the component that
@@ -264,23 +264,23 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 		if ((AVSV_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
 		    (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
 		    (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
-			isPre = FALSE;
+			isPre = false;
 			i_comp = comp->su->list_of_comp;
 			while (i_comp) {
 				if (((AVSV_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
 				     (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
 				     (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category)) &&
 				    (i_comp != comp)) {
-					isPre = TRUE;
+					isPre = true;
 					break;
 				}
 				i_comp = i_comp->su_comp_next;
 			}	/* end while */
 
-			if (isPre == TRUE) {
-				comp->su->saAmfSUPreInstantiable = TRUE;
+			if (isPre == true) {
+				comp->su->saAmfSUPreInstantiable = true;
 			} else {
-				comp->su->saAmfSUPreInstantiable = FALSE;
+				comp->su->saAmfSUPreInstantiable = false;
 			}
 		}
 
@@ -288,7 +288,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 			/* This comp will be deleted so revert these to def val */
 			comp->su->si_max_active = 0;
 			comp->su->si_max_standby = 0;
-			comp->su->saAmfSUPreInstantiable = TRUE;
+			comp->su->saAmfSUPreInstantiable = true;
 		}
 
 		/* Set runtime cached attributes. */
@@ -331,7 +331,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	}
 
 	if (comp->su->curr_num_comp == comp->su->num_of_comp) {
-		if (comp->su->saAmfSUPreInstantiable == TRUE) {
+		if (comp->su->saAmfSUPreInstantiable == true) {
 			avd_sg_app_su_inst_func(cb, comp->su->sg_of_su);
 		} else {
 			comp->saAmfCompOperState = SA_AMF_OPERATIONAL_ENABLED;
@@ -378,7 +378,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	SaNameT dn;
 	AVD_COMP *i_comp = NULL;
 	AVD_AVND *su_node_ptr = NULL;
-	NCS_BOOL isPre;
+	bool isPre;
 
 	TRACE_ENTER2("%s", comp->comp_info.name.value);
 
@@ -401,7 +401,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	 * corresponding node is UP send the component information
 	 * to the Node.
 	 */
-	if (FALSE == comp->su->su_is_external) {
+	if (false == comp->su->su_is_external) {
 		su_node_ptr = comp->su->su_on_node;
 	} else {
 		/* This is an external SU, so there is no node assigned to it.
@@ -423,7 +423,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 			return;
 		}
 		su_node_ptr = avd_cb->ext_comp_info.local_avnd_node;
-	}			/* Else of if(FALSE == comp->su->su_is_external). */
+	}			/* Else of if(false == comp->su->su_is_external). */
 #if 0
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -443,21 +443,21 @@ static void comp_add_to_model(AVD_COMP *comp)
 	if ((comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
 	    (comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
 	    (comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
-		comp->su->saAmfSUPreInstantiable = TRUE;
+		comp->su->saAmfSUPreInstantiable = true;
 	} else {
-		isPre = FALSE;
+		isPre = false;
 		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
 			if ((i_comp->comp_info.category == AVSV_COMP_TYPE_SA_AWARE) ||
 			    (i_comp->comp_info.category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
 			    (i_comp->comp_info.category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
-				isPre = TRUE;
+				isPre = true;
 				break;
 			}
 			i_comp = i_comp->su_comp_next;
 		}
-		if (isPre == FALSE) {
-			comp->su->saAmfSUPreInstantiable = FALSE;
+		if (isPre == false) {
+			comp->su->saAmfSUPreInstantiable = false;
 		}
 		comp->max_num_csi_actv = 1;
 		comp->max_num_csi_stdby = 1;
@@ -618,8 +618,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 	}
 
-	if (TRUE == su->su_is_external) {
-		if ((TRUE == comp->comp_info.am_enable) ||
+	if (true == su->su_is_external) {
+		if ((true == comp->comp_info.am_enable) ||
 		    (0 != comp->comp_info.amstart_len) || (0 != comp->comp_info.amstop_len)) {
 			LOG_ER("External Component: Active monitoring configured");
 			return -1;
@@ -894,7 +894,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	switch (opId) {
 		/* Valid B.04 AMF comp admin operations */
 	case SA_AMF_ADMIN_RESTART:
-		if (comp->comp_info.comp_restart == TRUE) {
+		if (comp->comp_info.comp_restart == true) {
 			LOG_WA("Component Restart disabled '%s'", objectName->value);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 		}
@@ -1060,7 +1060,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				LOG_ER("Modification of saAmfCompAmStartCmdArgv Fail, NULL arg");
 				goto done;
 			}
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompAmStartCmdArgv Fail, Comp su_is_external");
 				goto done;
 			}
@@ -1071,13 +1071,13 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				LOG_ER("Modification of saAmfCompAmStartTimeout Fail, Zero Timeout");
 				goto done;
 			}
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompAmStartTimeout Fail, Comp su_is_external");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
 			uint32_t num_am_start = *((SaUint32T *)value);
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompNumMaxAmStartAttempt Fail, Comp su_is_external");
 				goto done;
 			}
@@ -1087,7 +1087,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			} 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
 			char *param_val = *((char **)value);
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompAmStopCmdArgv Fail, Comp su_is_external");
 				goto done;
 			}
@@ -1097,7 +1097,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
 			SaTimeT timeout;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompAmStopTimeout Fail, Comp su_is_external");
 				goto done;
 			}
@@ -1108,7 +1108,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}		
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {	
 			uint32_t num_am_stop = *((SaUint32T *)value);
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompNumMaxAmStopAttempt Fail, Comp su_is_external");
 				goto done;
 			}
@@ -1185,7 +1185,7 @@ static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 
 	comp = avd_comp_get(&opdata->objectName);
 
-	if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
+	if (comp->su->sg_of_su->sg_ncs_spec == true) {
 		/* Middleware component */
 		if (comp->su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) {
 			LOG_ER("Rejecting deletion of '%s'", opdata->objectName.value);
@@ -1240,7 +1240,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 	AVD_COMP *comp;
-	NCS_BOOL node_present = FALSE;
+	bool node_present = false;
 	AVD_AVND *su_node_ptr = NULL;
 	AVD_COMP_TYPE *comp_type;
 	unsigned int rc = NCSCC_RC_SUCCESS;
@@ -1261,7 +1261,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
-		node_present = TRUE;
+		node_present = true;
 	}
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -1402,7 +1402,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			char *param_val = *((char **)value);
 
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1425,7 +1425,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			SaTimeT timeout;
 			SaTimeT temp_timeout;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1441,7 +1441,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
 
 			uint32_t num_am_start;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1456,7 +1456,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
 
 			char *param_val = *((char **)value);
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1482,7 +1482,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			SaTimeT timeout;
 			SaTimeT temp_timeout;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1498,7 +1498,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {
 
 			uint32_t num_am_stop;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1564,7 +1564,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			assert(0);
 		}
 
-		if (TRUE == node_present)
+		if (true == node_present)
 			avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
@@ -1577,7 +1577,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
 	AVD_COMP *comp = NULL, *i_comp = NULL;
 	uint32_t min_si = 0;
-	NCS_BOOL isPre;
+	bool isPre;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
 	SaBoolT old_val;
@@ -1639,23 +1639,23 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	if ((AVSV_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
 	    (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
 	    (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category)) {
-		isPre = FALSE;
+		isPre = false;
 		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
 			if (((AVSV_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
 			     (AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category) ||
 			     (AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
 			    && (i_comp != comp)) {
-				isPre = TRUE;
+				isPre = true;
 				break;
 			}
 			i_comp = i_comp->su_comp_next;
 		}		/* end while */
 
-		if (isPre == TRUE) {
-			comp->su->saAmfSUPreInstantiable = TRUE;
+		if (isPre == true) {
+			comp->su->saAmfSUPreInstantiable = true;
 		} else {
-			comp->su->saAmfSUPreInstantiable = FALSE;
+			comp->su->saAmfSUPreInstantiable = false;
 		}
 	}
 
@@ -1663,7 +1663,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		/* This comp will be deleted so revert these to def val */
 		comp->su->si_max_active = 0;
 		comp->su->si_max_standby = 0;
-		comp->su->saAmfSUPreInstantiable = TRUE;
+		comp->su->saAmfSUPreInstantiable = true;
 	}
 
 	/* check whether the SU is also undergoing delete operation */

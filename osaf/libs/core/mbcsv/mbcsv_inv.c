@@ -102,7 +102,7 @@ uint32_t mbcsv_prt_inv(void)
 	uint32_t pwe_hdl = 0;
 	uint32_t c_count = 0, p_count = 0;
 
-	if (mbcsv_cb.created == FALSE)
+	if (mbcsv_cb.created == false)
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");
 
 	m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);

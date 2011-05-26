@@ -164,11 +164,11 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	EDSV_EDS_EVT *pEvt = (EDSV_EDS_EVT *)msg;
 	EDSV_EDS_EVT *pnext;
@@ -178,7 +178,7 @@ static NCS_BOOL eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		eds_evt_destroy(pEvt);
 		pEvt = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -218,7 +218,7 @@ static uint32_t eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 		saClmFinalize(eds_cb->clm_hdl);
 
 		/* Clean up all internal structures */
-		eds_remove_reglist_entry(eds_cb, 0, TRUE);
+		eds_remove_reglist_entry(eds_cb, 0, true);
 
 		/* Destroy the cb */
 		eds_cb_destroy(eds_cb);

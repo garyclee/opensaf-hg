@@ -32,7 +32,7 @@ typedef struct mqnd_tmr {
 	tmr_t tmr_id;
 	SaMsgQueueHandleT qhdl;
 	uint32_t uarg;
-	NCS_BOOL is_active;
+	bool is_active;
 } MQND_TMR;
 
 uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);

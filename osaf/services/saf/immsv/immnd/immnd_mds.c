@@ -113,7 +113,7 @@ uint32_t immnd_mds_register(IMMND_CB *cb)
 
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_info.info.svc_install.i_svc_cb = immnd_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = IMMND_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
@@ -338,7 +338,7 @@ static uint32_t immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 	IMMSV_EVT *evt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
 		/*
@@ -475,7 +475,7 @@ static uint32_t immnd_mds_dec_flat(IMMND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *inf
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
 		/*
@@ -603,9 +603,9 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 			} else {
 				LOG_NO("Director Service is down");
 			}
-			if (cb->is_immd_up == TRUE) {
+			if (cb->is_immd_up == true) {
 				/* If IMMD is already UP */
-				cb->is_immd_up = FALSE;
+				cb->is_immd_up = false;
 				m_NCS_UNLOCK(&cb->immnd_immd_up_lock, NCS_LOCK_WRITE);
 				TRACE_LEAVE();
 				return NCSCC_RC_SUCCESS;
@@ -614,12 +614,12 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 
 		case NCSMDS_UP:
 			LOG_NO("Director Service is up");
-			cb->is_immd_up = TRUE;
+			cb->is_immd_up = true;
 			cb->immd_mdest_id = svc_evt->i_dest;
 			break;
 
 		case NCSMDS_NO_ACTIVE:
-			cb->is_immd_up = FALSE;
+			cb->is_immd_up = false;
 			if (cb->fevs_replies_pending) {
 				LOG_WA("Director Service in NOACTIVE state - "
 				       "fevs replies pending:%u fevs highest processed:%llu",
@@ -632,14 +632,14 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 			break;
 
 		case NCSMDS_NEW_ACTIVE:
-			cb->is_immd_up = TRUE;
+			cb->is_immd_up = true;
 			cb->immd_mdest_id = svc_evt->i_dest;
 			LOG_NO("Director Service Is NEWACTIVE state");
 			break;
 
 		case NCSMDS_RED_UP:
 			TRACE_2("NCSMDS_RED_UP (immd up) - doing nothing");
-			cb->is_immd_up = TRUE;
+			cb->is_immd_up = true;
 			cb->immd_mdest_id = svc_evt->i_dest;
 			break;
 
@@ -750,7 +750,7 @@ uint32_t immnd_mds_msg_send(IMMND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMM
 
 	m_NCS_LOCK(&cb->immnd_immd_up_lock, NCS_LOCK_WRITE);
 
-	if ((to_svc == NCSMDS_SVC_ID_IMMD) && (cb->is_immd_up == FALSE)) {
+	if ((to_svc == NCSMDS_SVC_ID_IMMD) && (cb->is_immd_up == false)) {
 		/* IMMD is not UP */
 		TRACE_2("Director Service Is Down");
 		m_NCS_UNLOCK(&cb->immnd_immd_up_lock, NCS_LOCK_WRITE);

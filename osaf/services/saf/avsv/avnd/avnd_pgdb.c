@@ -137,7 +137,7 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 	pg->csi_name = *csi_name;
 
 	/* until avd acknowldges it's presence, it doesn't exit */
-	pg->is_exist = FALSE;
+	pg->is_exist = false;
 
 	/* initialize the mem-list */
 	pg->mem_list.order = NCS_DBLIST_ANY_ORDER;

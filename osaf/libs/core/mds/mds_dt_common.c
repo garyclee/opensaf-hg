@@ -568,7 +568,7 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 		reassem_queue->key.frag_sequence_num = seq_num;
 		reassem_queue->recv.msg.encoding = enc_type;
 		reassem_queue->recv.pri = (prot_ver & MDTM_PRI_MASK) + 1;
-		reassem_queue->to_be_dropped = FALSE;
+		reassem_queue->to_be_dropped = false;
 		reassem_queue->recv.snd_type = msg_snd_type;
 
 		m_MDS_LOG_INFO("MDTM: Reassembly started\n");
@@ -836,7 +836,7 @@ uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uint64_t transpor
 				return NCSCC_RC_FAILURE;
 			}
 
-			if (reassem_queue->to_be_dropped == TRUE) {
+			if (reassem_queue->to_be_dropped == true) {
 				/* Check whether we recd the last pkt */
 				if (((pkt_type & 0x7fff) > 0) && ((pkt_type & 0x8000) == 0)) {
 					/* Last frag in the message recd */
@@ -877,7 +877,7 @@ uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uint64_t transpor
 					case MDS_SENDTYPE_SNDACK:
 					case MDS_SENDTYPE_BCAST:
 						{
-							reassem_queue->to_be_dropped = TRUE;	/* This is for avoiding the prints of bad spurious fragments */
+							reassem_queue->to_be_dropped = true;	/* This is for avoiding the prints of bad spurious fragments */
 
 							if (((pkt_type & 0x7fff) > 0) && ((pkt_type & 0x8000) == 0)) {
 								/* Free the queued data depending on the data type */
@@ -973,7 +973,7 @@ uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uint64_t transpor
 				*buff_dump = 0;	/* For future use. It can be made 1, easily without having to relink etc. */
 				m_MDS_LOG_ERR("MDTM: Frag recd is not next frag so dropping adest=<0x%016llx>\n",
 					      transport_adest);
-				reassem_queue->to_be_dropped = TRUE;	/* This is for avoiding the prints of bad spurious fragments */
+				reassem_queue->to_be_dropped = true;	/* This is for avoiding the prints of bad spurious fragments */
 
 				if (((pkt_type & 0x7fff) > 0) && ((pkt_type & 0x8000) == 0)) {
 					/* Last frag in the message recd */
@@ -1346,7 +1346,7 @@ uint32_t mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg)
+bool mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	MDS_MBX_EVT_INFO *mbx_evt_info = (MDS_MBX_EVT_INFO *)msg;
 
@@ -1363,6 +1363,6 @@ NCS_BOOL mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg)
 	}
 	m_MMGR_FREE_MBX_EVT_INFO(mbx_evt_info);
 
-	return TRUE;
+	return true;
 }
 

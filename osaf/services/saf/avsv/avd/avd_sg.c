@@ -74,7 +74,7 @@ static void sg_add_to_model(AVD_SG *sg)
 
 	/* SGs belonging to a magic app will be NCS, TODO Better name! */
 	if (!strcmp((char *)dn.value, "safApp=OpenSAF"))
-		sg->sg_ncs_spec = TRUE;
+		sg->sg_ncs_spec = true;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 done:
@@ -773,13 +773,13 @@ static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 	/* terminate all the SUs on this Node */
 	su = sg->list_of_su;
 	while (su != NULL) {
-		if ((su->saAmfSUPreInstantiable == TRUE) &&
+		if ((su->saAmfSUPreInstantiable == true) &&
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 
-			if (avd_snd_presence_msg(cb, su, TRUE) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, TRUE);
+			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SU_TERM(cb, su, true);
 			} else {
 				rc = NCSCC_RC_FAILURE;
 				LOG_WA("Failed Termination '%s'", su->name.value);
@@ -811,9 +811,9 @@ static uint32_t sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 			(su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)
 			&& (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
 
-			if (su->saAmfSUPreInstantiable == TRUE) {
-				if (avd_snd_presence_msg(cb, su, FALSE) == NCSCC_RC_SUCCESS) {
-					m_AVD_SET_SU_TERM(cb, su, FALSE);
+			if (su->saAmfSUPreInstantiable == true) {
+				if (avd_snd_presence_msg(cb, su, false) == NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SU_TERM(cb, su, false);
 				} else {
 					rc = NCSCC_RC_FAILURE;
 					LOG_WA("Failed Instantiation '%s'", su->name.value);
@@ -1191,12 +1191,12 @@ static void avd_verify_equal_ranked_su(AVD_SG *avd_sg)
 	AVD_SU *pre_temp_su = NULL, *temp_su;
 
 	TRACE_ENTER();
-	/* Check ranks are still equal or not. Mark TRUE in the begining*/
-	avd_sg->equal_ranked_su = TRUE;
+	/* Check ranks are still equal or not. Mark true in the begining*/
+	avd_sg->equal_ranked_su = true;
 	temp_su = avd_sg->list_of_su;
 	while(temp_su) {
 		if (pre_temp_su && temp_su->saAmfSURank != pre_temp_su->saAmfSURank) {
-			avd_sg->equal_ranked_su = FALSE;
+			avd_sg->equal_ranked_su = false;
 			break;
 		}
 		pre_temp_su = temp_su;
@@ -1225,7 +1225,7 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
 	TRACE_ENTER();
-	assert(TRUE == avd_sg->equal_ranked_su);
+	assert(true == avd_sg->equal_ranked_su);
 	assert(AVD_SG_FSM_STABLE == avd_sg->sg_fsm_state);
 	/* Reset Max and Min ptrs. */
 	avd_sg->max_assigned_su = avd_sg->min_assigned_su = NULL;
@@ -1324,7 +1324,7 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 		goto done;
 	}
 	/* add the SU to the operation list and change the SG FSM to SU operation. */
-	avd_sg_su_oper_list_add(avd_cb, i_susi->su, FALSE);
+	avd_sg_su_oper_list_add(avd_cb, i_susi->su, false);
 	m_AVD_SET_SG_FSM(avd_cb, (i_susi->su->sg_of_su), AVD_SG_FSM_SU_OPER);
 
 done:

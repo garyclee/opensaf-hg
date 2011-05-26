@@ -221,7 +221,7 @@ uint32_t immd_mbcsv_open(IMMD_CB *cb)
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 	arg.info.obj_set.i_ckpt_hdl = cb->o_ckpt_hdl;
 	arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
-	arg.info.obj_set.i_val = FALSE;
+	arg.info.obj_set.i_val = false;
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -951,7 +951,7 @@ static uint32_t mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		break;
 
 	case IMMD_A2S_MSG_RESET:
-		immd_proc_immd_reset(cb, FALSE);
+		immd_proc_immd_reset(cb, false);
 		break;
 
 	default:
@@ -1037,7 +1037,7 @@ static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	while (continue_marker) {
 		MDS_DEST dest;
 		IMMD_IMMND_INFO_NODE *node_info = NULL;
-		NCS_BOOL add_flag = TRUE;
+		bool add_flag = true;
 
 		/* Unpack the IMMND node. */
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint64_t));

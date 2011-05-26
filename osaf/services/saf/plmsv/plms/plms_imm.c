@@ -245,7 +245,7 @@ static void plms_reg_with_imm_as_om()
         plms_get_objects_from_imm("safHE", PLMS_HE_OBJ_TYPE);
         plms_get_objects_from_imm("safEE", PLMS_EE_OBJ_TYPE);
         plms_get_objects_from_imm("safDependency", PLMS_DEPENDENCY_OBJ_TYPE);
-	plms_cb->is_initialized = TRUE;
+	plms_cb->is_initialized = true;
 	TRACE_LEAVE();
 }
 static void plms_unreg_with_imm_as_om()
@@ -1456,14 +1456,14 @@ static void plms_imm_admin_op_cbk (SaImmOiHandleT imm_oi_hdl,
 				const SaImmAdminOperationParamsT_2 **params)
 {
 	PLMS_EVT *plms_evt;
-	SaUint32T rc, rej_admin_op = FALSE;
+	SaUint32T rc, rej_admin_op = false;
 	TRACE_ENTER2("Invocation-Id: %llu, Operation-Id: %llu", inv_id, op_id);
 	if ((op_id != SA_PLM_ADMIN_LOCK) && (op_id != SA_PLM_ADMIN_RESTART)) {
 		if (params[0] != NULL) {
 			/* There are no parameter options applicable for admin
 			   operations other than lock and restart. Hence reject
 			   this operation. */
-			rej_admin_op = TRUE;
+			rej_admin_op = true;
 		}
 	}
 	else {
@@ -1472,7 +1472,7 @@ static void plms_imm_admin_op_cbk (SaImmOiHandleT imm_oi_hdl,
 				/* Both LOCK and RESTART admin operations 
 				   take only one parameter. Hence reject 
 				   this operation */
-				rej_admin_op = TRUE;
+				rej_admin_op = true;
 			}
 			else if (op_id == SA_PLM_ADMIN_LOCK) {
 				if ((strcmp(params[0]->paramName, 
@@ -1485,7 +1485,7 @@ static void plms_imm_admin_op_cbk (SaImmOiHandleT imm_oi_hdl,
 				(params[0]->paramBuffer), "forced") != 0))) {
 					/* param name or type or value not set
 					   correctly. Reject this operation */
-					rej_admin_op = TRUE;
+					rej_admin_op = true;
 				}
 			}
 			else { /* (op_id == SA_PLM_ADMIN_RESTART) */
@@ -1497,12 +1497,12 @@ static void plms_imm_admin_op_cbk (SaImmOiHandleT imm_oi_hdl,
 				(params[0]->paramBuffer),"abrupt") != 0)) {
 					/* param name or type or value not set
 					   correctly. Reject this operation */
-					rej_admin_op = TRUE;
+					rej_admin_op = true;
 				}
 			}
 		}
 	}
-	if (rej_admin_op == TRUE) {
+	if (rej_admin_op == true) {
 		LOG_ER("Rejecting admin op:%llu with invalid parameter error", 
 			op_id);
 		rc = saImmOiAdminOperationResult(plms_cb->oi_hdl, inv_id, 
@@ -4140,7 +4140,7 @@ void plms_proc_quiesced_standby_role_change()
 		free(epath_to_ent);
 	}
 	TRACE_2("Freed the epath_to_ent_map patricia  tree");
-	plms_cb->is_initialized = FALSE;
+	plms_cb->is_initialized = false;
 	plms_cb->async_update_cnt = 0;
 	free_ckpt_track_step_info(plms_cb->prev_trk_step_rec);
 	plms_cb->prev_ent_grp_hdl = 0; /* Shall we do this..? */

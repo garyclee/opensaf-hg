@@ -262,11 +262,11 @@ uint32_t glnd_cb_destroy(GLND_CB *glnd_cb)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+bool glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	GLSV_GLND_EVT *pEvt = (GLSV_GLND_EVT *)msg;
 	GLSV_GLND_EVT *pnext;
@@ -276,7 +276,7 @@ NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		glnd_evt_destroy(pEvt);
 		pEvt = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -286,7 +286,7 @@ NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Arguments     : glnd_cb     -  Pointer to the control block
  *                 
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
@@ -312,7 +312,7 @@ void glnd_dump_cb()
 
 	/* display the handles */
 	TRACE("GLND Node id - %d", m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id));
-	if (glnd_cb->gld_card_up == TRUE)
+	if (glnd_cb->gld_card_up == true)
 		TRACE("GLD is UP  ");
 	else
 		TRACE("GLD is DOWN ");

@@ -122,7 +122,7 @@ typedef struct immnd_cb_tag {
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;
-	NCS_BOOL is_immd_up;
+	bool is_immd_up;
 
 	/* IMMND data */
 	NCS_PATRICIA_TREE client_info_db;	/* IMMND_IMM_CLIENT_NODE - node */
@@ -161,7 +161,7 @@ typedef struct immnd_cb_tag {
 
 /* CB prototypes */
 IMMND_CB *immnd_cb_create(uint32_t pool_id);
-NCS_BOOL immnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool immnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 uint32_t immnd_cb_destroy(IMMND_CB *immnd_cb);
 void immnd_dump_cb(IMMND_CB *immnd_cb);
 

@@ -40,7 +40,7 @@ typedef struct glsv_a2s_node_list_tag {
 typedef struct glsv_gld_a2s_rsc_details {
 	SaNameT resource_name;	/* Cluster-wide unique lock name             */
 	SaLckResourceIdT rsc_id;	/* unique resource id - Index for            */
-	NCS_BOOL can_orphan;	/* is this resource allocated in orphan mode */
+	bool can_orphan;	/* is this resource allocated in orphan mode */
 	SaLckLockModeT orphan_lck_mode;	/* related to orphan mode */
 	GLSV_A2S_NODE_LIST *node_list;	/* Nodes on which this resource is reffered  */
 } GLSV_GLD_A2S_RSC_DETAILS;
@@ -54,7 +54,7 @@ typedef struct glsv_a2s_rsc_open_info {
 
 typedef struct glsv_a2s_rsc_details {
 	SaLckResourceIdT rsc_id;
-	NCS_BOOL orphan;
+	bool orphan;
 	SaLckLockModeT lck_mode;
 	MDS_DEST mdest_id;
 	uint32_t lcl_ref_cnt;

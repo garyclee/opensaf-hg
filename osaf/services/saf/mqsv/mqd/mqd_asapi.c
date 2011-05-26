@@ -50,11 +50,11 @@ static uint32_t mqd_asapi_reg_hdlr(MQD_CB *, ASAPi_REG_INFO *, MQSV_SEND_INFO *)
 static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *, ASAPi_NRESOLVE_INFO *, MQSV_SEND_INFO *);
 static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *, ASAPi_GETQUEUE_INFO *, MQSV_SEND_INFO *);
 static uint32_t mqd_asapi_track_hdlr(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *);
-static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *, SaNameT *, MQD_OBJ_NODE **);
-static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uint16_t *, NCS_BOOL);
+static bool mqd_asapi_obj_validate(MQD_CB *, SaNameT *, MQD_OBJ_NODE **);
+static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uint16_t *, bool);
 static uint32_t mqd_asapi_resp_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *);
 static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *, ASAPi_OBJECT_OPR);
-static NCS_BOOL mqd_check_for_namespace_collision(MQD_OBJ_NODE *, MQSV_OBJ_TYPE);
+static bool mqd_check_for_namespace_collision(MQD_OBJ_NODE *, MQSV_OBJ_TYPE);
 
 /*****************************************************************************/
 
@@ -159,12 +159,12 @@ static uint32_t mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_
 				m_LOG_MQSV_D(MQD_REG_HDLR_DB_UPDATE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
 					     rc, __FILE__, __LINE__);
 			/* Set the Error flag and error code in response message */
-			msg.info.rresp.err.flag = TRUE;
+			msg.info.rresp.err.flag = true;
 			msg.info.rresp.err.errcode = rc;
 			goto send_resp;
 		}
 	} else {
-		msg.info.rresp.err.flag = TRUE;
+		msg.info.rresp.err.flag = true;
 		msg.info.rresp.err.errcode = SA_AIS_ERR_NO_RESOURCES;
 		goto send_resp;
 	}
@@ -269,7 +269,7 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_I
 		/* You are NOT supposed to be here under any circumstances. 
 		 * If here, something is seriously wrong */
 		rc = NCSCC_RC_FAILURE;
-		msg.info.dresp.err.flag = TRUE;
+		msg.info.dresp.err.flag = true;
 		msg.info.dresp.err.errcode = SA_AIS_ERR_NO_RESOURCES;
 	}
 
@@ -332,7 +332,7 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_I
 \****************************************************************************/
 uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg)
 {
-	NCS_BOOL qexist = FALSE, qgrpexist = FALSE;
+	bool qexist = false, qgrpexist = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = NULL, *pObj = NULL;
 	MQD_OBJECT_ELEM *pOelm = NULL, *pQGelm = NULL;
@@ -346,7 +346,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			if ((!(qgrpexist = mqd_asapi_obj_validate(pMqd, &dereg->group, &pObjNode)))
 			    || (!(qexist = mqd_asapi_obj_validate(pMqd, &dereg->queue, &pObj)))) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 					     __LINE__);
@@ -356,7 +356,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* check if QueueGroup passed is actually a Queue */
 			if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QUEUE)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				goto resp_send;
 			}
@@ -364,7 +364,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* check if Queue passed is actually QueueGroup */
 			if (mqd_check_for_namespace_collision(pObj, MQSV_OBJ_QGROUP)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				goto resp_send;
 			}
@@ -373,13 +373,13 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			pOelm = ncs_find_item(&pObjNode->oinfo.ilist, &dereg->queue, mqd_obj_cmp);
 			if (!pOelm) {	/* Object doesn't exist ... */
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 			} else {
 				/* Check if anybody has opted for tracking, if so then we need
 				 * to notify them about the update of the object */
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-					pOelm->pObject->info.q.adv = TRUE;
+					pOelm->pObject->info.q.adv = true;
 					mqd_asapi_track_ntfy_send(&pObjNode->oinfo, ASAPi_QUEUE_DEL);
 				}
 
@@ -415,7 +415,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* Check for existence of QueueGroup */
 			if (!mqd_asapi_obj_validate(pMqd, &dereg->group, &pObjNode)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 					     __LINE__);
@@ -425,7 +425,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* check if QueueGroup passed is actually a Queue */
 			if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QUEUE)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				goto resp_send;
 			}
@@ -473,7 +473,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* Check for existence of Queue */
 			if (!mqd_asapi_obj_validate(pMqd, &dereg->queue, &pObjNode)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 					     __LINE__);
@@ -483,7 +483,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			/* check if Queue passed is actually QueueGroup */
 			if (mqd_check_for_namespace_collision(pObjNode, MQSV_OBJ_QGROUP)) {
 				rc = SA_AIS_ERR_NOT_EXIST;
-				msg->info.dresp.err.flag = TRUE;
+				msg->info.dresp.err.flag = true;
 				msg->info.dresp.err.errcode = rc;
 				m_LOG_MQSV_D(MQD_DB_DEL_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
 					     __LINE__);
@@ -494,7 +494,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			 * to notify them about the update of the object
 			 */
 			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-				pObjNode->oinfo.info.q.adv = TRUE;
+				pObjNode->oinfo.info.q.adv = true;
 				mqd_asapi_track_ntfy_send(&pObjNode->oinfo, ASAPi_QUEUE_DEL);
 			}
 
@@ -503,7 +503,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 			 */
 			while ((pOelm = ncs_dequeue(&pObjNode->oinfo.ilist))) {
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-					pObjNode->oinfo.info.q.adv = TRUE;
+					pObjNode->oinfo.info.q.adv = true;
 					mqd_asapi_track_ntfy_send(pOelm->pObject, ASAPi_QUEUE_DEL);
 				}
 
@@ -555,7 +555,7 @@ uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG
 \****************************************************************************/
 static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve, MQSV_SEND_INFO *info)
 {
-	NCS_BOOL exist = FALSE;
+	bool exist = false;
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
@@ -570,7 +570,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
-		msg.info.nresp.err.flag = TRUE;
+		msg.info.nresp.err.flag = true;
 		msg.info.nresp.err.errcode = rc;
 
 		/* Log suitable msg */
@@ -582,7 +582,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
-		msg.info.nresp.err.flag = TRUE;
+		msg.info.nresp.err.flag = true;
 		msg.info.nresp.err.errcode = rc;
 
 		m_LOG_MQSV_D(MQD_NRESOLV_HDLR_DB_ACCESS_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
@@ -595,7 +595,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 			rc = SA_AIS_ERR_TRY_AGAIN;
 
 			/* Set the error flag and fill the description */
-			msg.info.nresp.err.flag = TRUE;
+			msg.info.nresp.err.flag = true;
 			msg.info.nresp.err.errcode = rc;
 			m_LOG_MQSV_D(MQD_DB_UPD_MQND_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 			goto send_resp;
@@ -608,7 +608,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 		/* Enable tracking for the sender vis-a-vis object */
 		rc = mqd_track_add(&pObjNode->oinfo.tlist, &info->dest, info->to_svc);
 		if (NCSCC_RC_SUCCESS != rc) {
-			msg.info.nresp.err.flag = TRUE;
+			msg.info.nresp.err.flag = true;
 			msg.info.nresp.err.errcode = rc;
 		} else {
 			/* Send Async update at active side by filling the track info */
@@ -630,9 +630,9 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 	}
 
 	/* Make Queue List */
-	rc = mqd_asapi_queue_make(&pObjNode->oinfo, &pQueue, &qcnt, TRUE);
+	rc = mqd_asapi_queue_make(&pObjNode->oinfo, &pQueue, &qcnt, true);
 	if (NCSCC_RC_SUCCESS != rc) {
-		msg.info.nresp.err.flag = TRUE;
+		msg.info.nresp.err.flag = true;
 		msg.info.nresp.err.errcode = rc;
 	} else {
 		msg.info.nresp.oinfo.qcnt = qcnt;
@@ -673,7 +673,7 @@ static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nreso
 \****************************************************************************/
 static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue, MQSV_SEND_INFO *info)
 {
-	NCS_BOOL exist = FALSE;
+	bool exist = false;
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
@@ -684,7 +684,7 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
-		msg.info.nresp.err.flag = TRUE;
+		msg.info.nresp.err.flag = true;
 		msg.info.nresp.err.errcode = rc;
 
 		/* Log suitable msg */
@@ -697,7 +697,7 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
-		msg.info.vresp.err.flag = TRUE;
+		msg.info.vresp.err.flag = true;
 		msg.info.vresp.err.errcode = rc;
 
 		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -709,7 +709,7 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
-		msg.info.vresp.err.flag = TRUE;
+		msg.info.vresp.err.flag = true;
 		msg.info.vresp.err.errcode = rc;
 
 		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -721,7 +721,7 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 			rc = SA_AIS_ERR_TRY_AGAIN;
 
 			/* Set the error flag and fill the description */
-			msg.info.vresp.err.flag = TRUE;
+			msg.info.vresp.err.flag = true;
 			msg.info.vresp.err.errcode = rc;
 
 			m_LOG_MQSV_D(MQD_DB_UPD_MQND_DOWN, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -763,7 +763,7 @@ static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqu
 \****************************************************************************/
 static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info)
 {
-	NCS_BOOL exist = FALSE;
+	bool exist = false;
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
@@ -778,7 +778,7 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
 		/* Set the error flag and fill the description */
-		msg.info.tresp.err.flag = TRUE;
+		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 
 		/* Log suitable msg */
@@ -791,7 +791,7 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
-		msg.info.tresp.err.flag = TRUE;
+		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 
 		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -803,7 +803,7 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 		rc = SA_AIS_ERR_NOT_EXIST;
 
 		/* Set the error flag and fill the description */
-		msg.info.tresp.err.flag = TRUE;
+		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 
 		m_LOG_MQSV_D(MQD_DB_UPD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -813,7 +813,7 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 	rc = mqd_asapi_track_db_upd(pMqd, track, info, &pObjNode);
 
 	if (NCSCC_RC_SUCCESS != rc) {
-		msg.info.tresp.err.flag = TRUE;
+		msg.info.tresp.err.flag = true;
 		msg.info.tresp.err.errcode = rc;
 		goto send_resp;
 	}
@@ -829,10 +829,10 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 		}
 
 		/* Get Queue Information */
-		rc = mqd_asapi_queue_make(&pObjNode->oinfo, &pQueue, &qcnt, TRUE);
+		rc = mqd_asapi_queue_make(&pObjNode->oinfo, &pQueue, &qcnt, true);
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			msg.info.tresp.err.flag = TRUE;
+			msg.info.tresp.err.flag = true;
 			msg.info.tresp.err.errcode = rc;
 			if (pObjNode->oinfo.type == MQSV_OBJ_QUEUE)
 				m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
@@ -901,7 +901,7 @@ static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV
 \****************************************************************************/
 uint32_t mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info, MQD_OBJ_NODE **onode)
 {
-	NCS_BOOL exist = FALSE;
+	bool exist = false;
 	MQD_OBJ_NODE *pObjNode = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -989,7 +989,7 @@ static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_O
 
 	/* Make Queue List */
 
-	rc = mqd_asapi_queue_make(pObjInfo, &pQueue, &qcnt, FALSE);
+	rc = mqd_asapi_queue_make(pObjInfo, &pQueue, &qcnt, false);
 	if (NCSCC_RC_SUCCESS != rc) {
 		if (pObjInfo->type == MQSV_OBJ_QUEUE)
 			m_LOG_MQSV_D(MQD_ASAPi_QUEUE_MAKE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -1088,14 +1088,14 @@ static uint32_t mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
    ARGUMENTS      :  pObjNode - Object node
                      o_queue  - Queue list
                      o_cnt    - Queue count 
-                     select   - TRUE means all, FALSe means on the one which 
+                     select   - true means all, FALSe means on the one which 
                                 marked
 
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uint16_t *o_cnt, NCS_BOOL select)
+static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uint16_t *o_cnt, bool select)
 {
 	uint16_t qcnt = 0;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
@@ -1127,7 +1127,7 @@ static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM *
 		itr.state = 0;
 		while ((pOelm = (MQD_OBJECT_ELEM *)ncs_queue_get_next(&pObjInfo->ilist, &itr))) {
 			if (pOelm->pObject->info.q.adv) {	/* Check if we need to advertise the Queue */
-				pOelm->pObject->info.q.adv = FALSE;	/* Reset the Advertisement flag */
+				pOelm->pObject->info.q.adv = false;	/* Reset the Advertisement flag */
 				pQueue = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
 				if (!pQueue) {
 					if (pObjInfo->type == MQSV_OBJ_QUEUE)
@@ -1241,7 +1241,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 
 				/* This queue needs to be advertised on Active side of MQD */
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-					pQNode->oinfo.info.q.adv = TRUE;
+					pQNode->oinfo.info.q.adv = true;
 				}
 				/* Add the Q-Group to the queue */
 				pOelm = m_MMGR_ALLOC_MQD_OBJECT_ELEM;
@@ -1341,7 +1341,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				/* This queue needs to be advertised */
 				*opr = ASAPi_QUEUE_UPD;
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-					pObjNode->oinfo.info.q.adv = TRUE;
+					pObjNode->oinfo.info.q.adv = true;
 				}
 				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_UPDATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE,
 					     rc, __FILE__, __LINE__);
@@ -1364,7 +1364,7 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
 				/* This queue needs to be advertised */
 				*opr = ASAPi_QUEUE_ADD;
 				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
-					pObjNode->oinfo.info.q.adv = TRUE;
+					pObjNode->oinfo.info.q.adv = true;
 				}
 				/* Add the object node */
 				rc = mqd_db_node_add(pMqd, pObjNode);
@@ -1399,10 +1399,10 @@ uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onod
                      name   - object name
                      o_node - object node
 
-   RETURNS        :  TRUE  - Object exist
-                     FALSE - Object doesn't exist
+   RETURNS        :  true  - Object exist
+                     false - Object doesn't exist
 \****************************************************************************/
-static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
+static bool mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
 {
 	MQD_OBJ_NODE *pObjNode = 0;
 
@@ -1411,8 +1411,8 @@ static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE
 
 	*o_node = pObjNode;
 	if (pObjNode)
-		return TRUE;
-	return FALSE;
+		return true;
+	return false;
 }	/* End of mqd_asapi_obj_validate() */
 
 /****************************************************************************\
@@ -1423,19 +1423,19 @@ static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE
    ARGUMENTS      :  key   - what to match
                      elem  - with whom to match
    
-   RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
+   RETURNS        :  true(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-NCS_BOOL mqd_obj_cmp(void *key, void *elem)
+bool mqd_obj_cmp(void *key, void *elem)
 {
 	MQD_OBJECT_ELEM *pOelm = (MQD_OBJECT_ELEM *)elem;
 	SaNameT *local_key = (SaNameT *)key;
 
 	if (pOelm->pObject->name.length == local_key->length) {
 		if (!memcmp(pOelm->pObject->name.value, local_key->value, local_key->length)) {
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }	/* End of mqd_obj_cmp() */
 
 /****************************************************************************\
@@ -1462,7 +1462,7 @@ void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest)
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(pObjNode->oinfo.info.q.dest) ==
 			    m_NCS_NODE_ID_FROM_MDS_DEST(dest)) {
 				pObjNode->oinfo.info.q.dest = dest;
-				pObjNode->oinfo.info.q.is_mqnd_down = FALSE;
+				pObjNode->oinfo.info.q.is_mqnd_down = false;
 				mqd_asapi_track_ntfy_send(&pObjNode->oinfo, ASAPi_QUEUE_MQND_UP);
 			}
 		} else {
@@ -1474,8 +1474,8 @@ void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest)
 						if (pOelm->pObject->type == MQSV_OBJ_QUEUE) {
 							if (m_NCS_NODE_ID_FROM_MDS_DEST(pOelm->pObject->info.q.dest)
 							    == m_NCS_NODE_ID_FROM_MDS_DEST(dest)) {
-								pOelm->pObject->info.q.adv = TRUE;
-								pOelm->pObject->info.q.is_mqnd_down = FALSE;
+								pOelm->pObject->info.q.adv = true;
+								pOelm->pObject->info.q.is_mqnd_down = false;
 								pOelm->pObject->info.q.dest = dest;
 								break;
 							}
@@ -1514,7 +1514,7 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
 			if (m_NCS_NODE_ID_FROM_MDS_DEST(pObjNode->oinfo.info.q.dest)
 			    == m_NCS_NODE_ID_FROM_MDS_DEST(dest)) {
 				pObjNode->oinfo.info.q.dest = dest;
-				pObjNode->oinfo.info.q.is_mqnd_down = TRUE;
+				pObjNode->oinfo.info.q.is_mqnd_down = true;
 				mqd_asapi_track_ntfy_send(&pObjNode->oinfo, ASAPi_QUEUE_MQND_DOWN);
 			}
 		} else {
@@ -1526,8 +1526,8 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
 						if (pOelm->pObject->type == MQSV_OBJ_QUEUE) {
 							if (m_NCS_NODE_ID_FROM_MDS_DEST(pOelm->pObject->info.q.dest)
 							    == m_NCS_NODE_ID_FROM_MDS_DEST(dest)) {
-								pOelm->pObject->info.q.is_mqnd_down = TRUE;
-								pOelm->pObject->info.q.adv = TRUE;
+								pOelm->pObject->info.q.is_mqnd_down = true;
+								pOelm->pObject->info.q.adv = true;
 								break;
 							}
 						}
@@ -1551,13 +1551,13 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
    ARGUMENTS      :  name   - object name
                      collide_type   - collision type (not the expected object type) 
 
-   RETURNS        :  TRUE  - namespace collision
-                     FALSE - no collision
+   RETURNS        :  true  - namespace collision
+                     false - no collision
 \****************************************************************************/
-static NCS_BOOL mqd_check_for_namespace_collision(MQD_OBJ_NODE *pObjNode, MQSV_OBJ_TYPE collide_type)
+static bool mqd_check_for_namespace_collision(MQD_OBJ_NODE *pObjNode, MQSV_OBJ_TYPE collide_type)
 {
 	if (collide_type & pObjNode->oinfo.type)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }

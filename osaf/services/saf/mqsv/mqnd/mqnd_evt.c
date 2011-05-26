@@ -436,7 +436,7 @@ static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 		open = &evt->msg.mqp_req.info.openAsyncReq.mqpOpenReq;
 
 	opr.info.msg.req.info.nresolve.object = open->queueName;
-	opr.info.msg.req.info.nresolve.track = FALSE;
+	opr.info.msg.req.info.nresolve.track = false;
 
 	/* Request the ASAPi */
 	rc = asapi_opr_hdlr(&opr);
@@ -882,7 +882,7 @@ static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	uint32_t offset, rc = NCSCC_RC_SUCCESS, msg_fmt_ver;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQSV_DSEND_EVT *direct_rsp_evt = NULL;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(evt->msg_fmt_version,
 						     MQND_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
@@ -999,7 +999,7 @@ static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(evt->msg_fmt_version,
 						     MQND_WRT_MQA_SUBPART_VER_AT_MIN_MSG_FMT,
@@ -1378,7 +1378,7 @@ uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 		opr.info.msg.sinfo.stype = MDS_SENDTYPE_SNDRSP;
 		opr.info.msg.req.msgtype = ASAPi_MSG_NRESOLVE;
 		opr.info.msg.req.info.nresolve.object = qnode->qinfo.queueName;
-		opr.info.msg.req.info.nresolve.track = FALSE;
+		opr.info.msg.req.info.nresolve.track = false;
 
 		/* Request the ASAPi */
 		rc = asapi_opr_hdlr(&opr);

@@ -326,7 +326,7 @@ uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t p
 {
 	SYSF_PID_LIST *list_entry;
 
-	if (module_cb.init == FALSE)
+	if (module_cb.init == false)
 		return m_LEAP_DBG_SINK(NCSCC_RC_SUCCESS);
 
 	if (NULL == (list_entry = m_MMGR_ALLOC_PRO_EXC))
@@ -429,7 +429,7 @@ uint32_t start_exec_mod_cb(void)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);;
 	}
 
-	module_cb.init = TRUE;
+	module_cb.init = true;
 
 	m_NCS_SIGNAL(SIGCHLD, ncs_exec_module_signal_hdlr);
 
@@ -456,8 +456,8 @@ uint32_t exec_mod_cb_destroy(void)
 	SYSF_PID_LIST *exec_pid = NULL;
 	uint8_t pid = 0;
 
-	if (module_cb.init == TRUE) {
-		module_cb.init = FALSE;
+	if (module_cb.init == true) {
+		module_cb.init = false;
 		m_NCS_SIGNAL(SIGCHLD, SIG_DFL);
 
 		close(module_cb.write_fd);

@@ -116,7 +116,7 @@ uint32_t avd_mds_init(AVD_CL_CB *cb)
 	memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
 	vda_info.req = NCSVDA_VDEST_CREATE;
-	vda_info.info.vdest_create.i_persistent = FALSE;
+	vda_info.info.vdest_create.i_persistent = false;
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	vda_info.info.vdest_create.info.specified.i_vdest = cb->vaddr;
@@ -139,7 +139,7 @@ uint32_t avd_mds_init(AVD_CL_CB *cb)
 	svc_to_mds_info.i_op = MDS_INSTALL;
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = avd_mds_cbk;
-	svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVD_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
@@ -189,7 +189,7 @@ uint32_t avd_mds_init(AVD_CL_CB *cb)
 	svc_to_mds_info.i_op = MDS_INSTALL;
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = avd_mds_cbk;
-	svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVD_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {

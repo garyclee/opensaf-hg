@@ -45,7 +45,7 @@ typedef struct ntfs_cb {
 	SaNameT comp_name;	/* Components's name NTFS                     */
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
-	NCS_BOOL is_quisced_set;
+	bool is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events */
 	SaSelectionObjectT logSelectionObject;	/* Selection Object to wait for log events */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
@@ -55,7 +55,7 @@ typedef struct ntfs_cb {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
-	NCS_BOOL csi_assigned;
+	bool csi_assigned;
 } ntfs_cb_t;
 
 extern uint32_t ntfs_cb_init(ntfs_cb_t *);

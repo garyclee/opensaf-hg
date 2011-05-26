@@ -113,7 +113,7 @@ uint32_t cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, 
 uint32_t cpnd_proc_ckpt_clm_node_left(CPND_CB *cb);
 uint32_t cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb);
 
-NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
+bool cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error);
 uint32_t cpnd_send_ckpt_usr_info_to_cpd(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 				     SaCkptCheckpointOpenFlagsT ckpt_open_flags, CPSV_USR_INFO_CKPT_TYPE usrinfoType);

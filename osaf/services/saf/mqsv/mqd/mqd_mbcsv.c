@@ -727,7 +727,7 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
 
 		/* Encode Cold Sync */
-		pMqd->cold_or_warm_sync_on = TRUE;
+		pMqd->cold_or_warm_sync_on = true;
 
 		if (pMqd->ha_state == SA_AMF_HA_STANDBY) {
 			/* There is no opaque data so no data is encoded here */
@@ -970,7 +970,7 @@ static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
 		return rc;
 	} else {
 		mqd_db_del_all_records(pMqd);
-		pMqd->cold_or_warm_sync_on = TRUE;
+		pMqd->cold_or_warm_sync_on = true;
 		ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
 		ncs_arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 		ncs_arg.info.send_data_req.i_ckpt_hdl = pMqd->o_ckpt_hdl;
@@ -1014,7 +1014,7 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	NCS_PATRICIA_NODE *q_node = 0;
 	NCS_LOCK *q_rec_lock = &pMqd->mqd_cb_lock;
 	uint32_t rc = NCSCC_RC_SUCCESS, num_of_ckpts = 0;
-	uint32_t last_message = FALSE;
+	uint32_t last_message = false;
 	EDU_ERR ederror = 0;
 	uint8_t *header, *sync_cnt_ptr;
 
@@ -1080,7 +1080,7 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 			   in deciding last message */
 			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 			if (q_node == NULL)
-				last_message = TRUE;
+				last_message = true;
 			break;
 		}
 
@@ -1110,10 +1110,10 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 	if (q_node == NULL) {
-		last_message = TRUE;
+		last_message = true;
 	}
 
-	if ((num_of_ckpts < MAX_NO_MQD_MSGS_A2S) || (last_message == TRUE)) {
+	if ((num_of_ckpts < MAX_NO_MQD_MSGS_A2S) || (last_message == true)) {
 		if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP)
 			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 		else if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_DATA_RESP)
@@ -1274,7 +1274,7 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 	if ((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
 	    (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE)) {
-		pMqd->cold_or_warm_sync_on = FALSE;
+		pMqd->cold_or_warm_sync_on = false;
 	}
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_MQSV_D(MQD_RED_STANDBY_COLD_SYNC_RESP_DECODE_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,

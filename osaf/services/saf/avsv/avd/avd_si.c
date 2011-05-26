@@ -37,7 +37,7 @@ static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
 revisit:
         temp_csi = csi->si->list_of_csi;
         while (temp_csi) {
-                if ((FALSE == temp_csi->dep_csi_added) && (0 == memcmp(&temp_csi->saAmfCSIDependencies, &csi->name, sizeof(SaNameT)))) {
+                if ((false == temp_csi->dep_csi_added) && (0 == memcmp(&temp_csi->saAmfCSIDependencies, &csi->name, sizeof(SaNameT)))) {
                         temp_csi->rank = csi->rank + 1;
                         /* We need to rearrange Dep CSI rank as per modified. */
                         /* Store the SI pointer as avd_si_remove_csi makes it NULL in the end */
@@ -45,7 +45,7 @@ revisit:
                         avd_si_remove_csi(temp_csi);
                         temp_csi->si = temp_si;
                         avd_si_add_csi_db(temp_csi);
-                        temp_csi->dep_csi_added = TRUE;
+                        temp_csi->dep_csi_added = true;
                         /* We need to check whether any other CSI is dependent on temp_csi.*/
                         avd_si_arrange_dep_csi(temp_csi);
                         /* We need to revisit again as the list has been modified. */
@@ -59,7 +59,7 @@ revisit:
 void avd_si_add_csi(struct avd_csi_tag* avd_csi)
 {
 	AVD_CSI *temp_csi = NULL;
-        bool found = FALSE;
+        bool found = false;
 
         /* Find whether csi (avd_csi->saAmfCSIDependencies) is already in the DB. */
         if (avd_csi->rank != 1) /* (rank != 1) ==> (rank is 0). i.e. avd_csi is dependent on another CSI. */ {
@@ -68,11 +68,11 @@ void avd_si_add_csi(struct avd_csi_tag* avd_csi)
                         if (0 == memcmp(&temp_csi->name, &avd_csi->saAmfCSIDependencies, sizeof(SaNameT))) {
 				/* The CSI is dependent on other CSI, so its rank will be one more than Dep CSI */
 				avd_csi->rank = temp_csi->rank + 1;
-				found = TRUE;
+				found = true;
                         }
 			temp_csi = temp_csi->si_list_of_csi_next;
                 }
-                if (found == FALSE) {
+                if (found == false) {
 			/* Not found, means saAmfCSIDependencies is yet to come. So put it in the end with rank 0. 
                            There may be existing CSIs which will be dependent on avd_csi, but don't run 
                            avd_si_arrange_dep_csi() as of now. All dependent CSI's rank will be changed when 
@@ -250,7 +250,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 	si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
 	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
 	si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
-	si->alarm_sent = FALSE;
+	si->alarm_sent = false;
 	si->num_dependents = 0;
 
 	return si;
@@ -315,13 +315,13 @@ void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si)
 	for (; sisu != NULL; sisu = sisu->si_next) {
 		old_fsm_state = sisu->fsm;
 		sisu->fsm = AVD_SU_SI_STATE_UNASGN;
-		if (avd_snd_susi_msg(cb, sisu->su, sisu, AVSV_SUSI_ACT_DEL, FALSE, NULL) == NCSCC_RC_FAILURE) {
+		if (avd_snd_susi_msg(cb, sisu->su, sisu, AVSV_SUSI_ACT_DEL, false, NULL) == NCSCC_RC_FAILURE) {
 			LOG_ER("%s:%u: SU:%s SI:%s", __FILE__, __LINE__, sisu->su->name.value,sisu->si->name.value);
 			sisu->fsm = old_fsm_state;
 		} else {
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sisu, AVSV_CKPT_AVD_SI_ASS);
 			avd_gen_su_ha_state_changed_ntf(avd_cb, sisu);
-			avd_sg_su_oper_list_add(cb, sisu->su, FALSE);
+			avd_sg_su_oper_list_add(cb, sisu->su, false);
 		}
 	}
 	TRACE_LEAVE();
@@ -965,7 +965,7 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 					sisu->fsm = old_susi_state;
 				} else {
 					/* Add SU to su_opr_list */
-                                	avd_sg_su_oper_list_add(avd_cb, sisu->su, FALSE);
+                                	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
 
 					/* Checkpoint the sisu state change and send notification */
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sisu, AVSV_CKPT_AVD_SI_ASS);
@@ -1011,7 +1011,7 @@ static void avd_si_adjust_si_assignments(AVD_SI *si)
 					sisu->fsm = old_susi_state;
 				} else {
 					/* Add SU to su_opr_list */
-                                	avd_sg_su_oper_list_add(avd_cb, sisu->su, FALSE);
+                                	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
 
 					/* Checkpoint the sisu state change and send notification */
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sisu, AVSV_CKPT_AVD_SI_ASS);
@@ -1153,7 +1153,7 @@ static void si_update_ass_state(AVD_SI *si)
 		/* alarm & notifications */
 		if (si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
 			avd_send_si_unassigned_alarm(&si->name);
-			si->alarm_sent = TRUE;
+			si->alarm_sent = true;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_ALARM_SENT);
 		}
 		else {
@@ -1166,7 +1166,7 @@ static void si_update_ass_state(AVD_SI *si)
 			}
 
 			/* always reset in case the SI has been recycled */
-			si->alarm_sent = FALSE;
+			si->alarm_sent = false;
 		}
 
 		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",

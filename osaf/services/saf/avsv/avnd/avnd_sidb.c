@@ -508,7 +508,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		curr_comp->assigned_flag = FALSE;
+		curr_comp->assigned_flag = false;
 	}
 
 	/* pick up all the csis belonging to the comps specified in the param-list */
@@ -519,7 +519,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		if (FALSE == curr_comp->assigned_flag) {
+		if (false == curr_comp->assigned_flag) {
 			/* modify all the csi-records */
 			for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&curr_comp->csi_list));
 					curr_csi;
@@ -535,7 +535,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
 			}		/* for */
-			curr_comp->assigned_flag = TRUE;
+			curr_comp->assigned_flag = true;
 		}
 	}			/* for */
 

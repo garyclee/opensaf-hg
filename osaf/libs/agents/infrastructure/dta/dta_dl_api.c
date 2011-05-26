@@ -53,7 +53,7 @@
 #include "ncssysf_mem.h"
 #include "ncssysf_tsk.h"
 
-static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
+static bool dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
 SYSF_MBX gl_dta_mbx;
 DTA_CB dta_cb;
@@ -220,11 +220,11 @@ uint32_t dta_lib_destroy(void)
  * Arguments     : arg     - argument to be passed.
  *                 mbx_msg - Message start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
+static bool dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 {
 	DTSV_MSG *msg = (DTSV_MSG *)mbx_msg;
 	DTSV_MSG *mnext;
@@ -241,7 +241,7 @@ static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 
 		msg = mnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

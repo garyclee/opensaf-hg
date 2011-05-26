@@ -51,7 +51,7 @@
  */
 
 /* Following is defined for use by MDS in TIPC 2.0 as TIPC 2.0 supports only network order */
-NCS_BOOL mds_use_network_order = 0;
+bool mds_use_network_order = 0;
 
 #define NTOHL(x) (mds_use_network_order?ntohl(x):x)
 #define HTONL(x) (mds_use_network_order?htonl(x):x)

@@ -89,7 +89,7 @@ SaUint32T plms_proc_standby_active_role_change()
 
 	plms_process_client_down_list();
 	
-	cb->is_initialized = TRUE;
+	cb->is_initialized = true;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -565,7 +565,7 @@ static SaUint32T plms_perform_pending_admin_clbk(
                 /* Pack the affected entities.*/
                 plms_grp_aff_ent_fill(agent_evt.req_evt.agent_track.
                         track_cbk.tracked_entities.entities,
-                        grp_list->ent_grp_inf,aff_ent_list,FALSE,
+                        grp_list->ent_grp_inf,aff_ent_list,false,
 			agent_evt.req_evt.agent_track.track_cbk.change_step);
 
                 /* Send the message to PLMA. */
@@ -648,7 +648,7 @@ SaUint32T plms_perform_pending_admin_shutdown(
 	head = aff_ent_list;
 	while (head){
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-		                                SA_PLM_RF_DEPENDENCY,TRUE,
+		                                SA_PLM_RF_DEPENDENCY,true,
 						head->plm_entity->parent,
 						SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
@@ -659,7 +659,7 @@ SaUint32T plms_perform_pending_admin_shutdown(
 	/* Terminate all the affected EEs.*/
 	head = aff_ent_list;
 	while(head){
-		ret_err = plms_ee_term(head->plm_entity,FALSE,0);
+		ret_err = plms_ee_term(head->plm_entity,false,0);
 		head = head->next;
 	}
 
@@ -667,7 +667,7 @@ SaUint32T plms_perform_pending_admin_shutdown(
 		/* Lock the root EE. I am not wating, till I get
 		the callback. If this API returns success, I am done.
 		*/
-		ret_err = plms_ee_lock(ent,TRUE,0);
+		ret_err = plms_ee_lock(ent,true,0);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			/* TODO:Do I need to update the expected
 			readiness state, I hope no. */
@@ -796,7 +796,7 @@ SaUint32T plms_perform_pending_admin_lock(
 		head = aff_ent_list;
 		while (head){
 			plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,
+				SA_PLM_RF_DEPENDENCY,true,
 				head->plm_entity->parent,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
@@ -812,7 +812,7 @@ SaUint32T plms_perform_pending_admin_lock(
 				tmp_aff_ent_list->plm_entity->entity_type){
 					ret_err = plms_ee_term(
 						tmp_aff_ent_list->plm_entity,
-								FALSE,0);
+								false,0);
 					if(NCSCC_RC_SUCCESS != ret_err){
 						LOG_ER("EE %s term FAILED.",
 				tmp_aff_ent_list->plm_entity->dn_name_str);
@@ -824,7 +824,7 @@ SaUint32T plms_perform_pending_admin_lock(
 
 		if (PLMS_EE_ENTITY == ent->entity_type){
 			/* Lock the root EE*/
-			ret_err = plms_ee_lock(ent,TRUE,0);
+			ret_err = plms_ee_lock(ent,true,0);
 			if(NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE %s term FAILED.",ent->dn_name_str);
 			}
@@ -885,7 +885,7 @@ SaUint32T plms_perform_pending_admin_deactivate(
                                 head->plm_entity->entity.ee_entity.
                                 saPlmEEPresenceState)){
                                         ret_err =plms_ee_term(head->plm_entity,
-                                                                FALSE,0);
+                                                                false,0);
                                         if (NCSCC_RC_SUCCESS != ret_err){
                                         }
 					plms_readiness_state_set(
@@ -908,7 +908,7 @@ SaUint32T plms_perform_pending_admin_deactivate(
 		if(SA_PLM_CHANGE_VALIDATE == track_step->change_step ){
 
 			/* Move HE to M4 */
-			ret_err = plms_ent_enable(ent,FALSE,SA_TRUE);
+			ret_err = plms_ent_enable(ent,false,SA_TRUE);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER(" Move the ent to M4 failed.");
 			}

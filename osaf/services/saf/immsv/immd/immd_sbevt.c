@@ -156,7 +156,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 			immnd_info_node->epoch = ctrl->nodeEpoch;
 		}
 		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord) {
-			immnd_info_node->isOnController = TRUE;
+			immnd_info_node->isOnController = true;
 			TRACE_5("Corrected isOnController status for immnd node info");
 		}
 

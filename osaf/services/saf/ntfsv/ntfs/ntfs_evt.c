@@ -125,7 +125,7 @@ static uint32_t proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
 static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 {
 	TRACE_ENTER();
-	if (ntfs_cb->is_quisced_set == TRUE) {
+	if (ntfs_cb->is_quisced_set == true) {
 		ntfs_cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (ntfs_mbcsv_change_HA_state(ntfs_cb) != NCSCC_RC_SUCCESS)
@@ -133,7 +133,7 @@ static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 
 		/* Update control block */
 		saAmfResponse(ntfs_cb->amf_hdl, ntfs_cb->amf_invocation_id, SA_AIS_OK);
-		ntfs_cb->is_quisced_set = FALSE;
+		ntfs_cb->is_quisced_set = false;
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -204,7 +204,7 @@ uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 	TRACE_ENTER();
 	/* Assign Initial HA state */
 	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
-	ntfs_cb->csi_assigned = FALSE;
+	ntfs_cb->csi_assigned = false;
 	/* Assign Version. Currently, hardcoded, This will change later */
 	ntfs_cb->ntf_version.releaseCode = NTF_RELEASE_CODE;
 	ntfs_cb->ntf_version.majorVersion = NTF_MAJOR_VERSION;

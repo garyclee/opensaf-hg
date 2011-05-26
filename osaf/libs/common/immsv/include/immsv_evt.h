@@ -440,7 +440,7 @@ typedef struct imma_evt {
  IMMND Event Data Structures
  ******************************************************************************/
 typedef struct immnd_evt {
-	NCS_BOOL dont_free_me;
+	bool dont_free_me;
 	SaAisErrorT error;
 	IMMND_EVT_TYPE type;
 	union {

@@ -477,7 +477,7 @@ uint32_t avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uint32_t rcvr)
 			msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
 			TRACE("SU '%s, su oper '%u'",  su->name.value, su->oper);
 
-			if ((su->is_ncs == TRUE) && (su->oper == SA_AMF_OPERATIONAL_DISABLED))
+			if ((su->is_ncs == true) && (su->oper == SA_AMF_OPERATIONAL_DISABLED))
 				TRACE("%s SU Oper state got disabled", su->name.value);
 		}
 
@@ -533,7 +533,7 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->node_info.nodeId;
 		if (si) {
 			msg.info.avd->msg_info.n2d_su_si_assign.single_csi =
-				((si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_BASE) ? FALSE : TRUE);
+				((si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_BASE) ? false : true);
 		}
 		TRACE("curr_assign_state '%u'", curr_si->curr_assign_state);
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
@@ -653,13 +653,13 @@ void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uint32
   Arguments     : cb           - ptr to the AvND control block
                   csi_name     - ptr to the csi-name
                   act          - req action (start/stop)
-                  fover        - TRUE if the message being sent on fail-over.
+                  fover        - true if the message being sent on fail-over.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None.
 ******************************************************************************/
-uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn, NCS_BOOL fover)
+uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn, bool fover)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -771,9 +771,9 @@ uint32_t avnd_di_ack_nack_msg_send(AVND_CB *cb, uint32_t rcv_id, uint32_t view_n
 		msg.info.avd->msg_info.n2d_ack_nack_info.node_id = cb->node_info.nodeId;
 
 		if (rcv_id != cb->rcv_msg_id)
-			msg.info.avd->msg_info.n2d_ack_nack_info.ack = FALSE;
+			msg.info.avd->msg_info.n2d_ack_nack_info.ack = false;
 		else
-			msg.info.avd->msg_info.n2d_ack_nack_info.ack = TRUE;
+			msg.info.avd->msg_info.n2d_ack_nack_info.ack = true;
 
 		TRACE_1("MsgId=%u,ACK=%u",msg.info.avd->msg_info.n2d_ack_nack_info.msg_id,msg.info.avd->msg_info.n2d_ack_nack_info.ack);
 
@@ -1056,7 +1056,7 @@ uint32_t avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
-	NCS_BOOL empty_sulist = TRUE;
+	bool empty_sulist = true;
 	AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO *info = &evt->info.avd->msg_info.d2n_shutdown_app_su;
 
 	TRACE_ENTER();
@@ -1097,7 +1097,7 @@ uint32_t avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* scan & drive the SU term by PRES_STATE FSM on each su */
 	while (su != 0) {
-		if ((su->is_ncs == SA_TRUE) || (TRUE == su->su_is_external)) {
+		if ((su->is_ncs == SA_TRUE) || (true == su->su_is_external)) {
 			su = (AVND_SU *)
 			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 			continue;
@@ -1114,7 +1114,7 @@ uint32_t avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		    (su->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 		    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
 		    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
-			empty_sulist = FALSE;
+			empty_sulist = false;
 			TRACE_1("Running SU presence FSM, event: Terminate, SU:%s",su->name.value);
 			/* trigger su termination for pi su */
 			rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_TERM);
@@ -1124,7 +1124,7 @@ uint32_t avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
-	if (empty_sulist == TRUE) {
+	if (empty_sulist == true) {
 		/* No SUs to be processed for termination.
 		 ** send the response message to AVD informing DONE. 
 		 */

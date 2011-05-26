@@ -58,22 +58,22 @@ uint32_t dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *f
 	char *str = dts_cb.cb_log_str;
 	char *ptr;
 	uint8_t inuse_buff = 0;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
-	if (cir_buff->buff_allocated == FALSE)
+	if (cir_buff->buff_allocated == false)
 		return NCSCC_RC_FAILURE;
 
 	/* First Step : Find the INUSE buffer and then start reading from the next */
 	for (i = 0; i < NUM_BUFFS; i++) {
 		if (cir_buff->buff_part[i].status == INUSE) {
-			found = TRUE;
+			found = true;
 			inuse_buff = i;
 			break;
 		}
 	}
 
 	/* No buffer found INUSE. So something looks wrong */
-	if (found == FALSE)
+	if (found == false)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dts_dump_log_to_op_device: You should not come to this place. SERIOUS issue. No buffer found to be in use");
 
@@ -148,7 +148,7 @@ uint32_t dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uint32_t buffer_size)
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
 
-	if (cir_buff->buff_allocated == TRUE)
+	if (cir_buff->buff_allocated == true)
 		return NCSCC_RC_FAILURE;
 
 	/* Allocate a single chunk of memory of size == buffer_size */
@@ -172,11 +172,11 @@ uint32_t dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uint32_t buffer_size)
 
 	cir_buff->cur_buff_num = 0;
 	cir_buff->cur_buff_offset = 0;
-	cir_buff->inuse = FALSE;
+	cir_buff->inuse = false;
 	cir_buff->part_size = size;
 	cir_buff->cur_location = cir_buff->buff_part[0].cir_buff_ptr;
 	cir_buff->buff_part[0].status = INUSE;
-	cir_buff->buff_allocated = TRUE;
+	cir_buff->buff_allocated = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -200,7 +200,7 @@ uint32_t dts_circular_buffer_free(CIR_BUFFER *cir_buff)
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
 
-	if (cir_buff->buff_allocated == FALSE)
+	if (cir_buff->buff_allocated == false)
 		return NCSCC_RC_FAILURE;
 
 	if (0 != cir_buff->buff_part[0].cir_buff_ptr)
@@ -216,9 +216,9 @@ uint32_t dts_circular_buffer_free(CIR_BUFFER *cir_buff)
 	cir_buff->cur_buff_num = 0;
 	cir_buff->cur_buff_offset = 0;
 	cir_buff->part_size = 0;
-	cir_buff->inuse = FALSE;
+	cir_buff->inuse = false;
 	cir_buff->cur_location = NULL;
-	cir_buff->buff_allocated = FALSE;
+	cir_buff->buff_allocated = false;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -242,7 +242,7 @@ uint32_t dts_circular_buffer_clear(CIR_BUFFER *cir_buff)
 	if (cir_buff == NULL)
 		return NCSCC_RC_FAILURE;
 
-	if (cir_buff->buff_allocated == FALSE)
+	if (cir_buff->buff_allocated == false)
 		return NCSCC_RC_FAILURE;
 
 	for (i = 0; i < NUM_BUFFS; i++) {
@@ -252,10 +252,10 @@ uint32_t dts_circular_buffer_clear(CIR_BUFFER *cir_buff)
 
 	cir_buff->cur_buff_num = 0;
 	cir_buff->cur_buff_offset = 0;
-	cir_buff->inuse = FALSE;
+	cir_buff->inuse = false;
 	cir_buff->cur_location = cir_buff->buff_part[0].cir_buff_ptr;
 	cir_buff->buff_part[0].status = INUSE;
-	cir_buff->buff_allocated = TRUE;
+	cir_buff->buff_allocated = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -287,9 +287,9 @@ uint32_t dts_cir_buff_set_default(CIR_BUFFER *cir_buff)
 
 	cir_buff->cur_buff_num = 0;
 	cir_buff->cur_buff_offset = 0;
-	cir_buff->inuse = FALSE;
+	cir_buff->inuse = false;
 	cir_buff->cur_location = NULL;
-	cir_buff->buff_allocated = FALSE;
+	cir_buff->buff_allocated = false;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -311,10 +311,10 @@ uint32_t dts_dump_to_cir_buffer(CIR_BUFFER *cir_buff, char *str)
 {
 	uint32_t str_len = strlen(str) + 1;
 
-	if (TRUE != cir_buff->buff_allocated)
+	if (true != cir_buff->buff_allocated)
 		return NCSCC_RC_FAILURE;
 
-	cir_buff->inuse = TRUE;
+	cir_buff->inuse = true;
 
 	/*
 	 * Check whether we are crossing the partition size limit. If yes then 
@@ -389,7 +389,7 @@ uint32_t dts_buff_size_increased(CIR_BUFFER *cir_buff, uint32_t new_size)
 	 * old to new buffer. Otherwise there is no point is copying since we won't 
 	 * have any messages logged into the buffer.
 	 */
-	if (tmp_buff.inuse == TRUE) {
+	if (tmp_buff.inuse == true) {
 		if (dts_dump_buffer_to_buffer(&tmp_buff, cir_buff, NUM_BUFFS) != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_FAILURE;
 	}
@@ -437,7 +437,7 @@ uint32_t dts_buff_size_decreased(CIR_BUFFER *cir_buff, uint32_t new_size)
 	 * old to new buffer. Otherwise there is no point is copying since we won't 
 	 * have any messages logged into the buffer.
 	 */
-	if (tmp_buff.inuse == TRUE) {
+	if (tmp_buff.inuse == true) {
 		/* 
 		 * Since buffer size is decreased we are now going to find how many
 		 * partitions of old buffer we can copy into the new buffer.
@@ -481,9 +481,9 @@ uint32_t dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir
 	uint32_t j = 0;
 	char *ptr = NULL;
 	uint8_t inuse_buff = 0;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
-	if ((src_cir_buff->buff_allocated == FALSE) || (dst_cir_buff->buff_allocated == FALSE))
+	if ((src_cir_buff->buff_allocated == false) || (dst_cir_buff->buff_allocated == false))
 		return NCSCC_RC_FAILURE;
 
 	if (number == 0)
@@ -492,14 +492,14 @@ uint32_t dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir
 	/* First Step : Find the INUSE buffer and then start reading from the next */
 	for (i = 0; i < NUM_BUFFS; i++) {
 		if (src_cir_buff->buff_part[i].status == INUSE) {
-			found = TRUE;
+			found = true;
 			inuse_buff = i;
 			break;
 		}
 	}
 
 	/* No buffer found INUSE. So something looks wrong? -- You should never hit this case. */
-	if (found == FALSE)
+	if (found == false)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "URGENT: dts_dump_to_cir_buffer: No buffer found INUSE. So something looks wrong?");
 

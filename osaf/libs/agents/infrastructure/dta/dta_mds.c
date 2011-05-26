@@ -106,7 +106,7 @@ uint32_t dta_mds_install_and_subscribe(void)
                    STEP: Install with MDS 
    \*****************************************************/
 	mds_info.i_op = MDS_INSTALL;
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	mds_info.info.svc_install.i_mds_q_ownership = false;
 	mds_info.info.svc_install.i_svc_cb = dta_mds_callback;
 	mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)(long)&dta_cb;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* Total PWE scope */
@@ -279,10 +279,10 @@ uint32_t dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
 	svc->severity_bit_map = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.severity_bit_map;
 	svc->enable_log = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.enable_log;
 
-	svc->log_msg = TRUE;
+	svc->log_msg = true;
 
-	/* Smik - Set the service flag to FALSE */
-	svc->svc_flag = FALSE;
+	/* Smik - Set the service flag to false */
+	svc->svc_flag = false;
 
 	m_DTA_UNLK(&inst->lock);
 	return NCSCC_RC_SUCCESS;
@@ -320,9 +320,9 @@ uint32_t dta_svc_reg_updt(DTA_CB *inst, uint32_t svc_id, uint32_t enable_log, ui
 	svc->category_bit_map = category_bit_map;
 	svc->severity_bit_map = severity_bit_map;
 	/* Smik - mark the svc entry by setting the flag to true */
-	svc->svc_flag = TRUE;
-	/* Set log_msg to TRUE to indicate new Act DTS has the svc_reg entry */
-	svc->log_msg = TRUE;
+	svc->svc_flag = true;
+	/* Set log_msg to true to indicate new Act DTS has the svc_reg entry */
+	svc->log_msg = true;
 	m_DTA_UNLK(&inst->lock);
 
 	return NCSCC_RC_SUCCESS;
@@ -352,11 +352,11 @@ uint32_t dta_svc_reg_check(DTA_CB *inst)
 	/*Traverse the patricia tree for each service reg entry */
 	svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, NULL);
 	while (svc != NULL) {
-		/* Smik - if flag is not TRUE, send reg req to DTS. Else set to FALSE */
-		if (svc->svc_flag != TRUE) {
+		/* Smik - if flag is not true, send reg req to DTS. Else set to false */
+		if (svc->svc_flag != true) {
 			svc->category_bit_map = 0;
 			svc->severity_bit_map = 0;
-			svc->enable_log = FALSE;
+			svc->enable_log = false;
 			/*svc->policy_hdl = 0; */
 
 			/* 
@@ -364,7 +364,7 @@ uint32_t dta_svc_reg_check(DTA_CB *inst)
 			 * registration information to DTS at later time when DTS comes up. 
 			 * For now we are done. So return success.
 			 */
-			if (inst->dts_exist == FALSE) {
+			if (inst->dts_exist == false) {
 				m_DTA_UNLK(&inst->lock);
 				return NCSCC_RC_SUCCESS;
 			}
@@ -375,7 +375,7 @@ uint32_t dta_svc_reg_check(DTA_CB *inst)
 			dta_fill_reg_msg(&msg, svc->svc_id, svc->version, svc->svc_name, DTA_REGISTER_SVC);
 
 #if (DTA_FLOW == 1)
-			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
+			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, true) != NCSCC_RC_SUCCESS)
 #else
 			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
 #endif
@@ -386,7 +386,7 @@ uint32_t dta_svc_reg_check(DTA_CB *inst)
 			}
 		}
 		/* Smik - Set the flag to false for future receipt of DTS_FAIL_OVER msg */
-		svc->svc_flag = FALSE;
+		svc->svc_flag = false;
 		svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, (const uint8_t *)&svc->svc_id);
 	}			/*end of while */
 
@@ -417,7 +417,7 @@ uint32_t dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 	uint32_t svc_count, count, svc_id, enable_log, category_bit_map;
 	int warning_rmval = 0;
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		if (((DTSV_MSG *)msg)->data.data.msg.log_msg.uba.ub != NULL)
 			m_MMGR_FREE_BUFR_LIST(((DTSV_MSG *)msg)->data.data.msg.log_msg.uba.ub);
 		m_MMGR_FREE_DTSV_MSG((DTSV_MSG *)msg);
@@ -541,7 +541,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 	uint32_t retval;
 	int warning_rmval = 0;
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		retval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_evt: DTA instance does not exist");
 		return;
 	}
@@ -557,7 +557,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 		/* Make changes to the MAS list and corresponding MDS handles */
 		if (svc_info.i_svc_id == NCSMDS_SVC_ID_DTS) {
 			/* Stop sending the log messages to DTS */
-			inst->dts_exist = FALSE;
+			inst->dts_exist = false;
 		}
 
 		break;
@@ -565,7 +565,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 	case NCSMDS_NEW_ACTIVE:
 		{
 			/* Send registration information, start sending the log messages. */
-			inst->dts_exist = TRUE;
+			inst->dts_exist = true;
 			inst->dts_dest = svc_info.i_dest;
 			inst->dts_node_id = svc_info.i_node_id;
 			inst->dts_pwe_id = svc_info.i_pwe_id;
@@ -581,7 +581,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 				DTSV_MSG msg;
 
 				/* Send registration information again.....start sending the log messages. */
-				inst->dts_exist = TRUE;
+				inst->dts_exist = true;
 				inst->dts_dest = svc_info.i_dest;
 				inst->dts_node_id = svc_info.i_node_id;
 				inst->dts_pwe_id = svc_info.i_pwe_id;
@@ -939,7 +939,7 @@ uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 \*****************************************************************************/
 uint32_t dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-		  NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
+		  bool last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
 
 	DTSV_MSG *mm;
@@ -1149,7 +1149,7 @@ uint32_t encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
   Notes         : None.
 ******************************************************************************/
 #if (DTA_FLOW == 1)
-uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, NCS_BOOL svc_reg)
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, bool svc_reg)
 #else
 uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout)
 #endif
@@ -1175,7 +1175,7 @@ uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout)
 	/* send the message */
 	if (ncsmds_api(&mds_info) == NCSCC_RC_SUCCESS) {
 #if (DTA_FLOW == 1)
-		if (svc_reg == TRUE) {
+		if (svc_reg == true) {
 #endif
 			m_DTA_LK(&dta_cb.lock);
 
@@ -1188,7 +1188,7 @@ uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout)
 #endif
 	}
 #if (DTA_FLOW == 1)
-	else if (svc_reg == TRUE)
+	else if (svc_reg == true)
 #else
 	else
 #endif

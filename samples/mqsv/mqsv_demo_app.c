@@ -1005,7 +1005,7 @@ void message_reply_sync(void)
    /* In B.1.1 the struct SaMsgMessageInfoT is obsolate */
    if (senderId)
    {
-    printf("Received a  message with sendReceive Flags set to TRUE\n");
+    printf("Received a  message with sendReceive Flags set to true\n");
     printf("Replying to the sender using saMsgMessageReply\n");
 
     rc = saMsgMessageReply(msgHandle, &receive_message, &senderId, timeout);
@@ -1157,7 +1157,7 @@ void message_reply_async(void)
   /* SaMsgMessageInfoT is deleted in B-Spec */
   if (senderId)
    {
-     printf("Received a  message with sendReceive Flags set to TRUE\n");
+     printf("Received a  message with sendReceive Flags set to true\n");
      printf("Replying to the sender using saMsgMessageReplyAsync\n");
 
      rc = saMsgMessageReplyAsync(msgHandle, invocation, &receive_message, &senderId, ackFlags);

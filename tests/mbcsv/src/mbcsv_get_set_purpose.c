@@ -97,7 +97,7 @@ uint32_t mbcstm_get_set_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].cb_flag = 0;
-  mbcstm_cb.svces[svc_index].ssns[ssn_index].ws_flag = TRUE;
+  mbcstm_cb.svces[svc_index].ssns[ssn_index].ws_flag = true;
   mbcstm_cb.svces[svc_index].ssns[ssn_index].ws_timer =
     MBCSTM_TIMER_SEND_WARM_SYNC_PERIOD*100;
   mbcstm_svc_finalize (svc_index);
@@ -121,7 +121,7 @@ void mbcstm_set_warm_sync_off_active()
   if( mbcstm_get_set_purposes( svc_index, ssn_index,MBCSTM_SVC_INS1,
                                NCS_MBCSV_OP_OBJ_SET,
                                NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF,
-                               FALSE,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
+                               false,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
                                MBCSTM_ACT_STATE_MULTIPLE_ACTIVE ) 
       !=  NCSCC_RC_SUCCESS)
     {
@@ -151,7 +151,7 @@ void mbcstm_set_warm_sync_off_standby()
   if( mbcstm_get_set_purposes( svc_index, ssn_index,MBCSTM_SVC_INS2,
                                NCS_MBCSV_OP_OBJ_SET,
                                NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF,
-                               FALSE,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
+                               false,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
                                MBCSTM_ACT_STATE_MULTIPLE_ACTIVE )
       !=  NCSCC_RC_SUCCESS)
     
@@ -182,7 +182,7 @@ void mbcstm_set_warm_sync_on_standby()
   if( mbcstm_get_set_purposes( svc_index, ssn_index,MBCSTM_SVC_INS2,
                                NCS_MBCSV_OP_OBJ_SET,
                                NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF,
-                               TRUE,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
+                               true,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
                                MBCSTM_ACT_STATE_MULTIPLE_ACTIVE )
       !=  NCSCC_RC_SUCCESS)
     
@@ -212,7 +212,7 @@ void mbcstm_get_warm_sync_on_off()
   if( mbcstm_get_set_purposes( svc_index, ssn_index,MBCSTM_SVC_INS2,
                                NCS_MBCSV_OP_OBJ_GET,
                                NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF,
-                               TRUE,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
+                               true,MBCSTM_CB_NO_TEST,1,3,MBCSTM_SSN_ANC2,
                                MBCSTM_ACT_STATE_MULTIPLE_ACTIVE )
       !=  NCSCC_RC_SUCCESS)
     

@@ -64,15 +64,15 @@ typedef struct ncs_mqsv_mq_msg {
 } NCS_MQSV_MQ_MSG;
 
 /* function prototypes for client handling*/
-MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, NCS_BOOL flag);
+MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, bool flag);
 uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info);
 void mqa_queue_reader(NCSCONTEXT context);
 
 MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id,
-						     NCS_BOOL flag, MQA_CLIENT_INFO *client_info,
+						     bool flag, MQA_CLIENT_INFO *client_info,
 						     SaMsgQueueOpenFlagsT openFlags);
 uint32_t mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id);
-MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, NCS_BOOL flag);
+MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, bool flag);
 
 /* function prototypes for mds registration and registration */
 uint32_t mqa_mds_register(MQA_CB *mqa_cb);

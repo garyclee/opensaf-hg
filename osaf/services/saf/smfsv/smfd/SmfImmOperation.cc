@@ -451,7 +451,7 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
         }
 
 	//Release IMM ownership
-	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
+	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to true
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
 
 	TRACE_LEAVE();
@@ -619,7 +619,7 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
         }
 
 	//Release IMM ownership
-	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
+	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to true
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
 #if 0
 	result = immutil_saImmOmAdminOwnerRelease(m_immOwnerHandle, objectNames, SA_IMM_ONE);
@@ -961,7 +961,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
         }
 
 	//Release IMM ownership
-	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to TRUE
+	//This is not needed when saImmOmAdminOwnerInitialize "releaseOwnershipOnFinalize" is set to true
 	//The ownership will be automatically released at saImmOmAdminOwnerFinalize
 #if 0
 	result = immutil_saImmOmAdminOwnerRelease(m_immOwnerHandle, objectNames, SA_IMM_ONE);

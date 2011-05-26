@@ -98,7 +98,7 @@ uint32_t ava_mds_reg(AVA_CB *cb)
 
    /*** install ava service with mds ***/
 	mds_info.i_op = MDS_INSTALL;
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	mds_info.info.svc_install.i_mds_q_ownership = false;
 	mds_info.info.svc_install.i_svc_cb = ava_mds_cbk;
 	mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)cb->cb_hdl;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_INTRANODE;

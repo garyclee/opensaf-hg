@@ -35,11 +35,11 @@
 
 static void mqa_main_timeout_handler(void *arg);
 static void mqa_node_timeout_handler(void *arg);
-static NCS_BOOL match_invocation(void *key, void *qelem);
-static NCS_BOOL match_expiry(void *key, void *qelem);
+static bool match_invocation(void *key, void *qelem);
+static bool match_expiry(void *key, void *qelem);
 static void mqa_cleanup_senderid(void *arg);
-static NCS_BOOL match_node(void *key, void *qelem);
-static NCS_BOOL match_all(void *key, void *qelem);
+static bool match_node(void *key, void *qelem);
+static bool match_all(void *key, void *qelem);
 
 /****************************************************************************
   Name          : mqa_timer_table_init
@@ -342,28 +342,28 @@ uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocatio
 
 }
 
-static NCS_BOOL match_invocation(void *key, void *qelem)
+static bool match_invocation(void *key, void *qelem)
 {
 
 	MQA_TMR_NODE *node = (MQA_TMR_NODE *)qelem;
 	SaInvocationT invocation = NCS_PTR_TO_UNS64_CAST(key);
 
 	if (!qelem)
-		return FALSE;
+		return false;
 
 	if (invocation == node->invoc)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
-static NCS_BOOL match_node(void *key, void *qelem)
+static bool match_node(void *key, void *qelem)
 {
 
 	if (key == qelem)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 
 }
 
@@ -508,21 +508,21 @@ uint32_t mqa_stop_and_delete_timer_by_invocation(void *key)
 	return NCSCC_RC_SUCCESS;
 }
 
-static NCS_BOOL match_expiry(void *key, void *qelem)
+static bool match_expiry(void *key, void *qelem)
 {
 
 	MQA_SENDERID_INFO *node = (MQA_SENDERID_INFO *)qelem;
 	time_t now;
 
 	if (!node)
-		return FALSE;
+		return false;
 
 	m_NCS_OS_GET_TIME_STAMP(now);
 
 	if ((now - node->timestamp) > MQSV_SENDERID_CLEANUP_INTERVAL)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 static void mqa_cleanup_senderid(void *arg)
@@ -611,10 +611,10 @@ uint32_t mqa_create_and_start_senderid_timer()
 	return NCSCC_RC_SUCCESS;
 }
 
-static NCS_BOOL match_all(void *key, void *qelem)
+static bool match_all(void *key, void *qelem)
 {
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

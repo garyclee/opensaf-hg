@@ -40,7 +40,7 @@ uint32_t immd_immnd_info_tree_init(IMMD_CB *cb)
 	if (ncs_patricia_tree_init(&cb->immnd_tree, &param) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
-	cb->is_immnd_tree_up = TRUE;
+	cb->is_immnd_tree_up = true;
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -129,7 +129,7 @@ uint32_t immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
 uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
-				    MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node, NCS_BOOL *add_flag)
+				    MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node, bool *add_flag)
 {
 	NODE_ID key;
 
@@ -139,7 +139,7 @@ uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 
 	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
 	    ncs_patricia_tree_get(immnd_tree, (uint8_t *)&key);
-	if ((*immnd_info_node == NULL) && (*add_flag == TRUE)) {
+	if ((*immnd_info_node == NULL) && (*add_flag == true)) {
 		*immnd_info_node = calloc(1, sizeof(IMMD_IMMND_INFO_NODE));
 		if (*immnd_info_node == NULL) {
 			LOG_ER("IMMD - calloc returned NULL");
@@ -156,7 +156,7 @@ uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 			*immnd_info_node = NULL;
 			return NCSCC_RC_FAILURE;
 		}
-		*add_flag = FALSE;
+		*add_flag = false;
 	}
 
 	return NCSCC_RC_SUCCESS;

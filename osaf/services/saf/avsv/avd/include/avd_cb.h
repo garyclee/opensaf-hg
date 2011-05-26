@@ -139,7 +139,7 @@ typedef struct cl_cb_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	NCS_BOOL avd_fover_state;	/* TRUE if avd is trying to 
+	bool avd_fover_state;	/* true if avd is trying to 
 					 * recover from the fail-over */
 
 	SaAmfHAStateT avail_state_avd;	/* the redundancy state for 
@@ -178,7 +178,7 @@ typedef struct cl_cb_tag {
 
 	uint32_t synced_reo_type;	/* Count till which sync is done */
 	AVSV_ASYNC_UPDT_CNT async_updt_cnt;	/* Update counts for different async updates */
-	NCS_BOOL sync_required;	/* if TRUE, we need to send SYNC send to the standby 
+	bool sync_required;	/* if true, we need to send SYNC send to the standby 
 				   after mailbox processing */
 
 	/* Queue for keeping async update messages  on Standby */
@@ -225,7 +225,7 @@ typedef struct cl_cb_tag {
 	SaClmHandleT clmHandle;
 	SaSelectionObjectT clm_sel_obj;
 
-	SaBoolT swap_switch; /* TRUE - In middle of role switch. */
+	SaBoolT swap_switch; /* true - In middle of role switch. */
 
 } AVD_CL_CB;
 

@@ -185,7 +185,7 @@ static void avd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 
 	/* we need not send sync update to stanby */
-	cb->sync_required = FALSE;
+	cb->sync_required = false;
 
 	LOG_NO("avd_invalid_evh: %u", evt->rcv_evt);
 }
@@ -257,7 +257,7 @@ static void avd_qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	LOG_IN("avd_qsd_invalid_evh: %u", evt->rcv_evt);
 
 	/* we need not send sync update to stanby */
-	cb->sync_required = FALSE;
+	cb->sync_required = false;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 		if (evt->info.avnd_msg == NULL) {
@@ -296,7 +296,7 @@ static void avd_qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	LOG_IN("avd_qsd_ignore_evh: %u", evt->rcv_evt);
 
 	/* we need not send sync update to stanby */
-	cb->sync_required = FALSE;
+	cb->sync_required = false;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 		if (evt->info.avnd_msg == NULL) {
@@ -407,7 +407,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 {
 	AVD_CL_CB *cb = avd_cb;
 
-	assert(cb->avd_fover_state == TRUE);
+	assert(cb->avd_fover_state == true);
 
 	TRACE_ENTER();
 
@@ -438,7 +438,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		SaClmNodeIdT node_id = 0;
 
 		/* We have received the info from all the nodes. */
-		cb->avd_fover_state = FALSE;
+		cb->avd_fover_state = false;
 
 		/* Dequeue, all the messages from the queue
 		   and process them now */
@@ -555,7 +555,7 @@ void avd_main_proc(void)
 
 			if (cb->avd_fover_state) {
 				handle_event_in_failover_state(evt);
-			} else if (FALSE == cb->avd_fover_state) {
+			} else if (false == cb->avd_fover_state) {
 				avd_process_event(cb, evt);
 			} else
 				assert(0);
@@ -656,7 +656,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		 * Time to send sync send the standby and then
 		 * all the AVND messages we have queued in our queue.
 		 */
-		if (cb_now->sync_required == TRUE)
+		if (cb_now->sync_required == true)
 			m_AVSV_SEND_CKPT_UPDT_SYNC(cb_now, NCS_MBCSV_ACT_UPDATE, 0);
 
 		avd_d2n_msg_dequeue(cb_now);
@@ -666,7 +666,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 
 		/* Now it might have become standby to active in avd_role_change_evh() during switchover, 
 		   so just sent updates to quisced */
-                if ((cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) && (cb_now->sync_required == TRUE))
+                if ((cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) && (cb_now->sync_required == true))
                         m_AVSV_SEND_CKPT_UPDT_SYNC(cb_now, NCS_MBCSV_ACT_UPDATE, 0);
 
 		avd_d2n_msg_dequeue(cb_now);
@@ -678,7 +678,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		 * Time to send sync send the standby and then
 		 * all the AVND messages we have queued in our queue.
 		 */
-		if (cb_now->sync_required == TRUE)
+		if (cb_now->sync_required == true)
 			m_AVSV_SEND_CKPT_UPDT_SYNC(cb_now, NCS_MBCSV_ACT_UPDATE, 0);
 
 		avd_d2n_msg_dequeue(cb_now);
@@ -687,7 +687,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		assert(0);
 
 	/* reset the sync falg */
-	cb_now->sync_required = TRUE;
+	cb_now->sync_required = true;
 
 	free(evt);
 }

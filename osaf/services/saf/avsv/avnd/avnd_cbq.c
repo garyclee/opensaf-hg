@@ -59,21 +59,21 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_CSI_REC *csi = 0;
 	AVND_ERR_INFO err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -124,7 +124,7 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 				   invocation handle in the response with the original one. Check
 				   function avnd_evt_avnd_avnd_cbk_msg_hdl()'s comments */
 				qsc->inv = cbk_rec->orig_opq_hdl;
-				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 
 				/* We need to forward this req to other AvND */
 				/* Before sending api_info, we need to overwrite the component name as
@@ -192,21 +192,21 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_CSI_REC *csi = 0;
 	AVND_ERR_INFO err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 	SaAisErrorT amf_rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -266,7 +266,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				    (SA_AMF_HA_QUIESCING == cbk_rec->cbk_info->param.csi_set.ha)) {
 					/* Don't delete the callback. */
 				} else {
-					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 				}
 
 				/* We need to forward this req to other AvND */
@@ -308,7 +308,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				}
 			} else {
 				/* comp is healthy.. remove the cbk record */
-				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 
 				if (hc_rec) {
 					if (hc_rec->status == AVND_COMP_HC_STATUS_SND_TMR_EXPD) {
@@ -332,7 +332,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 					   AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC : AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 		break;
 
 	case AVSV_AMF_CSI_SET:
@@ -342,7 +342,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 						   AVND_COMP_CLC_PRES_FSM_EV_INST_SUCC :
 						   AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL);
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 			break;
@@ -363,20 +363,20 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 			if (cbk_rec->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {
 
-				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 				break;
 			}
 		} else if (cbk_rec->cbk_info->param.csi_set.ha != csi->si->curr_state) {
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 			break;
 		} else if (m_AVND_COMP_IS_ALL_CSI(comp)) {
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 			break;
 		}
 
 		if (SA_AIS_OK != resp->err) {
 			if (SA_AMF_HA_QUIESCED == cbk_rec->cbk_info->param.csi_set.ha) {
-				if (comp->su->is_ncs == TRUE) {
+				if (comp->su->is_ncs == true) {
 					LOG_ER("%s got failure %u for qsd cbk", comp->name.value, resp->err);
 				}
 
@@ -414,7 +414,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 						   AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC :
 						   AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 			break;
 		}
 
@@ -442,7 +442,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* trigger comp-fsm & delete the record */
 		rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 					   AVND_COMP_CLC_PRES_FSM_EV_INST_SUCC : AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL);
-		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 		break;
 
 	case AVSV_AMF_PXIED_COMP_CLEAN:
@@ -451,7 +451,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 					   AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC :
 					   AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL);
-		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, FALSE);
+		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
 		break;
 
 	case AVSV_AMF_PG_TRACK:
@@ -603,7 +603,7 @@ uint32_t avnd_comp_cbq_send(AVND_CB *cb,
 		   comp moves back to instantiated. we will free it, if the comp
 		   doesnt move to instantiated */
 		if (!m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp))
-			rc = avnd_comp_cbq_rec_send(cb, comp, rec, TRUE);
+			rc = avnd_comp_cbq_rec_send(cb, comp, rec, true);
 	} else
 		rc = NCSCC_RC_FAILURE;
 
@@ -648,7 +648,7 @@ uint32_t avnd_comp_cbq_send(AVND_CB *cb,
  
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, NCS_BOOL timer_start)
+uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, bool timer_start)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -674,7 +674,7 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 	/* Check wether we need to send this to local AvA or another AvND. 
 	   Since proxy can be at another AvND, so we need to send to that AvND */
 	if (((cb->node_info.nodeId != m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest)) ||
-	     (m_AVND_COMP_TYPE_IS_EXT_CLUSTER(comp))) && (TRUE == timer_start)) {
+	     (m_AVND_COMP_TYPE_IS_EXT_CLUSTER(comp))) && (true == timer_start)) {
 		/* Since the node id of the message to be sent differs, so send it to 
 		   another      AvND. Or this may be a case of cluster component at controller
 		   proxying to an external component, in this case, node id will match,
@@ -711,7 +711,7 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* start the callback response timer */
-		if (TRUE == timer_start) {
+		if (true == timer_start) {
 			m_AVND_TMR_COMP_CBK_RESP_START(cb, *rec, rec->timeout, rc);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_CBK_REC_TMR);
 			/* Not sure why someone has written the following line. */
@@ -733,14 +733,14 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
  
   Arguments     : cb   - ptr to the AvND control block
                   comp - ptr to the component
-                  send_del_cbk - TRUE if the callback is tobe deleted and
+                  send_del_cbk - true if the callback is tobe deleted and
                                  an event can be sent to another AvND.
 
   Return Values : None.
  
   Notes         : None.
 ******************************************************************************/
-void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
+void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, bool send_del_cbk)
 {
 	AVND_COMP_CBK *rec = 0;
 	NODE_ID dest_node_id = 0;
@@ -753,7 +753,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 			break;
 
 		/* Check if del cbk is to be sent. */
-		if (TRUE == send_del_cbk) {
+		if (true == send_del_cbk) {
 			/* Check that the callback was sent to another AvND. */
 			dest_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest);
 			if (cb->node_info.nodeId != dest_node_id) {
@@ -766,7 +766,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}
 
-		/* if(TRUE == send_del_cbk) */
+		/* if(true == send_del_cbk) */
 		/* delete the record */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);
@@ -785,14 +785,14 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
                   comp - ptr to the component
                   rec  - ptr to the callback record that is to be popped & 
                          deleted.
-                  send_del_cbk - TRUE if the callback is tobe deleted and 
+                  send_del_cbk - true if the callback is tobe deleted and 
                                  an event can be sent to another AvND.
  
   Return Values : None.
  
   Notes         : None.
 ******************************************************************************/
-void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, NCS_BOOL send_del_cbk)
+void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, bool send_del_cbk)
 {
 	uint32_t found;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -803,7 +803,7 @@ void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *
 
 	if (found) {
 		/* Check if del cbk is to be sent. */
-		if (TRUE == send_del_cbk) {
+		if (true == send_del_cbk) {
 			/* Check that the callback was sent to another AvND. */
 			dest_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest);
 			if (cb->node_info.nodeId != dest_node_id) {
@@ -814,7 +814,7 @@ void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *
 				rc = avnd_avnd_cbk_del_send(cb, &comp->name, &rec->opq_hdl, &dest_node_id);
 
 			}	/* if(cb->node_info.nodeId != dest_node_id) */
-		}		/* if(TRUE == send_del_cbk) */
+		}		/* if(true == send_del_cbk) */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);
 	}			/* if(found) */
@@ -938,7 +938,7 @@ void avnd_comp_cbq_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_
 				avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 			}
 
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, curr, TRUE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, curr, true);
 			curr = (prv) ? prv->next : comp->cbk_list;
 		} else {
 			prv = curr;
@@ -967,7 +967,7 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 {
 	AVND_COMP_CBK *curr = comp->cbk_list, *prv = 0;
 	AVSV_AMF_CBK_INFO *info = 0;
-	NCS_BOOL to_del = FALSE;
+	bool to_del = false;
 	TRACE_ENTER2("Comp '%s', CSI '%p'", comp->name.value, csi_name);
 
 	/* scan the entire comp-cbk list & delete the matching records */
@@ -977,24 +977,24 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 		if (!csi_name) {
 			/* => remove all the csi-set & csi-rem cbks */
 			if ((AVSV_AMF_CSI_SET == info->type) || (AVSV_AMF_CSI_REM == info->type))
-				to_del = TRUE;
+				to_del = true;
 		} else {
 			/* => remove only the matching csi-set & csi-rem cbk */
 			if (((AVSV_AMF_CSI_SET == info->type) &&
 			     (0 == m_CMP_HORDER_SANAMET(info->param.csi_set.csi_desc.csiName, *csi_name))) ||
 			    ((AVSV_AMF_CSI_REM == info->type) &&
 			     (0 == m_CMP_HORDER_SANAMET(info->param.csi_rem.csi_name, *csi_name))))
-				to_del = TRUE;
+				to_del = true;
 		}
 
-		if (TRUE == to_del) {
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, curr, TRUE);
+		if (true == to_del) {
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, curr, true);
 			curr = (prv) ? prv->next : comp->cbk_list;
 		} else {
 			prv = curr;
 			curr = curr->next;
 		}
-		to_del = FALSE;
+		to_del = false;
 	}
 
 	return;
@@ -1057,14 +1057,14 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 					temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
 
 					if (cbk->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {
-						avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, TRUE);
+						avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 						break;
 					}
 				} else if (cbk->cbk_info->param.csi_set.ha != csi->si->curr_state) {
-					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, TRUE);
+					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 					break;
 				} else if (m_AVND_COMP_IS_ALL_CSI(comp)) {
-					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, TRUE);
+					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 					break;
 				}
 
@@ -1078,7 +1078,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 				if (comp->csi_list.n_nodes) {
 					rc = avnd_comp_csi_remove_done(cb, comp, csi);
 				} else {
-					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, TRUE);
+					avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 				}
 
 			}
@@ -1091,7 +1091,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 		default:
 			{
 				/* pop and delete this records */
-				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, TRUE);
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 			}
 			break;
 		}

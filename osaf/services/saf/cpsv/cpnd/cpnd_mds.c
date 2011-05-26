@@ -118,7 +118,7 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->cpnd_cb_hdl_id;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = cpnd_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;	/* CPND owns the mds queue */
+	svc_info.info.svc_install.i_mds_q_ownership = false;	/* CPND owns the mds queue */
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPND_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
@@ -427,7 +427,7 @@ static uint32_t cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *pstream;
 	uint8_t local_data[20];
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPA) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -579,7 +579,7 @@ static uint32_t cpnd_mds_dec_flat(CPND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	CPSV_EVT *evt = NULL;
 	NCS_UBAID *uba = info->io_uba;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPA) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
@@ -849,9 +849,9 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 
 		switch (svc_evt->i_change) {
 		case NCSMDS_DOWN:
-			if (cb->is_cpd_up == TRUE) {
+			if (cb->is_cpd_up == true) {
 				/* If CPD is already UP */
-				cb->is_cpd_up = FALSE;
+				cb->is_cpd_up = false;
 				m_LOG_CPND_CL(CPND_CPD_SERVICE_WENT_DOWN, CPND_FC_HDLN, NCSFL_SEV_ALERT, __FILE__,
 					      __LINE__);
 				m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
@@ -859,18 +859,18 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			}
 			break;
 		case NCSMDS_UP:
-			cb->is_cpd_up = TRUE;
+			cb->is_cpd_up = true;
 			cb->cpd_mdest_id = svc_evt->i_dest;
 			m_LOG_CPND_CL(CPND_CPD_SERVICE_CAME_UP, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 			break;
 
 		case NCSMDS_NO_ACTIVE:
-			cb->is_cpd_up = FALSE;
+			cb->is_cpd_up = false;
 			m_LOG_CPND_CL(CPND_CPD_SERVICE_NOACTIVE, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 			break;
 
 		case NCSMDS_NEW_ACTIVE:
-			cb->is_cpd_up = TRUE;
+			cb->is_cpd_up = true;
 			m_LOG_CPND_CL(CPND_CPD_SERVICE_NEWACTIVE, CPND_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 			break;
 
@@ -879,7 +879,7 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 
 				phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
 				cb->cpnd_active_id = phy_slot_sub_slot;
-				cb->is_cpd_up = TRUE;
+				cb->is_cpd_up = true;
 			} else if (svc_evt->i_role == V_DEST_RL_STANDBY) {
 
 				phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
@@ -891,14 +891,14 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 		case NCSMDS_RED_DOWN:
 			phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
 			if (cb->cpnd_active_id == phy_slot_sub_slot)
-				cb->is_cpd_up = FALSE;
+				cb->is_cpd_up = false;
 			break;
 		case NCSMDS_CHG_ROLE:
 			if (svc_evt->i_role == V_DEST_RL_ACTIVE) {
 
 				phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
 				cb->cpnd_active_id = phy_slot_sub_slot;
-				cb->is_cpd_up = TRUE;
+				cb->is_cpd_up = true;
 			} else if (svc_evt->i_role == V_DEST_RL_STANDBY) {
 
 				phy_slot_sub_slot = cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
@@ -1001,7 +1001,7 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
-	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == FALSE)) {
+	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
 		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 		return NCSCC_RC_FAILURE;
@@ -1017,7 +1017,7 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 
 		if (!node) {
 			/* received no sync sends from CPND to which we are going to do a sync send */
-			cb->cpnd_sync_send_in_progress = TRUE;
+			cb->cpnd_sync_send_in_progress = true;
 			cb->target_cpnd_dest = to_dest;
 		} else {
 			m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
@@ -1055,7 +1055,7 @@ uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	/* Reset deadlock prevention flags in case of sync send to another CPND */
 	if (to_svc == NCSMDS_SVC_ID_CPND) {
 		m_NCS_LOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
-		cb->cpnd_sync_send_in_progress = FALSE;
+		cb->cpnd_sync_send_in_progress = false;
 		cb->target_cpnd_dest = 0;
 		m_NCS_UNLOCK(&cb->cpnd_sync_send_lock, NCS_LOCK_WRITE);
 	}
@@ -1087,7 +1087,7 @@ uint32_t cpnd_mds_msg_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
-	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == FALSE)) {
+	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
 		/* CPD is not UP */
 		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
@@ -1142,7 +1142,7 @@ uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_de
 
 	m_NCS_LOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
 
-	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == FALSE)) {
+	if ((to_svc == NCSMDS_SVC_ID_CPD) && (cb->is_cpd_up == false)) {
 		/* CPD is not UP */
 		m_LOG_CPND_CL(CPND_CPD_SERVICE_IS_DOWN, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);

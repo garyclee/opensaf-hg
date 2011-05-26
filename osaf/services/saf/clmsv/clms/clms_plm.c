@@ -162,7 +162,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 						node->member = SA_FALSE;
 						clms_node_exit_ntf (clms_cb, node);
 					
-						rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+						rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, true);
 						if (rc != NCSCC_RC_SUCCESS) {
 							TRACE("clms_send_is_member_info failed %u", rc);
 							goto done;
@@ -192,7 +192,7 @@ static void clms_plm_readiness_track_callback(SaPlmEntityGroupHandleT entityGrpH
 							node->change = SA_CLM_NODE_JOINED;
 							clms_node_join_ntf(clms_cb, node);
 
-							rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+							rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, true);
 							if (rc != NCSCC_RC_SUCCESS) {
 								TRACE("clms_send_is_member_info failed %u", rc);
 								goto done;

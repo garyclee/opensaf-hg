@@ -282,7 +282,7 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 		return 0;
 	}
 
-	if (ckpt_flag == TRUE) {
+	if (ckpt_flag == true) {
 		ckpt_msg = (EDS_CKPT_DATA *)msg_hdl;
 		if (!ckpt_msg) {
 			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -409,7 +409,7 @@ uint32_t eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 	total_bytes += (uint32_t)param->data_len;
 
 	/* If checkpoint data, decode publish time */
-	if (ckpt_flag == TRUE) {
+	if (ckpt_flag == true) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 8);
 		ckpt_msg->ckpt_rec.retain_evt_rec.pubtime = ncs_decode_64bit(&p8);
 		ncs_dec_skip_space(uba, 8);
@@ -448,7 +448,7 @@ uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag)
 		m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 		return 0;
 	}
-	if (ckpt_flag == TRUE) {
+	if (ckpt_flag == true) {
 		ckpt_msg = (EDS_CKPT_DATA *)msg_hdl;
 		if (!ckpt_msg) {
 			m_LOG_EDSV_S(EDS_MDS_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -1147,12 +1147,12 @@ static uint32_t eds_mds_dec(struct ncsmds_callback_info *info)
 		case EDSV_EDA_PUBLISH:
 			msg = &evt->info.msg;
 			msg_hdl = (long)msg;	/* Pass the handle */
-			total_bytes += eds_dec_publish_msg(uba, msg_hdl, FALSE);
+			total_bytes += eds_dec_publish_msg(uba, msg_hdl, false);
 			break;
 		case EDSV_EDA_SUBSCRIBE:
 			msg = &evt->info.msg;
 			msg_hdl = (long)msg;	/* Pass the handle */
-			total_bytes += eds_dec_subscribe_msg(uba, msg_hdl, FALSE);
+			total_bytes += eds_dec_subscribe_msg(uba, msg_hdl, false);
 			break;
 		case EDSV_EDA_UNSUBSCRIBE:
 			total_bytes += eds_dec_unsubscribe_msg(uba, &evt->info.msg);
@@ -1411,7 +1411,7 @@ static uint32_t eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 		return rc;
 	}
 
-	if (eds_cb->is_quisced_set == TRUE) {
+	if (eds_cb->is_quisced_set == true) {
       /** Initialize the Event here **/
 		edsv_evt->evt_type = EDSV_EVT_QUIESCED_ACK;
 		edsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
@@ -1499,8 +1499,8 @@ uint32_t eds_mds_vdest_create(EDS_CB *eds_cb)
 #endif
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_persistent = FALSE;	/* Up-to-the application */
-	/*  vda_info.info.vdest_create.i_persistent = TRUE; * Up-to-the application */
+	vda_info.info.vdest_create.i_persistent = false;	/* Up-to-the application */
+	/*  vda_info.info.vdest_create.i_persistent = true; * Up-to-the application */
 	/*  vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; */
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 
@@ -1571,7 +1571,7 @@ uint32_t eds_mds_init(EDS_CB *cb)
 	mds_info.info.svc_install.i_yr_svc_hdl = cb->my_hdl;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_svc_cb = eds_mds_callback;
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	mds_info.info.svc_install.i_mds_q_ownership = false;
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = EDS_SVC_PVT_SUBPART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {

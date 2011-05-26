@@ -58,7 +58,7 @@ static uint32_t avnd_send_pg_start_on_fover(AVND_CB *cb)
 	memset(&csi_name, '\0', sizeof(SaNameT));
 
 	while (NULL != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name))) {
-		rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_START, TRUE);
+		rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_START, true);
 
 		if (NCSCC_RC_SUCCESS != rc)
 			break;
@@ -89,7 +89,7 @@ uint32_t avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_DND_MSG_LIST *rec = 0, t_rec;
 	AVSV_D2N_DATA_VERIFY_MSG_INFO *info;
 	uint32_t rcv_id;
-	NCS_BOOL msg_found = FALSE;
+	bool msg_found = false;
 
 	TRACE_ENTER2("Data Verify message received from newly ACTIVE AVD");
 
@@ -155,7 +155,7 @@ uint32_t avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 
 			TRACE_1("AVND record %u sent, upon fail-over", *((uint32_t *)(&rec->msg.info.avd->msg_info)));
 
-			msg_found = TRUE;
+			msg_found = true;
 		}
 
 		rec = t_rec.next;
@@ -166,7 +166,7 @@ uint32_t avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	 */
 	avnd_send_pg_start_on_fover(cb);
 
-	if ((cb->snd_msg_id != info->rcv_id_cnt) && (msg_found == FALSE)) {
+	if ((cb->snd_msg_id != info->rcv_id_cnt) && (msg_found == false)) {
 		/* Log error, seems to be some problem. */
 		LOG_EM("AVND record not found, after failover, receive id = %u",info->rcv_id_cnt);
 		return NCSCC_RC_FAILURE;

@@ -1021,7 +1021,7 @@ uint32_t ntfa_mds_init(ntfa_cb_t *cb)
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
 	mds_info.info.svc_install.i_svc_cb = ntfa_mds_callback;	/* callback */
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;	/* NTFA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_q_ownership = false;	/* NTFA doesn't own the mds queue */
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = NTFA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {

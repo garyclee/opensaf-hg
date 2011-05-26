@@ -500,7 +500,7 @@ uint32_t ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 		spir_entry = (NCS_SPIR_ENTRY *)ncs_patricia_tree_get(&sprr_cb->spir_cb.spi_list, (uint8_t *)&spir_key);
 
 		if (spir_entry == NULL) {
-			info->info.lookup_create_inst.o_created = TRUE;
+			info->info.lookup_create_inst.o_created = true;
 			/* There is no such entry. We will need to create one. */
 			/* So, allocate a new entry */
 			spir_entry = m_MMGR_ALLOC_NCS_SPIR_ENTRY;
@@ -539,7 +539,7 @@ uint32_t ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 			/* And finally add it to the SPIR tree */
 			ncs_patricia_tree_add(&sprr_cb->spir_cb.spi_list, &spir_entry->pat_node);
 		} else {
-			info->info.lookup_create_inst.o_created = FALSE;
+			info->info.lookup_create_inst.o_created = false;
 		}
 		spir_entry->use_count++;
 		splr_entry->inst_count++;	/*Note:Splr-entry */

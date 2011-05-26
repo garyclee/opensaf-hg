@@ -42,7 +42,7 @@ uint32_t ncs_lbp_create(void);
 uint32_t ncs_lbp_destroy(void);
 
 typedef struct ncsub_pool {
-	NCS_BOOL busy;
+	bool busy;
 	uint8_t pool_id;
 	NCS_POOL_MALLOC mem_alloc;
 	NCS_POOL_MFREE mem_free;

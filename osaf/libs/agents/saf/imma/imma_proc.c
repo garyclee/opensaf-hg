@@ -119,7 +119,7 @@ uint32_t imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info)
  
   Notes         : None
 ******************************************************************************/
-static NCS_BOOL imma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool imma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	IMMA_CALLBACK_INFO *callback, *pnext;
 
@@ -131,7 +131,7 @@ static NCS_BOOL imma_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		callback = pnext;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -405,7 +405,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
                   
   Arguments     : cb - IMMA CB.
 ******************************************************************************/
-void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
+void imma_determine_clients_to_resurrect(IMMA_CB *cb, bool* locked)
 {
 	/* We are LOCKED already, but we may unlock here => locked will be false*/
 	IMMA_CLIENT_NODE  * clnode;
@@ -475,10 +475,10 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
 		TRACE_1("ClientHigh message high %u", clientHigh);
 		/* Unlock before MDS Send */
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		*locked = FALSE;
+		*locked = false;
 		clnode = NULL;
 
-		if (cb->is_immnd_up == FALSE)
+		if (cb->is_immnd_up == false)
 		{
 			TRACE_3("IMMND is DOWN - clientHigh attempt failed. ");
 			goto done;
@@ -515,7 +515,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			continue; /* Already processed or CCB created after resurrect. */
 		}
 
-		oiCcb->isStale = FALSE; /* Avoid ccb termination upcall again. */
+		oiCcb->isStale = false; /* Avoid ccb termination upcall again. */
 
 		if (oiCcb->isCritical) {			
 			SaImmHandleT handle = cl_node->handle;
@@ -575,7 +575,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			TRACE_4("Failed to post ccb %llx stale-terminate ipc-message", oiCcb->ccbId);
 		} else {TRACE_3("Posted ccb %llx stale-terminate ipc-message: %s", oiCcb->ccbId,
 					(err == SA_AIS_OK)?"APPLY":"ABORT");}
-		assert(oiCcb->isStale == FALSE); 
+		assert(oiCcb->isStale == false); 
 
 		TRACE_3("imma_proc_terminate_oi_ccbs: oi_ccb_record for %llx terminated",
 			oiCcb->ccbId);
@@ -614,8 +614,8 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		} else {TRACE_3("Posted stale handle ipc-message");} 
 
 		/*Avoid redoing this dispatch for the same stale connection*/
-		cl_node->selObjUsable=FALSE; 
-		/*If a resurrect succeds cl_node->selObjUsable will be set back to TRUE*/
+		cl_node->selObjUsable=false; 
+		/*If a resurrect succeds cl_node->selObjUsable will be set back to true*/
 
 		/* Abort any active but non-critical OI CCBs */
 		while (oiCcb != NULL) {
@@ -648,7 +648,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 				   ccb-op upcall. That would confuse the OI! */
 				TRACE_4("Failed to post ccb stale abort ipc-message");
 			} else {TRACE_3("Posted ccb %llx stale abort ipc-message", oiCcb->ccbId);}
-			oiCcb->isStale = FALSE; /* Avoid sending the abort message again. */
+			oiCcb->isStale = false; /* Avoid sending the abort message again. */
 
 			TRACE_3("imma_proc_stale_dispatch: oi_ccb_record for %llx terminated",
 				oiCcb->ccbId);
@@ -685,7 +685,7 @@ SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId)
 			proc_rc = NCSCC_RC_SUCCESS;
 		}
 
-		if (cb->is_immnd_up == FALSE) {
+		if (cb->is_immnd_up == false) {
 			err = SA_AIS_ERR_TRY_AGAIN;
 			continue;
 		} 
@@ -1404,7 +1404,7 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
 
                   The cb_lock should NOT be locked on entry here.
  
-  Return Values : TRUE => resurrect succeeded. FALSE => BAD_HANDLE
+  Return Values : true => resurrect succeeded. false => BAD_HANDLE
  
   Notes         : None
 ******************************************************************************/
@@ -1414,7 +1414,7 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 	IMMA_CLIENT_NODE    *cl_node=NULL;
 	IMMSV_EVT resurrect_evt;
 	IMMSV_EVT *out_evt=NULL;
-	NCS_BOOL locked = FALSE;
+	bool locked = false;
 	SaAisErrorT err;
 	unsigned int sleep_delay_ms = 500;
 	unsigned int max_waiting_time_ms = 2 * 1000; /* 2 secs */
@@ -1425,7 +1425,7 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 		TRACE_3("Lock failure");
 		goto lock_fail;
 	}
-	locked = TRUE;
+	locked = true;
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (cl_node == NULL || (cl_node->stale && cl_node->exposed))
@@ -1444,7 +1444,7 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 	if (cl_node->replyPending) {
 		TRACE_4("Can not resurrect client with pending replies, client now exposed");
 		/* Catches on-going async admin OM op as well as blocked calls */
-		cl_node->exposed = TRUE;
+		cl_node->exposed = true;
 		goto failure;
 	}
 
@@ -1458,10 +1458,10 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 		immHandle, isOm);
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	locked = FALSE;
+	locked = false;
 	cl_node = NULL;
 
-	if (cb->is_immnd_up == FALSE) {
+	if (cb->is_immnd_up == false) {
 		TRACE_3("IMMND is DOWN - resurrect attempt failed. ");
 		goto exposed;
 	}
@@ -1503,7 +1503,7 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 		TRACE_3("Lock failure");
 		goto lock_fail;
 	}
-	locked = TRUE;
+	locked = true;
 
 	/* Look up the client node again. */
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
@@ -1519,9 +1519,9 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 	}
 
 	/* Clear away stale marking */
-	cl_node->stale = FALSE;
+	cl_node->stale = false;
 
-	/*cl_node->selObjUsable = TRUE;   Done in OM/OI dispatch if relevant. */
+	/*cl_node->selObjUsable = true;   Done in OM/OI dispatch if relevant. */
 
  skip_resurrect:
 	if (locked) {
@@ -1529,16 +1529,16 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 	}
 
 	TRACE_LEAVE();
-	return TRUE;
+	return true;
 
  exposed:
 	/* Try to mark client as exposed */
 	if (locked || 
 		(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)) {
-		locked = TRUE;
+		locked = true;
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node != NULL && cl_node->stale) {
-			cl_node->exposed = TRUE; 
+			cl_node->exposed = true; 
 		}
 	}
 
@@ -1549,7 +1549,7 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isO
 
  lock_fail:
 	TRACE_LEAVE();
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -1586,7 +1586,7 @@ uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
 			if (cl_node->stale) {
-				cl_node->exposed = TRUE;
+				cl_node->exposed = true;
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
@@ -1636,7 +1636,7 @@ uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
 			if (cl_node->stale) {
-				cl_node->exposed = TRUE;
+				cl_node->exposed = true;
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
@@ -1714,7 +1714,7 @@ uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 		if (callback) {
 			if (client_info) {
 				if (client_info->stale) {
-					client_info->exposed = TRUE;
+					client_info->exposed = true;
 					m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 					return SA_AIS_ERR_BAD_HANDLE;
 				}
@@ -1817,10 +1817,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 #endif
 
 #ifdef IMMA_OI
-	SaBoolT isPbeOp = SA_FALSE;
+	bool isPbeOp = false;
 	switch (callback->type) {
 		case IMMA_CALLBACK_PBE_ADMIN_OP:
-			isPbeOp = SA_TRUE;
+			isPbeOp = true;
 			assert(cl_node->isPbe);
 			TRACE("PBE Admin OP callback");
 		case IMMA_CALLBACK_OM_ADMIN_OP:
@@ -1848,14 +1848,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			break;
 
 		case IMMA_CALLBACK_PBE_PRTO_DELETES_COMPLETED:
-			isPbeOp = SA_TRUE;
+			isPbeOp = true;
 			assert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_COMPLETED:
 			TRACE("%s-completed op callback", isPbeOp?"Pbe-Prto-Deletes":"ccb");
 			do {
 				SaAisErrorT localEr = SA_AIS_OK;
 				IMMSV_EVT ccbCompletedRpl;
-				NCS_BOOL locked = FALSE;
+				bool locked = false;
 				if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
 				{
 					SaImmOiCcbIdT ccbid = 0LL;
@@ -1931,7 +1931,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
 				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-				locked = TRUE;
+				locked = true;
 				/*async  fevs */
 
 				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
@@ -1954,7 +1954,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 
 				if(!(cl_node->isApplier)) {
-					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, false);
 					if (localEr != NCSCC_RC_SUCCESS) {
 						/*Cant do anything but log error and drop this reply. */
 						TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
@@ -1963,7 +1963,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				if (locked) {
 					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = FALSE;
+					locked = false;
 				}
 			} while (0);
 			break;
@@ -1998,14 +1998,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			break;
 
 		case IMMA_CALLBACK_PBE_PRT_OBJ_CREATE:
-			isPbeOp = SA_TRUE;
+			isPbeOp = true;
 			assert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_CREATE:
 			TRACE("%sobject-create callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 			do {
 				SaAisErrorT localEr = SA_AIS_OK;
 				IMMSV_EVT ccbObjCrRpl;
-				NCS_BOOL locked = FALSE;
+				bool locked = false;
 				SaImmAttrValuesT_2 **attr = NULL;
 				size_t attrDataSize = 0;
 				int i = 0;
@@ -2126,7 +2126,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 				if(callback->inv) { 
 					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = TRUE;
+					locked = true;
 					memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
 					ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
 					if(isPbeOp) {
@@ -2140,7 +2140,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
 					/*async fevs */
-					localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+					localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, false);
 				} else {
 					/* callback->inv == 0 means PBE CCB obj create upcall, NO reply.
 					   But note that for PBE PRTO, callback->inv != 0 and we reply
@@ -2152,7 +2152,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				if (locked) {
 					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = FALSE;
+					locked = false;
 				}
 
 				if (localEr != NCSCC_RC_SUCCESS) {
@@ -2163,14 +2163,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			break;
 			
 		case IMMA_CALLBACK_PBE_PRT_OBJ_DELETE:
-			isPbeOp = SA_TRUE;
+			isPbeOp = true;
 			assert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_DELETE:
 			TRACE("%sobject-delete op callback", isPbeOp?"Pbe-Runtime-":"Ccb-");
 			do {
 				SaAisErrorT localEr = SA_AIS_OK;
 				IMMSV_EVT ccbObjDelRpl;
-				NCS_BOOL locked = FALSE;
+				bool locked = false;
 				if (cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback) {
 					SaImmOiCcbIdT ccbid = 0LL;
 					if(isPbeOp) {
@@ -2224,9 +2224,9 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
 
 					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = TRUE;
+					locked = true;
 					/*async  fevs */
-					localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+					localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, false);
 				} else {
 					/* callback->inv == 0 means PBE (CCB or PRTO) or applier upcall, no reply. */
 					assert(cl_node->isPbe || cl_node->isApplier);
@@ -2234,7 +2234,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				if (locked) {
 					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = FALSE;
+					locked = false;
 				}
 				if (localEr != NCSCC_RC_SUCCESS) {
 					/*Cant do anything but log error and drop this reply. */
@@ -2245,14 +2245,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			break;
 
 		case IMMA_CALLBACK_PBE_PRT_ATTR_UPDATE:
-			isPbeOp = SA_TRUE; /*Actually isPrtAttr would be better name here. */
+			isPbeOp = true; /*Actually isPrtAttr would be better name here. */
 			assert(cl_node->isPbe);
 		case IMMA_CALLBACK_OI_CCB_MODIFY:
 			TRACE("%s op callback", isPbeOp?"Pbe-runtime update":"ccb");
 			do {
 				SaAisErrorT localEr = SA_AIS_OK;
 				IMMSV_EVT ccbObjModRpl;
-				NCS_BOOL locked = FALSE;
+				bool locked = false;
 				SaImmAttrModificationT_2 **attr = NULL;
 				int i = 0;
 				if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback) {
@@ -2365,7 +2365,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 				if(callback->inv) { 
 					assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = TRUE;
+					locked = true;
 					memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
 					ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
 					if(isPbeOp) {
@@ -2380,7 +2380,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					/*async fevs */
 					localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0,
-						cl_node->handle, &locked, FALSE);
+						cl_node->handle, &locked, false);
 				} else {
 					/* callback->inv == 0 means PBE CCB modify upcall, no reply. */
 					assert(cl_node->isPbe || cl_node->isApplier);
@@ -2388,7 +2388,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				if (locked) {
 					assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-					locked = FALSE;
+					locked = false;
 				}
 
 				if (localEr != NCSCC_RC_SUCCESS) {
@@ -2496,7 +2496,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.requestNodeId = callback->requestNodeId;
 				/* No structures allocated, all pointers borowed => nothing to free. */
 
-				if (cb->is_immnd_up == FALSE) {
+				if (cb->is_immnd_up == false) {
 					proc_rc = SA_AIS_ERR_NO_RESOURCES;
 					TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
 				} else {
@@ -2606,7 +2606,7 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
 SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	IMMSV_EVT *i_evt,
 	IMMSV_EVT **o_evt,
-	uint32_t timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable)
+	uint32_t timeout, SaImmHandleT immHandle, bool *locked, bool checkWritable)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT fevs_evt;
@@ -2682,10 +2682,10 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	*locked = FALSE;
+	*locked = false;
 
 	/* IMMND GOES DOWN */
-	if (cb->is_immnd_up == FALSE) {
+	if (cb->is_immnd_up == false) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto fail;

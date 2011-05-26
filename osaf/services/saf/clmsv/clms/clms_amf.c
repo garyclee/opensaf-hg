@@ -134,7 +134,7 @@ static SaAisErrorT amf_quiesced_state_handler(CLMS_CB * cb, SaInvocationT invoca
 	cb->mds_role = V_DEST_RL_QUIESCED;
 	clms_mds_change_role(cb);
 	cb->amf_inv = invocation;
-	cb->is_quiesced_set = TRUE;
+	cb->is_quiesced_set = true;
 
 	TRACE_LEAVE();
 	return SA_AIS_OK;
@@ -193,7 +193,7 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -236,8 +236,8 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 	/* Update control block */
 	clms_cb->ha_state = haState;
 
-	if (clms_cb->csi_assigned == FALSE) {
-		clms_cb->csi_assigned = TRUE;
+	if (clms_cb->csi_assigned == false) {
+		clms_cb->csi_assigned = true;
 		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 	} else if ((haState == SA_AMF_HA_ACTIVE) || (haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 		clms_cb->ckpt_state = COLD_SYNC_IDLE;
@@ -249,13 +249,13 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 
 	/* Handle active to active role change. */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_ACTIVE))
-		role_change = FALSE;
+		role_change = false;
 
 	/* Handle Stby to Stby role change. */
 	if ((prev_haState == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_STANDBY))
-		role_change = FALSE;
+		role_change = false;
 
-	if (role_change == TRUE) {
+	if (role_change == true) {
 
 		if(clms_cb->ha_state == SA_AMF_HA_ACTIVE)
 			clms_imm_impl_set(clms_cb);

@@ -97,14 +97,14 @@
         }
 
 /* Function Prototypes written in mqnd_util.c */
-NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
+bool mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
 					   SaMsgQueueCreationAttributesT *curr_ca);
 
 uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 				 MDS_DEST *rcvr_mqa, SaMsgQueueHandleT *qhdl,
 				 MQP_TRANSFERQ_RSP *transfer_rspi, SaAisErrorT *err);
 
-uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen);
+uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, bool is_q_reopen);
 
 /* Function Prototypes written in mqnd_proc.c */
 

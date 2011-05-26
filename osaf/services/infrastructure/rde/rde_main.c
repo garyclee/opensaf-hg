@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 			}
 
 			/* Add the new client fd to client-list	*/
-			rde_rda_cb->clients[rde_rda_cb->client_count].is_async = FALSE;
+			rde_rda_cb->clients[rde_rda_cb->client_count].is_async = false;
 			rde_rda_cb->clients[rde_rda_cb->client_count].fd = newsockfd;
 			rde_rda_cb->client_count++;
 

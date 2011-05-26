@@ -47,13 +47,13 @@ int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const Sa
 
 	for (chan_hdl_rec = eda_hdl_rec->chan_list; chan_hdl_rec != NULL; chan_hdl_rec = chan_hdl_rec->next) {
 
-		if ((FALSE == chan_hdl_rec->ulink)
+		if ((false == chan_hdl_rec->ulink)
 		    && (chan_hdl_rec->channel_name.length == channelName->length)
 		    && (memcmp(chan_hdl_rec->channel_name.value, channelName->value, channelName->length) == 0)) {
 	/** Mark the channel to be unlinked 
-         ** as TRUE.
+         ** as true.
          **/
-			chan_hdl_rec->ulink = TRUE;
+			chan_hdl_rec->ulink = true;
 			chan_count_marked++;
 		}
 	}
@@ -76,17 +76,17 @@ int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const Sa
  
   Notes         : None
 ******************************************************************************/
-NCS_BOOL eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec)
+bool eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hdl_rec)
 {
 	EDA_CLIENT_HDL_REC *hdl_rec;
 
 	for (hdl_rec = eda_cb->eda_init_rec_list; hdl_rec != NULL; hdl_rec = hdl_rec->next) {
 		if (hdl_rec == find_hdl_rec)
-			return TRUE;
+			return true;
 	}
 
 	/* No subscription record match found */
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************

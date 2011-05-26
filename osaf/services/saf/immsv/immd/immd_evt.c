@@ -149,7 +149,7 @@ void immd_process_evt(void)
 		break;
 	case IMMD_EVT_ND2D_FEVS_REQ:
 	case IMMD_EVT_ND2D_FEVS_REQ_2:
-		rc = immd_evt_proc_fevs_req(cb, &evt->info.immd, &evt->sinfo, TRUE);
+		rc = immd_evt_proc_fevs_req(cb, &evt->info.immd, &evt->sinfo, true);
 		break;
 	case IMMD_EVT_MDS_QUIESCED_ACK_RSP:
 		rc = immd_evt_mds_quiesced_ack_rsp(cb, &evt->info.immd, &evt->sinfo);
@@ -213,13 +213,13 @@ static uint32_t immd_immnd_guard(IMMD_CB *cb, MDS_DEST *dest)
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
 
-uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, NCS_BOOL deallocate)
+uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo, bool deallocate)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_FEVS *fevs_req = &evt->info.fevsReq;
-	uint8_t isResend = FALSE;
+	uint8_t isResend = false;
 	TRACE_ENTER();
 
 	/* First check that source IMMND is in legal state 
@@ -243,7 +243,7 @@ uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sin
 	if ((evt->type == 0) && (fevs_req->sender_count > 0)) {
 		TRACE_5("Re-sending fevs message %llu", fevs_req->sender_count);
 		send_evt.info.immnd.info.fevsReq.sender_count = fevs_req->sender_count;
-		isResend = TRUE;
+		isResend = true;
 	} else {
 		send_evt.info.immnd.info.fevsReq.sender_count = ++(cb->fevsSendCount);
 	}
@@ -336,7 +336,7 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_IN
 	memset(&sync_evt, 0, sizeof(IMMSV_EVT));
 	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
 
-	node_info->syncStarted = TRUE;
+	node_info->syncStarted = true;
 
 	sync_evt.type = IMMSV_EVT_TYPE_IMMND;
 	sync_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_START;
@@ -381,7 +381,7 @@ static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	memset(&sync_evt, 0, sizeof(IMMSV_EVT));
 	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
 
-	node_info->syncStarted = FALSE;
+	node_info->syncStarted = false;
 
 	sync_evt.type = IMMSV_EVT_TYPE_IMMND;
 	sync_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_ABORT;
@@ -596,12 +596,12 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	TRACE_LEAVE();
 }
 
-static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_BOOL doReply)
+static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool doReply)
 {
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT accept_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
-	NCS_BOOL isOnController = node_info->isOnController;
+	bool isOnController = node_info->isOnController;
 	TRACE_ENTER();
 
 	memset(&accept_evt, 0, sizeof(IMMSV_EVT));
@@ -623,11 +623,11 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 		       "\n\nCluster must be loading => designating this IMMND as coordinator",
 		       node_info->immnd_key, cb->node_id);
 		cb->immnd_coord = node_info->immnd_key;
-		node_info->isCoord = TRUE;
+		node_info->isCoord = true;
 	}
 
 	if (node_info->isCoord) {
-		accept_evt.info.immnd.info.ctrl.isCoord = TRUE;
+		accept_evt.info.immnd.info.ctrl.isCoord = true;
 		accept_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	}
 
@@ -1098,7 +1098,7 @@ static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 
 		if (node_info->isCoord) {
 			LOG_ER("SERIOUS INCONSISTENCY, current IMMND coord " "requests sync!");
-			immd_proc_immd_reset(cb, TRUE);
+			immd_proc_immd_reset(cb, true);
 			proc_rc = NCSCC_RC_FAILURE;
 		} else {
 			node_info->syncRequested = 1;
@@ -1167,7 +1167,7 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 					abort();
 				}
 				/*node_info->epoch = cb->mRulingEpoch;*/
-				node_info->syncStarted = FALSE;
+				node_info->syncStarted = false;
 			}
 
 			/*is this check necessary ?? 
@@ -1188,29 +1188,29 @@ static uint32_t immd_evt_proc_immnd_intro(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 				cb->mRulingEpoch = node_info->epoch;
 				LOG_NO("Ruling epoch changed to:%u", cb->mRulingEpoch);
 			}
-			immd_accept_node(cb, node_info, FALSE);
+			immd_accept_node(cb, node_info, false);
 		} else {
 			if (sinfo->dest == cb->loc_immnd_dest) {
-				node_info->isOnController = TRUE;
+				node_info->isOnController = true;
 				LOG_NO("New IMMND process is on ACTIVE Controller at %x", node_info->immnd_key);
 			} else if (cb->immd_remote_id &&
 				   m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 						      immd_get_slot_and_subslot_id_from_mds_dest(sinfo->dest))) {
-				node_info->isOnController = TRUE;
+				node_info->isOnController = true;
 
 				if (cb->is_rem_immnd_up) {
 					assert(cb->rem_immnd_dest == sinfo->dest);
 				} else {
-					cb->is_rem_immnd_up = TRUE;	/*ABT BUGFIX 080811 */
+					cb->is_rem_immnd_up = true;	/*ABT BUGFIX 080811 */
 					cb->rem_immnd_dest = sinfo->dest;
 				}
 				LOG_NO("New IMMND process is on STANDBY Controller at %x", node_info->immnd_key);
 			} else {	/*if(cb->immd_remote_id) */
 
-				/*node_info->isOnPayload = TRUE; */
+				/*node_info->isOnPayload = true; */
 				LOG_IN("New IMMND process is on PAYLOAD at:%x", node_info->immnd_key);
 			}
-			immd_accept_node(cb, node_info, TRUE);
+			immd_accept_node(cb, node_info, true);
 		}
 	} else {
 		LOG_WA("Node not found %" PRIu64, sinfo->dest);
@@ -1314,7 +1314,7 @@ static uint32_t immd_evt_proc_adminit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1423,7 +1423,7 @@ static uint32_t immd_evt_proc_impl_set_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1501,7 +1501,7 @@ static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1573,7 +1573,7 @@ static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1644,7 +1644,7 @@ static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1715,7 +1715,7 @@ static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMM
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1817,7 +1817,7 @@ static uint32_t immd_evt_proc_ccbinit_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND
 	/*This invocation makes it appear as if a fevs call arrived at the IMMD.
 	   In actuality, this call needed extra processing (the global id) so
 	   it was not sent IMMND->IMMD as a fevs call but as a dedicated call. */
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1904,7 +1904,7 @@ static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SE
 	fevs_evt.info.immd.info.fevsReq.msg.size = size;
 	fevs_evt.info.immd.info.fevsReq.msg.buf = data;
 
-	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, FALSE);
+	proc_rc = immd_evt_proc_fevs_req(cb, &(fevs_evt.info.immd), sinfo, false);
 
  fail:
 	if (tmpData) {
@@ -1976,7 +1976,7 @@ static uint32_t immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
 		}
 
 		/* Change of role to active => We may need to elect new coord */
-		immd_proc_elect_coord(cb, TRUE);
+		immd_proc_elect_coord(cb, true);
 		immd_db_purge_fevs(cb);
 	}
 done:
@@ -2000,7 +2000,7 @@ static uint32_t immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_
 	if (cb->is_quiesced_set) {
 		/* Update controler block */
 		cb->ha_state = SA_AMF_HA_QUIESCED;
-		cb->is_quiesced_set = FALSE;
+		cb->is_quiesced_set = false;
 
 		/* Inform mbcsv about the changed role */
 		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS)
@@ -2032,7 +2032,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 {
 	IMMSV_MDS_INFO *mds_info;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
-	NCS_BOOL add_flag = TRUE;
+	bool add_flag = true;
 	uint32_t phy_slot_sub_slot;
 	TRACE_ENTER();
 
@@ -2057,7 +2057,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 		//#1773 #1819
 		if(cb->immd_remote_id == immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id)) {
 			LOG_WA("IMMD lost contact with peer IMMD (NCSMDS_RED_DOWN)");
-			cb->immd_remote_up = FALSE;
+			cb->immd_remote_up = false;
 		}
 		break;
 
@@ -2070,7 +2070,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			TRACE_5("Remote IMMD is UP.");
 
 			cb->immd_remote_id = immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id);
-			cb->immd_remote_up = TRUE;
+			cb->immd_remote_up = true;
 
 			/*Check if the SBY IMMND has already identified itself. 
 			   If so, we need to mark it as residing on a controller and
@@ -2085,11 +2085,11 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 						   function) presented the node as the second
 						   controller node. */
 
-						node_info->isOnController = TRUE;
+						node_info->isOnController = true;
 						TRACE_5("Located STDBY IMMND =  %x node_id:%x",
 							immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id),
 							mds_info->node_id);
-						immd_accept_node(cb, node_info, TRUE);
+						immd_accept_node(cb, node_info, true);
 					}
 					/* Break out of while-1. We found */
 					break;
@@ -2114,7 +2114,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			if (m_IMMND_IS_ON_SCXB(cb->immd_self_id,
 					       immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest))) {
 				TRACE_5("NCSMDS_UP for IMMND local");
-				cb->is_loc_immnd_up = TRUE;
+				cb->is_loc_immnd_up = true;
 				cb->loc_immnd_dest = mds_info->dest;
 				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 					TRACE_5("NCSMDS_UP IMMND THIS IMMD is ACTIVE");
@@ -2125,7 +2125,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 					       immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest))) {
 				TRACE_5("REMOTE IMMND UP - node:%x", mds_info->node_id);
-				cb->is_rem_immnd_up = TRUE;	//ABT BUGFIX 080811
+				cb->is_rem_immnd_up = true;	//ABT BUGFIX 080811
 				cb->rem_immnd_dest = mds_info->dest;
 				if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 					TRACE_5("NCSMDS_UP for REMOTE IMMND, THIS IMMD is ACTIVE");
@@ -2165,7 +2165,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 
 		if (m_IMMND_IS_ON_SCXB(cb->immd_self_id, immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest))) {
 			TRACE_5("NCSMDS_DOWN => local IMMND down");
-			cb->is_loc_immnd_up = FALSE;
+			cb->is_loc_immnd_up = false;
 		} else if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 					      immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest))) {
 			TRACE_5("NCSMDS_DOWN, remote IMMND/IMMD ?? down");
@@ -2179,7 +2179,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by IMMD");
-				immd_process_immnd_down(cb, node_info, TRUE);
+				immd_process_immnd_down(cb, node_info, true);
 			}
 		}
 
@@ -2191,7 +2191,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by STANDBY IMMD");
-				immd_process_immnd_down(cb, node_info, FALSE);
+				immd_process_immnd_down(cb, node_info, false);
 			}
 		}
 
@@ -2203,7 +2203,7 @@ static uint32_t immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 				goto done;
 			} else {
 				TRACE_5("IMMND DOWN PROCESS detected by QUIESCED IMMD");
-				immd_process_immnd_down(cb, node_info, FALSE);
+				immd_process_immnd_down(cb, node_info, false);
 			}
 		}
 		break;

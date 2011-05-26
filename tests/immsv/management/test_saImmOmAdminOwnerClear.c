@@ -26,14 +26,14 @@ void saImmOmAdminOwnerClear_01(void)
 
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
 
-    /* releaseOwnershipOnFinalize == FALSE */
+    /* releaseOwnershipOnFinalize == false */
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_FALSE, &ownerHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
     if (saImmOmAdminOwnerClear(immOmHandle, objectNames, SA_IMM_ONE) != SA_AIS_OK)
         goto done;
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
 
-    /* releaseOwnershipOnFinalize == TRUE (old bug) */
+    /* releaseOwnershipOnFinalize == true (old bug) */
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
     rc = saImmOmAdminOwnerClear(immOmHandle, objectNames, SA_IMM_ONE);

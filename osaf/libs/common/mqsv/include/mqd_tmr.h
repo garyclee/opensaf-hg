@@ -30,8 +30,8 @@ typedef struct mqd_tmr {
 	tmr_t tmr_id;
 	NODE_ID nodeid;
 	uint32_t uarg;
-	NCS_BOOL is_active;
-	NCS_BOOL is_expired;
+	bool is_active;
+	bool is_expired;
 } MQD_TMR;
 
 uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration);

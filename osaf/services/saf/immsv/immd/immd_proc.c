@@ -23,7 +23,7 @@
 
 #include "immd.h"
 
-void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
+void immd_proc_immd_reset(IMMD_CB *cb, bool active)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
@@ -116,7 +116,7 @@ void immd_proc_abort_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *coord)
 					break;	/* out of while */
 				} else {
 					LOG_ER("Non coord has sync marker, removing it");
-					immnd_info_node->syncStarted = FALSE;
+					immnd_info_node->syncStarted = false;
 				}
 			}
 			immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
@@ -138,19 +138,19 @@ void immd_proc_abort_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *coord)
 			}
 			immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
 		}
-		coord->syncStarted = FALSE;
+		coord->syncStarted = false;
 	}
 
 	TRACE_LEAVE();
 }
 
-int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
+int immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	MDS_DEST key;
 	IMMD_IMMND_INFO_NODE *immnd_info_node = NULL;
-	NCS_BOOL self_re_elect=FALSE;
+	bool self_re_elect=false;
 
 	TRACE_ENTER();
 	memset(&key, 0, sizeof(MDS_DEST));
@@ -169,7 +169,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 				   not obtained first. */
 				LOG_ER("Epoch(%u) for current coord is less than "
 				       "the epoch of some other node (%u)", immnd_info_node->epoch, maxEpoch);
-				immd_proc_immd_reset(cb, TRUE);
+				immd_proc_immd_reset(cb, true);
 			}
 
 			if (new_active) {
@@ -204,8 +204,8 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 						   (nonrestartable) has crashed on that node.
 						 */
 					}
-					self_re_elect = TRUE;
-					immnd_info_node->isCoord = FALSE;
+					self_re_elect = true;
+					immnd_info_node->isCoord = false;
 					immnd_info_node = NULL;	/*Force new coord election. */
 				}
 			}
@@ -229,7 +229,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 			key = immnd_info_node->immnd_dest;
 			if ((immnd_info_node->isOnController) && (immnd_info_node->epoch == cb->mRulingEpoch)) {
 				/*We found a new candidate for cordinator */
-				immnd_info_node->isCoord = TRUE;
+				immnd_info_node->isCoord = true;
 				break;
 			}
 
@@ -240,7 +240,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 			LOG_ER("Failed to find candidate for new IMMND coordinator");
 
 			TRACE_LEAVE();
-			immd_proc_immd_reset(cb, TRUE);
+			immd_proc_immd_reset(cb, true);
 			return (-1);
 		}
 
@@ -259,7 +259,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 			    m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
 					       immd_get_slot_and_subslot_id_from_mds_dest(immnd_info_node->immnd_dest)))
 			{
-				cb->is_rem_immnd_up = TRUE;	/*ABT BUGFIX 080905 */
+				cb->is_rem_immnd_up = true;	/*ABT BUGFIX 080905 */
 				cb->rem_immnd_dest = immnd_info_node->immnd_dest;
 				TRACE_5("Corrected: IMMND process is on STANDBY Controller");
 			}
@@ -274,9 +274,9 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 		send_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
 		send_evt.info.immnd.info.ctrl.canBeCoord = immnd_info_node->isOnController;
 		send_evt.info.immnd.info.ctrl.ndExecPid = immnd_info_node->immnd_execPid;
-		send_evt.info.immnd.info.ctrl.isCoord = TRUE;
+		send_evt.info.immnd.info.ctrl.isCoord = true;
 		send_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
-		send_evt.info.immnd.info.ctrl.syncStarted = FALSE;
+		send_evt.info.immnd.info.ctrl.syncStarted = false;
 		send_evt.info.immnd.info.ctrl.nodeEpoch = immnd_info_node->epoch;
 
 		mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
@@ -312,13 +312,13 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS_BOOL active)
+uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, bool active)
 {
 	IMMSV_EVT send_evt;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
 	int res = 0;
-	NCS_BOOL possible_fo = FALSE;
+	bool possible_fo = false;
 	TRACE_ENTER();
 
 	TRACE_5("immd_process_immnd_down pid:%u on-active:%u "
@@ -333,13 +333,13 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 				/* Sync was started, but never completed by coord.
 				   Bump up epoch for all nodes that where already members.
 				   Broadcast sync abort message.
-				   (Also resets: immnd_info->syncStarted = FALSE;) */
+				   (Also resets: immnd_info->syncStarted = false;) */
 				immd_proc_abort_sync(cb, immnd_info);
 			}
 			immnd_info->isCoord = 0;
 			immnd_info->isOnController = 0;
 			cb->immnd_coord = 0;
-			res = immd_proc_elect_coord(cb, FALSE);
+			res = immd_proc_elect_coord(cb, false);
 		}
 	} else {
 		/* Check if it was the IMMND on the active controller that went down. */
@@ -348,7 +348,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 			       "detected at standby immd!! %x. "
 			       "Possible failover",
 			       immd_get_slot_and_subslot_id_from_node_id(immnd_info->immnd_key), cb->immd_self_id);
-			possible_fo = TRUE;
+			possible_fo = true;
 			if (immnd_info->isCoord && immnd_info->syncStarted) {
 				immd_proc_abort_sync(cb, immnd_info);
 			}
@@ -385,7 +385,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 						send_evt.info.immd.info.fevsReq.msg.size = old_msg->msg.size;
 						send_evt.info.immd.info.fevsReq.msg.buf = old_msg->msg.buf;
 
-						if (immd_evt_proc_fevs_req(cb, &(send_evt.info.immd), NULL, FALSE)
+						if (immd_evt_proc_fevs_req(cb, &(send_evt.info.immd), NULL, false)
 						    != NCSCC_RC_SUCCESS) {
 							LOG_ER("Failed to re-send FEVS message %llu",
 							       old_msg->sender_count);
@@ -417,7 +417,7 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 			send_evt.info.immd.info.fevsReq.msg.size = size;
 			send_evt.info.immd.info.fevsReq.msg.buf = data;
 
-			if (immd_evt_proc_fevs_req(cb, &(send_evt.info.immd), NULL, FALSE)
+			if (immd_evt_proc_fevs_req(cb, &(send_evt.info.immd), NULL, false)
 			    != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failed to send discard node message over FEVS");
 			}

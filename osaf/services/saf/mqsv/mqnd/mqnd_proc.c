@@ -322,7 +322,7 @@ uint32_t mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	qnode->qinfo.qtransfer_complete_tmr.qhdl = qnode->qinfo.queueHandle;
 	qnode->qinfo.qtransfer_complete_tmr.uarg = cb->cb_hdl;
 	qnode->qinfo.qtransfer_complete_tmr.tmr_id = 0;
-	qnode->qinfo.qtransfer_complete_tmr.is_active = FALSE;
+	qnode->qinfo.qtransfer_complete_tmr.is_active = false;
 
 	rc = mqnd_tmr_start(&qnode->qinfo.qtransfer_complete_tmr, MQND_QTRANSFER_REQ_TIMER);
 
@@ -470,9 +470,9 @@ static uint32_t mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 	transfer_req.msg.mqp_req.info.transferReq.openType = openType;
 
 	if (open->openFlags & SA_MSG_QUEUE_EMPTY)
-		transfer_req.msg.mqp_req.info.transferReq.empty_queue = TRUE;
+		transfer_req.msg.mqp_req.info.transferReq.empty_queue = true;
 	else
-		transfer_req.msg.mqp_req.info.transferReq.empty_queue = FALSE;
+		transfer_req.msg.mqp_req.info.transferReq.empty_queue = false;
 
 	transfer_req.sinfo.to_svc = NCSMDS_SVC_ID_MQND;
 	transfer_req.sinfo.dest = cb->my_dest;
@@ -499,7 +499,7 @@ static uint32_t mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 	qevt_node->tmr.qhdl = old_hdl;
 	qevt_node->tmr.uarg = cb->cb_hdl;
 	qevt_node->tmr.tmr_id = 0;
-	qevt_node->tmr.is_active = FALSE;
+	qevt_node->tmr.is_active = false;
 
 	rc = mqnd_tmr_start(&qevt_node->tmr, timeout);
 	if (rc == NCSCC_RC_SUCCESS)
@@ -670,7 +670,7 @@ uint32_t mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_R
 	MQND_QUEUE_NODE tmpnode, *qnode = NULL;
 	uint32_t priority = 0, offset;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
-	NCS_BOOL is_q_reopen = TRUE;
+	bool is_q_reopen = true;
 
 	mqnd_queue_node_get(cb, qinfo->oinfo.qparam->hdl, &qnode);
 
@@ -711,7 +711,7 @@ uint32_t mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_R
 
 	/* Change the queue owner from orphan to owned */
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN) {
-		NCS_BOOL isQueueOpen = TRUE;
+		bool isQueueOpen = true;
 		qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
 		/*update the Message Queue Owner update to IMMSV */
 		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
@@ -776,7 +776,7 @@ uint32_t mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO 
 	uint32_t rc;
 	SaMsgQueueCreationAttributesT cre_attr;
 	SaMsgQueueHandleT qhdl = 0;
-	NCS_BOOL is_qexists = TRUE;
+	bool is_qexists = true;
 	MQP_OPEN_REQ *open = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	uint32_t existing_msg_count = 0;
@@ -789,7 +789,7 @@ uint32_t mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO 
 
 	/* Check if Q exists */
 	if (m_MQND_IS_Q_NOT_EXIST(qinfo->err.errcode))
-		is_qexists = FALSE;
+		is_qexists = false;
 
 	/* Queue exists */
 	if (is_qexists) {
@@ -807,7 +807,7 @@ uint32_t mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO 
 			/*Match the received creation attributes with the attributes of the existing message queue
 			   If not matching, a queue of the same name but with different attributes already exists
 			   Therefore, send SA_AIS_ERR_EXIST message back to MQA */
-			if ((mqnd_compare_create_attr(&open->creationAttributes, &cre_attr)) == FALSE) {
+			if ((mqnd_compare_create_attr(&open->creationAttributes, &cre_attr)) == false) {
 				err = SA_AIS_ERR_EXIST;
 				m_LOG_MQSV_ND(MQND_Q_ATTR_COMPARE_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err,
 					      __FILE__, __LINE__);
@@ -953,7 +953,7 @@ uint32_t mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT 
 	*err = SA_AIS_OK;
 	SaMsgQueueHandleT listenerHandle;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
-	NCS_BOOL isQueueOpen = 0;
+	bool isQueueOpen = 0;
 
 	if (qnode == NULL) {
 		*err = SA_AIS_ERR_NO_RESOURCES;
@@ -1157,7 +1157,7 @@ uint32_t mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT 
 			qnode->qinfo.tmr.qhdl = qnode->qinfo.queueHandle;
 			qnode->qinfo.tmr.uarg = cb->cb_hdl;
 			qnode->qinfo.tmr.tmr_id = 0;
-			qnode->qinfo.tmr.is_active = FALSE;
+			qnode->qinfo.tmr.is_active = false;
 			rc = mqnd_tmr_start(&qnode->qinfo.tmr, timeout);
 			m_LOG_MQSV_ND(MQND_RETENTION_TMR_STARTED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO,
 				      NCSCC_RC_SUCCESS, __FILE__, __LINE__);

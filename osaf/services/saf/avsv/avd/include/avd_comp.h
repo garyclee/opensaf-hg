@@ -65,7 +65,7 @@ typedef struct avd_comp_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	NCS_BOOL nodefail_cleanfail;	/* If flag set to true node will
+	bool nodefail_cleanfail;	/* If flag set to true node will
 					 * be considered failed when the
 					 * cleanup script fails.
 					 * Checkpointing - Sent as a one time update.
@@ -107,7 +107,7 @@ typedef struct avd_comp_tag {
 	SaNameT                saAmfCompCurrProxyName;
 	SaNameT              **saAmfCompCurrProxiedNames;
 
-	NCS_BOOL assign_flag;	/* Flag used while assigning. to mark this
+	bool assign_flag;	/* Flag used while assigning. to mark this
 				 * comp has been assigned a CSI from
 				 * current SI being assigned
 				 */

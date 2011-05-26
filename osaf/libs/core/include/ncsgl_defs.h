@@ -43,8 +43,6 @@ extern "C" {
 
  ****************************************************************************/
 
-	typedef bool NCS_BOOL;	/* move to this solves BOOLEAN problem */
-
 	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32_t)(long)(x))
@@ -70,21 +68,6 @@ extern "C" {
 			NCS_IPV4_ADDR v4;
 		} info;
 	} NCS_IP_ADDR;
-
-
-/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-        Manifest Constants
-
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-#ifndef TRUE
-#define TRUE    true
-#endif
-
-#ifndef FALSE
-#define FALSE   false
-#endif
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 

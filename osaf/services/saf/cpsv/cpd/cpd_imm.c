@@ -75,7 +75,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	SaTimeT ckpt_ret_duration;
 	SaUint32T num_users, num_readers, num_writers, num_replicas, num_sections, num_corrupt_sections;
-	SaUint32T replicaIsActive = TRUE;
+	SaUint32T replicaIsActive = true;
 	SaUint64T ckpt_size, ckpt_used_size;
 	SaImmAttrNameT attributeName;
 	SaImmAttrModificationT_2 attr_output[9];
@@ -167,7 +167,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 							   INTEGER values have been provided to bring out those specific traits." */
 
 							if (rep_info->rep_type == REP_NOTACTIVE)
-								replicaIsActive = FALSE;
+								replicaIsActive = false;
 							attr_output[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
 							attr_output[0].modAttr.attrName = attributeName;
 							attr_output[0].modAttr.attrValuesNumber = 1;

@@ -69,7 +69,7 @@ static void mqd_lm_shut(MQD_CB *);
 static uint32_t mqd_amf_init(MQD_CB *);
 static void mqd_asapi_bind(MQD_CB *);
 static void mqd_asapi_unbind(void);
-static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 /*****************************************************************************/
 
 /****************************************************************************\
@@ -213,7 +213,7 @@ static uint32_t mqd_lib_init(void)
 	strcpy((char *)pMqd->safAgtVen.value, "OpenSAF");
 	pMqd->safAgtVen.length = strlen("OpenSAF");
 	pMqd->safAgtVenPro = 2;
-	pMqd->serv_enabled = FALSE;
+	pMqd->serv_enabled = false;
 	pMqd->serv_state = 1;
 
 	/* Initilize the Layer management variables */
@@ -343,7 +343,7 @@ static void mqd_lib_destroy(void)
 #endif
 
 		/* Deactivate the component */
-		pMqd->active = FALSE;
+		pMqd->active = false;
 
 		/* Shut off the MDS */
 		rc = mqd_mds_shut(pMqd);
@@ -505,14 +505,14 @@ static uint32_t mqd_cb_init(MQD_CB *pMqd)
 	rc = ncs_patricia_tree_init(&pMqd->qdb, &params);
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
-	pMqd->qdb_up = TRUE;
+	pMqd->qdb_up = true;
 	/* Initialize the Node database */
 	params_nodedb.key_size = sizeof(NODE_ID);
 	params_nodedb.info_size = 0;
 	rc = ncs_patricia_tree_init(&pMqd->node_db, &params_nodedb);
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
-	pMqd->node_db_up = TRUE;
+	pMqd->node_db_up = true;
 
 	return rc;
 }	/* End of mqd_cb_init() */
@@ -612,7 +612,7 @@ static uint32_t mqd_amf_init(MQD_CB *pMqd)
 #else
 	pMqd->ready_state = SA_AMF_IN_SERVICE;
 	pMqd->ha_state = SA_AMF_ACTIVE;
-	pMqd->active = TRUE;
+	pMqd->active = true;
 #endif
 	return rc;
 }	/* End of mqd_amf_init() */
@@ -668,9 +668,9 @@ static void mqd_asapi_unbind(void)
  ARGUMENTS      : arg - argument to be passed.
                   msg - Event pointer.
 
- RETURNS        : TRUE/FALSE
+ RETURNS        : true/false
 \*****************************************************************************/
-static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	MQSV_EVT *pEvt = (MQSV_EVT *)msg;
 	MQSV_EVT *pNext = NULL;
@@ -682,7 +682,7 @@ static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 
 		pEvt = pNext;
 	}
-	return TRUE;
+	return true;
 }	/* End of mqd_clear_mbx() */
 
 /****************************************************************************\

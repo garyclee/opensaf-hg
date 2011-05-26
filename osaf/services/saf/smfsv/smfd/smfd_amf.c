@@ -134,7 +134,7 @@ static SaAisErrorT amf_quiesced_state_handler(smfd_cb_t * cb,
 	cb->mds_role = V_DEST_RL_QUIESCED;
 	smfd_mds_change_role(cb);
 	cb->amf_invocation_id = invocation;
-	cb->is_quisced_set = TRUE;
+	cb->is_quisced_set = true;
 	return SA_AIS_OK;
 }
 
@@ -194,7 +194,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 {
 	SaAisErrorT result = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -236,13 +236,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
         /* Handle active to active role change. */
         if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
-                role_change = FALSE;
+                role_change = false;
 
         /* Handle Stby to Stby role change. */
         if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
-                role_change = FALSE;
+                role_change = false;
 
-	if (role_change == TRUE) {
+	if (role_change == true) {
 		if ((rc = smfd_mds_change_role(smfd_cb)) != NCSCC_RC_SUCCESS) {
 			TRACE("smfd_mds_change_role FAILED");
 			result = SA_AIS_ERR_FAILED_OPERATION;

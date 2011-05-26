@@ -56,7 +56,7 @@ typedef struct {
 	char comp_name[256];
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
-	NCS_BOOL is_amf_up;	/* For amf_fd and pipe_fd */
+	bool is_amf_up;	/* For amf_fd and pipe_fd */
 
 } RDE_AMF_CB;
 

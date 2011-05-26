@@ -109,13 +109,13 @@ typedef struct imma_cb {
 
 	/* Information about IMMND */
 	MDS_DEST immnd_mds_dest;
-	NCS_BOOL is_immnd_up;
+	bool is_immnd_up;
 	uint16_t    dispatch_clients_to_resurrect;  /* Nrof clients pending
 						    active resurrect.  */
 
 	/* IMMA data */	/* Used for both OM and OI */
 	NCS_PATRICIA_TREE client_tree;	/* IMMA_CLIENT_NODE - node */
-	NCS_BOOL is_client_tree_up;
+	bool is_client_tree_up;
 
 	/* These trees could theoretically be moved into the client node 
 	   But the assumption is that the typical process has few connections
@@ -133,7 +133,7 @@ typedef struct imma_cb {
 
 	/* Sync up with IMMND ( MDS ) see imma_sync_with_immnd() in imma_init.c */
     NCS_LOCK             immnd_sync_lock;
-    NCS_BOOL             immnd_sync_awaited;
+    bool             immnd_sync_awaited;
     NCS_SEL_OBJ          immnd_sync_sel; 
 
 } IMMA_CB;

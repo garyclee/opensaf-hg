@@ -113,7 +113,7 @@ uint32_t dtsv_send_data_req(struct dts_cb *cb);
 uint32_t dtsv_encode_cold_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
 uint32_t dtsv_encode_warm_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
 uint32_t dtsv_encode_data_sync_rsp(struct dts_cb *cb, NCS_MBCSV_CB_ENC *enc);
-uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL csync);
+uint32_t dtsv_encode_all(DTS_CB *cb, NCS_MBCSV_CB_ENC *enc, bool csync);
 
 /* Function Definitions of dts_ckpt_dec.c */
 uint32_t dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec);

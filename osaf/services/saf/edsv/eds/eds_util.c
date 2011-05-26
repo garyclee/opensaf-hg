@@ -31,11 +31,11 @@
  *
  * eds_pattern_match() - Compare a patternArray with a filterArray
  * 
- * Returns TRUE   If all pattern/filter compares succeed.
- *         FALSE  On the first miss-match.
+ * Returns true   If all pattern/filter compares succeed.
+ *         false  On the first miss-match.
  *
  ***************************************************************************/
-NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
+bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
 	uint32_t x;
 	uint8_t *p = NULL;
@@ -44,7 +44,7 @@ NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilt
 	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
 
 	if ((patternArray == NULL) || (filterArray == NULL))
-		return (FALSE);
+		return (false);
 
 	pattern = patternArray->patterns;
 	filter = filterArray->filters;
@@ -57,46 +57,46 @@ NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilt
 		case SA_EVT_PREFIX_FILTER:
 			/* if either filter or pattern alone is empty, then no match */
 			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
-				return (FALSE);
+				return (false);
 			if (memcmp(filter->filter.pattern, pattern->pattern, (size_t)filter->filter.patternSize) != 0)
-				return (FALSE);	/* No match */
+				return (false);	/* No match */
 			break;
 
 		case SA_EVT_SUFFIX_FILTER:
 			/* if either filter or pattern alone is empty, then no match */
 			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
-				return (FALSE);
+				return (false);
 
 			/* Pattern must be at least as long as filter for a match */
 			if (pattern->patternSize < filter->filter.patternSize)
-				return (FALSE);
+				return (false);
 
 			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
-				return (FALSE);
+				return (false);
 
 			/* Set p to offset into pattern */
 			p = pattern->pattern + ((int)pattern->patternSize - (int)filter->filter.patternSize);
 			if (memcmp(filter->filter.pattern, p, (size_t)filter->filter.patternSize) != 0)
-				return (FALSE);
+				return (false);
 			break;
 
 		case SA_EVT_EXACT_FILTER:
 			if ((pattern == NULL) && (filter != NULL))
-				return (FALSE);	/* Fix. More filters than patterns case */
+				return (false);	/* Fix. More filters than patterns case */
 
 			if (filter->filter.patternSize == pattern->patternSize) {
 				if (memcmp(filter->filter.pattern, pattern->pattern,
 					   (size_t)filter->filter.patternSize) != 0)
-					return (FALSE);
+					return (false);
 			} else
-				return FALSE;
+				return false;
 			break;
 
 		case SA_EVT_PASS_ALL_FILTER:
 			break;
 
 		default:
-			return (FALSE);
+			return (false);
 		}
 
 		/*
@@ -116,7 +116,7 @@ NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilt
 
 	}			/* End for */
 
-	return (TRUE);
+	return (true);
 }
 
 /***************************************************************************

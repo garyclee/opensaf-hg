@@ -50,7 +50,7 @@ extern "C" {
 /** Prototype for "leave on queue" callback functions.  See description of
  ** m_NCS_IPC_FLUSH below for more information.
  **/
-	typedef NCS_BOOL (*NCS_IPC_CB) (void *arg, void *msg);
+	typedef bool (*NCS_IPC_CB) (void *arg, void *msg);
 
 /** Enumerated values for IPC message priorities.
  **/
@@ -96,7 +96,7 @@ extern "C" {
  * This macro is invoked in order to cease use of an IPC mailbox.  In the
  * current implementation, ncs_ipc_release() locks the IPC queue, sets the
  * "releasing" flag, flushes the queue, and wakes up the receiver.  Then,
- * ncs_ipc_recv() "sees" the "releasing" flag is TRUE, and does the actual
+ * ncs_ipc_recv() "sees" the "releasing" flag is true, and does the actual
  * work to free the resources "owned" by the IPC mailbox.
  *
  * ARGUMENTS:
@@ -157,8 +157,8 @@ extern "C" {
  * is passed a pointer to the message and a "context".  The "callback"
  * routine should inspect the message and determine if it pertains to the
  * "context", and if so, free the message and any resources contained within
- * and then return TRUE, meaning 'remove from queue'.  If the "context"
- * is NULL, then ALL messages should be freed and FALSE should be returned
+ * and then return true, meaning 'remove from queue'.  If the "context"
+ * is NULL, then ALL messages should be freed and false should be returned
  * for ALL messages.
  *
  * ARGUMENTS:

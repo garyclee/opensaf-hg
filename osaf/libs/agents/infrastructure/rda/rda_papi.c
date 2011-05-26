@@ -71,7 +71,7 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int value = -1;
 	int retry_count = 0;
-	NCS_BOOL conn_lost = FALSE;
+	bool conn_lost = false;
 	RDE_RDA_CMD_TYPE cmd_type = 0;
 	PCS_RDA_CB_INFO cb_info;
 
@@ -90,7 +90,7 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 		/*
 		 ** Retry if connection with server is lost
 		 */
-		if (conn_lost == TRUE) {
+		if (conn_lost == true) {
 			m_NCS_TASK_SLEEP(1000);
 			retry_count++;
 
@@ -115,7 +115,7 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 			 ** Connection established
 			 */
 			retry_count = 0;
-			conn_lost = FALSE;
+			conn_lost = false;
 		}
 
 		/*
@@ -126,7 +126,7 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 			if (rc == PCSRDA_RC_FATAL_IPC_CONNECTION_LOST) {
 				close(rda_callback_cb->sockfd);
 				rda_callback_cb->sockfd = -1;
-				conn_lost = TRUE;
+				conn_lost = true;
 			}
 			continue;
 		} else if (rc != PCSRDA_RC_SUCCESS) {
@@ -171,7 +171,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 {
 	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int sockfd = -1;
-	NCS_BOOL is_task_spawned = FALSE;
+	bool is_task_spawned = false;
 	RDA_CALLBACK_CB *rda_callback_cb = NULL;
 
 	if (*task_cb != NULL)
@@ -218,7 +218,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 		rda_callback_cb->sockfd = sockfd;
 		rda_callback_cb->callback_ptr = rda_cb_ptr;
 		rda_callback_cb->callback_handle = cb_handle;
-		rda_callback_cb->task_terminate = FALSE;
+		rda_callback_cb->task_terminate = false;
 
 		/*
 		 ** Spawn task
@@ -240,7 +240,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 			break;
 		}
 
-		is_task_spawned = TRUE;
+		is_task_spawned = true;
 		*task_cb = rda_callback_cb;
 
 	} while (0);
@@ -281,7 +281,7 @@ static int pcs_rda_unreg_callback(void *task_cb)
 		return rc;
 
 	rda_callback_cb = (RDA_CALLBACK_CB *)task_cb;
-	rda_callback_cb->task_terminate = TRUE;
+	rda_callback_cb->task_terminate = true;
 
 	/*
 	 ** Stop task
@@ -460,14 +460,14 @@ static int pcs_rda_get_role(PCS_RDA_ROLE *role)
 *****************************************************************************/
 static RDA_CONTROL_BLOCK *rda_get_control_block(void)
 {
-	static NCS_BOOL initialized = FALSE;
+	static bool initialized = false;
 	static RDA_CONTROL_BLOCK rda_cb;
 
 	/*
 	 ** Initialize CB
 	 */
 	if (!initialized) {
-		initialized = TRUE;
+		initialized = true;
 		memset(&rda_cb, 0, sizeof(rda_cb));
 
 		/* Init necessary members */

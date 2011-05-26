@@ -4530,13 +4530,13 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			if (ncs_decode_8bit(&p8)) {
-				immndevt->info.ctrl.canBeCoord = TRUE;
+				immndevt->info.ctrl.canBeCoord = true;
 			}
 			ncs_dec_skip_space(i_ub, 1);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			if (ncs_decode_8bit(&p8)) {
-				immndevt->info.ctrl.isCoord = TRUE;
+				immndevt->info.ctrl.isCoord = true;
 			}
 			ncs_dec_skip_space(i_ub, 1);
 
@@ -4545,7 +4545,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			 */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 1);
 			if (ncs_decode_8bit(&p8)) {
-				immndevt->info.ctrl.syncStarted = TRUE;
+				immndevt->info.ctrl.syncStarted = true;
 			}
 			ncs_dec_skip_space(i_ub, 1);
 

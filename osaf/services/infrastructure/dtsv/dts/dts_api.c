@@ -105,8 +105,8 @@ uint32_t dts_svc_create(DTS_CREATE *create)
 
 	m_DTS_LK(&inst->lock);
 
-	/* inst->created is set to TRUE in dts_mds_reg() */
-	inst->created = FALSE;
+	/* inst->created is set to true in dts_mds_reg() */
+	inst->created = false;
 
 	/* review changes ; initialize pt_params to 0 */
 	memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -159,7 +159,7 @@ uint32_t dts_svc_create(DTS_CREATE *create)
 	/* Smik - Set cli_bit_map to 0 */
 	inst->cli_bit_map = 0;
 
-	inst->dts_enbl = TRUE;
+	inst->dts_enbl = true;
 	inst->hmpool_id = create->i_hmpool_id;
 
 	/* Versioning changes - Set the DTS MDS service sub-part version */
@@ -189,8 +189,8 @@ uint32_t dts_svc_create(DTS_CREATE *create)
 	/* Register DTS with MBCSv */
 	if (dtsv_mbcsv_register(inst) != NCSCC_RC_SUCCESS) {
 		m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-		dts_mds_unreg(inst, TRUE);
-		inst->created = FALSE;
+		dts_mds_unreg(inst, true);
+		inst->created = false;
 		ncs_patricia_tree_destroy(&inst->svc_tbl);
 		ncs_patricia_tree_destroy(&inst->dta_list);
 		ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
@@ -205,7 +205,7 @@ uint32_t dts_svc_create(DTS_CREATE *create)
 	strcpy(inst->log_path, getenv("DTSV_ROOT_DIRECTORY"));
 	TRACE("\nMy log directory path = %s\n", inst->log_path);
 
-	inst->imm_init_done = FALSE;
+	inst->imm_init_done = false;
 	m_DTS_UNLK(&inst->lock);
 
 	return NCSCC_RC_SUCCESS;
@@ -239,7 +239,7 @@ uint32_t dts_svc_destroy(DTS_DESTROY *destroy)
 
 	/* Now walk through the sequencing buffer and free all the messages */
 	/* Clear sequencing buffer only if DTS is Act */
-	if ((TRUE == inst->g_policy.g_enable_seq) && (inst->ha_state == SA_AMF_HA_ACTIVE)) {
+	if ((true == inst->g_policy.g_enable_seq) && (inst->ha_state == SA_AMF_HA_ACTIVE)) {
 		m_NCS_TMR_STOP(inst->tmr);
 		m_NCS_TMR_DESTROY(inst->tmr);
 		for (i = 0; i < inst->s_buffer.num_msgs; i++) {
@@ -272,9 +272,9 @@ uint32_t dts_svc_destroy(DTS_DESTROY *destroy)
 	dtsv_mbcsv_deregister(inst);
 
 	/* Un-install DTS from MDS */
-	dts_mds_unreg(inst, TRUE);
+	dts_mds_unreg(inst, true);
 
-	inst->created = FALSE;
+	inst->created = false;
 
 	m_DTS_UNLK(&inst->lock);
 
@@ -319,11 +319,11 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 		/* Clear the circular buffer and close the files */
 		dts_circular_buffer_free(&service->device.cir_buffer);
 
-		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
+		if ((service->device.file_open == true) && (service->device.svc_fh != NULL)) {
 			fclose(service->device.svc_fh);
 			service->device.svc_fh = NULL;
-			service->device.file_open = FALSE;
-			service->device.new_file = TRUE;
+			service->device.file_open = false;
+			service->device.new_file = true;
 			service->device.cur_file_size = 0;
 		}
 
@@ -415,11 +415,11 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 	device = &inst->g_policy.device;
 	m_DTS_FREE_FILE_LIST(device);
 	/* Close the global level files if any open */
-	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
+	if ((inst->g_policy.device.file_open == true) && (inst->g_policy.device.svc_fh != NULL)) {
 		fclose(inst->g_policy.device.svc_fh);
 		inst->g_policy.device.svc_fh = NULL;
-		inst->g_policy.device.file_open = FALSE;
-		inst->g_policy.device.new_file = TRUE;
+		inst->g_policy.device.file_open = false;
+		inst->g_policy.device.new_file = true;
 		inst->g_policy.device.cur_file_size = 0;
 	}
 
@@ -448,7 +448,7 @@ uint32_t ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg)
 	if (arg == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: NULLi pointer passed as argument");
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		m_LOG_DTS_DBGSTR(DTS_SERVICE, "DTS is not created. Unable to register/de-register ASCII_SPEC",
 				 0,
 				 (arg->i_op ==

@@ -132,7 +132,7 @@ uint32_t smfa_finalize()
 		/* User still exists.*/
 	}else{
 		/* Last user and hence destroy the agent.*/
-		cb->is_finalized = TRUE;
+		cb->is_finalized = true;
 		rc = smfa_destroy();
 		ncs_agents_shutdown();
 	}

@@ -267,7 +267,7 @@ typedef struct ncsfl_pdu {
   categories suit them, as is MCG tradition. Such categories are
   typically based on the particular, strategic needs of the developers,
   porters and integrators of that subsystem, which (again) will continue
-  to be TRUE.
+  to be true.
 
   Flexlog requires subsystem developers to the do their best to map each
   particular category to the general flexlog categories. These categories

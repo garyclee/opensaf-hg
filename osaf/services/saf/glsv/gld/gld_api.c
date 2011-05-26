@@ -296,7 +296,7 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
-	gld_cb->glnd_details_tree_up = TRUE;
+	gld_cb->glnd_details_tree_up = true;
 
 	params.key_size = sizeof(uint32_t);
 	params.info_size = 0;
@@ -305,7 +305,7 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_INIT_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
-	gld_cb->rsc_info_id_tree_up = TRUE;
+	gld_cb->rsc_info_id_tree_up = true;
 
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
@@ -384,11 +384,11 @@ uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL gld_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+bool gld_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	GLSV_GLD_EVT *pEvt = (GLSV_GLD_EVT *)msg;
 	GLSV_GLD_EVT *pnext;
@@ -398,7 +398,7 @@ NCS_BOOL gld_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		gld_evt_destroy(pEvt);
 		pEvt = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

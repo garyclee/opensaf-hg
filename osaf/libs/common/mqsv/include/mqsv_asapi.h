@@ -117,7 +117,7 @@ typedef struct asapi_queue_param {
 	SaMsgQueueSendingStateT status;	/* Sending status of the Queue */
 	uint32_t hdl;		/* Queue handle */
 	MQSV_QUEUE_OWN_STATE owner;	/* Queue is owned or Orphan */
-	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
+	uint8_t is_mqnd_down;	/* true if mqnd is down else false */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
 	SaSizeT size[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];	/* Priority queue sizes */
 } ASAPi_QUEUE_PARAM;

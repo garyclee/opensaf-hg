@@ -92,7 +92,7 @@ uint32_t dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 	 */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_ACTIVE)) {
 		/* Once it becomes active, it IS in-sync with itself */
-		cb->in_sync = TRUE;
+		cb->in_sync = true;
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -156,7 +156,7 @@ uint32_t dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		/* Check whether standby is in-sync or not.
 		 * If not, then request AMF to restart this instance 
 		 */
-		if (cb->in_sync != TRUE) {
+		if (cb->in_sync != true) {
 			m_LOG_DTS_CHKOP(DTS_ACT_ASSIGN_NOT_INSYNC);
 			if (saAmfComponentErrorReport(cb->amf_hdl, &cb->comp_name, 0, SA_AMF_COMPONENT_RESTART, 0) !=
 			    SA_AIS_OK)
@@ -213,7 +213,7 @@ uint32_t dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		}
 
 		/* Once it becomes active, it IS in-sync with itself */
-		cb->in_sync = TRUE;
+		cb->in_sync = true;
 
 		m_LOG_DTS_API(DTS_FAIL_OVER_SUCCESS);
 		/* Change ha_state of dts_cb now */
@@ -253,9 +253,9 @@ uint32_t dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		nt_key.ss_svc_id = service->ntwk_key.ss_svc_id;
 
 		device = &service->device;
-		device->new_file = TRUE;
+		device->new_file = true;
 		device->cur_file_size = 0;
-		device->file_open = FALSE;
+		device->file_open = false;
 		m_DTS_FREE_FILE_LIST(device);
 		memset(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
 		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
@@ -392,10 +392,10 @@ static uint32_t dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 	/* Smik - get the CB from the global variable for dts_cb in this context */
 	cb = &dts_cb;
-	if (cb->created != TRUE) {
+	if (cb->created != true) {
 		/* Log Error msg and free received UBA */
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-				      "dtsv_mbcsv_cb: Failed to get cb handle. cb->created is FALSE ");
+				      "dtsv_mbcsv_cb: Failed to get cb handle. cb->created is false ");
 	}
 
 	m_DTS_LK(&cb->lock);
@@ -475,8 +475,8 @@ static uint32_t dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			m_LOG_DTS_CHKOP(DTS_CSYNC_REQ_ENC);
 			/* Clear the svc_reg datastructures before cold_sync */
 			dtsv_clear_registration_table(cb);
-			cb->in_sync = FALSE;
-			cb->cold_sync_in_progress = TRUE;
+			cb->in_sync = false;
+			cb->cold_sync_in_progress = true;
 		}
 		break;
 
@@ -492,7 +492,7 @@ static uint32_t dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			/* Encode Warm Sync Request message 
 			 * Nothing is there to send at this point of time.
 			 */
-			cb->cold_sync_in_progress = TRUE;
+			cb->cold_sync_in_progress = true;
 		}
 		break;
 
@@ -559,7 +559,7 @@ static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 * If Cold sync is in progress, then drop the async update for which
 				 * cold sync response are yet to come.
 				 */
-				if (TRUE == cb->cold_sync_in_progress) {
+				if (true == cb->cold_sync_in_progress) {
 					if (NCSCC_RC_SUCCESS != dtsv_validate_reo_type_in_csync(cb,
 												arg->info.decode.
 												i_reo_type)) {
@@ -589,18 +589,18 @@ static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		{
 			/* If cold_sync is not in progress then do a cleanup before 
 			   receiving cold_sync response */
-			if (cb->cold_sync_in_progress == FALSE)
+			if (cb->cold_sync_in_progress == false)
 				dtsv_clear_registration_table(cb);
 		}
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
 		{
-			/*set cold_sync_in_progress to TRUE to indicate start of cold_sync */
-			cb->cold_sync_in_progress = TRUE;
+			/*set cold_sync_in_progress to true to indicate start of cold_sync */
+			cb->cold_sync_in_progress = true;
 			/* Decode Cold Sync Response message */
 			status = dtsv_decode_cold_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
-				cb->in_sync = FALSE;
+				cb->in_sync = false;
 				status = NCSCC_RC_FAILURE;
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 				/* Smik - Cleanup of svc reg datastruct at standby */
@@ -610,8 +610,8 @@ static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
 			    (NCSCC_RC_SUCCESS == status)) {
-				cb->in_sync = TRUE;
-				cb->cold_sync_in_progress = FALSE;
+				cb->in_sync = true;
+				cb->cold_sync_in_progress = false;
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_COMPLETE);
 			}
 
@@ -636,7 +636,7 @@ static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			/* If we find mismatch in data or warm sync fails set in_sync */
 			if (NCSCC_RC_FAILURE == status) {
-				cb->in_sync = FALSE;
+				cb->in_sync = false;
 				m_LOG_DTS_CHKOP(DTS_WSYNC_FAILED);
 			}
 		}
@@ -656,8 +656,8 @@ static uint32_t dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			status = dtsv_decode_data_sync_rsp(cb, &arg->info.decode);
 
 			if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type) {
-				cb->cold_sync_in_progress = FALSE;
-				cb->in_sync = TRUE;
+				cb->cold_sync_in_progress = false;
+				cb->in_sync = true;
 				m_LOG_DTS_CHKOP(DTS_DATA_SYNC_CMPLT);
 			}
 			cb->cold_sync_done = arg->info.decode.i_reo_type;

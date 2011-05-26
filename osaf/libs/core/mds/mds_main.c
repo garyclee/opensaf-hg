@@ -55,11 +55,11 @@ NCS_LOCK gl_lock;
 
 NCS_LOCK *mds_lock(void)
 {
-	static int lock_inited = FALSE;
+	static int lock_inited = false;
 	/* Initialize the lock first time mds_lock() is called */
 	if (!lock_inited) {
 		m_NCS_LOCK_INIT(&gl_lock);
-		lock_inited = TRUE;
+		lock_inited = true;
 	}
 	return &gl_lock;
 }

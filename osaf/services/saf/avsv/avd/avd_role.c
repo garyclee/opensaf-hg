@@ -262,7 +262,7 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	 * We might be having some async update messages in the
 	 * Queue to be processed, now drop all of them.
 	 */
-	avsv_dequeue_async_update_msgs(cb, FALSE);
+	avsv_dequeue_async_update_msgs(cb, false);
 
 	cb->avail_state_avd = role;
 
@@ -369,7 +369,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	svc_to_mds_info.i_op = MDS_QUERY_DEST;
 	svc_to_mds_info.info.query_dest.i_dest = cb->vaddr;
 	svc_to_mds_info.info.query_dest.i_svc_id = NCSMDS_SVC_ID_AVD;
-	svc_to_mds_info.info.query_dest.i_query_for_role = TRUE;
+	svc_to_mds_info.info.query_dest.i_query_for_role = true;
 	svc_to_mds_info.info.query_dest.info.query_for_role.i_anc = 0; // TODO?
 
 	if (ncsmds_api(&svc_to_mds_info) == NCSCC_RC_SUCCESS) {
@@ -413,7 +413,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	 * We might be having some async update messages in the
 	 * Queue to be processed, now drop all of them.
 	 */
-	avsv_dequeue_async_update_msgs(cb, FALSE);
+	avsv_dequeue_async_update_msgs(cb, false);
 
 	cb->avail_state_avd = role;
 
@@ -509,7 +509,7 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if (NULL != other_avnd ) {
 				avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_ACTIVE);
 			} else {
-				avd_sg_su_oper_list_add(cb, i_su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_su, false);
 				m_AVD_SET_SU_SWITCH(cb, i_su, AVSV_SI_TOGGLE_SWITCH);
 				m_AVD_SET_SG_FSM(cb, (i_su->sg_of_su), AVD_SG_FSM_SU_OPER);
 			}
@@ -808,7 +808,7 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 
 	/* Give up our IMM OI implementer role */
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
-	cb->is_implementer = FALSE;
+	cb->is_implementer = false;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -931,7 +931,7 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	 * We might be having some async update messages in the
 	 * Queue to be processed, now drop all of them.
 	 */
-	avsv_dequeue_async_update_msgs(cb, FALSE);
+	avsv_dequeue_async_update_msgs(cb, false);
 
 	cb->avail_state_avd = SA_AMF_HA_ACTIVE;
 

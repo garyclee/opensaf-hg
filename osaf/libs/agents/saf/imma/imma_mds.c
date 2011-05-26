@@ -108,7 +108,7 @@ uint32_t imma_mds_register(IMMA_CB *cb)
 	svc_info.info.svc_install.i_svc_cb = imma_mds_callback;
 
 	/* IMMA owns the mds queue */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
 		TRACE_3("mds register A failed rc:%u", rc);
@@ -387,12 +387,12 @@ static uint32_t imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	NCS_BOOL locked = FALSE;
+	bool locked = false;
 	switch (svc_evt->i_change) {
 		case NCSMDS_DOWN:
 			TRACE_3("IMMND DOWN");
 			m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
-			cb->is_immnd_up = FALSE; 
+			cb->is_immnd_up = false;
 			m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
 
 			cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
@@ -400,18 +400,18 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 				TRACE_4("Locking failed");
 				abort();
 			}
-			locked = TRUE;
+			locked = true;
 			imma_mark_clients_stale(cb);
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-			locked = FALSE;
+			locked = false;
 			break;
 
 		case NCSMDS_UP:
 			TRACE_3("IMMND UP");
 			m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
-			cb->is_immnd_up = TRUE;
+			cb->is_immnd_up = true;
 			cb->immnd_mds_dest = svc_evt->i_dest;
-			if (cb->immnd_sync_awaited == TRUE)
+			if (cb->immnd_sync_awaited == true)
 				m_NCS_SEL_OBJ_IND(cb->immnd_sync_sel);
 			m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
 
@@ -419,7 +419,7 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 				TRACE_4("Locking failed");
 				abort();
 			}
-			locked = TRUE;
+			locked = true;
 			/* Check again if some clients have been exposed during down time. 
 			   Also determine if there are candidates for active resurrection.
 			   Inform IMMND of highest used client id. Increases chances of success
@@ -431,7 +431,7 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 					TRACE_4("Locking failed");
 					abort();
 				}
-				locked = TRUE;
+				locked = true;
 			}
 			/*imma_process_stale_clients(cb);
 			  The active resurrect is postponed until after immnd sync is 
@@ -440,7 +440,7 @@ static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 			*/
 
 			m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
-			locked = FALSE;
+			locked = false;
 			break;
 
 		default:

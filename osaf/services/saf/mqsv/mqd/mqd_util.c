@@ -40,7 +40,7 @@
 #if (NCS_MQD != 0)
 
 /******************************** LOCAL ROUTINES *****************************/
-static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem);
+static bool mqd_track_obj_cmp(void *key, void *elem);
 /*****************************************************************************/
 
 /****************************************************************************\
@@ -239,16 +239,16 @@ uint32_t mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
    ARGUMENTS      :  key   - what to match
                      elem  - with whom to match
    
-   RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
+   RETURNS        :  true(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem)
+static bool mqd_track_obj_cmp(void *key, void *elem)
 {
 	MQD_TRACK_OBJ *pObj = (MQD_TRACK_OBJ *)elem;
 
 	if (!memcmp(&pObj->dest, (MDS_DEST *)key, sizeof(MDS_DEST))) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }	/* End of mqd_track_obj_cmp() */
 #else				/* (NCS_MQD != 0) */
 extern int dummy;

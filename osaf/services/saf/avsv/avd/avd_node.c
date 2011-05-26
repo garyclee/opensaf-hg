@@ -703,12 +703,12 @@ uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node)
 	/* terminate all the SUs on this Node */
 	su = node->list_of_su;
 	while (su != NULL) {
-		if ((su->saAmfSUPreInstantiable == TRUE) &&
+		if ((su->saAmfSUPreInstantiable == true) &&
 		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
 		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 
-			if (avd_snd_presence_msg(avd_cb, su, TRUE) == NCSCC_RC_SUCCESS) {
+			if (avd_snd_presence_msg(avd_cb, su, true) == NCSCC_RC_SUCCESS) {
 				node->su_cnt_admin_oper++;
 			} else {
 				rc = NCSCC_RC_FAILURE;
@@ -741,8 +741,8 @@ uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 		    (su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 		    (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
 
-			if (su->saAmfSUPreInstantiable == TRUE) {
-				if (avd_snd_presence_msg(avd_cb, su, FALSE) == NCSCC_RC_SUCCESS) {
+			if (su->saAmfSUPreInstantiable == true) {
+				if (avd_snd_presence_msg(avd_cb, su, false) == NCSCC_RC_SUCCESS) {
 					node->su_cnt_admin_oper++;
 				} else {
 					rc = NCSCC_RC_FAILURE;
@@ -772,7 +772,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 	AVD_SU *su, *su_sg;
-	NCS_BOOL su_admin = FALSE;
+	bool su_admin = false;
 	AVD_SU_SI_REL *curr_susi;
 	AVD_AVND *su_node_ptr = NULL;
 	AVD_AVND *su_sg_node_ptr = NULL;
@@ -942,16 +942,16 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				}
 				/*if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) */
 				if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
-					su_admin = TRUE;
+					su_admin = true;
 				} else if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) &&
-					   (su_admin == FALSE) &&
+					   (su_admin == false) &&
 					   (su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL)) {
 					for (curr_susi = su->list_of_susi;
 					     (curr_susi) && ((SA_AMF_HA_ACTIVE != curr_susi->state) ||
 							     ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)));
 					     curr_susi = curr_susi->su_next) ;
 					if (curr_susi)
-						su_admin = TRUE;
+						su_admin = true;
 				}
 
 			}
@@ -1003,7 +1003,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 			su = su->avnd_list_su_next;
 		}
 
-		if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su_admin == FALSE)) {
+		if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su_admin == false)) {
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 		}
 
@@ -1028,12 +1028,12 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
  * 
  * @param node
  */
-static void node_sus_termstate_set(AVD_AVND *node, NCS_BOOL term_state)
+static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
 {
 	AVD_SU *su;
 
 	for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
-		if (su->saAmfSUPreInstantiable == TRUE)
+		if (su->saAmfSUPreInstantiable == true)
 			m_AVD_SET_SU_TERM(avd_cb, su, term_state);
 	}
 }
@@ -1110,7 +1110,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		if (node->node_info.member == FALSE) {
+		if (node->node_info.member == false) {
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 			LOG_NO("'%s' SHUTDOWN: CLM node is not member", node->name.value);
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
@@ -1134,7 +1134,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		if (node->node_info.member == FALSE) {
+		if (node->node_info.member == false) {
 			LOG_NO("'%s' UNLOCK: CLM node is not member", node->name.value);
 			node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
@@ -1158,7 +1158,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		if (node->node_info.member == FALSE) {
+		if (node->node_info.member == false) {
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 			LOG_NO("%s' LOCK: CLM node is not member", node->name.value);
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
@@ -1182,10 +1182,10 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_sus_termstate_set(node, TRUE);
+		node_sus_termstate_set(node, true);
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 
-		if (node->node_info.member == FALSE) {
+		if (node->node_info.member == false) {
 			LOG_NO("'%s' LOCK_INSTANTIATION: CLM node is not member", node->name.value);
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 			goto done;
@@ -1230,10 +1230,10 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_sus_termstate_set(node, FALSE);
+		node_sus_termstate_set(node, false);
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 
-		if (node->node_info.member == FALSE) {
+		if (node->node_info.member == false) {
 			LOG_NO("'%s' UNLOCK_INSTANTIATION: CLM node is not member", node->name.value);
 			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 			goto done;
@@ -1291,12 +1291,12 @@ void avd_node_remove_su(AVD_SU *su)
 {
 	AVD_SU *i_su = NULL;
 	AVD_SU *prev_su = NULL;
-	NCS_BOOL isNcs;
+	bool isNcs;
 
 	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == SA_TRUE))
-		isNcs = TRUE;
+		isNcs = true;
 	else
-		isNcs = FALSE;
+		isNcs = false;
 
 	/* For external component, there is no AvND attached, so let it return. */
 	if (su->su_on_node != NULL) {

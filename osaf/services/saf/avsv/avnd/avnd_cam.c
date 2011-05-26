@@ -92,7 +92,7 @@ uint32_t avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	if (TRUE == comp->is_am_en)
+	if (true == comp->is_am_en)
 		rc = avnd_comp_am_start(cb, comp);
 	else {
 		/* check if its instantiated state, else exit */

@@ -93,8 +93,8 @@ extern "C" {
 
 /* Keep old names for Create  and Destroy, as many places call these functions */
 
-	NCS_BOOL sysfTmrCreate(void);
-	NCS_BOOL sysfTmrDestroy(void);
+	bool sysfTmrCreate(void);
+	bool sysfTmrDestroy(void);
 
 /* For now, I/O is done internally.. Later we can export data and do I/O outside */
 

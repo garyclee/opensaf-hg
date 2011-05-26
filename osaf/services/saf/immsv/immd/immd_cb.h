@@ -53,10 +53,10 @@ typedef struct immd_immnd_info_node {
 	/*ABT below corresponds to old ImmEvs::NodeInfo */
 	int immnd_execPid;
 	int epoch;
-	NCS_BOOL syncRequested;
-	NCS_BOOL isOnController;
-	NCS_BOOL isCoord;
-	NCS_BOOL syncStarted;
+	bool syncRequested;
+	bool isOnController;
+	bool isCoord;
+	bool syncStarted;
 } IMMD_IMMND_INFO_NODE;
 
 typedef struct immd_cb_tag {
@@ -75,18 +75,18 @@ typedef struct immd_cb_tag {
 
 	uint32_t immd_self_id;
 	uint32_t immd_remote_id;
-	NCS_BOOL immd_remote_up; //Ticket #1819
+	bool immd_remote_up; //Ticket #1819
 
 	NCS_NODE_ID node_id;
 
-	NCS_BOOL is_loc_immnd_up;
-	NCS_BOOL is_rem_immnd_up;
-	NCS_BOOL is_quiesced_set;	/* ABT new csi_set */
+	bool is_loc_immnd_up;
+	bool is_rem_immnd_up;
+	bool is_quiesced_set;	/* ABT new csi_set */
 	MDS_DEST loc_immnd_dest;
 	MDS_DEST rem_immnd_dest;	/*ABT used if local immnd crashes ? */
 
 	NCS_PATRICIA_TREE immnd_tree;	/*ABT <- message count in each node? */
-	NCS_BOOL is_immnd_tree_up;	/* if TRUE immnd_tree is UP */
+	bool is_immnd_tree_up;	/* if true immnd_tree is UP */
 
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init */
 	SaClmHandleT clm_hdl;
@@ -136,7 +136,7 @@ void immd_immnd_info_tree_destroy(IMMD_CB *cb);
 
 uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 					     MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node,
-					     NCS_BOOL *add_flag);
+					     bool *add_flag);
 
 uint32_t immd_cb_db_init(IMMD_CB *cb);
 
@@ -147,6 +147,6 @@ void immd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 
 uint32_t immd_mds_change_role(IMMD_CB *cb);
 
-void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active);
+void immd_proc_immd_reset(IMMD_CB *cb, bool active);
 
 #endif

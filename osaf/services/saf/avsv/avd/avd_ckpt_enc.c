@@ -76,7 +76,7 @@ static uint32_t avsv_encode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_C
 static uint32_t avsv_encode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uint32_t avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
-static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL c_sync);
+static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync);
 
 /* Declaration of static cold sync encode functions */
 static uint32_t avsv_encode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
@@ -1882,7 +1882,7 @@ static uint32_t avsv_encode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_
 uint32_t avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	TRACE_ENTER();
-	return avd_entire_data_update(cb, enc, TRUE);
+	return avd_entire_data_update(cb, enc, true);
 }
 
 /****************************************************************************\
@@ -1892,8 +1892,8 @@ uint32_t avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * Input: cb  - CB pointer.
  *        enc - Encode arguments passed by MBCSV.
- *        c_sync - TRUE - Called while in cold sync.
- *                 FALSE - Called while in warm sync.
+ *        c_sync - true - Called while in cold sync.
+ *                 false - Called while in warm sync.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -1901,7 +1901,7 @@ uint32_t avsv_encode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL c_sync)
+static uint32_t avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_obj = 0;
@@ -2527,7 +2527,7 @@ uint32_t avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 uint32_t avsv_encode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	TRACE_ENTER();
-	return avd_entire_data_update(cb, enc, FALSE);
+	return avd_entire_data_update(cb, enc, false);
 }
 
 /****************************************************************************\

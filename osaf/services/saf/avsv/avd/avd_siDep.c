@@ -47,7 +47,7 @@
 #include <avd_proc.h>
 
 /* static function prototypes */
-static uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action);
+static uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, bool take_action);
 static void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_SI_DEP *si_dep_rec);
 static uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si);
 static uint32_t avd_check_si_state_enabled(AVD_CL_CB *cb, AVD_SI *si);
@@ -240,8 +240,8 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 		memcpy(indx.si_name_prim.value, spons_si_node->si->name.value,
 		       spons_si_node->si->name.length);
 
-		if ((rec = avd_si_si_dep_find(cb, &indx, TRUE)) != NULL) {
-			if (rec->si_dep_timer.is_active == TRUE) {
+		if ((rec = avd_si_si_dep_find(cb, &indx, true)) != NULL) {
+			if (rec->si_dep_timer.is_active == true) {
 				avd_stop_tmr(cb, &rec->si_dep_timer);
 
 				if (si->tol_timer_count > 0) {
@@ -292,7 +292,7 @@ uint32_t avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 		}
 
 		/* add the su to su-oper list */
-		avd_sg_su_oper_list_add(cb, susi->su, FALSE);
+		avd_sg_su_oper_list_add(cb, susi->su, false);
 
 		susi = susi->si_next;
 	}
@@ -470,7 +470,7 @@ void avd_tmr_si_dep_tol_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Before starting unassignment process of SI, check once again whether 
 	 * sponsor SIs are assigned back,if so move the SI state to ASSIGNED state 
 	 */
-	avd_screen_sponsor_si_state(cb, si, FALSE);
+	avd_screen_sponsor_si_state(cb, si, false);
 
 	switch (si->si_dep_state) {
 	case AVD_SI_NO_DEPENDENCY:
@@ -520,7 +520,7 @@ done:
  *
  * Input:    cb - Pointer to AVD control block
  *           si - Pointer to AVD_SI struct 
- *           take_action - If TRUE, process the impacts (SI-SI dependencies)
+ *           take_action - If true, process the impacts (SI-SI dependencies)
  *                      on dependent-SIs (of sponsor-SI being enabled/disabled)
  *
  * Returns: NCSCC_RC_SUCCESS - if sponsor-SI is in enabled state 
@@ -529,7 +529,7 @@ done:
  * NOTES:  
  * 
  **************************************************************************/
-uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action)
+uint32_t avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, bool take_action)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SPONS_SI_NODE *spons_si_node = si->spons_si_list;
@@ -581,9 +581,9 @@ void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg)
 			/* SI was in enabled state, so check for the SI-SI dependencies
 			 * conditions and update the SI accordingly.
 			 */
-			avd_check_si_dep_sponsors(cb, si, TRUE);
+			avd_check_si_dep_sponsors(cb, si, true);
 		} else {
-			avd_screen_sponsor_si_state(cb, si, TRUE);
+			avd_screen_sponsor_si_state(cb, si, true);
 			if ((si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 			    (si->si_dep_state == AVD_SI_NO_DEPENDENCY)) {
 				/* Check if this SI is a sponsor SI for some other SI, the take appropriate action */
@@ -612,14 +612,14 @@ void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg)
  * NOTES:  
  * 
  **************************************************************************/
-void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL start_assignment)
+void avd_screen_sponsor_si_state(AVD_CL_CB *cb, AVD_SI *si, bool start_assignment)
 {
 	TRACE_ENTER2("%s", si->name.value);
 
 	/* Change the SI dependency state only when all of its sponsor SIs are 
 	 * in assigned state.
 	 */
-	if (avd_check_si_dep_sponsors(cb, si, FALSE) != NCSCC_RC_SUCCESS) {
+	if (avd_check_si_dep_sponsors(cb, si, false) != NCSCC_RC_SUCCESS) {
 		/* Nothing to do here, just return */
 		return;
 	}
@@ -698,7 +698,7 @@ void avd_process_si_dep_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Its an ASSIGN evt */
 		si = avd_si_get(&evt->info.tmr.spons_si_name);
 		if (si != NULL) {
-			avd_screen_sponsor_si_state(cb, si, TRUE);
+			avd_screen_sponsor_si_state(cb, si, true);
 		}
 	} else {		/* Process UNASSIGN evt */
 
@@ -746,7 +746,7 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * sponsors are moved back to assigned state, if so it is not required to
 	 * initiate the unassignment process for the (dependent) SI.
 	 */
-	avd_screen_sponsor_si_state(cb, si, FALSE);
+	avd_screen_sponsor_si_state(cb, si, false);
 	if (si->si_dep_state == AVD_SI_ASSIGNED)
 		return;
 
@@ -816,7 +816,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 	case AVD_SI_TOL_TIMER_RUNNING:
 	case AVD_SI_READY_TO_UNASSIGN:
 		if (si_dep_rec->saAmfToleranceTime > 0) {
-			if (si_dep_rec->si_dep_timer.is_active != TRUE) {
+			if (si_dep_rec->si_dep_timer.is_active != true) {
 				/* Start the tolerance timer */
 				m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
 
@@ -830,7 +830,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 			}
 		} else {
 			if (!si_dep_rec->unassign_event) {
-				si_dep_rec->unassign_event = TRUE;
+				si_dep_rec->unassign_event = true;
 
 				/* Send an event to start SI unassignment process */
 				avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_imm);
@@ -900,7 +900,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 	 * SIs of the sponsor SI.
 	 */
 	if (si_dep == NULL) {
-		si_dep_rec = avd_si_si_dep_find_next(cb, &si_indx, TRUE);
+		si_dep_rec = avd_si_si_dep_find_next(cb, &si_indx, true);
 		while (si_dep_rec != NULL) {
 			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
 				/* Seems no more node exists in spons_anchor tree with 
@@ -912,7 +912,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 			if (dep_si == NULL) {
 				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, TRUE);
+				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, true);
 				continue;
 			}
 
@@ -922,7 +922,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 				avd_si_dep_state_evt(cb, dep_si, NULL);
 			}
 
-			si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, TRUE);
+			si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, true);
 		}
 	} else {
 		/* Just ignore and return if spons_state is AVD_SI_DEP_SPONSOR_ASSIGNED */
@@ -933,7 +933,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 		si_indx.si_name_sec.length = si_dep->name.length;
 		memcpy(si_indx.si_name_sec.value, si_dep->name.value, si_dep->name.length);
 
-		si_dep_rec = avd_si_si_dep_find(cb, &si_indx, TRUE);
+		si_dep_rec = avd_si_si_dep_find(cb, &si_indx, true);
 
 		if (si_dep_rec != NULL) {
 			/* si_dep_rec primary key should match with sponsor SI name */
@@ -1031,7 +1031,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx)
+AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
@@ -1068,7 +1068,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_B
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx)
+AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
@@ -1112,7 +1112,7 @@ uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 	if (rec == NULL)
 		return NCSCC_RC_FAILURE;
 
-	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx, FALSE)) != NULL) {
+	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx, false)) != NULL) {
 		if (ncs_patricia_tree_del(&si_dep.dep_anchor, &si_dep_rec->tree_node)
 		    != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed deleting SI Dep from Dependent Anchor");
@@ -1122,7 +1122,7 @@ uint32_t avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 
 	si_dep_rec = NULL;
 
-	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_imm, TRUE)) != NULL) {
+	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_imm, true)) != NULL) {
 		if (ncs_patricia_tree_del(&si_dep.spons_anchor, &si_dep_rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			LOG_ER("Failed deleting SI Dep from Sponsor Anchor");
@@ -1184,7 +1184,7 @@ uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		idx.si_name_prim.length = last->si_name.length;
 		memcpy(idx.si_name_prim.value, last->si_name.value, last->si_name.length);
 
-		rec = avd_si_si_dep_find_next(cb, &idx, FALSE);
+		rec = avd_si_si_dep_find_next(cb, &idx, false);
 
 		while ((rec != NULL) && (m_CMP_HORDER_SANAMET(rec->indx.si_name_prim, idx.si_name_prim) == 0)) {
 			if (m_CMP_HORDER_SANAMET(indx->si_name_sec, rec->indx.si_name_sec) == 0) {
@@ -1214,7 +1214,7 @@ uint32_t avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 				}
 			}
 
-			rec = avd_si_si_dep_find_next(cb, &rec->indx, FALSE);
+			rec = avd_si_si_dep_find_next(cb, &rec->indx, false);
 		}
 
 		if (rc == NCSCC_RC_SUCCESS) {
@@ -1248,11 +1248,11 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *in
 
 	/* find first occurence and step past it */
 	p = strstr((char *)tmp.value, "safSi=") + 1;
-	if (p == NULL) return FALSE;
+	if (p == NULL) return false;
 
 	/* find second occurence, an error if not found */
 	p = strstr(p, "safSi=");
-	if (p == NULL) return FALSE;
+	if (p == NULL) return false;
 
 	*(p - 1) = '\0';	/* null terminate at comma before SI */
 
@@ -1260,7 +1260,7 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *in
 
 	/* Skip past the RDN tag */
 	p = strchr((char *)tmp.value, '=') + 1;
-	if (p == NULL) return FALSE;
+	if (p == NULL) return false;
 
 	/*
 	 ** Example DN, need to copy to get rid of back slash escaped commas.
@@ -1275,41 +1275,41 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *in
 	}
 	indx->si_name_prim.length = strlen((char *)indx->si_name_prim.value);
 
-	return TRUE;
+	return true;
 }
 
 static uint32_t is_config_valid(SaNameT *sidep_name)
 {
 	AVD_SI_SI_DEP_INDX indx;
-	uint32_t rc = TRUE;
+	uint32_t rc = true;
 	AVD_SI *spons_si, *dep_si;
 
 	TRACE_ENTER();
 	
 	if( !avd_sidep_indx_init(sidep_name, &indx)) {
 		LOG_ER("%s: Bad DN for SI Dependency", __FUNCTION__);
-		rc = FALSE;
+		rc = false;
 		goto done;
 	}
 
 	/* Sponsor SI need to exist */
 	if ((spons_si = avd_si_get(&indx.si_name_prim)) == NULL) {
 		LOG_ER("%s: Sponsor does not exist '%s' failed", __FUNCTION__, indx.si_name_prim.value);
-		rc = FALSE;
+		rc = false;
 		goto done;
 	}
 
 	assert (dep_si = avd_si_get(&indx.si_name_sec));
 	if (spons_si->saAmfSIRank > dep_si->saAmfSIRank) {
 		LOG_ER("%s: SI Rank of dependent higher '%s'", __FUNCTION__, sidep_name->value);
-		rc = FALSE;
+		rc = false;
 		goto done;
 	}
 
 	if (avd_si_si_dep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
 		/* Return value that record cannot be added due to cyclic dependency */
 		LOG_ER("%s: cyclic dependency for '%s'", __FUNCTION__, sidep_name->value);
-		rc = FALSE;
+		rc = false;
 		goto done;
 	}
 
@@ -1425,7 +1425,7 @@ static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_DELETE:
 	case CCBUTIL_MODIFY:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		if (NULL == avd_si_si_dep_find(avd_cb, &indx, TRUE))
+		if (NULL == avd_si_si_dep_find(avd_cb, &indx, true))
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	default:
@@ -1454,12 +1454,12 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 	case CCBUTIL_DELETE:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		sidep = avd_si_si_dep_find(avd_cb, &indx, TRUE);
+		sidep = avd_si_si_dep_find(avd_cb, &indx, true);
 		assert(dep_si = avd_si_get(&indx.si_name_sec));
 		/* If SI is in tolerance timer running state because of this
 		 * SI-SI dep cfg, then stop the tolerance timer.
 		 */
-		if (sidep->si_dep_timer.is_active == TRUE)
+		if (sidep->si_dep_timer.is_active == true)
 		{
 			avd_stop_tmr(avd_cb, &sidep->si_dep_timer);
 
@@ -1469,12 +1469,12 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		avd_si_dep_spons_list_del(avd_cb, sidep);
 		avd_si_si_dep_del_row(avd_cb, sidep);
 		/* Update the SI according to its existing sponsors state */
-		avd_screen_sponsor_si_state(avd_cb, dep_si, TRUE);
+		avd_screen_sponsor_si_state(avd_cb, dep_si, true);
 		break;
 
 	case CCBUTIL_MODIFY:
 		avd_sidep_indx_init(&opdata->objectName, &indx);
-		sidep = avd_si_si_dep_find(avd_cb, &indx, TRUE);
+		sidep = avd_si_si_dep_find(avd_cb, &indx, true);
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
 				sidep->saAmfToleranceTime = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);

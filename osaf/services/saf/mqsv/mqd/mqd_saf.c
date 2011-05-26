@@ -144,7 +144,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 				memset(pEvt, 0, sizeof(MQSV_EVT));
 				pEvt->type = MQSV_EVT_MQD_CTRL;
 				pEvt->msg.mqd_ctrl.type = MQD_MSG_COMP;
-				pEvt->msg.mqd_ctrl.info.init = TRUE;
+				pEvt->msg.mqd_ctrl.info.init = true;
 
 				/* Put it in MQD's Event Queue */
 				rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
@@ -194,11 +194,11 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 		     pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&nodeid)) {
 			nodeid = pNdNode->info.nodeid;
 			/* Post the event to MQD Thread */
-			if (pNdNode->info.timer.is_expired == TRUE) {
+			if (pNdNode->info.timer.is_expired == true) {
 				TRACE("NODE FOUND FOR CLEAN UP:CSI CALLBACK (TIMER EXPIRY CASE)");
 				mqd_timer_expiry_evt_process(pMqd, &nodeid);
 			} else {
-				if (pNdNode->info.is_restarted == TRUE) {
+				if (pNdNode->info.is_restarted == true) {
 					TRACE("NODE FOUND FOR CLEAN:CSI CALLBACK (MDS UP CASE)");
 					pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
 					if (pEvt) {
@@ -206,7 +206,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 						pEvt->type = MQSV_EVT_MQD_CTRL;
 						pEvt->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
 						pEvt->msg.mqd_ctrl.info.nd_info.dest = pNdNode->info.dest;
-						pEvt->msg.mqd_ctrl.info.nd_info.is_up = TRUE;
+						pEvt->msg.mqd_ctrl.info.nd_info.is_up = true;
 
 						/*      m_GET_TIME_STAMP(pEvt->msg.mqd_ctrl.info.nd_info.event_time); */
 						/* Put it in MQD's Event Queue */
@@ -242,7 +242,7 @@ static uint32_t mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation
 	NCSVDA_INFO vda_info;
 
 	pMqd->invocation = invocation;
-	pMqd->is_quisced_set = TRUE;
+	pMqd->is_quisced_set = true;
 	pMqd->ha_state = haState;
 	memset(&vda_info, 0, sizeof(vda_info));
 

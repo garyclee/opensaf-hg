@@ -450,7 +450,7 @@ static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 
 	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
 
@@ -468,9 +468,9 @@ static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt)
 
 		/* Handle active to active role change. */
 		if ((prev_haState == SA_AMF_HA_ACTIVE) && (clms_cb->ha_state == SA_AMF_HA_ACTIVE))
-			role_change = FALSE;
+			role_change = false;
 
-		if (role_change == TRUE){
+		if (role_change == true){
 
 			/* fail over, become implementer */
 			clms_imm_impl_set(clms_cb);
@@ -621,7 +621,7 @@ static uint32_t proc_clma_updn_mds_msg(CLMSV_CLMS_EVT * evt)
 static uint32_t proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
 {
 	TRACE_ENTER();
-	if (clms_cb->is_quiesced_set == TRUE) {
+	if (clms_cb->is_quiesced_set == true) {
 		clms_cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (clms_mbcsv_change_HA_state(clms_cb) != NCSCC_RC_SUCCESS)
@@ -629,7 +629,7 @@ static uint32_t proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
 
 		/* Update control block */
 		saAmfResponse(clms_cb->amf_hdl, clms_cb->amf_inv, SA_AIS_OK);
-		clms_cb->is_quiesced_set = FALSE;
+		clms_cb->is_quiesced_set = false;
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1093,8 +1093,8 @@ static uint32_t proc_initialize_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 	}
 
 	if(node) {
-		if(node->member == FALSE) {
-			rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, TRUE);
+		if(node->member == false) {
+			rc = clms_send_is_member_info(clms_cb, node->node_id, node->member, true);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_send_is_member_info %u", rc);
 				return rc;
