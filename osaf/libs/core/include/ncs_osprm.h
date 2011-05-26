@@ -496,24 +496,6 @@ extern "C" {
 
 #include "os_defs.h"
 
-#ifdef NCS_MKDIR_DEFINED
-#define MKDIR(d,m)  mkdir(d,m)
-#else
-#error "Define mkdir for your os"
-#endif
-
-/****************************************************************************
- * General definitions
- ***************************************************************************/
-
-#ifndef NCS_OS_PATHSEPARATOR_CHAR
-#define NCS_OS_PATHSEPARATOR_CHAR     '/'
-#endif
-
-#ifndef NCS_OS_PATH_MAX
-#define NCS_OS_PATH_MAX                    255
-#endif
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************

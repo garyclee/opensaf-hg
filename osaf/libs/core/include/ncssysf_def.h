@@ -34,6 +34,8 @@
 #ifndef NCSSYSF_DEF_H
 #define NCSSYSF_DEF_H
 
+#include <time.h>
+
 #include "ncsgl_defs.h"
 #include "logtrace.h"
 
@@ -265,11 +267,6 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
 #define m_NCS_JSE_CFUNC                     m_NCS_OS_JSE_CFUNC
 #define m_NCS_JSE_PFUNC                     m_NCS_OS_JSE_PFUNC
 #define m_NCS_JSECALLSEQ(type)              m_NCS_OS_JSECALLSEQ(type)
-
-#define NCS_PATH_SEPARATOR                  NCS_OS_PATHSEPARATOR_CHAR
-#define NCS_PATH_MAX                        NCS_OS_PATH_MAX
-
-#define MAX_FILENAME_LEN                   128
 
 #define m_NCS_IPV4_TO_IFIDX(hbo_ipv4)       m_NCS_OS_IPV4_TO_IFIDX(hbo_ipv4)
 

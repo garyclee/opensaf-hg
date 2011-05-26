@@ -38,6 +38,7 @@
 #include <syslog.h>
 #include <libgen.h>
 #include <time.h>
+#include <sched.h>
 
 #include <saAmf.h>
 #include <ncssysf_def.h>

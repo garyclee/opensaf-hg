@@ -33,6 +33,8 @@
 #define NCSSYSF_TSK_H
 
 #include "ncsgl_defs.h"
+#include "ncs_osprm.h"
+
 extern uns32 ncs_task_join(void *task_handle);
 
 #ifdef  __cplusplus

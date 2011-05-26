@@ -58,6 +58,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
+//#include <pthread.h>
 
 #include <sysf_exc_scr.h>
 #include <ncssysf_tsk.h>

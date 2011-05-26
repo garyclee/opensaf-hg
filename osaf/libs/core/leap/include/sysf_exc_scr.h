@@ -43,11 +43,6 @@
 #include "signal.h"
 #include "ncssysf_sem.h"
 #include "ncssysf_tsk.h"
-/* Earlier it was included from file ncs_ipprm.h which is
- * included conditionally on flag NCS_IP_SERVICES, which inturn was
- * defined based on NCS_MDS=1 flag. But for independent builds of 
- * LEAP base or LEAP products it needs to be included here.
-*/
 #include "ncssysf_lck.h"
 #include "ncssysfpool.h"
 /* Fix Ends */

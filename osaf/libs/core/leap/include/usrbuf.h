@@ -31,6 +31,7 @@
 #ifndef USRBUF_H
 #define USRBUF_H
 
+#include "ncs_osprm.h"
 #include "ncsusrbuf.h"
 #include "ncssysf_lck.h"
 

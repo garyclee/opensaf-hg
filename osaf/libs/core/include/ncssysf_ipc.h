@@ -36,6 +36,7 @@
 #ifndef NCSSYSF_IPC_H
 #define NCSSYSF_IPC_H
 
+#include "ncs_osprm.h"
 #include "ncsgl_defs.h"
 
 #ifdef  __cplusplus

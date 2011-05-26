@@ -15,7 +15,9 @@
  *
  */
 
-#include <configmake.h> 
+#include <configmake.h>
+#include <stdlib.h>
+
 #include "rda_papi.h"  /* for RDE interfacing */
 
 /****************************************************************************

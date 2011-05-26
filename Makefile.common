@@ -2,8 +2,6 @@
 # Define a common string for core CPP defines
 #
 CORE_CPP_DEFINES = \
-    -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 \
-    -DNCS_SAF=1 \
     -DNCS_MDS=1 \
     -DDTS_SIM_TEST_ENV=1 \
     -DDTA_FLOW=1

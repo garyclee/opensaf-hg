@@ -146,47 +146,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 **************************************************************************/
 
-/*************************************************************************
-NCS_CLI   
-
-     CLI      Command Line Interface; drives character IO operations.
-              Function entry:  ncscli_begin()
-
-     CLI SHIM Protects CLI thread from subsystem havoc by exporting 
-              subsystem specific work to this dedicated thread.
-              Function entry:  shim_mbx_handler()
-
-NOTE: These mnemonics do not yet mapped to this task's creation properties.
-**************************************************************************/
-
-/* CLI */
-
-#ifndef NCS_CLI_STACKSIZE
-#define NCS_CLI_STACKSIZE      NCS_STACKSIZE_HUGE
-#endif
-
-#ifndef NCS_CLI_PRIORITY
-#define NCS_CLI_PRIORITY       NCS_TASK_PRIORITY_7
-#endif
-
-#ifndef NCS_CLI_TASKNAME
-#define NCS_CLI_TASKNAME       "CLI"
-#endif
-
-/* CLI SHIM */
-
-#ifndef NCS_CLI_SHIM_STACKSIZE
-#define NCS_CLI_SHIM_STACKSIZE NCS_STACKSIZE_HUGE
-#endif
-
-#ifndef NCS_CLI_SHIM_PRIORITY
-#define NCS_CLI_SHIM_PRIORITY  NCS_TASK_PRIORITY_6
-#endif
-
-#ifndef NCS_CLI_SHIM_TASKNAME
-#define NCS_CLI_SHIM_TASKNAME  "CLI_SHIM"
-#endif
-
 /* DTS Task */
 
 #ifndef NCS_DTS_STACKSIZE
