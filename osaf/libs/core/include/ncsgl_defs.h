@@ -142,8 +142,6 @@ extern "C" {
  * gl_defs.h, and remove the include defenations from this file 
  *****************************************************************************/
 
-#define NCS_MDS  1
-
 #define NCS_IPV6 0
 
 	typedef uns64 MDS_DEST;
