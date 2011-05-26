@@ -48,7 +48,7 @@ AVD_AMF_NG *avd_ng_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_AMF_NG *)ncs_patricia_tree_get(&nodegroup_db, (uns8 *)&tmp);
+	return (AVD_AMF_NG *)ncs_patricia_tree_get(&nodegroup_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -64,7 +64,7 @@ static AVD_AMF_NG *ng_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_AMF_NG *)ncs_patricia_tree_getnext(&nodegroup_db, (uns8 *)&tmp);
+	return (AVD_AMF_NG *)ncs_patricia_tree_getnext(&nodegroup_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -141,7 +141,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 	memcpy(ng->ng_name.value, dn->value, dn->length);
 	ng->ng_name.length = dn->length;
-	ng->tree_node.key_info = (uns8 *)&(ng->ng_name);
+	ng->tree_node.key_info = (uint8_t *)&(ng->ng_name);
 
 	if ((immutil_getAttrValuesNumber("saAmfNGNodeList", attributes,
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {

@@ -210,16 +210,16 @@ typedef struct seq_buffer {
 * Circular Buffer house keeping ****
 **************************************************************************/
 typedef struct circular_buffer_part {
-	uns8 status;		/* Status : can be clear/in use/full */
+	uint8_t status;		/* Status : can be clear/in use/full */
 	char *cir_buff_ptr;	/* Ponter to the buffer */
 	uns32 num_of_elements;	/* Number of elements currently copied into buffer */
 } CIRCULAR_BUFFER_PART;
 
 typedef struct cir_buffer {
-	uns8 buff_allocated;	/* TRUE : Buffer is allocated; FALSE : Buffer is freed */
-	uns8 inuse;		/* TRUE : Currently in use else set to FALSE */
+	uint8_t buff_allocated;	/* TRUE : Buffer is allocated; FALSE : Buffer is freed */
+	uint8_t inuse;		/* TRUE : Currently in use else set to FALSE */
 	char *cur_location;	/* Current pointer */
-	uns8 cur_buff_num;	/* Holds the buffer number currently being used */
+	uint8_t cur_buff_num;	/* Holds the buffer number currently being used */
 	uns32 cur_buff_offset;	/* Current Position offset from buffer partition base */
 	uns32 part_size;	/* Partition size in KBytes */
 	CIRCULAR_BUFFER_PART buff_part[NUM_BUFFS];	/* Circular Buffer partitions */
@@ -227,14 +227,14 @@ typedef struct cir_buffer {
 
 typedef struct cir_buffer_op_table {
 	SVC_KEY my_key;		/* Key used for searching the element, Node ID + Service ID */
-	uns8 operation;		/* Operation to be performed; currentlu only DUMP_LOG */
-	uns8 op_device;		/* Device where to dump our log */
+	uint8_t operation;		/* Operation to be performed; currentlu only DUMP_LOG */
+	uint8_t op_device;		/* Device where to dump our log */
 } CIR_BUFFER_OP_TABLE;
 #define CIR_BUFFER_OP_TABLE_NULL    ((CIR_BUFFER_OP_TABLE *)0)
 
 typedef struct policy {
 	/* Logging policies */
-	uns8 log_dev;		/* Log device: file, circular buffer or console */
+	uint8_t log_dev;		/* Log device: file, circular buffer or console */
 
 	uns32 log_file_size;	/* File size to be defined in KB */
 	NCS_BOOL file_log_fmt;	/* Log format: Compressed or Expanded */
@@ -245,7 +245,7 @@ typedef struct policy {
 	/* Filtering policies, sent to DTA */
 	NCS_BOOL enable;
 	uns32 category_bit_map;	/* Category filter bit map */
-	uns8 severity_bit_map;	/* Severity filter bit map */
+	uint8_t severity_bit_map;	/* Severity filter bit map */
 
 } POLICY;
 #define POLICY_NULL    ((POLICY *)0)
@@ -288,7 +288,7 @@ typedef struct dts_file_list {
 typedef struct dts_cons_list {
 	char cons_dev[DTS_CONS_DEV_MAX];	/* Console device name */
 	int32 cons_fd;		/* fd for the opened console */
-	uns8 cons_sev_filter;	/* severity filter for the console */
+	uint8_t cons_sev_filter;	/* severity filter for the console */
 	struct dts_cons_list *next;
 } DTS_CONS_LIST;
 
@@ -296,17 +296,17 @@ typedef struct op_device {
 	/* Variables for managing the output device */
 	DTS_FILE_LIST log_file_list;
 	FILE *svc_fh;
-	uns8 file_open;		/* IF TRUE indicates that file is open. */
+	uint8_t file_open;		/* IF TRUE indicates that file is open. */
 	uns32 cur_file_size;	/* Current file size */
-	uns8 new_file;		/* TRUE : Create new file. Set to FALSE after creating file */
+	uint8_t new_file;		/* TRUE : Create new file. Set to FALSE after creating file */
 	CIR_BUFFER cir_buffer;	/* Circular buffer */
 	uns16 last_rec_id;
 
-	uns8 file_log_fmt_change;
-	uns8 buff_log_fmt_change;
+	uint8_t file_log_fmt_change;
+	uint8_t buff_log_fmt_change;
 	/* Added for console logging */
 	DTS_CONS_LIST *cons_list_ptr;	/* List of consoles assoc. with this device */
-	uns8 num_of_cons_conf;	/*current no. of configured console devices */
+	uint8_t num_of_cons_conf;	/*current no. of configured console devices */
 } OP_DEVICE;
 
 /******************************************************************************
@@ -333,7 +333,7 @@ typedef struct global_policy {
 	/* Align datatype with IMM  object */
 	uns32 g_num_log_files;	/*Number of old log files to be saved per service or per node */
 	/*Smik - Added for console printing */
-	uns8 g_num_cons_dev;	/*Max no. of console devices to be configured per service or per node */
+	uint8_t g_num_cons_dev;	/*Max no. of console devices to be configured per service or per node */
 	NCS_BOOL g_enable_seq;	/*Enable/Disable log message sequencing */
 	NCS_BOOL g_close_files;	/* If set close all the opened files and the new files will 
 				   be created for logging */
@@ -351,7 +351,7 @@ typedef struct dta_dest_list {
 	uns32 dta_up;		/* Set to TRUE when DTA is up. Don't send any message
 				   to DTA if it is down. */
 
-	uns8 updt_req;		/* When DTA comes back again check this flag to send
+	uint8_t updt_req;		/* When DTA comes back again check this flag to send
 				   Configuration info to DTA */
 
 	uns32 dta_num_svcs;	/* Contains the no. of svcs associated with 
@@ -408,7 +408,7 @@ typedef struct dts_svc_reg_tbl {
    nt_key.node = m_NCS_OS_HTONL(p->node); \
    nt_key.ss_svc_id = m_NCS_OS_HTONL(p->ss_svc_id); \
    if((svc_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&dts_cb.svc_tbl, \
-             (const uns8*)&nt_key)) == NULL) \
+             (const uint8_t*)&nt_key)) == NULL) \
        rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
                       No service registration entry present"); \
    else \
@@ -507,7 +507,7 @@ typedef struct dts_cb {
 	NCS_BOOL is_test;
 #endif
 
-	uns8 hmpool_id;
+	uint8_t hmpool_id;
 
 	char *cons_dev;		/* Added 2 variables for console logging */
 	int32 cons_fd;
@@ -525,7 +525,7 @@ typedef struct dts_cb {
 	 * Quiesced complete ack frm dts_do_evt */
 	SaInvocationT csi_cb_invocation;
 
-	uns8 cli_bit_map;       /*Bit map to reflect change made in global
+	uint8_t cli_bit_map;       /*Bit map to reflect change made in global
 				   policy or node policy through CLI */
 	MDS_DEST svc_rmv_mds_dest;	/*MDS_DEST corrsp to DTA from which 
 					   service unreg is received */
@@ -904,10 +904,10 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy);
 void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service);
 void dts_default_node_policy_set(POLICY *policy, OP_DEVICE *device, uns32 node_id);
 
-uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type);
-uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_type, NCSFL_ASCII_SPEC *spec);
+uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uint8_t file_type);
+uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t file_type, NCSFL_ASCII_SPEC *spec);
 uns32
-dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level);
+dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uint8_t log_level);
 
 /************************************************************************
 DTSv Circular buffer functions.
@@ -917,7 +917,7 @@ uns32 dts_circular_buffer_free(CIR_BUFFER *cir_buff);
 uns32 dts_circular_buffer_clear(CIR_BUFFER *cir_buff);
 uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff);
 uns32 dts_dump_to_cir_buffer(CIR_BUFFER *buffer, char *str);
-uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file);
+uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uint8_t device, char *file);
 uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size);
 uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size);
 uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_buff, uns32 number);
@@ -1032,7 +1032,7 @@ uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst,
 						DTS_SVC_REG_TBL *service,
 						unsigned int param_id, uns32 node_id, SS_SVC_ID svc_id);
 
-uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value);
+uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uint8_t old_value);
 
 uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value);
 
@@ -1123,10 +1123,10 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
 
 #define m_NCSFL_MAKE_STR_FRM_IPADDR(ipa, t_str) \
 { \
-  uns8  *ptr; \
+  uint8_t  *ptr; \
   if (ipa.type == NCS_IP_ADDR_TYPE_IPV4) \
   { \
-       ptr = (uns8 *)&ipa.info.v4;  \
+       ptr = (uint8_t *)&ipa.info.v4;  \
        sprintf(t_str,"%d.%d.%d.%d", *ptr, *(ptr + 1), *(ptr + 2), *(ptr + 3)); \
   } \
   else \

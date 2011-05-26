@@ -66,7 +66,7 @@ uns32 mbcsv_rmv_reg_inst(MBCSV_REG *reg_list, MBCSV_REG *mbc_reg)
 	 * Find and remove all the ckpt instance. After removing all the instances
 	 * destroy this ckpt list.
 	 */
-	while (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_getnext(&mbc_reg->ckpt_ssn_list, (const uns8 *)&pwe_hdl))) {
+	while (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_getnext(&mbc_reg->ckpt_ssn_list, (const uint8_t *)&pwe_hdl))) {
 		pwe_hdl = ckpt->pwe_hdl;
 
 		if (NCSCC_RC_SUCCESS != mbcsv_remove_ckpt_inst(ckpt)) {
@@ -565,7 +565,7 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst, MBCSV_REG *mbc
 		{
 			uns16 peer_count = 0;
 			uns16 tmp_peer_version = 0;
-			uns8 set_peer_version = TRUE;
+			uint8_t set_peer_version = TRUE;
 			USRBUF *dup_ub = NULL;
 			PEER_INST *peer = ckpt_inst->peer_list;
 
@@ -725,7 +725,7 @@ uns32 mbcsv_send_data_req(NCS_UBAID *uba, CKPT_INST *ckpt_inst, MBCSV_REG *mbc_i
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_client_msg(PEER_INST *peer, uns8 evt, uns32 action)
+uns32 mbcsv_send_client_msg(PEER_INST *peer, uint8_t evt, uns32 action)
 {
 	MBCSV_EVT *evt_msg;
 
@@ -775,7 +775,7 @@ uns32 mbcsv_send_client_msg(PEER_INST *peer, uns8 evt, uns32 action)
 * Notes:  
 *
 \**************************************************************************/
-uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 *io_event, NCS_UBAID *uba)
+uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t *io_event, NCS_UBAID *uba)
 {
 	NCS_MBCSV_CB_ARG parg;
 	MBCSV_REG *mbc_inst = peer->my_ckpt_inst->my_mbcsv_inst;
@@ -882,7 +882,7 @@ uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 *io_eve
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uns8 event)
+uns32 mbcsv_send_msg(PEER_INST *peer, MBCSV_EVT *evt_msg, uint8_t event)
 {
 	NCS_UBAID uba;
 	uns32 ret_val;

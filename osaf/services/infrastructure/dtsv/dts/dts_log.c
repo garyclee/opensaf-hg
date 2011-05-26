@@ -90,7 +90,7 @@ uns32 dts_log_unbind(void)
 
 *****************************************************************************/
 
-void log_dts_headline(uns8 hdln_id)
+void log_dts_headline(uint8_t hdln_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_HDLN, DTS_FC_HDLN, NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, "TI", hdln_id);
 }
@@ -103,7 +103,7 @@ void log_dts_headline(uns8 hdln_id)
 
 *****************************************************************************/
 
-void log_dts_svc_prvdr(uns8 sp_id)
+void log_dts_svc_prvdr(uint8_t sp_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_SVC_PRVDR_FLEX, DTS_FC_SVC_PRVDR_FLEX,
 		   NCSFL_LC_SVC_PRVDR, NCSFL_SEV_INFO, "TI", sp_id);
@@ -117,7 +117,7 @@ void log_dts_svc_prvdr(uns8 sp_id)
 
 *****************************************************************************/
 
-void log_dts_lock(uns8 lck_id, void *lck)
+void log_dts_lock(uint8_t lck_id, void *lck)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_LOCKS, DTS_FC_LOCKS,
 		   NCSFL_LC_LOCKS, NCSFL_SEV_DEBUG, "TIL", lck_id, (long)lck);
@@ -131,7 +131,7 @@ void log_dts_lock(uns8 lck_id, void *lck)
 
 *****************************************************************************/
 
-void log_dts_memfail(uns8 mf_id)
+void log_dts_memfail(uint8_t mf_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_MEMFAIL, DTS_FC_MEMFAIL, NCSFL_LC_MEMORY, NCSFL_SEV_DEBUG, "TI", mf_id);
 }
@@ -144,7 +144,7 @@ void log_dts_memfail(uns8 mf_id)
 
 *****************************************************************************/
 
-void log_dts_api(uns8 api_id)
+void log_dts_api(uint8_t api_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_API, DTS_FC_API, NCSFL_LC_API, NCSFL_SEV_NOTICE, "TI", api_id);
 }
@@ -157,7 +157,7 @@ void log_dts_api(uns8 api_id)
 
 *****************************************************************************/
 
-void log_dts_evt(uns8 evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest)
+void log_dts_evt(uint8_t evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT,
 		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, "TILLL", evt_id, svc_id, node, adest);
@@ -170,7 +170,7 @@ void log_dts_evt(uns8 evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest)
   DESCRIPTION:       Checkpointing Event logging info
 
 *****************************************************************************/
-void log_dts_chkp_evt(uns8 id)
+void log_dts_chkp_evt(uint8_t id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_CHKP, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TI", id);
 }
@@ -183,7 +183,7 @@ void log_dts_chkp_evt(uns8 id)
 
 *****************************************************************************/
 
-void log_dts_cbop(uns8 op_id, SS_SVC_ID svc_id, uns32 node)
+void log_dts_cbop(uint8_t op_id, SS_SVC_ID svc_id, uns32 node)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_CB_LOG, DTS_FC_CIRBUFF,
 		   NCSFL_LC_MISC, NCSFL_SEV_INFO, "TILL", op_id, svc_id, node);
@@ -197,7 +197,7 @@ void log_dts_cbop(uns8 op_id, SS_SVC_ID svc_id, uns32 node)
 
 *****************************************************************************/
 
-void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc)
+void log_dts_dbg(uint8_t id, char *str, NODE_ID node, SS_SVC_ID svc)
 {
 	if (id == DTS_SERVICE) {
 		char tstr[200];
@@ -217,7 +217,7 @@ void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc)
 
 *****************************************************************************/
 
-void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc)
+void log_dts_dbg_name(uint8_t id, char *str, uns32 svc_id, char *svc)
 {
 	if (id == DTS_SERVICE) {
 		char tstr[200];
@@ -232,7 +232,7 @@ void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc)
 
 
 
-void _dts_log(uns8 severity, const char *function, const char *format, ...)
+void _dts_log(uint8_t severity, const char *function, const char *format, ...)
 {
         char preamble[128];
         char str[128];

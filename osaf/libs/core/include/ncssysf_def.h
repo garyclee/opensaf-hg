@@ -98,10 +98,10 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	uns32 decode_32bitOS_inc(uns8 **stream);
-	uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
-	uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
-	uns16 decode_16bitOS_inc(uns8 **stream);
+	uns32 decode_32bitOS_inc(uint8_t **stream);
+	uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val);
+	uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val);
+	uns16 decode_16bitOS_inc(uint8_t **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
 #define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)
@@ -293,8 +293,8 @@ extern void opensaf_reboot(unsigned int node_id, char *ee_name, const char *reas
  **                                                                         **
  ****************************************************************************/
 
-	int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
-	int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
+	int32 sysf_strrcspn(const uint8_t *s, const int32 start_pos, const uint8_t *reject);
+	int32 sysf_strincmp(const uint8_t *s1, const uint8_t *s2, uns32 n);
 
 #ifdef  __cplusplus
 }

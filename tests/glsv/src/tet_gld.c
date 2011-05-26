@@ -93,7 +93,7 @@ void print_rsc_cb_info() {
    GLSV_GLD_RSC_INFO *gld_rsc;
    GLSV_NODE_LIST    *temp_node;
    uns32 res = NCSCC_RC_SUCCESS;
-   uns8 *key=NULL;
+   uint8_t *key=NULL;
 
    printf("print_rsc_cb_info  %x\n",gld_rsc);
 
@@ -104,7 +104,7 @@ void print_rsc_cb_info() {
       printf("GLD Startup Success ... %x\n",gld_cb);
    }
 
-   gld_rsc=(GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id,(uns8 *)0);
+   gld_rsc=(GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id,(uint8_t *)0);
    while(gld_rsc != NULL) {
 
       printf("\n********************************************\n");
@@ -118,7 +118,7 @@ void print_rsc_cb_info() {
       }
       printf("\n********************************************\n");
 
-      key=(uns8 *)&gld_rsc->rsc_id;
+      key=(uint8_t *)&gld_rsc->rsc_id;
       gld_rsc=(GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id,key);
    }
 }
@@ -129,7 +129,7 @@ void print_glnd_cb_info() {
    GLSV_GLD_GLND_DETAILS *node_details=NULL;
    GLSV_GLD_GLND_RSC_REF *glnd_rsc=NULL;
    uns32 res = NCSCC_RC_SUCCESS;
-   uns8 *key=NULL;
+   uint8_t *key=NULL;
    
    gld_cb =   (GLSV_GLD_CB*)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
 
@@ -139,7 +139,7 @@ void print_glnd_cb_info() {
       printf("GLD Startup Success ... %x\n",gld_cb);
    }
 
-   node_details  = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,(uns8*)0); 
+   node_details  = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,(uint8_t*)0); 
 
    while (node_details != NULL) {
 
@@ -148,7 +148,7 @@ void print_glnd_cb_info() {
        printf("GLND NODE-ID %d\n",node_details->node_id);
        printf("\n********************************************\n");
 
-       key=(uns8 *)&node_details->dest_id;
+       key=(uint8_t *)&node_details->dest_id;
        node_details=(GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,key);
    }
 }

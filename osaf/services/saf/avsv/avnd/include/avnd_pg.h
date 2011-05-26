@@ -42,7 +42,7 @@ typedef struct avnd_pg_trk_key {
 /* pg track info declaration */
 typedef struct avnd_pg_trk_info {
 	AVND_PG_TRK_KEY key;	/* pg key */
-	uns8 flags;		/* track flags */
+	uint8_t flags;		/* track flags */
 	NCS_BOOL is_syn;	/* indicates if the appl synchronously waits 
 				   for the notification */
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* the context for the synchronous api */
@@ -95,21 +95,21 @@ typedef struct avnd_pg {
 
 /* macro to get the PG record from the PG database */
 #define m_AVND_PGDB_REC_GET(pgdb, csi_name_net) \
-           (AVND_PG *)ncs_patricia_tree_get(&(pgdb), (uns8 *)&(csi_name_net))
+           (AVND_PG *)ncs_patricia_tree_get(&(pgdb), (uint8_t *)&(csi_name_net))
 
 /* macro to get the next PG record from the PG database */
 #define m_AVND_PGDB_REC_GET_NEXT(pgdb, csi_name_net) \
-           (AVND_PG *)ncs_patricia_tree_getnext(&(pgdb), (uns8 *)&(csi_name_net))
+           (AVND_PG *)ncs_patricia_tree_getnext(&(pgdb), (uint8_t *)&(csi_name_net))
 
 /* macro to get the PG track record from the PG database */
 #define m_AVND_PGDB_TRK_REC_GET(pg, key) \
            (AVND_PG_TRK *)ncs_db_link_list_find(&((pg).trk_list), \
-                                                (uns8 *)&(key) )
+                                                (uint8_t *)&(key) )
 
 /* macro to get the PG member record from the PG database */
 #define m_AVND_PGDB_MEM_REC_GET(pg, comp_name) \
            (AVND_PG_MEM *)ncs_db_link_list_find(&((pg).mem_list), \
-                                                (uns8 *)&(comp_name) )
+                                                (uint8_t *)&(comp_name) )
 
 /***************************************************************************
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******

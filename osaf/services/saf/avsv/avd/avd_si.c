@@ -245,7 +245,7 @@ AVD_SI *avd_si_new(const SaNameT *dn)
 
 	memcpy(si->name.value, dn->value, dn->length);
 	si->name.length = dn->length;
-	si->tree_node.key_info = (uns8 *)&si->name;
+	si->tree_node.key_info = (uint8_t *)&si->name;
 	si->si_switch = AVSV_SI_TOGGLE_STABLE;
 	si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
 	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
@@ -344,7 +344,7 @@ AVD_SI *avd_si_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SI *)ncs_patricia_tree_get(&si_db, (uns8 *)&tmp);
+	return (AVD_SI *)ncs_patricia_tree_get(&si_db, (uint8_t *)&tmp);
 }
 
 AVD_SI *avd_si_getnext(const SaNameT *dn)
@@ -354,7 +354,7 @@ AVD_SI *avd_si_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SI *)ncs_patricia_tree_getnext(&si_db, (uns8 *)&tmp);
+	return (AVD_SI *)ncs_patricia_tree_getnext(&si_db, (uint8_t *)&tmp);
 }
 
 static void si_add_to_model(AVD_SI *si)

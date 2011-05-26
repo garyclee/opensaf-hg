@@ -357,12 +357,12 @@ static uns32 gld_mds_enc_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		if (info->i_to_svc_id == NCSMDS_SVC_ID_GLND) {
 			GLSV_GLND_EVT *evt;
 			evt = (GLSV_GLND_EVT *)info->i_msg;
-			ncs_encode_n_octets_in_uba(uba, (uns8 *)evt, sizeof(GLSV_GLND_EVT));
+			ncs_encode_n_octets_in_uba(uba, (uint8_t *)evt, sizeof(GLSV_GLND_EVT));
 			if (evt->type == GLSV_GLND_EVT_RSC_MASTER_INFO) {
 				if (evt->info.rsc_master_info.no_of_res > 0) {
 					GLSV_GLND_RSC_MASTER_INFO_LIST *rsc_master_list =
 					    evt->info.rsc_master_info.rsc_master_list;
-					ncs_encode_n_octets_in_uba(uba, (uns8 *)rsc_master_list,
+					ncs_encode_n_octets_in_uba(uba, (uint8_t *)rsc_master_list,
 								   (sizeof(GLSV_GLND_RSC_MASTER_INFO_LIST) *
 								    evt->info.rsc_master_info.no_of_res));
 				}
@@ -410,7 +410,7 @@ static uns32 gld_mds_dec_flat(GLSV_GLD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 				return NCSCC_RC_FAILURE;
 			}
 			info->o_msg = evt;
-			ncs_decode_n_octets(uba->ub, (uns8 *)evt, sizeof(GLSV_GLD_EVT));
+			ncs_decode_n_octets(uba->ub, (uint8_t *)evt, sizeof(GLSV_GLD_EVT));
 			return NCSCC_RC_SUCCESS;
 		} else
 			return NCSCC_RC_FAILURE;
@@ -693,20 +693,20 @@ uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 	uns32 node_id = 0;
 
 	/* cleanup the  glnd details tree */
-	node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uns8 *)0);
+	node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)0);
 	while (node_details) {
 		node_id = node_details->node_id;
 		if (node_details->status == GLND_DOWN_STATE) {
 			/* Remove the reference to each of the resource referred by this node */
 			glnd_rsc =
-			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0);
+			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 			if (glnd_rsc) {
 				rsc_id = glnd_rsc->rsc_id;
 				while (glnd_rsc) {
 					gld_rsc_rmv_node_ref(gld_cb, glnd_rsc->rsc_info, glnd_rsc, node_details,
 							     glnd_rsc->rsc_info->can_orphan);
 					glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)
-					    ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)&rsc_id);
+					    ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)&rsc_id);
 					if (glnd_rsc)
 						rsc_id = glnd_rsc->rsc_id;
 				}
@@ -722,7 +722,7 @@ uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 			}
 		}
 		node_details =
-		    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uns8 *)&node_id);
+		    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)&node_id);
 	}
 	return NCSCC_RC_SUCCESS;
 }

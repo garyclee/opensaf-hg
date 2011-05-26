@@ -49,7 +49,7 @@ static uns32 avnd_su_si_csi_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *);
 /* macro to add a csi-record to the si-csi list */
 #define m_AVND_SU_SI_CSI_REC_ADD(si, csi, rc) \
 { \
-   (csi).si_dll_node.key = (uns8 *)&(csi).rank; \
+   (csi).si_dll_node.key = (uint8_t *)&(csi).rank; \
    rc = ncs_db_link_list_add(&(si).csi_list, &(csi).si_dll_node); \
 };
 
@@ -787,7 +787,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, SaNameT *su_name, SaNameT *si_na
 		goto done;
 
 	/* get the si record */
-	si_rec = (AVND_SU_SI_REC *)ncs_db_link_list_find(&su->si_list, (uns8 *)si_name);
+	si_rec = (AVND_SU_SI_REC *)ncs_db_link_list_find(&su->si_list, (uint8_t *)si_name);
 
  done:
 	TRACE_LEAVE();

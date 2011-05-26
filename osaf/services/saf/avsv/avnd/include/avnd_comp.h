@@ -530,28 +530,28 @@ typedef struct avnd_comp_tag {
 
 /* macro to retrieve component ptr from su dll node ptr */
 #define m_AVND_COMP_SU_DLL_NODE_OFFSET \
-            ( (uns8 *)&(AVND_COMP_NULL->su_dll_node) - (uns8 *)AVND_COMP_NULL )
+            ( (uint8_t *)&(AVND_COMP_NULL->su_dll_node) - (uint8_t *)AVND_COMP_NULL )
 #define m_AVND_COMP_FROM_SU_DLL_NODE_GET(x)  \
-            ( (x) ? ((AVND_COMP *)(((uns8 *)(x)) - m_AVND_COMP_SU_DLL_NODE_OFFSET)) : 0 )
+            ( (x) ? ((AVND_COMP *)(((uint8_t *)(x)) - m_AVND_COMP_SU_DLL_NODE_OFFSET)) : 0 )
 
 /* macro to retrieve csi ptr from comp-csi dll node ptr */
 #define m_AVND_CSI_COMP_DLL_NODE_OFFSET \
-            ( (uns8 *)&(AVND_COMP_CSI_REC_NULL->comp_dll_node) - (uns8 *)AVND_COMP_CSI_REC_NULL )
+            ( (uint8_t *)&(AVND_COMP_CSI_REC_NULL->comp_dll_node) - (uint8_t *)AVND_COMP_CSI_REC_NULL )
 #define m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(x)  \
-            ( (x) ? ((AVND_COMP_CSI_REC *)(((uns8 *)(x)) - m_AVND_CSI_COMP_DLL_NODE_OFFSET)) : 0 )
+            ( (x) ? ((AVND_COMP_CSI_REC *)(((uint8_t *)(x)) - m_AVND_CSI_COMP_DLL_NODE_OFFSET)) : 0 )
 
 /* macro to get a component record from comp-db */
 #define m_AVND_COMPDB_REC_GET(compdb, name) \
-   (AVND_COMP *)ncs_patricia_tree_get(&(compdb), (uns8 *)&(name))
+   (AVND_COMP *)ncs_patricia_tree_get(&(compdb), (uint8_t *)&(name))
 
 /* macro to get the next component record from comp-db */
 #define m_AVND_COMPDB_REC_GET_NEXT(compdb, name) \
-   (AVND_COMP *)ncs_patricia_tree_getnext(&(compdb), (uns8 *)&(name))
+   (AVND_COMP *)ncs_patricia_tree_getnext(&(compdb), (uint8_t *)&(name))
 
 /* macro to add a csi record to the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_ADD(comp, csi, rc) \
 { \
-   (csi).comp_dll_node.key = (uns8 *)&(csi).name; \
+   (csi).comp_dll_node.key = (uint8_t *)&(csi).name; \
    (rc) = ncs_db_link_list_add(&(comp).csi_list, &(csi).comp_dll_node); \
 };
 
@@ -562,7 +562,7 @@ typedef struct avnd_comp_tag {
 /* macro to get a csi record from the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_GET(comp, csi_name) \
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(ncs_db_link_list_find(&(comp).csi_list, \
-                                                 (uns8 *)&(csi_name)))
+                                                 (uint8_t *)&(csi_name)))
 
 /* macro to get the first csi record from the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_GET_FIRST(comp) \
@@ -573,14 +573,14 @@ typedef struct avnd_comp_tag {
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET( \
               m_NCS_DBLIST_FIND_NEXT( \
                  ncs_db_link_list_find(&(comp).csi_list, \
-                                       (uns8 *)&((csi).name)) \
+                                       (uint8_t *)&((csi).name)) \
                                     ) \
                                            )
 
 /* macro to add a healthcheck record to the comp-hc list */
 #define m_AVND_COMPDB_REC_HC_ADD(comp, hc, rc) \
 { \
-   (hc).comp_dll_node.key = (uns8 *)&(hc); \
+   (hc).comp_dll_node.key = (uint8_t *)&(hc); \
    (rc) = ncs_db_link_list_add(&(comp).hc_list, &(hc).comp_dll_node); \
 };
 
@@ -591,7 +591,7 @@ typedef struct avnd_comp_tag {
 /* macro to get a healthcheck record from the comp-hc list */
 #define m_AVND_COMPDB_REC_HC_GET(comp, hc_key) \
            (AVND_COMP_HC_REC *)ncs_db_link_list_find(&(comp).hc_list, \
-                                                     (uns8 *)&(hc_key))
+                                                     (uint8_t *)&(hc_key))
 
 /* macro to get the specified healthcheck callback from the comp-cbk list */
 #define m_AVND_COMPDB_CBQ_HC_CBK_GET(comp, hck, o_rec) \
@@ -788,7 +788,7 @@ extern uns32 avnd_comp_cbk_send(struct avnd_cb_tag *, AVND_COMP *,
 extern uns32 avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, struct avnd_comp_tag *, enum avnd_comp_clc_cmd_type);
 
 extern AVND_COMP_HC_REC *avnd_comp_hc_get(AVND_COMP *, uns32, uns32);
-extern uns32 avnd_dblist_hc_rec_cmp(uns8 *key1, uns8 *key2);
+extern uns32 avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2);
 extern void avnd_comp_hc_rec_del_all(struct avnd_cb_tag *, AVND_COMP *);
 
 extern void avnd_comp_cbq_del(struct avnd_cb_tag *, AVND_COMP *, NCS_BOOL);
@@ -810,7 +810,7 @@ extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, SaNameT 
 extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(struct avnd_cb_tag *, SaNameT *, SaNameT *);
 
 extern uns32 avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
-				  SaAisErrorT, uns8 *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, NCS_BOOL);
+				  SaAisErrorT, uint8_t *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, NCS_BOOL);
 
 extern void avnd_comp_hc_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
 extern void avnd_comp_cbq_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
@@ -855,7 +855,7 @@ extern AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(struct avnd_cb_tag *, AVND_COMP 
 extern NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *);
 extern uns32 avnd_evt_ava_pm_start_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 extern uns32 avnd_evt_ava_pm_stop_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-extern void avnd_comp_pm_param_val(struct avnd_cb_tag *, AVSV_AMF_API_TYPE, uns8 *, AVND_COMP **, AVND_COMP_PM_REC **,
+extern void avnd_comp_pm_param_val(struct avnd_cb_tag *, AVSV_AMF_API_TYPE, uint8_t *, AVND_COMP **, AVND_COMP_PM_REC **,
 				     SaAisErrorT *);
 extern void avnd_comp_pm_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT);
 

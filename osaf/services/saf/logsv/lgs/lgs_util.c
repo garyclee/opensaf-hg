@@ -204,14 +204,14 @@ NCS_BOOL lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest)
 {                                       
 	log_client_t *rp = NULL;
                                        
-	rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)0);
+	rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)0);
                                 
 	while (rp != NULL) {    
 		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
 			return TRUE;
 		}
 
-		rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)&rp->client_id_net);
+		rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)&rp->client_id_net);
 	}       
         
 	return FALSE;

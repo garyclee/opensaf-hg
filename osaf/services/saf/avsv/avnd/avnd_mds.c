@@ -858,7 +858,7 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	assert(ava);
 
 	/* encode top-level ava message structure into userbuf */
-	rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uns8 *)ava, sizeof(AVSV_NDA_AVA_MSG));
+	rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)ava, sizeof(AVSV_NDA_AVA_MSG));
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -869,7 +869,7 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 			AVSV_AMF_CBK_INFO *cbk_info = ava->info.cbk_info;
 
 			/* encode cbk-info */
-			rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uns8 *)cbk_info, sizeof(AVSV_AMF_CBK_INFO));
+			rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)cbk_info, sizeof(AVSV_AMF_CBK_INFO));
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 
@@ -877,7 +877,7 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 			case AVSV_AMF_CSI_SET:
 				if (cbk_info->param.csi_set.attrs.number) {
 					rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
-									(uns8 *)cbk_info->param.csi_set.attrs.list,
+									(uint8_t *)cbk_info->param.csi_set.attrs.list,
 									sizeof(AVSV_ATTR_NAME_VAL) *
 									cbk_info->param.csi_set.attrs.number);
 					if (NCSCC_RC_SUCCESS != rc)
@@ -888,7 +888,7 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 			case AVSV_AMF_PG_TRACK:
 				if (cbk_info->param.pg_track.buf.numberOfItems) {
 					rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
-									(uns8 *)cbk_info->param.pg_track.
+									(uint8_t *)cbk_info->param.pg_track.
 									buf.notification,
 									sizeof(SaAmfProtectionGroupNotificationT) *
 									cbk_info->param.pg_track.buf.numberOfItems);
@@ -1110,7 +1110,7 @@ uns32 avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	}
 
 	/* decode the msg */
-	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)ava_msg, sizeof(AVSV_NDA_AVA_MSG));
+	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uint8_t *)ava_msg, sizeof(AVSV_NDA_AVA_MSG));
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 

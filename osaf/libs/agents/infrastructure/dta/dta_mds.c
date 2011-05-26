@@ -266,7 +266,7 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
 	 * If Yes,then configure the service the the received filtering policies.
 	 */
 	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const
-									   uns8 *)&((DTSV_MSG *)msg)->data.data.
+									   uint8_t *)&((DTSV_MSG *)msg)->data.data.
 							  reg_conf.msg_fltr.svc_id)) == NULL) {
 		m_DTA_UNLK(&inst->lock);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
@@ -301,7 +301,7 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log, uns32 category_bit_map, uns8 severity_bit_map)
+uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log, uns32 category_bit_map, uint8_t severity_bit_map)
 {
 	REG_TBL_ENTRY *svc;
 
@@ -310,7 +310,7 @@ uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log, uns32 categ
 	 * If NO, then do nothing.
 	 * If Yes,then update the service with the received filtering policies and
 	 * service handle*/
-	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL) {
+	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uint8_t *)&svc_id)) == NULL) {
 		/*Smik - Service not found in DTA */
 		m_DTA_UNLK(&inst->lock);
 		return NCSCC_RC_SUCCESS;
@@ -387,7 +387,7 @@ uns32 dta_svc_reg_check(DTA_CB *inst)
 		}
 		/* Smik - Set the flag to false for future receipt of DTS_FAIL_OVER msg */
 		svc->svc_flag = FALSE;
-		svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, (const uns8 *)&svc->svc_id);
+		svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, (const uint8_t *)&svc->svc_id);
 	}			/*end of while */
 
 	m_DTA_UNLK(&inst->lock);
@@ -412,8 +412,8 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 	REG_TBL_ENTRY *svc;
 	uns32 status = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba;
-	uns8 severity_bit_map, data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
-	uns8 *data;
+	uint8_t severity_bit_map, data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
+	uint8_t *data;
 	uns32 svc_count, count, svc_id, enable_log, category_bit_map;
 	int warning_rmval = 0;
 
@@ -449,7 +449,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 			   (NCSCONTEXT)&((DTSV_MSG*)msg)->data.data.msg_fltr.svc_id, 
 			   dta_match_service)) == NULL) */
 			if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl,
-									  (const uns8 *)&((DTSV_MSG *)msg)->data.data.
+									  (const uint8_t *)&((DTSV_MSG *)msg)->data.data.
 									  msg_fltr.svc_id)) == NULL) {
 				status =
 				    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
@@ -604,7 +604,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 					}
 					svc =
 					    (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl,
-										       (const uns8 *)&svc->svc_id);
+										       (const uint8_t *)&svc->svc_id);
 				}
 
 				m_DTA_LK(&inst->lock);
@@ -664,7 +664,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba,
 		  MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
-	uns8 *data;
+	uint8_t *data;
 	DTSV_MSG *mm;
 	uns32 lenn = 0;
 
@@ -712,7 +712,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 				}
 				ncs_encode_32bit(&data, lenn);
 				ncs_enc_claim_space(uba, sizeof(uns32));
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)mm->data.data.reg.svc_name, lenn);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mm->data.data.reg.svc_name, lenn);
 			} else {
 				data = ncs_enc_reserve_space(uba, sizeof(uns32));
 				if (data == NULL) {
@@ -746,7 +746,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 				}
 				ncs_encode_32bit(&data, lenn);
 				ncs_enc_claim_space(uba, sizeof(uns32));
-				ncs_encode_n_octets_in_uba(uba, (uns8 *)mm->data.data.unreg.svc_name, lenn);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mm->data.data.unreg.svc_name, lenn);
 			} else {
 				data = ncs_enc_reserve_space(uba, sizeof(uns32));
 				if (data == NULL) {
@@ -824,9 +824,9 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
-	uns8 *data;
+	uint8_t *data;
 	DTSV_MSG *mm;
-	uns8 data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
+	uint8_t data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
 	uns32 status = NCSCC_RC_SUCCESS;
 	NCS_UBAID *payload_uba;
 
@@ -1036,7 +1036,7 @@ uns32 dta_copy_octets(char **dest, char *src, uns16 length)
 
 	memset(*dest, '\0', length);
 
-	memcpy(*dest, src, (length * sizeof(uns8)));
+	memcpy(*dest, src, (length * sizeof(uint8_t)));
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1055,7 +1055,7 @@ uns32 dta_copy_octets(char **dest, char *src, uns16 length)
 \*****************************************************************************/
 uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 {
-	uns8 *data;
+	uint8_t *data;
 	uns32 length;
 
 	if (uba == NULL)
@@ -1087,9 +1087,9 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 	ncs_encode_32bit(&data, length);
 	ncs_enc_claim_space(uba, sizeof(uns32));
 
-	ncs_encode_n_octets_in_uba(uba, (uns8 *)logmsg->hdr.fmat_type, length);
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)logmsg->hdr.fmat_type, length);
 
-	/*m_MMGR_FREE_OCT((uns8*)logmsg->hdr.fmat_type); */
+	/*m_MMGR_FREE_OCT((uint8_t*)logmsg->hdr.fmat_type); */
 
 	/* Append user buffer */
 	ncs_enc_append_usrbuf(uba, logmsg->uba.start);
@@ -1114,11 +1114,11 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 ******************************************************************************/
 uns32 encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa)
 {
-	uns8 *data;
+	uint8_t *data;
 
-	data = ncs_enc_reserve_space(uba, sizeof(uns8));
+	data = ncs_enc_reserve_space(uba, sizeof(uint8_t));
 	ncs_encode_8bit(&data, ipa.type);
-	ncs_enc_claim_space(uba, sizeof(uns8));
+	ncs_enc_claim_space(uba, sizeof(uint8_t));
 
 	if (ipa.type == NCS_IP_ADDR_TYPE_IPV4) {
 		data = ncs_enc_reserve_space(uba, sizeof(uns32));

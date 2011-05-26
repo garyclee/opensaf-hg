@@ -122,7 +122,7 @@ typedef struct edsv_eda_finalize_param_tag {
 
 typedef struct edsv_eda_chan_open_sync_param_tag {
 	uns32 reg_id;
-	uns8 chan_open_flags;
+	uint8_t chan_open_flags;
 	SaNameT chan_name;
 } EDSV_EDA_CHAN_OPEN_SYNC_PARAM;
 
@@ -133,7 +133,7 @@ typedef struct edsv_eda_chan_unlink_sync_rsp_tag {
 typedef struct edsv_eda_chan_open_async_param_tag {
 	SaInvocationT inv;
 	uns32 reg_id;
-	uns8 chan_open_flags;
+	uint8_t chan_open_flags;
 	SaNameT chan_name;
 } EDSV_EDA_CHAN_OPEN_ASYNC_PARAM;
 
@@ -173,12 +173,12 @@ typedef struct edsv_eda_publish_param_tag {
 	uns32 chan_id;
 	uns32 chan_open_id;
 	SaEvtEventPatternArrayT *pattern_array;
-	uns8 priority;
+	uint8_t priority;
 	SaTimeT retention_time;
 	SaNameT publisher_name;
 	uns32 event_id;
 	SaSizeT data_len;
-	uns8 *data;
+	uint8_t *data;
 } EDSV_EDA_PUBLISH_PARAM;
 
 typedef struct edsv_eda_subscribe_param_tag {
@@ -226,7 +226,7 @@ typedef struct edsv_eda_chan_open_cb_param_tag {
 	SaNameT chan_name;
 	uns32 chan_id;
 	uns32 chan_open_id;
-	uns8 chan_open_flags;
+	uint8_t chan_open_flags;
 	uns32 eda_chan_hdl;	/* filled in at the EDA with channelHandle, use 0 at EDS */
 	SaAisErrorT error;
 } EDSV_EDA_CHAN_OPEN_CBK_PARAM;
@@ -236,7 +236,7 @@ typedef struct edsv_eda_evt_deliver_cb_param_tag {
 	uns32 chan_id;
 	uns32 chan_open_id;
 	SaEvtEventPatternArrayT *pattern_array;
-	uns8 priority;
+	uint8_t priority;
 	SaNameT publisher_name;
 	SaTimeT publish_time;
 	SaTimeT retention_time;
@@ -244,7 +244,7 @@ typedef struct edsv_eda_evt_deliver_cb_param_tag {
 	uns32 event_hdl;	/* filled in at the EDA with eventHandle use 0 at EDS */
 	uns32 ret_evt_ch_oid;
 	SaSizeT data_len;
-	uns8 *data;
+	uint8_t *data;
 } EDSV_EDA_EVT_DELIVER_CBK_PARAM;
 
 typedef struct edsv_eda_clm_status_param_tag {

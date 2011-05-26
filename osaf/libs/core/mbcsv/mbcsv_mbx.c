@@ -74,7 +74,7 @@ uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
-	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uns8 *)&key)) {
+	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key)) {
 		rc = m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, "Unable to add new mailbox entry for service", svc_id);
 		goto done;
 	}
@@ -88,7 +88,7 @@ uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
 
 	new_entry->key.pwe_hdl = pwe_hdl;
 	new_entry->key.svc_id = svc_id;
-	new_entry->pat_node.key_info = (uns8 *)&new_entry->key;
+	new_entry->pat_node.key_info = (uint8_t *)&new_entry->key;
 	new_entry->mbx = mbx;
 
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&mbcsv_cb.mbx_list, (NCS_PATRICIA_NODE *)new_entry)) {
@@ -128,7 +128,7 @@ uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id)
 
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_WRITE);
 
-	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uns8 *)&key))) {
+	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key))) {
 		rc = m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "Mailbox entry for this pwe and service ID does not exist", svc_id);
 		goto done;
@@ -194,7 +194,7 @@ uns32 mbcsv_destroy_mbx_list(void)
 	key.pwe_hdl = 0;
 	key.svc_id = 0;
 
-	while (NULL != (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uns8 *)&key))) {
+	while (NULL != (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key))) {
 		key = tree_entry->key;
 
 		ncs_patricia_tree_del(&mbcsv_cb.mbx_list, (NCS_PATRICIA_NODE *)tree_entry);
@@ -232,7 +232,7 @@ SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id)
 
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
 
-	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uns8 *)&key))) {
+	if (NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_get(&mbcsv_cb.mbx_list, (const uint8_t *)&key))) {
 		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 				     "Mailbox entry for this pwe and service ID does not exist", svc_id);
 
@@ -278,7 +278,7 @@ SYSF_MBX mbcsv_get_next_entry_for_pwe(uns32 pwe_hdl, SS_SVC_ID *svc_id)
 	m_NCS_LOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
 
 	if ((NULL == (tree_entry = (MBCSV_MBX_INFO *)ncs_patricia_tree_getnext(&mbcsv_cb.mbx_list,
-									       (const uns8 *)&key)))
+									       (const uint8_t *)&key)))
 	    || (tree_entry->key.pwe_hdl != pwe_hdl)) {
 		m_NCS_UNLOCK(&mbcsv_cb.mbx_list_lock, NCS_LOCK_READ);
 		return 0;

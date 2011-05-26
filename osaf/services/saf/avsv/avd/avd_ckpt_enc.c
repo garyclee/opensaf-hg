@@ -1905,7 +1905,7 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BO
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj = 0;
-	uns8 *encoded_cnt_loc;
+	uint8_t *encoded_cnt_loc;
 
 	TRACE_ENTER2("%u", enc->io_reo_type);
 
@@ -2548,7 +2548,7 @@ static uns32 avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_EN
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_opr_su = 0;
-	uns8 *encoded_cnt_loc;
+	uint8_t *encoded_cnt_loc;
 	AVD_SG_OPER *oper_list_ptr = NULL;
 	EDU_ERR ederror = 0;
 

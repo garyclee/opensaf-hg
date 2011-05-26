@@ -453,7 +453,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 
 					value = *(uintptr_t *)attribute->attrValues[0];
 					if (!strcmp(attribute->attrName, "osafDtsvServiceLogDevice")) {
-						uns8 LogDevice = *((uns8 *)&value);
+						uint8_t LogDevice = *((uint8_t *)&value);
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogDevice  %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
@@ -483,7 +483,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceSeverityBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap %u\n",
-							*(uns8 *)&value);
+							*(uint8_t *)&value);
 					} else if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
 						dts_log(NCSFL_SEV_DEBUG, "RDN = %s", (char *)value);
 					} else {
@@ -527,7 +527,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
-						SaUint32T LogDevice = *((uns8 *)&value);
+						SaUint32T LogDevice = *((uint8_t *)&value);
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogDevice %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
@@ -555,7 +555,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %u\n",
-							*(uns8 *)&value);
+							*(uint8_t *)&value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalNumOfLogFiles %u\n", value);
 						if ((value < 1) || (value > 255))
@@ -607,7 +607,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogDevice")) {
-						SaUint32T LogDevice = *((uns8 *)&value);
+						SaUint32T LogDevice = *((uint8_t *)&value);
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogDevice %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
@@ -635,7 +635,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeSeverityBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap %u\n",
-							*(uns8 *)&value);
+							*(uint8_t *)&value);
 					} else if (!strcmp(attribute->attrName, "opensafNodeLogPolicy")) {
 						dts_log(NCSFL_SEV_DEBUG, "RDN = %s", (char *)value);
 					} else {
@@ -781,7 +781,7 @@ unsigned int dts_configure_global_policy()
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
-			SaUint32T LogDevice = *((uns8 *)&value);
+			SaUint32T LogDevice = *((uint8_t *)&value);
 			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogDevice %u\n", LogDevice);
 			if (LogDevice <= DTS_LOG_DEV_VAL_MAX)
 				inst->g_policy.g_policy.log_dev = LogDevice;
@@ -838,9 +838,9 @@ unsigned int dts_configure_global_policy()
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-			if (GLOBAL_SEVERITY_FILTER_DEFAULT != *(uns8 *)&value) {
-				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %d\n", *(uns8 *)&value);
-				inst->g_policy.g_policy.severity_bit_map = *(uns8 *)&value;
+			if (GLOBAL_SEVERITY_FILTER_DEFAULT != *(uint8_t *)&value) {
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %d\n", *(uint8_t *)&value);
+				inst->g_policy.g_policy.severity_bit_map = *(uint8_t *)&value;
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID)) {
 					dts_log(NCSFL_SEV_ERROR, "Failed to change global severity level\n");

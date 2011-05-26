@@ -47,7 +47,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	GLND_CB *glnd_cb = NULL;
 	NCS_PATRICIA_PARAMS params = { 0 };
 	SaAmfHealthcheckKeyT healthy;
-	int8 *health_key = NULL;
+	int8_t *health_key = NULL;
 	SaAisErrorT amf_error;
 
 	/* register with the Log service */
@@ -66,7 +66,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 	glnd_cb->pool_id = pool_id;
 
 	/* create the handle */
-	glnd_cb->cb_hdl_id = ncshm_create_hdl((uns8)pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)glnd_cb);
+	glnd_cb->cb_hdl_id = ncshm_create_hdl((uint8_t)pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)glnd_cb);
 	if (!glnd_cb->cb_hdl_id) {
 		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		goto hdl_err;
@@ -139,7 +139,7 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 
 	memset(&healthy, 0, sizeof(healthy));
 
-	health_key = (int8 *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8_t *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		if (strlen("A1B2") < sizeof(healthy.key))
 			strncpy((char *)healthy.key, "A1B2", sizeof(healthy.key));
@@ -228,9 +228,9 @@ uns32 glnd_cb_destroy(GLND_CB *glnd_cb)
 
 	/* delete all the internal structures */
 	/* delete the trees */
-	for (agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uns8 *)0);
+	for (agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uint8_t *)0);
 	     agent_info != NULL;
-	     agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uns8 *)0)) {
+	     agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uint8_t *)0)) {
 		glnd_agent_node_del(glnd_cb, agent_info);
 	}
 	ncs_patricia_tree_destroy(&glnd_cb->glnd_agent_tree);
@@ -318,7 +318,7 @@ void glnd_dump_cb()
 		TRACE("GLD is DOWN ");
 
 	/* display Agent data */
-	agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uns8 *)&agent_mds_dest);
+	agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uint8_t *)&agent_mds_dest);
 	while (agent_info) {
 		agent_mds_dest = agent_info->agent_mds_id;
 		TRACE("************ Agent info *************** ");
@@ -336,11 +336,11 @@ void glnd_dump_cb()
 		}
 		TRACE("******************************************************** ");
 		agent_info =
-		    (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uns8 *)&agent_mds_dest);
+		    (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree, (uint8_t *)&agent_mds_dest);
 	}
 
 	/* display the resource treee */
-	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)&res_id);
+	res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)&res_id);
 	while (res_info) {
 		res_id = res_info->resource_id;
 		TRACE("************ Resource info *************** ");
@@ -390,7 +390,7 @@ void glnd_dump_cb()
 			}
 		}
 		TRACE("******************************************************** ");
-		res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uns8 *)&res_id);
+		res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree, (uint8_t *)&res_id);
 	}
 
 	/* giveup the handle */

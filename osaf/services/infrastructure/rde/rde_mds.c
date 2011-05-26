@@ -30,7 +30,7 @@ static uns32 msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	struct rde_msg *msg;
 	NCS_UBAID *uba;
-	uns8 *data;
+	uint8_t *data;
 
 	enc_info->o_msg_fmt_ver = 1;
 	uba = enc_info->io_uba;
@@ -63,8 +63,8 @@ static uns32 msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	struct rde_msg *msg;
 	NCS_UBAID *uba;
-	uns8 *data;
-	uns8 data_buff[256];
+	uint8_t *data;
+	uint8_t data_buff[256];
 
 	if (dec_info->i_fr_svc_id != NCSMDS_SVC_ID_RDE) {
 			rc = NCSCC_RC_FAILURE;

@@ -204,12 +204,12 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 
 	/* add the node to the pg list maintained by csi */
 	pg_csi_node->node = node;
-	pg_csi_node->csi_dll_node.key = (uns8 *)&pg_csi_node->node;
+	pg_csi_node->csi_dll_node.key = (uint8_t *)&pg_csi_node->node;
 	ncs_db_link_list_add(&csi->pg_node_list, &pg_csi_node->csi_dll_node);
 
 	/* add the csi to the pg list maintained by node */
 	pg_node_csi->csi = csi;
-	pg_node_csi->node_dll_node.key = (uns8 *)&pg_node_csi->csi;
+	pg_node_csi->node_dll_node.key = (uint8_t *)&pg_node_csi->csi;
 	ncs_db_link_list_add(&node->pg_csi_list, &pg_node_csi->node_dll_node);
 
 	return NCSCC_RC_SUCCESS;
@@ -237,12 +237,12 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	TRACE_ENTER();
 
 	/* free from pg list maintained on csi */
-	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uns8 *)&node);
+	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uint8_t *)&node);
 	if (pg_csi_node)
 		free(pg_csi_node);
 
 	/* free from pg list maintained on node */
-	pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uns8 *)&csi);
+	pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uint8_t *)&csi);
 	if (pg_node_csi)
 		free(pg_node_csi);
 

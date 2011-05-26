@@ -63,7 +63,7 @@ extern "C" {
  **     pp - a pointer to a pointer to a USRBUF (USRBUF **).
  **     t - a data type that will be used for type casting.
  **     n - a numeric value that identifies an octet count (unsigned int).
- **     s - a pointer to an array of octets (uns8 *).
+ **     s - a pointer to an array of octets (uint8_t *).
  **     c - a character value.
  **     v - a generic pointer (void *).
  **     b - a boolean bit value (1 or 0).
@@ -117,12 +117,12 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	 void *sysf_leap_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	 void sysf_leap_free(void *data, uns8 pool_id);
-	 void *sysf_heap_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	 void sysf_heap_free(void *data, uns8 pool_id);
-	 void *sysf_stub_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	 void sysf_stub_free(void *data, uns8 pool_id);
+	 void *sysf_leap_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void sysf_leap_free(void *data, uint8_t pool_id);
+	 void *sysf_heap_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void sysf_heap_free(void *data, uint8_t pool_id);
+	 void *sysf_stub_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void sysf_stub_free(void *data, uint8_t pool_id);
 
 /* free the user frame data info */
 #define m_MMGR_FREE_BUFR_FRAMES(ptr) m_NCS_MEM_FREE(ptr->bufp, NCS_MEM_REGION_TRANSIENT, \
@@ -538,8 +538,8 @@ extern "C" {
 	void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
 	USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
 
-	uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
-	USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
+	uns32 sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uns32 buff_len);
+	USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length);
 
 /** Computational routines **/
 	uns32 sysf_get_chain_len(const USRBUF *);
@@ -547,7 +547,7 @@ extern "C" {
 
 	void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 
-	uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
+	uns32 sysf_str_hexdump(uint8_t *data, uns32 size, char *fname);
 
 	uns32 sysf_pick_output(char *str, char *fname);
 

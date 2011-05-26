@@ -34,7 +34,7 @@
 typedef struct ava_cb_tag {
 	uns32 cb_hdl;		/* CB hdl returned by hdl mngr */
 	EDU_HDL edu_hdl;	/* EDU handle */
-	uns8 pool_id;		/* pool-id used by hdl mngr */
+	uint8_t pool_id;		/* pool-id used by hdl mngr */
 	NCS_LOCK lock;		/* CB lock */
 	uns32 pend_dis;		/* Number of pending dispaches */
 	uns32 pend_fin;		/* Number of pending agent destroy */

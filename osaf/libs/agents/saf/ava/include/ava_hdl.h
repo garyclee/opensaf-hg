@@ -83,7 +83,7 @@ typedef struct ava_hdl_db_tag {
 { \
    uns32 pat_hdl = (uns32)(hdl); \
    (o_rec) = (AVA_HDL_REC *)ncs_patricia_tree_get(&(db)->hdl_db_anchor, \
-                                                  (uns8 *)&pat_hdl); \
+                                                  (uint8_t *)&pat_hdl); \
 }
 
 /* 

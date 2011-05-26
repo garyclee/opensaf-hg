@@ -58,7 +58,7 @@ db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
 {
 	NCS_DB_LINK_LIST_NODE *del_node;
 
@@ -128,7 +128,7 @@ uns32 ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE 
  *                 callback function. If you just want to remove the node 
  *                 from the list then call the API "ncs_db_link_list_remove()".
  *****************************************************************************/
-uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
+uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
 {
 	NCS_DB_LINK_LIST_NODE *del_node = NULL;
 
@@ -157,7 +157,7 @@ uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uint8_t *key)
 {
 	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
@@ -166,7 +166,7 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uns8 *k
 	}
 
 	while (start_ptr) {
-		if (list_ptr->cmp_cookie((uns8 *)start_ptr->key, key) == 0)
+		if (list_ptr->cmp_cookie((uint8_t *)start_ptr->key, key) == 0)
 			break;
 		start_ptr = start_ptr->next;
 	}
@@ -198,7 +198,7 @@ static uns32 db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIS
 		list_ptr->start_ptr = node_ptr;
 		list_ptr->end_ptr = node_ptr;
 	} else {
-		while (start_ptr && (list_ptr->cmp_cookie((uns8 *)start_ptr->key, (uns8 *)node_ptr->key) == 2)) {
+		while (start_ptr && (list_ptr->cmp_cookie((uint8_t *)start_ptr->key, (uint8_t *)node_ptr->key) == 2)) {
 			start_ptr = start_ptr->next;
 		}
 
@@ -270,7 +270,7 @@ static uns32 db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LI
 		list_ptr->start_ptr = node_ptr;
 		list_ptr->end_ptr = node_ptr;
 	} else {
-		while (start_ptr && (list_ptr->cmp_cookie((uns8 *)start_ptr->key, node_ptr->key) == 1)) {
+		while (start_ptr && (list_ptr->cmp_cookie((uint8_t *)start_ptr->key, node_ptr->key) == 1)) {
 			start_ptr = start_ptr->next;
 		}
 
@@ -355,7 +355,7 @@ uns32 ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *no
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uns8 *prev_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uint8_t *prev_key)
 {
 	NCS_DB_LINK_LIST_NODE *node_ptr;
 
@@ -377,7 +377,7 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, un
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uns8 *pres_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uint8_t *pres_key)
 {
 	NCS_DB_LINK_LIST_NODE *node_ptr;
 

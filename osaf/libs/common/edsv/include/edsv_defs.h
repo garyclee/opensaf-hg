@@ -66,7 +66,7 @@
 #define m_GET_MY_VENDOR(vendor) \
      vendor.length=13; \
      memset(&vendor.value,'\0',SA_MAX_NAME_LENGTH); \
-     memcpy(&vendor.value,(uns8 *)"OpenSAF",7);
+     memcpy(&vendor.value,(uint8_t *)"OpenSAF",7);
 
 /** Macro to validate the channel open flags **/
 #define m_EDA_CHAN_OPEN_FLAG_IS_VALID(flag) \

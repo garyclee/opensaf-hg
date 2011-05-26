@@ -236,7 +236,7 @@ static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO
 	 */
 	memset(&comp_name, 0, sizeof(SaNameT));
 
-	while (NULL != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp_name))) {
+	while (NULL != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp_name))) {
 		comp_name = comp->name;
 
 		if (FALSE == comp->avd_updt_flag) {
@@ -537,7 +537,7 @@ uns32 avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_HA_STATE_GET, amf_rc,
-				(uns8 *)((csi_rec) ? &csi_rec->si->curr_state : 0),
+				(uint8_t *)((csi_rec) ? &csi_rec->si->curr_state : 0),
 				&api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
  done:
@@ -2253,7 +2253,7 @@ uns32 avnd_comp_cbk_send(AVND_CB *cb,
 uns32 avnd_amf_resp_send(AVND_CB *cb,
 			 AVSV_AMF_API_TYPE type,
 			 SaAisErrorT amf_rc,
-			 uns8 *get_val, MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt, AVND_COMP *comp, NCS_BOOL msg_to_avnd)
+			 uint8_t *get_val, MDS_DEST *dest, MDS_SYNC_SND_CTXT *ctxt, AVND_COMP *comp, NCS_BOOL msg_to_avnd)
 {
 	AVND_MSG msg;
 	AVSV_ND2ND_AVND_MSG *avnd_msg;
@@ -2372,7 +2372,7 @@ uns32 avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, N
 
 	/* fill the params */
 	rec->pxied_comp = comp;
-	rec->comp_dll_node.key = (uns8 *)&comp->name;
+	rec->comp_dll_node.key = (uint8_t *)&comp->name;
 
 	/* add rec to link list */
 	rc = ncs_db_link_list_add(&pxy_comp->pxied_list, &rec->comp_dll_node);
@@ -2450,7 +2450,7 @@ uns32 avnd_comp_proxied_del(AVND_CB *cb,
 
 	if (NULL == rec_to_be_deleted) {
 		/* unlink the rec */
-		rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&pxy_comp->pxied_list, (uns8 *)&comp->name);
+		rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&pxy_comp->pxied_list, (uint8_t *)&comp->name);
 	} else
 		rec = rec_to_be_deleted;
 	/* rec has to be there */

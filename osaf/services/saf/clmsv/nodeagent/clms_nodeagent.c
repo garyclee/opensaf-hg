@@ -74,10 +74,10 @@ static uns32 clmna_mds_cpy(struct ncsmds_callback_info *info)
 
 static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 	uns32 total_bytes = 0;
 	TRACE_ENTER();
 
@@ -96,7 +96,7 @@ static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	info->info.dec.o_msg = (uns8 *)msg;
+	info->info.dec.o_msg = (uint8_t *)msg;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	msg->evt_type = ncs_decode_32bit(&p8);
@@ -190,7 +190,7 @@ static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
 {
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();

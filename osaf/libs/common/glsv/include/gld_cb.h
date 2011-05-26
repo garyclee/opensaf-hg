@@ -77,7 +77,7 @@ typedef struct glsv_gld_cb_tag {
 	SYSF_MBX mbx;		/* GLDs mailbox                              */
 	SaNameT comp_name;	/* Component name - "GLD"                    */
 	MDS_HDL mds_handle;	/* PWE handle used for interacting with NDs  */
-	uns8 hm_poolid;		/* For use with handle manager               */
+	uint8_t hm_poolid;		/* For use with handle manager               */
 	NCSCONTEXT task_hdl;
 	uns32 my_hdl;		/* Handle manager handle                     */
 	uns32 clm_hdl;		/* Handle manager handle                     */

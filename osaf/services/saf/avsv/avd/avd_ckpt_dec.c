@@ -2463,7 +2463,7 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 num_of_obj;
-	uns8 *ptr;
+	uint8_t *ptr;
 	char logbuff[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER();
@@ -2472,7 +2472,7 @@ uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
 	num_of_obj = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
@@ -3091,7 +3091,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 num_of_obj;
-	uns8 *ptr;
+	uint8_t *ptr;
 
 	TRACE_ENTER2("%u", dec->i_reo_type);
 
@@ -3099,7 +3099,7 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
 	num_of_obj = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
@@ -3153,14 +3153,14 @@ static uns32 avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_oper_su, count;
-	uns8 *ptr;
+	uint8_t *ptr;
 	AVD_SU *su_ptr;
 	AVD_SU dec_su;
 	EDU_ERR ederror = 0;
 
 	TRACE_ENTER();
 
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_oper_su, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_oper_su, sizeof(uns32));
 	num_of_oper_su = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 

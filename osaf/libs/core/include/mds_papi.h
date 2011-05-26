@@ -62,7 +62,7 @@ extern "C" {
 #define MDS_MINOR_VERSION 1
 
 	typedef NCS_NODE_ID NODE_ID;	/* Node ID to distinguish among blades */
-	typedef uns32 MDS_SVC_ID;	/* MDS Service ID replaces SS_SVC_ID(an uns8) */
+	typedef uns32 MDS_SVC_ID;	/* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
 	typedef uns16 PW_ENV_ID;	/* Private World Environment ID        */
 
 /* MDS-DEST is defined globally in "ncsgl_defs.h" */
@@ -74,7 +74,7 @@ extern "C" {
 	typedef uns64 MDS_CLIENT_HDL;
 
 /* Added for the version/in-service changes */
-	typedef uns8 MDS_SVC_PVT_SUB_PART_VER;	/*MDS svc private sub part ver */
+	typedef uint8_t MDS_SVC_PVT_SUB_PART_VER;	/*MDS svc private sub part ver */
 	typedef uns16 MDS_CLIENT_MSG_FORMAT_VER;	/* Message format version included in mds header */
 
 /* MDS return Types */
@@ -209,7 +209,7 @@ extern "C" {
 #define NCSMDS_MAX_SVCS     1023
 
 #define MDS_DIRECT_BUF_MAXSIZE 8000
-	typedef uns8 *MDS_DIRECT_BUFF;
+	typedef uint8_t *MDS_DIRECT_BUFF;
 #define m_MDS_ALLOC_DIRECT_BUFF(size) mds_alloc_direct_buff(size)
 #define m_MDS_FREE_DIRECT_BUFF(x) mds_free_direct_buff(x)
 	MDS_DIRECT_BUFF mds_alloc_direct_buff(uns16 size);
@@ -232,8 +232,8 @@ extern "C" {
 *************************************************************************/
 	typedef struct mds_sync_snd_ctxt {
 #define MDS_SYNC_SND_CTXT_LEN_MAX 12
-		uns8 length;	/* length of the stored data */
-		uns8 data[MDS_SYNC_SND_CTXT_LEN_MAX];	/* the actual data           */
+		uint8_t length;	/* length of the stored data */
+		uint8_t data[MDS_SYNC_SND_CTXT_LEN_MAX];	/* the actual data           */
 	} MDS_SYNC_SND_CTXT;
 
 	typedef struct mds_sendtype_snd_info {
@@ -425,7 +425,7 @@ extern "C" {
 */
 	typedef struct mds_subscribe_info {
 		NCSMDS_SCOPE_TYPE i_scope;	/* Only events within the scope to be reported */
-		uns8 i_num_svcs;	/* Number of elements in the following array */
+		uint8_t i_num_svcs;	/* Number of elements in the following array */
 		MDS_SVC_ID *i_svc_ids;	/* The service-ids that are being subscribed
 					   to. MDS will copy this array, not free */
 	} MDS_SUBSCRIBE_INFO;
@@ -434,7 +434,7 @@ extern "C" {
 
 /* A service cancels all of its subscriptions by the following call.*/
 	typedef struct mds_cancel_info {
-		uns8 i_num_svcs;	/* Number of elements in the following array */
+		uint8_t i_num_svcs;	/* Number of elements in the following array */
 		MDS_SVC_ID *i_svc_ids;	/* The service-ids that are being cancelled
 					   MDS will copy this array, not free */
 	} MDS_CANCEL_INFO;

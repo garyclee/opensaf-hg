@@ -190,8 +190,8 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 		saAmfResponse(pMqd->amf_hdl, invocation, saErr);
 
 		/*To check for the node down and clean up its info in the data base */
-		for (pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uns8 *)0); pNdNode;
-		     pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uns8 *)&nodeid)) {
+		for (pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)0); pNdNode;
+		     pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&nodeid)) {
 			nodeid = pNdNode->info.nodeid;
 			/* Post the event to MQD Thread */
 			if (pNdNode->info.timer.is_expired == TRUE) {

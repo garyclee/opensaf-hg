@@ -187,7 +187,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	 */
 
 	/* determine if the su is ranked per si */
-	memset((uns8 *)&i_idx, '\0', sizeof(i_idx));
+	memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
 	i_idx.si_name = si->name;
 	i_idx.su_rank = 0;
 	for (su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
@@ -209,7 +209,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 				continue;
 
 			/* determine the su_rank rec for this rec */
-			memset((uns8 *)&i_idx, '\0', sizeof(i_idx));
+			memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
 			i_idx.si_name = si->name;
 			i_idx.su_rank = 0;
 			for (i_su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);

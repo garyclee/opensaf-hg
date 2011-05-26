@@ -276,7 +276,7 @@ static uns32 avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOO
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj = 0;
-	uns8 *encoded_cnt_loc;
+	uint8_t *encoded_cnt_loc;
 
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
@@ -342,7 +342,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
 		if (TRUE == su->su_is_external) {
 			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_su, &enc->io_uba,
@@ -355,7 +355,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 			(*num_of_obj)++;
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	return status;
@@ -400,7 +400,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 	/* Encode internode components (proxy) first, but only for those, which are
 	   proxy for external components. */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)0);
 
 	while (comp != 0) {
 		if (m_AVND_PROXY_IS_FOR_EXT_COMP(comp)) {
@@ -414,12 +414,12 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 			(*num_of_obj)++;
 		}
-		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)&comp->name);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)&comp->name);
 	}
 	/*
 	 * Now send proxied components (external component).
 	 */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
 		if (TRUE == comp->su->su_is_external) {
@@ -434,7 +434,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 			(*num_of_obj)++;
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	return status;
@@ -462,7 +462,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 	EDU_ERR ederror = 0;
 
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
 		if (TRUE == su->su_is_external) {
 			for (rel = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -480,7 +480,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 			}
 		}
 		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	return status;
@@ -508,7 +508,7 @@ static uns32 avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	EDU_ERR ederror = 0;
 
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
 		if (TRUE == su->su_is_external) {
 			for (siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_LAST(&su->siq);
@@ -525,7 +525,7 @@ static uns32 avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 				(*num_of_obj)++;
 			}
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	return status;
@@ -554,7 +554,7 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 	EDU_ERR ederror = 0;
 
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
 		if (TRUE == su->su_is_external) {
 			for (curr_su_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -581,7 +581,7 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 				}
 			}
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	return status;
@@ -612,7 +612,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 	/*
 	 * Walk through the entire list and send the entire list data.
 	 */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
 		if (TRUE == comp->su->su_is_external) {
@@ -633,7 +633,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 			}
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	return status;
@@ -664,7 +664,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 	/*
 	 * Walk through the entire list and send the entire list data.
 	 */
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
 		if (TRUE == comp->su->su_is_external) {
@@ -684,7 +684,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 			}
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	return status;
@@ -714,7 +714,7 @@ static uns32 avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)0);
+	hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)0);
 	while (hc_config != 0) {
 		if (TRUE == hc_config->is_ext) {
 			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_hlt_config, &enc->io_uba,
@@ -727,7 +727,7 @@ static uns32 avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 			(*num_of_obj)++;
 		}		/* if(TRUE == hc_config->is_ext) */
-		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_config->key);
+		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_config->key);
 	}			/* while(hc_config != 0) */
 
 	return status;

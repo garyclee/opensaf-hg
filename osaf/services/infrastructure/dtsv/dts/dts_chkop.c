@@ -258,7 +258,7 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		device->file_open = FALSE;
 		m_DTS_FREE_FILE_LIST(device);
 		memset(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 	}
 	fflush(stdout);
 

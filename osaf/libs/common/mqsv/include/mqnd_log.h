@@ -18,7 +18,7 @@
 #ifndef MQND_LOG_H
 #define MQND_LOG_H
 
-extern void _mqnd_genlog(uns8 severity, const char *function, const char *format, ...);
+extern void _mqnd_genlog(uint8_t severity, const char *function, const char *format, ...);
 
 #define mqnd_genlog(severity, format, args...) _mqnd_genlog((severity), __FUNCTION__, (format), ##args)
 /******************************************************************************
@@ -220,7 +220,7 @@ uns32 mqnd_log_ascii_reg(void);
 void mqnd_log_ascii_dereg(void);
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqnd_log(uns8, uns32, uns8, uns32, char *, uns32);
+void mqnd_log(uint8_t, uns32, uint8_t, uns32, char *, uns32);
 #define m_LOG_MQSV_ND(id,category,sev,rc,fname,fno)  mqnd_log(id,category,sev,rc,fname,fno)
 #else
 #define m_LOG_MQSV_ND(id,category,sev,rc,fname,fno)

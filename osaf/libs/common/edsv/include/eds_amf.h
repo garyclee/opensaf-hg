@@ -47,8 +47,8 @@ uns32 eds_standby_state_handler(EDS_CB *cb, SaInvocationT invocation);
 uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation);
 uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation);
 struct next_HAState {
-	uns8 nextState1;
-	uns8 nextState2;
+	uint8_t nextState1;
+	uint8_t nextState2;
 } nextStateInfo;		/* AMF HA state can transit to a maximum of the two defined states */
 
 #define VALIDATE_STATE(curr,next) \

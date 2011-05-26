@@ -547,7 +547,7 @@ SaAisErrorT saMsgFinalize(SaMsgHandleT msgHandle)
 
 	/* scan the entire handle db & close queue opening by this client */
 	while ((queue_info =
-		(MQA_QUEUE_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, (uns8 *const)temp_ptr))) {
+		(MQA_QUEUE_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, (uint8_t *const)temp_ptr))) {
 		temp_hdl = queue_info->queueHandle;
 		temp_ptr = &temp_hdl;
 
@@ -1858,7 +1858,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT
 
 	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver = 0;
 	MDS_DEST destination_mqnd;
-	uns8 unicast = 0;
+	uint8_t unicast = 0;
 	SaAisErrorT rc = SA_AIS_ERR_NO_RESOURCES;
 	MQSV_DSEND_EVT *qsend_evt_copy = NULL, *qsend_evt_buffer = NULL;
 	NCS_BOOL is_send_success = FALSE;
@@ -3143,7 +3143,7 @@ SaAisErrorT saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
 	MQA_QUEUE_INFO *queue_node;
 	MQA_CB *mqa_cb;
 	uns32 cancel_message_count;
-	uns8 i;
+	uint8_t i;
 
 	TRACE(" saMsgMessageCancel Called with Handle %d ", (uns32)queueHandle);
 
@@ -3333,7 +3333,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
 	MQSV_DSEND_EVT *qsend_evt = NULL;
 	MDS_DEST destination_mqnd, reply_mds_dest;
 	MQSV_EVT msg_dlvr_ack;
-	uns8 unicast = 0;
+	uint8_t unicast = 0;
 	SaNameT sender;
 	uns32 num_queues;
 	uns64 reply_msgsize;

@@ -44,10 +44,10 @@ static MDS_CLIENT_MSG_FORMAT_VER
 ******************************************************************************/
 static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_init_param_t *param = &msg->info.api_info.param.init;
-	uns8 local_data[3];
+	uint8_t local_data[3];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 3);
@@ -75,10 +75,10 @@ static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_finalize_param_t *param = &msg->info.api_info.param.finalize;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	/* client_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -104,10 +104,10 @@ static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_track_start_param_t *param = &msg->info.api_info.param.track_start;
-	uns8 local_data[9];
+	uint8_t local_data[9];
 	TRACE_ENTER();
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 9);
@@ -136,10 +136,10 @@ static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_track_stop_param_t *param = &msg->info.api_info.param.track_stop;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -164,10 +164,10 @@ static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_node_get_param_t *param = &msg->info.api_info.param.node_get;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -193,10 +193,10 @@ static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	clmsv_node_get_async_param_t *param = &msg->info.api_info.param.node_get_async;
-	uns8 local_data[16];
+	uint8_t local_data[16];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 16);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -223,13 +223,13 @@ static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	SaUint32T inv1 = 0;
 	SaUint32T inv2 = 0;
 	uns32 total_bytes = 0;
 
 	clmsv_clm_response_param_t *param = &msg->info.api_info.param.clm_resp;
-	uns8 local_data[100];
+	uint8_t local_data[100];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 16);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -265,7 +265,7 @@ static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	SaUint32T *client_id = &msg->info.api_resp_info.param.client_id;
 	/* client_id */
@@ -286,7 +286,7 @@ static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 {
-	uns8 *p8 = NULL;
+	uint8_t *p8 = NULL;
 	uns32 total_bytes = 0;
 
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -316,7 +316,7 @@ uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 
 static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	SaClmClusterNodeT_4 *param = msg;
 
@@ -383,7 +383,7 @@ static uns32 clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 
 static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 * notify_info)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0, i;
 	SaClmClusterNotificationBufferT_4 *param = notify_info;
 	TRACE_ENTER();
@@ -436,7 +436,7 @@ static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificati
 ******************************************************************************/
 static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
 	TRACE_ENTER();
@@ -479,7 +479,7 @@ static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
 	TRACE_ENTER();
@@ -525,7 +525,7 @@ static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 ******************************************************************************/
 static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	CLMSV_TRACK_CBK_INFO *track = &msg->info.cbk_info.param.track;
 	TRACE_ENTER();
@@ -628,7 +628,7 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 {
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
@@ -764,9 +764,9 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 **/
 static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 	TRACE_ENTER();
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -795,10 +795,10 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  *****************************************************************************/
 uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	CLMSV_CLMS_EVT *evt = NULL;
 	NCS_UBAID *uba = info->info.dec.io_uba;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -817,7 +817,7 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
 	}
 
 	/* Assign the allocated event */
-	info->info.dec.o_msg = (uns8 *)evt;
+	info->info.dec.o_msg = (uint8_t *)evt;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	evt->info.msg.evt_type = ncs_decode_32bit(&p8);

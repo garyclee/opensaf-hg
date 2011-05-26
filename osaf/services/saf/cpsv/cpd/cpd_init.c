@@ -164,7 +164,7 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_error;
 	SaAmfHealthcheckKeyT healthy;
-	int8 *health_key;
+	int8_t *health_key;
 	SaVersionT clm_version;
 
 	m_CPSV_GET_AMF_VER(clm_version);
@@ -255,7 +255,7 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	/* Register with CLM */
 
 	memset(&healthy, 0, sizeof(healthy));
-	health_key = (int8 *)getenv("CPSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8_t *)getenv("CPSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		strcpy((char *)healthy.key, "A1B2");
 		/* TBD Log */

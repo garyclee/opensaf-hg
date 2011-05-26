@@ -424,7 +424,7 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 
 	uns32 rc = NCSCC_RC_SUCCESS;
 	char *buf;
-	uns8 size = 0, total_length;
+	uint8_t size = 0, total_length;
 	int32 sec_cnt = 0;
 
 	/* Return Error no resource */
@@ -624,7 +624,7 @@ uns32 cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 					       sizeof(CPSV_CKPT_HDR) +
 					       ((sec_info->lcl_sec_id + 1) * sizeof(CPSV_SECT_HDR)) +
 					       (sec_info->lcl_sec_id * cp_node->create_attrib.maxSectionSize));
-	write_req.info.write.i_from_buff = (uns8 *)data;
+	write_req.info.write.i_from_buff = (uint8_t *)data;
 
 	/* if ( type == 0) Needs to be cleaned up later TBD 
 	   write_req.info.write.i_offset=sec_info->size + offset;

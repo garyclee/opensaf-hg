@@ -68,7 +68,7 @@ static void avnd_last_step_clean(AVND_CB *cb)
 
 	cb->term_state = AVND_TERM_STATE_OPENSAF_SHUTDOWN;
 
-	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 	while (comp != NULL) {
 		if (FALSE == comp->su->su_is_external) {
 			/*
@@ -99,7 +99,7 @@ static void avnd_last_step_clean(AVND_CB *cb)
 		}
 
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	/* Stop was called early or some other problem */
@@ -155,14 +155,14 @@ uns32 avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (!m_AVND_CB_IS_AVD_UP(cb))
 			return rc;
 
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 
 		/* scan & drive the SU term by PRES_STATE FSM on each su */
 		while (su != 0) {
 			if ((su->is_ncs == SA_FALSE) || (TRUE == su->su_is_external)) {
 				/* Don't process external components */
 				su = (AVND_SU *)
-				    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+				    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 				continue;
 			}
 
@@ -184,7 +184,7 @@ uns32 avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 			}
 
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 		}
 
 		if (empty_sulist == TRUE) {
@@ -219,13 +219,13 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 	AVND_SU *su = 0;
 	TRACE_ENTER();
 
-	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 
 	/* scan SU term by PRES_STATE FSM on each su */
 	while (su != 0) {
 		if (su->is_ncs != is_ncs) {
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 			continue;
 		}
 
@@ -238,7 +238,7 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 			return;
 		}
 		su = (AVND_SU *)
-		    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
+		    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	if (is_ncs == TRUE) {

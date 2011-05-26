@@ -42,7 +42,7 @@ AVD_COMP_TYPE *avd_comptype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMP_TYPE *)ncs_patricia_tree_get(&comptype_db, (uns8 *)&tmp);
+	return (AVD_COMP_TYPE *)ncs_patricia_tree_get(&comptype_db, (uint8_t *)&tmp);
 }
 
 static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
@@ -104,7 +104,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(compt->name.value, dn->value, dn->length);
 	compt->name.length = dn->length;
-	compt->tree_node.key_info = (uns8 *)&(compt->name);
+	compt->tree_node.key_info = (uint8_t *)&(compt->name);
 
 	error = immutil_getAttr("saAmfCtCompCategory", attributes, 0, &compt->saAmfCtCompCategory);
 	assert(error == SA_AIS_OK);

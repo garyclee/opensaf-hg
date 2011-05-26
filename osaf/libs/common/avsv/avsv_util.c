@@ -192,7 +192,7 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_uns32_cmp(uns8 *key1, uns8 *key2)
+uns32 avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
 {
 	uns32 val1, val2;
 
@@ -217,7 +217,7 @@ uns32 avsv_dblist_uns32_cmp(uns8 *key1, uns8 *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_uns64_cmp(uns8 *key1, uns8 *key2)
+uns32 avsv_dblist_uns64_cmp(uint8_t *key1, uint8_t *key2)
 {
 	uns64 val1, val2;
 
@@ -242,7 +242,7 @@ uns32 avsv_dblist_uns64_cmp(uns8 *key1, uns8 *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_saname_cmp(uns8 *key1, uns8 *key2)
+uns32 avsv_dblist_saname_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	SaNameT name1_net, name2_net;
@@ -270,7 +270,7 @@ uns32 avsv_dblist_saname_cmp(uns8 *key1, uns8 *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_sahckey_cmp(uns8 *key1, uns8 *key2)
+uns32 avsv_dblist_sahckey_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	SaAmfHealthcheckKeyT hc_key1, hc_key2;

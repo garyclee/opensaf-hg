@@ -286,7 +286,7 @@ static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 		} else {
 			pNdNode =
 			    (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db,
-								    (uns8 *)&msg.info.nd_stat_evt.nodeid);
+								    (uint8_t *)&msg.info.nd_stat_evt.nodeid);
 			if (pNdNode) {
 				mqd_tmr_stop(&pNdNode->info.timer);
 				mqd_red_db_node_del(pMqd, pNdNode);
@@ -318,7 +318,7 @@ static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG m
 	MQD_ND_DB_NODE *pNdNode = 0;
 
 	/* At standby if the timer expires do nothing */
-	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)&msg.info.nd_tmr_exp_evt.nodeid);
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&msg.info.nd_tmr_exp_evt.nodeid);
 
 	if (pNdNode) {
 		TRACE("mqd_process_a2s_mqnd_timer_expiry_event, pNdNode found");

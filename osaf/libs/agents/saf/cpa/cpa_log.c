@@ -95,7 +95,7 @@ void cpa_flx_log_dereg(void)
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void cpa_log_headline(uns8 hdln_id, uns8 sev)
+void cpa_log_headline(uint8_t hdln_id, uint8_t sev)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_HDLN, CPA_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
 }
@@ -107,7 +107,7 @@ void cpa_log_headline(uns8 hdln_id, uns8 sev)
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void cpa_log_memfail(uns8 mf_id)
+void cpa_log_memfail(uint8_t mf_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_MEMFAIL, CPA_FC_MEMFAIL,
 		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
@@ -120,7 +120,7 @@ void cpa_log_memfail(uns8 mf_id)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void cpa_log_api(uns8 api_id, uns8 sev)
+void cpa_log_api(uint8_t api_id, uint8_t sev)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_API, CPA_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
 }
@@ -132,7 +132,7 @@ void cpa_log_api(uns8 api_id, uns8 sev)
   DESCRIPTION:       MDS send logging info
 
 *****************************************************************************/
-void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id)
+void cpa_log_data_send(uint8_t id, uns32 node, uns32 evt_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DATA_SEND, CPA_FC_DATA_SEND,
 		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, id, node, evt_id);
@@ -145,7 +145,7 @@ void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id)
   DESCRIPTION:       MDS db operations info
                                                                                 
 *****************************************************************************/
-void cpa_log_db(uns8 hdln_id, uns8 sev)
+void cpa_log_db(uint8_t hdln_id, uint8_t sev)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DB, CPA_FC_DB, NCSFL_LC_API, sev, NCSFL_TYPE_TI, hdln_id);
 }

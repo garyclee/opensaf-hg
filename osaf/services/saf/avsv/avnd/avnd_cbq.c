@@ -130,7 +130,7 @@ uns32 avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 				/* Before sending api_info, we need to overwrite the component name as
 				   right now, api_info->param.resp.comp_name has proxy comp name. */
 				qsc->comp_name = comp->name;
-				rc = avnd_avnd_msg_send(cb, (uns8 *)api_info, api_info->type, &evt->mds_ctxt,
+				rc = avnd_avnd_msg_send(cb, (uint8_t *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
 					LOG_ER("%s,AvND Send Failure:%s,Type=%u,Hdl=%llu,Inv:%llu, Err:%u",__FUNCTION__,\
@@ -273,7 +273,7 @@ uns32 avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				/* Before sending api_info, we need to overwrite the component name as
 				   right now, api_info->param.resp.comp_name has proxy comp name. */
 				resp->comp_name = comp->name;
-				rc = avnd_avnd_msg_send(cb, (uns8 *)api_info, api_info->type, &evt->mds_ctxt,
+				rc = avnd_avnd_msg_send(cb, (uint8_t *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
 					LOG_ER("%s,AvND Send Failure:%s,Type:%u,Hdl:%llu,Inv:%llu, Err:%u",__FUNCTION__,\

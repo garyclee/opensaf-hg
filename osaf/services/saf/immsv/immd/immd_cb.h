@@ -106,8 +106,8 @@ typedef struct immd_cb_tag {
 	/* Periodic Acks on the max-no received from each ND. */
 
 	SaUint32T mRulingEpoch;
-	uns8 mExpectedNodes;	//Hint on number of nodes in cluster
-	uns8 mWaitSecs;		//Max time to wait for mExpectedNodes
+	uint8_t mExpectedNodes;	//Hint on number of nodes in cluster
+	uint8_t mWaitSecs;		//Max time to wait for mExpectedNodes
 	/* to join in cluster start. */
 	NCS_NODE_ID immnd_coord;	//The nodeid of the current IMMND Coord
 	NCS_SEL_OBJ usr1_sel_obj;	/* Selection object for USR1 signal events */

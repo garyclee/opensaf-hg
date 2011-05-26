@@ -83,8 +83,8 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		memset(&rsc_name, 0, sizeof(rsc_name));
 		strncpy((char *)rsc_name.value, (char *)objectName->value, objectName->length);
 		rsc_name.length = htons(objectName->length);
-		map = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uns8 *)&rsc_name);
-		rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_info_id, (uns8 *)&map->rsc_id);
+		map = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uint8_t *)&rsc_name);
+		rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_info_id, (uint8_t *)&map->rsc_id);
 
 		if (rsc_info != NULL) {
 			if (m_CMP_HORDER_SANAMET(*objectName, rsc_info->lck_name) == 0) {

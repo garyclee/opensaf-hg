@@ -144,7 +144,7 @@ uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
 	 * Walk through MBCSv reg list and find whether service is already registered
 	 * with MBCSv. If yes then return error.
 	 */
-	if (NULL != (MBCSV_REG *)ncs_patricia_tree_get(&mbcsv_cb.reg_list, (const uns8 *)&svc_id)) {
+	if (NULL != (MBCSV_REG *)ncs_patricia_tree_get(&mbcsv_cb.reg_list, (const uint8_t *)&svc_id)) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_INVALID_PARAM,
 					  "MBCSV_API_OP_INITIALIZE: Service registration already exist for service",
 					  arg->info.initialize.i_service);
@@ -171,7 +171,7 @@ uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG *arg)
 
 	/* Version and clinet handle information is stored as it is witout validating */
 	new_reg->svc_id = svc_id;
-	new_reg->pat_node.key_info = (uns8 *)&new_reg->svc_id;
+	new_reg->pat_node.key_info = (uint8_t *)&new_reg->svc_id;
 	new_reg->version = arg->info.initialize.i_version;
 
 	/* 
@@ -426,7 +426,7 @@ uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
 	 * Search checkpoint list for the ckpt instance. If ckpt instance already exist
 	 * then the parameter passed are invalid and so reject request.
 	 */
-	if (NULL != (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list, (const uns8 *)&pwe_hdl)) {
+	if (NULL != (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list, (const uint8_t *)&pwe_hdl)) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_INVALID_PARAM,
 					  "NCS_MBCSV_OP_OPEN: CKPT resistration already exist.", mbc_reg->svc_id);
 		goto err1;
@@ -444,7 +444,7 @@ uns32 mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
 	memset(new_ckpt, '\0', sizeof(CKPT_INST));
 
 	new_ckpt->pwe_hdl = pwe_hdl;
-	new_ckpt->pat_node.key_info = (uns8 *)&new_ckpt->pwe_hdl;
+	new_ckpt->pat_node.key_info = (uint8_t *)&new_ckpt->pwe_hdl;
 	new_ckpt->active_peer = NULL;
 	new_ckpt->peer_list = NULL;
 	new_ckpt->fsm = (NCS_MBCSV_STATE_ACTION_FUNC_PTR *)ncsmbcsv_init_state_tbl;

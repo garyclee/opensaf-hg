@@ -71,7 +71,7 @@ AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_AMF_SG_TYPE *)ncs_patricia_tree_get(&sgtype_db, (uns8 *)&tmp);
+	return (AVD_AMF_SG_TYPE *)ncs_patricia_tree_get(&sgtype_db, (uint8_t *)&tmp);
 }
 
 static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
@@ -200,7 +200,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
 	memcpy(sgt->name.value, dn->value, dn->length);
 	sgt->name.length = dn->length;
-	sgt->tree_node.key_info = (uns8 *)&(sgt->name);
+	sgt->tree_node.key_info = (uint8_t *)&(sgt->name);
 
 	error = immutil_getAttr("saAmfSgtRedundancyModel", attributes, 0, &sgt->saAmfSgtRedundancyModel);
 	assert(error == SA_AIS_OK);

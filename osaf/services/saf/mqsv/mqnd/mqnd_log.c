@@ -42,7 +42,7 @@
                      fno  - filenumber
 *****************************************************************************/
 
-void mqnd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno)
+void mqnd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno)
 {
 
 	/* Log New type logs */
@@ -104,7 +104,7 @@ void mqnd_flx_log_dereg(void)
 	return;
 }
 
-void _mqnd_genlog(uns8 severity, const char *function, const char *format, ...)
+void _mqnd_genlog(uint8_t severity, const char *function, const char *format, ...)
 {
 	char preamble[128];
 	char str[128];

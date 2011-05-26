@@ -110,7 +110,7 @@ CLMS_CLIENT_INFO *clms_client_get_by_id(uns32 client_id)
 	CLMS_CLIENT_INFO *rec;
 
 	client_id_net = m_NCS_OS_HTONL(client_id);
-	rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_get(&clms_cb->client_db, (uns8 *)&client_id_net);
+	rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_get(&clms_cb->client_db, (uint8_t *)&client_id_net);
 
 	if (NULL == rec)
 		TRACE("client_id: %u lookup failed", client_id);
@@ -130,10 +130,10 @@ CLMS_CLIENT_INFO *clms_client_getnext_by_id(uns32 client_id)
 	CLMS_CLIENT_INFO *rec;
 
 	if (client_id == 0) {
-		rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uns8 *)0);
+		rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uint8_t *)0);
 	} else {
 		client_id_net = m_NCS_OS_HTONL(client_id);
-		rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uns8 *)&client_id_net);
+		rec = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uint8_t *)&client_id_net);
 	}
 
 	return rec;
@@ -155,7 +155,7 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 
 	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
 
-	client = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uns8 *)0);
+	client = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uint8_t *)0);
 
 	while (client != NULL) {
 		/** Store the client_id for get Next  */
@@ -171,7 +171,7 @@ uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest)
 			break;
 		}
 
-		client = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uns8 *)&client_id);
+		client = (CLMS_CLIENT_INFO *) ncs_patricia_tree_getnext(&clms_cb->client_db, (uint8_t *)&client_id);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -236,7 +236,7 @@ CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id)
 	client->client_id = client_id;
 	client->mds_dest = mds_dest;
 	client->client_id_net = m_NCS_OS_HTONL(client->client_id);
-	client->pat_node.key_info = (uns8 *)&client->client_id_net;
+	client->pat_node.key_info = (uint8_t *)&client->client_id_net;
 
     /** Insert the record into the patricia tree **/
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&clms_cb->client_db, &client->pat_node)) {
@@ -676,7 +676,7 @@ static uns32 proc_clm_response_msg(CLMS_CB * cb, CLMSV_CLMS_EVT * evt)
 		goto done;
 	}
 
-	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_get(&op_node->trackresp, (uns8 *)&param->inv);
+	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_get(&op_node->trackresp, (uint8_t *)&param->inv);
 
 	if (trkrec == NULL) {
 		LOG_ER("Invalid Invocation Id in saClmResponse");

@@ -20,8 +20,8 @@
 
 uns32 clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 {
-	uns8 local_data[2];
-	uns8 *p8 = NULL;
+	uint8_t local_data[2];
+	uint8_t *p8 = NULL;
 	uns32 total_bytes = 0;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
@@ -40,8 +40,8 @@ uns32 clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 
 uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 {
-	uns8 local_data[5];
-	uns8 *p8 = NULL;
+	uint8_t local_data[5];
+	uint8_t *p8 = NULL;
 	uns32 total_bytes = 0;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -72,7 +72,7 @@ uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 uns32 clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 {
 	TRACE_ENTER();
-	uns8 *p8 = NULL;
+	uint8_t *p8 = NULL;
 	uns32 total_bytes = 0;
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {

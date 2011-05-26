@@ -178,7 +178,7 @@ void ncs_exec_mod_hdlr(void)
 	int pid = -1;
 
 	while (1) {
-		while ((ret_val = read(module_cb.read_fd, (((uns8 *)&info) + count),
+		while ((ret_val = read(module_cb.read_fd, (((uint8_t *)&info) + count),
 				       (maxsize - count))) != (maxsize - count)) {
 			if (ret_val <= 0) {
 				if (errno == EBADF)
@@ -204,7 +204,7 @@ void ncs_exec_mod_hdlr(void)
 			     exec_pid != NULL;
 			     exec_pid =
 			     (SYSF_PID_LIST *)ncs_patricia_tree_getnext(&module_cb.pid_list,
-									(const uns8 *)&exec_pid->pid)) {
+									(const uint8_t *)&exec_pid->pid)) {
 				pid = exec_pid->pid;
 				/*printf(" Going to wait on waitpid  %d \n", pid); */
 
@@ -259,7 +259,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
 
 	memset(&cb_info, '\0', sizeof(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO));
 
-	if (NULL != (exec_pid = (SYSF_PID_LIST *)ncs_patricia_tree_get(&module_cb.pid_list, (const uns8 *)&pid))) {
+	if (NULL != (exec_pid = (SYSF_PID_LIST *)ncs_patricia_tree_get(&module_cb.pid_list, (const uint8_t *)&pid))) {
 
 		if (SYSF_EXEC_INFO_TIME_OUT == type) {
 			cb_info.exec_stat.value = NCS_OS_PROC_EXIT_WAIT_TIMEOUT;
@@ -337,7 +337,7 @@ uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
 	list_entry->usr_hdl = req->i_usr_hdl;
 	list_entry->exec_hdl = req->o_exec_hdl = NCS_PTR_TO_UNS64_CAST(list_entry);
 	list_entry->pid = pid;
-	list_entry->pat_node.key_info = (uns8 *)&list_entry->pid;
+	list_entry->pat_node.key_info = (uint8_t *)&list_entry->pid;
 	list_entry->exec_info_type = SYSF_EXEC_INFO_SIG_CHLD;
 
 	m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
@@ -454,7 +454,7 @@ uns32 start_exec_mod_cb(void)
 uns32 exec_mod_cb_destroy(void)
 {
 	SYSF_PID_LIST *exec_pid = NULL;
-	uns8 pid = 0;
+	uint8_t pid = 0;
 
 	if (module_cb.init == TRUE) {
 		module_cb.init = FALSE;
@@ -468,7 +468,7 @@ uns32 exec_mod_cb_destroy(void)
 		m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
 		while (NULL != (exec_pid = (SYSF_PID_LIST *)ncs_patricia_tree_getnext(&module_cb.pid_list,
-										      (const uns8 *)&pid))) {
+										      (const uint8_t *)&pid))) {
 
 			ncs_patricia_tree_del(&module_cb.pid_list, (NCS_PATRICIA_NODE *)exec_pid);
 

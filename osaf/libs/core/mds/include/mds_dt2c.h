@@ -31,7 +31,7 @@
 
 /* Specification of the interface between MCM and MDTM */
 
-typedef uns8 MDS_SVC_ARCHWORD_TYPE;	/*MDS  app-svc arch and word_size combination */
+typedef uint8_t MDS_SVC_ARCHWORD_TYPE;	/*MDS  app-svc arch and word_size combination */
 
 /* MDS_WORD_SIZE_TYPE and MDS_ARCH_TYPE are compile-time macros */
 
@@ -101,7 +101,7 @@ typedef struct mds_data_recv {
 	MDS_SVC_HDL dest_svc_hdl;	/* Got from upper layer by passing SVC,PWE and VDEST */
 	MDS_DEST src_adest;
 	MDS_SENDTYPES snd_type;
-	uns8 ret_val;		/* Valid only for ACK messages */
+	uint8_t ret_val;		/* Valid only for ACK messages */
 	MDS_SEND_PRIORITY_TYPE pri;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver;	/* message format version specification */
 	MDS_SVC_PVT_SUB_PART_VER src_svc_sub_part_ver;
@@ -116,7 +116,7 @@ typedef struct mdtm_send_req {
 #define DESTINATION_ON_NODE       2
 #define DESTINATION_OFF_NODE      3
 
-	uns8 to;		/* Destination same node, process or off node */
+	uint8_t to;		/* Destination same node, process or off node */
 	NCS_BOOL consume_buf;	/* Can be FALSE for broadcast.
 				   Avoids ditto step.
 				   Is there a better way?

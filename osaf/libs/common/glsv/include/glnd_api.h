@@ -18,7 +18,7 @@
 #ifndef GLND_API_H
 #define GLND_API_H
 
-uns32 glnd_se_lib_create(uns8 pool_id);
+uns32 glnd_se_lib_create(uint8_t pool_id);
 uns32 glnd_se_lib_destroy(void);
 void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx);
 

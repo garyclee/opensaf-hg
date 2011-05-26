@@ -40,7 +40,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 {
 	uns32 rc = NCSCC_RC_FAILURE, index;
 	MQND_QUEUE_NODE *qnode = NULL;
-	uns8 i = 0;
+	uint8_t i = 0;
 	MQND_QNAME_NODE *pnode = NULL;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	NCS_BOOL is_q_reopen = FALSE;

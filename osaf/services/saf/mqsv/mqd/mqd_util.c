@@ -57,7 +57,7 @@ static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem);
 uns32 mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
 	/*m_HTON_SANAMET_LEN(pNode->oinfo.name.length); */
-	pNode->node.key_info = (uns8 *)&pNode->oinfo.name;
+	pNode->node.key_info = (uint8_t *)&pNode->oinfo.name;
 	return ncs_patricia_tree_add(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
 }	/* End of mqd_db_node_add() */
 

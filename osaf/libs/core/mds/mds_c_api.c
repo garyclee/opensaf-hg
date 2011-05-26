@@ -362,7 +362,7 @@ if (new Role = Active / Standby)
 						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
 			}
 			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_info->svc_hdl);
+			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 
 		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_QUIESCED, TRUE);
@@ -396,7 +396,7 @@ if (new Role = Active / Standby)
 						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
 			}
 			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_info->svc_hdl);
+			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 
 		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_ACTIVE, TRUE);
@@ -446,7 +446,7 @@ if (new Role = Active / Standby)
 						     local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
 			}
 			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_info->svc_hdl);
+			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 		/* Update the role */
 		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, TRUE);
@@ -484,7 +484,7 @@ if (new Role = Active / Standby)
 						       local_vdest_id, local_vdest_policy, svc_info->svc_sub_part_ver);
 			}
 			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_info->svc_hdl);
+			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 
 		/* Update the role */
@@ -650,7 +650,7 @@ uns32 mds_mcm_pwe_destroy(NCSMDS_ADMOP_INFO *info)
 			mds_mcm_svc_uninstall(&temp_ncsmds_info);
 		}
 		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_info->svc_hdl);
+		    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 	}
 
 /* STEP 2: Delete entry from PWE Table */
@@ -3698,7 +3698,7 @@ uns32 mds_mcm_init(void)
 	vdest_for_adest_node->policy = NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN;
 	vdest_for_adest_node->role = V_DEST_RL_ACTIVE;
 
-	vdest_for_adest_node->node.key_info = (uns8 *)&vdest_for_adest_node->vdest_id;
+	vdest_for_adest_node->node.key_info = (uint8_t *)&vdest_for_adest_node->vdest_id;
 
 	ncs_patricia_tree_add(&gl_mds_mcm_cb->vdest_list, (NCS_PATRICIA_NODE *)vdest_for_adest_node);
 

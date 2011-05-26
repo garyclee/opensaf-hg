@@ -405,7 +405,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 	 * If NO then create new entry in the table. Initialize it with the default 
 	 */
 	/*  Network order key added */
-	if ((node_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+	if ((node_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 		node_reg = m_MMGR_ALLOC_SVC_REG_TBL;
 		if (node_reg == NULL) {
 			m_DTS_UNLK(&inst->lock);
@@ -418,7 +418,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		/*  Network order key added */
 		node_reg->ntwk_key.node = nt_key.node;
 		node_reg->ntwk_key.ss_svc_id = 0;
-		node_reg->node.key_info = (uns8 *)&node_reg->ntwk_key;
+		node_reg->node.key_info = (uint8_t *)&node_reg->ntwk_key;
 
 		node_reg->per_node_logging = NODE_LOGGING;
 		node_reg->my_node = node_reg;
@@ -444,7 +444,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 
 	dta_key = msg->dest_addr;
 
-	if ((to_reg = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uns8 *)&dta_key)) != NULL) {
+	if ((to_reg = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uint8_t *)&dta_key)) != NULL) {
 		dta_present = TRUE;
 		/* Adjust the pointer to to_reg with the offset */
 		to_reg = (DTA_DEST_LIST *)((long)to_reg - DTA_DEST_LIST_OFFSET);
@@ -456,7 +456,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 	 * Enqueue the v-card in the v-card table.
 	 */
 	/*  Network order key added */
-	if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) != NULL) {
+	if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) != NULL) {
 		/*Search for dta entry already present in svc->v_cd_list */
 		if (dts_find_dta(svc, &dta_key) != NULL) {
 			m_DTS_UNLK(&inst->lock);
@@ -479,7 +479,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 			}
 			memset(to_reg, '\0', sizeof(DTA_DEST_LIST));
 			to_reg->dta_addr = dta_key;
-			to_reg->node.key_info = (uns8 *)&to_reg->dta_addr;
+			to_reg->node.key_info = (uint8_t *)&to_reg->dta_addr;
 
 			/* Smik - Add the new DTA_DEST_LIST to the patricia tree */
 			if (ncs_patricia_tree_add(&inst->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) !=
@@ -524,7 +524,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		/*  Network order key added */
 		svc->ntwk_key.ss_svc_id = nt_key.ss_svc_id;
 		svc->ntwk_key.node = nt_key.node;
-		svc->node.key_info = (uns8 *)&svc->ntwk_key;
+		svc->node.key_info = (uint8_t *)&svc->ntwk_key;
 
 		/* Check whether the DTA_DEST_TBL already exists in pat tree */
 		/* If the entry doesn't already exist create a new one and enqueue to 
@@ -541,7 +541,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 			}
 			memset(to_reg, '\0', sizeof(DTA_DEST_LIST));
 			to_reg->dta_addr = dta_key;
-			to_reg->node.key_info = (uns8 *)&to_reg->dta_addr;
+			to_reg->node.key_info = (uint8_t *)&to_reg->dta_addr;
 
 			if (ncs_patricia_tree_add(&inst->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) !=
 			    NCSCC_RC_SUCCESS) {
@@ -643,7 +643,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 	 */
 	if ((spec_entry =
 	     (SYSF_ASCII_SPECS *)ncs_patricia_tree_get(&dts_cb.svcid_asciispec_tree,
-						       (const uns8 *)&spec_key)) != NULL) {
+						       (const uint8_t *)&spec_key)) != NULL) {
 		/* Add an ASCII_SPEC entry for each service registration.
 		 * So any log message will directly index to this entry and get the
 		 * relevant spec pointer to use
@@ -725,7 +725,7 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
 	m_LOG_DTS_EVT(DTS_EV_SVC_DE_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uns32)msg->dest_addr);
 
-	if (((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL)
+	if (((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL)
 	    || (node->dta_count == 0)) {
 		m_LOG_DTS_HEADLINE(DTS_HDLN_NULL_INST);
 		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
@@ -894,7 +894,7 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
 {
 	DTA_DEST_LIST *dta_ptr;
 	NCS_UBAID *uba;
-	uns8 *data;
+	uint8_t *data;
 	uns32 count;
 	SVC_ENTRY *svc_entry;
 
@@ -1003,7 +1003,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 	nt_key.node = m_NCS_OS_HTONL(msg->node);
 	nt_key.ss_svc_id = m_NCS_OS_HTONL(msg->data.data.msg.log_msg.hdr.ss_id);
 
-	if ((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+	if ((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 		/* Print an error message */
 		ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT,
 			   NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLL", DTS_EV_LOG_SVC_KEY_WRONG,
@@ -1064,7 +1064,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_type, NCSFL_ASCII_SPEC *spec)
+uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t file_type, NCSFL_ASCII_SPEC *spec)
 {
 	char *str = dts_cb.log_str;
 	SVC_KEY key;
@@ -1316,7 +1316,7 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 \**************************************************************************/
 void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_id)
 {
-	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
+	uint8_t global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
 	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
 	/* Enable flag should inherit from global policy */
@@ -1369,7 +1369,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 {
 	POLICY *spolicy = &service->svc_policy;
 	OP_DEVICE *device = &service->device;
-	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
+	uint8_t global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
 	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
 	/* Service filter policy would take from node filter if node */
@@ -1421,7 +1421,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
+uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uint8_t file_type)
 {
 	time_t tod;
 	char asc_dtime[70];
@@ -1642,7 +1642,7 @@ uns32 dts_close_opened_files(void)
 		m_DTSV_SEND_CKPT_UPDT_ASYNC(inst, NCS_MBCSV_ACT_UPDATE, (MBCSV_REO_HDL)(long)service,
 					    DTSV_CKPT_DTS_SVC_REG_TBL_CONFIG);
 
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uint8_t *)&nt_key);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -1687,7 +1687,7 @@ uns32 dts_close_files_quiesced(void)
 			service->device.new_file = TRUE;
 			service->device.cur_file_size = 0;
 		}
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uint8_t *)&nt_key);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -1708,7 +1708,7 @@ uns32 dts_close_files_quiesced(void)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level)
+uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uint8_t log_level)
 {
 	DTS_SVC_REG_TBL *parent_node;
 	SVC_KEY nt_key;
@@ -1725,7 +1725,7 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 	/* Network order key added */
 	(*node)->ntwk_key.node = m_NCS_OS_HTONL(node_id);
 	(*node)->ntwk_key.ss_svc_id = m_NCS_OS_HTONL(svc_id);
-	(*node)->node.key_info = (uns8 *)&(*node)->ntwk_key;
+	(*node)->node.key_info = (uint8_t *)&(*node)->ntwk_key;
 
 	(*node)->per_node_logging = log_level;
 	/* 
@@ -1739,7 +1739,7 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 		nt_key.node = (*node)->ntwk_key.node;
 		nt_key.ss_svc_id = 0;
 		if ((parent_node =
-		     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+		     (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				       "dts_create_new_pat_entry: No node entry exists for service entry");
 			(*node)->my_node = NULL;
@@ -1860,7 +1860,7 @@ uns32 dts_stby_update_dta_config()
 		}
 		/* end of dta_reg->svc_list != NULL */
 		/* Point to next dta */
-		dta_reg = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, (const uns8 *)&dta_key);
+		dta_reg = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, (const uint8_t *)&dta_key);
 
 		/*Free the msg */
 		if (msg != NULL)
@@ -2264,7 +2264,7 @@ NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key)
 		/* 
 		 * Loop till you find the next node entry in the tree.
 		 */
-		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uns8 *)&skey)) != NULL) &&
+		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uint8_t *)&skey)) != NULL) &&
 		       (svc->my_key.ss_svc_id != 0)) {
 			/*  Network order key added */
 			skey.node = svc->ntwk_key.node;
@@ -2276,7 +2276,7 @@ NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key)
 		/* 
 		 * Loop till you find the next node entry in the tree.
 		 */
-		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uns8 *)key)) != NULL) &&
+		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uint8_t *)key)) != NULL) &&
 		       (svc->my_key.ss_svc_id != 0)) {
 			key->node = svc->ntwk_key.node;
 			key->ss_svc_id = 0xffffffff;
@@ -2319,7 +2319,7 @@ NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key)
 		/* 
 		 * Loop till you find the next service entry in the tree.
 		 */
-		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uns8 *)&skey)) != NULL) &&
+		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uint8_t *)&skey)) != NULL) &&
 		       (svc->my_key.ss_svc_id == 0)) {
 			skey.node = svc->ntwk_key.node;
 			skey.ss_svc_id = svc->ntwk_key.ss_svc_id;
@@ -2328,7 +2328,7 @@ NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key)
 		/* 
 		 * Loop till you find the next service entry in the tree.
 		 */
-		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uns8 *)key)) != NULL) &&
+		while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uint8_t *)key)) != NULL) &&
 		       (svc->my_key.ss_svc_id == 0)) {
 			key->node = svc->ntwk_key.node;
 			key->ss_svc_id = svc->ntwk_key.ss_svc_id;
@@ -2419,7 +2419,7 @@ void dts_print_dta_dest_pat(void)
 			svc_entry = svc_entry->next_in_dta_entry;
 		}
 		key = dta_dest->dta_addr;
-		dta_dest = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&cb->dta_list, (const uns8 *)&key);
+		dta_dest = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&cb->dta_list, (const uint8_t *)&key);
 		printf("\n--------------***-----------------\n");
 	}
 	return;
@@ -2449,7 +2449,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 	fprintf(fp, "\n***Printing DTS svc_tbl Patricia tree***\n");
 	fprintf(fp, "\n--------------***-----------------\n");
 
-	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)NULL);
+	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)NULL);
 	while (svc != NULL) {
 		fprintf(fp, "\nSvc Reg Entry INFO:");
 		fprintf(fp, "\n------------------");
@@ -2510,7 +2510,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 		}
 
 		nt_key = svc->ntwk_key;
-		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 		fprintf(fp, "\n********************************************\n");
 	}
 
@@ -2588,7 +2588,7 @@ void dts_print_cb(DTS_CB *cb, FILE *fp)
 	while (lib_entry != NULL) {
 		fprintf(fp, "\n%s  use_count:%d", lib_entry->lib_name, lib_entry->use_count);
 		lib_entry =
-		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uns8 *)lib_entry->lib_name);
+		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uint8_t *)lib_entry->lib_name);
 	}
 
 	fprintf(fp, "\n\nASCII_SPECs loaded\n-------------------------");
@@ -2598,7 +2598,7 @@ void dts_print_cb(DTS_CB *cb, FILE *fp)
 			spec_struct->key.ss_ver, spec_struct->use_count, spec_struct->ss_spec->svc_name);
 		spec_struct =
 		    (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree,
-								  (const uns8 *)&spec_struct->key);
+								  (const uint8_t *)&spec_struct->key);
 	}
 
 	fprintf(fp, "\n--------------***-----------------\n\n");
@@ -2627,7 +2627,7 @@ void dts_print_reg_tbl_dbg(void)
 	TRACE("\n--------------***-----------------\n");
 
 	m_DTS_LK(&cb->lock);
-	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)NULL);
+	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)NULL);
 	while (svc != NULL) {
 		printf("\nSvc Reg Entry INFO:");
 		printf("\n------------------");
@@ -2688,7 +2688,7 @@ void dts_print_reg_tbl_dbg(void)
 		}
 
 		nt_key = svc->ntwk_key;
-		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 		printf("\n********************************************\n");
 	}
 
@@ -2760,7 +2760,7 @@ void dts_print_cb_dbg(void)
 	while (lib_entry != NULL) {
 		printf("\n%s. use count: %d", lib_entry->lib_name, lib_entry->use_count);
 		lib_entry =
-		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uns8 *)lib_entry->lib_name);
+		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uint8_t *)lib_entry->lib_name);
 	}
 
 	printf("\n\nASCII_SPECs loaded\n-------------------------");
@@ -2769,7 +2769,7 @@ void dts_print_cb_dbg(void)
 		printf("\nSvc-id: %d, version: %d", spec_struct->key.svc_id, spec_struct->key.ss_ver);
 		spec_struct =
 		    (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree,
-								  (const uns8 *)&spec_struct->key);
+								  (const uint8_t *)&spec_struct->key);
 	}
 
 	printf("\n--------------***-----------------\n\n");

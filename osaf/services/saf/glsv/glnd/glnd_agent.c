@@ -49,7 +49,7 @@ GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest)
 	GLND_AGENT_INFO *agent_info;
 
 	/* search for the agent id */
-	agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_agent_tree, (uns8 *)&agent_mds_dest);
+	agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_agent_tree, (uint8_t *)&agent_mds_dest);
 	return agent_info;
 }
 
@@ -82,7 +82,7 @@ GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, 
 		}
 		agent_info->agent_mds_id = agent_mds_dest;
 		agent_info->process_id = process_id;
-		agent_info->patnode.key_info = (uns8 *)&agent_info->agent_mds_id;
+		agent_info->patnode.key_info = (uint8_t *)&agent_info->agent_mds_id;
 		if (ncs_patricia_tree_add(&glnd_cb->glnd_agent_tree, &agent_info->patnode) != NCSCC_RC_SUCCESS) {
 			m_LOG_GLND_API(GLND_AGENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			/* free and return */

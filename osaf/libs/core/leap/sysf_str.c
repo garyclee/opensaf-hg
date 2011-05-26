@@ -49,7 +49,7 @@
   RETURNS:
      index into string where delimiter is left of start position.
 *****************************************************************************/
-int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
+int32 sysf_strrcspn(const uint8_t *s, const int32 start_pos, const uint8_t *reject)
 {
 	int32 i;
 	int32 j;
@@ -75,10 +75,10 @@ int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
   RETURNS:
      index into string where delimiter is left of start position.
 *****************************************************************************/
-int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n)
+int32 sysf_strincmp(const uint8_t *s1, const uint8_t *s2, uns32 n)
 {
-	uns8 c1 = '\0';
-	uns8 c2 = '\0';
+	uint8_t c1 = '\0';
+	uint8_t c2 = '\0';
 
 	while (n > 0) {
 		c1 = (unsigned char)*s1++;

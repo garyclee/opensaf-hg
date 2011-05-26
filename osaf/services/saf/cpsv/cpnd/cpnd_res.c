@@ -136,7 +136,7 @@ uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
  * Description    : To read the data from the checkpoint replica shared memory and fill up the data structures
  *
  * Arguments      : NCS_OS_POSIX_SHM_REQ_INFO *open_req -  Shared Memory Request Info pointer
- *                  uns8* buf  - Name of the shared memory
+ *                  uint8_t* buf  - Name of the shared memory
  *                  CPND_CKPT_NODE *cp_node - CPND_CKPT_NODE pointer
  *                  ref_cnt
  *
@@ -310,7 +310,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	CKPT_INFO cp_info, tmp_cp_info;
 	SaCkptHandleT client_hdl;
 	char *buf = NULL, *buffer = NULL;
-	uns8 size = 0, total_length;
+	uint8_t size = 0, total_length;
 	GBL_SHM_PTR gbl_shm_addr = {0, 0, 0, 0, 0};
 	memset(&cp_info, '\0', sizeof(CKPT_INFO));
 	NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
@@ -331,7 +331,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 		m_LOG_CPND_CL(CPND_DEFAULT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return NULL;
 	}
-	cb->cpnd_res_shm_name = (uns8*)buffer;
+	cb->cpnd_res_shm_name = (uint8_t*)buffer;
 	memset(buffer, '\0', total_length);
 	strncpy(buffer, "CPND_CHECKPOINT_INFO", total_length);
 	sprintf(buffer + size, "_%d", (uns32)nodeid);

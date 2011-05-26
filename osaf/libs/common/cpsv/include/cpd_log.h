@@ -259,11 +259,11 @@ void cpd_log_ascii_dereg(void);
 uns32 cpd_log_ascii_reg(void);
 uns32 cpsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-void cpd_headline_log(uns8, uns8);
-void cpd_db_status_log(uns8, char *);
-void cpd_memfail_log(uns8);
-void cpd_mbcsv_log(uns8, uns8);
-void _cpd_log(uns8 severity, const char *function, const char *format, ...);
+void cpd_headline_log(uint8_t, uint8_t);
+void cpd_db_status_log(uint8_t, char *);
+void cpd_memfail_log(uint8_t);
+void cpd_mbcsv_log(uint8_t, uint8_t);
+void _cpd_log(uint8_t severity, const char *function, const char *format, ...);
 #define m_LOG_CPD_HEADLINE(id, sev) cpd_headline_log(id, sev)
 #define m_LOG_CPD_DB_STATUS(id, str) cpd_db_status_log(id, str)
 #define m_LOG_CPD_MEMFAIL(id) cpd_memfail_log(id)

@@ -39,7 +39,7 @@
  * structure which holds the create information.
  *****************************************************************************/
 typedef struct mqsv_create_info {
-	uns8 pool_id;		/* Handle manager Pool ID */
+	uint8_t pool_id;		/* Handle manager Pool ID */
 } MQSV_CREATE_INFO;
 
 /*****************************************************************************

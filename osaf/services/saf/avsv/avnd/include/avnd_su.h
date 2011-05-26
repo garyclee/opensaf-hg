@@ -316,16 +316,16 @@ typedef struct avnd_su_tag {
 
 /* macro to get the SU recrod from the SU database */
 #define m_AVND_SUDB_REC_GET(sudb, name) \
-           (AVND_SU *)ncs_patricia_tree_get(&(sudb), (uns8 *)&(name))
+           (AVND_SU *)ncs_patricia_tree_get(&(sudb), (uint8_t *)&(name))
 
 /* macro to get the next SU recrod from the SU database */
 #define m_AVND_SUDB_REC_GET_NEXT(sudb, name) \
-           (AVND_SU *)ncs_patricia_tree_getnext(&(sudb), (uns8 *)&(name))
+           (AVND_SU *)ncs_patricia_tree_getnext(&(sudb), (uint8_t *)&(name))
 
 /* macro to add a component to the su-comp list */
 #define m_AVND_SUDB_REC_COMP_ADD(su, comp, rc) \
 { \
-   (comp).su_dll_node.key = (uns8 *)&((comp).inst_level); \
+   (comp).su_dll_node.key = (uint8_t *)&((comp).inst_level); \
    (rc) = ncs_db_link_list_add(&(su).comp_list, &(comp).su_dll_node); \
 };
 
@@ -336,7 +336,7 @@ typedef struct avnd_su_tag {
 /* macro to add a si record to the su-si list */
 #define m_AVND_SUDB_REC_SI_ADD(su, si, rc) \
 { \
-   (si).su_dll_node.key = (uns8 *)&(si).name; \
+   (si).su_dll_node.key = (uint8_t *)&(si).name; \
    (rc) = ncs_db_link_list_add(&(su).si_list, &(si).su_dll_node); \
 };
 

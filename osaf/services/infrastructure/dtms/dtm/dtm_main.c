@@ -53,7 +53,7 @@ NCSCONTEXT gl_serv_dis_task_hdl = 0;
 static DTM_INTERNODE_CB _dtms_cb;
 DTM_INTERNODE_CB *dtms_gl_cb = &_dtms_cb;
 
-uns8 initial_discovery_phase = TRUE;
+uint8_t initial_discovery_phase = TRUE;
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -95,11 +95,11 @@ static uns32 dtm_init(DTM_INTERNODE_CB * dtms_cb)
 	return rc;
 }
 
-static uns32 dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uns8 *buf_ptr, int *pack_size)
+static uns32 dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
 {
 	TRACE_ENTER();
 
-	uns8 *data = buf_ptr;
+	uint8_t *data = buf_ptr;
 
 	*pack_size = DTM_BCAST_HDR_SIZE;
 
@@ -108,7 +108,7 @@ static uns32 dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uns8 *buf_ptr, 
 	ncs_encode_32bit(&data, dtms_cb->node_id);
 	ncs_encode_8bit(&data, dtms_cb->mcast_flag);
 	ncs_encode_16bit(&data, dtms_cb->stream_port);
-	ncs_encode_8bit(&data, (uns8)dtms_cb->i_addr_family);
+	ncs_encode_8bit(&data, (uint8_t)dtms_cb->i_addr_family);
 	memcpy(data, dtms_cb->ip_addr, sizeof(dtms_cb->ip_addr));
 
 	TRACE_LEAVE();
@@ -231,7 +231,7 @@ uns32 dtm_node_discovery_task_create(void)
 int main(int argc, char *argv[])
 {
 	int rc = -1;
-	uns8 send_bcast_buffer[255];
+	uint8_t send_bcast_buffer[255];
 	int bcast_buf_len = 0;
 	fd_set rfds1;
 	struct timeval bcast_freq;

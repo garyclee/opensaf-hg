@@ -43,7 +43,7 @@ AVD_SVC_TYPE *avd_svctype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SVC_TYPE *)ncs_patricia_tree_get(&svctype_db, (uns8 *)&tmp);
+	return (AVD_SVC_TYPE *)ncs_patricia_tree_get(&svctype_db, (uint8_t *)&tmp);
 }
 
 static void svctype_delete(AVD_SVC_TYPE *svc_type)
@@ -68,7 +68,7 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	memcpy(svct->name.value, dn->value, dn->length);
 	svct->name.length = dn->length;
-	svct->tree_node.key_info = (uns8 *)&svct->name;
+	svct->tree_node.key_info = (uint8_t *)&svct->name;
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber("saAmfSvcDefActiveWeight", attributes, &attrValuesNumber) == SA_AIS_OK) {

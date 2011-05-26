@@ -362,7 +362,7 @@ void  plms_process_agent_initialize(PLMS_EVT *plm_evt)
 	}
 	memset(client_info,0,sizeof(PLMS_CLIENT_INFO));
 	client_info->mdest_id = plm_evt->sinfo.dest;
-	client_info->pat_node.key_info = (uns8*)&client_info->plm_handle;
+	client_info->pat_node.key_info = (uint8_t*)&client_info->plm_handle;
 
 	if (plm_handle_pool == MAX_PLM_POOL_HANDLES){
 		TRACE_5("plm_handle_pool reached max limit, hence wrapped around");
@@ -451,7 +451,7 @@ void plms_process_agent_finalize(PLMS_EVT *plm_evt)
 
 	client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_get(
 			&cb->client_info, 
-			(uns8 *)&plm_evt->req_evt.agent_lib_req.plm_handle);
+			(uint8_t *)&plm_evt->req_evt.agent_lib_req.plm_handle);
 	if (!client_info)
 	{
 		LOG_ER("PLMS : RECEIVED BAD PLM HANDLE");
@@ -594,7 +594,7 @@ void plms_process_trk_start_evt(PLMS_EVT *plm_evt)
 	/** get the entity group info node from the grp hdl */
 	grp_info = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(
 	            &cb->entity_group_info, 
-		    (uns8 *)&plm_evt->req_evt.agent_track.grp_handle);
+		    (uint8_t *)&plm_evt->req_evt.agent_track.grp_handle);
 		
 	if(!grp_info){
 		LOG_ER("PLMS : BAD GROUP HDL RECEIVED");
@@ -757,7 +757,7 @@ void plms_process_trk_stop_evt(PLMS_EVT *plm_evt)
 	/** get the entity group info node from the grp hdl */
 	grp_info = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(
 	            &cb->entity_group_info, 
-		    (uns8 *)&plm_evt->req_evt.agent_track.grp_handle);
+		    (uint8_t *)&plm_evt->req_evt.agent_track.grp_handle);
 	if(!grp_info){
 		LOG_ER("PLMS : BAD GROUP HDL RECEIVED");
 		rc = SA_AIS_ERR_BAD_HANDLE;
@@ -950,7 +950,7 @@ void plms_process_grp_create_evt(PLMS_EVT *plm_evt)
 	memset(&plm_resp, 0, sizeof(PLMS_EVT));
 	client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_get(
 			&cb->client_info, 
-			(uns8 *)&plm_evt->req_evt.agent_grp_op.plm_handle);
+			(uint8_t *)&plm_evt->req_evt.agent_grp_op.plm_handle);
 	if (!client_info)
 	{
 		LOG_ER("PLMS : Received bad PLM Handle");
@@ -967,7 +967,7 @@ void plms_process_grp_create_evt(PLMS_EVT *plm_evt)
 	memset(grp_info, 0, sizeof(PLMS_ENTITY_GROUP_INFO));
 
 	grp_info->agent_mdest_id = plm_evt->sinfo.dest;
-	grp_info->pat_node.key_info = (uns8*)&grp_info->entity_grp_hdl;
+	grp_info->pat_node.key_info = (uint8_t*)&grp_info->entity_grp_hdl;
 	/** 
 	 * Allocate the grp hdl and update the grp info strucute and 
 	 * add it to the patricia tree. 
@@ -1266,7 +1266,7 @@ void plms_process_grp_rem_evt(PLMS_EVT *plm_evt)
 	/* Check if handle is valid and group is created */
 	grp_info = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(
 				&cb->entity_group_info,
-				(uns8 *)&plm_evt->req_evt.agent_grp_op.grp_handle);
+				(uint8_t *)&plm_evt->req_evt.agent_grp_op.grp_handle);
 	if (!grp_info) 
 	{
 		LOG_ER("PLMS: BAD GROUP HANDLE RECEIVED");
@@ -1443,7 +1443,7 @@ SaUint32T plm_add_single_entity(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 		key_dn = &ent_names[ii];
 		/** Get the entity to be added from patricia tree */
 		new_entity = (PLMS_ENTITY *)ncs_patricia_tree_get(
-				&cb->entity_info, (uns8 *)key_dn);
+				&cb->entity_info, (uint8_t *)key_dn);
 
 		if(!new_entity){
 			LOG_ER("The entity %s does not exist", key_dn->value);
@@ -1519,7 +1519,7 @@ SaUint32T plm_add_sub_tree(PLMS_GROUP_ENTITY_ROOT_LIST **entity_list,
 		key_dn = &ent_names[ii];
 		/** get the root entity to be added from the patricia tree */
 		new_entity = (PLMS_ENTITY *)ncs_patricia_tree_get(
-				&cb->entity_info, (uns8 *)key_dn);
+				&cb->entity_info, (uint8_t *)key_dn);
 		if(!new_entity){
 			LOG_ER("the entity %s does not exist", key_dn->value);
 			rc = SA_AIS_ERR_NOT_EXIST;
@@ -1686,7 +1686,7 @@ void plms_process_grp_add_evt(PLMS_EVT *plm_evt)
 	/* Check is handle is valid and group is created */
 	grp_info = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(
 				&cb->entity_group_info,
-			(uns8 *)&plm_evt->req_evt.agent_grp_op.grp_handle);
+			(uint8_t *)&plm_evt->req_evt.agent_grp_op.grp_handle);
 	if (!grp_info) 
 	{
 		LOG_ER("PLMS: BAD GROUP HANDLE RECEIVED");
@@ -1874,7 +1874,7 @@ void plms_process_grp_del_evt(PLMS_EVT *plm_evt)
 	/* Check is handle is valid and group is created */
 	grp_info = (PLMS_ENTITY_GROUP_INFO *)ncs_patricia_tree_get(
 				&cb->entity_group_info,
-			(uns8 *)&plm_evt->req_evt.agent_grp_op.grp_handle);
+			(uint8_t *)&plm_evt->req_evt.agent_grp_op.grp_handle);
 	if (!grp_info) 
 	{
 		LOG_ER("PLMS: BAD GROUP HANDLE RECEIVED");
@@ -1988,7 +1988,7 @@ void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state)
 			}
 		}
 		client_info = (PLMS_CLIENT_INFO *)ncs_patricia_tree_getnext(
-			&cb->client_info, (uns8 *)&plm_hdl);
+			&cb->client_info, (uint8_t *)&plm_hdl);
 	}
 	TRACE_LEAVE();
 	return;

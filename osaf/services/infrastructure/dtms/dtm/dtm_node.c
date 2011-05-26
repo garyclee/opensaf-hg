@@ -43,21 +43,21 @@ static int nfds = 0;
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uns8 *buf_ptr, int *pack_size)
+static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
 {
 	/* Add the FRAG HDR to the Buffer */
-	uns8 *data;
+	uint8_t *data;
 	data = buf_ptr;
 
 	*pack_size = NODE_INFO_HDR_SIZE + strlen(dtms_cb->node_name);
 
 	ncs_encode_16bit(&data, (uns16)(*pack_size - 2));	/*pkt_type  */
 	ncs_encode_32bit(&data, (uns32)(DTM_INTERNODE_SND_MSG_IDENTIFIER));
-	ncs_encode_8bit(&data, (uns8)DTM_INTERNODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_CONN_DETAILS_MSG_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_CONN_DETAILS_MSG_TYPE);
 	ncs_encode_32bit(&data, dtms_cb->node_id);
 	ncs_encode_32bit(&data, strlen(dtms_cb->node_name));
-	ncs_encode_octets(&data, (uns8 *)dtms_cb->node_name, (uns8)strlen(dtms_cb->node_name));
+	ncs_encode_octets(&data, (uint8_t *)dtms_cb->node_name, (uint8_t)strlen(dtms_cb->node_name));
 
 	return NCSCC_RC_SUCCESS;
 
@@ -72,7 +72,7 @@ static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uns8 *buf_p
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *buffer, uns8 *node_info_hrd,
+uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint8_t *buffer, uint8_t *node_info_hrd,
 			    int buffer_len)
 {
 	uns32 node_id;
@@ -80,7 +80,7 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uns8 *b
 	uns32 nodename_len;
 	char nodename[MAX_NAME_LENGTH];
 	int rc = 0;
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 
 	node_id = ncs_decode_32bit(&data);
@@ -160,7 +160,7 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
 
 	tmp_node.cluster_id = dtms_cb->cluster_id;
 	tmp_node.node_id = dtms_cb->node_id;
-	memcpy(tmp_node.node_ip, (uns8 *)dtms_cb->ip_addr, INET6_ADDRSTRLEN);
+	memcpy(tmp_node.node_ip, (uint8_t *)dtms_cb->ip_addr, INET6_ADDRSTRLEN);
 
 	strncpy(tmp_node.node_name, dtms_cb->node_name, strlen(dtms_cb->node_name));
 	tmp_node.comm_status = TRUE;
@@ -224,7 +224,7 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-void datagram_buff_dump(uns8 *buff, uns32 len, uns32 max)
+void datagram_buff_dump(uint8_t *buff, uns32 len, uns32 max)
 {
 	/* TBD */
 }
@@ -238,7 +238,7 @@ void datagram_buff_dump(uns8 *buff, uns32 len, uns32 max)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uns8 comm_status)
+uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status)
 {
 	if (TRUE == comm_status) {
 		dtm_node_up(node_id, node_name, 0);
@@ -257,13 +257,13 @@ uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uns8 comm_statu
  * @return NCSCC_RC_FAILURE
  *
  */
-void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_len_buf, uns8 *node_info_hrd,
+void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_len_buf, uint8_t *node_info_hrd,
 					       uns16 node_info_buffer_len, int fd, int *close_conn)
 {
 	DTM_MSG_TYPES pkt_type = 0;
 	uns32 identifier = 0;
-	uns8 version = 0;
-	uns8 *data = NULL;
+	uint8_t version = 0;
+	uint8_t *data = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
 	node->buffer[local_len_buf + 2] = '\0';
@@ -280,7 +280,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_l
 	pkt_type = ncs_decode_8bit(&data);
 
 	if (pkt_type == DTM_UP_MSG_TYPE) {
-		uns8 *alloc_buffer = NULL;
+		uint8_t *alloc_buffer = NULL;
 
 		if (NULL == (alloc_buffer = calloc(1, (local_len_buf - 6)))) {
 			LOG_ER("\nMemory allocation failed in dtm_internode_processing");
@@ -296,7 +296,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_l
 			*close_conn = TRUE;
 		}
 	} else if (pkt_type == DTM_DOWN_MSG_TYPE) {
-		uns8 *alloc_buffer = NULL;
+		uint8_t *alloc_buffer = NULL;
 
 		if (NULL == (alloc_buffer = calloc(1, (local_len_buf - 6)))) {
 			LOG_ER("\nMemory allocation failed in dtm_internode_processing");
@@ -333,7 +333,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uns16 local_l
  * @return NCSCC_RC_FAILURE
  *
  */
-void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info_hrd, uns16 node_info_buffer_len)
+void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_info_hrd, uns16 node_info_buffer_len)
 {
 	DTM_NODE_DB *node = NULL;
 	TRACE_ENTER();
@@ -346,7 +346,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 	}
 	if (0 == node->bytes_tb_read) {
 		if (0 == node->num_by_read_for_len_buff) {
-			uns8 *data;
+			uint8_t *data;
 			int recd_bytes = 0;
 
 			/*******************************************************/
@@ -413,7 +413,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uns8 *node_info
 				return;
 			} else if (1 == recd_bytes) {
 				/* We recd one byte(remaining) of the length part */
-				uns8 *data = node->len_buff;
+				uint8_t *data = node->len_buff;
 				node->num_by_read_for_len_buff = 2;
 				node->buff_total_len = ncs_decode_16bit(&data);
 				return;
@@ -506,12 +506,12 @@ void node_discovery_process(void *arg)
 	int current_size = 0, i, j;
 
 	/* Data Received */
-	uns8 inbuf[DTM_INTERNODE_RECV_BUFFER_SIZE];
-	uns8 *data1;		/* Used for DATAGRAM decoding */
+	uint8_t inbuf[DTM_INTERNODE_RECV_BUFFER_SIZE];
+	uint8_t *data1;		/* Used for DATAGRAM decoding */
 	uns16 recd_bytes = 0;
 	uns16 recd_buf_len = 0;
 	int node_info_buffer_len = 0;
-	uns8 node_info_hrd[NODE_INFO_PKT_SIZE];
+	uint8_t node_info_hrd[NODE_INFO_PKT_SIZE];
 	char node_ip[INET6_ADDRSTRLEN];
 
 	memset(&node_ip, 0, INET6_ADDRSTRLEN);

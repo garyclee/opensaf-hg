@@ -46,7 +46,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uns8 *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
 	if (rec != NULL) {
 		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%" PRId64 ", NodeId:%u",
 				    mds_dest, node_id);
@@ -60,7 +60,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 			rec->node_id = node_id;
 			rec->mds_dest = mds_dest;
 			rec->tree_node.bit = 0;
-			rec->tree_node.key_info = (uns8 *)&(rec->node_id);
+			rec->tree_node.key_info = (uint8_t *)&(rec->node_id);
 
 			res = ncs_patricia_tree_add(&cb->nodeid_mdsdest_db, &rec->tree_node);
 
@@ -100,7 +100,7 @@ uns32 avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uns8 *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
 	if (rec == NULL) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%" PRId64 " NodeId:%u",
 				    mds_dest, node_id);
@@ -137,7 +137,7 @@ MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id)
 {
 	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uns8 *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
 	if (rec == NULL) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec get failed: NodeId:%u",node_id);
 		return 0;
@@ -193,7 +193,7 @@ uns32 avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
 
 	/* scan & delete each su */
 	while (0 != (mapping =
-		     (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_getnext(&cb->nodeid_mdsdest_db, (uns8 *)0))) {
+		     (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_getnext(&cb->nodeid_mdsdest_db, (uint8_t *)0))) {
 		/* delete the record */
 		rc = avnd_nodeid_mdsdest_rec_del(cb, mapping->mds_dest);
 		if (NCSCC_RC_SUCCESS != rc)
@@ -259,7 +259,7 @@ uns32 avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each su */
-	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)0))) {
+	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)0))) {
 		/* delete the record */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 		rc = avnd_internode_comp_del(cb, &cb->internode_avail_comp_db, &comp->name);
@@ -352,7 +352,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 
 	/* Add to the patricia tree. */
 	comp->tree_node.bit = 0;
-	comp->tree_node.key_info = (uns8 *)&comp->name;
+	comp->tree_node.key_info = (uint8_t *)&comp->name;
 	*rc = ncs_patricia_tree_add(ptree, &comp->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = SA_AIS_ERR_NO_MEMORY;

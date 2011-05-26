@@ -683,7 +683,7 @@ static void clms_create_track_resp_list(CLMS_CLUSTER_NODE * node, CLMS_CLIENT_IN
 	trk->client_dest = client->mds_dest;
 	trk->client_id_net = client->client_id_net;
 	trk->inv_id = client->inv_id;
-	trk->pat_node.key_info = (uns8 *)&client->inv_id;	/*Key Info as inv id */
+	trk->pat_node.key_info = (uint8_t *)&client->inv_id;	/*Key Info as inv id */
 
 	if (ncs_patricia_tree_add(&node->trackresp, &trk->pat_node) != NCSCC_RC_SUCCESS) {
 		LOG_ER("patricia tree add failed for CLMS_TRACK_INFO inv_id %llu",client->inv_id);
@@ -1469,7 +1469,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 			goto done;
 		}
 
-		 if (ncs_patricia_tree_get(&clms_cb->id_lookup,(uns8 *)&node->node_id)){
+		 if (ncs_patricia_tree_get(&clms_cb->id_lookup,(uint8_t *)&node->node_id)){
 			clms_node_delete(node, 0);
 		}
 		clms_node_delete(node, 1);

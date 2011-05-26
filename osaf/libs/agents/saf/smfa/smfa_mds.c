@@ -156,7 +156,7 @@ uns32 smfa_mds_callback(struct ncsmds_callback_info *info)
 				LOG_ER("SMFA: Decode Calloc failed");
 				assert(0);
 			}
-			info->info.dec.o_msg = (uns8 *) evt;
+			info->info.dec.o_msg = (uint8_t *) evt;
 			rc = smfsv_evt_dec(uba,evt);
 			if (NCSCC_RC_SUCCESS != rc) {
 				LOG_ER("SMFA: Decoding failed");

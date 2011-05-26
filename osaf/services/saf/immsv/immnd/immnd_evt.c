@@ -5864,7 +5864,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		goto unpack_failure;
 	}
 
-	if (ncs_encode_n_octets_in_uba(&uba, (uns8 *)msg->buf, msg->size) != NCSCC_RC_SUCCESS) {
+	if (ncs_encode_n_octets_in_uba(&uba, (uint8_t *)msg->buf, msg->size) != NCSCC_RC_SUCCESS) {
 		LOG_ER("Failed buffer copy");
 		uba.start = NULL;
 		error = SA_AIS_ERR_NO_RESOURCES;

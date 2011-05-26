@@ -35,7 +35,7 @@
 
 uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do);
+uns32 dts_apps_ascii_spec_load(uint8_t *file_name, uns32 what_to_do);
 
 NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION action);
 

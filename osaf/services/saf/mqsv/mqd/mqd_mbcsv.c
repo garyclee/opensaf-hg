@@ -923,7 +923,7 @@ static uns32 mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 static uns32 mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *wsync_ptr = 0;
+	uint8_t *wsync_ptr = 0;
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
@@ -958,7 +958,7 @@ static uns32 mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *
 static uns32 mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 num_of_async_upd = 0, rc = NCSCC_RC_SUCCESS;
-	uns8 data[16], *ptr;
+	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
@@ -1016,7 +1016,7 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 	uns32 rc = NCSCC_RC_SUCCESS, num_of_ckpts = 0;
 	uns32 last_message = FALSE;
 	EDU_ERR ederror = 0;
-	uns8 *header, *sync_cnt_ptr;
+	uint8_t *header, *sync_cnt_ptr;
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (pMqd->ha_state == SA_AMF_HA_STANDBY) {
@@ -1039,7 +1039,7 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	queue_index_name = pMqd->record_qindex_name;
 	m_NCS_LOCK(q_rec_lock, NCS_LOCK_WRITE);
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
+	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 	queue_record = (MQD_OBJ_NODE *)q_node;
 
 	while (queue_record != NULL) {
@@ -1078,13 +1078,13 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 		if (num_of_ckpts == MAX_NO_MQD_MSGS_A2S) {
 			/* Just check whether, it is a last message or not. It will help
 			   in deciding last message */
-			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
+			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 			if (q_node == NULL)
 				last_message = TRUE;
 			break;
 		}
 
-		q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
+		q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 		queue_record = (MQD_OBJ_NODE *)q_node;
 
 	}			/* while */
@@ -1108,7 +1108,7 @@ static uns32 mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	ncs_encode_32bit(&sync_cnt_ptr, pMqd->mqd_sync_updt_count);
 
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&queue_index_name);
+	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 	if (q_node == NULL) {
 		last_message = TRUE;
 	}
@@ -1217,7 +1217,7 @@ static uns32 mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 num_of_ckpts, data[sizeof(uns32)];
 	uns32 count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
-	uns8 *ptr;
+	uint8_t *ptr;
 	EDU_ERR ederror = 0;
 	MQD_A2S_QUEUE_INFO *mbcsv_info = 0;
 
@@ -1233,8 +1233,8 @@ static uns32 mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 
 	memset(mbcsv_info, 0, sizeof(MQD_A2S_QUEUE_INFO));
 
-	/* 1. Decode the 1st uns8 region ,  we will get the num of ckpts */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uns8 *)data, sizeof(uns32));
+	/* 1. Decode the 1st uint8_t region ,  we will get the num of ckpts */
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data, sizeof(uns32));
 	num_of_ckpts = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
 
@@ -1266,7 +1266,7 @@ static uns32 mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 	m_MMGR_FREE_MQD_DEFAULT_VAL(mbcsv_info);
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uns8 *)data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data, sizeof(uns32));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
 
@@ -1312,7 +1312,7 @@ static uns32 mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO 
 	memset(&record_qindex_name, 0, sizeof(SaNameT));
 	record_qindex_name = q_data_msg.name;
 	/* m_HTON_SANAMET_LEN(record_qindex_name.length);a */
-	q_obj_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uns8 *)&record_qindex_name);
+	q_obj_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&record_qindex_name);
 	if (!q_obj_node) {
 		rc = mqd_db_node_create(pMqd, &q_obj_node);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -1331,7 +1331,7 @@ static uns32 mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO 
 	for (index = 0; index < q_data_msg.ilist_cnt; index++) {
 		record_qindex_name = q_data_msg.ilist_info[index];
 		/* m_HTON_SANAMET_LEN(record_qindex_name.length); */
-		q_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uns8 *)&record_qindex_name);
+		q_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&record_qindex_name);
 		if (!q_node) {
 			rc = mqd_db_node_create(pMqd, &q_node);
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -1432,14 +1432,14 @@ static void mqd_queue_db_clean_up(MQD_CB *pMqd)
 
 	memset(&record_qindex_name, 0, sizeof(SaNameT));
 
-	qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&record_qindex_name);
-	nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uns8 *)&prev_node_id);
+	qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&record_qindex_name);
+	nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&prev_node_id);
 
 	while (qnode) {
 		record_qindex_name = qnode->oinfo.name;
 		mqd_db_node_del(pMqd, qnode);
 
-		qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&record_qindex_name);
+		qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&record_qindex_name);
 
 	}
 	while (nd_node) {
@@ -1447,7 +1447,7 @@ static void mqd_queue_db_clean_up(MQD_CB *pMqd)
 
 		mqd_red_db_node_del(pMqd, nd_node);
 
-		nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uns8 *)&prev_node_id);
+		nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&prev_node_id);
 
 	}
 	return;

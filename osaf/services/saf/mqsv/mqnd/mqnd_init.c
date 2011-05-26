@@ -44,7 +44,7 @@ static uns32 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *
 static uns32 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info);
 static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info);
 static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info);
-static uns32 mqnd_compare_mqa_dest(uns8 *valInDb, uns8 *key);
+static uns32 mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key);
 static uns32 mqnd_cb_db_init(MQND_CB *cb);
 static uns32 mqnd_cb_db_destroy(MQND_CB *cb);
 static uns32 mqnd_cb_namedb_destroy(MQND_CB *cb);
@@ -194,7 +194,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uns8 *)str_vector;
+	file_read.info.read.i_buffer = (uint8_t *)str_vector;
 	file_read.info.read.i_buf_size = sizeof(uns32);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
@@ -208,7 +208,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uns8 *)str_vector;
+	file_read.info.read.i_buffer = (uint8_t *)str_vector;
 	file_read.info.read.i_buf_size = sizeof(uns32);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
@@ -222,7 +222,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
-	file_read.info.read.i_buffer = (uns8 *)str_vector;
+	file_read.info.read.i_buffer = (uint8_t *)str_vector;
 	file_read.info.read.i_buf_size = sizeof(uns32);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
@@ -655,7 +655,7 @@ static uns32 mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_compare_mqa_dest(uns8 *valInDb, uns8 *key)
+static uns32 mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key)
 {
 	MDS_DEST *dbVal, *inVal;
 	uns32 rc = NCSCC_RC_FAILURE;

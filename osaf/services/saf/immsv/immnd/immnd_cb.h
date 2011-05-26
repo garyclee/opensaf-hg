@@ -54,13 +54,13 @@ typedef struct immnd_immom_client_node {
 
 	NCSMDS_SVC_ID sv_id;	/* OM or OI */
 	IMMND_OM_SEARCH_NODE *searchOpList;
-	uns8 mIsSync;		/* Client is special sync client */
-	uns8 mIsPbe;            /* Client is persistent back end */
-	uns8 mSyncBlocked;	/* Sync client expects reply */
-	uns8 mIsStale;		/* Client disconnected when IMMD
+	uint8_t mIsSync;		/* Client is special sync client */
+	uint8_t mIsPbe;            /* Client is persistent back end */
+	uint8_t mSyncBlocked;	/* Sync client expects reply */
+	uint8_t mIsStale;		/* Client disconnected when IMMD
 				   is unavailable => postpone 
 				   discardClient. */
-	uns8 mIsResurrect;      /* The client is a temprary place holder
+	uint8_t mIsResurrect;      /* The client is a temprary place holder
                                   for handle resurrect. We use it to send
 				  the PROC_STALE_CLIENT internal upcall to
 				  the IMMA clients that are dispatching.
@@ -93,7 +93,7 @@ typedef struct immnd_cb_tag {
 	NCS_NODE_ID node_id;
 
 	/*Nr of FEVS messages sent, but not received back at origin.*/
-	uns8 fevs_replies_pending; 
+	uint8_t fevs_replies_pending; 
 
 	SaUint32T cli_id_gen;	/* for generating client_id */
 
@@ -109,16 +109,16 @@ typedef struct immnd_cb_tag {
 	SaUint32T mMyEpoch;	//Epoch counter, used in synch of immnds
 	SaUint32T mMyPid;	//Is this needed ??
 	SaUint32T mRulingEpoch;
-	uns8 mAccepted;		//Should all fevs messages be processed?
-	uns8 mIntroduced;	//Ack received on introduce message
-	uns8 mSyncRequested;	//true=> I am coord, other req sync
-	uns8 mPendSync;		//1=>sync announced but not received.
-	uns8 mSyncFinalizing;   //1=>finalizeSync sent but not received.
-	uns8 mSync;		//true => this node is being synced (client).
-	uns8 mCanBeCoord;
-	uns8 mIsCoord;
-	uns8 mLostNodes;       //Detached & not syncreq => delay sync start
-	uns8 mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
+	uint8_t mAccepted;		//Should all fevs messages be processed?
+	uint8_t mIntroduced;	//Ack received on introduce message
+	uint8_t mSyncRequested;	//true=> I am coord, other req sync
+	uint8_t mPendSync;		//1=>sync announced but not received.
+	uint8_t mSyncFinalizing;   //1=>finalizeSync sent but not received.
+	uint8_t mSync;		//true => this node is being synced (client).
+	uint8_t mCanBeCoord;
+	uint8_t mIsCoord;
+	uint8_t mLostNodes;       //Detached & not syncreq => delay sync start
+	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;
@@ -143,10 +143,10 @@ typedef struct immnd_cb_tag {
 	const char *mPbeFile;   //Pbe feature is configured (IMMSV_PBE_FILE).
 	SaImmRepositoryInitModeT mRim; 
 
-	uns8 mExpectedNodes;
-	uns8 mWaitSecs;
-	uns8 mNumNodes;
-	uns8 mPbeVeteran;       //false => generate. true => re-attach db-file
+	uint8_t mExpectedNodes;
+	uint8_t mWaitSecs;
+	uint8_t mNumNodes;
+	uint8_t mPbeVeteran;       //false => generate. true => re-attach db-file
 
 	SaAmfHAStateT ha_state;	// present AMF HA state of the component
 	EDU_HDL immnd_edu_hdl;	// edu handle, obscurely needed by mds.

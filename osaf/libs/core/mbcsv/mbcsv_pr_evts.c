@@ -78,7 +78,7 @@ uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl)
 					 * received UP event.
 					 */
 					if (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list,
-											       (const uns8 *)&rcvd_evt->
+											       (const uint8_t *)&rcvd_evt->
 											       rcvr_peer_key.
 											       pwe_hdl))) {
 						mbcsv_send_peer_disc_msg(MBCSV_PEER_UP_MSG, mbc_reg, ckpt, peer,
@@ -91,7 +91,7 @@ uns32 mbcsv_process_events(MBCSV_EVT *rcvd_evt, uns32 mbcsv_hdl)
 			case NCSMDS_RED_DOWN:
 				{
 					if (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_get(&mbc_reg->ckpt_ssn_list,
-											       (const uns8 *)&rcvd_evt->
+											       (const uint8_t *)&rcvd_evt->
 											       rcvr_peer_key.
 											       pwe_hdl))) {
 						/*

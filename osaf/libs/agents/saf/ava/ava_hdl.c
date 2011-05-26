@@ -233,7 +233,7 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaAmfCallbacksT));
 
 	/* add the record to the hdl db */
-	rec->hdl_node.key_info = (uns8 *)&rec->hdl;
+	rec->hdl_node.key_info = (uint8_t *)&rec->hdl;
 	if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
 	    != NCSCC_RC_SUCCESS) {
 		TRACE_2("Patricia tree add failed ");

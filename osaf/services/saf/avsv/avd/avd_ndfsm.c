@@ -431,7 +431,7 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 		AVD_FAIL_OVER_NODE *node_fovr;
 		node_fovr = (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-					(uns8 *)&evt->info.node_id);
+					(uint8_t *)&evt->info.node_id);
 
 		if (NULL != node_fovr) {
 			ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
@@ -503,7 +503,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 			}
 
 			node_to_add->node_id = avnd->node_info.nodeId;
-			node_to_add->tree_node_id_node.key_info = (uns8 *)&(node_to_add->node_id);
+			node_to_add->tree_node_id_node.key_info = (uint8_t *)&(node_to_add->node_id);
 			node_to_add->tree_node_id_node.bit = 0;
 			node_to_add->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
 			node_to_add->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
@@ -561,7 +561,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (NULL != (node_fovr =
 		     (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-								 (uns8 *)&evt->info.avnd_msg->msg_info.
+								 (uint8_t *)&evt->info.avnd_msg->msg_info.
 								 n2d_ack_nack_info.node_id))) {
 		ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
 		free(node_fovr);

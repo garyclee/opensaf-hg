@@ -32,7 +32,7 @@ typedef enum dtm_ip_addr_type {
 typedef struct dtm_internode_unsent_msgs {
 	struct dtm_internode_unsent_msgs *next;
 	uns16 len;
-	uns8 *buffer;
+	uint8_t *buffer;
 } DTM_INTERNODE_UNSENT_MSGS;
 
 /* Node structure */
@@ -45,7 +45,7 @@ typedef struct node_list {
 	NCS_PATRICIA_NODE pat_nodeid;
 	NCS_PATRICIA_NODE pat_comm_socket;
 	NCS_PATRICIA_NODE pat_ip_address;
-	uns8 comm_status;
+	uint8_t comm_status;
 	NCS_LOCK node_lock;
 	SYSF_MBX mbx;
 	int mbx_fd;
@@ -55,9 +55,9 @@ typedef struct node_list {
 	/* Message related */
 	uns16 bytes_tb_read;
 	uns16 buff_total_len;
-	uns8 len_buff[2];
-	uns8 num_by_read_for_len_buff;
-	uns8 *buffer;
+	uint8_t len_buff[2];
+	uint8_t num_by_read_for_len_buff;
+	uint8_t *buffer;
 } DTM_NODE_DB;
 
 char remoteIP[INET6_ADDRSTRLEN];
@@ -78,7 +78,7 @@ typedef struct dtm_internode_cb {
 	int dgram_sock_sndr;	/*  */
 	int dgram_sock_rcvr;	/*  */
 	DTM_IP_ADDR_TYPE i_addr_family;	/* Indicates V4 or V6 */
-	uns8 mcast_flag;	/* Indicates mcast */
+	uint8_t mcast_flag;	/* Indicates mcast */
 	int32 initial_dis_timeout;
 	int32 bcast_msg_freq;
 	NCS_PATRICIA_TREE nodeid_tree;	/* NODE_DB information of Nodes */

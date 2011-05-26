@@ -102,43 +102,43 @@ extern "C" {
 /*
  * NCS_ENC encode functions
  */
-	USRBUF *ncs_encode_n_octets(USRBUF *, uns8 *, unsigned int);
-	USRBUF *ncs_encode_uns8(USRBUF *u, uns8 val8);
+	USRBUF *ncs_encode_n_octets(USRBUF *, uint8_t *, unsigned int);
+	USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8);
 	USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16);
 	USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32);
 	USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64);
-	USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int);
+	USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int);
 	USRBUF *ncs_prepend_uns16(USRBUF *u, uns16);
 	USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
 	USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
 	USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
 
-	uns64 ncs_encode_64bit(uns8 **stream, uns64);
-	uns32 ncs_encode_32bit(uns8 **stream, uns32);
-	uns32 ncs_encode_24bit(uns8 **stream, uns32);
-	uns32 ncs_encode_16bit(uns8 **stream, uns32);
-	uns32 ncs_encode_8bit(uns8 **stream, uns32);
-	uns32 ncs_encode_key(uns8 **stream, NCS_KEY *key);
+	uns64 ncs_encode_64bit(uint8_t **stream, uns64);
+	uns32 ncs_encode_32bit(uint8_t **stream, uns32);
+	uns32 ncs_encode_24bit(uint8_t **stream, uns32);
+	uns32 ncs_encode_16bit(uint8_t **stream, uns32);
+	uns32 ncs_encode_8bit(uint8_t **stream, uns32);
+	uns32 ncs_encode_key(uint8_t **stream, NCS_KEY *key);
 
-	uns32 ncs_encode_octets(uns8 **stream, uns8 *val, uns32 count);
+	uns32 ncs_encode_octets(uint8_t **stream, uint8_t *val, uns32 count);
 
 /*
  * NCS_DEC decode functions
  */
-	USRBUF *ncs_decode_n_octets(USRBUF *, uns8 *, uns32);
+	USRBUF *ncs_decode_n_octets(USRBUF *, uint8_t *, uns32);
 
 	USRBUF *ncs_skip_n_octets(USRBUF *, uns32);
-	uns8 *ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count);
+	uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uns32 count);
 
-	uns32 ncs_decode_short(uns8 **stream);
-	uns32 ncs_decode_24bit(uns8 **stream);
-	uns32 ncs_decode_32bit(uns8 **stream);
-	uns16 ncs_decode_16bit(uns8 **stream);
-	uns64 ncs_decode_64bit(uns8 **stream);
-	uns8 ncs_decode_8bit(uns8 **stream);
-	uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key);
+	uns32 ncs_decode_short(uint8_t **stream);
+	uns32 ncs_decode_24bit(uint8_t **stream);
+	uns32 ncs_decode_32bit(uint8_t **stream);
+	uns16 ncs_decode_16bit(uint8_t **stream);
+	uns64 ncs_decode_64bit(uint8_t **stream);
+	uint8_t ncs_decode_8bit(uint8_t **stream);
+	uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key);
 
-	float ncs_decode_float(uns8 **stream);
+	float ncs_decode_float(uint8_t **stream);
 
 /*****************************************************************************
  * STRUCTURE NAME:     USRFRAME

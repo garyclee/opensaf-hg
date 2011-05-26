@@ -58,14 +58,14 @@ extern "C" {
 /**** SPLR API REGISTER request structure ****/
 	typedef struct {
 		/* Flags will be ORed NCS_SPLR_INSTANTIATION_* values */
-		uns8 instantiation_flags;
+		uint8_t instantiation_flags;
 		NCS_LIB_REQUEST instantiation_api;	/* API for instantiating service-provider   */
 		void *user_se_api;	/* Single-entry API for use by service-user */
 	} NCS_SPLR_REQ_REG_INFO;
 
 /**** SPLR API DEREGISTER request structure ****/
 	typedef struct {
-		uns8 dummy;
+		uint8_t dummy;
 	} NCS_SPLR_REQ_DEREG_INFO;
 
 /**** SPLR API request structure ****/

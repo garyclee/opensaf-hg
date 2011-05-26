@@ -530,12 +530,12 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 	nt_key.ss_svc_id = 0;
 
 	/* Check if node with node_id already exists. If it doesn't, return */
-	if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL) {
+	if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL) {
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_set_dta_up_down: No svc node exists in patricia tree");
 		return;
 	}
 
-	if ((dta = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uns8 *)&adest)) != NULL) {
+	if ((dta = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uint8_t *)&adest)) != NULL) {
 		/* Adjust the pointer to DTA with the offset */
 		dta = (DTA_DEST_LIST *)((long)dta - DTA_DEST_LIST_OFFSET);
 
@@ -663,7 +663,7 @@ uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba,
 		  MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
-	uns8 *data;
+	uint8_t *data;
 	DTSV_MSG *mm;
 	NCS_UBAID *payload_uba;
 
@@ -750,9 +750,9 @@ uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
-	uns8 *data = NULL;
+	uint8_t *data = NULL;
 	DTSV_MSG *mm;
-	uns8 data_buff[DTSV_DTA_DTS_HDR_SIZE];
+	uint8_t data_buff[DTSV_DTA_DTS_HDR_SIZE];
 	uns32 lenn = 0;
 
 	if ((msg_fmat_ver < DTS_MDS_MIN_MSG_FMAT_VER_SUPPORT) || (msg_fmat_ver > DTS_MDS_MAX_MSG_FMAT_VER_SUPPORT))
@@ -819,7 +819,7 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			if (lenn == 0) {
 				/* No need to decode any further. no service name specified */
 			} else if (lenn < DTSV_SVC_NAME_MAX) {	/* Check valid len of svc_name */
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)mm->data.data.reg.svc_name, lenn);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)mm->data.data.reg.svc_name, lenn);
 			} else {	/* Discard this message */
 
 				m_MMGR_FREE_DTSV_MSG(mm);
@@ -862,7 +862,7 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 				/* No need to decode any further. no service name specified */
 			}
 			if (lenn < DTSV_SVC_NAME_MAX) {	/* Check valid len of svc_name */
-				ncs_decode_n_octets_from_uba(uba, (uns8 *)mm->data.data.unreg.svc_name, lenn);
+				ncs_decode_n_octets_from_uba(uba, (uint8_t *)mm->data.data.unreg.svc_name, lenn);
 			} else {	/* Discard this message */
 
 				m_MMGR_FREE_DTSV_MSG(mm);
@@ -962,8 +962,8 @@ uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  ****************************************************************************/
 uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 {
-	uns8 *data = NULL;
-	uns8 data_buff[DTS_MAX_SIZE_DATA];
+	uint8_t *data = NULL;
+	uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
 	if (uba == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_log_msg_decode: User buffer is NULL");
@@ -1004,8 +1004,8 @@ uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 uns32 dts_log_str_decode(NCS_UBAID *uba, char **str)
 {
 	uns32 length = 0;
-	uns8 *data = NULL;
-	uns8 data_buff[DTS_MAX_SIZE_DATA];
+	uint8_t *data = NULL;
+	uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
 	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
 	if (data == NULL) {
@@ -1020,7 +1020,7 @@ uns32 dts_log_str_decode(NCS_UBAID *uba, char **str)
 
 	memset(*str, '\0', length);
 
-	ncs_decode_n_octets_from_uba(uba, (uns8 *)*str, length);
+	ncs_decode_n_octets_from_uba(uba, (uint8_t *)*str, length);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1031,15 +1031,15 @@ uns32 dts_log_str_decode(NCS_UBAID *uba, char **str)
  *****************************************************************************/
 uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa)
 {
-	uns8 *data = NULL;
-	uns8 data_buff[sizeof(NCS_IP_ADDR)];
+	uint8_t *data = NULL;
+	uint8_t data_buff[sizeof(NCS_IP_ADDR)];
 
-	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns8));
+	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint8_t));
 	if (data == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "decode_ip_address: Decode flatten space failed");
 	}
 	ipa->type = ncs_decode_8bit(&data);
-	ncs_dec_skip_space(uba, sizeof(uns8));
+	ncs_dec_skip_space(uba, sizeof(uint8_t));
 
 	if (ipa->type == NCS_IP_ADDR_TYPE_IPV4) {
 		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));

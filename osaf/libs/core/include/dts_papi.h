@@ -155,7 +155,7 @@ typedef struct ncsfl_set {
  ************************************************************************/
 
 typedef struct ncsfl_fmat {
-	uns8 fmat_id;
+	uint8_t fmat_id;
 	char *fmat_type;
 	char *fmat_str;
 

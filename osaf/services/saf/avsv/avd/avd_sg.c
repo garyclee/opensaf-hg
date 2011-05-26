@@ -105,7 +105,7 @@ AVD_SG *avd_sg_new(const SaNameT *dn)
 
 	memcpy(sg->name.value, dn->value, dn->length);
 	sg->name.length = dn->length;
-	sg->tree_node.key_info = (uns8 *)&(sg->name);
+	sg->tree_node.key_info = (uint8_t *)&(sg->name);
 	sg->sg_ncs_spec = SA_FALSE;
 	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
 	sg->adjust_state = AVSV_SG_STABLE;
@@ -179,7 +179,7 @@ AVD_SG *avd_sg_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SG *)ncs_patricia_tree_get(&sg_db, (uns8 *)&tmp);
+	return (AVD_SG *)ncs_patricia_tree_get(&sg_db, (uint8_t *)&tmp);
 }
 
 AVD_SG *avd_sg_getnext(const SaNameT *dn)
@@ -189,7 +189,7 @@ AVD_SG *avd_sg_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SG *)ncs_patricia_tree_getnext(&sg_db, (uns8 *)&tmp);
+	return (AVD_SG *)ncs_patricia_tree_getnext(&sg_db, (uint8_t *)&tmp);
 }
 
 /**
@@ -551,7 +551,7 @@ static void sg_nd_attribute_update(AVD_SG *sg, uns32 attrib_id)
 	AVD_SU *su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
-	memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 
 	TRACE_ENTER();
 

@@ -199,7 +199,7 @@ typedef struct hm_cells {
 #define HM_BANK_CNT  256	/* FF  */
 
 typedef struct hm_unit {
-	uns8 curr;		/* next idx to fill in */
+	uint8_t curr;		/* next idx to fill in */
 	HM_CELLS *cells[HM_BANK_CNT];	/* when the cell-bank itself */
 
 } HM_UNIT;
@@ -313,11 +313,11 @@ typedef struct hm_core {
  *
  ***************************************************************************/
 
-uns32 hm_pool_id(uns8 unit);
+uns32 hm_pool_id(uint8_t unit);
 
 uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
 
-HM_FREE *hm_alloc_cell(uns8 id);
+HM_FREE *hm_alloc_cell(uint8_t id);
 
 HM_CELL *hm_find_cell(HM_HDL *hdl);
 
@@ -327,7 +327,7 @@ void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
 
 uns32 hm_make_free_cells(HM_PMGR *pmgr);
 
-void hm_block_me(HM_CELL *cell, uns8 pool_id);
+void hm_block_me(HM_CELL *cell, uint8_t pool_id);
 
 void hm_unblock_him(HM_CELL *cell);
 

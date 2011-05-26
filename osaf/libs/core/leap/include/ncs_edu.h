@@ -141,15 +141,15 @@ uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU
 uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl,
 				     EDU_PROG_HANDLER edp,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-				     EDU_ERR *o_err, uns8 var_cnt, int *var_array);
+				     EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
 uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 				      EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
-				      EDU_ERR *o_err, uns8 var_cnt, int *var_array);
+				      EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
 uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 				      EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
-				      EDU_ERR *o_err, uns8 var_cnt, int *var_array);
+				      EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
 uns32
 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
@@ -242,35 +242,35 @@ void ncs_edu_log_msg(char *string);
 
 void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt);
 
-uns32 ncs_encode_tlv_8bit(uns8 **stream, uns32 val);
+uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val);
 
-uns32 ncs_encode_tlv_16bit(uns8 **stream, uns32 val);
+uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val);
 
-uns32 ncs_encode_tlv_32bit(uns8 **stream, uns32 val);
+uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val);
 
-uns32 ncs_encode_tlv_64bit(uns8 **stream, uns64 val);
+uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val);
 
-uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count);
+uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uns16 n_count);
 
-uns32 ncs_encode_tlv_n_16bit(uns8 **stream, uns16 *val_ptr, uns16 n_count);
+uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uns16 *val_ptr, uns16 n_count);
 
-uns32 ncs_encode_tlv_n_octets(uns8 **stream, uns8 *val, uns16 count);
+uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uns16 count);
 
-uns32 ncs_decode_tlv_32bit(uns8 **stream);
+uns32 ncs_decode_tlv_32bit(uint8_t **stream);
 
-uns64 ncs_decode_tlv_64bit(uns8 **stream);
+uns64 ncs_decode_tlv_64bit(uint8_t **stream);
 
-uns16 ncs_decode_tlv_16bit(uns8 **stream);
+uns16 ncs_decode_tlv_16bit(uint8_t **stream);
 
-uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest);
+uns16 ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest);
 
-uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest);
+uns16 ncs_decode_tlv_n_16bit(uint8_t **stream, uns16 *dest);
 
-uns8 ncs_decode_tlv_8bit(uns8 **stream);
+uint8_t ncs_decode_tlv_8bit(uint8_t **stream);
 
-uns8 *ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
+uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count);
 
-uns8 *ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
+uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count);
 
 /************ EDU internal macro-related functions. ************/
 

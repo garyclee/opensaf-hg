@@ -504,7 +504,7 @@ static void mqa_client_tree_cleanup(MQA_CB *mqa_cb)
 
 	/* scan the entire handle db & delete each record */
 	while ((client_info = (MQA_CLIENT_INFO *)
-		ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uns8 *const)temp_ptr))) {
+		ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uint8_t *const)temp_ptr))) {
 		/* delete the client info */
 		temp_hdl = client_info->msgHandle;
 		temp_ptr = &temp_hdl;
@@ -538,7 +538,7 @@ NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
 
 	/* scan the entire handle db & delete each record */
 	while ((client_info = (MQA_CLIENT_INFO *)
-		ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uns8 *const)temp_ptr))) {
+		ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, (uint8_t *const)temp_ptr))) {
 		track_info = mqa_track_tree_find_and_add(client_info, queueGroupName, FALSE);
 		if (!track_info) {
 			temp_hdl = client_info->msgHandle;
@@ -568,7 +568,7 @@ uns32 mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info)
 	MQA_TRACK_INFO *track_info;
 	SaNameT *temp_ptr = 0;
 	SaNameT temp_name;
-	uns8 *value = NULL;
+	uint8_t *value = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* scan the entire group track db & delete each record */
 	while ((track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_getnext(&client_info->mqa_track_tree, value))) {
@@ -623,7 +623,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 	NCS_PATRICIA_PARAMS param;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uns8 *)&hdl_id);
+	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&hdl_id);
 
 	if (flag == TRUE) {
 		/* create and allocate the memory */
@@ -637,7 +637,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 			memset(client_info, 0, sizeof(MQA_CLIENT_INFO));
 			/* Store the client_info pointer as msghandle. */
 			client_info->msgHandle = NCS_PTR_TO_UNS64_CAST(client_info);
-			client_info->patnode.key_info = (uns8 *)&client_info->msgHandle;
+			client_info->patnode.key_info = (uint8_t *)&client_info->msgHandle;
 
 			if ((rc =
 			     ncs_patricia_tree_add(&mqa_cb->mqa_client_tree,
@@ -683,7 +683,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 	MQA_TRACK_INFO *track_info = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uns8 *)group->value);
+	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
 	if (flag == TRUE) {
 		/* create and allocate the memory */
@@ -696,7 +696,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 			}
 			memset(track_info, 0, sizeof(MQA_TRACK_INFO));
 			track_info->queueGroupName = *group;
-			track_info->patnode.key_info = (uns8 *)track_info->queueGroupName.value;
+			track_info->patnode.key_info = (uint8_t *)track_info->queueGroupName.value;
 			if ((rc = ncs_patricia_tree_add(&client_info->mqa_track_tree,
 							&track_info->patnode)) != NCSCC_RC_SUCCESS) {
 				m_LOG_MQSV_A(MQA_TRACK_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc,
@@ -733,7 +733,7 @@ NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *grou
 	MQA_TRACK_INFO *track_info = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uns8 *)group->value);
+	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
 	if (!track_info)
 		return FALSE;
@@ -829,7 +829,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
 
 	/* scan the entire handle db & delete each record */
 	while ((queue_info = (MQA_QUEUE_INFO *)
-		ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, (uns8 *const)temp_ptr))) {
+		ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, (uint8_t *const)temp_ptr))) {
 		temp_hdl = queue_info->queueHandle;
 		temp_ptr = &temp_hdl;
 
@@ -872,7 +872,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 	MQA_QUEUE_INFO *queue_info = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* read lock taken by the caller. */
-	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uns8 *)&hdl_id);
+	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 
 	if (flag == TRUE) {
 		/* create and allocate the memory */
@@ -887,7 +887,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 			queue_info->queueHandle = hdl_id;
 			queue_info->openFlags = openFlags;
 			queue_info->client_info = client_info;
-			queue_info->patnode.key_info = (uns8 *)&queue_info->queueHandle;
+			queue_info->patnode.key_info = (uint8_t *)&queue_info->queueHandle;
 			queue_info->msg_get_count = 0;
 
 			if ((rc =
@@ -922,7 +922,7 @@ uns32 mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
 
 	MQA_QUEUE_INFO *queue_info = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uns8 *)&hdl_id);
+	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 	if (!queue_info) {
 
 		return NCSCC_RC_FAILURE;

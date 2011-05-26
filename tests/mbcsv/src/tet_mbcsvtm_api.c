@@ -1697,7 +1697,7 @@ void tet_mbcsv_data_request(int choice)
   int i=0,DATA_COUNT=10;
   NCS_MBCSV_ARG     mbcsv_arg;
   NCS_UBAID  *uba = NULL;
-  uns8*      data;
+  uint8_t*      data;
   MBCSTM_SVC      *svc;
   MBCSTM_SSN      *ssn;
   char            fun_name[] = "mbcstm_svc_data_request";

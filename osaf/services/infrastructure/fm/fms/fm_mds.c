@@ -606,7 +606,7 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	GFM_GFM_MSG *msg;
 	NCS_UBAID *uba;
-	uns8 *data;
+	uint8_t *data;
 
 	if (NULL == enc_info)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -617,12 +617,12 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 	uba = enc_info->io_uba;
 	msg = (GFM_GFM_MSG *)enc_info->i_msg;
 
-	data = ncs_enc_reserve_space(uba, sizeof(uns8));
+	data = ncs_enc_reserve_space(uba, sizeof(uint8_t));
 	if (NULL == data)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	ncs_encode_8bit(&data, msg->msg_type);
-	ncs_enc_claim_space(uba, sizeof(uns8));
+	ncs_enc_claim_space(uba, sizeof(uint8_t));
 
 	switch (msg->msg_type) {
 	case GFM_GFM_EVT_NODE_INFO_EXCHANGE:
@@ -662,8 +662,8 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	GFM_GFM_MSG *msg;
 	NCS_UBAID *uba;
-	uns8 *data;
-	uns8 data_buff[256];
+	uint8_t *data;
+	uint8_t data_buff[256];
 
 	if (NULL == dec_info->io_uba) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -678,12 +678,12 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	dec_info->o_msg = msg;
 	uba = dec_info->io_uba;
 
-	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns8));
+	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint8_t));
 	if (NULL == data)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	msg->msg_type = (GFM_GFM_MSG_TYPE)ncs_decode_8bit(&data);
-	ncs_dec_skip_space(uba, sizeof(uns8));
+	ncs_dec_skip_space(uba, sizeof(uint8_t));
 
 	switch (msg->msg_type) {
 	case GFM_GFM_EVT_NODE_INFO_EXCHANGE:

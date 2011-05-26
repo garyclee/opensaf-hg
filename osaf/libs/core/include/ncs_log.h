@@ -80,7 +80,7 @@ typedef char *NCSFL_TYPE;
 
    Where xxx is a sequence of characters that mean:
 
- S     : (small)  uns8  value
+ S     : (small)  uint8_t  value
  M     : (medium) uns16 value
  L     : (large)  uns32 value
  F     : double value

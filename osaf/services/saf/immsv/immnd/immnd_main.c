@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 			}
 
 			if (fds[FD_MBX].revents & POLLIN) {
-				uns8 wasCoord = immnd_cb->mIsCoord;
+				uint8_t wasCoord = immnd_cb->mIsCoord;
 				immnd_process_evt();
 				if (!wasCoord && immnd_cb->mIsCoord) {
 					TRACE("We just became Coord => Force a server job!");

@@ -129,7 +129,7 @@ typedef struct sysf_tmr {
 	struct sysf_tmr *next;	/* Must be first field !!! */
 	struct sysf_tmr *keep;	/* just to know where you are !! */
 
-	uns8 state;
+	uint8_t state;
 	uns64 key;
 	TMR_CALLBACK tmrCB;
 	NCSCONTEXT tmrUarg;
@@ -179,7 +179,7 @@ static uns32 ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 {
 	SYSF_TMR_PAT_NODE *temp_tmr_pat_node = NULL;
 
-	temp_tmr_pat_node = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_get(&gl_tcb.tmr_pat_tree, (uns8 *)&tmr->key);
+	temp_tmr_pat_node = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_get(&gl_tcb.tmr_pat_tree, (uint8_t *)&tmr->key);
 
 	if (temp_tmr_pat_node == (SYSF_TMR_PAT_NODE *)NULL) {
 		temp_tmr_pat_node = (SYSF_TMR_PAT_NODE *)m_NCS_MEM_ALLOC(sizeof(SYSF_TMR_PAT_NODE),
@@ -187,7 +187,7 @@ static uns32 ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 									 NCS_SERVICE_ID_LEAP_TMR, 0);
 		memset(temp_tmr_pat_node, '\0', sizeof(SYSF_TMR_PAT_NODE));
 		temp_tmr_pat_node->key = tmr->key;
-		temp_tmr_pat_node->pat_node.key_info = (uns8 *)&temp_tmr_pat_node->key;
+		temp_tmr_pat_node->pat_node.key_info = (uint8_t *)&temp_tmr_pat_node->key;
 		ncs_patricia_tree_add(&gl_tcb.tmr_pat_tree, (NCS_PATRICIA_NODE *)&temp_tmr_pat_node->pat_node);
 	}
 
@@ -351,7 +351,7 @@ static uns32 ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
 #endif
 
 	while (TRUE) {
-		tmp = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_getnext(&gl_tcb.tmr_pat_tree, (uns8 *)NULL);
+		tmp = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_getnext(&gl_tcb.tmr_pat_tree, (uint8_t *)NULL);
 		ticks_elapsed = get_time_elapsed_in_ticks(&ts_start);
 		if (tmp != NULL) {
 			next_expiry = m_NCS_OS_NTOHLL_P(&tmp->key);
@@ -614,7 +614,7 @@ NCS_BOOL sysfTmrDestroy(void)
 		tmr->keep = tmr->keep->keep;
 		m_NCS_MEM_FREE(free_tmr, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 	}
-	while ((tmp = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_getnext(&gl_tcb.tmr_pat_tree, (uns8 *)0)) != NULL) {
+	while ((tmp = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_getnext(&gl_tcb.tmr_pat_tree, (uint8_t *)0)) != NULL) {
 		ncs_patricia_tree_del(&gl_tcb.tmr_pat_tree, (NCS_PATRICIA_NODE *)tmp);
 		m_NCS_MEM_FREE(tmp, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 	}

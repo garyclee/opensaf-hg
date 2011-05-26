@@ -23,7 +23,7 @@
 
 static SYSF_MBX mdtm_mbx_common;
 static MDTM_TX_TYPE mdtm_transport;
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uns8 *buffer, uns16 len, uns8 enc_type);
+static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uns16 len, uint8_t enc_type);
 static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST id);
 static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST id);
 static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id);
@@ -168,7 +168,7 @@ uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64 transport_adest, uns32 seq_num_check,
+uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uns16 len, uns64 transport_adest, uns32 seq_num_check,
 				       uns32 *buff_dump)
 {
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
@@ -178,7 +178,7 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 	uns16 dest_svc_id = 0, src_svc_id = 0;
 	uns16 pwe_id = 0;
 	uns16 dest_vdest_id = 0, src_vdest_id = 0;
-	uns8 msg_snd_type, enc_type;
+	uint8_t msg_snd_type, enc_type;
 
 	uns32 node_status = 0;
 	MDS_DEST adest = 0;
@@ -205,10 +205,10 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 
 	if (MDTM_DIRECT == flag) {
 		uns32 xch_id = 0;
-		uns8 prot_ver = 0;
+		uint8_t prot_ver = 0;
 
 		/* We receive buffer pointer starting from MDS HDR only */
-		uns8 *data = NULL;
+		uint8_t *data = NULL;
 		uns32 svc_seq_num = 0;
 		uns16 len_mds_hdr = 0;
 
@@ -415,9 +415,9 @@ uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len, uns64
 		 */
 
 		uns32 xch_id = 0;
-		uns8 prot_ver = 0;
+		uint8_t prot_ver = 0;
 
-		uns8 *data = NULL;
+		uint8_t *data = NULL;
 		uns32 svc_seq_num = 0;
 		uns16 len_mds_hdr = 0;
 		MDS_TMR_REQ_INFO *tmr_req_info = NULL;
@@ -767,7 +767,7 @@ uns32 mds_tmr_mailbox_processing(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 transport_adest, uns32 *buff_dump)
+uns32 mdtm_process_recv_data(uint8_t *buffer, uns16 len, uns64 transport_adest, uns32 *buff_dump)
 {
 	/*
 	   Get the MDS Header from the data received
@@ -789,7 +789,7 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 transport_adest, uns
 
 	/* If the data is recd over here, it means its a fragmented or non-fragmented pkt) */
 	uns16 pkt_type = 0;
-	uns8 *data;
+	uint8_t *data;
 
 	/* Added for seq number check */
 	uns32 temp_frag_seq_num = 0;
@@ -1024,7 +1024,7 @@ uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 transport_adest, uns
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uns8 *buffer, uns16 len, uns8 enc_type)
+static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uns16 len, uint8_t enc_type)
 {
 	m_MDS_LOG_INFO("MDTM: User Recd msg len=%d", len);
 	switch (enc_type) {
@@ -1094,7 +1094,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST i
 
 	reassembly_key.frag_sequence_num = seq_num;
 	reassembly_key.id = id;
-	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uns8 *)&reassembly_key);
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uint8_t *)&reassembly_key);
 
 	if (reassem_queue == NULL) {
 		m_MDS_LOG_DBG("MDS_DT_COMMON : reassembly queue doesnt exist seq_num=%d, transport_adest=<0x%08x,%u",
@@ -1134,7 +1134,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST 
 	memset(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
 	reassem_queue->key.frag_sequence_num = seq_num;
 	reassem_queue->key.id = id;
-	reassem_queue->node.key_info = (uns8 *)&reassem_queue->key;
+	reassem_queue->node.key_info = (uint8_t *)&reassem_queue->key;
 	ncs_patricia_tree_add(&mdtm_reassembly_list, (NCS_PATRICIA_NODE *)&reassem_queue->node);
 	return reassem_queue;
 }
@@ -1169,7 +1169,7 @@ static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id)
 
 	reassembly_key.frag_sequence_num = seq_num;
 	reassembly_key.id = id;
-	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uns8 *)&reassembly_key);
+	reassem_queue = (MDTM_REASSEMBLY_QUEUE *)ncs_patricia_tree_get(&mdtm_reassembly_list, (uint8_t *)&reassembly_key);
 
 	if (reassem_queue == NULL) {
 		m_MDS_LOG_DBG("MDTM: Empty Reassembly queue, No Matching found\n");
@@ -1188,10 +1188,10 @@ static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id)
 	return NCSCC_RC_SUCCESS;
 }
 
-void mds_buff_dump(uns8 *buff, uns32 len, uns32 max)
+void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max)
 {
 	int offset;
-	uns8 last_line[8];
+	uint8_t last_line[8];
 	/* STEP 1: Print all but the last 8 bytes. 
 	   If offset = 0 and len = 8, don't go into for loop below
 	   If offset = 1 and len = 7, don't go into for loop below
@@ -1267,7 +1267,7 @@ uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns16 mds_checksum(uns32 length, uns8 buff[])
+uns16 mds_checksum(uns32 length, uint8_t buff[])
 {
 	uns16 word16 = 0;
 	uns32 sum = 0;

@@ -20,14 +20,14 @@
 #include "dtm_inter.h"
 #include "dtm_node.h"
 
-uns32 dtm_internode_snd_msg_to_all_nodes(uns8 *buffer, uns16 len);
+uns32 dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uns16 len);
 
-uns32 dtm_internode_snd_msg_to_node(uns8 *buffer, uns16 len, NODE_ID node_id);
+uns32 dtm_internode_snd_msg_to_node(uint8_t *buffer, uns16 len, NODE_ID node_id);
 
 uns32 dtm_internode_process_pollout(int fd);
-uns32 dtm_prepare_data_msg(uns8 *buffer, uns16 len);
+uns32 dtm_prepare_data_msg(uint8_t *buffer, uns16 len);
 static uns32 dtm_internode_snd_unsent_msg(DTM_NODE_DB * node);
-static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns16 len);
+static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uns16 len);
 
 /**
  * Function to process rcv data message internode
@@ -38,7 +38,7 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns1
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_data_msg(uns8 *buffer, uns32 dst_pid, uns16 len)
+uns32 dtm_internode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uns16 len)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -73,7 +73,7 @@ uns32 dtm_internode_process_rcv_data_msg(uns8 *buffer, uns32 dst_pid, uns16 len)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_add_to_msg_dist_list(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_add_to_msg_dist_list(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the inter_thread */
 	DTM_SND_MSG_ELEM *msg_elem = NULL;
@@ -108,13 +108,13 @@ uns32 dtm_add_to_msg_dist_list(uns8 *buffer, uns16 len, NODE_ID node_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_prepare_data_msg(uns8 *buffer, uns16 len)
+uns32 dtm_prepare_data_msg(uint8_t *buffer, uns16 len)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (len - 2));
 	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTERNODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, DTM_MESSAGE_MSG_TYPE);
 	/* Remaining data already in buffer */
 	TRACE_LEAVE();
@@ -130,18 +130,18 @@ uns32 dtm_prepare_data_msg(uns8 *buffer, uns16 len)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_snd_msg_to_all_nodes(uns8 *buffer, uns16 len)
+uns32 dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uns16 len)
 {
 	/* Get each node and send message */
 	NODE_ID node_id = 0;
 	DTM_NODE_DB *node = NULL;
 	TRACE_ENTER();
 
-	/* while (NULL != (node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_gl_cb->nodeid_tree, (uns8 *)&node_id)))  */
+	/* while (NULL != (node = (DTM_NODE_DB *) ncs_patricia_tree_getnext(&dtms_gl_cb->nodeid_tree, (uint8_t *)&node_id)))  */
 	while (NULL != (node = dtm_node_getnext_by_id(node_id))) {
 		node_id = node->node_id;
 		if (node_id != dtms_gl_cb->node_id) {
-			uns8 *buf_send = NULL;
+			uint8_t *buf_send = NULL;
 			if (NULL == (buf_send = calloc(1, len))) {
 				TRACE("DTM :calloc failed for snd_msg_to_all_nodes");
 				free(buffer);
@@ -165,7 +165,7 @@ uns32 dtm_internode_snd_msg_to_all_nodes(uns8 *buffer, uns16 len)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns16 len)
+static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uns16 len)
 {
 	DTM_INTERNODE_UNSENT_MSGS *add_ptr = NULL, *hdr = node->msgs_hdr, *tail = node->msgs_tail;
 	TRACE_ENTER();
@@ -220,7 +220,7 @@ static uns32 dtm_internode_snd_msg_common(DTM_NODE_DB * node, uns8 *buffer, uns1
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_snd_msg_to_node(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_internode_snd_msg_to_node(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	DTM_NODE_DB *node = NULL;
 

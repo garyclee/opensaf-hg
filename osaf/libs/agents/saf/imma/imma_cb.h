@@ -22,8 +22,8 @@
 struct imma_oi_ccb_record {
 	struct imma_oi_ccb_record *next;
 	SaImmOiCcbIdT ccbId;  /* High order 32 bits used for PRTO 'pseudo ccbs'.*/
-	uns8 isStale;    /* 1 => ccb was terminated by IMMND down. */
-	uns8 isCritical; /* 1 => OI has replied OK on completed callback but not */
+	uint8_t isStale;    /* 1 => ccb was terminated by IMMND down. */
+	uint8_t isCritical; /* 1 => OI has replied OK on completed callback but not */
                          /*      received abort-callback or apply-callback.      */
         SaUint32T opCount; /* Used to ensure PBE has not missed any unacked ops. */
 };
@@ -38,15 +38,15 @@ typedef struct imma_client_node {
 	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaBoolT isOm;		/*If true => then this is an OM client */
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
-	uns8 stale;		/*Loss of connection with immnd 
+	uint8_t stale;		/*Loss of connection with immnd 
 					  will set this to true for the 
 					  connection. A resurrect can remove it.*/
-	uns8 exposed;    /* Exposed => stale is irreversible */
-	uns8 selObjUsable; /* Active resurrect possible for this client */
-	uns8 replyPending; /* Syncronous or asyncronous call made towards IMMND */
-	uns8 isPbe;  /* True => This is the PBE-OI */
-	uns8 isImmA2b;       /* Version A.02.11 */
-	uns8 isApplier; /* True => This is an Applier-OI */
+	uint8_t exposed;    /* Exposed => stale is irreversible */
+	uint8_t selObjUsable; /* Active resurrect possible for this client */
+	uint8_t replyPending; /* Syncronous or asyncronous call made towards IMMND */
+	uint8_t isPbe;  /* True => This is the PBE-OI */
+	uint8_t isImmA2b;       /* Version A.02.11 */
+	uint8_t isApplier; /* True => This is an Applier-OI */
 	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;
@@ -58,7 +58,7 @@ typedef struct imma_admin_owner_node {
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaUint32T mAdminOwnerId;
 	SaImmAdminOwnerNameT mAdminOwnerName; /* Needed for OM resurrect. */
-	uns8 mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
+	uint8_t mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
 } IMMA_ADMIN_OWNER_NODE;
 
 /* Node to store Ccb info for OM client */
@@ -69,11 +69,11 @@ typedef struct imma_ccb_node {
 	SaImmAdminOwnerHandleT mAdminOwnerHdl;
 	SaImmCcbFlagsT mCcbFlags;
 	SaUint32T mCcbId;   /* Om client uses 32 bit ccbId. */
-	uns8 mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
-	uns8 mApplying;    /* Critical (apply invoked), IMMND contact lost => 
+	uint8_t mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
+	uint8_t mApplying;    /* Critical (apply invoked), IMMND contact lost => 
 						  timeout => Ccb-outcome to be recovered. */
-	uns8 mApplied;     /* Current mCcbId applied&terminated */
-	uns8 mAborted;     /* Current mCcbId aborted */
+	uint8_t mApplied;     /* Current mCcbId applied&terminated */
+	uint8_t mAborted;     /* Current mCcbId aborted */
 } IMMA_CCB_NODE;
 
 /* Node to store Search info */
@@ -140,7 +140,7 @@ typedef struct imma_cb {
 
 #define m_IMMSV_SET_SANAMET(name) \
 {if(name->length <= SA_MAX_NAME_LENGTH) \
-{memset( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); }\
+{memset( (uint8_t *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); }\
 }
 
 /* IMMA Function Declerations */

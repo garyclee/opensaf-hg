@@ -146,7 +146,7 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT *evt)
 
 	/* Find if the node details are available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-									   (uns8 *)&node_id)) == NULL) {
+									   (uint8_t *)&node_id)) == NULL) {
 		node_first_rsc_open = TRUE;
 		if ((node_details = gld_add_glnd_node(gld_cb, evt->fr_dest_id)) == NULL)
 			return NCSCC_RC_FAILURE;
@@ -230,7 +230,7 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT *evt)
  err2:
 
 	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_get(&node_details->rsc_info_tree,
-								  (uns8 *)&rsc_info->rsc_id);
+								  (uint8_t *)&rsc_info->rsc_id);
 	if ((glnd_rsc == NULL) || (glnd_rsc->rsc_info == NULL)) {
 		m_LOG_GLD_LCK_OPER(GLD_OPER_RSC_OPER_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__, "",
 				   rsc_info->rsc_id, node_details->node_id);
@@ -288,13 +288,13 @@ static uns32 gld_rsc_close(GLSV_GLD_EVT *evt)
 
 	/* Find if the node details are available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-									   (uns8 *)&node_id)) == NULL) {
+									   (uint8_t *)&node_id)) == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
 		return NCSCC_RC_FAILURE;
 	}
 
 	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_get(&node_details->rsc_info_tree,
-								  (uns8 *)&evt->info.rsc_details.rsc_id);
+								  (uint8_t *)&evt->info.rsc_details.rsc_id);
 	if ((glnd_rsc == NULL) || (glnd_rsc->rsc_info == NULL)) {
 		m_LOG_GLD_LCK_OPER(GLD_OPER_RSC_OPER_ERROR, NCSFL_SEV_ERROR, __FILE__, __LINE__, "",
 				   evt->info.rsc_details.rsc_id, node_details->node_id);
@@ -341,7 +341,7 @@ static uns32 gld_rsc_set_orphan(GLSV_GLD_EVT *evt)
 
 	/* Find if the node details are available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-									   (uns8 *)&node_id)) == NULL) {
+									   (uint8_t *)&node_id)) == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
 		return NCSCC_RC_FAILURE;
 	}
@@ -376,7 +376,7 @@ uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceI
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc_ref;
 
 	/* Find the rsc_info based on resource id */
-	glnd_rsc_ref = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_get(&node_details->rsc_info_tree, (uns8 *)&rsc_id);
+	glnd_rsc_ref = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_get(&node_details->rsc_info_tree, (uint8_t *)&rsc_id);
 	if ((glnd_rsc_ref == NULL) || (glnd_rsc_ref->rsc_info == NULL)) {
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
@@ -413,7 +413,7 @@ static uns32 gld_glnd_operational(GLSV_GLD_EVT *evt)
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
 	/* Find if the node details are already  available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-									   (uns8 *)&node_id)) != NULL) {
+									   (uint8_t *)&node_id)) != NULL) {
 		memcpy(&node_details->dest_id, &evt->fr_dest_id, sizeof(MDS_DEST));
 		/* Cancel the restart timer if started */
 		gld_stop_tmr(&node_details->restart_timer);
@@ -479,12 +479,12 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS
 	glnd_evt.type = GLSV_GLND_EVT_RSC_MASTER_INFO;
 
 	if (node_details) {
-		glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0);
+		glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 		while (glnd_rsc) {
 			no_of_glnd_res++;
 			glnd_rsc =
 			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree,
-									       (uns8 *)&glnd_rsc->rsc_id);
+									       (uint8_t *)&glnd_rsc->rsc_id);
 		}
 
 		glnd_evt.info.rsc_master_info.no_of_res = no_of_glnd_res;
@@ -500,13 +500,13 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS
 			       (sizeof(GLSV_GLND_RSC_MASTER_INFO_LIST) * no_of_glnd_res));
 
 			glnd_rsc =
-			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0);
+			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 
 			while (glnd_rsc) {
 				/* Get the master node for this resource */
 				master_node_details =
 				    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-										   (uns8 *)&glnd_rsc->
+										   (uint8_t *)&glnd_rsc->
 										   rsc_info->node_list->node_id);
 				if (master_node_details) {
 					glnd_evt.info.rsc_master_info.rsc_master_list[index].rsc_id = glnd_rsc->rsc_id;
@@ -521,7 +521,7 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS
 						temp_node_list = glnd_rsc->rsc_info->node_list->next;
 						while (temp_node_list) {
 							non_master_node_details = (GLSV_GLD_GLND_DETAILS *)
-							    ncs_patricia_tree_get(&gld_cb->glnd_details, (uns8 *)
+							    ncs_patricia_tree_get(&gld_cb->glnd_details, (uint8_t *)
 										  &temp_node_list->node_id);
 							if (non_master_node_details) {
 								gld_process_send_non_master_info(gld_cb, glnd_rsc,
@@ -542,7 +542,7 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS
 
 				glnd_rsc =
 				    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree,
-										       (uns8 *)&glnd_rsc->rsc_id);
+										       (uint8_t *)&glnd_rsc->rsc_id);
 			}
 		}
 	}
@@ -596,7 +596,7 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT *evt)
 	    );
 
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-									   (uns8 *)&node_id)) == NULL) {
+									   (uint8_t *)&node_id)) == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -702,7 +702,7 @@ GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 		return NULL;
 	}
-	node_details->pat_node.key_info = (uns8 *)&node_details->node_id;
+	node_details->pat_node.key_info = (uint8_t *)&node_details->node_id;
 	if (ncs_patricia_tree_add(&gld_cb->glnd_details, &node_details->pat_node)
 	    != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
@@ -760,7 +760,7 @@ static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
 	m_LOG_GLD_HEADLINE(GLD_ND_RESTART_WAIT_TMR_EXP, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
 
 	if ((node_details =
-	     (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, (uns8 *)&node_id)) == NULL) {
+	     (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, (uint8_t *)&node_id)) == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
 		return NCSCC_RC_FAILURE;
 	}
@@ -774,7 +774,7 @@ static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
 		gld_process_send_non_master_status(gld_cb, node_details, GLND_DOWN_STATE);
 
 		/* Remove the reference to each of the resource referred by this node */
-		glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0);
+		glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 		if (glnd_rsc) {
 			rsc_id = glnd_rsc->rsc_id;
 			while (glnd_rsc) {
@@ -782,7 +782,7 @@ static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
 						     glnd_rsc->rsc_info->can_orphan);
 				glnd_rsc =
 				    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree,
-										       (uns8 *)&rsc_id);
+										       (uint8_t *)&rsc_id);
 				if (glnd_rsc)
 					rsc_id = glnd_rsc->rsc_id;
 			}
@@ -824,7 +824,7 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GL
 	NCSMDS_INFO snd_mds;
 	uns32 res;
 
-	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)0);
+	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 	while (glnd_rsc) {
 		rsc_id = glnd_rsc->rsc_id;
 		if (glnd_rsc->rsc_info->node_list->node_id != node_details->node_id) {
@@ -851,7 +851,7 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GL
 		}
 		glnd_rsc =
 		    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree,
-								       (uns8 *)&glnd_rsc->rsc_id);
+								       (uint8_t *)&glnd_rsc->rsc_id);
 	}
 	return NCSCC_RC_SUCCESS;
 

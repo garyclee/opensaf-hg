@@ -109,13 +109,13 @@ typedef struct edsv_retained_evt_list_tag {
 	uns32 retd_evt_hdl;
 
    /** Event details **/
-	uns8 priority;
+	uint8_t priority;
 	SaTimeT retentionTime;
 	SaTimeT publishTime;
 	SaNameT publisherName;
 	SaEvtEventPatternArrayT *patternArray;
 	SaSizeT data_len;
-	uns8 *data;
+	uint8_t *data;
 
   /** Fields to help delete the retained event 
    ** once the timer expires.
@@ -192,7 +192,7 @@ typedef struct eds_worklist_tag {
 	uns32 chan_attrib;	/* Attributes of this channel */
 	uns32 use_cnt;
 	uns16 cname_len;	/* Length of channel name */
-	uns8 *cname;		/* Channel name. NULL terminated if ascii */
+	uint8_t *cname;		/* Channel name. NULL terminated if ascii */
 
 	/*  Channel runtime info */
 	EDS_CHAN_TBL chan_row;
@@ -292,13 +292,13 @@ NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
 
 uns32 eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
 
-uns32 eds_channel_open(EDS_CB *, uns32, uns32, uns16, uns8 *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
+uns32 eds_channel_open(EDS_CB *, uns32, uns32, uns16, uint8_t *, MDS_DEST, uns32 *, uns32 *, SaTimeT);
 
 uns32 eds_copen_patricia_init(EDS_WORKLIST *);
 
 uns32 eds_channel_close(EDS_CB *, uns32, uns32, uns32, NCS_BOOL);
 
-uns32 eds_channel_unlink(EDS_CB *, uns32, uns8 *);
+uns32 eds_channel_unlink(EDS_CB *, uns32, uint8_t *);
 
 uns32 eds_add_subscription(EDS_CB *, uns32, SUBSC_REC *);
 

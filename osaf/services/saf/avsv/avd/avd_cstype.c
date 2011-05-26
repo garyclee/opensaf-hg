@@ -44,7 +44,7 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
 
 	memcpy(cst->name.value, dn->value, dn->length);
 	cst->name.length = dn->length;
-	cst->tree_node.key_info = (uns8 *)&cst->name;
+	cst->tree_node.key_info = (uint8_t *)&cst->name;
 
 	if ((immutil_getAttrValuesNumber("saAmfCSAttrName", attributes, &values_number) == SA_AIS_OK) &&
 	    (values_number > 0)) {
@@ -94,7 +94,7 @@ avd_cstype_t *avd_cstype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (avd_cstype_t *)ncs_patricia_tree_get(&cstype_db, (uns8 *)&tmp);
+	return (avd_cstype_t *)ncs_patricia_tree_get(&cstype_db, (uint8_t *)&tmp);
 }
 
 void avd_cstype_add_csi(AVD_CSI *csi)

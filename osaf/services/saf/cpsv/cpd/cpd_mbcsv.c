@@ -334,20 +334,20 @@ uns32 cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	CPD_MBCSV_MSG *cpd_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 *cpd_type_ptr;
+	uint8_t *cpd_type_ptr;
 
 	/*  Increment the async update count cb->cpd_sync_cnt     */
 	cb->cpd_sync_cnt++;
 
 	  TRACE("ENC ASYNC COUNT %d",cb->cpd_sync_cnt);  
 
-	cpd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	cpd_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (cpd_type_ptr == NULL) {
 		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	ncs_encode_8bit(&cpd_type_ptr, arg->info.encode.io_reo_type);
 
 	switch (arg->info.encode.io_reo_type) {
@@ -462,7 +462,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	uns32 rc = NCSCC_RC_SUCCESS, i;
 	CPD_NODE_REF_INFO *nref_info;
 	EDU_ERR ederror = 0;
-	uns8 *header, num_ckpt = 0, *sync_cnt_ptr;
+	uint8_t *header, num_ckpt = 0, *sync_cnt_ptr;
 	NCS_BOOL flag = FALSE;
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
@@ -473,7 +473,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	/*  cb->prev_ckpt_id = 0; */
 	prev_ckpt_id = cb->prev_ckpt_id;
 
-	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uns8 *)&prev_ckpt_id);
+	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 	if (ckpt_node == NULL) {
 		rc = NCSCC_RC_SUCCESS;
 		arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
@@ -482,13 +482,13 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* First reserve space to store the number of checkpoints that will be sent */
 
-	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (header == NULL) {
 		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 
 	while (ckpt_node) {
 		nref_info = ckpt_node->node_list;
@@ -542,7 +542,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		if (num_ckpt == CPD_MBCSV_MAX_MSG_CNT)
 			break;
 
-		ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uns8 *)&prev_ckpt_id);
+		ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 
 	}			/* End of While */
 
@@ -559,7 +559,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 	ncs_encode_32bit(&sync_cnt_ptr, cb->cpd_sync_cnt);
 
-	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uns8 *)&prev_ckpt_id);
+	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 	if (ckpt_node == NULL) {
 		flag = TRUE;
 	}
@@ -596,7 +596,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 uns32 cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *wsync_ptr;
+	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
@@ -691,8 +691,8 @@ uns32 cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 
 uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr;
-	uns8 data[4];
+	uint8_t *ptr;
+	uint8_t data[4];
 	CPD_MBCSV_MSG *cpd_msg;
 	CPD_A2S_CKPT_CREATE *ckpt_create = NULL;
 	CPD_A2S_CKPT_UNLINK *ckpt_unlink = NULL;
@@ -720,9 +720,9 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	/* in the decode.i_uba , the 1st parameter is the Type , so first decode only the first field and based on the type then decode the entire message */
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	evt_type = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	switch (evt_type) {
 	case CPD_A2S_MSG_CKPT_CREATE:
@@ -904,7 +904,7 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 *************************************************************************************/
 uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr, num_of_ckpts, data[16];
+	uint8_t *ptr, num_of_ckpts, data[16];
 	CPD_MBCSV_MSG mbcsv_msg;
 	uns32 count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
 	CPD_A2S_CKPT_CREATE *ckpt_data;
@@ -923,10 +923,10 @@ uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	memset(ckpt_data, 0, sizeof(CPD_A2S_CKPT_CREATE));
 	memset(&mbcsv_msg, 0, sizeof(CPD_MBCSV_MSG));
 
-	/* 1. Decode the 1st uns8 region ,  we will get the num of ckpts */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	/* 1. Decode the 1st uint8_t region ,  we will get the num of ckpts */
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	num_of_ckpts = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	/* Decode the data */
 
@@ -979,7 +979,7 @@ uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 uns32 cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
-	uns8 data[16], *ptr;
+	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
 	memset(&ncs_arg, '\0', sizeof(NCS_MBCSV_ARG));

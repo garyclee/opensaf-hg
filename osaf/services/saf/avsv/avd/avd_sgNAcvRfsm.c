@@ -114,7 +114,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* identify a in-service SU which is not assigned to this SI and can
 		 * take more assignments so that the SI can be assigned. 
 		 */
-		memset((uns8 *)&i_idx, '\0', sizeof(i_idx));
+		memset((uint8_t *)&i_idx, '\0', sizeof(i_idx));
 		i_idx.si_name = i_si->name;
 		i_idx.su_rank = 0;
 		for (su_rank_rec = avd_sirankedsu_getnext_valid(cb, i_idx, &i_su);

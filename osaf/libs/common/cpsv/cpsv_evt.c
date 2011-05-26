@@ -67,7 +67,7 @@ uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id)
 uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
 {
    uns32 rc= NCSCC_RC_SUCCESS;
-   uns8 *pStream = NULL; 
+   uint8_t *pStream = NULL; 
    uns32 counter =0,array_cnt=0;
 
    pStream = ncs_enc_reserve_space(i_ub, 4);
@@ -92,8 +92,8 @@ uns32 cpsv_ref_cnt_encode(NCS_UBAID *i_ub, CPSV_A2ND_REFCNTSET *data)
 
 uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
 {
-   uns8* pstream = NULL;
-   uns8 local_data[50];
+   uint8_t *pstream = NULL;
+   uint8_t local_data[50];
    uns32 counter=0,array_cnt=0;
  
 
@@ -130,7 +130,7 @@ uns32 cpsv_refcnt_ckptid_decode(CPSV_A2ND_REFCNTSET *pdata , NCS_UBAID *io_uba)
 uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *header = NULL;
+	uint8_t *header = NULL;
 	CPSV_CKPT_DATA *pdata = data;
 	uns16 num_of_nodes = 0;
 
@@ -167,7 +167,7 @@ uns32 cpsv_ckpt_data_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *data)
 
 uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
 {
-	uns8 *pStream = NULL;
+	uint8_t *pStream = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, size;
 
 	pStream = ncs_enc_reserve_space(i_ub, 2);
@@ -178,7 +178,7 @@ uns32 cpsv_ckpt_node_encode(NCS_UBAID *i_ub, CPSV_CKPT_DATA *pdata)
 	ncs_encode_16bit(&pStream, pdata->sec_id.idLen);
 	ncs_enc_claim_space(i_ub, 2);
 	if (pdata->sec_id.idLen)
-		ncs_encode_n_octets_in_uba(i_ub, (uns8 *)pdata->sec_id.id, (uns32)pdata->sec_id.idLen);
+		ncs_encode_n_octets_in_uba(i_ub, (uint8_t *)pdata->sec_id.id, (uns32)pdata->sec_id.idLen);
 
 	size = 8 + 8 + 8;
 	pStream = ncs_enc_reserve_space(i_ub, size);
@@ -220,7 +220,7 @@ uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 {
 
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *pstream = NULL;
+	uint8_t *pstream = NULL;
 	uns32 space;
 
 	space = 4 + 8 + 8 + 8 + 4 + 4;
@@ -277,7 +277,7 @@ uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data, NCS_UBAID *io_uba)
 
 uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
 {
-	uns8 *pstream = NULL;
+	uint8_t *pstream = NULL;
 
 	pstream = ncs_enc_reserve_space(io_uba, 4);
 	if (!pstream)
@@ -315,7 +315,7 @@ uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
 {
 
-	uns8 *pstream = NULL;
+	uint8_t *pstream = NULL;
 	uns32 size, i;
 
    size = 4 + 4 + 4 + 4 + 8 + 4 + 8;   
@@ -386,7 +386,7 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 	size = sizeof(CPSV_EVT);
 
 	/* Encode the Top level evt envolop */
-	ncs_encode_n_octets_in_uba(o_ub, (uns8 *)i_evt, size);
+	ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)i_evt, size);
 
 	/* Encode the internal Pointers */
 	if (i_evt->type == CPSV_EVT_TYPE_CPA) {
@@ -396,20 +396,19 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 			    || (data_rsp->type == CPSV_DATA_ACCESS_RMT_READ_RSP)) {
 				if (data_rsp->num_of_elmts == -1) {
 					size = 0;
-					/*  ncs_encode_n_octets_in_uba(o_ub, (uns8*)data_rsp->info.read_data, size); */
 				} else {
 					if (data_rsp->size > 0) {
 						uns32 iter = 0;
 						for (; iter < data_rsp->size; iter++) {
 							size = sizeof(CPSV_ND2A_READ_DATA);
 							ncs_encode_n_octets_in_uba(o_ub,
-										   (uns8 *)&data_rsp->
+										   (uint8_t *)&data_rsp->
 										   info.read_data[iter]
 										   , size);
 							if (data_rsp->info.read_data[iter].read_size > 0) {
 								size = data_rsp->info.read_data[iter].read_size;
 								ncs_encode_n_octets_in_uba(o_ub,
-											   (uns8 *)data_rsp->info.
+											   (uint8_t *)data_rsp->info.
 											   read_data[iter].data, size);
 							}
 						}
@@ -421,7 +420,7 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				else
 					size = data_rsp->num_of_elmts * sizeof(SaUint32T);
 				if (size)
-					ncs_encode_n_octets_in_uba(o_ub, (uns8 *)data_rsp->info.write_err_index, size);
+					ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)data_rsp->info.write_err_index, size);
 			}
 		} else if (i_evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT) {
 			/* Do nothing */
@@ -439,14 +438,14 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 		else if (i_evt->info.cpa.type == CPA_EVT_ND2A_SEC_CREATE_RSP) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpa.info.sec_creat_rsp.sec_id;
 			if (sec_id->idLen) {
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, sec_id->idLen);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, sec_id->idLen);
 			}
 		}
 
 		else if (i_evt->info.cpa.type == CPA_EVT_ND2A_SEC_ITER_GETNEXT_RSP) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpa.info.iter_next_rsp.sect_desc.sectionId;
 			if (sec_id->idLen) {
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, sec_id->idLen);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, sec_id->idLen);
 			}
 		}
 
@@ -471,7 +470,7 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				else
 					size = data_rsp->num_of_elmts * sizeof(SaUint32T);
 				if (size)
-					ncs_encode_n_octets_in_uba(o_ub, (uns8 *)data_rsp->info.write_err_index, size);
+					ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)data_rsp->info.write_err_index, size);
 			}
 
 		} else if (i_evt->info.cpnd.type == CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ) {
@@ -481,17 +480,17 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				cpsv_evt_enc_sec_id(o_ub, create->sec_attri.sectionId);
 			}
 			if (create->init_size)
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)create->init_data, create->init_size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)create->init_data, create->init_size);
 		} else if (i_evt->info.cpnd.type == CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.active_sec_creat_rsp.sec_id;
 			if (sec_id->idLen) {
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, sec_id->idLen);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, sec_id->idLen);
 
 			}
 		} else if (i_evt->info.cpnd.type == CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.sec_delete_req.sec_id;
 			if (sec_id->idLen) {
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, sec_id->idLen);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, sec_id->idLen);
 
 			}
 		}
@@ -506,55 +505,55 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			size = create->init_size;
 			if (size != 0)
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)create->init_data, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)create->init_data, size);
 		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_ITER_GETNEXT) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.iter_getnext.section_id;
 			size = sec_id->idLen;
 			if (size)
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, size);
 		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_SECT_DELETE) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.sec_delReq.sec_id;
 			if (sec_id->idLen) {
 				size = sec_id->idLen;
 				if (size)
-					ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, size);
+					ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, size);
 			}
 		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_SECT_EXP_SET) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.sec_expset.sec_id;
 			if (sec_id->idLen) {
 				size = sec_id->idLen;
 				if (size)
-					ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, size);
+					ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, size);
 			}
 		} else if (i_evt->info.cpnd.type == CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_REQ) {
 			SaCkptSectionIdT *sec_id = &i_evt->info.cpnd.info.sec_exp_set.sec_id;
 			if (sec_id->idLen) {
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, sec_id->idLen);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, sec_id->idLen);
 			}
 		} else if (i_evt->info.cpnd.type == CPND_EVT_D2ND_CKPT_INFO) {
 			CPSV_CPND_DEST_INFO *dest_list = i_evt->info.cpnd.info.ckpt_info.dest_list;
 			if (i_evt->info.cpnd.info.ckpt_info.dest_cnt) {
 				size = i_evt->info.cpnd.info.ckpt_info.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)dest_list, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
 		} else if (i_evt->info.cpnd.type == CPND_EVT_D2ND_CKPT_CREATE) {
 			CPSV_CPND_DEST_INFO *dest_list = i_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_list;
 			if (i_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_cnt) {
 				size =
 				    i_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)dest_list, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
 		} else if (i_evt->info.cpnd.type == CPSV_D2ND_RESTART_DONE) {
 			CPSV_CPND_DEST_INFO *dest_list = i_evt->info.cpnd.info.cpnd_restart_done.dest_list;
 			if (i_evt->info.cpnd.info.cpnd_restart_done.dest_cnt) {
 				size = i_evt->info.cpnd.info.cpnd_restart_done.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)dest_list, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
 		} else if (i_evt->info.cpnd.type == CPND_EVT_D2ND_CKPT_REP_ADD) {
 			CPSV_CPND_DEST_INFO *dest_list = i_evt->info.cpnd.info.ckpt_add.dest_list;
 			if (i_evt->info.cpnd.info.ckpt_add.dest_cnt) {
 				size = i_evt->info.cpnd.info.ckpt_add.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
-				ncs_encode_n_octets_in_uba(o_ub, (uns8 *)dest_list, size);
+				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
 		}
       else if(i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_REFCNTSET)
@@ -571,10 +570,10 @@ static uns32 cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id)
 	uns32 size;
 
 	size = sizeof(SaCkptSectionIdT);
-	ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id, size);
+	ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id, size);
 	if (sec_id->idLen) {
 		size = sec_id->idLen;
-		ncs_encode_n_octets_in_uba(o_ub, (uns8 *)sec_id->id, size);
+		ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)sec_id->id, size);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -592,13 +591,13 @@ static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id)
 	}
 
 	if (sec_id)
-		ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id, size);
+		ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id, size);
 
 	if (sec_id->idLen) {
 		size = sec_id->idLen;
 		sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, svc_id);
 		if (sec_id->id) {
-			ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+			ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 			sec_id->id[size] = 0;
 		}
 	}
@@ -620,8 +619,8 @@ static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uns32 svc_id)
 
 uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
 {
-	uns8 *pstream = NULL;
-	uns8 local_data[5];
+	uint8_t *pstream = NULL;
+	uint8_t local_data[5];
 	uns16 num_of_nodes;
 	uns32 rc;
 	CPSV_CKPT_DATA *pdata;
@@ -672,8 +671,8 @@ uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA **data, NCS_UBAID *io_uba)
 
 uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 {
-	uns8 *pstream = NULL;
-	uns8 local_data[50];
+	uint8_t *pstream = NULL;
+	uint8_t local_data[50];
 	uns32 size;
 
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 2);
@@ -733,8 +732,8 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata, NCS_UBAID *io_uba)
 uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba)
 {
 
-	uns8 *pstream = NULL;
-	uns8 local_data[10];
+	uint8_t *pstream = NULL;
+	uint8_t local_data[10];
 
 	pstream = ncs_dec_flatten_space(io_uba, local_data, 4);
 	read_data->read_size = ncs_decode_32bit(&pstream);
@@ -776,8 +775,8 @@ uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_u
 uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba)
 {
   
-   uns8 local_data[1024];
-   uns8* pstream;
+   uint8_t local_data[1024];
+   uint8_t *pstream;
    uns32 i,size , rc =NCSCC_RC_SUCCESS;
    
    size = 4 + 4 + 4 + 4 + 8 + 4 +8;
@@ -857,7 +856,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 	size = sizeof(CPSV_EVT);
 
 	/* Decode the Top level evt envolop */
-	ncs_decode_n_octets_from_uba(i_ub, (uns8 *)o_evt, size);
+	ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)o_evt, size);
 
 	/* Decode the internal Pointers */
 	if (o_evt->type == CPSV_EVT_TYPE_CPA) {
@@ -878,7 +877,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 							for (; iter < data_rsp->size; iter++) {
 								size = sizeof(CPSV_ND2A_READ_DATA);
 								ncs_decode_n_octets_from_uba(i_ub,
-											     (uns8 *)&data_rsp->
+											     (uint8_t *)&data_rsp->
 											     info.read_data[iter],
 											     size);
 								if (data_rsp->info.read_data[iter].read_size > 0) {
@@ -906,7 +905,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 										NCS_SERVICE_ID_CPA);
 						if (data_rsp->info.write_err_index)
 							ncs_decode_n_octets_from_uba(i_ub,
-										     (uns8 *)data_rsp->
+										     (uint8_t *)data_rsp->
 										     info.write_err_index, size);
 					}
 				}
@@ -949,7 +948,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						sec_id->id =
 						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 						if (sec_id->id) {
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 							sec_id->id[size] = 0;
 						}
 					}
@@ -965,7 +964,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						sec_id->id =
 						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 						if (sec_id->id) {
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 							sec_id->id[size] = 0;
 						}
 					}
@@ -1011,7 +1010,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 											NCS_SERVICE_ID_CPA);
 							if (data_rsp->info.write_err_index)
 								ncs_decode_n_octets_from_uba(i_ub,
-											     (uns8 *)data_rsp->
+											     (uint8_t *)data_rsp->
 											     info.write_err_index,
 											     size);
 						} else
@@ -1035,7 +1034,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 					create->init_data =
 					    (void *)m_MMGR_ALLOC_CPSV_DEFAULT_VAL(create->init_size,
 										  NCS_SERVICE_ID_CPND);
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)create->init_data,
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)create->init_data,
 								     create->init_size);
 				} else
 					create->init_data = NULL;
@@ -1050,7 +1049,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						sec_id->id =
 						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 						if (sec_id->id) {
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 							sec_id->id[size] = 0;
 						}
 					} else
@@ -1067,7 +1066,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						sec_id->id =
 						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 						if (sec_id->id) {
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 							sec_id->id[size] = 0;
 						}
 					} else
@@ -1089,7 +1088,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size != 0) {
 					create->init_data =
 					    (void *)m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size, NCS_SERVICE_ID_CPND);
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)create->init_data, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)create->init_data, size);
 				}
 				break;
 			}
@@ -1103,7 +1102,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 						sec_id->id =
 						    m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 						if (sec_id->id) {
-							ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+							ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 							sec_id->id[size] = 0;
 					}
 					} else
@@ -1120,7 +1119,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 						sec_id->id[size] = 0;
 					}
 				} else
@@ -1136,7 +1135,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 						sec_id->id[size] = 0;
 					}
 				} else
@@ -1152,7 +1151,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size) {
 					sec_id->id = m_MMGR_ALLOC_CPSV_DEFAULT_VAL(size + 1, NCS_SERVICE_ID_CPND);
 					if (sec_id->id) {
-						ncs_decode_n_octets_from_uba(i_ub, (uns8 *)sec_id->id, size);
+						ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)sec_id->id, size);
 						sec_id->id[size] = 0;
 					}
 				} else
@@ -1169,7 +1168,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)dest_list, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)dest_list, size);
 				o_evt->info.cpnd.info.ckpt_info.dest_list = dest_list;
 			}
 			break;
@@ -1183,7 +1182,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)dest_list, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)dest_list, size);
 				o_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_list = dest_list;
 			}
 			break;
@@ -1197,7 +1196,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)dest_list, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)dest_list, size);
 				o_evt->info.cpnd.info.cpnd_restart_done.dest_list = dest_list;
 			}
 			break;
@@ -1210,7 +1209,7 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				if (size)
 					dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(size);
 				if (dest_list && size)
-					ncs_decode_n_octets_from_uba(i_ub, (uns8 *)dest_list, size);
+					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)dest_list, size);
 				o_evt->info.cpnd.info.ckpt_add.dest_list = dest_list;
 			}
 			break;

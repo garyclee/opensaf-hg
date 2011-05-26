@@ -46,7 +46,7 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 	memcpy(sutcomptype->name.value, dn->value, dn->length);
 	sutcomptype->name.length = dn->length;
-	sutcomptype->tree_node.key_info = (uns8 *)&(sutcomptype->name);
+	sutcomptype->tree_node.key_info = (uint8_t *)&(sutcomptype->name);
 
 	if (immutil_getAttr("saAmfSutMaxNumComponents", attributes, 0, &sutcomptype->saAmfSutMaxNumComponents) != SA_AIS_OK)
 		sutcomptype->saAmfSutMaxNumComponents = -1; /* no limit */
@@ -73,7 +73,7 @@ AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SUTCOMP_TYPE *)ncs_patricia_tree_get(&sutcomptype_db, (uns8 *)&tmp);
+	return (AVD_SUTCOMP_TYPE *)ncs_patricia_tree_get(&sutcomptype_db, (uint8_t *)&tmp);
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)

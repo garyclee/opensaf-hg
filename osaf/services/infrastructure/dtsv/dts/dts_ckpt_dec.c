@@ -133,7 +133,7 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 	EDU_ERR ederror = 0;
 	DTS_SVC_REG_TBL *svc_reg_ptr;
 	DTS_SVC_REG_TBL dec_svc_reg;
-	uns8 *ptr = NULL;
+	uint8_t *ptr = NULL;
 
 	svc_reg_ptr = &dec_svc_reg;
 
@@ -151,7 +151,7 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Decode MDS_DEST of DTA to be removed */
-		ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&cb->svc_rmv_mds_dest, sizeof(uns64));
+		ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->svc_rmv_mds_dest, sizeof(uns64));
 		if (ptr == NULL) {
 			m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -162,14 +162,14 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Decode cli_bit_map first */
-		ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&cb->cli_bit_map, sizeof(uns8));
+		ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->cli_bit_map, sizeof(uint8_t));
 		if (ptr == NULL) {
 			m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_decode_ckpt_dts_svc_reg_tbl_config: Decode flatten space failed");
 		}
 		cb->cli_bit_map = ncs_decode_8bit(&ptr);
-		ncs_dec_skip_space(&dec->i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&dec->i_uba, sizeof(uint8_t));
 		/* Now decode svc */
 		status =
 		    m_NCS_EDU_EXEC(&cb->edu_hdl, dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config, &dec->i_uba, EDP_OP_TYPE_DEC,
@@ -222,13 +222,13 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 	DTA_DEST_LIST *dta_dest_ptr;
 	DTA_DEST_LIST dec_dta_dest;
 	EDU_ERR ederror = 0;
-	uns8 *dec_svc = NULL;	/*Added to decode svc_id crspndg to dta */
-	uns8 *dec_spec = NULL;
+	uint8_t *dec_svc = NULL;	/*Added to decode svc_id crspndg to dta */
+	uint8_t *dec_spec = NULL;
 	SVC_KEY svc_key;
 
 	dta_dest_ptr = &dec_dta_dest;
 
-	dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&svc_key.ss_svc_id, sizeof(uns32));
+	dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uns32));
 	if (dec_svc == NULL) {
 		m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
@@ -239,12 +239,12 @@ static uns32 dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
 	/* Versioning support: Now decode the SPEC_CKPT struct */
-	if (ncs_decode_n_octets_from_uba(&dec->i_uba, (uns8 *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
+	if (ncs_decode_n_octets_from_uba(&dec->i_uba, (uint8_t *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
 	    NCSCC_RC_SUCCESS) {
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dta_dest_list_config: Decode octets failed");
 	}
-	dec_spec = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&cb->last_spec_loaded.version, sizeof(uns16));
+	dec_spec = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.version, sizeof(uns16));
 	if (dec_spec == NULL) {
 		m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 		memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
@@ -325,17 +325,17 @@ static uns32 dtsv_decode_ckpt_global_policy_config(DTS_CB *cb, NCS_MBCSV_CB_DEC 
 	GLOBAL_POLICY *gp_ptr;
 	GLOBAL_POLICY dec_gp;
 	EDU_ERR ederror = 0;
-	uns8 *ptr = NULL;
+	uint8_t *ptr = NULL;
 
 	/* Smik - Decode DTS_CB->cli_bit_map before decoding the GLOBAL POLICY */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&cb->cli_bit_map, sizeof(uns8));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->cli_bit_map, sizeof(uint8_t));
 	if (ptr == NULL) {
 		m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_decode_ckpt_global_policy_config: Decode flatten space failed");
 	}
 	cb->cli_bit_map = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&dec->i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&dec->i_uba, sizeof(uint8_t));
 
 	gp_ptr = &dec_gp;
 	/* 
@@ -450,14 +450,14 @@ uns32 dtsv_decode_cold_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj;
-	uns8 *ptr = NULL;
+	uint8_t *ptr = NULL;
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_START);
 	/* 
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
 	if (ptr == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp: Decode flatten space failed");
 	}
@@ -569,7 +569,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 	EDU_ERR ederror = 0;
 	DTA_DEST_LIST *dta_dest_ptr;
 	DTA_DEST_LIST dec_dta_dest;
-	uns8 *dec_svc = NULL;	/*Added to decode svc_id crspndg to dta */
+	uint8_t *dec_svc = NULL;	/*Added to decode svc_id crspndg to dta */
 	SVC_KEY svc_key, nt_key;
 	DTS_SVC_REG_TBL *svc = NULL;
 	OP_DEVICE *device = NULL;
@@ -594,7 +594,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 		}
 
 		/* Now decode the num of svcs and svc_ids associated with DTA */
-		dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&svc_count, sizeof(uns32));
+		dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_count, sizeof(uns32));
 		if (dec_svc == NULL) {
 			m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -604,7 +604,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 		ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
 		for (i = 0; i < svc_count; i++) {
-			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&svc_key.ss_svc_id, sizeof(uns32));
+			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&svc_key.ss_svc_id, sizeof(uns32));
 			if (dec_svc == NULL) {
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -615,7 +615,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 			svc_key.node = m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest_ptr->dta_addr);
 
 			/* Check whether any spec_entry was sent by the sender */
-			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&spec_present, sizeof(uns16));
+			dec_svc = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&spec_present, sizeof(uns16));
 			if (dec_svc == NULL) {
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -626,7 +626,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 			if (spec_present != 0) {
 				/*Now decode the version and service no. asscociated with this DTA */
 				dec_svc =
-				    ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&cb->last_spec_loaded.version,
+				    ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.version,
 							  sizeof(uns16));
 				if (dec_svc == NULL) {
 					m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
@@ -637,7 +637,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				ncs_dec_skip_space(&dec->i_uba, sizeof(uns16));
 
 				if (ncs_decode_n_octets_from_uba
-				    (&dec->i_uba, (uns8 *)&cb->last_spec_loaded.svc_name,
+				    (&dec->i_uba, (uint8_t *)&cb->last_spec_loaded.svc_name,
 				     DTSV_SVC_NAME_MAX) != NCSCC_RC_SUCCESS)
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: ncs_decode_n_octets_from_uba failed");
@@ -658,7 +658,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 	/* Now since the DTA list sync is complete check if there are any
 	 * services with dta_count = 0 delete those entries.
 	 */
-	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)NULL);
+	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)NULL);
 	while (svc != NULL) {
 		nt_key = svc->ntwk_key;
 		if ((svc->dta_count == 0) && (svc->my_key.ss_svc_id != 0)) {
@@ -676,7 +676,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				svc = NULL;
 			}
 		}
-		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);
+		svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uint8_t *)&nt_key);
 	}
 	return status;
 }
@@ -703,7 +703,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 	GLOBAL_POLICY *gp_ptr;
 	GLOBAL_POLICY dec_gp;
 	DTS_FILE_LIST *file_list;
-	uns8 tmp, *dec_path = NULL;	/*Added to decode log directory path */
+	uint8_t tmp, *dec_path = NULL;	/*Added to decode log directory path */
 	uns32 len, i;
 	char str[200] = "", *c = NULL;
 	OP_DEVICE *dev = NULL;
@@ -713,7 +713,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 
 	m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_GLOBAL_POLICY);
 	/* Start decoding the log directory path */
-	dec_path = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&len, sizeof(uns32));
+	dec_path = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&len, sizeof(uns32));
 	if (dec_path == NULL) {
 		m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -725,7 +725,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 	ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
 	for (i = 0; i < len; i++) {
-		dec_path = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&tmp, sizeof(uns8));
+		dec_path = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&tmp, sizeof(uint8_t));
 		if (dec_path == NULL) {
 			m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -733,7 +733,7 @@ static uns32 dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb, NCS_MBCS
 		}
 		tmp = ncs_decode_8bit(&dec_path);
 		c = (char *)&tmp;
-		ncs_dec_skip_space(&dec->i_uba, sizeof(uns8));
+		ncs_dec_skip_space(&dec->i_uba, sizeof(uint8_t));
 		str[i] = *c;
 		/* Now append this char to str */
 		/*strcat(str, c); */
@@ -908,14 +908,14 @@ uns32 dtsv_decode_data_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj;
-	uns8 *ptr = NULL;
+	uint8_t *ptr = NULL;
 
 	m_LOG_DTS_CHKOP(DTS_DEC_DATA_RESP);
 	/*
 	 * Since at decode we need to find out how many objects of particular data
 	 * type are sent, decode that information at the begining of the message.
 	 */
-	ptr = ncs_dec_flatten_space(&dec->i_uba, (uns8 *)&num_of_obj, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&dec->i_uba, (uint8_t *)&num_of_obj, sizeof(uns32));
 	if (ptr == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_data_sync_rsp: Decode flatten space failed");
 	}

@@ -536,7 +536,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	if (publish_param->retention_time > 0) {
 		/* Grab the chan_open_rec for this id */
 		copen_id_Net = m_NCS_OS_HTONL(publish_param->chan_open_id);
-		if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uns8 *)&copen_id_Net))) {
+		if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uint8_t *)&copen_id_Net))) {
 			m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 				      __FILE__, __LINE__, copen_id_Net, evt->fr_dest);
 			return (NCSCC_RC_FAILURE);
@@ -559,7 +559,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
     **/
 
 	/* Go through all chan_open_rec's under this channel */
-	co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+	co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)0);
 	while (co) {
 		subrec = co->subsc_rec_head;
 		while (subrec) {	/* while subscriptions... */
@@ -597,7 +597,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 			}
 			subrec = subrec->next;
 		}
-		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)&co->copen_id_Net);
+		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)&co->copen_id_Net);
 	}
 
   /** If this event has been retained, send an async update &
@@ -1349,7 +1349,7 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 			 publish_param->publisher_name.length);
 
 	m_LOG_EDS_EVENT(EDS_EVENT_HDR_LOG,
-			(int8 *)str,
+			(int8_t *)str,
 			(uns32)publish_param->event_id,
 			(uns32)publish_time, (uns32)publish_param->priority, (uns32)publish_param->retention_time);
 }

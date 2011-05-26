@@ -40,7 +40,7 @@ static struct avd_sutype *sutype_new(const SaNameT *dn)
 
 	memcpy(sutype->name.value, dn->value, dn->length);
 	sutype->name.length = dn->length;
-	sutype->tree_node.key_info = (uns8 *)&(sutype->name);
+	sutype->tree_node.key_info = (uint8_t *)&(sutype->name);
 
 	return sutype;
 }
@@ -72,7 +72,7 @@ struct avd_sutype *avd_sutype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (struct avd_sutype *)ncs_patricia_tree_get(&sutype_db, (uns8 *)&tmp);
+	return (struct avd_sutype *)ncs_patricia_tree_get(&sutype_db, (uint8_t *)&tmp);
 }
 
 static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)

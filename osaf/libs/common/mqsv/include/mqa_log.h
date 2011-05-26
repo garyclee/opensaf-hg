@@ -207,7 +207,7 @@ void mqa_log_ascii_dereg(void);
 uns32 mqa_reg_strings();
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqa_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno);
+void mqa_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno);
 void mqa_flx_log_reg(void);
 void mqa_flx_log_dereg(void);
 

@@ -74,12 +74,12 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *, ASAPi_ERR_INFO *, NCS_UBAID 
 \****************************************************************************/
 void asapi_msg_enc(ASAPi_MSG_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0;
+	uint8_t *pStream = 0;
 
 	/* Encode ASAPi message type */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns8));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint8_t));
 	ncs_encode_8bit(&pStream, msg->msgtype);
-	ncs_enc_claim_space(pBuff, sizeof(uns8));
+	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	if (ASAPi_MSG_REG == msg->msgtype) {
 		/* Encode ASAPi Registration message */
@@ -129,15 +129,15 @@ void asapi_msg_enc(ASAPi_MSG_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Null value */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns8));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint8_t));
 	ncs_encode_8bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns8));
+	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
@@ -189,10 +189,10 @@ static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode error value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->err.flag));
@@ -258,15 +258,15 @@ static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Null value */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns8));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint8_t));
 	ncs_encode_8bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns8));
+	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
@@ -314,10 +314,10 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode error value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->err.flag));
@@ -382,10 +382,10 @@ static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_nreslove_enc(ASAPi_NRESOLVE_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Track enable value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->track));
@@ -436,15 +436,15 @@ static void asapi_nreslove_resp_enc(ASAPi_NRESOLVE_RESP_INFO *msg, NCS_UBAID *pB
 \****************************************************************************/
 static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Null value */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns8));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint8_t));
 	ncs_encode_8bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns8));
+	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
@@ -475,10 +475,10 @@ static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Error value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->err.flag));
@@ -522,10 +522,10 @@ static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pB
 \****************************************************************************/
 static void asapi_track_enc(ASAPi_TRACK_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Track enable value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(msg->val));
@@ -577,11 +577,11 @@ static void asapi_track_resp_enc(ASAPi_TRACK_RESP_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	uns16 idx = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Error value */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(err->flag));
@@ -635,16 +635,16 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS
 \****************************************************************************/
 static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0, *pLength = 0;
+	uint8_t *pStream = 0, *pLength = 0;
 	uns16 idx = 0;
 	int32 ival = 0, fval = 0;
 
-	ival = pBuff->ttl - sizeof(uns8);	/* Store the current TTL value */
+	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
 	/* Encode Null value */
-	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns8));
+	pStream = ncs_enc_reserve_space(pBuff, sizeof(uint8_t));
 	ncs_encode_8bit(&pStream, 0);
-	ncs_enc_claim_space(pBuff, sizeof(uns8));
+	ncs_enc_claim_space(pBuff, sizeof(uint8_t));
 
 	/* Encode Total Length of the Message */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
@@ -691,7 +691,7 @@ static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_ginfo_enc(SaNameT *group, SaMsgQueueGroupPolicyT policy, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0;
+	uint8_t *pStream = 0;
 
 	/* Encode Group Name Length */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(group->length));
@@ -706,7 +706,7 @@ static void asapi_ginfo_enc(SaNameT *group, SaMsgQueueGroupPolicyT policy, NCS_U
 
 		/* Encode Group Name */
 		pStream = ncs_enc_reserve_space(pBuff, group->length);
-		ncs_encode_octets(&pStream, group->value, (uns8)group->length);
+		ncs_encode_octets(&pStream, group->value, (uint8_t)group->length);
 		ncs_enc_claim_space(pBuff, group->length);
 	}
 }	/* End of asapi_ginfo_enc() */
@@ -723,7 +723,7 @@ static void asapi_ginfo_enc(SaNameT *group, SaMsgQueueGroupPolicyT policy, NCS_U
 \****************************************************************************/
 static void asapi_qinfo_enc(ASAPi_QUEUE_PARAM *queue, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0;
+	uint8_t *pStream = 0;
 	uns32 i;
 
 	/* Encode Queue name & length */
@@ -784,7 +784,7 @@ static void asapi_qinfo_enc(ASAPi_QUEUE_PARAM *queue, NCS_UBAID *pBuff)
 \****************************************************************************/
 static void asapi_name_enc(SaNameT *name, NCS_UBAID *pBuff)
 {
-	uns8 *pStream = 0;
+	uint8_t *pStream = 0;
 
 	/* Encode Name Length */
 	pStream = ncs_enc_reserve_space(pBuff, sizeof(name->length));
@@ -794,7 +794,7 @@ static void asapi_name_enc(SaNameT *name, NCS_UBAID *pBuff)
 	/* Encode Name */
 	if (name->length) {
 		pStream = ncs_enc_reserve_space(pBuff, name->length);
-		ncs_encode_octets(&pStream, name->value, (uns8)name->length);
+		ncs_encode_octets(&pStream, name->value, (uint8_t)name->length);
 		ncs_enc_claim_space(pBuff, name->length);
 	}
 }	/* End of asapi_name_enc() */

@@ -6729,7 +6729,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 
 	/* Scan the entire Adm Owner DB and find the handles opened by this client */
 	while ((adm_node = (IMMA_ADMIN_OWNER_NODE *)
-		ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)temp_ptr))) {
+		ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uint8_t *)temp_ptr))) {
 		temp_hdl = adm_node->admin_owner_hdl;
 		temp_ptr = &temp_hdl;
 

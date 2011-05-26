@@ -63,7 +63,7 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
 	
 	memcpy(comp->comp_info.name.value, dn->value, dn->length);
 	comp->comp_info.name.length = dn->length;
-	comp->tree_node.key_info = (uns8 *)&(comp->comp_info.name);
+	comp->tree_node.key_info = (uint8_t *)&(comp->comp_info.name);
 	comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
 	comp->comp_info.category = AVSV_COMP_TYPE_NON_SAF;
 	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
@@ -147,7 +147,7 @@ AVD_COMP *avd_comp_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMP *)ncs_patricia_tree_get(&comp_db, (uns8 *)&tmp);
+	return (AVD_COMP *)ncs_patricia_tree_get(&comp_db, (uint8_t *)&tmp);
 }
 
 AVD_COMP *avd_comp_getnext(const SaNameT *dn)
@@ -157,7 +157,7 @@ AVD_COMP *avd_comp_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMP *)ncs_patricia_tree_getnext(&comp_db, (uns8 *)&tmp);
+	return (AVD_COMP *)ncs_patricia_tree_getnext(&comp_db, (uint8_t *)&tmp);
 }
 
 void avd_comp_delete(AVD_COMP *comp)
@@ -321,7 +321,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 		 * deleted.
 		 */
 		/* send a delete message to the AvND for the comp. */
-		memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+		memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 		param.act = AVSV_OBJ_OPR_DEL;
 		param.name = ack_msg->msg_info.n2d_reg_comp.comp_name;
 		param.class_id = AVSV_SA_AMF_COMP;
@@ -1248,7 +1248,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	TRACE_ENTER();
 
-	memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 	param.class_id = AVSV_SA_AMF_COMP;
 	param.act = AVSV_OBJ_OPR_MOD;
 
@@ -1686,7 +1686,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
-		memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+		memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 		param.act = AVSV_OBJ_OPR_DEL;
 		param.name = comp->comp_info.name;
 		param.class_id = AVSV_SA_AMF_COMP;

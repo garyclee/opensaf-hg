@@ -96,7 +96,7 @@ typedef struct cpd_ckpt_info_node {
 	SaTimeT create_time;
 	uns32 num_sections;
 	uns32 num_corrupt_sections;
-	uns8 *sec_id;
+	uint8_t *sec_id;
 	uns32 sec_state;
 	uns64 sec_size;
 	SaTimeT sec_last_update;
@@ -153,7 +153,7 @@ typedef struct cpd_cb_tag {
 	SYSF_MBX cpd_mbx;
 	SaNameT comp_name;
 	uns32 mds_handle;
-	uns8 hm_poolid;
+	uint8_t hm_poolid;
 	NCSCONTEXT task_hdl;
 	uns32 cpd_hdl;
 	V_DEST_QA cpd_anc;

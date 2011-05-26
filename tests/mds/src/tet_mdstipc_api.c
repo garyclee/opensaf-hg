@@ -5437,7 +5437,7 @@ is Not installed");
           memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
-          memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
+          memcpy(direct_buff,(uint8_t *)message,strlen(message)+1);
           svc_to_mds_info.i_mds_hdl=gl_tet_adest.mds_pwe1_hdl;
           svc_to_mds_info.i_svc_id=NCSMDS_SVC_ID_EXTERNAL_MIN;
           
@@ -6662,7 +6662,7 @@ on Vdest=200 with Wrong DEST");
           memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
-          memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
+          memcpy(direct_buff,(uint8_t *)message,strlen(message)+1);
           svc_to_mds_info.i_mds_hdl=gl_tet_adest.mds_pwe1_hdl;
           svc_to_mds_info.i_svc_id=2000;
           svc_to_mds_info.i_op=MDS_DIRECT_SEND;
@@ -6693,7 +6693,7 @@ on Vdest=200 with Wrong DEST");
           memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
-          memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
+          memcpy(direct_buff,(uint8_t *)message,strlen(message)+1);
           svc_to_mds_info.i_mds_hdl=gl_tet_adest.mds_pwe1_hdl;
           svc_to_mds_info.i_svc_id=NCSMDS_SVC_ID_EXTERNAL_MIN;
           svc_to_mds_info.i_op=MDS_DIRECT_SEND;
@@ -6725,7 +6725,7 @@ on Vdest=200 with Wrong DEST");
           memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
-          memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
+          memcpy(direct_buff,(uint8_t *)message,strlen(message)+1);
           svc_to_mds_info.i_mds_hdl=gl_tet_adest.mds_pwe1_hdl;
           svc_to_mds_info.i_svc_id=NCSMDS_SVC_ID_EXTERNAL_MIN;
           svc_to_mds_info.i_op=MDS_DIRECT_SEND;

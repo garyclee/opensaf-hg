@@ -52,7 +52,7 @@ AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn)
 	
 	memcpy(compcstype->name.value, dn->value, dn->length);
 	compcstype->name.length = dn->length;
-	compcstype->tree_node.key_info = (uns8 *)&(compcstype->name);
+	compcstype->tree_node.key_info = (uint8_t *)&(compcstype->name);
 
 	return compcstype;
 }
@@ -102,7 +102,7 @@ AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *cstype_name, const AV
 	TRACE_ENTER();
 	avsv_create_association_class_dn(cstype_name, &comp->comp_info.name, "safSupportedCsType", &dn);
 	TRACE("'%s'", dn.value);
-	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uns8 *)&dn);
+	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uint8_t *)&dn);
 	return cst;
 }
 
@@ -113,7 +113,7 @@ AVD_COMPCS_TYPE *avd_compcstype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uns8 *)&tmp);
+	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uint8_t *)&tmp);
 }
 
 AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn)
@@ -123,7 +123,7 @@ AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, dn->length);
 
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_getnext(&compcstype_db, (uns8 *)&tmp);
+	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_getnext(&compcstype_db, (uint8_t *)&tmp);
 }
 
 /**

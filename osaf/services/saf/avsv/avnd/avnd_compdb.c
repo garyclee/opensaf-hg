@@ -238,7 +238,7 @@ uns32 avnd_compdb_destroy(AVND_CB *cb)
 	TRACE_ENTER();
 
 	/* scan & delete each comp */
-	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0))) {
+	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0))) {
 		/* delete the record 
 		   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 		   AvND is going down, but don't send any async update even for 
@@ -482,7 +482,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 	 * Add to the patricia tree.
 	 */
 	comp->tree_node.bit = 0;
-	comp->tree_node.key_info = (uns8 *)&comp->name;
+	comp->tree_node.key_info = (uint8_t *)&comp->name;
 	*rc = ncs_patricia_tree_add(&cb->compdb, &comp->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = AVND_ERR_TREE;
@@ -961,7 +961,7 @@ static amf_comp_type_t *avnd_comptype_create(const SaNameT *dn)
 
 	memcpy(compt->name.value, dn->value, dn->length);
 	compt->name.length = dn->length;
-	compt->tree_node.key_info = (uns8 *)&(compt->name);
+	compt->tree_node.key_info = (uint8_t *)&(compt->name);
 
 	if (immutil_getAttr("saAmfCtCompCategory", attributes, 0, &compt->saAmfCtCompCategory) != SA_AIS_OK)
 		assert(0);
@@ -1552,7 +1552,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	avnd_pxied_list_init(comp);
 
 	/* Add to the patricia tree. */
-	comp->tree_node.key_info = (uns8 *)&comp->name;
+	comp->tree_node.key_info = (uint8_t *)&comp->name;
 	if(ncs_patricia_tree_add(&avnd_cb->compdb, &comp->tree_node) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_patricia_tree_add FAILED for '%s'", comp_name->value);
 		goto done;

@@ -53,7 +53,7 @@ typedef struct reg_tbl_entry {
 	/* Message Filter for the above defined service */
 	NCS_BOOL enable_log;	/* Enable or disable logging */
 	uns32 category_bit_map;	/* Category Filter bit map */
-	uns8 severity_bit_map;	/* Severity Filter bit map */
+	uint8_t severity_bit_map;	/* Severity Filter bit map */
 	/* Add all the other new filter elements above this */
 
 	/* version field */
@@ -154,8 +154,8 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id);
 *************************************************************************/
 uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 			      uns32 inst_id,
-			      uns8 fmat_id,
-			      uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, va_list argp);
+			      uint8_t fmat_id,
+			      uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, va_list argp);
 
 uns32 dta_get_ada_hdl(void);
 
@@ -203,14 +203,14 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg);
 uns32 dta_svc_reg_check(DTA_CB *inst);
 
 uns32 dta_svc_reg_updt(DTA_CB *inst, uns32 svc_id, uns32 enable_log,
-				uns32 category_bit_map, uns8 severity_bit_map);
+				uns32 category_bit_map, uint8_t severity_bit_map);
 
 /***********************************************************************
 *     Flex Log policy rrelated functions 
 ************************************************************************/
 uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg);
 uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name,
-				uns8 operation);
+				uint8_t operation);
 
 #define MAX_OCT_LEN             255
 

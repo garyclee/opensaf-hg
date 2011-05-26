@@ -45,7 +45,7 @@
 #define m_MMGR_FREE_DTSV_MSG(p)     m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTSV_MEM_DTSV_MSG)
 
-#define m_MMGR_ALLOC_OCT(n)       (char *)m_NCS_MEM_ALLOC((n * sizeof(uns8)), \
+#define m_MMGR_ALLOC_OCT(n)       (char *)m_NCS_MEM_ALLOC((n * sizeof(uint8_t)), \
                                     NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTSV_MEM_OCT)
 

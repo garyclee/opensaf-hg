@@ -529,7 +529,7 @@ static uns32 glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 ***********************************************************************************/
 static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr, data[16];
+	uint8_t *ptr, data[16];
 	GLSV_GLD_A2S_CKPT_EVT *a2s_evt;
 	uns32 evt_type, rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -548,10 +548,10 @@ static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 	gld_cb->gld_async_cnt++;
 
 	/* in the decode.i_uba , the 1st parameter is the Type , so first decode only the first field and based on the type then decode the entire message */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	evt_type = ncs_decode_8bit(&ptr);
 	a2s_evt->evt_type = evt_type;
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	switch (evt_type) {
 	case GLSV_GLD_EVT_RSC_OPEN:
@@ -647,7 +647,7 @@ static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 static uns32 glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
-	uns8 data[16], *ptr;
+	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
 	/*TBD check for the validity of gld_cb arg */
@@ -705,7 +705,7 @@ uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb)
 *************************************************************************************/
 static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns8 *ptr, num_of_ckpts, data[16];
+	uint8_t *ptr, num_of_ckpts, data[16];
 	GLSV_GLD_A2S_RSC_DETAILS *rsc_info;
 	uns32 count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
 	EDU_ERR ederror = 0;
@@ -725,10 +725,10 @@ static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG 
 
 	memset(rsc_info, 0, sizeof(GLSV_GLD_A2S_RSC_DETAILS));
 
-	/* 1. Decode the 1st uns8 region ,  we will get the num of ckpts */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+	/* 1. Decode the 1st uint8_t region ,  we will get the num of ckpts */
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));
 	num_of_ckpts = ncs_decode_8bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint8_t));
 
 	/* Decode the data */
 
@@ -777,18 +777,18 @@ static uns32 glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
 	GLSV_GLD_A2S_CKPT_EVT *a2s_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 *gld_type_ptr = NULL;
+	uint8_t *gld_type_ptr = NULL;
 
 	/*  Increment the async update count gld_cb->gld_async_cnt     */
 	gld_cb->gld_async_cnt++;
 
-	gld_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	gld_type_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (gld_type_ptr == NULL) {
 		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	ncs_encode_8bit(&gld_type_ptr, arg->info.encode.io_reo_type);
 
 	switch (arg->info.encode.io_reo_type) {
@@ -861,8 +861,8 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, no_of_ckpts = 0;
 	EDU_ERR ederror = 0;
-	uns8 *header;
-	uns8 *async_cnt;
+	uint8_t *header;
+	uint8_t *async_cnt;
 	SaLckResourceIdT prev_rsc_id;
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
@@ -875,13 +875,13 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 
 	/* First reserve space to store the number of checkpoints that will be sent */
 
-	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 	if (header == NULL) {
 		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint8_t));
 
 	prev_rsc_id = gld_cb->prev_rsc_id;	/* NEED to see */
 
@@ -923,7 +923,7 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 				/* Get the master node for this resource */
 				node_details =
 				    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-										   (uns8 *)&node_list->node_id);
+										   (uint8_t *)&node_list->node_id);
 				if (node_details == NULL) {
 					m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR, __FILE__,
 							   __LINE__, node_list->node_id);
@@ -952,7 +952,7 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 					memcpy(&a2s_node_list->dest_id, &node_list->dest_id, sizeof(MDS_DEST));
 					node_details =
 					    (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
-											   (uns8 *)&node_list->node_id);
+											   (uint8_t *)&node_list->node_id);
 					if (node_details == NULL) {
 						m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_GET_FAILED, NCSFL_SEV_ERROR,
 								   __FILE__, __LINE__, node_list->node_id);
@@ -1028,7 +1028,7 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 static uns32 glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *wsync_ptr;
+	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
 	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));

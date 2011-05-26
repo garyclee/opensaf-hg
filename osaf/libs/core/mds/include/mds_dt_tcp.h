@@ -44,9 +44,9 @@ typedef struct mdtm_tcp_cb {
 	/* Added for message reception */
 	uns16 bytes_tb_read;
 	uns16 buff_total_len;
-	uns8 len_buff[2];
-	uns8 num_by_read_for_len_buff;
-	uns8 *buffer;
+	uint8_t len_buff[2];
+	uint8_t num_by_read_for_len_buff;
+	uint8_t *buffer;
 
 	MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_hdr;
 	MDTM_INTRANODE_UNSENT_MSGS *mds_mdtm_msg_unsent_tail;
@@ -78,7 +78,7 @@ typedef struct mds_mdtm_dtm_msg {
 
 	uns16 size;
 	uns32 mds_indentifire;
-	uns8 mds_version;
+	uint8_t mds_version;
 	MDS_MDTM_DTM_MSG_TYPE type;
 	
 	union {
@@ -97,6 +97,6 @@ typedef struct mds_mdtm_dtm_msg {
 
 uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tipc_ref);
 uns32 mds_mdtm_destroy_tcp(void);
-uns32 mds_mdtm_unsent_queue_add_send(uns8 *tcp_buffer, uns32 bufflen); 
+uns32 mds_mdtm_unsent_queue_add_send(uint8_t *tcp_buffer, uns32 bufflen); 
 
 #endif

@@ -43,7 +43,7 @@ uns32 ncs_lbp_destroy(void);
 
 typedef struct ncsub_pool {
 	NCS_BOOL busy;
-	uns8 pool_id;
+	uint8_t pool_id;
 	NCS_POOL_MALLOC mem_alloc;
 	NCS_POOL_MFREE mem_free;
 	uns32 hdr_reserve;
@@ -92,7 +92,7 @@ typedef struct ncsmmgr_ub_delete {
  ***************************************************************************/
 
 typedef struct ncsmmgr_ub_register {
-	uns8 i_pool_id;
+	uint8_t i_pool_id;
 	NCS_POOL_MALLOC i_mem_alloc;
 	NCS_POOL_MFREE i_mem_free;
 } NCSMMGR_UB_REGISTER;
@@ -102,7 +102,7 @@ typedef struct ncsmmgr_ub_register {
  ***************************************************************************/
 
 typedef struct ncsmmgr_ub_deregister {
-	uns8 i_pool_id;
+	uint8_t i_pool_id;
 
 } NCSMMGR_UB_DEREGISTER;
 
@@ -151,7 +151,7 @@ typedef struct ncsmmgr_ub_lm_arg {
  ***************************************************************************/
 
 uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
-NCSUB_POOL *ncsmmgr_ub_getpool(uns8 pool_id);
+NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id);
 
 #define m_NCSMMGR_UB_LM(a)           ncsmmgr_ub_lm(a)
 #define m_NCSMMGR_UB_GETPOOL(id)     ncsmmgr_ub_getpool(id)

@@ -32,7 +32,7 @@ AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_APP_TYPE *)ncs_patricia_tree_get(&apptype_db, (uns8 *)&tmp);
+	return (AVD_APP_TYPE *)ncs_patricia_tree_get(&apptype_db, (uint8_t *)&tmp);
 }
 
 static void apptype_delete(AVD_APP_TYPE **apptype)
@@ -116,7 +116,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 
 	memcpy(app_type->name.value, dn->value, dn->length);
 	app_type->name.length = dn->length;
-	app_type->tree_node.key_info = (uns8 *)&(app_type->name);
+	app_type->tree_node.key_info = (uint8_t *)&(app_type->name);
 
 	while ((attr = attributes[i++]) != NULL)
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))

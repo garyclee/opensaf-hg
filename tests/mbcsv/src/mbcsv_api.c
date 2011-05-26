@@ -476,7 +476,7 @@ uns32   mbcstm_svc_data_request(uns32 svc_index, uns32 ssn_index)
 {   
   NCS_MBCSV_ARG     mbcsv_arg;
   NCS_UBAID  *uba = NULL;
-  uns8*      data;
+  uint8_t*      data;
   MBCSTM_SVC      *svc;
   MBCSTM_SSN      *ssn;
   char            fun_name[] = "mbcstm_svc_data_request";
@@ -683,7 +683,7 @@ uns32   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg)
   /*change
     uns32 data_index;*/
   NCS_UBAID *uba = &arg->info.encode.io_uba;
-  uns8*    data;
+  uint8_t*    data;
   uns32  mbcstm_destroy_data_point(uns32,uns32);
 
   if(ssn == NULL)
@@ -839,7 +839,7 @@ uns32   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg)
           ncs_encode_32bit(&data,crc);
           ncs_enc_claim_space(uba, sizeof(uns32));
 
-          ncs_encode_n_octets_in_uba(uba, (uns8*)msg, size);
+          ncs_encode_n_octets_in_uba(uba, (uint8_t*)msg, size);
         }
       break;
 
@@ -904,7 +904,7 @@ uns32   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg)
 static uns32 mbcstm_data_encode(uns32 reo_type, uns32 reo_hdl, 
                                 NCS_UBAID *uba,  MBCSTM_SSN *ssn)
 {
-  uns8*    data;
+  uint8_t*    data;
   SSN_PERF_DATA *info;
 
   if(uba == NULL)
@@ -956,7 +956,7 @@ static uns32 mbcstm_data_encode(uns32 reo_type, uns32 reo_hdl,
       ncs_encode_32bit(&data,info->crc);
       ncs_enc_claim_space(uba, sizeof(uns32));
 
-      ncs_encode_n_octets_in_uba(uba, (uns8*)info->msg, info->length);
+      ncs_encode_n_octets_in_uba(uba, (uint8_t*)info->msg, info->length);
       break;
     default:
       return NCSCC_RC_FAILURE;
@@ -968,9 +968,9 @@ static uns32 mbcstm_data_encode(uns32 reo_type, uns32 reo_hdl,
 static uns32 mbcstm_data_decode(MBCSTM_CSI_DATA_TYPE type, NCS_UBAID *uba,
                                 MBCSTM_SSN *ssn)
 {
-  uns8*    data;
+  uint8_t*    data;
   uns32    data_index;
-  uns8     data_buff[1024];
+  uint8_t     data_buff[1024];
   SSN_PERF_DATA *info;
   /*change*/    
   uns32 mbcstm_verify_sync_msg(SSN_PERF_DATA *,MBCSTM_SSN *);
@@ -1021,7 +1021,7 @@ static uns32 mbcstm_data_decode(MBCSTM_CSI_DATA_TYPE type, NCS_UBAID *uba,
 
       info->msg = (char *) malloc(info->length);
       memset(info->msg, 0, sizeof(info->length));
-      ncs_decode_n_octets_from_uba(uba, (uns8*)info->msg, info->length);
+      ncs_decode_n_octets_from_uba(uba, (uint8_t*)info->msg, info->length);
       if(mbcstm_verify_sync_msg(info,ssn) != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
       break;
@@ -1227,7 +1227,7 @@ uns32   mbcstm_svc_peer_cb(NCS_MBCSV_CB_ARG *arg)
 uns32   mbcstm_svc_enc_notify_cb(NCS_MBCSV_CB_ARG *arg)
 {
   char    fun_name[]  = "mbcstm_svc_enc_notify_cb";
-  uns8* data;
+  uint8_t* data;
   char  str[100]="Hello Peer";
   int len=strlen(str)+1;
   NCS_UBAID  *uba = &arg->info.notify.i_uba;
@@ -1245,15 +1245,15 @@ uns32   mbcstm_svc_enc_notify_cb(NCS_MBCSV_CB_ARG *arg)
   data = ncs_enc_reserve_space(uba, sizeof(uns32));
   ncs_encode_32bit(&data,len);
   ncs_enc_claim_space(uba, sizeof(uns32));
-  ncs_encode_n_octets_in_uba(uba, (uns8*)str, len);
+  ncs_encode_n_octets_in_uba(uba, (uint8_t*)str, len);
 
   return NCSCC_RC_SUCCESS;
 }
 uns32   mbcstm_svc_notify_cb(NCS_MBCSV_CB_ARG *arg)
 {
   uns32 length;
-  uns8* data;
-  uns8  data_buff[1024];
+  uint8_t* data;
+  uint8_t  data_buff[1024];
   char  str[100];
   NCS_UBAID  *uba = &arg->info.notify.i_uba;
   uns16  peer_version = arg->info.notify.i_peer_version;
@@ -1262,7 +1262,7 @@ uns32   mbcstm_svc_notify_cb(NCS_MBCSV_CB_ARG *arg)
   data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
   length = ncs_decode_32bit(&data);
   ncs_dec_skip_space(uba, sizeof(uns32));
-  ncs_decode_n_octets_from_uba(uba, (uns8 *)str, length);
+  ncs_decode_n_octets_from_uba(uba, (uint8_t *)str, length);
   tet_printf("\n NTFY MSG: %s \n", str);
    printf("\n NTFY MSG: %s \t Length= %ld Peer Version= %d \n", str,(long)strlen(str),peer_version);
 

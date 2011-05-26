@@ -78,12 +78,12 @@ server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
 
 typedef struct dtm_intranode_unsent_msgs {
 	uns16 len;
-	uns8 *buffer;
+	uint8_t *buffer;
 	struct dtm_intranode_unsent_msgs *next;
 } MDTM_INTRANODE_UNSENT_MSGS;
 
 typedef struct mds_mdtm_bind_msg {
-	uns8 install_scope;
+	uint8_t install_scope;
 	uns32 server_type;
 	uns32 server_instance_lower;
 	uns32 server_instance_upper;
@@ -92,7 +92,7 @@ typedef struct mds_mdtm_bind_msg {
 } MDS_MDTM_BIND_MSG;
 
 typedef struct mds_mdtm_unbind_msg {
-	uns8 install_scope;
+	uint8_t install_scope;
 	uns32 server_type;
 	uns32 server_instance_lower;
 	uns32 server_instance_upper;

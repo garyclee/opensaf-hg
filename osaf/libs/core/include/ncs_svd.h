@@ -140,20 +140,20 @@ extern "C" {
 #define SYSF_MAX_KEY_LEN  42	/* picked as 'big enough' so far */
 
 	typedef struct ncs_octstr {
-		uns8 len;
-		uns8 data[SYSF_MAX_KEY_LEN];
+		uint8_t len;
+		uint8_t data[SYSF_MAX_KEY_LEN];
 	} NCS_OCTSTR;
 
 	typedef struct ncs_key {
 		NCS_SERVICE_ID svc;	/* an object based in this service */
-		uns8 type;	/* type or component of service   */
-		uns8 fmat;	/* value format NUM|HDL|STR|OCT   */
+		uint8_t type;	/* type or component of service   */
+		uint8_t fmat;	/* value format NUM|HDL|STR|OCT   */
 
 		union {
 			uns32 num;
 			NCSCONTEXT hdl;
 			NCS_OCTSTR oct;
-			uns8 str[SYSF_MAX_KEY_LEN];	/* null terminated string       */
+			uint8_t str[SYSF_MAX_KEY_LEN];	/* null terminated string       */
 		} val;
 
 	} NCS_KEY;
@@ -217,8 +217,8 @@ NOTE: is designed to be small (32 bits). Don't mess with this!!!
 *************************************************************************/
 
 	typedef struct ftcc_name {
-		uns8 ncs_ss;	/* entity type/subsystem; an NCS_SERVICE_ID value   */
-		uns8 ncs_qual;	/* entity qualifier (ex. SIG = UNI31_NET, PNNI,etc. */
+		uint8_t ncs_ss;	/* entity type/subsystem; an NCS_SERVICE_ID value   */
+		uint8_t ncs_qual;	/* entity qualifier (ex. SIG = UNI31_NET, PNNI,etc. */
 		uns16 ncs_inst;	/* some assigned value                             */
 	} NCSSS_NAME;
 

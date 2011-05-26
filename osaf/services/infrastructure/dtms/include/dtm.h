@@ -30,7 +30,7 @@
 #include "dtm_cb.h"
 
 extern DTM_INTERNODE_CB *dtms_gl_cb;
-extern uns8 initial_discovery_phase;
+extern uint8_t initial_discovery_phase;
 
 #define BMCAST_MSG_LEN ( sizeof(uns16) + sizeof(uns32) + sizeof(uns32) + sizeof(uns16)
 
@@ -51,17 +51,17 @@ typedef enum {
 typedef struct dtm_rcv_msg_elem {
 	void *next;
 	MBX_POST_TYPES type;
-	uns8 pri;
+	uint8_t pri;
 	union {
 		struct {
 			uns16 len;
-			uns8 *buffer;
+			uint8_t *buffer;
 			uns32 dst_pid;
 		} data;
 
 		struct {
 			uns16 len;
-			uns8 *buffer;
+			uint8_t *buffer;
 			NODE_ID node_id;
 		} svc_event;
 
@@ -83,7 +83,7 @@ typedef enum {
 typedef struct dtm_snd_msg_elem {
 	void *next;
 	MBX_SND_POST_TYPES type;
-	uns8 pri;
+	uint8_t pri;
 	union {
 		struct {
 			uns32 server_type;
@@ -93,7 +93,7 @@ typedef struct dtm_snd_msg_elem {
 		struct {
 			NODE_ID dst_nodeid;
 			uns16 buff_len;
-			uns8 *buffer;
+			uint8_t *buffer;
 		} data;
 	} info;
 } DTM_SND_MSG_ELEM;
@@ -104,8 +104,8 @@ extern DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid);
 extern DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id);
 extern DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket);
 extern DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket);
-extern DTM_NODE_DB *dtm_node_get_by_node_ip(uns8 *node_ip);
-extern DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uns8 *node_ip);
+extern DTM_NODE_DB *dtm_node_get_by_node_ip(uint8_t *node_ip);
+extern DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uint8_t *node_ip);
 extern uns32 dtm_node_add(DTM_NODE_DB * node, int i);
 extern uns32 dtm_node_delete(DTM_NODE_DB * nnode, int i);
 extern DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node);

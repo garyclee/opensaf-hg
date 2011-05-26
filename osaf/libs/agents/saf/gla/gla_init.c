@@ -396,7 +396,7 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 
 	/* take the cb lock */
 	m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
-	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uns8 *)&hdl_id);
+	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uint8_t *)&hdl_id);
 	m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
 
 	if (flag == TRUE) {
@@ -425,7 +425,7 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 			}
 
 			client_info->lock_handle_id = hdl_id;
-			client_info->patnode.key_info = (uns8 *)&client_info->lock_handle_id;
+			client_info->patnode.key_info = (uint8_t *)&client_info->lock_handle_id;
 
 			/* initialize the callbk mailbox */
 			if (glsv_gla_callback_queue_init(client_info) != NCSCC_RC_SUCCESS) {
@@ -473,7 +473,7 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
 	uns16 lck_clbk = 0;
 
 	/* take the cb lock */
-	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree, (uns8 *)0);
+	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree, (uint8_t *)0);
 	while (client_info) {
 		/* populate the evt */
 		memset(&restart_client_info_evt, 0, sizeof(GLSV_GLND_EVT));
@@ -503,7 +503,7 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
 		gla_resource_info_send(gla_cb, client_info->lock_handle_id);
 		client_info =
 		    (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree,
-								 (uns8 *)&client_info->lock_handle_id);
+								 (uint8_t *)&client_info->lock_handle_id);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -526,7 +526,7 @@ static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 	uns32 ret;
 
 	/* take the cb lock */
-	res_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree, (uns8 *)0);
+	res_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree, (uint8_t *)0);
 	while (res_info) {
 		if (res_info->lock_handle_id == hdl_id) {
 			/* populate the evt */
@@ -545,7 +545,7 @@ static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
 		}
 		res_info =
 		    (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree,
-								      (uns8 *)&res_info->lcl_res_id);
+								      (uint8_t *)&res_info->lcl_res_id);
 
 	}
 	return NCSCC_RC_SUCCESS;
@@ -691,7 +691,7 @@ static uns32 gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info)
 
 	/* scan the entire handle db & delete each record */
 	while ((client_res_info =
-		(GLA_CLIENT_RES_INFO *)ncs_patricia_tree_getnext(&client_info->client_res_tree, (uns8 *)&res_id))) {
+		(GLA_CLIENT_RES_INFO *)ncs_patricia_tree_getnext(&client_info->client_res_tree, (uint8_t *)&res_id))) {
 		/* delete the client info */
 		ncs_patricia_tree_del(&client_info->client_res_tree, &client_res_info->patnode);
 
@@ -738,7 +738,7 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb, SaLckResourceHan
 			return NULL;
 		}
 
-		res_id_info->patnode.key_info = (uns8 *)&res_id_info->lcl_res_id;
+		res_id_info->patnode.key_info = (uint8_t *)&res_id_info->lcl_res_id;
 
 		if (ncs_patricia_tree_add(&gla_cb->gla_resource_id_tree, &res_id_info->patnode) != NCSCC_RC_SUCCESS) {
 			ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, res_id_info->lcl_res_id);
@@ -777,7 +777,7 @@ GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_in
 		}
 		memset(res_id_info, 0, sizeof(GLA_CLIENT_RES_INFO));
 		res_id_info->gbl_res_id = res_id;
-		res_id_info->patnode.key_info = (uns8 *)&res_id_info->gbl_res_id;
+		res_id_info->patnode.key_info = (uint8_t *)&res_id_info->gbl_res_id;
 
 		if (ncs_patricia_tree_add(&client_info->client_res_tree, &res_id_info->patnode) != NCSCC_RC_SUCCESS) {
 			m_MMGR_FREE_GLA_CLIENT_RES_INFO(res_id_info);
@@ -785,7 +785,7 @@ GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_in
 		}
 	} else {
 		res_id_info = (GLA_CLIENT_RES_INFO *)ncs_patricia_tree_get(&client_info->client_res_tree,
-									   (uns8 *)&res_id);
+									   (uint8_t *)&res_id);
 	}
 	return res_id_info;
 }
@@ -836,7 +836,7 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_reverse_find(GLA_CB *gla_cb, SaLckHandleT han
 	SaLckResourceHandleT res_id = 0;
 	/* scan the entire handle db & delete each record */
 	while ((res_id_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree,
-										(uns8 *)&res_id))) {
+										(uint8_t *)&res_id))) {
 		res_id = res_id_info->lcl_res_id;
 		if (res_id_info->lock_handle_id == handle && res_id_info->gbl_res_id == gbl_res)
 			return res_id_info;
@@ -863,7 +863,7 @@ void gla_res_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle)
 	SaLckResourceHandleT res_id = 0;
 	/* scan the entire handle db & delete each record */
 	while ((res_id_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_resource_id_tree,
-										(uns8 *)&res_id))) {
+										(uint8_t *)&res_id))) {
 		res_id = res_id_info->lcl_res_id;
 		if (res_id_info->lock_handle_id == handle) {
 			if (NULL != ncshm_take_hdl(NCS_SERVICE_ID_GLA, res_id_info->lcl_res_id))
@@ -974,7 +974,7 @@ GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb, SaLckLockIdT lock_i
 			return NULL;
 		}
 
-		lock_id_info->patnode.key_info = (uns8 *)&lock_id_info->lcl_lock_id;
+		lock_id_info->patnode.key_info = (uint8_t *)&lock_id_info->lcl_lock_id;
 
 		if (ncs_patricia_tree_add(&gla_cb->gla_lock_id_tree, &lock_id_info->patnode) != NCSCC_RC_SUCCESS) {
 			ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, lock_id_info->lcl_lock_id);
@@ -1036,7 +1036,7 @@ GLA_LOCK_ID_INFO *gla_lock_tree_reverse_find(GLA_CB *gla_cb,
 	SaLckLockIdT lock_id = 0;
 	/* scan the entire handle db each record */
 	while ((lock_id_info = (GLA_LOCK_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_lock_id_tree,
-									     (uns8 *)&lock_id))) {
+									     (uint8_t *)&lock_id))) {
 		lock_id = lock_id_info->lcl_lock_id;
 		if (lock_id_info->lock_handle_id == handle &&
 		    lock_id_info->gbl_res_id == gbl_res && lock_id_info->gbl_lock_id == gbl_lock)
@@ -1064,7 +1064,7 @@ void gla_lock_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle)
 	SaLckLockIdT lock_id = 0;
 
 	while ((lock_id_info = (GLA_LOCK_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_lock_id_tree,
-									     (uns8 *)&lock_id))) {
+									     (uint8_t *)&lock_id))) {
 		if (lock_id_info->lock_handle_id == handle) {
 			lock_id = lock_id_info->lcl_lock_id;
 			if (NULL != ncshm_take_hdl(NCS_SERVICE_ID_GLA, lock_id_info->lcl_lock_id))
@@ -1096,7 +1096,7 @@ void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO 
 
 	/* scan the entire handle db & delete each record */
 	while ((lock_id_info = (GLA_LOCK_ID_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_lock_id_tree,
-									     (uns8 *)&lock_id))) {
+									     (uint8_t *)&lock_id))) {
 		if (lock_id_info->lock_handle_id == handle && lock_id_info->lcl_res_id == res_info->lcl_res_id) {
 			lock_id = lock_id_info->lcl_lock_id;
 			if (NULL != ncshm_take_hdl(NCS_SERVICE_ID_GLA, lock_id_info->lcl_lock_id))

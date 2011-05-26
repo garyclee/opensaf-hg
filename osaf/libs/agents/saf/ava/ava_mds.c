@@ -498,7 +498,7 @@ uns32 ava_mds_flat_enc(AVA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
 	switch (msg->type) {
 	case AVSV_AVA_API_MSG:
 		/* encode into userbuf */
-		rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uns8 *)msg, sizeof(AVSV_NDA_AVA_MSG));
+		rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)msg, sizeof(AVSV_NDA_AVA_MSG));
 		break;
 
 	case AVSV_AVND_AMF_CBK_MSG:
@@ -538,7 +538,7 @@ uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 	}
 
 	/* decode the top level ava msg contents */
-	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)msg, sizeof(AVSV_NDA_AVA_MSG));
+	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uint8_t *)msg, sizeof(AVSV_NDA_AVA_MSG));
 	if (NCSCC_RC_SUCCESS != rc) {
 		TRACE_2("ncs_decode_n_octets_from_uba failed with rc = %d", rc);
 		goto err;
@@ -558,7 +558,7 @@ uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 
 			/* decode cbk-info */
 			rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
-							  (uns8 *)msg->info.cbk_info, sizeof(AVSV_AMF_CBK_INFO));
+							  (uint8_t *)msg->info.cbk_info, sizeof(AVSV_AMF_CBK_INFO));
 			if (NCSCC_RC_SUCCESS != rc) {
 				TRACE_2("ncs_decode_n_octets_from_uba failed with rc = %d", rc);
 				goto err;
@@ -580,7 +580,7 @@ uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 						}
 
 						rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
-										  (uns8 *)csi_set->attrs.list,
+										  (uint8_t *)csi_set->attrs.list,
 										  csi_set->attrs.number *
 										  sizeof(AVSV_ATTR_NAME_VAL));
 						if (NCSCC_RC_SUCCESS != rc) {
@@ -607,7 +607,7 @@ uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 						}
 
 						rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
-										  (uns8 *)pg_track->buf.notification,
+										  (uint8_t *)pg_track->buf.notification,
 										  pg_track->buf.numberOfItems *
 										  sizeof
 										  (SaAmfProtectionGroupNotificationT));

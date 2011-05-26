@@ -438,7 +438,7 @@ static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 				m_NCS_UNLOCK(&cb->cpnd_sync_lock, NCS_LOCK_WRITE);
            /* Get the First Node */
            gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
-                                           (uns8*)&prev_ckpt_id);
+                                           (uint8_t*)&prev_ckpt_id);
            if(gc_node) 
            {
             for(i=0;i<counter;i++) 
@@ -451,7 +451,7 @@ static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
                   no_of_nodes++;
                 }
                 gc_node = (CPA_GLOBAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->gbl_ckpt_tree,
-                                                        (uns8*)&prev_ckpt_id);
+                                                        (uint8_t*)&prev_ckpt_id);
              }  
 
                memset(&send_evt, 0, sizeof(CPSV_EVT));
@@ -508,7 +508,7 @@ static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	EDU_ERR ederror = 0;
 	NCS_UBAID *io_uba = enc_info->io_uba;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 *pstream = NULL;
+	uint8_t *pstream = NULL;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_CPND) {
@@ -590,8 +590,8 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	CPSV_EVT *msg_ptr = NULL;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	uns8 local_data[20];
-	uns8 *pstream;
+	uint8_t local_data[20];
+	uint8_t *pstream;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {

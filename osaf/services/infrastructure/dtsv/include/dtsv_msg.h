@@ -37,28 +37,28 @@
 * DTSV encode decode message format sizes.
 ***************************************************************************/
 
-#define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uns16)) + (sizeof(uns8)))
-#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uns32)) + sizeof(uns8) + sizeof(NCS_BOOL))
-#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uns32)) + sizeof(uns8) + sizeof(NCS_BOOL))
-#define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uns16) + sizeof(uns8))
-#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uns32)) + (sizeof(uns16)) + (2 * sizeof(uns8)))
+#define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uns16)) + (sizeof(uint8_t)))
+#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
+#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
+#define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uns16) + sizeof(uint8_t))
+#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uns32)) + (sizeof(uns16)) + (2 * sizeof(uint8_t)))
 #define DTS_MAX_SIZE_DATA             512
 #define DTS_MAX_DBL_DIGITS            30
 /**************************************************************************
 * DTSV OP_REQ_CLI encode/decode message format sizes.
 ***************************************************************************/
-#define DTSV_ADD_GBL_CONS_SIZE  2*sizeof(uns8)
-#define DTSV_RMV_GBL_CONS_SIZE  sizeof(uns8)
-#define DTSV_ADD_NODE_CONS_SIZE ((2*sizeof(uns8)) + sizeof(uns32))
-#define DTSV_RMV_NODE_CONS_SIZE (sizeof(uns8)+ sizeof(uns32))
-#define DTSV_ADD_SVC_CONS_SIZE  ((2*sizeof(uns8)) + (2*sizeof(uns32)))
-#define DTSV_RMV_SVC_CONS_SIZE  (sizeof(uns8)+ (2*sizeof(uns32)))
+#define DTSV_ADD_GBL_CONS_SIZE  2*sizeof(uint8_t)
+#define DTSV_RMV_GBL_CONS_SIZE  sizeof(uint8_t)
+#define DTSV_ADD_NODE_CONS_SIZE ((2*sizeof(uint8_t)) + sizeof(uns32))
+#define DTSV_RMV_NODE_CONS_SIZE (sizeof(uint8_t)+ sizeof(uns32))
+#define DTSV_ADD_SVC_CONS_SIZE  ((2*sizeof(uint8_t)) + (2*sizeof(uns32)))
+#define DTSV_RMV_SVC_CONS_SIZE  (sizeof(uint8_t)+ (2*sizeof(uns32)))
 #define DTSV_CLI_MAX_SIZE  256
 
 /**************************************************************************
 * DTSV OP_RSP_CLI encode/decode message format sizes.
 ***************************************************************************/
-#define DTSV_RSP_CONS_SIZE    2*sizeof(uns8)
+#define DTSV_RSP_CONS_SIZE    2*sizeof(uint8_t)
 
 /* DTSV service name(for registration/ASCII_SPEC) limit */
 #define DTSV_SVC_NAME_MAX     15
@@ -124,12 +124,12 @@ typedef struct ms_time {
 typedef struct ncsfl_hdr {
 	SS_SVC_ID ss_id;	/* logging entity's subsystem ID      */
 	uns32 inst_id;		/* Instance ID of the service         */
-	uns8 severity;		/* as per IEFT-draft syslog           */
+	uint8_t severity;		/* as per IEFT-draft syslog           */
 	uns32 category;		/* generic category event belongs to  */
 	MS_TIME time;		/* time stamp; filled by Flexlog Agent */
-	uns8 fmat_id;		/* offset into format strings         */
+	uint8_t fmat_id;		/* offset into format strings         */
 	char *fmat_type;	/* format argument sequence type      */
-	uns8 str_table_id;
+	uint8_t str_table_id;
 
 } NCSFL_HDR;
 
@@ -169,7 +169,7 @@ typedef struct dta_log_msg {	/* Data associated with registration confirmation *
 	/* Versioning changes: Field to indicate use of fmat type 'D' & DTS version
 	 * for which the msg was encoded. Default value is 0.
 	 */
-	uns8 msg_fmat_ver;
+	uint8_t msg_fmat_ver;
 
 } DTA_LOG_MSG;
 
@@ -182,7 +182,7 @@ typedef struct log_msg_fltr {	/* Data associated with the Service specific log f
 	SS_SVC_ID svc_id;	/* Service ID of the service */
 	NCS_BOOL enable_log;	/* TRUE = Enable; FALSE = Disable */
 	uns32 category_bit_map;	/* Category filter Bit map  */
-	uns8 severity_bit_map;	/* Severity filter Bit Map */
+	uint8_t severity_bit_map;	/* Severity filter Bit Map */
 
 	/* No need of policy handles */
 	/*uns32            policy_hdl; */

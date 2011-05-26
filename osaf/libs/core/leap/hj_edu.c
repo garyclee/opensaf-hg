@@ -127,7 +127,7 @@ static int edu_chk_ver_ge(EDU_MSG_VERSION *local_version, EDU_MSG_VERSION *to_ve
 
 *****************************************************************************/
 uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
-		       EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version, uns8 var_cnt, ...)
+		       EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version, uint8_t var_cnt, ...)
 {
 	uns32 rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
 	EDU_BUF_ENV lcl_edu_buf;
@@ -279,7 +279,7 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 *****************************************************************************/
 uns32 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 		       NCSCONTEXT bufp, uns32 buf_size, EDP_OP_TYPE op,
-		       NCSCONTEXT arg, EDU_ERR *o_err, uns8 var_cnt, ...)
+		       NCSCONTEXT arg, EDU_ERR *o_err, uint8_t var_cnt, ...)
 {
 	uns32 rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
 	EDU_BUF_ENV lcl_edu_buf;
@@ -415,7 +415,7 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 	uns32 lcl_rc = NCSCC_RC_SUCCESS, dtype_attrb = 0x00000000;
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	uns32 next_offset = 0, cnt = 0;	/* for linked list */
-	uns8 *p8, u8 = 0;
+	uint8_t *p8, u8 = 0;
 	uns16 u16 = 0;
 
 	if (edp == NULL) {
@@ -450,11 +450,11 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 
 			/* Decode the "count"(in network order) from the USRBUF */
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -462,11 +462,11 @@ uns32 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 		} else if ((rule != NULL) && ((rule->fld2 & EDQ_POINTER) == EDQ_POINTER)) {
 			/* Decode the "ptr_count" from the USRBUF */
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u8, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u8, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -542,7 +542,7 @@ uns32 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	else if (optype == EDP_OP_TYPE_PP) {
 		if ((hdl_node = (EDU_HDL_NODE *)
-		     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&prog[0].fld1)) == NULL) {
+		     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog[0].fld1)) == NULL) {
 			rc = ncs_edu_compile_edp(edu_hdl, prog[0].fld1, &hdl_node, o_err);
 			if (rc != NCSCC_RC_SUCCESS) {
 				*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
@@ -562,7 +562,7 @@ uns32 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		switch (admin_info->adm_op_type) {
 		case NCS_EDU_ADMIN_OP_TYPE_COMPILE:
 			if ((hdl_node = (EDU_HDL_NODE *)
-			     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&prog[0].fld1)) == NULL) {
+			     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog[0].fld1)) == NULL) {
 				rc = ncs_edu_compile_edp(edu_hdl, prog[0].fld1, &hdl_node, o_err);
 				if (rc != NCSCC_RC_SUCCESS) {
 					return m_LEAP_DBG_SINK(rc);
@@ -837,7 +837,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS, lcnt = 0, l_size = 0;
 	uns32 lcl_cnt = 0;
-	uns8 *p8 = NULL;
+	uint8_t *p8 = NULL;
 
 	if ((rule->fld2 & EDQ_ARRAY) == EDQ_ARRAY) {
 		uns32 loop_cnt = rule->fld6;	/* Array size */
@@ -868,7 +868,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if (!ncs_edu_return_builtin_edp_size(rule->fld1, &l_size)) {
 				/* This is not builtin EDP */
 				if ((lcl_hdl_node = (EDU_HDL_NODE *)
-				     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&rule->fld1)) == NULL) {
+				     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
 					*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				}
@@ -893,7 +893,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				is_builtin_edp = FALSE;
 
 				if ((lcl_hdl_node = (EDU_HDL_NODE *)
-				     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&rule->fld1)) == NULL) {
+				     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
 					*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				}
@@ -904,10 +904,10 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			newptr = (NCSCONTEXT)(*(long **)((long)ptr + (long)rule->fld5));
 			if (is_builtin_edp) {
 				if (buf_env->is_ubaid) {
-					/* Enc/dec optimization only for uns8 or char var-len-data */
+					/* Enc/dec optimization only for uint8_t or char var-len-data */
 					if ((l_size != 0)
 					    && ((rule->fld1 == ncs_edp_char) || (rule->fld1 == ncs_edp_uns8))) {
-						/* For uns8*, or char*, compute effective
+						/* For uint8_t*, or char*, compute effective
 						   bytes to encode in a single go. */
 						lcl_cnt = (l_size * (*ptr_data_len));
 						if (lcl_cnt != 0) {
@@ -1017,7 +1017,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			is_builtin_edp = FALSE;
 
 			if ((lcl_hdl_node = (EDU_HDL_NODE *)
-			     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&rule->fld1)) == NULL) {
+			     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
 				*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			}
@@ -1046,17 +1046,17 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		newptr = (NCSCONTEXT)(*(long **)((long)ptr + (long)rule->fld5));
 		if (is_builtin_edp) {
 			if (buf_env->is_ubaid) {
-				/* Enc/dec optimization only for uns8 or char var-len-data */
+				/* Enc/dec optimization only for uint8_t or char var-len-data */
 				if ((l_size != 0) && ((rule->fld1 == ncs_edp_char) || (rule->fld1 == ncs_edp_uns8))) {
 					uns32 lcl_cnt = 0;
 
-					/* For uns8*, or char*, compute effective
+					/* For uint8_t*, or char*, compute effective
 					   bytes to encode in a single go. */
 					lcl_cnt = (l_size * (*ptr_data_len));
 
 					if (lcl_cnt != 0) {
 						if (ncs_decode_n_octets_from_uba(buf_env->info.uba,
-										 (uns8 *)newptr,
+										 (uint8_t *)newptr,
 										 lcl_cnt) != NCSCC_RC_SUCCESS) {
 							*o_err = EDU_ERR_MEM_FAIL;
 							return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -1112,16 +1112,16 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 		if (rule->fld1 == ncs_edp_char) {
 			uns16 u16 = 0;
-			uns8 *p8 = NULL;
+			uint8_t *p8 = NULL;
 
 			/* Decode in the form of character string, rather than an array of
 			   characters. */
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1137,7 +1137,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			if (!ncs_edu_return_builtin_edp_size(rule->fld1, &l_size)) {
 				/* This is not builtin EDP */
 				if ((lcl_hdl_node = (EDU_HDL_NODE *)
-				     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&rule->fld1)) == NULL) {
+				     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
 					*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				}
@@ -1154,9 +1154,9 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		if (rc != NCSCC_RC_SUCCESS)
 			return rc;
 		if ((rule->fld2 & EDQ_POINTER) == EDQ_POINTER) {
-			if (*(uns8 **)((long)ptr + (long)rule->fld5) == NULL)
+			if (*(uint8_t **)((long)ptr + (long)rule->fld5) == NULL)
 			{
-				*(uns8 **)((long)ptr + (long)rule->fld5) = newptr;
+				*(uint8_t **)((long)ptr + (long)rule->fld5) = newptr;
 			}
 		}
 	}
@@ -1230,7 +1230,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		   "ncs_edu_get_size_of_var_len_data" after reading the value from PPDB database. */
 		if (is_builtin_edp) {
 			if (buf_env->is_ubaid) {
-				/* Enc/dec optimization only for uns8 or char var-len-data */
+				/* Enc/dec optimization only for uint8_t or char var-len-data */
 				if ((l_size != 0) && ((rule->fld1 == ncs_edp_char) || (rule->fld1 == ncs_edp_uns8))) {
 					uns32 lcl_cnt = 0;
 
@@ -1239,7 +1239,7 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 					lcl_cnt = (l_size * (*ptr_data_len));
 
 					if (ncs_decode_n_octets_from_uba(buf_env->info.uba,
-									 (uns8 *)lclptr, lcl_cnt) != NCSCC_RC_SUCCESS) {
+									 (uint8_t *)lclptr, lcl_cnt) != NCSCC_RC_SUCCESS) {
 						*o_err = EDU_ERR_MEM_FAIL;
 						return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 					}
@@ -1302,16 +1302,16 @@ uns32 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 		if (rule->fld1 == ncs_edp_char) {
 			uns16 u16 = 0;
-			uns8 *p8 = NULL;
+			uint8_t *p8 = NULL;
 
 			/* Decode in the form of character string, rather than an array of
 			   characters. */
 			if (buf_env->is_ubaid) {
-				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8 *)&u16, 2);
+				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u16, 2);
 				u16 = ncs_decode_16bit(&p8);
 				ncs_dec_skip_space(buf_env->info.uba, 2);
 			} else {
-				p8 = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				u16 = ncs_decode_tlv_16bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 			}
@@ -1536,11 +1536,11 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	uns16 cnt = 0, ptr_cnt = 0;
 	NCS_EDU_ADMIN_OP_INFO admin_op;
 	int rc_lbl = EDU_NEXT;
-	uns8 *encoded_cnt_loc = NULL, *encoded_ptr_cnt_loc = NULL;
+	uint8_t *encoded_cnt_loc = NULL, *encoded_ptr_cnt_loc = NULL;
 	NCSCONTEXT lclptr = ptr;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
 	NCS_BOOL is_select_on = FALSE;
-	uns8 select_index = 0;
+	uint8_t select_index = 0;
 
 	if ((prog[0].fld2 & EDQ_LNKLIST) == EDQ_LNKLIST) {
 		/* This is a linked list. So, increment the counter for the 
@@ -1554,7 +1554,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			}
 			ncs_enc_claim_space(buf_env->info.uba, 2);
 		} else {
-			encoded_cnt_loc = (uns8 *)buf_env->info.tlv_env.cur_bufp;
+			encoded_cnt_loc = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 2);
 		}
 		cnt++;
@@ -1576,7 +1576,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			   field of "uns32" size to denote whether the pointer is
 			   NULL or not. */
 			if ((lcl_hdl_node = (EDU_HDL_NODE *)
-			     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&prog[cur_inst_indx].fld1)) != NULL) {
+			     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog[cur_inst_indx].fld1)) != NULL) {
 				dtype_attrb = lcl_hdl_node->attrb;
 			} else {
 				/* Not there in EDU_HDL. */
@@ -1795,7 +1795,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	int rc_lbl = EDU_NEXT;
 	NCSCONTEXT lclptr = ptr;
 	NCS_BOOL is_select_on = FALSE;
-	uns8 select_index = 0;
+	uint8_t select_index = 0;
 
 	if ((edu_tkn != NULL) && (edu_tkn->var_cnt != 0)) {
 		if ((edu_tkn->parent_edp == prog[0].fld1) && (edu_tkn->var_array != NULL)) {
@@ -1932,7 +1932,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	int rc_lbl = EDU_NEXT;
 	NCSCONTEXT lclptr = ptr;
 	NCS_BOOL is_select_on = FALSE;
-	uns8 select_index = 0;
+	uint8_t select_index = 0;
 
 	if (edu_tkn->var_cnt != 0) {
 		if ((edu_tkn->parent_edp == hdl_node->edp) && (edu_tkn->var_array != NULL)) {
@@ -2268,7 +2268,7 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 						/* This is not builtin EDP */
 						if ((lcl_hdl_node = (EDU_HDL_NODE *)
 						     ncs_patricia_tree_get(&edu_hdl->tree,
-									   (uns8 *)&prog[i].fld1)) == NULL) {
+									   (uint8_t *)&prog[i].fld1)) == NULL) {
 							*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 							return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 						}
@@ -2338,7 +2338,7 @@ uns32 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 				if (!ncs_edu_return_builtin_edp_size(prog[i].fld1, &l_size)) {
 					/* This is not builtin EDP */
 					if ((lcl_hdl_node = (EDU_HDL_NODE *)
-					     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&prog[i].fld1)) == NULL) {
+					     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog[i].fld1)) == NULL) {
 						*o_err = EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME;
 						return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 					}
@@ -2653,7 +2653,7 @@ static void ncs_edu_ppdb_destroy(EDU_PPDB * ppdb)
 
 	if (ppdb->is_up) {
 		for (;;) {
-			if ((pnode = ncs_patricia_tree_getnext(&ppdb->tree, (const uns8 *)key)) != 0) {
+			if ((pnode = ncs_patricia_tree_getnext(&ppdb->tree, (const uint8_t *)key)) != 0) {
 				/* Store the key for the next getnext call */
 				edu_populate_ppdb_key(&lclkey,
 						      ((EDU_PPDB_NODE_INFO *) pnode)->key.parent_edp,
@@ -2718,7 +2718,7 @@ static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 
 	/* Check for the presence of the node in the PPDB */
 	if ((node = (EDU_PPDB_NODE_INFO *)
-	     ncs_patricia_tree_get(&ppdb->tree, (uns8 *)&key)) == NULL) {
+	     ncs_patricia_tree_get(&ppdb->tree, (uint8_t *)&key)) == NULL) {
 		if (add) {
 			/* This is a new one */
 			if ((node = (new_node = m_MMGR_ALLOC_EDU_PPDB_NODE_INFO)) == NULL) {
@@ -2729,7 +2729,7 @@ static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 
 			/* Init the node info */
 			node->key = key;
-			node->pat_node.key_info = (uns8 *)&node->key;
+			node->pat_node.key_info = (uint8_t *)&node->key;
 
 			/* Add the node to the tree */
 			if (ncs_patricia_tree_add(&ppdb->tree, &node->pat_node)
@@ -2819,7 +2819,7 @@ void ncs_edu_log_msg(char *string)
 
 *****************************************************************************/
 uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-			    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err, uns8 var_cnt, int *var_array)
+			    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
 	EDU_TKN lcl_edu_tkn;
 	USRBUF *pp_ubuf = NULL;
@@ -2913,7 +2913,7 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 *****************************************************************************/
 uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 			     EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
-			     EDU_ERR *o_err, uns8 var_cnt, int *var_array)
+			     EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
 	EDU_TKN tkn;
 	uns32 lclrc = NCSCC_RC_SUCCESS;
@@ -2963,7 +2963,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 *****************************************************************************/
 uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 			     EDU_BUF_ENV *buf_env, uns32 *cnt,
-			     NCSCONTEXT arg, EDU_ERR *o_err, uns8 var_cnt, int *var_array)
+			     NCSCONTEXT arg, EDU_ERR *o_err, uint8_t var_cnt, int *var_array)
 {
 	uns32 lclrc = NCSCC_RC_SUCCESS;
 	EDU_TKN tkn;
@@ -3200,13 +3200,13 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
 	if (prog == ncs_edp_ncs_bool)
 		*o_size = sizeof(NCS_BOOL);
 	else if (prog == ncs_edp_uns8)
-		*o_size = sizeof(uns8);
+		*o_size = sizeof(uint8_t);
 	else if (prog == ncs_edp_uns16)
 		*o_size = sizeof(uns16);
 	else if (prog == ncs_edp_uns32)
 		*o_size = sizeof(uns32);
 	else if (prog == ncs_edp_int8)
-		*o_size = sizeof(int8);
+		*o_size = sizeof(int8_t);
 	else if (prog == ncs_edp_int16)
 		*o_size = sizeof(int16);
 	else if (prog == ncs_edp_int32)
@@ -3250,7 +3250,7 @@ uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE 
 
 	/* If hdl_node entry not present, add now. */
 	if ((lcl_hdl_node = (EDU_HDL_NODE *)
-	     ncs_patricia_tree_get(&edu_hdl->tree, (uns8 *)&prog)) == NULL) {
+	     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog)) == NULL) {
 		if ((lcl_hdl_node = (new_node = m_MMGR_ALLOC_EDU_HDL_NODE)) == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -3259,7 +3259,7 @@ uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE 
 
 		/* Init the node info */
 		lcl_hdl_node->edp = prog;
-		lcl_hdl_node->pat_node.key_info = (uns8 *)&lcl_hdl_node->edp;
+		lcl_hdl_node->pat_node.key_info = (uint8_t *)&lcl_hdl_node->edp;
 
 		/* Add the node to the tree */
 		if (ncs_patricia_tree_add(&edu_hdl->tree, &lcl_hdl_node->pat_node)
@@ -3328,7 +3328,7 @@ uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
 
 	if (edu_hdl->is_inited == TRUE) {
 		for (;;) {
-			if ((pnode = ncs_patricia_tree_getnext(&edu_hdl->tree, (const uns8 *)key)) != NULL) {
+			if ((pnode = ncs_patricia_tree_getnext(&edu_hdl->tree, (const uint8_t *)key)) != NULL) {
 				/* Store the key for the next getnext call */
 				lcl_key = ((EDU_HDL_NODE *)pnode)->edp;
 				key = &lcl_key;
@@ -3386,7 +3386,7 @@ static void edu_hdl_node_del(EDU_HDL *edu_hdl, EDU_HDL_NODE *node)
 *****************************************************************************/
 void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt)
 {
-	tlv_env->cur_bufp = (NCSCONTEXT)((uns8 *)tlv_env->cur_bufp + cnt);
+	tlv_env->cur_bufp = (NCSCONTEXT)((uint8_t *)tlv_env->cur_bufp + cnt);
 	tlv_env->bytes_consumed += cnt;
 
 	if (tlv_env->bytes_consumed > tlv_env->size) {
@@ -3406,14 +3406,14 @@ void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_8bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val)
 {
 	uns16 len = 1;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_8BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_8BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
+	*(*stream)++ = (uint8_t)(val);
 	return EDU_TLV_HDR_SIZE + 1;
 }
 
@@ -3426,15 +3426,15 @@ uns32 ncs_encode_tlv_8bit(uns8 **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_16bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val)
 {
 	uns16 len = 2;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_16BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
-	*(*stream)++ = (uns8)(val >> 8);
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_16BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
+	*(*stream)++ = (uint8_t)(val >> 8);
+	*(*stream)++ = (uint8_t)(val);
 	return EDU_TLV_HDR_SIZE + 2;
 }
 
@@ -3447,20 +3447,20 @@ uns32 ncs_encode_tlv_16bit(uns8 **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_16bit(uns8 **stream, uns16 *val_ptr, uns16 n_count)
+uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uns16 *val_ptr, uns16 n_count)
 {
 	uns16 lcnt = 0, len = n_count, val = 0;
 
 	if (n_count == 0)
 		return 0;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_16BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_16BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
 	for (; lcnt < n_count; lcnt++) {
 		val = *val_ptr;
-		*(*stream)++ = (uns8)(val >> 8);
-		*(*stream)++ = (uns8)(val);
+		*(*stream)++ = (uint8_t)(val >> 8);
+		*(*stream)++ = (uint8_t)(val);
 		val_ptr++;
 	}
 	return (EDU_TLV_HDR_SIZE + (2 * n_count));
@@ -3475,17 +3475,17 @@ uns32 ncs_encode_tlv_n_16bit(uns8 **stream, uns16 *val_ptr, uns16 n_count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_32bit(uns8 **stream, uns32 val)
+uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val)
 {
 	uns16 len = 4;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_32BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
-	*(*stream)++ = (uns8)(val >> 24);
-	*(*stream)++ = (uns8)(val >> 16);
-	*(*stream)++ = (uns8)(val >> 8);
-	*(*stream)++ = (uns8)(val);
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_32BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
+	*(*stream)++ = (uint8_t)(val >> 24);
+	*(*stream)++ = (uint8_t)(val >> 16);
+	*(*stream)++ = (uint8_t)(val >> 8);
+	*(*stream)++ = (uint8_t)(val);
 	return EDU_TLV_HDR_SIZE + 4;
 }
 
@@ -3498,7 +3498,7 @@ uns32 ncs_encode_tlv_32bit(uns8 **stream, uns32 val)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count)
+uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uns16 n_count)
 {
 	uns16 lcnt = 0, len = n_count;
 	uns32 val = 0;
@@ -3506,15 +3506,15 @@ uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count)
 	if (n_count == 0)
 		return 0;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_32BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_32BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
 	for (; lcnt < n_count; lcnt++) {
 		val = *val_ptr;
-		*(*stream)++ = (uns8)(val >> 24);
-		*(*stream)++ = (uns8)(val >> 16);
-		*(*stream)++ = (uns8)(val >> 8);
-		*(*stream)++ = (uns8)(val);
+		*(*stream)++ = (uint8_t)(val >> 24);
+		*(*stream)++ = (uint8_t)(val >> 16);
+		*(*stream)++ = (uint8_t)(val >> 8);
+		*(*stream)++ = (uint8_t)(val);
 		val_ptr++;
 	}
 	return (EDU_TLV_HDR_SIZE + (4 * n_count));
@@ -3529,14 +3529,14 @@ uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_n_octets(uns8 **stream, uns8 *val, uns16 count)
+uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uns16 count)
 {
 	int i;
 	uns16 lcnt = count;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_OCT);	/* type */
-	*(*stream)++ = (uns8)(lcnt >> 8);	/* length */
-	*(*stream)++ = (uns8)lcnt;	/* length */
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_OCT);	/* type */
+	*(*stream)++ = (uint8_t)(lcnt >> 8);	/* length */
+	*(*stream)++ = (uint8_t)lcnt;	/* length */
 	if (count != 0) {
 		if (val == NULL) {
 			/* Source pointer is NULL. Still encode the "TL" part. */
@@ -3558,13 +3558,13 @@ uns32 ncs_encode_tlv_n_octets(uns8 **stream, uns8 *val, uns16 count)
   RETURNS:          Number of bytes encoded.
 
 *****************************************************************************/
-uns32 ncs_encode_tlv_64bit(uns8 **stream, uns64 val)
+uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val)
 {
 	uns16 len = 8;
 
-	*(*stream)++ = (uns8)(NCS_EDU_FMAT_64BIT);	/* type */
-	*(*stream)++ = (uns8)(len >> 8);	/* length */
-	*(*stream)++ = (uns8)len;	/* length */
+	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_64BIT);	/* type */
+	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
+	*(*stream)++ = (uint8_t)len;	/* length */
 
 	m_NCS_OS_HTONLL_P((*stream), val);
 	(*stream) += 8;
@@ -3581,7 +3581,7 @@ uns32 ncs_encode_tlv_64bit(uns8 **stream, uns64 val)
   RETURNS:          Decoded "64bit" value.
 
 *****************************************************************************/
-uns64 ncs_decode_tlv_64bit(uns8 **stream)
+uns64 ncs_decode_tlv_64bit(uint8_t **stream)
 {
 	uns64 val = 0;		/* Accumulator */
 
@@ -3602,7 +3602,7 @@ uns64 ncs_decode_tlv_64bit(uns8 **stream)
   RETURNS:          Decoded "32bit" value.
 
 *****************************************************************************/
-uns32 ncs_decode_tlv_32bit(uns8 **stream)
+uns32 ncs_decode_tlv_32bit(uint8_t **stream)
 {
 	uns32 val = 0;		/* Accumulator */
 
@@ -3626,14 +3626,14 @@ uns32 ncs_decode_tlv_32bit(uns8 **stream)
   RETURNS:          Number of "uns32" decoded.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest)
+uns16 ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest)
 {
 	uns32 val = 0;		/* Accumulator */
 	uns16 lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
 
-	len = (uns16)((uns8)(*(*stream)++) << 8);
+	len = (uns16)((uint8_t)(*(*stream)++) << 8);
 	len |= (uns16)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
@@ -3657,7 +3657,7 @@ uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest)
   RETURNS:          Decoded "16bit" value.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_16bit(uns8 **stream)
+uns16 ncs_decode_tlv_16bit(uint8_t **stream)
 {
 	uns32 val = 0;		/* Accumulator */
 
@@ -3679,14 +3679,14 @@ uns16 ncs_decode_tlv_16bit(uns8 **stream)
   RETURNS:          Number of "uns16" decoded.
 
 *****************************************************************************/
-uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest)
+uns16 ncs_decode_tlv_n_16bit(uint8_t **stream, uns16 *dest)
 {
 	uns16 val = 0;		/* Accumulator */
 	uns16 lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
 
-	len = (uns16)((uns8)(*(*stream)++) << 8);
+	len = (uns16)((uint8_t)(*(*stream)++) << 8);
 	len |= (uns16)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
@@ -3708,7 +3708,7 @@ uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest)
   RETURNS:          Decoded "8bit" value.
 
 *****************************************************************************/
-uns8 ncs_decode_tlv_8bit(uns8 **stream)
+uint8_t ncs_decode_tlv_8bit(uint8_t **stream)
 {
 	uns32 val = 0;		/* Accumulator */
 
@@ -3717,7 +3717,7 @@ uns8 ncs_decode_tlv_8bit(uns8 **stream)
 	(*stream)++;
 	val = (uns32)*(*stream)++;
 
-	return (uns8)(val & 0x000000FF);
+	return (uint8_t)(val & 0x000000FF);
 }
 
 /*****************************************************************************
@@ -3729,7 +3729,7 @@ uns8 ncs_decode_tlv_8bit(uns8 **stream)
   RETURNS:          Decoded "octet" value.
 
 *****************************************************************************/
-uns8 *ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
+uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
 {
 	if (src == NULL)
 		return NULL;
@@ -3753,7 +3753,7 @@ uns8 *ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
   RETURNS:          Copied "octet" data.
 
 *****************************************************************************/
-uns8 *ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
+uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count)
 {
 	if (src == NULL)
 		return NULL;
@@ -3779,9 +3779,9 @@ uns8 *ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
 static uns32 ncs_edu_get_size_of_var_len_data(EDU_PROG_HANDLER edp, NCSCONTEXT cptr, uns32 *p_data_len, EDU_ERR *o_err)
 {
 	if (edp == ncs_edp_uns8)
-		*p_data_len = (uns32)(*(uns8 *)cptr);
+		*p_data_len = (uns32)(*(uint8_t *)cptr);
 	else if (edp == ncs_edp_int8)
-		*p_data_len = (uns32)(*(int8 *)cptr);
+		*p_data_len = (uns32)(*(int8_t *)cptr);
 	else if (edp == ncs_edp_uns16)
 		*p_data_len = (uns32)(*(uns16 *)cptr);
 	else if (edp == ncs_edp_int16)

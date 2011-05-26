@@ -142,7 +142,7 @@ uns32 dts_svc_create(DTS_CREATE *create)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
 	}
 
-	pt_params.key_size = DTS_MAX_LIBNAME * sizeof(int8);
+	pt_params.key_size = DTS_MAX_LIBNAME * sizeof(int8_t);
 
 	/* create patricia tree keeping libnames of ASCII SPEC table registered */
 	if (ncs_patricia_tree_init(&inst->libname_asciispec_tree, &pt_params) != NCSCC_RC_SUCCESS) {
@@ -343,7 +343,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 				/*Free the dta_list patricia tree before releasing memory */
 				if ((dta_node =
 				     (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list,
-									    (const uns8 *)&vkey)) == NULL) {
+									    (const uint8_t *)&vkey)) == NULL) {
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dtsv_clear_registration_table: DTA entry doesn't exist in dta tree");
 				}
@@ -394,7 +394,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 				       "dtsv_clear_registration_table: Failed to delete svc entry, svc_reg->v_cd_list is not empty");
 		}
 
-		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uint8_t *)&nt_key);
 	}
 
 	/* Now clear the dta patricia tree also, now that there are no dta_ptrs

@@ -185,7 +185,7 @@ uns32 mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
 	/* We need to scan the entire database and remove the track inforamtion
 	 * pertaining to the user
 	 */
-	for (pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)0); pNode;
+	for (pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)0); pNode;
 	     pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, pNode->node.key_info)) {
 
 		/* Delete the track information for the user */
@@ -230,7 +230,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 
 	m_LOG_MQSV_D(MQD_TMR_EXPIRED, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, NCS_PTR_TO_UNS32_CAST(nodeid), __FILE__,
 		     __LINE__);
-	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)nodeid);
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)nodeid);
 
 	/* We need to scan the entire database and remove the track inforamtion
 	 * pertaining to the user
@@ -246,7 +246,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 			pNdNode->info.timer.tmr_id = TMR_T_NULL;
 		}
 
-		pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)0);
+		pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)0);
 		while (pNode) {
 			ASAPi_DEREG_INFO dereg;
 			SaNameT name;
@@ -261,7 +261,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 				rc = mqd_asapi_dereg_hdlr(pMqd, &dereg, NULL);
 			}
 
-			pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)&name);
+			pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&name);
 		}
 		/* Send an async Update to the standby */
 		memset(&msg, 0, sizeof(MQD_A2S_MSG));
@@ -327,7 +327,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info
 		TRACE("MDS DOWN PROCESSED ON %d DONE", pMqd->ha_state);
 	} else {
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
-		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)&node_id);
+		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&node_id);
 		if (pNdNode) {
 			mqd_tmr_stop(&pNdNode->info.timer);
 			pNdNode->info.is_restarted = TRUE;
@@ -482,7 +482,7 @@ static uns32 mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 		rsp.msg.mqnd_ctrl.type = MQND_CTRL_EVT_QGRP_CNT_RSP;
 		rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.queueName = qgrp_cnt_info->info.queueName;
 
-		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uns8 *)&qgrp_cnt_info->info.queueName);
+		pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&qgrp_cnt_info->info.queueName);
 		if (pObjNode) {
 			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.error = SA_AIS_OK;
 			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf = pObjNode->oinfo.ilist.count;
@@ -512,7 +512,7 @@ static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE 
 	MQD_OBJ_NODE *pObjNode = 0;
 
 	/* Get hold of the MQD controll block */
-	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uns8 *)name);
+	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)name);
 
 	*o_node = pObjNode;
 	if (pObjNode)
@@ -536,7 +536,7 @@ static NCS_BOOL mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_
 	MQD_ND_DB_NODE *pNdNode = 0;
 
 	/* Get hold of the MQD controll block */
-	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uns8 *)node_id);
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)node_id);
 
 	*o_node = pNdNode;
 	if (pNdNode)

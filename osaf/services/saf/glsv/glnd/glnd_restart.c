@@ -204,16 +204,16 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 
 	client_info =
 	    (GLND_CLIENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_client_tree,
-						      (uns8 *)&(restart_res_lock_list_info->lock_info.handleId));
+						      (uint8_t *)&(restart_res_lock_list_info->lock_info.handleId));
 
 	res_info =
 	    (GLND_RESOURCE_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_res_tree,
-							(uns8 *)&(restart_res_lock_list_info->resource_id));
+							(uint8_t *)&(restart_res_lock_list_info->resource_id));
 	if (res_info) {
 		memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
 
 		lck_list_info->lck_info_hdl_id =
-		    ncshm_create_hdl((uns8)glnd_cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
+		    ncshm_create_hdl((uint8_t)glnd_cb->pool_id, NCS_SERVICE_ID_GLND, (NCSCONTEXT)lck_list_info);
 
 		lck_list_info->lock_info = restart_res_lock_list_info->lock_info;
 		if (node_id == m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id))
@@ -350,7 +350,7 @@ static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_I
 
 	if (new_node) {
 		/* add it to the tree */
-		res_info->patnode.key_info = (uns8 *)&res_info->resource_id;
+		res_info->patnode.key_info = (uint8_t *)&res_info->resource_id;
 		if (ncs_patricia_tree_add(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
 			m_LOG_GLND_API(GLND_RSC_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
@@ -396,7 +396,7 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB *glnd_cb, SaLc
 	res_info->resource_id = resource_id;
 
 	/* add it to the tree */
-	res_info->patnode.key_info = (uns8 *)&res_info->resource_id;
+	res_info->patnode.key_info = (uint8_t *)&res_info->resource_id;
 	if (ncs_patricia_tree_add(&glnd_cb->glnd_res_tree, &res_info->patnode) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLND_API(GLND_RSC_NODE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);

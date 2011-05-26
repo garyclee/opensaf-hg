@@ -59,8 +59,8 @@ typedef struct mdtm_reassembly_queue {
 	/* Explicit key for fast-access in the send and receive flow */
 	MDTM_REASSEMBLY_KEY key;
 
-	uns8 to_be_dropped;	/* Out of recd or anything more */
-	uns8 tmr_flag;		/* If true represents the timer running else timer has stopped
+	uint8_t to_be_dropped;	/* Out of recd or anything more */
+	uint8_t tmr_flag;		/* If true represents the timer running else timer has stopped
 				   donot reassemble any further data */
 	uns16 next_frag_num;
 
@@ -158,9 +158,9 @@ uns32 mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref);
 uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref);
 uns32 mds_tmr_mailbox_processing(void);
 uns32 mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref, MDS_SVC_HDL *svc_hdl);
-uns32 mdtm_add_frag_hdr(uns8 *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte);
+uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uns16 len, uns32 seq_num, uns16 frag_byte);
 uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg);
-uns32 mdtm_process_recv_data(uns8 *buf, uns16 len, uns64 tipc_id, uns32 *buff_dump);
+uns32 mdtm_process_recv_data(uint8_t *buf, uns16 len, uns64 tipc_id, uns32 *buff_dump);
 
 typedef enum {
 	MDTM_TX_TYPE_TIPC = 1,
@@ -210,7 +210,7 @@ typedef struct mdtm_ref_hdl_list {
 
 MDTM_REF_HDL_LIST *mdtm_ref_hdl_list_hdr;
 uns32 mdtm_attach_mbx(SYSF_MBX mbx);
-void mds_buff_dump(uns8 *buff, uns32 len, uns32 max);
+void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max);
 NCS_PATRICIA_TREE mdtm_reassembly_list;
 
 uns32 mdtm_set_transport(MDTM_TX_TYPE transport);

@@ -56,7 +56,7 @@ typedef struct avnd_cb_tag {
 	NCS_LOCK mon_lock;	/* PID monitor lock */
 
 	/* external interface related params */
-	uns8 pool_id;		/* pool-id used by hdl mngr */
+	uint8_t pool_id;		/* pool-id used by hdl mngr */
 	EDU_HDL edu_hdl;	/* edu handle */
 	EDU_HDL edu_hdl_avnd;	/* edu handle for avnd-avnd interface */
 	EDU_HDL edu_hdl_ava;	/* edu handle for ava interface */

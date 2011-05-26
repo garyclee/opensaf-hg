@@ -63,10 +63,10 @@ void lgs_evt_destroy(lgsv_lgs_evt_t *evt)
 ******************************************************************************/
 static uns32 dec_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_initialize_req_t *param = &msg->info.api_info.param.init;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 
 	/* releaseCode, majorVersion, minorVersion */
 	p8 = ncs_dec_flatten_space(uba, local_data, 3);
@@ -94,10 +94,10 @@ static uns32 dec_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 dec_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 
 	/* client_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -124,10 +124,10 @@ static uns32 dec_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	int len;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_stream_open_req_t *param = &msg->info.api_info.param.lstr_open_sync;
-	uns8 local_data[256];
+	uint8_t local_data[256];
 
 	/* client_id  */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -152,7 +152,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 2;
 
 	if (len > 0) {
-		ncs_decode_n_octets_from_uba(uba, (uns8 *)param->logFileName, len);
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFileName, len);
 		total_bytes += len;
 	}
 
@@ -163,7 +163,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 2;
 
 	if (len > 0) {
-		ncs_decode_n_octets_from_uba(uba, (uns8 *)param->logFilePathName, len);
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFilePathName, len);
 		total_bytes += len;
 	}
 
@@ -185,7 +185,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 			total_bytes = 0;
 			goto done;
 		}
-		ncs_decode_n_octets_from_uba(uba, (uns8 *)param->logFileFmt, len);
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFileFmt, len);
 		total_bytes += len;
 	}
 
@@ -214,10 +214,10 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 dec_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_stream_close_req_t *param = &msg->info.api_info.param.lstr_close;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 
 	/* client_id, lstr_id, lstr_open_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
@@ -245,10 +245,10 @@ static uns32 dec_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	SaNameT *logSvcUsrName;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_write_log_async_req_t *param = &msg->info.api_info.param.write_log_async;
-	uns8 local_data[1024];
+	uint8_t local_data[1024];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 20);
 	param->invocation = ncs_decode_64bit(&p8);
@@ -427,7 +427,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 enc_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
 
@@ -461,7 +461,7 @@ static uns32 enc_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 enc_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_finalize_rsp_t *param = &msg->info.api_resp_info.param.finalize_rsp;
 
@@ -495,7 +495,7 @@ static uns32 enc_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 enc_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_stream_close_rsp_t *param = &msg->info.api_resp_info.param.close_rsp;
 
@@ -530,7 +530,7 @@ static uns32 enc_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 ******************************************************************************/
 static uns32 enc_lstr_open_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	lgsv_stream_open_rsp_t *param = &msg->info.api_resp_info.param.lstr_open_rsp;
 
@@ -583,7 +583,7 @@ static uns32 mds_enc(struct ncsmds_callback_info *info)
 {
 	lgsv_msg_t *msg;
 	NCS_UBAID *uba;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
@@ -702,10 +702,10 @@ static uns32 mds_enc(struct ncsmds_callback_info *info)
 
 static uns32 mds_dec(struct ncsmds_callback_info *info)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	lgsv_lgs_evt_t *evt;
 	NCS_UBAID *uba = info->info.dec.io_uba;
-	uns8 local_data[20];
+	uint8_t local_data[20];
 	uns32 total_bytes = 0;
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
@@ -722,7 +722,7 @@ static uns32 mds_dec(struct ncsmds_callback_info *info)
 	}
 
 	/* Assign the allocated event */
-	info->info.dec.o_msg = (uns8 *)evt;
+	info->info.dec.o_msg = (uint8_t *)evt;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	evt->info.msg.type = ncs_decode_32bit(&p8);

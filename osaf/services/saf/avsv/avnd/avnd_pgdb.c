@@ -35,7 +35,7 @@
 #include "avnd.h"
 
 /* static function declarations */
-static uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2);
+static uns32 avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2);
 
 /****************************************************************************
   Name          : avnd_pgdb_init
@@ -82,7 +82,7 @@ uns32 avnd_pgdb_destroy(AVND_CB *cb)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each pg rec */
-	while (0 != (pg = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uns8 *)0))) {
+	while (0 != (pg = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0))) {
 		/* delete the record */
 		rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
 		if (NCSCC_RC_SUCCESS != rc)
@@ -151,7 +151,7 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uns32 *rc)
 
 	/* add to the patricia tree */
 	pg->tree_node.bit = 0;
-	pg->tree_node.key_info = (uns8 *)&pg->csi_name;
+	pg->tree_node.key_info = (uint8_t *)&pg->csi_name;
 	*rc = ncs_patricia_tree_add(&cb->pgdb, &pg->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = AVND_ERR_TREE;
@@ -247,7 +247,7 @@ AVND_PG_TRK *avnd_pgdb_trk_rec_add(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_INFO *t
 
 		/* update the record key */
 		pg_trk->info.key = trk_info->key;
-		pg_trk->pg_dll_node.key = (uns8 *)(&(pg_trk->info.key));
+		pg_trk->pg_dll_node.key = (uint8_t *)(&(pg_trk->info.key));
 
 		/* add to the dll */
 		if (NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->trk_list, &pg_trk->pg_dll_node))
@@ -291,7 +291,7 @@ void avnd_pgdb_trk_rec_del(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
 		return;
 
 	/* remove from the dll */
-	ncs_db_link_list_remove(&pg->trk_list, (uns8 *)key);
+	ncs_db_link_list_remove(&pg->trk_list, (uint8_t *)key);
 
 	/* free the memory */
 	free(pg_trk);
@@ -355,7 +355,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 
 		/* update the record key */
 		pg_mem->info.member.compName = mem_info->member.compName;
-		pg_mem->pg_dll_node.key = (uns8 *)&pg_mem->info.member.compName;
+		pg_mem->pg_dll_node.key = (uint8_t *)&pg_mem->info.member.compName;
 
 		/* add to the dll */
 		if (NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->mem_list, &pg_mem->pg_dll_node))
@@ -402,7 +402,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
 		return 0;
 
 	/* remove from the dll */
-	ncs_db_link_list_remove(&pg->mem_list, (uns8 *)comp_name);
+	ncs_db_link_list_remove(&pg->mem_list, (uint8_t *)comp_name);
 
 	/* update the params that are no longer valid */
 	pg_mem->info.change = SA_AMF_PROTECTION_GROUP_REMOVED;
@@ -479,7 +479,7 @@ void avnd_pgdb_mem_rec_del_all(AVND_CB *cb, AVND_PG *pg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2)
+uns32 avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 

@@ -37,7 +37,7 @@ void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes, SaUint16T 
 	}
 }
 
-static uns32 encodeSaNtfValueT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNtfValueTypeT attributeType,
+static uns32 encodeSaNtfValueT(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes, SaNtfValueTypeT attributeType,
 			       SaNtfValueT *ntfAttr)
 {
 
@@ -180,7 +180,7 @@ static uns32 encodeSaNtfValueT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNt
 	return total_bytes;
 }
 
-static uns32 encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNtfAttributeChangeT *ntfAttr)
+static uns32 encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes, SaNtfAttributeChangeT *ntfAttr)
 {
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
@@ -200,7 +200,7 @@ static uns32 encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns8 *p8, uns32 total_b
 	return total_bytes;
 }
 
-static uns32 encodeSaNtfAttribute(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNtfAttributeT *ntfAttr)
+static uns32 encodeSaNtfAttribute(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes, SaNtfAttributeT *ntfAttr)
 {
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
@@ -217,8 +217,8 @@ static uns32 encodeSaNtfAttribute(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, S
 
 static uns32 decodeNtfValueT(NCS_UBAID *uba, uns32 total_bytes, SaNtfValueTypeT attributeType, SaNtfValueT *ntfAttr)
 {
-	uns8 *p8;
-	uns8 local_data[8];
+	uint8_t *p8;
+	uint8_t local_data[8];
 
 	switch (attributeType) {
 	case SA_NTF_VALUE_UINT8:
@@ -312,8 +312,8 @@ static uns32 decodeNtfValueT(NCS_UBAID *uba, uns32 total_bytes, SaNtfValueTypeT 
 
 static uns32 decodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns32 total_bytes, SaNtfAttributeChangeT *ntfAttr)
 {
-	uns8 *p8;
-	uns8 local_data[8];
+	uint8_t *p8;
+	uint8_t local_data[8];
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	ntfAttr->attributeId = ncs_decode_16bit(&p8);
 	ntfAttr->attributeType = ncs_decode_16bit(&p8);
@@ -329,8 +329,8 @@ static uns32 decodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns32 total_bytes, SaNt
 
 static uns32 decodeSaNtfAttribute(NCS_UBAID *uba, uns32 total_bytes, SaNtfAttributeT *ntfAttr)
 {
-	uns8 *p8;
-	uns8 local_data[4];
+	uint8_t *p8;
+	uint8_t local_data[4];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	ntfAttr->attributeId = ncs_decode_16bit(&p8);
@@ -342,7 +342,7 @@ static uns32 decodeSaNtfAttribute(NCS_UBAID *uba, uns32 total_bytes, SaNtfAttrib
 	return total_bytes;
 }
 
-static uns32 encodeSaNameT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNameT *name)
+static uns32 encodeSaNameT(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes, SaNameT *name)
 {
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
@@ -361,9 +361,9 @@ static uns32 encodeSaNameT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNameT 
 	return total_bytes;
 }
 
-static uns32 decodeSaNameT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNameT *name)
+static uns32 decodeSaNameT(NCS_UBAID *uba, uint8_t *p8, uns32 total_bytes, SaNameT *name)
 {
-	uns8 local_data[2];
+	uint8_t local_data[2];
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
 	name->length = ncs_decode_16bit(&p8);
 	if (name->length > SA_MAX_NAME_LENGTH) {
@@ -380,7 +380,7 @@ static uns32 decodeSaNameT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNameT 
 
 static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	int i;
 
@@ -433,7 +433,7 @@ static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 	total_bytes += 8;
 	TRACE_2("ENC: Not ptr %p: %llu", param->notificationId, *param->notificationId);
 
-	ncs_encode_n_octets_in_uba(uba, (uns8 *)param->additionalText, (uns32)param->lengthAdditionalText);
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->additionalText, (uns32)param->lengthAdditionalText);
 	total_bytes += (uns32)param->lengthAdditionalText;
 
 	for (i = 0; i < param->numCorrelatedNotifications; i++) {
@@ -469,7 +469,7 @@ static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 
 uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -761,7 +761,7 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 
 uns32 ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	int i;
 	
@@ -797,9 +797,9 @@ uns32 ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 
 static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 	int i;
 	/* SaNtfNotificationHeaderT size params */
 	SaUint16T numCorrelatedNotifications;
@@ -843,7 +843,7 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 
 	if (param->lengthAdditionalText > 0) {
 		/* dealloc in ntfs_evt.c: proc_send_not_msg */
-		ncs_decode_n_octets_from_uba(uba, (uns8 *)param->additionalText, (uns32)param->lengthAdditionalText);
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->additionalText, (uns32)param->lengthAdditionalText);
 		total_bytes += (uns32)param->lengthAdditionalText;
 		param->additionalText[param->lengthAdditionalText - 1] = '\0';
 	}
@@ -871,9 +871,9 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 
 uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[16];
+	uint8_t local_data[16];
 
 	TRACE_ENTER();
 
@@ -1076,9 +1076,9 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 
 uns32 ntfsv_dec_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 	int i;
 	
 	TRACE_ENTER();
@@ -1111,7 +1111,7 @@ uns32 ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
 {
 	int i;
 	uns32 rc;
-	uns8 *p8;
+	uint8_t *p8;
 
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8)
@@ -1159,7 +1159,7 @@ uns32 ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
 
 uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0, rc;
 	int i;
 	
@@ -1429,9 +1429,9 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 uns32 ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
 {
 	int i;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 rc ;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 	
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	h->numEventTypes = ncs_decode_16bit(&p8);
@@ -1480,9 +1480,9 @@ uns32 ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
 uns32 ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 {
 	int i;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 rc = 0;
-	uns8 local_data[10];
+	uint8_t local_data[10];
 	uns32 filter_type;
 	param->f_rec.alarm_filter = NULL;
 	param->f_rec.att_ch_filter = NULL;
@@ -1755,7 +1755,7 @@ error_free:
 
 uns32 ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -1777,9 +1777,9 @@ uns32 ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param)
 
 uns32 ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	*param = ncs_decode_64bit(&p8);
@@ -1791,7 +1791,7 @@ uns32 ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param)
 
 uns32 ntfsv_enc_32bit_msg(NCS_UBAID *uba, uns32 param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	TRACE_ENTER();
@@ -1813,9 +1813,9 @@ uns32 ntfsv_enc_32bit_msg(NCS_UBAID *uba, uns32 param)
 
 uns32 ntfsv_dec_32bit_msg(NCS_UBAID *uba, uns32 *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	*param = ncs_decode_32bit(&p8);
@@ -1827,7 +1827,7 @@ uns32 ntfsv_dec_32bit_msg(NCS_UBAID *uba, uns32 *param)
 
 uns32 ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	assert(uba != NULL);
 
@@ -1847,9 +1847,9 @@ uns32 ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
 
 uns32 ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 
 	/* client_id, lstr_id, lstr_open_id */
 	p8 = ncs_dec_flatten_space(uba, local_data, 8);

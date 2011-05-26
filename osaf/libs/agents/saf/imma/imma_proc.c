@@ -176,7 +176,7 @@ uns32 imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
 	/* Scan the entire Adm Owner DB and close the handles opened by client */
 	while ((adm_node = (IMMA_ADMIN_OWNER_NODE *)
-		ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)temp_ptr))) {
+		ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uint8_t *)temp_ptr))) {
 		temp_hdl = adm_node->admin_owner_hdl;
 		temp_ptr = &temp_hdl;
 
@@ -190,7 +190,7 @@ uns32 imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
 	/* Remove any search nodes opened by the client */
 	while ((search_node = (IMMA_SEARCH_NODE *)
-		ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)search_tmp_ptr))) {
+		ncs_patricia_tree_getnext(&cb->search_tree, (uint8_t *)search_tmp_ptr))) {
 		search_tmp_hdl = search_node->search_hdl;
 		search_tmp_ptr = &search_tmp_hdl;
 		if (search_node->mImmHandle == cl_node->handle) {
@@ -432,7 +432,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
 	}
 
 	while ((clnode = (IMMA_CLIENT_NODE *)
-		       ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
+		       ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)temp_ptr)))
 	{
 		temp_hdl = clnode->handle;
 		temp_ptr = &temp_hdl;

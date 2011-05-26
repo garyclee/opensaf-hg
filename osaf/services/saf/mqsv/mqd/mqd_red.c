@@ -53,7 +53,7 @@
 uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 {
 	/*m_HTON_SANAMET_LEN(pNode->info.nodeid); */
-	pNode->node.key_info = (uns8 *)&pNode->info.nodeid;
+	pNode->node.key_info = (uint8_t *)&pNode->info.nodeid;
 	return ncs_patricia_tree_add(&pMqd->node_db, (NCS_PATRICIA_NODE *)&pNode->node);
 }	/* End of mqd_red_db_node_add() */
 

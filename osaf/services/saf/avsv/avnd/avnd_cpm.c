@@ -101,7 +101,7 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/*update the key */
-	rec->comp_dll_node.key = (uns8 *)&rec->pid;
+	rec->comp_dll_node.key = (uint8_t *)&rec->pid;
 
 	/* add rec */
 	rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
@@ -139,7 +139,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* delete the PM_REC from pm_list */
-	rc = ncs_db_link_list_del(&comp->pm_list, (uns8 *)&rec->pid);
+	rc = ncs_db_link_list_del(&comp->pm_list, (uint8_t *)&rec->pid);
 	if (NCSCC_RC_SUCCESS != rc) {
 		/* log this problem */
 		;
@@ -216,7 +216,7 @@ uns32 avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_P
 	pid = pm_stop->pid;
 
 	/* search the existing list for the pid in the comp's PM_rec */
-	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uns8 *)&pid);
+	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uint8_t *)&pid);
 
 	/* this rec has to be present */
 	assert(rec);
@@ -253,7 +253,7 @@ uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START
 	pid = pm_start->pid;
 
 	/* search the existing list for the pid in the comp's PM_rec */
-	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uns8 *)&pid);
+	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uint8_t *)&pid);
 	if (rec) {		/* is rec present or not */
 		/* compare the parametrs for PM start */
 		if (0 != avnd_comp_pm_rec_cmp(pm_start, rec)) {
@@ -418,7 +418,7 @@ uns32 avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* validate the pm start message */
-	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START, (uns8 *)pm_start, &comp, 0, &amf_rc);
+	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START, (uint8_t *)pm_start, &comp, 0, &amf_rc);
 
 	/* try starting the monitor */
 	if (SA_AIS_OK == amf_rc)
@@ -478,7 +478,7 @@ uns32 avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* validate the pm stop message */
-	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_STOP, (uns8 *)pm_stop, &comp, &rec, &amf_rc);
+	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_STOP, (uint8_t *)pm_stop, &comp, &rec, &amf_rc);
 
 	/* stop the passive monitoring */
 	if (SA_AIS_OK == amf_rc)
@@ -517,7 +517,7 @@ uns32 avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 ******************************************************************************/
 void avnd_comp_pm_param_val(AVND_CB *cb,
 			    AVSV_AMF_API_TYPE api_type,
-			    uns8 *param, AVND_COMP **o_comp, AVND_COMP_PM_REC **o_pm_rec, SaAisErrorT *o_amf_rc)
+			    uint8_t *param, AVND_COMP **o_comp, AVND_COMP_PM_REC **o_pm_rec, SaAisErrorT *o_amf_rc)
 {
 	*o_amf_rc = SA_AIS_OK;
 
@@ -572,7 +572,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 
 			/* get the record from component passive monitoring list */
 			*o_pm_rec =
-			    (AVND_COMP_PM_REC *)ncs_db_link_list_find(&(*o_comp)->pm_list, (uns8 *)&pm_stop->pid);
+			    (AVND_COMP_PM_REC *)ncs_db_link_list_find(&(*o_comp)->pm_list, (uint8_t *)&pm_stop->pid);
 
 			if (0 == *o_pm_rec) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;

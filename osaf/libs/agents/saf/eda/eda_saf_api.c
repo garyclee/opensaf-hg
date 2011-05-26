@@ -1172,7 +1172,7 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle, SaEvtEventHand
 	evt_hdl_rec->retention_time = (SaTimeT)0;
 	evt_hdl_rec->publisher_name.length = 0;
 	memset(evt_hdl_rec->publisher_name.value, '\0', SA_MAX_NAME_LENGTH);
-	memcpy(evt_hdl_rec->publisher_name.value, (uns8 *)"NULL", EDSV_DEF_NAME_LEN);
+	memcpy(evt_hdl_rec->publisher_name.value, (uint8_t *)"NULL", EDSV_DEF_NAME_LEN);
 	if (NULL == (evt_hdl_rec->pattern_array = m_MMGR_ALLOC_EVENT_PATTERN_ARRAY)) {
 		rc = SA_AIS_ERR_NO_MEMORY;
 		m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
@@ -2210,7 +2210,7 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 	if (0 != evt_hdl_rec->event_data_size) {
      /** Allocate and copy data 
       **/
-		if (NULL == (evt_hdl_rec->evt_data = (uns8 *)
+		if (NULL == (evt_hdl_rec->evt_data = (uint8_t *)
 			     m_MMGR_ALLOC_EDSV_EVENT_DATA((uns32)eventDataSize))) {
 			m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 			ncshm_give_hdl(eventHandle);

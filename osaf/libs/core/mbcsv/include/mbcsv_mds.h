@@ -47,14 +47,14 @@
  * Message sizes to be encoded and decoded.
 **/
 #define MBCSV_MAX_SIZE_DATA                 512
-#define MBCSV_MSG_TYPE_SIZE                 (sizeof(uns8) + sizeof(uns32))
-#define MBCSV_MSG_SUB_TYPE                  (sizeof(uns8))
+#define MBCSV_MSG_TYPE_SIZE                 (sizeof(uint8_t) + sizeof(uns32))
+#define MBCSV_MSG_SUB_TYPE                  (sizeof(uint8_t))
 #define MBCSV_PEER_UP_MSG_SIZE              sizeof(uns32)
 #define MBCSV_PEER_DOWN_MSG_SIZE            (2 * sizeof(uns32))
-#define MBCSV_PEER_INFO_MSG_SIZE            (sizeof(uns8) + (2 * sizeof(uns32)))
-#define MBCSV_PEER_INFO_RSP_MSG_SIZE        (sizeof(uns8) + (3 * sizeof(uns32)))
+#define MBCSV_PEER_INFO_MSG_SIZE            (sizeof(uint8_t) + (2 * sizeof(uns32)))
+#define MBCSV_PEER_INFO_RSP_MSG_SIZE        (sizeof(uint8_t) + (3 * sizeof(uns32)))
 #define MBCSV_PEER_CHG_ROLE_MSG_SIZE        (2 * sizeof(uns32))
-#define MBCSV_INT_CLIENT_MSG_SIZE           ((3 * sizeof(uns8)) + (3 * sizeof(uns32)))
+#define MBCSV_INT_CLIENT_MSG_SIZE           ((3 * sizeof(uint8_t)) + (3 * sizeof(uns32)))
 #define MBCSV_MSG_VER_SIZE                  sizeof(uns16)
 
 /* Versioning changes */

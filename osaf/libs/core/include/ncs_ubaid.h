@@ -66,7 +66,7 @@ extern "C" {
 		   /*=======================+===============================*/
 		USRBUF *start;	/* first usrbuf to fill    Not used                      */
 		USRBUF *ub;	/* current usrbuf to fill  current usrbuf to consume     */
-		uns8 *bufp;	/* inject info here        Not Used                      */
+		uint8_t *bufp;	/* inject info here        Not Used                      */
 		int32 res;	/* space reserved          Not Used                      */
 		int32 ttl;	/* total space claimed     total space consumed          */
 		int32 max;	/* max we can encode       max we can decode             */
@@ -81,18 +81,18 @@ extern "C" {
 /* Encode assist (member) functions */
 
 	int32 ncs_enc_init_space(NCS_UBAID *uba);
-	int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uns8 pool_id, uns8 prio);
+	int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uint8_t pool_id, uint8_t prio);
 	void ncs_enc_prime_space(NCS_UBAID *uba, USRBUF *ub);
-	uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res);
+	uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res);
 	void ncs_enc_claim_space(NCS_UBAID *uba, int32 used);
 	void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub);
-	uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
-	uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
+	uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count);
+	uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count);
 
 /* Decode assist (member) functions */
 
 	void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub);
-	uns8 *ncs_dec_flatten_space(NCS_UBAID *uba, uns8 *os, int32 count);
+	uint8_t *ncs_dec_flatten_space(NCS_UBAID *uba, uint8_t *os, int32 count);
 	void ncs_dec_skip_space(NCS_UBAID *uba, int32 used);
 
 /* These are used if the NCS_UBAID is used to track 'fit' issues */
@@ -128,8 +128,8 @@ extern "C" {
 	uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest);
 	uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest);
 
-	uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest);
-	uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest);
+	uns32 mds_st_encode_mds_dest(uint8_t **stream, MDS_DEST *idest);
+	uns32 mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest);
 
 /***************************************************************\
       ncs_encode_pointer: Encodes a pointer into a USRBUF. The
@@ -142,7 +142,7 @@ extern "C" {
  
 \***************************************************************/
 	USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer);
-	USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in_bytes);
+	USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes);
 
 /***************************************************************\
       ncs_uba_encode_pointer: Encodes a pointer  into a UBA.
@@ -156,7 +156,7 @@ extern "C" {
 \***************************************************************/
 	uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer);
 	uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,
-							  uns8 *o_ptr_size_in_bytes);
+							  uint8_t *o_ptr_size_in_bytes);
 
 #ifdef  __cplusplus
 }

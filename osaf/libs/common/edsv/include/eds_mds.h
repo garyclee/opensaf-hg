@@ -50,9 +50,9 @@ uns32 eds_mds_msg_send(EDS_CB *cb,
 
 uns32 eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uns32 timeout, MDS_SEND_PRIORITY_TYPE prio);
 
-uns32 eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
+uns32 eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag);
 
-uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
+uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag);
 
 /*****************************************************************************
                  Macros to fill the MDS message structure

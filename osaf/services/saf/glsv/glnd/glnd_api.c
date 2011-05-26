@@ -47,7 +47,7 @@ void glnd_main_process(SYSF_MBX *mbx);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_se_lib_create(uns8 pool_id)
+uns32 glnd_se_lib_create(uint8_t pool_id)
 {
 
 	GLND_CB *glnd_cb;

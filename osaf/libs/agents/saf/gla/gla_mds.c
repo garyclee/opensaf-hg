@@ -261,7 +261,7 @@ static uns32 gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		/* as all the event structures are flat */
 		evt = (GLSV_GLND_EVT *)info->i_msg;
 		size = sizeof(GLSV_GLND_EVT);
-		ncs_encode_n_octets_in_uba(uba, (uns8 *)evt, size);
+		ncs_encode_n_octets_in_uba(uba, (uint8_t *)evt, size);
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
@@ -286,7 +286,7 @@ static uns32 gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 {
 	GLSV_GLND_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	uns8 *p8;
+	uint8_t *p8;
 
 	if (uba == NULL) {
 		m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -397,7 +397,7 @@ static uns32 gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 			return NCSCC_RC_FAILURE;
 		}
 		info->o_msg = evt;
-		uba->ub = ncs_decode_n_octets(uba->ub, (uns8 *)evt, sizeof(GLSV_GLA_EVT));
+		uba->ub = ncs_decode_n_octets(uba->ub, (uint8_t *)evt, sizeof(GLSV_GLA_EVT));
 		return NCSCC_RC_SUCCESS;
 	} else {
 		if (!is_valid_msg_fmt) {
@@ -426,7 +426,7 @@ static uns32 gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	GLSV_GLA_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
-	uns8 *p8, local_data[20];
+	uint8_t *p8, local_data[20];
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
@@ -830,7 +830,7 @@ uns32 gla_agent_unregister(GLA_CB *cb)
 ******************************************************************************/
 static uns32 glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = 8 + 4;
 
@@ -860,7 +860,7 @@ static uns32 glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *e
 ******************************************************************************/
 static uns32 glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = 8 + 4 + 4 + (3 * 1);
 
@@ -894,7 +894,7 @@ static uns32 glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = 8 + 8;
 
@@ -924,7 +924,7 @@ static uns32 glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (5 * 8) + (5 * 4) + 2;
 
@@ -964,7 +964,7 @@ static uns32 glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (5 * 8) + (5 * 4);
 
@@ -1002,7 +1002,7 @@ static uns32 glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (6 * 8) + (6 * 4);
 
@@ -1042,7 +1042,7 @@ static uns32 glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (6 * 8) + (3 * 4);
 
@@ -1079,7 +1079,7 @@ static uns32 glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *e
 ******************************************************************************/
 static uns32 glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (3 * 8) + (2 * 4);
 
@@ -1112,7 +1112,7 @@ static uns32 glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt)
 {
-	uns8 *p8, size;
+	uint8_t *p8, size;
 
 	size = (2 * 8) + 4 + 2;
 
@@ -1144,7 +1144,7 @@ static uns32 glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_IN
 ******************************************************************************/
 static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt)
 {
-	uns8 *p8, local_data[20], size;
+	uint8_t *p8, local_data[20], size;
 
 	size = (2 * 4);
 
@@ -1248,7 +1248,7 @@ static uns32 glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt
 ******************************************************************************/
 static uns32 glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt)
 {
-	uns8 *p8, local_data[20], size;
+	uint8_t *p8, local_data[20], size;
  /** decode the type of message **/
 	size = (2 * 4);
 	p8 = ncs_dec_flatten_space(uba, local_data, size);

@@ -42,7 +42,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 
 	memcpy(svctypecstype->name.value, dn->value, dn->length);
 	svctypecstype->name.length = dn->length;
-	svctypecstype->tree_node.key_info = (uns8 *)&(svctypecstype->name);
+	svctypecstype->tree_node.key_info = (uint8_t *)&(svctypecstype->name);
 
 	if (immutil_getAttr("saAmfSvctMaxNumCSIs", attributes, 0, &svctypecstype->saAmfSvctMaxNumCSIs) != SA_AIS_OK)
 		svctypecstype->saAmfSvctMaxNumCSIs = -1; /* no limit */
@@ -66,7 +66,7 @@ AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SVC_TYPE_CS_TYPE*)ncs_patricia_tree_get(&svctypecstypes_db, (uns8 *)&tmp);
+	return (AVD_SVC_TYPE_CS_TYPE*)ncs_patricia_tree_get(&svctypecstypes_db, (uint8_t *)&tmp);
 }
 
 /**

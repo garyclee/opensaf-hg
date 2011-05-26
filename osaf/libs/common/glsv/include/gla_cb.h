@@ -95,9 +95,9 @@ typedef struct gla_lock_id_info_tag {
 typedef struct gla_cb_tag {
 	/* Identification Information about the GLA */
 	uns32 process_id;
-	uns8 *process_name;
+	uint8_t *process_name;
 	uns32 agent_handle_id;
-	uns8 pool_id;
+	uint8_t pool_id;
 	MDS_HDL gla_mds_hdl;
 	MDS_DEST gla_mds_dest;
 	NCS_LOCK cb_lock;

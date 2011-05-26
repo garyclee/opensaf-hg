@@ -38,7 +38,7 @@ static MDS_CLIENT_MSG_FORMAT_VER
 ******************************************************************************/
 static uns32 ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
@@ -75,7 +75,7 @@ static uns32 ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
 
@@ -165,7 +165,7 @@ static uns32 ntfa_enc_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_init_req_t *param = &msg->info.api_info.param.reader_init;
 
@@ -203,7 +203,7 @@ static uns32 ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_finalize_req_t *param = &msg->info.api_info.param.reader_finalize;
 
@@ -239,7 +239,7 @@ static uns32 ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_read_next_req_t *param = &msg->info.api_info.param.read_next;
 
@@ -461,7 +461,7 @@ static uns32 ntfa_mds_enc(struct ncsmds_callback_info *info)
 {
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba;
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
@@ -566,10 +566,10 @@ static uns32 ntfa_mds_enc(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uns32 ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	assert(uba != NULL);
 
@@ -633,10 +633,10 @@ static uns32 ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	assert(uba != NULL);
 
@@ -662,10 +662,10 @@ static uns32 ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
-	uns8 local_data[8];
+	uint8_t local_data[8];
 
 	assert(uba != NULL);
 
@@ -692,10 +692,10 @@ static uns32 ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	assert(uba != NULL);
 
@@ -721,10 +721,10 @@ static uns32 ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg
 ******************************************************************************/
 static uns32 ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
-	uns8 local_data[4];
+	uint8_t local_data[4];
 
 	assert(uba != NULL);
 
@@ -775,10 +775,10 @@ static uns32 ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 {
-	uns8 *p8;
+	uint8_t *p8;
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
-	uns8 local_data[12];
+	uint8_t local_data[12];
 	uns32 total_bytes = 0;
 	TRACE_ENTER();
 
@@ -797,7 +797,7 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	info->info.dec.o_msg = (uns8 *)msg;
+	info->info.dec.o_msg = (uint8_t *)msg;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	msg->type = ncs_decode_32bit(&p8);

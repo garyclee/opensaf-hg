@@ -77,7 +77,7 @@ time_t ncs_time_stamp()
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns32 decode_32bitOS_inc(uns8 **stream)
+uns32 decode_32bitOS_inc(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */
@@ -109,7 +109,7 @@ uns32 decode_32bitOS_inc(uns8 **stream)
   increments the pointer to the datastore
 *****************************************************************************/
 
-uns32 encode_32bitOS_inc(uns8 **stream, uns32 val)
+uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val)
 {
 	m_NCS_OS_HTONL_P(*stream, val);
 	*stream += sizeof(uns32);
@@ -139,7 +139,7 @@ uns32 encode_32bitOS_inc(uns8 **stream, uns32 val)
 
 *****************************************************************************/
 
-uns32 encode_16bitOS_inc(uns8 **stream, uns32 val)
+uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val)
 {
 	m_NCS_OS_HTONS_P(*stream, val);
 	*stream += sizeof(uns16);
@@ -168,7 +168,7 @@ uns32 encode_16bitOS_inc(uns8 **stream, uns32 val)
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns16 decode_16bitOS_inc(uns8 **stream)
+uns16 decode_16bitOS_inc(uint8_t **stream)
 {
 
 	uns32 val = 0;		/* Accumulator */

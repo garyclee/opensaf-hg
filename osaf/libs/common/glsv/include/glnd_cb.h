@@ -114,7 +114,7 @@ typedef struct glnd_restart_res_lock_list_info_tag {
 	SaLckHandleT app_handle_id;	/* index for the client tree */
 	SaLckResourceIdT resource_id;	/* index for identifying the resource */
 	SaLckResourceIdT lcl_resource_id;	/* index for identifying the resource */
-	uns8 to_which_list;	/* identies whether to update res_lock_list */
+	uint8_t to_which_list;	/* identies whether to update res_lock_list */
 	/* To which list */
 	uns32 lck_info_hdl_id;	/* maintained for the validity */
 	GLSV_LOCK_REQ_INFO lock_info;
@@ -229,7 +229,7 @@ void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
 						      SaLckLockIdT lockid, SaLckHandleT hldId, SaLckResourceIdT resId);
 void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb);
 void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb);
-uns8 glnd_cpsv_initilize(GLND_CB *glnd_cb);
+uint8_t glnd_cpsv_initilize(GLND_CB *glnd_cb);
 uns32 glnd_shm_create(GLND_CB *cb);
 uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[]);
 

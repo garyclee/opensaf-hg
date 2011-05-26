@@ -29,7 +29,7 @@ DTM_NODE_SUBSCR_INFO *dtm_node_subscr_list = NULL;
 DTM_INTRANODE_NODE_DB *dtm_intranode_node_list_db = NULL;
 
 
-static uns32 dtm_lib_msg_snd_common(uns8 *buffer, uns32 pid, uns16 msg_size);
+static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uns16 msg_size);
 static uns32 dtm_intranode_del_svclist_from_pid_tree(DTM_INTRANODE_PID_INFO * pid_node,
 						     DTM_PID_SVC_INSTALLED_INFO * del_info);
 
@@ -37,8 +37,8 @@ static uns32 dtm_intranode_add_svclist_to_svc_tree(DTM_SVC_INSTALL_INFO * svc_no
 static uns32 dtm_intranode_add_svclist_to_pid_tree(DTM_INTRANODE_PID_INFO * pid_node,
 						   DTM_PID_SVC_INSTALLED_INFO * add_info);
 
-static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uns8 *buffer);
-static uns32 dtm_lib_prepare_svc_down_msg(DTM_LIB_UP_MSG * up_msg, uns8 *buffer);
+static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uint8_t *buffer);
+static uns32 dtm_lib_prepare_svc_down_msg(DTM_LIB_UP_MSG * up_msg, uint8_t *buffer);
 
 static uns32 dtm_intranode_del_svclist_from_svc_tree(DTM_SVC_INSTALL_INFO * svc_node, DTM_SVC_LIST * del_list);
 static uns32 dtm_internode_del_svclist_from_svc_tree(DTM_INTRANODE_NODE_DB * node_info, DTM_SVC_INSTALL_INFO * svc_node,
@@ -48,7 +48,7 @@ static uns32 dtm_intranode_add_subscrlist_to_subscr_tree(DTM_SVC_SUBSCR_INFO * s
 							 DTM_SUBSCRIBER_LIST * add_info);
 static uns32 dtm_add_to_node_subscr_list(DTM_NODE_SUBSCR_INFO * node_subscr_info);
 static DTM_NODE_SUBSCR_INFO *dtm_get_from_node_subscr_list(uns32 pid);
-static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uns8 *buffer);
+static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_t *buffer);
 static uns32 dtm_del_from_node_subscr_list(uns32 pid, uns64 ref_val);
 
 static uns32 dtm_deliver_svc_down(NODE_ID node_id);
@@ -77,9 +77,9 @@ static DTM_SVC_SUBSCR_INFO *dtm_intranode_get_subscr_node(uns32 server_type);
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_pid_msg(uns8 *buffer, int fd)
+uns32 dtm_intranode_process_pid_msg(uint8_t *buffer, int fd)
 {
-	uns8 *data;		/* Used for decoding */
+	uint8_t *data;		/* Used for decoding */
 	NODE_ID node_id = 0;
 	uns32 process_id = 0;
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
@@ -105,7 +105,7 @@ uns32 dtm_intranode_process_pid_msg(uns8 *buffer, int fd)
 		assert(0);
 	}
 	pid_node->node_id = m_NCS_GET_NODE_ID;
-	pid_node->pid_node.key_info = (uns8 *)&pid_node->pid;
+	pid_node->pid_node.key_info = (uint8_t *)&pid_node->pid;
 
 	TRACE_1("DTM: INTRA: Processid message rcvd: pid=%d", process_id);
 
@@ -195,7 +195,7 @@ uns32 dtm_intranode_process_pid_down(int fd)
 			if (NULL != subscr_node) {
 
 				/* Subscriptions present send to all the processes in the local node */
-				uns8 buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
+				uint8_t buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
 				DTM_LIB_DOWN_MSG down_msg = { 0 };
 
 				subscr_list = subscr_node->subscriber_list;
@@ -209,12 +209,12 @@ uns32 dtm_intranode_process_pid_down(int fd)
 
 				while (NULL != subscr_list) {
 					if (subscr_list->pid != pid_node->pid) {
-						uns8 *snd_buf = NULL;
+						uint8_t *snd_buf = NULL;
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
 							TRACE("DTM :calloc failed for svc_down msg");
 						} else {
 							/* Send the message of SVC UP */
-							uns8 *ptr = &buffer[20];
+							uint8_t *ptr = &buffer[20];
 							ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 							memcpy(snd_buf, buffer, DTM_LIB_DOWN_MSG_SIZE_FULL);
 							dtm_lib_msg_snd_common(snd_buf,
@@ -273,7 +273,7 @@ uns32 dtm_intranode_process_pid_down(int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_bind_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -282,7 +282,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 		assert(0);	/* This condition should never come */
 	} else {
 		/* Decode the message  */
-		uns8 *data = buff;	/* Used for decoding */
+		uint8_t *data = buff;	/* Used for decoding */
 		DTM_PID_SVC_INSTALLED_INFO *svc_install_info = NULL;
 		DTM_SVC_INSTALL_INFO *svc_node = NULL;
 		DTM_SVC_LIST *svc_list = NULL;
@@ -316,7 +316,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 				return NCSCC_RC_FAILURE;
 			}
 			svc_node->server_type = svc_install_info->server_type;
-			svc_node->svc_install_node.key_info = (uns8 *)&svc_node->server_type;
+			svc_node->svc_install_node.key_info = (uint8_t *)&svc_node->server_type;
 			ncs_patricia_tree_add(&dtm_intranode_cb->dtm_svc_install_list,
 					      (NCS_PATRICIA_NODE *)&svc_node->svc_install_node);
 		}
@@ -339,7 +339,7 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 		} else {
 			/* Subscriptions present send to all the processes in the local node */
 			DTM_SUBSCRIBER_LIST *subscr_list = subscr_node->subscriber_list;
-			uns8 buffer[DTM_LIB_UP_MSG_SIZE_FULL];
+			uint8_t buffer[DTM_LIB_UP_MSG_SIZE_FULL];
 			DTM_LIB_UP_MSG up_msg = { 0 };
 			up_msg.server_type = svc_install_info->server_type;
 			up_msg.server_instance_lower = svc_install_info->server_instance_lower;
@@ -349,13 +349,13 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
 			dtm_lib_prepare_svc_up_msg(&up_msg, buffer);
 
 			while (NULL != subscr_list) {
-				uns8 *snd_buf = NULL;
+				uint8_t *snd_buf = NULL;
 
 				if (NULL == (snd_buf = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
 					TRACE("DTM :calloc failed for svc_up msg");
 				} else {
 					/* Send the message of SVC UP */
-					uns8 *ptr = &buffer[20];
+					uint8_t *ptr = &buffer[20];
 					ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 					memcpy(snd_buf, buffer, DTM_LIB_UP_MSG_SIZE_FULL);
 					dtm_lib_msg_snd_common(snd_buf, subscr_list->pid, DTM_LIB_UP_MSG_SIZE_FULL);
@@ -380,13 +380,13 @@ uns32 dtm_intranode_process_bind_msg(uns8 *buff, int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_unbind_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_unbind_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	DTM_PID_SVC_INSTALLED_INFO pid_svc_info = { 0 };
 	DTM_SVC_LIST svc_list = { 0 };
-	uns8 *data = buff;	/* Used for decoding */
-	uns8 install_scope;
+	uint8_t *data = buff;	/* Used for decoding */
+	uint8_t install_scope;
 	uns32 server_type;
 
 	TRACE_ENTER();
@@ -434,7 +434,7 @@ uns32 dtm_intranode_process_unbind_msg(uns8 *buff, int fd)
 		} else {
 			/* Subscriptions present send to all the processes in the local node */
 			DTM_SUBSCRIBER_LIST *subscr_list = subscr_node->subscriber_list;
-			uns8 buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
+			uint8_t buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
 			DTM_LIB_DOWN_MSG down_msg = { 0 };
 			down_msg.server_type = server_type;
 			down_msg.server_instance_lower = svc_list.server_inst_lower;
@@ -444,13 +444,13 @@ uns32 dtm_intranode_process_unbind_msg(uns8 *buff, int fd)
 			dtm_lib_prepare_svc_down_msg(&down_msg, buffer);
 
 			while (NULL != subscr_list) {
-				uns8 *snd_buf = NULL;
+				uint8_t *snd_buf = NULL;
 
 				if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
 					TRACE("DTM :calloc failed for svc_down msg");
 				} else {
 					/* Send the message of SVC down */
-					uns8 *ptr = &buffer[20];
+					uint8_t *ptr = &buffer[20];
 					ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 					memcpy(snd_buf, buffer, DTM_LIB_DOWN_MSG_SIZE_FULL);
 					dtm_lib_msg_snd_common(snd_buf, subscr_list->pid, DTM_LIB_DOWN_MSG_SIZE_FULL);
@@ -475,7 +475,7 @@ uns32 dtm_intranode_process_unbind_msg(uns8 *buff, int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_subscribe_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -484,7 +484,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 		assert(0);	/* This condition should never come */
 	} else {
 		/* Decode the message  */
-		uns8 *data = buff;	/* Used for decoding */
+		uint8_t *data = buff;	/* Used for decoding */
 		DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
 		DTM_SUBSCRIBER_LIST *subscr_info = NULL;
 		uns32 server_type = 0, server_inst_lower = 0, server_inst_higher = 0;
@@ -505,7 +505,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 				return NCSCC_RC_FAILURE;
 			}
 			subscr_node->server_type = server_type;
-			subscr_node->svc_subscr_node.key_info = (uns8 *)&subscr_node->server_type;
+			subscr_node->svc_subscr_node.key_info = (uint8_t *)&subscr_node->server_type;
 			ncs_patricia_tree_add(&dtm_intranode_cb->dtm_svc_subscr_list,
 					      (NCS_PATRICIA_NODE *)&subscr_node->svc_subscr_node);
 		}
@@ -549,7 +549,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
 					/* Dont send any message, match hasnt found */
 
 				} else {
-					uns8 *buffer = NULL;
+					uint8_t *buffer = NULL;
 					DTM_LIB_UP_MSG up_msg = { 0 };
 
 					if (NULL == (buffer = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
@@ -586,7 +586,7 @@ uns32 dtm_intranode_process_subscribe_msg(uns8 *buff, int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_unsubscribe_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -595,7 +595,7 @@ uns32 dtm_intranode_process_unsubscribe_msg(uns8 *buff, int fd)
 		assert(0);	/* This condition should never come */
 	} else {
 		/* Decode the message  */
-		uns8 *data = buff;
+		uint8_t *data = buff;
 		DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
 		uns64 ref_val = 0;
 		uns32 server_type = 0;
@@ -637,7 +637,7 @@ uns32 dtm_intranode_process_unsubscribe_msg(uns8 *buff, int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -645,7 +645,7 @@ uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
 	if (NULL == pid_node) {
 		assert(0);	/* This condition should never come */
 	} else {
-		uns8 *data = buff;
+		uint8_t *data = buff;
 		DTM_NODE_SUBSCR_INFO *node_subscr_info = NULL;
 		DTM_INTRANODE_NODE_DB *node_db = dtm_intranode_node_list_db;
 		if (NULL == (node_subscr_info = calloc(1, sizeof(DTM_NODE_SUBSCR_INFO)))) {
@@ -660,7 +660,7 @@ uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
 		dtm_add_to_node_subscr_list(node_subscr_info);
 		while (NULL != node_db) {
 			DTM_LIB_NODE_UP_MSG node_up_msg = { 0 };
-			uns8 *buffer = NULL;
+			uint8_t *buffer = NULL;
 			if (NULL == (buffer = calloc(1, DTM_LIB_NODE_UP_MSG_SIZE_FULL))) {
 				TRACE("DTM :calloc failed for node_up, dtm_intranode_process_node_subscribe_msg");
 			} else {
@@ -689,7 +689,7 @@ uns32 dtm_intranode_process_node_subscribe_msg(uns8 *buff, int fd)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_intranode_process_node_unsubscribe_msg(uns8 *buff, int fd)
+uns32 dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -697,7 +697,7 @@ uns32 dtm_intranode_process_node_unsubscribe_msg(uns8 *buff, int fd)
 	if (NULL == pid_node) {
 		assert(0);	/* This condition should never come */
 	} else {
-		uns8 *data = buff;
+		uint8_t *data = buff;
 		NODE_ID node_id = ncs_decode_32bit(&data);
 		uns32 process_id = ncs_decode_32bit(&data);
 		uns64 ref_val = ncs_decode_64bit(&data);
@@ -1052,14 +1052,14 @@ static uns32 dtm_intranode_del_subscrlist_from_subscr_tree(DTM_SVC_SUBSCR_INFO *
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uns8 *buffer)
+static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uint8_t *buffer)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_LIB_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTRANODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_LIB_UP_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_UP_TYPE);
 	ncs_encode_32bit(&data, up_msg->server_type);
 	ncs_encode_32bit(&data, up_msg->server_instance_lower);
 	ncs_encode_32bit(&data, up_msg->server_instance_upper);
@@ -1081,14 +1081,14 @@ static uns32 dtm_lib_prepare_svc_up_msg(DTM_LIB_UP_MSG * up_msg, uns8 *buffer)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_prepare_svc_down_msg(DTM_LIB_DOWN_MSG * down_msg, uns8 *buffer)
+static uns32 dtm_lib_prepare_svc_down_msg(DTM_LIB_DOWN_MSG * down_msg, uint8_t *buffer)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_LIB_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTRANODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_LIB_DOWN_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_DOWN_TYPE);
 	ncs_encode_32bit(&data, down_msg->server_type);
 	ncs_encode_32bit(&data, down_msg->server_instance_lower);
 	ncs_encode_32bit(&data, down_msg->server_instance_upper);
@@ -1338,7 +1338,7 @@ static uns32 dtm_internode_delete_svc_installed_list_from_svc_tree(DTM_INTRANODE
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_msg_snd_common(uns8 *buffer, uns32 pid, uns16 msg_size)
+static uns32 dtm_lib_msg_snd_common(uint8_t *buffer, uns32 pid, uns16 msg_size)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	TRACE_ENTER();
@@ -1365,14 +1365,14 @@ static uns32 dtm_lib_msg_snd_common(uns8 *buffer, uns32 pid, uns16 msg_size)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uns8 *buffer)
+static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_t *buffer)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_LIB_NODE_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTRANODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_LIB_NODE_UP_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_NODE_UP_TYPE);
 	ncs_encode_32bit(&data, up_msg->node_id);
 	ncs_encode_64bit(&data, up_msg->ref_val);
 	TRACE_LEAVE();
@@ -1390,14 +1390,14 @@ static uns32 dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uns8 *buf
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 dtm_lib_prepare_node_down_msg(DTM_LIB_NODE_DOWN_MSG * up_msg, uns8 *buffer)
+static uns32 dtm_lib_prepare_node_down_msg(DTM_LIB_NODE_DOWN_MSG * up_msg, uint8_t *buffer)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_LIB_NODE_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTRANODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_LIB_NODE_DOWN_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_NODE_DOWN_TYPE);
 	ncs_encode_32bit(&data, up_msg->node_id);
 	ncs_encode_64bit(&data, up_msg->ref_val);
 	TRACE_LEAVE();
@@ -1443,16 +1443,16 @@ uns32 dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX m
 		/* Deliver node UP */
 		DTM_NODE_SUBSCR_INFO *node_subscr_info = dtm_node_subscr_list;
 		DTM_LIB_NODE_UP_MSG node_up_msg = { 0 };
-		uns8 buffer[DTM_LIB_NODE_UP_MSG_SIZE_FULL];
+		uint8_t buffer[DTM_LIB_NODE_UP_MSG_SIZE_FULL];
 		node_up_msg.node_id = node_id;
 		dtm_lib_prepare_node_up_msg(&node_up_msg, buffer);
 		while (NULL != node_subscr_info) {
-			uns8 *snd_buf = NULL;
+			uint8_t *snd_buf = NULL;
 
 			if (NULL == (snd_buf = calloc(1, DTM_LIB_NODE_UP_MSG_SIZE_FULL))) {
 				TRACE("DTM : calloc failed for node_up msg, not sending the message");
 			} else {
-				uns8 *ptr = &buffer[12];
+				uint8_t *ptr = &buffer[12];
 				ncs_encode_64bit(&ptr, node_subscr_info->subtn_ref_val);
 				memcpy(snd_buf, buffer, DTM_LIB_NODE_UP_MSG_SIZE_FULL);
 				dtm_lib_msg_snd_common(snd_buf, node_subscr_info->process_id,
@@ -1481,7 +1481,7 @@ uns32 dtm_intranode_process_node_down(NODE_ID node_id)
 {
 	DTM_NODE_SUBSCR_INFO *node_subscr_info = dtm_node_subscr_list;
 	DTM_LIB_NODE_DOWN_MSG node_down_msg = { 0 };
-	uns8 buffer[DTM_LIB_NODE_DOWN_MSG_SIZE_FULL];
+	uint8_t buffer[DTM_LIB_NODE_DOWN_MSG_SIZE_FULL];
 
 	/* Deliver svc down to all the subscribers of service present on this node */
 	TRACE_ENTER();
@@ -1495,11 +1495,11 @@ uns32 dtm_intranode_process_node_down(NODE_ID node_id)
 
 	/* Deliver node down */
 	while (NULL != node_subscr_info) {
-		uns8 *snd_buf = NULL;
+		uint8_t *snd_buf = NULL;
 		if (NULL == (snd_buf = calloc(1, DTM_LIB_NODE_DOWN_MSG_SIZE_FULL))) {
 			TRACE("DTM :calloc failed for node_down msg, not sending the message");
 		} else {
-			uns8 *ptr = &buffer[12];
+			uint8_t *ptr = &buffer[12];
 			ncs_encode_64bit(&ptr, node_subscr_info->subtn_ref_val);
 			memcpy(snd_buf, buffer, DTM_LIB_NODE_UP_MSG_SIZE_FULL);
 			dtm_lib_msg_snd_common(snd_buf, node_subscr_info->process_id, DTM_LIB_NODE_DOWN_MSG_SIZE_FULL);
@@ -1553,7 +1553,7 @@ static uns32 dtm_deliver_svc_down(NODE_ID node_id)
 static DTM_SVC_INSTALL_INFO *dtm_intranode_getnext_remote_install_svc(DTM_INTRANODE_NODE_DB * node_info, uns32 server)
 {
 	DTM_SVC_INSTALL_INFO *node = NULL;
-	node = (DTM_SVC_INSTALL_INFO *) ncs_patricia_tree_getnext(&node_info->dtm_rem_node_svc_tree, (uns8 *)&server);
+	node = (DTM_SVC_INSTALL_INFO *) ncs_patricia_tree_getnext(&node_info->dtm_rem_node_svc_tree, (uint8_t *)&server);
 
 	/* Adjust the pointer */
 	if (NULL != node) {
@@ -1593,7 +1593,7 @@ static uns32 dtm_intranode_process_svc_down_common(DTM_INTRANODE_NODE_DB * node_
 			if (NULL != subscr_node) {
 				subscr_list = subscr_node->subscriber_list;
 				/* Subscriptions present send to all the processes in the local node */
-				uns8 buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
+				uint8_t buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
 				DTM_LIB_DOWN_MSG down_msg = { 0 };
 				down_msg.server_type = server_type;
 				down_msg.server_instance_lower = svc_list->server_inst_lower;
@@ -1608,12 +1608,12 @@ static uns32 dtm_intranode_process_svc_down_common(DTM_INTRANODE_NODE_DB * node_
 					if (subscr_list->subscr_scope == DTM_SVC_INSTALL_SCOPE_NODE) {
 						/* Dont send up message as this is not the match */
 					} else {
-						uns8 *snd_buf = NULL;
+						uint8_t *snd_buf = NULL;
 
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
 							TRACE("DTM :calloc failed for svc_down msg");
 						} else {
-							uns8 *ptr = &buffer[20];
+							uint8_t *ptr = &buffer[20];
 							ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 							memcpy(snd_buf, buffer, DTM_LIB_DOWN_MSG_SIZE_FULL);
 							dtm_lib_msg_snd_common(snd_buf, subscr_list->pid,
@@ -1645,7 +1645,7 @@ static uns32 dtm_intranode_process_svc_down_common(DTM_INTRANODE_NODE_DB * node_
 static DTM_SVC_INSTALL_INFO *dtm_intranode_get_remote_install_svc(DTM_INTRANODE_NODE_DB * node_info, uns32 server)
 {
 	DTM_SVC_INSTALL_INFO *node = NULL;
-	node = (DTM_SVC_INSTALL_INFO *) ncs_patricia_tree_get(&node_info->dtm_rem_node_svc_tree, (uns8 *)&server);
+	node = (DTM_SVC_INSTALL_INFO *) ncs_patricia_tree_get(&node_info->dtm_rem_node_svc_tree, (uint8_t *)&server);
 
 	/* Adjust the pointer */
 	if (NULL != node) {
@@ -1667,10 +1667,10 @@ static DTM_SVC_INSTALL_INFO *dtm_intranode_get_remote_install_svc(DTM_INTRANODE_
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	uns16 num_of_elements = 0;
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	DTM_INTRANODE_NODE_DB *node_info = NULL;
 	DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
 
@@ -1699,7 +1699,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 					return NCSCC_RC_FAILURE;
 				}
 				svc_info->server_type = server_type;
-				svc_info->svc_install_node.key_info = (uns8 *)&svc_info->server_type;
+				svc_info->svc_install_node.key_info = (uint8_t *)&svc_info->server_type;
 				ncs_patricia_tree_add(&node_info->dtm_rem_node_svc_tree,
 						      (NCS_PATRICIA_NODE *)&svc_info->svc_install_node);
 			}
@@ -1725,7 +1725,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 					return NCSCC_RC_FAILURE;
 				}
 				local_svc_info->server_type = server_type;
-				local_svc_info->svc_install_node.key_info = (uns8 *)&local_svc_info->server_type;
+				local_svc_info->svc_install_node.key_info = (uint8_t *)&local_svc_info->server_type;
 				ncs_patricia_tree_add(&dtm_intranode_cb->dtm_svc_install_list,
 						      (NCS_PATRICIA_NODE *)&local_svc_info->svc_install_node);
 			}
@@ -1746,7 +1746,7 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 			if (NULL != subscr_node) {
 				/* Subscriptions present send to all the processes in the local node */
 				DTM_SUBSCRIBER_LIST *subscr_list = subscr_node->subscriber_list;
-				uns8 local_buffer[DTM_LIB_UP_MSG_SIZE_FULL];
+				uint8_t local_buffer[DTM_LIB_UP_MSG_SIZE_FULL];
 				DTM_LIB_UP_MSG up_msg = { 0 };
 				up_msg.server_type = svc_info->server_type;
 				up_msg.server_instance_lower = svc_list->server_inst_lower;
@@ -1761,12 +1761,12 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
 					if (subscr_list->subscr_scope == DTM_SVC_INSTALL_SCOPE_NODE) {
 						/* Dont send up message as this is not the match */
 					} else {
-						uns8 *snd_buf = NULL;
+						uint8_t *snd_buf = NULL;
 
 						if (NULL == (snd_buf = calloc(1, DTM_LIB_UP_MSG_SIZE_FULL))) {
 							TRACE("DTM :calloc failed for svc_up msg");
 						} else {
-							uns8 *ptr = &local_buffer[20];
+							uint8_t *ptr = &local_buffer[20];
 							ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 							memcpy(snd_buf, local_buffer, DTM_LIB_UP_MSG_SIZE_FULL);
 							dtm_lib_msg_snd_common(snd_buf, subscr_list->pid,
@@ -1795,10 +1795,10 @@ uns32 dtm_process_internode_service_up_msg(uns8 *buffer, uns16 len, NODE_ID node
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 dtm_process_internode_service_down_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	uns16 num_of_elements = 0;
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	DTM_INTRANODE_NODE_DB *node_info = NULL;
 
 	TRACE_ENTER();
@@ -1848,7 +1848,7 @@ uns32 dtm_process_internode_service_down_msg(uns8 *buffer, uns16 len, NODE_ID no
 				if (NULL != subscr_node) {
 					/* Subscriptions present send to all the processes in the local node */
 					DTM_SUBSCRIBER_LIST *subscr_list = subscr_node->subscriber_list;
-					uns8 local_buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
+					uint8_t local_buffer[DTM_LIB_DOWN_MSG_SIZE_FULL];
 					DTM_LIB_DOWN_MSG down_msg = { 0 };
 					down_msg.server_type = svc_info->server_type;
 					down_msg.server_instance_lower = svc_list.server_inst_lower;
@@ -1863,12 +1863,12 @@ uns32 dtm_process_internode_service_down_msg(uns8 *buffer, uns16 len, NODE_ID no
 						if (subscr_list->subscr_scope == DTM_SVC_INSTALL_SCOPE_NODE) {
 							/* Dont send up message as this is not the match */
 						} else {
-							uns8 *snd_buf = NULL;
+							uint8_t *snd_buf = NULL;
 
 							if (NULL == (snd_buf = calloc(1, DTM_LIB_DOWN_MSG_SIZE_FULL))) {
 								TRACE("DTM :calloc failed for svc_down msg");
 							} else {
-								uns8 *ptr = &local_buffer[20];
+								uint8_t *ptr = &local_buffer[20];
 								ncs_encode_64bit(&ptr, subscr_list->subscr_ref_hdl);
 								memcpy(snd_buf, local_buffer, DTM_LIB_DOWN_MSG_SIZE_FULL);
 								dtm_lib_msg_snd_common(snd_buf,
@@ -1933,7 +1933,7 @@ uns32 dtm_intranode_add_self_node_to_node_db(NODE_ID node_id)
 DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_fd(int fd)
 {
 	DTM_INTRANODE_PID_INFO *node = NULL;
-	node = (DTM_INTRANODE_PID_INFO *) ncs_patricia_tree_get(&dtm_intranode_cb->dtm_intranode_fd_list, (uns8 *)&fd);
+	node = (DTM_INTRANODE_PID_INFO *) ncs_patricia_tree_get(&dtm_intranode_cb->dtm_intranode_fd_list, (uint8_t *)&fd);
 	/* Adjust the pointer */
 	if (NULL != node) {
 		node = (DTM_INTRANODE_PID_INFO *) (((char *)node)
@@ -1958,7 +1958,7 @@ static DTM_SVC_SUBSCR_INFO *dtm_intranode_get_subscr_node(uns32 server_type)
 {
 	DTM_SVC_SUBSCR_INFO *node = NULL;
 	node =
-	    (DTM_SVC_SUBSCR_INFO *) ncs_patricia_tree_get(&dtm_intranode_cb->dtm_svc_subscr_list, (uns8 *)&server_type);
+	    (DTM_SVC_SUBSCR_INFO *) ncs_patricia_tree_get(&dtm_intranode_cb->dtm_svc_subscr_list, (uint8_t *)&server_type);
 	/* Adjust the pointer */
 	if (NULL != node) {
 		node = (DTM_SVC_SUBSCR_INFO *) (((char *)node)
@@ -1985,7 +1985,7 @@ static DTM_SVC_INSTALL_INFO *dtm_intranode_get_svc_node(uns32 server_type)
 	DTM_SVC_INSTALL_INFO *node = NULL;
 	node =
 	    (DTM_SVC_INSTALL_INFO *) ncs_patricia_tree_get(&dtm_intranode_cb->dtm_svc_install_list,
-							   (uns8 *)&server_type);
+							   (uint8_t *)&server_type);
 	/* Adjust the pointer */
 	if (NULL != node) {
 		node = (DTM_SVC_INSTALL_INFO *) (((char *)node)

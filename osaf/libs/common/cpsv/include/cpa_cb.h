@@ -24,7 +24,7 @@
 typedef struct cpa_client_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptHandleT cl_hdl;	/* index for the tree */
-	uns8 stale;		/*Loss of connection with cpnd because of clm node left
+	uint8_t stale;		/*Loss of connection with cpnd because of clm node left
 				  will set this to true for the connection. */
 	SaCkptCallbacksT ckpt_callbk;
 	SYSF_MBX callbk_mbx;	/* Mailbox Queue for client messages */
@@ -82,9 +82,9 @@ typedef struct cpa_sect_iter_node {
 typedef struct cpa_cb {
 	/* Identification Information about the CPA */
 	uns32 process_id;
-	uns8 *process_name;
+	uint8_t *process_name;
 	uns32 agent_handle_id;
-	uns8 pool_id;
+	uint8_t pool_id;
 	uns32 cpa_mds_hdl;
 	MDS_DEST cpa_mds_dest;
 	NCS_LOCK cb_lock;
@@ -136,7 +136,7 @@ typedef struct cpa_prcess_evt_sync {
 
 #define m_CPSV_SET_SANAMET(name) \
 {\
-   memset( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); \
+   memset( (uint8_t *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); \
 }
 
 #define CPSV_MAX_DATA_SIZE 40000000

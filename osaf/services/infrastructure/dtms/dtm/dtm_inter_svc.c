@@ -27,8 +27,8 @@ DTM_SVC_DISTRIBUTION_LIST *dtm_svc_dist_list = NULL;
 static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id);
 
 
-uns32 dtm_prepare_svc_up_msg(uns8 *buffer, uns32 server_type, uns32 server_inst, uns32 pid);
-uns32 dtm_prepare_svc_down_msg(uns8 *buffer, uns32 server_type, uns32 server_inst, uns32 pid);
+uns32 dtm_prepare_svc_up_msg(uint8_t *buffer, uns32 server_type, uns32 server_inst, uns32 pid);
+uns32 dtm_prepare_svc_down_msg(uint8_t *buffer, uns32 server_type, uns32 server_inst, uns32 pid);
 
 
 /**
@@ -40,7 +40,7 @@ uns32 dtm_prepare_svc_down_msg(uns8 *buffer, uns32 server_type, uns32 server_ins
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_up_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_internode_process_rcv_up_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -76,7 +76,7 @@ uns32 dtm_internode_process_rcv_up_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_process_rcv_down_msg(uns8 *buffer, uns16 len, NODE_ID node_id)
+uns32 dtm_internode_process_rcv_down_msg(uint8_t *buffer, uns16 len, NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -280,7 +280,7 @@ static uns32 dtm_internode_init_svc_dist_list(void)
  */
 uns32 dtm_internode_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid)
 {
-	uns8 *buffer = NULL;
+	uint8_t *buffer = NULL;
 	DTM_SVC_DATA *add_ptr = NULL, *hdr = NULL, *tail = NULL;
 
 	TRACE_ENTER();
@@ -332,7 +332,7 @@ uns32 dtm_internode_add_to_svc_dist_list(uns32 server_type, uns32 server_inst, u
  */
 uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst, uns32 pid)
 {
-	uns8 *buffer = NULL;
+	uint8_t *buffer = NULL;
 	DTM_SVC_DATA *back = NULL, *mov_ptr = NULL;
 	int check_val = 0;
 	TRACE_ENTER();
@@ -402,14 +402,14 @@ uns32 dtm_internode_del_from_svc_dist_list(uns32 server_type, uns32 server_inst,
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_prepare_svc_up_msg(uns8 *buffer, uns32 server_type, uns32 server_inst, uns32 pid)
+uns32 dtm_prepare_svc_up_msg(uint8_t *buffer, uns32 server_type, uns32 server_inst, uns32 pid)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_UP_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTERNODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_UP_MSG_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_UP_MSG_TYPE);
 	ncs_encode_16bit(&data, (uns16)0x01);
 	ncs_encode_32bit(&data, server_type);
 	ncs_encode_32bit(&data, server_inst);
@@ -427,14 +427,14 @@ uns32 dtm_prepare_svc_up_msg(uns8 *buffer, uns32 server_type, uns32 server_inst,
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_prepare_svc_down_msg(uns8 *buffer, uns32 server_type, uns32 server_inst, uns32 pid)
+uns32 dtm_prepare_svc_down_msg(uint8_t *buffer, uns32 server_type, uns32 server_inst, uns32 pid)
 {
-	uns8 *data = buffer;
+	uint8_t *data = buffer;
 	TRACE_ENTER();
 	ncs_encode_16bit(&data, (uns16)DTM_DOWN_MSG_SIZE);
 	ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
-	ncs_encode_8bit(&data, (uns8)DTM_INTERNODE_SND_MSG_VER);
-	ncs_encode_8bit(&data, (uns8)DTM_DOWN_MSG_TYPE);
+	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
+	ncs_encode_8bit(&data, (uint8_t)DTM_DOWN_MSG_TYPE);
 	ncs_encode_16bit(&data, (uns16)0x01);
 	ncs_encode_32bit(&data, server_type);
 	ncs_encode_32bit(&data, server_inst);
@@ -455,7 +455,7 @@ uns32 dtm_prepare_svc_down_msg(uns8 *buffer, uns32 server_type, uns32 server_ins
 static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 {
 	uns16 num_elem = 0, buff_len = 0;
-	uns8 *data = NULL;
+	uint8_t *data = NULL;
 	DTM_SVC_DATA *mov_ptr = NULL;
 
 	TRACE_ENTER();
@@ -476,7 +476,7 @@ static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 		TRACE("DTM :No services to be updated to remote node");
 		return NCSCC_RC_SUCCESS;
 	} else {
-		uns8 *buffer = NULL;
+		uint8_t *buffer = NULL;
 		if (NULL == (buffer = calloc(1, buff_len))) {
 			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			return NCSCC_RC_FAILURE;
@@ -484,8 +484,8 @@ static uns32 dtm_prepare_and_send_svc_up_msg_for_node_up(NODE_ID node_id)
 		data = buffer;
 		ncs_encode_16bit(&data, (uns16)(buff_len - 2));
 		ncs_encode_32bit(&data, (uns32)DTM_INTERNODE_SND_MSG_IDENTIFIER);
-		ncs_encode_8bit(&data, (uns8)DTM_INTERNODE_SND_MSG_VER);
-		ncs_encode_8bit(&data, (uns8)DTM_UP_MSG_TYPE);
+		ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
+		ncs_encode_8bit(&data, (uint8_t)DTM_UP_MSG_TYPE);
 		ncs_encode_16bit(&data, num_elem);
 		while (NULL != mov_ptr) {
 			ncs_encode_32bit(&data, mov_ptr->type);

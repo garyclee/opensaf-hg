@@ -455,7 +455,7 @@ static SaUint32T hrb_get_resourceid(SaInt8T *epath_str,
                 }
 
 		/* got the entry, check for matching entity path */
-		if (memcmp(&epath, (int8 *)&rpt_entry.ResourceEntity.Entry,
+		if (memcmp(&epath, (int8_t *)&rpt_entry.ResourceEntity.Entry,
 			sizeof(SaHpiEntityT))){
 			continue;
 		}

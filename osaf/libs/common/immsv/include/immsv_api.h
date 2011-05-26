@@ -47,7 +47,7 @@ extern "C" {
 #define IMMSV_MAX_OBJS_IN_SYNCBATCH 400
 
 /*Max # of outstanding fevs messages towards director.*/
-/*Note max-max is 255. cb->fevs_replies_pending is an uns8*/
+/*Note max-max is 255. cb->fevs_replies_pending is an uint8_t*/
 #define IMMSV_DEFAULT_FEVS_MAX_PENDING 16
 
 

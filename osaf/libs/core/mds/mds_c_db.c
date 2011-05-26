@@ -43,7 +43,7 @@ uns32 mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_add");
 
 	/* Check if vdest is not already created */
-	if (ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id) != NULL) {
+	if (ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id) != NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_add : VDEST already present");
 		return NCSCC_RC_FAILURE;
 	}
@@ -59,7 +59,7 @@ uns32 mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_
 	m_NCS_TMR_CREATE(vdest_info->quiesced_cbk_tmr, MDS_QUIESCED_TMR_VAL, mds_tmr_callback, (void *)NULL);
 
 	m_MDS_LOG_DBG("Quiescedcbk tmr=0x%08x", vdest_info->quiesced_cbk_tmr);
-	vdest_info->node.key_info = (uns8 *)&vdest_info->vdest_id;
+	vdest_info->node.key_info = (uint8_t *)&vdest_info->vdest_id;
 
 	ncs_patricia_tree_add(&gl_mds_mcm_cb->vdest_list, (NCS_PATRICIA_NODE *)&vdest_info->node);
 
@@ -79,7 +79,7 @@ uns32 mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_del");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_del : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -116,7 +116,7 @@ uns32 mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_update_role");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_update_role : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -171,7 +171,7 @@ uns32 mds_vdest_tbl_update_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subt
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_update_ref_val");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_update_ref_val : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -192,7 +192,7 @@ uns32 mds_vdest_tbl_query(MDS_VDEST_ID vdest_id)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_query");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_query : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -213,7 +213,7 @@ uns32 mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_role");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_get_role : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -235,7 +235,7 @@ uns32 mds_vdest_tbl_get_policy(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE *policy)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_policy");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_get_policy : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -256,7 +256,7 @@ uns32 mds_vdest_tbl_get_first(MDS_VDEST_ID vdest_id, MDS_PWE_HDL *first_pwe_hdl)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_first");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_get_first : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -298,7 +298,7 @@ uns32 mds_vdest_tbl_get_subtn_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_subtn_ref_val");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_vdest_tbl_get_subtn_ref_val : VDEST not present");
 		return NCSCC_RC_FAILURE;
@@ -317,7 +317,7 @@ uns32 mds_vdest_tbl_get_vdest_info_cb(MDS_VDEST_ID vdest_id, MDS_VDEST_INFO **vd
 {
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_vdest_info_cb");
 
-	*vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	*vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 
 	m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_vdest_tbl_get_vdest_info_cb");
 	return NCSCC_RC_SUCCESS;
@@ -334,7 +334,7 @@ uns32 mds_vdest_tbl_cleanup(void)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_del");
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	while (vdest_info != NULL) {
 		/* If timer is running free TMR_REQ_INFO */
 		if (vdest_info->tmr_running == TRUE) {
@@ -368,7 +368,7 @@ uns32 mds_vdest_tbl_cleanup(void)
 		/* Free memory of VDEST_INFO */
 		m_MMGR_FREE_VDEST_INFO(vdest_info);
 
-		vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+		vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_vdest_tbl_del");
 	return NCSCC_RC_SUCCESS;
@@ -394,7 +394,7 @@ uns32 mds_pwe_tbl_add(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id, MDS_PWE_HDL *pw
 	vdest_id = m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(vdest_hdl);
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 	if (vdest_info == NULL) {
 		/* VDEST doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_pwe_tbl_add : VDEST not present");
@@ -439,7 +439,7 @@ uns32 mds_pwe_tbl_del(MDS_PWE_HDL pwe_hdl)
 	pwe_id = m_MDS_GET_PWE_ID_FROM_PWE_HDL(pwe_hdl);
 	vdest_hdl = m_MDS_GET_VDEST_HDL_FROM_VDEST_ID(vdest_id);
 
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 
 	/* Check if vdest is already created */
 
@@ -488,7 +488,7 @@ uns32 mds_pwe_tbl_query(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id)
 	vdest_id = m_MDS_GET_VDEST_ID_FROM_VDEST_HDL(vdest_hdl);
 
 	/* Check if vdest is already created */
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_id);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_id);
 
 	if (vdest_info == NULL) {
 		/* VDEST doesn't exist */
@@ -573,7 +573,7 @@ uns32 mds_svc_tbl_add(NCSMDS_INFO *info)
 		info->info.svc_install.o_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&svc_info->q_mbx);
 	}
 
-	svc_info->svc_list_node.key_info = (uns8 *)&svc_info->svc_hdl;
+	svc_info->svc_list_node.key_info = (uint8_t *)&svc_info->svc_hdl;
 
 	ncs_patricia_tree_add(&gl_mds_mcm_cb->svc_list, (NCS_PATRICIA_NODE *)&svc_info->svc_list_node);
 
@@ -603,7 +603,7 @@ uns32 mds_svc_tbl_del(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_Q_MSG_FREE_CB 
 
 	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl, svc_id);
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_del : SVC not present");
@@ -634,7 +634,7 @@ uns32 mds_svc_tbl_query(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id)
 	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl, svc_id);
 
 	/* Check if svc already exist */
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_query : SVC not present");
@@ -659,7 +659,7 @@ uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb
 	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl, svc_id);
 
 	/* Check if svc already exist */
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_get : SVC not present");
@@ -684,7 +684,7 @@ uns32 mds_svc_tbl_get_install_scope(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSM
 	svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID(pwe_hdl, svc_id);
 
 	/* Check if svc already exist */
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_get_install_scope : SVC not present");
@@ -726,7 +726,7 @@ uns32 mds_svc_tbl_get_first_subscription(MDS_SVC_HDL svc_hdl, MDS_SUBSCRIPTION_I
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_svc_tbl_get_first_subscription");
 
 	/* Check if svc already exist */
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_get_first_subscription : SVC not present");
@@ -788,7 +788,7 @@ uns32 mds_svc_tbl_getnext_on_vdest(MDS_VDEST_ID vdest_id, MDS_SVC_HDL current_sv
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_svc_tbl_getnext_on_vdest");
 
-	temp_svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uns8 *)&current_svc_hdl);
+	temp_svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uint8_t *)&current_svc_hdl);
 	while (temp_svc_info != NULL) {
 		if (m_MDS_GET_VDEST_ID_FROM_SVC_HDL(temp_svc_info->svc_hdl) == vdest_id) {
 			*svc_info = temp_svc_info;
@@ -796,7 +796,7 @@ uns32 mds_svc_tbl_getnext_on_vdest(MDS_VDEST_ID vdest_id, MDS_SVC_HDL current_sv
 			return NCSCC_RC_SUCCESS;
 		}
 		temp_svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->svc_list, (uns8 *)&temp_svc_info->svc_hdl);
+		    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&temp_svc_info->svc_hdl);
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_svc_tbl_getnext_on_vdest : Next SVC not present");
 	return NCSCC_RC_FAILURE;
@@ -817,7 +817,7 @@ uns32 mds_svc_tbl_cleanup(void)
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_svc_tbl_get_first_subscription");
 
 	/* Check if svc already exist */
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	while (svc_info != NULL) {
 
 		while (svc_info->subtn_info != NULL) {
@@ -891,7 +891,7 @@ uns32 mds_svc_tbl_cleanup(void)
 		m_MMGR_FREE_SVC_INFO(svc_info);
 
 		/* Get next service */
-		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+		svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -924,7 +924,7 @@ uns32 mds_subtn_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SC
 		return NCSCC_RC_FAILURE;
 	}
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_add : SVC not present");
@@ -991,7 +991,7 @@ uns32 mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uns32 subscr_svc_id)
 		return NCSCC_RC_FAILURE;
 	}
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_del : SVC not present");
@@ -1072,7 +1072,7 @@ uns32 mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 	memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_change_explicit : SVC not present");
@@ -1096,7 +1096,7 @@ uns32 mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 			temp_subtn_result_info = NULL;
 			temp_subtn_result_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_key);
+			    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_key);
 			while (temp_subtn_result_info != NULL &&
 			       temp_subtn_result_info->key.sub_svc_id == subscr_svc_id) {
 				if (temp_subtn_result_info->key.adest == 0) {	/* This is active entry for a VDEST */
@@ -1191,7 +1191,7 @@ uns32 mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 				/* Get next subtn result info */
 				temp_subtn_result_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-				    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&temp_subtn_result_info->key);
+				    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&temp_subtn_result_info->key);
 			}
 		}
 		/* Get next subtn info */
@@ -1212,7 +1212,7 @@ uns32 mds_subtn_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id)
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_query");
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_query : SVC not present");
@@ -1250,7 +1250,7 @@ uns32 mds_subtn_tbl_update_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_update_ref_hdl");
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_update_ref_hdl : SVC not present");
@@ -1282,7 +1282,7 @@ uns32 mds_subtn_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBSC
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_get");
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_get : SVC not present");
@@ -1314,7 +1314,7 @@ uns32 mds_subtn_tbl_get_details(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, N
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_get_details");
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_get_details : SVC not present");
@@ -1347,7 +1347,7 @@ uns32 mds_subtn_tbl_get_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, M
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_get_ref_hdl");
 
-	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uns8 *)&svc_hdl);
+	svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_hdl);
 	if (svc_info == NULL) {
 		/* Local service doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_tbl_get_ref_hdl : SVC not present");
@@ -1436,7 +1436,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 	subtn_res_key.adest = adest;
 
 	subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get
-	    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_key);
+	    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_key);
 
 	if (subtn_res_info != NULL) {
 		/* Subscription entry already exist */
@@ -1449,7 +1449,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
 	memcpy(&subtn_res_info->key, &subtn_res_key, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
-	subtn_res_info->node.key_info = (uns8 *)&subtn_res_info->key;
+	subtn_res_info->node.key_info = (uint8_t *)&subtn_res_info->key;
 
 	subtn_res_info->info.vdest_inst.role = role;
 	subtn_res_info->install_scope = scope;
@@ -1466,7 +1466,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
 			subtn_res_key.adest = 0;
 			active_subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get
-			    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_key);
+			    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_key);
 
 			if (active_subtn_res_info == NULL) {	/* Active vdest entry doesn't exist */
 
@@ -1497,7 +1497,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
 				m_MDS_LOG_DBG("Await active tmr=0x%08x", active_info->await_active_tmr);
 				/* add entry in tree */
-				active_subtn_res_info->node.key_info = (uns8 *)&active_subtn_res_info->key;
+				active_subtn_res_info->node.key_info = (uint8_t *)&active_subtn_res_info->key;
 				ncs_patricia_tree_add(&gl_mds_mcm_cb->subtn_results,
 						      (NCS_PATRICIA_NODE *)&active_subtn_res_info->node);
 			} else {	/* Active entry Or Await active entry exist */
@@ -1580,7 +1580,7 @@ uns32 mds_subtn_res_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_del : Subscription Result not present");
@@ -1631,7 +1631,7 @@ uns32 mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist */
 		m_MDS_LOG_DBG
@@ -1665,7 +1665,7 @@ uns32 mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 
 		/* Subscription result entry doesn't exist for active result */
@@ -1731,7 +1731,7 @@ uns32 mds_subtn_res_tbl_remove_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist for active result */
 		m_MDS_LOG_DBG
@@ -1796,7 +1796,7 @@ uns32 mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info != NULL) {
 		/* Active Subscription result entry Already exist */
 		m_MDS_LOG_INFO("MCM_DB : Active entry already present");
@@ -1807,7 +1807,7 @@ uns32 mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id
 		memset(subtn_res_info, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
 
 		memcpy(&subtn_res_info->key, &subtn_res_key, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
-		subtn_res_info->node.key_info = (uns8 *)&subtn_res_info->key;
+		subtn_res_info->node.key_info = (uint8_t *)&subtn_res_info->key;
 
 		ncs_patricia_tree_add(&gl_mds_mcm_cb->subtn_results, (NCS_PATRICIA_NODE *)&subtn_res_info->node);
 
@@ -1862,7 +1862,7 @@ uns32 mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist for active result */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_change_role : Subscription Result not present");
@@ -1899,7 +1899,7 @@ uns32 mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist for active result */
 		m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_get : Subscription Result not present");
@@ -1963,7 +1963,7 @@ uns32 mds_subtn_res_tbl_get_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
 
 	subtn_res_info =
 	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->subtn_results,
-								   (uns8 *)&subtn_res_key);
+								   (uint8_t *)&subtn_res_key);
 	if (subtn_res_info == NULL) {
 		/* Subscription result entry doesn't exist for active result */
 		m_MDS_LOG_DBG
@@ -1990,10 +1990,10 @@ uns32 mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 
 	if (*result == NULL) {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 	} else {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&((*result)->key));
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&((*result)->key));
 	}
 
 	while (subtn_res_info != NULL) {
@@ -2014,7 +2014,7 @@ uns32 mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 		}
 		subtn_res_info =
 		    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results,
-									       (uns8 *)&(subtn_res_info->key));
+									       (uint8_t *)&(subtn_res_info->key));
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_getnext_active : Active Result not present");
 	return NCSCC_RC_FAILURE;
@@ -2033,10 +2033,10 @@ uns32 mds_subtn_res_tbl_getnext_any(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 	if (*result == NULL) {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 	} else {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&((*result)->key));
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&((*result)->key));
 	}
 
 	while (subtn_res_info != NULL) {
@@ -2047,7 +2047,7 @@ uns32 mds_subtn_res_tbl_getnext_any(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 			return NCSCC_RC_SUCCESS;
 		}
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&(subtn_res_info->key));
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&(subtn_res_info->key));
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_getnext_any : Subscription Result not present");
 	return NCSCC_RC_FAILURE;
@@ -2068,7 +2068,7 @@ uns32 mds_subtn_res_tbl_getnext_by_adest(MDS_DEST adest, MDS_SUBSCRIPTION_RESULT
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_getnext_by_adest");
 
 	subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-	    (&gl_mds_mcm_cb->subtn_results, (uns8 *)key);
+	    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)key);
 
 	while (subtn_res_info != NULL) {
 
@@ -2081,7 +2081,7 @@ uns32 mds_subtn_res_tbl_getnext_by_adest(MDS_DEST adest, MDS_SUBSCRIPTION_RESULT
 		key = &subtn_res_info->key;
 
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)key);
 	}
 
 	*ret_result = NULL;
@@ -2107,10 +2107,10 @@ uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_sv
 	/* Starting from current active till end of tree */
 	if (current_active_result == NULL) {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 	} else {
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&current_active_result->key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&current_active_result->key);
 	}
 
 	while (subtn_res_info != NULL) {
@@ -2123,7 +2123,7 @@ uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_sv
 			return NCSCC_RC_SUCCESS;
 		}
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_info->key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_info->key);
 	}
 
 	/* Starting from start of tree till Current active */
@@ -2135,7 +2135,7 @@ uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_sv
 	}
 
 	subtn_res_info =
-	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 
 	while (subtn_res_info != NULL || subtn_res_info == current_active_result) {
 		if (svc_hdl == subtn_res_info->key.svc_hdl &&
@@ -2147,7 +2147,7 @@ uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_sv
 			return NCSCC_RC_SUCCESS;
 		}
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_info->key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_info->key);
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : F : mds_subtn_res_tbl_query_next_active : Subscription Result not present");
 	return NCSCC_RC_FAILURE;
@@ -2166,7 +2166,7 @@ uns32 mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 	memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
 	subtn_res_info =
-	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 
 	while (subtn_res_info != NULL) {
 		if (svc_hdl == subtn_res_info->key.svc_hdl && sub_svc_id == subtn_res_info->key.sub_svc_id) {
@@ -2210,13 +2210,13 @@ uns32 mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 			m_MMGR_FREE_SUBTN_RESULT_INFO(subtn_res_info);
 
 			subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-			    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_key);
+			    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_key);
 			continue;
 
 		}
 		/* Get next entry */
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_info->key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_info->key);
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_subtn_res_tbl_del_all");
 	return NCSCC_RC_SUCCESS;
@@ -2236,7 +2236,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
 	memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
 	subtn_res_info =
-	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uns8 *)NULL);
+	    (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results, (uint8_t *)NULL);
 
 	while (subtn_res_info != NULL) {
 		/* Delete this entry */
@@ -2274,7 +2274,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
 		m_MMGR_FREE_SUBTN_RESULT_INFO(subtn_res_info);
 
 		subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->subtn_results, (uns8 *)&subtn_res_key);
+		    (&gl_mds_mcm_cb->subtn_results, (uint8_t *)&subtn_res_key);
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : S : mds_subtn_res_tbl_cleanup");
 	return NCSCC_RC_SUCCESS;
@@ -2315,7 +2315,7 @@ void ncsmds_pp()
 
 	printf("\n\n  ==> M D S  P r e t t y  P r i n t <==\n\n");
 
-	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uns8 *)NULL);
+	vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->vdest_list, (uint8_t *)NULL);
 	while (vdest_info != NULL) {
 		printf("\n\n\n\n\n ::::::: VDEST INFO ::::::: \n\n");
 		printf("\n| VDEST ID | SUBTN REF VAL | POLICY | ROLE | TMR_RUNNING |\n");
@@ -2343,7 +2343,7 @@ void ncsmds_pp()
 			printf("\n| PWE-ID |\n");
 			printf("|  %5d |\n", pwe_info->pwe_id);
 
-			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uns8 *)NULL);
+			svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list, (uint8_t *)NULL);
 			while (svc_info != NULL) {
 				if (m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl) == pwe_info->pwe_id &&
 				    m_MDS_GET_VDEST_ID_FROM_SVC_HDL(svc_info->svc_hdl) == vdest_info->vdest_id) {
@@ -2409,7 +2409,7 @@ void ncsmds_pp()
 						subtn_res_info =
 						    (MDS_SUBSCRIPTION_RESULTS_INFO *)
 						    ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results,
-									      (uns8 *)&subtn_res_key);
+									      (uint8_t *)&subtn_res_key);
 						while (subtn_res_info != NULL) {
 							if (subtn_res_info->key.svc_hdl != svc_info->svc_hdl ||
 							    subtn_res_info->key.sub_svc_id != subtn_info->sub_svc_id) {
@@ -2459,7 +2459,7 @@ void ncsmds_pp()
 							subtn_res_info =
 							    (MDS_SUBSCRIPTION_RESULTS_INFO *)
 							    ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results,
-										      (uns8 *)&subtn_res_key);
+										      (uint8_t *)&subtn_res_key);
 						}
 
 						subtn_info = subtn_info->next;
@@ -2467,14 +2467,14 @@ void ncsmds_pp()
 
 				}
 				svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->svc_list,
-										     (uns8 *)&svc_info->svc_hdl);
+										     (uint8_t *)&svc_info->svc_hdl);
 			}
 
 			pwe_info = pwe_info->next_pwe;
 		}
 
 		vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_getnext
-		    (&gl_mds_mcm_cb->vdest_list, (uns8 *)&vdest_info->vdest_id);
+		    (&gl_mds_mcm_cb->vdest_list, (uint8_t *)&vdest_info->vdest_id);
 		printf("\n|-----------------------------------------------------------------\n");
 	}
 	m_MDS_LOG_DBG("MCM_DB : Leaving : ncsmds_pp");
