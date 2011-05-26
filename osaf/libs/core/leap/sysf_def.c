@@ -36,7 +36,6 @@
 
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-#include "ncs_scktprm.h"
 
 #include "ncs_svd.h"
 #include "ncssysf_def.h"
@@ -349,8 +348,6 @@ uns32 leap_env_destroy()
 	}
 
 	m_NCS_DBG_PRINTF("\n\n\nDESTROYING LEAP ENVIRONMENT\n");
-
-	m_NCSSOCK_DESTROY;
 
 	/* Destroying  execution control block */
 	exec_mod_cb_destroy();

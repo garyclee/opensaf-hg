@@ -1121,28 +1121,6 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
    strcat((str), "\n"); \
 }
 
-#if (NCS_IPV6 == 1)
-#define m_NCSFL_MAKE_STR_FRM_IPADDR(ipa, t_str) \
-{ \
-  uns8  *ptr; \
-  if (ipa.type == NCS_IP_ADDR_TYPE_IPV4) \
-  { \
-       ptr = (uns8 *)&ipa.info.v4;  \
-       sprintf(t_str,"%d.%d.%d.%d", *ptr, *(ptr + 1), *(ptr + 2), *(ptr + 3)); \
-  } \
-  else if (ipa.type == NCS_IP_ADDR_TYPE_IPV6)\
-  {     int i;\
-       ptr = (uns8 *)&ipa.info.v6;  \
-       for (i=0; i<7; i++) \
-           sprintf(&t_str[i*5],"%04x:", ntohs(ipa.info.v6.ipv6.ipv6_addr16[i]));\
-       sprintf(&t_str[i*5],"%04x", ntohs(ipa.info.v6.ipv6.ipv6_addr16[i]));     \
-  }\
-  else \
-  {\
-     sprintf(t_str,"NONE!");\
-  }\
-}
-#else
 #define m_NCSFL_MAKE_STR_FRM_IPADDR(ipa, t_str) \
 { \
   uns8  *ptr; \
@@ -1156,7 +1134,6 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb);
      sprintf(t_str,"NONE!");\
   }\
 }
-#endif
 
 #define m_NCSFL_MAKE_STR_FROM_MEM(str, addr, len, mem) \
 { \

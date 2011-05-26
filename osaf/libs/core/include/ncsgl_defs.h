@@ -64,26 +64,23 @@ extern "C" {
 #define NCS_INT64_TO_PTR_CAST(x)   ((void*)(long)(x))
 #define NCS_UNS32_TO_PTR_CAST(x)   ((void*)(long)(x))
 
+	/* Last surviving bits of NCS IP related crap, for now ... */
 	typedef uns32 NCS_IPV4_ADDR;
-#if (NCS_IPV6 == 1)
 
-#define NCS_IPV6_ADDR_UNS8_CNT    16	/* Number of uns8's in an IPv6 address */
-#define NCS_IPV6_ADDR_UNS16_CNT   8	/* Number of uns16's in an IPv6 address */
-#define NCS_IPV6_ADDR_UNS32_CNT   4	/* Number of uns32's in an IPv6 address */
+	typedef enum ncs_ip_addr_type {
+		NCS_IP_ADDR_TYPE_NONE,
+		NCS_IP_ADDR_TYPE_IPV4,
+		NCS_IP_ADDR_TYPE_IPV6,
+		NCS_IP_ADDR_TYPE_MAX    /* Must be last. */
+	} NCS_IP_ADDR_TYPE;
 
-	typedef struct ncs_ipv6_addr_tag {
+	typedef struct ncs_ip_addr {
+		NCS_IP_ADDR_TYPE type;
 		union {
-			uns8 ipv6_addr8[NCS_IPV6_ADDR_UNS8_CNT];
-			uns16 ipv6_addr16[NCS_IPV6_ADDR_UNS16_CNT];
-			uns32 ipv6_addr32[NCS_IPV6_ADDR_UNS32_CNT];
-		} ipv6;
-	} NCS_IPV6_ADDR;
+			NCS_IPV4_ADDR v4;
+		} info;
+	} NCS_IP_ADDR;
 
-#define m_ipv6_addr              ipv6.ipv6_addr8
-#define m_ipv6_addr16            ipv6.ipv6_addr16
-#define m_ipv6_addr32            ipv6.ipv6_addr32
-#define m_IPV6_ADDR_SIZE         sizeof (NCS_IPV6_ADDR)
-#endif
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -133,19 +130,7 @@ extern "C" {
 
 #define NCS_MAX_SLOTS ((NCS_SLOT_MAX *  NCS_SUB_SLOT_MAX) + NCS_SLOT_MAX)
 
-/***************************************************************************
- * The IP address definations are removed from this file, and moved into the 
- * followng include files.
- * Including this files here is a work around to avoide compilation errors in 
- * all subsytems that are using IP address definations. Going forward all 
- * subsystems need to include the following include files seperately along with
- * gl_defs.h, and remove the include defenations from this file 
- *****************************************************************************/
-
-#define NCS_IPV6 0
-
 	typedef uns64 MDS_DEST;
-
 	typedef uns32 NCS_NODE_ID;
 	typedef uns8 NCS_CHASSIS_ID;
 	typedef uns8 NCS_PHY_SLOT_ID;

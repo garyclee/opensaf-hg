@@ -39,9 +39,6 @@
 
 struct ncs_ipaddr_entry;
 struct ncsxlim_if_rec;
-#if (NCS_IPV6 == 1)
-struct ncsxlim_if_attached_tunn_info_tag;
-#endif
 
 #define m_OSSVC_MMGR_ALLOC_NCSIPAE (struct ncs_ipaddr_entry*)m_NCS_MEM_ALLOC(sizeof(struct ncs_ipaddr_entry), \
                                                  NCS_MEM_REGION_PERSISTENT, \
@@ -69,25 +66,6 @@ struct ncsxlim_if_attached_tunn_info_tag;
 #define m_OSSVC_MMGR_FREE_NCSSVENT(p)   m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, \
                                                  NCS_SERVICE_ID_COMMON, \
                                                  2)
-#if (NCS_IPV6 == 1)
-#define m_OSSVC_MMGR_ALLOC_NCSXTR (struct ncsxlim_tunn_rec*)m_NCS_MEM_ALLOC(sizeof(struct ncsxlim_tunn_rec), \
-                                                 NCS_MEM_REGION_PERSISTENT, \
-                                                 NCS_SERVICE_ID_COMMON, \
-                                                 3)
-
-#define m_OSSVC_MMGR_FREE_NCSXTR(p)   m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, \
-                                                 NCS_SERVICE_ID_COMMON, \
-                                                 3)
-
-#define m_OSSVC_MMGR_ALLOC_NCSXIATIT (struct ncsxlim_if_attached_tunn_info_tag*)m_NCS_MEM_ALLOC(sizeof(struct ncsxlim_if_attached_tunn_info_tag), \
-                                                 NCS_MEM_REGION_PERSISTENT, \
-                                                 NCS_SERVICE_ID_COMMON, \
-                                                 4)
-
-#define m_OSSVC_MMGR_FREE_NCSXIATIT(p)   m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, \
-                                                 NCS_SERVICE_ID_COMMON, \
-                                                 4)
-#endif
 
 /** Imcomplete structure definitions - required by some compilers.
  **/

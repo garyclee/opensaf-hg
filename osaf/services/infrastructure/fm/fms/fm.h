@@ -52,7 +52,6 @@
 #include "ncs_mds_def.h"
 
 #include "ncs_queue.h"
-#include "ncs_scktprm.h"
 
 #include "ncs_log.h"
 #include "ncs_lib.h"
