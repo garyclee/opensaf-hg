@@ -122,7 +122,6 @@ typedef struct ms_time {
  ************************************************************************/
 
 typedef struct ncsfl_hdr {
-	NCS_VRID vr_id;		/* virtual router ID.. default is 0   */
 	SS_SVC_ID ss_id;	/* logging entity's subsystem ID      */
 	uns32 inst_id;		/* Instance ID of the service         */
 	uns8 severity;		/* as per IEFT-draft syslog           */
@@ -229,7 +228,6 @@ typedef struct dtsv_msg {
 
 	NCS_BOOL rsp_reqd;	/* TRUE if send is awaiting a response            */
 	MDS_SYNC_SND_CTXT msg_ctxt;	/* Valid only if "i_rsp_expected == TRUE"         */
-	NCS_VRID vrid;		/* Virtual router ID for sanity sake            */
 	NODE_ID node;		/* Senders physical card number */
 	MDS_DEST dest_addr;	/* Senders destination address */
 	DTS_SVC_MSG_TYPE msg_type;	/* encoded by sender to proper subservice       */

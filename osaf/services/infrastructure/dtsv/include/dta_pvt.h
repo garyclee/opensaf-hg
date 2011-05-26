@@ -97,7 +97,6 @@ typedef struct dta_cb {
 
 	/* Create time constants */
 	MDS_HDL mds_hdl;
-	NCS_VRID vrid;
 
 	/* Link-list for buffering log messages till DTS comes up */
 	DTA_LOG_BUFFER log_buffer;

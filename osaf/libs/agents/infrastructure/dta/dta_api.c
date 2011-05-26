@@ -517,9 +517,6 @@ NCS_BOOL dta_match_service(void *key, void *qelem)
 *****************************************************************************/
 uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name, uns8 operation)
 {
-	DTA_CB *inst = &dta_cb;
-
-	msg->vrid = inst->vrid;
 	msg->msg_type = operation;
 
 	switch (operation) {
@@ -737,7 +734,6 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 	/* Flexlog Agent fills in the TIME STAMP value */
 	m_GET_MSEC_TIME_STAMP(&hdr->time.seconds, &hdr->time.millisecs);
 
-	msg->vrid = inst->vrid;
 	msg->msg_type = DTA_LOG_DATA;
 	uba = &msg->data.data.msg.log_msg.uba;
 

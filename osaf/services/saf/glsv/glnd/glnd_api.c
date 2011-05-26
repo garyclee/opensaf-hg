@@ -41,7 +41,7 @@ void glnd_main_process(SYSF_MBX *mbx);
  *
  * Description   : This is the function which initalize the GLND libarary.
  *
- * Arguments     : vrid      - This is the virtual router ID.
+ * Arguments     : pool_id - This is the pool ID.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *

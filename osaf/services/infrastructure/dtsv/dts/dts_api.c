@@ -159,7 +159,6 @@ uns32 dts_svc_create(DTS_CREATE *create)
 	/* Smik - Set cli_bit_map to 0 */
 	inst->cli_bit_map = 0;
 
-	inst->vrid = create->i_vrid;
 	inst->dts_enbl = TRUE;
 	inst->hmpool_id = create->i_hmpool_id;
 

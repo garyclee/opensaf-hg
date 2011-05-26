@@ -76,7 +76,6 @@ typedef struct ncs_se_filter_id {
 typedef struct ncs_se_backto {
 	NCS_SE se;		/* All NCS_STACK Stack Elements start with this */
 	uns16 svcid;		/* Back to Subcomponent's Service ID */
-	uns16 vrid;		/* Back to Virtual Router ID */
 	MDS_DEST vcard;		/* Back to Virtual Card ID */
 
 } NCS_SE_BACKTO;

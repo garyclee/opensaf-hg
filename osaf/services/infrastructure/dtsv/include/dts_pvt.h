@@ -501,7 +501,6 @@ typedef struct dts_cb {
 	/* Smik - Adding patricia tree for DTA_DEST_LIST */
 	NCS_PATRICIA_TREE dta_list;
 
-	NCS_VRID vrid;
 	NCS_BOOL created;
 
 #if (DTS_SIM_TEST_ENV == 1)

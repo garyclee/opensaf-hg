@@ -74,8 +74,6 @@ extern "C" {
 	typedef int32_t int32;
 	typedef int64_t int64;
 
-	typedef uns16 NCS_VRID;	/* Virtual Router ID */
-
 	typedef unsigned short cfgflag;	/* Usually a YES/NO or T/F boolean */
 	typedef unsigned short cfgenum;	/* An enumerated value */
 

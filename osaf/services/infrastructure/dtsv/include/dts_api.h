@@ -45,7 +45,6 @@
 *******************************************************************************/
 
 typedef struct dts_create {
-	NCS_VRID i_vrid;	/* Virtual Router    */
 	uns8 i_hmpool_id;	/* Handle Manager Pool Id                      */
 	NCSCONTEXT task_handle;
 	NCS_BOOL reg_with_amf;
