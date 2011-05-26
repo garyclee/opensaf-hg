@@ -155,11 +155,11 @@ USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64)
 	return u;
 }
 
-USRBUF *ncs_encode_float(USRBUF *u, ncsfloat32 obj_val)
+USRBUF *ncs_encode_float(USRBUF *u, float obj_val)
 {
-	ncsfloat32 *pfloat;
+	float *pfloat;
 
-	if ((pfloat = m_MMGR_RESERVE_AT_END(&u, (uns32)sizeof(obj_val), ncsfloat32 *)) != (ncsfloat32 *)0)
+	if ((pfloat = m_MMGR_RESERVE_AT_END(&u, (uns32)sizeof(obj_val), float *)) != (float *)0)
 		 m_NCS_ENCODE_FLOAT(obj_val, pfloat);
 
 	return u;

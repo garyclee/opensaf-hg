@@ -276,30 +276,30 @@ void cpnd_log_ascii_dereg(void);
                                                      sev,NCSFL_TYPE_TICL,id,filename,lineno)
 
 #define m_LOG_CPND_FCL(id,strid,sev,hdl,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND,CPND_LID_TIFCL, \
-                                   strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFCL,id,(DOUBLE)hdl,filename,lineno)
+                                   strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFCL,id,hdl,filename,lineno)
 
 #define m_LOG_CPND_CFFFCL(id,strid,sev,str1,dest1,dest2,ckptid,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TICFFFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICFFFCL,id,str1,(DOUBLE)dest1,(DOUBLE)dest2, \
-              (DOUBLE)ckptid,filename,lineno)
+              CPND_LID_TICFFFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICFFFCL,id,str1,dest1,dest2, \
+              ckptid,filename,lineno)
 
 #define m_LOG_CPND_FFCL(id,strid,sev,cli_hdl,ckptid,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TIFFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFCL,id, (DOUBLE)cli_hdl ,\
-              (DOUBLE)ckptid,filename,lineno)
+              CPND_LID_TIFFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFCL,id, cli_hdl ,\
+              ckptid,filename,lineno)
 
 #define m_LOG_CPND_FFLCL(id,strid,sev,cli_hdl,ckptid,cnt, filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TIFFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFLCL,id, (DOUBLE)cli_hdl ,\
-              (DOUBLE)ckptid,cnt, filename,lineno)
+              CPND_LID_TIFFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFLCL,id, cli_hdl ,\
+              ckptid,cnt, filename,lineno)
 
 #define m_LOG_CPND_FFFLCL(id,strid,sev,dest1,dest2,ckptid,rc,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TIFFFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFFLCL,id,(DOUBLE)dest1,(DOUBLE)dest2, \
-              (DOUBLE)ckptid,rc,filename,lineno)
+              CPND_LID_TIFFFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFFLCL,id,dest1,dest2, \
+              ckptid,rc,filename,lineno)
 
 #define m_LOG_CPND_CFCL(id,strid,sev,str1,ckptid,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TICFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICFCL,id,str1,(DOUBLE)ckptid, \
+              CPND_LID_TICFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICFCL,id,str1,ckptid, \
               filename,lineno)
 
 #define m_LOG_CPND_FLCL(id,strid,sev,ckptid,rc,filename,lineno)  ncs_logmsg(NCS_SERVICE_ID_CPND, \
-              CPND_LID_TIFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFLCL,id,(DOUBLE)ckptid,rc, \
+              CPND_LID_TIFLCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFLCL,id,ckptid,rc, \
               filename,lineno)
 
 #define m_LOG_CPND_CCL(id,strid,sev,ckptname,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPND,CPND_LID_TICCL, \

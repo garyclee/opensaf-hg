@@ -3175,7 +3175,7 @@ NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
 	    (prog == ncs_edp_int) ||
 	    (prog == ncs_edp_double) ||
 	    (prog == ncs_edp_float) ||
-	    (prog == ncs_edp_ncsfloat32) ||
+	    (prog == ncs_edp_float) ||
 	    (prog == ncs_edp_uns64) || (prog == ncs_edp_int64) || (prog == ncs_edp_string)) {
 		return TRUE;
 	}
@@ -3221,8 +3221,8 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size)
 		*o_size = sizeof(double);
 	else if (prog == ncs_edp_float)
 		*o_size = sizeof(float);
-	else if (prog == ncs_edp_ncsfloat32)
-		*o_size = sizeof(ncsfloat32);
+	else if (prog == ncs_edp_float)
+		*o_size = sizeof(float);
 	else if (prog == ncs_edp_uns64)
 		*o_size = sizeof(uns64);
 	else if (prog == ncs_edp_int64)

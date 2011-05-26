@@ -74,14 +74,6 @@ extern "C" {
 	typedef int32_t int32;
 	typedef int64_t int64;
 
-	typedef float ncsfloat32;
-
-	/* 
-	 * support for double is dependent upon the target system and/or C-compiler.
-	 * If your system does NOT support double, change this to uns32.
-	 */
-	typedef double DOUBLE;
-
 	typedef uns16 NCS_VRID;	/* Virtual Router ID */
 
 	typedef unsigned short cfgflag;	/* Usually a YES/NO or T/F boolean */

@@ -380,7 +380,7 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 
 #define ncs_edp_double ncs_edp_int64
 #define ncs_edp_float ncs_edp_int32
-#define ncs_edp_ncsfloat32 ncs_edp_int32
+#define ncs_edp_float ncs_edp_int32
 
 #define ncs_edp_mds_dest ncs_edp_uns64
 

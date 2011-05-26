@@ -271,7 +271,7 @@ void _cpd_log(uns8 severity, const char *function, const char *format, ...);
 
 #define m_LOG_CPD_FCL(id,strid,sev,ckptid,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD, \
                                                              CPD_LID_TIFCL,strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFCL,\
-                                                             id,(DOUBLE)ckptid,filename,lineno)
+                                                             id,ckptid,filename,lineno)
 
 #define m_LOG_CPD_CL(id,strid,sev,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD,CPD_LID_TICL,strid, \
                                                                  NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICL,id,filename,lineno)
@@ -282,7 +282,7 @@ void _cpd_log(uns8 severity, const char *function, const char *format, ...);
 
 #define m_LOG_CPD_CFCL(id,strid,sev,ckptname,ckptid,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD, \
                                                                         CPD_LID_TICFCL,strid,NCSFL_LC_HEADLINE,sev, \
-                                                                        NCSFL_TYPE_TICFCL,id,ckptname,(DOUBLE)ckptid,\
+                                                                        NCSFL_TYPE_TICFCL,id,ckptname,ckptid,\
                                                                         filename,lineno)
 
 #define m_LOG_CPD_LLCL(id,strid,sev,cnt1,cnt2,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD, \
@@ -295,10 +295,10 @@ void _cpd_log(uns8 severity, const char *function, const char *format, ...);
 
 #define m_LOG_CPD_FFCL(id,strid,sev,ckptid,mdest,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD,CPD_LID_TIFFCL,\
                                                                   strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TIFFCL,id, \
-                                                                  (DOUBLE)ckptid,(DOUBLE)mdest,filename,lineno)
+                                                                  ckptid,mdest,filename,lineno)
 
 #define m_LOG_CPD_CFFCL(id,strid,sev,ckptname,ckptid,mdest,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPD,CPD_LID_TICFFCL,\
                                                                   strid,NCSFL_LC_HEADLINE,sev,NCSFL_TYPE_TICFFCL,id, ckptname,\
-                                                                  (DOUBLE)ckptid,(DOUBLE)mdest,filename,lineno)
+                                                                  ckptid,mdest,filename,lineno)
 
 #endif   /* CPD_LOG_H */
