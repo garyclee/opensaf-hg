@@ -47,7 +47,7 @@ MQD_EVT_HANDLER mqd_evt_tbl[MQSV_EVT_MAX] = {
 };
 
 static uint32_t mqd_user_evt_process(MQD_CB *, MDS_DEST *);
-static uint32_t mqd_comp_evt_process(MQD_CB *, NCS_BOOL *);
+static uint32_t mqd_comp_evt_process(MQD_CB *, bool *);
 static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisced_info);
 static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt);
 static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_info);
@@ -55,8 +55,8 @@ static uint32_t mqd_cb_dump(void);
 static void mqd_dump_timer_info(MQD_TMR tmr);
 static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode);
 static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode);
-static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node);
-static NCS_BOOL mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node);
+static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node);
+static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node);
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_evt_process
@@ -204,7 +204,7 @@ uint32_t mqd_user_evt_track_delete(MQD_CB *pMqd, MDS_DEST *dest)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uint32_t mqd_comp_evt_process(MQD_CB *pMqd, NCS_BOOL *init)
+static uint32_t mqd_comp_evt_process(MQD_CB *pMqd, bool *init)
 {
 	/* Set the Component status to ACTIVE */
 	pMqd->active = *init;
@@ -274,7 +274,7 @@ uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
 			mqd_red_db_node_del(pMqd, pNdNode);
 		TRACE("MQND TMR EXPIRY PROCESSED ON ACTIVE");
 	} else if (pMqd->ha_state == SA_AMF_HA_STANDBY) {
-		pNdNode->info.timer.is_expired = TRUE;
+		pNdNode->info.timer.is_expired = true;
 		TRACE("MQND TMR EXPIRY PROCESSED ON STANDBY");
 	}
 	return rc;
@@ -302,7 +302,7 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 	TRACE("MQND status:MDS EVT :processing %d", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
 
 	/* Process MQND Related events */
-	if (nd_info->is_up == FALSE) {
+	if (nd_info->is_up == false) {
 		pNdNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
 		if (pNdNode == NULL) {
 			rc = NCSCC_RC_FAILURE;
@@ -312,12 +312,12 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 		}
 		memset(pNdNode, 0, sizeof(MQD_ND_DB_NODE));
 		pNdNode->info.nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
-		pNdNode->info.is_restarted = FALSE;
+		pNdNode->info.is_restarted = false;
 		pNdNode->info.timer.type = MQD_ND_TMR_TYPE_EXPIRY;
 		pNdNode->info.timer.tmr_id = 0;
 		pNdNode->info.timer.nodeid = pNdNode->info.nodeid;
 		pNdNode->info.timer.uarg = pMqd->hdl;
-		pNdNode->info.timer.is_active = FALSE;
+		pNdNode->info.timer.is_active = false;
 		mqd_red_db_node_add(pMqd, pNdNode);
 
 		mqd_tmr_start(&pNdNode->info.timer, timeout);
@@ -330,7 +330,7 @@ static uint32_t mqd_nd_status_evt_process(MQD_CB *pMqd, MQD_ND_STATUS_INFO *nd_i
 		pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uint8_t *)&node_id);
 		if (pNdNode) {
 			mqd_tmr_stop(&pNdNode->info.timer);
-			pNdNode->info.is_restarted = TRUE;
+			pNdNode->info.is_restarted = true;
 			pNdNode->info.dest = nd_info->dest;
 			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
 				mqd_red_db_node_del(pMqd, pNdNode);
@@ -374,7 +374,7 @@ static uint32_t mqd_quisced_process(MQD_CB *pMqd, MQD_QUISCED_STATE_INFO *quisce
 			return rc;
 		}
 		saAmfResponse(pMqd->amf_hdl, quisced_info->invocation, saErr);
-		pMqd->is_quisced_set = FALSE;
+		pMqd->is_quisced_set = false;
 		m_LOG_MQSV_D(MQD_EVT_QUISCED_PROCESS_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
 			     __LINE__);
 	} else
@@ -507,7 +507,7 @@ static uint32_t mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
 
-static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
+static bool mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
 {
 	MQD_OBJ_NODE *pObjNode = 0;
 
@@ -516,8 +516,8 @@ static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE 
 
 	*o_node = pObjNode;
 	if (pObjNode)
-		return TRUE;
-	return FALSE;
+		return true;
+	return false;
 }	/* End of mqd_obj_next_validate() */
 
 /****************************************************************************\
@@ -531,7 +531,7 @@ static NCS_BOOL mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
 
-static NCS_BOOL mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node)
+static bool mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node)
 {
 	MQD_ND_DB_NODE *pNdNode = 0;
 
@@ -540,8 +540,8 @@ static NCS_BOOL mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_
 
 	*o_node = pNdNode;
 	if (pNdNode)
-		return TRUE;
-	return FALSE;
+		return true;
+	return false;
 }	/* End of mqd_nodedb_next_validate() */
 
 /****************************************************************************\

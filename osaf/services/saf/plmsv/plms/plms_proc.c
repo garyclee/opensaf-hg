@@ -316,7 +316,7 @@ SaUint32T plms_proc_quiesced_ack_evt()
 
 	TRACE_ENTER();
 
-	if (cb->is_quisced_set == TRUE) {
+	if (cb->is_quisced_set == true) {
 		cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (plms_mbcsv_chgrole() != NCSCC_RC_SUCCESS)
@@ -324,7 +324,7 @@ SaUint32T plms_proc_quiesced_ack_evt()
 
 		/* Update control block */
 		saAmfResponse(cb->amf_hdl, cb->amf_invocation_id, SA_AIS_OK);
-		cb->is_quisced_set = FALSE;
+		cb->is_quisced_set = false;
 
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;

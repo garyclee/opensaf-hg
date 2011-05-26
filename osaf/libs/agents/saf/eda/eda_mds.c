@@ -951,9 +951,9 @@ static uint32_t eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 				     m_NCS_NODE_ID_FROM_MDS_DEST(mds_cb_info->info.svc_evt.i_dest), __FILE__, __LINE__,
 				     0);
 			eda_cb->eds_intf.eds_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-			eda_cb->eds_intf.eds_up = FALSE;
+			eda_cb->eds_intf.eds_up = false;
 			if (mds_cb_info->info.svc_evt.i_change == NCSMDS_DOWN)
-				eda_cb->eds_intf.eds_up_publish = FALSE;
+				eda_cb->eds_intf.eds_up_publish = false;
 		}
 		break;
 	case NCSMDS_NEW_ACTIVE:
@@ -967,10 +967,10 @@ static uint32_t eda_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 				     0);
 			m_NCS_LOCK(&eda_cb->eds_sync_lock, NCS_LOCK_WRITE);
 			eda_cb->eds_intf.eds_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-			eda_cb->eds_intf.eds_up = TRUE;
-			eda_cb->eds_intf.eds_up_publish = TRUE;
+			eda_cb->eds_intf.eds_up = true;
+			eda_cb->eds_intf.eds_up_publish = true;
 
-			if (eda_cb->eds_sync_awaited == TRUE) {
+			if (eda_cb->eds_sync_awaited == true) {
 				m_NCS_SEL_OBJ_IND(eda_cb->eds_sync_sel);
 			}
 			m_NCS_UNLOCK(&eda_cb->eds_sync_lock, NCS_LOCK_WRITE);
@@ -1494,7 +1494,7 @@ uint32_t eda_mds_init(EDA_CB *cb)
 	mds_info.info.svc_install.i_yr_svc_hdl = cb->cb_hdl;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
 	mds_info.info.svc_install.i_svc_cb = eda_mds_callback;	/* callback */
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;	/* EDA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_q_ownership = false;	/* EDA doesn't own the mds queue */
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = EDA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {
@@ -1539,7 +1539,7 @@ void eda_sync_with_eds(EDA_CB *cb)
 		return;
 	}
 
-	cb->eds_sync_awaited = TRUE;
+	cb->eds_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->eds_sync_sel);
 	m_NCS_UNLOCK(&cb->eds_sync_lock, NCS_LOCK_WRITE);
 
@@ -1551,7 +1551,7 @@ void eda_sync_with_eds(EDA_CB *cb)
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->eds_sync_lock, NCS_LOCK_WRITE);
 
-	cb->eds_sync_awaited = FALSE;
+	cb->eds_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->eds_sync_sel);
 
 	m_NCS_UNLOCK(&cb->eds_sync_lock, NCS_LOCK_WRITE);

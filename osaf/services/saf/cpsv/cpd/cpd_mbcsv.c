@@ -463,7 +463,7 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	CPD_NODE_REF_INFO *nref_info;
 	EDU_ERR ederror = 0;
 	uint8_t *header, num_ckpt = 0, *sync_cnt_ptr;
-	NCS_BOOL flag = FALSE;
+	bool flag = false;
 
 	/* COLD_SYNC_RESP IS DONE BY THE ACTIVE */
 	if (cb->ha_state == SA_AMF_HA_STANDBY) {
@@ -477,7 +477,7 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	if (ckpt_node == NULL) {
 		rc = NCSCC_RC_SUCCESS;
 		arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
-		cb->cold_or_warm_sync_on = FALSE;
+		cb->cold_or_warm_sync_on = false;
 	}
 
 	/* First reserve space to store the number of checkpoints that will be sent */
@@ -561,19 +561,19 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
 	if (ckpt_node == NULL) {
-		flag = TRUE;
+		flag = true;
 	}
-	if ((num_ckpt < CPD_MBCSV_MAX_MSG_CNT) || (flag == TRUE)) {
+	if ((num_ckpt < CPD_MBCSV_MAX_MSG_CNT) || (flag == true)) {
 		if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP) {
 			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 			cb->prev_ckpt_id = 0;
-			cb->cold_or_warm_sync_on = FALSE;
+			cb->cold_or_warm_sync_on = false;
 
 		} else {
 			if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_DATA_RESP) {
 				arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 				cb->prev_ckpt_id = 0;
-				cb->cold_or_warm_sync_on = FALSE;
+				cb->cold_or_warm_sync_on = false;
 
 			}
 		}
@@ -991,7 +991,7 @@ uint32_t cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	if (cb->cpd_sync_cnt == num_of_async_upd) {
 		return rc;
 	} else {
-		cb->cold_or_warm_sync_on = TRUE;
+		cb->cold_or_warm_sync_on = true;
 
 		m_LOG_CPD_LLCL(CPD_MBCSV_WARM_SYNC_COUNT_MISMATCH, CPD_FC_MBCSV, NCSFL_SEV_ERROR, cb->cpd_sync_cnt,
 			       num_of_async_upd, __FILE__, __LINE__);
@@ -1040,17 +1040,17 @@ uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 			break;
 
 		case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-			cb->cold_or_warm_sync_on = TRUE;
+			cb->cold_or_warm_sync_on = true;
 			TRACE("Cold sync started");
 			break;
 
 		case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 		case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-			cb->cold_or_warm_sync_on = TRUE;
+			cb->cold_or_warm_sync_on = true;
 			status = cpd_mbcsv_dec_sync_resp(cb, arg);
 			if (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
 				if (status == NCSCC_RC_SUCCESS) {
-					cb->cold_or_warm_sync_on = FALSE;
+					cb->cold_or_warm_sync_on = false;
 					TRACE("Cold sync completed");
 				}
 
@@ -1075,7 +1075,7 @@ uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 			status = cpd_mbcsv_dec_sync_resp(cb, arg);
 			if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type) {
 				if (status == NCSCC_RC_SUCCESS) {
-					cb->cold_or_warm_sync_on = FALSE;
+					cb->cold_or_warm_sync_on = false;
 					TRACE("Warm sync completed");
 				}
 			}

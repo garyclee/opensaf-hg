@@ -750,7 +750,7 @@ uint32_t avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 * Remove All data structures from the standby. We will get them again
 		 * during our data responce sync-up.
 		 */
-		avnd_ext_comp_data_clean_up(cb, FALSE);
+		avnd_ext_comp_data_clean_up(cb, false);
 
 		/*
 		 * Now send data request, which will sync Standby with Active.
@@ -3569,7 +3569,7 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_C
 		return NCSCC_RC_FAILURE;
 	}
 
-	status = avnd_comp_proxied_add(cb, comp_rec, pxy_comp_rec, FALSE);
+	status = avnd_comp_proxied_add(cb, comp_rec, pxy_comp_rec, false);
 	if (NCSCC_RC_SUCCESS != status) {
 		return NCSCC_RC_FAILURE;
 	}
@@ -3639,7 +3639,7 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_C
 		return NCSCC_RC_FAILURE;
 	}
 
-	status = avnd_comp_proxied_del(cb, comp_rec, pxy_comp_rec, FALSE, NULL);
+	status = avnd_comp_proxied_del(cb, comp_rec, pxy_comp_rec, false, NULL);
 	if (NCSCC_RC_SUCCESS != status) {
 		return NCSCC_RC_FAILURE;
 	}

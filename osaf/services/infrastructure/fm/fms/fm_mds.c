@@ -73,7 +73,7 @@ uint32_t fm_mds_init(FM_CB *cb)
 	arg.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)gl_fm_hdl;
 	arg.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	arg.info.svc_install.i_svc_cb = fm_mds_callback;
-	arg.info.svc_install.i_mds_q_ownership = FALSE;
+	arg.info.svc_install.i_mds_q_ownership = false;
 	arg.info.svc_install.i_mds_svc_pvt_ver = FM_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&arg) != NCSCC_RC_SUCCESS) {
@@ -326,7 +326,7 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GFM:
 /* Processing only for alternate node. */
-			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == TRUE)) {
+			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == true)) {
 				cb->peer_adest = 0;
 			}
 			break;
@@ -339,7 +339,7 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 	case NCSMDS_UP:
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GFM:
-			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == TRUE)) {
+			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == true)) {
 
 				fm_evt = m_MMGR_ALLOC_FM_EVT;
 				if (NULL == fm_evt) {

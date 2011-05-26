@@ -96,9 +96,9 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 	}
 
 	/*  If timer is not active, start it. */
-	tmr->has_expired = FALSE;	/* if in transit, not valid now */
+	tmr->has_expired = false;	/* if in transit, not valid now */
 
-	if (tmr->is_active == FALSE) {
+	if (tmr->is_active == false) {
 		tmr->type = timer_type;
 		m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
@@ -107,7 +107,7 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
 
 		m_NCS_TMR_START(tmr->tmr_id, tmr->period, ncs_mbcsv_tmr_db[timer_type].cb_func, (void *)tmr);
 
-		tmr->is_active = TRUE;
+		tmr->is_active = true;
 
 	}
 }
@@ -137,16 +137,16 @@ void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 
 	/* Stop and destroy the timer if it is active... */
 
-	tmr->has_expired = FALSE;	/* if in transit, not valid now */
+	tmr->has_expired = false;	/* if in transit, not valid now */
 
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
 				peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
 				peer->my_ckpt_inst->pwe_hdl, peer->peer_anchor,
 				(timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_STOP);
 
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
 	} else if (tmr->tmr_id != TMR_T_NULL) {
@@ -292,7 +292,7 @@ void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 	/* It can do smart things - if it cares */
 	m_MBCSV_INDICATE_ERROR(peer,
 			       peer->my_ckpt_inst->client_hdl,
-			       NCS_MBCSV_COLD_SYNC_TMR_EXP, FALSE, peer->version, NULL, rc);
+			       NCS_MBCSV_COLD_SYNC_TMR_EXP, false, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
 		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -328,9 +328,9 @@ void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 
 		/* Tell the redundant entity about the timer expiration */
 		/* It can do smart things - if it cares */
-		if (peer->warm_sync_sent == TRUE) {
+		if (peer->warm_sync_sent == true) {
 			m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
-					       NCS_MBCSV_WARM_SYNC_TMR_EXP, FALSE, peer->version, NULL, rc);
+					       NCS_MBCSV_WARM_SYNC_TMR_EXP, false, peer->version, NULL, rc);
 
 			if (NCSCC_RC_SUCCESS != rc)
 				m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -340,7 +340,7 @@ void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 
 		m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_WARM_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
-		peer->warm_sync_sent = TRUE;
+		peer->warm_sync_sent = true;
 		/* Even if the message was not sent, we will try again later */
 		/* When we get a warm sync response - this timer will be cancelled */
 		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
@@ -372,14 +372,14 @@ void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 	/* Tell the redundant entity about the timer expiration */
 	/* It can do smart things - if it cares */
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
-			       NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP, TRUE, peer->version, NULL, rc);
+			       NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
 		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 				     "mbcsv_shutdown_peer: Error callback returns fails.",
 				     peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
 
-	peer->my_ckpt_inst->data_req_sent = FALSE;
+	peer->my_ckpt_inst->data_req_sent = false;
 
 }
 
@@ -401,7 +401,7 @@ void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
-			       NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP, TRUE, peer->version, NULL, rc);
+			       NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
 		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -427,7 +427,7 @@ void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	uint32_t rc;
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
-			       NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP, TRUE, peer->version, NULL, rc);
+			       NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP, true, peer->version, NULL, rc);
 
 	if (NCSCC_RC_SUCCESS != rc)
 		m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,

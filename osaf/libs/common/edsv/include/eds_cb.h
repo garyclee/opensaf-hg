@@ -97,7 +97,7 @@ typedef struct eds_tmr_tag {
 	EDS_TMR_TYPE type;	/* timer type */
 	uint32_t cb_hdl;		/* cb hdl to retrieve the EDS cb ptr */
 	uint32_t opq_hdl;		/* hdl to retrive the timer context */
-	NCS_BOOL is_active;
+	bool is_active;
 } EDS_TMR;
 
 typedef struct edsv_retained_evt_list_tag {
@@ -242,9 +242,9 @@ typedef struct eds_cb_tag {
 	SaNameT comp_name;	/* Components's name EDS                     */
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
-	NCS_BOOL is_quisced_set;
+	bool is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/*Selection Object to wait for amf events */
-	NCS_BOOL healthCheckStarted;	/* Flag to check Health Check started or not */
+	bool healthCheckStarted;	/* Flag to check Health Check started or not */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	NCS_LOCK cb_lock;	/* Lock for this control Block               */
 	uint32_t last_reg_id;	/* Value of last reg_id assigned             */
@@ -254,7 +254,7 @@ typedef struct eds_cb_tag {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
-	NCS_BOOL csi_assigned;
+	bool csi_assigned;
 	NODE_ID node_id;
 	SaClmHandleT clm_hdl;	/* CLM handle */
 	SaSelectionObjectT clm_sel_obj;	/* Selection object to wait for CLM events */
@@ -284,11 +284,11 @@ EDA_REG_REC *eds_get_reglist_entry(EDS_CB *, uint32_t);
 
 uint32_t eds_add_reglist_entry(EDS_CB *, MDS_DEST, uint32_t);
 
-uint32_t eds_remove_reglist_entry(EDS_CB *, uint32_t, NCS_BOOL);
+uint32_t eds_remove_reglist_entry(EDS_CB *, uint32_t, bool);
 
 uint32_t eds_remove_regid_by_mds_dest(EDS_CB *, MDS_DEST);
 
-NCS_BOOL eds_eda_entry_valid(EDS_CB *, MDS_DEST);
+bool eds_eda_entry_valid(EDS_CB *, MDS_DEST);
 
 uint32_t eds_remove_eda_down_rec(EDS_CB *, MDS_DEST);
 
@@ -296,7 +296,7 @@ uint32_t eds_channel_open(EDS_CB *, uint32_t, uint32_t, uint16_t, uint8_t *, MDS
 
 uint32_t eds_copen_patricia_init(EDS_WORKLIST *);
 
-uint32_t eds_channel_close(EDS_CB *, uint32_t, uint32_t, uint32_t, NCS_BOOL);
+uint32_t eds_channel_close(EDS_CB *, uint32_t, uint32_t, uint32_t, bool);
 
 uint32_t eds_channel_unlink(EDS_CB *, uint32_t, uint8_t *);
 
@@ -306,11 +306,11 @@ uint32_t eds_remove_subscription(EDS_CB *, uint32_t, uint32_t, uint32_t, uint32_
 
 uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id);
 
-NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
+bool eds_pattern_match(SaEvtEventPatternArrayT *, SaEvtEventFilterArrayT *);
 
 uint32_t eds_store_retained_event(EDS_CB *, EDS_WORKLIST *, CHAN_OPEN_REC *, EDSV_EDA_PUBLISH_PARAM *, SaTimeT);
 
-uint32_t eds_clear_retained_event(EDS_CB *, uint32_t, uint32_t, uint32_t, NCS_BOOL);
+uint32_t eds_clear_retained_event(EDS_CB *, uint32_t, uint32_t, uint32_t, bool);
 
 void eds_remove_retained_events(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **);
 
@@ -330,7 +330,7 @@ SaBoolT update_node_db(EDS_CB *, NODE_ID, SaBoolT);
 
 void send_clm_status_change(EDS_CB *, SaClmClusterChangesT, NODE_ID);
 
-NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
+bool is_node_a_member(EDS_CB *, NODE_ID);
 
 EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
 SaAisErrorT eds_imm_init(EDS_CB *cb);

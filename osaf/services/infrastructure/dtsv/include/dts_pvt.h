@@ -56,17 +56,17 @@
 #define  DTS_RECOVERY              SA_AMF_COMPONENT_FAILOVER
 
 /* Default settings for Global logging parameters */
-#define       GLOBAL_LOGGING          FALSE
+#define       GLOBAL_LOGGING          false
 #define       GLOBAL_LOG_DEV          LOG_FILE
 #define       GLOBAL_LOGFILE_SIZE     1000
 #define       GLOBAL_FILE_LOG_FMT     EXPANDED_FORMAT
 #define       GLOBAL_CIR_BUFF_SIZE    111
 #define       GLOBAL_BUFF_LOG_FMT     EXPANDED_FORMAT
 #define       GLOBAL_NUM_LOG_FILES    10
-#define       GLOBAL_ENABLE_SEQ       FALSE
+#define       GLOBAL_ENABLE_SEQ       false
 
 /* Default settings for Global filtering parameters */
-#define       GLOBAL_ENABLE           TRUE
+#define       GLOBAL_ENABLE           true
 #define       GLOBAL_CATEGORY_FILTER  0xFFFFFFFF
 /* Global severity filter would be defaulted to 0xFC*/
 #ifndef       GLOBAL_SEVERITY_FILTER_DEFAULT
@@ -77,7 +77,7 @@
 #define       GLOBAL_SEVERITY_FILTER_ALL   0xFF
 
 /* Default settings for NODE logging parameters */
-#define       NODE_LOGGING          FALSE
+#define       NODE_LOGGING          false
 #define       NODE_LOG_DEV          LOG_FILE
 #define       NODE_LOGFILE_SIZE     1000
 #define       NODE_FILE_LOG_FMT     EXPANDED_FORMAT
@@ -85,12 +85,12 @@
 #define       NODE_BUFF_LOG_FMT     EXPANDED_FORMAT
 
 /* Default settings for NODE filtering parameters */
-#define       NODE_ENABLE           TRUE
+#define       NODE_ENABLE           true
 #define       NODE_CATEGORY_FILTER  0xFFFFFFFF
 #define       NODE_SEVERITY_FILTER  0xFF
 
 /* Default settings for SERVICE logging parameters */
-#define       SVC_LOGGING          TRUE
+#define       SVC_LOGGING          true
 #define       SVC_LOG_DEV          LOG_FILE
 #define       SVC_LOGFILE_SIZE     1000
 #define       SVC_FILE_LOG_FMT     EXPANDED_FORMAT
@@ -98,7 +98,7 @@
 #define       SVC_BUFF_LOG_FMT     EXPANDED_FORMAT
 
 /* Default settings for NODE filtering parameters */
-#define       SVC_ENABLE           TRUE
+#define       SVC_ENABLE           true
 #define       SVC_CATEGORY_FILTER  0xFFFFFFFF
 
 #ifndef       SVC_SEVERITY_FILTER_DEFAULT
@@ -216,8 +216,8 @@ typedef struct circular_buffer_part {
 } CIRCULAR_BUFFER_PART;
 
 typedef struct cir_buffer {
-	uint8_t buff_allocated;	/* TRUE : Buffer is allocated; FALSE : Buffer is freed */
-	uint8_t inuse;		/* TRUE : Currently in use else set to FALSE */
+	uint8_t buff_allocated;	/* true : Buffer is allocated; false : Buffer is freed */
+	uint8_t inuse;		/* true : Currently in use else set to false */
 	char *cur_location;	/* Current pointer */
 	uint8_t cur_buff_num;	/* Holds the buffer number currently being used */
 	uint32_t cur_buff_offset;	/* Current Position offset from buffer partition base */
@@ -237,13 +237,13 @@ typedef struct policy {
 	uint8_t log_dev;		/* Log device: file, circular buffer or console */
 
 	uint32_t log_file_size;	/* File size to be defined in KB */
-	NCS_BOOL file_log_fmt;	/* Log format: Compressed or Expanded */
+	bool file_log_fmt;	/* Log format: Compressed or Expanded */
 
 	uint32_t cir_buff_size;	/* Size of circular in memory buffer */
-	NCS_BOOL buff_log_fmt;	/* Log format: Compressed or Expanded */
+	bool buff_log_fmt;	/* Log format: Compressed or Expanded */
 
 	/* Filtering policies, sent to DTA */
-	NCS_BOOL enable;
+	bool enable;
 	uint32_t category_bit_map;	/* Category filter bit map */
 	uint8_t severity_bit_map;	/* Severity filter bit map */
 
@@ -251,15 +251,15 @@ typedef struct policy {
 #define POLICY_NULL    ((POLICY *)0)
 
 typedef struct svc_defaults {
-	NCS_BOOL per_node_logging;	/* If TRUE- use one output device for a node, 
-					   If FALSE- check for per service logging policy */
+	bool per_node_logging;	/* If true- use one output device for a node, 
+					   If false- check for per service logging policy */
 	POLICY policy;
 
 } SVC_DEFAULTS;
 
 typedef struct node_defaults {
-	NCS_BOOL per_node_logging;	/* If TRUE- use one output device for a node, 
-					   If FALSE- check for per service logging policy */
+	bool per_node_logging;	/* If true- use one output device for a node, 
+					   If false- check for per service logging policy */
 	POLICY policy;
 
 } NODE_DEFAULTS;
@@ -296,9 +296,9 @@ typedef struct op_device {
 	/* Variables for managing the output device */
 	DTS_FILE_LIST log_file_list;
 	FILE *svc_fh;
-	uint8_t file_open;		/* IF TRUE indicates that file is open. */
+	uint8_t file_open;		/* IF true indicates that file is open. */
 	uint32_t cur_file_size;	/* Current file size */
-	uint8_t new_file;		/* TRUE : Create new file. Set to FALSE after creating file */
+	uint8_t new_file;		/* true : Create new file. Set to false after creating file */
 	CIR_BUFFER cir_buffer;	/* Circular buffer */
 	uint16_t last_rec_id;
 
@@ -317,9 +317,9 @@ typedef struct global_policy {
     *Policies used if global logging (one log device for entire system) 
     *is enabled
    */
-	NCS_BOOL global_logging;	/* If TRUE- use one output device for entire system, 
+	bool global_logging;	/* If true- use one output device for entire system, 
 					   use one logging policy (global), 
-					   If FALSE- check for per Node logging policy */
+					   If false- check for per Node logging policy */
 	POLICY g_policy;
 	OP_DEVICE device;
 
@@ -328,14 +328,14 @@ typedef struct global_policy {
    *entire system when changed. These policies will not available for 
    *the configuration on per node or per service basis.
    */
-	NCS_BOOL dflt_logging;	/* TRUE - Logging enabled by default, 
-				   FALSE - Logging Disabled by default */
+	bool dflt_logging;	/* true - Logging enabled by default, 
+				   false - Logging Disabled by default */
 	/* Align datatype with IMM  object */
 	uint32_t g_num_log_files;	/*Number of old log files to be saved per service or per node */
 	/*Smik - Added for console printing */
 	uint8_t g_num_cons_dev;	/*Max no. of console devices to be configured per service or per node */
-	NCS_BOOL g_enable_seq;	/*Enable/Disable log message sequencing */
-	NCS_BOOL g_close_files;	/* If set close all the opened files and the new files will 
+	bool g_enable_seq;	/*Enable/Disable log message sequencing */
+	bool g_close_files;	/* If set close all the opened files and the new files will 
 				   be created for logging */
 
 } GLOBAL_POLICY;
@@ -348,7 +348,7 @@ typedef struct dta_dest_list {
 
 	MDS_DEST dta_addr;	/* MDS destination address where DTA lives */
 
-	uint32_t dta_up;		/* Set to TRUE when DTA is up. Don't send any message
+	uint32_t dta_up;		/* Set to true when DTA is up. Don't send any message
 				   to DTA if it is down. */
 
 	uint8_t updt_req;		/* When DTA comes back again check this flag to send
@@ -367,8 +367,8 @@ DTS_SVC_REG_TBL : DTS service registration table.
 
 typedef struct dts_svc_reg_tbl {
 	NCS_PATRICIA_NODE node;
-	NCS_BOOL per_node_logging;	/* Set to TRUE if Node Logging is used
-					   Set to FALSE if Service Logging is used */
+	bool per_node_logging;	/* Set to true if Node Logging is used
+					   Set to false if Service Logging is used */
 
 	SVC_KEY my_key;		/* Key used for searching the element, Node ID + Service ID */
 
@@ -432,7 +432,7 @@ typedef struct dts_svc_reg_tbl {
 
 typedef struct dts_cb {
 	/* Configuration Objects */
-	NCS_BOOL dts_enbl;	/* RW ENABLE|DISABLE DTS services           */
+	bool dts_enbl;	/* RW ENABLE|DISABLE DTS services           */
 
 	DEFAULT_POLICY dflt_plcy;
 	GLOBAL_POLICY g_policy;
@@ -455,7 +455,7 @@ typedef struct dts_cb {
 	MDS_HDL mds_hdl;
 
 	/* AMF variables */
-	NCS_BOOL amf_init;
+	bool amf_init;
 	/*uint32_t              amf_hdl; */
 	SaAmfHandleT amf_hdl;
 	SaNameT comp_name;
@@ -473,7 +473,7 @@ typedef struct dts_cb {
 	uint16_t dts_mbcsv_version;
 	MDS_SVC_PVT_SUB_PART_VER dts_mds_version;
 	SaAmfHealthcheckKeyT health_chk_key;
-	NCS_BOOL healthCheckStarted;
+	bool healthCheckStarted;
 
 	SaAmfHealthcheckInvocationT invocationType;
 
@@ -489,8 +489,8 @@ typedef struct dts_cb {
 	uint32_t ckpt_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;
 	SaVersionT dtsv_ver;
-	NCS_BOOL in_sync;	/* Standby is in sync with Active */
-	NCS_BOOL cold_sync_in_progress;	/* TRUE indicates that cold sync is on */
+	bool in_sync;	/* Standby is in sync with Active */
+	bool cold_sync_in_progress;	/* true indicates that cold sync is on */
 	DTSV_CKPT_MSG_REO_TYPE cold_sync_done;
 	DTSV_ASYNC_UPDT_CNT async_updt_cnt;
 
@@ -501,10 +501,10 @@ typedef struct dts_cb {
 	/* Smik - Adding patricia tree for DTA_DEST_LIST */
 	NCS_PATRICIA_TREE dta_list;
 
-	NCS_BOOL created;
+	bool created;
 
 #if (DTS_SIM_TEST_ENV == 1)
-	NCS_BOOL is_test;
+	bool is_test;
 #endif
 
 	uint8_t hmpool_id;
@@ -538,7 +538,7 @@ typedef struct dts_cb {
 #if (DTS_FLOW == 1)
 	uint32_t msg_count;
 #endif
-	NCS_BOOL imm_init_done;
+	bool imm_init_done;
 
 } DTS_CB;
 
@@ -728,10 +728,10 @@ DTS_CB dts_cb;
       else \
          dts_cir_buff_set_default(&device->cir_buffer); \
    } \
-   if(((policy->log_dev & LOG_FILE) == LOG_FILE) && (device->file_open == TRUE))\
+   if(((policy->log_dev & LOG_FILE) == LOG_FILE) && (device->file_open == true))\
    { \
       curr_file_size = dts_chk_file_size(m_DTS_LOG_FILE_NAME(device)); \
-      if((device->new_file == FALSE) && \
+      if((device->new_file == false) && \
          (curr_file_size <  (policy->log_file_size * 1024))) \
       { \
          if(stat(m_DTS_LOG_FILE_NAME(device), &statinfo) == -1) \
@@ -746,7 +746,7 @@ DTS_CB dts_cb;
             device->svc_fh = sysf_fopen(m_DTS_LOG_FILE_NAME(device), "a+"); \
          } \
          device->cur_file_size = curr_file_size; \
-         device->file_open = TRUE; \
+         device->file_open = true; \
       } \
       else \
          m_DTS_LOGFILE_CREATE(device, file_type); \
@@ -763,7 +763,7 @@ DTS_CB dts_cb;
                &key, file_type))) \
       return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, \
          "dts_stby_svc_initialize: Failed to create new service log file"); \
-   device->new_file = FALSE; \
+   device->new_file = false; \
    strcpy(data.file_name, m_DTS_LOG_FILE_NAME(device)); \
    data.key = key; \
    data.new_file = device->new_file; \
@@ -774,7 +774,7 @@ DTS_CB dts_cb;
       return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, \
          "dts_stby_svc_initialize: Failed to open service log file"); \
    device->cur_file_size = 0; \
-   device->file_open = TRUE; \
+   device->file_open = true; \
    if(m_DTS_NUM_LOG_FILES(device) > dts_cb.g_policy.g_num_log_files) \
    { \
       m_DTS_RMV_FILE(device); \
@@ -929,7 +929,7 @@ void dts_sort_msgs(SEQ_ARRAY *msg_seq, uint32_t array_size);
 void dts_sift_down(SEQ_ARRAY *msg_seq, uint32_t root, uint32_t bottom);
 void dts_cpy_seq_struct(SEQ_ARRAY *dst, SEQ_ARRAY *src);
 uint32_t dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg);
-uint32_t dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all);
+uint32_t dts_dump_seq_msg(DTS_CB *inst, bool all);
 uint32_t dts_enable_sequencing(DTS_CB *inst);
 uint32_t dts_disable_sequencing(DTS_CB *inst);
 uint32_t dts_free_msg_content(NCSFL_NORMAL *msg);
@@ -988,7 +988,7 @@ uint32_t dts_mds_reg(DTS_CB *cb);
 /*uint32_t dts_mds_change_role(V_DEST_RL role);*/
 uint32_t dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role);
 
-void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install);
+void dts_mds_unreg(DTS_CB *cb, bool un_install);
 
 uint32_t dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl);
 
@@ -998,7 +998,7 @@ uint32_t dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo);
 
 void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
 
-void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down);
+void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, bool up_down);
 
 uint32_t dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCS_UBAID *uba,
@@ -1009,7 +1009,7 @@ uint32_t dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 
 uint32_t dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-			   NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
+			   bool last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
 uint32_t decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa);
 
@@ -1017,7 +1017,7 @@ uint32_t dts_log_str_decode(NCS_UBAID *uba, char **str);
 
 uint32_t dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
-NCS_BOOL dts_find_reg(void *key, void *qelem);
+bool dts_find_reg(void *key, void *qelem);
 
 uint32_t dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta);
 

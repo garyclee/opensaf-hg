@@ -48,7 +48,7 @@ uint32_t cpd_ckpt_tree_init(CPD_CB *cb)
 	if (ncs_patricia_tree_init(&cb->ckpt_tree, &param) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
-	cb->is_ckpt_tree_up = TRUE;
+	cb->is_ckpt_tree_up = true;
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -155,7 +155,7 @@ uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	}
 
 	/* delete imm ckpt runtime object */
-	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (ckpt_node->is_unlink_set != TRUE)) {
+	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (ckpt_node->is_unlink_set != true)) {
 		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
 			cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", ckpt_node->ckpt_name.value);
 			/* Free the Client Node */
@@ -313,7 +313,7 @@ uint32_t cpd_ckpt_reploc_tree_init(CPD_CB *cb)
 		TRACE("CPD_CKPT_REPLOC_TREE_INIT FAILED");
 		return NCSCC_RC_FAILURE;
 	}
-	cb->is_ckpt_reploc_up = TRUE;
+	cb->is_ckpt_reploc_up = true;
 	TRACE("CPD_CKPT_REPLOC_TREE_INIT SUCCESS");
 	return NCSCC_RC_SUCCESS;
 }
@@ -414,7 +414,7 @@ uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
+uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, bool is_unlink_set)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -468,7 +468,7 @@ void cpd_ckpt_reploc_cleanup(CPD_CB *cb)
 	while (ckpt_reploc_node) {
 		key_info = ckpt_reploc_node->rep_key;
 
-		cpd_ckpt_reploc_node_delete(cb, ckpt_reploc_node, FALSE);
+		cpd_ckpt_reploc_node_delete(cb, ckpt_reploc_node, false);
 
 		ckpt_reploc_node =
 		    (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree, (uint8_t *)&key_info);
@@ -513,7 +513,7 @@ uint32_t cpd_ckpt_map_tree_init(CPD_CB *cb)
 	if (ncs_patricia_tree_init(&cb->ckpt_map_tree, &param) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
-	cb->is_ckpt_map_up = TRUE;
+	cb->is_ckpt_map_up = true;
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -680,7 +680,7 @@ uint32_t cpd_cpnd_info_tree_init(CPD_CB *cb)
 	if (ncs_patricia_tree_init(&cb->cpnd_tree, &param) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
-	cb->is_cpnd_tree_up = TRUE;
+	cb->is_cpnd_tree_up = true;
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -771,7 +771,7 @@ uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
 uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *dest,
-				  CPD_CPND_INFO_NODE **cpnd_info_node, NCS_BOOL *add_flag)
+				  CPD_CPND_INFO_NODE **cpnd_info_node, bool *add_flag)
 {
 	/*MDS_DEST key; */
 	NODE_ID key;
@@ -782,7 +782,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 
 	*cpnd_info_node = (CPD_CPND_INFO_NODE *)
 	    ncs_patricia_tree_get(cpnd_tree, (uint8_t *)&key);
-	if ((*cpnd_info_node == NULL) && (*add_flag == TRUE)) {
+	if ((*cpnd_info_node == NULL) && (*add_flag == true)) {
 		*cpnd_info_node = m_MMGR_ALLOC_CPD_CPND_INFO_NODE;
 		if (*cpnd_info_node == NULL) {
 			m_LOG_CPD_CL(CPD_CPND_INFO_ALLOC_FAILED, CPD_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -801,7 +801,7 @@ uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree, MDS_DEST *des
 				      __LINE__);
 			return NCSCC_RC_FAILURE;
 		}
-		*add_flag = FALSE;
+		*add_flag = false;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -1003,12 +1003,12 @@ void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cre
 void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info)
 {
 	CPD_CKPT_REF_INFO *cref, *cref_prev = 0;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
 	cref = node_info->ckpt_ref_list;
 	while (cref) {
 		if (cref == cref_info) {
-			found = TRUE;
+			found = true;
 			break;
 		}
 		cref_prev = cref;
@@ -1065,12 +1065,12 @@ void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nre
 void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node, CPD_NODE_REF_INFO *nref_info)
 {
 	CPD_NODE_REF_INFO *nref, *nref_prev = 0;
-	NCS_BOOL found = FALSE;
+	bool found = false;
 
 	nref = ckpt_node->node_list;
 	while (nref) {
 		if (nref == nref_info) {
-			found = TRUE;
+			found = true;
 			break;
 		}
 		nref_prev = nref;
@@ -1130,7 +1130,7 @@ uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 			for (nref_info = ckpt_node->node_list; nref_info != NULL; nref_info = nref_info->next) {
 				if (m_NCS_MDS_DEST_EQUAL(&nref_info->dest, cpnd_dest)) {
 					if (m_NCS_MDS_DEST_EQUAL(cpnd_dest, &ckpt_node->active_dest)) {
-						ckpt_node->is_active_exists = FALSE;
+						ckpt_node->is_active_exists = false;
 					}
 					cpd_node_ref_info_del(ckpt_node, nref_info);
 					break;

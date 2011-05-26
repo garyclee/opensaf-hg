@@ -87,7 +87,7 @@ extern uint32_t clms_remove_clma_down_rec(CLMS_CB * cb, MDS_DEST mds_dest);
 extern void clms_remove_node_down_rec(SaClmNodeIdT node_id);
 extern uint32_t clms_node_add(CLMS_CLUSTER_NODE * node, int i);
 extern void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
-extern NCS_BOOL clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest);
+extern bool clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest);
 extern void clms_process_mbx(SYSF_MBX *mbx);
 extern void clms_evt_destroy(CLMSV_CLMS_EVT * evt);
 

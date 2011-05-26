@@ -53,7 +53,7 @@ typedef struct glnd_res_lock_list_info_tag {
 	MDS_DEST req_mdest_id;	/* requesting node info */
 	SaLckResourceIdT lcl_resource_id;
 	MDS_SYNC_SND_CTXT glnd_res_lock_mds_ctxt;	/* to store the mds context */
-	NCS_BOOL unlock_req_sent;	/* To take care of unlock requests that are
+	bool unlock_req_sent;	/* To take care of unlock requests that are
 					   GLSV_CALL_TYPE          unlock_call_type;
 					   lost during mastership transistion */
 	GLSV_CALL_TYPE unlock_call_type;
@@ -69,8 +69,8 @@ typedef struct glnd_lock_master_info_tag {
 	GLND_RES_LOCK_LIST_INFO *wait_read_list;
 	uint32_t pr_orphan_req_count;	/* local lock ref count */
 	uint32_t ex_orphan_req_count;	/* local lock ref count */
-	NCS_BOOL pr_orphaned;
-	NCS_BOOL ex_orphaned;
+	bool pr_orphaned;
+	bool ex_orphaned;
 } GLND_LOCK_MASTER_INFO;
 
 typedef struct glnd_agent_info_tag {
@@ -104,8 +104,8 @@ typedef struct glnd_restart_res_info_tag {
 	time_t time_stamp;
 	uint32_t pr_orphan_req_count;	/* local lock ref count */
 	uint32_t ex_orphan_req_count;	/* local lock ref count */
-	NCS_BOOL pr_orphaned;
-	NCS_BOOL ex_orphaned;
+	bool pr_orphaned;
+	bool ex_orphaned;
 	uint32_t shm_index;	/*Index of queue info in shared memory */
 	uint32_t valid;		/* To verify whether the checkpoint info is valid or not */
 } GLND_RESTART_RES_INFO;
@@ -122,7 +122,7 @@ typedef struct glnd_restart_res_lock_list_info_tag {
 	time_t time_stamp;
 	MDS_DEST req_mdest_id;	/* requesting node info */
 	MDS_SYNC_SND_CTXT glnd_res_lock_mds_ctxt;	/* to store the mds context */
-	NCS_BOOL unlock_req_sent;	/* To take care of unlock requests */
+	bool unlock_req_sent;	/* To take care of unlock requests */
 	GLSV_CALL_TYPE unlock_call_type;
 	uint32_t non_master_status;
 	uint32_t shm_index;	/*Index of queue info in shared memory */
@@ -176,7 +176,7 @@ typedef struct glnd_cb_tag {
 
 	/* Information about the GLD */
 	MDS_DEST gld_mdest_id;
-	NCS_BOOL gld_card_up;
+	bool gld_card_up;
 
 	/* GLND data */
 	NCS_PATRICIA_TREE glnd_client_tree;	/* GLND_CLIENT_INFO - node */
@@ -203,7 +203,7 @@ void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info);
 
 /* CB prototypes */
 GLND_CB *glnd_cb_create(uint32_t pool_id);
-NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 uint32_t glnd_cb_destroy(GLND_CB *glnd_cb);
 void glnd_dump_cb(void);
 

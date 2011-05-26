@@ -854,7 +854,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 	AVND_SU_PRES_FSM_EV ev = AVND_SU_PRES_FSM_EV_MAX;
 	AVND_COMP_CSI_REC *csi = 0;
 	AVSV_PARAM_INFO param;
-	NCS_BOOL is_en;
+	bool is_en;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s', Prv_state '%u', Final_state '%u'", comp->name.value, prv_st, final_st);
 
@@ -900,7 +900,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		avnd_instfail_su_failover(cb, comp->su, comp);
 	}
 
-	if (comp->su->is_ncs == TRUE) {
+	if (comp->su->is_ncs == true) {
 		if(SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st) {
 			LOG_ER("'%s'got Inst failed", comp->name.value);
 			opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
@@ -982,7 +982,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			/* if(m_AVND_COMP_TYPE_IS_PROXIED(comp)) */
 			if (m_AVND_SU_OPER_STATE_IS_DISABLED(comp->su)) {
 				m_AVND_SU_IS_ENABLED(comp->su, is_en);
-				if (TRUE == is_en) {
+				if (true == is_en) {
 					m_AVND_SU_OPER_STATE_SET(comp->su, SA_AMF_OPERATIONAL_ENABLED);
 					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 					rc = avnd_di_oper_send(cb, comp->su, 0);
@@ -1051,7 +1051,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				/* failed su is ready to take on si assignment.. inform avd */
 				if (!comp->csi_list.n_nodes) {
 					m_AVND_SU_IS_ENABLED(comp->su, is_en);
-					if (TRUE == is_en) {
+					if (true == is_en) {
 						m_AVND_SU_OPER_STATE_SET(comp->su,SA_AMF_OPERATIONAL_ENABLED);
 						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 						rc = avnd_di_oper_send(cb, comp->su, 0);
@@ -1165,7 +1165,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			/* flush out the cbk related to health check */
 			if (curr_rec->cbk_info->type == AVSV_AMF_HC) {
 				/* delete the HC cbk */
-				avnd_comp_cbq_rec_pop_and_del(cb, comp, curr_rec, TRUE);
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, curr_rec, true);
 				continue;
 			}
 		}		/* while */
@@ -1206,9 +1206,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_rec, AVND_CKPT_COMP_CBK_REC);
 
 				/* send it */
-				rc = avnd_comp_cbq_rec_send(cb, comp, curr_rec, TRUE);
+				rc = avnd_comp_cbq_rec_send(cb, comp, curr_rec, true);
 				if (NCSCC_RC_SUCCESS != rc && curr_rec) {
-					avnd_comp_cbq_rec_pop_and_del(cb, comp, curr_rec, TRUE);
+					avnd_comp_cbq_rec_pop_and_del(cb, comp, curr_rec, true);
 				}
 			}	/* while loop */
 		}
@@ -1458,7 +1458,7 @@ uint32_t avnd_comp_clc_xxxing_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 		/* re-using the funtion to stop all PM started by this comp */
 		avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
@@ -1500,7 +1500,7 @@ uint32_t avnd_comp_clc_insting_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 		/* re-using the funtion to stop all PM started by this comp */
 		avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
@@ -1711,7 +1711,7 @@ uint32_t avnd_comp_clc_inst_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 		/* re-using the funtion to stop all PM started by this comp */
 		avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
@@ -1760,7 +1760,7 @@ uint32_t avnd_comp_clc_inst_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup event in the instantiated state", comp->name.value);
 
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 		/* call the cleanup callback */
 		rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_CLEAN, 0, 0);
 	} else
@@ -1821,7 +1821,7 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 			/* delete hc-list, cbk-list, pg-list & pm-list */
 			avnd_comp_hc_rec_del_all(cb, comp);
-			avnd_comp_cbq_del(cb, comp, TRUE);
+			avnd_comp_cbq_del(cb, comp, true);
 
 			/* re-using the funtion to stop all PM started by this comp */
 			avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
@@ -1942,7 +1942,7 @@ uint32_t avnd_comp_clc_terming_termfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Terminate fail event in the terminating state", comp->name.value);
 
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp))
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 	/* cleanup the comp */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0)
@@ -2078,7 +2078,7 @@ uint32_t avnd_comp_clc_restart_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 		/* re-using the funtion to stop all PM started by this comp */
 		avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
@@ -2197,7 +2197,7 @@ uint32_t avnd_comp_clc_restart_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup event in the restarting state", comp->name.value);
 
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp))
-		avnd_comp_cbq_del(cb, comp, TRUE);
+		avnd_comp_cbq_del(cb, comp, true);
 
 	/* cleanup the comp */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0)
@@ -2335,7 +2335,7 @@ uint32_t avnd_comp_clc_orph_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ORPH_TMR);
 	}
 
-	avnd_comp_cbq_del(cb, comp, TRUE);
+	avnd_comp_cbq_del(cb, comp, true);
 
 	/* cleanup the comp */
 	rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
@@ -2431,7 +2431,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	/* For external component, there is no cleanup command. So, we will send a
 	   SUCCESS message to the mail box for external components. There wouldn't
 	   be any other command for external component comming. */
-	if (TRUE == comp->su->su_is_external) {
+	if (true == comp->su->su_is_external) {
 		if (AVND_COMP_CLC_CMD_TYPE_CLEANUP == cmd_type) {
 			memset(&clc_evt, 0, sizeof(AVND_CLC_EVT));
 			memcpy(&clc_evt.comp_name, &comp->name, sizeof(SaNameT));

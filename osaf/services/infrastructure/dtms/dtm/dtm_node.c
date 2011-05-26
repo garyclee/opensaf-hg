@@ -103,7 +103,7 @@ uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint
 		if (node->node_id == 0) {
 			node->node_id = node_id;
 			strncpy((char *)&node->node_name, nodename, nodename_len);
-			node->comm_status = TRUE;
+			node->comm_status = true;
 			if (dtm_node_add(node, 0) != NCSCC_RC_SUCCESS) {
 				assert(0);
 				rc = NCSCC_RC_FAILURE;
@@ -119,7 +119,7 @@ uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
-			node->comm_status = TRUE;
+			node->comm_status = true;
 
 		} else
 			assert(0);
@@ -163,7 +163,7 @@ uint32_t add_self_node(DTM_INTERNODE_CB * dtms_cb)
 	memcpy(tmp_node.node_ip, (uint8_t *)dtms_cb->ip_addr, INET6_ADDRSTRLEN);
 
 	strncpy(tmp_node.node_name, dtms_cb->node_name, strlen(dtms_cb->node_name));
-	tmp_node.comm_status = TRUE;
+	tmp_node.comm_status = true;
 	tmp_node.comm_socket = 0;
 
 	node = dtm_node_new(&tmp_node);
@@ -240,7 +240,7 @@ void datagram_buff_dump(uint8_t *buff, uint32_t len, uint32_t max)
  */
 uint32_t dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status)
 {
-	if (TRUE == comm_status) {
+	if (true == comm_status) {
 		dtm_node_up(node_id, node_name, 0);
 	} else {
 		dtm_node_down(node_id, node_name, 0);
@@ -293,7 +293,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uint16_t loca
 		if (dtm_process_node_info(dtms_cb, fd, &node->buffer[8], node_info_hrd, node_info_buffer_len) !=
 		    NCSCC_RC_SUCCESS) {
 			LOG_ER(" DTM : communication socket Connection closed\n");
-			*close_conn = TRUE;
+			*close_conn = true;
 		}
 	} else if (pkt_type == DTM_DOWN_MSG_TYPE) {
 		uint8_t *alloc_buffer = NULL;
@@ -356,7 +356,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 			recd_bytes = recv(fd, node->len_buff, 2, 0);
 			if (0 == recd_bytes) {
 				LOG_ER("DTM:dtm_comm_socket_recv() failed rc : %d", fd);
-				*close_conn = TRUE;
+				*close_conn = true;
 				return;
 			} else if (2 == recd_bytes) {
 				uint16_t local_len_buf = 0;
@@ -377,7 +377,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 				if (recd_bytes < 0) {
 					return;
 				} else if (0 == recd_bytes) {
-					*close_conn = TRUE;
+					*close_conn = true;
 					return;
 				} else if (local_len_buf > recd_bytes) {
 					/* can happen only in two cases, system call interrupt or half data, */
@@ -418,7 +418,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 				node->buff_total_len = ncs_decode_16bit(&data);
 				return;
 			} else if (0 == recd_bytes) {
-				*close_conn = TRUE;
+				*close_conn = true;
 				return;
 			} else {
 				assert(0);	/* This should never occur */
@@ -437,7 +437,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 			if (recd_bytes < 0) {
 				return;
 			} else if (0 == recd_bytes) {
-				*close_conn = TRUE;
+				*close_conn = true;
 				return;
 			} else if (node->buff_total_len > recd_bytes) {
 				/* can happen only in two cases, system call interrupt or half data, */
@@ -466,7 +466,7 @@ void dtm_internode_process_poll_rcv_msg(int fd, int *close_conn, uint8_t *node_i
 		if (recd_bytes < 0) {
 			return;
 		} else if (0 == recd_bytes) {
-			*close_conn = TRUE;
+			*close_conn = true;
 			return;
 		} else if (node->bytes_tb_read > recd_bytes) {
 			/* can happen only in two cases, system call interrupt or half data, */
@@ -499,8 +499,8 @@ void node_discovery_process(void *arg)
 	TRACE_ENTER();
 
 	int poll_ret = 0;
-	int end_server = FALSE, compress_array = FALSE;
-	int close_conn = FALSE;
+	int end_server = false, compress_array = false;
+	int close_conn = false;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
 	int current_size = 0, i, j;
@@ -519,7 +519,7 @@ void node_discovery_process(void *arg)
 	/* Set up the initial bcast or mcast receiver socket */
 	/*************************************************************/
 
-	if (dtms_cb->mcast_flag != TRUE) {
+	if (dtms_cb->mcast_flag != true) {
 
 		if (NCSCC_RC_SUCCESS != dtm_dgram_bcast_listener(dtms_cb)) {
 			LOG_ER("DTM:Set up the initial bcast  receiver socket   failed");
@@ -694,7 +694,7 @@ void node_discovery_process(void *arg)
 						if (!IS_BLOCKIN_ERROR(GET_LAST_ERROR())) {
 
 							LOG_ER("DTM: accept() failed");
-							end_server = TRUE;
+							end_server = true;
 						}
 						break;
 
@@ -791,8 +791,8 @@ void node_discovery_process(void *arg)
 		/*******************************************************/
 			if (close_conn) {
 				dtm_comm_socket_close(&fds[i].fd);
-				close_conn = FALSE;
-				compress_array = TRUE;
+				close_conn = false;
+				compress_array = true;
 			}
 			/* End of existing connection is readable */
 			if (poll_ret == fd_check) {
@@ -809,7 +809,7 @@ void node_discovery_process(void *arg)
 		/***********************************************************/
 
 		if (compress_array) {
-			compress_array = FALSE;
+			compress_array = false;
 			for (i = 0; i < nfds; i++) {
 				if (fds[i].fd == -1) {
 					for (j = i; j < nfds; j++) {
@@ -820,7 +820,7 @@ void node_discovery_process(void *arg)
 			}
 		}
 
-	} while (end_server == FALSE);
+	} while (end_server == false);
 
 	/* End of serving running. */
 	/*************************************************************/

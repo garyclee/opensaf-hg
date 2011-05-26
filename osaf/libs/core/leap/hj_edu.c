@@ -47,7 +47,7 @@ static void
 edu_populate_ppdb_key(EDU_PPDB_KEY * key, EDU_PROG_HANDLER parent_edp, EDU_PROG_HANDLER self_edp, uint32_t offset);
 static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 						 EDU_PROG_HANDLER parent_edp,
-						 EDU_PROG_HANDLER self_edp, uint32_t offset, NCS_BOOL add);
+						 EDU_PROG_HANDLER self_edp, uint32_t offset, bool add);
 static void edu_ppdb_node_del(EDU_PPDB * ppdb, EDU_PPDB_NODE_INFO * node);
 #endif   /* #if(NCS_EDU_VERBOSE_PRINT == 1) */
 
@@ -205,7 +205,7 @@ uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba
 	/* Error checks end here. */
 
 	memset(&lcl_edu_buf, '\0', sizeof(lcl_edu_buf));
-	lcl_edu_buf.is_ubaid = TRUE;
+	lcl_edu_buf.is_ubaid = true;
 	lcl_edu_buf.info.uba = uba;
 
 	edu_hdl->to_version = to_version;
@@ -579,11 +579,11 @@ uint32_t ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			break;
 		case NCS_EDU_ADMIN_OP_TYPE_GET_LL_NEXT_OFFSET:
 			{
-				NCS_BOOL lcl_fnd = FALSE;
+				bool lcl_fnd = false;
 
 				while ((cur_inst_indx != instr_count) && (prog[cur_inst_indx].instr != EDU_END)) {
 					if (prog[cur_inst_indx].instr == EDU_TEST_LL_PTR) {
-						lcl_fnd = TRUE;
+						lcl_fnd = true;
 						*(admin_info->info.get_ll_offset.o_next_offset) =
 						    prog[cur_inst_indx].fld5;
 					}
@@ -661,7 +661,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		if (optype == EDP_OP_TYPE_PP) {
 			EDU_PPDB_NODE_INFO *ppdb_node = NULL;
 			if ((ppdb_node = edu_ppdb_node_findadd(&edu_tkn->ppdb,
-							       hdl_node->edp, rule->fld1, rule->fld5, FALSE)) == NULL) {
+							       hdl_node->edp, rule->fld1, rule->fld5, false)) == NULL) {
 				/* Malloc failed. */
 				m_LEAP_DBG_SINK_VOID;
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -746,16 +746,16 @@ uint32_t ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			   - Offset of the field which is declared at 'test'able.
 			 */
 			uint32_t *p_data_len = ptr_data_len;
-			NCS_BOOL lcl_is_tested = FALSE;
+			bool lcl_is_tested = false;
 			EDU_PPDB_NODE_INFO *ppdb_node = NULL;
 			uint32_t refcount = 0;
 
 			refcount = m_NCS_EDU_GET_REFCOUNT_OF_TESTABLE_FIELD(hdl_node->test_instr_store, rule);
 			if (refcount != 0) {
-				lcl_is_tested = TRUE;
+				lcl_is_tested = true;
 				if ((ppdb_node = edu_ppdb_node_findadd(&edu_tkn->ppdb,
 								       hdl_node->edp, rule->fld1,
-								       rule->fld5, TRUE)) == NULL) {
+								       rule->fld5, true)) == NULL) {
 					/* Malloc failed. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
@@ -878,7 +878,7 @@ uint32_t ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		}
 	} else {
 		if ((rule->fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) {
-			NCS_BOOL is_builtin_edp = TRUE;
+			bool is_builtin_edp = true;
 
 			/* The length of variable-sized-data is passed in the 
 			   offset "fld6" of the data structure. */
@@ -890,7 +890,7 @@ uint32_t ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			}
 			if (!ncs_edu_return_builtin_edp_size(rule->fld1, &l_size)) {
 				/* This is not builtin EDP */
-				is_builtin_edp = FALSE;
+				is_builtin_edp = false;
 
 				if ((lcl_hdl_node = (EDU_HDL_NODE *)
 				     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
@@ -1003,7 +1003,7 @@ uint32_t ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	uint32_t l_size = 0;
 
 	if ((rule->fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) {
-		NCS_BOOL is_builtin_edp = TRUE;
+		bool is_builtin_edp = true;
 
 		/* The length of variable-sized-data is passed in the 
 		   offset "fld6" of the data structure. */
@@ -1014,7 +1014,7 @@ uint32_t ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		}
 		if (!ncs_edu_return_builtin_edp_size(rule->fld1, &l_size)) {
 			/* This is not builtin EDP */
-			is_builtin_edp = FALSE;
+			is_builtin_edp = false;
 
 			if ((lcl_hdl_node = (EDU_HDL_NODE *)
 			     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&rule->fld1)) == NULL) {
@@ -1182,7 +1182,7 @@ uint32_t ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
 	uint32_t *p_data_len = ptr_data_len;
 	NCSCONTEXT lclptr = ptr;
-	NCS_BOOL lcl_is_tested = FALSE;
+	bool lcl_is_tested = false;
 	EDU_PPDB_NODE_INFO *ppdb_node = NULL;
 	EDU_PROG_HANDLER lcl_edp;
 	uint32_t lcl_offset = 0, lcl_cnt = 0, lcnt = 0;
@@ -1191,12 +1191,12 @@ uint32_t ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 	refcount = m_NCS_EDU_GET_REFCOUNT_OF_TESTABLE_FIELD(hdl_node->test_instr_store, rule);
 	if (refcount != 0) {
-		lcl_is_tested = TRUE;
+		lcl_is_tested = true;
 
 		lcl_edp = rule->fld1;
 		lcl_offset = rule->fld5;
 		if ((ppdb_node = edu_ppdb_node_findadd(&edu_tkn->ppdb,
-						       hdl_node->edp, lcl_edp, lcl_offset, TRUE)) == NULL) {
+						       hdl_node->edp, lcl_edp, lcl_offset, true)) == NULL) {
 			/* Malloc failed. */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -1205,12 +1205,12 @@ uint32_t ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		p_data_len = &ppdb_node->data_size;
 	}
 	if ((rule->fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) {
-		NCS_BOOL is_builtin_edp = TRUE;
+		bool is_builtin_edp = true;
 
 		lcl_edp = rule->fld3;
 		lcl_offset = rule->fld6;
 		if ((ppdb_node = edu_ppdb_node_findadd(&edu_tkn->ppdb, hdl_node->edp,
-						       lcl_edp, lcl_offset, FALSE)) == NULL) {
+						       lcl_edp, lcl_offset, false)) == NULL) {
 			/* Malloc failed. */
 			*o_err = EDU_ERR_MEM_FAIL;
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -1539,7 +1539,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	uint8_t *encoded_cnt_loc = NULL, *encoded_ptr_cnt_loc = NULL;
 	NCSCONTEXT lclptr = ptr;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
-	NCS_BOOL is_select_on = FALSE;
+	bool is_select_on = false;
 	uint8_t select_index = 0;
 
 	if ((prog[0].fld2 & EDQ_LNKLIST) == EDQ_LNKLIST) {
@@ -1563,7 +1563,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	if ((edu_tkn != NULL) && (edu_tkn->var_cnt != 0)) {
 		if ((edu_tkn->parent_edp == prog[0].fld1) && (edu_tkn->var_array != NULL)) {
 			/* Execute selectively only for this parent_edp */
-			is_select_on = TRUE;
+			is_select_on = true;
 		}
 	}
 
@@ -1794,13 +1794,13 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	int cur_inst_indx = 0;
 	int rc_lbl = EDU_NEXT;
 	NCSCONTEXT lclptr = ptr;
-	NCS_BOOL is_select_on = FALSE;
+	bool is_select_on = false;
 	uint8_t select_index = 0;
 
 	if ((edu_tkn != NULL) && (edu_tkn->var_cnt != 0)) {
 		if ((edu_tkn->parent_edp == prog[0].fld1) && (edu_tkn->var_array != NULL)) {
 			/* Execute selectively only for this parent_edp */
-			is_select_on = TRUE;
+			is_select_on = true;
 		}
 	}
 
@@ -1931,13 +1931,13 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	int cur_inst_indx = 0;
 	int rc_lbl = EDU_NEXT;
 	NCSCONTEXT lclptr = ptr;
-	NCS_BOOL is_select_on = FALSE;
+	bool is_select_on = false;
 	uint8_t select_index = 0;
 
 	if (edu_tkn->var_cnt != 0) {
 		if ((edu_tkn->parent_edp == hdl_node->edp) && (edu_tkn->var_array != NULL)) {
 			/* Execute selectively only for this parent_edp */
-			is_select_on = TRUE;
+			is_select_on = true;
 		}
 	}
 
@@ -2061,8 +2061,8 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 {
 	uint32_t l_size = 0;
 	int i = 0;
-	NCS_BOOL start_fnd = FALSE, end_fnd = FALSE, testll_fnd = FALSE;
-	NCS_BOOL ptr_set = FALSE, ll_set = FALSE, arr_set = FALSE, var_len_set = FALSE;
+	bool start_fnd = false, end_fnd = false, testll_fnd = false;
+	bool ptr_set = false, ll_set = false, arr_set = false, var_len_set = false;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
 
 	/*
@@ -2081,7 +2081,7 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 	 *          edcompile operation.
 	 */
 
-	hdl_node->edcompile_pass = FALSE;
+	hdl_node->edcompile_pass = false;
 
 	if (instr_count <= 1) {
 		/* Invalid number of EDU instructions. */
@@ -2138,12 +2138,12 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 				*o_err = EDU_ERR_DUPLICATE_EDU_START_INSTR_FOUND;
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			} else {
-				start_fnd = TRUE;
+				start_fnd = true;
 				/* In EDU_START instruction, only EDQ_LNKLIST can be 
 				   allowed. */
-				ll_set = FALSE;
+				ll_set = false;
 				if ((prog[i].fld2 & EDQ_LNKLIST) == EDQ_LNKLIST) {
-					ll_set = TRUE;
+					ll_set = true;
 				}
 				if (!(ll_set || (prog[i].fld2 == 0))) {
 					/* INVALID ATTRIBUTE COMBINATION in EDU_START
@@ -2158,7 +2158,7 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 				*o_err = EDU_ERR_DUPLICATE_EDU_END_INSTR_FOUND;
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			} else {
-				end_fnd = TRUE;
+				end_fnd = true;
 			}
 		} else if (prog[i].instr == EDU_TEST_LL_PTR) {
 			if (prog[i].fld1 != prog[0].fld1) {
@@ -2174,7 +2174,7 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 					*o_err = EDU_ERR_DUPLICATE_EDU_TEST_LL_PTR_INSTR_FOUND;
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 				} else {
-					testll_fnd = TRUE;
+					testll_fnd = true;
 					if ((prog[i].fld5 == 0) || ((prog[i].fld5 + sizeof(uint32_t *)) > hdl_node->size)) {
 						/* The offset for the "next" pointer in the linked
 						   list structure is invalid. */
@@ -2217,18 +2217,18 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 				}
 			}
 
-			ptr_set = ll_set = arr_set = var_len_set = FALSE;
+			ptr_set = ll_set = arr_set = var_len_set = false;
 			if ((prog[i].fld2 & EDQ_POINTER) == EDQ_POINTER) {
-				ptr_set = TRUE;
+				ptr_set = true;
 			}
 			if ((prog[i].fld2 & EDQ_LNKLIST) == EDQ_LNKLIST) {
-				ll_set = TRUE;
+				ll_set = true;
 			}
 			if ((prog[i].fld2 & EDQ_ARRAY) == EDQ_ARRAY) {
-				arr_set = TRUE;
+				arr_set = true;
 			}
 			if ((prog[i].fld2 & EDQ_VAR_LEN_DATA) == EDQ_VAR_LEN_DATA) {
-				var_len_set = TRUE;
+				var_len_set = true;
 				if (prog[i + 1].instr != EDU_EXEC_EXT) {
 					/* Error */
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -2392,7 +2392,7 @@ uint32_t ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	hdl_node->edcompile_pass = TRUE;
+	hdl_node->edcompile_pass = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -2480,14 +2480,14 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 
 	for (i = 0; ((i != instr_count) && (rules_head[i].instr != EDU_END)); i++) {
 		if (rules_head[i].instr == EDU_TEST) {
-			NCS_BOOL already_added = FALSE, lclfnd = FALSE;
+			bool already_added = false, lclfnd = false;
 
 			/* If already in the "*head" list, just increment the "refcount"
 			   of that entry. */
 			for (tmp = *head; (tmp != NULL); tmp = tmp->next) {
 				if ((tmp->edp == rules_head[i].fld1) && (tmp->offset == rules_head[i].fld5)) {
 					/* Found the entry. Increment the "refcount". */
-					already_added = TRUE;
+					already_added = true;
 					tmp->refcount++;
 					break;
 				}
@@ -2502,7 +2502,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					if ((rules_head[i].fld5 == rules_head[j].fld5) &&
 					    (rules_head[i].fld1 == rules_head[j].fld1)) {
 						/* Matching field/edpid found. */
-						lclfnd = TRUE;
+						lclfnd = true;
 						break;
 					}
 				}
@@ -2530,7 +2530,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 			}	/* if(!already_added) */
 		} /* if(rules_head[i].instr == EDU_TEST) */
 		else if (rules_head[i].instr == EDU_EXEC) {
-			NCS_BOOL already_added = FALSE, lcl_to_be_added = FALSE;
+			bool already_added = false, lcl_to_be_added = false;
 
 			for (j = 0; (((j != instr_count) && rules_head[j].instr != EDU_END)); j++) {
 				if (rules_head[j].instr == EDU_EXEC) {
@@ -2539,7 +2539,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					    (rules_head[j].fld3 == rules_head[i].fld1) &&
 					    (rules_head[j].fld6 == rules_head[i].fld5)) {
 						/* Count EDP matched. */
-						lcl_to_be_added = TRUE;
+						lcl_to_be_added = true;
 						break;
 					}
 				}
@@ -2552,7 +2552,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					   TBD. */
 					if ((tmp->edp == rules_head[i].fld1) && (tmp->offset == rules_head[i].fld6)) {
 						/* Found the entry. Increment the "refcount". */
-						already_added = TRUE;
+						already_added = true;
 						tmp->refcount++;
 						break;
 					}
@@ -2630,7 +2630,7 @@ static uint32_t ncs_edu_ppdb_init(EDU_PPDB * ppdb)
 		}
 
 		/* Init the PPDB */
-		ppdb->is_up = TRUE;
+		ppdb->is_up = true;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -2669,7 +2669,7 @@ static void ncs_edu_ppdb_destroy(EDU_PPDB * ppdb)
 
 		/* Nuke the tree */
 		ncs_patricia_tree_destroy(&ppdb->tree);
-		ppdb->is_up = FALSE;
+		ppdb->is_up = false;
 	}
 
 	return;
@@ -2705,7 +2705,7 @@ static void edu_populate_ppdb_key(EDU_PPDB_KEY * key,
 *****************************************************************************/
 static EDU_PPDB_NODE_INFO *edu_ppdb_node_findadd(EDU_PPDB * ppdb,
 						 EDU_PROG_HANDLER parent_edp,
-						 EDU_PROG_HANDLER self_edp, uint32_t offset, NCS_BOOL add)
+						 EDU_PROG_HANDLER self_edp, uint32_t offset, bool add)
 {
 	EDU_PPDB_NODE_INFO *node = NULL, *new_node = NULL;
 	EDU_PPDB_KEY key;
@@ -2850,7 +2850,7 @@ uint32_t ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 		memset(&pp_ubaid, '\0', sizeof(pp_ubaid));
 		pp_ubaid = *buf_env->info.uba;
 		pp_ubaid.ub = pp_ubuf;
-		lcl_buf_env.is_ubaid = TRUE;
+		lcl_buf_env.is_ubaid = true;
 		lcl_buf_env.info.uba = &pp_ubaid;
 		if ((pp_ubaid.max == 0) || (pp_ubaid.max == 0xcccccccc)) {
 			ncs_dec_init_space(&pp_ubaid, pp_ubaid.ub);
@@ -3157,11 +3157,11 @@ void ncs_edu_print_error_string(int enum_val)
 
   DESCRIPTION:      Verifies whether this EDP is a LEAP-builtin EDP.
 
-  RETURNS:          TRUE    - If EDP is LEAP-builtin
-                    FALSE   - otherwise
+  RETURNS:          true    - If EDP is LEAP-builtin
+                    false   - otherwise
 
 *****************************************************************************/
-NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
+bool ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
 {
 	if ((prog == ncs_edp_ncs_bool) ||
 	    (prog == ncs_edp_uns8) ||
@@ -3177,10 +3177,10 @@ NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
 	    (prog == ncs_edp_float) ||
 	    (prog == ncs_edp_float) ||
 	    (prog == ncs_edp_uns64) || (prog == ncs_edp_int64) || (prog == ncs_edp_string)) {
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /*****************************************************************************
@@ -3190,15 +3190,15 @@ NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog)
   DESCRIPTION:      Verifies whether this EDP is a LEAP-builtin EDP, and returns
                     sizeof(edp-struct), if it is builtin EDP.
 
-  RETURNS:          TRUE    - If EDP is LEAP-builtin. Returns size of data 
+  RETURNS:          true    - If EDP is LEAP-builtin. Returns size of data 
                               structure in "o_size"
-                    FALSE   - otherwise
+                    false   - otherwise
 
 *****************************************************************************/
-NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size)
+bool ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size)
 {
 	if (prog == ncs_edp_ncs_bool)
-		*o_size = sizeof(NCS_BOOL);
+		*o_size = sizeof(bool);
 	else if (prog == ncs_edp_uns8)
 		*o_size = sizeof(uint8_t);
 	else if (prog == ncs_edp_uns16)
@@ -3230,9 +3230,9 @@ NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size
 	else if (prog == ncs_edp_string)
 		*o_size = 0;	/* variable length */
 	else
-		return FALSE;
+		return false;
 
-	return TRUE;
+	return true;
 }
 
 /*****************************************************************************
@@ -3306,7 +3306,7 @@ uint32_t ncs_edu_hdl_init(EDU_HDL *edu_hdl)
 	}
 
 	/* Init the PPDB */
-	edu_hdl->is_inited = TRUE;
+	edu_hdl->is_inited = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -3326,7 +3326,7 @@ uint32_t ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
 	EDU_PROG_HANDLER lcl_key, *key = NULL;
 	NCS_PATRICIA_NODE *pnode = NULL;
 
-	if (edu_hdl->is_inited == TRUE) {
+	if (edu_hdl->is_inited == true) {
 		for (;;) {
 			if ((pnode = ncs_patricia_tree_getnext(&edu_hdl->tree, (const uint8_t *)key)) != NULL) {
 				/* Store the key for the next getnext call */
@@ -3341,7 +3341,7 @@ uint32_t ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
 
 		/* Nuke the tree */
 		ncs_patricia_tree_destroy(&edu_hdl->tree);
-		/*edu_hdl->is_inited = FALSE; */
+		/*edu_hdl->is_inited = false; */
 	}
 	memset(edu_hdl, '\0', sizeof(EDU_HDL));
 

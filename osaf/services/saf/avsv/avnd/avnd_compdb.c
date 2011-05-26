@@ -363,7 +363,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
 		break;
 	}			/* switch */
 
-	m_AVND_COMP_RESTART_EN_SET(comp, (info->comp_restart == TRUE) ? FALSE : TRUE);
+	m_AVND_COMP_RESTART_EN_SET(comp, (info->comp_restart == true) ? false : true);
 
 	comp->cap = info->cap;
 	comp->node_id = cb->node_info.nodeId;
@@ -439,7 +439,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
 	else
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 
-	comp->avd_updt_flag = FALSE;
+	comp->avd_updt_flag = false;
 
 	/* synchronize comp oper state */
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, *rc);
@@ -503,7 +503,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
 	 */
 	comp->su = su;
 
-	if (TRUE == su->su_is_external) {
+	if (true == su->su_is_external) {
 		m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);
 	} else
 		m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);
@@ -600,7 +600,7 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	 * Delete the various lists (hc, pm, pg, cbk etc) maintained by this comp.
 	 */
 	avnd_comp_hc_rec_del_all(cb, comp);
-	avnd_comp_cbq_del(cb, comp, FALSE);
+	avnd_comp_cbq_del(cb, comp, false);
 	avnd_comp_pm_rec_del_all(cb, comp);
 
 	/* remove the association with hdl mngr */
@@ -820,7 +820,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 			case saAmfCompAMEnable_ID:
 				assert(1 == param->value_len);
-				comp->is_am_en = (NCS_BOOL)param->value[0];
+				comp->is_am_en = (bool)param->value[0];
 				comp->clc_info.am_start_retry_cnt = 0;
 				rc = avnd_comp_am_oper_req_process(cb, comp);
 				break;
@@ -1249,7 +1249,7 @@ static void init_bundle_dependent_attributes(AVND_COMP *comp, const amf_comp_typ
 
 		cmd->len = i;
 
-		comp->is_am_en = TRUE;
+		comp->is_am_en = true;
 
 		/* Check for truncation, should alloc these strings dynamically instead */
 		assert((cmd->len > 0) && (cmd->len < sizeof(cmd->cmd)));
@@ -1398,7 +1398,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes,
 	if (immutil_getAttr("saAmfCompDisableRestart", attributes, 0, &disable_restart) != SA_AIS_OK)
 		disable_restart = comptype->saAmfCtDefDisableRestart;
 
-	comp->is_restart_en = (disable_restart == SA_TRUE) ? FALSE : TRUE;
+	comp->is_restart_en = (disable_restart == SA_TRUE) ? false : true;
 
 	init_comp_category(comp, comptype->saAmfCtCompCategory);
 
@@ -1527,7 +1527,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 		goto done;
 	}
 
-	comp->avd_updt_flag = FALSE;
+	comp->avd_updt_flag = false;
 
 	/* synchronize comp oper state */
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(avnd_cb, comp, rc);
@@ -1563,7 +1563,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	comp->su = su;
 
-	if (TRUE == su->su_is_external) {
+	if (true == su->su_is_external) {
 		m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);
 	} else
 		m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);

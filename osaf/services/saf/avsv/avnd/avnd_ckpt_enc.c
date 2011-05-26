@@ -117,7 +117,7 @@ static uint32_t avnd_encode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 static uint32_t avnd_encode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 
 /* Declaration of static cold sync encode functions */
-static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL c_sync);
+static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync);
 static uint32_t avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 static uint32_t avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 static uint32_t avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
@@ -253,7 +253,7 @@ const AVND_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avnd_enc_cold_sync_rsp_data_func_l
 \**************************************************************************/
 uint32_t avnd_encode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	return avnd_entire_data_update(cb, enc, FALSE);
+	return avnd_entire_data_update(cb, enc, false);
 }
 
 /****************************************************************************\
@@ -263,8 +263,8 @@ uint32_t avnd_encode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * Input: cb  - CB pointer.
  *        enc - Encode arguments passed by MBCSV.
- *        c_sync - TRUE - Called while in cold sync.
- *                 FALSE - Called while in warm sync.
+ *        c_sync - true - Called while in cold sync.
+ *                 false - Called while in warm sync.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -272,7 +272,7 @@ uint32_t avnd_encode_data_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
  *
  * 
 \**************************************************************************/
-static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, NCS_BOOL c_sync)
+static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t num_of_obj = 0;
@@ -344,7 +344,7 @@ static uint32_t avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_EN
 	 */
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
-		if (TRUE == su->su_is_external) {
+		if (true == su->su_is_external) {
 			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_su, &enc->io_uba,
 						    EDP_OP_TYPE_ENC, su, &ederror, enc->i_peer_version);
 
@@ -354,7 +354,7 @@ static uint32_t avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_EN
 			}
 
 			(*num_of_obj)++;
-		}		/* if(TRUE == su->su_is_external) */
+		}		/* if(true == su->su_is_external) */
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
@@ -422,7 +422,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
-		if (TRUE == comp->su->su_is_external) {
+		if (true == comp->su->su_is_external) {
 			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_comp, &enc->io_uba,
 						    EDP_OP_TYPE_ENC, comp, &ederror, enc->i_peer_version);
 
@@ -432,7 +432,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_
 			}
 
 			(*num_of_obj)++;
-		}		/* if(TRUE == comp->su->su_is_external) */
+		}		/* if(true == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
 		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
@@ -464,7 +464,7 @@ static uint32_t avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
-		if (TRUE == su->su_is_external) {
+		if (true == su->su_is_external) {
 			for (rel = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 			     rel; rel = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&rel->su_dll_node)) {
 
@@ -479,7 +479,7 @@ static uint32_t avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 				(*num_of_obj)++;
 			}
 		}
-		/* if(TRUE == su->su_is_external) */
+		/* if(true == su->su_is_external) */
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
@@ -510,7 +510,7 @@ static uint32_t avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
-		if (TRUE == su->su_is_external) {
+		if (true == su->su_is_external) {
 			for (siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_LAST(&su->siq);
 			     siq; siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_PREV(&siq->su_dll_node)) {
 
@@ -524,7 +524,7 @@ static uint32_t avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 				(*num_of_obj)++;
 			}
-		}		/* if(TRUE == su->su_is_external) */
+		}		/* if(true == su->su_is_external) */
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
@@ -556,7 +556,7 @@ static uint32_t avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 	while (su != 0) {
-		if (TRUE == su->su_is_external) {
+		if (true == su->su_is_external) {
 			for (curr_su_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 			     curr_su_si;
 			     curr_su_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_su_si->su_dll_node)) {
@@ -580,7 +580,7 @@ static uint32_t avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 					(*num_of_obj)++;
 				}
 			}
-		}		/* if(TRUE == su->su_is_external) */
+		}		/* if(true == su->su_is_external) */
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
@@ -615,7 +615,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
-		if (TRUE == comp->su->su_is_external) {
+		if (true == comp->su->su_is_external) {
 			for (comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
 			     comp_hc; comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&comp_hc->comp_dll_node)) {
 				/* Before calling EDU, fill comp_name and si_name */
@@ -631,7 +631,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB
 
 				(*num_of_obj)++;
 			}
-		}		/* if(TRUE == comp->su->su_is_external) */
+		}		/* if(true == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
 		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
@@ -667,7 +667,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 	while (comp != 0) {
-		if (TRUE == comp->su->su_is_external) {
+		if (true == comp->su->su_is_external) {
 			for (comp_cbk = comp->cbk_list; comp_cbk; comp_cbk = comp_cbk->next) {
 				/* Before calling EDU, fill comp_name */
 				comp_cbk->comp_name = comp_cbk->comp->name;
@@ -682,7 +682,7 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB
 
 				(*num_of_obj)++;
 			}
-		}		/* if(TRUE == comp->su->su_is_external) */
+		}		/* if(true == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
 		    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 	}
@@ -716,7 +716,7 @@ static uint32_t avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_E
 	 */
 	hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)0);
 	while (hc_config != 0) {
-		if (TRUE == hc_config->is_ext) {
+		if (true == hc_config->is_ext) {
 			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_hlt_config, &enc->io_uba,
 						    EDP_OP_TYPE_ENC, hc_config, &ederror, enc->i_peer_version);
 
@@ -726,7 +726,7 @@ static uint32_t avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_E
 			}
 
 			(*num_of_obj)++;
-		}		/* if(TRUE == hc_config->is_ext) */
+		}		/* if(true == hc_config->is_ext) */
 		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_config->key);
 	}			/* while(hc_config != 0) */
 
@@ -750,7 +750,7 @@ static uint32_t avnd_encode_cold_sync_rsp_hlt_config(AVND_CB *cb, NCS_MBCSV_CB_E
 uint32_t avnd_encode_cold_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 
-	return avnd_entire_data_update(cb, enc, TRUE);
+	return avnd_entire_data_update(cb, enc, true);
 }
 
 /****************************************************************************\

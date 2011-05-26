@@ -117,7 +117,7 @@ typedef struct mdtm_send_req {
 #define DESTINATION_OFF_NODE      3
 
 	uint8_t to;		/* Destination same node, process or off node */
-	NCS_BOOL consume_buf;	/* Can be FALSE for broadcast.
+	bool consume_buf;	/* Can be false for broadcast.
 				   Avoids ditto step.
 				   Is there a better way?
 				 */
@@ -134,7 +134,7 @@ typedef struct mdtm_send_req {
 	MDS_VDEST_ID dest_vdest_id;
 
 	MDS_ENCODED_MSG msg;	/* Mem released after send if
-				   consume_buf = TRUE- SOme
+				   consume_buf = true- SOme
 				   such scheme
 				 */
 	MDS_DEST adest;		/* MDTM to do local/remote routing, destination adest */
@@ -153,10 +153,10 @@ typedef struct mds_await_active_queue {
 
 typedef struct mds_mdtm_query_adest_info {
 	MDS_DEST i_adest;
-	NCS_BOOL o_is_reachable;	/* Putting JFK. Do not know use */
-	NCS_BOOL o_is_in_mypcon;
-	NCS_BOOL o_is_in_mynode;
-	NCS_BOOL o_is_in_mychassis;
+	bool o_is_reachable;	/* Putting JFK. Do not know use */
+	bool o_is_in_mypcon;
+	bool o_is_in_mynode;
+	bool o_is_in_mychassis;
 	MDS_ENC_TYPES o_enc_type;	/* enc/enc-flat/cpy */
 } MDS_MDTM_QUERY_ADEST_INFO;
 
@@ -180,7 +180,7 @@ typedef struct mcm_svc_up_info {
 	MDS_VDEST_ID vdest;
 	NCS_VDEST_TYPE vdest_policy;
 	MDS_DEST adest;
-	NCS_BOOL my_pcon;
+	bool my_pcon;
 	MDS_SVC_HDL local_svc_hdl;
 	MDS_SUBTN_REF_VAL subtn_ref_val;
 	MDS_SVC_PVT_SUB_PART_VER sub_part_ver;
@@ -381,14 +381,14 @@ extern uint32_t mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv);
 /* SVC UP */
 extern uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 			    NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest,
-			    NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, NCS_BOOL my_pcon,
+			    NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, bool my_pcon,
 			    MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL subtn_ref_val,
 			    MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 
 /* SVC DOWN */
 extern uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 			      NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest,
-			      NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, NCS_BOOL my_pcon,
+			      NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, bool my_pcon,
 			      MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL subtn_ref_val,
 			      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 

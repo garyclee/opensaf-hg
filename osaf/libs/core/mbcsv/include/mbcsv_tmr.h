@@ -110,8 +110,8 @@ typedef enum {
 
 #define m_INIT_NCS_MBCSV_TMR(i,t,p)             \
 {                                          \
-    (i)->tmr[t].is_active      = FALSE;      \
-    (i)->tmr[t].has_expired    = FALSE;      \
+    (i)->tmr[t].is_active      = false;      \
+    (i)->tmr[t].has_expired    = false;      \
     (i)->tmr[t].curr_exp_count = 0;          \
     (i)->tmr[t].tmr_id         = TMR_T_NULL; \
     (i)->tmr[t].period         = p;          \
@@ -119,21 +119,21 @@ typedef enum {
     (i)->tmr[t].xdb            = (i)->hdl;   \
 }
 
-#define m_SET_NCS_MBCSV_TMR_INACTIVE(i,t)  ((i)->tmr[t].is_active = FALSE)
+#define m_SET_NCS_MBCSV_TMR_INACTIVE(i,t)  ((i)->tmr[t].is_active = false)
 
-#define m_SET_NCS_MBCSV_TMR_ACTIVE(i,t)    ((i)->tmr[t].is_active = TRUE)
+#define m_SET_NCS_MBCSV_TMR_ACTIVE(i,t)    ((i)->tmr[t].is_active = true)
 
-#define m_IS_TMR_NCS_MBCSV_ACTIVE(i,t)     ((i)->tmr[t].is_active == TRUE)
+#define m_IS_TMR_NCS_MBCSV_ACTIVE(i,t)     ((i)->tmr[t].is_active == true)
 
 /*
 * The following macros are used to confirm that between the time a
 * timer event expired and the time the action routine is actually
 * serviced, the timer-action is still valid.
 */
-#define m_SET_NCS_MBCSV_TMR_EXP_OFF(i,t)  ((i)->tmr[t].has_expired = FALSE)
+#define m_SET_NCS_MBCSV_TMR_EXP_OFF(i,t)  ((i)->tmr[t].has_expired = false)
 
-#define m_SET_NCS_MBCSV_TMR_EXP_ON(i,t)   ((i)->tmr[t].has_expired = TRUE)
+#define m_SET_NCS_MBCSV_TMR_EXP_ON(i,t)   ((i)->tmr[t].has_expired = true)
 
-#define m_IS_NCS_MBCSV_TMR_EXP_VALID(i,t) ((i)->tmr[t].has_expired == TRUE)
+#define m_IS_NCS_MBCSV_TMR_EXP_VALID(i,t) ((i)->tmr[t].has_expired == true)
 
 #endif

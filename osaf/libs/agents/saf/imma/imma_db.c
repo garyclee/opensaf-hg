@@ -213,7 +213,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 			new_ccb->opCount++;
 			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
-				LOG_ER("imma_oi_ccb_record_add inv==0 yet both isPbe and isApplier are FALSE");
+				LOG_ER("imma_oi_ccb_record_add inv==0 yet both isPbe and isApplier are false");
 				assert(cl_node->isPbe);
 			}
 		}
@@ -226,7 +226,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 		new_ccb->opCount = 1; 
 		TRACE_2("Zero inv => PBE/Applier initialized opcount to 1");
 		if(!(cl_node->isPbe || cl_node->isApplier)) {
-			LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is FALSE!");
+			LOG_ER("imma_oi_ccb_record_add inv==0 yet cl_node->isPbe is false!");
 			assert(cl_node->isPbe);
 		}
 	}
@@ -294,7 +294,7 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
 				LOG_ER("imma_oi_ccb_record_ok_for_critical opCount!=0 yet cl_node->isPbe "
-					"is FALSE! ccb:%llx", ccbId);
+					"is false! ccb:%llx", ccbId);
 				rs = 0;
 			}
 
@@ -332,7 +332,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 		rs = 1;
 		if(tmp->opCount) {
 			if(!(cl_node->isPbe || cl_node->isApplier)) {
-				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is FALSE! "
+				LOG_ER("imma_oi_ccb_record_set_critical opCount!=0 yet cl_node->isPbe is false! "
 					"ccbId:%llx", ccbId);
 				assert(cl_node->isPbe);
 			}
@@ -403,14 +403,14 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 				!(ccb_node->mAborted)) {
 				TRACE("CCb:%u for handle %llx aborted in non critical state", 
 					ccb_node->mCcbId, clnode->handle);
-				ccb_node->mAborted = TRUE;
+				ccb_node->mAborted = true;
 			}
 		}
 
 		/* Process OI side CCBs */
 		oiCcb = clnode->activeOiCcbs;
 		while (oiCcb) {
-			oiCcb->isStale = TRUE;
+			oiCcb->isStale = true;
 			oiCcb = oiCcb->next;
 		}
 
@@ -430,7 +430,7 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 		if (clnode->exposed) {continue;} /* No need to stale dispatched on this
                                            handle when already exposed.
                                         */
-		clnode->stale = TRUE;
+		clnode->stale = true;
 		TRACE("Stale marked client cl:%u node:%x",
 			m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
 			m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
@@ -530,7 +530,7 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 		   That is, we only get exposed if some thread tries to resurrect during the 
 		   blocked call. 
 		   if (clnode->replyPending) {
-		       clnode->exposed = TRUE;
+		       clnode->exposed = true;
 		   }	
 		*/
 
@@ -550,7 +550,7 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 				if ((adm_node->mImmHandle == clnode->handle) && 
 					(adm_node->mReleaseOnFinalize)) {
 					TRACE_3("Client gets exposed because releaseOnFinalize set for admin owner");
-					clnode->exposed = TRUE;
+					clnode->exposed = true;
 				}
 			}
 		} else { /* OI client. */

@@ -66,7 +66,7 @@ uint32_t dts_mds_reg(DTS_CB *cb)
 	cb->vaddr = DTS_VDEST_ID;
 
 	vda_info.req = NCSVDA_VDEST_CREATE;
-	vda_info.info.vdest_create.i_persistent = FALSE;
+	vda_info.info.vdest_create.i_persistent = false;
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	vda_info.info.vdest_create.info.specified.i_vdest = cb->vaddr;
@@ -82,13 +82,13 @@ uint32_t dts_mds_reg(DTS_CB *cb)
 	cb->vaddr_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
 
 #if (DTS_SIM_TEST_ENV == 1)
-	if (TRUE == cb->is_test) {
+	if (true == cb->is_test) {
 		/* set the role of the vdest */
 		if (dts_mds_change_role(cb, cb->ha_state) != NCSCC_RC_SUCCESS) {
-			dts_mds_unreg(cb, FALSE);
+			dts_mds_unreg(cb, false);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: DTS Role change failed");
 		}
-	}			/* is_test is TRUE */
+	}			/* is_test is true */
 #endif
 
 	/* Install mds */
@@ -99,13 +99,13 @@ uint32_t dts_mds_reg(DTS_CB *cb)
 	svc_to_mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)(long)cb;
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = dts_mds_callback;
-	svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
 	/* versioning changes */
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = cb->dts_mds_version;
-	cb->created = TRUE;
+	cb->created = true;
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
-		cb->created = FALSE;
-		dts_mds_unreg(cb, FALSE);
+		cb->created = false;
+		dts_mds_unreg(cb, false);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg:  MDS install failed");
 	}
 
@@ -120,8 +120,8 @@ uint32_t dts_mds_reg(DTS_CB *cb)
 	svc_to_mds_info.info.svc_subscribe.i_svc_ids = svc_ids_array;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
-		cb->created = FALSE;
-		dts_mds_unreg(cb, TRUE);
+		cb->created = false;
+		dts_mds_unreg(cb, true);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: DTA Event subscription failed!!");
 	}
 
@@ -136,8 +136,8 @@ uint32_t dts_mds_reg(DTS_CB *cb)
 	svc_to_mds_info.info.svc_subscribe.i_svc_ids = svc_ids_array;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
-		cb->created = FALSE;
-		dts_mds_unreg(cb, TRUE);
+		cb->created = false;
+		dts_mds_unreg(cb, true);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: IMMND Event subscription failed!!");
 	}
 
@@ -184,7 +184,7 @@ uint32_t dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role)
  
   Notes         : None.
 ******************************************************************************/
-void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install)
+void dts_mds_unreg(DTS_CB *cb, bool un_install)
 {
 	NCSVDA_INFO vda_info;
 	NCSMDS_INFO svc_to_mds_info;
@@ -229,7 +229,7 @@ uint32_t dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_h
 	mds_info.info.svc_send.i_msg = msg;
 	mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_DTA;
 
-	if (TRUE == msg->rsp_reqd) {
+	if (true == msg->rsp_reqd) {
 		mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
 		mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_RSP;
 		mds_info.info.svc_send.info.rsp.i_msg_ctxt = msg->msg_ctxt;
@@ -355,7 +355,7 @@ uint32_t dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dts_mds_rcv: Message format version is not withing acceptable limits.");
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		if (0 != msg)
 			m_MMGR_FREE_DTSV_MSG(msg);
 
@@ -365,7 +365,7 @@ uint32_t dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 	if (NULL == msg)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_rcv: NULL message received.");
 
-	msg->seq_msg = FALSE;
+	msg->seq_msg = false;
 
 	/* plant DTS subcomponent's control block in DTSV_MSG */
 
@@ -459,7 +459,7 @@ void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 	DTS_CB *inst = &dts_cb;
 	DTSV_MSG *msg;
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_evt: DTS does not exist");
 		return;
 	}
@@ -515,7 +515,7 @@ void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
  *
  * Notes         : None.
  *****************************************************************************/
-void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
+void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, bool up_down)
 {
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
@@ -541,7 +541,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 
 		dta->dta_up = up_down;
 
-		if (up_down == FALSE) {
+		if (up_down == false) {
 			m_LOG_DTS_EVT(DTS_EV_DTA_DOWN, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
 				      (uint32_t)(dta->dta_addr));
 			/* go through the svc_list of DTA removing DTA frm all those svcs */
@@ -591,11 +591,11 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 						dev = &svc->device;
 						/* Cleanup the DTS_FILE_LIST datastructure for svc */
 						m_DTS_FREE_FILE_LIST(dev);
-						if ((TRUE == svc->device.file_open) && (svc->device.svc_fh != NULL)) {
+						if ((true == svc->device.file_open) && (svc->device.svc_fh != NULL)) {
 							fclose(svc->device.svc_fh);
 							svc->device.svc_fh = NULL;
-							svc->device.file_open = FALSE;
-							svc->device.new_file = TRUE;
+							svc->device.file_open = false;
+							svc->device.new_file = true;
 							svc->device.cur_file_size = 0;
 						}
 						/* Cleanup the console devices associated with the node */
@@ -635,15 +635,15 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 			if (NULL != dta)
 				m_MMGR_FREE_VCARD_TBL(dta);
 		}
-		/* end of up_down == FALSE */
-		else if ((TRUE == up_down) && (TRUE == dta->updt_req)) {
+		/* end of up_down == false */
+		else if ((true == up_down) && (true == dta->updt_req)) {
 			/* send filter config msg for all svcs for this dta */
 			m_LOG_DTS_EVT(DTS_EV_DTA_UP, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
 				      (uint32_t)(dta->dta_addr));
 			svc_entry = dta->svc_list;
 			while (svc_entry != NULL) {
 				dts_send_filter_config_msg(inst, svc_entry->svc, dta);
-				dta->updt_req = FALSE;
+				dta->updt_req = false;
 				svc_entry = svc_entry->next_in_dta_entry;
 			}
 		}
@@ -910,7 +910,7 @@ uint32_t dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 
 uint32_t dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-		  NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
+		  bool last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
 	DTSV_MSG *mm;
 

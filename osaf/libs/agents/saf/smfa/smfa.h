@@ -58,8 +58,8 @@ typedef struct smfa_cbk_list{
 typedef struct smfa_cb{
 	MDS_HDL			smfa_mds_hdl;
 	MDS_DEST		smfnd_adest;
-	NCS_BOOL		is_smfnd_up;
-	NCS_BOOL		is_finalized;
+	bool		is_smfnd_up;
+	bool		is_finalized;
 	NCS_LOCK		cb_lock;
 	SMFA_CLIENT_INFO	*smfa_client_info_list;
 	SMFA_CBK_LIST		*cbk_list;
@@ -70,7 +70,7 @@ extern SMFA_CB _smfa_cb;
 uint32_t smfa_init();
 uint32_t smfa_finalize();
 void smfa_client_info_add(SMFA_CLIENT_INFO *);
-NCS_BOOL smfa_client_mbx_clnup(NCSCONTEXT , NCSCONTEXT );
+bool smfa_client_mbx_clnup(NCSCONTEXT , NCSCONTEXT );
 SMFA_CLIENT_INFO * smfa_client_info_get(SaSmfHandleT );
 SMFA_SCOPE_INFO* smfa_scope_info_get(SMFA_CLIENT_INFO *, SaSmfCallbackScopeIdT );
 void smfa_scope_info_free(SMFA_SCOPE_INFO *);

@@ -24,14 +24,14 @@ typedef struct sys_cfg_info {
 
    uint32_t                cluster_id;
    uint32_t                node_id;
-   NCS_BOOL             hub_flag;
+   bool             hub_flag;
    uint32_t                pcon_id;
    uint32_t                mds_ip_addr;
    uint32_t                mds_ifindex;
 
 /* FLAGS     .......................*/
 
-   NCS_BOOL            dirflag;
+   bool            dirflag;
    
 
 }SYS_CFG_INFO;

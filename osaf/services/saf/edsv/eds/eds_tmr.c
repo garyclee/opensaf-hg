@@ -65,16 +65,16 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
 	}
 
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	tmr->opq_hdl = uarg;
 	tmr->cb_hdl = cb->my_hdl;
 	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
 
-	tmr->is_active = TRUE;
+	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
 		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
@@ -109,9 +109,9 @@ void eds_stop_tmr(EDS_TMR *tmr)
 	}
 
 	/* Stop the timer if it is active... */
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	/* Destroy the timer if it exists.. */
@@ -168,7 +168,7 @@ void eds_tmr_exp(void *uarg)
 	}
 
 	if (tmr->is_active) {
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 		/* Destroy the timer if it exists.. */
 		if (tmr->tmr_id != TMR_T_NULL) {
 			m_NCS_TMR_DESTROY(tmr->tmr_id);

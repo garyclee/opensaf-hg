@@ -242,7 +242,7 @@ static uint32_t eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	/* This call will ensure all open subscriptions, channels, and any other
 	* resources allocated by this registration are freed up.
 	*/
-	rc = eds_remove_reglist_entry(cb, evt->info.msg.info.api_info.param.finalize.reg_id, FALSE);
+	rc = eds_remove_reglist_entry(cb, evt->info.msg.info.api_info.param.finalize.reg_id, false);
 	if (rc == NCSCC_RC_SUCCESS) {
 		m_LOG_EDSV_SF(EDS_FINALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 0,
 			      evt->fr_dest);
@@ -415,7 +415,7 @@ static uint32_t eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDS_CKPT_DATA ckpt;
 
 	close_param = &(evt->info.msg.info.api_info.param.chan_close);
-	rc = eds_channel_close(cb, close_param->reg_id, close_param->chan_id, close_param->chan_open_id, FALSE);
+	rc = eds_channel_close(cb, close_param->reg_id, close_param->chan_id, close_param->chan_open_id, false);
 	if (rc == NCSCC_RC_SUCCESS) {
 		/* Send an Async update to STANDBY EDS peer */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -815,7 +815,7 @@ static uint32_t eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	/* Lock the EDS_CB */
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, FALSE);
+	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, false);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__,
 			      __LINE__, 0, evt->fr_dest);
@@ -986,7 +986,7 @@ static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 */
    /** This also frees the event **/
 	rc = eds_clear_retained_event(eds_cb,
-				      ret_evt->chan_id, ret_evt->retd_evt_chan_open_id, ret_evt->event_id, TRUE);
+				      ret_evt->chan_id, ret_evt->retd_evt_chan_open_id, ret_evt->event_id, true);
 
 	m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -1173,7 +1173,7 @@ static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (cb->is_quisced_set == TRUE) {
+	if (cb->is_quisced_set == true) {
 		cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
 		if (eds_mbcsv_change_HA_state(cb) != NCSCC_RC_SUCCESS) {
@@ -1182,7 +1182,7 @@ static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 
 		/* Update control block */
 		saAmfResponse(cb->amf_hdl, cb->amf_invocation_id, SA_AIS_OK);
-		cb->is_quisced_set = FALSE;
+		cb->is_quisced_set = false;
 		/* Give the cb handle back */
 		ncshm_give_hdl(evt->cb_hdl);
 	} else {
@@ -1304,13 +1304,13 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 	/* See if the channel name is a printable string.
 	 * If not, just give the length for now.
 	 */
-	is_ascii = TRUE;
+	is_ascii = true;
 	ptr = (char *)wp->cname;
 	for (x = 0; x < wp->cname_len; x++) {
 		if (isascii(*ptr++))
 			continue;
 		else {
-			is_ascii = FALSE;
+			is_ascii = false;
 			break;
 		}
 	}
@@ -1330,13 +1330,13 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 	/* See if the publisher name is a printable string.
 	 * If not, just say it's binary of some length.
 	 */
-	is_ascii = TRUE;
+	is_ascii = true;
 	ptr = (char *)publish_param->publisher_name.value;
 	for (x = 0; x < publish_param->publisher_name.length; x++) {
 		if (isascii(*ptr++))
 			continue;
 		else {
-			is_ascii = FALSE;
+			is_ascii = false;
 			break;
 		}
 	}

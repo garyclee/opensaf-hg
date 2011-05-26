@@ -49,7 +49,7 @@ typedef struct glnd_tmr {
 	GLND_TMR_TYPE type;	/* timer type */
 	uint32_t cb_hdl;		/* cb hdl to retrieve the GLND cb ptr */
 	uint32_t opq_hdl;		/* hdl to retrive the timer context */
-	NCS_BOOL is_active;
+	bool is_active;
 } GLND_TMR;
 
 /*** Extern function declarations ***/

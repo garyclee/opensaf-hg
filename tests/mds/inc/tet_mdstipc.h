@@ -35,7 +35,7 @@ typedef struct tet_svc{
   NCSMDS_CALLBACK_API svc_cb;
   MDS_CLIENT_HDL      yr_svc_hdl;/*the decider*/
   NCSMDS_SCOPE_TYPE   install_scope;
-  NCS_BOOL            mds_q_ownership;
+  bool            mds_q_ownership;
   /* return values */
   MDS_DEST            dest;    /*can be Absolute or Virtual*/
   V_DEST_QA           anc;    /*can b on multiple Vdests*/
@@ -47,7 +47,7 @@ typedef struct tet_svc{
   MDS_SVC_ID          svc_id;
   MDS_SVC_PVT_SUB_PART_VER   mds_svc_pvt_ver;
   TET_TASK            task; /* FIX THIS can b multiple tasks */
-  NCS_BOOL            got_msg;/* when will u fill this*/
+  bool            got_msg;/* when will u fill this*/
 }TET_SVC;
 
 typedef struct tet_pwe{
@@ -72,7 +72,7 @@ typedef struct tet_adest{
 }TET_ADEST;
 
 typedef struct tet_vdest{
-  NCS_BOOL       persistent;
+  bool       persistent;
   NCS_VDEST_TYPE policy;
   SaNameT        name;
   /*return values*/
@@ -112,8 +112,8 @@ typedef struct tet_mds_recvd_msg_info{
                                       installation*/
   MDS_CLIENT_HDL         yr_svc_hdl; /*its service handle*/
   NCSCONTEXT             msg;       /* message to be delivered*/
-  NCS_BOOL               rsp_reqd;  /* TRUE if send is awaiting a response */
-  MDS_SYNC_SND_CTXT      msg_ctxt;  /* Valid only if "i_rsp_expected == TRUE"*/
+  bool               rsp_reqd;  /* true if send is awaiting a response */
+  MDS_SYNC_SND_CTXT      msg_ctxt;  /* Valid only if "i_rsp_expected == true"*/
   MDS_DEST               fr_dest;   /* MDS destination on which sending 
                                        service resides   */
   V_DEST_QA              fr_anc;    /* From address anchor in case of VDEST */
@@ -169,7 +169,7 @@ uint32_t tet_mds_cb_quiesced_ack(NCSMDS_CALLBACK_INFO *);
 uint32_t tet_mds_cb_direct_rcv  (NCSMDS_CALLBACK_INFO *);
 /*uint32_t tet_mds_svc_max   (NCSMDS_CALLBACK_INFO *mds_to_svc_info);*/
 /**********************************************************************/
-uint32_t tet_initialize_setup(NCS_BOOL);
+uint32_t tet_initialize_setup(bool);
 uint32_t tet_cleanup_setup(void);
 
 /***************  USER DEFINED WRAPPERS FOR MDS DEST APIs     *************/
@@ -178,11 +178,11 @@ uint32_t adest_get_handle(void);
 uint32_t create_pwe_on_adest(MDS_HDL,PW_ENV_ID);
 uint32_t destroy_pwe_on_adest(MDS_HDL);
 uint32_t create_vdest(NCS_VDEST_TYPE,MDS_DEST);
-uint32_t create_named_vdest(NCS_BOOL,NCS_VDEST_TYPE,char *);
+uint32_t create_named_vdest(bool,NCS_VDEST_TYPE,char *);
 MDS_DEST vdest_lookup(char *);
 uint32_t vdest_change_role(MDS_DEST ,V_DEST_RL);
 uint32_t destroy_vdest(MDS_DEST);
-uint32_t destroy_named_vdest(NCS_BOOL,MDS_DEST,char *);
+uint32_t destroy_named_vdest(bool,MDS_DEST,char *);
 uint32_t create_pwe_on_vdest(MDS_HDL,PW_ENV_ID);
 uint32_t destroy_pwe_on_vdest(MDS_HDL);
 
@@ -195,7 +195,7 @@ int is_sel_obj_found(int);
 int is_vdest_sel_obj_found(int ,int );
 void tet_mds_free_msg(NCSCONTEXT msg_to_be_freed);
 
-uint32_t mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,NCS_BOOL,NCS_BOOL);
+uint32_t mds_service_install(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_PVT_SUB_PART_VER ,NCSMDS_SCOPE_TYPE,bool,bool);
 uint32_t mds_service_subscribe(MDS_HDL,MDS_SVC_ID ,NCSMDS_SCOPE_TYPE ,uint8_t ,
                             MDS_SVC_ID *);
 uint32_t mds_service_redundant_subscribe(MDS_HDL ,MDS_SVC_ID ,
@@ -335,7 +335,7 @@ void tet_vdest_install_thread(void);
  void tet_vdest_uninstall_thread(void);
  void tet_adest_cancel_thread(void);
  void tet_adest_retrieve_thread(void);
- uint32_t tet_initialise_setup(NCS_BOOL fail_no_active_sends); 
+ uint32_t tet_initialise_setup(bool fail_no_active_sends); 
  void tet_adest_rcvr_thread(void);
  void tet_adest_rcvr_svc_thread(void);
  void tet_vdest_rcvr_resp_thread(void);

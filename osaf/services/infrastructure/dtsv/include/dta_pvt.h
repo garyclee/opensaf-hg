@@ -44,14 +44,14 @@ typedef struct reg_tbl_entry {
 
 	/* Key for the Reg table entry */
 	SS_SVC_ID svc_id;	/* Service ID registerd with the DTA & DTS */
-	NCS_BOOL log_msg;	/* Set to TRUE ifreceived reg-confirmation */
+	bool log_msg;	/* Set to true ifreceived reg-confirmation */
 	/* No need of policy handles */
 	/*uint32_t       policy_hdl; */
 	/*Flag to indicate svc_reg entry on Active DTS upon DTS fail-over */
-	NCS_BOOL svc_flag;	/* Set to TRUE if new policy handles received, else setto FALSE */
+	bool svc_flag;	/* Set to true if new policy handles received, else setto false */
 
 	/* Message Filter for the above defined service */
-	NCS_BOOL enable_log;	/* Enable or disable logging */
+	bool enable_log;	/* Enable or disable logging */
 	uint32_t category_bit_map;	/* Category Filter bit map */
 	uint8_t severity_bit_map;	/* Severity Filter bit map */
 	/* Add all the other new filter elements above this */
@@ -92,8 +92,8 @@ typedef struct dta_cb {
 	NODE_ID dts_node_id;	/* Node-id on which "i_dest" lives */
 	PW_ENV_ID dts_pwe_id;
 
-	NCS_BOOL dts_exist;
-	NCS_BOOL created;	/* TRUE : CB created, FALSE : CB destroyed */
+	bool dts_exist;
+	bool created;	/* true : CB created, false : CB destroyed */
 
 	/* Create time constants */
 	MDS_HDL mds_hdl;
@@ -104,7 +104,7 @@ typedef struct dta_cb {
 #if (DTA_FLOW == 1)
 	/* Additions for flow control */
 	uint32_t logs_received;
-	NCS_BOOL dts_congested;
+	bool dts_congested;
 	uint32_t msg_count;
 #endif
 
@@ -166,7 +166,7 @@ uint32_t dta_mds_uninstall(void);
 uint32_t dta_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
 
 #if (DTA_FLOW == 1)
-uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, NCS_BOOL svc_reg);
+uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout, bool svc_reg);
 #else
 uint32_t dta_mds_sync_send(DTSV_MSG *msg, DTA_CB *inst, uint32_t timeout);
 #endif
@@ -186,7 +186,7 @@ uint32_t dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 
 uint32_t dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 			   SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-			   NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
+			   bool last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver);
 
 uint32_t encode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR ipa);
 
@@ -194,7 +194,7 @@ uint32_t dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba);
 
 uint32_t dta_copy_octets(char **dest, char *src, uint16_t length);
 
-NCS_BOOL dta_match_service(void *key, void *qelem);
+bool dta_match_service(void *key, void *qelem);
 
 void copy_ip_addr(NCS_IP_ADDR *ipa, va_list argp);
 

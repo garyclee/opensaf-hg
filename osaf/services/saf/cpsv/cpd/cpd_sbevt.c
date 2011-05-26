@@ -92,7 +92,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	uint32_t rc, proc_rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL add_flag = TRUE;
+	bool add_flag = true;
 	uint32_t count, dest_cnt;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
@@ -181,7 +181,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 				m_MMGR_FREE_CPD_NODE_REF_INFO(nref_info);
 			goto cpd_cpnd_node_find_fail;
 		}
-		add_flag = TRUE;
+		add_flag = true;
 		key = m_NCS_NODE_ID_FROM_MDS_DEST(nref_info->dest);
 		node_id = key;
 		if (saClmClusterNodeGet(cb->clm_hdl, node_id, NCS_SAF_ACCEPT_TIME, &cluster_node) != SA_AIS_OK) {
@@ -312,7 +312,7 @@ uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		goto fail;
 	}
 
-	if (ckpt_node->is_unlink_set != TRUE) {
+	if (ckpt_node->is_unlink_set != true) {
 		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
 		/*    ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length); */
 		if (map_info == NULL) {
@@ -354,7 +354,7 @@ uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		for (nref_info = ckpt_node->node_list; nref_info != NULL; nref_info = nref_info->next) {
 			if (m_NCS_MDS_DEST_EQUAL(&nref_info->dest, &msg->info.dest_del.mds_dest)) {
 				if (m_NCS_MDS_DEST_EQUAL(&msg->info.dest_del.mds_dest, &ckpt_node->active_dest)) {
-					ckpt_node->is_active_exists = FALSE;
+					ckpt_node->is_active_exists = false;
 				}
 				cpd_node_ref_info_del(ckpt_node, nref_info);
 				break;
@@ -478,7 +478,7 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
-	NCS_BOOL add_flag = TRUE;
+	bool add_flag = true;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
 	CPD_CKPT_REPLOC_INFO *reploc_info = NULL;

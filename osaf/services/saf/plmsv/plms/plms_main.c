@@ -329,7 +329,7 @@ static uint32_t plms_init()
 		rc = plms_hsm_hrb_init();
 		if(NCSCC_RC_FAILURE == rc)
 			goto done;
-		cb->hpi_intf_up = TRUE;
+		cb->hpi_intf_up = true;
 	}
 
 	plms_tmr_handler_install();
@@ -346,7 +346,7 @@ static uint32_t plms_init()
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		cb->plmc_initialized = TRUE;
+		cb->plmc_initialized = true;
 	}
 
 	/* NTF Initialization */
@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
 		                }
 			} else {
 				TRACE("SIGUSR1 event rec");
-				ncs_sel_obj_rmv_ind(plms_cb->usr1_sel_obj, TRUE,TRUE);
+				ncs_sel_obj_rmv_ind(plms_cb->usr1_sel_obj, true,true);
 				ncs_sel_obj_destroy(plms_cb->usr1_sel_obj);
 				
 				if (plms_amf_register() != NCSCC_RC_SUCCESS)

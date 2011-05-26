@@ -144,7 +144,7 @@ uint32_t dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
 	inst->s_buffer.arr_ptr[inst->s_buffer.num_msgs].ms_time.millisecs
 	    = msg->data.data.msg.log_msg.hdr.time.millisecs;
 
-	msg->seq_msg = TRUE;
+	msg->seq_msg = true;
 
 	/* Now copy the message pointer into sequencing buffer */
 	inst->s_buffer.arr_ptr[inst->s_buffer.num_msgs].msg = msg;
@@ -154,7 +154,7 @@ uint32_t dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
 	 * max size, then it is time to dump the messages.
 	 */
 	if (++inst->s_buffer.num_msgs >= SEQ_ARR_MAX_SIZE) {
-		if (dts_dump_seq_msg(inst, FALSE) != NCSCC_RC_SUCCESS)
+		if (dts_dump_seq_msg(inst, false) != NCSCC_RC_SUCCESS)
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dts_queue_seq_msg: Failed to dump messages in the sequencing buffer");
 	}
@@ -174,7 +174,7 @@ uint32_t dts_queue_seq_msg(DTS_CB *inst, DTSV_MSG *msg)
                     NCSCC_RC_FAILURE.
   NOTES:
 *****************************************************************************/
-uint32_t dts_dump_seq_msg(DTS_CB *inst, NCS_BOOL all)
+uint32_t dts_dump_seq_msg(DTS_CB *inst, bool all)
 {
 	uint32_t i, j = 0, num_msg_dump = 0;
 	SEQ_BUFFER *buffer = &inst->s_buffer;
@@ -301,7 +301,7 @@ uint32_t dts_disable_sequencing(DTS_CB *inst)
 	 */
 	m_NCS_TMR_STOP(inst->tmr);
 
-	dts_dump_seq_msg(inst, TRUE);
+	dts_dump_seq_msg(inst, true);
 
 	m_NCS_TMR_DESTROY(inst->tmr);
 

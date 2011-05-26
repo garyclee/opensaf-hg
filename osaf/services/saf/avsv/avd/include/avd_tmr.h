@@ -54,7 +54,7 @@ typedef struct avd_tmr_tag {
 	SaClmNodeIdT node_id;
 	SaNameT spons_si_name;
 	SaNameT dep_si_name;
-	NCS_BOOL is_active;
+	bool is_active;
 } AVD_TMR;
 
 /* macro to start the cluster init timer. The cb structure
@@ -63,14 +63,14 @@ typedef struct avd_tmr_tag {
 #define m_AVD_CLINIT_TMR_START(cb) \
 {\
 	saflog(LOG_NOTICE, amfSvcUsrName, "Starting cluster startup timer"); \
-	cb->amf_init_tmr.is_active = FALSE; \
+	cb->amf_init_tmr.is_active = false; \
 	cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
 	avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
 }
 
 #define m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec) \
 {\
-   si_dep_rec->si_dep_timer.is_active = FALSE; \
+   si_dep_rec->si_dep_timer.is_active = false; \
    si_dep_rec->si_dep_timer.type = AVD_TMR_SI_DEP_TOL; \
    si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_imm.si_name_prim; \
    si_dep_rec->si_dep_timer.dep_si_name = si_dep_rec->indx_imm.si_name_sec; \

@@ -169,7 +169,7 @@ void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
 
 	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
 	while (front != NCS_QELEM_NULL) {
-		if (match(key, front) == TRUE) {
+		if (match(key, front) == true) {
 			behind->next = front->next;
 
 			queue->count--;
@@ -221,7 +221,7 @@ void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
 
 	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
 	while (front != NCS_QELEM_NULL) {
-		if (match(key, front) == TRUE) {
+		if (match(key, front) == true) {
 			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
 			return front;
 		}

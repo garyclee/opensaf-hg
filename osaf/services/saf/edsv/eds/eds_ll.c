@@ -488,7 +488,7 @@ uint32_t eds_remove_worklist_entry(EDS_CB *cb, uint32_t chan_id)
  * is_active_channel - Determines if chan_name exists and is still linked.
  *
  ***************************************************************************/
-static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint8_t *chan_name)
+static bool is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint8_t *chan_name)
 {
 	/* Do the name lengths match? */
 	if (wp->cname_len == chan_name_len) {
@@ -496,10 +496,10 @@ static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uint32_t chan_name_len, uint
 		if (memcmp(wp->cname, chan_name, chan_name_len) == 0) {
 			/* Strings match, now make sure it isn't "unlinked" */
 			if (!(wp->chan_attrib & CHANNEL_UNLINKED))
-				return (TRUE);
+				return (true);
 		}
 	}
-	return (FALSE);
+	return (false);
 }
 
 /****************************************************************************
@@ -649,7 +649,7 @@ static uint32_t eds_add_chan_open_list(EDS_CB *cb, uint32_t reg_id, uint32_t cha
  * for all entries.
  * 
  ***************************************************************************/
-static void eds_channel_close_by_regid(EDS_CB *cb, uint32_t reg_id, NCS_BOOL forced)
+static void eds_channel_close_by_regid(EDS_CB *cb, uint32_t reg_id, bool forced)
 {
 	uint32_t rs;
 	EDA_REG_REC *reglist;
@@ -833,11 +833,11 @@ static void eds_del_work_list(EDS_CB *cb, EDS_WORKLIST **p_work_list)
  *                              from an ordered list.
  *
  *  If the regid is zero, which is not a valid regid normally, and the
- *  remove_all flag is TRUE, remove all registrations. This is only called
+ *  remove_all flag is true, remove all registrations. This is only called
  *  upon a shutdown of EDS.
  *
  ***************************************************************************/
-uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, NCS_BOOL remove_all)
+uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, bool remove_all)
 {
 	EDA_REG_REC *rec_to_del;
 	uint32_t status = NCSCC_RC_SUCCESS;
@@ -845,7 +845,7 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, NCS_BOOL remove_a
 	EDA_DOWN_LIST *eda_down_rec = NULL, *temp_eda_down_rec = NULL;
 
    /** decide if all records are to be deleted **/
-	if ((reg_id == 0) && (remove_all == TRUE)) {
+	if ((reg_id == 0) && (remove_all == true)) {
 		rec_to_del = (EDA_REG_REC *)
 		    ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
 
@@ -929,13 +929,13 @@ uint32_t eds_remove_reglist_entry(EDS_CB *cb, uint32_t reg_id, NCS_BOOL remove_a
  * eds_eda_entry_valid
  * 
  *  Searches the cb->eda_reg_list for an reg_id entry whos MDS_DEST equals
- *  that passed DEST and returns TRUE if itz found.
+ *  that passed DEST and returns true if itz found.
  *
  * This routine is typically used to find the validity of the eda down rec from standby 
  * EDA_DOWN_LIST as  EDA client has gone away.
  *
  ****************************************************************************/
-NCS_BOOL eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
+bool eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
 {
 	EDA_REG_REC *rp = NULL;
 
@@ -943,13 +943,13 @@ NCS_BOOL eds_eda_entry_valid(EDS_CB *cb, MDS_DEST mds_dest)
 
 	while (rp != NULL) {
 		if (m_NCS_MDS_DEST_EQUAL(&rp->eda_client_dest, &mds_dest)) {
-			return TRUE;
+			return true;
 		}
 
 		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&rp->reg_id_Net);
 	}
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************************
@@ -1024,7 +1024,7 @@ uint32_t eds_remove_regid_by_mds_dest(EDS_CB *cb, MDS_DEST mds_dest)
        **/
 		regId_Net = rp->reg_id_Net;
 		if (m_NCS_MDS_DEST_EQUAL(&rp->eda_client_dest, &mds_dest)) {
-			rc = eds_remove_reglist_entry(cb, rp->reg_id, FALSE);
+			rc = eds_remove_reglist_entry(cb, rp->reg_id, false);
 		}
 
 		rp = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&regId_Net);
@@ -1494,7 +1494,7 @@ eds_channel_open(EDS_CB *cb, uint32_t reg_id, uint32_t flags,
  * then the channel ID entry will also be removed from the worklist.
  *
  ***************************************************************************/
-uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id, NCS_BOOL forced)
+uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32_t chan_open_id, bool forced)
 {
 	uint32_t rs;
 	uint32_t copen_id_Net;
@@ -1538,8 +1538,8 @@ uint32_t eds_channel_close(EDS_CB *cb, uint32_t reg_id, uint32_t chan_id, uint32
 	if (wp->use_cnt == 0) {
 		chan_name.length = strlen((char *)wp->cname);
 		strncpy((char *)chan_name.value, (char *)wp->cname, chan_name.length);
-		if ((wp->chan_attrib & CHANNEL_UNLINKED) || (TRUE == forced)) {
-			if ((TRUE == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED)))
+		if ((wp->chan_attrib & CHANNEL_UNLINKED) || (true == forced)) {
+			if ((true == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED)))
 				eds_remove_cname_rec(cb, wp);
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
@@ -1604,7 +1604,7 @@ uint32_t eds_channel_unlink(EDS_CB *cb, uint32_t chan_name_len, uint8_t *chan_na
 	return (SA_AIS_ERR_NOT_EXIST);	/* Went through the entire list. Not found. */
 }
 
-static void eds_retd_evt_del(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC *, NCS_BOOL);
+static void eds_retd_evt_del(EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC **, EDS_RETAINED_EVT_REC *, bool);
 /****************************************************************************
  *
  * eds_store_retained_event - Adds an event which has the retention timer set
@@ -1691,7 +1691,7 @@ eds_store_retained_event(EDS_CB *cb,
 		retained_evt->data_len = 0;
 		retained_evt->data = NULL;
 		eds_retd_evt_del(&wp->ret_evt_list_head[retained_evt->priority],
-				 &wp->ret_evt_list_tail[retained_evt->priority], retained_evt, TRUE);
+				 &wp->ret_evt_list_tail[retained_evt->priority], retained_evt, true);
 	} else
 		wp->chan_row.num_ret_evts++;
 
@@ -1713,7 +1713,7 @@ eds_store_retained_event(EDS_CB *cb,
 ******************************************************************************/
 static void
 eds_retd_evt_del(EDS_RETAINED_EVT_REC **list_head,
-		 EDS_RETAINED_EVT_REC **list_tail, EDS_RETAINED_EVT_REC *rm_node, NCS_BOOL give_hdl)
+		 EDS_RETAINED_EVT_REC **list_tail, EDS_RETAINED_EVT_REC *rm_node, bool give_hdl)
 {
 	/* Find the client hdl record in the list of records */
 	EDS_RETAINED_EVT_REC *list_iter = *list_head;
@@ -1822,7 +1822,7 @@ static EDS_RETAINED_EVT_REC *eds_find_retd_evt_by_chan_open_id(EDS_WORKLIST *wp,
  *                            specified channel with a specified event_id.
  *
  ****************************************************************************/
-uint32_t eds_clear_retained_event(EDS_CB *cb, uint32_t chan_id, uint32_t chan_open_id, uint32_t event_id, NCS_BOOL give_hdl)
+uint32_t eds_clear_retained_event(EDS_CB *cb, uint32_t chan_id, uint32_t chan_open_id, uint32_t event_id, bool give_hdl)
 {
 	EDS_WORKLIST *wp;
 	EDS_RETAINED_EVT_REC *retained_evt;

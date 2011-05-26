@@ -446,7 +446,7 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	SaNameT si_name;
 	AVD_SUS_PER_SI_RANK_INDX indx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
-	bool found = FALSE;
+	bool found = false;
 
         TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -463,12 +463,12 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 				== 0);
 			su_rank_rec = avd_sirankedsu_getnext(avd_cb, su_rank_rec->indx)) {
 		if (memcmp(&su_rank_rec->su_name.value, &su_name.value, su_name.length) == 0) {
-			found = TRUE;
+			found = true;
 			break;
 		}
 	}
 
-	if (FALSE == found) {
+	if (false == found) {
 		LOG_ER("'%s' not found", opdata->objectName.value);
 		goto error;
 	}

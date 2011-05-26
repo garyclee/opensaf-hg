@@ -129,7 +129,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	rc = out_evt->error;
 	if (rc == SA_AIS_OK) {
 		/* create the client node and populate it */
-		client_info = gla_client_tree_find_and_add(gla_cb, out_evt->handle, TRUE);
+		client_info = gla_client_tree_find_and_add(gla_cb, out_evt->handle, true);
 		if (client_info == NULL) {
 			m_LOG_GLA_HEADLINE(GLA_CLIENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			rc = SA_AIS_ERR_NO_RESOURCES;
@@ -166,7 +166,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	/* free the client node */
 	if (client_info) {
 		m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
-		gla_client_tree_delete_node(gla_cb, client_info, FALSE);
+		gla_client_tree_delete_node(gla_cb, client_info, false);
 		m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
 	}
 
@@ -223,7 +223,7 @@ SaAisErrorT saLckSelectionObjectGet(SaLckHandleT lckHandle, SaSelectionObjectT *
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -292,7 +292,7 @@ SaAisErrorT saLckOptionCheck(SaLckHandleT hdl, SaLckOptionsT *lckOptions)
 
 	}
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, hdl, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, hdl, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -350,7 +350,7 @@ SaAisErrorT saLckDispatch(SaLckHandleT lckHandle, const SaDispatchFlagsT flags)
 		goto done;
 	}
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -429,7 +429,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, hdl, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, hdl, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -471,7 +471,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 		/* delete the client resource tree */
 		gla_client_res_tree_destroy(client_info);
 
-		gla_client_tree_delete_node(gla_cb, client_info, TRUE);
+		gla_client_tree_delete_node(gla_cb, client_info, true);
 
 		/* clean up all the resource handles that are linked with the client */
 		gla_res_tree_cleanup_client_down(gla_cb, hdl);
@@ -569,7 +569,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -621,18 +621,18 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	if (rc == SA_AIS_OK) {
 		GLA_RESOURCE_ID_INFO *res_id_node;
 		/* allocate the local resource node and add the values */
-		res_id_node = gla_res_tree_find_and_add(gla_cb, 0, TRUE);
+		res_id_node = gla_res_tree_find_and_add(gla_cb, 0, true);
 		if (res_id_node) {
 			res_id_node->gbl_res_id = *lockResourceHandle;
 			res_id_node->lock_handle_id = lckHandle;
 			*lockResourceHandle = res_id_node->lcl_res_id;
 
-			client_res_info = gla_client_res_tree_find_and_add(client_info, res_id_node->gbl_res_id, FALSE);
+			client_res_info = gla_client_res_tree_find_and_add(client_info, res_id_node->gbl_res_id, false);
 			if (client_res_info)
 				client_res_info->lcl_res_cnt++;
 			else {
 				client_res_info =
-				    gla_client_res_tree_find_and_add(client_info, res_id_node->gbl_res_id, TRUE);
+				    gla_client_res_tree_find_and_add(client_info, res_id_node->gbl_res_id, true);
 				if (client_res_info)
 					client_res_info->lcl_res_cnt++;
 			}
@@ -716,7 +716,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 		goto done;
 	}
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lckHandle, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -741,7 +741,7 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 
 	GLA_RESOURCE_ID_INFO *res_id_node;
 	/*Allocate the local resource id node and add the values */
-	res_id_node = gla_res_tree_find_and_add(gla_cb, 0, TRUE);
+	res_id_node = gla_res_tree_find_and_add(gla_cb, 0, true);
 	if (!res_id_node) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -838,7 +838,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -866,7 +866,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
 	res_close_evt.info.rsc_info.call_type = GLSV_SYNC_CALL;
 	res_close_evt.info.rsc_info.agent_mds_dest = gla_cb->gla_mds_dest;
 
-	client_res_info = gla_client_res_tree_find_and_add(client_info, res_id_info->gbl_res_id, FALSE);
+	client_res_info = gla_client_res_tree_find_and_add(client_info, res_id_info->gbl_res_id, false);
 	if (client_res_info)
 		res_close_evt.info.rsc_info.lcl_resource_id_count = client_res_info->lcl_res_cnt;
 
@@ -999,7 +999,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -1018,7 +1018,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	}
 
 	/* allocate the local lock node and add the values */
-	lock_id_node = gla_lock_tree_find_and_add(gla_cb, 0, TRUE);
+	lock_id_node = gla_lock_tree_find_and_add(gla_cb, 0, true);
 
 	if (NULL == (GLA_LOCK_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, lock_id_node->lcl_lock_id)) {
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -1172,7 +1172,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -1200,7 +1200,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
 	}
 
 	/* put it in the lock id tree */
-	lock_id_node = gla_lock_tree_find_and_add(gla_cb, 0, TRUE);
+	lock_id_node = gla_lock_tree_find_and_add(gla_cb, 0, true);
 	if (NULL == (GLA_LOCK_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, lock_id_node->lcl_lock_id)) {
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
@@ -1327,7 +1327,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lock_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lock_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -1451,7 +1451,7 @@ SaAisErrorT saLckResourceUnlockAsync(SaInvocationT invocation, SaLckLockIdT lock
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, lock_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, lock_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -1567,7 +1567,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 	}
 
 	/* get the client_info */
-	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, FALSE);
+	client_info = gla_client_tree_find_and_add(gla_cb, res_id_info->lock_handle_id, false);
 	if (!client_info) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;

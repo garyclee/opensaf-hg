@@ -225,7 +225,7 @@ typedef struct cpsv_cpnd_dest_info {
 /* Struct used to store MDS dest and flag to keep track of responsed dests*/
 typedef struct cpsv_cpnd_write_dest {
 	MDS_DEST dest;
-	NCS_BOOL write_rsp_flag;
+	bool write_rsp_flag;
 	struct cpsv_cpnd_write_dest *next;
 } CPSV_CPND_UPDATE_DEST;
 
@@ -259,7 +259,7 @@ typedef struct cpsv_ckpt_destlist_info {
 	MDS_DEST active_dest;
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
-	NCS_BOOL is_cpnd_restart;
+	bool is_cpnd_restart;
 	uint32_t dest_cnt;
 	CPSV_CPND_DEST_INFO *dest_list;
 
@@ -375,7 +375,7 @@ typedef struct cpsv_a2nd_sync_ckpt {
 	SaCkptHandleT client_hdl;
 	SaInvocationT invocation;
 	CPSV_SEND_INFO cpa_sinfo;
-	NCS_BOOL is_ckpt_open;
+	bool is_ckpt_open;
 } CPSV_A2ND_CKPT_SYNC;
 
 typedef struct cpsv_ckpt_data {
@@ -401,10 +401,10 @@ typedef struct cpsv_ckpt_access {
 	SaCkptCheckpointHandleT lcl_ckpt_id;
 	MDS_DEST agent_mdest;
 	SaUint32T num_of_elmts;
-	NCS_BOOL all_repl_evt_flag;
+	bool all_repl_evt_flag;
 	CPSV_CKPT_DATA *data;
 	SaUint32T seqno;	/* sequence number of the imessage */
-	SaUint8T last_seq;	/* Last sequence TRUE/FALSE */
+	SaUint8T last_seq;	/* Last sequence true/false */
 	CPSV_A2ND_CKPT_SYNC ckpt_sync;
 
 } CPSV_CKPT_ACCESS;
@@ -424,7 +424,7 @@ typedef struct cpsv_nd2a_open_rsp {
 	SaCkptCheckpointHandleT lcl_ckpt_hdl;
 	SaCkptCheckpointHandleT gbl_ckpt_hdl;
 	SaCkptCheckpointCreationAttributesT creation_attr;
-	NCS_BOOL is_active_exists;	/* TRUE/FALSE */
+	bool is_active_exists;	/* true/false */
 	MDS_DEST active_dest;
 
 /* Not required
@@ -513,12 +513,12 @@ typedef struct cpsv_ckpt_status {
 typedef struct cpsv_d2nd_ckpt_info {
 	SaAisErrorT error;
 	SaCkptCheckpointHandleT ckpt_id;
-	NCS_BOOL is_active_exists;	/* TRUE/FALSE */
+	bool is_active_exists;	/* true/false */
 	MDS_DEST active_dest;
 	uint32_t dest_cnt;
 	CPSV_CPND_DEST_INFO *dest_list;
 	SaCkptCheckpointCreationAttributesT attributes;
-	NCS_BOOL ckpt_rep_create;
+	bool ckpt_rep_create;
 } CPSV_D2ND_CKPT_INFO;
 
 typedef struct cpsv_d2nd_ckpt_create {
@@ -673,7 +673,7 @@ typedef struct cpnd_tmr_info {
  ******************************************************************************/
 typedef struct cpnd_evt
 {
-   NCS_BOOL       dont_free_me;
+   bool       dont_free_me;
    SaAisErrorT    error; 
    CPND_EVT_TYPE   type;
    union

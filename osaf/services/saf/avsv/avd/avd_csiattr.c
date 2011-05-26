@@ -144,18 +144,18 @@ static AVD_CSI_ATTR *csi_name_value_pair_find_last_entry(AVD_CSI *csi, SaNameT *
 {
 	AVD_CSI_ATTR *i_attr = csi->list_attributes;
 	AVD_CSI_ATTR *attr = NULL;
-	SaUint32T    found_once = FALSE;
+	SaUint32T    found_once = false;
 
 	TRACE_ENTER();
 
 	while (i_attr != NULL) {
 		if (strncmp((char *)&i_attr->name_value.name.value, (char *)&attr_name->value,
 				attr_name->length) == 0) {
-			if (found_once == TRUE) {
+			if (found_once == true) {
 				/* More then one entry exist */
 				return NULL;
 			}
-			found_once = TRUE;
+			found_once = true;
 			attr = i_attr;
 		}
 		i_attr = i_attr->attr_next;

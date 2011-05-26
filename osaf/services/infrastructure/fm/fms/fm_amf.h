@@ -34,7 +34,7 @@ typedef struct fm_amf_cb {
 	char comp_name[256];
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
-	NCS_BOOL is_amf_up;	/* For amf_fd and pipe_fd */
+	bool is_amf_up;	/* For amf_fd and pipe_fd */
 	NCS_OS_SEM semaphore;	/* Semaphore for health check */
 } FM_AMF_CB;
 

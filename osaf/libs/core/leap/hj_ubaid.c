@@ -406,8 +406,8 @@ void ncs_set_max(NCS_UBAID *uba, int32_t max)
  to_put       the amount of data the invoker wants to place in USRBUF
 
   RETURNS:
-        TRUE         it will fit
-        FALSE        This exceeds the pre-set threshold
+        true         it will fit
+        false        This exceeds the pre-set threshold
 
   NOTES:
 
@@ -416,12 +416,12 @@ void ncs_set_max(NCS_UBAID *uba, int32_t max)
 
 *****************************************************************************/
 
-NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put)
+bool ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put)
 {
 	if ((uba->ttl + to_put) <= uba->max)
-		return (TRUE);
+		return (true);
 	else
-		return (FALSE);
+		return (false);
 }
 
 /*****************************************************************************
@@ -444,19 +444,19 @@ NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put)
  to_get      the amount of data the invoker wants to consume next
 
   RETURNS:
-        TRUE         it is available
-        FALSE        This exceeds the pre-set threshold of consumable data
+        true         it is available
+        false        This exceeds the pre-set threshold of consumable data
 
   NOTES:
 
 *****************************************************************************/
 
-NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32_t to_get)
+bool ncs_dec_can_i_get(NCS_UBAID *uba, int32_t to_get)
 {
 	if ((uba->ttl + to_get) <= uba->max)
-		return (TRUE);
+		return (true);
 	else
-		return (FALSE);
+		return (false);
 }
 
 /*****************************************************************************
@@ -734,7 +734,7 @@ uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int co
 		   needs more than PAYLOAD_BUF_SIZE bytes anyway. 
 		 */
 		try_put = remaining;
-		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uint8_t *);	/* Total=FALSE, i.e. only as much as possible */
+		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uint8_t *);	/* Total=false, i.e. only as much as possible */
 		if (p != NULL) {
 			/*
 			 * Build the octet string...Remember a NULL pointer

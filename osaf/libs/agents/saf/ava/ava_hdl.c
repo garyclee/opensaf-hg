@@ -40,7 +40,7 @@ static uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
 static void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
 
 static void ava_hdl_pend_resp_list_del(AVA_CB *, AVA_PEND_RESP *);
-static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /****************************************************************************
   Name          : ava_hdl_init
@@ -182,9 +182,9 @@ void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *rec)
  * @param arg
  * @param msg
  *
- * @returns NCS_BOOL
+ * @returns bool
  */
-static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	AVA_PEND_CBK_REC *callbk, *pnext;
 
@@ -199,7 +199,7 @@ static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg)
 	}
 
 	TRACE_LEAVE();
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************

@@ -33,12 +33,12 @@ typedef struct cpsv_ckpt_hdr {
 	SaCkptCheckpointCreationAttributesT create_attrib;
 	SaCkptCheckpointOpenFlagsT open_flags;
 	uint32_t ckpt_lcl_ref_cnt;
-	NCS_BOOL is_unlink;
-	NCS_BOOL is_close;
+	bool is_unlink;
+	bool is_close;
 	SaUint32T n_secs;
 	SaUint32T mem_used;
-	NCS_BOOL cpnd_rep_create;
-	NCS_BOOL is_active_exist;
+	bool cpnd_rep_create;
+	bool is_active_exist;
 	MDS_DEST active_mds_dest;
 	uint32_t cpnd_lcl_wr;
 	uint32_t cpnd_oth_state;
@@ -64,10 +64,10 @@ typedef struct ckpt_info {
 	uint32_t client_bitmap;
 	int32_t is_valid;
 	uint32_t bm_offset;
-	NCS_BOOL is_unlink;
-	NCS_BOOL is_close;
-	NCS_BOOL cpnd_rep_create;
-	NCS_BOOL is_first;
+	bool is_unlink;
+	bool is_close;
+	bool cpnd_rep_create;
+	bool is_first;
 	SaTimeT close_time;
 	int32_t next;
 } CKPT_INFO;
@@ -77,9 +77,9 @@ typedef struct client_info {
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
 	uint16_t cbk_reg_info;
-	NCS_BOOL is_valid;
+	bool is_valid;
 	uint32_t offset;
-	NCS_BOOL arr_flag;
+	bool arr_flag;
 } CLIENT_INFO;
 
 typedef struct gbl_shm_ptr {

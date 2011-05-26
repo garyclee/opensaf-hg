@@ -94,7 +94,7 @@ uint32_t plma_mds_register()
         svc_info.info.svc_install.i_yr_svc_hdl = 0; 
         svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;  /*node specific */
         svc_info.info.svc_install.i_svc_cb = plma_mds_callback; /* callback */
-        svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+        svc_info.info.svc_install.i_mds_q_ownership = false;
 	/***************************FIXME : MDS svc private sub part ver no?.**/
         svc_info.info.svc_install.i_mds_svc_pvt_ver = PLMA_MDS_PVT_SUBPART_VERSION;
 
@@ -271,8 +271,8 @@ static uint32_t plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			TRACE_5("Received MDSUP EVT for PLMS");
                         m_NCS_LOCK(&plma_cb->cb_lock, NCS_LOCK_WRITE);
 			plma_cb->plms_mdest_id = svc_evt->i_dest;
-			plma_cb->plms_svc_up = TRUE;
-			if (plma_cb->plms_sync_awaited == TRUE) {
+			plma_cb->plms_svc_up = true;
+			if (plma_cb->plms_sync_awaited == true) {
 				m_NCS_SEL_OBJ_IND(plma_cb->sel_obj);
 			}
                         m_NCS_UNLOCK(&plma_cb->cb_lock, NCS_LOCK_WRITE);
@@ -282,7 +282,7 @@ static uint32_t plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		case NCSMDS_DOWN:
 			TRACE_5("Received MDSDOWN EVT for PLMS");
 			plma_cb->plms_mdest_id = 0;
-			plma_cb->plms_svc_up = FALSE;
+			plma_cb->plms_svc_up = false;
 			break;
 		default:
 			TRACE_5("Received unknown event");
@@ -348,7 +348,7 @@ void plma_sync_with_plms()
 		return;
 	}
 
-	cb->plms_sync_awaited = TRUE;
+	cb->plms_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->sel_obj);
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -360,7 +360,7 @@ void plma_sync_with_plms()
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-	cb->plms_sync_awaited = FALSE;
+	cb->plms_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->sel_obj);
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);

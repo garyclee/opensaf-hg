@@ -49,7 +49,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	NCS_BOOL comp_sent;
+	bool comp_sent;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
@@ -138,7 +138,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
-	if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, FALSE) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, false) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 		/* we are in a bad shape. Restart the node for recovery */
 
@@ -155,7 +155,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * the node doesnt have any components meaning that even the NCS component
 	 * is not present.
 	 */
-	if (comp_sent == TRUE) {
+	if (comp_sent == true) {
 		avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 	} else {
@@ -239,7 +239,7 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 		}
 
 		/* Here an assumption is made that all NCS SUs are preinstantiable */
-		avd_snd_presence_msg(cb, ncs_su, FALSE);
+		avd_snd_presence_msg(cb, ncs_su, false);
 		ncs_su = ncs_su->avnd_list_su_next;
 	}
 
@@ -463,7 +463,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 	AVD_FAIL_OVER_NODE *node_to_add;
 
 	/* Mark this AVD as one recovering from fail-over */
-	cb->avd_fover_state = TRUE;
+	cb->avd_fover_state = true;
 
 	/* Walk through all the nodes and send verify message to them. */
 	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
@@ -473,7 +473,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 		 * If AVND state machine is in Absent state then just return.
 		 */
 		if ((AVD_AVND_STATE_ABSENT == avnd->node_state) ||
-		    ((node_id == cb->node_id_avd_other) && (cb->swap_switch == FALSE))) {
+		    ((node_id == cb->node_id_avd_other) && (cb->swap_switch == false))) {
 			continue;
 		}
 
@@ -549,7 +549,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd;
 	AVD_SU *su_ptr;
 	AVD_SU_SI_REL *rel_ptr;
-	NCS_BOOL comp_sent;
+	bool comp_sent;
 	AVD_FAIL_OVER_NODE *node_fovr;
 	AVD_DND_MSG *n2d_msg;
 
@@ -589,7 +589,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	if (TRUE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
+	if (true == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
 		/* Wow great!! We are in sync with this node...Log inforamtion */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -601,8 +601,8 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * Send entire configuration to AVND. Seems like we received NACK :(,
 	 * Log information that we received NACK.
 	 */
-	if (FALSE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
-		if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, TRUE) != NCSCC_RC_SUCCESS) {
+	if (false == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
+		if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, true) != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 			/* we are in a bad shape. Restart the node for recovery */
 
@@ -758,7 +758,7 @@ void avd_node_mark_absent(AVD_AVND *node)
 static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_ncs)
 {
 	AVD_SU *i_su = NULL;
-	NCS_BOOL assign_list_empty = TRUE;
+	bool assign_list_empty = true;
 
 	if (avnd == NULL) {
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, 0);
@@ -779,7 +779,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 		if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 			/* Since assignments exists call the SG FSM.
 			 */
-			assign_list_empty = FALSE;
+			assign_list_empty = false;
 
 			switch (i_su->sg_of_su->sg_redundancy_model) {
 			case SA_AMF_2N_REDUNDANCY_MODEL:
@@ -834,7 +834,7 @@ static void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoo
 		i_su = i_su->avnd_list_su_next;
 	}			/* while(i_su != AVD_SU_NULL) */
 
-	if (assign_list_empty == TRUE) {
+	if (assign_list_empty == true) {
 		/* move to next state */
 		avd_chk_failover_shutdown_cxt(cb, avnd, for_ncs);
 	}
@@ -914,7 +914,7 @@ void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs
 		 ** All the ncs_sus are now unassigned.
 		 */
 		avd_node_mark_absent(avnd);
-	}			/* End is_ncs == TRUE */
+	}			/* End is_ncs == true */
 
 }
 

@@ -125,7 +125,7 @@ uint32_t glnd_mds_register(GLND_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->cb_hdl_id;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_info.info.svc_install.i_svc_cb = glnd_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = GLND_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
@@ -414,7 +414,7 @@ static uint32_t glnd_mds_dec(GLND_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	GLSV_GLND_EVT *evt;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	uint8_t *p8, local_data[20];
-	NCS_BOOL is_valid_msg_fmt;
+	bool is_valid_msg_fmt;
 	NCS_UBAID *uba = info->io_uba;
 
 	switch (info->i_fr_svc_id) {
@@ -609,7 +609,7 @@ static uint32_t glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	GLSV_GLND_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
@@ -716,7 +716,7 @@ static uint32_t glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	evt->glnd_hdl = cb->cb_hdl_id;
 
 	/* set the reponse context if set */
-	if (rcv_info->i_rsp_reqd == TRUE) {
+	if (rcv_info->i_rsp_reqd == true) {
 		if (rcv_info->i_msg_ctxt.length) {
 			evt->mds_context.length = rcv_info->i_msg_ctxt.length;
 			memcpy(evt->mds_context.data, rcv_info->i_msg_ctxt.data, rcv_info->i_msg_ctxt.length);
@@ -753,17 +753,17 @@ static uint32_t glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 
 	switch (svc_evt->i_change) {
 	case NCSMDS_NO_ACTIVE:
-		cb->gld_card_up = FALSE;
+		cb->gld_card_up = false;
 		break;
 	case NCSMDS_NEW_ACTIVE:
-		cb->gld_card_up = TRUE;
+		cb->gld_card_up = true;
 		break;
 	case NCSMDS_DOWN:
 		if (svc_evt->i_svc_id == NCSMDS_SVC_ID_GLD) {
-			if (cb->gld_card_up == TRUE) {
+			if (cb->gld_card_up == true) {
 				memset(&cb->gld_mdest_id, 0, sizeof(MDS_DEST));
 			}
-			cb->gld_card_up = FALSE;
+			cb->gld_card_up = false;
 		} else if (svc_evt->i_svc_id == NCSMDS_SVC_ID_GLA) {
 			/* send an event about the agent going down */
 			glnd_send_agent_going_down_event(cb, svc_evt->i_dest);
@@ -772,10 +772,10 @@ static uint32_t glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	case NCSMDS_UP:
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GLD:
-			if (cb->gld_card_up == FALSE) {
+			if (cb->gld_card_up == false) {
 				cb->gld_mdest_id = svc_evt->i_dest;
 			}
-			cb->gld_card_up = TRUE;
+			cb->gld_card_up = true;
 
 			break;
 		default:
@@ -948,7 +948,7 @@ uint32_t glnd_mds_msg_send_gld(GLND_CB *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
 
 	/* fill the send structure */
-	if (cb->gld_card_up == TRUE) {
+	if (cb->gld_card_up == true) {
 		mds_info.info.svc_send.info.snd.i_to_dest = to_mds_dest;
 		/* send the message */
 		if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {

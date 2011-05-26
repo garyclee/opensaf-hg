@@ -95,10 +95,10 @@ typedef struct eda_eds_intf_tag {
 	MDS_HDL mds_hdl;	/* mds handle */
 	MDS_DEST eda_mds_dest;	/* EDA absolute address */
 	MDS_DEST eds_mds_dest;	/* EDS absolute/virtual address */
-	NCS_BOOL eds_up;	/* Boolean to indicate that MDS subscription
+	bool eds_up;	/* Boolean to indicate that MDS subscription
 				 * is complete
 				 */
-	NCS_BOOL eds_up_publish;	/* Boolean to indicate that EDS is down */
+	bool eds_up_publish;	/* Boolean to indicate that EDS is down */
 } EDA_EDS_INTF;
 
 typedef struct eda_cb_tag {
@@ -109,7 +109,7 @@ typedef struct eda_cb_tag {
 	NCS_LOCK cb_lock;	/* CB lock */
 	EDA_CLIENT_HDL_REC *eda_init_rec_list;	/* EDA client handle database */
 	/* EDS EDA sync params */
-	NCS_BOOL eds_sync_awaited;
+	bool eds_sync_awaited;
 	NCS_LOCK eds_sync_lock;
 	NCS_SEL_OBJ eds_sync_sel;
 	SaClmClusterChangesT node_status;
@@ -122,6 +122,6 @@ unsigned int ncs_eda_startup(void);
 unsigned int ncs_eda_shutdown(void);
 uint32_t eda_create(NCS_LIB_CREATE *);
 void eda_destroy(NCS_LIB_DESTROY *);
-NCS_BOOL eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 #endif   /* !EDA_CB_H */

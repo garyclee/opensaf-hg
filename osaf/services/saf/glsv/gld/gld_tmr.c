@@ -72,15 +72,15 @@ uint32_t gld_start_tmr(GLSV_GLD_CB *cb, GLD_TMR *tmr, GLD_TMR_TYPE type, SaTimeT
 		m_NCS_TMR_CREATE(tmr->tmr_id, my_period, gld_tmr_exp, (void *)tmr);
 	}
 
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	tmr->opq_hdl = uarg;
 	tmr->cb_hdl = cb->my_hdl;
 	m_NCS_TMR_START(tmr->tmr_id, my_period, gld_tmr_exp, (void *)tmr);
-	tmr->is_active = TRUE;
+	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
 		m_LOG_GLD_TIMER(GLD_TIMER_START_FAIL, type, __FILE__, __LINE__);
@@ -116,10 +116,10 @@ void gld_stop_tmr(GLD_TMR *tmr)
 	}
 
 	/* Stop the timer if it is active... */
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		TRACE("Stopped GLD Timer for %d", tmr->type);
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	/* Destroy the timer if it exists.. */
@@ -177,7 +177,7 @@ void gld_tmr_exp(void *uarg)
 		return;
 	}
 
-	tmr->is_active = FALSE;
+	tmr->is_active = false;
 
 	/* create & send the timer event */
 	evt = m_MMGR_ALLOC_GLSV_GLD_EVT;

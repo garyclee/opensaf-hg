@@ -34,7 +34,7 @@
 #define AVND_CKPT_UPDT_H
 
 /* Function Definations of avnd_ckpt_updt.c */
-uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL);
+uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, bool);
 uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYPE action);
 uint32_t avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_ACT_TYPE action);
 uint32_t avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_MBCSV_ACT_TYPE action);

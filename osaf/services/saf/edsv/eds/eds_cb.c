@@ -69,7 +69,7 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 
 	/* Assign Initial HA state */
 	eds_cb->ha_state = EDS_HA_INIT_STATE;
-	eds_cb->csi_assigned = FALSE;
+	eds_cb->csi_assigned = false;
 	/* Assign Version. Currently, hardcoded, This will change later */
 	m_GET_MY_VERSION(eds_cb->eds_version);
 

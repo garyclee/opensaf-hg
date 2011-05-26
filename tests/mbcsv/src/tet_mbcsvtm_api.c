@@ -127,7 +127,7 @@ void tet_mbcsv_initialize(int choice)
     case 6:
       tet_printf("Dispatch One");
       mbcstm_cb.svces[1].disp_flags =SA_DISPATCH_ONE;
-      mbcstm_cb.svces[1].task_flag=FALSE;
+      mbcstm_cb.svces[1].task_flag=false;
       if(mbcstm_svc_registration(1)!=NCSCC_RC_SUCCESS)
         FAIL=1;
       if(mbcstm_svc_dispatch(1)!=NCSCC_RC_SUCCESS)
@@ -138,7 +138,7 @@ void tet_mbcsv_initialize(int choice)
     case 7:
       tet_printf("Dispatch All");
       mbcstm_cb.svces[1].disp_flags =SA_DISPATCH_ALL;
-      mbcstm_cb.svces[1].task_flag=FALSE;
+      mbcstm_cb.svces[1].task_flag=false;
       if(mbcstm_svc_registration(1)!=NCSCC_RC_SUCCESS)
         FAIL=1;
       if(mbcstm_svc_dispatch(1)!=NCSCC_RC_SUCCESS)
@@ -149,7 +149,7 @@ void tet_mbcsv_initialize(int choice)
     case 8:
       tet_printf("Not able to Dispatch One with NULL Mbcsv Handle");
       mbcstm_cb.svces[1].disp_flags =SA_DISPATCH_ONE;
-      mbcstm_cb.svces[1].task_flag=FALSE;
+      mbcstm_cb.svces[1].task_flag=false;
       if(mbcstm_svc_registration(1)!=NCSCC_RC_SUCCESS)
         FAIL=1;
       temp_hdl=mbcstm_cb.svces[1].mbcsv_hdl;
@@ -163,7 +163,7 @@ void tet_mbcsv_initialize(int choice)
       /*    case 9:
             tet_printf("Not able to Dispatch ALL with NULL Mbcsv Handle");
             mbcstm_cb.svces[1].disp_flags =SA_DISPATCH_ALL;
-            mbcstm_cb.svces[1].task_flag=FALSE;
+            mbcstm_cb.svces[1].task_flag=false;
             if(mbcstm_svc_registration(1)!=NCSCC_RC_SUCCESS)
             FAIL=1;
             if(mbcstm_svc_dispatch(1)!=NCSCC_RC_SUCCESS)
@@ -828,7 +828,7 @@ when No ACTIVE peer available");
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -1054,7 +1054,7 @@ void tet_mbcsv_cold_sync(choice)
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -1322,7 +1322,7 @@ void tet_mbcsv_warm_sync(int choice)
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -1662,7 +1662,7 @@ void tet_get_set_warm_sync(int choice)
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -2030,7 +2030,7 @@ void tet_mbcsv_data_request(int choice)
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -3083,7 +3083,7 @@ void tet_mbcsv_send_checkpoint(int choice)
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -3351,7 +3351,7 @@ void tet_mbcsv_test()
   mbcstm_sync_point();
   mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_STANDBY;
   mbcstm_cb.svces[1].ssns[1].dest_role =  V_DEST_RL_STANDBY;
-  mbcstm_cb.svces[1].ssns[1].ws_flag = FALSE;
+  mbcstm_cb.svces[1].ssns[1].ws_flag = false;
   mbcstm_cb.svces[1].ssns[1].cb_test = MBCSTM_CB_NO_TEST;
   mbcstm_cb.svces[1].ssns[1].cb_test_result = NCSCC_RC_FAILURE;
   mbcstm_cb.svces[1].ssns[1].cb_flag = 0;
@@ -3439,7 +3439,7 @@ uint32_t tet_mbcsv_dest_start(void)
           printf("In tet_mbcsv_dest_start function.. VDEST creation failed\n");
           return NCSCC_RC_FAILURE;
         }
-      mbcstm_cb.vdests[ssn_index].status = TRUE;
+      mbcstm_cb.vdests[ssn_index].status = true;
     }
   
   return NCSCC_RC_SUCCESS;
@@ -3460,7 +3460,7 @@ uint32_t tet_mbcsv_dest_close(void)
           printf("In tet_mbcsv_dest_start function.. VDEST Destroy failed\n");
           return NCSCC_RC_FAILURE;
         }
-      mbcstm_cb.vdests[ssn_index].status = FALSE;
+      mbcstm_cb.vdests[ssn_index].status = false;
       for(svc_index = 1; svc_index <= mbcstm_cb.svc_count; svc_index++)
         {
           mbcstm_cb.svces[svc_index].ssns[ssn_index].pwe_hdl  = 0;

@@ -56,7 +56,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 		avnd_cb->node_info.member = SA_FALSE;
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
 		while( comp != NULL ) {
-			if(comp->su->is_ncs != TRUE ) {
+			if(comp->su->is_ncs != true ) {
 				avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
 			}
 			comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb,(uint8_t *)&comp->name);
@@ -77,7 +77,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 				/* Remove the proxied component from pxied_list  */
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp,
 								 AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, FALSE, NULL);
+				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, false, NULL);
 				/* Delete the proxied component */
 				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(avnd_cb, comp, AVND_CKPT_COMP_CONFIG);
 				avnd_internode_comp_del(avnd_cb, &(avnd_cb->internode_avail_comp_db),

@@ -80,13 +80,13 @@ uint32_t avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT 
 	}
 
 	m_START_CRITICAL;
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 	tmr->opq_hdl = uarg;
 	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, (void *)tmr);
-	tmr->is_active = TRUE;
+	tmr->is_active = true;
 	m_END_CRITICAL;
 
 	if (TMR_T_NULL == tmr->tmr_id)
@@ -123,9 +123,9 @@ void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 
 	/* Stop the timer if it is active... */
 	m_START_CRITICAL;
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 	m_END_CRITICAL;
 
@@ -166,8 +166,8 @@ void avnd_tmr_exp(void *uarg)
 	 * but before entering this critical secition. This should be taken 
 	 * care by the Timer lib. But looks like it's not done.
 	 */
-	if (TRUE == tmr->is_active) {
-		tmr->is_active = FALSE;
+	if (true == tmr->is_active) {
+		tmr->is_active = false;
 
 		/* determine the event type */
 		type = (tmr->type - AVND_TMR_HC) + AVND_EVT_TMR_HC;

@@ -98,8 +98,8 @@ extern "C" {
 /* These are used if the NCS_UBAID is used to track 'fit' issues */
 
 	void ncs_set_max(NCS_UBAID *uba, int32_t max);
-	NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put);
-	NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32_t to_get);
+	bool ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put);
+	bool ncs_dec_can_i_get(NCS_UBAID *uba, int32_t to_get);
 	void ncs_reset_uba(NCS_UBAID *uba);
 
 /***************************************************************\

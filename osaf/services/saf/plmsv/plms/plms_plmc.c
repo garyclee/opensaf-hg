@@ -321,7 +321,7 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 	/* Socket flip-flop. No need to process, return from here.*/
 	if (ent->ee_sock_ff){
 		TRACE("Socket connection Restored. EE: %s",ent->dn_name_str);
-		ent->ee_sock_ff = FALSE;
+		ent->ee_sock_ff = false;
 		return NCSCC_RC_SUCCESS;
 	}
 	
@@ -432,8 +432,8 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		trk_info = ent->trk_info;
 		ent->trk_info = NULL;
 		if (SA_PLM_ADMIN_REPAIRED == trk_info->imm_adm_opr_id){
-			trk_info->root_entity->adm_op_in_progress = FALSE;
-			trk_info->root_entity->am_i_aff_ent = FALSE;
+			trk_info->root_entity->adm_op_in_progress = false;
+			trk_info->root_entity->am_i_aff_ent = false;
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,trk_info->inv_id, SA_AIS_OK);
 		}
 	/* Admin RESTART amd Admin RESET case.*/	
@@ -450,10 +450,10 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		
 		if (!(trk_info->track_count)){
 			/* Clean up the trk_info.*/
-			trk_info->root_entity->adm_op_in_progress = FALSE;
-			trk_info->root_entity->am_i_aff_ent = FALSE;
+			trk_info->root_entity->adm_op_in_progress = false;
+			trk_info->root_entity->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					trk_info->aff_ent_list,FALSE);
+					trk_info->aff_ent_list,false);
 			
 			plms_ent_list_free(trk_info->aff_ent_list);	
 			trk_info->aff_ent_list = NULL;
@@ -491,7 +491,7 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return NCSCC_RC_SUCCESS;
 	}else{
-		ret_err = plms_ee_unlock(ent,FALSE,TRUE/*mngt_cbk*/);
+		ret_err = plms_ee_unlock(ent,false,true/*mngt_cbk*/);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("Request to unlock the entity %s FAILED",
 							ent->dn_name_str);
@@ -531,7 +531,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 		plms_timer_stop(ent);
 	}
 	/* Clear socket flip-flop flag.*/
-	ent->ee_sock_ff = FALSE;
+	ent->ee_sock_ff = false;
 	
 	if ( SA_PLM_EE_PRESENCE_UNINSTANTIATED != 
 			ent->entity.ee_entity.saPlmEEPresenceState){
@@ -572,7 +572,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 					ent,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 			plms_readiness_flag_mark_unmark(head->plm_entity,
-					SA_PLM_RF_DEPENDENCY,TRUE,
+					SA_PLM_RF_DEPENDENCY,true,
 					ent,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -597,7 +597,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 			if (NCSCC_RC_SUCCESS != 
 					plms_is_chld(ent,head->plm_entity)){
 				ret_err = plms_ee_term(head->plm_entity,
-							FALSE,TRUE/*mngt_cbk*/);
+							false,true/*mngt_cbk*/);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("Request for EE %s termination \
 					FAILED",head->plm_entity->dn_name_str);
@@ -679,7 +679,7 @@ SaUint32T plms_plmc_unlock_response(PLMS_ENTITY *ent,SaUint32T unlock_rc)
 		EE was unlocked. So I am not setting admin-op-pending
 		flag.*/
 		plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,
-						TRUE,NULL,
+						true,NULL,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
@@ -730,7 +730,7 @@ SaUint32T plms_plmc_lock_response(PLMS_ENTITY *ent,SaUint32T lock_rc)
 		if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 			plms_readiness_flag_mark_unmark(ent,
 						SA_PLM_RF_MANAGEMENT_LOST,
-						TRUE,NULL,
+						true,NULL,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
@@ -776,7 +776,7 @@ SaUint32T plms_plmc_lckinst_response(PLMS_ENTITY *ent,SaUint32T lckinst_rc)
 		if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 			plms_readiness_flag_mark_unmark(ent,
 						SA_PLM_RF_MANAGEMENT_LOST,
-						TRUE,NULL,
+						true,NULL,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
@@ -819,7 +819,7 @@ SaUint32T plms_plmc_restart_response(PLMS_ENTITY *ent,SaUint32T restart_rc)
 		if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 			plms_readiness_flag_mark_unmark(ent,
 						SA_PLM_RF_MANAGEMENT_LOST,
-						TRUE,NULL,
+						true,NULL,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
@@ -853,7 +853,7 @@ SaUint32T plms_plmc_err_cbk_proc(PLMS_ENTITY *ent,PLMS_PLMC_ERR err_info)
 		}else{
 			/* Case of flip-flop. Mark the flag. If the conntection is
 			restored or the EE is terminated, clear this flag.*/
-			ent->ee_sock_ff = TRUE;
+			ent->ee_sock_ff = true;
 		}
 	}
 	
@@ -862,7 +862,7 @@ SaUint32T plms_plmc_err_cbk_proc(PLMS_ENTITY *ent,PLMS_PLMC_ERR err_info)
 	if (!plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){ 
 		/*Set management lost flag. */
 		plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,
-		TRUE,NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		true,NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
 		/* Call the callback.*/
 		plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
@@ -938,8 +938,8 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 				trk_info = ent->trk_info;
 				ent->trk_info = NULL;
 				if (SA_PLM_ADMIN_REPAIRED == trk_info->imm_adm_opr_id){
-					trk_info->root_entity->adm_op_in_progress = FALSE;
-					trk_info->root_entity->am_i_aff_ent = FALSE;
+					trk_info->root_entity->adm_op_in_progress = false;
+					trk_info->root_entity->am_i_aff_ent = false;
 					ret_err = saImmOiAdminOperationResult(cb->oi_hdl,trk_info->inv_id, SA_AIS_OK);
 				}
 			/* Admin RESTART amd Admin RESET case.*/	
@@ -953,9 +953,9 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 				
 				if (!(trk_info->track_count)){
 					/* Clean up the trk_info.*/
-					trk_info->root_entity->adm_op_in_progress = FALSE;
-					trk_info->root_entity->am_i_aff_ent = FALSE;
-					plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,FALSE);
+					trk_info->root_entity->adm_op_in_progress = false;
+					trk_info->root_entity->am_i_aff_ent = false;
+					plms_aff_ent_flag_mark_unmark(trk_info->aff_ent_list,false);
 					
 					plms_ent_list_free(trk_info->aff_ent_list);	
 					trk_info->aff_ent_list = NULL;
@@ -993,7 +993,7 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 				return NCSCC_RC_SUCCESS;
 			}else{
 				
-				ret_err = plms_ee_unlock(ent,FALSE,TRUE);
+				ret_err = plms_ee_unlock(ent,false,true);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					TRACE("Sending unlock request for ent: \
 						%s FAILED", ent->dn_name_str);
@@ -1012,7 +1012,7 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 			/*Set management lost flag. */
 			plms_readiness_flag_mark_unmark(ent,
 						SA_PLM_RF_MANAGEMENT_LOST,
-						TRUE,NULL,
+						true,NULL,
 						SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
@@ -1144,11 +1144,11 @@ int32_t plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 	if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&cb->mbx,evt,
 					NCS_IPC_PRIORITY_HIGH))	{
 		LOG_ER("Posting to MBX FAILED, ent: %s, msg: %s",ee_id,msg);
-		TRACE_LEAVE2("Return Val: %d",FALSE);
+		TRACE_LEAVE2("Return Val: %d",false);
 		return 1;
 	}
 	TRACE("Posted to MBX, ent: %s, msg: %s",ee_id,msg);
-	TRACE_LEAVE2("Return Val: %d",TRUE);
+	TRACE_LEAVE2("Return Val: %d",true);
 	return 0;
 }
 /******************************************************************************
@@ -1226,13 +1226,13 @@ int32_t plms_plmc_udp_cbk(udp_msg *msg)
 					NCS_IPC_PRIORITY_HIGH))	{
 		LOG_ER("Posting to MBX FAILED, ent: %s, msg: %s",
 						msg->ee_id,msg->msg);
-		TRACE_LEAVE2("Return Val: %d",FALSE);
+		TRACE_LEAVE2("Return Val: %d",false);
 		return 1;
 	}
 	TRACE("Posted to MBX SUCCESSFUL, ent: %s, msg: %s",
 						msg->ee_id,msg->msg);
 
-	TRACE_LEAVE2("Return Val: %d",TRUE);
+	TRACE_LEAVE2("Return Val: %d",true);
 	return 0;	
 }
 /******************************************************************************
@@ -1385,7 +1385,7 @@ static int32_t plms_plmc_tcp_cbk(tcp_msg *msg)
 		LOG_ER("tcp_cbk with invalid msg, ent: %s, msg: %s",
 						msg->ee_id,msg->cmd);
 		free(evt);
-		TRACE_LEAVE2("Return Val: %d",FALSE);
+		TRACE_LEAVE2("Return Val: %d",false);
 		return 1;
 	}
 	
@@ -1394,13 +1394,13 @@ static int32_t plms_plmc_tcp_cbk(tcp_msg *msg)
 					NCS_IPC_PRIORITY_HIGH))	{
 		LOG_ER("Posting to MBX FAILED, ent: %s, msg: %s",
 						msg->ee_id,msg->cmd);
-		TRACE_LEAVE2("Return Val: %d",FALSE);
+		TRACE_LEAVE2("Return Val: %d",false);
 		return 1;
 	}
 	TRACE("Posted to MBX SUCCESSFUL, ent: %s, msg: %s",
 						msg->ee_id,msg->cmd);
 
-	TRACE_LEAVE2("Return Val: %d",TRUE);
+	TRACE_LEAVE2("Return Val: %d",true);
 	return 0;
 	
 }
@@ -1442,7 +1442,7 @@ int32_t plms_plmc_error_cbk(plmc_lib_error *msg)
 	}
 	if ('\0' == msg->ee_id[0]){
 		TRACE("Not posting to MBX, as no ee_id. PLMS can not handle it.");
-		TRACE_LEAVE2("Return Val: %d",TRUE);
+		TRACE_LEAVE2("Return Val: %d",true);
 		return 0;
 	}
 	/* For others put the msg to MBX.*/
@@ -1468,12 +1468,12 @@ int32_t plms_plmc_error_cbk(plmc_lib_error *msg)
 	/* Post the evt to the PLMSv MBX. */
 	if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&cb->mbx,evt,NCS_IPC_PRIORITY_HIGH))	{
 		LOG_ER("Posting to MBX FAILED, ent: %s", msg->ee_id);
-		TRACE_LEAVE2("Return Val: %d",FALSE);
+		TRACE_LEAVE2("Return Val: %d",false);
 		return 1;
 	}
 	TRACE("Posted to MBX SUCCESSFUL, ent: %s.", msg->ee_id);
 
-	TRACE_LEAVE2("Return Val: %d",TRUE);
+	TRACE_LEAVE2("Return Val: %d",true);
 	return 0;
 }
 /******************************************************************************
@@ -2422,8 +2422,8 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 	if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_EE_RESTART == 
 	ent->trk_info->root_entity->adm_op_in_progress)){
 
-		ent->trk_info->root_entity->adm_op_in_progress = FALSE;
-		ent->trk_info->root_entity->am_i_aff_ent = FALSE;
+		ent->trk_info->root_entity->adm_op_in_progress = false;
+		ent->trk_info->root_entity->am_i_aff_ent = false;
 		
 		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
 		ent->trk_info->inv_id,SA_AIS_ERR_FAILED_OPERATION);
@@ -2437,7 +2437,7 @@ SaUint32T plms_ee_inst_failed_tmr_exp(PLMS_ENTITY *ent)
 		/* Free the trk info and send failure to IMM.*/
 		head = ent->trk_info->aff_ent_list;
 		while(head){
-			head->plm_entity->am_i_aff_ent = FALSE;
+			head->plm_entity->am_i_aff_ent = false;
 			head->plm_entity->trk_info = NULL;
 		}
 		
@@ -2511,7 +2511,7 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 					ent,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 			plms_readiness_flag_mark_unmark(head->plm_entity,
-					SA_PLM_RF_DEPENDENCY,TRUE,
+					SA_PLM_RF_DEPENDENCY,true,
 					ent,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 			
@@ -2519,7 +2519,7 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 			if (NCSCC_RC_SUCCESS != 
 					plms_is_chld(ent,head->plm_entity)){
 				ret_err = plms_ee_term(head->plm_entity,
-							FALSE,TRUE/*mngt_cbk*/);
+							false,true/*mngt_cbk*/);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("Request for EE %s termination \
 					FAILED",head->plm_entity->dn_name_str);
@@ -2610,7 +2610,7 @@ SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *ent)
 		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,1/*mngt_cbk*/, SAHPI_RESET_ASSERT);
 		if( NCSCC_RC_SUCCESS != ret_err){
 			/* Deactivate the HE.*/
-			ret_err = plms_he_deactivate(ent->parent,FALSE/*adm_op*/,TRUE/*mngt_cbk*/);
+			ret_err = plms_he_deactivate(ent->parent,false/*adm_op*/,true/*mngt_cbk*/);
 			if(NCSCC_RC_SUCCESS != ret_err){
 				/* Isolation failed.*/
 				can_isolate = 0;
@@ -2999,7 +2999,7 @@ SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *ent)
 	(SA_PLM_OPERATIONAL_DISABLED ==
 	ent->entity.ee_entity.saPlmEEOperationalState))) {
 		
-		ret_err = plms_ent_isolate(ent,FALSE,FALSE);
+		ret_err = plms_ent_isolate(ent,false,false);
 		if (NCSCC_RC_SUCCESS == ret_err)
 			is_iso = 1;
 	}else{

@@ -177,7 +177,7 @@ uint32_t cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info)
  
   Notes         : None
 ******************************************************************************/
-static NCS_BOOL cpa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool cpa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	CPA_CALLBACK_INFO *callback, *pnext;
 
@@ -189,7 +189,7 @@ static NCS_BOOL cpa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		callback = pnext;
 	}
 
-	return TRUE;
+	return true;
 
 }
 
@@ -230,7 +230,7 @@ uint32_t cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 	SaCkptHandleT temp_hdl, *temp_ptr = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
-	NCS_BOOL add_flag = FALSE;
+	bool add_flag = false;
 	CPA_SECT_ITER_NODE *sect_iter_node;
 
 	temp_ptr = 0;
@@ -289,7 +289,7 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 {
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT rc = SA_AIS_OK;
-	NCS_BOOL add_flag = TRUE;
+	bool add_flag = true;
 	CPA_CALLBACK_INFO *callback;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
@@ -351,12 +351,12 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 			goto send_cb_evt;
 		}
 
-		if (add_flag == FALSE) {
+		if (add_flag == false) {
 			gc_node->ref_cnt++;
 			gc_node->ckpt_creat_attri = evt->info.openRsp.creation_attr;
 			/*To store the active MDS_DEST info of checkpoint */
 			if (evt->info.openRsp.is_active_exists) {
-				gc_node->is_active_exists = TRUE;
+				gc_node->is_active_exists = true;
 				gc_node->active_mds_dest = evt->info.openRsp.active_dest;
 			}
 
@@ -568,17 +568,17 @@ static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb, CPA_EVT *evt)
 
 static uint32_t cpa_proc_ckpt_clm_status_changed(CPA_CB *cb, CPSV_EVT *evt)
 {
-	NCS_BOOL locked = TRUE;
+	bool locked = true;
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "Clm_status_changed:LOCK", __FILE__,
 			      __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 	if (evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT) {
-		cb->is_cpnd_joined_clm = FALSE;
+		cb->is_cpnd_joined_clm = false;
 		cpa_client_tree_mark_stale(cb);
 	} else if (evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED) {
-		cb->is_cpnd_joined_clm = TRUE;
+		cb->is_cpnd_joined_clm = true;
 	}
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -659,7 +659,7 @@ static void cpa_proc_tmr_expiry(CPA_CB *cb, CPA_EVT *evt)
 static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
 {
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
-	NCS_BOOL add_flag = FALSE;
+	bool add_flag = false;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Global Ckpt node */
@@ -675,19 +675,19 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
 		m_NCS_LOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
 		gc_node->active_mds_dest = evt->info.ackpt_info.mds_dest;
 		if (evt->info.ackpt_info.mds_dest) {
-			gc_node->is_active_exists = TRUE;
+			gc_node->is_active_exists = true;
 			m_LOG_CPA_CCLLFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
 					 "active_ckpt_info_bcast", __FILE__, __LINE__, gc_node->is_active_exists,
 					 evt->info.ackpt_info.ckpt_id, gc_node->active_mds_dest);
 		} else {
-			gc_node->is_active_exists = FALSE;
+			gc_node->is_active_exists = false;
 			m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
 					 "active_ckpt_info_bcast", __FILE__, __LINE__, gc_node->is_active_exists,
 					 evt->info.ackpt_info.ckpt_id, gc_node->active_mds_dest);
 		}
-		gc_node->is_restart = FALSE;
+		gc_node->is_restart = false;
 		/*Indicate the Waiting CPA API therad & wake up */
-		gc_node->is_active_bcast_came = TRUE;
+		gc_node->is_active_bcast_came = true;
 		if (gc_node->cpd_active_sync_awaited) {
 			m_NCS_SEL_OBJ_IND(gc_node->cpd_active_sync_sel);
 		}
@@ -706,13 +706,13 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
 static void cpa_proc_active_nd_down_bcast(CPA_CB *cb, CPA_EVT *evt)
 {
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
-	NCS_BOOL add_flag = FALSE;
+	bool add_flag = false;
 
 	/* Get the Global Ckpt node */
 	cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree, &evt->info.ackpt_info.ckpt_id, &gc_node, &add_flag);
 
 	if (gc_node)
-		gc_node->is_restart = TRUE;
+		gc_node->is_restart = true;
 }
 
 /****************************************************************************
@@ -1178,7 +1178,7 @@ uint32_t cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
 	uint32_t iter = 0, rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO shm_info;
 	CPA_GLOBAL_CKPT_NODE *gc_node;
-	NCS_BOOL add_flag = FALSE;
+	bool add_flag = false;
 
 	memset(&shm_info, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
@@ -1275,7 +1275,7 @@ uint32_t cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node, const
 {
 	uint32_t iter, rc = NCSCC_RC_SUCCESS;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL add_flag = FALSE;
+	bool add_flag = false;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 
 	proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree, &lc_node->gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -1305,12 +1305,12 @@ void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node)
 	uint32_t timeout = 5000;
 
 	m_NCS_LOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
-	if (gc_node->is_active_bcast_came == TRUE) {
+	if (gc_node->is_active_bcast_came == true) {
 		m_NCS_UNLOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
 		return;
 	}
 	/* Creat the sync Lock and wait for the active set */
-	gc_node->cpd_active_sync_awaited = TRUE;
+	gc_node->cpd_active_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&gc_node->cpd_active_sync_sel);
 	m_NCS_UNLOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
 
@@ -1320,7 +1320,7 @@ void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node)
 
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
-	gc_node->cpd_active_sync_awaited = FALSE;
+	gc_node->cpd_active_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(gc_node->cpd_active_sync_sel);
 	m_NCS_UNLOCK(&gc_node->cpd_active_sync_lock, NCS_LOCK_WRITE);
 	return;

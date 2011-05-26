@@ -335,7 +335,7 @@ static uint32_t avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 					 * we have received sync commit message. So process all async
 					 * ckpt updates received till now.
 					 */
-					avnd_dequeue_async_update_msgs(cb, TRUE);
+					avnd_dequeue_async_update_msgs(cb, true);
 				}
 			} else {
 				/* Nothing is there to decode in this case */
@@ -389,7 +389,7 @@ static uint32_t avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			status = avnd_decode_cold_sync_rsp(cb, &arg->info.decode);
 
 			if (NCSCC_RC_SUCCESS != status) {
-				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE)) {
+				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, false)) {
 					/* Log Error ; FATAL; It should never happen unless there is a bug. */
 					LOG_CR("%s, %u,External component data cleanup failed",__FUNCTION__,__LINE__);
 				}
@@ -431,7 +431,7 @@ static uint32_t avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			/* Decode Warm Sync Response message */
 			status = avnd_decode_warm_sync_rsp(cb, &arg->info.decode);
 
-			/* If we find mismatch in data or warm sync fails set in_sync to FALSE */
+			/* If we find mismatch in data or warm sync fails set in_sync to false */
 			if (NCSCC_RC_FAILURE == status) {
 				LOG_ER("avnd_mbcsv_process_dec_cb: warm sync decode failed");
 				cb->stby_sync_state = AVND_STBY_OUT_OF_SYNC;
@@ -456,7 +456,7 @@ static uint32_t avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 			if (NCSCC_RC_SUCCESS != status) {
 
-				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE)) {
+				if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, false)) {
 					/* Log Error ; FATAL; It should never happen unless there is a bug. */
 					LOG_CR("%s, %u,External component data cleanup failed",__FUNCTION__,__LINE__);
 					break;
@@ -1042,8 +1042,8 @@ static uint32_t avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  * Purpose:  De-queue async update messages.
  *
  * Input: cb - AVND CB pointer.
- *        pr_or_fr - TRUE - If we have to process the message.
- *                   FALSE - If we have to FREE the message.
+ *        pr_or_fr - true - If we have to process the message.
+ *                   false - If we have to FREE the message.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -1051,7 +1051,7 @@ static uint32_t avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  * 
 \**************************************************************************/
-uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, NCS_BOOL pr_or_fr)
+uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, bool pr_or_fr)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_ASYNC_UPDT_MSG_QUEUE *updt_msg;
@@ -1331,7 +1331,7 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* We might be having some async update messages in the
 		   Queue to be processed, now drop all of them. */
 
-		avnd_dequeue_async_update_msgs(cb, FALSE);
+		avnd_dequeue_async_update_msgs(cb, false);
 
 		/* Go through timer list and start it. So send an event in mail box */
 		/* We need to start all the timers, which were running on ACT. */
@@ -1375,7 +1375,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_HC_PERIOD:
 	case AVND_CKPT_HC_MAX_DUR:
 		{
-			if (TRUE == ((AVND_HC *)reo_hdl_ptr)->is_ext)
+			if (true == ((AVND_HC *)reo_hdl_ptr)->is_ext)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1393,7 +1393,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_SU_OPER_STATE:
 	case AVND_CKPT_SU_PRES_STATE:
 		{
-			if (TRUE == ((AVND_SU *)reo_hdl_ptr)->su_is_external)
+			if (true == ((AVND_SU *)reo_hdl_ptr)->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1405,7 +1405,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 			if (m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP *)reo_hdl_ptr))) {
 				if (m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP *)reo_hdl_ptr)))
 					rc = NCSCC_RC_SUCCESS;
-			} else if (TRUE == ((AVND_COMP *)reo_hdl_ptr)->su->su_is_external)
+			} else if (true == ((AVND_COMP *)reo_hdl_ptr)->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1443,7 +1443,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 			if (m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP *)reo_hdl_ptr))) {
 				if (m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP *)reo_hdl_ptr)))
 					rc = NCSCC_RC_SUCCESS;
-			} else if (TRUE == ((AVND_COMP *)reo_hdl_ptr)->su->su_is_external)
+			} else if (true == ((AVND_COMP *)reo_hdl_ptr)->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1454,7 +1454,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE:
 	case AVND_CKPT_SU_SI_REC_PRV_ASSIGN_STATE:
 		{
-			if (TRUE == ((AVND_SU_SI_REC *)reo_hdl_ptr)->su->su_is_external)
+			if (true == ((AVND_SU_SI_REC *)reo_hdl_ptr)->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1466,7 +1466,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
 	case AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE:
 		{
-			if (TRUE == ((AVND_COMP_CSI_REC *)reo_hdl_ptr)->comp->su->su_is_external)
+			if (true == ((AVND_COMP_CSI_REC *)reo_hdl_ptr)->comp->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1475,7 +1475,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_COMP_HC_REC_STATUS:
 	case AVND_CKPT_COMP_HC_REC_TMR:
 		{
-			if (TRUE == ((AVND_COMP_HC_REC *)reo_hdl_ptr)->comp->su->su_is_external)
+			if (true == ((AVND_COMP_HC_REC *)reo_hdl_ptr)->comp->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1485,7 +1485,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 			if (m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP_CBK *)reo_hdl_ptr)->comp)) {
 				if (m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP_CBK *)reo_hdl_ptr)->comp))
 					rc = NCSCC_RC_SUCCESS;
-			} else if (TRUE == ((AVND_COMP_CBK *)reo_hdl_ptr)->comp->su->su_is_external)
+			} else if (true == ((AVND_COMP_CBK *)reo_hdl_ptr)->comp->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1495,7 +1495,7 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 	case AVND_CKPT_COMP_CBK_REC_TMR:
 	case AVND_CKPT_COMP_CBK_REC_TIMEOUT:
 		{
-			if (TRUE == ((AVND_COMP_CBK *)reo_hdl_ptr)->comp->su->su_is_external)
+			if (true == ((AVND_COMP_CBK *)reo_hdl_ptr)->comp->su->su_is_external)
 				rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1545,14 +1545,14 @@ uint32_t avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (AVND_EVT_HA_STATE_CHANGE != evt->type)
 		goto error;
 
-	if ((SA_AMF_HA_QUIESCED == ha_state_event->ha_state) && (TRUE == cb->is_quisced_set)) {
+	if ((SA_AMF_HA_QUIESCED == ha_state_event->ha_state) && (true == cb->is_quisced_set)) {
 		cb->avail_state_avnd = SA_AMF_HA_QUIESCED;
 
 		if (NCSCC_RC_SUCCESS != (rc = avnd_set_mbcsv_ckpt_role(cb, cb->avail_state_avnd))) {
 			LOG_ER("avnd_set_mbcsv_ckpt_role failed");
 			goto error;
 		}
-		cb->is_quisced_set = FALSE;
+		cb->is_quisced_set = false;
 		TRACE_1("mbcsv role set to SA_AMF_HA_QUIESCED");
 		return rc;
 	}
@@ -1592,13 +1592,13 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
-			if (TRUE == su->su_is_external) {
+			if (true == su->su_is_external) {
 				if ((AVND_ERR_ESC_LEVEL_0 == su->su_err_esc_level) &&
-				    (TRUE == su->su_err_esc_tmr.is_active)) {
+				    (true == su->su_err_esc_tmr.is_active)) {
 					/* This means component err esc timer is running. */
 					m_AVND_TMR_COMP_ERR_ESC_START(cb, su, rc);
 				} else if ((AVND_ERR_ESC_LEVEL_1 == su->su_err_esc_level) &&
-					   (TRUE == su->su_err_esc_tmr.is_active)) {
+					   (true == su->su_err_esc_tmr.is_active)) {
 					/* This means su err esc timer is running. */
 					m_AVND_TMR_SU_ERR_ESC_START(cb, su, rc);
 				}
@@ -1609,7 +1609,7 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 					return rc;
 				}
 
-			}	/* if(TRUE == su->su_is_external) */
+			}	/* if(true == su->su_is_external) */
 			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 		}		/* while(su != 0) */
 	}
@@ -1620,8 +1620,8 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 
 		while (comp != 0) {
-			if (TRUE == comp->su->su_is_external) {
-				if (TRUE == comp->orph_tmr.is_active) {
+			if (true == comp->su->su_is_external) {
+				if (true == comp->orph_tmr.is_active) {
 					m_AVND_TMR_PXIED_COMP_REG_START(cb, *comp, rc);
 				}
 
@@ -1630,12 +1630,12 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 					return rc;
 				}
 
-				if ((TRUE == comp->clc_info.clc_reg_tmr.is_active) &&
+				if ((true == comp->clc_info.clc_reg_tmr.is_active) &&
 				    (AVND_TMR_CLC_COMP_REG == comp->clc_info.clc_reg_tmr.type)) {
 					m_AVND_TMR_COMP_REG_START(cb, *comp, rc);
 				}
 
-				if ((TRUE == comp->clc_info.clc_reg_tmr.is_active) &&
+				if ((true == comp->clc_info.clc_reg_tmr.is_active) &&
 				    (AVND_TMR_CLC_PXIED_COMP_INST == comp->clc_info.clc_reg_tmr.type)) {
 					m_AVND_TMR_PXIED_COMP_INST_START(cb, *comp, rc);
 				}
@@ -1651,7 +1651,7 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 				for (comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
 				     comp_hc;
 				     comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&comp_hc->comp_dll_node)) {
-					if (TRUE == comp_hc->tmr.is_active) {
+					if (true == comp_hc->tmr.is_active) {
 						m_AVND_TMR_COMP_HC_START(cb, *comp_hc, rc);
 					}
 
@@ -1670,7 +1670,7 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 					comp_cbk->opq_hdl = comp_cbk->red_opq_hdl;
 					comp_cbk->red_opq_hdl = 0;
 
-					if (TRUE == comp_cbk->resp_tmr.is_active) {
+					if (true == comp_cbk->resp_tmr.is_active) {
 						m_AVND_TMR_COMP_CBK_RESP_START(cb, *comp_cbk, comp_cbk->timeout, rc);
 					}
 
@@ -1681,7 +1681,7 @@ uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 				}
 /***********************  Starting Callback Timers ends here ****************/
 
-			}	/* if(TRUE == comp->su->su_is_external) */
+			}	/* if(true == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
 			    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
 		}		/* while(comp != 0) */

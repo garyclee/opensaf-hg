@@ -82,7 +82,7 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 			mds_role = SA_AMF_HA_QUIESCED;
 
 			gld_cb->invocation = invocation;
-			gld_cb->is_quiasced = TRUE;
+			gld_cb->is_quiasced = true;
 
 			/* Give up our IMM OI implementer role */
 			error = immutil_saImmOiImplementerClear(gld_cb->immOiHandle);

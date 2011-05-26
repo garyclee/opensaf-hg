@@ -158,7 +158,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_CONFIG);
 		}
 
-		su->avd_updt_flag = TRUE;
+		su->avd_updt_flag = true;
 	}
 
 	/*
@@ -169,7 +169,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 	while (NULL != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name))) {
 		su_name = su->name;
 
-		if (FALSE == su->avd_updt_flag) {
+		if (false == su->avd_updt_flag) {
 			/* First walk entire comp list of this SU and delete all the
 			 * component records which are there in the list.
 			 */
@@ -195,7 +195,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 			}
 
 		} else
-			su->avd_updt_flag = FALSE;
+			su->avd_updt_flag = false;
 	}
 
  err:
@@ -249,7 +249,7 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 	siq = avnd_su_siq_rec_buf(cb, su, info);
 	if (siq) {
 		/* Send async update for SIQ Record for external SU only. */
-		if (TRUE == su->su_is_external) {
+		if (true == su->su_is_external) {
 			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, &(siq->info), AVND_CKPT_SIQ_REC);
 		}
 		TRACE_LEAVE();

@@ -183,7 +183,7 @@ static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
-	NCS_BOOL orphan_flag;
+	bool orphan_flag;
 	uint32_t node_id;
 
 	if (async_evt == NULL)
@@ -297,7 +297,7 @@ static uint32_t glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
-	NCS_BOOL orphan_flag;
+	bool orphan_flag;
 	SaLckResourceIdT rsc_id;
 	uint32_t node_id;
 
@@ -366,7 +366,7 @@ static uint32_t glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_e
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
 	GLSV_NODE_LIST *node_list = NULL;
-	NCS_BOOL orphan_flag;
+	bool orphan_flag;
 	uint32_t node_id;
 
 	if (async_evt == NULL)

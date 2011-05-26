@@ -171,7 +171,7 @@ typedef struct sysf_tmr_cb {
 /* gl_tcb  ...  The global instance of the SYSF_TMR_CB                   */
 static SYSF_TMR_CB gl_tcb = { 0 };
 
-static NCS_BOOL tmr_destroying = FALSE;
+static bool tmr_destroying = false;
 static NCS_SEL_OBJ tmr_destroy_syn_obj;
 static struct timespec ts_start;
 
@@ -222,7 +222,7 @@ static uint64_t get_time_elapsed_in_ticks(struct timespec *temp_ts_start)
  * Purpose: Service all timers that live in this expiry bucket
  *
  ****************************************************************************/
-static NCS_BOOL sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
+static bool sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 {
 	SYSF_TMR *now_tmr;
 	SYSF_TMR dead_inst;
@@ -233,18 +233,18 @@ static NCS_BOOL sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 	dead_tmr->next = NULL;
 
 	/* Confirm and secure tmr service is/will persist */
-	if (ncslpg_take(&gl_tcb.persist) == FALSE)
-		return FALSE;	/* going or gone away.. Lets leave */
+	if (ncslpg_take(&gl_tcb.persist) == false)
+		return false;	/* going or gone away.. Lets leave */
 
-	if (tmr_destroying == TRUE) {
+	if (tmr_destroying == true) {
 		/* Raise An indication */
 		m_NCS_SEL_OBJ_IND(tmr_destroy_syn_obj);
 
 		/*If thread canceled here, It had no effect on timer thread destroy */
 		ncslpg_give(&gl_tcb.persist, 0);
 
-		/* returns TRUE if thread is going to be  destroyed otherwise return FALSE(normal flow) */
-		return TRUE;
+		/* returns true if thread is going to be  destroyed otherwise return false(normal flow) */
+		return true;
 	}
 
 	TMR_DBG_TICK(gl_tcb);
@@ -302,7 +302,7 @@ static NCS_BOOL sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 	m_NCS_MEM_FREE(tmp, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 
 	ncslpg_give(&gl_tcb.persist, 0);
-	return FALSE;
+	return false;
 }
 
 static uint32_t ncs_tmr_select_intr_process(struct timeval *tv, struct
@@ -350,7 +350,7 @@ static uint32_t ncs_tmr_engine(struct timeval *tv, uint64_t *next_delay)
 	uint64_t sum_of_tmr_exp_gaps = 0;	/* Avg = sum_of_tmr_exp_gaps/tot_tmr_exp */
 #endif
 
-	while (TRUE) {
+	while (true) {
 		tmp = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_getnext(&gl_tcb.tmr_pat_tree, (uint8_t *)NULL);
 		ticks_elapsed = get_time_elapsed_in_ticks(&ts_start);
 		if (tmp != NULL) {
@@ -380,7 +380,7 @@ static uint32_t ncs_tmr_engine(struct timeval *tv, uint64_t *next_delay)
 			}
 #endif
 
-			if (TRUE == sysfTmrExpiry(tmp)) {	/* call expiry routine          */
+			if (true == sysfTmrExpiry(tmp)) {	/* call expiry routine          */
 				return NCSCC_RC_FAILURE;
 			}
 #if ENABLE_SYSLOG_TMR_STATS
@@ -438,7 +438,7 @@ static uint32_t ncs_tmr_wait(void)
 
 	ts_current = ts_start;
 
-	while (TRUE) {
+	while (true) {
  select_sleep:
 		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 		rc = select(highest_sel_obj.rmv_obj + 1, &all_sel_obj, NULL, NULL, &tv);
@@ -458,7 +458,7 @@ static uint32_t ncs_tmr_wait(void)
 			}
 		} else if (rc == 1) {
 			/* if select returned because of indication on sel_obj from sysfTmrDestroy */
-			if (tmr_destroying == TRUE) {
+			if (tmr_destroying == true) {
 				/* Raise An indication */
 				m_NCS_SEL_OBJ_IND(tmr_destroy_syn_obj);
 				m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
@@ -468,7 +468,7 @@ static uint32_t ncs_tmr_wait(void)
 			gl_tcb.msg_count--;
 
 			if (gl_tcb.msg_count == 0) {
-				inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(gl_tcb.sel_obj, TRUE, TRUE);
+				inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(gl_tcb.sel_obj, true, true);
 				if (inds_rmvd <= 0) {
 					if (inds_rmvd != -1) {
 						/* The object has not been destroyed and it has no indication
@@ -511,17 +511,17 @@ static uint32_t ncs_tmr_wait(void)
  *
  ****************************************************************************/
 
-static NCS_BOOL ncs_tmr_create_done = FALSE;
+static bool ncs_tmr_create_done = false;
 
-NCS_BOOL sysfTmrCreate(void)
+bool sysfTmrCreate(void)
 {
 	NCS_PATRICIA_PARAMS pat_param;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	if (ncs_tmr_create_done == FALSE)
-		ncs_tmr_create_done = TRUE;
+	if (ncs_tmr_create_done == false)
+		ncs_tmr_create_done = true;
 	else
-		return TRUE;
+		return true;
 
 	/* Empty Timer Service control block. */
 	memset(&gl_tcb, '\0', sizeof(SYSF_TMR_CB));
@@ -547,7 +547,7 @@ NCS_BOOL sysfTmrCreate(void)
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		return NCSCC_RC_FAILURE;
 	}
-	tmr_destroying = FALSE;
+	tmr_destroying = false;
 
 	/* create expiry thread */
 
@@ -557,16 +557,16 @@ NCS_BOOL sysfTmrCreate(void)
 			      NCS_TMR_PRIORITY, NCS_TMR_STACKSIZE, &gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);
-		return FALSE;
+		return false;
 	}
 
 	if (m_NCS_TASK_START(gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
 		m_NCS_TASK_RELEASE(gl_tcb.p_tsk_hdl);
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -577,7 +577,7 @@ NCS_BOOL sysfTmrCreate(void)
  *
  ****************************************************************************/
 
-NCS_BOOL sysfTmrDestroy(void)
+bool sysfTmrDestroy(void)
 {
 	SYSF_TMR *tmr;
 	SYSF_TMR *free_tmr;
@@ -597,7 +597,7 @@ NCS_BOOL sysfTmrDestroy(void)
 	/* Create selection object */
 	m_NCS_SEL_OBJ_CREATE(&tmr_destroy_syn_obj);
 
-	tmr_destroying = TRUE;
+	tmr_destroying = true;
 
 	m_NCS_SEL_OBJ_IND(gl_tcb.sel_obj);
 
@@ -626,7 +626,7 @@ NCS_BOOL sysfTmrDestroy(void)
 
 	m_NCS_TASK_RELEASE(gl_tcb.p_tsk_hdl);
 
-	tmr_destroying = FALSE;
+	tmr_destroying = false;
 
 	m_NCS_SEL_OBJ_DESTROY(tmr_destroy_syn_obj);
 
@@ -640,9 +640,9 @@ NCS_BOOL sysfTmrDestroy(void)
 
 	m_NCS_LOCK_DESTROY(&gl_tcb.safe.free_lock);
 
-	ncs_tmr_create_done = FALSE;
+	ncs_tmr_create_done = false;
 
-	return TRUE;
+	return true;
 }
 
 /*****************************************************************************
@@ -662,10 +662,10 @@ tmr_t ncs_tmr_alloc(char *file, uint32_t line)
 	SYSF_TMR *tmr;
 	SYSF_TMR *back;
 
-	if (tmr_destroying == TRUE)
+	if (tmr_destroying == true)
 		return NULL;
 
-	if (ncslpg_take(&gl_tcb.persist) == FALSE)	/* guarentee persistence */
+	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
 		return NULL;
 
 	m_NCS_LOCK(&gl_tcb.safe.free_lock, NCS_LOCK_WRITE);
@@ -724,14 +724,14 @@ tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 1
 	uint64_t temp_key_value;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	if (((tmr = (SYSF_TMR *)tid) == NULL) || (tmr_destroying == TRUE))	/* NULL tmrs are no good! */
+	if (((tmr = (SYSF_TMR *)tid) == NULL) || (tmr_destroying == true))	/* NULL tmrs are no good! */
 		return NULL;
 
 	TMR_DBG_ASSERT_ISA(tmr->dbg);	/* confirm that its TMR memory */
 
 	TMR_DBG_ASSERT_STATE(tmr, (TMR_STATE_DORMANT | TMR_STATE_CREATE));
 
-	if (ncslpg_take(&gl_tcb.persist) == FALSE)	/* guarentee persistence */
+	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
 		return NULL;
 
 	if (TMR_TEST_STATE(tmr, TMR_STATE_DORMANT)) {	/* If client is re-using timer */
@@ -830,7 +830,7 @@ uint32_t ncs_tmr_stop_v2(tmr_t tmrID, void **o_tmr_arg)
 {
 	SYSF_TMR *tmr;
 
-	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == TRUE) || (o_tmr_arg == NULL))
+	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == true) || (o_tmr_arg == NULL))
 		return NCSCC_RC_FAILURE;
 
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
@@ -870,7 +870,7 @@ void ncs_tmr_stop(tmr_t tmrID)
 {
 	SYSF_TMR *tmr;
 
-	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == TRUE))
+	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == true))
 		return;
 
 	TMR_DBG_ASSERT_ISA(tmr->dbg);	/* confirm that its TMR memory */
@@ -897,7 +897,7 @@ void ncs_tmr_free(tmr_t tmrID)
 {
 	SYSF_TMR *tmr;
 
-	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == TRUE))
+	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == true))
 		return;
 
 	TMR_DBG_ASSERT_ISA(tmr->dbg);	/* confirm that its timer memory */
@@ -934,13 +934,13 @@ uint32_t ncs_tmr_remaining(tmr_t tmrID, uint32_t *p_tleft)
 	uint32_t ticks_elapsed;
 	uint32_t ticks_to_expiry;
 
-	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == TRUE) || (p_tleft == NULL))
+	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == true) || (p_tleft == NULL))
 		return NCSCC_RC_FAILURE;
 
 	*p_tleft = 0;
 	TMR_DBG_ASSERT_ISA(tmr->dbg);	/* confirm that its timer memory */
 
-	if (ncslpg_take(&gl_tcb.persist) == FALSE)	/* guarentee persistence */
+	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
 		return NCSCC_RC_FAILURE;
 
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
@@ -993,7 +993,7 @@ uint32_t ncs_tmr_whatsout(void)
 	printf("|  #|    | line|           |            |                |\n");
 	printf("|---|----+-----+-----------+------------+----------------|\n");
 
-	if ((ncslpg_take(&gl_tcb.persist) == FALSE) || (tmr_destroying == TRUE)) {
+	if ((ncslpg_take(&gl_tcb.persist) == false) || (tmr_destroying == true)) {
 		printf("< . . . TMR SVC DESTROYED: .CLEANUP ALREADY DONE..>\n");
 		return NCSCC_RC_FAILURE;	/* going or gone away.. Lets leave */
 	}

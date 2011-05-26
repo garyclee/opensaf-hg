@@ -279,7 +279,7 @@ typedef struct plms_cb
 {             
         SaNameT                   comp_name;     /* Component name - "PLMS"               */
         SaAmfHAStateT             ha_state;      /* present AMF HA state of the component */
-	NCS_BOOL                  csi_assigned;
+	bool                  csi_assigned;
 	SaHpiDomainIdT     	  domain_id;
 	PLMS_HPI_CONFIG           hpi_cfg;
 	SaUint8T		  hpi_intf_up;
@@ -295,7 +295,7 @@ typedef struct plms_cb
 
 	SaAmfHandleT              amf_hdl;       /*AMF handle, obtained thru AMF init */ 
 	SaInvocationT             amf_invocation_id;
-	NCS_BOOL                  is_quisced_set;
+	bool                  is_quisced_set;
 	SaImmHandleT              imm_hdl;       /* IMM handle, obtained thr IMM init*/   
 	SaImmOiHandleT            oi_hdl;        /* Object Implementer handle */
 	SaNtfHandleT              ntf_hdl;       /* NTF handle, obtained thr NTF init*/
@@ -308,7 +308,7 @@ typedef struct plms_cb
         SaSelectionObjectT        imm_sel_obj; /*Selection object to wait for IMM events */
         SaSelectionObjectT        mbcsv_sel_obj;
 	NCS_SEL_OBJ               usr1_sel_obj; /* selection object for usr1 signal*/ 
-	NCS_BOOL                  healthCheckStarted;
+	bool                  healthCheckStarted;
 
         /* Config database */
         PLMS_DOMAIN		   domain_info;
@@ -331,9 +331,9 @@ typedef struct plms_cb
         SaPlmEntityGroupHandleT   prev_ent_grp_hdl;
 	SaPlmHandleT              prev_client_info_hdl;
 	NCS_LOCK                   cb_lock;
-	NCS_BOOL                  client_info_cold_sync_done;
-        NCS_BOOL                  entity_grp_cold_sync_done;
-        NCS_BOOL                  trk_step_info_cold_sync_done;
+	bool                  client_info_cold_sync_done;
+        bool                  entity_grp_cold_sync_done;
+        bool                  trk_step_info_cold_sync_done;
 } PLMS_CB;
 
 typedef enum

@@ -48,16 +48,16 @@ typedef struct vda_pvt_info {
 
 	/* Information on the VDS's MDS-address. Required when a VDA needs
 	   to communicate with a VDS. */
-	NCS_BOOL vds_primary_up;
+	bool vds_primary_up;
 	MDS_DEST vds_vdest;
 	NCS_LOCK vds_sync_lock;
-	NCS_BOOL vds_sync_awaited;
+	bool vds_sync_awaited;
 	NCS_SEL_OBJ vds_sync_sel;
 
 } VDA_PVT_INFO;
 
 static VDA_PVT_INFO gl_vda_info;	/* For internal use within MDA only */
-static NCS_BOOL vda_vdest_create = FALSE;
+static bool vda_vdest_create = false;
 
 /***************************************************************************\
                          PRIVATE FUNCTION PROTOTYPES
@@ -283,7 +283,7 @@ static uint32_t vda_destroy(NCS_LIB_REQ_INFO *req)
 
 	m_NCS_LOCK_DESTROY(&gl_vda_info.vds_sync_lock);
 
-	if (vda_vdest_create == TRUE) {
+	if (vda_vdest_create == true) {
 		/* STEP : Uninstall from ADEST with MDS as service NCSMDS_SVC_ID_VDA. */
 		memset(&svc_info, 0, sizeof(svc_info));
 		svc_info.i_mds_hdl = gl_vda_info.mds_adest_pwe1_hdl;
@@ -316,7 +316,7 @@ static uint32_t vda_destroy(NCS_LIB_REQ_INFO *req)
 		return NCSCC_RC_FAILURE;
 	}
 
-	vda_vdest_create = FALSE;
+	vda_vdest_create = false;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -324,7 +324,7 @@ static uint32_t vda_destroy(NCS_LIB_REQ_INFO *req)
 static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req)
 {
 	uint32_t vdest_id;
-	NCS_BOOL is_named_vdest;
+	bool is_named_vdest;
 	MDS_DEST new_vdest;
 	MDS_HDL new_vdest_hdl;
 	uint32_t policy;
@@ -335,11 +335,11 @@ static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req)
 	/* STEP : Check for "reserved" instance names */
 	switch (mda_get_inst_name_type(&req->info.inst.i_inst_name)) {
 	case MDA_INST_NAME_TYPE_UNNAMED_VDEST:
-		is_named_vdest = FALSE;
+		is_named_vdest = false;
 		break;
 
 	case MDA_INST_NAME_TYPE_NAMED_VDEST:
-		is_named_vdest = TRUE;
+		is_named_vdest = true;
 		break;
 
 	default:
@@ -357,7 +357,7 @@ static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req)
 		}
 	}
 
-	if (is_named_vdest == FALSE) {
+	if (is_named_vdest == false) {
 		/* A fixed VDEST has been specified, Find it */
 		mds_inst_name_to_fixed_vdest(&req->info.inst.i_inst_name, &vdest_id);
 
@@ -388,18 +388,18 @@ static uint32_t vda_instantiate(NCS_LIB_REQ_INFO *req)
 static uint32_t vda_uninstantiate(NCS_LIB_REQ_INFO *req)
 {
 	MDS_DEST gone_vdest;
-	NCS_BOOL is_named_vdest;
+	bool is_named_vdest;
 
 	memset(&gone_vdest, 0, sizeof(gone_vdest));
 
 	/* STEP : Check for "reserved" instance names */
 	switch (mda_get_inst_name_type(&req->info.uninst.i_inst_name)) {
 	case MDA_INST_NAME_TYPE_UNNAMED_VDEST:
-		is_named_vdest = FALSE;
+		is_named_vdest = false;
 		break;
 
 	case MDA_INST_NAME_TYPE_NAMED_VDEST:
-		is_named_vdest = TRUE;
+		is_named_vdest = true;
 		break;
 
 	default:

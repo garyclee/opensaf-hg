@@ -149,7 +149,7 @@ static SaAisErrorT amf_quiesced_state_handler(IMMD_CB *cb, SaInvocationT invocat
 	cb->mds_role = V_DEST_RL_QUIESCED;
 	immd_mds_change_role(cb);
 	cb->amf_invocation = invocation;
-	cb->is_quiesced_set = TRUE;
+	cb->is_quiesced_set = true;
 	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
@@ -181,7 +181,7 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_ha_state;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMD_CB *cb = immd_cb;
 
@@ -228,7 +228,7 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 	/* Handle active to active role change. */
 	if (prev_ha_state == new_haState) {
 		TRACE_5("No role change!");	/* bug? */
-		role_change = FALSE;
+		role_change = false;
 	}
 
 	if (role_change) {
@@ -249,7 +249,7 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 
 		if (new_haState == SA_AMF_HA_ACTIVE) {
 			/* Change of role to active => We may need to elect new coord */
-			immd_proc_elect_coord(cb, TRUE);
+			immd_proc_elect_coord(cb, true);
 			immd_db_purge_fevs(cb);
 		}
 	}

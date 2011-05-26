@@ -270,7 +270,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 		if (!mqnd_cb->is_restart_done) {
 			mqnd_cb->mqa_timer.type = MQND_TMR_TYPE_MQA_EXPIRY;
 			mqnd_cb->mqa_timer.uarg = mqnd_cb->cb_hdl;
-			mqnd_cb->mqa_timer.is_active = FALSE;
+			mqnd_cb->mqa_timer.is_active = false;
 			mqnd_cb->mqa_timer.tmr_id = 0;
 			/*Starting the timer When this timer expired CPSV initialization is done */
 			mqnd_tmr_start(&mqnd_cb->mqa_timer, (unsigned)MQND_MQA_EXPIRY_TIMER);

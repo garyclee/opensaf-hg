@@ -126,16 +126,16 @@ uint32_t avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
  *
  * Input: dn_name - Pointer to the SaNameT that contains the DN.
  *
- * Returns: FALSE/TRUE
+ * Returns: false/TRUE
  *
  * NOTES: none.
  *
  * 
  **************************************************************************/
 
-NCS_BOOL avsv_is_external_DN(SaNameT *dn_name)
+bool avsv_is_external_DN(SaNameT *dn_name)
 {
-	return FALSE;
+	return false;
 }
 
 /*****************************************************************************
@@ -290,20 +290,20 @@ uint32_t avsv_dblist_sahckey_cmp(uint8_t *key1, uint8_t *key2)
  
   Arguments     : name - ptr to the name
  
-  Return Values : TRUE / FALSE
+  Return Values : true / false
  
   Notes         : None.
 ******************************************************************************/
-NCS_BOOL avsv_sa_name_is_null(SaNameT *name)
+bool avsv_sa_name_is_null(SaNameT *name)
 {
 	SaNameT null_name;
 
 	memset(&null_name, 0, sizeof(SaNameT));
 
 	if (!m_CMP_HORDER_SANAMET(*name, null_name))
-		return TRUE;
+		return true;
 	else
-		return FALSE;
+		return false;
 }
 
 /**

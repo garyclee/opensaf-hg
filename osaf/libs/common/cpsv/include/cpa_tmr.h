@@ -34,7 +34,7 @@ typedef struct cpa_tmr {
 	CPA_TMR_TYPE type;
 	tmr_t tmr_id;
 	uint32_t uarg;
-	NCS_BOOL is_active;
+	bool is_active;
 	union {
 		struct {
 			SaCkptCheckpointHandleT lcl_ckpt_hdl;

@@ -97,7 +97,7 @@ typedef struct tag_ncs_ipc {
 	/* If "sel_obj" is put to use, the "sem_handle" member will be removed. 
 	   For now it stays */
 	void *sem_handle;	/* for blocking/waking IPC msg receiver */
-	NCS_BOOL releasing;	/* flag from ncs_ipc_release to ncs_ipc_recv */
+	bool releasing;	/* flag from ncs_ipc_release to ncs_ipc_recv */
 	uint32_t ref_count;	/* reference count - number of instances attached
 				 * to this IPC */
 	char *name;		/* mbx task name */

@@ -113,8 +113,8 @@ uint32_t dta_svc_create(NCSDTA_CREATE *create)
 
 	m_DTA_LK(&inst->lock);
 
-	inst->created = TRUE;
-	inst->dts_exist = FALSE;
+	inst->created = true;
+	inst->dts_exist = false;
 	/* Versioning changes */
 	inst->act_dts_ver = DTA_MIN_ACT_DTS_MDS_SUB_PART_VER;
 
@@ -122,7 +122,7 @@ uint32_t dta_svc_create(NCSDTA_CREATE *create)
 
 	/*Create a Patricia tree for the DTA registration table instead of queue */
 	if (ncs_patricia_tree_init(&inst->reg_tbl, &pt_params) != NCSCC_RC_SUCCESS) {
-		inst->created = FALSE;
+		inst->created = false;
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Patricia tree init failed");
@@ -132,7 +132,7 @@ uint32_t dta_svc_create(NCSDTA_CREATE *create)
 	 * Get ADEST handle and then register with MDS.
 	 */
 	if (dta_get_ada_hdl() != NCSCC_RC_SUCCESS) {
-		inst->created = FALSE;
+		inst->created = false;
 		ncs_patricia_tree_destroy(&inst->reg_tbl);
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
@@ -145,7 +145,7 @@ uint32_t dta_svc_create(NCSDTA_CREATE *create)
 	m_DTA_UNLK(&inst->lock);
 
 	if (dta_mds_install_and_subscribe() != NCSCC_RC_SUCCESS) {
-		inst->created = FALSE;
+		inst->created = false;
 		ncs_patricia_tree_destroy(&inst->reg_tbl);
 		m_DTA_UNLK(&inst->lock);
 		m_DTA_LK_DLT(&inst->lock);
@@ -175,7 +175,7 @@ uint32_t dta_svc_destroy(NCSDTA_DESTROY *destroy)
 	uint32_t retval = NCSCC_RC_SUCCESS;
 	REG_TBL_ENTRY *svc;
 
-	if (inst->created == FALSE)
+	if (inst->created == false)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: DTA does not exist. First create DTA.");
 
 	m_DTA_LK(&inst->lock);
@@ -228,7 +228,7 @@ uint32_t dta_svc_destroy(NCSDTA_DESTROY *destroy)
 		retval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: MDS uninstall failed.");
 	}
 
-	inst->created = FALSE;
+	inst->created = false;
 
 	m_DTA_LK_DLT(&inst->lock);
 
@@ -299,7 +299,7 @@ uint32_t dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	/*uint32_t          send_pri; */
 	SS_SVC_ID svc_id = bind_svc->svc_id;
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "dta_reg_svc: DTA does not exist. First create DTA before registering your service.",
 					  svc_id);
@@ -329,8 +329,8 @@ uint32_t dta_reg_svc(NCS_BIND_SVC *bind_svc)
 
 	memset(svc, 0, sizeof(REG_TBL_ENTRY));
 	svc->svc_id = svc_id;
-	svc->log_msg = FALSE;
-	svc->enable_log = TRUE;
+	svc->log_msg = false;
+	svc->enable_log = true;
 	/* Restricting bufferring of logs till NOTICE level severity only */
 	svc->severity_bit_map = 0xFC;
 	svc->category_bit_map = 0xFFFFFFFF;
@@ -353,7 +353,7 @@ uint32_t dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	 * registration information to DTS at later time when DTS comes up. 
 	 * For buffering of log messages apply defaults and return success. 
 	 */
-	if (inst->dts_exist == FALSE) {
+	if (inst->dts_exist == false) {
 		m_DTA_UNLK(&inst->lock);
 		return NCSCC_RC_SUCCESS;
 	}
@@ -388,7 +388,7 @@ uint32_t dta_dereg_svc(SS_SVC_ID svc_id)
 	DTSV_MSG *msg;
 	uint32_t send_pri;
 
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "dta_dereg_svc: DTA does not exist. First create DTA before de-registering your service.",
 					  svc_id);
@@ -425,7 +425,7 @@ uint32_t dta_dereg_svc(SS_SVC_ID svc_id)
 	/* Remove entry from the Patricia tree */
 	ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)rmv_svc);
 
-	if (inst->dts_exist == FALSE) {
+	if (inst->dts_exist == false) {
 		if (0 != rmv_svc)
 			m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
 		m_DTA_UNLK(&inst->lock);
@@ -474,7 +474,7 @@ uint32_t dta_dereg_svc(SS_SVC_ID svc_id)
  ****************************************************************************/
 uint32_t dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
 {
-	if ((svc->enable_log == FALSE) ||
+	if ((svc->enable_log == false) ||
 	    ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
 	    ((svc->severity_bit_map & lmsg->hdr.severity) != lmsg->hdr.severity)) {
 		return NCSCC_RC_FAILURE;
@@ -490,18 +490,18 @@ uint32_t dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
  *
  ****************************************************************************/
 
-NCS_BOOL dta_match_service(void *key, void *qelem)
+bool dta_match_service(void *key, void *qelem)
 {
 	SS_SVC_ID *svc_id = (SS_SVC_ID *)key;
 	REG_TBL_ENTRY *svc = (REG_TBL_ENTRY *)qelem;
 
 	if (svc == NULL)
-		return FALSE;
+		return false;
 
 	if (*svc_id == svc->svc_id)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 /*****************************************************************************
@@ -642,7 +642,7 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 	DTA_BUFFERED_LOG *buf = NULL;
 
 	/* Check if DTA is created. Continue logging if DTA is created */
-	if (inst->created == FALSE) {
+	if (inst->created == false) {
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "ncs_logmsg: DTA does not exist. First create DTA before logging.", svc_id);
 	}
@@ -656,7 +656,7 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 	 * If FLS doesn't exist & number of buffer msgs is more than DTA_BUF_LIMIT
 	 * then drop the message and return failure.
 	 */
-	if ((inst->dts_exist == FALSE) && (list->num_of_logs >= DTA_BUF_LIMIT)) {
+	if ((inst->dts_exist == false) && (list->num_of_logs >= DTA_BUF_LIMIT)) {
 		m_DTA_UNLK(&inst->lock);
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
 					  "ncs_logmsg: DTS does not exist & DTA log buffer is full. Log message is dropped.",
@@ -693,7 +693,7 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 	}
 
 	/* Drop INFO/DEBUG messages at source during congestion */
-	if ((inst->dts_congested == TRUE) && (severity < NCSFL_SEV_NOTICE)) {
+	if ((inst->dts_congested == true) && (severity < NCSFL_SEV_NOTICE)) {
 		m_DTA_UNLK(&inst->lock);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1061,7 +1061,7 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 	}
 
 	/* Buffer log messgages if DTS is not up _or_ registration is not confirmed */
-	if ((inst->dts_exist == FALSE) || (svc->log_msg == FALSE)) {
+	if ((inst->dts_exist == false) || (svc->log_msg == false)) {
 		m_DTA_LK(&inst->lock);
 		buf = m_MMGR_ALLOC_DTA_BUFFERED_LOG;
 		if (!buf) {
@@ -1076,7 +1076,7 @@ uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
 
 		/* Set the msg format version based on how it is encoded above. 
 		   Usually it will be 1, because during DTS initialization, until
-		   active DTS shows up (i.e until inst->dts_exist becomes TRUE)
+		   active DTS shows up (i.e until inst->dts_exist becomes true)
 		   active DTS version is assumed to be 1.
 		 */
 		msg->data.data.msg.msg_fmat_ver = min_dts_ver;
@@ -1240,12 +1240,12 @@ uint32_t dta_do_evt(DTSV_MSG *msg)
 
 				memset(&flow_msg, '\0', sizeof(DTSV_MSG));
 				flow_msg.msg_type = DTA_FLOW_CONTROL;
-				while (dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS) {
+				while (dta_mds_sync_send(&flow_msg, inst, 200, false) != NCSCC_RC_SUCCESS) {
 					/* Set congestion flag */
-					inst->dts_congested = TRUE;
+					inst->dts_congested = true;
 				}
 
-				inst->dts_congested = FALSE;
+				inst->dts_congested = false;
 				inst->logs_received = 0;
 			}
 #endif

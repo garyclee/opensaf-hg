@@ -129,7 +129,7 @@ uint32_t destroy_vdest(MDS_DEST vdest)
     }
 }
 
-uint32_t create_named_vdest(NCS_BOOL persistent,
+uint32_t create_named_vdest(bool persistent,
                          NCS_VDEST_TYPE policy,
                          char *vname)
 {
@@ -179,7 +179,7 @@ uint32_t create_named_vdest(NCS_BOOL persistent,
       return NCSCC_RC_FAILURE;
     }
 }
-uint32_t destroy_named_vdest(NCS_BOOL non_persistent,
+uint32_t destroy_named_vdest(bool non_persistent,
                           MDS_DEST vdest,
                           char *vname)
 {
@@ -388,8 +388,8 @@ uint32_t mds_service_install(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_SVC_PVT_SUB_PART_VER svc_pvt_ver,
                           NCSMDS_SCOPE_TYPE install_scope,
-                          NCS_BOOL mds_q_ownership,
-                          NCS_BOOL fail_no_active_sends)
+                          bool mds_q_ownership,
+                          bool fail_no_active_sends)
 {
   int i;
   memset(&svc_to_mds_info, 0, sizeof(svc_to_mds_info));
@@ -1616,7 +1616,7 @@ uint32_t mds_query_vdest_for_role(MDS_HDL mds_hdl,
 
   svc_to_mds_info.info.query_dest.i_dest=dest;
   svc_to_mds_info.info.query_dest.i_svc_id=query_svc_id;
-  svc_to_mds_info.info.query_dest.i_query_for_role=TRUE;
+  svc_to_mds_info.info.query_dest.i_query_for_role= true;
   svc_to_mds_info.info.query_dest.info.query_for_role.i_anc=anc;
 
   if(ncsmds_api(&svc_to_mds_info)==NCSCC_RC_SUCCESS)
@@ -1658,7 +1658,7 @@ uint32_t mds_query_vdest_for_anchor(MDS_HDL mds_hdl,
 
   svc_to_mds_info.info.query_dest.i_dest=dest;
   svc_to_mds_info.info.query_dest.i_svc_id=query_svc_id;
-  svc_to_mds_info.info.query_dest.i_query_for_role=FALSE;
+  svc_to_mds_info.info.query_dest.i_query_for_role=false;
   svc_to_mds_info.info.query_dest.info.query_for_anc.i_vdest_rl=vdest_rl;
   
 

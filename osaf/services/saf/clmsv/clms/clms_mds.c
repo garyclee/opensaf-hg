@@ -1035,7 +1035,7 @@ static uint32_t clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
 	CLMSV_CLMS_EVT *clmsv_evt;
 
-	if (clms_cb->is_quiesced_set != TRUE)
+	if (clms_cb->is_quiesced_set != true)
 		return NCSCC_RC_SUCCESS;
 
     /** allocate an CLMSV_CLMS_EVENT now **/
@@ -1210,7 +1210,7 @@ static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
 	clms_cb->vaddr = CLMS_VDEST_ID;
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_persistent = FALSE;	/* Up-to-the application */
+	vda_info.info.vdest_create.i_persistent = false;	/* Up-to-the application */
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	vda_info.info.vdest_create.info.specified.i_vdest = clms_cb->vaddr;
 
@@ -1272,7 +1272,7 @@ uint32_t clms_mds_init(CLMS_CB * cb)
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_svc_cb = clms_mds_callback;
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	mds_info.info.svc_install.i_mds_q_ownership = false;
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = CLMS_SVC_PVT_SUBPART_VERSION;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info))) {

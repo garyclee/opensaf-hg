@@ -46,11 +46,11 @@ static uint32_t eda_hdl_cbk_dispatch_block(EDA_CB *, EDA_CLIENT_HDL_REC *);
  * Arguments     : arg     - argument to be passed.
  *                 msg     - Event start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+bool eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	EDSV_MSG *cbk, *pnext;
 
@@ -60,7 +60,7 @@ NCS_BOOL eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 		eda_msg_destroy(cbk);
 		cbk = pnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -880,7 +880,7 @@ static uint32_t eda_hdl_cbk_dispatch_block(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_r
 			/* now that we are done with this rec, free the resources */
 			eda_msg_destroy(cbk_msg);
 			/* check to see the validity of the hdl. */
-			if (FALSE == eda_validate_eda_client_hdl(cb, hdl_rec))
+			if (false == eda_validate_eda_client_hdl(cb, hdl_rec))
 				return rc;
 		} else
 			return rc;	/* FIX to handle finalize clean up of mbx */

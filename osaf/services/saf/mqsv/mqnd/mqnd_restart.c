@@ -47,7 +47,7 @@ uint32_t mqnd_restart_init(MQND_CB *cb)
 {
 	SaAisErrorT rc = NCSCC_RC_SUCCESS;
 
-	if (cb->is_create_ckpt == FALSE) {
+	if (cb->is_create_ckpt == false) {
 		/*Build the database */
 		m_LOG_MQSV_ND(MQND_RESTART_INIT_OPEN_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, SA_AIS_OK, __FILE__,
 			      __LINE__);
@@ -59,9 +59,9 @@ uint32_t mqnd_restart_init(MQND_CB *cb)
 			/*Should the shared memory be deleted at this stage */
 			return rc;
 		}
-		cb->is_restart_done = TRUE;
+		cb->is_restart_done = true;
 	} else
-		cb->is_restart_done = TRUE;
+		cb->is_restart_done = true;
 
 	mqnd_remove_mqalist(cb);
 	return rc;
@@ -166,7 +166,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
 		} else if (shm_base_addr[i].valid)
 			assert(0);
 	}
-	cb->is_restart_done = TRUE;
+	cb->is_restart_done = true;
 	return rc;
 }
 
@@ -329,7 +329,7 @@ static uint32_t mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 			qnode->qinfo.tmr.qhdl = qnode->qinfo.queueHandle;
 			qnode->qinfo.tmr.uarg = cb->cb_hdl;
 			qnode->qinfo.tmr.tmr_id = 0;
-			qnode->qinfo.tmr.is_active = FALSE;
+			qnode->qinfo.tmr.is_active = false;
 
 			rc = mqnd_tmr_start(&qnode->qinfo.tmr, timeout);
 			m_LOG_MQSV_ND(MQND_RETENTION_TMR_STARTED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc, __FILE__,

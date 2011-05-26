@@ -119,9 +119,9 @@ typedef struct avnd_su_tag {
 	/* su attributes */
 	uint32_t flag;		/* su attributes */
 
-	/* Update received flag, which will normally be FALSE and will be
-	 * TRUE if updates are received from the AVD on fail-over.*/
-	NCS_BOOL avd_updt_flag;
+	/* Update received flag, which will normally be false and will be
+	 * true if updates are received from the AVD on fail-over.*/
+	bool avd_updt_flag;
 
 	/* error recovery escalation params */
 	AVND_ERR_ESC_LEVEL su_err_esc_level;	/* curr escalation level of this su */
@@ -154,7 +154,7 @@ typedef struct avnd_su_tag {
 
 	/* To have the knowledge in AvND if this su belongs to NCS_SG */
 	SaBoolT is_ncs;
-	NCS_BOOL su_is_external;	/*indicates if this SU is external */
+	bool su_is_external;	/*indicates if this SU is external */
 
 } AVND_SU;
 
@@ -195,11 +195,11 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ARE_ALL_SI_ASSIGNED(su, are) \
 { \
    AVND_SU_SI_REC *curr = 0; \
-   (are) = TRUE; \
+   (are) = true; \
    for (curr = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list); \
         curr && m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr); \
         curr = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr->su_dll_node)); \
-   if (curr) (are) = FALSE; \
+   if (curr) (are) = false; \
 }
 
 /* macros for su oper state */
@@ -213,24 +213,24 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_IS_ENABLED(su, is) \
 { \
    AVND_COMP *curr = 0; \
-   (is) = TRUE; \
+   (is) = true; \
    for (curr = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)); \
         curr && m_AVND_COMP_OPER_STATE_IS_ENABLED(curr); \
         curr = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr->su_dll_node))); \
-   if (curr) (is) = FALSE; \
+   if (curr) (is) = false; \
 }
 
 /* macro to determine if all the pi comps in an su are instantiated */
 #define m_AVND_SU_IS_INSTANTIATED(su, is) \
 { \
    AVND_COMP *curr = 0; \
-   (is) = TRUE; \
+   (is) = true; \
    for (curr = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)); \
         curr; \
         curr = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr->su_dll_node))) { \
       if ( m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(curr) && \
            !m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(curr) ) { \
-         (is) = FALSE; \
+         (is) = false; \
          break; \
 } \
 } \
@@ -379,7 +379,7 @@ uint32_t avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *
 uint32_t avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
 uint32_t avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL);
+void avnd_check_su_shutdown_done(struct avnd_cb_tag *, bool);
 AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
 							 AVND_SU *su,
 							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc);

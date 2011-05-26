@@ -319,7 +319,7 @@ static uint32_t clmna_mds_init(void)
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
 	mds_info.info.svc_install.i_svc_cb = clmna_mds_callback;	/* callback */
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;	/* CLMNA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_q_ownership = false;	/* CLMNA doesn't own the mds queue */
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = CLMNA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {

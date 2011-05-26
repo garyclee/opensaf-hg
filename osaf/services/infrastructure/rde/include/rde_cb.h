@@ -37,8 +37,8 @@ typedef struct {
 	SYSF_MBX mbx;
 	const char *prog_name;
 	NCSCONTEXT task_handle;
-	NCS_BOOL task_terminate;
-	NCS_BOOL fabric_interface;
+	bool task_terminate;
+	bool fabric_interface;
 	NCS_OS_SEM semaphore;
 	uint32_t select_timeout;
 

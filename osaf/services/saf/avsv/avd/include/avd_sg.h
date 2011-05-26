@@ -185,7 +185,7 @@ typedef struct avd_sg_tag {
 	struct avd_amf_sg_type_tag *sg_type;
 	struct avd_sg_tag *sg_list_app_next;
 	struct avd_app_tag *app;
-	NCS_BOOL equal_ranked_su; /* This flag is set when ranks of all SU is the same.
+	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
 				     It is used in equal distribution of SIs on SU 
 				     in Nway, N+M and Nway-Act Red models.*/
 	 struct avd_su_tag * max_assigned_su;
@@ -252,7 +252,7 @@ typedef struct avd_amf_sg_type_tag {
  * identify if the given SU is present in the list
  *
  * Input: su - the pointer to the SU to be checked in the list.
- *        flag - the NCS_BOOL field indicating if found or not.
+ *        flag - the bool field indicating if found or not.
  *        
  *
  * Return: none.
@@ -264,10 +264,10 @@ typedef struct avd_amf_sg_type_tag {
 #define m_AVD_CHK_OPLIST(i_su,flag) \
 {\
    AVD_SG_OPER *l_suopr;\
-   flag = FALSE;\
+   flag = false;\
    if (i_su->sg_of_su->su_oper_list.su == i_su)\
    {\
-      flag = TRUE;\
+      flag = true;\
    }else if (i_su->sg_of_su->su_oper_list.next != NULL)\
    {\
       l_suopr = i_su->sg_of_su->su_oper_list.next;\
@@ -275,7 +275,7 @@ typedef struct avd_amf_sg_type_tag {
       {\
          if (l_suopr->su == i_su)\
          {\
-            flag = TRUE;\
+            flag = true;\
             l_suopr = NULL;\
             continue; \
          }\

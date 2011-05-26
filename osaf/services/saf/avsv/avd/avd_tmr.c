@@ -76,13 +76,13 @@ uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 		m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
 	}
 
-	if (tmr->is_active == TRUE) {
-		tmr->is_active = FALSE;
+	if (tmr->is_active == true) {
+		tmr->is_active = false;
 		m_NCS_TMR_STOP(tmr->tmr_id);
 	}
 
 	m_NCS_TMR_START(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
-	tmr->is_active = TRUE;
+	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id)
 		return NCSCC_RC_FAILURE;
@@ -112,8 +112,8 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 	}
 
 	/* Stop the timer if it is active... */
-	if (tmr->is_active == TRUE) {
-		tmr->is_active = FALSE;
+	if (tmr->is_active == true) {
+		tmr->is_active = false;
 		m_NCS_TMR_STOP(tmr->tmr_id);
 	}
 
@@ -148,8 +148,8 @@ void avd_tmr_exp(void *uarg)
 	 * Check if this timer was stopped after "avd_tmr_exp" was called 
 	 * but before entering this code.
 	 */
-	if (TRUE == tmr->is_active) {
-		tmr->is_active = FALSE;
+	if (true == tmr->is_active) {
+		tmr->is_active = false;
 
 		/* create & send the timer event */
 		evt = calloc(1, sizeof(AVD_EVT));

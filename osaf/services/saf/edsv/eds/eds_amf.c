@@ -91,7 +91,7 @@ uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 	eds_mds_change_role(cb);
 	cb->amf_invocation_id = invocation;
 
-	cb->is_quisced_set = TRUE;
+	cb->is_quisced_set = true;
 	TRACE("I AM IN HA AMF QUIESCED STATE");
 
 	/* Give up our implementer role */
@@ -197,7 +197,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 	EDS_CB *eds_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
@@ -239,24 +239,24 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		/* Update control block */
 		eds_cb->ha_state = new_haState;
 
-		if (eds_cb->csi_assigned == FALSE) {
-			eds_cb->csi_assigned = TRUE;
+		if (eds_cb->csi_assigned == false) {
+			eds_cb->csi_assigned = true;
 			/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 		} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 			eds_cb->ckpt_state = COLD_SYNC_IDLE;
 		}
 		if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE)) {
-			role_change = FALSE;
+			role_change = false;
 		}
 
 		/*
 		 * Handle Stby to Stby role change.
 		 */
 		if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY)) {
-			role_change = FALSE;
+			role_change = false;
 		}
 
-		if (role_change == TRUE) {
+		if (role_change == true) {
 			if ((rc = eds_mds_change_role(eds_cb)) != NCSCC_RC_SUCCESS) {
 				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
 					     __FILE__, __LINE__, eds_cb->mds_role);
@@ -337,7 +337,7 @@ void eds_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 	} else {
 		saAmfResponse(eds_cb->amf_hdl, invocation, error);
 		/* Clean up all internal structures */
-		eds_remove_reglist_entry(eds_cb, 0, TRUE);
+		eds_remove_reglist_entry(eds_cb, 0, true);
 
 		/* Destroy the cb */
 		eds_cb_destroy(eds_cb);
@@ -413,7 +413,7 @@ static uint32_t eds_healthcheck_start(EDS_CB *eds_cb)
 	SaAmfHealthcheckKeyT Healthy;
 	char *health_key = 0;
 
-	if (eds_cb->healthCheckStarted == TRUE) {
+	if (eds_cb->healthCheckStarted == true) {
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -434,7 +434,7 @@ static uint32_t eds_healthcheck_start(EDS_CB *eds_cb)
 	if (error != SA_AIS_OK) {
 		return NCSCC_RC_FAILURE;
 	} else {
-		eds_cb->healthCheckStarted = TRUE;
+		eds_cb->healthCheckStarted = true;
 		return NCSCC_RC_SUCCESS;
 	}
 }
@@ -787,16 +787,16 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
  * the input node_id is present in the list or not.
  *
  * Input   : pointer to eds CB, the node_id.
- * Returns : TRUE/FALSE. 
+ * Returns : true/false. 
  **************************************************************************/
 
-NCS_BOOL is_node_a_member(EDS_CB *cb, NODE_ID node_id)
+bool is_node_a_member(EDS_CB *cb, NODE_ID node_id)
 {
 	NODE_INFO *cn = NULL;
 
 	if ((cn = (NODE_INFO *)ncs_patricia_tree_get(&cb->eds_cluster_nodes_list,(uint8_t *)&node_id)) == NULL)
-		return FALSE;
+		return false;
 	else
-		return TRUE;
+		return true;
 }
 

@@ -72,7 +72,7 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 	svc_to_mds_info.info.svc_install.i_yr_svc_hdl = pwe_hdl;
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = mbcsv_mds_callback;
-	svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
 	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = MBCSV_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
@@ -839,7 +839,7 @@ uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 
 uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		    SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-		    NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
+		    bool last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
 	MBCSV_EVT *mm;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;

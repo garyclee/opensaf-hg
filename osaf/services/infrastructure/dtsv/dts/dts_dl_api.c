@@ -43,7 +43,7 @@
 
 #include "dts.h"
 
-static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
+static bool dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
 #define DTS_ASCII_SPEC_CONFIG_FILE	PKGSYSCONFDIR "/dts_ascii_spec_config"
 #define m_DTS_SLOT_ID_FILE		PKGSYSCONFDIR "/slot_id"
@@ -105,9 +105,9 @@ uint32_t dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 #if (DTS_SIM_TEST_ENV == 1)
 	if ('n' == ncs_util_get_char_option(req_info->info.create.argc, req_info->info.create.argv, "DTS_TEST=")) {
-		inst->is_test = FALSE;
+		inst->is_test = false;
 	} else
-		inst->is_test = TRUE;
+		inst->is_test = true;
 #endif
 
 	/* Initialize SAF stuff */
@@ -159,7 +159,7 @@ uint32_t dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to perform lib destroy on RDA");
 	}
 
-	inst->in_sync = TRUE;
+	inst->in_sync = true;
 
 	/* Attempt to open console device for logging */
 	inst->cons_fd = -1;
@@ -218,9 +218,9 @@ uint32_t dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 		/* Do cleanup activities */
 		m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
 		m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
-		inst->created = FALSE;
+		inst->created = false;
 		dtsv_mbcsv_deregister(inst);
-		dts_mds_unreg(inst, TRUE);
+		dts_mds_unreg(inst, true);
 		dtsv_clear_asciispec_tree(inst);
 		dtsv_clear_libname_tree(inst);
 		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
@@ -251,7 +251,7 @@ uint32_t dts_lib_destroy(void)
 {
 
 /*#if (DTS_SIM_TEST_ENV == 1)
-   if (dts_cb.amf_init == FALSE)
+   if (dts_cb.amf_init == false)
    {*/
 	DTS_LM_ARG arg;
 
@@ -282,11 +282,11 @@ uint32_t dts_lib_destroy(void)
  * Arguments     : arg     - argument to be passed.
  *                 mbx_msg - Message start pointer.
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *
  * Notes         : None.
  *****************************************************************************/
-static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
+static bool dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 {
 	DTSV_MSG *msg = (DTSV_MSG *)mbx_msg;
 	DTSV_MSG *mnext;
@@ -299,7 +299,7 @@ static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 
 		msg = mnext;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************\

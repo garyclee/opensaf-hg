@@ -49,7 +49,7 @@ typedef struct avnd_cb_tag {
 	MDS_HDL mds_hdl;	/* mds handle */
 	MDS_DEST avnd_dest;	/* AvND mds addr */
 	MDS_DEST avd_dest;	/* AvD mds addr */
-	NCS_BOOL is_avd_down;	/* Temp: Indicates if AvD went down */
+	bool is_avd_down;	/* Temp: Indicates if AvD went down */
 
 	/* cb related params */
 	NCS_LOCK lock;		/* cb lock */
@@ -124,7 +124,7 @@ typedef struct avnd_cb_tag {
 	SaAmfHAStateT avail_state_avnd;
 	/* Queue for keeping async update messages  on Standby */
 	AVND_ASYNC_UPDT_MSG_QUEUE_LIST async_updt_msgs;
-	NCS_BOOL is_quisced_set;
+	bool is_quisced_set;
 	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 
 	SaImmHandleT immOmHandle;

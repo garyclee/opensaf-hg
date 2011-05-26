@@ -362,7 +362,7 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 	AVA_HDL_REC *hdl_rec = 0;
 	AVSV_NDA_AVA_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	NCS_BOOL agent_flag = FALSE;	/* flag = FALSE, we should not call agent shutdown */
+	bool agent_flag = false;	/* flag = false, we should not call agent shutdown */
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* initialize the msg */
@@ -403,7 +403,7 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 
 	/* Fialize the environment */
 	if (SA_AIS_OK == rc && cb->pend_dis == 0)
-		agent_flag = TRUE;
+		agent_flag = true;
 	else if (SA_AIS_OK == rc && cb->pend_dis > 0)
 		cb->pend_fin++;
 
@@ -415,7 +415,7 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT hdl)
 	avsv_nda_ava_msg_content_free(&msg);
 
 	/* we are not in any dispatch context, we can do agent shutdown */
-	if (agent_flag == TRUE) {
+	if (agent_flag == true) {
 		ncs_ava_shutdown();
 		ncs_agents_shutdown();
 	}
@@ -1302,7 +1302,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 	AVA_HDL_REC *hdl_rec = 0;
 	AVSV_NDA_AVA_MSG msg;
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
-	NCS_BOOL is_syn = FALSE, create_memory = FALSE;
+	bool is_syn = false, create_memory = false;
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t i = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
@@ -1350,15 +1350,15 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
-		is_syn = TRUE;
+		is_syn = true;
 	}
 
 	/* Check whether we have to allocate the memory */
 	if ((flags & SA_TRACK_CURRENT) && buf) {
 		if (buf->notification == NULL) {
 			/* This means that we have to allocate the memory. In this case we will ignore buf->numberOfItems */
-			is_syn = TRUE;
-			create_memory = TRUE;
+			is_syn = true;
+			create_memory = true;
 
 		}
 	}
@@ -1379,7 +1379,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 
 			/* get the notify buffer from the resp msg */
 			rsp_buf = &msg_rsp->info.cbk_info->param.pg_track.buf;
-			if (create_memory == FALSE) {
+			if (create_memory == false) {
 				/* now copy the msg-resp buffer contents to appl provided buffer */
 				if (rsp_buf->numberOfItems <= buf->numberOfItems) {
 					/* user supplied buffer is sufficient.. copy all the members */
@@ -1402,9 +1402,9 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 						buf->notification[i].member.compName.length =
 						    buf->notification[i].member.compName.length;
 				}
-			} else {	/* if(create_memory == FALSE) */
+			} else {	/* if(create_memory == false) */
 
-				/* create_momory is TRUE, so let us create the memory for the Use, User has to free it. */
+				/* create_momory is true, so let us create the memory for the Use, User has to free it. */
 				buf->numberOfItems = rsp_buf->numberOfItems;
 				if (buf->numberOfItems != 0) {
 					buf->notification =
@@ -1427,7 +1427,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 
 				}
 
-			}	/* else of if(create_memory == FALSE) */
+			}	/* else of if(create_memory == false) */
 		} else {
 			/* => it's a regular resp msg */
 			assert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);

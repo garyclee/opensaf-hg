@@ -365,7 +365,7 @@ if (new Role = Active / Standby)
 			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_QUIESCED, TRUE);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_QUIESCED, true);
 		/* timer started in tbl_update */
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
@@ -399,7 +399,7 @@ if (new Role = Active / Standby)
 			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_ACTIVE, TRUE);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_ACTIVE, true);
 		/* timer started in tbl_update */
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
@@ -410,7 +410,7 @@ if (new Role = Active / Standby)
 
 	} else if (current_role == V_DEST_RL_QUIESCED && info->info.vdest_config.i_new_role == V_DEST_RL_STANDBY) {
 		/* Just update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_STANDBY, TRUE);
+		mds_vdest_tbl_update_role(local_vdest_id, V_DEST_RL_STANDBY, true);
 		/* timer stopped in tbl_update */
 
 		m_MDS_LOG_NOTIFY("MCM_API : vdest_chg_role : VDEST id = %d : Role Changed : Quiesced -> Standby",
@@ -449,7 +449,7 @@ if (new Role = Active / Standby)
 			    (&gl_mds_mcm_cb->svc_list, (uint8_t *)&svc_info->svc_hdl);
 		}
 		/* Update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, TRUE);
+		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, true);
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			/* Install vdest instance */
@@ -488,7 +488,7 @@ if (new Role = Active / Standby)
 		}
 
 		/* Update the role */
-		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, TRUE);
+		mds_vdest_tbl_update_role(local_vdest_id, info->info.vdest_config.i_new_role, true);
 
 		if (local_vdest_policy == NCS_VDEST_TYPE_MxN) {
 			/* Install vdest instance */
@@ -772,7 +772,7 @@ uint32_t mds_mcm_svc_install(NCSMDS_INFO *info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (info->info.svc_install.i_mds_q_ownership == FALSE) {
+	if (info->info.svc_install.i_mds_q_ownership == false) {
 		if (info->i_svc_id >= NCSMDS_SVC_ID_EXTERNAL_MIN) {
 			m_MDS_LOG_ERR
 			    ("MCM_API : svc_install : FAILED : svc id = %d , Should use the MDS Q Ownership model",
@@ -1273,7 +1273,7 @@ uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 		/* Get Service hdl */
 		mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &local_svc_hdl);
 
-		if (info->info.query_dest.i_query_for_role == TRUE) {	/* Return Role given Anchor */
+		if (info->info.query_dest.i_query_for_role == true) {	/* Return Role given Anchor */
 			status = mds_subtn_res_tbl_get_by_adest(local_svc_hdl, info->info.query_dest.i_svc_id,
 								(MDS_VDEST_ID)info->info.query_dest.i_dest,
 								info->info.query_dest.info.query_for_role.i_anc,
@@ -1308,9 +1308,9 @@ uint32_t mds_mcm_dest_query(NCSMDS_INFO *info)
 		}
 		/* Store common output parameters */
 		if (subtn_result_info->key.adest == m_MDS_GET_ADEST)
-			info->info.query_dest.o_local = TRUE;
+			info->info.query_dest.o_local = true;
 		else
-			info->info.query_dest.o_local = FALSE;
+			info->info.query_dest.o_local = false;
 		/* Filling node id as previously it was checked for 0 for vdest/adest */
 		info->info.query_dest.o_node_id = m_MDS_GET_NODE_ID_FROM_ADEST(subtn_result_info->key.adest);
 		info->info.query_dest.o_adest = subtn_result_info->key.adest;
@@ -1501,7 +1501,7 @@ uint32_t mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
 uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		     NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
 		     NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
-		     NCS_BOOL my_pcon,
+		     bool my_pcon,
 		     MDS_SVC_HDL local_svc_hdl,
 		     MDS_SUBTN_REF_VAL subtn_ref_val,
 		     MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
@@ -1511,7 +1511,7 @@ uint32_t mds_mcm_svc_up(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 	MDS_VIEW local_subtn_view;
 	MDS_DEST active_adest;
 	V_DEST_RL dest_role;
-	NCS_BOOL tmr_running;
+	bool tmr_running;
 	NCSMDS_CALLBACK_INFO cbinfo;
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *active_subtn_result_info = NULL;
@@ -1665,7 +1665,7 @@ else (entry exists)
 								       svc_id,
 								       (MDS_VDEST_ID)vdest_id,
 								       &active_adest,
-								       &tmr_running, &subtn_result_info, TRUE);
+								       &tmr_running, &subtn_result_info, true);
 					/* check if any other active present */
 					if (status == NCSCC_RC_FAILURE) {	/* No active present */
 						/* Add entry to subscription result table */
@@ -1734,7 +1734,7 @@ else (entry exists)
 						/* Here Current active if any will get replaced */
 
 						/* If it was Awaiting active give NEW ACTIVE to user */
-						if (tmr_running == TRUE) {
+						if (tmr_running == true) {
 							/* Call user callback UP */
 							status = NCSCC_RC_SUCCESS;
 							status =
@@ -1839,7 +1839,7 @@ else (entry exists)
 								       svc_id,
 								       (MDS_VDEST_ID)vdest_id,
 								       &active_adest,
-								       &tmr_running, &subtn_result_info, TRUE);
+								       &tmr_running, &subtn_result_info, true);
 
 					/* Add entry first */
 					mds_subtn_res_tbl_add(local_svc_hdl,
@@ -1876,7 +1876,7 @@ else (entry exists)
 						     m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver,
 						     archword_type);
 
-					} else if (tmr_running == TRUE) {	/* Await active entry is present */
+					} else if (tmr_running == true) {	/* Await active entry is present */
 
 						/* Call user callback UP */
 						status = NCSCC_RC_SUCCESS;
@@ -1982,7 +1982,7 @@ else (entry exists)
 								       svc_id,
 								       (MDS_VDEST_ID)vdest_id,
 								       &active_adest,
-								       &tmr_running, &active_subtn_result_info, TRUE);
+								       &tmr_running, &active_subtn_result_info, true);
 
 					if (status == NCSCC_RC_FAILURE) {	/* No other active entry exist */
 
@@ -2123,7 +2123,7 @@ else (entry exists)
 											svc_sub_part_ver,
 											archword_type);
 
-							if ((tmr_running == TRUE)
+							if ((tmr_running == true)
 							    || (local_subtn_view == MDS_VIEW_NORMAL)) {
 								/* Call user callback UP */
 								status = NCSCC_RC_SUCCESS;
@@ -2162,7 +2162,7 @@ else (entry exists)
 					mds_subtn_res_tbl_get(local_svc_hdl,
 							      svc_id,
 							      (MDS_VDEST_ID)vdest_id,
-							      &active_adest, &tmr_running, &subtn_result_info, TRUE);
+							      &active_adest, &tmr_running, &subtn_result_info, true);
 					if (active_adest == adest) {	/* This entry is going down */
 
 						mds_subtn_res_tbl_remove_active(local_svc_hdl,
@@ -2323,11 +2323,11 @@ else (entry exists)
 									       vdest_id,
 									       &active_adest,
 									       &tmr_running,
-									       &active_subtn_result_info, TRUE);
+									       &active_subtn_result_info, true);
 
 						if (status == NCSCC_RC_SUCCESS) {	/* Active or Await active entry exists */
 
-							if (tmr_running == TRUE) {	/* If Await active exist then point to this one as active */
+							if (tmr_running == true) {	/* If Await active exist then point to this one as active */
 
 								mds_subtn_res_tbl_change_active(local_svc_hdl,
 												svc_id,
@@ -2416,11 +2416,11 @@ else (entry exists)
 									       vdest_id,
 									       &active_adest,
 									       &tmr_running,
-									       &active_subtn_result_info, TRUE);
+									       &active_subtn_result_info, true);
 
 						if (status == NCSCC_RC_SUCCESS) {	/* Active or Await active entry exists */
 
-							if (tmr_running == TRUE) {	/* Timer is running so active entry points to NULL */
+							if (tmr_running == true) {	/* Timer is running so active entry points to NULL */
 								/* Do nothing */
 							} else {	/* Active entry exist */
 
@@ -2543,7 +2543,7 @@ else (entry exists)
 uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 		       NCSMDS_SCOPE_TYPE scope, MDS_VDEST_ID vdest_id,
 		       NCS_VDEST_TYPE vdest_policy, MDS_DEST adest,
-		       NCS_BOOL my_pcon,
+		       bool my_pcon,
 		       MDS_SVC_HDL local_svc_hdl,
 		       MDS_SUBTN_REF_VAL subtn_ref_val,
 		       MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
@@ -2552,7 +2552,7 @@ uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL role,
 	NCSMDS_SCOPE_TYPE local_subtn_scope;
 	MDS_VIEW local_subtn_view;
 	MDS_DEST active_adest;
-	NCS_BOOL tmr_running;
+	bool tmr_running;
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *next_active_result_info = NULL;
 	V_DEST_RL dest_role;
@@ -2728,7 +2728,7 @@ else (entry exists)
 				status = mds_subtn_res_tbl_get(local_svc_hdl,
 							       svc_id,
 							       vdest_id,
-							       &active_adest, &tmr_running, &subtn_result_info, TRUE);
+							       &active_adest, &tmr_running, &subtn_result_info, true);
 
 				/* First delete the entry */
 				mds_subtn_res_tbl_del(local_svc_hdl, svc_id, vdest_id,
@@ -2764,7 +2764,7 @@ else (entry exists)
 						     m_MDS_GET_PROCESS_ID_FROM_ADEST(adest), svc_sub_part_ver);
 						{
 							MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
-							NCS_BOOL adest_exists = FALSE;
+							bool adest_exists = false;
 
 							/* if no adest remains for this svc, send MDS_DOWN */
 							status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
@@ -2773,14 +2773,14 @@ else (entry exists)
 							{
 								if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
 								{
-									adest_exists = TRUE;
+									adest_exists = true;
 									break;
 								}
 
 								status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
 							}
 
-							if (adest_exists == FALSE)
+							if (adest_exists == false)
 							{
 								/* No other adest exists for this svc_id, Call user callback DOWN */
 								status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
@@ -2897,7 +2897,7 @@ else (entry exists)
 				}
 				{
 					MDS_SUBSCRIPTION_RESULTS_INFO *subtn_result_info = NULL;
-					NCS_BOOL adest_exists = FALSE;
+					bool adest_exists = false;
 
 					/* if no adest remains for this svc, send MDS_DOWN */
 					status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
@@ -2906,14 +2906,14 @@ else (entry exists)
 					{
 						if (subtn_result_info->key.vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
 						{
-							adest_exists = TRUE;
+							adest_exists = true;
 							break;
 						}
 
 						status = mds_subtn_res_tbl_getnext_any (local_svc_hdl, svc_id, &subtn_result_info);
 					}
 
-					if (adest_exists == FALSE)
+					if (adest_exists == false)
 					{
 						/* No other adest exists for this svc_id, Call user callback DOWN */
 						status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
@@ -2985,7 +2985,7 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
 	cbinfo->info.node_evt.node_id = node_id;
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
-	if (local_svc_info->q_ownership == TRUE) {
+	if (local_svc_info->q_ownership == true) {
 
 		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
@@ -3064,7 +3064,7 @@ uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
 	cbinfo->info.node_evt.node_id = node_id;
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
-	if (local_svc_info->q_ownership == TRUE) {
+	if (local_svc_info->q_ownership == true) {
 
 		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
@@ -3199,7 +3199,7 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 
 	/* If it is up check for subscription timer running or not */
 	/* If running raise selection objects of blocking send */
-	if (local_subtn_info->tmr_flag == TRUE && (event_type == NCSMDS_UP || event_type == NCSMDS_RED_UP)) {	/* Subscription timer is running */
+	if (local_subtn_info->tmr_flag == true && (event_type == NCSMDS_UP || event_type == NCSMDS_RED_UP)) {	/* Subscription timer is running */
 
 		curr_queue_element = local_subtn_info->await_disc_queue;
 
@@ -3292,7 +3292,7 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 	cbinfo->info.svc_evt.i_rem_svc_pvt_ver = svc_sub_part_ver;
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
-	if (local_svc_info->q_ownership == TRUE) {
+	if (local_svc_info->q_ownership == true) {
 
 		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
 			/* Message Queuing failed */
@@ -3338,7 +3338,7 @@ uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 	m_MDS_LOG_INFO("MCM_API : quieseced_tmr expired for VDEST id = %d", vdest_id);
 
 	/* Update vdest role to Standby */
-	mds_vdest_tbl_update_role(vdest_id, V_DEST_RL_STANDBY, FALSE);
+	mds_vdest_tbl_update_role(vdest_id, V_DEST_RL_STANDBY, false);
 	/* Turn off timer done in update_role */
 
 	/* Send Quiesced ack event to all services on this vdest */
@@ -3358,7 +3358,7 @@ uint32_t mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
 		cbinfo->info.quiesced_ack.i_dummy = 1;	/* dummy */
 
 		/* Post to mail box If Q Ownership is enabled Else Call user callback */
-		if (local_svc_info->q_ownership == TRUE) {
+		if (local_svc_info->q_ownership == true) {
 
 			if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) !=
 			    NCSCC_RC_SUCCESS) {
@@ -3411,7 +3411,7 @@ uint32_t mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 	}
 
 	/* Turn timer flag off */
-	subtn_info->tmr_flag = FALSE;
+	subtn_info->tmr_flag = false;
 	/* Point tmr_req_info to NULL, freeding will be done in expiry function */
 	subtn_info->tmr_req_info = NULL;
 	/* Destroy timer as it will never be started again */
@@ -3460,7 +3460,7 @@ uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *active_subtn_result_info;
 	MDS_DEST active_adest;
-	NCS_BOOL tmr_running;
+	bool tmr_running;
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_await_active_tmr_expiry");
@@ -3469,7 +3469,7 @@ uint32_t mds_mcm_await_active_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc
 		       m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl), sub_svc_id, vdest_id);
 
 	mds_subtn_res_tbl_get(svc_hdl, sub_svc_id, vdest_id, &active_adest,
-			      &tmr_running, &active_subtn_result_info, TRUE);
+			      &tmr_running, &active_subtn_result_info, true);
 	/* Delete all pending messages */
 	mds_await_active_tbl_del(active_subtn_result_info->info.active_vdest.active_route_info->await_active_queue);
 
@@ -3564,7 +3564,7 @@ uint32_t mds_mcm_subtn_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS
 
 *********************************************************/
 uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE remote_scope,
-			     MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, NCS_BOOL my_pcon)
+			     MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, bool my_pcon)
 {
 
 	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_validate_scope");

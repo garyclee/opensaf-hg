@@ -35,8 +35,8 @@ typedef struct cpd_a2s_ckpt_create {
 	SaNameT ckpt_name;
 	SaCkptCheckpointHandleT ckpt_id;
 	SaCkptCheckpointCreationAttributesT ckpt_attrib;
-	NCS_BOOL is_unlink_set;
-	NCS_BOOL is_active_exists;
+	bool is_unlink_set;
+	bool is_active_exists;
 	MDS_DEST active_dest;
 	SaTimeT create_time;
 	uint32_t num_users;
@@ -49,7 +49,7 @@ typedef struct cpd_a2s_ckpt_create {
 
 typedef struct cpd_a2s_ckpt_unlink {
 	SaNameT ckpt_name;
-	NCS_BOOL is_unlink_set;
+	bool is_unlink_set;
 
 } CPD_A2S_CKPT_UNLINK;
 
@@ -59,8 +59,8 @@ typedef struct cpd_a2s_ckpt_usr_info {
 	uint32_t num_writer;
 	uint32_t num_reader;
 	uint32_t num_sections;
-	NCS_BOOL ckpt_on_scxb1;
-	NCS_BOOL ckpt_on_scxb2;
+	bool ckpt_on_scxb1;
+	bool ckpt_on_scxb2;
 
 } CPD_A2S_CKPT_USR_INFO;
 

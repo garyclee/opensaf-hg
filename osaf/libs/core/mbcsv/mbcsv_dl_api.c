@@ -92,7 +92,7 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	NCS_PATRICIA_PARAMS pt_params;
 	uint32_t rc = SA_AIS_OK;
 
-	if (mbcsv_cb.created == TRUE) {
+	if (mbcsv_cb.created == true) {
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_INIT, "Lib init request failed: MBCA already created.");
 	}
 
@@ -133,7 +133,7 @@ uint32_t mbcsv_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 #endif
 
-	mbcsv_cb.created = TRUE;
+	mbcsv_cb.created = true;
 
 	return rc;
 
@@ -170,14 +170,14 @@ uint32_t mbcsv_lib_destroy(void)
 	SS_SVC_ID svc_id = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	if (mbcsv_cb.created == FALSE) {
+	if (mbcsv_cb.created == false) {
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_EXIST, "Lib destroy request failed: Create MBCA before destroying.");
 	}
 
 	m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_WRITE);
 	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_LOCKED, &mbcsv_cb.global_lock);
 
-	mbcsv_cb.created = FALSE;
+	mbcsv_cb.created = false;
 	/* 
 	 * Walk through MBCSv reg list and destroy all the registration instances.
 	 */

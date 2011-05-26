@@ -283,7 +283,7 @@ SaAisErrorT clms_node_create_config(void)
 		clms_node_add_to_model(node);
 
 	}
-	if ((ncs_patricia_tree_size(&clms_cb->nodes_db) != ncs_patricia_tree_size(&clms_cb->ee_lookup)) && (clms_cb->reg_with_plm == TRUE))
+	if ((ncs_patricia_tree_size(&clms_cb->nodes_db) != ncs_patricia_tree_size(&clms_cb->ee_lookup)) && (clms_cb->reg_with_plm == true))
 		LOG_ER("Incomplete Configuration: EE attribute is not specified for some CLM nodes");
 	rc = SA_AIS_OK;
  done2:
@@ -1463,7 +1463,7 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		if ((node = clms_node_get_by_name(&opdata->objectName)) == NULL)
 			goto done;
 	
-		rc = clms_send_is_member_info(clms_cb, node->node_id, FALSE, FALSE);
+		rc = clms_send_is_member_info(clms_cb, node->node_id, false, false);
 		if(rc != NCSCC_RC_SUCCESS) {
 			TRACE("clms_send_is_member_info FAILED rc = %u", (unsigned int)rc);
 			goto done;
@@ -1706,7 +1706,7 @@ static uint32_t clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
 
 	clms_node_exit_ntf(clms_cb, nodeop);
 
-	rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+	rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, true);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("clms_send_is_member_info %u", rc);
 	}
@@ -1748,7 +1748,7 @@ uint32_t clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 		goto done;
 	}
 
-	if (nodeop->member == TRUE) {
+	if (nodeop->member == true) {
 
 		/*No Subscribers for start step */
 		nodeop->stat_change = SA_TRUE;
@@ -1833,7 +1833,7 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				/*Send node join notification */
 				clms_node_join_ntf(clms_cb, nodeop);
 
-				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, true);
 				if(rc != NCSCC_RC_SUCCESS) {
 					TRACE("clms_send_is_member_info failed %u", rc);
 					goto done;
@@ -1864,7 +1864,7 @@ uint32_t clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
 				/*Send node join notification */
 				clms_node_join_ntf(clms_cb, nodeop);
 
-				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+				rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, true);
 				if(rc != NCSCC_RC_SUCCESS) {
 					TRACE("clms_send_is_member_info failed %u", rc);
 					goto done;
@@ -1971,7 +1971,7 @@ uint32_t clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
 
 			clms_node_admin_state_change_ntf(clms_cb, nodeop, SA_CLM_ADMIN_LOCKED);
 
-			rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, TRUE);
+			rc = clms_send_is_member_info(clms_cb, nodeop->node_id, nodeop->member, true);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_send_is_member_info failed %u", rc);
 				goto done;

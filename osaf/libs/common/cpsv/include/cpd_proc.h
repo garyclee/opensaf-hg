@@ -53,7 +53,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 				       CPD_CKPT_INFO_NODE *ckpt_node,
 				       CPSV_SEND_INFO *sinfo,
-				       NCS_BOOL *o_ckpt_node_deleted, NCS_BOOL *o_is_active_changed);
+				       bool *o_ckpt_node_deleted, bool *o_is_active_changed);
 
 uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 					     MDS_DEST *cpnd_dest,
@@ -82,7 +82,7 @@ void cpd_a2s_ckpt_rdset(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 void cpd_a2s_ckpt_arep_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 void cpd_a2s_ckpt_dest_add(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *sinfo);
 void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DEST *cpnd_dest,
-				    NCS_BOOL ckptid_flag);
+				    bool ckptid_flag);
 void cpd_a2s_ckpt_usr_info(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *sinfo);
 uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg);
@@ -98,6 +98,6 @@ uint32_t cpd_mbcsv_register(CPD_CB *cb);
 uint32_t cpd_mbcsv_finalize(CPD_CB *cb);
 uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg);
 uint32_t cpd_mbcsv_close(CPD_CB *cb);
-NCS_BOOL cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
-uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb,  CPD_CKPT_REPLOC_INFO *ckpt_reploc_node ,NCS_BOOL is_unlink_set);
+bool cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
+uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb,  CPD_CKPT_REPLOC_INFO *ckpt_reploc_node ,bool is_unlink_set);
 #endif

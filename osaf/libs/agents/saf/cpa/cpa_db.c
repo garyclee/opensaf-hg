@@ -353,14 +353,14 @@ uint32_t cpa_gbl_ckpt_tree_init(CPA_CB *cb)
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
 uint32_t cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
-				 SaCkptCheckpointHandleT *gc_hdl, CPA_GLOBAL_CKPT_NODE **gc_node, NCS_BOOL *add_flag)
+				 SaCkptCheckpointHandleT *gc_hdl, CPA_GLOBAL_CKPT_NODE **gc_node, bool *add_flag)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	*gc_node = (CPA_GLOBAL_CKPT_NODE *)
 	    ncs_patricia_tree_get(gbl_ckpt_tree, (uint8_t *)gc_hdl);
 
-	if ((*gc_node == NULL) && (*add_flag == TRUE)) {
+	if ((*gc_node == NULL) && (*add_flag == true)) {
 		/* Allocate the CPA_GLOBAL_CKPT_NODE & Populate gbl_ckpt_hdl */
 		*gc_node = (CPA_GLOBAL_CKPT_NODE *)m_MMGR_ALLOC_CPA_GLOBAL_CKPT_NODE;
 		if (*gc_node == NULL) {
@@ -384,7 +384,7 @@ uint32_t cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
 		}
 
 		/* Toggle the add Flag */
-		*add_flag = FALSE;
+		*add_flag = false;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -658,7 +658,7 @@ void cpa_client_tree_mark_stale(CPA_CB *cb)
 	/* scan the entire handle db & mark each record as stale*/
 	while ((clnode = (CPA_CLIENT_NODE *)
 		ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)temp_ptr))) {
-		clnode->stale = TRUE;
+		clnode->stale = true;
 		/* mark the client info */
 		temp_hdl = clnode->cl_hdl;
 		temp_ptr = &temp_hdl;

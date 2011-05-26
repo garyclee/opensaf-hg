@@ -580,14 +580,14 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 							pPrev = pPrev->right;
 						}
 
-					} while (TRUE);
+					} while (true);
 
 					if (KeyBitMatch(Target, pSrch->key_info, 1 + pSrch->bit) == 0) {
 						break;
 					}
 				}
 
-			} while (TRUE);
+			} while (true);
 
 		} /* if (pSrch->bit <= pPrev->bit) */
 		else {
@@ -679,17 +679,17 @@ NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, con
 								pPrev = pPrev->right;
 							}
 
-						} while (TRUE);
+						} while (true);
 
 						if (KeyBitMatch(Target, pSrch->key_info, 1 + pSrch->bit) == 0) {
 							break;
 						}
 					}
 
-				} while (TRUE);
+				} while (true);
 			}
 		}
-	} while (TRUE);
+	} while (true);
 }
 
 /*****************************************************************************

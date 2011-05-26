@@ -47,7 +47,7 @@
 typedef struct dts_create {
 	uint8_t i_hmpool_id;	/* Handle Manager Pool Id                      */
 	NCSCONTEXT task_handle;
-	NCS_BOOL reg_with_amf;
+	bool reg_with_amf;
 } DTS_CREATE;
 
 /***************************************************************************

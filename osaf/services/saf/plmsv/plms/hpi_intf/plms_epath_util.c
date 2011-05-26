@@ -201,7 +201,7 @@ SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
 	SaUint32T  temp_value = 0;
 	SaUint32T  num_entity_types; 
 	SaUint32T  index_array[SAHPI_MAX_ENTITY_PATH]={};
-	SaUint32T  found = FALSE;
+	SaUint32T  found = false;
 
 	if(NULL == entity_path){
 		LOG_ER("Invalid entity_path arg argument");
@@ -217,7 +217,7 @@ SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
 
 		if(entity_path->Entry[i].EntityType <SAHPI_ENT_SYSTEM_FIRMWARE){
 			temp_index = entity_path->Entry[i].EntityType;
-			found = TRUE;
+			found = true;
 		}
 #if 0
 		if(entity_path->Entry[i].EntityType > SAHPI_ENT_SYSTEM_FIRMWARE
@@ -226,33 +226,33 @@ SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
 				- SAHPI_ENT_SYSTEM_FIRMWARE;
 				
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE + temp_value; 
-			found = TRUE;
+			found = true;
 		}
 #endif
 		if(SAHPI_ENT_CHASSIS_SPECIFIC ==
 			entity_path->Entry[i].EntityType){
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +1;
-			found = TRUE;
+			found = true;
 		}
 		if(SAHPI_ENT_BOARD_SET_SPECIFIC ==	
 			entity_path->Entry[i].EntityType){
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +2;
-			found = TRUE;
+			found = true;
 		}
 		if(SAHPI_ENT_OEM_SYSINT_SPECIFIC ==
 			entity_path->Entry[i].EntityType){
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +3;
-			found = TRUE;
+			found = true;
 		}
 		if(SAHPI_ENT_ROOT ==
 			entity_path->Entry[i].EntityType){
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +4;
-			found = TRUE;
+			found = true;
 		}
 		if(SAHPI_ENT_RACK ==
 			entity_path->Entry[i].EntityType){
 			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +5;
-			found = TRUE;
+			found = true;
 		}
 
 		
@@ -262,7 +262,7 @@ SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
 				- SAHPI_ENT_RACK;
 				
 			temp_index = SAHPI_ENT_RACK_INDEX + temp_value;
-			found = TRUE;
+			found = true;
 		}
 
 		if((entity_path->Entry[i].EntityType > SAHPI_ENT_AMC) && 
@@ -270,9 +270,9 @@ SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
 			temp_value = entity_path->Entry[i].EntityType -
 				SAHPI_ENT_AMC;
 			temp_index = SAHPI_ENT_AMC_INDEX + temp_value;
-			found = TRUE;
+			found = true;
 		}
-		if(found == FALSE || temp_index > num_entity_types){
+		if(found == false || temp_index > num_entity_types){
 			LOG_ER("Invalid entity_path arg argument");
 			return NCSCC_RC_FAILURE;
 		}

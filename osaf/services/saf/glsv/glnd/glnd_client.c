@@ -141,7 +141,7 @@ uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 	GLND_RESOURCE_INFO *res_info;
 	SaLckLockModeT mode;
 	GLSV_GLD_EVT gld_evt;
-	NCS_BOOL orphan = FALSE;
+	bool orphan = false;
 
 	/* delete from the tree */
 	if (ncs_patricia_tree_del(&glnd_cb->glnd_client_tree, &client_info->patnode) != NCSCC_RC_SUCCESS) {
@@ -184,7 +184,7 @@ uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 
 			}
 			if (res_info->lcl_ref_cnt == 0
-			    && glnd_resource_grant_list_orphan_locks(res_info, &mode) == FALSE) {
+			    && glnd_resource_grant_list_orphan_locks(res_info, &mode) == false) {
 				glnd_resource_node_destroy(glnd_cb, res_info, orphan);
 			}
 		}
@@ -263,7 +263,7 @@ uint32_t glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *clien
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
 	GLSV_GLND_EVT glnd_evt;
 	SaLckLockModeT lock_type = SA_LCK_PR_LOCK_MODE;
-	NCS_BOOL local_orphan_lock = FALSE;
+	bool local_orphan_lock = false;
 
 	if (!client_info) {
 		return NCSCC_RC_FAILURE;
@@ -294,7 +294,7 @@ uint32_t glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *clien
 				lock_type = lock_req_list->lck_req->lock_info.lock_type;
 				if ((lock_req_list->lck_req->lock_info.lockFlags & SA_LCK_LOCK_ORPHAN) ==
 				    SA_LCK_LOCK_ORPHAN)
-					local_orphan_lock = TRUE;
+					local_orphan_lock = true;
 			}
 			del_req_list = lock_req_list;
 			lock_req_list = lock_req_list->next;
@@ -304,7 +304,7 @@ uint32_t glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *clien
 					glnd_resource_lock_req_delete(res_info, del_req_list->lck_req);
 			}
 
-			if (local_orphan_lock == TRUE)
+			if (local_orphan_lock == true)
 				glnd_resource_lock_req_unset_orphan(glnd_cb, res_info, lock_type);
 			glnd_client_node_resource_lock_req_del(client_info, resource_list, del_req_list);
 		}
@@ -339,14 +339,14 @@ uint32_t glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 					GLND_CLIENT_INFO *client_info,
 					GLND_RESOURCE_INFO *res_info,
 					SaLckResourceIdT lcl_resource_id,
-					uint32_t lcl_res_id_count, NCS_BOOL *resource_del_flag)
+					uint32_t lcl_res_id_count, bool *resource_del_flag)
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
 	GLSV_GLND_EVT glnd_evt;
 	SaLckLockModeT lock_type = SA_LCK_PR_LOCK_MODE;
-	NCS_BOOL local_orphan_lock = FALSE;
-	NCS_BOOL resource_del = TRUE;
+	bool local_orphan_lock = false;
+	bool resource_del = true;
 
 	if (!client_info) {
 		return NCSCC_RC_FAILURE;
@@ -387,13 +387,13 @@ uint32_t glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 						lock_type = lock_req_list->lck_req->lock_info.lock_type;
 						if ((lock_req_list->lck_req->lock_info.
 						     lockFlags & SA_LCK_LOCK_ORPHAN) == SA_LCK_LOCK_ORPHAN)
-							local_orphan_lock = TRUE;
+							local_orphan_lock = true;
 					}
 					del_req_list = lock_req_list;
 					lock_req_list = lock_req_list->next;
 					glnd_resource_lock_req_delete(res_info, del_req_list->lck_req);
 
-					if (local_orphan_lock == TRUE)
+					if (local_orphan_lock == true)
 						glnd_resource_lock_req_unset_orphan(glnd_cb, res_info, lock_type);
 					glnd_client_node_resource_lock_req_del(client_info, resource_list,
 									       del_req_list);
@@ -403,7 +403,7 @@ uint32_t glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 
 			}
 		}
-		if (resource_del == TRUE && lcl_res_id_count == 1) {
+		if (resource_del == true && lcl_res_id_count == 1) {
 			/* remove it from the list */
 			if (resource_list == client_info->res_list)
 				client_info->res_list = resource_list->next;

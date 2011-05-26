@@ -162,13 +162,13 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 /*--------+---------------+----------------+----------------*/
 	{
 	 /* Pool-id 0 */
-	 {TRUE, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
+	 {true, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
 	  },
 	 /* Pool-id 1 */
-	 {TRUE, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
+	 {true, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
 	  },
 	 /* Pool-id 2 */
-	 {TRUE, NCSUB_UDEF_POOL, m_OS_UDEF_ALLOC, m_OS_UDEF_FREE, 0, 0,
+	 {true, NCSUB_UDEF_POOL, m_OS_UDEF_ALLOC, m_OS_UDEF_FREE, 0, 0,
 	  },
 	 /* Pool-id 3 : FOR MDS : PM-23/Jan/2005
 	    Header break up for fragmented MDS messages - 
@@ -204,11 +204,11 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 #define MDS_UB_HDR_MAX 50
 #define MDS_UB_TRLR_MAX 25
 
-	 {TRUE, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free, MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
+	 {true, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free, MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
 
 	  },
 	 /* Pool-id 4 */
-	 {FALSE, 0, sysf_stub_alloc, sysf_stub_free, 0, 0},
+	 {false, 0, sysf_stub_alloc, sysf_stub_free, 0, 0},
 	 }
 };
 
@@ -238,8 +238,8 @@ static uint32_t mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
 	for (i = 1; i < UB_MAX_POOLS; i++) {
 		/* If default set at compile time, pass it buy */
 
-		if (gl_ub_pool_mgr.pools[i].busy != TRUE) {
-			gl_ub_pool_mgr.pools[i].busy = FALSE;
+		if (gl_ub_pool_mgr.pools[i].busy != true) {
+			gl_ub_pool_mgr.pools[i].busy = false;
 			gl_ub_pool_mgr.pools[i].pool_id = 0;
 			gl_ub_pool_mgr.pools[i].mem_alloc = sysf_stub_alloc;
 			gl_ub_pool_mgr.pools[i].mem_free = sysf_stub_free;
@@ -295,12 +295,12 @@ static uint32_t mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
 
 	pool = &gl_ub_pool_mgr.pools[reg->i_pool_id];
 
-	if (pool->busy == TRUE)
+	if (pool->busy == true)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	m_PMGR_LK(&gl_ub_pool_mgr.lock);
 
-	pool->busy = TRUE;
+	pool->busy = true;
 	pool->pool_id = reg->i_pool_id;
 	pool->mem_alloc = reg->i_mem_alloc;
 	pool->mem_free = reg->i_mem_free;
@@ -333,12 +333,12 @@ static uint32_t mmgr_ub_svc_deregister(NCSMMGR_UB_DEREGISTER *dereg)
 
 	pool = &gl_ub_pool_mgr.pools[dereg->i_pool_id];
 
-	if (pool->busy == FALSE)
+	if (pool->busy == false)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	m_PMGR_LK(&gl_ub_pool_mgr.lock);
 
-	pool->busy = FALSE;
+	pool->busy = false;
 	pool->pool_id = 0;
 	pool->mem_alloc = sysf_stub_alloc;
 	pool->mem_free = sysf_stub_free;
@@ -401,7 +401,7 @@ NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id)
 	m_PMGR_LK_INIT;
 
 	m_PMGR_LK(&gl_ub_pool_mgr.lock);
-	if ((pool_id < UB_MAX_POOLS) && (gl_ub_pool_mgr.pools[pool_id].busy == TRUE))
+	if ((pool_id < UB_MAX_POOLS) && (gl_ub_pool_mgr.pools[pool_id].busy == true))
 		answer = &gl_ub_pool_mgr.pools[pool_id];
 	else
 		m_LEAP_DBG_SINK_VOID;
@@ -609,9 +609,9 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 	uint32_t Cksum32 = 0;
 	int bufLen = 0;
 	uint16_t *p_operand = NULL, work_var = 0;
-	NCS_BOOL byte_swapped = FALSE;
+	bool byte_swapped = false;
 	USRBUF *pUBuf = u;
-	NCS_BOOL is_odd_boundary = FALSE;
+	bool is_odd_boundary = false;
 
 	union {
 		uint8_t c[2];
@@ -680,7 +680,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 			s_util.c[0] = *(uint8_t *)p_operand;
 			p_operand = (uint16_t *)((uint8_t *)p_operand + 1);
 			bufLen--;
-			byte_swapped = TRUE;
+			byte_swapped = true;
 		}
 
 		/* Unroll the loop to make the overhead less */
@@ -748,7 +748,7 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		if (byte_swapped) {
 			REDUCE;
 			Cksum32 <<= 8;
-			byte_swapped = FALSE;
+			byte_swapped = false;
 			if (bufLen == -1) {
 				s_util.c[1] = *(uint8_t *)p_operand;
 				m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
@@ -787,7 +787,7 @@ char *sysf_reserve_at_end(USRBUF **ppb, unsigned int i_size)
 {
 	uint32_t io_size = i_size;
 	char *ret_buf;
-	ret_buf = sysf_reserve_at_end_amap(ppb, &io_size, TRUE);
+	ret_buf = sysf_reserve_at_end_amap(ppb, &io_size, true);
 	/* Warn people if reserved size is not equal to requested size */
 	if (ret_buf != NULL)
 		assert(io_size == i_size);
@@ -799,7 +799,7 @@ char *sysf_reserve_at_end(USRBUF **ppb, unsigned int i_size)
  ****************************************************************************/
 
 char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
-			       NCS_BOOL total /* Whether total allocation is strictly required */ )
+			       bool total /* Whether total allocation is strictly required */ )
 {
 	USRBUF *ub;
 	char *pContiguousData;
@@ -994,7 +994,7 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
 	 * We copy it into the contiguous area provided by the nice caller. 
 	 */
 
-	while (TRUE) {
+	while (true) {
 		/* copy what data is in this working usrbuf ... then step backwards in chain */
 		memcpy(spare + size - num_in_buff, m_MMGR_DATA(pb_work, char *), num_in_buff);
 
@@ -1042,7 +1042,7 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 	 */
 	spare_work = spare;
 
-	while (TRUE) {
+	while (true) {
 		memcpy(spare_work, m_MMGR_DATA(pb, char *), num_in_buff);
 		size -= num_in_buff;
 		spare_work += num_in_buff;
@@ -1067,8 +1067,8 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 **  sysf_data_in_mid
 **
 **  Returns a pointer to the data at "offset" in the current data packet
-**  within the USRBUF chain headed by "pb".  If copy_flag is TRUE, data
-**  is always copied to the "copy_buf" area.  If the copy_flag is FALSE,
+**  within the USRBUF chain headed by "pb".  If copy_flag is true, data
+**  is always copied to the "copy_buf" area.  If the copy_flag is false,
 **  data is only copied if the data spans more than a single USRBUF
 **  ( that is, data is non-contiguous ).  The "size" comes in as the 
 **  number of octets of interest.  If the length of the data packet is
@@ -1084,7 +1084,7 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 	char *cb_work;
 
 	if (pb->count >= (offset + size)) {
-		if (copy_flag == TRUE) {
+		if (copy_flag == true) {
 			memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
 			return copy_buf;
 		} else
@@ -1104,7 +1104,7 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 
 	/* Check if we have all the data in one USRBUF */
 	if (num_in_buf >= (offset + size)) {
-		if (copy_flag == FALSE) {
+		if (copy_flag == false) {
 			return m_MMGR_DATA_AT_OFFSET(pb, offset, char *);
 		} else {
 			/* copy data to caller supplied buffer */

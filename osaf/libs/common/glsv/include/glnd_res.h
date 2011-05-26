@@ -40,7 +40,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT *r
 GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
 						    SaLckResourceIdT res_id,
 						    SaNameT *resource_name,
-						    NCS_BOOL is_master, MDS_DEST master_mds_dest);
+						    bool is_master, MDS_DEST master_mds_dest);
 
 uint32_t glnd_set_orphan_state(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
@@ -48,7 +48,7 @@ void glnd_resource_lock_req_set_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res
 
 void glnd_resource_lock_req_unset_orphan(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, SaLckLockModeT type);
 
-uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL orphan);
+uint32_t glnd_resource_node_destroy(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, bool orphan);
 
 GLND_RES_LOCK_LIST_INFO *glnd_resource_grant_lock_req_find(GLND_RESOURCE_INFO *res_info,
 								    GLSV_LOCK_REQ_INFO res_lock_info,
@@ -100,9 +100,9 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB *cb,
 								      SaLckResourceIdT lcl_resource_id,
 								      SaLckLockIdT lockid);
 
-NCS_BOOL glnd_resource_grant_list_orphan_locks(GLND_RESOURCE_INFO *res_info, SaLckLockModeT *mode);
+bool glnd_resource_grant_list_orphan_locks(GLND_RESOURCE_INFO *res_info, SaLckLockModeT *mode);
 
-void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, NCS_BOOL is_local);
+void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info, bool is_local);
 
 void glnd_resource_master_lock_resync_grant_list(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
@@ -116,7 +116,7 @@ void glnd_resource_master_process_resend_lock_req(GLND_CB *glnd_cb,
 
 struct glsv_evt_glnd_dd_probe_info_tag;	/* forward declaration required. */
 
-NCS_BOOL glnd_deadlock_detect(GLND_CB *glnd_cb,
+bool glnd_deadlock_detect(GLND_CB *glnd_cb,
 				       GLND_CLIENT_INFO *client_info, struct glsv_evt_glnd_dd_probe_info_tag *dd_probe);
 
 void glnd_resource_check_lost_unlock_requests(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_node);

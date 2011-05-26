@@ -164,9 +164,9 @@ uint32_t avd_initialize(void)
 	cb->init_state = AVD_INIT_BGN;
 	cb->swap_switch = SA_FALSE;
 	cb->stby_sync_state = AVD_STBY_IN_SYNC;
-	cb->sync_required = TRUE;
+	cb->sync_required = true;
 	
-	cb->heartbeat_tmr.is_active = FALSE;
+	cb->heartbeat_tmr.is_active = false;
 	cb->heartbeat_tmr.type = AVD_TMR_SND_HB;
 	cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
 

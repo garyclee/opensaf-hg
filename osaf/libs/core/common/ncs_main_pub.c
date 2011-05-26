@@ -145,7 +145,7 @@ typedef struct ncs_main_pub_cb {
 
 	NCS_LOCK lock;
 	uint32_t lock_create;
-	NCS_BOOL core_started;
+	bool core_started;
 	uint32_t my_nodeid;
 	uint32_t my_procid;
 
@@ -417,7 +417,7 @@ unsigned int ncs_core_agents_startup(void)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	gl_ncs_main_pub_cb.core_started = TRUE;
+	gl_ncs_main_pub_cb.core_started = true;
 	gl_ncs_main_pub_cb.core_use_count = 1;
 
 	return NCSCC_RC_SUCCESS;
@@ -534,7 +534,7 @@ void ncs_leap_shutdown()
 	leap_env_destroy();
 
 	gl_ncs_main_pub_cb.leap_use_count = 0;
-	gl_ncs_main_pub_cb.core_started = FALSE;
+	gl_ncs_main_pub_cb.core_started = false;
 
 	m_NCS_AGENT_UNLOCK;
 
@@ -568,7 +568,7 @@ void ncs_mds_shutdown()
 	mds_lib_req(&lib_destroy);
 
 	gl_ncs_main_pub_cb.mds_use_count = 0;
-	gl_ncs_main_pub_cb.core_started = FALSE;
+	gl_ncs_main_pub_cb.core_started = false;
 
 	for (tmp_ctr = 0; tmp_ctr < gl_pargc; tmp_ctr++)
 		free(gl_pargv[tmp_ctr]);
@@ -604,7 +604,7 @@ void ncs_dta_shutdown()
 	dta_lib_req(&lib_destroy);
 
 	gl_ncs_main_pub_cb.dta_use_count = 0;
-	gl_ncs_main_pub_cb.core_started = FALSE;
+	gl_ncs_main_pub_cb.core_started = false;
 
 	m_NCS_AGENT_UNLOCK;
 
@@ -832,12 +832,12 @@ uint32_t ncs_get_chassis_type(uint32_t i_max_len, char *o_chassis_type)
 static uint32_t ncs_set_config_root(void)
 {
 	char *tmp;
-	static NCS_BOOL config_root_init = FALSE;
+	static bool config_root_init = false;
 
-	if (config_root_init == TRUE)
+	if (config_root_init == true)
 		return NCSCC_RC_SUCCESS;
 	else
-		config_root_init = TRUE;
+		config_root_init = true;
 
 	tmp = getenv("NCS_SIMULATION_CONFIG_ROOTDIR");
 	if (tmp != NULL) {

@@ -62,7 +62,7 @@ static uint32_t avnd_mbx_destroy(AVND_CB *);
 
 static uint32_t avnd_ext_intf_destroy(AVND_CB *);
 
-static NCS_BOOL avnd_mbx_clean(NCSCONTEXT, NCSCONTEXT);
+static bool avnd_mbx_clean(NCSCONTEXT, NCSCONTEXT);
 
 static int get_node_type(void)
 {
@@ -240,7 +240,7 @@ AVND_CB *avnd_cb_create()
 	/* assign the default timeout values (in nsec) */
 	cb->msg_resp_intv = AVND_AVD_MSG_RESP_TIME * 1000000;
 
-	cb->hb_duration_tmr.is_active = FALSE;
+	cb->hb_duration_tmr.is_active = false;
 	cb->hb_duration_tmr.type = AVND_TMR_HB_DURATION;
 	cb->hb_duration = AVSV_DEF_HB_DURATION;
 
@@ -449,7 +449,7 @@ uint32_t avnd_cb_destroy(AVND_CB *cb)
 
 	/* We should delete external SU-SI first */
 #ifdef NCS_AVND_MBCSV_CKPT
-	if (NCSCC_RC_SUCCESS != (rc = avnd_ext_comp_data_clean_up(cb, TRUE)))
+	if (NCSCC_RC_SUCCESS != (rc = avnd_ext_comp_data_clean_up(cb, true)))
 		goto done;
 #endif
 	/* destroy comp db */
@@ -587,11 +587,11 @@ uint32_t avnd_ext_intf_destroy(AVND_CB *cb)
    Arguments     : arg - argument to be passed
                    msg - ptr to the 1st event in the mailbox
   
-   Return Values : TRUE/FALSE
+   Return Values : true/false
   
    Notes         : None.
  *****************************************************************************/
-NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
+bool avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 	AVND_EVT *curr;
 	AVND_EVT *temp;
@@ -605,7 +605,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 	}
 
 	TRACE_LEAVE();
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -618,7 +618,7 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
 
    Arguments     : 
   
-   Return Values : TRUE/FALSE
+   Return Values : true/false
   
    Notes         : None.
  *****************************************************************************/

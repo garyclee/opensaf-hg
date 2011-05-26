@@ -51,7 +51,7 @@ uint32_t     mbcstm_dest_start()
   /* Fill all common feilds */
   vda_info.req = NCSVDA_VDEST_CREATE;
   vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-  vda_info.info.vdest_create.i_persistent = TRUE; /* Up-to-the application */
+  vda_info.info.vdest_create.i_persistent = true; /* Up-to-the application */
   vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
   ssn_count = mbcstm_cb.vdest_count;
   svc_count = mbcstm_cb.svc_count;
@@ -68,7 +68,7 @@ uint32_t     mbcstm_dest_start()
                        NCSCC_RC_FAILURE);
           return NCSCC_RC_FAILURE;
         }
-      mbcstm_cb.vdests[ssn_index].status = TRUE;
+      mbcstm_cb.vdests[ssn_index].status = true;
       for(svc_index = 1; svc_index <= svc_count; svc_index++)
         {
           mbcstm_cb.svces[svc_index].ssns[ssn_index].pwe_hdl  = 
@@ -99,7 +99,7 @@ uint32_t mbcstm_dest_close()
       MBCSTM_SET_VDEST_ID_IN_MDS_DEST(dest,
                                       mbcstm_cb.vdests[ssn_index].dest_id);
       vda_info.info.vdest_create.info.specified.i_vdest = dest;
-      vda_info.info.vdest_destroy.i_make_vdest_non_persistent = FALSE;
+      vda_info.info.vdest_destroy.i_make_vdest_non_persistent = false;
 
       if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
         {
@@ -108,7 +108,7 @@ uint32_t mbcstm_dest_close()
           return NCSCC_RC_FAILURE;
         }
 
-      mbcstm_cb.vdests[ssn_index].status = FALSE;
+      mbcstm_cb.vdests[ssn_index].status = false;
       for(svc_index = 1; svc_index <= mbcstm_cb.svc_count; svc_index++)
         {
           mbcstm_cb.svces[svc_index].ssns[ssn_index].pwe_hdl  = 0;
@@ -148,7 +148,7 @@ uint32_t   mbcstm_svc_registration(uint32_t svc_index)
       return NCSCC_RC_FAILURE;
     }
 
-  if(svc->task_flag == TRUE)
+  if(svc->task_flag == true)
     mbcstm_start_process_thread(svc_index);
 
   return NCSCC_RC_SUCCESS;

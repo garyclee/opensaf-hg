@@ -68,7 +68,7 @@ typedef enum cpd_slot_id {
 
 typedef struct cpsv_node_ref_info {
 	MDS_DEST dest;
-	NCS_BOOL exp_opened;
+	bool exp_opened;
 	struct cpsv_node_ref_info *prev;
 	struct cpsv_node_ref_info *next;
 } CPD_NODE_REF_INFO;
@@ -79,12 +79,12 @@ typedef struct cpd_ckpt_info_node {
 	SaNameT ckpt_name;
 	uint32_t dest_cnt;
 	CPD_NODE_REF_INFO *node_list;
-	NCS_BOOL is_unlink_set;
+	bool is_unlink_set;
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaCkptCheckpointOpenFlagsT ckpt_flags;
-	NCS_BOOL is_active_exists;
-	NCS_BOOL ckpt_on_scxb1;
-	NCS_BOOL ckpt_on_scxb2;
+	bool is_active_exists;
+	bool ckpt_on_scxb1;
+	bool ckpt_on_scxb2;
 	MDS_DEST active_dest;
 	SaTimeT ret_time;
 	uint32_t num_users;
@@ -119,7 +119,7 @@ typedef struct cpd_cpnd_info_node {
 	CPD_CKPT_REF_INFO *ckpt_ref_list;
 	NODE_ID cpnd_key;
 	uint32_t timer_state;
-	NCS_BOOL ckpt_cpnd_scxb_exist;
+	bool ckpt_cpnd_scxb_exist;
 	/* for imm */
 	SaNameT node_name;
 	SaNameT ckpt_name;
@@ -171,27 +171,27 @@ typedef struct cpd_cb_tag {
 	uint32_t cpd_active_id;
 	uint32_t cpd_standby_id;
 
-	NCS_BOOL is_db_upd;
+	bool is_db_upd;
 
 	NCS_NODE_ID node_id;
 
-	NCS_BOOL is_loc_cpnd_up;
-	NCS_BOOL is_rem_cpnd_up;
-	NCS_BOOL is_quiesced_set;
+	bool is_loc_cpnd_up;
+	bool is_rem_cpnd_up;
+	bool is_quiesced_set;
 	MDS_DEST loc_cpnd_dest;
 	MDS_DEST rem_cpnd_dest;
 	/*MDS_DEST             cpnd_dests[NCS_MAX_SLOTS]; */
 
 	NCS_PATRICIA_TREE cpnd_tree;
 
-	NCS_BOOL is_cpnd_tree_up;	/* if TRUE cpnd_tree is UP */
+	bool is_cpnd_tree_up;	/* if true cpnd_tree is UP */
 	NCS_PATRICIA_TREE ckpt_tree;	/* Checkpoint info indexed by Ckpt Handle */
-	NCS_BOOL is_ckpt_tree_up;	/* if TRUE cpnd_tree is UP */
+	bool is_ckpt_tree_up;	/* if true cpnd_tree is UP */
 	NCS_PATRICIA_TREE ckpt_map_tree;	/* Maps from Ckpt name --> Ckpt ID      */
-	NCS_BOOL is_ckpt_map_up;	/* if TRUE CKPT MAP tree is UP */
+	bool is_ckpt_map_up;	/* if true CKPT MAP tree is UP */
 
 	NCS_PATRICIA_TREE ckpt_reploc_tree;
-	NCS_BOOL is_ckpt_reploc_up;
+	bool is_ckpt_reploc_up;
 
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init   */
 	SaClmHandleT clm_hdl;
@@ -202,7 +202,7 @@ typedef struct cpd_cb_tag {
 
 	SaInvocationT amf_invocation;
 
-	NCS_BOOL cold_or_warm_sync_on;
+	bool cold_or_warm_sync_on;
 
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for IMM events */
@@ -235,7 +235,7 @@ uint32_t cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				      CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
 uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
-uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
+uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, bool is_unlink_set);
 void cpd_ckpt_reploc_cleanup(CPD_CB *cb);
 void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
 
@@ -261,7 +261,7 @@ uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_nod
 void cpd_cpnd_info_tree_cleanup(CPD_CB *cb);
 void cpd_cpnd_info_tree_destroy(CPD_CB *cb);
 uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,
-					   MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node, NCS_BOOL *add_flag);
+					   MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node, bool *add_flag);
 
 uint32_t cpd_cb_db_init(CPD_CB *cb);
 

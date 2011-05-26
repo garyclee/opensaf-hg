@@ -38,8 +38,8 @@ typedef struct avnd_hc_tag {
 	SaNameT name;           /* index */
 	SaTimeT period;		/* periodicity value */
 	SaTimeT max_dur;	/* max duration value */
-	NCS_BOOL is_ext;	/* Whether it is for ext comp */
-	NCS_BOOL rcvd_on_fover;	/* Temporary flag to find out whether
+	bool is_ext;	/* Whether it is for ext comp */
+	bool rcvd_on_fover;	/* Temporary flag to find out whether
 				 * update is received in the f-over message*/
 } AVND_HC;
 

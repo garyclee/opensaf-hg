@@ -389,7 +389,7 @@ extern "C" {
 
 	typedef struct ncs_os_file_op_file_exists {
 		char *i_file_name;
-		NCS_BOOL o_file_exists;
+		bool o_file_exists;
 	} NCS_OS_FILE_OP_FILE_EXISTS;
 
 	typedef struct ncs_os_file_op_dir_path {
@@ -414,7 +414,7 @@ extern "C" {
 
 	typedef struct ncs_os_file_op_dir_exists {
 		char *i_dir_name;
-		NCS_BOOL o_exists;
+		bool o_exists;
 	} NCS_OS_FILE_OP_DIR_EXISTS;
 
 	typedef struct ncs_os_file_op_get_next {
@@ -1272,23 +1272,23 @@ extern "C" {
    
     i_sel_obj   :       A selection-object created by m_NCS_SEL_OBJ_CREATE
 
-    i_no_blocking_flag: If TRUE, this call returns immediately even if no
-                        no indications are queued up. If FALSE, this call
+    i_no_blocking_flag: If true, this call returns immediately even if no
+                        no indications are queued up. If false, this call
                         blocks until either an indication arrives or
                         blocks until the selection-object is destroyed, 
                         whichever happens earlier. 
 
-    i_rmv_only_one flag:If TRUE, only 1 indication is dequeued. The user
+    i_rmv_only_one flag:If true, only 1 indication is dequeued. The user
                         is expected to call RMV-IND API again to further
                         remove indications. 
 
-                        If FALSE, _ALL_ inications that are queued up
+                        If false, _ALL_ inications that are queued up
                         at the time of invocation are dequeued. The number
                         of indications dequeued is indicated through 
                         the return value.
  
 \***************************************************************************/
-	int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_sel_obj, NCS_BOOL i_no_blocking_flag, NCS_BOOL i_rmv_only_one_flag);
+	int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_sel_obj, bool i_no_blocking_flag, bool i_rmv_only_one_flag);
 
 #define     m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag)\
             ncs_sel_obj_rmv_ind(sel_obj, noblock_flag,  rmv_only_one_flag)

@@ -163,7 +163,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 			saf_status = saImmOiDispatch(dts_cb.immOiHandle, SA_DISPATCH_ONE);
 			if (saf_status == SA_AIS_ERR_BAD_HANDLE) {
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "IMMSv Dispatch failed");
-				dts_cb.imm_init_done = FALSE;
+				dts_cb.imm_init_done = false;
 				saImmOiFinalize(dts_cb.immOiHandle);
 				dts_cb.immOiHandle = 0;
 				dts_imm_reinit_bg(&dts_cb);
@@ -208,7 +208,7 @@ uint32_t dts_do_evt(DTSV_MSG *msg)
 			break;
 
 		case DTSV_DUMP_SEQ_MSGS:
-			rc = dts_dump_seq_msg(inst, FALSE);
+			rc = dts_dump_seq_msg(inst, false);
 			break;
 
 			/* Added a case for handling msg_type DTS_QUIESCED_CMPLT.
@@ -231,7 +231,7 @@ uint32_t dts_do_evt(DTSV_MSG *msg)
 
 			/* Clear sequencing buffer just before going to quiesced */
 			/* Clear the sequencing buffer before going to quiesced */
-			if (TRUE == inst->g_policy.g_enable_seq)
+			if (true == inst->g_policy.g_enable_seq)
 				dts_disable_sequencing(inst);
 
 			/* Close all open files now */
@@ -321,12 +321,12 @@ uint32_t dts_handle_dta_event(DTSV_MSG *msg)
 	switch (msg->data.data.evt.change) {	/* Review change type */
 	case NCSMDS_DOWN:
 		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA down event for :", msg->node, (uint32_t)msg->dest_addr);
-		dts_set_dta_up_down(msg->node, msg->dest_addr, FALSE);
+		dts_set_dta_up_down(msg->node, msg->dest_addr, false);
 		break;
 
 	case NCSMDS_UP:
 		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA up event for :", msg->node, (uint32_t)msg->dest_addr);
-		dts_set_dta_up_down(msg->node, msg->dest_addr, TRUE);
+		dts_set_dta_up_down(msg->node, msg->dest_addr, true);
 		break;
 
 	default:
@@ -382,7 +382,7 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 	DTS_SVC_REG_TBL *svc, *node_reg;
 	DTA_DEST_LIST *to_reg;
 	MDS_DEST dta_key;
-	NCS_BOOL dta_present = FALSE;
+	bool dta_present = false;
 	SYSF_ASCII_SPECS *spec_entry;
 	ASCII_SPEC_INDEX spec_key;
 	SPEC_ENTRY *per_dta_svc_spec = NULL;
@@ -445,7 +445,7 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 	dta_key = msg->dest_addr;
 
 	if ((to_reg = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uint8_t *)&dta_key)) != NULL) {
-		dta_present = TRUE;
+		dta_present = true;
 		/* Adjust the pointer to to_reg with the offset */
 		to_reg = (DTA_DEST_LIST *)((long)to_reg - DTA_DEST_LIST_OFFSET);
 	}
@@ -469,7 +469,7 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 		/* Check whether the DTA_DEST_TBL already exists in pat tree */
 		/* If the entry doesn't already exist create a new one and enqueue to 
 		 * the v_cd_list for the DTS_SVC_REG_TBL */
-		if (dta_present == FALSE) {
+		if (dta_present == false) {
 			to_reg = m_MMGR_ALLOC_VCARD_TBL;
 			if (to_reg == NULL) {
 				m_DTS_UNLK(&inst->lock);
@@ -500,8 +500,8 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 		/*end of dta_present == false */
 		/* if entry already exits for DTA in the patricia tree just enqueue 
 		 * the entry to the v_cd_list */
-		to_reg->dta_up = TRUE;
-		to_reg->updt_req = FALSE;
+		to_reg->dta_up = true;
+		to_reg->updt_req = false;
 		/*Add this DTS_SVC_REG_TBL to the list of services for specific DTA */
 		dts_add_svc_to_dta(to_reg, svc);
 		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
@@ -529,7 +529,7 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 		/* Check whether the DTA_DEST_TBL already exists in pat tree */
 		/* If the entry doesn't already exist create a new one and enqueue to 
 		 * the v_cd_list for the DTS_SVC_REG_TBL */
-		if (dta_present == FALSE) {
+		if (dta_present == false) {
 			to_reg = m_MMGR_ALLOC_VCARD_TBL;
 			if (to_reg == NULL) {
 				m_DTS_UNLK(&inst->lock);
@@ -561,16 +561,16 @@ uint32_t dts_register_service(DTSV_MSG *msg)
 			}
 			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 		}
-		/* end of if dta_present==FALSE */
-		to_reg->dta_up = TRUE;
-		to_reg->updt_req = FALSE;
+		/* end of if dta_present==false */
+		to_reg->dta_up = true;
+		to_reg->updt_req = false;
 		/* Add the DTA to svc->v_cd_list */
 		dts_add_svc_to_dta(to_reg, svc);
 		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 		/* newly created service, set all the policies to default 
 		 * then add new entry to the patricia tree */
-		svc->per_node_logging = FALSE;
+		svc->per_node_logging = false;
 		/*svc->num_svcs         = 0; */
 		dts_default_svc_policy_set(svc);
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
@@ -823,7 +823,7 @@ uint32_t dts_unregister_service(DTSV_MSG *msg)
 	node->num_svcs--;
 
 	/* Close the open file and let the service log to a new file */
-	node->device.new_file = TRUE;
+	node->device.new_file = true;
 	node->device.cur_file_size = 0;
 
 	/* Check whether we still need this patricia entry. 
@@ -835,7 +835,7 @@ uint32_t dts_unregister_service(DTSV_MSG *msg)
 		m_DTS_FREE_FILE_LIST(dev);
 		/* Cleanup the console devices associated with the node */
 		m_DTS_RMV_ALL_CONS(dev);
-		if ((TRUE == node->device.file_open) && (node->device.svc_fh != NULL))
+		if ((true == node->device.file_open) && (node->device.svc_fh != NULL))
 			fclose(node->device.svc_fh);
 		ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node);
 		m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, node->my_key.ss_svc_id, node->my_key.node, (uint32_t)vkey);
@@ -989,7 +989,7 @@ uint32_t dts_log_data(DTSV_MSG *msg)
 	 * If sequencing is enabled then queue the messgae into the sequencing 
 	 * buffer otherwise do normal logging.
 	 */
-	if ((inst->g_policy.g_enable_seq == TRUE) && (msg->seq_msg == FALSE)) {
+	if ((inst->g_policy.g_enable_seq == true) && (msg->seq_msg == false)) {
 		if (NCSCC_RC_SUCCESS != dts_queue_seq_msg(inst, msg)) {
 			dts_free_msg_content(&msg->data.data.msg.log_msg);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -1025,7 +1025,7 @@ uint32_t dts_log_data(DTSV_MSG *msg)
 	 * Check whether global logging is set. If global logging is set
 	 * then log using global logging policies.
 	 */
-	if (inst->g_policy.global_logging == TRUE) {
+	if (inst->g_policy.global_logging == true) {
 		rc = dtsv_log_msg(msg, &inst->g_policy.g_policy, &inst->g_policy.device, GLOBAL_FILE, spec);
 	} else {
 		/* Check whether the service is registered properly, its node entry 
@@ -1034,7 +1034,7 @@ uint32_t dts_log_data(DTSV_MSG *msg)
 		if (node->my_node == NULL) {
 			m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 			return NCSCC_RC_FAILURE;
-		} else if (node->my_node->per_node_logging == TRUE) {
+		} else if (node->my_node->per_node_logging == true) {
 			/* 
 			 * If per node logging is set then log the per node log file, 
 			 * else use per service log file for logging.
@@ -1085,17 +1085,17 @@ uint32_t dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t 
 
 		/*
 		 * Create new log file if current file size == 0 OR
-		 * new log file is set to TRUE
+		 * new log file is set to true
 		 * or current file size exceeds the configured value.
 		 */
 		if ((device->cur_file_size == 0) ||
-		    (device->new_file == TRUE) || (device->cur_file_size > (policy->log_file_size * 1024))) {
+		    (device->new_file == true) || (device->cur_file_size > (policy->log_file_size * 1024))) {
 			m_DTS_ADD_NEW_FILE(device);
 			if (0 ==
 			    (device->cur_file_size =
 			     dts_new_log_file_create(m_DTS_LOG_FILE_NAME(device), &key, file_type)))
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_log_msg: Failed to create new log file.");
-			device->new_file = FALSE;
+			device->new_file = false;
 
 			memset(&data, '\0', sizeof(DTS_LOG_CKPT_DATA));
 			/* Fill the DTS_LOG_CKPT_DATA for async update */
@@ -1128,18 +1128,18 @@ uint32_t dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t 
 			 * Just a precautionary close here which will ensure that the 
 			 * old file is getting closed when we are creating a new file.
 			 */
-			if ((TRUE == device->file_open) && (device->svc_fh != NULL))
+			if ((true == device->file_open) && (device->svc_fh != NULL))
 				fclose(device->svc_fh);
 
 			if (NULL == (device->svc_fh = sysf_fopen(m_DTS_LOG_FILE_NAME(device), "a+")))
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_log_msg: Failed to open log file");
 
-			device->file_open = TRUE;
+			device->file_open = true;
 
 		}
 
 		/* Check whether we can dump data into this file...else there is some problem. */
-		if ((NULL == device->svc_fh) || (FALSE == device->file_open)) {
+		if ((NULL == device->svc_fh) || (false == device->file_open)) {
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_log_msg: Unbale to dump message. Either file handle is NULL or file is not opened properly");
 		}
@@ -1151,7 +1151,7 @@ uint32_t dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t 
 	if ((policy->log_dev & CIRCULAR_BUFFER) == CIRCULAR_BUFFER) {
 		/* Check whether buffer has been allocated,
 		 * If not, allocate according to policy */
-		if (device->cir_buffer.buff_allocated == FALSE) {
+		if (device->cir_buffer.buff_allocated == false) {
 			if (dts_circular_buffer_alloc(&device->cir_buffer, policy->cir_buff_size) == NCSCC_RC_SUCCESS)
 				m_LOG_DTS_CBOP(DTS_CBOP_ALLOCATED, 0, 0);
 			else
@@ -1195,19 +1195,19 @@ uint32_t dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t 
  Input:    key     : Key to be used for searching the v-card registration.
            qelem   : V-card registration queue.
 
- Returns:  TRUE/FALSE
+ Returns:  true/false
 
  Notes:  
 \**************************************************************************/
-NCS_BOOL dts_find_reg(void *key, void *qelem)
+bool dts_find_reg(void *key, void *qelem)
 {
 	MDS_DEST *vkey = (MDS_DEST *)key;
 	DTA_DEST_LIST *svc = (DTA_DEST_LIST *)qelem;
 
 	if (memcmp(vkey, &svc->dta_addr, sizeof(MDS_DEST)) == 0)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 /**************************************************************************\
@@ -1274,18 +1274,18 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 
 	gpolicy->g_policy.log_dev = GLOBAL_LOG_DEV;
 	gpolicy->g_policy.log_file_size = GLOBAL_LOGFILE_SIZE;
-	gpolicy->device.new_file = TRUE;
+	gpolicy->device.new_file = true;
 	gpolicy->g_policy.file_log_fmt = GLOBAL_FILE_LOG_FMT;
 	gpolicy->g_policy.cir_buff_size = GLOBAL_CIR_BUFF_SIZE;
 	gpolicy->g_policy.buff_log_fmt = GLOBAL_BUFF_LOG_FMT;
 
 	gpolicy->g_num_log_files = GLOBAL_NUM_LOG_FILES;
 	gpolicy->g_enable_seq = GLOBAL_ENABLE_SEQ;
-	gpolicy->g_close_files = FALSE;
+	gpolicy->g_close_files = false;
 
 	gpolicy->device.cur_file_size = 0;
 	gpolicy->device.svc_fh = 0;
-	gpolicy->device.file_open = FALSE;
+	gpolicy->device.file_open = false;
 	gpolicy->device.last_rec_id = 0;
 	gpolicy->device.cons_list_ptr = NULL;
 	gpolicy->device.num_of_cons_conf = 0;
@@ -1327,14 +1327,14 @@ void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uint32_t no
 
 	npolicy->log_dev = NODE_LOG_DEV;
 	npolicy->log_file_size = NODE_LOGFILE_SIZE;
-	device->new_file = TRUE;
+	device->new_file = true;
 	npolicy->file_log_fmt = NODE_FILE_LOG_FMT;
 	npolicy->cir_buff_size = NODE_CIR_BUFF_SIZE;
 	npolicy->buff_log_fmt = NODE_BUFF_LOG_FMT;
 
 	device->cur_file_size = 0;
 	device->svc_fh = 0;
-	device->file_open = FALSE;
+	device->file_open = false;
 	device->last_rec_id = 0;
 	memset(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
 	device->cons_list_ptr = NULL;
@@ -1385,7 +1385,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 	}
 	spolicy->log_dev = SVC_LOG_DEV;
 	spolicy->log_file_size = SVC_LOGFILE_SIZE;
-	device->new_file = TRUE;
+	device->new_file = true;
 	spolicy->file_log_fmt = SVC_FILE_LOG_FMT;
 	spolicy->cir_buff_size = SVC_CIR_BUFF_SIZE;
 	spolicy->buff_log_fmt = SVC_BUFF_LOG_FMT;
@@ -1515,8 +1515,8 @@ uint32_t dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST
 	if (dta == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_send_filter_config_msg: NULL pointer passed");
 
-	if (FALSE == dta->dta_up) {
-		dta->updt_req = TRUE;
+	if (false == dta->dta_up) {
+		dta->updt_req = true;
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -1612,10 +1612,10 @@ uint32_t dts_close_opened_files(void)
 	m_LOG_DTS_DBGSTR(DTS_SERVICE, "Closing all the open files", 0, 0);
 
 	/* First close files in global policy */
-	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
+	if ((inst->g_policy.device.file_open == true) && (inst->g_policy.device.svc_fh != NULL)) {
 		fclose(inst->g_policy.device.svc_fh);
-		inst->g_policy.device.file_open = FALSE;
-		inst->g_policy.device.new_file = TRUE;
+		inst->g_policy.device.file_open = false;
+		inst->g_policy.device.new_file = true;
 		inst->g_policy.device.svc_fh = NULL;
 		inst->g_policy.device.cur_file_size = 0;
 	}
@@ -1631,10 +1631,10 @@ uint32_t dts_close_opened_files(void)
 	while (service != NULL) {
 		/* Setup key for new search */
 		nt_key = service->ntwk_key;
-		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
+		if ((service->device.file_open == true) && (service->device.svc_fh != NULL)) {
 			fclose(service->device.svc_fh);
-			service->device.file_open = FALSE;
-			service->device.new_file = TRUE;
+			service->device.file_open = false;
+			service->device.new_file = true;
 			service->device.svc_fh = NULL;
 			service->device.cur_file_size = 0;
 		}
@@ -1668,11 +1668,11 @@ uint32_t dts_close_files_quiesced(void)
 	m_LOG_DTS_DBGSTR(DTS_SERVICE, "Closing all the open files: Going to QUIESCED STATE", 0, 0);
 
 	/* First close files in global policy */
-	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
+	if ((inst->g_policy.device.file_open == true) && (inst->g_policy.device.svc_fh != NULL)) {
 		fclose(inst->g_policy.device.svc_fh);
 		inst->g_policy.device.svc_fh = NULL;
-		inst->g_policy.device.file_open = FALSE;
-		inst->g_policy.device.new_file = TRUE;
+		inst->g_policy.device.file_open = false;
+		inst->g_policy.device.new_file = true;
 		inst->g_policy.device.cur_file_size = 0;
 	}
 
@@ -1680,11 +1680,11 @@ uint32_t dts_close_files_quiesced(void)
 	while (service != NULL) {
 		/* Setup key for new search */
 		nt_key = service->ntwk_key;
-		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
+		if ((service->device.file_open == true) && (service->device.svc_fh != NULL)) {
 			fclose(service->device.svc_fh);
 			service->device.svc_fh = NULL;
-			service->device.file_open = FALSE;
-			service->device.new_file = TRUE;
+			service->device.file_open = false;
+			service->device.new_file = true;
 			service->device.cur_file_size = 0;
 		}
 		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uint8_t *)&nt_key);
@@ -1783,7 +1783,7 @@ uint32_t dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uint32_t
 static uint32_t dts_stby_initialize(DTS_CB *cb)
 {
 	/* Check for message sequencing enabled or not */
-	if (cb->g_policy.g_enable_seq == TRUE) {
+	if (cb->g_policy.g_enable_seq == true) {
 		if (dts_enable_sequencing(cb) != NCSCC_RC_SUCCESS)
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				       "dts_stby_initialize: Failed to enable sequencing of messages");
@@ -1855,7 +1855,7 @@ uint32_t dts_stby_update_dta_config()
 				msg = NULL;
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_stby_update_dta_config: DTS: MDS send failed");
 
-				dts_set_dta_up_down(m_NCS_NODE_ID_FROM_MDS_DEST(dta_key), dta_key, FALSE);
+				dts_set_dta_up_down(m_NCS_NODE_ID_FROM_MDS_DEST(dta_key), dta_key, false);
 			}
 		}
 		/* end of dta_reg->svc_list != NULL */
@@ -1989,7 +1989,7 @@ NCSCONTEXT dts_dequeue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 	key = &dta->dta_addr;
 	dta_entry = svc->v_cd_list;
 
-	if (dts_find_reg(key, dta_entry->dta) == TRUE) {
+	if (dts_find_reg(key, dta_entry->dta) == true) {
 		svc->v_cd_list = dta_entry->next_in_svc_entry;
 		dta_ptr = dta_entry->dta;
 		m_MMGR_FREE_DTS_DTA_ENTRY(dta_entry);
@@ -1998,7 +1998,7 @@ NCSCONTEXT dts_dequeue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 
 	while ((dta_entry != NULL) && (dta_entry->next_in_svc_entry != NULL)) {
 		tmp = dta_entry->next_in_svc_entry;
-		if (dts_find_reg(key, dta_entry->next_in_svc_entry->dta) == TRUE) {
+		if (dts_find_reg(key, dta_entry->next_in_svc_entry->dta) == true) {
 			/* Store the svc_reg ptr for return */
 			dta_ptr = tmp->dta;
 			/*Adjust the linked list */
@@ -2882,7 +2882,7 @@ uint32_t dts_handle_immnd_event(DTSV_MSG *msg)
 		break;
 	case NCSMDS_UP:
 		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received IMMND up event for :", msg->node, (uint32_t)msg->dest_addr);
-		if (inst->imm_init_done == FALSE) {
+		if (inst->imm_init_done == false) {
 			if (dts_imm_initialize(inst) != SA_AIS_OK) {
 				LOG_ER("imm initialize failed, exiting");
 				exit(1);
@@ -2894,7 +2894,7 @@ uint32_t dts_handle_immnd_event(DTSV_MSG *msg)
 			fds[FD_IMM].fd = inst->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			nfds = FD_IMM + 1;
-			inst->imm_init_done = TRUE;
+			inst->imm_init_done = true;
 		}
 		break;
 

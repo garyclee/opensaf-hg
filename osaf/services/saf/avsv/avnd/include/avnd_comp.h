@@ -295,16 +295,16 @@ typedef struct avnd_comp_tag {
 
 	/* component attributes */
 	uint32_t flag;		/* comp attributes */
-	NCS_BOOL is_restart_en;	/* flag to indicate if comp-restart is allowed */
+	bool is_restart_en;	/* flag to indicate if comp-restart is allowed */
 	SaAmfCompCapabilityModelT cap;	/* comp capability model */
-	NCS_BOOL is_am_en;
+	bool is_am_en;
 
 	/* clc info */
 	AVND_COMP_CLC_INFO clc_info;
 
-	/* Update received flag, which will normally be FALSE and will be
-	 * TRUE if updates are received from the AVD on fail-over.*/
-	NCS_BOOL avd_updt_flag;
+	/* Update received flag, which will normally be false and will be
+	 * true if updates are received from the AVD on fail-over.*/
+	bool avd_updt_flag;
 
 	/* component registration info */
 	SaAmfHandleT reg_hdl;	/* registered handle value */
@@ -351,12 +351,12 @@ typedef struct avnd_comp_tag {
 	NODE_ID node_id;	/* It will used for internode proxy-proxied components. */
 	uint32_t comp_type;	/* Whether the component is LOCAL, INTERNODE or EXT */
 	MDS_SYNC_SND_CTXT mds_ctxt;
-	NCS_BOOL reg_resp_pending;	/* If the reg resp is pending from 
-					   proxied comp AvND, it TRUE. */
+	bool reg_resp_pending;	/* If the reg resp is pending from 
+					   proxied comp AvND, it true. */
 	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
-	SaBoolT admin_oper;   /*set to TRUE if undergoing admin operation */
+	SaBoolT admin_oper;   /*set to true if undergoing admin operation */
 	int config_is_valid; /* Used to indicate that config has to be refreshed from IMM */
-	NCS_BOOL assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
+	bool assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
 
 } AVND_COMP;
 
@@ -499,8 +499,8 @@ typedef struct avnd_comp_tag {
 
 /* macros for managing the comp restart-enable flag */
 #define m_AVND_COMP_RESTART_EN_SET(x, val) ((x)->is_restart_en = val)
-#define m_AVND_COMP_IS_RESTART_EN(x)       ((x)->is_restart_en == TRUE)
-#define m_AVND_COMP_IS_RESTART_DIS(x)      ((x)->is_restart_en == FALSE)
+#define m_AVND_COMP_IS_RESTART_EN(x)       ((x)->is_restart_en == true)
+#define m_AVND_COMP_IS_RESTART_DIS(x)      ((x)->is_restart_en == false)
 
 /* macro to reset the comp-reg params */
 #define m_AVND_COMP_REG_PARAM_RESET(cb, comp) \
@@ -791,8 +791,8 @@ extern AVND_COMP_HC_REC *avnd_comp_hc_get(AVND_COMP *, uint32_t, uint32_t);
 extern uint32_t avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2);
 extern void avnd_comp_hc_rec_del_all(struct avnd_cb_tag *, AVND_COMP *);
 
-extern void avnd_comp_cbq_del(struct avnd_cb_tag *, AVND_COMP *, NCS_BOOL);
-extern void avnd_comp_cbq_rec_pop_and_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL);
+extern void avnd_comp_cbq_del(struct avnd_cb_tag *, AVND_COMP *, bool);
+extern void avnd_comp_cbq_rec_pop_and_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, bool);
 extern AVND_COMP_CBK *avnd_comp_cbq_rec_add(struct avnd_cb_tag *, AVND_COMP *,
 					      AVSV_AMF_CBK_INFO *, MDS_DEST *, SaTimeT);
 extern uint32_t avnd_comp_cbq_send(struct avnd_cb_tag *, AVND_COMP *, MDS_DEST *,
@@ -800,7 +800,7 @@ extern uint32_t avnd_comp_cbq_send(struct avnd_cb_tag *, AVND_COMP *, MDS_DEST *
 
 extern void avnd_comp_cbq_rec_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *);
 
-extern uint32_t avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL);
+extern uint32_t avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, bool);
 
 extern uint32_t avnd_compdb_init(struct avnd_cb_tag *);
 extern uint32_t avnd_compdb_destroy(struct avnd_cb_tag *);
@@ -810,7 +810,7 @@ extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, SaNameT 
 extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(struct avnd_cb_tag *, SaNameT *, SaNameT *);
 
 extern uint32_t avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
-				  SaAisErrorT, uint8_t *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, NCS_BOOL);
+				  SaAisErrorT, uint8_t *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, bool);
 
 extern void avnd_comp_hc_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
 extern void avnd_comp_cbq_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
@@ -852,7 +852,7 @@ extern uint32_t avnd_comp_pmstart_modify(struct avnd_cb_tag *, AVSV_AMF_PM_START
 					SaAisErrorT *);
 extern AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_START_PARAM *,
 						  SaAisErrorT *);
-extern NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *);
+extern bool avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *);
 extern uint32_t avnd_evt_ava_pm_start_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 extern uint32_t avnd_evt_ava_pm_stop_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 extern void avnd_comp_pm_param_val(struct avnd_cb_tag *, AVSV_AMF_API_TYPE, uint8_t *, AVND_COMP **, AVND_COMP_PM_REC **,

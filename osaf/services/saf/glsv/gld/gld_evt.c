@@ -133,9 +133,9 @@ static uint32_t gld_rsc_open(GLSV_GLD_EVT *evt)
 	uint32_t res;
 	SaAisErrorT error;
 	uint32_t node_id;
-	NCS_BOOL node_first_rsc_open = FALSE;
+	bool node_first_rsc_open = false;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
-	NCS_BOOL orphan_flag = FALSE;
+	bool orphan_flag = false;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
@@ -147,7 +147,7 @@ static uint32_t gld_rsc_open(GLSV_GLD_EVT *evt)
 	/* Find if the node details are available */
 	if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
 									   (uint8_t *)&node_id)) == NULL) {
-		node_first_rsc_open = TRUE;
+		node_first_rsc_open = true;
 		if ((node_details = gld_add_glnd_node(gld_cb, evt->fr_dest_id)) == NULL)
 			return NCSCC_RC_FAILURE;
 	}
@@ -276,7 +276,7 @@ static uint32_t gld_rsc_close(GLSV_GLD_EVT *evt)
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
-	NCS_BOOL orphan_flag;
+	bool orphan_flag;
 	uint32_t node_id;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
@@ -370,7 +370,7 @@ static uint32_t gld_rsc_set_orphan(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
+uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, bool orphan,
 			     SaLckLockModeT lck_mode)
 {
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc_ref;
@@ -384,7 +384,7 @@ uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResour
 
 	glnd_rsc_ref->rsc_info->can_orphan = orphan;
 	glnd_rsc_ref->rsc_info->orphan_lck_mode = lck_mode;
-	if (orphan == TRUE)
+	if (orphan == true)
 		glnd_rsc_ref->rsc_info->saf_rsc_stripped_cnt++;
 
 	return NCSCC_RC_SUCCESS;
@@ -582,7 +582,7 @@ static uint32_t gld_mds_glnd_down(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
-	NCS_BOOL orphan_flag;
+	bool orphan_flag;
 	GLSV_GLD_RSC_INFO *rsc_info;
 	uint32_t node_id;
 
@@ -659,7 +659,7 @@ static uint32_t gld_quisced_process(GLSV_GLD_EVT *evt)
 			return rc;
 		}
 		saAmfResponse(gld_cb->amf_hdl, gld_cb->invocation, saErr);
-		gld_cb->is_quiasced = FALSE;
+		gld_cb->is_quiasced = false;
 	}
 	return rc;
 

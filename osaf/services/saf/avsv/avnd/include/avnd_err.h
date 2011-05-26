@@ -98,7 +98,7 @@ typedef struct avnd_err_tag {
       (esc_level) = AVND_ERR_ESC_LEVEL_0; \
    else if ((su)->su_restart_max != 0 && !m_AVND_SU_IS_SU_RESTART_DIS(su)) \
       (esc_level) = AVND_ERR_ESC_LEVEL_1; \
-   else if (((cb)->su_failover_max != 0) || (TRUE == su->su_is_external)) \
+   else if (((cb)->su_failover_max != 0) || (true == su->su_is_external)) \
       (esc_level) = AVND_ERR_ESC_LEVEL_2; \
    else \
       (esc_level) = AVND_ERR_ESC_LEVEL_3; \

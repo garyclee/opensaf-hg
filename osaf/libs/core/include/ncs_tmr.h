@@ -55,7 +55,7 @@ extern "C" {
 		uint32_t svc_sub_id;	/* sub id for the above service ID */
 		struct ncs_rp_tmr_info_tag *start_list;	/* hold the pointer of the starting tmr list */
 		time_t last_trig_tmr;	/* this will hold the time stamp of last trigered value */
-		NCS_BOOL active;
+		bool active;
 		NCS_LOCK tmr_lock;
 	} NCS_RP_TMR_CB;
 

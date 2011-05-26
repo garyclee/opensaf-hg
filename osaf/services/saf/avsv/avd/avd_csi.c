@@ -391,19 +391,19 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 				/* reset the assign flag */
 				t_comp = t_sisu->su->list_of_comp;
 				while (t_comp != NULL) {
-					t_comp->assign_flag = FALSE;
+					t_comp->assign_flag = false;
 					t_comp = t_comp->su_comp_next;
 				}/* while (t_comp != NULL) */
 
 				compcsi = t_sisu->list_of_csicomp;
 				while (compcsi != NULL) {
-					compcsi->comp->assign_flag = TRUE;
+					compcsi->comp->assign_flag = true;
 					compcsi = compcsi->susi_csicomp_next;
 				}
 
 				t_comp = t_sisu->su->list_of_comp;
 				while (t_comp != NULL) {
-					if ((t_comp->assign_flag == FALSE) &&
+					if ((t_comp->assign_flag == false) &&
 							(avd_compcstype_find_match(&cstype_name, t_comp) != NULL)) {
 						/* We have found the component. Assign csi to it. */
 						break;
@@ -718,19 +718,19 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 			/* reset the assign flag */
 			t_comp = t_sisu->su->list_of_comp;
 			while (t_comp != NULL) {
-				t_comp->assign_flag = FALSE;
+				t_comp->assign_flag = false;
 				t_comp = t_comp->su_comp_next;
 			}/* while (t_comp != NULL) */
 
 			compcsi = t_sisu->list_of_csicomp;
 			while (compcsi != NULL) {
-				compcsi->comp->assign_flag = TRUE;
+				compcsi->comp->assign_flag = true;
 				compcsi = compcsi->susi_csicomp_next;
 			}
 
 			t_comp = t_sisu->su->list_of_comp;
 			while (t_comp != NULL) {
-				if ((t_comp->assign_flag == FALSE) &&
+				if ((t_comp->assign_flag == false) &&
 						(NULL != (cst = avd_compcstype_find_match(&csi->saAmfCSType, t_comp)))) {
 					/* We have found the component. Assign csi to it. */
 					break;
@@ -772,7 +772,7 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 
 			if ((compcsi = avd_compcsi_create(t_sisu, csi, t_comp, true)) == NULL) {
 				/* free all the CSI assignments and end this loop */
-				avd_compcsi_delete(avd_cb, t_sisu, TRUE);
+				avd_compcsi_delete(avd_cb, t_sisu, true);
 				break;
 			}
 			/* Mark comp-csi and sisu to be under csi add/rem.*/
@@ -781,9 +781,9 @@ static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 				first_sisu = false;
 				if (avd_snd_susi_msg(avd_cb, t_sisu->su, t_sisu, AVSV_SUSI_ACT_ASGN, true, compcsi) != NCSCC_RC_SUCCESS) {
 					/* free all the CSI assignments and end this loop */
-					avd_compcsi_delete(avd_cb, t_sisu, TRUE); 
+					avd_compcsi_delete(avd_cb, t_sisu, true); 
 					/* Unassign the SUSI */
-					avd_susi_delete(avd_cb, t_sisu, TRUE);
+					avd_susi_delete(avd_cb, t_sisu, true);
 					goto done;
 				}
 
@@ -982,7 +982,7 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
  * 
  **************************************************************************/
 
-uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
+uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 {
 	AVD_COMP_CSI_REL *lcomp_csi;
 	AVD_COMP_CSI_REL *i_compcsi, *prev_compcsi = NULL;
@@ -1008,7 +1008,7 @@ uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 
 			/* trigger pg upd */
 			if (!ckpt) {
-				avd_pg_compcsi_chg_prc(cb, lcomp_csi, TRUE);
+				avd_pg_compcsi_chg_prc(cb, lcomp_csi, true);
 			}
 
 			i_compcsi->csi_csicomp_next = NULL;
@@ -1045,7 +1045,7 @@ uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
  *
  * 
  **************************************************************************/
-uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL ckpt)
+uint32_t avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL *comp_csi, bool ckpt)
 {
 	AVD_COMP_CSI_REL *t_compcsi, *t_compcsi_susi, *prev_compcsi = NULL;
 

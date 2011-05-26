@@ -86,13 +86,13 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 			       (sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues)));
 			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, SA_AIS_OK,
 				      __FILE__, __LINE__);
-			cb->is_restart_done = TRUE;
+			cb->is_restart_done = true;
 			TRACE("Firsttime Openingthe Ckpt");
-			cb->is_create_ckpt = TRUE;
+			cb->is_create_ckpt = true;
 			memcpy(mqnd_open_req.info.open.o_addr, &mqnd_shm_version, sizeof(mqnd_shm_version));
 		}
 	} else
-		cb->is_create_ckpt = FALSE;
+		cb->is_create_ckpt = false;
 
 	/* Store Shared memory start address which contains MQSV Sharedmemory version */
 	cb->mqnd_shm.shm_start_addr = mqnd_open_req.info.open.o_addr;

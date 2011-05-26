@@ -504,7 +504,7 @@ uint32_t eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 
 uint32_t eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
 uint32_t eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
+uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req);
 uint32_t eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba);
 uint32_t eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba);
 uint32_t eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba);

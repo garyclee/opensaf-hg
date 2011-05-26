@@ -257,7 +257,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	config->i_addr_family = DTM_IP_ADDR_TYPE_IPV4;
 	config->bcast_msg_freq = BCAST_FRE;
 	config->initial_dis_timeout = DIS_TIME_OUT;
-	config->mcast_flag = FALSE;
+	config->mcast_flag = false;
 
 	config->node_id = m_NCS_GET_NODE_ID;
 	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
@@ -344,7 +344,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				tag_len = strlen("DTM_MCAST_ADDR=");
 				strncpy(config->mcast_addr, &line[tag_len], INET6_ADDRSTRLEN - 1);	/* ipv4 ipv6 addrBuffer */
 				if (strlen(config->mcast_addr) != 0) {
-					config->mcast_flag = TRUE;
+					config->mcast_flag = true;
 				}
 
 				tag = 0;

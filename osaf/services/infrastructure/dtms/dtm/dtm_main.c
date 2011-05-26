@@ -53,7 +53,7 @@ NCSCONTEXT gl_serv_dis_task_hdl = 0;
 static DTM_INTERNODE_CB _dtms_cb;
 DTM_INTERNODE_CB *dtms_gl_cb = &_dtms_cb;
 
-uint8_t initial_discovery_phase = TRUE;
+uint8_t initial_discovery_phase = true;
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 	/* Set up the initial bcast or mcast sender socket */
 	/*************************************************************/
 
-	if (dtms_cb->mcast_flag != TRUE) {
+	if (dtms_cb->mcast_flag != true) {
 		rc = dtm_dgram_bcast_sender(dtms_cb);
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("DTM:Set up the initial bcast  sender socket   failed rc : %d ", rc);
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 		}
 
 		/* Broadcast msg string in datagram to clients every 250  m seconds */
-		if (dtms_cb->mcast_flag == TRUE) {
+		if (dtms_cb->mcast_flag == true) {
 
 			rc = dtm_dgram_sendto_mcast(dtms_cb, send_bcast_buffer, bcast_buf_len);
 			if (NCSCC_RC_SUCCESS != rc) {
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 	/*************************************************************/
 	/* Keep waiting forever */
 	/*************************************************************/
-	initial_discovery_phase = FALSE;
+	initial_discovery_phase = false;
 	while (1) {
 		m_NCS_TASK_SLEEP(0xfffffff0);
 		/* m_NCS_TASK_SLEEP(30000); */

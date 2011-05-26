@@ -653,7 +653,7 @@ void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt)
 	CPSV_EVT *ptr = container_of(evt, CPSV_EVT, info.cpnd);
 	CPSV_EVT *tmp_evt = NULL;
 
-	evt->dont_free_me = TRUE;
+	evt->dont_free_me = true;
 
 	ptr->next = NULL;
 	/* add it to the queue */
@@ -1045,7 +1045,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb, CPND_CKPT_NODE *cp_node, MDS_DEST ade
 
 		cp_node->evt_bckup_q = cp_node->evt_bckup_q->next;
 
-		bck_evt->info.cpnd.dont_free_me = FALSE;
+		bck_evt->info.cpnd.dont_free_me = false;
 
 		cpnd_evt_destroy(bck_evt);
 	}

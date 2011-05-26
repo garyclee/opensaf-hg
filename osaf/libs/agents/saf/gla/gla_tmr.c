@@ -53,9 +53,9 @@ uint32_t gla_start_tmr(GLA_TMR *tmr)
 		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)period, gla_tmr_exp, (void *)tmr);
 	}
 
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)period, gla_tmr_exp, (void *)tmr);
@@ -63,7 +63,7 @@ uint32_t gla_start_tmr(GLA_TMR *tmr)
 	if (TMR_T_NULL == tmr->tmr_id) {
 		return NCSCC_RC_FAILURE;
 	}
-	tmr->is_active = TRUE;
+	tmr->is_active = true;
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -82,9 +82,9 @@ uint32_t gla_start_tmr(GLA_TMR *tmr)
 void gla_stop_tmr(GLA_TMR *tmr)
 {
 	/* Stop the timer if it is active... */
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 
 	/* Destroy the timer if it exists.. */
@@ -122,7 +122,7 @@ void gla_tmr_exp(void *uarg)
 
 	/* check the event type */
 	if (tmr->is_active) {
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 		/* Destroy the timer if it exists.. */
 		if (tmr->tmr_id != TMR_T_NULL) {
 			m_NCS_TMR_DESTROY(tmr->tmr_id);

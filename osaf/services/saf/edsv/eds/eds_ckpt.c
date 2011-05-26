@@ -337,7 +337,7 @@ uint32_t eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 		/* Encode cold sync response */
-		rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, FALSE);
+		rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, false);
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		} else {
@@ -366,7 +366,7 @@ uint32_t eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-		if ((rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
+		if ((rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, true)) != NCSCC_RC_SUCCESS)
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		else
 			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
@@ -406,7 +406,7 @@ uint32_t eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req)
 {
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -466,7 +466,7 @@ uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, 
 	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
-	if (data_req == TRUE)
+	if (data_req == true)
 		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 	else
 		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
@@ -1168,7 +1168,7 @@ uint32_t eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		break;
 	case EDS_CKPT_SUBSCRIBE_REC:
 		msg_hdl = (long)ckpt_msg;
-		rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);	/* think of passing subsribe rec hdl itself */
+		rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, true);	/* think of passing subsribe rec hdl itself */
 		if (!rc) {
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
@@ -1178,7 +1178,7 @@ uint32_t eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		break;
 	case EDS_CKPT_RETEN_REC:
 		msg_hdl = (long)ckpt_msg;
-		rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+		rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, true);
 		if (!rc) {
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
@@ -1444,7 +1444,7 @@ uint32_t eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		num_rec = data->header.num_ckpt_records;
 		while (num_rec) {
 			msg_hdl = (long)data;
-			rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+			rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, true);
 			if (!rc) {
 				TRACE("COLD SYNC DECODE SUBSCRIBE FAILED........");
 				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -1481,7 +1481,7 @@ uint32_t eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		if (num_rec != 0) {
 			while (num_rec) {
 				msg_hdl = (long)data;
-				rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+				rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, true);
 				if (!rc) {	/*Encode failed.Zero bytes */
 					TRACE("COLD SYNC DECODE PUBLISH FAILED........");
 					m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
@@ -1517,7 +1517,7 @@ uint32_t eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 			/* Clean up all data */
 			TRACE("COLD SYNC DECODE FAILED CLEANING DATABASE........");
 			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-			eds_remove_reglist_entry(cb, 0, TRUE);
+			eds_remove_reglist_entry(cb, 0, true);
 		}
 		TRACE("COLD SYNC DECODE END........");
 		return rc;
@@ -1618,7 +1618,7 @@ uint32_t eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if ((rc = eds_remove_reglist_entry(cb, param->reg_id, FALSE)) != NCSCC_RC_SUCCESS)
+	if ((rc = eds_remove_reglist_entry(cb, param->reg_id, false)) != NCSCC_RC_SUCCESS)
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 
 	return NCSCC_RC_SUCCESS;
@@ -1726,7 +1726,7 @@ uint32_t eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 		return NCSCC_RC_FAILURE;
 	}
-	rc = eds_channel_close(cb, param->reg_id, param->chan_id, param->chan_open_id, FALSE);
+	rc = eds_channel_close(cb, param->reg_id, param->chan_id, param->chan_open_id, false);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 
@@ -1947,7 +1947,7 @@ uint32_t eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 
 	/* Lock the EDS_CB */
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, FALSE);
+	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, false);
 
 	/* Unlock the EDS_CB */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -2026,7 +2026,7 @@ uint32_t eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
 	} else {
 		/* Clean up all data */
 		TRACE(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request");
-		eds_remove_reglist_entry(cb, 0, TRUE);
+		eds_remove_reglist_entry(cb, 0, true);
 
 		/* Compose and send a data request to ACTIVE */
 		mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;

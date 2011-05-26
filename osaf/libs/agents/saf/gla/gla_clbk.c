@@ -75,14 +75,14 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
 
 						client_res_info =
 						    gla_client_res_tree_find_and_add(client_info,
-										     res_id_node->gbl_res_id, FALSE);
+										     res_id_node->gbl_res_id, false);
 						if (client_res_info)
 							client_res_info->lcl_res_cnt++;
 						else {
 							client_res_info =
 							    gla_client_res_tree_find_and_add(client_info,
 											     res_id_node->gbl_res_id,
-											     TRUE);
+											     true);
 							if (client_res_info)
 								client_res_info->lcl_res_cnt++;
 						}
@@ -319,7 +319,7 @@ uint32_t gla_hdl_callbk_dispatch_block(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_i
 			gla_process_callback(gla_cb, client_info, callback);
 
 			/* check to see the validity of the hdl. */
-			if (NULL == gla_client_tree_find_and_add(gla_cb, hdl, FALSE))
+			if (NULL == gla_client_tree_find_and_add(gla_cb, hdl, false))
 				return rc;
 		} else
 			return rc;	/* FIX to handle finalize clean up of mbx */

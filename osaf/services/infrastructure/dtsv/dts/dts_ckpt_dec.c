@@ -881,8 +881,8 @@ uint32_t dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		}
 
 		/* Data response should be identical to cold-sync */
-		cb->in_sync = FALSE;
-		cb->cold_sync_in_progress = TRUE;
+		cb->in_sync = false;
+		cb->cold_sync_in_progress = true;
 		cb->cold_sync_done = 0;
 
 		status = NCSCC_RC_FAILURE;

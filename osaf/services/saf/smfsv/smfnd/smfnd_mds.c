@@ -381,7 +381,7 @@ uint32_t mds_register(smfnd_cb_t * cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = 0;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;	/* SMFND owns the mds queue */
+	svc_info.info.svc_install.i_mds_q_ownership = false;	/* SMFND owns the mds queue */
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = SMFND_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {

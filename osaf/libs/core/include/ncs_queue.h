@@ -81,7 +81,7 @@ extern "C" {
 
 /* This function prototype used to find an element in an NCS_QUEUE */
 
-	typedef NCS_BOOL (*NCSQ_MATCH) (void *key, void *qelem);
+	typedef bool (*NCSQ_MATCH) (void *key, void *qelem);
 
 /** H&J Queue Primitives
  **/

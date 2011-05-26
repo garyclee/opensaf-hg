@@ -374,7 +374,7 @@ extern "C" {
             API. To know of message-arrival, an MDS-client will need to use
             the NCS selection-object primitives on the "i_sel_obj" return
             during MDS_INSTALL. To opt for this model, an MDS-client will have to set the
-            "i_mds_q_ownership" flag to TRUE.
+            "i_mds_q_ownership" flag to true.
 
             (NOTE: In this model, MDS will never invoke the
             MDS_CALLBACK_RECEIVE.)
@@ -385,15 +385,15 @@ extern "C" {
             appropriately store or process the message.
 
             To opt for this model, an MDS-client will have to set the
-            "i_mds_q_ownership" flag to FALSE.
+            "i_mds_q_ownership" flag to false.
    \*---------------------------------------------------------------------*/
 
 		/* An MDS client has to choose an MDS model using "i_mds_q_ownership".
 		   Please see the m_NCS_SEL_OBJ_* macros to understand the "o_sel_obj" */
-		NCS_BOOL i_mds_q_ownership;
-		NCS_SEL_OBJ o_sel_obj;	/* Valid only if "i_mds_q_ownership=TRUE" */
+		bool i_mds_q_ownership;
+		NCS_SEL_OBJ o_sel_obj;	/* Valid only if "i_mds_q_ownership= true" */
 		MDS_SVC_PVT_SUB_PART_VER i_mds_svc_pvt_ver;
-		NCS_BOOL i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
+		bool i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
 							   in No-Active state, else dropped.
 							   A return value of MDS_RC_MSG_NO_BUFFERING 
 							   will be returned when this member is set to 1 */
@@ -512,9 +512,9 @@ extern "C" {
 		/* i_svc_id: The service-id of the service that is being queried about */
 		MDS_SVC_ID i_svc_id;
 
-		/* i_query_for_role: FALSE ==> Return "anchor" of active VDEST-instance 
-		   and                TRUE ==> Return role of VDEST-instance specified. */
-		NCS_BOOL i_query_for_role;
+		/* i_query_for_role: false ==> Return "anchor" of active VDEST-instance 
+		   and                true ==> Return role of VDEST-instance specified. */
+		bool i_query_for_role;
 		union {
 			struct {
 				V_DEST_RL i_vdest_rl;
@@ -528,7 +528,7 @@ extern "C" {
 
 		} info;
 
-		NCS_BOOL o_local;	/* TRUE => local, FALSE => REMOTE   */
+		bool o_local;	/* true => local, false => REMOTE   */
 		NODE_ID o_node_id;	/* Node on which <VDEST,anc> is situated */
 		MDS_DEST o_adest;	/* ADEST of MDS-core of <VDEST, anc>     */
 
@@ -541,17 +541,17 @@ extern "C" {
 		/* This API supplies information using the MDS-handle supplied in
 		   the request. */
 		PW_ENV_ID o_pwe_id;	/* 0, if global hdl; else PWE ID       */
-		NCS_BOOL o_absolute;	/* True if this PWE is on an absolute addr */
+		bool o_absolute;	/* True if this PWE is on an absolute addr */
 		union {
 			struct {
 				MDS_DEST o_adest;
-			} abs_info;	/* Info valid if "o_absolute=TRUE" */
+			} abs_info;	/* Info valid if "o_absolute= true" */
 
 			struct {
 				MDS_DEST o_vdest;
 				V_DEST_QA o_anc;
 				V_DEST_RL o_role;
-			} virt_info;	/* Info valid if "o_absolute=FALSE" */
+			} virt_info;	/* Info valid if "o_absolute=false" */
 		} info;
 
 	} MDS_QUERY_PWE_INFO;
@@ -635,17 +635,17 @@ extern "C" {
 		   to this copy through the "o_cpy" member. The destination of the message is
 		   "i_to_svc_id".
 
-		   "i_last" is set to TRUE if "i_msg" will not be needed after this instance
-		   of the COPY call. Thus it will FALSE for all but the last "MDS-sends" that
-		   comprise an MDS-broadcast-send. It will also be TRUE for COPY resulting
+		   "i_last" is set to true if "i_msg" will not be needed after this instance
+		   of the COPY call. Thus it will false for all but the last "MDS-sends" that
+		   comprise an MDS-broadcast-send. It will also be true for COPY resulting
 		   from non-broadcast MDS send.  A client is expected to use "i_last", to
 		   know when to clean up its "i_msg" structure - "i_msg" could be safely
-		   freed when "i_last" is set to TRUE, because MDS will not use "i_msg"
+		   freed when "i_last" is set to true, because MDS will not use "i_msg"
 		   after that call.
 		 */
 
 		NCSCONTEXT i_msg;	/* Message to be copied */
-		NCS_BOOL i_last;	/* TRUE if last COPY for this "i_msg" */
+		bool i_last;	/* true if last COPY for this "i_msg" */
 		MDS_SVC_ID i_to_svc_id;	/* Destined service-id */
 		NCSCONTEXT o_cpy;	/* A copy of "i_msg" */
 		MDS_SVC_PVT_SUB_PART_VER i_rem_svc_pvt_ver;	/* Remote service id subpart version */
@@ -676,7 +676,7 @@ extern "C" {
 
 		struct ncs_ubaid *io_uba;	/* MDS supplied USRBUF to decode from */
 		MDS_SVC_ID i_fr_svc_id;	/* Source service-id                  */
-		NCS_BOOL i_is_resp;	/* For internal use only              */
+		bool i_is_resp;	/* For internal use only              */
 		NCSCONTEXT o_msg;	/* New message resulting from decode  */
 		NODE_ID i_node_id;	/* Node id of the sender              */
 		MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver;
@@ -703,8 +703,8 @@ unpack individual structure members. */
 		   (See also: MDS_INSTALL structure)
 		 */
 		NCSCONTEXT i_msg;
-		NCS_BOOL i_rsp_reqd;	/* TRUE if send is awaiting a response */
-		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* Valid only if "i_rsp_expected == TRUE" */
+		bool i_rsp_reqd;	/* true if send is awaiting a response */
+		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* Valid only if "i_rsp_expected == true" */
 		MDS_DEST i_fr_dest;
 		MDS_SVC_ID i_fr_svc_id;
 		V_DEST_QA i_fr_anc;	/* Can be used for redundant messages */
@@ -733,8 +733,8 @@ unpack individual structure members. */
 		 */
 		MDS_DIRECT_BUFF i_direct_buff;	/* Pointer to the message */
 		uint16_t i_direct_buff_len;
-		NCS_BOOL i_rsp_reqd;	/* TRUE if send is awaiting a response */
-		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* Valid only if "i_rsp_expected == TRUE" */
+		bool i_rsp_reqd;	/* true if send is awaiting a response */
+		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* Valid only if "i_rsp_expected == true" */
 		MDS_DEST i_fr_dest;
 		MDS_SVC_ID i_fr_svc_id;
 		V_DEST_QA i_fr_anc;	/* Can be used for redundant messages */
@@ -886,8 +886,8 @@ unpack individual structure members. */
 
 /* m_NCS_IS_AN_ADEST: A macro to check if an MDS-DEST is an absolute
                       destination.
-                      - TRUE if MDS-DEST supplied is an absolute destination.
-                      - FALSE otherwise
+                      - true if MDS-DEST supplied is an absolute destination.
+                      - false otherwise
 */
 #define m_MDS_DEST_IS_AN_ADEST(d) (m_NCS_NODE_ID_FROM_MDS_DEST(d)!=0)
 

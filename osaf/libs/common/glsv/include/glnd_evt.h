@@ -192,7 +192,7 @@ typedef struct glsv_evt_glnd_rsc_gld_info_tag {
 	SaNameT rsc_name;
 	SaLckResourceIdT rsc_id;
 	MDS_DEST master_dest_id;
-	NCS_BOOL can_orphan;
+	bool can_orphan;
 	SaLckLockModeT orphan_mode;
 	SaAisErrorT error;
 } GLSV_EVT_GLND_RSC_GLD_INFO;
@@ -212,7 +212,7 @@ typedef struct glsv_evt_glnd_rsc_master_info_tag {
 typedef struct glsv_evt_glnd_new_master_info_tag {
 	SaLckResourceIdT rsc_id;
 	MDS_DEST master_dest_id;
-	NCS_BOOL orphan;	/*should the new master orphan the lck? */
+	bool orphan;	/*should the new master orphan the lck? */
 	SaLckLockModeT orphan_lck_mode;	/*lck_mode for orphaning            */
 	uint32_t status;		/* newly added */
 } GLSV_EVT_GLND_NEW_MAST_INFO;

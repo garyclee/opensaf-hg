@@ -86,14 +86,14 @@ extern "C" {
 		   value. The "persistent" option will determine whether and till when
 		   a VDEST remains associated to a string.
 
-		   If the "persistent" option is TRUE, then a string is permanently
+		   If the "persistent" option is true, then a string is permanently
 		   attached to a virtual-address. If a process that uses a 
 		   certain virtual address were to die, this association will 
 		   NOT be removed.  It will be maintained until an explicit
 		   VDEST_DESTROY call is made (once for every corresponding VDEST_CREATE 
 		   call)
 
-		   If "persistent" option is FALSE, then a virtual address will cease
+		   If "persistent" option is false, then a virtual address will cease
 		   to be associated with a string as soon as all processes using this
 		   virtual address either expire or invoke the VDEST_DESTROY API.
 
@@ -106,14 +106,14 @@ extern "C" {
 		   on a global basis.
 
 		   NOTE: 
-		   1) The "persistent" option should uniformly be either a TRUE or 
-		   a FALSE across multiple VDEST_CREATE calls for the same string-name.
+		   1) The "persistent" option should uniformly be either a true or 
+		   a false across multiple VDEST_CREATE calls for the same string-name.
 
 		   2) The VDEST_CREATE is a blocking call. The VDA uses the invoker's task 
 		   context to contact the VDS and returns only upon getting a response from 
 		   VDS.
 		 */
-		NCS_BOOL i_persistent;
+		bool i_persistent;
 		NCS_VDEST_TYPE i_policy;
 
 		NCSVDA_VDEST_CREATE_TYPE i_create_type;
@@ -146,18 +146,18 @@ extern "C" {
 
 /* ncsvda_vdest_destroy_info : Destroy a VDEST instance. A VDEST instance is
                                is identified by a <VDEST, anchor>. Additionally,
-                               if the "i_make_vdest_non_persistent" is TRUE, 
+                               if the "i_make_vdest_non_persistent" is true, 
                                then VDEST will be marked non-persistent. VDEST 
                                would be freed after all VDEST instances disappear
                                from the system. If this  
-                               "i_make_vdest_non_persitent" is FALSE, then the 
+                               "i_make_vdest_non_persitent" is false, then the 
                                VDEST's persistency is NOT changed.
 */
 	typedef struct ncsvda_vdest_destroy_info {
 		NCSVDA_VDEST_CREATE_TYPE i_create_type;	/* The way that this VDEST was created */
 		SaNameT i_name;	/* Required iff i_create_type == NCSVDA_VDEST_NAMED */
 		MDS_DEST i_vdest;
-		NCS_BOOL i_make_vdest_non_persistent;
+		bool i_make_vdest_non_persistent;
 	} NCSVDA_VDEST_DESTROY_INFO;
 
 /* ncsvda_pwe_create_info :    Creates a PWE on a VDEST */

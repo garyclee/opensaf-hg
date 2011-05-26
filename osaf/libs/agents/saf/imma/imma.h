@@ -48,7 +48,7 @@ void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr);
 SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
                        IMMSV_EVT *i_evt,
 				       IMMSV_EVT **o_evt,
-				       uint32_t timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable);
+				       uint32_t timeout, SaImmHandleT immHandle, bool *locked, bool checkWritable);
 SaAisErrorT imma_proc_check_stale(IMMA_CB *cb, SaImmHandleT immHandle,
     SaAisErrorT defaultEr);
 

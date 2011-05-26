@@ -146,7 +146,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	/* Make sure all Svc types exist */
 	for (i = 0; i < su_type->number_svc_types; i++) {
 		AVD_AMF_SVC_TYPE *svc_type =
-		    avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], TRUE);
+		    avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], true);
 		if (svc_type == NULL) {
 			/* Svc type does not exist in current model, check CCB */
 			if ((opdata != NULL) &&

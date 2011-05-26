@@ -120,7 +120,7 @@ NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info)
 	tmr_cb->svc_id = tmr_init_info->svc_id;
 	tmr_cb->svc_sub_id = tmr_init_info->svc_sub_id;
 	tmr_cb->tmr_ganularity = tmr_init_info->tmr_ganularity;
-	tmr_cb->active = FALSE;
+	tmr_cb->active = false;
 
 	/* initialize the lock */
 	m_NCS_LOCK_INIT(&tmr_cb->tmr_lock);
@@ -224,10 +224,10 @@ uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t
 			m_GET_TIME_STAMP(tmr_info->tmr_trig_at);
 			/* start the OS timer */
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_start Os timer Started", period);
-			if (tmr_cb->active == FALSE) {
+			if (tmr_cb->active == false) {
 				m_NCS_TMR_START(tmr_cb->tmr_id,
 						(period * 100), tmr_cb->tmr_callback, tmr_cb->callback_arg);
-				tmr_cb->active = TRUE;
+				tmr_cb->active = true;
 			}
 		} else {
 			/* check whether the time period for the give timer is same as the 
@@ -262,14 +262,14 @@ uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t
 				/* Stop the OS timer */
 				m_RP_TMR_LOG_MSG("ncs_rp_tmr_start Os timer Stoped", 0);
 				m_NCS_TMR_STOP(tmr_cb->tmr_id);
-				tmr_cb->active = FALSE;
+				tmr_cb->active = false;
 
 				/* start the OS timer */
 				m_RP_TMR_LOG_MSG("ncs_rp_tmr_start Os timer Started", period);
-				if (tmr_cb->active == FALSE) {
+				if (tmr_cb->active == false) {
 					m_NCS_TMR_START(tmr_cb->tmr_id,
 							(period * 100), tmr_cb->tmr_callback, tmr_cb->callback_arg);
-					tmr_cb->active = TRUE;
+					tmr_cb->active = true;
 				}
 
 			} else {
@@ -345,7 +345,7 @@ uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 		if (tmr_info->pprev == NULL) {
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_stop Os timer Stoped", 0);
 			m_NCS_TMR_STOP(tmr_cb->tmr_id);
-			tmr_cb->active = FALSE;
+			tmr_cb->active = false;
 			/* iam the first node attached to the bucket */
 			tmr_cb->start_list = tmr_info->pnext;
 			if (tmr_info->pnext != NULL) {
@@ -355,10 +355,10 @@ uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 				/*(tmr_cb->start_buck->tmr_value - rp_tmr_time_left_in_sec(
 				   tmr_cb->start_buck->tmr_trig_at, tmr_cb->start_buck->tmr_value)); */
 				m_RP_TMR_LOG_MSG("ncs_rp_tmr_stop Os timer Started", period);
-				if (tmr_cb->active == FALSE) {
+				if (tmr_cb->active == false) {
 					m_NCS_TMR_START(tmr_cb->tmr_id, (period * 100), tmr_cb->tmr_callback,
 							tmr_cb->callback_arg);
-					tmr_cb->active = TRUE;
+					tmr_cb->active = true;
 				}
 			}
 		} else {
@@ -435,7 +435,7 @@ uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 		/* Stop the OS timer */
 		m_RP_TMR_LOG_MSG("ncs_rp_tmr_destory Os timer Stoped", 0);
 		m_NCS_TMR_STOP(tmr_cb->tmr_id);
-		tmr_cb->active = FALSE;
+		tmr_cb->active = false;
 		m_RP_TMR_LOG_MSG("ncs_rp_tmr_destory Os timer destroyed", 0);
 		m_NCS_TMR_DESTROY(tmr_cb->tmr_id);
 
@@ -492,7 +492,7 @@ uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 
 		m_NCS_TMR_STOP(tmr_cb->tmr_id);
 		/* now OS timer is in active */
-		tmr_cb->active = FALSE;
+		tmr_cb->active = false;
 		for (; tmr_list != NULL;) {
 			tmr_diff = rp_tmr_time_left_in_sec(tmr_list->tmr_trig_at, tmr_list->tmr_value);
 			/* if (tmr_diff >= tmr_list->tmr_value) */
@@ -537,10 +537,10 @@ uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 			/* start the OS timer */
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_exp tmr expiry is called", prev_tmr_info);
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_stop Os timer Started", tmr_diff);
-			if (tmr_cb->active == FALSE) {
+			if (tmr_cb->active == false) {
 				m_NCS_TMR_START(tmr_cb->tmr_id,
 						(tmr_diff * 100), tmr_cb->tmr_callback, tmr_cb->callback_arg);
-				tmr_cb->active = TRUE;
+				tmr_cb->active = true;
 			}
 		}
 	} while (0);

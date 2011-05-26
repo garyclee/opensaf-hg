@@ -173,7 +173,7 @@ extern "C" {
 
 /* test for unoccupied key */
 
-#define m_IS_KEY_EMPTY(k)          (k.fmat==NCS_FMT_EMPTY) ? TRUE:FALSE
+#define m_IS_KEY_EMPTY(k)          (k.fmat==NCS_FMT_EMPTY) ? true:false
 
 /* 32 bit Number */
 

@@ -313,7 +313,7 @@ done:
  *
  * Purpose:  This function will distribute the SIs equally among the IN-SERVICE 
  * SUs in the given SG where all the SUs of equal rank, this function will be
- * called only when equal_ranked_su flag is set to TRUE.
+ * called only when equal_ranked_su flag is set to true.
  *
  * Input: 	sg - sg in which equal distribution of SIs is to be done
  *        
@@ -336,7 +336,7 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 	curr_si = sg->list_of_si;
 	while (curr_si != NULL) {
 		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(avd_cb, curr_si, FALSE);
+		avd_screen_sponsor_si_state(avd_cb, curr_si, false);
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -365,10 +365,10 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 
 			TRACE("Assigning active for SI(%s) to SU(%s)", curr_si->name.value, curr_su->name.value);
 
-			if (avd_new_assgn_susi(avd_cb, curr_su, curr_si, SA_AMF_HA_ACTIVE, FALSE, &susi) 
+			if (avd_new_assgn_susi(avd_cb, curr_su, curr_si, SA_AMF_HA_ACTIVE, false, &susi) 
 					== NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
-				avd_sg_su_oper_list_add(avd_cb, curr_su, FALSE);
+				avd_sg_su_oper_list_add(avd_cb, curr_su, false);
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value, curr_su->name.length);
@@ -412,10 +412,10 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 
 			TRACE("Assigning standby for SI(%s) to SU(%s)", curr_si->name.value, curr_su->name.value);
 
-			if (avd_new_assgn_susi(avd_cb, curr_su, curr_si, SA_AMF_HA_STANDBY, FALSE, &susi) 
+			if (avd_new_assgn_susi(avd_cb, curr_su, curr_si, SA_AMF_HA_STANDBY, false, &susi) 
 					== NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
-				avd_sg_su_oper_list_add(avd_cb, curr_su, FALSE);
+				avd_sg_su_oper_list_add(avd_cb, curr_su, false);
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value, curr_su->name.length);
@@ -458,14 +458,14 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su = NULL, *l_su = NULL, *n_su;
 	uint32_t cnt = 0;
 	AVD_SI *i_si;
-	NCS_BOOL new_su = FALSE;
-	NCS_BOOL su_found, load_su_found;
-	NCS_BOOL actv_su_found = FALSE;
+	bool new_su = false;
+	bool su_found, load_su_found;
+	bool actv_su_found = false;
 	AVD_SU_SI_REL *o_susi, *tmp_susi;
 
 	TRACE_ENTER();
 
-	if (sg->equal_ranked_su == TRUE ) {
+	if (sg->equal_ranked_su == true ) {
 		/* In case of equal ranked SUs in the SG distribute the SIs equally among
 		 * the IN-SERVICE SUs, 
 		 */
@@ -475,12 +475,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 	/* Identifying and assigning active assignments. */
 	i_si = sg->list_of_si;
-	su_found = TRUE;
-	actv_su_found = load_su_found = FALSE;
+	su_found = true;
+	actv_su_found = load_su_found = false;
 
-	while ((i_si != AVD_SI_NULL) && (su_found == TRUE)) {
+	while ((i_si != AVD_SI_NULL) && (su_found == true)) {
 		/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-		avd_screen_sponsor_si_state(cb, i_si, FALSE);
+		avd_screen_sponsor_si_state(cb, i_si, false);
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -492,11 +492,11 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 		if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
 			i_si = i_si->sg_list_of_si_next;
-			actv_su_found = TRUE;
+			actv_su_found = true;
 			continue;
 		}
 
-		su_found = FALSE;
+		su_found = false;
 
 		/* check if we already have a SU in hand that can take active assignments. */
 		if (i_su != NULL) {
@@ -504,21 +504,21 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
 			     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
 				/* found the SU assign the SI to the SU as active */
-				su_found = TRUE;
+				su_found = true;
 
 			} else {	/* if ((i_su->si_max_active > i_su->si_curr_active) &&
 					   ((i_su->sg_of_su->su_max_active == 0) ||
 					   (i_su->sg_of_su->su_max_active > i_su->si_curr_active))) */
 
 				if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) {
-					load_su_found = TRUE;
+					load_su_found = true;
 				}
 
-				if (new_su == FALSE) {
+				if (new_su == false) {
 					/* we have last assigning SU identify the next SU that has
 					 * active assignments.
 					 */
-					while ((i_su != NULL) && (su_found == FALSE) &&
+					while ((i_su != NULL) && (su_found == false) &&
 					       (cnt < sg->saAmfSGNumPrefActiveSUs)) {
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 						if (i_su != NULL) {
@@ -528,9 +528,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 							     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU >
 							      i_su->saAmfSUNumCurrActiveSIs))) {
 								/* Found the next assigning SU that can take SI. */
-								su_found = TRUE;
+								su_found = true;
 							} else if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) {
-								load_su_found = TRUE;
+								load_su_found = true;
 							}
 
 						}
@@ -541,12 +541,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						 * more active assignments. identify the highest ranked
 						 * in service unassigned SU in the SG.
 						 */
-						new_su = TRUE;
+						new_su = true;
 						i_su = sg->list_of_su;
-						while ((i_su != NULL) && (su_found == FALSE)) {
+						while ((i_su != NULL) && (su_found == false)) {
 							if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
 							    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-								su_found = TRUE;
+								su_found = true;
 								cnt++;
 								continue;
 							}
@@ -559,16 +559,16 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					}
 					/* if ((i_su == AVD_SU_NULL) && 
 					   (cnt < sg->pref_num_active_su)) */
-				} /* if (new_su == FALSE) */
+				} /* if (new_su == false) */
 				else if (cnt < sg->saAmfSGNumPrefActiveSUs) {
 					/* we have last assigning new SU, New inservice unassigned SUs need 
 					 * to be used for the SI. So identify the next SU.
 					 */
 
-					while ((i_su != NULL) && (su_found == FALSE)) {
+					while ((i_su != NULL) && (su_found == false)) {
 						if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-							su_found = TRUE;
+							su_found = true;
 							cnt++;
 							continue;
 						}
@@ -588,39 +588,39 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 			/* Identify the highest ranked active assigning SU.  */
 			i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_ACTIVE);
-			while ((i_su != NULL) && (su_found == FALSE)) {
-				actv_su_found = TRUE;
+			while ((i_su != NULL) && (su_found == false)) {
+				actv_su_found = true;
 				cnt++;
 
 				if ((i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs) &&
 				    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
 				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs))) {
 					/* Found the next assigning SU that can take SI. */
-					su_found = TRUE;
+					su_found = true;
 				} else if (cnt < sg->saAmfSGNumPrefActiveSUs) {
 					if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs)
-						load_su_found = TRUE;
+						load_su_found = true;
 
 					i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 				} else {
 					if (i_su->si_max_active > i_su->saAmfSUNumCurrActiveSIs)
-						load_su_found = TRUE;
+						load_su_found = true;
 					i_su = NULL;
 				}
 			}
 
-			if ((su_found == FALSE) && (cnt < sg->saAmfSGNumPrefActiveSUs)) {
+			if ((su_found == false) && (cnt < sg->saAmfSGNumPrefActiveSUs)) {
 				/* All the current active SUs are full. The SG can have
 				 * more active assignments. identify the highest ranked
 				 * in service unassigned SU in the SG.
 				 */
-				new_su = TRUE;
+				new_su = true;
 				i_su = sg->list_of_su;
-				while ((i_su != NULL) && (su_found == FALSE)) {
+				while ((i_su != NULL) && (su_found == false)) {
 					if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 					    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-						su_found = TRUE;
-						actv_su_found = TRUE;
+						su_found = true;
+						actv_su_found = true;
 						cnt++;
 						continue;
 					}
@@ -631,13 +631,13 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				}	/* while (i_su != AVD_SU_NULL) */
 
 			}
-			/* if ((su_found == FALSE) && 
+			/* if ((su_found == false) && 
 			   (cnt < sg->pref_num_active_su)) */
 		}		/* else (i_su != AVD_SU_NULL) */
-		if (su_found == TRUE) {
-			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, FALSE, &tmp_susi) == NCSCC_RC_SUCCESS) {
+		if (su_found == true) {
+			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp_susi) == NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
-				avd_sg_su_oper_list_add(cb, i_su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_su, false);
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
@@ -647,17 +647,17 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			i_si = i_si->sg_list_of_si_next;
 		}
 
-	}			/* while ((i_si != AVD_SI_NULL) && (su_found == TRUE)) */
+	}			/* while ((i_si != AVD_SI_NULL) && (su_found == true)) */
 
 	/* The SUs were loaded only upto the preffered level. If still SIs
 	 * are left load them upto capability level.
 	 */
-	if ((load_su_found == TRUE) && (i_si != AVD_SI_NULL) && (cnt == sg->saAmfSGNumPrefActiveSUs)) {
+	if ((load_su_found == true) && (i_si != AVD_SI_NULL) && (cnt == sg->saAmfSGNumPrefActiveSUs)) {
 		/* Identify the highest ranked active assigning SU.  */
 		i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_ACTIVE);
 		while ((i_si != AVD_SI_NULL) && (i_su != NULL)) {
 			/* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-			avd_screen_sponsor_si_state(cb, i_si, FALSE);
+			avd_screen_sponsor_si_state(cb, i_si, false);
 			if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 			    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) || (i_si->list_of_csi == NULL) ||
@@ -670,9 +670,9 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 				continue;
 			}
-			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, FALSE, &tmp_susi) == NCSCC_RC_SUCCESS) {
+			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp_susi) == NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
-				avd_sg_su_oper_list_add(cb, i_su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_su, false);
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
@@ -684,8 +684,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		}		/* while ((i_si != AVD_SI_NULL) && (i_su != AVD_SU_NULL)) */
 
 	}
-	/* if ((load_su_found == TRUE) && (i_si != AVD_SI_NULL)) */
-	if ((actv_su_found == FALSE) || (sg->su_oper_list.su != NULL)) {
+	/* if ((load_su_found == true) && (i_si != AVD_SI_NULL)) */
+	if ((actv_su_found == false) || (sg->su_oper_list.su != NULL)) {
 		/* Either there are no active SUs or there are some SUs being assigned 
 		 * active SI assignment.
 		 */
@@ -694,7 +694,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 	/* Identifying and assigning standby assignments. */
 	i_si = sg->list_of_si;
-	new_su = FALSE;
+	new_su = false;
 	cnt = 0;
 	l_su = NULL;
 	/* su with last inservice un assigned SUs. */
@@ -706,7 +706,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			continue;
 		}
 
-		su_found = FALSE;
+		su_found = false;
 
 		/* Identify the standby SU if it already exists */
 		o_susi = avd_sg_npm_su_othr(cb, i_si->list_of_sisu->su);
@@ -717,11 +717,11 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 			     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU > i_su->saAmfSUNumCurrStandbySIs))) {
 				/* found the SU assign the SI to the SU as standby */
-				su_found = TRUE;
+				su_found = true;
 
 			}
 		}/* if (o_susi != AVD_SU_SI_REL_NULL) */
-		if(FALSE == su_found) {
+		if(false == su_found) {
 			/* su_found will be false in the following cases
 			* Didnot found the Standby SU corresponding to i_si->list_of_sisu->su
 			* Standby SU is found but current Standby assignments are equal to saAmfSGMaxStandbySIsperSU
@@ -731,18 +731,18 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 				     (l_su->sg_of_su->saAmfSGMaxStandbySIsperSU > l_su->saAmfSUNumCurrStandbySIs))) {
 					/* found the SU assign the SI to the SU as standby */
-					su_found = TRUE;
+					su_found = true;
 					i_su = l_su;
 
 				} else {	/* if ((l_su->si_max_standby > l_su->si_curr_standby) &&
 						   ((i_su->sg_of_su->su_max_standby == 0) ||
 						   (l_su->sg_of_su->su_max_standby > l_su->si_curr_standby))) */
-					if ((new_su == TRUE) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
+					if ((new_su == true) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
 						i_su = l_su;
-						while ((i_su != NULL) && (su_found == FALSE)) {
+						while ((i_su != NULL) && (su_found == false)) {
 							if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
 							    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-								su_found = TRUE;
+								su_found = true;
 								cnt++;
 								continue;
 							}
@@ -754,17 +754,17 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 						l_su = i_su;
 
-					} /* if ((new_su == TRUE) && (cnt < sg->pre_num_standby_su)) */
+					} /* if ((new_su == true) && (cnt < sg->pre_num_standby_su)) */
 					else if (cnt < sg->saAmfSGNumPrefStandbySUs) {
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, l_su, SA_AMF_HA_STANDBY);
-						while ((i_su != NULL) && (su_found == FALSE)) {
+						while ((i_su != NULL) && (su_found == false)) {
 							cnt++;
 							if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
 							    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 							     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
 							      i_su->saAmfSUNumCurrStandbySIs)))
 								/* Found the next assigning SU that can take SI. */
-								su_found = TRUE;
+								su_found = true;
 							else if (cnt < sg->saAmfSGNumPrefStandbySUs)
 								i_su =
 								    avd_sg_npm_su_next_asgn(cb, sg, i_su,
@@ -773,22 +773,22 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 								i_su = NULL;
 						}
 
-						if ((su_found == FALSE) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
+						if ((su_found == false) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
 							/* All the current standby SUs are full. The SG can have
 							 * more standby assignments. identify the highest ranked
 							 * in service unassigned SU in the SG.
 							 */
-							new_su = TRUE;
+							new_su = true;
 							if (n_su == NULL)
 								i_su = sg->list_of_su;
 							else
 								i_su = n_su;
 
-							while ((i_su != NULL) && (su_found == FALSE)) {
+							while ((i_su != NULL) && (su_found == false)) {
 								if ((i_su->saAmfSuReadinessState ==
 								     SA_AMF_READINESS_IN_SERVICE)
 								    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-									su_found = TRUE;
+									su_found = true;
 									cnt++;
 									continue;
 								}
@@ -801,7 +801,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 							n_su = i_su;
 
 						}
-						/* if ((su_found == FALSE) && 
+						/* if ((su_found == false) && 
 						   (cnt < sg->pre_num_standby_su)) */
 						l_su = i_su;
 					}
@@ -817,34 +817,34 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				 */
 
 				i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_STANDBY);
-				while ((i_su != NULL) && (su_found == FALSE)) {
+				while ((i_su != NULL) && (su_found == false)) {
 					cnt++;
 					if ((i_su->si_max_standby > i_su->saAmfSUNumCurrStandbySIs) &&
 					    ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 					     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
 					      i_su->saAmfSUNumCurrStandbySIs)))
 						/* Found the next assigning SU that can take SI. */
-						su_found = TRUE;
+						su_found = true;
 					else if (cnt < sg->saAmfSGNumPrefStandbySUs)
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_STANDBY);
 					else
 						i_su = NULL;
 				}
 
-				if ((su_found == FALSE) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
+				if ((su_found == false) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
 					/* All the current standby SUs are full. The SG can have
 					 * more standby assignments. identify the highest ranked
 					 * in service unassigned SU in the SG.
 					 */
-					new_su = TRUE;
+					new_su = true;
 					if (n_su == NULL)
 						i_su = sg->list_of_su;
 					else
 						i_su = n_su;
-					while ((i_su != NULL) && (su_found == FALSE)) {
+					while ((i_su != NULL) && (su_found == false)) {
 						if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-							su_found = TRUE;
+							su_found = true;
 							cnt++;
 							continue;
 						}
@@ -857,22 +857,22 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					n_su = i_su;
 
 				}
-				/* if ((su_found == FALSE) && 
+				/* if ((su_found == false) && 
 				   (cnt < sg->pref_num_active_su)) */
 				l_su = i_su;
 
 			}
 			/* else if (cnt == 0) */
-			if (su_found == FALSE) {
+			if (su_found == false) {
 				/* since no su has enough space to take this SI exit the loop here. */
 				break;
 			}
 
 		}		/* else (o_susi != AVD_SU_SI_REL_NULL) */
-		if (su_found == TRUE) {
-			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_STANDBY, FALSE, &tmp_susi) == NCSCC_RC_SUCCESS) {
+		if (su_found == true) {
+			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_STANDBY, false, &tmp_susi) == NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
-				avd_sg_su_oper_list_add(cb, i_su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_su, false);
 			} else {
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
@@ -981,7 +981,7 @@ uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 
 static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
-	NCS_BOOL flag;
+	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (su->sg_of_su->su_oper_list.su == su) {
@@ -1001,7 +1001,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == TRUE) {
+				if (flag == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
@@ -1019,7 +1019,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
@@ -1034,7 +1034,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				return NCSCC_RC_FAILURE;
 			}
 
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 		}		/* else (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -1064,14 +1064,14 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi;
-	NCS_BOOL l_flag;
+	bool l_flag;
 	AVD_SU *o_su;
 
 	if ((l_susi = avd_su_susi_find(cb, su, &su->sg_of_su->admin_si->name))
 	    == AVD_SU_SI_REL_NULL) {
 		/* SI doesn't have any assignment with the SU */
 		m_AVD_CHK_OPLIST(su, l_flag);
-		if (l_flag == TRUE) {
+		if (l_flag == true) {
 			/* the SU is in the SU oper list. So no action return success. */
 			return NCSCC_RC_SUCCESS;
 		}
@@ -1085,7 +1085,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 				/*It is in SI oper state change state to sg_realign */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -1100,17 +1100,17 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 				/*It is in SI oper state change state to sg_realign */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
 
 		}		/* else (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
-	}			/* if ((l_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+	}			/* if ((l_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 				   == AVD_SU_SI_REL_NULL) */
 	else if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-		/* the admin pointer SI has switch operation as TRUE */
+		/* the admin pointer SI has switch operation as true */
 
 		if (l_susi->state == SA_AMF_HA_QUIESCED) {
 			if (l_susi->fsm == AVD_SU_SI_STATE_ASGND) {
@@ -1126,14 +1126,14 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 				if (su->sg_of_su->admin_si->list_of_sisu == l_susi) {
 					o_su = su->sg_of_su->admin_si->list_of_sisu->si_next->su;
 				} else {
 					o_su = su->sg_of_su->admin_si->list_of_sisu->su;
 				}
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-				avd_sg_su_oper_list_add(cb, o_su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_su, false);
 
 				if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 					/*It is in SI oper state change state to sg_realign */
@@ -1148,7 +1148,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 */
 				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 				if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 					/*It is in SI oper state change state to su_oper */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
@@ -1165,7 +1165,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 				/*It is in SI oper state change state to sg_realign */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -1202,7 +1202,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_UNLOCKED);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
@@ -1222,7 +1222,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER) {
 				/*It is in SI oper state change state to sg_realign */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -1256,7 +1256,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 {
-	NCS_BOOL l_flag = FALSE, flag = FALSE;
+	bool l_flag = false, flag = false;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (su->sg_of_su->admin_si != AVD_SI_NULL) {
@@ -1303,7 +1303,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 		}
 
 		m_AVD_CHK_OPLIST(su, l_flag);
-		if (l_flag == TRUE) {
+		if (l_flag == true) {
 			/* SU is in the SU oper list. If the admin state of the SU is 
 			 * shutdown change it to lock. Send a D2N-INFO_SU_SI_ASSIGN message
 			 * modify quiesced all message to the SU. if the SU has standby 
@@ -1324,7 +1324,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == TRUE) {
+					if (flag == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -1352,7 +1352,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 			   (su->list_of_susi->fsm == AVD_SU_SI_STATE_ASGND)) || 
 			   ((su->list_of_susi->su_next != AVD_SU_SI_REL_NULL) && 
 			   (su->list_of_susi->su_next->state == SA_AMF_HA_STANDBY))) */
-		} else {	/* if (l_flag == TRUE) */
+		} else {	/* if (l_flag == true) */
 
 			/* SU not in the SU oper list. */
 
@@ -1365,7 +1365,7 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 
 			} else {	/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -1376,11 +1376,11 @@ static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 
 			}	/* else (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
-		}		/* else (l_flag == TRUE) */
+		}		/* else (l_flag == true) */
 
 	}			/* else ((su->sg_of_su->admin_si != AVD_SI_NULL) */
 
@@ -1427,7 +1427,7 @@ uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 			}
 
 			/* add the SU to the operation list and change the SG FSM to SU operation. */
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		} else {	/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -1439,7 +1439,7 @@ uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 			}
 
 			/* add the SU to the operation list and change the SG FSM to SG realign. */
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 		}		/* else (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		break;		/* case AVD_SG_FSM_STABLE: */
@@ -1481,7 +1481,7 @@ uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 
 				if ((a_susi != AVD_SU_SI_REL_NULL) && (a_susi->fsm == AVD_SU_SI_STATE_ASGND)) {
 					avd_sg_su_si_del_snd(cb, a_susi->su);
-					avd_sg_su_oper_list_add(cb, a_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, a_susi->su, false);
 				}
 			} /* if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) */
 			else if (su->list_of_susi->fsm == AVD_SU_SI_STATE_ASGND) {
@@ -1493,7 +1493,7 @@ uint32_t avd_sg_npm_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
 				}
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 
 			}	/* else (su->list_of_susi->state == SA_AMF_HA_QUIESCING) */
 		} else {
@@ -1553,7 +1553,7 @@ uint32_t avd_sg_npm_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 	if (avd_sg_npm_su_chose_asgn(cb, su->sg_of_su) == NULL) {
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
 		if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) && 
-				(TRUE == su->sg_of_su->equal_ranked_su) &&
+				(true == su->sg_of_su->equal_ranked_su) &&
 				(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 			/* SG fsm is stable, screen for possibility of redistributing SI
 			   to achieve equal distribution */
@@ -1592,7 +1592,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
-	NCS_BOOL flag;
+	bool flag;
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_ha_state;
 	AVD_AVND *su_node_ptr = NULL;
@@ -1626,7 +1626,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						}
 						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
 								    AVSV_SI_TOGGLE_STABLE);
-						avd_sg_su_oper_list_add(cb, su, FALSE);
+						avd_sg_su_oper_list_add(cb, su, false);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					} /* if(o_susi == AVD_SU_SI_REL_NULL) */
@@ -1653,9 +1653,9 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 											 su->name.length);
 							return NCSCC_RC_FAILURE;
 						}
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						avd_sg_su_si_del_snd(cb, su);
-						avd_sg_su_oper_list_add(cb, su, FALSE);
+						avd_sg_su_oper_list_add(cb, su, false);
 						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
 								    AVSV_SI_TOGGLE_STABLE);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -1664,11 +1664,11 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					/* if ((o_susi->state == SA_AMF_HA_QUIESCED) &&
 					   (o_susi->su->readiness_state == NCS_IN_SERVICE)) */
 				} else {	/* if ((su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH)
-						   && ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+						   && ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 						   != AVD_SU_SI_REL_NULL)) */
 					m_AVD_CHK_OPLIST(su, flag);
 
-					if (flag == FALSE) {
+					if (flag == false) {
 						/* Log fatal error  */
 						LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 						return NCSCC_RC_FAILURE;
@@ -1687,21 +1687,21 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
 						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 
 					/* Send D2N -INFO_SU_SI_ASSIGN message remove all to this SU. */
 					avd_sg_su_si_del_snd(cb, su);
 
 				}	/* else  ((su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH)
-					   && ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+					   && ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 					   != AVD_SU_SI_REL_NULL)) */
 
 			} else {	/* if (su->sg_of_su->admin_si != AVD_SI_NULL) */
 
 				m_AVD_CHK_OPLIST(su, flag);
 
-				if (flag == FALSE) {
+				if (flag == false) {
 					/* Log fatal error  */
 					LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 					return NCSCC_RC_FAILURE;
@@ -1719,7 +1719,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
 					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 
 				/* Send D2N-INFO_SU_SI_ASSIGN message remove all to this SU. If
@@ -1731,7 +1731,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == TRUE) {
+					if (flag == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -1755,15 +1755,15 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
 					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 			}
 
 			/* free all the SUSI relationships to this SU. remove this SU from the
 			 * SU oper list.SU in the operation list 
 			 */
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
-			avd_sg_su_oper_list_del(cb, su, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
+			avd_sg_su_oper_list_del(cb, su, false);
 
 			if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si == AVD_SI_NULL)) {
 				/* Both the SI admin pointer and SU oper list are empty. Do the
@@ -1776,7 +1776,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) && 
-							(TRUE == su->sg_of_su->equal_ranked_su) &&
+							(true == su->sg_of_su->equal_ranked_su) &&
 							(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 						/* SG fsm is stable, screen for possibility of redistributing SI
 			   			to achieve equal distribution */
@@ -1815,17 +1815,17 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 						return NCSCC_RC_FAILURE;
 					}
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				}	/* if ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
 					   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-					   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+					   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 					   != AVD_SU_SI_REL_NULL)) */
 				else {
 					/* Remove the SU from the SU oper list. */
-					avd_sg_su_oper_list_del(cb, su, FALSE);
+					avd_sg_su_oper_list_del(cb, su, false);
 					if ((su->sg_of_su->su_oper_list.su == NULL) &&
 					    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
 						/* Both the SI admin pointer and SU oper list are empty. Do the
@@ -1838,7 +1838,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of 
 								redistributing SI to achieve equal distribution */
@@ -1849,14 +1849,14 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 				}	/* ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
 					   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-					   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+					   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 					   != AVD_SU_SI_REL_NULL)) */
 			}
 			/* if (i_susi == AVD_SU_SI_REL_NULL) */
 		} /* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) */
 		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_STANDBY)) {
 			/* standby all for a SU. remove the SU from the SU oper list. */
-			avd_sg_su_oper_list_del(cb, su, FALSE);
+			avd_sg_su_oper_list_del(cb, su, false);
 
 			if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si == AVD_SI_NULL)) {
 				/* Both the SI admin pointer and SU oper list are empty. Do the
@@ -1869,7 +1869,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-							(TRUE == su->sg_of_su->equal_ranked_su) &&
+							(true == su->sg_of_su->equal_ranked_su) &&
 							(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 						/* SG fsm is stable, screen for possibility of redistributing SI
 			   			   to achieve equal distribution */
@@ -1889,7 +1889,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * operation list and do the realignment of the SG.
 			 */
 			/* free all the CSI assignments  */
-			avd_compcsi_delete(cb, susi, FALSE);
+			avd_compcsi_delete(cb, susi, false);
 			/* Unassign the SUSI */
 			m_AVD_SU_SI_TRG_DEL(cb, susi);
 
@@ -1922,18 +1922,18 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 											 su->name.length);
 							return NCSCC_RC_FAILURE;
 						}
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si),
 								    AVSV_SI_TOGGLE_STABLE);
 						m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					}	/* if ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
 						   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-						   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+						   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 						   != AVD_SU_SI_REL_NULL)) */
 					else {
 						/* Remove the SU from the SU oper list. */
-						avd_sg_su_oper_list_del(cb, su, FALSE);
+						avd_sg_su_oper_list_del(cb, su, false);
 						if ((su->sg_of_su->su_oper_list.su == NULL) &&
 						    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
 							/* Both the SI admin pointer and SU oper list are empty. Do the
@@ -1946,7 +1946,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 								m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 								avd_sg_app_su_inst_func(cb, su->sg_of_su);
 								if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 									/* SG fsm is stable, screen for possibility of 
 									redistributing SI to achieve equal distribution */
@@ -1957,14 +1957,14 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 					}	/* ((su->sg_of_su->admin_si != AVD_SI_NULL) && 
 						   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-						   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+						   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 						   != AVD_SU_SI_REL_NULL)) */
 
 				}	/* if ((su->list_of_susi != AVD_SU_SI_REL_NULL) && 
 					   (su->list_of_susi->state == SA_AMF_HA_ACTIVE)) */
 				else {
 					/* Remove the SU from the SU oper list. */
-					avd_sg_su_oper_list_del(cb, su, FALSE);
+					avd_sg_su_oper_list_del(cb, su, false);
 					if ((su->sg_of_su->su_oper_list.su == NULL) &&
 					    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
 						/* Both the SI admin pointer and SU oper list are empty. Do the
@@ -1977,7 +1977,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of 
 								redistributing SI to achieve equal distribution */
@@ -2000,7 +2000,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				/* active or standby for a SUSI and the entire SU is assigned. 
 				 * remove the SU from the SU oper list.
 				 */
-				avd_sg_su_oper_list_del(cb, su, FALSE);
+				avd_sg_su_oper_list_del(cb, su, false);
 
 				if((NULL != su->sg_of_su->si_tobe_redistributed) && 
 					(su == su->sg_of_su->min_assigned_su)) {
@@ -2053,7 +2053,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 						if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-								(TRUE == su->sg_of_su->equal_ranked_su) &&
+								(true == su->sg_of_su->equal_ranked_su) &&
 								(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 							/* SG fsm is stable, screen for possibility of redistributing SI
 			   			   	to achieve equal distribution */
@@ -2087,7 +2087,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, susi->su, FALSE);
+			avd_sg_su_oper_list_add(cb, susi->su, false);
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
 				i_susi = susi->si_next;
@@ -2098,7 +2098,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
-				avd_sg_su_oper_list_add(cb, i_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_susi->su, false);
 			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -2329,7 +2329,7 @@ static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
                 avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
 
                 /* Add the SU to the operation list and change the SG FSM to SU operation. */
-                avd_sg_su_oper_list_add(avd_cb, susi->su, FALSE);
+                avd_sg_su_oper_list_add(avd_cb, susi->su, false);
                 m_AVD_SET_SG_FSM(avd_cb, avd_sg, AVD_SG_FSM_SU_OPER);
         }
 
@@ -2442,7 +2442,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 						goto done;
                         		}
 					/* Add Standby SU to SU operlist */
-					avd_sg_su_oper_list_add(avd_cb, std_susi->su, FALSE);
+					avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
 				} else {
 					/* Check if standby SU has standby SI assignment from another SU, if so
 					 * send remove message for each of those SI assignments 
@@ -2471,7 +2471,7 @@ static void avd_sg_npm_stdbysu_role_change(AVD_SU *su)
 					curr_pref_active_sus++;
 					
 					/* Add Standby SU to SU operlist */
-					avd_sg_su_oper_list_add(avd_cb, std_susi->su, FALSE);
+					avd_sg_su_oper_list_add(avd_cb, std_susi->su, false);
 				}
 			}
 		}
@@ -2508,9 +2508,9 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 	AVD_SU_SI_REL *tmp_susi;
 	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
 	AVD_SU_SI_STATE old_susi_state = AVD_SU_SI_STATE_ASGN;
-	NCS_BOOL susi_assgn_failed = FALSE;
+	bool susi_assgn_failed = false;
 	
-	NCS_BOOL flag;
+	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
         TRACE_ENTER();
@@ -2532,10 +2532,10 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						su->sg_of_su->min_assigned_su->name.value);
 					if (avd_new_assgn_susi(avd_cb, su->sg_of_su->min_assigned_su,
 							su->sg_of_su->si_tobe_redistributed,
-					 		SA_AMF_HA_ACTIVE, FALSE,&tmp_susi) == NCSCC_RC_SUCCESS) { 
+					 		SA_AMF_HA_ACTIVE, false,&tmp_susi) == NCSCC_RC_SUCCESS) { 
 
 						/* Add the SU to the operation list and set SG FSM to AVD_SG_FSM_SG_REALIGN */
-						avd_sg_su_oper_list_add(cb, su->sg_of_su->min_assigned_su, FALSE);
+						avd_sg_su_oper_list_add(cb, su->sg_of_su->min_assigned_su, false);
                                 		m_AVD_SET_SG_FSM(cb, susi->su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
 
 					} else {
@@ -2544,12 +2544,12 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 							su->sg_of_su->si_tobe_redistributed->name.value);
 
 						/* Assign back Active role to max_asssigned_su */
-						susi_assgn_failed = TRUE;
+						susi_assgn_failed = true;
 					}
 				} 
 				if ((su->sg_of_su->min_assigned_su->saAmfSuReadinessState == 
 								SA_AMF_READINESS_OUT_OF_SERVICE) ||
-								( susi_assgn_failed  == TRUE )) {
+								( susi_assgn_failed  == true )) {
 					/* min_assigne_su is Out of Service or susi assgn failed for min_assigned_su
 					   So return Active assignment to max_assigned_su */
 
@@ -2609,7 +2609,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == TRUE) {
+					if (flag == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -2625,7 +2625,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		 * relationships for the SU. 
 		 */
 
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
 
 	}			/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && 
 				   (su->sg_of_su->su_oper_list.su != su)) */
@@ -2649,21 +2649,21 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * assignments to that SU. Add the SU to the oper list.                   
 			 */
 			avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-			avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+			avd_sg_su_oper_list_add(cb, o_susi->su, false);
 		} else if ((o_susi != AVD_SU_SI_REL_NULL) &&
 			   (o_susi->su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE)) {
 			/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the standby SU 
 			 * add it to SU oper list.
 			 */
 			avd_sg_su_si_del_snd(cb, o_susi->su);
-			avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+			avd_sg_su_oper_list_add(cb, o_susi->su, false);
 		}
 
 		/* free all the SUSI relationships to this SU. remove this SU from the
 		 * SU oper list.SU in the operation list 
 		 */
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
-		avd_sg_su_oper_list_del(cb, su, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
+		avd_sg_su_oper_list_del(cb, su, false);
 
 		if (su->sg_of_su->su_oper_list.su == NULL) {
 			/* SU oper list is empty. Do the
@@ -2676,7 +2676,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				avd_sg_app_su_inst_func(cb, su->sg_of_su);
 				if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-						(TRUE == su->sg_of_su->equal_ranked_su) &&
+						(true == su->sg_of_su->equal_ranked_su) &&
 						(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 					/* SG fsm is stable, screen for possibility of redistributing SI
 			   		to achieve equal distribution */
@@ -2730,7 +2730,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			 * operation list and do the realignment of the SG.
 			 */
 			/* free all the CSI assignments  */
-			avd_compcsi_delete(cb, susi, FALSE);
+			avd_compcsi_delete(cb, susi, false);
 			/* Unassign the SUSI */
 			m_AVD_SU_SI_TRG_DEL(cb, susi);
 
@@ -2758,7 +2758,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						return NCSCC_RC_FAILURE;
 					}
 
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -2792,7 +2792,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				return NCSCC_RC_FAILURE;
 			}
-			avd_sg_su_oper_list_add(cb, susi->su, FALSE);
+			avd_sg_su_oper_list_add(cb, susi->su, false);
 			avd_si_admin_state_set((su->sg_of_su->admin_si), SA_AMF_ADMIN_LOCKED);
 			if (su->sg_of_su->admin_si->list_of_sisu == susi)
 				i_susi = susi->si_next;
@@ -2803,7 +2803,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_snd_susi_msg(cb, i_susi->su, i_susi, AVSV_SUSI_ACT_DEL, false, NULL);
-				avd_sg_su_oper_list_add(cb, i_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, i_susi->su, false);
 			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -2838,7 +2838,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					return NCSCC_RC_FAILURE;
 				}
 				m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
-				avd_sg_su_oper_list_add(cb, su, FALSE);
+				avd_sg_su_oper_list_add(cb, su, false);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			} /* if(o_susi == AVD_SU_SI_REL_NULL) */
@@ -2854,7 +2854,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 		}		/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED) && 
 				   (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-				   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+				   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 				   != AVD_SU_SI_REL_NULL)) */
 		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
 			for (i_susi = su->list_of_susi;
@@ -2881,13 +2881,13 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 						return NCSCC_RC_FAILURE;
 					}
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				}
 				/* if ((su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-				   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE))
+				   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 				   != AVD_SU_SI_REL_NULL)) */
 			}
 			/* if (i_susi == AVD_SU_SI_REL_NULL) */
@@ -2937,10 +2937,10 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 			} else {
 				/* free all the CSI assignments  */
-				avd_compcsi_delete(cb, susi, FALSE);
+				avd_compcsi_delete(cb, susi, false);
 				/* Unassign the SUSI */
 				m_AVD_SU_SI_TRG_DEL(cb, susi);
 			}
@@ -2982,7 +2982,7 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				o_susi = avd_sg_npm_su_othr(cb, su);
 				if ((o_susi != AVD_SU_SI_REL_NULL) && (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 					avd_sg_su_si_del_snd(cb, o_susi->su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 
 			}
@@ -2994,13 +2994,13 @@ uint32_t avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 			 * SU oper list is empty,  change the SG admin state to LOCK, 
 			 * Change state to stable.
 			 */
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
-			avd_sg_su_oper_list_del(cb, su, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
+			avd_sg_su_oper_list_del(cb, su, false);
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-						(TRUE == su->sg_of_su->equal_ranked_su) &&
+						(true == su->sg_of_su->equal_ranked_su) &&
 						(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 					/* SG fsm is stable, screen for possibility of redistributing SI
 			   		to achieve equal distribution */
@@ -3060,7 +3060,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 	AVD_SU_SI_REL *o_susi;
 	AVD_SU_SI_STATE old_fsm_state;
 	SaAmfHAStateT old_ha_state;
-	NCS_BOOL flag;
+	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
 
@@ -3071,10 +3071,10 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 			} else {
 				/* free all the CSI assignments  */
-				avd_compcsi_delete(cb, susi, FALSE);
+				avd_compcsi_delete(cb, susi, false);
 				/* Unassign the SUSI */
 				m_AVD_SU_SI_TRG_DEL(cb, susi);
 			}
@@ -3103,7 +3103,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == TRUE) {
+				if (flag == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
@@ -3185,7 +3185,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-			avd_sg_su_oper_list_add(cb, susi->su, FALSE);
+			avd_sg_su_oper_list_add(cb, susi->su, false);
 
 			if (susi->si->list_of_sisu != susi) {
 				o_susi = susi->si->list_of_sisu;
@@ -3195,7 +3195,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 
 			if ((o_susi != AVD_SU_SI_REL_NULL) && (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 				avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_DEL, false, NULL);
-				avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -3220,7 +3220,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 				return NCSCC_RC_FAILURE;
 			}
 
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 
 			m_AVD_SET_SI_SWITCH(cb, (su->sg_of_su->admin_si), AVSV_SI_TOGGLE_STABLE);
 
@@ -3230,7 +3230,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 		}		/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 				   (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
 				   && (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-				   (avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,FALSE)
+				   (avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false)
 				   != AVD_SU_SI_REL_NULL) && (su->readiness_state == NCS_IN_SERVICE)) */
 		else {
 			/* message with remove for a SU SI relationship having standby value.
@@ -3275,7 +3275,7 @@ uint32_t avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *sus
 			o_susi = avd_sg_npm_su_othr(cb, su);
 			if ((o_susi != AVD_SU_SI_REL_NULL) && (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 				avd_sg_su_si_del_snd(cb, o_susi->su);
-				avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
 
 		}		/* else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
@@ -3337,7 +3337,7 @@ uint32_t avd_sg_npm_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
 		if ((AVD_SG_FSM_STABLE == sg->sg_fsm_state) &&
-				(TRUE == sg->equal_ranked_su) &&
+				(true == sg->equal_ranked_su) &&
 				(SA_TRUE == sg->saAmfSGAutoAdjust)) {
 			/* SG fsm is stable, screen for possibility of redistributing SI
 			to achieve equal distribution */
@@ -3382,8 +3382,8 @@ uint32_t avd_sg_npm_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi, *o_susi, *ot_susi;
-	NCS_BOOL l_flag = FALSE;
-	NCS_BOOL flag;
+	bool l_flag = false;
+	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (su->sg_of_su->admin_si != AVD_SI_NULL) {
@@ -3399,7 +3399,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 		if (l_susi == AVD_SU_SI_REL_NULL) {
 			/* SI doesn't have any assignment with the SU. */
 			m_AVD_CHK_OPLIST(su, l_flag);
-			if (l_flag == TRUE) {
+			if (l_flag == true) {
 				/* SU is in the SU oper list. */
 				if ((su->list_of_susi->state == SA_AMF_HA_QUIESCED) &&
 				    (su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
@@ -3417,7 +3417,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
 						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
 
 				}
@@ -3425,9 +3425,9 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				/* if ((su->list_of_susi->state == SA_AMF_HA_QUIESCED) && 
 				   (su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY)) */
 				/* remove the SU from the operation list. */
-				avd_sg_su_oper_list_del(cb, su, FALSE);
+				avd_sg_su_oper_list_del(cb, su, false);
 
-			} else {	/*if (l_flag == TRUE) */
+			} else {	/*if (l_flag == true) */
 
 				/* SU not in the SU oper list */
 				if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
@@ -3447,21 +3447,21 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
 						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
 
 				}
 				/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
-			}	/* else (l_flag == TRUE) */
+			}	/* else (l_flag == true) */
 
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
 
 		} else {	/* if (l_susi == AVD_SU_SI_REL_NULL) */
 
 			/* SI has assignment with the SU. */
 			if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-				/* the admin pointer SI has switch operation as TRUE. */
+				/* the admin pointer SI has switch operation as true. */
 				if ((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
 					/* this SI relation with the SU is quiesced assigning. */
 					if (o_susi != AVD_SU_SI_REL_NULL) {
@@ -3476,19 +3476,19 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							 * Add the standby SU to operation list.
 							 */
 							avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						} else if (o_susi->su->saAmfSuReadinessState !=
 							   SA_AMF_READINESS_IN_SERVICE) {
 							/* Add the standby SU to operation list. */
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						}
 					}
 
 					/* remove the SU from the operation list. */
-					avd_sg_su_oper_list_del(cb, su, FALSE);
+					avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
@@ -3506,7 +3506,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3522,7 +3522,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* this SI relation with the SU is quiesced assigned. */
 					if (o_susi != AVD_SU_SI_REL_NULL) {
 						/* Add the other SU to operation list. */
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 					/* Change the SI switch state to false. Remove the SI from the 
 					 * SI admin pointer.
@@ -3531,7 +3531,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 
 					if (su->sg_of_su->su_oper_list.su == NULL) {
 						/* both the SI admin pointer and SU oper list are empty.
@@ -3543,7 +3543,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3557,10 +3557,10 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* this SI relation with the SU is standby. */
 					if (l_susi->fsm != AVD_SU_SI_STATE_ASGND)
 						/* remove the SU from the operation list. */
-						avd_sg_su_oper_list_del(cb, su, FALSE);
+						avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 				} /* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 				else if (l_susi->state == SA_AMF_HA_ACTIVE) {
 					/* this SI relation with the SU is standby. */
@@ -3575,11 +3575,11 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							 */
 							avd_sg_su_si_mod_snd(cb, o_susi->su, SA_AMF_HA_ACTIVE);
 							/* Add the quiesced SU to operation list. */
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						} else if (o_susi->su->saAmfSuReadinessState !=
 							   SA_AMF_READINESS_IN_SERVICE) {
 							/* Add the quiesced SU to operation list. */
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						}
 					}
 
@@ -3590,7 +3590,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 
 					if (su->sg_of_su->su_oper_list.su == NULL) {
 						/* both the SI admin pointer and SU oper list are empty.
@@ -3602,7 +3602,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3631,16 +3631,16 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							 * Add the standby SU to operation list.
 							 */
 							avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						} else if (o_susi->su->saAmfSuReadinessState !=
 							   SA_AMF_READINESS_IN_SERVICE) {
 							/* Add the standby SU to operation list. */
-							avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+							avd_sg_su_oper_list_add(cb, o_susi->su, false);
 						}
 					}
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 
 					/*  Remove the SI from the SI admin pointer.  */
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -3655,7 +3655,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 							/* all the assignments have already been done in the SG. */
 							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3670,10 +3670,10 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* this SI relation with the SU is standby. */
 					if (l_susi->fsm != AVD_SU_SI_STATE_ASGND)
 						/* remove the SU from the operation list. */
-						avd_sg_su_oper_list_del(cb, su, FALSE);
+						avd_sg_su_oper_list_del(cb, su, false);
 
 					/* Free all the SI assignments to this SU. */
-					avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+					avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				}	/* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 			}	/* else (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
@@ -3720,7 +3720,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 		}
 
 		m_AVD_CHK_OPLIST(su, l_flag);
-		if (l_flag == TRUE) {
+		if (l_flag == true) {
 			/* SU is in the SU oper list. */
 			if ((su->list_of_susi->state == SA_AMF_HA_QUIESCED) ||
 			    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) ||
@@ -3739,17 +3739,17 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 						 * assignments to that SU. Add the SU to the oper list.                   
 						 */
 						avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-						avd_sg_su_oper_list_add(cb, ot_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					} else if (ot_susi->su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) {
-						avd_sg_su_oper_list_add(cb, ot_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 					}
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				/* remove the SU from the operation list. */
-				avd_sg_su_oper_list_del(cb, su, FALSE);
+				avd_sg_su_oper_list_del(cb, su, false);
 
 				m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
@@ -3757,7 +3757,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == TRUE) {
+					if (flag == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -3766,10 +3766,10 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					   (su->list_of_susi->state == SA_AMF_HA_QUIESCING) ||
 					   (su->list_of_susi->state == SA_AMF_HA_ACTIVE)) */
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				/* remove the SU from the operation list. */
-				avd_sg_su_oper_list_del(cb, su, FALSE);
+				avd_sg_su_oper_list_del(cb, su, false);
 			}	/* else (su->list_of_susi->state == SA_AMF_HA_QUIESCED) || 
 				   (su->list_of_susi->state == SA_AMF_HA_QUIESCING) ||
 				   (su->list_of_susi->state == SA_AMF_HA_ACTIVE)) */
@@ -3784,7 +3784,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* all the assignments have already been done in the SG. */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3793,7 +3793,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				}
 			}
 
-		} else {	/*if (l_flag == TRUE) */
+		} else {	/*if (l_flag == true) */
 
 			/* SU not in the SU oper list */
 			if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
@@ -3812,16 +3812,16 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					 * assignments to that SU. Add the SU to the oper list.                   
 					 */
 					avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 
 			}
 
 			/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
 
-		}		/* else (l_flag == TRUE) */
+		}		/* else (l_flag == true) */
 
 	}			/* else (su->sg_of_su->admin_si != AVD_SI_NULL) */
 }
@@ -3846,7 +3846,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *o_susi;
-	NCS_BOOL flag;
+	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("'%s' ", su->name.value);
@@ -3880,24 +3880,24 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
 				avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-				avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			} else {
-				avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
 		}
 
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
 
 		/* remove the SU from the operation list. */
-		avd_sg_su_oper_list_del(cb, su, FALSE);
+		avd_sg_su_oper_list_del(cb, su, false);
 
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 		if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-			if (flag == TRUE) {
+			if (flag == true) {
 				node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 			}
 		}
@@ -3912,7 +3912,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* all the assignments have already been done in the SG. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -3943,7 +3943,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
 				avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-				avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				/* Change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
@@ -3951,7 +3951,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
 
 	}			/* else (su->sg_of_su->su_oper_list.su == su) */
 
@@ -4010,7 +4010,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				 * assignments to that SU. Add the SU to the oper list.                   
 				 */
 				avd_sg_npm_su_chk_snd(cb, ot_susi->su, su);
-				avd_sg_su_oper_list_add(cb, ot_susi->su, FALSE);
+				avd_sg_su_oper_list_add(cb, ot_susi->su, false);
 				/* Change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
@@ -4018,13 +4018,13 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
 
 	} else {		/* if (l_susi == AVD_SU_SI_REL_NULL) */
 
 		/* SI has assignment with the SU. */
 		if (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-			/* the admin pointer SI has switch operation as TRUE. */
+			/* the admin pointer SI has switch operation as true. */
 			if ((l_susi->state == SA_AMF_HA_QUIESCED) && (l_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
 				/* this SI relation with the SU is quiesced assigning. */
 				if (o_susi != AVD_SU_SI_REL_NULL) {
@@ -4037,15 +4037,15 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						 * Add the standby SU to operation list.
 						 */
 						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					} else {
 						/* Add the standby SU to operation list. */
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
@@ -4063,7 +4063,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -4084,7 +4084,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* this SI relation with the SU is quiesced assigned. */
 				if (o_susi != AVD_SU_SI_REL_NULL) {
 					/* Add the other SU to operation list. */
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 				}
 				/* Change the SI switch state to false. Remove the SI from the 
 				 * SI admin pointer.
@@ -4093,7 +4093,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				if (su->sg_of_su->su_oper_list.su == NULL) {
 					/* both the SI admin pointer and SU oper list are empty.
@@ -4105,7 +4105,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -4123,7 +4123,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				   (l_susi->fsm == AVD_SU_SI_STATE_ASGND)) */
 			else if (l_susi->state == SA_AMF_HA_STANDBY) {
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 			} /* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 			else if (l_susi->state == SA_AMF_HA_ACTIVE) {
 				/* this SI relation with the SU is standby. */
@@ -4136,10 +4136,10 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						 */
 						avd_sg_su_si_mod_snd(cb, o_susi->su, SA_AMF_HA_ACTIVE);
 						/* Add the quiesced SU to operation list. */
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					} else {
 						/* Add the quiesced SU to operation list. */
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 				}
 
@@ -4150,7 +4150,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				if (su->sg_of_su->su_oper_list.su == NULL) {
 					/* both the SI admin pointer and SU oper list are empty.
@@ -4162,7 +4162,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -4195,15 +4195,15 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						 * Add the standby SU to operation list.
 						 */
 						avd_sg_npm_su_chk_snd(cb, o_susi->su, su);
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					} else {
 						/* Add the standby SU to operation list. */
-						avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+						avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					}
 				}
 
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 				/*  Remove the SI from the SI admin pointer.  */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -4218,7 +4218,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 						/* all the assignments have already been done in the SG. */
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -4237,7 +4237,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				   (l_susi->state == SA_AMF_HA_QUIESCED)) */
 			else if (l_susi->state == SA_AMF_HA_STANDBY) {
 				/* Free all the SI assignments to this SU. */
-				avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+				avd_sg_su_asgn_del_util(cb, su, true, false);
 
 			}	/* else if (l_susi->state == SA_AMF_HA_STANDBY) */
 		}		/* else (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) */
@@ -4287,7 +4287,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
 			/* Free all the SI assignments to this SU. */
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
 
 		} else {	/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -4300,10 +4300,10 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			 * stay in the stable state.
 			 */
 
-			avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+			avd_sg_su_asgn_del_util(cb, su, true, false);
 			if ((o_su = avd_sg_npm_su_chose_asgn(cb, su->sg_of_su)) != NULL) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
-				avd_sg_su_oper_list_add(cb, o_su, FALSE);
+				avd_sg_su_oper_list_add(cb, o_su, false);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 			}
 
@@ -4335,7 +4335,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 				 * is in-service. Add that SU to the SU oper list.
 				 */
 				if (o_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-					avd_sg_su_oper_list_add(cb, o_susi->su, FALSE);
+					avd_sg_su_oper_list_add(cb, o_susi->su, false);
 					if (o_susi->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
 						avd_sg_su_si_del_snd(cb, o_susi->su);
 					}
@@ -4346,10 +4346,10 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 		/* if (su->sg_of_su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		/* Free all the SI assignments to this SU. */
-		avd_sg_su_asgn_del_util(cb, su, TRUE, FALSE);
+		avd_sg_su_asgn_del_util(cb, su, true, false);
 
 		/* remove the SU from the operation list. */
-		avd_sg_su_oper_list_del(cb, su, FALSE);
+		avd_sg_su_oper_list_del(cb, su, false);
 
 		if (su->sg_of_su->su_oper_list.su == NULL) {
 			if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -4358,7 +4358,7 @@ void avd_sg_npm_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 							if ((AVD_SG_FSM_STABLE == su->sg_of_su->sg_fsm_state) &&
-									(TRUE == su->sg_of_su->equal_ranked_su) &&
+									(true == su->sg_of_su->equal_ranked_su) &&
 									(SA_TRUE == su->sg_of_su->saAmfSGAutoAdjust)) {
 								/* SG fsm is stable, screen for possibility of
 								   redistributing SI to achieve equal distribution */
@@ -4434,7 +4434,7 @@ uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 			}
 
 			/* add the SU to the operation list and change the SG FSM to SU operation. */
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		} else {	/* if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 
@@ -4446,7 +4446,7 @@ uint32_t avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 			}
 
 			/* add the SU to the operation list and change the SG FSM to SG realign. */
-			avd_sg_su_oper_list_add(cb, su, FALSE);
+			avd_sg_su_oper_list_add(cb, su, false);
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)
 				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -4663,7 +4663,7 @@ uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 						avd_sg_su_si_del_snd(cb, i_su);
 
 					/* add the SU to the operation list */
-					avd_sg_su_oper_list_add(cb, i_su, FALSE);
+					avd_sg_su_oper_list_add(cb, i_su, false);
 				}
 
 				i_su = i_su->sg_list_su_next;
@@ -4684,7 +4684,7 @@ uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 						avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCING);
 
 						/* add the SU to the operation list */
-						avd_sg_su_oper_list_add(cb, i_su, FALSE);
+						avd_sg_su_oper_list_add(cb, i_su, false);
 					}
 				}
 				i_su = i_su->sg_list_su_next;
@@ -4717,7 +4717,7 @@ uint32_t avd_sg_npm_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg)
 						   (i_su->list_of_susi->fsm == AVD_SU_SI_STATE_ASGND)) {
 						avd_sg_su_si_del_snd(cb, i_su);
 						/* add the SU to the operation list */
-						avd_sg_su_oper_list_add(cb, i_su, FALSE);
+						avd_sg_su_oper_list_add(cb, i_su, false);
 					}
 
 				}

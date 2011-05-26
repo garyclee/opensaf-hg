@@ -217,7 +217,7 @@ typedef struct peer_inst {
 
 	/* Some runtime boolean variables */
 	uint32_t incompatible:1;
-	uint32_t warm_sync_sent:1;	/* Set to TRUE if warm sync is sent */
+	uint32_t warm_sync_sent:1;	/* Set to true if warm sync is sent */
 	uint32_t peer_disc:1;
 	uint32_t ckpt_msg_sent:1;
 	uint32_t notify_msg_sent:1;
@@ -261,7 +261,7 @@ typedef struct ckpt_inst {
 				   the application on OPEN request */
 
 	/* MBCSv objects to be set and get */
-	NCS_BOOL warm_sync_on;
+	bool warm_sync_on;
 	uint32_t warm_sync_time;
 
 	/* Subscription Services */
@@ -305,7 +305,7 @@ typedef struct mbcsv_reg {
 *    with MBCSv layer management CREATE request.
 ***********************************************************************************/
 typedef struct mbcsv_cb {
-	NCS_BOOL created;
+	bool created;
 	uint8_t hmpool_id;
 	NCS_PATRICIA_TREE reg_list;	/* Base pointer of the MBC registration list; 
 					   contains link list of the services registered with the MBCSv */
@@ -371,11 +371,11 @@ extern const NCS_MBCSV_STATE_ACTION_FUNC_PTR
    parg.info.peer.i_peer_version = v;                               \
    if (NCSCC_RC_SUCCESS != peer->my_ckpt_inst->my_mbcsv_inst->mbcsv_cb_func(&parg))  \
    { \
-       ic = TRUE;  \
+       ic = true;  \
    }  \
    else  \
    {  \
-       ic = FALSE;  \
+       ic = false;  \
    }  \
 }
 
@@ -488,7 +488,7 @@ uint32_t mbcsv_subscribe_cancel(uint32_t sub_hdl);
 /*
  * MBCSv queue prototypes.
  */
-NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+bool mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 uint32_t mbcsv_client_queue_init(MBCSV_REG *mbc_reg);
 void mbcsv_client_queue_destroy(MBCSV_REG *mbc_reg);
 
@@ -513,7 +513,7 @@ PEER_INST *mbcsv_my_active_peer(CKPT_INST *ckpt);
 void mbcsv_clear_multiple_active_state(CKPT_INST *ckpt);
 void mbcsv_close_old_session(PEER_INST *active_peer);
 void mbcsv_set_up_new_session(CKPT_INST *ckpt, PEER_INST *new_act_peer);
-void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up);
+void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, bool peer_up);
 uint32_t mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t peer_up);
 void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer);
 uint32_t mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt);

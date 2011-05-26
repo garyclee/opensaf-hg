@@ -57,7 +57,7 @@ uint32_t smfa_mds_register()
 	svc_info.info.svc_install.i_yr_svc_hdl = 0;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_INTRANODE;
 	svc_info.info.svc_install.i_svc_cb = smfa_mds_callback;
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 	if (NCSCC_RC_SUCCESS != ncsmds_api(&svc_info)){
 		LOG_ER("SMFA: MDS Install FAILED.");
 		return NCSCC_RC_FAILURE;
@@ -197,7 +197,7 @@ uint32_t smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			if (!m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest))
 				return NCSCC_RC_SUCCESS;
 			/* TODO: No lock is taken. This might be dangerous.*/
-			cb->is_smfnd_up = TRUE;
+			cb->is_smfnd_up = true;
 			cb->smfnd_adest = svc_evt->i_dest;
 			break;
 
@@ -206,7 +206,7 @@ uint32_t smfa_mds_svc_evt_cbk(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 				return NCSCC_RC_SUCCESS;
 
 			/* TODO: No lock is taken. This might be dangerous.*/
-			cb->is_smfnd_up = FALSE;
+			cb->is_smfnd_up = false;
 			cb->smfnd_adest = 0;
 			break;
 		default:
@@ -228,7 +228,7 @@ uint32_t smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *rcv_evt)
 	SMF_EVT *evt = &smfsv_evt->info.smfa.event.cbk_req_rsp;
 	SMFA_CLIENT_INFO *client_info = NULL;
 	SMFA_CB *cb = &_smfa_cb;
-	uint32_t filter_match = FALSE;
+	uint32_t filter_match = false;
 	SMFSV_EVT resp_evt;
 
 	if (NULL == evt){
@@ -246,12 +246,12 @@ uint32_t smfa_mds_rcv_cbk(MDS_CALLBACK_RECEIVE_INFO *rcv_evt)
 	while (NULL != client_info){
 		/* If filter matches, post the evt to the corresponding MBX.*/
 		if (NCSCC_RC_SUCCESS == smfa_cbk_filter_match(client_info,&evt->evt.cbk_evt))
-			filter_match = TRUE;
+			filter_match = true;
 		client_info = client_info->next_client;
 	}
 
 	/* If filters dont match, respond to ND as SA_AIS_OK*/
-	if (FALSE == filter_match){
+	if (false == filter_match){
 		memset(&resp_evt,0,sizeof(SMFSV_EVT));
 		resp_evt.type = SMFSV_EVT_TYPE_SMFND;
 		resp_evt.info.smfnd.type = SMFND_EVT_CBK_RSP;

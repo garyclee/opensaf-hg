@@ -51,6 +51,6 @@ uint32_t mqd_asapi_dereg_hdlr(MQD_CB *, ASAPi_DEREG_INFO *, MQSV_SEND_INFO *);
 uint32_t mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt);
 void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest);
 void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest);
-NCS_BOOL mqd_obj_cmp(void *key, void *elem);
+bool mqd_obj_cmp(void *key, void *elem);
 
 #endif   /* MQD_API_H */

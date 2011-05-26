@@ -33,7 +33,7 @@ void tet_cpnd_show() {
             ncs_mem_whatsout_dump();
             break;
          case 'i':
-            ncs_mem_ignore(TRUE);
+            ncs_mem_ignore(true);
             break;
          default:
             printf("Codes supported are \n\tn - node info,\n\tc - cpnd cb,\n\tm - mem dump \n\ti - ignore \n\te - exit...\n");

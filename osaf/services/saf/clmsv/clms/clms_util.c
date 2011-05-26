@@ -895,7 +895,7 @@ uint32_t clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_I
 			(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, op_node->curr_admin_inv, SA_AIS_OK);
 			op_node->change = SA_CLM_NODE_NO_CHANGE; 
 
-			rc = clms_send_is_member_info(clms_cb, op_node->node_id, op_node->member, TRUE);
+			rc = clms_send_is_member_info(clms_cb, op_node->node_id, op_node->member, true);
 			if (rc != NCSCC_RC_SUCCESS) {
 				TRACE("clms_send_is_member_info failed %u", rc);
 				goto done;
@@ -1009,7 +1009,7 @@ void ckpt_cluster_rec(void)
 /**
  * Walk through the clma list to find a match. 
  */
-NCS_BOOL clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest)
+bool clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest)
 {
 	CLMS_CLIENT_INFO *client = NULL;
 
@@ -1017,13 +1017,13 @@ NCS_BOOL clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest)
 
 	while (client != NULL) {
 		if (m_NCS_MDS_DEST_EQUAL(&client->mds_dest, &mds_dest)) {
-			return TRUE;
+			return true;
 		}
 
 		client = clms_client_getnext_by_id(client->client_id);
 	}
 
-	return FALSE;
+	return false;
 }
 
 /**

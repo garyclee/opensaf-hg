@@ -158,7 +158,7 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, NCS_BOOL ckpt)
+AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, bool ckpt)
 {
 	AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
 	AVD_SU *curr_su = 0;
@@ -199,13 +199,13 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	}
 
 	/* set the ranking flag */
-	su_si->is_per_si = (curr_su == su) ? TRUE : FALSE;
+	su_si->is_per_si = (curr_su == su) ? true : false;
 
 	/* determine the insert position */
 	for (p_su_si = NULL, i_su_si = si->list_of_sisu;
 	     i_su_si; p_su_si = i_su_si, i_su_si = i_su_si->si_next) {
-		if (i_su_si->is_per_si == TRUE) {
-			if (FALSE == su_si->is_per_si)
+		if (i_su_si->is_per_si == true) {
+			if (false == su_si->is_per_si)
 				continue;
 
 			/* determine the su_rank rec for this rec */
@@ -228,7 +228,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			if (rank1 <= rank2)
 				break;
 		} else {
-			if (TRUE == su_si->is_per_si)
+			if (true == su_si->is_per_si)
 				break;
 
 			if (su->saAmfSURank <= i_su_si->su->saAmfSURank)
@@ -269,7 +269,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	}
 
 done:
-	if ((ckpt == FALSE) && (su_si != NULL)) {
+	if ((ckpt == false) && (su_si != NULL)) {
 		avd_create_susi_in_imm(state, &si->name, &su->name);
 		saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
 			   avd_ha_state[state], su->name.value, si->name.value);
@@ -443,7 +443,7 @@ AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_nam
  * 
  **************************************************************************/
 
-uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
+uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 {
 	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
 	AVD_AVND *avnd = NULL;
@@ -499,7 +499,7 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 		susi->si_next = NULL;
 	}
 
-	if (ckpt == FALSE) {
+	if (ckpt == false) {
 		if (susi->fsm == AVD_SU_SI_STATE_MODIFY) {
 			/* Dont delete here, if i am in modify state. 
 			   only happens when active -> qsd and standby rebooted */

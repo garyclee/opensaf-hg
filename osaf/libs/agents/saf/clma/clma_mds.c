@@ -1122,7 +1122,7 @@ uint32_t clma_mds_init(clma_cb_t * cb)
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
 	mds_info.info.svc_install.i_svc_cb = clma_mds_callback;	/* callback */	/*need to do */
-	mds_info.info.svc_install.i_mds_q_ownership = FALSE;	/* CLMA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_q_ownership = false;	/* CLMA doesn't own the mds queue */
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = CLMA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {

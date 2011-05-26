@@ -102,7 +102,7 @@ typedef struct avd_su_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	NCS_BOOL term_state;	/* admin state to terminate the
+	bool term_state;	/* admin state to terminate the
 				 * service unit.
 				 * Checkpointing - Updated independently.
 				 */
@@ -113,7 +113,7 @@ typedef struct avd_su_tag {
 					 * Checkpointing - Updated independently.
 					 */
 
-	NCS_BOOL su_is_external;	/* indicates if this SU is external */
+	bool su_is_external;	/* indicates if this SU is external */
 
 	AVD_SU_STATE su_act_state;	/* The current action flow of
 					 * the SU w.r.t to the node.
@@ -160,7 +160,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
 )
 
 #define m_AVD_GET_SU_NODE_PTR(avd_cb,i_su,su_node_ptr)  \
- if(TRUE == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
+ if(true == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
  else su_node_ptr = i_su->su_on_node;
 
 /**

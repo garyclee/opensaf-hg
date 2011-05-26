@@ -46,8 +46,8 @@ void avnd_main_process(void);
 uint32_t avnd_evt_avd_node_up_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_reg_su_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_reg_comp_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-uint32_t avnd_comp_proxied_add(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, NCS_BOOL);;
-uint32_t avnd_comp_proxied_del(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, NCS_BOOL,
+uint32_t avnd_comp_proxied_add(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, bool);;
+uint32_t avnd_comp_proxied_del(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, bool,
 				     struct avnd_pxied_rec *);
 uint32_t avnd_evt_avd_info_su_si_assign_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 uint32_t avnd_evt_avd_pg_track_act_rsp_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);

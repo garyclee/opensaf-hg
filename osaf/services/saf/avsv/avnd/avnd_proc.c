@@ -228,7 +228,7 @@ void avnd_main_process(void)
 		}
 
 		if (fds[FD_TERM].revents & POLLIN) {
-			ncs_sel_obj_rmv_ind(term_sel_obj, TRUE, TRUE);
+			ncs_sel_obj_rmv_ind(term_sel_obj, true, true);
 			avnd_sigterm_handler();
 		}
 
@@ -271,7 +271,7 @@ void avnd_evt_process(AVND_EVT *evt)
 	}
 
 	/* Temp: AvD Down Handling */
-	if (TRUE == cb->is_avd_down){
+	if (true == cb->is_avd_down){
 		LOG_IN("%s: AvD is down, dropping event %u",__FUNCTION__,evt->type);
 		goto done;
 	}

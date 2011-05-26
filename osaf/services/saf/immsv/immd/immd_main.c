@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 				}
 			} else {
 				TRACE("SIGUSR1 event rec");
-				ncs_sel_obj_rmv_ind(immd_cb->usr1_sel_obj, TRUE, TRUE);
+				ncs_sel_obj_rmv_ind(immd_cb->usr1_sel_obj, true, true);
 				ncs_sel_obj_destroy(immd_cb->usr1_sel_obj);
 
 				if (immd_amf_init(immd_cb) != NCSCC_RC_SUCCESS)

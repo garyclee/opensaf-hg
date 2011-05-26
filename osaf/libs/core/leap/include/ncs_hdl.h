@@ -323,7 +323,7 @@ HM_CELL *hm_find_cell(HM_HDL *hdl);
 
 HM_FREE *hm_target_cell(HM_HDL *hdl);
 
-void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
+void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, bool recycle);
 
 uint32_t hm_make_free_cells(HM_PMGR *pmgr);
 

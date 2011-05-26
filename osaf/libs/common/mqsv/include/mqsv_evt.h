@@ -212,7 +212,7 @@ typedef struct mqp_open_rsp {
 typedef struct mqp_transferq_req {
 	SaMsgQueueHandleT old_queueHandle;
 	MDS_DEST new_owner;
-	NCS_BOOL empty_queue;	/* TRUE if queue needs to be emptied */
+	bool empty_queue;	/* true if queue needs to be emptied */
 	MQP_OPEN_REQ openReq;
 	MQSV_SEND_INFO rcvr_mqa_sinfo;
 	SaInvocationT invocation;
@@ -370,7 +370,7 @@ typedef struct mqsv_message {
 
 /* To tell mqa that mqnd restarted successfully */
 typedef struct mqp_mqnd_restart_rsp {
-	NCS_BOOL restart_done;
+	bool restart_done;
 } MQP_MQND_RESTART_RSP;
 
 /******************************************************************************
@@ -481,10 +481,10 @@ typedef struct mqd_tmr_exp_info {
 	NODE_ID nodeid;
 } MQD_TMR_EXP_INFO;
 
-/* When ND is down is_up is FALSE else it's set to TRUE */
+/* When ND is down is_up is false else it's set to true */
 typedef struct mqd_nd_status_info {
 	MDS_DEST dest;		/*Destination MQND which is up/ down */
-	NCS_BOOL is_up;		/* TRUE if ND is up else FALSE */
+	bool is_up;		/* true if ND is up else false */
 	SaTimeT event_time;	/* Down time or up time */
 } MQD_ND_STATUS_INFO;
 
@@ -505,7 +505,7 @@ typedef struct mqd_ctrl_msg {
 	MQD_MSG_TYPE type;
 	union {
 		MDS_DEST user;
-		NCS_BOOL init;
+		bool init;
 		MQD_TMR_EXP_INFO tmr_info;
 		MQD_ND_STATUS_INFO nd_info;
 		MQD_QUISCED_STATE_INFO quisced_info;

@@ -195,7 +195,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 {
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU_SI_REC *si_rec = 0;
-	NCS_BOOL is_tob_buf = FALSE;
+	bool is_tob_buf = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -223,7 +223,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 		if (si_rec && ((m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(si_rec) &&
 				(SA_AMF_HA_QUIESCING != si_rec->curr_state)) ||
 			       (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(si_rec))))
-			is_tob_buf = TRUE;
+			is_tob_buf = true;
 	} else {		/* => msg is for all sis */
 		/* determine if an (non-quiescing) assign / remove operation is on */
 		for (si_rec = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -232,13 +232,13 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 				 (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(si_rec)));
 		     si_rec = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&si_rec->su_dll_node)) ;
 		if (si_rec)
-			is_tob_buf = TRUE;
+			is_tob_buf = true;
 	}
 
 	/*
 	 * Buffer the msg (if reqd).
 	 */
-	if (TRUE == is_tob_buf)
+	if (true == is_tob_buf)
 		siq = avnd_su_siq_rec_add(cb, su, param, &rc);
 
 	TRACE_LEAVE();
@@ -289,7 +289,7 @@ uint32_t avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
 	/* initiate si asignment / removal */
 	rc = avnd_su_si_msg_prc(cb, su, &siq->info);
 
-	if (TRUE == su->su_is_external) {
+	if (true == su->su_is_external) {
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, siq, AVND_CKPT_SIQ_REC);
 	}
 
@@ -334,7 +334,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 	switch (info->msg_act) {
 	case AVSV_SUSI_ACT_ASGN:	/* new assign */
 		{
-			if (FALSE == info->single_csi) {
+			if (false == info->single_csi) {
 				/* add to the database */
 				si = avnd_su_si_rec_add(cb, su, info, &rc);
 				if (NULL != si) {
@@ -379,7 +379,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 			 * si may point to si-rec to be deleted or be 0 (signifying all).
 			 * initiate si removal.
 			 */
-			if (TRUE == info->single_csi) {
+			if (true == info->single_csi) {
 				AVND_COMP_CSI_PARAM *csi_param;
 				AVND_COMP_CSI_REC *csi_rec;
 				si->single_csi_add_rem_in_si =  AVSV_SUSI_ACT_DEL;
@@ -448,7 +448,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 				 rank = curr_csi->rank;
 				  (curr_csi != NULL) && (curr_csi->rank == rank);
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
-				curr_csi->comp->assigned_flag = FALSE;
+				curr_csi->comp->assigned_flag = false;
 			}
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
 				 rank = curr_csi->rank;
@@ -456,12 +456,12 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 
 				if (AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED != curr_csi->curr_assign_state) {
-					if (FALSE == curr_csi->comp->assigned_flag) {
+					if (false == curr_csi->comp->assigned_flag) {
 						rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
 						if (NCSCC_RC_SUCCESS != rc)
 							goto done;
-						if ((FALSE == curr_csi->comp->assigned_flag) && (m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)))
-							curr_csi->comp->assigned_flag = TRUE;
+						if ((false == curr_csi->comp->assigned_flag) && (m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)))
+							curr_csi->comp->assigned_flag = true;
 					} else {
 						m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
 						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
@@ -473,7 +473,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 				 rank = curr_csi->rank;
 				  (curr_csi != NULL) && (curr_csi->rank == rank);
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
-				curr_csi->comp->assigned_flag = FALSE;
+				curr_csi->comp->assigned_flag = false;
 			}
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
 				 rank = curr_csi->rank;
@@ -483,13 +483,13 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 				/* We need to send only one csi set for a comp having  more than one CSI assignment for
 				   csi mod/rem.*/
 				if (AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED != curr_csi->curr_assign_state) {
-					if (FALSE == curr_csi->comp->assigned_flag) {
+					if (false == curr_csi->comp->assigned_flag) {
 						rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
 						if (NCSCC_RC_SUCCESS != rc)
 							goto done;
-						if ((!single_csi) && (FALSE == curr_csi->comp->assigned_flag) && 
+						if ((!single_csi) && (false == curr_csi->comp->assigned_flag) && 
 								(m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)))
-							curr_csi->comp->assigned_flag = TRUE;
+							curr_csi->comp->assigned_flag = true;
 					} else {
 						m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
 						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
@@ -502,24 +502,24 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 	/* initiate the si assignment for npi su */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		TRACE("SU is NPI");
-		NCS_BOOL npi_prv_inst = TRUE, npi_curr_inst = TRUE;
+		bool npi_prv_inst = true, npi_curr_inst = true;
 		AVND_SU_PRES_FSM_EV su_ev = AVND_SU_PRES_FSM_EV_MAX;
 
 		/* determine the instantiation state of npi su */
 		if (SA_AMF_HA_ACTIVE != si->prv_state)
-			npi_prv_inst = FALSE;
+			npi_prv_inst = false;
 		if (SA_AMF_HA_ACTIVE != si->curr_state)
-			npi_curr_inst = FALSE;
+			npi_curr_inst = false;
 
 		/* Quiesced while Quiescing */
 		if (m_AVND_SU_SI_PRV_ASSIGN_STATE_IS_ASSIGNING(si) && (SA_AMF_HA_QUIESCING == si->prv_state))
-			npi_prv_inst = TRUE;
+			npi_prv_inst = true;
 
 		/* determine the event for the su fsm */
-		if (m_AVND_SU_IS_RESTART(su) && (TRUE == npi_curr_inst))
+		if (m_AVND_SU_IS_RESTART(su) && (true == npi_curr_inst))
 			su_ev = AVND_SU_PRES_FSM_EV_RESTART;
 		else if (!m_AVND_SU_IS_RESTART(su) && (npi_prv_inst != npi_curr_inst))
-			su_ev = (TRUE == npi_curr_inst) ? AVND_SU_PRES_FSM_EV_INST : AVND_SU_PRES_FSM_EV_TERM;
+			su_ev = (true == npi_curr_inst) ? AVND_SU_PRES_FSM_EV_INST : AVND_SU_PRES_FSM_EV_TERM;
 
 		/* we cant do anything on inst-failed SU, so just resp success for quiesced */
 		if (su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
@@ -711,7 +711,7 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_SU_SI_REC *curr_si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0, *t_csi;
-	NCS_BOOL are_si_assigned;
+	bool are_si_assigned;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s'", su->name.value);
@@ -795,8 +795,8 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	/* finally delete the si(s) if they are removed */
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si)) {
-		NCS_BOOL one_rec_del = FALSE;
-		one_rec_del = (si) ? TRUE : FALSE;
+		bool one_rec_del = false;
+		one_rec_del = (si) ? true : false;
 
 		if (one_rec_del) {
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, curr_si, AVND_CKPT_SU_SI_REC);
@@ -816,7 +816,7 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	 */
 	if (m_AVND_SU_IS_RESTART(su)) {
 		m_AVND_SU_ARE_ALL_SI_ASSIGNED(su, are_si_assigned);
-		if (TRUE == are_si_assigned) {
+		if (true == are_si_assigned) {
 			m_AVND_SU_RESTART_RESET(su);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 		}
@@ -968,8 +968,8 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	switch (info->term_state) {
-	case TRUE:		/* => terminate the su */
-		TRACE("SU term state is set to TRUE");
+	case true:		/* => terminate the su */
+		TRACE("SU term state is set to true");
 		/* no si must be assigned to the su */
 		assert(!m_NCS_DBLIST_FIND_FIRST(&su->si_list));
 
@@ -991,7 +991,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 		break;
 
-	case FALSE:		/* => instantiate the su */
+	case false:		/* => instantiate the su */
 		TRACE("SU term state is set to false");
 		/* Reset admn term operation flag */
 		m_AVND_SU_ADMN_TERM_RESET(su);
@@ -1014,7 +1014,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 		   Fix for the above problem is that Middleware Components wont be dynamically added in the case 
 		   of openSAF SUs, so don't refresh config info if it is openSAF SU. */
 
-		if ((FALSE == su->is_ncs) && (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS)) {
+		if ((false == su->is_ncs) && (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS)) {
 			m_AVND_SU_REG_FAILED_SET(su);
 			/* Will transition to instantiation-failed when instantiated */
 			LOG_ER("'%s':FAILED", __FUNCTION__); 
@@ -1109,7 +1109,7 @@ uint32_t avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU
 uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv_st, SaAmfPresenceStateT final_st)
 {
 	AVND_SU_SI_REC *si = 0;
-	NCS_BOOL is_en;
+	bool is_en;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -1127,7 +1127,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 
 			/* determine the su oper state. if enabled, inform avd. */
 			m_AVND_SU_IS_ENABLED(su, is_en);
-			if (TRUE == is_en) {
+			if (true == is_en) {
 				TRACE("SU oper state is enabled");
 				m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
@@ -1178,7 +1178,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 
 			/* determine su oper state. if enabled, inform avd. */
 			m_AVND_SU_IS_ENABLED(su, is_en);
-			if (TRUE == is_en) {
+			if (true == is_en) {
 				TRACE("SU oper state is enabled");
 				m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
@@ -1490,7 +1490,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	NCS_BOOL is;
+	bool is;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Component Instantiated event in the Instantiating state:'%s' : '%s'", 
 								su->name.value, comp->name.value);
@@ -1523,7 +1523,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 
 		/* determine su presence state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
-		if (TRUE == is) {
+		if (true == is) {
 			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
@@ -1873,7 +1873,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 ******************************************************************************/
 uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
-	NCS_BOOL is;
+	bool is;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("ComponentInstantiate event in the terminating state:'%s' : '%s'", 
 							su->name.value, comp->name.value);
@@ -1886,7 +1886,7 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 
 		/* determine if su can be transitioned to instantiated state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
-		if (TRUE == is) {
+		if (true == is) {
 			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 			TRACE_1("Transitioning PI SU to Instantiated state");
@@ -1984,7 +1984,7 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 	TRACE_1("Transitioning to termination failed state");
 
-	if (TRUE == su->is_ncs) {
+	if (true == su->is_ncs) {
 		char reason[SA_MAX_NAME_LENGTH + 64];
 		snprintf(reason, sizeof(reason) - 1, "SU '%s' Termination-failed", su->name.value);
 		opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
@@ -2021,7 +2021,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	NCS_BOOL all_uninst = TRUE;
+	bool all_uninst = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Component Uninstantiated event in the Terminating state:'%s' : '%s'",
 									su->name.value, comp->name.value);
@@ -2034,10 +2034,10 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		     curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_comp->su_dll_node))) {
 			if ((curr_comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(curr_comp)))
-				all_uninst = FALSE;
+				all_uninst = false;
 		}
 
-		if (all_uninst == TRUE) {
+		if (all_uninst == true) {
 			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_UNINSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
@@ -2210,7 +2210,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	NCS_BOOL all_inst = TRUE;
+	bool all_inst = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("ComponentInstantiated event in the Restarting state:'%s' : '%s'", 
 							su->name.value, comp->name.value);
@@ -2238,11 +2238,11 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		     curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_comp->su_dll_node))) {
 			if ((curr_comp->pres != SA_AMF_PRESENCE_INSTANTIATED) &&
 			    (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(curr_comp)))
-				all_inst = FALSE;
+				all_inst = false;
 		}
 
 		/* OK, all are instantiated */
-		if (all_inst == TRUE) {
+		if (all_inst == true) {
 			m_AVND_SU_PRES_STATE_SET(su, SA_AMF_PRESENCE_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
@@ -2500,7 +2500,7 @@ uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *cb, AVND_SU *su, AVND_COMP 
 						/* unlink the buffered msg from the queue */
 						ncs_db_link_list_delink(&su->siq, &siq->su_dll_node);
 
-						if (TRUE == su->su_is_external) {
+						if (true == su->su_is_external) {
 							m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, siq, AVND_CKPT_SIQ_REC);
 						}
 

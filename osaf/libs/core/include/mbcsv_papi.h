@@ -158,7 +158,7 @@ extern "C" {
 
 	typedef struct ncs_mbcsv_cb_err_ind {
 		NCS_MBCSV_ERR_CODES i_code;	/* notification code ID              */
-		NCS_BOOL i_err;	/* if TRUE then ERROR else its INFO  */
+		bool i_err;	/* if true then ERROR else its INFO  */
 		NCSCONTEXT i_arg;	/* value type mapped to code id      */
 		uint16_t i_peer_version;	/* version info as per SAF        */
 
@@ -338,7 +338,7 @@ extern "C" {
 		uint32_t i_reo_type;	/* pvt REO type; pass to ENCODE       */
 		MBCSV_REO_HDL i_reo_hdl;	/* pvt REO ptr/hdl; pass to ENCODE    */
 		NCS_MBCSV_ACT_TYPE i_action;	/* ckpt action: ADD,RMV,UPDATE        */
-		NCS_BOOL io_no_peer;	/* Appl wants to know about peer existance */
+		bool io_no_peer;	/* Appl wants to know about peer existance */
 
 	} NCS_MBCSV_SEND_CKPT;
 

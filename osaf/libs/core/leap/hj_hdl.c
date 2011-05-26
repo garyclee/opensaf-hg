@@ -162,10 +162,10 @@ uint32_t hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
 
    DESCRIPTION:      put handle manager in known start state. Most of this
                      function proves that bitmap manipulation and size
-                     assumptions are TRUE for this target machine since
+                     assumptions are true for this target machine since
                      NetPlane cannot test them all in our lab.
 
-                     If they are NOT TRUE, tell NetPlane (debug statements)
+                     If they are NOT true, tell NetPlane (debug statements)
                      should fire off so that analysis can take place.
 
 *****************************************************************************/
@@ -283,7 +283,7 @@ uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 		cell->data = save;	/* store user stuff and internal state */
 		cell->use_ct = 1;
 		cell->svc_id = id;
-		cell->busy = TRUE;
+		cell->busy = true;
 	}
 
 	m_NCS_UNLOCK(&gl_hm.lock[pool], NCS_LOCK_WRITE);
@@ -325,7 +325,7 @@ uint32_t ncshm_declare_hdl(uint32_t uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 		cell->data = save;	/* store user stuff and internal state */
 		cell->use_ct = 1;
 		cell->svc_id = id;
-		cell->busy = TRUE;
+		cell->busy = true;
 		ret = NCSCC_RC_SUCCESS;
 	}
 
@@ -357,15 +357,15 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
 	if ((cell = hm_find_cell(hdl)) != NULL) {
-		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == TRUE)) {
-			cell->busy = FALSE;
+		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == true)) {
+			cell->busy = false;
 			data = cell->data;
 
 			if (cell->use_ct > 1) {
 				hm_block_me(cell, (uint8_t)pool_id);	/* must unlock inside */
 				m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* must lock again!!! */
 			}
-			hm_free_cell(cell, hdl, TRUE);
+			hm_free_cell(cell, hdl, true);
 		}
 	}
 	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
@@ -395,7 +395,7 @@ NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
 	if ((cell = hm_find_cell(hdl)) != NULL) {
-		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == TRUE)) {
+		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == true)) {
 			if (++cell->use_ct == 0) {
 				m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* Too many takes()s!! */
 			}
@@ -435,7 +435,7 @@ void ncshm_give_hdl(uint32_t uhdl)
 				dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* Client BUG..Too many give()s!! */
 				cell->use_ct++;
 			} else {
-				if ((cell->busy == FALSE) && (cell->use_ct == 1))
+				if ((cell->busy == false) && (cell->use_ct == 1))
 					hm_unblock_him(cell);
 			}
 		}
@@ -515,7 +515,7 @@ HM_CELL *hm_find_cell(HM_HDL *hdl)
 
 *****************************************************************************/
 
-void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle)
+void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, bool recycle)
 {
 	HM_PMGR *pmgr;
 	HM_FREE *free = (HM_FREE *)cell;
@@ -585,7 +585,7 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 	for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-po0l */
 		hdl.idx3 = i;
 		cell = &(cells->cell[i]);
-		hm_free_cell(cell, &hdl, FALSE);
+		hm_free_cell(cell, &hdl, false);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -648,7 +648,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 		for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-pool */
 			tmp_hdl.idx3 = i;
 			cell = &(cells->cell[i]);
-			hm_free_cell(cell, &tmp_hdl, FALSE);
+			hm_free_cell(cell, &tmp_hdl, false);
 		}
 	}
 
@@ -722,19 +722,19 @@ void hm_unblock_him(HM_CELL *cell)
 
    PROCEDURE NAME:   ncslpg_take
 
-   DESCRIPTION:      If all validation stuff is in order return TRUE, which
+   DESCRIPTION:      If all validation stuff is in order return true, which
                      means this thread can enter this object.
 
 *****************************************************************************/
 
-NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg)
+bool ncslpg_take(NCSLPG_OBJ *pg)
 {
 	m_NCS_OS_ATOMIC_INC(&(pg->inhere));	/* set first, ask later.. to beat 'closing' */
-	if (pg->open == TRUE)
-		return TRUE;	/* its open, lets go in */
+	if (pg->open == true)
+		return true;	/* its open, lets go in */
 	else
 		m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
-	return FALSE;		/* its closed */
+	return false;		/* its closed */
 }
 
 /*****************************************************************************
@@ -763,9 +763,9 @@ uint32_t ncslpg_give(NCSLPG_OBJ *pg, uint32_t ret)
 uint32_t ncslpg_create(NCSLPG_OBJ *pg)
 {
 	uint32_t dummy;
-	if (pg->open == TRUE)
+	if (pg->open == true)
 		dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	pg->open = TRUE;
+	pg->open = true;
 	pg->inhere = 0;
 	return NCSCC_RC_SUCCESS;
 }
@@ -777,18 +777,18 @@ uint32_t ncslpg_create(NCSLPG_OBJ *pg)
    DESCRIPTION:      Close this LPG. Wait for all other threads to leave before
                      returning to the invoker, allowing her to proceed. Note
                      that if this object is already closed, this function
-                     returns FALSE (invoker should not proceed, as the object is
+                     returns false (invoker should not proceed, as the object is
                      already destroyed or being destoyed.
 
 *****************************************************************************/
 
-NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg)
+bool ncslpg_destroy(NCSLPG_OBJ *pg)
 {
-	if (pg->open == FALSE)
-		return FALSE;	/* already closed            */
-	pg->open = FALSE;	/* stop others from entering */
+	if (pg->open == false)
+		return false;	/* already closed            */
+	pg->open = false;	/* stop others from entering */
 	while (pg->inhere != 0)	/* Anybody inhere??          */
 		m_NCS_TASK_SLEEP(1);	/* OK, I'll wait; could do semaphore I suppose */
 
-	return TRUE;		/* Invoker can proceed to get rid of protected thing */
+	return true;		/* Invoker can proceed to get rid of protected thing */
 }

@@ -160,7 +160,7 @@ extern void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **);
 extern uint32_t ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
 extern uint32_t ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **, ntfa_notification_hdl_rec_t *);
 extern uint32_t ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **, ntfa_filter_hdl_rec_t *);
-extern NCS_BOOL ntfa_validate_ntfa_client_hdl(ntfa_cb_t *ntfa_cb, ntfa_client_hdl_rec_t *find_hdl_rec);
+extern bool ntfa_validate_ntfa_client_hdl(ntfa_cb_t *ntfa_cb, ntfa_client_hdl_rec_t *find_hdl_rec);
 
 /* ntfa_util.c */
 extern ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uint32_t client_id);

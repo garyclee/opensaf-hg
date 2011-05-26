@@ -257,7 +257,7 @@ extern "C" {
  ** few bytes lesser than requested. This is only useful when
  ** doing an "encode_n_octets" kind of thing.
  **/
-#define m_MMGR_RESERVE_AT_END_AMAP(pp, pn, t) ((t)sysf_reserve_at_end_amap(pp, pn, FALSE))
+#define m_MMGR_RESERVE_AT_END_AMAP(pp, pn, t) ((t)sysf_reserve_at_end_amap(pp, pn, false))
 
 /** Removes n bytes from the end of the the existing
  ** payload of the USRBUF (chain) pointed to by the
@@ -341,7 +341,7 @@ extern "C" {
  **/
 
 #define m_MMGR_PTR_MID_DATA(p, o, n, s) \
- sysf_data_in_mid(p, (unsigned int) o, (unsigned int) n, (char*)(s), FALSE)
+ sysf_data_in_mid(p, (unsigned int) o, (unsigned int) n, (char*)(s), false)
 
 /** Evaluates to a pointer (char*) to a copy of the n bytes at 
  ** offset o in the current payload area in the USRBUF (chain) 
@@ -355,7 +355,7 @@ extern "C" {
  ** have taken place. 
  **/
 #define m_MMGR_COPY_MID_DATA(p, o, n, s) \
- sysf_data_in_mid(p,(unsigned int) o, (unsigned int) n, (char*)s, TRUE)
+ sysf_data_in_mid(p,(unsigned int) o, (unsigned int) n, (char*)s, true)
 
 /*
  ** Evaluates to a pointer (char *) which is 'o' bytes from the 
@@ -518,7 +518,7 @@ extern "C" {
 						    unsigned char priority, int num, unsigned int line, char *file);
 
 	char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
-	char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
+	char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, bool total);
 	void sysf_remove_from_end(USRBUF *pb, unsigned int size);
 	char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
 	void sysf_remove_from_start(USRBUF **ppb, unsigned int size);

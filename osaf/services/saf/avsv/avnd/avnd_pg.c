@@ -65,9 +65,9 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 	AVND_PG_TRK *curr = 0, *prv = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
 
-	if (TRUE == info->is_csi_exist) {	/* => +ve resp */
+	if (true == info->is_csi_exist) {	/* => +ve resp */
 		/* set the exist flag to true */
-		pg->is_exist = TRUE;
+		pg->is_exist = true;
 
 		/* update the mem-list */
 		assert(!pg->mem_list.n_nodes);
@@ -105,7 +105,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 		for (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
 		     curr; curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_NEXT(&curr->pg_dll_node)) {
 			rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_ERR_NOT_EXIST,
-						0, &curr->info.key.mds_dest, &curr->info.mds_ctxt, NULL, FALSE);
+						0, &curr->info.key.mds_dest, &curr->info.mds_ctxt, NULL, false);
 			if (NCSCC_RC_SUCCESS != rc)
 				return rc;
 		}		/* while */
@@ -141,7 +141,7 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG_TRK_INFO trk_info;
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *pg_trk = 0;
-	NCS_BOOL is_fresh_pg = FALSE;
+	bool is_fresh_pg = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -157,7 +157,7 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 		pg = avnd_pgdb_rec_add(cb, &pg_start->csi_name, &rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
-		is_fresh_pg = TRUE;
+		is_fresh_pg = true;
 	}
 
 	/* add/modify the track rec to the added/modified pg rec */
@@ -173,8 +173,8 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	/* 
 	 * If fresh pg is created, send pg-start req to avd 
 	 */
-	if (TRUE == is_fresh_pg) {
-		rc = avnd_di_pg_act_send(cb, &pg_start->csi_name, AVSV_PG_TRACK_ACT_START, FALSE);
+	if (true == is_fresh_pg) {
+		rc = avnd_di_pg_act_send(cb, &pg_start->csi_name, AVSV_PG_TRACK_ACT_START, false);
 		return rc;
 	}
 
@@ -183,7 +183,7 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * If avd resp for pg-start is awaited, do nothing. 
 	 * Else respond back to the application appropriately.
 	 */
-	if (TRUE == pg->is_exist) {	/* => got a +ve resp from avd */
+	if (true == pg->is_exist) {	/* => got a +ve resp from avd */
 		/* start pg tracking for this track rec */
 		rc = avnd_pg_track_start(cb, pg, pg_trk);
 		if (NCSCC_RC_SUCCESS != rc)
@@ -246,7 +246,7 @@ uint32_t avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	/* respond bk to the application */
 	if (!pg || !pg_trk)
 		amf_rc = SA_AIS_ERR_NOT_EXIST;
-	rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, NULL, FALSE);
+	rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, NULL, false);
 
 	/* proceed with rest of the processing */
 	if ((SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc)) {
@@ -283,7 +283,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 	AVND_PG_MEM *pg_mem = 0, *mem_curr = 0, *mem_prv = 0;
 	SaAmfProtectionGroupNotificationT *mem_info;
 
-	if (TRUE == info->is_csi_exist) {	/* => +ve resp */
+	if (true == info->is_csi_exist) {	/* => +ve resp */
 		/* Walk through the list */
 		for (i = 0; i < info->mem_list.numberOfItems; i++) {
 			mem_info = &info->mem_list.notification[i];
@@ -301,7 +301,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 					continue;
 			}
 
-			pg_mem->mem_exist = TRUE;
+			pg_mem->mem_exist = true;
 
 			/* inform all the appl */
 			for (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
@@ -317,8 +317,8 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 		while (mem_curr) {
 			mem_prv = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_PREV(&mem_curr->pg_dll_node);
 
-			if (TRUE == mem_curr->mem_exist) {
-				mem_curr->mem_exist = FALSE;
+			if (true == mem_curr->mem_exist) {
+				mem_curr->mem_exist = false;
 				mem_curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_NEXT(&mem_curr->pg_dll_node);
 				continue;
 			} else {
@@ -341,7 +341,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 		}
 	} else {
 		/* => this update is for csi deletion */
-		pg->is_exist = FALSE;
+		pg->is_exist = false;
 
 		/* inform all the appl */
 		for (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
@@ -393,9 +393,9 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			/* get the pg rec */
 			pg = m_AVND_PGDB_REC_GET(cb->pgdb, info->csi_name);
 
-			if (TRUE == info->msg_on_fover) {
+			if (true == info->msg_on_fover) {
 				if (NULL != pg) {
-					if (FALSE == pg->is_exist)
+					if (false == pg->is_exist)
 						return avnd_pg_start_rsp_prc(cb, pg, info);
 					else
 						rc = avnd_process_pg_track_start_rsp_on_fover(cb, pg, info);
@@ -406,7 +406,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			if (!pg)
 				return rc;
 
-			assert(FALSE == pg->is_exist);
+			assert(false == pg->is_exist);
 
 			rc = avnd_pg_start_rsp_prc(cb, pg, info);
 
@@ -462,12 +462,12 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (!pg)
 		return NCSCC_RC_FAILURE;
 
-	assert(TRUE == pg->is_exist);
+	assert(true == pg->is_exist);
 
-	if (TRUE == info->is_csi_del) {
+	if (true == info->is_csi_del) {
 		/* => this update is for csi deletion */
 
-		pg->is_exist = FALSE;
+		pg->is_exist = false;
 
 		/* inform all the appl */
 		for (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
@@ -631,9 +631,9 @@ uint32_t avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* send the response to the application */
-	if (FALSE == pg_trk->info.is_syn) {
+	if (false == pg_trk->info.is_syn) {
 		rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_OK,
-					0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt, NULL, FALSE);
+					0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt, NULL, false);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
 	}
@@ -671,7 +671,7 @@ uint32_t avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
 	TRACE_ENTER2("%s",  pg->csi_name.value);
 
 	/* send pg-stop req to avd */
-	rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_STOP, FALSE);
+	rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_STOP, false);
 	if (NCSCC_RC_SUCCESS != rc) {
 		TRACE("avnd_di_pg_act_send failed for = %s", pg->csi_name.value);
 	}
@@ -727,7 +727,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	/* 
 	 * Now fill other cbk params.
 	 */
-	if (TRUE == pg->is_exist) {
+	if (true == pg->is_exist) {
 		/* => this csi exists... invoke the cbk as per the track flags */
 		if ((m_AVND_PG_TRK_IS_CURRENT(trk) || m_AVND_PG_TRK_IS_CHANGES(trk)) && (pg_param->mem_num)) {
 	 /*** include all the current members ***/
@@ -784,7 +784,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	cbk_info = NULL;
 
 	/* reset the is_syn flag */
-	trk->info.is_syn = FALSE;
+	trk->info.is_syn = false;
 
  done:
 	if ((NCSCC_RC_SUCCESS != rc) && cbk_info)
@@ -827,7 +827,7 @@ uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *
 
 	/* send the message to AvA */
 	rc = avnd_mds_send(cb, &msg, &trk->info.key.mds_dest,
-			   ((m_AVND_PG_TRK_IS_CURRENT(trk)) && (TRUE == trk->info.is_syn)) ? &trk->info.mds_ctxt : 0);
+			   ((m_AVND_PG_TRK_IS_CURRENT(trk)) && (true == trk->info.is_syn)) ? &trk->info.mds_ctxt : 0);
 	if (NCSCC_RC_SUCCESS == rc)
 		msg.info.ava = 0;
 

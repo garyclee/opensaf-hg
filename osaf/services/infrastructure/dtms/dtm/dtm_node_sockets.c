@@ -83,7 +83,7 @@ static uint32_t set_keepalive(DTM_INTERNODE_CB * dtms_cb, int sock_desc)
 	comm_keepalive_intvl = dtms_cb->comm_keepalive_intvl;
 	comm_keepalive_probes = dtms_cb->comm_keepalive_probes;
 
-	if (so_keepalive == TRUE) {
+	if (so_keepalive == true) {
 		/* Set SO_KEEPALIVE */
 		optlen = sizeof(so_keepalive);
 		if (setsockopt(sock_desc, SOL_SOCKET, SO_KEEPALIVE, &so_keepalive, optlen) < 0) {
@@ -143,16 +143,16 @@ static uint8_t set_nonblocking(int sock_desc, uint8_t bNb)
 	if (bNb) {
 		if (fcntl(sock_desc, F_SETFL, O_NONBLOCK) == -1) {
 			LOG_ER("DTM :fcntl(F_SETFL, O_NONBLOCK) errno  : %d ", GET_LAST_ERROR());
-			return FALSE;
+			return false;
 		}
 	} else {
 		if (fcntl(sock_desc, F_SETFL, 0) == -1) {
 			LOG_ER("DTM :fcntl(F_SETFL, 0) errno :%d", GET_LAST_ERROR());
-			return FALSE;
+			return false;
 		}
 	}
 	TRACE_LEAVE();
-	return TRUE;
+	return true;
 
 }
 
@@ -366,8 +366,8 @@ uint32_t dtm_comm_socket_close(int *comm_socket)
 
 	if (node != NULL) {
 		TRACE("DTM: node deleting  enty ");
-		if (TRUE == node->comm_status) {
-			if (dtm_process_node_up_down(node->node_id, node->node_name, FALSE) != NCSCC_RC_SUCCESS) {
+		if (true == node->comm_status) {
+			if (dtm_process_node_up_down(node->node_id, node->node_name, false) != NCSCC_RC_SUCCESS) {
 				LOG_ER(" dtm_process_node_up_down() failed rc : %d ", rc);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -545,7 +545,7 @@ int comm_socket_setup_new(DTM_INTERNODE_CB * dtms_cb, const char *foreign_addres
 		goto done;
 	}
 
-	if (set_nonblocking(sock_desc, TRUE) != TRUE) {
+	if (set_nonblocking(sock_desc, true) != true) {
 		LOG_ER("DTM :set_nonblocking failed ");
 		dtm_comm_socket_close(&sock_desc);
 		goto done;
@@ -682,7 +682,7 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	}
 
 
-	if (set_nonblocking(dtms_cb->stream_sock, TRUE) != NCSCC_RC_SUCCESS) {
+	if (set_nonblocking(dtms_cb->stream_sock, true) != NCSCC_RC_SUCCESS) {
 		LOG_ER("DTM : set_nonblocking() failed");
 		dtm_sockdesc_close(dtms_cb->stream_sock);
 		TRACE_LEAVE2("rc :%d", NCSCC_RC_FAILURE);
@@ -1065,7 +1065,7 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 	node.cluster_id = ncs_decode_32bit(&buffer);
 	node.node_id = ncs_decode_32bit(&buffer);
 	if (dtms_cb->node_id == node.node_id) {
-		if (dtms_cb->mcast_flag != TRUE) {
+		if (dtms_cb->mcast_flag != true) {
 			TRACE("DTM: received the self node_id bcast  message,  droping message");
 		} else {
 			TRACE("DTM: received the self node_id mcast message,  droping message");
@@ -1087,7 +1087,7 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 	ip_addr_type = ncs_decode_8bit(&buffer);
 	memcpy(node.node_ip, buffer, IPV6_ADDR_UNS8_CNT);
 
-	if (initial_discovery_phase == TRUE) {
+	if (initial_discovery_phase == true) {
 		if (node.node_id < dtms_cb->node_id) {
 			TRACE("DTM: received node_id is less than local node_id  droping message");
 			return sock_desc;
@@ -1101,16 +1101,16 @@ int dtm_process_connect(DTM_INTERNODE_CB * dtms_cb, char *node_ip, uint8_t *data
 	if (new_node != NULL) {
 		if (((new_node->node_id == 0) || (new_node->node_id == node.node_id)) &&
 		    (memcmp((uint8_t *)(node.node_ip), (uint8_t *)(new_node->node_ip), IPV6_ADDR_UNS8_CNT) == 0) &&
-		    (new_node->comm_status == FALSE)) {
+		    (new_node->comm_status == false)) {
 			TRACE("DTM:new_node  discovery in progress droping message");
 			TRACE_LEAVE2("sock_desc :%d", sock_desc);
 			return sock_desc;
-		} else if ((new_node->comm_status == TRUE) && (new_node->node_id == node.node_id) &&
+		} else if ((new_node->comm_status == true) && (new_node->node_id == node.node_id) &&
 			   (memcmp((uint8_t *)(node.node_ip), (uint8_t *)(new_node->node_ip), IPV6_ADDR_UNS8_CNT) == 0)) {
 			TRACE("DTM:new_node node already discovered droping message");
 			TRACE_LEAVE2("sock_desc :%d", sock_desc);
 			return sock_desc;
-		} else if ((new_node->comm_status == FALSE) &&
+		} else if ((new_node->comm_status == false) &&
 			   ((new_node->node_id != node.node_id) ||
 			    (memcmp((uint8_t *)(node.node_ip), (uint8_t *)(new_node->node_ip), IPV6_ADDR_UNS8_CNT) != 0))) {
 			TRACE("DTM:new_node deleting stale enty ");

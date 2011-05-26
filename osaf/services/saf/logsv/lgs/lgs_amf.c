@@ -171,7 +171,7 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invoca
 	}
 
 	cb->amf_invocation_id = invocation;
-	cb->is_quiesced_set = TRUE;
+	cb->is_quiesced_set = true;
 done:
 	return rc;
 }
@@ -228,7 +228,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -271,8 +271,8 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	/* Update control block */
 	lgs_cb->ha_state = new_haState;
 
-	if (lgs_cb->csi_assigned == FALSE) {
-		lgs_cb->csi_assigned = TRUE;
+	if (lgs_cb->csi_assigned == false) {
+		lgs_cb->csi_assigned = true;
 		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 		lgs_cb->ckpt_state = COLD_SYNC_IDLE;
@@ -284,13 +284,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
 	/* Handle active to active role change. */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
-		role_change = FALSE;
+		role_change = false;
 
 	/* Handle Stby to Stby role change. */
 	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
-		role_change = FALSE;
+		role_change = false;
 
-	if (role_change == TRUE) {
+	if (role_change == true) {
 		if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("lgs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;

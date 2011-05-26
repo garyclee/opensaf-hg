@@ -52,13 +52,13 @@ typedef struct cpa_glbl_ckpt_node {
 	SaCkptCheckpointCreationAttributesT ckpt_creat_attri;
 	uint32_t ref_cnt;		/* Client count */
 	MDS_DEST active_mds_dest;
-	NCS_BOOL is_active_exists;
-	NCS_BOOL is_restart;
+	bool is_active_exists;
+	bool is_restart;
 	/* Active replica sync with cpd flags */
 	NCS_LOCK cpd_active_sync_lock;
 	NCS_SEL_OBJ cpd_active_sync_sel;
-	NCS_BOOL cpd_active_sync_awaited;
-	NCS_BOOL is_active_bcast_came;
+	bool cpd_active_sync_awaited;
+	bool is_active_bcast_came;
 } CPA_GLOBAL_CKPT_NODE;
 
 /* Section Iteration Info */
@@ -92,27 +92,27 @@ typedef struct cpa_cb {
 
 	/* Information about CPND */
 	MDS_DEST cpnd_mds_dest;
-	NCS_BOOL is_cpnd_up;
-	NCS_BOOL is_cpnd_joined_clm;
+	bool is_cpnd_up;
+	bool is_cpnd_joined_clm;
 	CPA_TMR cpnd_down_tmr;
 
 	/* CPA data */
 	NCS_PATRICIA_TREE client_tree;	/* CPA_CLIENT_NODE - node */
-	NCS_BOOL is_client_tree_up;
+	bool is_client_tree_up;
 
 	NCS_PATRICIA_TREE lcl_ckpt_tree;	/* CPA_LOCAL_CKPT_NODE  - node */
-	NCS_BOOL is_lcl_ckpt_tree_up;
+	bool is_lcl_ckpt_tree_up;
 
 	NCS_PATRICIA_TREE gbl_ckpt_tree;	/* CPA_GLOBAL_CKPT_NODE - node */
-	NCS_BOOL is_gbl_ckpt_tree_up;
+	bool is_gbl_ckpt_tree_up;
 
 	NCS_PATRICIA_TREE sect_iter_tree;	/* CPA_SECT_ITER_NODE - node */
-	NCS_BOOL is_sect_iter_tree_up;
+	bool is_sect_iter_tree_up;
         NCS_QUEUE cpa_evt_process_queue;
 
 	/* Sync up with CPND ( MDS ) */
 	NCS_LOCK cpnd_sync_lock;
-	NCS_BOOL cpnd_sync_awaited;
+	bool cpnd_sync_awaited;
 	NCS_SEL_OBJ cpnd_sync_sel;
 
 } CPA_CB;
@@ -142,9 +142,9 @@ typedef struct cpa_prcess_evt_sync {
 #define CPSV_MAX_DATA_SIZE 40000000
 
 #define m_CPA_IS_ALL_REPLICA_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_WR_ALL_REPLICAS) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_WR_ALL_REPLICAS) != 0)?true:false)
 #define m_CPA_IS_COLLOCATED_ATTR_SET(attr)   \
-            (((attr & SA_CKPT_CHECKPOINT_COLLOCATED) != 0)?TRUE:FALSE)
+            (((attr & SA_CKPT_CHECKPOINT_COLLOCATED) != 0)?true:false)
 
 /*30B Versioning Changes */
 #define CPA_MDS_PVT_SUBPART_VERSION 2
@@ -188,7 +188,7 @@ uint32_t cpa_gbl_ckpt_tree_init(CPA_CB *cb);
 void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb);
 uint32_t cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
 					  SaCkptCheckpointHandleT *gc_hdl,
-					  CPA_GLOBAL_CKPT_NODE **gc_node, NCS_BOOL *add_flag);
+					  CPA_GLOBAL_CKPT_NODE **gc_node, bool *add_flag);
 uint32_t cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, CPA_GLOBAL_CKPT_NODE *gc_node);
 uint32_t cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node);
 

@@ -70,7 +70,7 @@ static void avnd_last_step_clean(AVND_CB *cb)
 
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 	while (comp != NULL) {
-		if (FALSE == comp->su->su_is_external) {
+		if (false == comp->su->su_is_external) {
 			/*
 			** If there is a single comp in failed termination or instantiation state
 			** stopping OpenSAF has failed.
@@ -138,7 +138,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
-	NCS_BOOL empty_sulist = TRUE;
+	bool empty_sulist = true;
 
 	TRACE_ENTER();
 
@@ -159,7 +159,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* scan & drive the SU term by PRES_STATE FSM on each su */
 		while (su != 0) {
-			if ((su->is_ncs == SA_FALSE) || (TRUE == su->su_is_external)) {
+			if ((su->is_ncs == SA_FALSE) || (true == su->su_is_external)) {
 				/* Don't process external components */
 				su = (AVND_SU *)
 				    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
@@ -177,7 +177,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 			    (su->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
 			    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
-				empty_sulist = FALSE;
+				empty_sulist = false;
 
 				/* trigger su termination for pi su */
 				rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_TERM);
@@ -187,7 +187,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 		}
 
-		if (empty_sulist == TRUE) {
+		if (empty_sulist == true) {
 			/* No SUs to be processed for termination.
 			 ** we are DONE.
 			 */
@@ -214,7 +214,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : 
 ******************************************************************************/
-void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
+void avnd_check_su_shutdown_done(AVND_CB *cb, bool is_ncs)
 {
 	AVND_SU *su = 0;
 	TRACE_ENTER();
@@ -241,7 +241,7 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 		    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
 	}
 
-	if (is_ncs == TRUE) {
+	if (is_ncs == true) {
 		/* All NCS SUs have finished their termination. Now call the 
 		 ** cleanup of CB
 		 */

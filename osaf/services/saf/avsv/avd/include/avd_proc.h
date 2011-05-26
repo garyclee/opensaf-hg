@@ -44,12 +44,12 @@ void avd_main_proc(void);
 void avd_su_oper_state_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_su_si_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
-				  SaAmfHAStateT role, NCS_BOOL ckpt, AVD_SU_SI_REL **ret_ptr);
+				  SaAmfHAStateT role, bool ckpt, AVD_SU_SI_REL **ret_ptr);
 void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
-uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
-uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
-uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_BOOL q_flag);
+uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt);
+uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt);
+uint32_t avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, bool del_flag, bool q_flag);
 uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state);
 uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);

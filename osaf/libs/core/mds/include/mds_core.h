@@ -106,14 +106,14 @@ typedef struct mds_mcm_sync_send_queue {
 typedef struct mds_active_result_info {
 	/* Information to determine next active recipient */
 	struct mds_subscription_results_info *next_active_in_turn;	/* Who's the next active */
-	NCS_BOOL dest_is_n_way;	/* If yes, we need to rotate act_adest */
+	bool dest_is_n_way;	/* If yes, we need to rotate act_adest */
 	uint32_t act_send_count;	/* Updated when act_dest used to send */
 
 	/* Info to maintain await-active queue, etc. */
 	MDS_TMR_REQ_INFO *tmr_req_info;
 	uint32_t tmr_req_info_hdl;
-	NCS_BOOL tmr_running;	/* TRUE if timer running */
-	tmr_t await_active_tmr;	/* Valid if await_active = TRUE */
+	bool tmr_running;	/* true if timer running */
+	tmr_t await_active_tmr;	/* Valid if await_active = true */
 	MDS_AWAIT_ACTIVE_QUEUE *await_active_queue;
 	MDS_SVC_PVT_SUB_PART_VER last_active_svc_sub_part_ver;
 
@@ -170,7 +170,7 @@ typedef struct mds_subscription_info {
 	/* Messages queued on the subscription being completed */
 	MDS_TMR_REQ_INFO *tmr_req_info;
 	uint32_t tmr_req_info_hdl;
-	NCS_BOOL tmr_flag;	/* Flag = Y/N */
+	bool tmr_flag;	/* Flag = Y/N */
 	tmr_t discovery_tmr;	/* Timer Cb */
 	MDS_AWAIT_DISC_QUEUE *await_disc_queue;	/* Msg + Svc_hdl */
 
@@ -222,7 +222,7 @@ typedef struct mds_vdest_info {
 	V_DEST_RL role;
 	MDS_TMR_REQ_INFO *tmr_req_info;
 	uint32_t tmr_req_info_hdl;
-	NCS_BOOL tmr_running;
+	bool tmr_running;
 	tmr_t quiesced_cbk_tmr;
 	/* PWE and service list */
 	MDS_PWE_INFO *pwe_list;
@@ -242,7 +242,7 @@ typedef struct mds_svc_info {
 	NCSMDS_SCOPE_TYPE install_scope;
 	NCSMDS_CALLBACK_API cback_ptr;	/* Client's callback pointer */
 	MDS_CLIENT_HDL yr_svc_hdl;	/* Client's context handle */
-	NCS_BOOL q_ownership;	/* TRUE implies MDS owned queue */
+	bool q_ownership;	/* true implies MDS owned queue */
 	SYSF_MBX q_mbx;
 	uint32_t seq_no;
 	MDS_VDEST_INFO *parent_vdest_info;
@@ -257,9 +257,9 @@ typedef struct mds_svc_info {
 	MDS_MCM_SYNC_SEND_QUEUE *sync_send_queue;
 	uint8_t sync_count;
 	MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver;
-	NCS_BOOL i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
+	bool i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
 						   in No-Active state, else dropped */
-	NCS_BOOL i_node_subscr;	/* suscription to node */
+	bool i_node_subscr;	/* suscription to node */
 	MDS_SUBTN_REF_VAL node_subtn_ref_val;  
 } MDS_SVC_INFO;
 
@@ -353,7 +353,7 @@ extern uint32_t mds_validate_pwe_hdl(MDS_PWE_HDL pwe_hdl);
 
 extern uint32_t mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_HDL *vdest_hdl);
 extern uint32_t mds_vdest_tbl_del(MDS_VDEST_ID vdest_id);
-extern uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL del_tmr_info);
+extern uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, bool del_tmr_info);
 extern uint32_t mds_vdest_tbl_update_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val);
 extern uint32_t mds_vdest_tbl_query(MDS_VDEST_ID vdest_id);
 extern uint32_t mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role);
@@ -437,9 +437,9 @@ extern uint32_t mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID su
 					   MDS_VDEST_ID vdest_id, MDS_DEST adest, V_DEST_RL role);
 
 extern uint32_t mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
-				   MDS_VDEST_ID vdest_id, MDS_DEST *adest, NCS_BOOL *tmr_running,
+				   MDS_VDEST_ID vdest_id, MDS_DEST *adest, bool *tmr_running,
 				   MDS_SUBSCRIPTION_RESULTS_INFO **result,
-				   NCS_BOOL call_ref_flag /* True for internal call False otherwise */ );
+				   bool call_ref_flag /* True for internal call False otherwise */ );
 
 extern uint32_t mds_subtn_res_tbl_get_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id, MDS_DEST adest, V_DEST_RL *o_role, MDS_SUBSCRIPTION_RESULTS_INFO **result);	/* Use for send */
 
@@ -463,7 +463,7 @@ extern uint32_t mds_subtn_res_tbl_cleanup(void);
 
 /* For scope validation while getting svc up/down */
 extern uint32_t mds_mcm_validate_scope(NCSMDS_SCOPE_TYPE local_scope, NCSMDS_SCOPE_TYPE remote_scope,
-				    MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, NCS_BOOL my_pcon);
+				    MDS_DEST remote_adest, MDS_SVC_ID remote_svc_id, bool my_pcon);
 
 extern uint32_t mds_mcm_free_msg_uba_start(MDS_ENCODED_MSG msg);
 

@@ -130,7 +130,7 @@ uint32_t avsv_send_ckpt_data(struct cl_cb_tag *cb,
 uint32_t avsv_send_hb_ntfy_msg(struct cl_cb_tag *cb);
 uint32_t avsv_mbcsv_obj_set(struct cl_cb_tag *cb, uint32_t obj, uint32_t val);
 uint32_t avsv_send_data_req(struct cl_cb_tag *cb);
-uint32_t avsv_dequeue_async_update_msgs(struct cl_cb_tag *cb, NCS_BOOL pr_or_fr);
+uint32_t avsv_dequeue_async_update_msgs(struct cl_cb_tag *cb, bool pr_or_fr);
 
 /* Function Definations of avd_ckpt_enc.c */
 uint32_t avsv_encode_cold_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);

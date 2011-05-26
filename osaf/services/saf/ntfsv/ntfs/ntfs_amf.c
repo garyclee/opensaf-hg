@@ -111,7 +111,7 @@ static SaAisErrorT amf_quiesced_state_handler(SaInvocationT invocation)
 	ntfs_cb->mds_role = V_DEST_RL_QUIESCED;
 	ntfs_mds_change_role();
 	ntfs_cb->amf_invocation_id = invocation;
-	ntfs_cb->is_quisced_set = TRUE;
+	ntfs_cb->is_quisced_set = true;
 	return SA_AIS_OK;
 }
 
@@ -167,7 +167,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -214,8 +214,8 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	/* Update control block */
 	ntfs_cb->ha_state = new_haState;
 
-	if (ntfs_cb->csi_assigned == FALSE) {
-		ntfs_cb->csi_assigned = TRUE;
+	if (ntfs_cb->csi_assigned == false) {
+		ntfs_cb->csi_assigned = true;
 		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 		/* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
@@ -226,13 +226,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
 	/* Handle active to active role change. */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
-		role_change = FALSE;
+		role_change = false;
 
 	/* Handle Stby to Stby role change. */
 	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
-		role_change = FALSE;
+		role_change = false;
 
-	if (role_change == TRUE) {
+	if (role_change == true) {
 		if ((rc = ntfs_mds_change_role()) != NCSCC_RC_SUCCESS) {
 			LOG_ER("ntfs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
@@ -245,7 +245,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
  response:
 	saAmfResponse(ntfs_cb->amf_hdl, invocation, error);
-	if ((new_haState == SA_AMF_HA_ACTIVE) && (role_change == TRUE)) {
+	if ((new_haState == SA_AMF_HA_ACTIVE) && (role_change == true)) {
 		/* check for unsent notifictions and if notifiction is not logged */
 		checkNotificationList();
 	}

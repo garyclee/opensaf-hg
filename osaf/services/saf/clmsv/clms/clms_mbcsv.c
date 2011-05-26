@@ -33,7 +33,7 @@ static uint32_t ckpt_proc_node_down_rec(CLMS_CB * cb, CLMS_CKPT_REC * data);
 /* Common Callback interface to mbcsv */
 static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req);
 uint32_t clms_cold_sync(NCS_UBAID *uba);
 uint32_t encode_client_rec(NCS_UBAID *uba);
 uint32_t encode_node_rec(NCS_UBAID *uba);
@@ -591,7 +591,7 @@ uint32_t clms_mbcsv_init(CLMS_CB * cb)
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	arg.info.obj_set.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
 	arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
-	arg.info.obj_set.i_val = FALSE;
+	arg.info.obj_set.i_val = false;
 	if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
 		goto done;
@@ -820,7 +820,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
 		/* Encode cold sync response */
-		rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, FALSE);
+		rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, false);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE(" COLD SYNC ENCODE FAIL....");
 		} else {
@@ -838,7 +838,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 
 	case NCS_MBCSV_MSG_DATA_RESP:
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-		if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
+		if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, true)) != NCSCC_RC_SUCCESS)
 			LOG_ER("  ckpt_enc_cold_sync_data FAILED");
 		break;
 	default:
@@ -873,7 +873,7 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
@@ -901,7 +901,7 @@ static uint32_t ckpt_enc_cold_sync_data(CLMS_CB * clms_cb, NCS_MBCSV_CB_ARG *cbk
 	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
-	if (data_req == TRUE)
+	if (data_req == true)
 		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 	else
 		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;

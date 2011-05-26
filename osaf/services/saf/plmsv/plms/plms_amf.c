@@ -101,7 +101,7 @@ SaUint32T plms_quiesced_state_handler(SaInvocationT invocation)
 	plms_mds_change_role();
 	cb->amf_invocation_id = invocation;
 
-	cb->is_quisced_set = TRUE;
+	cb->is_quisced_set = true;
 	LOG_IN("I AM IN HA AMF QUIESCED STATE\n");
 
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
@@ -207,7 +207,7 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	PLMS_CB *cb = plms_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
-	NCS_BOOL role_change = TRUE;
+	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -230,14 +230,14 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 			plms_proc_standby_active_role_change();
 		}
 		if(cb->hpi_cfg.hpi_support){
-			if (cb->hpi_intf_up == FALSE) {
+			if (cb->hpi_intf_up == false) {
 				TRACE("Got Active role, spawning HSM & HRB");
 				rc = plms_hsm_hrb_init();
 				if(NCSCC_RC_FAILURE == rc) {
 					LOG_ER("hsm & hrb initialization failed");
 					goto response;
 				}
-				cb->hpi_intf_up = TRUE;
+				cb->hpi_intf_up = true;
 			}
 			if (prev_haState == SA_AMF_HA_STANDBY) {
 				/* Build entity_path_to_entity mapping tree */
@@ -273,7 +273,7 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
                                 goto response;
                         }
                         TRACE("PLMC initialize success.");
-                        cb->plmc_initialized = TRUE;
+                        cb->plmc_initialized = true;
                 }
 
 
@@ -317,7 +317,7 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 				LOG_ER("PLMC destroy failed.");
 				rc = NCSCC_RC_FAILURE;
 			}
-			cb->plmc_initialized = FALSE;
+			cb->plmc_initialized = false;
 		}
 		if (prev_haState == SA_AMF_HA_QUIESCED) {
 			plms_proc_quiesced_standby_role_change();
@@ -340,8 +340,8 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	/* Update control block */
 	cb->ha_state = new_haState;
 
-	if (cb->csi_assigned == FALSE) {
-		cb->csi_assigned = TRUE;
+	if (cb->csi_assigned == false) {
+		cb->csi_assigned = true;
 		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 	/* check if this step is required */
@@ -349,14 +349,14 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	}
 
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE)) {
-		role_change = FALSE;
+		role_change = false;
 	}
 
 	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY)) {
-		role_change = FALSE;
+		role_change = false;
 	}
 
-	if (role_change == TRUE) {
+	if (role_change == true) {
 		if ((rc = plms_mds_change_role()) != NCSCC_RC_SUCCESS) {
 			 LOG_ER("plms_mds_change_role FAILED");
 			 error = SA_AIS_ERR_FAILED_OPERATION;
@@ -490,7 +490,7 @@ static uint32_t plms_healthcheck_start()
 
 	TRACE_ENTER();
 
-	if (cb->healthCheckStarted == TRUE) {
+	if (cb->healthCheckStarted == true) {
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -511,7 +511,7 @@ static uint32_t plms_healthcheck_start()
 		LOG_ER("Health Check start failed");
 		return NCSCC_RC_FAILURE;
 	} else {
-		cb->healthCheckStarted = TRUE;
+		cb->healthCheckStarted = true;
 		LOG_ER("Health Check started successfully");
 		return NCSCC_RC_SUCCESS;
 	}

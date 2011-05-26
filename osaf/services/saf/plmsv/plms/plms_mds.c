@@ -70,7 +70,7 @@ SaUint32T plms_mds_vdest_create()
         cb->mdest_id = PLMS_VDEST_ID;
 
         arg.req = NCSVDA_VDEST_CREATE;
-        arg.info.vdest_create.i_persistent = FALSE;
+        arg.info.vdest_create.i_persistent = false;
         arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
         arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
         arg.info.vdest_create.info.specified.i_vdest = cb->mdest_id;
@@ -169,7 +169,7 @@ SaUint32T plms_mds_register()
         svc_info.info.svc_install.i_yr_svc_hdl = 0;
         svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;  /*node specific */
         svc_info.info.svc_install.i_svc_cb = plms_mds_callback; /* callback */
-        svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+        svc_info.info.svc_install.i_mds_q_ownership = false;
         svc_info.info.svc_install.i_mds_svc_pvt_ver = PLMS_MDS_PVT_SUBPART_VERSION;
 
         if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {

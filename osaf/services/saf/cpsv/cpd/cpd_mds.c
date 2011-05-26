@@ -74,7 +74,7 @@ uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 	arg.req = NCSVDA_VDEST_CREATE;
 /*   arg.info.vdest_create.info.named.i_name = name;
    arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_NAMED; */
-	arg.info.vdest_create.i_persistent = FALSE;
+	arg.info.vdest_create.i_persistent = false;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 
@@ -132,7 +132,7 @@ uint32_t cpd_mds_register(CPD_CB *cb)
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->cpd_hdl;
 	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
 	svc_info.info.svc_install.i_svc_cb = cpd_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
+	svc_info.info.svc_install.i_mds_q_ownership = false;
 	svc_info.info.svc_install.i_mds_svc_pvt_ver = CPD_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
@@ -344,7 +344,7 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	CPSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -444,7 +444,7 @@ static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	CPSV_EVT *evt = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
-	NCS_BOOL is_valid_msg_fmt = FALSE;
+	bool is_valid_msg_fmt = false;
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,

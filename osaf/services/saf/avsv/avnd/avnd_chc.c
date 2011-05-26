@@ -78,20 +78,20 @@ uint32_t avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_HC_REC *rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -140,20 +140,20 @@ uint32_t avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_HC_REC *rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -198,20 +198,20 @@ uint32_t avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP_HC_REC *rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
-		msg_from_avnd = TRUE;
+		msg_from_avnd = true;
 	}
 
-	if (FALSE == msg_from_avnd) {
+	if (false == msg_from_avnd) {
 		/* Check for internode or external coomponent first
 		   If it is, then forward it to the respective AvND. */
 		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-		if (TRUE == int_ext_comp) {
+		if (true == int_ext_comp) {
 			goto done;
 		}
 	}
@@ -721,7 +721,7 @@ uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 		m_AVND_COMPDB_CBQ_HC_CBK_GET(comp, rec->key, cbk_rec);
 		if (cbk_rec)
 			/* pop & delete this record */
-			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, TRUE);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, true);
 	}
 
 	/* delete the record */

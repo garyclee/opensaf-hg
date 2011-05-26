@@ -35,7 +35,7 @@
 
 static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_RSP_MSG *callback);
 
-static NCS_BOOL mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
+static bool mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 static void mqa_track_update_state(SaMsgQueueGroupNotificationBufferT *buffer,
 				   SaNameT *name, SaMsgQueueSendingStateT status);
 static uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_info, ASAPi_MSG_INFO *asapi_msg);
@@ -145,7 +145,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 		return;
 	}
 
-	client_info = mqa_client_tree_find_and_add(cb, msgHandle, FALSE);
+	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
 		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 			     __FILE__, __LINE__);
@@ -169,7 +169,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 			if (param->error == SA_AIS_OK) {
 
 				queue_info =
-				    mqa_queue_tree_find_and_add(cb, param->queueHandle, TRUE, client_info,
+				    mqa_queue_tree_find_and_add(cb, param->queueHandle, true, client_info,
 								param->openFlags);
 
 				/* Start a thread to notify when there is a message in the queue.
@@ -264,7 +264,7 @@ static void mqa_process_callback(MQA_CB *cb, SaMsgHandleT msgHandle, MQP_ASYNC_R
 			MQA_QUEUE_INFO *queue_info;
 			MQSV_MSG_RECEIVED_PARAM *param = &callback->params.msgReceived;
 
-			queue_info = mqa_queue_tree_find_and_add(cb, param->queueHandle, FALSE, NULL, 0);
+			queue_info = mqa_queue_tree_find_and_add(cb, param->queueHandle, false, NULL, 0);
 
 			if (!queue_info) {	/* The queue corresponding to the received callback has been deleted, cancel callback */
 				m_LOG_MQSV_A(MQA_QUEUE_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
@@ -314,7 +314,7 @@ uint32_t mqa_hdl_callbk_dispatch_one(MQA_CB *cb, SaMsgHandleT msgHandle)
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	client_info = mqa_client_tree_find_and_add(cb, msgHandle, FALSE);
+	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
 		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 			     __FILE__, __LINE__);
@@ -356,7 +356,7 @@ uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	client_info = mqa_client_tree_find_and_add(cb, msgHandle, FALSE);
+	client_info = mqa_client_tree_find_and_add(cb, msgHandle, false);
 	if (!client_info) {
 		m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 			     __FILE__, __LINE__);
@@ -373,7 +373,7 @@ uint32_t mqa_hdl_callbk_dispatch_all(MQA_CB *cb, SaMsgHandleT msgHandle)
 			return SA_AIS_ERR_LIBRARY;
 		}
 
-		if ((client_info = mqa_client_tree_find_and_add(cb, msgHandle, FALSE)) == NULL) {
+		if ((client_info = mqa_client_tree_find_and_add(cb, msgHandle, false)) == NULL) {
 			m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 				     __FILE__, __LINE__);
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -408,7 +408,7 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
 		return SA_AIS_ERR_LIBRARY;
 
-	client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, FALSE);
+	client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, false);
 	if (!client_info) {
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 		return SA_AIS_ERR_BAD_HANDLE;
@@ -424,7 +424,7 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle)
 		if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
 			return SA_AIS_ERR_LIBRARY;
 
-		if ((client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, FALSE)) == NULL) {
+		if ((client_info = mqa_client_tree_find_and_add(mqa_cb, msgHandle, false)) == NULL) {
 			/* Another thread called Finalize */
 			m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 				     __FILE__, __LINE__);
@@ -609,7 +609,7 @@ uint32_t mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_
 		track_current_callback->params.qGrpTrack.notificationBuffer.numberOfItems = 0;
 		track_current_callback->params.qGrpTrack.notificationBuffer.notification = NULL;
 
-		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != TRUE) {
+		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != true) {
 			m_LOG_MQSV_A(MQA_TRACK_TREE_FIND_AND_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
@@ -824,7 +824,7 @@ uint32_t mqa_notify_changes_only(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *t
 		track_current_callback->params.qGrpTrack.notificationBuffer.numberOfItems = 0;
 		track_current_callback->params.qGrpTrack.notificationBuffer.notification = NULL;
 
-		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != TRUE) {
+		if (mqa_track_tree_find_and_del(client_info, &track_info->queueGroupName) != true) {
 			m_LOG_MQSV_A(MQA_TRACK_TREE_FIND_AND_DEL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
 				     NCSCC_RC_FAILURE, __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
@@ -935,16 +935,16 @@ uint32_t mqsv_mqa_callback_queue_init(MQA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-static NCS_BOOL mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
+static bool mqa_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
 
 	MQP_ASYNC_RSP_MSG *curr = (MQP_ASYNC_RSP_MSG *)msg;
 
 	if (curr) {
 		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(curr);
-		return TRUE;
+		return true;
 	} else
-		return FALSE;
+		return false;
 
 }
 
@@ -1074,7 +1074,7 @@ void mqa_queue_reader(NCSCONTEXT arg)
 	}
 
 	/* Check if queueHandle is present in the tree */
-	if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, FALSE, NULL, 0)) == NULL) {
+	if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, false, NULL, 0)) == NULL) {
 		m_LOG_MQSV_A(MQA_QUEUE_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
 			     __LINE__);
 		m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -1100,14 +1100,14 @@ void mqa_queue_reader(NCSCONTEXT arg)
 		if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
 			break;
 
-		if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, FALSE, NULL, 0)) == NULL) {
+		if ((queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, false, NULL, 0)) == NULL) {
 			m_LOG_MQSV_A(MQA_QUEUE_TREE_ADD_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
 				     __FILE__, __LINE__);
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 			break;
 		}
 
-		if (queue_node->is_closed == TRUE) {
+		if (queue_node->is_closed == true) {
 			m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 			break;
 		}

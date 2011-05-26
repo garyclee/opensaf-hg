@@ -42,7 +42,7 @@ struct avnd_cb_tag;
    external components on ACT has expired. We need to ignore it.*/
 #define m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb,ext_comp)     \
    (((SA_AMF_HA_STANDBY == (cb)->avail_state_avnd) && \
-      (TRUE == (ext_comp))) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE)
+      (true == (ext_comp))) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE)
 /*
  * Async Update message queue.
  */
@@ -102,7 +102,7 @@ uint32_t avnd_send_ckpt_data(struct avnd_cb_tag *cb,
 uint32_t avnd_send_hb_ntfy_msg(struct avnd_cb_tag *cb);
 uint32_t avnd_mbcsv_obj_set(struct avnd_cb_tag *cb, uint32_t obj, uint32_t val);
 uint32_t avnd_send_data_req(struct avnd_cb_tag *cb);
-uint32_t avnd_dequeue_async_update_msgs(struct avnd_cb_tag *cb, NCS_BOOL pr_or_fr);
+uint32_t avnd_dequeue_async_update_msgs(struct avnd_cb_tag *cb, bool pr_or_fr);
 
 uint32_t avnd_encode_cold_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);
 uint32_t avnd_encode_warm_sync_rsp(struct avnd_cb_tag *cb, NCS_MBCSV_CB_ENC *enc);

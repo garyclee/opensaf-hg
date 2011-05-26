@@ -133,7 +133,7 @@ uint32_t avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
 
 	/* scan the comp-csi rel list & generate pg upd for each track req */
 	for (comp_csi = susi->list_of_csicomp; comp_csi; comp_csi = comp_csi->susi_csicomp_next) {
-		rc = avd_pg_compcsi_chg_prc(cb, comp_csi, FALSE);
+		rc = avd_pg_compcsi_chg_prc(cb, comp_csi, false);
 		if (NCSCC_RC_SUCCESS != rc)
 			break;
 	}
@@ -156,7 +156,7 @@ uint32_t avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
  *
  * NOTES: None
  **************************************************************************/
-uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL is_rmv)
+uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, bool is_rmv)
 {
 	AVD_PG_CSI_NODE *csi_node = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -166,7 +166,7 @@ uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_B
 	     (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&comp_csi->csi->pg_node_list);
 	     csi_node; csi_node = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&csi_node->csi_dll_node)) {
 		rc = avd_snd_pg_upd_msg(cb, csi_node->node, comp_csi,
-					(TRUE == is_rmv) ? SA_AMF_PROTECTION_GROUP_REMOVED :
+					(true == is_rmv) ? SA_AMF_PROTECTION_GROUP_REMOVED :
 					SA_AMF_PROTECTION_GROUP_ADDED, 0);
 	}			/* for */
 

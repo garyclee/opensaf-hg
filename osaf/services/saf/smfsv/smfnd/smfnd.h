@@ -56,7 +56,7 @@ typedef struct {
 	SaNameT comp_name;	                /* Components's name                         */
 	SaAmfHandleT amf_hdl;	                /* AMF handle, obtained thru AMF init        */
 	SaInvocationT amf_invocation_id;        /* AMF InvocationID - needed to handle Quiesed state */
-	NCS_BOOL is_quisced_set;
+	bool is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events   */
 	SaAmfHAStateT ha_state;	                /* present AMF HA state of the component     */
 	NCS_SEL_OBJ usr1_sel_obj;	        /* Selection object for USR1 signal events   */

@@ -212,9 +212,9 @@ ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl,
 			   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 #endif
 
-NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog);
+bool ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog);
 
-NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size);
+bool ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size);
 
 EDU_LABEL ncs_edu_run_test_ll_rule(EDU_INST_SET *rule, NCSCONTEXT ptr, EDP_OP_TYPE optype, EDU_ERR *o_err);
 

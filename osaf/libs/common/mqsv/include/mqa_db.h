@@ -62,7 +62,7 @@ typedef unsigned short SVC_SUBPART_VER;
         MQA_WRT_MQD_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 /********************************************************************************/
 typedef struct mqa_send_message_param {
-	NCS_BOOL async_flag;
+	bool async_flag;
 	union {
 		SaTimeT timeout;
 		SaInvocationT invocation;
@@ -104,7 +104,7 @@ typedef struct mqa_queue_info {
 	uint8_t msg_get_count;
 	MQA_CLIENT_INFO *client_info;
 	NCSCONTEXT task_handle;
-	NCS_BOOL is_closed;	/* Set to TRUE after invoking the close */
+	bool is_closed;	/* Set to true after invoking the close */
 } MQA_QUEUE_INFO;
 
 /* Timer node */
@@ -128,8 +128,8 @@ typedef struct mqa_cb {
 	NCS_LOCK cb_lock;
 	EDU_HDL edu_hdl;
 	/* To check wheather mqnd and mqds up or not */
-	NCS_BOOL is_mqd_up;
-	NCS_BOOL is_mqnd_up;
+	bool is_mqd_up;
+	bool is_mqnd_up;
 	/* Sender Id information i.e sender context and MDS dest is 
 	 * malloced after saMsgMessageGet() if the message needs ack(i.e Reply)
 	 * The pointer to this mallcoed structure is passed as senderId in
@@ -161,11 +161,11 @@ typedef struct mqa_cb {
 
 	/* Sync up with MQND ( MDS ) */
 	NCS_LOCK mqnd_sync_lock;
-	NCS_BOOL mqnd_sync_awaited;
+	bool mqnd_sync_awaited;
 	NCS_SEL_OBJ mqnd_sync_sel;
 	/* Sync up with MQD ( MDS ) */
 	NCS_LOCK mqd_sync_lock;
-	NCS_BOOL mqd_sync_awaited;
+	bool mqd_sync_awaited;
 	NCS_SEL_OBJ mqd_sync_sel;
 
 	/*To store versions of MQND across cluster */
@@ -173,7 +173,7 @@ typedef struct mqa_cb {
 	uint32_t clm_node_joined;
 } MQA_CB;
 
-NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group);
-NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName);
+bool mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group);
+bool mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName);
 
 #endif   /* MQA_DB_H */

@@ -145,7 +145,7 @@ extern "C" {
 	typedef struct {
 		SaAmfCSIAttributeListT i_inst_attrs;	/* Attributes of the instance-name */
 
-		NCS_BOOL o_created;	/* TRUE if instance not preexisting */
+		bool o_created;	/* true if instance not preexisting */
 		void *o_user_se_api;
 		uint64_t o_handle;
 		void *o_arg;	/* Cookie */

@@ -88,7 +88,7 @@ typedef struct mqd_a2s_user_event_info {
 \*****************************************************************************/
 typedef struct mqd_a2s_nd_stat_info {
 	NODE_ID nodeid;
-	NCS_BOOL is_restarting;
+	bool is_restarting;
 	SaTimeT downtime;
 } MQD_A2S_ND_STAT_INFO;
 

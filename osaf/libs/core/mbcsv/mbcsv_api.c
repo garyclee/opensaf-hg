@@ -94,7 +94,7 @@ static const MBCSV_PROCESS_REQ_FUNC_PTR
 
 uint32_t ncs_mbcsv_svc(NCS_MBCSV_ARG *arg)
 {
-	if (mbcsv_cb.created == FALSE)
+	if (mbcsv_cb.created == false)
 		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");
 
 	if ((arg->i_op < NCS_MBCSV_OP_INITIALIZE) || (arg->i_op > NCS_MBCSV_OP_OBJ_SET))
@@ -450,12 +450,12 @@ uint32_t mbcsv_process_open_request(NCS_MBCSV_ARG *arg)
 	new_ckpt->fsm = (NCS_MBCSV_STATE_ACTION_FUNC_PTR *)ncsmbcsv_init_state_tbl;
 	new_ckpt->my_role = MBCSV_HA_ROLE_INIT;
 	new_ckpt->my_mbcsv_inst = mbc_reg;
-	new_ckpt->peer_up_sent = FALSE;
-	new_ckpt->warm_sync_on = TRUE;
+	new_ckpt->peer_up_sent = false;
+	new_ckpt->warm_sync_on = true;
 	new_ckpt->warm_sync_time = NCS_MBCSV_TMR_SEND_WARM_SYNC_PERIOD;
 	new_ckpt->client_hdl = arg->info.open.i_client_hdl;
-	new_ckpt->role_set = FALSE;
-	new_ckpt->ftm_role_set = FALSE;
+	new_ckpt->role_set = false;
+	new_ckpt->ftm_role_set = false;
 
 	/*
 	 * Check whether we need to register MBCSv on this pwe_hdl. If yes then 
@@ -638,13 +638,13 @@ uint32_t mbcsv_process_chg_role_request(NCS_MBCSV_ARG *arg)
 	 * If we are setting this role for the first time then check if we 
 	 * setting role to active or standby. If no then indicate the error.
 	 */
-	if ((ckpt_inst->ftm_role_set == FALSE) &&
+	if ((ckpt_inst->ftm_role_set == false) &&
 	    ((arg->info.chg_role.i_ha_state != SA_AMF_HA_ACTIVE) && (arg->info.chg_role.i_ha_state != SA_AMF_HA_STANDBY))) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_INVALID_PARAM,
 					  "NCS_MBCSV_OP_CHG_ROLE: Trying to set illigal role.", mbc_reg->svc_id);
 		goto err2;
 	} else
-		ckpt_inst->ftm_role_set = TRUE;
+		ckpt_inst->ftm_role_set = true;
 
 	if (ckpt_inst->my_role == arg->info.chg_role.i_ha_state) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_INVALID_PARAM,
@@ -718,7 +718,7 @@ uint32_t mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg)
 	CKPT_INST *ckpt_inst;
 	SaAisErrorT rc = SA_AIS_OK;
 	MBCSV_EVT *evt;
-	NCS_BOOL check_peer = arg->info.send_ckpt.io_no_peer;
+	bool check_peer = arg->info.send_ckpt.io_no_peer;
 
 	/*
 	 * Find the service registration instance using the mbc_hdl passed by the 
@@ -758,7 +758,7 @@ uint32_t mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG *arg)
 		goto err2;
 	}
 
-	arg->info.send_ckpt.io_no_peer = FALSE;
+	arg->info.send_ckpt.io_no_peer = false;
 
 	/*
 	 * Depending on the send type send message to the peers.
@@ -941,7 +941,7 @@ uint32_t mbcsv_process_snd_data_req(NCS_MBCSV_ARG *arg)
 		goto err2;
 	}
 
-	if (TRUE == ckpt_inst->data_req_sent) {
+	if (true == ckpt_inst->data_req_sent) {
 		rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_TRY_AGAIN,
 					  "NCS_MBCSV_OP_SEND_DATA_REQ: Try later. Data request is already sent.",
 					  mbc_reg->svc_id);
@@ -1088,9 +1088,9 @@ uint32_t mbcsv_process_set_request(NCS_MBCSV_ARG *arg)
 			PEER_INST *peer_ptr;
 
 			/* check for the valid input. */
-			if ((arg->info.obj_set.i_val != TRUE) && (arg->info.obj_set.i_val != FALSE)) {
+			if ((arg->info.obj_set.i_val != true) && (arg->info.obj_set.i_val != false)) {
 				rc = m_MBCSV_DBG_SINK_SVC(SA_AIS_ERR_INVALID_PARAM,
-							  "NCS_MBCSV_OP_OBJ_SET: Invalid input. Set to either TRUE or FALSE.",
+							  "NCS_MBCSV_OP_OBJ_SET: Invalid input. Set to either true or false.",
 							  mbc_reg->svc_id);
 				goto err2;
 			}
@@ -1101,7 +1101,7 @@ uint32_t mbcsv_process_set_request(NCS_MBCSV_ARG *arg)
 				if (ckpt_inst->my_role == SA_AMF_HA_STANDBY) {
 					for (peer_ptr = ckpt_inst->peer_list;
 					     peer_ptr != NULL; peer_ptr = peer_ptr->next) {
-						if ((ckpt_inst->warm_sync_on == TRUE) &&
+						if ((ckpt_inst->warm_sync_on == true) &&
 						    (peer_ptr->state == NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC))
 							ncs_mbcsv_start_timer(peer_ptr, NCS_MBCSV_TMR_SEND_WARM_SYNC);
 						else

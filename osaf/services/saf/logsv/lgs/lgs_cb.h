@@ -69,7 +69,7 @@ typedef struct lgs_cb {
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for AMF events */
 	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
-	NCS_BOOL is_quiesced_set;
+	bool is_quiesced_set;
 	SaImmOiHandleT immOiHandle;	/* IMM OI handle                           */
 	SaSelectionObjectT immSelectionObject;	/* Selection Object to wait for IMM events */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
@@ -80,7 +80,7 @@ typedef struct lgs_cb {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
-	NCS_BOOL csi_assigned;
+	bool csi_assigned;
 	LGA_DOWN_LIST *lga_down_list_head;      /* LGA down reccords - Fix for Failover missed 
                                                    down events Processing */
 	LGA_DOWN_LIST *lga_down_list_tail;

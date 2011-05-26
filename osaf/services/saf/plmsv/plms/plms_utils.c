@@ -55,8 +55,8 @@ SaUint32T plms_anc_chld_dep_adm_flag_is_set(
 	if(ent->am_i_aff_ent){
 		LOG_ER("Root entity %s is in other operational cnxt.",
 					ent->dn_name_str);
-		TRACE_LEAVE2("Return Val: %d",TRUE);
-		return TRUE;
+		TRACE_LEAVE2("Return Val: %d",true);
+		return true;
 	}
 		
 	tmp_ent = ent;
@@ -65,8 +65,8 @@ SaUint32T plms_anc_chld_dep_adm_flag_is_set(
 		if (tmp_ent->parent->am_i_aff_ent){
 			LOG_ER("Ancestor %s is in other operatinal cnxt",
 						tmp_ent->parent->dn_name_str);
-			TRACE_LEAVE2("Return Val: %d",TRUE);
-			return TRUE;
+			TRACE_LEAVE2("Return Val: %d",true);
+			return true;
 		} else{
 			tmp_ent = tmp_ent->parent;
 		}
@@ -78,8 +78,8 @@ SaUint32T plms_anc_chld_dep_adm_flag_is_set(
 		if (tmp_ent_head->plm_entity->am_i_aff_ent){
 			LOG_ER("Dep %s is in other operational cnxt.",
 					tmp_ent_head->plm_entity->dn_name_str);
-			TRACE_LEAVE2("Return Val: %d",TRUE);
-			return TRUE;
+			TRACE_LEAVE2("Return Val: %d",true);
+			return true;
 		}else{
 			tmp_ent_head = tmp_ent_head->next;
 		}
@@ -93,15 +93,15 @@ SaUint32T plms_anc_chld_dep_adm_flag_is_set(
 		if (tmp_ent_head->plm_entity->am_i_aff_ent){
 			LOG_ER("Aff_ent %s is in other operational cnxt.",
 					tmp_ent_head->plm_entity->dn_name_str);
-			TRACE_LEAVE2("Return Val: %d",TRUE);
-			return TRUE;
+			TRACE_LEAVE2("Return Val: %d",true);
+			return true;
 		}else{
 			tmp_ent_head = tmp_ent_head->next;
 		}
 	}
 	
-	TRACE_LEAVE2("Return Val: %d",FALSE);
-	return FALSE;
+	TRACE_LEAVE2("Return Val: %d",false);
+	return false;
 }
 
 /******************************************************************************
@@ -802,8 +802,8 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 @param[in]	: root - parent
 @param[in]	: ent - child
 
-@return		: FALSE - If ent is not a child of root.
-		  TRUE - If ent is a child of root.
+@return		: false - If ent is not a child of root.
+		  true - If ent is a child of root.
 ******************************************************************************/
 SaUint32T plms_is_chld(PLMS_ENTITY *root,PLMS_ENTITY *ent)
 {
@@ -814,7 +814,7 @@ SaUint32T plms_is_chld(PLMS_ENTITY *root,PLMS_ENTITY *ent)
 
 	plms_chld_get(root->leftmost_child,&chld_list);
 	if (NULL == chld_list)
-		return FALSE;
+		return false;
 	
 	ret_err = plms_is_ent_in_ent_list(chld_list,ent);
 	
@@ -830,8 +830,8 @@ SaUint32T plms_is_chld(PLMS_ENTITY *root,PLMS_ENTITY *ent)
 @param[in]	: root - parent
 @param[in]	: ent - child
 
-@return		: FALSE - If ent is not a child of root.
-		  TRUE - If ent is a child of root.
+@return		: false - If ent is not a child of root.
+		  true - If ent is a child of root.
 ******************************************************************************/
 SaUint32T plms_chld_get(PLMS_ENTITY *ent, 
 			PLMS_GROUP_ENTITY **chld_list)
@@ -1738,8 +1738,8 @@ void plms_aff_ent_flag_mark_unmark(PLMS_GROUP_ENTITY *ent_list,
 @brief		: Check if the specified readiness flag is set.
 @param[in]	: ent - PLM entity.
 @param[in]	: flag - Readiness flag.
-@return		: TRUE - If set
-		  FALSE - If not set.
+@return		: true - If set
+		  false - If not set.
 ******************************************************************************/
 SaUint32T plms_rdness_flag_is_set(PLMS_ENTITY *ent,SaPlmReadinessFlagsT flag)
 {
@@ -1748,17 +1748,17 @@ SaUint32T plms_rdness_flag_is_set(PLMS_ENTITY *ent,SaPlmReadinessFlagsT flag)
 	if (PLMS_HE_ENTITY == ent->entity_type){
 		if ((flag & ent->entity.he_entity.saPlmHEReadinessFlags) == 
 									flag ){
-			ret_err = TRUE;	
+			ret_err = true;	
 		}else{
-			ret_err = FALSE;
+			ret_err = false;
 		}
 
 	}else{
 		if ((flag & ent->entity.ee_entity.saPlmEEReadinessFlags) == 
 									flag ){
-			ret_err = TRUE;	
+			ret_err = true;	
 		}else{
-			ret_err = FALSE;
+			ret_err = false;
 		}
 	}
 	return ret_err;
@@ -1852,7 +1852,7 @@ SaNtfIdentifierT plms_readiness_flag_clear(PLMS_ENTITY *ent,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = SA_PLM_READINESS_FLAGS;
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_flag;
 		ntf_state.state.newState = PLMS_READINESS_FLAG_RESET;
 		ret_val = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2025,7 +2025,7 @@ SaNtfIdentifierT plms_readiness_flag_mark_unmark(PLMS_ENTITY *ent,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = SA_PLM_READINESS_FLAGS;
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_flag;
 		ntf_state.state.newState = flag_imm;
 		ret_err = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2112,7 +2112,7 @@ SaNtfIdentifierT plms_readiness_state_set(PLMS_ENTITY *ent,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = SA_PLM_READINESS_STATE;
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_state;
 		ntf_state.state.newState = state;
 		ret_err = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2133,8 +2133,8 @@ SaNtfIdentifierT plms_readiness_state_set(PLMS_ENTITY *ent,
 @param[in]	: ent - Entity whose readiness state if to be checked.
 @param[in]	: state - Readiness state to be checked.
 
-@return		: TRUE - If set.
-		  FALSE - If not set.	
+@return		: true - If set.
+		  false - If not set.	
 ******************************************************************************/
 SaUint32T plms_is_rdness_state_set(PLMS_ENTITY *ent,SaPlmReadinessStateT state)
 {
@@ -2142,15 +2142,15 @@ SaUint32T plms_is_rdness_state_set(PLMS_ENTITY *ent,SaPlmReadinessStateT state)
 	
 	if (PLMS_HE_ENTITY == ent->entity_type){
 		if (state != ent->entity.he_entity.saPlmHEReadinessState){
-			ret_err = FALSE;
+			ret_err = false;
 		}else{
-			ret_err = TRUE;
+			ret_err = true;
 		}
 	}else{
 		if (state != ent->entity.ee_entity.saPlmEEReadinessState){
-			ret_err = FALSE;
+			ret_err = false;
 		}else{
-			ret_err = TRUE;
+			ret_err = true;
 		}
 	}
 	return ret_err;
@@ -2348,7 +2348,7 @@ SaNtfIdentifierT plms_op_state_set(PLMS_ENTITY *ent,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = SA_PLM_OPERATIONAL_STATE;
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_state;
 		ntf_state.state.newState = state;
 		ret_err = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2440,7 +2440,7 @@ SaNtfIdentifierT plms_admin_state_set(PLMS_ENTITY *ent, SaUint32T state,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = state_id; 
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_state;
 		ntf_state.state.newState = state;
 		ret_err = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2537,7 +2537,7 @@ SaNtfIdentifierT plms_presence_state_set(PLMS_ENTITY *ent, SaUint32T state,
 	if (ntf){
 		ntf_state.next = NULL;
 		ntf_state.state.stateId = state_id; 
-		ntf_state.state.oldStatePresent = TRUE;
+		ntf_state.state.oldStatePresent = true;
 		ntf_state.state.oldState = old_state;
 		ntf_state.state.newState = state;
 		ret_err = plms_state_change_ntf_send(cb->ntf_hdl,&(ent->dn_name),
@@ -2724,8 +2724,8 @@ void plms_trk_info_free(PLMS_TRACK_INFO *trk_info)
 @brief		: Check if the ent is persent in list.
 @param[in]	: list - List of entities.
 @param[in]	: ent - Entity to be checked for.
-@return		: TRUE - If ent is present in list.
-		  FALSE - If ent is not present in list.
+@return		: true - If ent is present in list.
+		  false - If ent is not present in list.
 ******************************************************************************/
 SaBoolT plms_is_ent_in_ent_list(PLMS_GROUP_ENTITY *list,
 				PLMS_ENTITY *ent)
@@ -2735,10 +2735,10 @@ SaBoolT plms_is_ent_in_ent_list(PLMS_GROUP_ENTITY *list,
 	tail = list;
 	while (tail){
 		if ( 0 == strcmp(tail->plm_entity->dn_name_str,ent->dn_name_str))
-			return TRUE;
+			return true;
 		tail = tail->next;	
 	}
-	return FALSE;
+	return false;
 }
 
 /******************************************************************************
@@ -2993,7 +2993,7 @@ void plms_move_chld_ent_to_insvc(PLMS_ENTITY *chld_ent,
 		(SA_PLM_EE_PRESENCE_TERMINATING != 
 		chld_ent->entity.ee_entity.saPlmEEPresenceState)){
 		if (inst_chld_ee){
-			ret_err = plms_ent_enable(chld_ent,FALSE,0/*mngt_cbk*/);
+			ret_err = plms_ent_enable(chld_ent,false,0/*mngt_cbk*/);
 			if ( NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE Instantiation failed, EE: %s",
 							chld_ent->dn_name_str);	
@@ -3157,7 +3157,7 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 		 saPlmEEPresenceState)){
 		if (inst_dep_ee && inst){
 			ret_err = plms_ent_enable(dep_ent_list->plm_entity,
-			FALSE,0/*mngt_cbk*/);
+			false,0/*mngt_cbk*/);
 			if ( NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE Instantiation failed, EE: %s",
 				dep_ent_list->plm_entity->dn_name_str);	
@@ -3192,8 +3192,8 @@ void plms_move_dep_ent_to_insvc(PLMS_GROUP_ENTITY *dep_ent_list,
 @brief		: Check if the minimum no of dependent entities of the ent,
 		are insvc.
 @param[in]	: ent - HE or EE.
-@return		: TRUE - If minimum no of dependent entities are insvc.
-		  FALSE - If minimum no of dependent entities are not insvc.
+@return		: true - If minimum no of dependent entities are insvc.
+		  false - If minimum no of dependent entities are not insvc.
 ******************************************************************************/
 SaUint32T plms_min_dep_is_ok(PLMS_ENTITY *ent)	
 {
@@ -3216,21 +3216,21 @@ SaUint32T plms_min_dep_is_ok(PLMS_ENTITY *ent)
 		 head->plm_entity->entity.ee_entity.saPlmEEReadinessState)))
 			count--;
 		if (!count)
-			return TRUE;
+			return true;
 		head = head->next;	
 	}
 	TRACE("Min insvc dep ent not OK.\
 	Min required dep: %d, No of insvc dep: %d, Ent: %s",\
 	ent->min_no_dep,( ent->min_no_dep - count),ent->dn_name_str);
 	
-	return FALSE;
+	return false;
 }
 
 /******************************************************************************
 @brief		: If any of the ancestor of this entity is in M5/M1/M0. 
 @param[in]	: ent - HE.		
-@return		: TRUE - If any of ancestor is in M5/M1/M0.
-		  FALSE - If none of the ancestor is in M5/M1/M0.
+@return		: true - If any of ancestor is in M5/M1/M0.
+		  false - If none of the ancestor is in M5/M1/M0.
 ******************************************************************************/
 SaUint32T plms_is_anc_in_deact_cnxt(PLMS_ENTITY *ent)
 {
@@ -3243,12 +3243,12 @@ SaUint32T plms_is_anc_in_deact_cnxt(PLMS_ENTITY *ent)
 				head->entity.he_entity.saPlmHEPresenceState) &&
 				(SA_PLM_HE_PRESENCE_ACTIVATING != 
 				head->entity.he_entity.saPlmHEPresenceState)){
-				return TRUE; 
+				return true; 
 			}
 		}
 		head = head->parent;
 	}
-	return FALSE;
+	return false;
 }
 /******************************************************************************
 @brief		: Call readiness callback for marking/clearing the management lost flag.
@@ -3780,7 +3780,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 		/* Isolate the entity.*/
-		ret_err = plms_ent_isolate(ent,FALSE,TRUE);
+		ret_err = plms_ent_isolate(ent,false,true);
 
 		/* Check if we need to call any callback.*/
 		if (is_flag){
@@ -3893,7 +3893,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 
 			if(PLMS_EE_ENTITY == head->plm_entity->entity_type){
 				ret_err = plms_ee_term(head->plm_entity,
-				FALSE,0);
+				false,0);
 
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("EE %s term FAILED.",
@@ -3904,7 +3904,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		}
 	}
 	/* Isolate the faulty entity. HE->Inactive, EE->terminate.*/
-	ret_err = plms_ent_isolate(ent,FALSE,FALSE);
+	ret_err = plms_ent_isolate(ent,false,false);
 
 	/* Isolation done. Move the entity to OOS.*/
 	plms_readiness_state_set(ent, SA_PLM_READINESS_OUT_OF_SERVICE,NULL,
@@ -4110,7 +4110,7 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	then we need to move the ent to insvc, but then if the opetaional
 	state is disable ==> the ent must be in inactive/uninstantiated
 	state. FIX this only if needed.*/
-	ret_err = plms_ent_enable(ent,FALSE,TRUE);
+	ret_err = plms_ent_enable(ent,false,true);
 	if(NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("Fault cleared but inst/act the entity %s FAILED.", ent->dn_name_str);
 	}else{
@@ -4889,8 +4889,8 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 	}
 	
 
-	ent->deact_in_pro = FALSE;
-	ent->act_in_pro = FALSE;
+	ent->deact_in_pro = false;
+	ent->act_in_pro = false;
 
 	return;
 }

@@ -76,7 +76,7 @@ uint32_t imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 
 void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *clnd);
 
-void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked);
+void imma_determine_clients_to_resurrect(IMMA_CB *cb, bool* locked);
 uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm);
 
 void imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *clnd);

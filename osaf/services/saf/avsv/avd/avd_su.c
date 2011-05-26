@@ -61,17 +61,17 @@ AVD_SU *avd_su_new(const SaNameT *dn)
 	su->tree_node.key_info = (uint8_t *)&(su->name);
 	avsv_sanamet_init(dn, &sg_name, "safSg");
 	su->sg_of_su = avd_sg_get(&sg_name);
-	su->saAmfSUFailover = FALSE;
-	su->term_state = FALSE;
+	su->saAmfSUFailover = false;
+	su->term_state = false;
 	su->su_switch = AVSV_SI_TOGGLE_STABLE;
-	su->saAmfSUPreInstantiable = TRUE;
+	su->saAmfSUPreInstantiable = true;
 	/* saAmfSUOperState is set when the SU is added to model depending on
 	 * node state. Initialized to invalid due to filtering in avd_su_oper_state_set. */
 	su->saAmfSUOperState = 0;
 	su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
 	su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 	su->su_act_state = AVD_SU_NO_STATE;
-	su->su_is_external = FALSE;
+	su->su_is_external = false;
 
 	return su;
 }
@@ -992,7 +992,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 
 		/* For non-preinstantiable SU lock-inst is same as lock */
-		if ( su->saAmfSUPreInstantiable == FALSE ) {
+		if ( su->saAmfSUPreInstantiable == false ) {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
@@ -1010,7 +1010,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* No need to terminate the SUs in Unins/Inst Failed/Term Failed state */
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, TRUE);
+			m_AVD_SET_SU_TERM(cb, su, true);
 			LOG_NO("'%s' presence state is '%u'", su_name->value, su->saAmfSUPresenceState);
 			goto done;
 		}
@@ -1020,8 +1020,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		     ( node->node_state == AVD_AVND_STATE_NCS_INIT ) ) {
 			/* When the SU will terminate then prescence state change message will come
 			   and so store the callback parameters to send response later on. */
-			if (avd_snd_presence_msg(cb, su, TRUE) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, TRUE);
+			if (avd_snd_presence_msg(cb, su, true) == NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SU_TERM(cb, su, true);
 				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
 				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 
@@ -1036,7 +1036,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, TRUE);
+			m_AVD_SET_SU_TERM(cb, su, true);
 		}
 
 		break;
@@ -1044,7 +1044,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 
 		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
-		if ( su->saAmfSUPreInstantiable == FALSE ) {
+		if ( su->saAmfSUPreInstantiable == false ) {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
 			goto done;
@@ -1062,8 +1062,8 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		     ( node->node_state == AVD_AVND_STATE_NCS_INIT ) ) {
 			/* When the SU will instantiate then prescence state change message will come
 			   and so store the callback parameters to send response later on. */
-			if (avd_snd_presence_msg(cb, su, FALSE) == NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SU_TERM(cb, su, FALSE);
+			if (avd_snd_presence_msg(cb, su, false) == NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SU_TERM(cb, su, false);
 				avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 
 				su->pend_cbk.admin_oper = op_id;
@@ -1076,7 +1076,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		} else {
 			avd_su_admin_state_set(su, SA_AMF_ADMIN_LOCKED);
 			immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
-			m_AVD_SET_SU_TERM(cb, su, FALSE);
+			m_AVD_SET_SU_TERM(cb, su, false);
 		}
 
 		break;
@@ -1167,7 +1167,7 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			NCS_BOOL su_failover = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
+			bool su_failover = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (su_failover > SA_TRUE) {
 				LOG_ER("Invalid saAmfSUFailover %u", su_failover);
 				rc = SA_AIS_ERR_BAD_OPERATION;
@@ -1365,7 +1365,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	su = avd_su_get(&opdata->objectName);
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
-			NCS_BOOL su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
+			bool su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 			su->saAmfSUFailover = su_failover;
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
 			AVD_SU *su = avd_su_get(&opdata->objectName);
@@ -1433,7 +1433,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) {
 		/*if su of uneqal rank has been delete and all SUs are of same rank then do screening
 		  for SI Distribution. */
-		if (TRUE == sg->equal_ranked_su) {
+		if (true == sg->equal_ranked_su) {
 			switch (sg->sg_redundancy_model) {
 				case SA_AMF_NPM_REDUNDANCY_MODEL:
 				break;
@@ -1449,7 +1449,7 @@ static void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 
 					break;
 			} /* switch */
-		} /*	if (TRUE == sg->equal_ranked_su) */ 
+		} /*	if (true == sg->equal_ranked_su) */ 
 	} /*if (AVD_SG_FSM_STABLE == sg->sg_fsm_state) */
 	TRACE_LEAVE();
 }

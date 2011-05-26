@@ -49,8 +49,8 @@ static uint32_t asapi_msg_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, NCSMDS_INFO *
 static ASAPi_CACHE_INFO *asapi_object_find(SaNameT *);
 static void asapi_object_destroy(SaNameT *);
 static uint32_t asapi_msg_process(ASAPi_MSG_INFO *, ASAPi_CACHE_INFO **);
-static NCS_BOOL asapi_obj_cmp(void *, void *);
-static NCS_BOOL asapi_queue_cmp(void *, void *);
+static bool asapi_obj_cmp(void *, void *);
+static bool asapi_queue_cmp(void *, void *);
 static uint32_t asapi_grp_upd(ASAPi_GROUP_INFO *, ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR);
 static void asapi_usr_unbind(void);
 static uint32_t aspai_fetch_info(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, ASAPi_CACHE_INFO **);
@@ -250,14 +250,14 @@ static uint32_t asapi_dest_get(ASAPi_DEST_INFO *dinfo)
 		pNode->info.ginfo.pQueue = 0;
 		asapi_queue_select(&(pNode->info.ginfo));
 		if (pNode->info.ginfo.pQueue) {
-			if (pNode->info.ginfo.pQueue->param.is_mqnd_down == TRUE) {
+			if (pNode->info.ginfo.pQueue->param.is_mqnd_down == true) {
 				rc = SA_AIS_ERR_TRY_AGAIN;
 			}
 		}
 		pNode->info.ginfo.pQueue = pQelmSelected;	/* This is current selected Queue , retaining the old value for the Selected and last selected queues */
 		pNode->info.ginfo.plaQueue = pQelmLast;	/* update last selected Queue */
 	} else if (pNode->objtype == ASAPi_OBJ_QUEUE) {
-		if (pNode->info.qinfo.param.is_mqnd_down == TRUE) {
+		if (pNode->info.qinfo.param.is_mqnd_down == true) {
 			rc = SA_AIS_ERR_TRY_AGAIN;
 		}
 	}
@@ -726,7 +726,7 @@ static uint32_t asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, 
 				return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
 			}
 		} else if (ASAPi_QUEUE_MQND_DOWN == opr) {
-			if (pInfo->qparam[idx].is_mqnd_down == TRUE) {
+			if (pInfo->qparam[idx].is_mqnd_down == true) {
 				pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
 				if (pQinfo) {
 					pQinfo->param = pInfo->qparam[idx];
@@ -734,7 +734,7 @@ static uint32_t asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, 
 				}
 			}
 		} else if (ASAPi_QUEUE_MQND_UP == opr) {
-			if (pInfo->qparam[idx].is_mqnd_down == FALSE) {
+			if (pInfo->qparam[idx].is_mqnd_down == false) {
 				pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
 				if (pQinfo) {
 					pQinfo->param = pInfo->qparam[idx];
@@ -887,7 +887,7 @@ uint32_t asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 	ASAPi_QUEUE_INFO *pQelm = 0;
 	NCS_Q_ITR itr;
 	uint32_t q_cnt = pGinfo->qlist.count;
-	uint32_t queue_open_flag = FALSE;
+	uint32_t queue_open_flag = false;
 
 	/* Ignore the request if there is no queue under the group */
 	if (!pGinfo->qlist.count)
@@ -908,7 +908,7 @@ uint32_t asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 				pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
 			}
 			if (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN) {
-				queue_open_flag = TRUE;
+				queue_open_flag = true;
 				break;
 			}
 			q_cnt--;
@@ -937,7 +937,7 @@ uint32_t asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 			if ((m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
 			     m_NCS_NODE_ID_FROM_MDS_DEST(pQelm->param.addr)) &&
 			    (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN)) {
-				queue_open_flag = TRUE;
+				queue_open_flag = true;
 				break;
 			}
 			q_cnt--;
@@ -955,7 +955,7 @@ uint32_t asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 					pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
 				}
 				if (pQelm->param.owner != MQSV_QUEUE_OWN_STATE_ORPHAN) {
-					queue_open_flag = TRUE;
+					queue_open_flag = true;
 					break;
 				}
 				q_cnt--;
@@ -1058,27 +1058,27 @@ static void asapi_object_destroy(SaNameT *pObj)
    ARGUMENTS      :  key   - what to match
                      qelem - with whom to match
    
-   RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
+   RETURNS        :  true(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL asapi_obj_cmp(void *key, void *qelem)
+static bool asapi_obj_cmp(void *key, void *qelem)
 {
-	NCS_BOOL match = FALSE;
+	bool match = false;
 	ASAPi_CACHE_INFO *pNode = (ASAPi_CACHE_INFO *)qelem;
 	uint32_t cmp = 0;
 
 	/* Match the object content */
 	if (ASAPi_OBJ_QUEUE == pNode->objtype) {
 		if (((SaNameT *)key)->length != pNode->info.qinfo.param.name.length)
-			return FALSE;
+			return false;
 		cmp = memcmp(((SaNameT *)key)->value, pNode->info.qinfo.param.name.value, ((SaNameT *)key)->length);
 	} else if (ASAPi_OBJ_GROUP == pNode->objtype) {
 		if (((SaNameT *)key)->length != pNode->info.ginfo.group.length)
-			return FALSE;
+			return false;
 		cmp = memcmp(((SaNameT *)key)->value, pNode->info.ginfo.group.value, ((SaNameT *)key)->length);
 	}
 
 	if (!cmp)
-		match = TRUE;
+		match = true;
 	return match;
 }	/* End of asapi_obj_cmp() */
 
@@ -1091,16 +1091,16 @@ static NCS_BOOL asapi_obj_cmp(void *key, void *qelem)
    ARGUMENTS      :  key   - what to match
                      elem  - with whom to match
    
-   RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
+   RETURNS        :  true(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL asapi_queue_cmp(void *key, void *elem)
+static bool asapi_queue_cmp(void *key, void *elem)
 {
 	ASAPi_QUEUE_INFO *pQelm = (ASAPi_QUEUE_INFO *)elem;
 
 	if (!memcmp(&pQelm->param.name, (SaNameT *)key, sizeof(SaNameT))) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }	/* End of asapi_queue_cmp() */
 
 /****************************************************************************\

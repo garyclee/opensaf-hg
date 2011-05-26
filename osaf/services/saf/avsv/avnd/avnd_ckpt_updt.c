@@ -68,7 +68,7 @@ uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
-			if ((NULL == su_ptr) && (TRUE == su->su_is_external)) {
+			if ((NULL == su_ptr) && (true == su->su_is_external)) {
 				su_info.name = su->name;
 				su_info.comp_restart_prob = su->comp_restart_prob;
 				su_info.comp_restart_max = su->comp_restart_max;
@@ -76,7 +76,7 @@ uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_
 				su_info.su_restart_max = su->su_restart_max;
 				su_info.su_is_external = su->su_is_external;
 				su_info.next = NULL;
-				su_info.is_ncs = FALSE;	/*External component is not part of NCS */
+				su_info.is_ncs = false;	/*External component is not part of NCS */
 				su_ptr = avnd_sudb_rec_add(cb, &su_info, &rc);
 				if (NULL == su_ptr) {
 					return NCSCC_RC_FAILURE;
@@ -88,7 +88,7 @@ uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_
 		}
 	case NCS_MBCSV_ACT_UPDATE:
 		{
-			if ((NULL != su_ptr) && (TRUE == su->su_is_external)) {
+			if ((NULL != su_ptr) && (true == su->su_is_external)) {
 				/*
 				 * Update all the data. Except SU name which would have got
 				 * updated with ADD.
@@ -379,11 +379,11 @@ uint32_t avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCS
 					   will be updated in NCS_MBCSV_ACT_UPDATE switch case. */
 					comp_info.name = comp->name;
 					comp_info.inst_level = comp->inst_level;
-					/* If comp_info.comp_restart is TRUE, then in avnd_compdb_rec_add,
-					   it marks comp->is_restart_en as FALSE and vice-versa. So, to
+					/* If comp_info.comp_restart is true, then in avnd_compdb_rec_add,
+					   it marks comp->is_restart_en as false and vice-versa. So, to
 					   make data sync at both ACT and STDBY, we need to send reverse
 					   of what has come. */
-					comp_info.comp_restart = ((comp->is_restart_en == TRUE) ? FALSE : TRUE);
+					comp_info.comp_restart = ((comp->is_restart_en == true) ? false : true);
 					comp_info.cap = comp->cap;
 					comp_ptr = avnd_compdb_rec_add(cb, &comp_info, &status);
 					if (NULL == comp_ptr) {
@@ -412,7 +412,7 @@ uint32_t avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCS
 						if (NULL == pxy_comp) {
 							return NCSCC_RC_FAILURE;
 						}
-						status = avnd_comp_proxied_add(cb, comp_ptr, pxy_comp, FALSE);
+						status = avnd_comp_proxied_add(cb, comp_ptr, pxy_comp, false);
 						if (NCSCC_RC_SUCCESS != status) {
 							return NCSCC_RC_FAILURE;
 						}
@@ -890,7 +890,7 @@ uint32_t avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NC
  *           Will be called from the standby AVND on failure of warm sync.
  *
  * Input: cb  - CB pointer.
- *        avnd_shut_down - If TRUE then don't reset avnd_async_updt_cnt and
+ *        avnd_shut_down - If true then don't reset avnd_async_updt_cnt and
  *                         synced_reo_type.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
@@ -899,7 +899,7 @@ uint32_t avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NC
  *
  *
 \**************************************************************************/
-uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
+uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, bool avnd_shut_down)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -914,20 +914,20 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_key);
 		while (hc_config != 0) {
 			memcpy(&hc_key, &hc_config->key, sizeof(AVSV_HLT_KEY));
-			if (TRUE == hc_config->is_ext) {
+			if (true == hc_config->is_ext) {
 				rc = avnd_hcdb_rec_del(cb, &hc_config->key);
 				if (rc != NCSCC_RC_SUCCESS) {
 					return NCSCC_RC_FAILURE;
 				}
 
-			}	/* if(TRUE == hc_config->is_ext) */
+			}	/* if(true == hc_config->is_ext) */
 			hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)&hc_key);
 		}		/* while(hc_config != 0) */
 	}
   /****************** Destroy healthcheck db ends here***********************/
 
 	/* Reset the async count */
-	if (FALSE == avnd_shut_down)
+	if (false == avnd_shut_down)
 		memset(&cb->avnd_async_updt_cnt, 0, sizeof(AVND_ASYNC_UPDT_CNT));
 
   /****************** Destroy Internode db starts here***********************/
@@ -976,7 +976,7 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
-			if (TRUE == su->su_is_external) {
+			if (true == su->su_is_external) {
 				while (0 != (curr_su_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list))) {
 					/*  Delete the CSI Record attached to this SU_SI record. */
 					/* scan & delete each csi record */
@@ -1006,7 +1006,7 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					}
 					free(curr_su_si);
 				}	/* while(0 != curr_su_si) */
-			}	/* if(TRUE == su->su_is_external) */
+			}	/* if(true == su->su_is_external) */
 			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 	}
@@ -1022,7 +1022,7 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
-			if (TRUE == su->su_is_external) {
+			if (true == su->su_is_external) {
 				while (0 != (su_siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_FIRST(&su->siq))) {
 					/* unlink the buffered msg from the queue */
 					ncs_db_link_list_delink(&su->siq, &su_siq->su_dll_node);
@@ -1033,7 +1033,7 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						return NCSCC_RC_FAILURE;
 					}
 				}	/* while(0 != su_siq) */
-			}	/* if(TRUE == su->su_is_external) */
+			}	/* if(true == su->su_is_external) */
 			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 
@@ -1048,13 +1048,13 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
 		while (comp != 0) {
 			comp_name = comp->name;
-			if (TRUE == comp->su->su_is_external) {
+			if (true == comp->su->su_is_external) {
 				rc = avnd_compdb_rec_del(cb, &comp->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					return NCSCC_RC_FAILURE;
 				}
-			}	/* if(TRUE == comp->su->su_is_external) */
+			}	/* if(true == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
 			    ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp_name);
 		}		/* while(comp != 0) */
@@ -1069,19 +1069,19 @@ uint32_t avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
 		while (su != 0) {
 			su_name = su->name;
-			if (TRUE == su->su_is_external) {
+			if (true == su->su_is_external) {
 				rc = avnd_sudb_rec_del(cb, &su->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					return NCSCC_RC_FAILURE;
 				}
-			}	/* if(TRUE == su->su_is_external) */
+			}	/* if(true == su->su_is_external) */
 			su = (AVND_SU *)
 			    ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name);
 		}		/* while(su != 0) */
 	}
 	/* Reset the cold sync done counter */
-	if (FALSE == avnd_shut_down)
+	if (false == avnd_shut_down)
 		cb->synced_reo_type = 0;
 
 	return rc;

@@ -205,7 +205,7 @@ static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *evt)
 	/* Activate the board only if the board supports full 5 state model.*/
 	if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
 		/* Activate the HE. */
-		ret_err = plms_ent_enable(ent,FALSE,TRUE);
+		ret_err = plms_ent_enable(ent,false,true);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("HE %s activation FAILED.",ent->dn_name_str);
 		}else{
@@ -261,7 +261,7 @@ static SaUint32T plms_HE_inact_np_to_act( PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	ent->act_in_pro = FALSE;
+	ent->act_in_pro = false;
 	/* Mark the presence state of the HE to active.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
 				NULL,SA_NTF_OBJECT_OPERATION,
@@ -430,7 +430,7 @@ static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *evt)
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	ent->deact_in_pro = FALSE;
+	ent->deact_in_pro = false;
 
 	/* Handle clearing management lost flag.*/
 	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
@@ -481,7 +481,7 @@ static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	ent->act_in_pro = FALSE;
+	ent->act_in_pro = false;
 	/* Mark the presence state of the HE to active.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
 				NULL,SA_NTF_OBJECT_OPERATION,
@@ -555,7 +555,7 @@ static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *evt)
 	}		
 
 	/* Deactivate the HE. */
-	ret_err =plms_he_deactivate(ent,FALSE/*adm_op*/,TRUE/*mngt_cbk*/);
+	ret_err =plms_he_deactivate(ent,false/*adm_op*/,true/*mngt_cbk*/);
 
 	if (NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("HE %s deactivation FAILED.",ent->dn_name_str);
@@ -608,8 +608,8 @@ static SaUint32T plms_HE_actving_to_inact_op(PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	ent->deact_in_pro = FALSE;
-	ent->act_in_pro = FALSE;
+	ent->deact_in_pro = false;
+	ent->act_in_pro = false;
 
 	/* Mark the presence state of the HE to inactive.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_INACTIVE,NULL,
@@ -753,7 +753,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		TRACE("Reject the deactivation as the ent %s is in other admin\
 						context",ent->dn_name_str);
 		/* Make the He to move to M4 state.*/
-		ret_err = plms_he_activate(ent,FALSE,TRUE);
+		ret_err = plms_he_activate(ent,false,true);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("HE %s activation FAILED.",ent->dn_name_str);
 		}else{
@@ -778,7 +778,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 			/* Can not be deactivated. 
 			Take the HE to activated state.	
 			*/
-			ret_err = plms_he_activate(ent,FALSE,TRUE);
+			ret_err = plms_he_activate(ent,false,true);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s activation FAILED.",
 							ent->dn_name_str);
@@ -793,7 +793,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		}else{
 			/* As the HE is already in OOS, nothing much
 			to do. Set the HE state to M1.*/
-			ret_err = plms_he_deactivate(ent,FALSE,TRUE);
+			ret_err = plms_he_deactivate(ent,false,true);
 			
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s deactivation FAILED.",
@@ -820,7 +820,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 			TRACE("HE is already in OOS.");
 			
 			/* Make the HE to move to InActive.*/	
-			ret_err = plms_he_deactivate(ent,FALSE,TRUE);
+			ret_err = plms_he_deactivate(ent,false,true);
 			
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s deactivation FAILED.",
@@ -844,8 +844,8 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		}
 		/* Setting the context of the operation.*/
 		ent->adm_op_in_progress = SA_PLM_CAUSE_HE_DEACTIVATION;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_mark_unmark(aff_ent_list,true);
 		
 		
 		/* Set the expected readiness status.*/
@@ -923,7 +923,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 
 			TRACE("HE is already in OOS.");
 			/* Make the HE to move to InActive.*/	
-			ret_err = plms_he_deactivate(ent,FALSE,TRUE);
+			ret_err = plms_he_deactivate(ent,false,true);
 			
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s deactivation FAILED.",
@@ -947,8 +947,8 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		}
 		/* Setting the context of the operation.*/
 		ent->adm_op_in_progress = SA_PLM_CAUSE_HE_DEACTIVATION;
-		ent->am_i_aff_ent = TRUE;
-		plms_aff_ent_mark_unmark(aff_ent_list,TRUE);
+		ent->am_i_aff_ent = true;
+		plms_aff_ent_mark_unmark(aff_ent_list,true);
 		
 		
 		/* Set the expected readiness status.*/
@@ -1071,7 +1071,7 @@ static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 	
-	ent->deact_in_pro = FALSE;
+	ent->deact_in_pro = false;
 	/* Handle clearing management lost flag.*/
 	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 		if ( NCSCC_RC_SUCCESS != plms_deact_resp_mngt_flag_clear(ent))
@@ -1124,14 +1124,14 @@ static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 	while (head){
 		if(!plms_is_chld(ent,head->plm_entity) &&
 		PLMS_EE_ENTITY == head->plm_entity->entity_type){
-			ret_err = plms_ee_term(head->plm_entity,FALSE,0);
+			ret_err = plms_ee_term(head->plm_entity,false,0);
 		}
 		plms_readiness_state_set(head->plm_entity,
 				SA_PLM_READINESS_OUT_OF_SERVICE,
 				ent,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
+				SA_PLM_RF_DEPENDENCY,true,ent,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		head = head->next;
@@ -1320,7 +1320,7 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 		if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE  ==
 		                ent->entity.he_entity.saPlmHEAdminState){
 			
-			ret_err = plms_he_deactivate(ent,FALSE,TRUE);
+			ret_err = plms_he_deactivate(ent,false,true);
 			LOG_ER("Deactivate the entity, as the admin state is\
 			lck inactive. Ent: %s",ent->dn_name_str);
 
@@ -1331,7 +1331,7 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 		5 state model.*/
 		if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
 			/* Make the HE to move to active state.*/
-			ret_err = plms_he_activate(ent,FALSE,TRUE);
+			ret_err = plms_he_activate(ent,false,true);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s Activation FAILED.",
 				ent->dn_name_str);
@@ -1387,7 +1387,7 @@ static SaUint32T plms_HE_act_to_act_op(PLMS_EVT *evt)
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	ent->act_in_pro = FALSE;
+	ent->act_in_pro = false;
 
 	/* Handle clearing management lost flag.*/
 	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
@@ -1439,7 +1439,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 	
-	ent->deact_in_pro = FALSE;
+	ent->deact_in_pro = false;
 
 	/* Handle clearing management lost flag.*/
 	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
@@ -1496,7 +1496,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 				PLMS_EE_ENTITY == 
 				head->plm_entity->entity_type){
 					ret_err = plms_ee_term(head->plm_entity,
-								FALSE,0);
+								false,0);
 					if (NCSCC_RC_SUCCESS != ret_err){
 						LOG_ER("EE %s term FAILED.",
 							ent->dn_name_str);
@@ -1512,7 +1512,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 
 				plms_readiness_flag_mark_unmark(
 						head->plm_entity,
-						SA_PLM_RF_DEPENDENCY,TRUE,
+						SA_PLM_RF_DEPENDENCY,true,
 						ent,SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);
 				head = head->next;
@@ -1628,7 +1628,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 					plms_readiness_flag_mark_unmark(
 					head->plm_entity,
 					SA_PLM_RF_DEPENDENCY,
-					TRUE,ent,
+					true,ent,
 					SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -1658,10 +1658,10 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 				log_head_grp = log_head_grp->next;
 			}
 
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-						trk_info->aff_ent_list, FALSE);
+						trk_info->aff_ent_list, false);
 			plms_aff_ent_exp_rdness_status_clear(
 						trk_info->aff_ent_list);
 			plms_ent_list_free(trk_info->aff_ent_list);
@@ -1732,7 +1732,7 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	ent->deact_in_pro = FALSE;
+	ent->deact_in_pro = false;
 	/* Mark the presence state of the HE to activating.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVATING,NULL,
 					SA_NTF_OBJECT_OPERATION,
@@ -1767,7 +1767,7 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 		}
 		/* Set M4 state.*/
 		if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
-			ret_err = plms_he_activate(ent,FALSE,TRUE);
+			ret_err = plms_he_activate(ent,false,true);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s activation FAILED.", 
 				ent->dn_name_str);
@@ -1833,7 +1833,7 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 				return ret_err;
 			}
 			
-			ret_err = plms_he_activate(ent,FALSE,TRUE);  	
+			ret_err = plms_he_activate(ent,false,true);  	
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("HE %s activation FAILED.",
 							ent->dn_name_str);
@@ -1863,10 +1863,10 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 			
 		case SA_PLM_CHANGE_COMPLETED:
 			/* Clear the admin context.*/
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					ent->trk_info->aff_ent_list,FALSE);
+					ent->trk_info->aff_ent_list,false);
 			
 			plms_peer_async_send(ent,SA_PLM_CHANGE_COMPLETED,
 			ent->trk_info->track_cause);
@@ -1940,8 +1940,8 @@ static SaUint32T plms_HE_deacting_to_act_op( PLMS_EVT *evt)
 	clean up? Actly not required as when an application rejects
 	deactivation, clean up is done there.*/
 	
-	ent->act_in_pro = FALSE;
-	ent->deact_in_pro = FALSE;
+	ent->act_in_pro = false;
+	ent->deact_in_pro = false;
 
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
 				NULL,SA_NTF_OBJECT_OPERATION,
@@ -2077,10 +2077,10 @@ static SaUint32T plms_HE_deacting_to_np_op(PLMS_EVT *evt)
 
 		case SA_PLM_CHANGE_COMPLETED:
 			/* Clear the admin context.*/
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					ent->trk_info->aff_ent_list,FALSE);
+					ent->trk_info->aff_ent_list,false);
 			
 			plms_peer_async_send(ent,SA_PLM_CHANGE_COMPLETED,
 			ent->trk_info->track_cause);
@@ -2291,8 +2291,8 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 	if (NULL != ent->trk_info){
 		/* For admin repair, return to IMM.*/
 		if ( SA_PLM_ADMIN_REPAIRED == ent->trk_info->imm_adm_opr_id){
-			ent->trk_info->root_entity->am_i_aff_ent = FALSE;
-			ent->trk_info->root_entity->adm_op_in_progress = FALSE;
+			ent->trk_info->root_entity->am_i_aff_ent = false;
+			ent->trk_info->root_entity->adm_op_in_progress = false;
 			saImmOiAdminOperationResult(cb->oi_hdl,ent->trk_info->inv_id,SA_AIS_OK);
 		}
 
@@ -2526,7 +2526,7 @@ SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 		if (PLMS_EE_ENTITY == head->plm_entity->entity_type){
 			if (!plms_is_chld(ent,head->plm_entity)){
 				ret_err = plms_ee_term(head->plm_entity,
-							FALSE,FALSE);
+							false,false);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("EE %s termination FAILED.",
 							ent->dn_name_str);
@@ -2539,7 +2539,7 @@ SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 					plms_readiness_flag_mark_unmark(
 						head->plm_entity,
 						SA_PLM_RF_DEPENDENCY,
-						TRUE,ent,
+						true,ent,
 						SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);	
 					plms_ent_to_ent_list_add(
@@ -2572,7 +2572,7 @@ SaUint32T plms_he_insvc_to_np_process(PLMS_ENTITY *ent)
 					plms_readiness_flag_mark_unmark(
 						head->plm_entity,
 						SA_PLM_RF_DEPENDENCY,
-						TRUE,ent,
+						true,ent,
 						SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);	
 				
@@ -2678,7 +2678,7 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 	while (head){
 		if(!plms_is_chld(ent,head->plm_entity) &&
 		PLMS_EE_ENTITY == head->plm_entity->entity_type){
-			ret_err = plms_ee_term(head->plm_entity,FALSE,0);
+			ret_err = plms_ee_term(head->plm_entity,false,0);
 			if (NCSCC_RC_SUCCESS != ret_err){
 				LOG_ER("EE %s termination FAILED.",
 							ent->dn_name_str);
@@ -2692,7 +2692,7 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		plms_readiness_flag_mark_unmark(head->plm_entity,
-				SA_PLM_RF_DEPENDENCY,TRUE,ent,
+				SA_PLM_RF_DEPENDENCY,true,ent,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_DEP);
 		head = head->next;
@@ -2751,7 +2751,7 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 	activate only if the board supports full 5 state model.
 	*/
 	if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
-		ret_err = plms_he_activate(ent,FALSE,TRUE);
+		ret_err = plms_he_activate(ent,false,true);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("EE %s termination FAILED.", ent->dn_name_str);
 		}else{
@@ -2803,7 +2803,7 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 					&& !plms_is_chld(ent,aff_head->plm_entity)){
 
 					ret_err = plms_ee_term(
-					aff_head->plm_entity,FALSE,TRUE);
+					aff_head->plm_entity,false,true);
 
 					if (NCSCC_RC_SUCCESS != ret_err){
 						LOG_ER(" EE %s termination \
@@ -2836,10 +2836,10 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 								successful.");
 			}
 			
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					ent->trk_info->aff_ent_list,FALSE);
+					ent->trk_info->aff_ent_list,false);
 
 			plms_trk_info_free(ent->trk_info);
 			break;	
@@ -2882,10 +2882,10 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 			ent->trk_info->aff_ent_list);
 			plms_ent_exp_rdness_status_clear(ent);
 
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					ent->trk_info->aff_ent_list,FALSE);
+					ent->trk_info->aff_ent_list,false);
 
 			plms_trk_info_free(ent->trk_info);
 			break;
@@ -2930,7 +2930,7 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 						SA_PLM_NTFID_STATE_CHANGE_DEP);
 				plms_readiness_flag_mark_unmark(
 						aff_head->plm_entity,
-						SA_PLM_RF_DEPENDENCY,TRUE,
+						SA_PLM_RF_DEPENDENCY,true,
 						ent,SA_NTF_MANAGEMENT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_DEP);
 
@@ -2945,7 +2945,7 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 					&& !plms_is_chld(ent,aff_head->plm_entity)){
 					
 					ret_err = plms_ee_term(
-					aff_head->plm_entity,FALSE,1);
+					aff_head->plm_entity,false,1);
 				}
 				aff_head = aff_head->next;
 			}
@@ -2970,10 +2970,10 @@ static SaUint32T plms_adm_cnxt_clean_up(PLMS_ENTITY *ent)
 								successful.");
 			}
 			
-			ent->adm_op_in_progress = FALSE;
-			ent->am_i_aff_ent = FALSE;
+			ent->adm_op_in_progress = false;
+			ent->am_i_aff_ent = false;
 			plms_aff_ent_flag_mark_unmark(
-					ent->trk_info->aff_ent_list,FALSE);
+					ent->trk_info->aff_ent_list,false);
 
 			plms_trk_info_free(ent->trk_info);
 			break;
@@ -3728,7 +3728,7 @@ SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt
 					PLMS_HPI_CMD_RESOURCE_POWER_OFF,
 					SAHPI_POWER_OFF/*arg*/);
 				if (NCSCC_RC_SUCCESS == ret_err)
-					ent->deact_in_pro = TRUE;
+					ent->deact_in_pro = true;
 			}else{
 				ret_err = NCSCC_RC_SUCCESS;
 			}
@@ -3742,7 +3742,7 @@ SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt
 				ret_err = plms_hrb_req(ent,
 					PLMS_HPI_CMD_RESOURCE_INACTIVE_SET,0);
 				if (NCSCC_RC_SUCCESS == ret_err)
-					ent->deact_in_pro = TRUE;
+					ent->deact_in_pro = true;
 			}else{
 				ret_err = NCSCC_RC_SUCCESS;
 			}
@@ -3858,7 +3858,7 @@ SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_c
 					PLMS_HPI_CMD_RESOURCE_POWER_ON,
 					SAHPI_POWER_ON/*arg*/);
 				if (NCSCC_RC_SUCCESS == ret_err){
-					ent->act_in_pro = TRUE;
+					ent->act_in_pro = true;
 				}
 			}else{
 				ret_err = NCSCC_RC_SUCCESS;
@@ -3873,7 +3873,7 @@ SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_c
 				ret_err = plms_hrb_req(ent,
 					PLMS_HPI_CMD_RESOURCE_ACTIVE_SET,0);
 				if(NCSCC_RC_SUCCESS == ret_err){
-					ent->act_in_pro = TRUE;
+					ent->act_in_pro = true;
 				}
 			}else{
 				ret_err = NCSCC_RC_SUCCESS;

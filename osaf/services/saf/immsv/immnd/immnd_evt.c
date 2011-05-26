@@ -266,7 +266,7 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (evt->info.immnd.dont_free_me == TRUE)
+	if (evt->info.immnd.dont_free_me == true)
 		return NCSCC_RC_SUCCESS;
 
 	if (evt->type != IMMSV_EVT_TYPE_IMMND)
@@ -313,7 +313,7 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		immsv_evt_free_attrNames(evt->info.immnd.info.searchRemote.attributeNames);
 		evt->info.immnd.info.searchRemote.attributeNames = NULL;
 	} else if (evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE_RSP) {
-		freeSearchNext(&evt->info.immnd.info.rspSrchRmte.runtimeAttrs, FALSE);
+		freeSearchNext(&evt->info.immnd.info.rspSrchRmte.runtimeAttrs, false);
 	} else if (evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
 		free(evt->info.immnd.info.searchInit.rootName.buf);
 		evt->info.immnd.info.searchInit.rootName.buf = NULL;
@@ -642,7 +642,7 @@ void immnd_process_evt(void)
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMND_EVT *evt - Received Event structure
  *                 IMMSV_SEND_INFO *sinfo - sender info
- *                 SaBoolT isOm - TRUE => OM, FALSE => OI
+ *                 SaBoolT isOm - true => OM, false => OI
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
@@ -986,7 +986,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	}
 
 	if (rsp) {
-		freeSearchNext(rsp, TRUE);
+		freeSearchNext(rsp, true);
 	}
 
  leave:
@@ -1059,7 +1059,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 				/*STEALING*/ rsp->attrValuesList = NULL;
 
 				immModel_clearLastResult(searchOp);
-				freeSearchNext(rsp, TRUE);
+				freeSearchNext(rsp, true);
 			} else {
 				LOG_WA("Internal IMM server problem - failure from internal nextResult: %u", err);
 				err = SA_AIS_ERR_NO_RESOURCES;
@@ -1134,7 +1134,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	if (rspo->runtimeAttrs.attrValuesList) {
 		rspo->runtimeAttrs.objectName.buf = NULL;	/* was borrowed. */
 		rspo->runtimeAttrs.objectName.size = 0;
-		freeSearchNext(&rspo->runtimeAttrs, FALSE);
+		freeSearchNext(&rspo->runtimeAttrs, false);
 	}
 	TRACE_2("oi_att_pull_rpl finalize of internal search OK");
 	TRACE_LEAVE();
@@ -1359,7 +1359,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
 	if (rsp) {
-		freeSearchNext(rsp, TRUE);
+		freeSearchNext(rsp, true);
 		immModel_clearLastResult(sn->searchOp);
 	}
 
@@ -1429,7 +1429,7 @@ static uint32_t immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	immModel_fetchLastResult(sn->searchOp, &rsp);
 	immModel_clearLastResult(sn->searchOp);
 	if (rsp) {
-		freeSearchNext(rsp, TRUE);
+		freeSearchNext(rsp, true);
 	}
 
 	immModel_deleteSearchOp(sn->searchOp);
@@ -1515,7 +1515,7 @@ static uint32_t immnd_evt_proc_class_desc_get(IMMND_CB *cb, IMMND_EVT *evt, IMMS
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT isOm - TRUE=> OM finalize, FALSE => OI finalize.
+ *                 SaBoolT isOm - true=> OM finalize, false => OI finalize.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
@@ -1567,7 +1567,7 @@ static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT isOm - TRUE=> OM resurrect, FALSE => OI resurrect.
+ *                 SaBoolT isOm - true=> OM resurrect, false => OI resurrect.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
@@ -2384,7 +2384,7 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	if (cl_node && cl_node->mIsSync) {
 		assert(!cl_node->mSyncBlocked);
 		if(!asyncReq) {
-			cl_node->mSyncBlocked = TRUE;
+			cl_node->mSyncBlocked = true;
 		}
 	}
 
@@ -3785,7 +3785,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 
 		if (cl_node->mIsSync) {
 			if (cl_node->mSyncBlocked) {
-				cl_node->mSyncBlocked = FALSE;
+				cl_node->mSyncBlocked = false;
 			} else {
 				LOG_ER("Unexpected class-create reply arrived destined for sync agent - discarding");
 				return;
@@ -6171,7 +6171,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 			cb->mStep = 0;
 			cb->mJobStart = time(NULL);
 			cb->mMyEpoch = 0;
-			cb->mSync = FALSE;
+			cb->mSync = false;
 			assert(!(cb->mAccepted));
 		} else if (cb->mState == IMM_SERVER_READY) {	/* old (nonccord) members */
 			if (cb->mRulingEpoch == cb->mMyEpoch + 1) {
@@ -6322,7 +6322,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		/*This node wants to be synced. */
 		assert(!cb->mAccepted);
 		immModel_recognizedIsolated(cb);	/*Reply to req sync not arrived ? */
-		cb->mSync = TRUE;
+		cb->mSync = true;
 		cb->mMyEpoch = cb->mRulingEpoch - 1;
 		TRACE_2("Adjust fevs count:%llu %llu %llu", cb->highestReceived,
 			cb->highestProcessed, evt->info.ctrl.fevsMsgStart);
@@ -6430,7 +6430,7 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			cb->mState = IMM_SERVER_LOADING_CLIENT;
 			cb->mStep = 0;
 			cb->mJobStart = time(NULL);
-			cb->mAccepted = TRUE;
+			cb->mAccepted = true;
 		}
 	} else if (cb->mState == IMM_SERVER_LOADING_SERVER) {
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
@@ -6475,7 +6475,7 @@ static uint32_t immnd_evt_proc_sync_req(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		immModel_recognizedIsolated(cb);
 	} else if (cb->mIsCoord) {
 		TRACE_2("Set marker for sync at coordinator");
-		cb->mSyncRequested = TRUE;
+		cb->mSyncRequested = true;
 		if(cb->mLostNodes > 0) {cb->mLostNodes--;}
 		/*assert(cb->mRulingEpoch == evt->info.ctrl.rulingEpoch); */
 		TRACE_2("At COORD: My Ruling Epoch:%u Cenral Ruling Epoch:%u",
@@ -6506,7 +6506,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 	if (evt->info.ctrl.nodeId == cb->node_id) {
 		/*This node was introduced to the IMM cluster */
-		cb->mIntroduced = TRUE;
+		cb->mIntroduced = true;
 		cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
 		if (evt->info.ctrl.isCoord) {
 			if (cb->mIsCoord) {
@@ -6584,7 +6584,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	SaImmHandleT clnt_hdl = evt->info.fevsReq.client_hdl;
 	IMMSV_OCTET_STRING *msg = &evt->info.fevsReq.msg;
 	MDS_DEST reply_dest = evt->info.fevsReq.reply_dest;
-	NCS_BOOL isObjSync = (evt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)?evt->info.fevsReq.isObjSync:FALSE;
+	bool isObjSync = (evt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2)?evt->info.fevsReq.isObjSync:false;
 	TRACE_ENTER();
 
 	if (cb->highestProcessed >= msgNo) {
@@ -6897,7 +6897,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			if (cl_node == NULL || cl_node->mIsStale) {
 				TRACE_2("IMMND - Sync client already disconnected");
 			} else if (cl_node->mSyncBlocked) {
-				cl_node->mSyncBlocked = FALSE;
+				cl_node->mSyncBlocked = false;
 			}
 			int retryCount = 0;
 			for (; !immnd_is_immd_up(cb) && retryCount < 24; ++retryCount) {
@@ -7700,7 +7700,7 @@ static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb)
  * Description   : This routine tests whether IMMD is up or down
  * Arguments     : cb       - IMMND Control Block pointer
  *
- * Return Values : TRUE/FALSE
+ * Return Values : true/false
  *****************************************************************************/
 uint32_t immnd_is_immd_up(IMMND_CB *cb)
 {

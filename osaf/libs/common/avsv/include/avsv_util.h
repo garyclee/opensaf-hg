@@ -61,7 +61,7 @@
 
 extern unsigned int avsv_cpy_SU_DN_from_DN(SaNameT *, SaNameT *);
 extern unsigned int avsv_cpy_node_DN_from_DN(SaNameT *, SaNameT *);
-extern NCS_BOOL avsv_is_external_DN(SaNameT *);
+extern bool avsv_is_external_DN(SaNameT *);
 extern unsigned int avsv_cpy_SI_DN_from_DN(SaNameT *, SaNameT *);
 
 extern unsigned int avsv_dblist_uns32_cmp(unsigned char *, unsigned char *);
@@ -70,7 +70,7 @@ extern unsigned int avsv_dblist_saname_net_cmp(unsigned char *, unsigned char *)
 extern unsigned int avsv_dblist_saname_cmp(unsigned char *, unsigned char *);
 extern unsigned int avsv_dblist_sahckey_cmp(unsigned char *, unsigned char *);
 
-extern NCS_BOOL avsv_sa_name_is_null(SaNameT *);
+extern bool avsv_sa_name_is_null(SaNameT *);
 
 extern void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
 	const char *rdn_tag, SaNameT *dn);

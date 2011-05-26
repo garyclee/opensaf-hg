@@ -88,9 +88,9 @@ uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration)
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpd_timer_expiry, (void *)tmr);
 	}
 
-	if (tmr->is_active == FALSE) {
+	if (tmr->is_active == false) {
 		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
-		tmr->is_active = TRUE;
+		tmr->is_active = true;
 	} else {
 		m_NCS_TMR_STOP(tmr->tmr_id);
 		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
@@ -112,9 +112,9 @@ uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration)
  *****************************************************************************/
 void cpd_tmr_stop(CPD_TMR *tmr)
 {
-	if (tmr->is_active == TRUE) {
+	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		tmr->is_active = FALSE;
+		tmr->is_active = false;
 	}
 	if (tmr->tmr_id != TMR_T_NULL) {
 		m_NCS_TMR_DESTROY(tmr->tmr_id);

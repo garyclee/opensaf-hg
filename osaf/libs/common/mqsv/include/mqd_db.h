@@ -63,7 +63,7 @@ typedef struct mqd_queue_param {
 	MQSV_QUEUE_OWN_STATE owner;	/* Orphan/Owned */
 	uint32_t hdl;		/* Queue Handle */
 	uint8_t adv;		/* Advertisement flag */
-	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
+	uint8_t is_mqnd_down;	/* true if mqnd is down else false */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
 	SaSizeT size[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];	/* Priority queue sizes */
 } MQD_QUEUE_PARAM;
@@ -105,10 +105,10 @@ typedef struct mdq_obj_node {
 
 typedef struct mqd_node_info {
 	NODE_ID nodeid;		/* key for the node database */
-	NCS_BOOL is_restarted;	/* TRUE when MQND is up and FALSE when MQND is down */
+	bool is_restarted;	/* true when MQND is up and false when MQND is down */
 	SaNameT queue_name;
 	MQD_TMR timer;		/* Retention timer for MQND down */
-	/*   NCS_BOOL       is_clm_down_processed; */	/*Flag to process the CLM event */
+	/*   bool       is_clm_down_processed; */	/*Flag to process the CLM event */
 	MDS_DEST dest;		/*Destination MQND which is up/ down */
 } MQD_NODE_INFO;
 
@@ -131,12 +131,12 @@ typedef struct mqd_cb {
 	char my_name[MQSV_COMP_NAME_SIZE];	/* Used in AVSv Registrations */
 
 	NCS_PATRICIA_TREE qdb;	/* Queue's Database */
-	NCS_BOOL qdb_up;	/* Set to true is qdb is UP */
+	bool qdb_up;	/* Set to true is qdb is UP */
 	uint32_t mqd_sync_updt_count;	/*Number of Async Updates to the standby MQD */
 	SaNameT record_qindex_name;
-	NCS_BOOL cold_or_warm_sync_on;
+	bool cold_or_warm_sync_on;
 	NCS_PATRICIA_TREE node_db;
-	NCS_BOOL node_db_up;
+	bool node_db_up;
 	SaAmfHandleT amf_hdl;	/* AMF handle, which we would have got during AMF init */
 	SaClmHandleT clm_hdl;
 	SaAmfHAStateT ha_state;	/* Present AMF HA state of the component */
@@ -149,19 +149,19 @@ typedef struct mqd_cb {
 
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
 	uint32_t hdl;		/* CB Struct Handle */
-	NCS_BOOL active;	/* Component Active Flag */
+	bool active;	/* Component Active Flag */
 	EDU_HDL edu_hdl;	/* Edu Handle */
 	uint8_t hmpool;		/* Handle Manager Pool ID for this Service Part */
 
 	SaNameT safSpecVer;
 	SaNameT safAgtVen;
 	uint32_t safAgtVenPro;
-	NCS_BOOL serv_enabled;
+	bool serv_enabled;
 	uint32_t serv_state;
 
 	/* For handling the Quisced state */
 	SaInvocationT invocation;
-	NCS_BOOL is_quisced_set;
+	bool is_quisced_set;
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
 					   IMM events */

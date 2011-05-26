@@ -385,16 +385,16 @@ void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uin
  * Notes         : None.
  *****************************************************************************/
 void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
-			  GLSV_GLD_GLND_RSC_REF *glnd_rsc, GLSV_GLD_GLND_DETAILS *node_details, NCS_BOOL orphan_flag)
+			  GLSV_GLD_GLND_RSC_REF *glnd_rsc, GLSV_GLD_GLND_DETAILS *node_details, bool orphan_flag)
 {
 	GLSV_NODE_LIST **node_list, *free_node_list = NULL;
-	NCS_BOOL chg_master = FALSE;
+	bool chg_master = false;
 
 	if (glnd_rsc == NULL || rsc_info == NULL) {
 		return;
 	}
 	if (rsc_info->node_list->node_id == node_details->node_id)
-		chg_master = TRUE;
+		chg_master = true;
 
 	/* rmv the references to this resource by the mentioned node */
 	node_list = &rsc_info->node_list;
@@ -415,19 +415,19 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
 	}
 
 	if (orphan_flag) {
-		rsc_info->can_orphan = FALSE;
+		rsc_info->can_orphan = false;
 	}
 
 	if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
 	}
 
-	if (rsc_info->node_list != NULL && rsc_info->can_orphan == FALSE)
+	if (rsc_info->node_list != NULL && rsc_info->can_orphan == false)
 		glnd_rsc->rsc_info->saf_rsc_no_of_users = glnd_rsc->rsc_info->saf_rsc_no_of_users + 1;	/* In the purge flow we need to increment the number of users beacuse we have already decremented it in finalize flow and again decremented in purge flow which amounts to double decrement */
 
 	m_MMGR_FREE_GLSV_GLD_GLND_RSC_REF(glnd_rsc);
 
-	if (rsc_info->node_list == NULL && rsc_info->can_orphan == FALSE)
+	if (rsc_info->node_list == NULL && rsc_info->can_orphan == false)
 		gld_free_rsc_info(gld_cb, rsc_info);
 	else if (chg_master && (gld_cb->ha_state == SA_AMF_HA_ACTIVE)) {
 		/*Start the timer for resource reeelection  */

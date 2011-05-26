@@ -113,7 +113,7 @@ void gla_sync_with_glnd(GLA_CB *cb)
 		return;
 	}
 
-	cb->glnd_sync_awaited = TRUE;
+	cb->glnd_sync_awaited = true;
 	m_NCS_SEL_OBJ_CREATE(&cb->glnd_sync_sel);
 	m_NCS_UNLOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -125,7 +125,7 @@ void gla_sync_with_glnd(GLA_CB *cb)
 	/* Destroy the sync - object */
 	m_NCS_LOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
 
-	cb->glnd_sync_awaited = FALSE;
+	cb->glnd_sync_awaited = false;
 	m_NCS_SEL_OBJ_DESTROY(cb->glnd_sync_sel);
 
 	m_NCS_UNLOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
@@ -370,7 +370,7 @@ void gla_client_tree_cleanup(GLA_CB *gla_cb)
 	while ((client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_getnext(&gla_cb->gla_client_tree, 0))) {
 		/* delete the client info */
 		if (NULL != ncshm_take_hdl(NCS_SERVICE_ID_GLA, client_info->lcl_lock_handle_id))
-			gla_client_tree_delete_node(gla_cb, client_info, TRUE);
+			gla_client_tree_delete_node(gla_cb, client_info, true);
 	}
 
 	return;
@@ -384,13 +384,13 @@ void gla_client_tree_cleanup(GLA_CB *gla_cb)
   Arguments     : 
                   gla_cb : pointer to the gla control block.
                   hdl_id : the handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node
+                  flag   : true/false if true create the new node
  
   Return Values : returns the client_info node.
  
   Notes         : None
 ******************************************************************************/
-GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_id, NCS_BOOL flag)
+GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_id, bool flag)
 {
 	GLA_CLIENT_INFO *client_info = NULL;
 
@@ -399,7 +399,7 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
 	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uint8_t *)&hdl_id);
 	m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		if (!client_info) {
 			client_info = (GLA_CLIENT_INFO *)m_MMGR_ALLOC_GLA_CLIENT_INFO;
@@ -563,7 +563,7 @@ static uint32_t gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT hdl_id)
  
   Notes         : None
 ******************************************************************************/
-uint32_t gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl)
+uint32_t gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, bool give_hdl)
 {
 	/* clean the queue */
 	glsv_gla_callback_queue_destroy(client_info);
@@ -712,17 +712,17 @@ static uint32_t gla_client_res_tree_cleanup(GLA_CLIENT_INFO *client_info)
   Arguments     : 
                   gla_cb : pointer to the gla control block.
                   res_id : the res handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node
+                  flag   : true/false if true create the new node
  
   Return Values : returns the client_info node.
  
   Notes         : None
 ******************************************************************************/
-GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb, SaLckResourceHandleT res_id, NCS_BOOL flag)
+GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb, SaLckResourceHandleT res_id, bool flag)
 {
 	GLA_RESOURCE_ID_INFO *res_id_info = NULL;
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		res_id_info = (GLA_RESOURCE_ID_INFO *)m_MMGR_ALLOC_GLA_RES_ID_INFO;
 		if (!res_id_info) {
@@ -757,18 +757,18 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb, SaLckResourceHan
   Arguments     :
                   gla_cb : pointer to the gla control block.
                   res_id : the res handle id.
-                  flag   : TRUE/FALSE if TRUE create the new node
+                  flag   : true/false if true create the new node
 
   Return Values : returns the client_info node.
 
   Notes         : None
 ******************************************************************************/
 GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_info,
-						      SaLckResourceIdT res_id, NCS_BOOL flag)
+						      SaLckResourceIdT res_id, bool flag)
 {
 	GLA_CLIENT_RES_INFO *res_id_info = NULL;
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		res_id_info = (GLA_CLIENT_RES_INFO *)m_MMGR_ALLOC_GLA_CLIENT_RES_INFO;
 		if (!res_id_info) {
@@ -948,17 +948,17 @@ void gla_lock_tree_cleanup(GLA_CB *gla_cb)
   Arguments     : 
                   gla_cb : pointer to the gla control block.
                   lock_id : the lock handle .
-                  flag   : TRUE/FALSE if TRUE create the new node
+                  flag   : true/false if true create the new node
  
   Return Values : returns the lock id node.
  
   Notes         : None
 ******************************************************************************/
-GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb, SaLckLockIdT lock_id, NCS_BOOL flag)
+GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb, SaLckLockIdT lock_id, bool flag)
 {
 	GLA_LOCK_ID_INFO *lock_id_info = NULL;
 
-	if (flag == TRUE) {
+	if (flag == true) {
 		/* create and allocate the memory */
 		lock_id_info = (GLA_LOCK_ID_INFO *)m_MMGR_ALLOC_GLA_LOCK_ID_INFO;
 		if (!lock_id_info) {

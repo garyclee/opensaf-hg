@@ -373,9 +373,9 @@ uint32_t avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYP
 	assert(su);
 
 	if (NCS_MBCSV_ACT_ADD == action)
-		avd_sg_su_oper_list_add(cb, su, TRUE);
+		avd_sg_su_oper_list_add(cb, su, true);
 	else if (NCS_MBCSV_ACT_RMV == action)
-		avd_sg_su_oper_list_del(cb, su, TRUE);
+		avd_sg_su_oper_list_del(cb, su, true);
 	else
 		assert(0);
 
@@ -508,7 +508,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 	case NCS_MBCSV_ACT_ADD:
 		if (NULL == su_si_rel_ptr) {
 			if (NCSCC_RC_SUCCESS != avd_new_assgn_susi(cb, su_ptr, si_ptr_up,
-				su_si_ckpt->state, TRUE, &su_si_rel_ptr)) {
+				su_si_ckpt->state, true, &su_si_rel_ptr)) {
 				
 				LOG_ER("%s: avd_new_assgn_susi failed", __FUNCTION__);
 				return NCSCC_RC_FAILURE;
@@ -538,8 +538,8 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		if (NULL != su_si_rel_ptr) {
-			avd_compcsi_delete(cb, su_si_rel_ptr, TRUE);
-			avd_susi_delete(cb, su_si_rel_ptr, TRUE);
+			avd_compcsi_delete(cb, su_si_rel_ptr, true);
+			avd_susi_delete(cb, su_si_rel_ptr, true);
 		} else {
 			LOG_ER("%s: %s %s does not exist", __FUNCTION__,
 				su_si_ckpt->su_name.value, su_si_ckpt->si_name.value);
@@ -735,11 +735,11 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SU SI relationship entries.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, FALSE); su != NULL;
-	     su = avd_su_struc_find_next(cb, su_name, FALSE)) {
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		while (su->list_of_susi != AVD_SU_SI_REL_NULL) {
-			avd_compcsi_list_del(cb, su->list_of_susi, TRUE);
-			avd_susi_struc_del(cb, su->list_of_susi, TRUE);
+			avd_compcsi_list_del(cb, su->list_of_susi, true);
+			avd_susi_struc_del(cb, su->list_of_susi, true);
 		}
 		su_name = su->name;
 	}
@@ -749,8 +749,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all CSI entries.
 	 */
 	csi_name.length = 0;
-	for (csi = avd_csi_struc_find_next(cb, csi_name, FALSE); csi != NULL;
-	     csi = avd_csi_struc_find_next(cb, csi_name, FALSE)) {
+	for (csi = avd_csi_struc_find_next(cb, csi_name, false); csi != NULL;
+	     csi = avd_csi_struc_find_next(cb, csi_name, false)) {
 		csi_name = csi->name;
 		avd_remove_csi(cb, csi);
 	}
@@ -760,8 +760,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all component entries.
 	 */
 	comp_name.length = 0;
-	for (comp = avd_comp_struc_find_next(cb, comp_name, FALSE); comp != NULL;
-	     comp = avd_comp_struc_find_next(cb, comp_name, FALSE)) {
+	for (comp = avd_comp_struc_find_next(cb, comp_name, false); comp != NULL;
+	     comp = avd_comp_struc_find_next(cb, comp_name, false)) {
 		comp_name = comp->comp_info.name;
 		/* remove the COMP from SU list.
 		 */
@@ -782,8 +782,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete entire operation SU's.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, FALSE); su != NULL;
-	     su = avd_su_struc_find_next(cb, su_name, FALSE)) {
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		/* HACK FOR TESTING SHULD BE CHANGED LATER */
 		if (su->sg_of_su == 0) {
 			su_name = su->name;
@@ -791,7 +791,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 		}
 
 		if (su->sg_of_su->su_oper_list.su != NULL)
-			avd_sg_su_oper_list_del(cb, su, TRUE);
+			avd_sg_su_oper_list_del(cb, su, true);
 
 		su_name = su->name;
 	}
@@ -801,8 +801,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SI entries.
 	 */
 	si_name.length = 0;
-	for (si = avd_si_struc_find_next(cb, si_name, FALSE); si != NULL;
-	     si = avd_si_struc_find_next(cb, si_name, FALSE)) {
+	for (si = avd_si_struc_find_next(cb, si_name, false); si != NULL;
+	     si = avd_si_struc_find_next(cb, si_name, false)) {
 		si_name = si->name;
 		/* remove the SI from the SG list.
 		 */
@@ -819,8 +819,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SU entries.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, FALSE); su != NULL;
-	     su = avd_su_struc_find_next(cb, su_name, FALSE)) {
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		su_name = su->name;
 		/* remove the SU from both the SG list and the
 		 * AVND list if present.
@@ -839,8 +839,8 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all the SG entries.
 	 */
 	sg_name.length = 0;
-	for (sg = avd_sg_struc_find_next(cb, sg_name, FALSE);
-	     sg != NULL; sg = avd_sg_struc_find_next(cb, sg_name, FALSE)) {
+	for (sg = avd_sg_struc_find_next(cb, sg_name, false);
+	     sg != NULL; sg = avd_sg_struc_find_next(cb, sg_name, false)) {
 		sg_name = sg->name;
 		/*
 		 * Remove this SG from the list.

@@ -36,12 +36,12 @@ typedef struct cpnd_tmr {
 	MDS_DEST agent_dest;
 	uint32_t lcl_sec_id;
 	uint32_t uarg;
-	NCS_BOOL is_active;
+	bool is_active;
 	SaUint32T write_type;
 	CPSV_SEND_INFO sinfo;
 	SaInvocationT invocation;
 	SaCkptCheckpointHandleT lcl_ckpt_hdl;
-	NCS_BOOL is_active_sync_err;
+	bool is_active_sync_err;
 } CPND_TMR;
 
 uint32_t cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration);

@@ -43,7 +43,7 @@ typedef struct avnd_pg_trk_key {
 typedef struct avnd_pg_trk_info {
 	AVND_PG_TRK_KEY key;	/* pg key */
 	uint8_t flags;		/* track flags */
-	NCS_BOOL is_syn;	/* indicates if the appl synchronously waits 
+	bool is_syn;	/* indicates if the appl synchronously waits 
 				   for the notification */
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* the context for the synchronous api */
 } AVND_PG_TRK_INFO;
@@ -61,7 +61,7 @@ typedef struct avnd_pg_mem {
 	/* member info */
 	SaAmfProtectionGroupNotificationT info;	/* comp-name is the index */
 
-	NCS_BOOL mem_exist;	/* Used while processing fail-over message */
+	bool mem_exist;	/* Used while processing fail-over message */
 } AVND_PG_MEM;
 
 /* pg declaration */
@@ -69,7 +69,7 @@ typedef struct avnd_pg {
 	NCS_PATRICIA_NODE tree_node;	/* pg tree node (key is csi name) */
 	SaNameT csi_name;	/* pg identifier (csi name) */
 
-	NCS_BOOL is_exist;	/* indicates if this csi exists in the cluster */
+	bool is_exist;	/* indicates if this csi exists in the cluster */
 	NCS_DB_LINK_LIST mem_list;	/* current members that belong to this pg */
 
 	/* track list for this pg  */

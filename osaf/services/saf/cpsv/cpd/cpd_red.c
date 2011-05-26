@@ -260,7 +260,7 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST 
  * Return Values          : None , Error message is logged
  *
 ********************************************************************************************/
-void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DEST *cpnd_dest, NCS_BOOL ckptid_flag)
+void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DEST *cpnd_dest, bool ckptid_flag)
 {
 	CPD_MBCSV_MSG cpd_msg;
 	uint32_t rc = SA_AIS_OK;

@@ -211,7 +211,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* So, let us add this component in the data base. And send reg req
 		   to the AvND, where proxied comp is running. */
 		comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
-					       &(info->comp_name), info->node_id, &rc, FALSE, FALSE);
+					       &(info->comp_name), info->node_id, &rc, false, false);
 		if ((comp) && (SA_AIS_OK == rc)) {
 			/* Fill other informations here */
 			comp->reg_hdl = comp_valid_info.hdl;
@@ -259,7 +259,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
 				goto send_resp;
 			}
-			comp->reg_resp_pending = TRUE;
+			comp->reg_resp_pending = true;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, comp, AVND_CKPT_COMP_CONFIG);
 			goto done;
 		} else {
@@ -288,7 +288,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_COMP_REG, amf_rc, 0,
-				&comp_valid_info.mds_dest, &comp_valid_info.mds_ctxt, NULL, FALSE);
+				&comp_valid_info.mds_dest, &comp_valid_info.mds_ctxt, NULL, false);
 
  done:
 	if (rec) {
@@ -420,16 +420,16 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
   Notes         : None
 ******************************************************************************/
 uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
-			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, NCS_BOOL *int_ext_comp)
+			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, bool *int_ext_comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *o_comp = NULL;
 	SaNameT comp_name;
-	NCS_BOOL send_resp = TRUE;
+	bool send_resp = true;
 	AVND_COMP_CBK *cbk_rec = 0;
 
 	*o_amf_rc = SA_AIS_OK;
-	*int_ext_comp = FALSE;
+	*int_ext_comp = false;
 
 	switch (api_info->type) {
 	case AVSV_AMF_COMP_UNREG:
@@ -471,7 +471,7 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 	case AVSV_AMF_CSI_QUIESCING_COMPLETE:
 		{
 			comp_name = api_info->param.csiq_compl.comp_name;
-			send_resp = FALSE;
+			send_resp = false;
 			break;
 		}
 
@@ -496,7 +496,7 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 	case AVSV_AMF_RESP:
 		{
 			comp_name = api_info->param.resp.comp_name;
-			send_resp = FALSE;
+			send_resp = false;
 			break;
 		}
 
@@ -513,7 +513,7 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 
 	rc = avnd_int_ext_comp_val(cb, &comp_name, &o_comp, o_amf_rc);
 	if ((NCSCC_RC_SUCCESS == rc) && (SA_AIS_OK == *o_amf_rc)) {
-		*int_ext_comp = TRUE;
+		*int_ext_comp = true;
 /*****************************  Section 1 Starts  **********************/
 		if ((AVSV_AMF_RESP == api_info->type) || (AVSV_AMF_CSI_QUIESCING_COMPLETE == api_info->type)) {
 			AVSV_AMF_RESP_PARAM *resp = &api_info->param.resp;
@@ -541,7 +541,7 @@ resp to originator AvND.
 			   invocation handle in the response with the original one. Check
 			   function avnd_evt_avnd_avnd_cbk_msg_hdl()'s comments */
 			resp->inv = cbk_rec->orig_opq_hdl;
-			avnd_comp_cbq_rec_pop_and_del(cb, o_comp, cbk_rec, FALSE);
+			avnd_comp_cbq_rec_pop_and_del(cb, o_comp, cbk_rec, false);
 
 		}
 
@@ -553,7 +553,7 @@ resp to originator AvND.
 		   till we get the SUCC response and we finally consider this component as 
 		   a valid registered component.
 		 */
-		if (TRUE == o_comp->reg_resp_pending) {
+		if (true == o_comp->reg_resp_pending) {
 			/* Let at least this operation complete. */
 			*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
 			goto resp_send;
@@ -575,14 +575,14 @@ resp to originator AvND.
 		}
 	} else {
 		/* This is not an internode/ext component, so return SUCCESS. */
-		*int_ext_comp = FALSE;
+		*int_ext_comp = false;
 		return NCSCC_RC_SUCCESS;
 	}
 
  resp_send:
 
-	if (TRUE == send_resp) {
-		rc = avnd_amf_resp_send(cb, api_info->type, *o_amf_rc, 0, &api_info->dest, ctxt, NULL, FALSE);
+	if (true == send_resp) {
+		rc = avnd_amf_resp_send(cb, api_info->type, *o_amf_rc, 0, &api_info->dest, ctxt, NULL, false);
 	}
 
  done:

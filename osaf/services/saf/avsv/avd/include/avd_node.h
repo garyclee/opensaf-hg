@@ -166,9 +166,9 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
 {\
    AVD_SU *i_su;\
    AVD_SU_SI_REL *curr_susi = 0; \
-   flag = TRUE;\
+   flag = true;\
    i_su = node->list_of_su;\
-   while ((i_su != NULL) && (flag == TRUE))\
+   while ((i_su != NULL) && (flag == true))\
    {\
       if ((i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ||\
           (i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN)) { \
@@ -176,7 +176,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
               (curr_susi) && ((SA_AMF_HA_QUIESCING != curr_susi->state) ||\
               ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm))); \
               curr_susi = curr_susi->su_next); \
-         if (curr_susi) flag = FALSE; \
+         if (curr_susi) flag = false; \
       } \
       i_su = i_su->avnd_list_su_next;\
    }\
