@@ -427,8 +427,7 @@ SaUint32T plms_HE_adm_unlock_state_lock_op(PLMS_EVT *evt)
 
 				ent->am_i_aff_ent = false;
 				ent->adm_op_in_progress = false;
-				plms_aff_ent_mark_unmark(trk_info->aff_ent_list,
-									FALSE);
+				plms_aff_ent_mark_unmark(trk_info->aff_ent_list, false);
 				plms_trk_info_free(trk_info);
 			}
 			/* Clean up done. Process lock operation.*/
@@ -1684,8 +1683,7 @@ SaUint32T plms_EE_adm_unlock_state_lock_op(  PLMS_EVT *evt)
 				
 				ent->am_i_aff_ent = false;
 				ent->adm_op_in_progress = false;
-				plms_aff_ent_mark_unmark(trk_info->aff_ent_list,
-									FALSE);
+				plms_aff_ent_mark_unmark(trk_info->aff_ent_list, false);
 				plms_trk_info_free(trk_info);
 			}
 
@@ -4483,7 +4481,7 @@ SaUint32T plms_cbk_call(PLMS_TRACK_INFO *trk_info,SaUint8T add_root)
 					NCSMDS_SVC_ID_PLMA);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("PLMS to PLMA cbk call MDS send failed for group\
-			%llu,agent_dest %llu",
+			%llu,agent_dest %" PRIu64,
 			grp_list->ent_grp_inf->entity_grp_hdl,
 			grp_list->ent_grp_inf->agent_mdest_id);
 		}else{
@@ -4651,7 +4649,7 @@ SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 		if (trk_info->root_entity->adm_op_in_progress ==
 							SA_PLM_CAUSE_LOCK){
 
-			LOG_ER("LOCK rejected by grp : %llu, agent: %llu",
+			LOG_ER("LOCK rejected by grp : %llu, agent: %" PRIu64,
 			res->grp_handle,grp->agent_mdest_id);
 			
 			ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
@@ -4676,7 +4674,7 @@ SaUint32T plms_cbk_response_process(PLMS_EVT *evt)
 		if (SA_PLM_CAUSE_HE_DEACTIVATION == 
 				trk_info->root_entity->adm_op_in_progress) {
 			
-			LOG_ER("Deact rejected by grp : %llu, agent: %llu.\
+			LOG_ER("Deact rejected by grp : %llu, agent: %" PRIu64 ".\
 			Take the ent to M4 state.",
 			res->grp_handle,grp->agent_mdest_id);
 			

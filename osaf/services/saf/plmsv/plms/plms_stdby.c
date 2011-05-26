@@ -28,7 +28,9 @@
 /***********************************************************************
  *   INCLUDE FILES
 ***********************************************************************/
-#include "pthread.h"
+#include <dlfcn.h>
+#include <pthread.h>
+
 #include "plms.h"
 #include "plms_evt.h"
 #include "plms_hsm.h"
@@ -207,7 +209,7 @@ SaUint32T plms_build_ent_grp_tree()
 
 		/* If corresponding client_info is not found return failure */
 		if(NULL == client_info){
-			LOG_ER("Client_info corresponding to mdest:%qu is not \
+			LOG_ER("Client_info corresponding to mdest: %" PRIu64 " is not \
 				found",ckpt_grp_info->agent_mdest_id);
 			return NCSCC_RC_SUCCESS;
 		}
