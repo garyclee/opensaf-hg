@@ -33,7 +33,7 @@ GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_
  * Name          : gld_gen_rsc_id
  *
  * Description   : This is function is invoked generate a unique 32 bit 
- *                 resource id. This is done by simply incrementing uns32 bit
+ *                 resource id. This is done by simply incrementing uint32_t bit
  *                 number till we arrive at a id that has not been assinged
  *
  * Arguments     :  gld_cb -> Control block pointer
@@ -327,11 +327,11 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
  *
  * Notes         : None.
  *****************************************************************************/
-void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uns32 status)
+void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uint32_t status)
 {
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
-	uns32 res;
+	uint32_t res;
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 	/*TBD need to check rsc_info */

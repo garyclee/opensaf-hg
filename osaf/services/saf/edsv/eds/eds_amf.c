@@ -49,7 +49,7 @@ stuff.
  * Notes         : None
  *****************************************************************************/
 
-uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
+uint32_t eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	error = saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, error);
@@ -78,7 +78,7 @@ uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
  * Notes         : None
  *****************************************************************************/
 
-uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
+uint32_t eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	V_DEST_RL mds_role;
 	SaAisErrorT error = SA_AIS_OK;
@@ -122,7 +122,7 @@ uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
  * Notes         : None
  *****************************************************************************/
 
-uns32 eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation)
+uint32_t eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	saAmfResponse(cb->amf_hdl, invocation, SA_AIS_ERR_BAD_OPERATION);
 	return NCSCC_RC_FAILURE;
@@ -198,7 +198,7 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
 	NCS_BOOL role_change = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
 		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -407,7 +407,7 @@ eds_amf_csi_rmv_callback(SaInvocationT invocation,
  *                 NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \******************************************************************************/
-static uns32 eds_healthcheck_start(EDS_CB *eds_cb)
+static uint32_t eds_healthcheck_start(EDS_CB *eds_cb)
 {
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT Healthy;
@@ -451,12 +451,12 @@ static uns32 eds_healthcheck_start(EDS_CB *eds_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_amf_init(EDS_CB *eds_cb)
+uint32_t eds_amf_init(EDS_CB *eds_cb)
 {
 
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Initialize amf callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
@@ -512,11 +512,11 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
          setting the environment varaiable in our own context.
          Proceed to register with AMF, since it has come up. 
 **************************************************************************/
-uns32 eds_amf_register(EDS_CB *eds_cb)
+uint32_t eds_amf_register(EDS_CB *eds_cb)
 {
 
 	SaAisErrorT error;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -642,7 +642,7 @@ void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificati
 	NODE_ID node_id;
 	SaClmClusterChangesT cluster_change;
 	SaBoolT is_member;
-	uns32 counter = 0;
+	uint32_t counter = 0;
 
 	TRACE("CLM Cluster track callback");
 	if (error == SA_AIS_OK) {
@@ -762,7 +762,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
 {
 	EDSV_MSG msg;
 	EDA_REG_REC *reg_rec = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(msg, cluster_change);
 	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);

@@ -71,9 +71,9 @@ DTA_CB dta_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t dta_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 
 	if (req_info == NULL)
 		return res;
@@ -107,7 +107,7 @@ uns32 dta_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info)
+uint32_t dta_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	DTA_LM_ARG arg;
 	NCSCONTEXT task_handle;
@@ -188,7 +188,7 @@ uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_lib_destroy(void)
+uint32_t dta_lib_destroy(void)
 {
 
 	DTSV_MSG *msg = NULL;
@@ -255,7 +255,7 @@ static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dta_cleanup_seq(void)
+uint32_t dta_cleanup_seq(void)
 {
 	DTA_LM_ARG arg;
 	int warning_rmval = 0;

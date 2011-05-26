@@ -51,7 +51,7 @@ static int popAsyncAdmOpContinuation(IMMA_CB *cb,
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_version_validate(SaVersionT *version)
+uint32_t imma_version_validate(SaVersionT *version)
 {
 	if ((version->releaseCode == IMMA_RELEASE_CODE) && (version->majorVersion <= IMMA_MAJOR_VERSION)) {
 		if ((version->releaseCode == 'A') && (version->majorVersion == 0x01)) {
@@ -95,9 +95,9 @@ uns32 imma_version_validate(SaVersionT *version)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info)
+uint32_t imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((rc = m_NCS_IPC_CREATE(&client_info->callbk_mbx)) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_SUCCESS;
@@ -167,7 +167,7 @@ void imma_callback_ipc_destroy(IMMA_CLIENT_NODE *cl_node)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
+uint32_t imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
 	SaImmAdminOwnerHandleT temp_hdl, *temp_ptr = NULL;
 	IMMA_ADMIN_OWNER_NODE *adm_node = NULL;
@@ -664,7 +664,7 @@ SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId)
 {
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT err = SA_AIS_ERR_TIMEOUT;
 	unsigned int sleep_delay_ms = 500;
 	unsigned int max_waiting_time_ms = 10 * 1000;	/* 10 secs */
@@ -1408,7 +1408,7 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
+uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 {
 	TRACE_ENTER();
 	IMMA_CLIENT_NODE    *cl_node=NULL;
@@ -1564,7 +1564,7 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
+uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
@@ -1615,7 +1615,7 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
+uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
@@ -1678,7 +1678,7 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
  
   Notes         : None
 ******************************************************************************/
-uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
+uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	SYSF_MBX *callbk_mbx = NULL;
@@ -2421,7 +2421,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 			TRACE("rt-attr-update callback");
 			do {
 				SaAisErrorT localEr = SA_AIS_OK;
-				uns32 proc_rc = NCSCC_RC_SUCCESS;
+				uint32_t proc_rc = NCSCC_RC_SUCCESS;
 				IMMSV_EVT rtAttrUpdRpl;
 
 				if (cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback) {
@@ -2606,11 +2606,11 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
 SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	IMMSV_EVT *i_evt,
 	IMMSV_EVT **o_evt,
-	uns32 timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable)
+	uint32_t timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT fevs_evt;
-	uns32 proc_rc;
+	uint32_t proc_rc;
 	char *tmpData = NULL;
 	NCS_UBAID uba;
 	uba.start = NULL;
@@ -2632,7 +2632,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 		return SA_AIS_ERR_LIBRARY;
 	}
 
-	int32 size = uba.ttl;
+	int32_t size = uba.ttl;
 	/*NOTE: should check against "payload max-size" */
 
 	tmpData = malloc(size);

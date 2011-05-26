@@ -89,7 +89,7 @@ HM_POOL gl_hpool[HM_POOL_CNT] = {
 /* This mapping between PoolID and handle is based on the values
    as set in the gl_hpool[ ] array(just above). */
 #define m_HM_DETM_POOL_FRM_HDL(lhdl) \
-    ( ((uns32)(((HM_HDL*)lhdl)->idx1) < 2) ? NCSHM_POOL_LOCAL : ( (uns32)((uns32)((uns32)(((HM_HDL*)lhdl)->idx1) - 1)>>5) + 1 ) )
+    ( ((uint32_t)(((HM_HDL*)lhdl)->idx1) < 2) ? NCSHM_POOL_LOCAL : ( (uint32_t)((uint32_t)((uint32_t)(((HM_HDL*)lhdl)->idx1) - 1)>>5) + 1 ) )
 
 /* Given the unitID, get the poolID. This mapping has a dependency on
    the values as set in gl_hpool[ ] array. If the array values change, either
@@ -97,13 +97,13 @@ HM_POOL gl_hpool[HM_POOL_CNT] = {
    hm_pool_id( )(just below). */
 #if 1
 #define m_HM_POOL_ID(unit) \
-    ( (unit < 2) ? NCSHM_POOL_LOCAL : ( (uns32)((((uns32)unit) - 1)>>5) + 1 ) )
+    ( (unit < 2) ? NCSHM_POOL_LOCAL : ( (uint32_t)((((uint32_t)unit) - 1)>>5) + 1 ) )
 #else
 /* Commented out function. Use this, if mapping for the poolID and unitID changes. */
 #define m_HM_POOL_ID(unit) hm_pool_id
-uns32 hm_pool_id(uint8_t unit)
+uint32_t hm_pool_id(uint8_t unit)
 {
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	for (i = 0; i < HM_POOL_CNT; i++) {
 		if (gl_hpool[i].max >= unit)
@@ -121,10 +121,10 @@ uns32 hm_pool_id(uint8_t unit)
 
 *****************************************************************************/
 
-uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
+uint32_t hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
 {
-	uns32 i;
-	int32 last_max = -1;
+	uint32_t i;
+	int32_t last_max = -1;
 
 	for (i = 0; i < HM_POOL_CNT; i++) {
 		/* force pool units to be contiguous & non-overlapping */
@@ -169,17 +169,17 @@ uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
                      should fire off so that analysis can take place.
 
 *****************************************************************************/
-uns32 gl_im_created = 0;
+uint32_t gl_im_created = 0;
 
-uns32 ncshm_init(void)
+uint32_t ncshm_init(void)
 {
 	/* Hdl Mgr does bit-fields; here we do a few exercises up front to make */
 	/* sure YOUR target system can cope with bit-stuff we do............... */
 	HM_HDL ha;
 	HM_HDL hb;
 	HM_HDL *p_hdl;
-	uns32 *p_temp;
-	uns32 cnt = 0;
+	uint32_t *p_temp;
+	uint32_t cnt = 0;
 
 	gl_im_created++;
 	if (gl_im_created > 1)
@@ -187,7 +187,7 @@ uns32 ncshm_init(void)
 
 	assert(sizeof(HM_FREE) == sizeof(HM_CELL));	/* must be same size */
 
-	assert(sizeof(uns32) == sizeof(HM_HDL));	/* must be same size */
+	assert(sizeof(uint32_t) == sizeof(HM_HDL));	/* must be same size */
 
 	ha.idx1 = 1;		/* make up a fake handle with values */
 	ha.idx2 = 2;
@@ -196,7 +196,7 @@ uns32 ncshm_init(void)
 
 	/* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ? */
 
-	p_temp = (uns32 *)(&ha);
+	p_temp = (uint32_t *)(&ha);
 	p_hdl = (HM_HDL *)p_temp;
 	hb = *p_hdl;
 
@@ -226,7 +226,7 @@ uns32 ncshm_init(void)
 
 void ncshm_delete(void)
 {
-	uns32 i, j;
+	uint32_t i, j;
 	HM_UNIT *unit;
 
 	gl_im_created--;
@@ -261,14 +261,14 @@ void ncshm_delete(void)
    PROCEDURE NAME:   ncshm_create_hdl
 
    DESCRIPTION:      Secure a handle and bind associated client save data with
-                     it. Return the uns32 handle that leads to saved data.
+                     it. Return the uint32_t handle that leads to saved data.
 
 *****************************************************************************/
-uns32 ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
+uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 {
 	HM_FREE *free;
 	HM_CELL *cell;
-	uns32 ret = 0;
+	uint32_t ret = 0;
 
 	if (pool >= HM_POOL_CNT)
 		return ret;	/* Invalid handle returned. */
@@ -279,7 +279,7 @@ uns32 ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 		cell = hm_find_cell(&free->hdl);	/* These two lines are sanity */
 		assert(((void *)free == (void *)cell));	/* checks that add no value   */
 
-		ret = (*(uns32 *)&free->hdl);
+		ret = (*(uint32_t *)&free->hdl);
 		cell->data = save;	/* store user stuff and internal state */
 		cell->use_ct = 1;
 		cell->svc_id = id;
@@ -304,13 +304,13 @@ uns32 ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 
 *****************************************************************************/
 
-uns32 ncshm_declare_hdl(uns32 uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
+uint32_t ncshm_declare_hdl(uint32_t uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 {
 	HM_FREE *free;
 	HM_CELL *cell = NULL;
 	HM_HDL *hdl = (HM_HDL *)&uhdl;
-	uns32 ret = NCSCC_RC_FAILURE;
-	uns32 pool_id = 0;
+	uint32_t ret = NCSCC_RC_FAILURE;
+	uint32_t pool_id = 0;
 
 	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
 	if (pool_id >= HM_POOL_CNT)
@@ -343,12 +343,12 @@ uns32 ncshm_declare_hdl(uns32 uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 
 *****************************************************************************/
 
-NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
+NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 {
 	HM_CELL *cell = NULL;
 	HM_HDL *hdl = (HM_HDL *)&uhdl;
 	NCSCONTEXT data = NULL;
-	uns32 pool_id = 0;
+	uint32_t pool_id = 0;
 
 	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
 	if (pool_id >= HM_POOL_CNT)
@@ -381,12 +381,12 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
                      data that this hdl leads to.
 
 *****************************************************************************/
-NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
+NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t uhdl)
 {
 	HM_CELL *cell = NULL;
 	HM_HDL *hdl = (HM_HDL *)&uhdl;
 	NCSCONTEXT data = NULL;
-	uns32 pool_id = 0;
+	uint32_t pool_id = 0;
 
 	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
 	if (pool_id >= HM_POOL_CNT)
@@ -416,12 +416,12 @@ NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
                      data.
 
 *****************************************************************************/
-void ncshm_give_hdl(uns32 uhdl)
+void ncshm_give_hdl(uint32_t uhdl)
 {
 	HM_CELL *cell = NULL;
 	HM_HDL *hdl = (HM_HDL *)&uhdl;
-	uns32 dummy = 0;
-	uns32 pool_id = 0;
+	uint32_t dummy = 0;
+	uint32_t pool_id = 0;
 
 	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
 	if (pool_id >= HM_POOL_CNT)
@@ -540,13 +540,13 @@ void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle)
    DESCRIPTION:      create a bunch of cells and put them in the free pool.
 
 *****************************************************************************/
-uns32 hm_make_free_cells(HM_PMGR *pmgr)
+uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 {
 	HM_UNIT *unit;
 	HM_CELLS *cells;
 	HM_CELL *cell;
 	HM_HDL hdl;
-	uns32 i;
+	uint32_t i;
 
 	unit = gl_hm.unit[pmgr->curr];
 
@@ -615,9 +615,9 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	HM_HDL tmp_hdl;
 	HM_FREE *back;
 	HM_FREE *found;
-	uns32 i;
+	uint32_t i;
 
-	uns32 tgt = *((uns32 *)hdl);
+	uint32_t tgt = *((uint32_t *)hdl);
 
 	pmgr = &gl_hm.pool[m_HM_POOL_ID((uint8_t)hdl->idx1)];	/* determine pool */
 
@@ -657,7 +657,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl)
 	back = (HM_FREE *)&pmgr->free_pool;
 
 	while (back->next != NULL) {
-		uns32 tst = *((uns32 *)&back->next->hdl);
+		uint32_t tst = *((uint32_t *)&back->next->hdl);
 		if (tst == tgt) {
 			found = back->next;	/* found it */
 			back->next = back->next->next;	/* splice it out */
@@ -745,7 +745,7 @@ NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg)
 
 *****************************************************************************/
 
-uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret)
+uint32_t ncslpg_give(NCSLPG_OBJ *pg, uint32_t ret)
 {
 	m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
 	return ret;
@@ -760,9 +760,9 @@ uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret)
 
 *****************************************************************************/
 
-uns32 ncslpg_create(NCSLPG_OBJ *pg)
+uint32_t ncslpg_create(NCSLPG_OBJ *pg)
 {
-	uns32 dummy;
+	uint32_t dummy;
 	if (pg->open == TRUE)
 		dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	pg->open = TRUE;

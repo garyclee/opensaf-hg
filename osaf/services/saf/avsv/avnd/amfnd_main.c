@@ -32,7 +32,7 @@ static int __init_avnd(void)
 
 int main(int argc, char *argv[])
 {
-	uns32 error;
+	uint32_t error;
 
 	daemonize(argc, argv);
 

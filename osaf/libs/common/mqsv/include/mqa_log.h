@@ -202,12 +202,12 @@ typedef enum mqa_log_ids {
 	MQA_LID_HDLN,
 } MQA_LOG_IDS;
 
-uns32 mqa_log_ascii_reg(void);
+uint32_t mqa_log_ascii_reg(void);
 void mqa_log_ascii_dereg(void);
-uns32 mqa_reg_strings();
+uint32_t mqa_reg_strings();
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqa_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno);
+void mqa_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno);
 void mqa_flx_log_reg(void);
 void mqa_flx_log_dereg(void);
 

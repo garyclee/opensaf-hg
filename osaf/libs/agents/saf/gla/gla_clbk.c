@@ -247,11 +247,11 @@ void gla_process_callback(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, GLSV_GLA
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
+uint32_t gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
 {
 	GLSV_GLA_CALLBACK_INFO *callback;
 	GLA_RESOURCE_ID_INFO *res_id_node = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* get it from the queue */
 	callback = glsv_gla_callback_queue_read(client_info);
@@ -285,7 +285,7 @@ uns32 gla_hdl_callbk_dispatch_one(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_hdl_callbk_dispatch_all(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
+uint32_t gla_hdl_callbk_dispatch_all(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
 {
 	GLSV_GLA_CALLBACK_INFO *callback;
 
@@ -308,11 +308,11 @@ uns32 gla_hdl_callbk_dispatch_all(GLA_CB *cb, GLA_CLIENT_INFO *client_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 gla_hdl_callbk_dispatch_block(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info)
+uint32_t gla_hdl_callbk_dispatch_block(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info)
 {
 	GLSV_GLA_CALLBACK_INFO *callback = NULL;
 	SaLckHandleT hdl = client_info->lock_handle_id;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	for (;;) {
 		if (NULL != (callback = (GLSV_GLA_CALLBACK_INFO *)
 			     m_NCS_IPC_RECEIVE(&client_info->callbk_mbx, callback))) {

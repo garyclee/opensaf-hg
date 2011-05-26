@@ -55,10 +55,10 @@
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-		      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+		      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saname_rules[] = {
@@ -102,10 +102,10 @@ uns32 ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_sanamet_net(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_sanamet_net(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saname_rules[] = {
@@ -148,10 +148,10 @@ uns32 ncs_edp_sanamet_net(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_saversiont(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_saversiont(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			 NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaVersionT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saversiont_rules[] = {
@@ -194,11 +194,11 @@ uns32 ncs_edp_saversiont(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saamfhealthcheckkeyt_rules[] = {
@@ -263,11 +263,11 @@ void  ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaClmNodeAddressT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saclmnodeaddresst_rules[] = {
@@ -314,11 +314,11 @@ uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfProtectionGroupMemberT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saamfprotectiongroupmembert_rules[] = {
@@ -362,11 +362,11 @@ uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfProtectionGroupNotificationT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET saamfprotectiongroupnotificationt_rules[] = {

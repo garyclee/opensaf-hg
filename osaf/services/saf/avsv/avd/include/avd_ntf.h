@@ -68,28 +68,28 @@ SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
 				   NCSCONTEXT add_info,
 				   int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
-uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
+uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					SaNameT comp_name,
 					SaUint8T *add_text,
 					SaUint16T majorId,
 					SaUint16T minorId,
-					uns32 probableCause,
-					uns32 perceivedSeverity,
+					uint32_t probableCause,
+					uint32_t perceivedSeverity,
 					NCSCONTEXT add_info,
 					int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
-uns32 sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
+uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 					      SaNameT comp_name,
 					      SaUint8T *add_text,
 					      SaUint16T majorId,
 					      SaUint16T minorId,
-					      uns32 sourceIndicator,
+					      uint32_t sourceIndicator,
 					      SaUint16T stateId,
 					      SaUint16T newState,
 					      NCSCONTEXT add_info,
 					      int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 /* Clearing of alarms */
-void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uns32 probableCause);
+void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCause);
 
 #endif

@@ -130,7 +130,7 @@ void asapi_msg_enc(ASAPi_MSG_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -190,7 +190,7 @@ static void asapi_reg_enc(ASAPi_REG_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -259,7 +259,7 @@ static void asapi_reg_resp_enc(ASAPi_REG_RESP_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -315,7 +315,7 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -383,7 +383,7 @@ static void asapi_dereg_resp_enc(ASAPi_DEREG_RESP_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_nreslove_enc(ASAPi_NRESOLVE_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -437,7 +437,7 @@ static void asapi_nreslove_resp_enc(ASAPi_NRESOLVE_RESP_INFO *msg, NCS_UBAID *pB
 static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -476,7 +476,7 @@ static void asapi_getqueue_enc(ASAPi_GETQUEUE_INFO *msg, NCS_UBAID *pBuff)
 static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -523,7 +523,7 @@ static void asapi_getqueue_resp_enc(ASAPi_GETQUEUE_RESP_INFO *msg, NCS_UBAID *pB
 static void asapi_track_enc(ASAPi_TRACK_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -579,7 +579,7 @@ static void asapi_obj_info_enc(ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err, NCS
 {
 	uint8_t *pStream = 0, *pLength = 0;
 	uint16_t idx = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -637,7 +637,7 @@ static void asapi_track_ntfy_enc(ASAPi_TRACK_NTFY_INFO *msg, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0, *pLength = 0;
 	uint16_t idx = 0;
-	int32 ival = 0, fval = 0;
+	int32_t ival = 0, fval = 0;
 
 	ival = pBuff->ttl - sizeof(uint8_t);	/* Store the current TTL value */
 
@@ -724,7 +724,7 @@ static void asapi_ginfo_enc(SaNameT *group, SaMsgQueueGroupPolicyT policy, NCS_U
 static void asapi_qinfo_enc(ASAPi_QUEUE_PARAM *queue, NCS_UBAID *pBuff)
 {
 	uint8_t *pStream = 0;
-	uns32 i;
+	uint32_t i;
 
 	/* Encode Queue name & length */
 	asapi_name_enc(&queue->name, pBuff);

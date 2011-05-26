@@ -37,7 +37,7 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
 	NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
 	MQD_CB *cb;
 	MQSV_EVT *evt = 0;
-	uns32 mqd_hdl;
+	uint32_t mqd_hdl;
 
 	if (tmr != NULL) {
 		mqd_hdl = tmr->uarg;
@@ -81,7 +81,7 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
  * Description   : This function which is used to start the MQD Timer
  *
  *****************************************************************************/
-uns32 mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
+uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
 {
 	m_LOG_MQSV_D(MQD_TMR_START, NCSFL_LC_TIMER, NCSFL_SEV_NOTICE, duration, __FILE__, __LINE__);
 	if (tmr->tmr_id == TMR_T_NULL) {
@@ -89,7 +89,7 @@ uns32 mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
 	}
 
 	if (tmr->is_active == FALSE) {
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, mqd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, mqd_timer_expiry, (void *)tmr);
 		tmr->is_active = TRUE;
 	}
 

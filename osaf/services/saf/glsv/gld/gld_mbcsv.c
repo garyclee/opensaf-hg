@@ -17,25 +17,25 @@
 
 #include "gld.h"
 
-static uns32 glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb);
-static uns32 glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb);
-static uns32 glsv_gld_mbcsv_close(GLSV_GLD_CB *cb);
-static uns32 glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb);
-static uns32 glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb);
-static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb);
+static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb);
+static uint32_t glsv_gld_mbcsv_close(GLSV_GLD_CB *cb);
+static uint32_t glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb);
+static uint32_t glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb);
+static uint32_t glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg);
 /*static void gld_glnd_details_tree_destroy(GLSV_GLD_CB *cb); */
 /*static void gld_rsc_info_tree_destroy(GLSV_GLD_CB *cb); */
-/*static uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb); */
-/*static uns32 gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_details);*/
-/*static uns32 gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info);*/
+/*static uint32_t gld_cb_db_destroy (GLSV_GLD_CB *cb); */
+/*static uint32_t gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_details);*/
+/*static uint32_t gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info);*/
 
 /**********************************************************************************************
  * Name                   : gld_mbcsv_async_update
@@ -48,10 +48,10 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
  *
  * Notes                  : None
 **********************************************************************************************/
-uns32 glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2s_evt)
+uint32_t glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2s_evt)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	if ((a2s_evt == NULL) || (gld_cb == NULL)) {
 		m_LOG_GLD_MBCSV(GLD_NCS_MBCSV_SVC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -87,9 +87,9 @@ uns32 glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2
 *
 * Notes   : This function first calls the mbcsv_init then does an open and does a selection object get
 *****************************************************************************************/
-uns32 glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
+uint32_t glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = glsv_gld_mbcsv_init(gld_cb);
 	if (rc != NCSCC_RC_SUCCESS)
@@ -125,9 +125,9 @@ uns32 glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb)
 *
 * Notes   : This function first calls the mbcsv_init then does an open and does a selection object get
 *****************************************************************************************/
-uns32 glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb)
+uint32_t glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = glsv_gld_mbcsv_close(gld_cb);
 	if (rc != NCSCC_RC_SUCCESS)
@@ -149,7 +149,7 @@ uns32 glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb)
  *
  * Notes                  : None
 *************************************************************************************************/
-uns32 glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
+uint32_t glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
 
@@ -189,10 +189,10 @@ uns32 glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
  * Notes                  : Open call will set up a session between the peer entities. o_ckpt_hdl returned
                             by the OPEN call will uniquely identify the checkpoint session.
 *********************************************************************************************************/
-static uns32 glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
+static uint32_t glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (gld_cb == NULL) {
 		m_LOG_GLD_MBCSV(GLD_MBCSV_OPEN_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -203,7 +203,7 @@ static uns32 glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
-	arg.info.open.i_pwe_hdl = (uns32)gld_cb->mds_handle;
+	arg.info.open.i_pwe_hdl = (uint32_t)gld_cb->mds_handle;
 	arg.info.open.i_client_hdl = gld_cb->my_hdl;
 	/* arg.info.open.o_ckpt_hdl  =  NULL; */
 
@@ -230,7 +230,7 @@ static uns32 glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 *
 * Notes  : To receive a handle from OS and can be used in further processing of pending callbacks 
 ********************************************************************************************************/
-static uns32 glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb)
+static uint32_t glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -258,10 +258,10 @@ static uns32 glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb)
  *
  * Return Values : Success / Error
 ****************************************************************************/
-static uns32 glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
+static uint32_t glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_CLOSE;
@@ -286,7 +286,7 @@ static uns32 glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
  * Notes                  : This API is use for setting the role. Role Standby - initiate Cold Sync Request if it finds Active
                             Role Active - send ckpt data to multiple standby peers
  *********************************************************************************************************************/
-uns32 glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
+uint32_t glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -316,10 +316,10 @@ uns32 glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
  * Notes          : Closes the association, represented by i_mbc_hdl, between the invok
 ing process and MBCSV
 ***************************************************************************************/
-static uns32 glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb)
+static uint32_t glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_FINALIZE;
@@ -341,10 +341,10 @@ static uns32 glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb)
  *
  * Notes           :  Callbacks from MBCSV to user
 ***************************************************************************************************/
-static uns32 glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (arg == NULL) {
 		/* log the message */
@@ -387,9 +387,9 @@ static uns32 glsv_gld_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Return Values   : Success / Error
  *
 ****************************************************************************************/
-static uns32 glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, msg_fmt_version;
+	uint32_t rc = NCSCC_RC_SUCCESS, msg_fmt_version;
 	GLSV_GLD_CB *gld_cb;
 
 	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
@@ -456,10 +456,10 @@ static uns32 glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
  *
  * Return Values : Success / Error
 *****************************************************************************************/
-static uns32 glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	GLSV_GLD_CB *gld_cb;
-	uns32 msg_fmt_version;
+	uint32_t msg_fmt_version;
 
 	gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
 	if (gld_cb == NULL) {
@@ -527,11 +527,11 @@ static uns32 glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
  * 
  * Return Values : Success / Error
 ***********************************************************************************/
-static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr, data[16];
 	GLSV_GLD_A2S_CKPT_EVT *a2s_evt;
-	uns32 evt_type, rc = NCSCC_RC_SUCCESS;
+	uint32_t evt_type, rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	GLSV_A2S_RSC_OPEN_INFO *rsc_info = NULL;
 	GLSV_A2S_RSC_DETAILS *rsc_details = NULL;
@@ -644,9 +644,9 @@ static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
  * 
  * Return Values : Success / Error
 *********************************************************************************/
-static uns32 glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
+	uint32_t num_of_async_upd, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
@@ -654,7 +654,7 @@ static uns32 glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB
 
 	memset(&ncs_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, 4);
 
@@ -686,7 +686,7 @@ static uns32 glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB
  *
  * Notes         : None.
  *****************************************************************************
-uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb)
+uint32_t gld_cb_db_destroy (GLSV_GLD_CB *cb)
 {  
    
    gld_glnd_details_tree_destroy(cb);
@@ -703,11 +703,11 @@ uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb)
  *
  * Return Values  : Success / Error
 *************************************************************************************/
-static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr, num_of_ckpts, data[16];
 	GLSV_GLD_A2S_RSC_DETAILS *rsc_info;
-	uns32 count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
+	uint32_t count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
 	EDU_ERR ederror = 0;
 	GLSV_A2S_NODE_LIST *node_list, *tmp1_node_list;
 
@@ -744,7 +744,7 @@ static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG 
 	}
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	gld_cb->gld_async_cnt = num_of_async_upd;
 
@@ -772,10 +772,10 @@ static uns32 glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG 
  * Notes          : from io_reo_type - the event is determined and based on the event we encode the MBCSv_MSG
                     This is called at the active side
 *******************************************************************************************/
-static uns32 glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	GLSV_GLD_A2S_CKPT_EVT *a2s_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *gld_type_ptr = NULL;
 
@@ -851,7 +851,7 @@ static uns32 glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_A
  |that will be sent |               |           |      |           | cnt ( 0 ) |
  |------------------|---------------------------|------|-----------|-----------|
 *******************************************************************************************/
-static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
 	GLSV_GLD_A2S_RSC_DETAILS rsc_details;
@@ -859,7 +859,7 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 	GLSV_A2S_NODE_LIST *a2s_node_list = NULL;
 	GLSV_A2S_NODE_LIST *tmp_a2s_node_list = NULL;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, no_of_ckpts = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, no_of_ckpts = 0;
 	EDU_ERR ederror = 0;
 	uint8_t *header;
 	uint8_t *async_cnt;
@@ -992,13 +992,13 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_cnt = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	async_cnt = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_cnt == NULL) {
 		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&async_cnt, gld_cb->gld_async_cnt);
 
 	if (no_of_ckpts < MAX_NO_OF_RSC_INFO_RECORDS) {
@@ -1025,20 +1025,20 @@ static uns32 glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *a
  *
  * Notes : This is called at the active side
 ************************************************************************************************/
-static uns32 glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
-	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
 		m_LOG_GLD_MEMFAIL(GLD_ENC_RESERVE_SPACE_FAILED, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* SEND THE ASYNC UPDATE COUNTER */
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&wsync_ptr, gld_cb->gld_async_cnt);
 	arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 	return rc;

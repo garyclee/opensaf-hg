@@ -75,12 +75,12 @@ typedef enum glsv_glnd_evt_type {
  * This Event structures are used between GLA and GLND 
  *****************************************************************************/
 typedef struct glsv_evt_agent_info_tag {
-	uns32 process_id;
+	uint32_t process_id;
 	MDS_DEST agent_mds_dest;
 } GLSV_EVT_AGENT_INFO;
 
 typedef struct glsv_evt_client_info_tag {
-	uns32 client_proc_id;
+	uint32_t client_proc_id;
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
 	uint16_t cbk_reg_info;	/* bit-wise data */
@@ -98,7 +98,7 @@ typedef struct glsv_evt_rsc_info_tag {
 	SaLckResourceIdT resource_id;
 	SaLckResourceIdT lcl_resource_id;
 	SaLckLockIdT lcl_lockid;
-	uns32 lcl_resource_id_count;
+	uint32_t lcl_resource_id_count;
 	SaInvocationT invocation;
 	GLSV_CALL_TYPE call_type;
 	SaTimeT timeout;
@@ -112,11 +112,11 @@ typedef struct glsv_evt_restart_res_info {
 
 typedef struct glsv_evt_restart_client_info {
 	SaLckHandleT client_handle_id;
-	uns32 app_proc_id;
+	uint32_t app_proc_id;
 	MDS_DEST agent_mds_dest;
 	SaVersionT version;
 	uint16_t cbk_reg_info;	/* bit-wise data */
-	uns32 no_of_res;
+	uint32_t no_of_res;
 	SaLckResourceIdT resource_id;
 } GLSV_EVT_RESTART_CLIENT_INFO;
 
@@ -167,7 +167,7 @@ typedef struct glsv_evt_glnd_rsc_info_tag {
 	/* list of all rsc-lck info */
 	SaLckResourceIdT resource_id;
 	MDS_DEST glnd_mds_dest;
-	uns32 num_requests;
+	uint32_t num_requests;
 	GLND_LOCK_LIST_INFO *list_of_req;
 } GLSV_EVT_GLND_RSC_INFO;
 
@@ -200,12 +200,12 @@ typedef struct glsv_evt_glnd_rsc_gld_info_tag {
 typedef struct glsv_evt_glnd_rsc_master_info_list_tag {
 	SaLckResourceIdT rsc_id;
 	MDS_DEST master_dest_id;
-	uns32 master_status;
+	uint32_t master_status;
 	struct glsv_evt_glnd_rsc_master_info_list_tag *next;
 } GLSV_GLND_RSC_MASTER_INFO_LIST;
 
 typedef struct glsv_evt_glnd_rsc_master_info_tag {
-	uns32 no_of_res;
+	uint32_t no_of_res;
 	struct glsv_evt_glnd_rsc_master_info_list_tag *rsc_master_list;
 } GLSV_EVT_GLND_RSC_MASTER_INFO;
 
@@ -214,17 +214,17 @@ typedef struct glsv_evt_glnd_new_master_info_tag {
 	MDS_DEST master_dest_id;
 	NCS_BOOL orphan;	/*should the new master orphan the lck? */
 	SaLckLockModeT orphan_lck_mode;	/*lck_mode for orphaning            */
-	uns32 status;		/* newly added */
+	uint32_t status;		/* newly added */
 } GLSV_EVT_GLND_NEW_MAST_INFO;
 
 /* timer event definition */
 typedef struct glnd_evt_tmr_tag {
-	uns32 opq_hdl;
+	uint32_t opq_hdl;
 } GLND_EVT_TMR;
 
 typedef struct glnd_evt_glnd_down_tag {
 	MDS_DEST dest_id;
-	uns32 status;
+	uint32_t status;
 } GLND_EVT_GLND_NON_MASTER_STATUS;
 
 /*****************************************************************************
@@ -233,8 +233,8 @@ typedef struct glnd_evt_glnd_down_tag {
 typedef struct glsv_glnd_evt {
 	struct glsv_glnd_evt *next;
 	GLSV_GLND_EVT_TYPE type;
-	uns32 priority;
-	uns32 glnd_hdl;
+	uint32_t priority;
+	uint32_t glnd_hdl;
 	union {
 		GLSV_EVT_AGENT_INFO agent_info;	/* GLSV_GLND_EVT_REG_AGENT , GLSV_GLND_EVT_UNREG_AGENT  */
 		GLSV_EVT_CLIENT_INFO client_info;	/* GLSV_GLND_EVT_INITIALIZE  */
@@ -259,11 +259,11 @@ typedef struct glsv_glnd_evt {
 		GLND_EVT_GLND_NON_MASTER_STATUS non_master_info;	/* GLSV_GLND_EVT_NON_MASTER_INFO */
 	} info;
 	MDS_SYNC_SND_CTXT mds_context;
-	uns32 shm_index;
+	uint32_t shm_index;
 } GLSV_GLND_EVT;
 
 /* prototypes */
 void glnd_evt_destroy(GLSV_GLND_EVT *evt);
-uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt);
+uint32_t glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt);
 
 #endif

@@ -61,7 +61,7 @@ static SaUint32T plms_clean_mbcsv_database();
 *****************************************************************************/
 SaUint32T plms_mbcsv_register()
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	
 	TRACE_ENTER();
@@ -107,7 +107,7 @@ SaUint32T plms_mbcsv_register()
 SaUint32T plms_mbcsv_init()
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CB * cb = plms_cb;
 	
 	TRACE_ENTER();
@@ -148,13 +148,13 @@ SaUint32T plms_mbcsv_open()
 {
 	NCS_MBCSV_ARG arg;
 	PLMS_CB *cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	arg.info.open.i_client_hdl = 0;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
@@ -198,7 +198,7 @@ SaUint32T plms_mbcsv_selobj_get()
 	NCS_MBCSV_ARG arg;
 	PLMS_CB *cb = plms_cb;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
@@ -234,7 +234,7 @@ SaUint32T plms_mbcsv_selobj_get()
 SaUint32T plms_mbcsv_chgrole()
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CB * cb = plms_cb;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
@@ -268,7 +268,7 @@ SaUint32T plms_mbcsv_close()
 {
 	NCS_MBCSV_ARG arg;
 	PLMS_CB * cb= plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
 
@@ -299,7 +299,7 @@ SaUint32T plms_mbcsv_finalize()
 {
 	NCS_MBCSV_ARG arg;
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
 
@@ -316,7 +316,7 @@ SaUint32T plms_mbcsv_finalize()
 SaUint32T plms_mbcsv_dispatch()
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 	TRACE_ENTER();
@@ -347,7 +347,7 @@ SaUint32T plms_mbcsv_dispatch()
 *****************************************************************************/
 SaUint32T plms_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	if (arg == NULL) {
@@ -397,7 +397,7 @@ SaUint32T plms_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 	 
 SaUint32T plms_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         PLMS_CB *cb = plms_cb;
         uint16_t msg_fmt_version;
 
@@ -544,9 +544,9 @@ SaUint32T plms_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 		 
-SaUint32T plms_edp_mbcsv_msg_header(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+SaUint32T plms_edp_mbcsv_msg_header(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         PLMS_MBCSV_HEADER *struct_ptr = NULL, **d_ptr;
 
 	EDU_INST_SET plms_mbcsv_msg_header_rules[] = {
@@ -601,9 +601,9 @@ SaUint32T plms_edp_mbcsv_msg_header(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTE
  * Notes         : None.
  *****************************************************************************/
 
-SaUint32T plms_edp_trk_step_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+SaUint32T plms_edp_trk_step_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         PLMS_CKPT_TRACK_STEP_INFO *struct_ptr = NULL, **d_ptr;
 
 	EDU_INST_SET plms_trk_step_info_rules[] = {
@@ -656,9 +656,9 @@ SaUint32T plms_edp_trk_step_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT 
  *
  * Notes         : None.
  *****************************************************************************/
-SaUint32T plms_edp_entity_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+SaUint32T plms_edp_entity_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         PLMS_CKPT_ENTITY_LIST *struct_ptr = NULL, **d_ptr;
 
 	EDU_INST_SET plms_entity_list_rules[] = {
@@ -719,9 +719,9 @@ SaUint32T plms_edp_entity_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT pt
  * Notes         : None.
  *****************************************************************************/
 
-SaUint32T plms_edp_entity_grp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+SaUint32T plms_edp_entity_grp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         PLMS_CKPT_ENTITY_GROUP_INFO *struct_ptr = NULL, **d_ptr;
 
 	EDU_INST_SET plms_entity_grp_info_rules[] = {
@@ -778,9 +778,9 @@ SaUint32T plms_edp_entity_grp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEX
  * Notes         : None.
  *****************************************************************************/
 		
-SaUint32T plms_edp_client_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
+SaUint32T plms_edp_client_info_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr,uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,EDP_OP_TYPE op,EDU_ERR *o_err)
 {
-	 uns32 rc = NCSCC_RC_SUCCESS;
+	 uint32_t rc = NCSCC_RC_SUCCESS;
 	 PLMS_CKPT_CLIENT_INFO_LIST *struct_ptr = NULL, **d_ptr;
 
 	 EDU_INST_SET plms_client_info_list_rules[] = {
@@ -818,7 +818,7 @@ SaUint32T plms_mbcsv_enc_async_update(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_MBCSV_MSG *data;
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
         TRACE_ENTER();
 
@@ -893,7 +893,7 @@ SaUint32T plms_mbcsv_dec_async_update(NCS_MBCSV_CB_ARG *arg)
 	PLMS_CKPT_TRACK_STEP_INFO   *trk_step_info;
 	PLMS_CKPT_CLIENT_INFO_LIST  *client_info;
 	
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
         TRACE_ENTER();
 
 	msg = (PLMS_MBCSV_MSG *)malloc(sizeof(PLMS_MBCSV_MSG));
@@ -1025,7 +1025,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
-        uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+        uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
         uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CKPT_TRACK_STEP_INFO *ckpt_ptr, * ptr;
@@ -1243,7 +1243,7 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
-        uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+        uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
         uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CKPT_ENTITY_GROUP_INFO *ckpt_ptr;
@@ -1319,14 +1319,14 @@ SaUint32T plms_edu_enc_entity_grp_info_data(NCS_MBCSV_CB_ARG *arg)
 
 		/* This will have the count of async updates that have i
 		been sent, this will be 0 initially */
-	        async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uns32));
+	        async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 		if (async_upd_cnt == NULL) 
 		{
 			LOG_ER("Async update count encode Failed");
 			return NCSCC_RC_FAILURE;
 		}
 		ncs_encode_32bit(&async_upd_cnt, cb->async_update_cnt);
-		ncs_enc_claim_space(uba, sizeof(uns32));
+		ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 		if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP)
 			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
@@ -1348,7 +1348,7 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
-        uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+        uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
         uint8_t *pheader = NULL;
         PLMS_MBCSV_HEADER msg_hdr;
 	PLMS_CLIENT_INFO *client_info = NULL;
@@ -1397,14 +1397,14 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 
 			plms_enc_mbcsv_header(pheader,msg_hdr);
 			/* send async update count */
-			async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uns32));
+			async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 			if (async_upd_cnt == NULL) 
 			{
 				LOG_ER("Async update count encode Failed");
 				return NCSCC_RC_FAILURE;
 			}
 			ncs_encode_32bit(&async_upd_cnt, cb->async_update_cnt);
-			ncs_enc_claim_space(uba, sizeof(uns32));
+			ncs_enc_claim_space(uba, sizeof(uint32_t));
 			TRACE("Async update count sent to stdby : %d",cb->async_update_cnt);
 			free(ckpt_client_info);
 			return NCSCC_RC_SUCCESS;
@@ -1454,14 +1454,14 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 
 			/* This will have the count of async updates that have i
 			been sent, this will be 0 initially */
-			async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uns32));
+			async_upd_cnt = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 			if (async_upd_cnt == NULL) 
 			{
 				LOG_ER("Async update count encode Failed");
 				return NCSCC_RC_FAILURE;
 			}
 			ncs_encode_32bit(&async_upd_cnt, cb->async_update_cnt);
-			ncs_enc_claim_space(uba, sizeof(uns32));
+			ncs_enc_claim_space(uba, sizeof(uint32_t));
 			TRACE("Async update count sent to stdby : %d",cb->async_update_cnt);
 			if (arg->info.encode.io_msg_type == 
 						NCS_MBCSV_MSG_COLD_SYNC_RESP)
@@ -1508,12 +1508,12 @@ SaUint32T plms_edu_enc_client_info_data(NCS_MBCSV_CB_ARG *arg)
 
 SaUint32T plms_mbcsv_decode_cold_sync_data(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CB * cb = plms_cb;
 	EDU_ERR ederror = 0;
 	PLMS_MBCSV_MSG *data = NULL;
 	/*  NCS_UBAID *uba=NULL; */
-	uns32 num_rec = 0,num_of_async_upd;
+	uint32_t num_rec = 0,num_of_async_upd;
 	PLMS_CKPT_TRACK_STEP_INFO *trk_step_info = NULL;
 	PLMS_CKPT_ENTITY_GROUP_INFO *entity_grp_info = NULL;
 	PLMS_CKPT_CLIENT_INFO_LIST *client_info;
@@ -1648,7 +1648,7 @@ SaUint32T plms_mbcsv_decode_cold_sync_data(NCS_MBCSV_CB_ARG *cbk_arg)
 		
 			/* Get the async update count */
 			ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba
-						, data_cnt, sizeof(uns32));
+						, data_cnt, sizeof(uint32_t));
 			num_of_async_upd = ncs_decode_32bit(&ptr);
 			cb->async_update_cnt = num_of_async_upd;
 			ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
@@ -1668,7 +1668,7 @@ SaUint32T plms_mbcsv_decode_cold_sync_data(NCS_MBCSV_CB_ARG *cbk_arg)
 SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg)
 {
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
 
 	TRACE_ENTER();
@@ -1730,10 +1730,10 @@ SaUint32T plms_mbcsv_encode_cold_sync_data(NCS_MBCSV_CB_ARG * arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, uns32 action)
+SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, uint32_t action)
  {
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
 
 	/* Fill mbcsv specific data */
@@ -1760,7 +1760,7 @@ SaUint32T plms_mbcsv_send_async_update(PLMS_MBCSV_MSG *msg, uns32 action)
 }       /*End plms_mbcsv_send_async_update() */
  
 
-uns32 plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
+uint32_t plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 {
 
 	PLMS_CB * cb = plms_cb;
@@ -1804,7 +1804,7 @@ uns32 plms_mbcsv_add_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 SaUint32T plms_mbcsv_update_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 {
 	PLMS_CB * cb =plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CKPT_TRACK_STEP_INFO *tmp_ptr;
 	
 	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
@@ -1843,7 +1843,7 @@ SaUint32T plms_mbcsv_update_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 SaUint32T plms_mbcsv_rem_trk_step_info_rec(PLMS_MBCSV_MSG *msg)
 {
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CKPT_TRACK_STEP_INFO *tmp_ptr,*prev_ptr = NULL;
 	
 	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
@@ -2219,7 +2219,7 @@ SaUint32T plms_mbcsv_rmv_client_info(PLMS_MBCSV_MSG *msg)
 
 SaUint32T plms_process_mbcsv_data(PLMS_MBCSV_MSG *msg,NCS_MBCSV_ACT_TYPE action)		  
 {	
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CKPT_ENTITY_LIST *list_ptr1,*list_ptr2;
 	PLMS_CB *cb = plms_cb;
 
@@ -2346,17 +2346,17 @@ SaUint32T plms_process_mbcsv_data(PLMS_MBCSV_MSG *msg,NCS_MBCSV_ACT_TYPE action)
 *******************************************************************************/
 SaUint32T plms_mbcsv_enc_warm_sync_resp(PLMS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
-	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
 		LOG_ER("PLMS mem alloc failed for encoding warm sync resp");
 		return NCSCC_RC_FAILURE;
 	}
 	/* SEND THE ASYNC UPDATE COUNTER */
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&wsync_ptr, cb->async_update_cnt);
 	arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 	return rc;
@@ -2375,7 +2375,7 @@ SaUint32T plms_mbcsv_enc_warm_sync_resp(PLMS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 SaUint32T plms_mbcsv_dec_warm_sync_resp(NCS_MBCSV_CB_ARG *arg)
 {
 	PLMS_CB * cb = plms_cb;
-	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
+	uint32_t num_of_async_upd, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
@@ -2383,7 +2383,7 @@ SaUint32T plms_mbcsv_dec_warm_sync_resp(NCS_MBCSV_CB_ARG *arg)
 
 	memset(&ncs_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, 4);
 

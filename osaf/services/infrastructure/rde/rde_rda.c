@@ -57,9 +57,9 @@
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
+static uint32_t rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -91,7 +91,7 @@ static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
+static uint32_t rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
 {
 	struct stat sockStat;
 	int rc;
@@ -140,7 +140,7 @@ static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
+static uint32_t rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
 {
 	int rc;
 
@@ -177,7 +177,7 @@ static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_write_msg(int fd, char *msg)
+static uint32_t rde_rda_write_msg(int fd, char *msg)
 {
 	int rc = NCSCC_RC_SUCCESS;
 	int msg_size = 0;
@@ -210,7 +210,7 @@ static uns32 rde_rda_write_msg(int fd, char *msg)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_read_msg(int fd, char *msg, int size)
+static uint32_t rde_rda_read_msg(int fd, char *msg, int size)
 {
 	int msg_size = 0;
 
@@ -258,7 +258,7 @@ static uns32 rde_rda_read_msg(int fd, char *msg, int size)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index)
+static uint32_t rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index)
 {
 	char msg[64] = { 0 };
 	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
@@ -293,7 +293,7 @@ static uns32 rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int role)
+static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int role)
 {
 	char msg[64] = { 0 };
 
@@ -329,7 +329,7 @@ static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int rol
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
+static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 {
 	char msg[64] = { 0 };
 
@@ -370,7 +370,7 @@ static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index)
+static uint32_t rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index)
 {
 	int rc = 0;
 	int iter = 0;
@@ -438,7 +438,7 @@ const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
+uint32_t rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
 {
 	TRACE_ENTER();
 
@@ -474,7 +474,7 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
+uint32_t rde_rda_close(RDE_RDA_CB *rde_rda_cb)
 {
 	TRACE_ENTER();
 
@@ -511,11 +511,11 @@ uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconnect)
+uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconnect)
 {
 	RDE_RDA_CMD_TYPE cmd_type;
 	char msg[256] = { 0 };
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	int value = 0;
 	char *ptr;
 
@@ -580,7 +580,7 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconn
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_send_role(int role)
+uint32_t rde_rda_send_role(int role)
 {
 	int index;
 	char msg[64] = { 0 };

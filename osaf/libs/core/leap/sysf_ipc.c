@@ -51,13 +51,13 @@
 #include "ncssysf_mem.h"
 
 static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block);
-static uns32 ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
-static uns32 ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
+static uint32_t ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
+static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number);
 
-uns32 ncs_ipc_create(SYSF_MBX *mbx)
+uint32_t ncs_ipc_create(SYSF_MBX *mbx)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 rc;
+	uint32_t rc;
 
 	if (NULL == (ncs_ipc = (NCS_IPC *)m_NCS_MEM_ALLOC(sizeof(NCS_IPC),
 							  NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 1)))
@@ -100,7 +100,7 @@ uns32 ncs_ipc_create(SYSF_MBX *mbx)
 	return rc;
 }
 
-static uns32 ipc_flush(NCS_IPC *ncs_ipc, NCS_IPC_CB remove_from_queue_cb, void *arg)
+static uint32_t ipc_flush(NCS_IPC *ncs_ipc, NCS_IPC_CB remove_from_queue_cb, void *arg)
 {
 	NCS_IPC_MSG *msg, *p_next;
 	NCS_IPC_MSG *p_prev = NULL;
@@ -150,26 +150,26 @@ NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx)
 		return sel_obj;
 
 	/* get the mailbox pointer from the handle */
-	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	if (ncs_ipc == NULL)
 		return sel_obj;
 	sel_obj = (ncs_ipc->sel_obj);
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 
 	return sel_obj;
 }
 
-uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
+uint32_t ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || (NULL == NCS_INT32_TO_PTR_CAST(*mbx)))
 		return NCSCC_RC_FAILURE;
 
 	/* get the mailbox pointer from the handle */
-	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
@@ -179,7 +179,7 @@ uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
 	if (0 != ncs_ipc->ref_count) {
 		/* all users must detach BEFORE doing a release. */
 		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uns32)*mbx);
+		ncshm_give_hdl((uint32_t)*mbx);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -190,11 +190,11 @@ uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
 	/* destroy the handle - here */
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 
 	m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(&ncs_ipc->sel_obj);
 
-	ncshm_destroy_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncshm_destroy_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&ncs_ipc->sel_obj);
 
@@ -210,7 +210,7 @@ uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
 	return rc;
 }
 
-uns32 ncs_ipc_attach(SYSF_MBX *mbx)
+uint32_t ncs_ipc_attach(SYSF_MBX *mbx)
 {
 	NCS_IPC *ncs_ipc;
 
@@ -230,11 +230,11 @@ uns32 ncs_ipc_attach(SYSF_MBX *mbx)
 
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name)
+uint32_t ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name)
 {
 	NCS_IPC *ncs_ipc;
 
@@ -242,7 +242,7 @@ uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name)
 		return NCSCC_RC_FAILURE;
 
 	/* get the mailbox pointer from the handle */
-	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
@@ -255,7 +255,7 @@ uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name)
 	if (NULL == (ncs_ipc->name = (char *)m_NCS_MEM_ALLOC(sizeof(char) * (strlen(task_name) + 1),
 							     NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 1))) {
 		m_NCS_MEM_FREE(ncs_ipc, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 1);
-		ncshm_give_hdl((uns32)*mbx);
+		ncshm_give_hdl((uint32_t)*mbx);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -263,20 +263,20 @@ uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name)
 
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb, void *cb_arg)
+uint32_t ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb, void *cb_arg)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 rc;
+	uint32_t rc;
 
 	if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || (NULL == NCS_INT32_TO_PTR_CAST(*mbx)))
 		return NCSCC_RC_FAILURE;
 
 	/* get the mailbox pointer from the handle */
-	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
@@ -293,7 +293,7 @@ uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb, void *cb_ar
 
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 	return rc;
 }
 
@@ -324,7 +324,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 	while (1) {
 
 		/* Take the handle before proceeding */
-		ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+		ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 		if (ncs_ipc == NULL)
 			return NULL;
 
@@ -333,7 +333,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 			m_NCS_SEL_OBJ_SET(mbx_obj, &obj_set);
 
 			if (m_NCS_SEL_OBJ_SELECT(mbx_obj, &obj_set, NULL, NULL, NULL) != 1) {
-				ncshm_give_hdl((uns32)*mbx);
+				ncshm_give_hdl((uint32_t)*mbx);
 				return NULL;
 			}
 		}
@@ -342,7 +342,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 
 		if (ncs_ipc->ref_count == 0) {
 			m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-			ncshm_give_hdl((uns32)*mbx);
+			ncshm_give_hdl((uint32_t)*mbx);
 			return NULL;
 		}
 		msg = NULL;
@@ -366,12 +366,12 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 				/* Should never reach here */
 				assert(0);
 				m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-				ncshm_give_hdl((uns32)*mbx);
+				ncshm_give_hdl((uint32_t)*mbx);
 				m_LEAP_DBG_SINK(0);
 				return NULL;
 			} else {
 				m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-				ncshm_give_hdl((uns32)*mbx);
+				ncshm_give_hdl((uint32_t)*mbx);
 				return NULL;
 			}
 		} else {
@@ -390,12 +390,12 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 
 					if (ipc_dequeue_ind_processing(ncs_ipc, active_queue) != NCSCC_RC_SUCCESS) {
 						m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-						ncshm_give_hdl((uns32)*mbx);
+						ncshm_give_hdl((uint32_t)*mbx);
 						m_LEAP_DBG_SINK(NULL);
 						return NULL;
 					} else {
 						m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-						ncshm_give_hdl((uns32)*mbx);
+						ncshm_give_hdl((uint32_t)*mbx);
 						return msg;
 					}
 				}
@@ -403,13 +403,13 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 			/* We should never reach here. */
 			assert(0);
 			m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-			ncshm_give_hdl((uns32)*mbx);
+			ncshm_give_hdl((uint32_t)*mbx);
 			m_LEAP_DBG_SINK(NULL);
 			return NULL;
 		}
 
 		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uns32)*mbx);
+		ncshm_give_hdl((uint32_t)*mbx);
 	}			/* end of while */
 }
 
@@ -424,7 +424,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
                                (1)  <zero, no indication>
                                (2)  <non-zero, exactly one ind raised>
 \************************************************************************/
-static uns32 ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number)
+static uint32_t ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_number)
 {
 	if ((ncs_ipc->max_no_of_msgs[queue_number] != 0)
 	    && (ncs_ipc->no_of_msgs[queue_number] >= ncs_ipc->max_no_of_msgs[queue_number]))
@@ -459,7 +459,7 @@ static uns32 ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_num
                                (1)  <zero, no indication>
                                (2)  <non-zero, exactly one ind raised>
 \************************************************************************/
-static uns32 ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active_queue)
+static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active_queue)
 {
 	int inds_rmvd;
 
@@ -486,15 +486,15 @@ static uns32 ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active_qu
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
+uint32_t ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 queue_number;
+	uint32_t queue_number;
 
 	if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || (NULL == NCS_INT32_TO_PTR_CAST(*mbx)))
 		return NCSCC_RC_FAILURE;
 
-	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
 
@@ -507,7 +507,7 @@ uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 		 */
 		m_LEAP_DBG_SINK_VOID;
 		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uns32)*mbx);
+		ncshm_give_hdl((uint32_t)*mbx);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -530,22 +530,22 @@ uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
 		/* Should never reach here */
 		assert(0);
 		m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-		ncshm_give_hdl((uns32)*mbx);
+		ncshm_give_hdl((uint32_t)*mbx);
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
 	/* unblock receiver... */
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_msgs)
+uint32_t ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uint32_t max_msgs)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 queue_number;
+	uint32_t queue_number;
 
 	if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || ((prio >= NCS_IPC_PRIORITY_MAX) || (prio < NCS_IPC_PRIORITY_LOW)))
 		return NCSCC_RC_FAILURE;
@@ -553,7 +553,7 @@ uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_ms
 	if (NULL == NCS_INT32_TO_PTR_CAST(*mbx))
 		return NCSCC_RC_FAILURE;
 
-	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
 
@@ -561,15 +561,15 @@ uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_ms
 	queue_number = NCS_IPC_PRIO_LEVELS - prio;
 	ncs_ipc->max_no_of_msgs[queue_number] = max_msgs;
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_ipc_config_usr_counters(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 *usr_counter)
+uint32_t ncs_ipc_config_usr_counters(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uint32_t *usr_counter)
 {
 	NCS_IPC *ncs_ipc;
-	uns32 queue_number;
+	uint32_t queue_number;
 
 	if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || ((prio >= NCS_IPC_PRIORITY_MAX) || (prio < NCS_IPC_PRIORITY_LOW))
 	    || (usr_counter == NULL))
@@ -578,7 +578,7 @@ uns32 ncs_ipc_config_usr_counters(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 *u
 	if (NULL == NCS_INT32_TO_PTR_CAST(*mbx))
 		return NCSCC_RC_FAILURE;
 
-	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
+	ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uint32_t)*mbx);
 
 	if (ncs_ipc == NULL)
 		return NCSCC_RC_FAILURE;
@@ -587,7 +587,7 @@ uns32 ncs_ipc_config_usr_counters(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 *u
 	queue_number = NCS_IPC_PRIO_LEVELS - prio;
 	ncs_ipc->usr_counters[queue_number] = usr_counter;
 	m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
-	ncshm_give_hdl((uns32)*mbx);
+	ncshm_give_hdl((uint32_t)*mbx);
 
 	return NCSCC_RC_SUCCESS;
 }

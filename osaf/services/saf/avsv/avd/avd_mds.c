@@ -48,8 +48,8 @@ const MDS_CLIENT_MSG_FORMAT_VER avd_avd_msg_fmt_map_table[AVD_AVD_SUBPART_VER_MA
 
 /* fwd decl */
 
-static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info);
-static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info);
+static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info);
+static uint32_t avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info);
 
 /****************************************************************************
   Name          : avd_mds_set_vdest_role
@@ -63,10 +63,10 @@ static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info);
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
+uint32_t avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	NCSVDA_INFO vda_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
@@ -89,12 +89,12 @@ uns32 avd_mds_set_vdest_role(AVD_CL_CB *cb, SaAmfHAStateT role)
  * 
  * @return uns32
  */
-uns32 avd_mds_init(AVD_CL_CB *cb)
+uint32_t avd_mds_init(AVD_CL_CB *cb)
 {
 	NCSVDA_INFO vda_info;
 	NCSMDS_INFO svc_to_mds_info;
 	MDS_SVC_ID svc_id[1];
-	uns32 rc;
+	uint32_t rc;
 	NCSADA_INFO ada_info;
 	EDU_ERR err = EDU_NORMAL;
 
@@ -235,9 +235,9 @@ uns32 avd_mds_init(AVD_CL_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
+uint32_t avd_mds_cbk(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (info->i_op) {
 	case MDS_CALLBACK_RECEIVE:
@@ -387,9 +387,9 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
+static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_CL_CB *cb = avd_cb;
 
 	switch (evt_info->i_change) {
@@ -472,7 +472,7 @@ static uns32 avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
                   ack from mds. This new event will not have any info
                   part, only the msg type is enough 
 ******************************************************************************/
-static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
+static uint32_t avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;
@@ -507,10 +507,10 @@ static uns32 avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 
   Notes         : None.
 ******************************************************************************/
-uns32 avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
+uint32_t avd_avnd_mds_send(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 {
 	NCSMDS_INFO snd_mds;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -602,9 +602,9 @@ void avd_standby_avd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
         TRACE_ENTER();
 }
 
-uns32 avd_mds_send(MDS_SVC_ID i_to_svc, MDS_DEST i_to_dest, NCSCONTEXT i_msg)
+uint32_t avd_mds_send(MDS_SVC_ID i_to_svc, MDS_DEST i_to_dest, NCSCONTEXT i_msg)
 {
-	uns32 rc;
+	uint32_t rc;
 	NCSMDS_INFO snd_mds = {0};
 
 	snd_mds.i_mds_hdl = avd_cb->adest_hdl;

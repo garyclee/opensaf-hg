@@ -32,14 +32,14 @@ static MDS_CLIENT_MSG_FORMAT_VER
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
 	TRACE_ENTER();
@@ -69,14 +69,14 @@ static uns32 ntfa_enc_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
 
 	TRACE_ENTER();
@@ -105,11 +105,11 @@ static uns32 ntfa_enc_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	ntfsv_subscribe_req_t *param = &msg->info.api_info.param.subscribe;
 	return ntfsv_enc_subscribe_msg(uba, param);
@@ -123,11 +123,11 @@ static uns32 ntfa_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	ntfsv_unsubscribe_req_t *param = &msg->info.api_info.param.unsubscribe;
 	return ntfsv_enc_unsubscribe_msg(uba, param);
@@ -141,11 +141,11 @@ static uns32 ntfa_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	ntfsv_send_not_req_t *param = msg->info.api_info.param.send_notification;
 	return ntfsv_enc_not_msg(uba, param);
@@ -159,14 +159,14 @@ static uns32 ntfa_enc_send_not_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_reader_init_req_t *param = &msg->info.api_info.param.reader_init;
 
 	TRACE_ENTER();
@@ -197,14 +197,14 @@ static uns32 ntfa_enc_reader_initialize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_req_t *param = &msg->info.api_info.param.reader_finalize;
 
 	TRACE_ENTER();
@@ -233,14 +233,14 @@ static uns32 ntfa_enc_reader_finalize_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_read_next_req_t *param = &msg->info.api_info.param.read_next;
 
 	TRACE_ENTER();
@@ -274,7 +274,7 @@ static uns32 ntfa_enc_read_next_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio)
+uint32_t ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio)
 {
 	TRACE_ENTER();
 
@@ -365,7 +365,7 @@ uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORIT
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t ntfa_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
 	TRACE_2("NTFA Rcvd MDS subscribe evt from svc %d \n", mds_cb_info->info.svc_evt.i_svc_id);
 
@@ -424,10 +424,10 @@ static uns32 ntfa_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
   Notes         : None.
 ******************************************************************************/
 
-static uns32 ntfa_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t ntfa_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
 	ntfsv_msg_t *ntfsv_msg = (ntfsv_msg_t *)mds_cb_info->info.receive.i_msg;
-	uns32 rc;
+	uint32_t rc;
 
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 
@@ -457,12 +457,12 @@ static uns32 ntfa_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_mds_enc(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_enc(struct ncsmds_callback_info *info)
 {
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
@@ -560,14 +560,14 @@ static uns32 ntfa_mds_enc(struct ncsmds_callback_info *info)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
 	uint8_t local_data[4];
 
@@ -589,11 +589,11 @@ static uns32 ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	assert(uba != NULL);
 	ntfsv_send_not_req_t *param = msg->info.cbk_info.param.notification_cbk;
@@ -608,11 +608,11 @@ static uns32 ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	assert(uba != NULL);
 	ntfsv_discarded_info_t *param = &msg->info.cbk_info.param.discarded_cbk;
@@ -627,14 +627,14 @@ static uns32 ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
 	uint8_t local_data[4];
 
@@ -656,14 +656,14 @@ static uns32 ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
 	uint8_t local_data[8];
 
@@ -686,14 +686,14 @@ static uns32 ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
 	uint8_t local_data[4];
 
@@ -715,14 +715,14 @@ static uns32 ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
 	uint8_t local_data[4];
 
@@ -744,11 +744,11 @@ static uns32 ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
   Arguments     : NCS_UBAID *msg,
                   NTFSV_MSG *msg
                   
-  Return Values : uns32
+  Return Values : uint32_t
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+static uint32_t ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	ntfsv_read_next_rsp_t *param = &msg->info.api_resp_info.param.read_next_rsp;
 	assert(uba != NULL);
@@ -773,13 +773,13 @@ static uns32 ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 {
 	uint8_t *p8;
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[12];
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	TRACE_ENTER();
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
@@ -893,7 +893,7 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ntfa_mds_enc_flat(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_enc_flat(struct ncsmds_callback_info *info)
 {
 	/* Modify the MDS_INFO to populate enc */
 	info->info.enc = info->info.enc_flat;
@@ -913,9 +913,9 @@ static uns32 ntfa_mds_enc_flat(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ntfa_mds_dec_flat(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Modify the MDS_INFO to populate dec */
 	info->info.dec = info->info.dec_flat;
@@ -938,7 +938,7 @@ static uns32 ntfa_mds_dec_flat(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 ntfa_mds_cpy(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_cpy(struct ncsmds_callback_info *info)
 {
 	TRACE_ENTER();
 	TRACE_LEAVE();
@@ -957,9 +957,9 @@ static uns32 ntfa_mds_cpy(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ntfa_mds_callback(struct ncsmds_callback_info *info)
+static uint32_t ntfa_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		ntfa_mds_cpy,	/* MDS_CALLBACK_COPY      0 */
@@ -992,11 +992,11 @@ static uns32 ntfa_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ntfa_mds_init(ntfa_cb_t *cb)
+uint32_t ntfa_mds_init(ntfa_cb_t *cb)
 {
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_SVC_ID svc = NCSMDS_SVC_ID_NTFS;
 
 	TRACE_ENTER();
@@ -1063,7 +1063,7 @@ uns32 ntfa_mds_init(ntfa_cb_t *cb)
 void ntfa_mds_finalize(ntfa_cb_t *cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	/* Un-install your service into MDS. 
@@ -1097,10 +1097,10 @@ void ntfa_mds_finalize(ntfa_cb_t *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uns32 timeout)
+uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uint32_t timeout)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1145,10 +1145,10 @@ uns32 ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_
  
   Notes         : None.
 ******************************************************************************/
-uns32 ntfa_mds_msg_async_send(ntfa_cb_t *cb, struct ntfsv_msg *i_msg, uns32 prio)
+uint32_t ntfa_mds_msg_async_send(ntfa_cb_t *cb, struct ntfsv_msg *i_msg, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	assert(cb != NULL && i_msg != NULL);

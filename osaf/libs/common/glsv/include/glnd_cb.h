@@ -24,7 +24,7 @@
 #include "glnd_evt.h"
 
 /* global variables */
-uns32 gl_glnd_hdl;
+uint32_t gl_glnd_hdl;
 NCSCONTEXT gl_glnd_task_hdl;
 
 /* macros for the global varibales */
@@ -47,7 +47,7 @@ typedef enum {
 } GLND_NODE_TYPE;
 
 typedef struct glnd_res_lock_list_info_tag {
-	uns32 lck_info_hdl_id;	/* maintained for the validity */
+	uint32_t lck_info_hdl_id;	/* maintained for the validity */
 	GLSV_LOCK_REQ_INFO lock_info;
 	GLND_TMR timeout_tmr;
 	MDS_DEST req_mdest_id;	/* requesting node info */
@@ -57,8 +57,8 @@ typedef struct glnd_res_lock_list_info_tag {
 					   GLSV_CALL_TYPE          unlock_call_type;
 					   lost during mastership transistion */
 	GLSV_CALL_TYPE unlock_call_type;
-	uns32 non_master_status;
-	uns32 shm_index;
+	uint32_t non_master_status;
+	uint32_t shm_index;
 	struct glnd_resource_info_tag *res_info;	/* back pointer */
 	struct glnd_res_lock_list_info_tag *prev, *next;
 } GLND_RES_LOCK_LIST_INFO;
@@ -67,8 +67,8 @@ typedef struct glnd_lock_master_info_tag {
 	GLND_RES_LOCK_LIST_INFO *grant_list;
 	GLND_RES_LOCK_LIST_INFO *wait_exclusive_list;
 	GLND_RES_LOCK_LIST_INFO *wait_read_list;
-	uns32 pr_orphan_req_count;	/* local lock ref count */
-	uns32 ex_orphan_req_count;	/* local lock ref count */
+	uint32_t pr_orphan_req_count;	/* local lock ref count */
+	uint32_t ex_orphan_req_count;	/* local lock ref count */
 	NCS_BOOL pr_orphaned;
 	NCS_BOOL ex_orphaned;
 } GLND_LOCK_MASTER_INFO;
@@ -76,11 +76,11 @@ typedef struct glnd_lock_master_info_tag {
 typedef struct glnd_agent_info_tag {
 	NCS_PATRICIA_NODE patnode;
 	MDS_DEST agent_mds_id;	/* handle to the component */
-	uns32 process_id;
+	uint32_t process_id;
 } GLND_AGENT_INFO;
 
 typedef struct glnd_resource_req_list_tag {
-	uns32 res_req_hdl_id;	/* maintained for the validity */
+	uint32_t res_req_hdl_id;	/* maintained for the validity */
 	SaLckHandleT client_handle_id;
 	MDS_DEST agent_mds_dest;
 	SaNameT resource_name;
@@ -95,19 +95,19 @@ typedef struct glnd_resource_req_list_tag {
 typedef struct glnd_restart_res_info_tag {
 	SaLckResourceIdT resource_id;	/* index for identifying the resource */
 	SaNameT resource_name;
-	uns32 lcl_ref_cnt;
+	uint32_t lcl_ref_cnt;
 	MDS_DEST master_mds_dest;	/* master vcard id */
 
 	GLND_RESOURCE_STATUS status;	/* bit-wise data */
 	GLND_NODE_STATUS master_status;
 	tmr_t time_duration;
 	time_t time_stamp;
-	uns32 pr_orphan_req_count;	/* local lock ref count */
-	uns32 ex_orphan_req_count;	/* local lock ref count */
+	uint32_t pr_orphan_req_count;	/* local lock ref count */
+	uint32_t ex_orphan_req_count;	/* local lock ref count */
 	NCS_BOOL pr_orphaned;
 	NCS_BOOL ex_orphaned;
-	uns32 shm_index;	/*Index of queue info in shared memory */
-	uns32 valid;		/* To verify whether the checkpoint info is valid or not */
+	uint32_t shm_index;	/*Index of queue info in shared memory */
+	uint32_t valid;		/* To verify whether the checkpoint info is valid or not */
 } GLND_RESTART_RES_INFO;
 
 typedef struct glnd_restart_res_lock_list_info_tag {
@@ -116,7 +116,7 @@ typedef struct glnd_restart_res_lock_list_info_tag {
 	SaLckResourceIdT lcl_resource_id;	/* index for identifying the resource */
 	uint8_t to_which_list;	/* identies whether to update res_lock_list */
 	/* To which list */
-	uns32 lck_info_hdl_id;	/* maintained for the validity */
+	uint32_t lck_info_hdl_id;	/* maintained for the validity */
 	GLSV_LOCK_REQ_INFO lock_info;
 	tmr_t time_duration;
 	time_t time_stamp;
@@ -124,9 +124,9 @@ typedef struct glnd_restart_res_lock_list_info_tag {
 	MDS_SYNC_SND_CTXT glnd_res_lock_mds_ctxt;	/* to store the mds context */
 	NCS_BOOL unlock_req_sent;	/* To take care of unlock requests */
 	GLSV_CALL_TYPE unlock_call_type;
-	uns32 non_master_status;
-	uns32 shm_index;	/*Index of queue info in shared memory */
-	uns32 valid;		/* To verify whether the checkpoint info is valid or not */
+	uint32_t non_master_status;
+	uint32_t shm_index;	/*Index of queue info in shared memory */
+	uint32_t valid;		/* To verify whether the checkpoint info is valid or not */
 } GLND_RESTART_RES_LOCK_LIST_INFO;
 
 /* Back_up events  to be checkpointed */
@@ -145,8 +145,8 @@ typedef struct glsv_glnd_restart_backup_evt_info_tag {
 	SaAisErrorT error;
 	SaTimeT timeout;
 	SaTimeT time_stamp;
-	uns32 shm_index;	/*Index of queue info in shared memory */
-	uns32 valid;		/* To verify whether the checkpoint info is valid or not */
+	uint32_t shm_index;	/*Index of queue info in shared memory */
+	uint32_t valid;		/* To verify whether the checkpoint info is valid or not */
 } GLSV_RESTART_BACKUP_EVT_INFO;
 
 typedef struct glnd_shm_version_tag {
@@ -162,10 +162,10 @@ typedef struct glnd_shm_version_tag {
 typedef struct glnd_cb_tag {
 	/* Identification Information about the GLND */
 	MDS_DEST glnd_mdest_id;
-	uns32 glnd_node_id;
-	uns32 cb_hdl_id;
+	uint32_t glnd_node_id;
+	uint32_t cb_hdl_id;
 	MDS_HDL glnd_mds_hdl;
-	uns32 pool_id;
+	uint32_t pool_id;
 	GLND_NODE_STATUS node_state;
 	GLND_TMR agent_info_get_tmr;
 	SYSF_MBX glnd_mbx;	/* mailbox */
@@ -198,13 +198,13 @@ typedef struct glnd_cb_tag {
 
 /* prototypes */
 GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest);
-GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uns32 process_id);
+GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uint32_t process_id);
 void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info);
 
 /* CB prototypes */
-GLND_CB *glnd_cb_create(uns32 pool_id);
+GLND_CB *glnd_cb_create(uint32_t pool_id);
 NCS_BOOL glnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-uns32 glnd_cb_destroy(GLND_CB *glnd_cb);
+uint32_t glnd_cb_destroy(GLND_CB *glnd_cb);
 void glnd_dump_cb(void);
 
 struct glsv_evt_rsc_info_tag;	/* forward declaration required. */
@@ -213,24 +213,24 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 							    MDS_SYNC_SND_CTXT *mds_ctxt,
 							    SaLckResourceIdT lcl_resource_id);
 GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *resource_name);
-void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl);
+void glnd_resource_req_node_del(GLND_CB *glnd_cb, uint32_t res_req_hdl);
 
 /* Amf prototypes */
-uns32 glnd_amf_init(GLND_CB *glnd_cb);
+uint32_t glnd_amf_init(GLND_CB *glnd_cb);
 void glnd_amf_de_init(GLND_CB *glnd_cb);
-uns32 glnd_amf_register(GLND_CB *glnd_cb);
-uns32 glnd_amf_deregister(GLND_CB *glnd_cb);
+uint32_t glnd_amf_register(GLND_CB *glnd_cb);
+uint32_t glnd_amf_deregister(GLND_CB *glnd_cb);
 
 /* Queue Prototypes */
 void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, struct glsv_glnd_evt *glnd_evt);
-uns32 glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
+uint32_t glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
 						     SaLckHandleT hldId, SaLckResourceIdT resId, SaLckLockModeT type);
 void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
 						      SaLckLockIdT lockid, SaLckHandleT hldId, SaLckResourceIdT resId);
 void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb);
 void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb);
 uint8_t glnd_cpsv_initilize(GLND_CB *glnd_cb);
-uns32 glnd_shm_create(GLND_CB *cb);
-uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[]);
+uint32_t glnd_shm_create(GLND_CB *cb);
+uint32_t glnd_shm_destroy(GLND_CB *cb, char shm_name[]);
 
 #endif

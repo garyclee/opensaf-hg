@@ -47,16 +47,16 @@ char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 *                                                               *
 *****************************************************************/
 
-static uns32 fm_agents_startup(void);
-static uns32 fm_get_args(FM_CB *);
-static uns32 fms_fms_exchange_node_info(FM_CB *);
-static uns32 fm_nid_notify(uns32);
-static uns32 fm_tmr_start(FM_TMR *, SaTimeT);
+static uint32_t fm_agents_startup(void);
+static uint32_t fm_get_args(FM_CB *);
+static uint32_t fms_fms_exchange_node_info(FM_CB *);
+static uint32_t fm_nid_notify(uint32_t);
+static uint32_t fm_tmr_start(FM_TMR *, SaTimeT);
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
 static void fm_tmr_exp(void *);
 void handle_mbx_event(void);
-extern uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb);
-uns32 gl_fm_hdl;
+extern uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb);
+uint32_t gl_fm_hdl;
 static NCS_SEL_OBJ usr1_sel_obj;
 
 /**
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
 	/* notify the NID */
-		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
+		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	if (NULL == fm_cb) {
 	/* notify the NID */
 		syslog(LOG_ERR, "CB Allocation failed.");
-		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
+		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 
 /* RDA initialization */
 	if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS) {
-		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
+		fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
 		goto fm_init_failed;
 	}
 
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	}
 
  fm_init_failed:
-	fm_nid_notify((uns32)NCSCC_RC_FAILURE);
+	fm_nid_notify((uint32_t)NCSCC_RC_FAILURE);
  done:
 	syslog(LOG_ERR, "Exiting...");
 	exit(1);
@@ -247,9 +247,9 @@ void handle_mbx_event(void)
 * 
 * Notes         : None. 
 *****************************************************************************/
-static uns32 fm_agents_startup(void)
+static uint32_t fm_agents_startup(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	/* Start agents */
 	rc = ncs_agents_startup();
@@ -273,7 +273,7 @@ static uns32 fm_agents_startup(void)
 * 
 * Notes         : None. 
 *****************************************************************************/
-static uns32 fm_get_args(FM_CB *fm_cb)
+static uint32_t fm_get_args(FM_CB *fm_cb)
 {
 	char *value;
 	TRACE_ENTER();
@@ -375,11 +375,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 * 
 * Notes         : None. 
 *****************************************************************************/
-uns32 fm_tmr_start(FM_TMR *tmr, SaTimeT period)
+uint32_t fm_tmr_start(FM_TMR *tmr, SaTimeT period)
 {
-	uns32 tmr_period;
+	uint32_t tmr_period;
 	TRACE_ENTER();
-	tmr_period = (uns32)period;
+	tmr_period = (uint32_t)period;
 
 	if (tmr->tmr_id == NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, fm_tmr_exp, (void *)tmr);
@@ -466,7 +466,7 @@ void fm_tmr_exp(void *fm_tmr)
 * 
 * Notes         : None. 
 *****************************************************************************/
-static uns32 fms_fms_exchange_node_info(FM_CB *fm_cb)
+static uint32_t fms_fms_exchange_node_info(FM_CB *fm_cb)
 {
 	GFM_GFM_MSG gfm_msg;
 	TRACE_ENTER();
@@ -502,10 +502,10 @@ static uns32 fms_fms_exchange_node_info(FM_CB *fm_cb)
 * 
 * Notes         : None. 
 *****************************************************************************/
-static uns32 fm_nid_notify(uns32 nid_err)
+static uint32_t fm_nid_notify(uint32_t nid_err)
 {
-	uns32 error;
-	uns32 nid_stat_code;
+	uint32_t error;
+	uint32_t nid_stat_code;
 
 	TRACE_ENTER();
 	if (nid_err > NCSCC_RC_SUCCESS)

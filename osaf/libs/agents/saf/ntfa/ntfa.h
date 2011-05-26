@@ -140,10 +140,10 @@ extern ntfa_cb_t ntfa_cb;
 extern ntfa_subscriber_list_t *subscriberNoList;
 
 /* ntfa_mds.c */
-extern uns32 ntfa_mds_init(ntfa_cb_t *cb);
+extern uint32_t ntfa_mds_init(ntfa_cb_t *cb);
 extern void ntfa_mds_finalize(ntfa_cb_t *cb);
-extern uns32 ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uns32 timeout);
-extern uns32 ntfa_mds_msg_async_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, uns32 prio);
+extern uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uint32_t timeout);
+extern uint32_t ntfa_mds_msg_async_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, uint32_t prio);
 extern void ntfsv_ntfa_evt_free(struct ntfsv_msg *);
 
 /* ntfa_init.c */
@@ -152,24 +152,24 @@ extern unsigned int ntfa_shutdown(void);
 
 /* ntfa_hdl.c */
 extern SaAisErrorT ntfa_hdl_cbk_dispatch(ntfa_cb_t *, ntfa_client_hdl_rec_t *, SaDispatchFlagsT);
-extern ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *ntfa_cb, const SaNtfCallbacksT *reg_cbks, uns32 client_id);
+extern ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *ntfa_cb, const SaNtfCallbacksT *reg_cbks, uint32_t client_id);
 extern ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec,
 								  SaInt16T variableDataSize, SaAisErrorT *rc);
 extern ntfa_filter_hdl_rec_t *ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
 extern void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **);
-extern uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
-extern uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **, ntfa_notification_hdl_rec_t *);
-extern uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **, ntfa_filter_hdl_rec_t *);
+extern uint32_t ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
+extern uint32_t ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **, ntfa_notification_hdl_rec_t *);
+extern uint32_t ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **, ntfa_filter_hdl_rec_t *);
 extern NCS_BOOL ntfa_validate_ntfa_client_hdl(ntfa_cb_t *ntfa_cb, ntfa_client_hdl_rec_t *find_hdl_rec);
 
 /* ntfa_util.c */
-extern ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uns32 client_id);
+extern ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uint32_t client_id);
 extern void ntfa_msg_destroy(ntfsv_msg_t *msg);
 extern void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance);
 extern void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
 					   *notificationFilterInstance);
 extern ntfa_reader_hdl_rec_t *ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
-extern uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **, ntfa_reader_hdl_rec_t *);
+extern uint32_t ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **, ntfa_reader_hdl_rec_t *);
 extern void ntfa_add_to_async_cbk_msg_list(ntfsv_msg_t ** head, ntfsv_msg_t * new_node);
-extern uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio);
+extern uint32_t ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio);
 #endif   /* !NTFA_H */

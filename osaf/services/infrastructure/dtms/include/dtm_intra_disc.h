@@ -52,12 +52,12 @@ typedef enum dtm_svc_install_scope {
 typedef DTM_SVC_INSTALL_SCOPE DTM_SVC_SUBSCR_SCOPE;
 
 typedef struct dtm_lib_up_msg {
-	uns32 server_type;
-	uns32 server_instance_lower;
-	uns32 server_instance_upper;
+	uint32_t server_type;
+	uint32_t server_instance_lower;
+	uint32_t server_instance_upper;
 	uns64 ref_val;
 	NODE_ID node_id;
-	uns32 process_id;
+	uint32_t process_id;
 } DTM_LIB_UP_MSG;
 
 typedef DTM_LIB_UP_MSG DTM_LIB_DOWN_MSG;
@@ -71,15 +71,15 @@ typedef DTM_LIB_NODE_UP_MSG DTM_LIB_NODE_DOWN_MSG;
 
 typedef struct dtm_pid_svc_installed_info {
 	struct dtm_pid_svc_installed_info *next;
-	uns32 server_type;
-	uns32 server_instance_lower;
-	uns32 server_instance_upper;
+	uint32_t server_type;
+	uint32_t server_instance_lower;
+	uint32_t server_instance_upper;
 	DTM_SVC_INSTALL_SCOPE install_scope;
 } DTM_PID_SVC_INSTALLED_INFO;
 
 typedef struct dtm_pid_svc_subscr_info {
 	struct dtm_pid_svc_subscr_info *next;
-	uns32 server_type;
+	uint32_t server_type;
 	uns64 ref_hdl;
 } DTM_PID_SVC_SUSBCR_INFO;
 
@@ -94,7 +94,7 @@ typedef struct dtm_intranode_pid_info {
 	NCS_PATRICIA_NODE pid_node;
 	NCS_PATRICIA_NODE fd_node;
 	/* Explicit key for fast-access */
-	uns32 pid;
+	uint32_t pid;
 	int accepted_fd;
 	SYSF_MBX mbx;
 	int mbx_fd;
@@ -124,10 +124,10 @@ extern DTM_INTRANODE_NODE_DB *dtm_node_list_db;
 
 typedef struct dtm_svc_list {
 	struct dtm_svc_list *next;
-	uns32 server_inst_lower;
-	uns32 server_inst_higher;
+	uint32_t server_inst_lower;
+	uint32_t server_inst_higher;
 	NODE_ID node_id;
-	uns32 process_id;
+	uint32_t process_id;
 	DTM_SVC_INSTALL_SCOPE install_scope;
 } DTM_SVC_LIST;
 
@@ -135,13 +135,13 @@ typedef struct dtm_svc_install_info {
 	/* Indexing info */
 	NCS_PATRICIA_NODE svc_install_node;
 	/* Explicit key for fast-access */
-	uns32 server_type;
+	uint32_t server_type;
 	DTM_SVC_LIST *svc_list;
 } DTM_SVC_INSTALL_INFO;
 
 typedef struct dtm_subscriber_list {
 	struct dtm_subscriber_list *next;
-	uns32 pid;
+	uint32_t pid;
 	int connected_fd;
 	uns64 subscr_ref_hdl;
 	SYSF_MBX mbx;
@@ -152,35 +152,35 @@ typedef struct dtm_svc_subscr_info {
 	/* Indexing info */
 	NCS_PATRICIA_NODE svc_subscr_node;
 	/* Explicit key for fast-access */
-	uns32 server_type;
+	uint32_t server_type;
 	DTM_SUBSCRIBER_LIST *subscriber_list;
 } DTM_SVC_SUBSCR_INFO;
 
 typedef struct dtm_node_subscr_info {
 	struct dtm_node_subscr_info *next;
 	NODE_ID node_id;
-	uns32 process_id;
+	uint32_t process_id;
 	uns64 subtn_ref_val;
 } DTM_NODE_SUBSCR_INFO;
 
 extern DTM_NODE_SUBSCR_INFO *dtm_node_subscr_list;
 
-uns32 dtm_intranode_process_pid_msg(uint8_t *buffer, int fd);
-uns32 dtm_intranode_process_bind_msg(uint8_t *buffer, int fd);
-uns32 dtm_intranode_process_unbind_msg(uint8_t *buffer, int fd);
-uns32 dtm_intranode_process_subscribe_msg(uint8_t *buff, int fd);
-uns32 dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd);
-uns32 dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd);
-uns32 dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd);
+uint32_t dtm_intranode_process_pid_msg(uint8_t *buffer, int fd);
+uint32_t dtm_intranode_process_bind_msg(uint8_t *buffer, int fd);
+uint32_t dtm_intranode_process_unbind_msg(uint8_t *buffer, int fd);
+uint32_t dtm_intranode_process_subscribe_msg(uint8_t *buff, int fd);
+uint32_t dtm_intranode_process_unsubscribe_msg(uint8_t *buff, int fd);
+uint32_t dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd);
+uint32_t dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd);
 
-uns32 dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
-uns32 dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
-uns32 dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx);
-uns32 dtm_intranode_process_node_down(NODE_ID node_id);
+uint32_t dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, SYSF_MBX mbx);
+uint32_t dtm_intranode_process_node_down(NODE_ID node_id);
 
-uns32 dtm_intranode_process_pid_down(int fd);
+uint32_t dtm_intranode_process_pid_down(int fd);
 
 DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_fd(int fd);
-DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_pid(uns32 pid);
+DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_pid(uint32_t pid);
 
 #endif

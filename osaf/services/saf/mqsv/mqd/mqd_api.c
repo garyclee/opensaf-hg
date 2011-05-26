@@ -59,14 +59,14 @@ static struct pollfd fds[3];
 static nfds_t nfds = 3;
 
 /******************************** LOCAL ROUTINES *****************************/
-static uns32 mqd_lib_init(void);
+static uint32_t mqd_lib_init(void);
 static void mqd_lib_destroy(void);
-void mqd_main_process(uns32);
-static uns32 mqd_cb_init(MQD_CB *);
+void mqd_main_process(uint32_t);
+static uint32_t mqd_cb_init(MQD_CB *);
 static void mqd_cb_shut(MQD_CB *);
-static uns32 mqd_lm_init(MQD_CB *);
+static uint32_t mqd_lm_init(MQD_CB *);
 static void mqd_lm_shut(MQD_CB *);
-static uns32 mqd_amf_init(MQD_CB *);
+static uint32_t mqd_amf_init(MQD_CB *);
 static void mqd_asapi_bind(MQD_CB *);
 static void mqd_asapi_unbind(void);
 static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
@@ -84,9 +84,9 @@ static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
   RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.. 
 \*****************************************************************************/
 
-uns32 mqd_lib_req(NCS_LIB_REQ_INFO *info)
+uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -114,9 +114,9 @@ uns32 mqd_lib_req(NCS_LIB_REQ_INFO *info)
 
   RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
 \*****************************************************************************/
-static uns32 mqd_lib_init(void)
+static uint32_t mqd_lib_init(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_CB *pMqd = 0;
 #if NCS_2_0			/* Required for NCS 2.0 */
 	SaAisErrorT saErr = SA_AIS_OK;
@@ -323,7 +323,7 @@ static uns32 mqd_lib_init(void)
 static void mqd_lib_destroy(void)
 {
 	MQD_CB *pMqd = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 #if NCS_2_0			/* Required for NCS 2.0 */
 	SaNameT sname;
@@ -394,7 +394,7 @@ static void mqd_lib_destroy(void)
  
  RETURNS        : None.
 \*****************************************************************************/
-void mqd_main_process(uns32 hdl)
+void mqd_main_process(uint32_t hdl)
 {
 	MQD_CB *pMqd = NULL;
 	NCS_SEL_OBJ mbxFd;
@@ -402,7 +402,7 @@ void mqd_main_process(uns32 hdl)
 	SaAisErrorT err = SA_AIS_OK;
 	NCS_MBCSV_ARG mbcsv_arg;
 	SaSelectionObjectT amfSelObj;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Get the controll block */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, hdl);
 	if (!pMqd) {
@@ -484,11 +484,11 @@ void mqd_main_process(uns32 hdl)
 
  RETURNS        : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 \*****************************************************************************/
-static uns32 mqd_cb_init(MQD_CB *pMqd)
+static uint32_t mqd_cb_init(MQD_CB *pMqd)
 {
 	NCS_PATRICIA_PARAMS params;
 	NCS_PATRICIA_PARAMS params_nodedb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Initilize the constants variables */
 	memset(pMqd, 0, sizeof(MQD_CB));
@@ -545,9 +545,9 @@ static void mqd_cb_shut(MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 \*****************************************************************************/
-static uns32 mqd_lm_init(MQD_CB *pMqd)
+static uint32_t mqd_lm_init(MQD_CB *pMqd)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 
 	return rc;
@@ -582,9 +582,9 @@ static void mqd_lm_shut(MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS.
 \*****************************************************************************/
-static uns32 mqd_amf_init(MQD_CB *pMqd)
+static uint32_t mqd_amf_init(MQD_CB *pMqd)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 #if NCS_2_0			/* Required for NCS 2.0 */
 	SaAisErrorT saErr = SA_AIS_OK;
 	SaAmfCallbacksT amfCallbacks;

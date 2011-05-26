@@ -87,8 +87,8 @@ typedef struct clms_rem_reboot_t {
 typedef struct clms_track_info_t {
 	NCS_PATRICIA_NODE pat_node;
 	MDS_DEST client_dest;
-	uns32 client_id;
-	uns32 client_id_net;
+	uint32_t client_id;
+	uint32_t client_id_net;
 	SaInvocationT inv_id;
 	/* How about Invocation id!? Check the current CLMA and accordingly add */
 } CLMS_TRACK_INFO;
@@ -96,8 +96,8 @@ typedef struct clms_track_info_t {
 /* CLM client information record */
 typedef struct client_info_t {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 client_id;	/* Changes to 32 -bit from 64-bit */
-	uns32 client_id_net;	/* dude client_id_net it was 32 bit now got changed to 64 bit, see counter effects */
+	uint32_t client_id;	/* Changes to 32 -bit from 64-bit */
+	uint32_t client_id_net;	/* dude client_id_net it was 32 bit now got changed to 64 bit, see counter effects */
 	MDS_DEST mds_dest;
 	SaUint8T track_flags;
 	SaInvocationT inv_id;
@@ -130,7 +130,7 @@ typedef struct clms_cb_t {
 	MDS_HDL mds_vdest_hdl;	/* Not Needed. can be removed */
 	V_DEST_RL mds_role;	/* Current MDS VDEST role */
 	MDS_DEST vaddr;		/* CLMS' MDS address */
-	uns32 my_hdl;		/* Handle Manager Handle */
+	uint32_t my_hdl;		/* Handle Manager Handle */
 	PCS_RDA_ROLE my_role;	/* RDA provided role */
 	SaVersionT clm_ver;	/*Currently Supported CLM Version */
 	/* AMF related defs */
@@ -163,8 +163,8 @@ typedef struct clms_cb_t {
 					 * for saClmNodeGet() API.
 					 */
 	NCS_PATRICIA_TREE client_db;	/* Client DataBase */
-	uns32 curr_invid;
-	uns32 last_client_id;	/* Value of last client_id assigned */
+	uint32_t curr_invid;
+	uint32_t last_client_id;	/* Value of last client_id assigned */
 #ifdef ENABLE_AIS_PLM
 	SaPlmHandleT plm_hdl;	/* Handle obtained from PLM */
 	SaPlmEntityGroupHandleT ent_group_hdl;	/* PLM Entity Group Handle */
@@ -185,7 +185,7 @@ typedef struct clms_lock_tmr_t {
 	SaClmNodeIdT node_id;
 } CLMS_LOCK_TMR;
 
-uns32 clm_snd_track_changes(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
+uint32_t clm_snd_track_changes(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_CLIENT_INFO * client,
 				     SaImmAdminOperationIdT opId, SaClmChangeStepT step);
 void clms_track_send_node_down(CLMS_CLUSTER_NODE * node);
 void clms_reboot_remote_node(CLMS_CLUSTER_NODE * op_node, char *str);

@@ -84,11 +84,11 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 	/* start the timeout timer */
 	if (rsc_info->call_type == GLSV_SYNC_CALL) {
 		glnd_start_tmr(glnd_cb, &res_req_info->timeout,
-			       GLND_TMR_RES_REQ_TIMEOUT, rsc_info->timeout, (uns32)res_req_info->res_req_hdl_id);
+			       GLND_TMR_RES_REQ_TIMEOUT, rsc_info->timeout, (uint32_t)res_req_info->res_req_hdl_id);
 	} else {
 		glnd_start_tmr(glnd_cb, &res_req_info->timeout,
 			       GLND_TMR_RES_REQ_TIMEOUT,
-			       GLSV_LOCK_DEFAULT_TIMEOUT, (uns32)res_req_info->res_req_hdl_id);
+			       GLSV_LOCK_DEFAULT_TIMEOUT, (uint32_t)res_req_info->res_req_hdl_id);
 
 	}
 	return res_req_info;
@@ -133,7 +133,7 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT *r
 
   NOTES         : Delete the returned pointer immediately.
 *****************************************************************************/
-void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl)
+void glnd_resource_req_node_del(GLND_CB *glnd_cb, uint32_t res_req_hdl)
 {
 	GLND_RESOURCE_REQ_LIST *res_req_info;
 	res_req_info = (GLND_RESOURCE_REQ_LIST *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, res_req_hdl);

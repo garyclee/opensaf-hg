@@ -36,56 +36,56 @@
 
 #include "mqsv_edu.h"
 
-static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_mqa_callback(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqa_callback(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_asapi_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_asapi_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_mqp_open_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqp_open_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_message_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_message_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				  NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_queue_status(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_queue_status(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 mqsv_qgrp_cnt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_qgrp_cnt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static int mqsv_evt_test_type_fnc(NCSCONTEXT arg);
@@ -106,11 +106,11 @@ static int mqsv_edp_mqd_ctrl_msg_test_type_fnc(NCSCONTEXT arg);
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_SEND_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET mqsv_send_info_rules[] = {
@@ -159,11 +159,11 @@ static uns32 mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqp_open_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqp_open_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_OPEN_REQ *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET mqsv_edp_mqp_open_req_rules[] = {
@@ -259,11 +259,11 @@ static int mqsv_evt_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_asapi_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_asapi_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (EDP_OP_TYPE_ENC == op) {
 		asapi_msg_enc((ASAPi_MSG_INFO *)ptr, buf_env->info.uba);
@@ -285,10 +285,10 @@ static uns32 mqsv_edp_asapi_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 mqsv_edp_mqsv_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t mqsv_edp_mqsv_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_EVT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET mqsv_edp_mqsv_evt_rules[] = {
@@ -382,11 +382,11 @@ static int mqsv_edp_test_sendreceive(NCSCONTEXT arg)
 
 *****************************************************************************/
 
-static uns32 mqsv_edp_message_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_message_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	QUEUE_MESSAGE_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET mqsv_message_info_rules[] = {
@@ -519,11 +519,11 @@ static int mqsv_mqp_req_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaMsgQueueCreationAttributesT *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_samsgqueuecreationattributes_rules[] = {
 		{EDU_START, mqsv_edp_samsgqueuecreationattributest, 0, 0, 0,
@@ -568,10 +568,10 @@ static uns32 mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_t
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_REQ_MSG *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET mqsv_mqp_req_rules[] = {
@@ -787,11 +787,11 @@ static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				  NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaMsgQueueUsageT *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_queue_usage_rules[] = {
 		{EDU_START, mqsv_edp_queue_usage, 0, 0, 0,
@@ -835,11 +835,11 @@ static uns32 mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_queue_status(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_queue_status(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaMsgQueueStatusT *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_queue_status_rules[] = {
 		{EDU_START, mqsv_edp_queue_status, 0, 0, 0,
@@ -953,10 +953,10 @@ static int mqsv_mqp_rsp_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_RSP_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_mqp_rsp_rules[] = {
 		{EDU_START, mqsv_edp_mqp_rsp, 0, 0, 0,
@@ -1127,11 +1127,11 @@ static int mqsv_mqa_callback_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqa_callback(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqa_callback(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_ASYNC_RSP_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_mqa_callback_rules[] = {
 		{EDU_START, mqsv_edp_mqa_callback, 0, 0, 0,
@@ -1274,11 +1274,11 @@ static int mqsv_edp_mqnd_ctrl_msg_test_type_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_CTRL_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_ctrl_msg_rules[] = {
 		{EDU_START, mqsv_edp_mqd_ctrl_msg, 0, 0, 0,
@@ -1323,11 +1323,11 @@ static uns32 mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQND_CTRL_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqnd_ctrl_msg_rules[] = {
 		{EDU_START, mqsv_edp_mqnd_ctrl_msg, 0, 0, 0,
@@ -1380,11 +1380,11 @@ static uns32 mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:         NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uns32 mqsv_qgrp_cnt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t mqsv_qgrp_cnt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_CTRL_EVT_QGRP_CNT *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_qgrp_cnt_info_rules[] = {
 		{EDU_START, mqsv_qgrp_cnt_info, 0, 0, 0,

@@ -56,7 +56,7 @@
 
 *****************************************************************************/
 
-uns32 dts_lm(DTS_LM_ARG *arg)
+uint32_t dts_lm(DTS_LM_ARG *arg)
 {
 	switch (arg->i_op) {
 	case DTS_LM_OP_CREATE:
@@ -91,7 +91,7 @@ uns32 dts_lm(DTS_LM_ARG *arg)
 
 *****************************************************************************/
 
-uns32 dts_svc_create(DTS_CREATE *create)
+uint32_t dts_svc_create(DTS_CREATE *create)
 {
 	/* Initialize all the CB fields */
 	DTS_CB *inst = &dts_cb;
@@ -224,10 +224,10 @@ uns32 dts_svc_create(DTS_CREATE *create)
 
 *****************************************************************************/
 
-uns32 dts_svc_destroy(DTS_DESTROY *destroy)
+uint32_t dts_svc_destroy(DTS_DESTROY *destroy)
 {
 	DTS_CB *inst = &dts_cb;
-	uns32 retval = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t retval = NCSCC_RC_SUCCESS, i = 0;
 
 	m_DTS_LK(&inst->lock);
 #if (DTS_LOG == 1)
@@ -440,10 +440,10 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 
 *****************************************************************************/
 
-uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg)
+uint32_t ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg)
 {
 	DTS_CB *inst = &dts_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (arg == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: NULLi pointer passed as argument");
@@ -490,7 +490,7 @@ uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg)
 
  Notes:  
 **************************************************************************/
-uns32 dtsv_clear_asciispec_tree(DTS_CB *cb)
+uint32_t dtsv_clear_asciispec_tree(DTS_CB *cb)
 {
 	SYSF_ASCII_SPECS *spec_entry;
 
@@ -514,7 +514,7 @@ uns32 dtsv_clear_asciispec_tree(DTS_CB *cb)
 
  Notes:  
 **************************************************************************/
-uns32 dtsv_clear_libname_tree(DTS_CB *cb)
+uint32_t dtsv_clear_libname_tree(DTS_CB *cb)
 {
 	ASCII_SPEC_LIB *lib_entry;
 

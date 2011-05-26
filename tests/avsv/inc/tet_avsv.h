@@ -32,8 +32,8 @@ struct svc_testlist {
 typedef struct tware_evt
 {
    struct tware_evt        *next;
-   uns32                  priority;
-   uns32                  type;  
+   uint32_t                  priority;
+   uint32_t                  type;  
 }TWARE_EVT;
 
 
@@ -71,8 +71,8 @@ struct prm_val
                                                                                                                                              
 struct tware_snmp_get
 {
-  uns32 table_id;
-  uns32 param_id;
+  uint32_t table_id;
+  uint32_t param_id;
   char *instance_id;
 };
 

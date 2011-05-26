@@ -51,19 +51,19 @@
 /* Send_buffer_size + MDS_MDTM_DTM_PID_BUFFER_SIZE   */
 #define MDS_MDTM_DTM_PID_BUFFER_SIZE (2 + MDS_MDTM_DTM_PID_SIZE)
 
-extern uns32 mdtm_num_subscriptions;
+extern uint32_t mdtm_num_subscriptions;
 extern MDS_SUBTN_REF_VAL mdtm_handle;
-extern uns32 mdtm_global_frag_num_tcp;
+extern uint32_t mdtm_global_frag_num_tcp;
 
-uns32 socket_domain = AF_UNIX;
+uint32_t socket_domain = AF_UNIX;
 
 /* Get the pid of the process */
 pid_t mdtm_pid;
 
 static void mds_mdtm_enc_init(MDS_MDTM_DTM_MSG * init, uint8_t *buff);
-static uns32 mdtm_create_rcv_task(void);
-static uns32 mdtm_destroy_rcv_task_tcp(void);
-uns32 mdtm_process_recv_events_tcp(void);
+static uint32_t mdtm_create_rcv_task(void);
+static uint32_t mdtm_destroy_rcv_task_tcp(void);
+uint32_t mdtm_process_recv_events_tcp(void);
 
 /**
  * Initialize the tcp interface creation of sockets
@@ -74,10 +74,10 @@ uns32 mdtm_process_recv_events_tcp(void);
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
+uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 {
-	uns32 flags;
-	uns32 size = MDS_SND_RCV_SIZE;
+	uint32_t flags;
+	uint32_t size = MDS_SND_RCV_SIZE;
 	struct sockaddr_un client_addr_un, dhserver_addr_un;
 	struct sockaddr_in server_addr_in;
 	struct sockaddr_in6 server_addr_in6;
@@ -287,7 +287,7 @@ uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tcp_ref)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 mdtm_create_rcv_task(void)
+static uint32_t mdtm_create_rcv_task(void)
 {
 	/*
 	   STEP 1: Create a recv task which will recv data and
@@ -323,7 +323,7 @@ static uns32 mdtm_create_rcv_task(void)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_destroy_tcp(void)
+uint32_t mds_mdtm_destroy_tcp(void)
 {
 	MDTM_REF_HDL_LIST *temp_ref_hdl_list_entry = NULL;
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
@@ -388,7 +388,7 @@ uns32 mds_mdtm_destroy_tcp(void)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mdtm_destroy_rcv_task_tcp(void)
+uint32_t mdtm_destroy_rcv_task_tcp(void)
 {
         if (m_NCS_TASK_STOP(tcp_cb->mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
                 m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");

@@ -133,10 +133,10 @@
 
 \**************************************************************************/
 
-typedef uns32 (*LIB_REQ) (NCS_LIB_REQ_INFO *);
+typedef uint32_t (*LIB_REQ) (NCS_LIB_REQ_INFO *);
 
 typedef struct ncs_agent_data {
-	uns32 use_count;
+	uint32_t use_count;
 	LIB_REQ lib_req;
 } NCS_AGENT_DATA;
 
@@ -144,15 +144,15 @@ typedef struct ncs_main_pub_cb {
 	void *lib_hdl;
 
 	NCS_LOCK lock;
-	uns32 lock_create;
+	uint32_t lock_create;
 	NCS_BOOL core_started;
-	uns32 my_nodeid;
-	uns32 my_procid;
+	uint32_t my_nodeid;
+	uint32_t my_procid;
 
-	uns32 core_use_count;
-	uns32 leap_use_count;
-	uns32 mds_use_count;
-	uns32 dta_use_count;
+	uint32_t core_use_count;
+	uint32_t leap_use_count;
+	uint32_t mds_use_count;
+	uint32_t dta_use_count;
 
 	NCS_AGENT_DATA mbca;
 } NCS_MAIN_PUB_CB;
@@ -161,16 +161,16 @@ typedef struct ncs_sys_params {
 	NCS_PHY_SLOT_ID slot_id;
 	NCS_CHASSIS_ID shelf_id;
 	NCS_NODE_ID node_id;
-	uns32 cluster_id;
-	uns32 pcon_id;
+	uint32_t cluster_id;
+	uint32_t pcon_id;
 } NCS_SYS_PARAMS;
 
-static uns32 mainget_node_id(uns32 *node_id);
-static uns32 ncs_set_config_root(void);
-static uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
-static uns32 ncs_non_core_agents_startup(void);
+static uint32_t mainget_node_id(uint32_t *node_id);
+static uint32_t ncs_set_config_root(void);
+static uint32_t ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
+static uint32_t ncs_non_core_agents_startup(void);
 static void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params);
-static uns32 ncs_update_sys_param_args(void);
+static uint32_t ncs_update_sys_param_args(void);
 
 static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 
@@ -178,7 +178,7 @@ static NCS_MAIN_PUB_CB gl_ncs_main_pub_cb;
 
 /* Global argument definitions */
 char *gl_pargv[NCS_MAIN_MAX_INPUT];
-uns32 gl_pargc = 0;
+uint32_t gl_pargc = 0;
 
 /* Agent specific LOCKs */
 #define m_NCS_AGENT_LOCK                                 \
@@ -198,7 +198,7 @@ uns32 gl_pargc = 0;
 \***************************************************************************/
 unsigned int ncs_agents_startup(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = ncs_core_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS)
@@ -242,7 +242,7 @@ unsigned int ncs_leap_startup(void)
 	}
 
 	/* Print the process-id for information sakes */
-	gl_ncs_main_pub_cb.my_procid = (uns32)getpid();
+	gl_ncs_main_pub_cb.my_procid = (uint32_t)getpid();
 	TRACE("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
 
 	memset(&lib_create, 0, sizeof(lib_create));
@@ -381,9 +381,9 @@ unsigned int ncs_dta_startup(void)
   PROCEDURE    :    ncs_non_core_agents_startup
 
 \***************************************************************************/
-uns32 ncs_non_core_agents_startup(void)
+uint32_t ncs_non_core_agents_startup(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = ncs_mbca_startup();
 
@@ -479,7 +479,7 @@ unsigned int ncs_mbca_startup(void)
 unsigned int ncs_mbca_shutdown(void)
 {
 	NCS_LIB_REQ_INFO lib_destroy;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_NCS_AGENT_LOCK;
 	if (gl_ncs_main_pub_cb.mbca.use_count > 1) {
@@ -549,7 +549,7 @@ void ncs_leap_shutdown()
 void ncs_mds_shutdown()
 {
 	NCS_LIB_REQ_INFO lib_destroy;
-	uns32 tmp_ctr;
+	uint32_t tmp_ctr;
 
 	m_NCS_AGENT_LOCK;
 
@@ -652,7 +652,7 @@ NCS_NODE_ID ncs_get_node_id(void)
 	return gl_ncs_main_pub_cb.my_nodeid;
 }
 
-uns32 file_get_word(FILE **fp, char *o_chword)
+uint32_t file_get_word(FILE **fp, char *o_chword)
 {
 	int temp_char;
 	unsigned int temp_ctr = 0;
@@ -676,7 +676,7 @@ uns32 file_get_word(FILE **fp, char *o_chword)
 	return (0);
 }
 
-uns32 file_get_string(FILE **fp, char *o_chword)
+uint32_t file_get_string(FILE **fp, char *o_chword)
 {
 	int temp_char;
 	unsigned int temp_ctr = 0;
@@ -700,12 +700,12 @@ uns32 file_get_string(FILE **fp, char *o_chword)
 	return (0);
 }
 
-uns32 mainget_node_id(uns32 *node_id)
+uint32_t mainget_node_id(uint32_t *node_id)
 {
 	FILE *fp;
 	char get_word[256];
-	uns32 res = NCSCC_RC_SUCCESS;
-	uns32 d_len, f_len;
+	uint32_t res = NCSCC_RC_SUCCESS;
+	uint32_t d_len, f_len;
 
 #ifdef __NCSINC_LINUX__
 #if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
@@ -755,12 +755,12 @@ uns32 mainget_node_id(uns32 *node_id)
 }
 
 /* Fetchs the chassis type string */
-uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
+uint32_t ncs_get_chassis_type(uint32_t i_max_len, char *o_chassis_type)
 {
 	FILE *fp;
-	uns32 res = NCSCC_RC_SUCCESS;
-	uns32 d_len, f_len;
-	uns32 file_size = 0;
+	uint32_t res = NCSCC_RC_SUCCESS;
+	uint32_t d_len, f_len;
+	uint32_t file_size = 0;
 	char temp_ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 
 	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS)
@@ -829,7 +829,7 @@ uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
 	return (res);
 }
 
-static uns32 ncs_set_config_root(void)
+static uint32_t ncs_set_config_root(void)
 {
 	char *tmp;
 	static NCS_BOOL config_root_init = FALSE;
@@ -855,10 +855,10 @@ static uns32 ncs_set_config_root(void)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
+uint32_t ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 {
 	char *tmp_ptr;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
 
@@ -884,8 +884,8 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 {
 	char *p_field;
-	uns32 tmp_ctr;
-	uns32 orig_argc;
+	uint32_t tmp_ctr;
+	uint32_t orig_argc;
 	NCS_SUB_SLOT_ID sub_slot_id = 0;
 	NCS_SYS_PARAMS params;
 	char *ptr;
@@ -945,7 +945,7 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 	return;
 }
 
-uns32 ncs_update_sys_param_args(void)
+uint32_t ncs_update_sys_param_args(void)
 {
 	NCS_SYS_PARAMS sys_params;
 

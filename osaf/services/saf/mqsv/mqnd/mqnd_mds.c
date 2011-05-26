@@ -33,14 +33,14 @@
 
 #include "mqnd.h"
 
-static uns32 mqnd_mds_callback(struct ncsmds_callback_info *info);
+static uint32_t mqnd_mds_callback(struct ncsmds_callback_info *info);
 static void mqnd_mds_cpy(MQND_CB *pMqnd, MDS_CALLBACK_COPY_INFO *cpy);
-static uns32 mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 mqnd_mds_rcv(MQND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 mqnd_mds_direct_rcv(MQND_CB *cb, MDS_CALLBACK_DIRECT_RECEIVE_INFO *direct_rcv_info);
-static uns32 mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 mqnd_mds_get_handle(MQND_CB *cb);
+static uint32_t mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t mqnd_mds_rcv(MQND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t mqnd_mds_direct_rcv(MQND_CB *cb, MDS_CALLBACK_DIRECT_RECEIVE_INFO *direct_rcv_info);
+static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t mqnd_mds_get_handle(MQND_CB *cb);
 
 /*To store the message format versions*/
 MSG_FRMT_VER mqnd_mqa_msg_fmt_table[MQND_WRT_MQA_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
@@ -59,10 +59,10 @@ MSG_FRMT_VER mqnd_mqd_msg_fmt_table[MQND_WRT_MQD_SUBPART_VER_RANGE] = { 0, 2 };	
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_mds_get_handle(MQND_CB *cb)
+static uint32_t mqnd_mds_get_handle(MQND_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 
@@ -91,9 +91,9 @@ static uns32 mqnd_mds_get_handle(MQND_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 mqnd_mds_register(MQND_CB *cb)
+uint32_t mqnd_mds_register(MQND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_MQD, NCSMDS_SVC_ID_MQA };
 
@@ -155,7 +155,7 @@ uns32 mqnd_mds_register(MQND_CB *cb)
 void mqnd_mds_unregister(MQND_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
@@ -183,17 +183,17 @@ void mqnd_mds_unregister(MQND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 mqnd_mds_callback(struct ncsmds_callback_info *info)
+static uint32_t mqnd_mds_callback(struct ncsmds_callback_info *info)
 {
 	MQND_CB *cb = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (info == NULL) {
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
 
-	cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, (uns32)info->i_yr_svc_hdl);
+	cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
 		rc = NCSCC_RC_FAILURE;
 		m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -239,7 +239,7 @@ static uns32 mqnd_mds_callback(struct ncsmds_callback_info *info)
 	else
 		m_LOG_MQSV_ND(MQND_MDS_CLBK_COMPLETE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, info->i_op, __FILE__,
 			      __LINE__);
-	ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
+	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
 	return rc;
 }
 
@@ -289,11 +289,11 @@ static void mqnd_mds_cpy(MQND_CB *pMqnd, MDS_CALLBACK_COPY_INFO *cpy)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	msg_ptr = (MQSV_EVT *)enc_info->i_msg;
 
@@ -352,12 +352,12 @@ static uns32 mqnd_mds_enc(MQND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 
 	MQSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt;
 	switch (dec_info->i_fr_svc_id) {
 	case NCSMDS_SVC_ID_MQA:
@@ -425,9 +425,9 @@ static uns32 mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_mds_rcv(MQND_CB *pMqnd, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t mqnd_mds_rcv(MQND_CB *pMqnd, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_EVT *pEvt = (MQSV_EVT *)rcv_info->i_msg;
 
 	pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
@@ -458,9 +458,9 @@ static uns32 mqnd_mds_rcv(MQND_CB *pMqnd, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INFO *direct_rcv_info)
+static uint32_t mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INFO *direct_rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, is_valid_msg_fmt;
+	uint32_t rc = NCSCC_RC_SUCCESS, is_valid_msg_fmt;
 	MQSV_DSEND_EVT *pEvt = (MQSV_DSEND_EVT *)direct_rcv_info->i_direct_buff;
 	NCS_BOOL endianness = machineEndianness();
 
@@ -628,9 +628,9 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, to_dest_slotid, o_msg_fmt_ver;
+	uint32_t rc = NCSCC_RC_SUCCESS, to_dest_slotid, o_msg_fmt_ver;
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
 		if (svc_evt->i_svc_id == NCSMDS_SVC_ID_MQD) {
@@ -786,10 +786,10 @@ static uns32 mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
  * Notes         :
  *****************************************************************************/
 
-uns32 mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
+uint32_t mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->my_mds_hdl;
@@ -825,10 +825,10 @@ uns32 mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
  * Notes         :
  *****************************************************************************/
 
-uns32 mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSEND_EVT *evt)
+uint32_t mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSEND_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->my_mds_hdl;
@@ -870,12 +870,12 @@ uns32 mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSEND_
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqnd_mds_msg_sync_send(MQND_CB *cb, uns32 to_svc, MDS_DEST to_dest,
-			     MQSV_EVT *i_evt, MQSV_EVT **o_evt, uns32 timeout)
+uint32_t mqnd_mds_msg_sync_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
+			     MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;
@@ -920,10 +920,10 @@ uns32 mqnd_mds_msg_sync_send(MQND_CB *cb, uns32 to_svc, MDS_DEST to_dest,
  
   Notes         : None.
 ******************************************************************************/
-uns32 mqnd_mds_send(MQND_CB *cb, uns32 to_svc, MDS_DEST to_dest, MQSV_EVT *evt)
+uint32_t mqnd_mds_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, MQSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!evt)
 		return NCSCC_RC_FAILURE;
@@ -965,11 +965,11 @@ uns32 mqnd_mds_send(MQND_CB *cb, uns32 to_svc, MDS_DEST to_dest, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_mds_bcast_send(MQND_CB *cb, MQSV_EVT *evt, NCSMDS_SVC_ID to_svc)
+uint32_t mqnd_mds_bcast_send(MQND_CB *cb, MQSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 {
 
 	NCSMDS_INFO info;
-	uns32 res;
+	uint32_t res;
 
 	memset(&info, 0, sizeof(info));
 

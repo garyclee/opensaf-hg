@@ -22,7 +22,7 @@
 #include "ncssysf_mem.h"
 #include "ncspatricia.h"
 
-extern uns32 gl_gla_hdl;
+extern uint32_t gl_gla_hdl;
 #define m_GLSV_GLA_RETRIEVE_GLA_CB  ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl)
 #define m_GLSV_GLA_GIVEUP_GLA_CB    ncshm_give_hdl(gl_gla_hdl)
 
@@ -35,7 +35,7 @@ typedef struct gla_client_info_tag {
 	NCS_PATRICIA_NODE patnode;
 	SaLckHandleT lock_handle_id;	/* index for the tree at GLND */
 	SaLckHandleT lcl_lock_handle_id;	/* index for the tree */
-	uns32 client_context_id;
+	uint32_t client_context_id;
 	SaLckCallbacksT lckCallbk;
 	SaTimeT lcktimer;
 	/* Mailbox Queue to store the messages for the clients */
@@ -46,7 +46,7 @@ typedef struct gla_client_info_tag {
 typedef struct gla_client_res_info_tag {
 	NCS_PATRICIA_NODE patnode;
 	SaLckResourceIdT gbl_res_id;
-	uns32 lcl_res_cnt;
+	uint32_t lcl_res_cnt;
 } GLA_CLIENT_RES_INFO;
 typedef struct glsv_gla_tmr_callback_info {
 	GLA_CALLBK_TYPE callback_type;
@@ -94,9 +94,9 @@ typedef struct gla_lock_id_info_tag {
  *****************************************************************************/
 typedef struct gla_cb_tag {
 	/* Identification Information about the GLA */
-	uns32 process_id;
+	uint32_t process_id;
 	uint8_t *process_name;
-	uns32 agent_handle_id;
+	uint32_t agent_handle_id;
 	uint8_t pool_id;
 	MDS_HDL gla_mds_hdl;
 	MDS_DEST gla_mds_dest;
@@ -110,7 +110,7 @@ typedef struct gla_cb_tag {
 	/* GLA data */
 	NCS_PATRICIA_TREE gla_client_tree;	/* GLA_CLIENT_INFO - node */
 
-	uns32 lcl_res_id_count;
+	uint32_t lcl_res_id_count;
 	/* Local to global mapping for Resource Id's */
 	NCS_PATRICIA_TREE gla_resource_id_tree;	/* GLA_RESOURCE_ID_INFO */
 
@@ -123,55 +123,55 @@ typedef struct gla_cb_tag {
 
 } GLA_CB;
 
-uns32 gla_create(NCS_LIB_CREATE *create_info);
-uns32 gla_destroy(NCS_LIB_DESTROY *destroy_info);
+uint32_t gla_create(NCS_LIB_CREATE *create_info);
+uint32_t gla_destroy(NCS_LIB_DESTROY *destroy_info);
 
 /* function prototypes for client handling*/
-uns32 gla_client_tree_init(GLA_CB *cb);
+uint32_t gla_client_tree_init(GLA_CB *cb);
 void gla_client_tree_destroy(GLA_CB *gla_cb);
 void gla_client_tree_cleanup(GLA_CB *gla_cb);
 GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_id, NCS_BOOL flag);
-uns32 gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl);
+uint32_t gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, NCS_BOOL give_hdl);
 GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_info, SaLckResourceIdT res_id,
 							       NCS_BOOL flag);
-uns32 gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info);
+uint32_t gla_client_res_tree_destroy(GLA_CLIENT_INFO *client_info);
 
 /* queue prototypes */
 
-uns32 glsv_gla_callback_queue_init(struct gla_client_info_tag *client_info);
+uint32_t glsv_gla_callback_queue_init(struct gla_client_info_tag *client_info);
 void glsv_gla_callback_queue_destroy(struct gla_client_info_tag *client_info);
-uns32 glsv_gla_callback_queue_write(struct gla_cb_tag *gla_cb,
+uint32_t glsv_gla_callback_queue_write(struct gla_cb_tag *gla_cb,
 				    SaLckHandleT handle, struct glsv_gla_callback_info_tag *clbk_info);
 GLSV_GLA_CALLBACK_INFO *glsv_gla_callback_queue_read(struct gla_client_info_tag *client_info);
 
 /* callback prototypes */
-uns32 gla_hdl_callbk_dispatch_one(struct gla_cb_tag *cb, struct gla_client_info_tag *client_info);
-uns32 gla_hdl_callbk_dispatch_all(struct gla_cb_tag *cb, struct gla_client_info_tag *client_info);
-uns32 gla_hdl_callbk_dispatch_block(struct gla_cb_tag *gla_cb, struct gla_client_info_tag *client_info);
+uint32_t gla_hdl_callbk_dispatch_one(struct gla_cb_tag *cb, struct gla_client_info_tag *client_info);
+uint32_t gla_hdl_callbk_dispatch_all(struct gla_cb_tag *cb, struct gla_client_info_tag *client_info);
+uint32_t gla_hdl_callbk_dispatch_block(struct gla_cb_tag *gla_cb, struct gla_client_info_tag *client_info);
 
 /* resource table prototypes */
-uns32 gla_res_tree_init(GLA_CB *cb);
+uint32_t gla_res_tree_init(GLA_CB *cb);
 void gla_res_tree_destroy(GLA_CB *gla_cb);
 void gla_res_tree_cleanup(GLA_CB *gla_cb);
 GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb, SaLckResourceHandleT res_id, NCS_BOOL flag);
-uns32 gla_res_tree_delete_node(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info);
+uint32_t gla_res_tree_delete_node(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info);
 GLA_RESOURCE_ID_INFO *gla_res_tree_reverse_find(GLA_CB *gla_cb, SaLckHandleT handle, SaLckResourceIdT gbl_res);
 void gla_res_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle);
 
 /* Lock table prototypes */
-uns32 gla_lock_tree_init(GLA_CB *cb);
+uint32_t gla_lock_tree_init(GLA_CB *cb);
 void gla_lock_tree_destroy(GLA_CB *gla_cb);
 void gla_lock_tree_cleanup(GLA_CB *gla_cb);
 GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb, SaLckLockIdT lock_id, NCS_BOOL flag);
-uns32 gla_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info);
+uint32_t gla_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info);
 GLA_LOCK_ID_INFO *gla_lock_tree_reverse_find(GLA_CB *gla_cb,
 					     SaLckHandleT handle, SaLckResourceIdT gbl_res, SaLckLockIdT gbl_lock);
 void gla_lock_tree_cleanup_client_down(GLA_CB *gla_cb, SaLckHandleT handle);
 void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info, SaLckHandleT handle);
 
-uns32 gla_client_info_send(GLA_CB *gla_cb);
+uint32_t gla_client_info_send(GLA_CB *gla_cb);
 
-uns32 gla_start_tmr(GLA_TMR *tmr);
+uint32_t gla_start_tmr(GLA_TMR *tmr);
 void gla_stop_tmr(GLA_TMR *tmr);
 void gla_tmr_exp(NCSCONTEXT uarg);
 

@@ -542,7 +542,7 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 	ntfa_client_hdl_rec_t *ntfa_hdl_rec;
 	ntfsv_msg_t i_msg, *o_msg;
 	SaAisErrorT rc;
-	uns32 client_id, mds_rc;
+	uint32_t client_id, mds_rc;
 
 	TRACE_ENTER();
 
@@ -785,7 +785,7 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 	ntfa_client_hdl_rec_t *hdl_rec;
 	ntfsv_msg_t msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 
@@ -1037,8 +1037,8 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	ntfa_notification_hdl_rec_t *notification_hdl_rec;
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_send_not_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
-	uns32 mds_rc;
+	uint32_t timeout = NTFS_WAIT_TIME;
+	uint32_t mds_rc;
 	SaNtfNotificationHeaderT *ntfHeader;
 
 	send_param = calloc(1, sizeof(ntfsv_send_not_req_t));
@@ -1230,7 +1230,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
+	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
 	if (notificationFilterHandles == NULL) {
@@ -2438,7 +2438,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_msg_t *async_cbk_msg = NULL, *process = NULL, *cbk_msg = NULL;
 	ntfsv_unsubscribe_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
+	uint32_t timeout = NTFS_WAIT_TIME;
 
 	if (NULL != subscriberNoList) {
 		/* Check the list for entries */
@@ -2568,7 +2568,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_reader_init_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
+	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
 	if (notificationFilterHandles == NULL || readHandle == NULL) {
@@ -2683,14 +2683,14 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 {
 	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
-	uns32 oas_rc = NCSCC_RC_FAILURE;
+	uint32_t oas_rc = NCSCC_RC_FAILURE;
 
 	ntfa_client_hdl_rec_t *client_hdl_rec;
 	ntfa_reader_hdl_rec_t *reader_hdl_rec;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_reader_finalize_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
+	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
 
@@ -2777,7 +2777,7 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_read_next_req_t *send_param;
-	uns32 timeout = NTFS_WAIT_TIME;
+	uint32_t timeout = NTFS_WAIT_TIME;
 	ntfsv_send_not_req_t *read_not = NULL;
 	ntfa_notification_hdl_rec_t *notification_hdl_rec = NULL;
 

@@ -44,10 +44,10 @@
 
 #define m_CPND_CKPTHDR_UPDATE(ckpt_hdr,offset)  memcpy(offset,&ckpt_hdr,sizeof(CKPT_HDR))
 
-static uns32 cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node);
-static NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uns32 bitmap_offset,
-					 uns32 *offset, uns32 *prev_offset);
-static void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uns32 curr_offset, uns32 prev_offset);
+static uint32_t cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node);
+static NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset,
+					 uint32_t *offset, uint32_t *prev_offset);
+static void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uint32_t curr_offset, uint32_t prev_offset);
 
 /******************************************************************************* *
  * Name           : cpnd_client_extract_bits
@@ -60,11 +60,11 @@ static void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uns32 cur
  * Notes          : None
 *********************************************************************************/
 
-uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position)
+uint32_t cpnd_client_extract_bits(uint32_t bitmap_value, uint32_t *bit_position)
 {
-	uns32 counter = *bit_position;
-	uns32 mask = 0x1;
-	uns32 nbits = 8 * sizeof(int32);
+	uint32_t counter = *bit_position;
+	uint32_t mask = 0x1;
+	uint32_t nbits = 8 * sizeof(int32_t);
 
 	mask = mask << counter;
 	do {
@@ -91,7 +91,7 @@ uns32 cpnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position)
  * Notes           : 
 *********************************************************************************************/
 
-uns32 cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node)
 {
 	if (cp_node->replica_info.section_info != NULL) {
 		pSecPtr->next = cp_node->replica_info.section_info;
@@ -114,7 +114,7 @@ uns32 cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_
  * Return Values   : Success / Error
  * Notes           :
 *********************************************************************************************/
-uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL, *nextPtr = NULL;
 
@@ -151,13 +151,13 @@ uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
  |-----------|----------|-----------|--------|----------|------------ |----------|---------|        
 */
 
-uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
-				   uns32 ref_cnt, CKPT_INFO *cp_info)
+uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
+				   uint32_t ref_cnt, CKPT_INFO *cp_info)
 {
 /*   NCS_OS_POSIX_SHM_REQ_INFO read_req,shm_read; */
 	CPSV_CKPT_HDR ckpt_hdr;
 	CPSV_SECT_HDR sect_hdr;
-	uns32 counter = 0, sec_cnt = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t counter = 0, sec_cnt = 0, rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
@@ -191,7 +191,7 @@ uns32 cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *bu
 		return rc;
 
 	(*cp_node)->replica_info.shm_sec_mapping =
-	    (uns32 *)m_MMGR_ALLOC_CPND_DEFAULT(sizeof(uns32) * ((*cp_node)->create_attrib.maxSections));
+	    (uint32_t *)m_MMGR_ALLOC_CPND_DEFAULT(sizeof(uint32_t) * ((*cp_node)->create_attrib.maxSections));
 
 	if ((*cp_node)->replica_info.shm_sec_mapping == NULL) {
 		m_LOG_CPND_CL(CPND_DEFAULT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -301,8 +301,8 @@ void cpnd_restart_update_timer(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaTimeT clo
 
 void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB *cb, SaClmNodeIdT nodeid)
 {
-	uns32 counter = 0, count, num_bitset = 0, n_clients, rc = NCSCC_RC_SUCCESS, i_offset, bit_position;
-	int32 next_offset;
+	uint32_t counter = 0, count, num_bitset = 0, n_clients, rc = NCSCC_RC_SUCCESS, i_offset, bit_position;
+	int32_t next_offset;
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 	CPND_CKPT_NODE *cp_node = NULL;
 	CLIENT_INFO cl_info;
@@ -316,7 +316,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
 	SaTimeT presentTime, timeout = 0;
 	int64 now, diff_time, giga_sec;
-	uns32 max_client_hdl = 0;
+	uint32_t max_client_hdl = 0;
 	SaTimeT tmpTime = 0;
 	CPND_SHM_VERSION cpnd_shm_version;
 
@@ -334,7 +334,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	cb->cpnd_res_shm_name = (uint8_t*)buffer;
 	memset(buffer, '\0', total_length);
 	strncpy(buffer, "CPND_CHECKPOINT_INFO", total_length);
-	sprintf(buffer + size, "_%d", (uns32)nodeid);
+	sprintf(buffer + size, "_%d", (uint32_t)nodeid);
 
 	/* 1. FIRST TRYING TO OPEN IN RDWR MODE */
 	cpnd_open_req->type = NCS_OS_POSIX_SHM_REQ_OPEN;
@@ -473,7 +473,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 					buf = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
 					memset(buf, '\0', total_length);
 					strncpy(buf, (char *)cp_node->ckpt_name.value, size);
-					sprintf(buf + size - 1, "_%d_%d", (uns32)nodeid, (uns32)cp_node->ckpt_id);
+					sprintf(buf + size - 1, "_%d_%d", (uint32_t)nodeid, (uint32_t)cp_node->ckpt_id);
 					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info);
 					if (rc != NCSCC_RC_SUCCESS) {
 						/*   assert(0); */
@@ -576,10 +576,10 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
  *
  * Return Values : Return the free block number 
  ***********************************************************************************/
-int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type)
+int32_t cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type)
 {
-	int32 counter = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	int32_t counter = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLIENT_INFO cl_info;
 	CKPT_INFO ckpt_info;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
@@ -666,7 +666,7 @@ int32 cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type)
  *
  * Notes : None
 *********************************************************************************/
-uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts)
+uint32_t cpnd_ckpt_write_header(CPND_CB *cb, uint32_t nckpts)
 {
 	CKPT_HDR ckpt_hdr;
 	void *offset;
@@ -691,9 +691,9 @@ uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts)
  *
  * Return Values : Success / Error
 *********************************************************************************************/
-uns32 cpnd_cli_info_write_header(CPND_CB *cb, int32 n_clients)
+uint32_t cpnd_cli_info_write_header(CPND_CB *cb, int32_t n_clients)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, offset;
+	uint32_t rc = NCSCC_RC_SUCCESS, offset;
 	CLIENT_HDR cl_hdr;
 	memset(&cl_hdr, '\0', sizeof(CLIENT_HDR));
 
@@ -715,13 +715,13 @@ uns32 cpnd_cli_info_write_header(CPND_CB *cb, int32 n_clients)
  *
  * Return Values : Success / Error
 ******************************************************************************************/
-uns32 cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32 offset)
+uint32_t cpnd_write_client_info(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node, int32_t offset)
 {
 	CLIENT_INFO cl_info;
 	NCS_OS_POSIX_SHM_REQ_INFO write_req;
 	memset(&cl_info, '\0', sizeof(CLIENT_INFO));
 	memset(&write_req, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
-	uns32 rc = NCSCC_RC_SUCCESS, i_offset;
+	uint32_t rc = NCSCC_RC_SUCCESS, i_offset;
 
 	cl_info.ckpt_app_hdl = cl_node->ckpt_app_hdl;
 	cl_info.agent_mds_dest = cl_node->agent_mds_dest;
@@ -768,9 +768,9 @@ void cpnd_restart_set_arrcb(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
  * Return Values : bitmap value is returned
  **************************************************************************************/
 
-uns32 cpnd_client_bitmap_set(SaCkptHandleT client_hdl)
+uint32_t cpnd_client_bitmap_set(SaCkptHandleT client_hdl)
 {
-	uns32 mask = 0, counter, bitmap_value = 0;
+	uint32_t mask = 0, counter, bitmap_value = 0;
 	for (counter = 0; counter <= client_hdl; counter++) {
 		mask = 0x1;
 		mask = mask << counter;
@@ -792,12 +792,12 @@ uns32 cpnd_client_bitmap_set(SaCkptHandleT client_hdl)
  *
 **************************************************************************************************/
 
-NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uns32 bitmap_offset, uns32 *offset,
-				  uns32 *prev_offset)
+NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uint32_t bitmap_offset, uint32_t *offset,
+				  uint32_t *prev_offset)
 {
-	int32 next;
+	int32_t next;
 	CKPT_INFO prev_ckpt_info;
-	uns32 i_offset;
+	uint32_t i_offset;
 	NCS_BOOL found = FALSE;
 
 	memset(&prev_ckpt_info, 0, sizeof(ckpt_info));
@@ -833,10 +833,10 @@ NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb, CKPT_INFO *ckpt_info, uns32 bitma
  * Notes         :  None
  ******************************************************************************************************/
 
-uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl)
+uint32_t cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl)
 {
 	CKPT_INFO ckpt_info, prev_ckpt_info, new_ckpt_info;
-	uns32 bitmap_offset = 0, bitmap_value = 0, i_offset, prev_offset, offset, rc = NCSCC_RC_SUCCESS;
+	uint32_t bitmap_offset = 0, bitmap_value = 0, i_offset, prev_offset, offset, rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL found = FALSE;
 
 	memset(&ckpt_info, '\0', sizeof(CKPT_INFO));
@@ -858,7 +858,7 @@ uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 
 	if (!found) {
 		CKPT_HDR ckpt_hdr;
-		uns32 no_ckpts = 0;
+		uint32_t no_ckpts = 0;
 		/* Update the Next Location in the previous prev_ckpt_info.next as we have to find a new ckpt_info */
 		i_offset = prev_offset * sizeof(CKPT_INFO);
 		m_CPND_CKPTINFO_READ(prev_ckpt_info, (char *)cb->shm_addr.ckpt_addr + sizeof(CKPT_HDR), i_offset);
@@ -923,10 +923,10 @@ uns32 cpnd_update_ckpt_with_clienthdl(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
            else find the next free location and there update the checkpoint information
  ************************************************************************************************************/
 
-uns32 cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32 offset, SaCkptHandleT client_hdl)
+uint32_t cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32_t offset, SaCkptHandleT client_hdl)
 {
 	CKPT_INFO ckpt_info;
-	uns32 rc = NCSCC_RC_SUCCESS, i_offset;
+	uint32_t rc = NCSCC_RC_SUCCESS, i_offset;
 
 	memset(&ckpt_info, 0, sizeof(CKPT_INFO));
 	ckpt_info.ckpt_name = cp_node->ckpt_name;
@@ -965,11 +965,11 @@ uns32 cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32 offset, S
  *
  * Notes : Update the client header , then update the client information
 ********************************************************************************/
-int32 cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
+int32_t cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
 {
 	CLIENT_INFO cl_info;
-	int32 free_shm_id, num_clients;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	int32_t free_shm_id, num_clients;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLIENT_HDR cli_hdr;
 
 	memset(&cli_hdr, '\0', sizeof(CLIENT_HDR));
@@ -1010,11 +1010,11 @@ int32 cpnd_restart_shm_client_update(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node
  * Notes  : When client does a finalize then the shared memory is updated by decrementing the number of clients 
             and memsetting the corresponding client info in the shared memory
 ***************************************************************************************/
-uns32 cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
+uint32_t cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO clinfo_write;
-	int32 no_clients;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	int32_t no_clients;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLIENT_INFO cl_info;
 	CLIENT_HDR cli_hdr;
 
@@ -1055,9 +1055,9 @@ uns32 cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_node)
  * Notes : To reset the bitmap when the client has finalized
  ************************************************************************************************/
 
-uns32 client_bitmap_reset(uns32 *bitmap_value, uns32 client_hdl)
+uint32_t client_bitmap_reset(uint32_t *bitmap_value, uint32_t client_hdl)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	(*bitmap_value) = (*bitmap_value) & (~(0x1 << client_hdl));
 
@@ -1074,11 +1074,11 @@ uns32 client_bitmap_reset(uns32 *bitmap_value, uns32 client_hdl)
  *  Return Values    : Number of clients
  *
  ************************************************************************************/
-uns32 client_bitmap_isset(uns32 bitmap_value)
+uint32_t client_bitmap_isset(uint32_t bitmap_value)
 {
-	uns32 mask = 0x1, counter;
-	uns32 value = 0;
-	uns32 bitcount = 8 * sizeof(uns32);
+	uint32_t mask = 0x1, counter;
+	uint32_t value = 0;
+	uint32_t bitcount = 8 * sizeof(uint32_t);
 	for (counter = 1; counter <= (bitcount); counter++) {
 		if (bitmap_value & mask)
 			value++;
@@ -1101,11 +1101,11 @@ uns32 client_bitmap_isset(uns32 bitmap_value)
  * Notes : update the checkpoint header by decrementing the ckpts , and to memset the ckpt info if n_clients = 0
  *         this is called at the time of close
  ****************************************************************************************/
-uns32 cpnd_restart_shm_ckpt_free(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_restart_shm_ckpt_free(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 {
 	CKPT_INFO ckpt_info;
 	CKPT_HDR ckpt_hdr;
-	uns32 rc = NCSCC_RC_SUCCESS, i_offset, no_ckpts = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, i_offset, no_ckpts = 0;
 
 	memset(&ckpt_info, '\0', sizeof(CKPT_INFO));
 
@@ -1206,10 +1206,10 @@ void cpnd_restart_reset_close_flag(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
  *
  * Return Values:
 ************************************************************************************************************/
-void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uns32 curr_offset, uns32 prev_offset)
+void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uint32_t curr_offset, uint32_t prev_offset)
 {
 	CKPT_INFO prev_ckpt_info, curr_ckpt_info, next_ckpt_info;
-	uns32 i_offset, no_ckpts;
+	uint32_t i_offset, no_ckpts;
 	CKPT_HDR ckpt_hdr;
 
 	memset(&prev_ckpt_info, '\0', sizeof(CKPT_INFO));
@@ -1286,9 +1286,9 @@ void cpnd_clear_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, uns32 curr_offse
 void cpnd_restart_client_reset(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
 {
 	CKPT_INFO ckpt_info;
-	uns32 bitmap_offset = 0, num_bitset = 0;
+	uint32_t bitmap_offset = 0, num_bitset = 0;
 	NCS_BOOL found = FALSE;
-	uns32 offset, prev_offset;
+	uint32_t offset, prev_offset;
 	SaCkptHandleT client_hdl = cl_node->ckpt_app_hdl;
 
 	bitmap_offset = client_hdl / 32;
@@ -1333,9 +1333,9 @@ void cpnd_restart_client_reset(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_C
    4. If yes -> then just add the client hdl to the ckpt info bcos already this checkpoint is opened by someone
  *
  **********************************************************************************************/
-uns32 cpnd_restart_shm_ckpt_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl)
+uint32_t cpnd_restart_shm_ckpt_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptHandleT client_hdl)
 {
-	int32 ckpt_id_exists = 0, no_ckpts = 0;
+	int32_t ckpt_id_exists = 0, no_ckpts = 0;
 	CKPT_INFO ckpt_info;
 	memset(&ckpt_info, 0, sizeof(ckpt_info));
 	CKPT_HDR ckpt_hdr;

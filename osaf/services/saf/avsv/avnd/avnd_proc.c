@@ -55,7 +55,7 @@ static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
 static void avnd_evt_process(AVND_EVT *);
 
-static uns32 avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt);
+static uint32_t avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt);
 
 /* list of all the function pointers related to handling the events
 */
@@ -261,7 +261,7 @@ done:
 void avnd_evt_process(AVND_EVT *evt)
 {
 	AVND_CB *cb = avnd_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* validate the event type */
@@ -315,7 +315,7 @@ done:
  * 
  **************************************************************************/
 
-static uns32 avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt)
+static uint32_t avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	LOG_NO("avnd_evt_invalid_func: %u", evt->type);
 	return NCSCC_RC_SUCCESS;

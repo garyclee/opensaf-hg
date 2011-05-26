@@ -34,13 +34,13 @@
  *****************************************************************************/
 void cpd_timer_expiry(NCSCONTEXT uarg)
 {
-/*   uns32 hdl = (uns32)uarg;
+/*   uint32_t hdl = (uint32_t)uarg;
    CPD_TMR *tmr = NULL; */
 	CPD_TMR *tmr = (CPD_TMR *)uarg;
 	NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
 	CPD_CB *cb;
 	CPSV_EVT *evt = NULL;
-	uns32 cpd_hdl = m_CPD_GET_CB_HDL;
+	uint32_t cpd_hdl = m_CPD_GET_CB_HDL;
 
 	/* post a message to the corresponding component */
 	if ((cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, cpd_hdl)) == NULL)
@@ -82,18 +82,18 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
  * Description   : This function which is used to start the CPD Timer
  *
  *****************************************************************************/
-uns32 cpd_tmr_start(CPD_TMR *tmr, uns32 duration)
+uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration)
 {
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpd_timer_expiry, (void *)tmr);
 	}
 
 	if (tmr->is_active == FALSE) {
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
 		tmr->is_active = TRUE;
 	} else {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
 	}
 
 	return (NCSCC_RC_SUCCESS);

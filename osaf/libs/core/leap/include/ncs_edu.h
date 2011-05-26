@@ -81,16 +81,16 @@ typedef enum {
 } NCS_EDU_ADMIN_OP_TYPE;
 
 typedef struct ncs_edu_admin_compile_info_tag {
-	uns32 i_dummy;
-	uns32 *o_retval;
+	uint32_t i_dummy;
+	uint32_t *o_retval;
 } NCS_EDU_ADMIN_COMPILE_INFO;
 
 typedef struct ncs_edu_admin_get_attrb_info_tag {
-	uns32 *o_attrb;		/* Storage of this (most likely) to be given by EDU(not application) */
+	uint32_t *o_attrb;		/* Storage of this (most likely) to be given by EDU(not application) */
 } NCS_EDU_ADMIN_GET_ATTRB_INFO;
 
 typedef struct ncs_edu_admin_get_ll_next_offset_tag {
-	uns32 *o_next_offset;	/* Storage, the responsibility of EDU */
+	uint32_t *o_next_offset;	/* Storage, the responsibility of EDU */
 } NCS_EDU_ADMIN_GET_LL_NEXT_OFFSET;
 
 typedef struct ncs_edu_admin_op_tag {
@@ -136,85 +136,85 @@ void ncs_edu_tkn_init(EDU_TKN *edu_tkn);
 
 void ncs_edu_tkn_flush(EDU_TKN *edu_tkn);
 
-uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU_ERR *o_err);
+uint32_t ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU_ERR *o_err);
 
-uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl,
+uint32_t ncs_edu_perform_pp_op(EDU_HDL *edu_hdl,
 				     EDU_PROG_HANDLER edp,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 				     EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
-uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-				      EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
+uint32_t ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+				      EDU_BUF_ENV *buf_env, uint32_t *cnt, NCSCONTEXT arg,
 				      EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
-uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
-				      EDU_BUF_ENV *buf_env, uns32 *cnt, NCSCONTEXT arg,
+uint32_t ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
+				      EDU_BUF_ENV *buf_env, uint32_t *cnt, NCSCONTEXT arg,
 				      EDU_ERR *o_err, uint8_t var_cnt, int *var_array);
 
-uns32
+uint32_t
 ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
-		EDU_PROG_HANDLER edp, NCSCONTEXT ptr, uns32 *cnt,
+		EDU_PROG_HANDLER edp, NCSCONTEXT ptr, uint32_t *cnt,
 		EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err);
 
 int
 ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		  EDU_HDL_NODE *hdl_node, EDU_INST_SET *rule,
-		  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err);
+		  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err);
 
 EDU_LABEL
 ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			  EDU_HDL_NODE *hdl_node, EDU_INST_SET *prog,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
 
 EDU_LABEL
 ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			  EDU_HDL_NODE *hdl_node, EDU_INST_SET *prog,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
 
 EDU_LABEL
 ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			 EDU_HDL_NODE *hdl_node, EDU_INST_SET *prog,
-			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
+			 NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err, int instr_count);
 
-uns32
+uint32_t
 ncs_edu_run_rules_for_compile(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node,
-			      EDU_INST_SET *prog, NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_ERR *o_err, int instr_count);
+			      EDU_INST_SET *prog, NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_ERR *o_err, int instr_count);
 
-uns32
+uint32_t
 ncs_edu_perform_exec_action(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			    EDU_HDL_NODE *hdl_node, EDU_INST_SET *rule,
 			    EDP_OP_TYPE optype, NCSCONTEXT ptr,
-			    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
+			    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 
-uns32
+uint32_t
 ncs_edu_perform_exec_action_on_non_ptr(EDU_HDL *edu_hdl,
 				       EDU_TKN *edu_tkn, EDU_HDL_NODE *hdl_node,
 				       EDU_INST_SET *rule, EDP_OP_TYPE optype,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 
-uns32
+uint32_t
 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl,
 			    EDU_TKN *edu_tkn, EDU_HDL_NODE *hdl_node,
 			    EDU_INST_SET *rule, NCSCONTEXT ptr,
-			    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
+			    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 
-uns32
+uint32_t
 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl,
 			    EDU_TKN *edu_tkn, EDU_HDL_NODE *hdl_node,
 			    EDU_INST_SET *rule, NCSCONTEXT ptr,
-			    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
+			    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-uns32
+uint32_t
 ncs_edu_prfm_pp_on_non_ptr(EDU_HDL *edu_hdl,
 			   EDU_TKN *edu_tkn, EDU_HDL_NODE *hdl_node,
 			   EDU_INST_SET *rule, NCSCONTEXT ptr,
-			   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
+			   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDU_ERR *o_err);
 #endif
 
 NCS_BOOL ncs_edu_is_edp_builtin(EDU_PROG_HANDLER prog);
 
-NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uns32 *o_size);
+NCS_BOOL ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size);
 
 EDU_LABEL ncs_edu_run_test_ll_rule(EDU_INST_SET *rule, NCSCONTEXT ptr, EDP_OP_TYPE optype, EDU_ERR *o_err);
 
@@ -230,47 +230,47 @@ ncs_edu_run_version_ge(EDU_HDL *edu_hdl,
 int
 ncs_edu_run_version_usr(EDU_HDL *edu_hdl,
 			EDU_INST_SET *rule, NCSCONTEXT ptr, EDU_BUF_ENV *buf_env, EDP_OP_TYPE optype, EDU_ERR *o_err);
-uns32
+uint32_t
 ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 					     EDU_INST_SET *rules_head, int instr_count, EDU_ERR *o_err);
 
 void ncs_edu_free_test_instr_rec_list(EDP_TEST_INSTR_REC *head);
 
-uns32 ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_store, EDU_INST_SET *rule);
+uint32_t ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_store, EDU_INST_SET *rule);
 
 void ncs_edu_log_msg(char *string);
 
-void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt);
+void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uint32_t cnt);
 
-uns32 ncs_encode_tlv_8bit(uint8_t **stream, uns32 val);
+uint32_t ncs_encode_tlv_8bit(uint8_t **stream, uint32_t val);
 
-uns32 ncs_encode_tlv_16bit(uint8_t **stream, uns32 val);
+uint32_t ncs_encode_tlv_16bit(uint8_t **stream, uint32_t val);
 
-uns32 ncs_encode_tlv_32bit(uint8_t **stream, uns32 val);
+uint32_t ncs_encode_tlv_32bit(uint8_t **stream, uint32_t val);
 
-uns32 ncs_encode_tlv_64bit(uint8_t **stream, uns64 val);
+uint32_t ncs_encode_tlv_64bit(uint8_t **stream, uns64 val);
 
-uns32 ncs_encode_tlv_n_32bit(uint8_t **stream, uns32 *val_ptr, uint16_t n_count);
+uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_count);
 
-uns32 ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count);
+uint32_t ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count);
 
-uns32 ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count);
+uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count);
 
-uns32 ncs_decode_tlv_32bit(uint8_t **stream);
+uint32_t ncs_decode_tlv_32bit(uint8_t **stream);
 
 uns64 ncs_decode_tlv_64bit(uint8_t **stream);
 
 uint16_t ncs_decode_tlv_16bit(uint8_t **stream);
 
-uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uns32 *dest);
+uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uint32_t *dest);
 
 uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest);
 
 uint8_t ncs_decode_tlv_8bit(uint8_t **stream);
 
-uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count);
+uint8_t *ncs_decode_tlv_n_octets(uint8_t *src, uint8_t *dest, uint32_t count);
 
-uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uns32 count);
+uint8_t *ncs_copy_tlv_n_octets(uint8_t *src, uint8_t *dest, uint32_t count);
 
 /************ EDU internal macro-related functions. ************/
 

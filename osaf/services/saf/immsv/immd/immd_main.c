@@ -55,9 +55,9 @@ IMMD_CB *immd_cb = &_immd_cb;
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
 {
-	uns32 rc;
+	uint32_t rc;
 	IMMSV_EVT *evt;
 
 	TRACE_ENTER();
@@ -103,9 +103,9 @@ static void sigusr1_handler(int sig)
  * 
  * @return uns32
  */
-static uns32 immd_initialize(void)
+static uint32_t immd_initialize(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 

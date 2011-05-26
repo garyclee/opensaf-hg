@@ -38,8 +38,8 @@ static SaVersionT imm_version = {
 
 static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
-static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
-static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
+static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
+static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
 static char* ckpt_replica_extract_node_name(char *src,char *key);
 
 SaImmOiCallbacksT_2 oi_cbks = {
@@ -524,11 +524,11 @@ void cpd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *par
 	dn->length = strlen((char *)dn->value);
 }
 
-static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
+static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 {
 	CPSV_EVT send_evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 
 	send_evt.type = CPSV_EVT_TYPE_CPND;
@@ -566,11 +566,11 @@ static uns32 cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 	return rc;
 }
 
-static uns32 cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
+static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 {
 	CPSV_EVT send_evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_NUM_SECTIONS;

@@ -35,10 +35,10 @@
  *
  * Notes                  : None
 **********************************************************************************************/
-uns32 cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* populate the arg structure */
 	arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
@@ -69,9 +69,9 @@ uns32 cpd_mbcsv_async_update(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 *
 * Notes   : This function first calls the mbcsv_init then does an open and does a selection object get
 *****************************************************************************************/
-uns32 cpd_mbcsv_register(CPD_CB *cb)
+uint32_t cpd_mbcsv_register(CPD_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = cpd_mbcsv_init(cb);
 	if (rc != NCSCC_RC_SUCCESS)
@@ -107,10 +107,10 @@ uns32 cpd_mbcsv_register(CPD_CB *cb)
  *
  * Notes                  : None
 *************************************************************************************************/
-uns32 cpd_mbcsv_init(CPD_CB *cb)
+uint32_t cpd_mbcsv_init(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -140,15 +140,15 @@ uns32 cpd_mbcsv_init(CPD_CB *cb)
  * Notes                  : Open call will set up a session between the peer entities. o_ckpt_hdl returned
                             by the OPEN call will uniquely identify the checkpoint session.
 *********************************************************************************************************/
-uns32 cpd_mbcsv_open(CPD_CB *cb)
+uint32_t cpd_mbcsv_open(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_handle;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_handle;
 	arg.info.open.i_client_hdl = cb->cpd_hdl;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
@@ -171,11 +171,11 @@ uns32 cpd_mbcsv_open(CPD_CB *cb)
 *
 * Notes  : To receive a handle from OS and can be used in further processing of pending callbacks 
 ********************************************************************************************************/
-uns32 cpd_mbcsv_selobj_get(CPD_CB *cb)
+uint32_t cpd_mbcsv_selobj_get(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
@@ -201,10 +201,10 @@ uns32 cpd_mbcsv_selobj_get(CPD_CB *cb)
  * Notes                  : This API is use for setting the role. Role Standby - initiate Cold Sync Request if it finds Active
                             Role Active - send ckpt data to multiple standby peers
  *********************************************************************************************************************/
-uns32 cpd_mbcsv_chgrole(CPD_CB *cb)
+uint32_t cpd_mbcsv_chgrole(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
@@ -228,10 +228,10 @@ uns32 cpd_mbcsv_chgrole(CPD_CB *cb)
  *
  * Return Values : Success / Error
 ****************************************************************************/
-uns32 cpd_mbcsv_close(CPD_CB *cb)
+uint32_t cpd_mbcsv_close(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_CLOSE;
@@ -255,10 +255,10 @@ uns32 cpd_mbcsv_close(CPD_CB *cb)
  *
  * Notes          : Closes the association, represented by i_mbc_hdl, between the invoking process and MBCSV
 ***********************************************************************************************************/
-uns32 cpd_mbcsv_finalize(CPD_CB *cb)
+uint32_t cpd_mbcsv_finalize(CPD_CB *cb)
 {
 	NCS_MBCSV_ARG arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	arg.i_op = NCS_MBCSV_OP_FINALIZE;
@@ -281,10 +281,10 @@ uns32 cpd_mbcsv_finalize(CPD_CB *cb)
  *
  * Notes           : Callbacks from MBCSV to user
 ***************************************************************************************************/
-uns32 cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (arg == NULL) {
 		rc = NCSCC_RC_FAILURE;
@@ -329,10 +329,10 @@ uns32 cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Notes          : from io_reo_type - the event is determined and based on the event we encode the MBCSv_MSG
                     This is called at the active side
 *******************************************************************************************/
-uns32 cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	CPD_MBCSV_MSG *cpd_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	uint8_t *cpd_type_ptr;
 
@@ -454,12 +454,12 @@ uns32 cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  |------------------|---------------------------|------|-----------|-----------|
  *****************************************************************************************************/
 
-uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node;
 	CPD_A2S_CKPT_CREATE ckpt_create;
 	SaCkptCheckpointHandleT prev_ckpt_id = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, i;
+	uint32_t rc = NCSCC_RC_SUCCESS, i;
 	CPD_NODE_REF_INFO *nref_info;
 	EDU_ERR ederror = 0;
 	uint8_t *header, num_ckpt = 0, *sync_cnt_ptr;
@@ -550,13 +550,13 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	ncs_encode_8bit(&header, num_ckpt);
 
 	/* This will have the count of async updates that have been sent , this will be 0 initially */
-	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (sync_cnt_ptr == NULL) {
 		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&sync_cnt_ptr, cb->cpd_sync_cnt);
 
 	ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree, (uint8_t *)&prev_ckpt_id);
@@ -593,20 +593,20 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * Notes : This is called at the active side
 ************************************************************************************************/
-uns32 cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr;
 
 	/* Reserve space to send the async update counter */
-	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
+	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
 		m_LOG_CPD_MEMFAIL(NCS_ENC_RESERVE_SPACE_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* SEND THE ASYNC UPDATE COUNTER */
-	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&wsync_ptr, cb->cpd_sync_cnt);
 	arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 	return rc;
@@ -622,9 +622,9 @@ uns32 cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  * Return Values   : Success / Error
  *
 ****************************************************************************************/
-uns32 cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPD_CB *cb;
 	uint16_t msg_fmt_version;
 
@@ -689,7 +689,7 @@ uns32 cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
  * Return Values : Success / Error
 ***********************************************************************************/
 
-uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr;
 	uint8_t data[4];
@@ -702,7 +702,7 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	CPSV_CKPT_DEST_INFO *ckpt_dest_del = NULL;
 	CPSV_CKPT_DEST_INFO *ckpt_dest_down = NULL;
 	CPD_A2S_CKPT_USR_INFO *ckpt_usr_info = NULL;
-	uns32 evt_type, rc = NCSCC_RC_SUCCESS;
+	uint32_t evt_type, rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
 	cpd_msg = m_MMGR_ALLOC_CPD_MBCSV_MSG;
@@ -902,14 +902,14 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * Return Values  : Success / Error
 *************************************************************************************/
-uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	uint8_t *ptr, num_of_ckpts, data[16];
 	CPD_MBCSV_MSG mbcsv_msg;
-	uns32 count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
+	uint32_t count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
 	CPD_A2S_CKPT_CREATE *ckpt_data;
 	EDU_ERR ederror = 0;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	if (arg->info.decode.i_uba.ub == NULL) {	/* There is no data */
 		return NCSCC_RC_SUCCESS;
@@ -954,9 +954,9 @@ uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	}
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 	cb->cpd_sync_cnt = num_of_async_upd;
 
 	/*  if(ckpt_data->dest_list)
@@ -976,17 +976,17 @@ uns32 cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  * 
  * Return Values : Success / Error
 *********************************************************************************/
-uns32 cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
+	uint32_t num_of_async_upd, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
 
 	memset(&ncs_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
-	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(int32));
+	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(int32_t));
 
 	if (cb->cpd_sync_cnt == num_of_async_upd) {
 		return rc;
@@ -1018,11 +1018,11 @@ uns32 cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * Return Values : Success / Error
 *****************************************************************************************/
-uns32 cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
+uint32_t cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
 	CPD_CB *cb;
 	uint16_t msg_fmt_version;
-	uns32 status;
+	uint32_t status;
 	m_CPD_RETRIEVE_CB(cb);	/* finally give up the handle */
 	if (cb == NULL) {
 		m_LOG_CPD_HEADLINE(CPD_DESTROY_FAIL, NCSFL_SEV_ERROR);

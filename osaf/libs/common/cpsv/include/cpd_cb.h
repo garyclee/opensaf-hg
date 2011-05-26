@@ -77,7 +77,7 @@ typedef struct cpd_ckpt_info_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptCheckpointHandleT ckpt_id;
 	SaNameT ckpt_name;
-	uns32 dest_cnt;
+	uint32_t dest_cnt;
 	CPD_NODE_REF_INFO *node_list;
 	NCS_BOOL is_unlink_set;
 	SaCkptCheckpointCreationAttributesT attributes;
@@ -87,17 +87,17 @@ typedef struct cpd_ckpt_info_node {
 	NCS_BOOL ckpt_on_scxb2;
 	MDS_DEST active_dest;
 	SaTimeT ret_time;
-	uns32 num_users;
-	uns32 num_readers;
-	uns32 num_writers;
+	uint32_t num_users;
+	uint32_t num_readers;
+	uint32_t num_writers;
 
 	/* for imm */
 	SaUint32T ckpt_used_size;
 	SaTimeT create_time;
-	uns32 num_sections;
-	uns32 num_corrupt_sections;
+	uint32_t num_sections;
+	uint32_t num_corrupt_sections;
 	uint8_t *sec_id;
-	uns32 sec_state;
+	uint32_t sec_state;
 	uns64 sec_size;
 	SaTimeT sec_last_update;
 	SaTimeT sec_exp_time;
@@ -114,16 +114,16 @@ typedef struct cpd_ckpt_ref_info {
 typedef struct cpd_cpnd_info_node {
 	NCS_PATRICIA_NODE patnode;
 	MDS_DEST cpnd_dest;
-	uns32 ckpt_cnt;
+	uint32_t ckpt_cnt;
 	CPD_TMR cpnd_ret_timer;
 	CPD_CKPT_REF_INFO *ckpt_ref_list;
 	NODE_ID cpnd_key;
-	uns32 timer_state;
+	uint32_t timer_state;
 	NCS_BOOL ckpt_cpnd_scxb_exist;
 	/* for imm */
 	SaNameT node_name;
 	SaNameT ckpt_name;
-	uns32 rep_type;
+	uint32_t rep_type;
 } CPD_CPND_INFO_NODE;
 
 #define CPD_CPND_INFO_NODE_NULL ((CPD_CPND_INFO_NODE *)0)
@@ -144,7 +144,7 @@ typedef struct cpd_rep_key_info {
 typedef struct cpd_ckpt_reploc_info {
 	NCS_PATRICIA_NODE patnode;
 	CPD_REP_KEY_INFO rep_key;
-	uns32 rep_type;
+	uint32_t rep_type;
 } CPD_CKPT_REPLOC_INFO;
 
 #define CPD_CKPT_REPLOC_INFO_NULL ((CPD_CKPT_REPLOC_INFO *)0)
@@ -152,24 +152,24 @@ typedef struct cpd_ckpt_reploc_info {
 typedef struct cpd_cb_tag {
 	SYSF_MBX cpd_mbx;
 	SaNameT comp_name;
-	uns32 mds_handle;
+	uint32_t mds_handle;
 	uint8_t hm_poolid;
 	NCSCONTEXT task_hdl;
-	uns32 cpd_hdl;
+	uint32_t cpd_hdl;
 	V_DEST_QA cpd_anc;
 	MDS_DEST cpd_dest_id;
 	NCS_MBCSV_HDL mbcsv_handle;
 	SaSelectionObjectT mbcsv_sel_obj;
 	NCS_MBCSV_CKPT_HDL o_ckpt_hdl;
 	SaCkptCheckpointHandleT prev_ckpt_id;
-	uns32 cpd_sync_cnt;
-	uns32 sync_upd_cnt;
+	uint32_t cpd_sync_cnt;
+	uint32_t sync_upd_cnt;
 
-	uns32 cpd_self_id;
-	uns32 cpd_remote_id;
+	uint32_t cpd_self_id;
+	uint32_t cpd_remote_id;
 
-	uns32 cpd_active_id;
-	uns32 cpd_standby_id;
+	uint32_t cpd_active_id;
+	uint32_t cpd_standby_id;
 
 	NCS_BOOL is_db_upd;
 
@@ -217,55 +217,55 @@ CPD_CKPT_INFO_NODE *cpd_find_add_ckpt_name(CPD_CB *cpd_cb, SaNameT ckpt_name);
 void cpd_free_ckpt_node(CPD_CB *gld_cb, CPD_CKPT_INFO_NODE *ckpt_info);
 
 /* CPD Function declerations */
-uns32 cpd_ckpt_tree_init(CPD_CB *cb);
-uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree,
+uint32_t cpd_ckpt_tree_init(CPD_CB *cb);
+uint32_t cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree,
 				 SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node);
 void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
 				    SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node);
 
-uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
-uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
+uint32_t cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
+uint32_t cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 void cpd_ckpt_tree_cleanup(CPD_CB *cb);
 void cpd_ckpt_tree_destroy(CPD_CB *cb);
 void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
 
-uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb);
-uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
+uint32_t cpd_ckpt_reploc_tree_init(CPD_CB *cb);
+uint32_t cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				   CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
 void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				      CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
-uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
-uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
+uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
+uint32_t cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
 void cpd_ckpt_reploc_cleanup(CPD_CB *cb);
 void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
 
-uns32 cpd_ckpt_map_tree_init(CPD_CB *cb);
-uns32 cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree,
+uint32_t cpd_ckpt_map_tree_init(CPD_CB *cb);
+uint32_t cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree,
 				     SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
 void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree,
 					SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
 
-uns32 cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node);
-uns32 cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node);
+uint32_t cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node);
+uint32_t cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node);
 void cpd_ckpt_map_tree_cleanup(CPD_CB *cb);
 void cpd_ckpt_map_tree_destroy(CPD_CB *cb);
-uns32 cpd_cpnd_info_tree_init(CPD_CB *cb);
-uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree,
+uint32_t cpd_cpnd_info_tree_init(CPD_CB *cb);
+uint32_t cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree,
 				      MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node);
 void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree,
 					 MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node);
 void cpd_ckpt_node_and_ref_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 
-uns32 cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node);
-uns32 cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node);
+uint32_t cpd_cpnd_info_node_add(NCS_PATRICIA_TREE *cpnd_tree, CPD_CPND_INFO_NODE *cpnd_info_node);
+uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node);
 void cpd_cpnd_info_tree_cleanup(CPD_CB *cb);
 void cpd_cpnd_info_tree_destroy(CPD_CB *cb);
-uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,
+uint32_t cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,
 					   MDS_DEST *dest, CPD_CPND_INFO_NODE **cpnd_info_node, NCS_BOOL *add_flag);
 
-uns32 cpd_cb_db_init(CPD_CB *cb);
+uint32_t cpd_cb_db_init(CPD_CB *cb);
 
-uns32 cpd_cb_db_destroy(CPD_CB *cb);
+uint32_t cpd_cb_db_destroy(CPD_CB *cb);
 
 void cpd_ckpt_ref_info_add(CPD_CPND_INFO_NODE *node_info, CPD_CKPT_REF_INFO *cref_info);
 

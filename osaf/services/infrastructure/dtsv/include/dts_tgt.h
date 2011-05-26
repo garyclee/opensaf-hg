@@ -47,16 +47,16 @@
 
 #if ((DTS_DEBUG == 1) || (DTS_LOG == 1))
 
-uns32 dts_dbg_sink(uns32, char *, uns32, char *);
-uns32 dts_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
+uint32_t dts_dbg_sink(uint32_t, char *, uint32_t, char *);
+uint32_t dts_dbg_sink_svc(uint32_t, char *, uint32_t, char *, uint32_t);
 /* Added new function to display service name */
-uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
+uint32_t dts_dbg_sink_svc_name(uint32_t, char *, uint32_t, char *, char *);
 /* m_DTS_DBG_VOID() used to keep compiler happy @ void return functions */
 
-#define m_DTS_DBG_SINK(r, s)  dts_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
-#define m_DTS_DBG_SINK_SVC(r, s, svc)  dts_dbg_sink_svc(__LINE__,__FILE__,(uns32)r, (char*)s, svc)
+#define m_DTS_DBG_SINK(r, s)  dts_dbg_sink(__LINE__,__FILE__,(uint32_t)r, (char*)s)
+#define m_DTS_DBG_SINK_SVC(r, s, svc)  dts_dbg_sink_svc(__LINE__,__FILE__,(uint32_t)r, (char*)s, svc)
 /* Added new macro to map to the new function */
-#define m_DTS_DBG_SINK_SVC_NAME(r, s, svc)  dts_dbg_sink_svc_name(__LINE__,__FILE__,(uns32)r, (char*)s, (char*)svc)
+#define m_DTS_DBG_SINK_SVC_NAME(r, s, svc)  dts_dbg_sink_svc_name(__LINE__,__FILE__,(uint32_t)r, (char*)s, (char*)svc)
 #define m_DTS_DBG_VOID     dts_dbg_sink(__LINE__,__FILE__,1)
 #else
 
@@ -83,7 +83,7 @@ uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
  *       store this however it wants.
  */
 
-void *sysf_dts_validate(uns32 k);
+void *sysf_dts_validate(uint32_t k);
 
 /* The DTS validate macro */
 

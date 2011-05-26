@@ -36,11 +36,11 @@
  *
  * Notes           : The information present in the ckpt_node is copied into cpd_msg(which has to be sent to Standby )
 **************************************************************************************************************/
-uns32 cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
+uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 count = 0;
+	uint32_t count = 0;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
 	cpd_msg.type = CPD_A2S_MSG_CKPT_CREATE;
@@ -108,7 +108,7 @@ uns32 cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_UNLINK;
 	cpd_msg.info.ckpt_ulink.is_unlink_set = ckpt_node->is_unlink_set;
@@ -138,7 +138,7 @@ void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 void cpd_a2s_ckpt_rdset(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
 	cpd_msg.type = CPD_A2S_MSG_CKPT_RDSET;
@@ -169,7 +169,7 @@ void cpd_a2s_ckpt_rdset(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 void cpd_a2s_ckpt_arep_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_AREP_SET;
 	cpd_msg.info.arep_set.ckpt_id = ckpt_node->ckpt_id;
@@ -200,7 +200,7 @@ void cpd_a2s_ckpt_arep_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 void cpd_a2s_ckpt_dest_add(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *dest)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_ADD;
 	cpd_msg.info.dest_add.ckpt_id = ckpt_node->ckpt_id;
@@ -231,7 +231,7 @@ void cpd_a2s_ckpt_dest_add(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *
 void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST *dest)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_DOWN;
@@ -263,7 +263,7 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, MDS_DEST 
 void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DEST *cpnd_dest, NCS_BOOL ckptid_flag)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_DEST_DEL;
 	if (ckptid_flag) {
@@ -292,7 +292,7 @@ void cpd_a2s_ckpt_dest_del(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, MDS_DES
 void cpd_a2s_ckpt_usr_info(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 {
 	CPD_MBCSV_MSG cpd_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
 	cpd_msg.type = CPD_A2S_MSG_CKPT_USR_INFO;

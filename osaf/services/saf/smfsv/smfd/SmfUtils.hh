@@ -63,8 +63,8 @@ extern "C" {
         extern std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type);
         extern int  smf_opStringToInt(const char* i_str);
         extern int  smf_system(std::string i_cmd);
-	extern void updateSaflog(const std::string& i_dn, const uns32& i_stateId, const uns32& i_newState, const uns32& i_oldState);
-	extern const std::string smfStateToString(const uns32& i_stateId, const uns32& i_state);
+	extern void updateSaflog(const std::string& i_dn, const uint32_t& i_stateId, const uint32_t& i_newState, const uint32_t& i_oldState);
+	extern const std::string smfStateToString(const uint32_t& i_stateId, const uint32_t& i_state);
 
 #ifdef __cplusplus
 }

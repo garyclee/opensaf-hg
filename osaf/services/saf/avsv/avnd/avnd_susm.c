@@ -37,25 +37,25 @@
 #include "avnd.h"
 
 /* static function declarations */
-static uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_insting_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_insting_surestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_insting_compinstfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_inst_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_inst_surestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_inst_comprestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_inst_compterming_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_terming_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_terming_compuninst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_restart_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_restart_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_restart_compterming_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns32 avnd_su_pres_instfailed_compuninst(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_insting_surestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *, AVND_SU *, AVND_COMP *);
 
-static uns32 avnd_su_pres_st_chng_prc(AVND_CB *, AVND_SU *, SaAmfPresenceStateT, SaAmfPresenceStateT);
+static uint32_t avnd_su_pres_st_chng_prc(AVND_CB *, AVND_SU *, SaAmfPresenceStateT, SaAmfPresenceStateT);
 
 /****************************************************************************
  * S E R V I C E  U N I T  P R E S  F S M  M A T R I X  D E F I N I T I O N *
@@ -164,8 +164,8 @@ static unsigned int update_avd_presence_state(const AVND_SU *su)
 	param.attr_id = saAmfSUPresenceState_ID;
 	param.name = su->name;
 	param.act = AVSV_OBJ_OPR_MOD;
-	*((uns32 *)param.value) = m_NCS_OS_HTONL(su->pres);
-	param.value_len = sizeof(uns32);
+	*((uint32_t *)param.value) = m_NCS_OS_HTONL(su->pres);
+	param.value_len = sizeof(uint32_t);
 
 	return avnd_di_object_upd_send(avnd_cb, &param);
 }
@@ -196,7 +196,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU_SI_REC *si_rec = 0;
 	NCS_BOOL is_tob_buf = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* buffer the msg, if SU is inst-failed and all comps are not terminated */
@@ -258,11 +258,11 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
+uint32_t avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU_SI_REC *si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SU '%s'", su->name.value);
 
 	/* get the least-recent buffered msg, if any */
@@ -318,10 +318,10 @@ uns32 avnd_su_siq_prc(AVND_CB *cb, AVND_SU *su)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
+uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 {
 	AVND_SU_SI_REC *si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *csi = NULL;
 
 	TRACE_ENTER2("%s, act=%u, ha_state=%u, single_csi=%u, su=%s", su->name.value, info->msg_act, info->ha_state, 
@@ -432,16 +432,16 @@ done:
  * 
  * @return uns32
  */
-static uns32 assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
+static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *curr_csi;
 
 	TRACE_ENTER2("'%s : '%s', single_csi=%u", si->name.value, su->name.value, single_csi);
 
 	/* initiate the si assignment for pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		uns32 rank;
+		uint32_t rank;
 
 		if (SA_AMF_HA_ACTIVE == si->curr_state) {
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
@@ -570,9 +570,9 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU_SI_REC *curr_si;
 
 	TRACE_ENTER2("'%s'", su->name.value);
@@ -622,11 +622,11 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVND_SU_SI_REC *curr_si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s' %p", su->name.value, si);
 
@@ -707,12 +707,12 @@ uns32 avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_SU_SI_REC *curr_si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0, *t_csi;
 	NCS_BOOL are_si_assigned;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -844,10 +844,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_si_unmark(AVND_CB *cb, AVND_SU *su)
+uint32_t avnd_su_si_unmark(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_SU_SI_REC *si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* scan the su-si list & unmark the sis */
@@ -875,10 +875,10 @@ uns32 avnd_su_si_unmark(AVND_CB *cb, AVND_SU *su)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_si_rec_unmark(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uint32_t avnd_su_si_rec_unmark(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s' : '%s'", su->name.value, si->name.value);
 
 	/* reset the prv state & update the new assign-state */
@@ -927,11 +927,11 @@ uns32 avnd_su_si_rec_unmark(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PRESENCE_SU_MSG_INFO *info = 0;
 	AVND_SU *su = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1059,10 +1059,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU_PRES_FSM_EV ev)
+uint32_t avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU_PRES_FSM_EV ev)
 {
 	SaAmfPresenceStateT prv_st, final_st;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* get the prv presence state */
@@ -1106,11 +1106,11 @@ uns32 avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU_PR
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv_st, SaAmfPresenceStateT final_st)
+uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv_st, SaAmfPresenceStateT final_st)
 {
 	AVND_SU_SI_REC *si = 0;
 	NCS_BOOL is_en;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* pi su */
@@ -1337,12 +1337,12 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SU Instantiate event in the Uninstantiated state: '%s'", su->name.value);
 
 	/* 
@@ -1414,10 +1414,10 @@ uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp
                   uninstantiated & instantiated states. This is done by 
                   avoiding overlapping SI assignments.
 ******************************************************************************/
-uns32 avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SU Terminate event in Instantiating state:'%s':'%s'", su->name.value, comp->name.value);
 
 	/* 
@@ -1465,9 +1465,9 @@ uns32 avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_insting_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_insting_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {				/* TBD */
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE("SU Restart event in the Instantiating State, returning success:'%s'",su->name.value);
 	return rc;
 }
@@ -1486,12 +1486,12 @@ uns32 avnd_su_pres_insting_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	NCS_BOOL is;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Component Instantiated event in the Instantiating state:'%s' : '%s'", 
 								su->name.value, comp->name.value);
 
@@ -1585,12 +1585,12 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Notes         : None. 
 ******************************************************************************/
-uns32 avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("CompInstantiateFailed event in the Instantiate State: '%s' : '%s'",
 							su->name.value, comp->name.value);
 
@@ -1665,12 +1665,12 @@ uns32 avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SUTerminate event in the Instantiated state: '%s'", su->name.value);
 
 	/* 
@@ -1742,12 +1742,12 @@ uns32 avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SURestart event in the Instantiated state: '%s'", su->name.value);
 
 	/* 
@@ -1817,9 +1817,9 @@ uns32 avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {				/* TBD */
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_1("Component restart event in the Instantiated state, returning success:'%s' : '%s'",
 								su->name.value, comp->name.value);
 	return rc;
@@ -1839,9 +1839,9 @@ uns32 avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("CompTerminating event in the Instantiated state:'%s' : '%s'", su->name.value, comp->name.value);
 
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
@@ -1871,10 +1871,10 @@ uns32 avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	NCS_BOOL is;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("ComponentInstantiate event in the terminating state:'%s' : '%s'", 
 							su->name.value, comp->name.value);
 
@@ -1919,12 +1919,12 @@ uns32 avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Notes         : This function is reused for all state changes into termfail
 ******************************************************************************/
-uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Component Termination failed event in the Terminating state,'%s': '%s'",
 								 su->name.value, comp->name.value);
 
@@ -2017,12 +2017,12 @@ uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	NCS_BOOL all_uninst = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Component Uninstantiated event in the Terminating state:'%s' : '%s'",
 									su->name.value, comp->name.value);
 
@@ -2149,10 +2149,10 @@ uns32 avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP 
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SU Terminate event in the Restarting state:'%s' : '%s'", su->name.value, comp->name.value);
 
 	/* 
@@ -2206,12 +2206,12 @@ uns32 avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	NCS_BOOL all_inst = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("ComponentInstantiated event in the Restarting state:'%s' : '%s'", 
 							su->name.value, comp->name.value);
 
@@ -2297,10 +2297,10 @@ uns32 avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
                   uninstantiated & instantiated states. This is done by 
                   avoiding overlapping SI assignments.
 ******************************************************************************/
-uns32 avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("SUTerminate event in the Instantiating state:'%s' : '%s'", su->name.value, comp->name.value);
 
 	if (m_AVND_SU_IS_ADMN_TERM(su)) {
@@ -2373,13 +2373,13 @@ uns32 avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
                   TERMINATING  -> INSTANTIATIONFAIL
                   RESTARTING   -> INSTANTIATIONFAIL
 ******************************************************************************/
-uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 comp_count = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t comp_count = 0;
 	TRACE_ENTER2("Component Instantiation failed event in the Instantiated state: '%s' : '%s'",
 										su->name.value, comp->name.value);
 
@@ -2470,11 +2470,11 @@ uns32 avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Notes         : None. 
 ******************************************************************************/
-uns32 avnd_su_pres_instfailed_compuninst(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
+uint32_t avnd_su_pres_instfailed_compuninst(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SIQ_REC *siq = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("CompInstantiateFailed/CompUnInstantiated event in the InstantiationFailed state:'%s', '%s'",
 											su->name.value, comp->name.value);
 

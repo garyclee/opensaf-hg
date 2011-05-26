@@ -162,7 +162,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree, const NCS_PA
 		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	memset(pTree->root_node.key_info, '\0', (uns32)pTree->params.key_size);
+	memset(pTree->root_node.key_info, '\0', (uint32_t)pTree->params.key_size);
 	pTree->n_nodes = 0;
 
 	return NCSCC_RC_SUCCESS;

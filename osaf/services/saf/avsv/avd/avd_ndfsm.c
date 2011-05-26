@@ -50,7 +50,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	NCS_BOOL comp_sent;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
 
@@ -689,7 +689,7 @@ done:
  *
  * 
  **************************************************************************/
-uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
+uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 {
 	AVD_AVND *avnd;
 
@@ -980,7 +980,7 @@ void avd_shutdown_app_su_resp_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG msg = {0};
-	static uns32 seq_id;
+	static uint32_t seq_id;
 
 	TRACE_ENTER2("seq_id=%u", seq_id);
 

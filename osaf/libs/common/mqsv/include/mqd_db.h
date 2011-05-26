@@ -61,7 +61,7 @@ typedef struct mqd_queue_param {
 	SaTimeT retentionTime;	/* Lifetime of the Queue */
 	MDS_DEST dest;		/* Queue Destination */
 	MQSV_QUEUE_OWN_STATE owner;	/* Orphan/Owned */
-	uns32 hdl;		/* Queue Handle */
+	uint32_t hdl;		/* Queue Handle */
 	uint8_t adv;		/* Advertisement flag */
 	uint8_t is_mqnd_down;	/* TRUE if mqnd is down else FALSE */
 	SaMsgQueueCreationFlagsT creationFlags;	/* Queue creation flags */
@@ -132,7 +132,7 @@ typedef struct mqd_cb {
 
 	NCS_PATRICIA_TREE qdb;	/* Queue's Database */
 	NCS_BOOL qdb_up;	/* Set to true is qdb is UP */
-	uns32 mqd_sync_updt_count;	/*Number of Async Updates to the standby MQD */
+	uint32_t mqd_sync_updt_count;	/*Number of Async Updates to the standby MQD */
 	SaNameT record_qindex_name;
 	NCS_BOOL cold_or_warm_sync_on;
 	NCS_PATRICIA_TREE node_db;
@@ -148,16 +148,16 @@ typedef struct mqd_cb {
 	NCS_LOCK mqd_cb_lock;
 
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
-	uns32 hdl;		/* CB Struct Handle */
+	uint32_t hdl;		/* CB Struct Handle */
 	NCS_BOOL active;	/* Component Active Flag */
 	EDU_HDL edu_hdl;	/* Edu Handle */
 	uint8_t hmpool;		/* Handle Manager Pool ID for this Service Part */
 
 	SaNameT safSpecVer;
 	SaNameT safAgtVen;
-	uns32 safAgtVenPro;
+	uint32_t safAgtVenPro;
 	NCS_BOOL serv_enabled;
-	uns32 serv_state;
+	uint32_t serv_state;
 
 	/* For handling the Quisced state */
 	SaInvocationT invocation;
@@ -171,11 +171,11 @@ typedef struct mqd_cb {
 #define MQD_OBJ_INFO_NULL ((MQD_OBJ_INFO *)0)
 
 void mqd_db_node_del(MQD_CB *, MQD_OBJ_NODE *);
-uns32 mqd_db_node_add(MQD_CB *, MQD_OBJ_NODE *);
-uns32 mqd_db_node_create(MQD_CB *, MQD_OBJ_NODE **);
-uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid);
-uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
-uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode);
+uint32_t mqd_db_node_add(MQD_CB *, MQD_OBJ_NODE *);
+uint32_t mqd_db_node_create(MQD_CB *, MQD_OBJ_NODE **);
+uint32_t mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid);
+uint32_t mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
+uint32_t mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode);
 void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode);
 void mqd_qparam_upd(MQD_OBJ_NODE *, ASAPi_QUEUE_PARAM *);
 void mqd_qparam_fill(MQD_QUEUE_PARAM *, ASAPi_QUEUE_PARAM *);

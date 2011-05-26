@@ -33,9 +33,9 @@
  * Return Values : Success / Error
 
 **********************************************************************/
-uns32 immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
+uint32_t immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_5("Message count: %llu", fevs_msg->sender_count);
 	TRACE_5("size:%u", fevs_msg->msg.size);
 	if (cb->fevsSendCount + 1 != fevs_msg->sender_count) {
@@ -65,9 +65,9 @@ uns32 immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
  * Return Values : Success / Error
 
 **********************************************************************/
-uns32 immd_process_sb_count(IMMD_CB *cb, uns32 count, uns32 evt_type)
+uint32_t immd_process_sb_count(IMMD_CB *cb, uint32_t count, uint32_t evt_type)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (evt_type) {
 	case IMMD_A2S_MSG_ADMINIT:
@@ -120,9 +120,9 @@ uns32 immd_process_sb_count(IMMD_CB *cb, uns32 count, uns32 evt_type)
  * Description : This is used to replicate IMMND node-info at Standby.
 
 **********************************************************************/
-uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
+uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST key;
 	IMMD_IMMND_INFO_NODE *immnd_info_node;
 	TRACE_ENTER();

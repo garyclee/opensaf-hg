@@ -42,10 +42,10 @@
 \***********************************************************************/
 char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix);
 char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix);
-uns32 file_get_word(FILE **fp, char *o_chword);
-uns32 file_get_string(FILE **fp, char *o_chword);
+uint32_t file_get_word(FILE **fp, char *o_chword);
+uint32_t file_get_string(FILE **fp, char *o_chword);
 
 char *gl_pargv[NCS_MAIN_MAX_INPUT];
-uns32 gl_pargc;
+uint32_t gl_pargc;
 
 #endif	/* NCS_MAIN_PUB_H */

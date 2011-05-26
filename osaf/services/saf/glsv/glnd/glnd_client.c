@@ -135,7 +135,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
+uint32_t glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 {
 	GLND_CLIENT_LIST_RESOURCE *res_list, *tmp_res_list;
 	GLND_RESOURCE_INFO *res_info;
@@ -215,7 +215,7 @@ uns32 glnd_client_node_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info)
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 
@@ -257,7 +257,7 @@ uns32 glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info, GLND_RESOURCE
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_info, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
@@ -335,11 +335,11 @@ uns32 glnd_client_node_resource_del(GLND_CB *glnd_cb, GLND_CLIENT_INFO *client_i
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
+uint32_t glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 					GLND_CLIENT_INFO *client_info,
 					GLND_RESOURCE_INFO *res_info,
 					SaLckResourceIdT lcl_resource_id,
-					uns32 lcl_res_id_count, NCS_BOOL *resource_del_flag)
+					uint32_t lcl_res_id_count, NCS_BOOL *resource_del_flag)
 {
 	GLND_CLIENT_LIST_RESOURCE *resource_list;
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list, *del_req_list;
@@ -438,7 +438,7 @@ uns32 glnd_client_node_lcl_resource_del(GLND_CB *glnd_cb,
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
+uint32_t glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 					     GLND_RESOURCE_INFO *res_info, GLND_RES_LOCK_LIST_INFO *lock_req_info)
 {
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list;
@@ -481,7 +481,7 @@ uns32 glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
+uint32_t glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
 					     GLND_CLIENT_LIST_RESOURCE *res_list,
 					     GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lock_req_list)
 {
@@ -547,7 +547,7 @@ GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *glnd_client_node_resource_lock_req_find(GLND
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_info,
+uint32_t glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_info,
 						      SaLckResourceIdT res_id,
 						      SaLckLockIdT lockid, SaLckResourceIdT lcl_resource_id)
 {
@@ -590,7 +590,7 @@ uns32 glnd_client_node_resource_lock_req_find_and_del(GLND_CLIENT_INFO *client_i
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_client_node_resource_lock_find_duplicate_ex(GLND_CLIENT_INFO *client_info,
+uint32_t glnd_client_node_resource_lock_find_duplicate_ex(GLND_CLIENT_INFO *client_info,
 						       SaLckResourceIdT res_id, SaLckResourceIdT lcl_res_id)
 {
 	GLND_CLIENT_LIST_RESOURCE_LOCK_REQ *lck_req_list;

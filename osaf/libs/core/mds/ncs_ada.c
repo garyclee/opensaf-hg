@@ -40,14 +40,14 @@
 /*****************************************************************************\
 **                       PRIVATE FUNCTIONS                                   **
 \*****************************************************************************/
-static uns32 ada_create(NCS_LIB_REQ_INFO *req);
-static uns32 ada_destroy(NCS_LIB_REQ_INFO *req);
-static uns32 ada_instantiate(NCS_LIB_REQ_INFO *req);
-static uns32 ada_uninstantiate(NCS_LIB_REQ_INFO *req);
+static uint32_t ada_create(NCS_LIB_REQ_INFO *req);
+static uint32_t ada_destroy(NCS_LIB_REQ_INFO *req);
+static uint32_t ada_instantiate(NCS_LIB_REQ_INFO *req);
+static uint32_t ada_uninstantiate(NCS_LIB_REQ_INFO *req);
 /*****************************************************************************\
 **                       PUBLIC ADA FUNCTIONS                                **
 \*****************************************************************************/
-uns32 ada_lib_req(NCS_LIB_REQ_INFO *req)
+uint32_t ada_lib_req(NCS_LIB_REQ_INFO *req)
 {
 	switch (req->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -71,7 +71,7 @@ uns32 ada_lib_req(NCS_LIB_REQ_INFO *req)
 	}
 }
 
-static uns32 ada_create(NCS_LIB_REQ_INFO *req)
+static uint32_t ada_create(NCS_LIB_REQ_INFO *req)
 {
 	NCS_SPLR_REQ_INFO splr_req;
 
@@ -91,7 +91,7 @@ static uns32 ada_create(NCS_LIB_REQ_INFO *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 ada_destroy(NCS_LIB_REQ_INFO *req)
+static uint32_t ada_destroy(NCS_LIB_REQ_INFO *req)
 {
 	NCS_SPLR_REQ_INFO splr_req;
 	memset(&splr_req, 0, sizeof(splr_req));
@@ -109,7 +109,7 @@ static uns32 ada_destroy(NCS_LIB_REQ_INFO *req)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 ada_instantiate(NCS_LIB_REQ_INFO *req)
+static uint32_t ada_instantiate(NCS_LIB_REQ_INFO *req)
 {
 
 	/* STEP : Get a handle to local mds core */
@@ -119,7 +119,7 @@ static uns32 ada_instantiate(NCS_LIB_REQ_INFO *req)
 
 }
 
-static uns32 ada_uninstantiate(NCS_LIB_REQ_INFO *req)
+static uint32_t ada_uninstantiate(NCS_LIB_REQ_INFO *req)
 {
 	m_NCSADA_TRACE_ARG1("ADA:LIB_UNINSTANTIATE:DONE\n");
 	return NCSCC_RC_SUCCESS;

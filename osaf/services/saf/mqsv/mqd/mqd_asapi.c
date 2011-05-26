@@ -46,14 +46,14 @@
 extern MQDLIB_INFO gl_mqdinfo;
 
 /******************************** LOCAL ROUTINES *****************************/
-static uns32 mqd_asapi_reg_hdlr(MQD_CB *, ASAPi_REG_INFO *, MQSV_SEND_INFO *);
-static uns32 mqd_asapi_nresolve_hdlr(MQD_CB *, ASAPi_NRESOLVE_INFO *, MQSV_SEND_INFO *);
-static uns32 mqd_asapi_getqueue_hdlr(MQD_CB *, ASAPi_GETQUEUE_INFO *, MQSV_SEND_INFO *);
-static uns32 mqd_asapi_track_hdlr(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *);
+static uint32_t mqd_asapi_reg_hdlr(MQD_CB *, ASAPi_REG_INFO *, MQSV_SEND_INFO *);
+static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *, ASAPi_NRESOLVE_INFO *, MQSV_SEND_INFO *);
+static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *, ASAPi_GETQUEUE_INFO *, MQSV_SEND_INFO *);
+static uint32_t mqd_asapi_track_hdlr(MQD_CB *, ASAPi_TRACK_INFO *, MQSV_SEND_INFO *);
 static NCS_BOOL mqd_asapi_obj_validate(MQD_CB *, SaNameT *, MQD_OBJ_NODE **);
-static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uint16_t *, NCS_BOOL);
-static uns32 mqd_asapi_resp_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *);
-static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *, ASAPi_OBJECT_OPR);
+static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *, ASAPi_QUEUE_PARAM **, uint16_t *, NCS_BOOL);
+static uint32_t mqd_asapi_resp_send(ASAPi_MSG_INFO *, MQSV_SEND_INFO *);
+static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *, ASAPi_OBJECT_OPR);
 static NCS_BOOL mqd_check_for_namespace_collision(MQD_OBJ_NODE *, MQSV_OBJ_TYPE);
 
 /*****************************************************************************/
@@ -68,10 +68,10 @@ static NCS_BOOL mqd_check_for_namespace_collision(MQD_OBJ_NODE *, MQSV_OBJ_TYPE)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-uns32 mqd_asapi_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
+uint32_t mqd_asapi_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
 {
 	ASAPi_MSG_INFO *pMsg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (pMqd->active) {
 		/* Get hold of the ASAPi Message */
@@ -127,9 +127,9 @@ uns32 mqd_asapi_evt_hdlr(MQSV_EVT *pEvt, MQD_CB *pMqd)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_INFO *info)
+static uint32_t mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_INFO *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
 	MQD_OBJ_NODE *pObjNode = 0;
 	MQD_OBJECT_ELEM *pOelm = 0;
@@ -238,9 +238,9 @@ static uns32 mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_INF
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_INFO *info)
+uint32_t mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_INFO *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
 
 	memset(&msg, 0, sizeof(msg));
@@ -330,10 +330,10 @@ uns32 mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_INFO
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg)
+uint32_t mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *msg)
 {
 	NCS_BOOL qexist = FALSE, qgrpexist = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = NULL, *pObj = NULL;
 	MQD_OBJECT_ELEM *pOelm = NULL, *pQGelm = NULL;
 
@@ -553,11 +553,11 @@ uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_IN
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve, MQSV_SEND_INFO *info)
+static uint32_t mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve, MQSV_SEND_INFO *info)
 {
 	NCS_BOOL exist = FALSE;
 	MQD_OBJ_NODE *pObjNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	uint16_t qcnt = 0;
 	ASAPi_MSG_INFO msg;
@@ -671,11 +671,11 @@ static uns32 mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue, MQSV_SEND_INFO *info)
+static uint32_t mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue, MQSV_SEND_INFO *info)
 {
 	NCS_BOOL exist = FALSE;
 	MQD_OBJ_NODE *pObjNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
 
 	memset(&msg, 0, sizeof(msg));
@@ -761,11 +761,11 @@ static uns32 mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info)
+static uint32_t mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info)
 {
 	NCS_BOOL exist = FALSE;
 	MQD_OBJ_NODE *pObjNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO msg;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	uint16_t qcnt = 0;
@@ -899,11 +899,11 @@ static uns32 mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SE
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info, MQD_OBJ_NODE **onode)
+uint32_t mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info, MQD_OBJ_NODE **onode)
 {
 	NCS_BOOL exist = FALSE;
 	MQD_OBJ_NODE *pObjNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Validate the object */
 	exist = mqd_asapi_obj_validate(pMqd, &track->object, &pObjNode);
@@ -968,7 +968,7 @@ uns32 mqd_asapi_track_db_upd(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_IN
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR opr)
+static uint32_t mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR opr)
 {
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	uint16_t qcnt = 0;
@@ -976,8 +976,8 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
 	MQSV_SEND_INFO info = {0};
 	NCS_Q_ITR itr;
 	MQD_TRACK_OBJ *pTrack = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 cons_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t cons_rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(msg));
 
@@ -1062,10 +1062,10 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.                     
 \****************************************************************************/
-static uns32 mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
+static uint32_t mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
 {
 	ASAPi_OPR_INFO opr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	opr.type = ASAPi_OPR_MSG;
 	opr.info.msg.opr = ASAPi_MSG_SEND;
@@ -1095,12 +1095,12 @@ static uns32 mqd_asapi_resp_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *info)
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uint16_t *o_cnt, NCS_BOOL select)
+static uint32_t mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue, uint16_t *o_cnt, NCS_BOOL select)
 {
 	uint16_t qcnt = 0;
 	ASAPi_QUEUE_PARAM *pQueue = 0;
 	MQD_OBJECT_ELEM *pOelm = 0;
-	uns32 idx = 0;
+	uint32_t idx = 0;
 	NCS_Q_ITR itr;
 
 	*o_cnt = 0;
@@ -1193,10 +1193,10 @@ static uns32 mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-uns32 mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, ASAPi_OBJECT_OPR *opr)
+uint32_t mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, ASAPi_OBJECT_OPR *opr)
 {
 	MQD_OBJ_NODE *pObjNode = 0, *pQNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT error;
 
 	switch (reg->objtype) {
@@ -1454,7 +1454,7 @@ void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest)
 	SaNameT name;
 	MQD_OBJECT_ELEM *pOelm = 0;
 	NCS_Q_ITR itr;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)NULL);
 	while (pObjNode) {
@@ -1506,7 +1506,7 @@ void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest)
 	SaNameT name;
 	MQD_OBJECT_ELEM *pOelm = 0;
 	NCS_Q_ITR itr;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)NULL);
 	while (pObjNode) {

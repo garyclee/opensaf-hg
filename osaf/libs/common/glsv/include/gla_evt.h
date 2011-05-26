@@ -49,11 +49,11 @@ typedef enum glsv_gla_api_resp_evt_type_tag {
 } GLSV_GLA_API_RESP_EVT_TYPE;
 
 typedef struct glsv_gla_evt_lock_initialise_param_tag {
-	uns32 dummy;
+	uint32_t dummy;
 } GLSV_GLA_EVT_LOCK_INITIALISE_PARAM;
 
 typedef struct glsv_gla_evt_lock_finalize_param_tag {
-	uns32 dummy;
+	uint32_t dummy;
 } GLSV_GLA_EVT_LOCK_FINALIZE_PARAM;
 
 typedef struct glsv_gla_evt_lock_res_open_param_tag {
@@ -61,7 +61,7 @@ typedef struct glsv_gla_evt_lock_res_open_param_tag {
 } GLSV_GLA_EVT_LOCK_RES_OPEN_PARAM;
 
 typedef struct glsv_gla_evt_lock_res_close_param_tag {
-	uns32 dummy;
+	uint32_t dummy;
 } GLSV_GLA_EVT_LOCK_RES_CLOSE_PARAM;
 
 typedef struct glsv_gla_evt_lock_sync_lock_param_tag {
@@ -70,12 +70,12 @@ typedef struct glsv_gla_evt_lock_sync_lock_param_tag {
 } GLSV_GLA_EVT_LOCK_SYNC_LOCK_PARAM;
 
 typedef struct glsv_gla_evt_lock_sync_unlock_param_tag {
-	uns32 dummy;
+	uint32_t dummy;
 } GLSV_GLA_EVT_LOCK_SYNC_UNLOCK_PARAM;
 
 /* API Resp param definition */
 typedef struct glsv_gla_api_resp_info {
-	uns32 prc_id;		/* process id */
+	uint32_t prc_id;		/* process id */
 	GLSV_GLA_API_RESP_EVT_TYPE type;	/* api type */
 	union {
 		GLSV_GLA_EVT_LOCK_INITIALISE_PARAM lck_init;

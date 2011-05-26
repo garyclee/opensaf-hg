@@ -30,7 +30,7 @@
  * Description   : Function to get the queue node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QUEUE_NODE** o_qnode - Queu Node at MQND
  *
@@ -49,7 +49,7 @@ void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **
  * Description   : Function to get the queue node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QUEUE_NODE** o_qnode - Queu Node at MQND
  *
@@ -78,9 +78,9 @@ void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NOD
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
+uint32_t mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	qnode->pnode.key_info = (uint8_t *)&(qnode->qinfo.queueHandle);
 
@@ -95,15 +95,15 @@ uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
  * Description   : Function to Add the queue node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QUEUE_NODE** o_qnode - Queu Node at MQND
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
+uint32_t mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if ((!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT)) || (qnode->qinfo.tmr.is_active))
 		mqnd_tmr_stop(&qnode->qinfo.tmr);
@@ -122,7 +122,7 @@ uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
  * Description   : Function to get the queue event from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QTRANSFER_EVT_NODE ** o_qnode - Queue Event Node at MQND
  *
@@ -141,7 +141,7 @@ void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_
  * Description   : Function to get the queue event node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QTRANSFER_EVT_NODE** o_qnode - Queu event Node at MQND
  *
@@ -172,9 +172,9 @@ void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
+uint32_t mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	qevt_node->evt.key_info = (uint8_t *)&(qevt_node->tmr.qhdl);
 
@@ -189,15 +189,15 @@ uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
  * Description   : Function to Add the queue event node from Tree.
  *
  * Arguments     : MQND_CB *cb, - MQND Control Block
- *                 uns32 qhdl - queue handle
+ *                 uint32_t qhdl - queue handle
  *                 
  * Return Values : MQND_QTRANSFER_EVT_NODE** o_qnode - Queue Event Node at MQND
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
+uint32_t mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (cb->is_qevt_hdl_db_up)
 		rc = ncs_patricia_tree_del(&cb->q_transfer_evt_db, (NCS_PATRICIA_NODE *)qevt_node);

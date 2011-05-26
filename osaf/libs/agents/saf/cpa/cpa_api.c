@@ -58,7 +58,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT init_evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	NCS_BOOL locked = TRUE;
 	SaVersionT client_version;
@@ -305,7 +305,7 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle, SaSelectionObject
 	SaAisErrorT rc = SA_AIS_OK;
 	CPA_CB *cb = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uns32 proc_rc = NCSCC_RC_FAILURE;
+	uint32_t proc_rc = NCSCC_RC_FAILURE;
 
 	if (!selectionObject)
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -485,7 +485,7 @@ SaAisErrorT saCkptFinalize(SaCkptHandleT ckptHandle)
 	CPSV_EVT finalize_evt;
 	CPSV_EVT *out_evt = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
 
 	m_CPA_RETRIEVE_CB(cb);
@@ -633,9 +633,9 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	CPSV_EVT evt, *out_evt = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = FALSE;
-        uns32 time_out=0;
+        uint32_t time_out=0;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 
 
@@ -942,7 +942,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	CPSV_EVT evt;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	if (checkpointName == NULL) {
 		m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
@@ -1175,7 +1175,7 @@ SaAisErrorT saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	CPA_CB *cb = NULL;
@@ -1356,7 +1356,7 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle, const SaNameT *chec
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_CB *cb = NULL;
 
@@ -1485,7 +1485,7 @@ SaAisErrorT saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkpo
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
@@ -1630,7 +1630,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	NCS_BOOL add_flag = FALSE;
@@ -1800,7 +1800,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
@@ -1996,7 +1996,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	NCS_BOOL add_flag = FALSE;
@@ -2254,7 +2254,7 @@ SaAisErrorT saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle, SaUint
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CPA_CB *cb = NULL;
-	uns32 proc_rc = NCSCC_RC_FAILURE;
+	uint32_t proc_rc = NCSCC_RC_FAILURE;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 
@@ -2346,7 +2346,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle, const 
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
@@ -2517,7 +2517,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	SaTimeT now, duration;
@@ -2685,7 +2685,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
 					     SaCkptSectionIterationHandleT *sectionIterationHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_SECT_ITER_NODE *sect_iter_node = NULL;
 	CPA_CB *cb = NULL;
@@ -2864,7 +2864,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
 				       SaCkptSectionDescriptorT *sectionDescriptor)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_SECT_ITER_NODE *sect_iter_node = NULL;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
@@ -3101,7 +3101,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
 SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT sectionIterationHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_SECT_ITER_NODE *sect_iter_node = NULL;
 	CPA_CB *cb = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
@@ -3240,17 +3240,17 @@ SaAisErrorT saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
 				  SaUint32T numberOfElements, SaUint32T *erroneousVectorIndex)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc;
+	uint32_t proc_rc;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPSV_EVT evt, *out_evt = NULL;
 	CPSV_CKPT_DATA *ckpt_data = NULL;
-	uns32 iter = 0;
+	uint32_t iter = 0;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	NCS_BOOL add_flag = FALSE;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	SaSizeT all_ioVector_size = 0;
-	uns32 err_flag = 0;
+	uint32_t err_flag = 0;
 
 	memset(&evt, '\0', sizeof(CPSV_EVT));
 
@@ -3467,7 +3467,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
 				   const SaCkptSectionIdT *sectionId, const void *dataBuffer, SaSizeT dataSize)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc;
+	uint32_t proc_rc;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPSV_EVT evt, *out_evt = NULL;
@@ -3665,7 +3665,7 @@ SaAisErrorT saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
 				 SaUint32T numberOfElements, SaUint32T *erroneousVectorIndex)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc, counter = 0;
+	uint32_t proc_rc, counter = 0;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CB *cb = NULL;
 	CPSV_EVT evt, *out_evt = NULL;
@@ -3891,7 +3891,7 @@ SaAisErrorT saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHand
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CPA_CB *cb = NULL;
-	uns32 proc_rc = NCSCC_RC_FAILURE;
+	uint32_t proc_rc = NCSCC_RC_FAILURE;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	if (data == NULL) {
@@ -3967,7 +3967,7 @@ SaAisErrorT saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandle
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
 	CPSV_EVT *out_evt = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	CPA_CB *cb = NULL;
@@ -4144,7 +4144,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
@@ -4345,7 +4345,7 @@ ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalC
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_CB *cb = NULL;
 	NCS_BOOL is_locked = FALSE;

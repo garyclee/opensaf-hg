@@ -125,7 +125,7 @@ void ncs_mbcsv_start_timer(PEER_INST *peer, uint8_t timer_type)
   NOTES:                                                                
                                                                                
 *****************************************************************************/
-void ncs_mbcsv_stop_timer(PEER_INST *peer, uns32 timer_type)
+void ncs_mbcsv_stop_timer(PEER_INST *peer, uint32_t timer_type)
 {
 	NCS_MBCSV_TMR *tmr;
 
@@ -272,7 +272,7 @@ void ncs_mbcsv_tmr_expiry(void *uarg)
 *****************************************************************************/
 void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Send a cold sync req  and start the send cold sync timer if the role is */
 	/* Standby and the RED is enabled                                           */
@@ -319,7 +319,7 @@ void ncs_mbcsv_send_cold_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Send a warm sync req  and start the send warm sync timer  */
 	/* if the role is Standby and the RED is enabled              */
@@ -368,7 +368,7 @@ void ncs_mbcsv_send_warm_sync_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	/* Tell the redundant entity about the timer expiration */
 	/* It can do smart things - if it cares */
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
@@ -399,7 +399,7 @@ void ncs_mbcsv_send_data_req_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP, TRUE, peer->version, NULL, rc);
 
@@ -425,7 +425,7 @@ void ncs_mbcsv_cold_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_warm_sync_cmplt_tmr(PEER_INST *peer, MBCSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
 			       NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP, TRUE, peer->version, NULL, rc);
 

@@ -38,9 +38,9 @@
 
 typedef struct mqdlib_info {
 	NCSCONTEXT task_hdl;	/* MQD Task Handle */
-	uns32 inst_hdl;		/* MQD Instance Handle */
+	uint32_t inst_hdl;		/* MQD Instance Handle */
 } MQDLIB_INFO;
 
-uns32 mqd_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* MQD_DL_API_H */

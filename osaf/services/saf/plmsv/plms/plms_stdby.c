@@ -607,7 +607,7 @@ SaUint32T plms_perform_pending_admin_shutdown(
 				PLMS_CKPT_TRACK_STEP_INFO  *track_step,
 				PLMS_ENTITY   *ent)
 {
-        uns32 ret_err = NCSCC_RC_FAILURE;
+        uint32_t ret_err = NCSCC_RC_FAILURE;
         PLMS_GROUP_ENTITY *aff_ent_list = NULL, *head = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list = NULL;
 
@@ -854,7 +854,7 @@ SaUint32T plms_perform_pending_admin_deactivate(
 				PLMS_CKPT_TRACK_STEP_INFO  *track_step,
 				PLMS_ENTITY   *ent)
 {
-        uns32 ret_err;
+        uint32_t ret_err;
         PLMS_GROUP_ENTITY *aff_ent_list = NULL, *head;
         PLMS_GROUP_ENTITY *temp_ent_list;
 	PLMS_ENTITY_GROUP_INFO_LIST *group_info_list = NULL;

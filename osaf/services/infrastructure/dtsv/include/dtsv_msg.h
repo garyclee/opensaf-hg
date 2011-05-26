@@ -38,10 +38,10 @@
 ***************************************************************************/
 
 #define DTSV_DTS_DTA_MSG_HDR_SIZE    ((sizeof(uint16_t)) + (sizeof(uint8_t)))
-#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
-#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uns32)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
+#define DTSV_REG_CONF_MSG_SIZE       ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
+#define DTSV_FLTR_MSG_SIZE           ((2 * sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(NCS_BOOL))
 #define DTSV_DTA_DTS_HDR_SIZE        (sizeof(uint16_t) + sizeof(uint8_t))
-#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uns32)) + (sizeof(uint16_t)) + (2 * sizeof(uint8_t)))
+#define DTS_LOG_MSG_HDR_SIZE         ((5 * sizeof(uint32_t)) + (sizeof(uint16_t)) + (2 * sizeof(uint8_t)))
 #define DTS_MAX_SIZE_DATA             512
 #define DTS_MAX_DBL_DIGITS            30
 /**************************************************************************
@@ -49,10 +49,10 @@
 ***************************************************************************/
 #define DTSV_ADD_GBL_CONS_SIZE  2*sizeof(uint8_t)
 #define DTSV_RMV_GBL_CONS_SIZE  sizeof(uint8_t)
-#define DTSV_ADD_NODE_CONS_SIZE ((2*sizeof(uint8_t)) + sizeof(uns32))
-#define DTSV_RMV_NODE_CONS_SIZE (sizeof(uint8_t)+ sizeof(uns32))
-#define DTSV_ADD_SVC_CONS_SIZE  ((2*sizeof(uint8_t)) + (2*sizeof(uns32)))
-#define DTSV_RMV_SVC_CONS_SIZE  (sizeof(uint8_t)+ (2*sizeof(uns32)))
+#define DTSV_ADD_NODE_CONS_SIZE ((2*sizeof(uint8_t)) + sizeof(uint32_t))
+#define DTSV_RMV_NODE_CONS_SIZE (sizeof(uint8_t)+ sizeof(uint32_t))
+#define DTSV_ADD_SVC_CONS_SIZE  ((2*sizeof(uint8_t)) + (2*sizeof(uint32_t)))
+#define DTSV_RMV_SVC_CONS_SIZE  (sizeof(uint8_t)+ (2*sizeof(uint32_t)))
 #define DTSV_CLI_MAX_SIZE  256
 
 /**************************************************************************
@@ -109,8 +109,8 @@ typedef enum dts_svc_msg_type {
  ***************************************************************************/
 
 typedef struct ms_time {
-	uns32 seconds;
-	uns32 millisecs;
+	uint32_t seconds;
+	uint32_t millisecs;
 } MS_TIME;
 
 /************************************************************************
@@ -123,9 +123,9 @@ typedef struct ms_time {
 
 typedef struct ncsfl_hdr {
 	SS_SVC_ID ss_id;	/* logging entity's subsystem ID      */
-	uns32 inst_id;		/* Instance ID of the service         */
+	uint32_t inst_id;		/* Instance ID of the service         */
 	uint8_t severity;		/* as per IEFT-draft syslog           */
-	uns32 category;		/* generic category event belongs to  */
+	uint32_t category;		/* generic category event belongs to  */
 	MS_TIME time;		/* time stamp; filled by Flexlog Agent */
 	uint8_t fmat_id;		/* offset into format strings         */
 	char *fmat_type;	/* format argument sequence type      */
@@ -181,11 +181,11 @@ typedef struct log_msg_fltr {	/* Data associated with the Service specific log f
 
 	SS_SVC_ID svc_id;	/* Service ID of the service */
 	NCS_BOOL enable_log;	/* TRUE = Enable; FALSE = Disable */
-	uns32 category_bit_map;	/* Category filter Bit map  */
+	uint32_t category_bit_map;	/* Category filter Bit map  */
 	uint8_t severity_bit_map;	/* Severity filter Bit Map */
 
 	/* No need of policy handles */
-	/*uns32            policy_hdl; */
+	/*uint32_t            policy_hdl; */
 
 } LOG_MSG_FLTR;
 

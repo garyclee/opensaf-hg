@@ -82,7 +82,7 @@ typedef char *NCSFL_TYPE;
 
  S     : (small)  uint8_t  value
  M     : (medium) uint16_t value
- L     : (large)  uns32 value
+ L     : (large)  uint32_t value
  F     : double value
  I     : Index value pair to find a canned string in a NCSFL_SET
  T     : Time value
@@ -185,7 +185,7 @@ typedef char *NCSFL_TYPE;
 #define  NCSFL_TYPE_TICLLLLL      "TICLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32                     */
 #define  NCSFL_TYPE_TICLLLLLL     "TICLLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32, u32                */
 #define  NCSFL_TYPE_TICLLLLLLL     "TICLLLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32, u32, u32         */
-#define  NCSFL_TYPE_TIICL         "TIICL"	/* tme, idx, idx, C, uns32                                  */
+#define  NCSFL_TYPE_TIICL         "TIICL"	/* tme, idx, idx, C, uint32_t                                  */
 #define  NCSFL_TYPE_TICI          "TICI"	/* tme, idx, C, idx                                         */
 #define  NCSFL_TYPE_TILCL         "TILCL"	/* tme, idx, u32,C,u32  added for mqsv */
 #define  NCSFL_TYPE_TCLIL         "TCLIL"	/* tme, C,u32,idx, u32  added for mqsv */

@@ -67,17 +67,17 @@ typedef struct imma_callback_info {
 } IMMA_CALLBACK_INFO;
 
 void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt);
-uns32 imma_version_validate(SaVersionT *version);
+uint32_t imma_version_validate(SaVersionT *version);
 
-uns32 imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info);
+uint32_t imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info);
 void imma_callback_ipc_destroy(IMMA_CLIENT_NODE *client_info);
 
-uns32 imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
+uint32_t imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 
 void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *clnd);
 
 void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked);
-uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm);
+uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm);
 
 void imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *clnd);
 void imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *clnd);
@@ -86,8 +86,8 @@ SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId);
 
 /* callback prototypes */
 IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *clnd);
-uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);
-uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle);
-uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle);
+uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);
+uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle);
+uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle);
 
 #endif

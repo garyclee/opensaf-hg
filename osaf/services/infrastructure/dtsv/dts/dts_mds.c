@@ -55,7 +55,7 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 dts_mds_reg(DTS_CB *cb)
+uint32_t dts_mds_reg(DTS_CB *cb)
 {
 	NCSVDA_INFO vda_info;
 	NCSMDS_INFO svc_to_mds_info;
@@ -155,7 +155,7 @@ uns32 dts_mds_reg(DTS_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role)
+uint32_t dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role)
 {
 	NCSVDA_INFO vda_info;
 
@@ -216,7 +216,7 @@ void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install)
  
   Notes         : None.
 ******************************************************************************/
-uns32 dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl)
+uint32_t dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl)
 {
 	NCSMDS_INFO mds_info;
 
@@ -259,9 +259,9 @@ uns32 dts_mds_send_msg(DTSV_MSG *msg, MDS_DEST dta_dest, MDS_CLIENT_HDL mds_hdl)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
+uint32_t dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	DTSV_MSG *msg = NULL;
 
 	switch (cbinfo->i_op) {
@@ -344,11 +344,11 @@ uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
  * Purpose:       MDS receive function.
  ****************************************************************************/
 
-uns32 dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
+uint32_t dts_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 {
 	DTS_CB *inst = &dts_cb;
 	DTSV_MSG *msg = (DTSV_MSG *)cbinfo->info.receive.i_msg;
-	uns32 send_pri;
+	uint32_t send_pri;
 
 	if ((cbinfo->info.receive.i_msg_fmt_ver < DTS_MDS_MIN_MSG_FMAT_VER_SUPPORT) ||
 	    (cbinfo->info.receive.i_msg_fmt_ver > DTS_MDS_MAX_MSG_FMAT_VER_SUPPORT))
@@ -543,7 +543,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 
 		if (up_down == FALSE) {
 			m_LOG_DTS_EVT(DTS_EV_DTA_DOWN, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
-				      (uns32)(dta->dta_addr));
+				      (uint32_t)(dta->dta_addr));
 			/* go through the svc_list of DTA removing DTA frm all those svcs */
 			svc_entry = dta->svc_list;
 			while (svc_entry != NULL) {
@@ -562,7 +562,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 						break;
 					}
 					m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, svc->my_key.ss_svc_id, svc->my_key.node,
-						      (uns32)(dta_ptr->dta_addr));
+						      (uint32_t)(dta_ptr->dta_addr));
 
 					/* Versioning support - Remove spec entry corresponding to the 
 					 * DTA from svc's spec_list. 
@@ -584,7 +584,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 						break;
 					}
 					m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, svc->my_key.ss_svc_id, svc->my_key.node,
-						      (uns32)(dta_ptr->dta_addr));
+						      (uint32_t)(dta_ptr->dta_addr));
 
 					if (svc->dta_count == 0) {
 						dts_circular_buffer_free(&svc->device.cir_buffer);
@@ -602,7 +602,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 						m_DTS_RMV_ALL_CONS(dev);
 						ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)svc);
 						m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_SUCCESSFUL, key.ss_svc_id, key.node,
-							      (uns32)(dta_ptr->dta_addr));
+							      (uint32_t)(dta_ptr->dta_addr));
 						if (NULL != svc)
 							m_MMGR_FREE_SVC_REG_TBL(svc);
 					}
@@ -621,13 +621,13 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 
 			if (ncs_patricia_tree_del(&inst->dta_list, (NCS_PATRICIA_NODE *)&dta->node) != NCSCC_RC_SUCCESS) {
 				m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_FAIL, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
-					      (uns32)(dta->dta_addr));
+					      (uint32_t)(dta->dta_addr));
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					       "dts_set_dta_up_down: Unable to remove DTA entry frm patricia tree");
 				return;
 			}
 			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
-				      (uns32)(dta->dta_addr));
+				      (uint32_t)(dta->dta_addr));
 			/* Send Async update (REMOVE) for DTA_DEST_LIST */
 			m_DTSV_SEND_CKPT_UPDT_ASYNC(inst, NCS_MBCSV_ACT_RMV, (MBCSV_REO_HDL)(long)dta,
 						    DTSV_CKPT_DTA_DEST_LIST_CONFIG);
@@ -639,7 +639,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 		else if ((TRUE == up_down) && (TRUE == dta->updt_req)) {
 			/* send filter config msg for all svcs for this dta */
 			m_LOG_DTS_EVT(DTS_EV_DTA_UP, 0, m_NCS_NODE_ID_FROM_MDS_DEST(dta->dta_addr),
-				      (uns32)(dta->dta_addr));
+				      (uint32_t)(dta->dta_addr));
 			svc_entry = dta->svc_list;
 			while (svc_entry != NULL) {
 				dts_send_filter_config_msg(inst, svc_entry->svc, dta);
@@ -659,7 +659,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
  * Purpose:        encode a DTS message headed out
  ****************************************************************************/
 
-uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba,
 		  MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
@@ -747,13 +747,13 @@ uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  * Function Name: dts_mds_dec
  * Purpose:        decode a DTS message coming in
  ****************************************************************************/
-uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+uint32_t dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		  SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
 	uint8_t *data = NULL;
 	DTSV_MSG *mm;
 	uint8_t data_buff[DTSV_DTA_DTS_HDR_SIZE];
-	uns32 lenn = 0;
+	uint32_t lenn = 0;
 
 	if ((msg_fmat_ver < DTS_MDS_MIN_MSG_FMAT_VER_SUPPORT) || (msg_fmat_ver > DTS_MDS_MAX_MSG_FMAT_VER_SUPPORT))
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -808,14 +808,14 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 			/* Decode the service name */
-			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 			if (data == NULL) {
 				m_MMGR_FREE_DTSV_MSG(mm);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_mds_dec: DTS decode: ncs_dec_flatten_space returns NULL");
 			}
 			lenn = ncs_decode_32bit(&data);
-			ncs_dec_skip_space(uba, sizeof(uns32));
+			ncs_dec_skip_space(uba, sizeof(uint32_t));
 			if (lenn == 0) {
 				/* No need to decode any further. no service name specified */
 			} else if (lenn < DTSV_SVC_NAME_MAX) {	/* Check valid len of svc_name */
@@ -850,14 +850,14 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 			ncs_dec_skip_space(uba, sizeof(uint16_t));
 
 			/* Decode the service name */
-			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+			data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 			if (data == NULL) {
 				m_MMGR_FREE_DTSV_MSG(mm);
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_mds_dec: DTS decode: ncs_dec_flatten_space returns NULL");
 			}
 			lenn = ncs_decode_32bit(&data);
-			ncs_dec_skip_space(uba, sizeof(uns32));
+			ncs_dec_skip_space(uba, sizeof(uint32_t));
 			if (lenn == 0) {
 				/* No need to decode any further. no service name specified */
 			}
@@ -908,7 +908,7 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
  * Purpose:        copy a DTS message going to somebody in this memory space
  ****************************************************************************/
 
-uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+uint32_t dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 		  SS_SVC_ID to_svc, NCSCONTEXT *cpy,
 		  NCS_BOOL last, MDS_SVC_PVT_SUB_PART_VER remote_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmat_ver)
 {
@@ -960,7 +960,7 @@ uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  * Function Name: dts_log_msg_decode
  * Purpose:       decodes a NCSDTS_FLTR from a ubaid
  ****************************************************************************/
-uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
+uint32_t dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 {
 	uint8_t *data = NULL;
 	uint8_t data_buff[DTS_MAX_SIZE_DATA];
@@ -1001,18 +1001,18 @@ uns32 dts_log_msg_decode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
  * Function Name: dts_log_str_decode
  * Purpose:        Decodes the flexlog string.
  *****************************************************************************/
-uns32 dts_log_str_decode(NCS_UBAID *uba, char **str)
+uint32_t dts_log_str_decode(NCS_UBAID *uba, char **str)
 {
-	uns32 length = 0;
+	uint32_t length = 0;
 	uint8_t *data = NULL;
 	uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
-	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 	if (data == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_log_str_decode: Decode flatten space failed");
 	}
 	length = ncs_decode_32bit(&data);
-	ncs_dec_skip_space(uba, sizeof(uns32));
+	ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 	*str = m_MMGR_ALLOC_OCT(length);
 	if (*str == NULL)
@@ -1029,7 +1029,7 @@ uns32 dts_log_str_decode(NCS_UBAID *uba, char **str)
  * Function Name: dts_ipaddr_decode
  * Purpose:        Decodes the IP address.
  *****************************************************************************/
-uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa)
+uint32_t decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa)
 {
 	uint8_t *data = NULL;
 	uint8_t data_buff[sizeof(NCS_IP_ADDR)];
@@ -1042,9 +1042,9 @@ uns32 decode_ip_address(NCS_UBAID *uba, NCS_IP_ADDR *ipa)
 	ncs_dec_skip_space(uba, sizeof(uint8_t));
 
 	if (ipa->type == NCS_IP_ADDR_TYPE_IPV4) {
-		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 		ipa->info.v4 = ncs_decode_32bit(&data);
-		ncs_dec_skip_space(uba, sizeof(uns32));
+		ncs_dec_skip_space(uba, sizeof(uint32_t));
 	}
 	else {
 		return NCSCC_RC_FAILURE;

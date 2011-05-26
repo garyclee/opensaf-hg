@@ -36,7 +36,7 @@
   Function NAME: mds_vdest_tbl_add
 *********************************************************/
 
-uns32 mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_HDL *vdest_hdl)
+uint32_t mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_HDL *vdest_hdl)
 {
 	MDS_VDEST_INFO *vdest_info;
 
@@ -72,7 +72,7 @@ uns32 mds_vdest_tbl_add(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy, MDS_VDEST_
 /*********************************************************
   Function NAME: mds_vdest_tbl_del
 *********************************************************/
-uns32 mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
+uint32_t mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -87,7 +87,7 @@ uns32 mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 		/* If timer is running free TMR_REQ_INFO */
 		if (vdest_info->tmr_running == TRUE) {
 			/* Delete Handle */
-			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uns32)vdest_info->tmr_req_info_hdl);
+			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
 			/* Free tmr_req_info */
 			m_MMGR_FREE_TMR_INFO(vdest_info->tmr_req_info);
 			vdest_info->tmr_req_info = NULL;
@@ -108,7 +108,7 @@ uns32 mds_vdest_tbl_del(MDS_VDEST_ID vdest_id)
 /*********************************************************
   Function NAME: mds_vdest_tbl_update_role
 *********************************************************/
-uns32 mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL del_tmr_info)
+uint32_t mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL del_tmr_info)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_TMR_REQ_INFO *tmr_req_info = NULL;
@@ -145,7 +145,7 @@ uns32 mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL 
 			if (del_tmr_info == TRUE) {
 				/* This is not called by the expiry function */
 				/* So free tmr_info and stop timer */
-				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uns32)vdest_info->tmr_req_info_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
 				m_NCS_TMR_STOP(vdest_info->quiesced_cbk_tmr);
 				m_MMGR_FREE_TMR_INFO(vdest_info->tmr_req_info);
 			}
@@ -164,7 +164,7 @@ uns32 mds_vdest_tbl_update_role(MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL 
 /*********************************************************
   Function NAME: mds_vdest_tbl_update_ref_val
 *********************************************************/
-uns32 mds_vdest_tbl_update_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_vdest_tbl_update_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -185,7 +185,7 @@ uns32 mds_vdest_tbl_update_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL subt
 /*********************************************************
   Function NAME: mds_vdest_tbl_query
 *********************************************************/
-uns32 mds_vdest_tbl_query(MDS_VDEST_ID vdest_id)
+uint32_t mds_vdest_tbl_query(MDS_VDEST_ID vdest_id)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -206,7 +206,7 @@ uns32 mds_vdest_tbl_query(MDS_VDEST_ID vdest_id)
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_role
 *********************************************************/
-uns32 mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role)
+uint32_t mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -228,7 +228,7 @@ uns32 mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role)
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_policy
 *********************************************************/
-uns32 mds_vdest_tbl_get_policy(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE *policy)
+uint32_t mds_vdest_tbl_get_policy(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE *policy)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -249,7 +249,7 @@ uns32 mds_vdest_tbl_get_policy(MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE *policy)
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_first
 *********************************************************/
-uns32 mds_vdest_tbl_get_first(MDS_VDEST_ID vdest_id, MDS_PWE_HDL *first_pwe_hdl)
+uint32_t mds_vdest_tbl_get_first(MDS_VDEST_ID vdest_id, MDS_PWE_HDL *first_pwe_hdl)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -278,7 +278,7 @@ uns32 mds_vdest_tbl_get_first(MDS_VDEST_ID vdest_id, MDS_PWE_HDL *first_pwe_hdl)
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_vdest_hdl
 *********************************************************/
-uns32 mds_vdest_tbl_get_vdest_hdl(MDS_VDEST_ID vdest_id, MDS_VDEST_HDL *vdest_hdl)
+uint32_t mds_vdest_tbl_get_vdest_hdl(MDS_VDEST_ID vdest_id, MDS_VDEST_HDL *vdest_hdl)
 {
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_vdest_hdl");
 
@@ -291,7 +291,7 @@ uns32 mds_vdest_tbl_get_vdest_hdl(MDS_VDEST_ID vdest_id, MDS_VDEST_HDL *vdest_hd
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_subtn_ref_val
 *********************************************************/
-uns32 mds_vdest_tbl_get_subtn_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_vdest_tbl_get_subtn_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 
@@ -313,7 +313,7 @@ uns32 mds_vdest_tbl_get_subtn_ref_val(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *
 /*********************************************************
   Function NAME: mds_vdest_tbl_get_vdest_info_cb
 *********************************************************/
-uns32 mds_vdest_tbl_get_vdest_info_cb(MDS_VDEST_ID vdest_id, MDS_VDEST_INFO **vdest_info)
+uint32_t mds_vdest_tbl_get_vdest_info_cb(MDS_VDEST_ID vdest_id, MDS_VDEST_INFO **vdest_info)
 {
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_vdest_tbl_get_vdest_info_cb");
 
@@ -326,7 +326,7 @@ uns32 mds_vdest_tbl_get_vdest_info_cb(MDS_VDEST_ID vdest_id, MDS_VDEST_INFO **vd
 /*********************************************************
   Function NAME: mds_vdest_tbl_cleanup
 *********************************************************/
-uns32 mds_vdest_tbl_cleanup(void)
+uint32_t mds_vdest_tbl_cleanup(void)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_VDEST_ID vdest_id = 0;
@@ -339,7 +339,7 @@ uns32 mds_vdest_tbl_cleanup(void)
 		/* If timer is running free TMR_REQ_INFO */
 		if (vdest_info->tmr_running == TRUE) {
 			/* Delete Handle */
-			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uns32)vdest_info->tmr_req_info_hdl);
+			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)vdest_info->tmr_req_info_hdl);
 
 			/* Stop timer */
 			m_NCS_TMR_STOP(vdest_info->quiesced_cbk_tmr);
@@ -383,7 +383,7 @@ uns32 mds_vdest_tbl_cleanup(void)
 /*********************************************************
   Function NAME: mds_pwe_tbl_add
 *********************************************************/
-uns32 mds_pwe_tbl_add(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id, MDS_PWE_HDL *pwe_hdl)
+uint32_t mds_pwe_tbl_add(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id, MDS_PWE_HDL *pwe_hdl)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_VDEST_ID vdest_id;
@@ -424,7 +424,7 @@ uns32 mds_pwe_tbl_add(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id, MDS_PWE_HDL *pw
 /*********************************************************
   Function NAME: mds_pwe_tbl_del
 *********************************************************/
-uns32 mds_pwe_tbl_del(MDS_PWE_HDL pwe_hdl)
+uint32_t mds_pwe_tbl_del(MDS_PWE_HDL pwe_hdl)
 {				/* mds_hdl is stored as back ptr in PWE_INFO */
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_VDEST_ID vdest_id;
@@ -477,7 +477,7 @@ uns32 mds_pwe_tbl_del(MDS_PWE_HDL pwe_hdl)
 /*********************************************************
   Function NAME: mds_pwe_tbl_query
 *********************************************************/
-uns32 mds_pwe_tbl_query(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id)
+uint32_t mds_pwe_tbl_query(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id)
 {
 	MDS_VDEST_INFO *vdest_info = NULL;
 	MDS_VDEST_ID vdest_id;
@@ -520,7 +520,7 @@ uns32 mds_pwe_tbl_query(MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id)
 /*********************************************************
   Function NAME: mds_svc_tbl_add
 *********************************************************/
-uns32 mds_svc_tbl_add(NCSMDS_INFO *info)
+uint32_t mds_svc_tbl_add(NCSMDS_INFO *info)
 {
 	MDS_VDEST_HDL vdest_hdl;
 	MDS_VDEST_ID vdest_id;
@@ -593,7 +593,7 @@ uns32 mds_svc_tbl_add(NCSMDS_INFO *info)
 /*********************************************************
   Function NAME: mds_svc_tbl_del
 *********************************************************/
-uns32 mds_svc_tbl_del(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_Q_MSG_FREE_CB msg_free_cb)
+uint32_t mds_svc_tbl_del(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_Q_MSG_FREE_CB msg_free_cb)
 {
 	/* destroy mbx if q_own is true */
 	MDS_SVC_HDL svc_hdl;
@@ -624,7 +624,7 @@ uns32 mds_svc_tbl_del(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_Q_MSG_FREE_CB 
 /*********************************************************
   Function NAME: mds_svc_tbl_query
 *********************************************************/
-uns32 mds_svc_tbl_query(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id)
+uint32_t mds_svc_tbl_query(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id)
 {
 	MDS_SVC_INFO *svc_info;
 	MDS_SVC_HDL svc_hdl;
@@ -649,7 +649,7 @@ uns32 mds_svc_tbl_query(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id)
 /*********************************************************
   Function NAME: mds_svc_tbl_get
 *********************************************************/
-uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb)
+uint32_t mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb)
 {
 	MDS_SVC_INFO *svc_info;
 	MDS_SVC_HDL svc_hdl;
@@ -674,7 +674,7 @@ uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb
 /*********************************************************
   Function NAME: mds_svc_tbl_get_install_scope
 *********************************************************/
-uns32 mds_svc_tbl_get_install_scope(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE *install_scope)
+uint32_t mds_svc_tbl_get_install_scope(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE *install_scope)
 {
 	MDS_SVC_INFO *svc_info;
 	MDS_SVC_HDL svc_hdl;
@@ -700,9 +700,9 @@ uns32 mds_svc_tbl_get_install_scope(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSM
 /*********************************************************
   Function NAME: mds_svc_tbl_get_svc_hdl
 *********************************************************/
-uns32 mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HDL *svc_hdl)
+uint32_t mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HDL *svc_hdl)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_svc_tbl_get_svc_hdl");
 
 	status = mds_svc_tbl_query(pwe_hdl, svc_id);
@@ -719,7 +719,7 @@ uns32 mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_SVC_HD
 /*********************************************************
   Function NAME: mds_svc_tbl_get_first_subscription
 *********************************************************/
-uns32 mds_svc_tbl_get_first_subscription(MDS_SVC_HDL svc_hdl, MDS_SUBSCRIPTION_INFO **first_subscription)
+uint32_t mds_svc_tbl_get_first_subscription(MDS_SVC_HDL svc_hdl, MDS_SUBSCRIPTION_INFO **first_subscription)
 {
 	MDS_SVC_INFO *svc_info;
 
@@ -748,9 +748,9 @@ uns32 mds_svc_tbl_get_first_subscription(MDS_SVC_HDL svc_hdl, MDS_SUBSCRIPTION_I
 /*********************************************************
   Function NAME: mds_svc_tbl_get_role
 *********************************************************/
-uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl)
+uint32_t mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_PWE_HDL pwe_hdl;
 	MDS_VDEST_ID vdest_id;
 	MDS_SVC_ID svc_id;
@@ -782,7 +782,7 @@ uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl)
 /*********************************************************
   Function NAME: mds_svc_tbl_getnext_on_vdest
 *********************************************************/
-uns32 mds_svc_tbl_getnext_on_vdest(MDS_VDEST_ID vdest_id, MDS_SVC_HDL current_svc_hdl, MDS_SVC_INFO **svc_info)
+uint32_t mds_svc_tbl_getnext_on_vdest(MDS_VDEST_ID vdest_id, MDS_SVC_HDL current_svc_hdl, MDS_SVC_INFO **svc_info)
 {
 	MDS_SVC_INFO *temp_svc_info = NULL;
 
@@ -805,7 +805,7 @@ uns32 mds_svc_tbl_getnext_on_vdest(MDS_VDEST_ID vdest_id, MDS_SVC_HDL current_sv
 /*********************************************************
   Function NAME: mds_svc_tbl_cleanup
 *********************************************************/
-uns32 mds_svc_tbl_cleanup(void)
+uint32_t mds_svc_tbl_cleanup(void)
 {
 	MDS_SVC_INFO *svc_info;
 	MDS_SVC_HDL svc_hdl = 0;
@@ -831,7 +831,7 @@ uns32 mds_svc_tbl_cleanup(void)
 			if (temp_current_subtn_info->tmr_flag == TRUE) {
 				/* Destroy Handle */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-						  (uns32)temp_current_subtn_info->tmr_req_info_hdl);
+						  (uint32_t)temp_current_subtn_info->tmr_req_info_hdl);
 
 				/* Stop Timer */
 				m_NCS_TMR_STOP(temp_current_subtn_info->discovery_tmr);
@@ -905,10 +905,10 @@ uns32 mds_svc_tbl_cleanup(void)
 /*********************************************************
   Function NAME: mds_subtn_tbl_add
 *********************************************************/
-uns32 mds_subtn_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
+uint32_t mds_subtn_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE scope,
 			MDS_VIEW view, MDS_SUBTN_TYPE subtn_type)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_INFO *svc_info;
 	MDS_SUBSCRIPTION_INFO *subtn_info;
 	MDS_TMR_REQ_INFO *tmr_req_info = NULL;
@@ -974,9 +974,9 @@ uns32 mds_subtn_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SC
 /*********************************************************
   Function NAME: mds_subtn_tbl_del
 *********************************************************/
-uns32 mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uns32 subscr_svc_id)
+uint32_t mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uint32_t subscr_svc_id)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SVC_INFO *svc_info;
 	MDS_SUBSCRIPTION_INFO *temp_current_subtn_info;
 	MDS_SUBSCRIPTION_INFO *temp_previous_subtn_info;
@@ -1016,7 +1016,7 @@ uns32 mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uns32 subscr_svc_id)
 			if (temp_current_subtn_info->tmr_flag == TRUE) {
 				/* Destroy Handle */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-						  (uns32)temp_current_subtn_info->tmr_req_info_hdl);
+						  (uint32_t)temp_current_subtn_info->tmr_req_info_hdl);
 
 				/* Destory Timer */
 				m_NCS_TMR_DESTROY(temp_current_subtn_info->discovery_tmr);
@@ -1061,7 +1061,7 @@ uns32 mds_subtn_tbl_del(MDS_SVC_HDL svc_hdl, uns32 subscr_svc_id)
 /*********************************************************
   Function NAME: mds_subtn_tbl_change_explicit
 *********************************************************/
-uns32 mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VIEW subtn_view_type)
+uint32_t mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VIEW subtn_view_type)
 {
 	MDS_SVC_INFO *svc_info;
 	MDS_SUBSCRIPTION_INFO *temp_subtn_info;
@@ -1204,7 +1204,7 @@ uns32 mds_subtn_tbl_change_explicit(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 /*********************************************************
   Function NAME: mds_subtntbl_query
 *********************************************************/
-uns32 mds_subtn_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id)
+uint32_t mds_subtn_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id)
 {
 
 	MDS_SVC_INFO *svc_info;
@@ -1242,7 +1242,7 @@ uns32 mds_subtn_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id)
 /*********************************************************
   Function NAME: mds_subtn_tbl_update_ref_hdl
 *********************************************************/
-uns32 mds_subtn_tbl_update_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBTN_REF_VAL subscr_ref_hdl)
+uint32_t mds_subtn_tbl_update_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBTN_REF_VAL subscr_ref_hdl)
 {
 
 	MDS_SVC_INFO *svc_info;
@@ -1274,7 +1274,7 @@ uns32 mds_subtn_tbl_update_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id
 /*********************************************************
   Function NAME: mds_subtn_tbl_get
 *********************************************************/
-uns32 mds_subtn_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBSCRIPTION_INFO **result)
+uint32_t mds_subtn_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBSCRIPTION_INFO **result)
 {
 
 	MDS_SVC_INFO *svc_info;
@@ -1306,7 +1306,7 @@ uns32 mds_subtn_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBSC
 /*********************************************************
   Function NAME: mds_subtn_tbl_get_details
 *********************************************************/
-uns32 mds_subtn_tbl_get_details(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE *scope, MDS_VIEW *view)
+uint32_t mds_subtn_tbl_get_details(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_SCOPE_TYPE *scope, MDS_VIEW *view)
 {
 
 	MDS_SVC_INFO *svc_info;
@@ -1339,7 +1339,7 @@ uns32 mds_subtn_tbl_get_details(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, N
 /*********************************************************
   Function NAME: mds_subtn_tbl_get_ref_hdl
 *********************************************************/
-uns32 mds_subtn_tbl_get_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBTN_REF_VAL *subscr_ref_hdl)
+uint32_t mds_subtn_tbl_get_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_SUBTN_REF_VAL *subscr_ref_hdl)
 {
 
 	MDS_SVC_INFO *svc_info;
@@ -1377,7 +1377,7 @@ uns32 mds_subtn_tbl_get_ref_hdl(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, M
 /*********************************************************
   Function NAME: mds_block_snd_req_tbl_add
 *********************************************************/
-uns32 mds_block_snd_req_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS_MCM_SYNC_SEND_QUEUE *result)
+uint32_t mds_block_snd_req_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS_MCM_SYNC_SEND_QUEUE *result)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1385,7 +1385,7 @@ uns32 mds_block_snd_req_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS
 /*********************************************************
   Function NAME: mds_block_snd_req_tbl_del
 *********************************************************/
-uns32 mds_block_snd_req_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
+uint32_t mds_block_snd_req_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1393,7 +1393,7 @@ uns32 mds_block_snd_req_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
 /*********************************************************
   Function NAME: mds_block_snd_req_tbl_query
 *********************************************************/
-uns32 mds_block_snd_req_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
+uint32_t mds_block_snd_req_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1401,7 +1401,7 @@ uns32 mds_block_snd_req_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id)
 /*********************************************************
   Function NAME: mds_block_snd_req_tbl_get
 *********************************************************/
-uns32 mds_block_snd_req_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS_MCM_SYNC_SEND_QUEUE *result)
+uint32_t mds_block_snd_req_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS_MCM_SYNC_SEND_QUEUE *result)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -1415,7 +1415,7 @@ uns32 mds_block_snd_req_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SYNC_TXN_ID txn_id, MDS
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_add
 *********************************************************/
-uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 			    MDS_VDEST_ID vdest_id, MDS_DEST adest, V_DEST_RL role,
 			    NCSMDS_SCOPE_TYPE scope,
 			    NCS_VDEST_TYPE local_vdest_policy,
@@ -1510,7 +1510,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 					active_subtn_res_info->info.active_vdest.active_route_info->tmr_running = FALSE;
 					/* Destroy Handle */
 					ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-							  (uns32)active_subtn_res_info->info.active_vdest.
+							  (uint32_t)active_subtn_res_info->info.active_vdest.
 							  active_route_info->tmr_req_info_hdl);
 
 					/* Stop Timer */
@@ -1561,7 +1561,7 @@ uns32 mds_subtn_res_tbl_add(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_del
 *********************************************************/
-uns32 mds_subtn_res_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
+uint32_t mds_subtn_res_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
 			    MDS_VDEST_ID vdest_id, MDS_DEST adest,
 			    NCS_VDEST_TYPE local_vdest_policy,
 			    MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
@@ -1599,9 +1599,9 @@ uns32 mds_subtn_res_tbl_del(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_query
 *********************************************************/
-uns32 mds_subtn_res_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id)
+uint32_t mds_subtn_res_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_query");
 
@@ -1613,7 +1613,7 @@ uns32 mds_subtn_res_tbl_query(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_query_by_adest
 *********************************************************/
-uns32 mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				       MDS_VDEST_ID vdest_id, MDS_DEST adest)
 {
 
@@ -1646,7 +1646,7 @@ uns32 mds_subtn_res_tbl_query_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_change_active
 *********************************************************/
-uns32 mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				      MDS_VDEST_ID vdest_id, MDS_SUBSCRIPTION_RESULTS_INFO *active_result,
 				      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type)
 {
@@ -1686,7 +1686,7 @@ uns32 mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 			subtn_res_info->info.active_vdest.active_route_info->tmr_running = FALSE;
 			/* Destroy Handle */
 			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-					  (uns32)subtn_res_info->info.active_vdest.active_route_info->tmr_req_info_hdl);
+					  (uint32_t)subtn_res_info->info.active_vdest.active_route_info->tmr_req_info_hdl);
 			/* Stop Timer */
 			m_NCS_TMR_STOP(subtn_res_info->info.active_vdest.active_route_info->await_active_tmr);
 			/* Free tmr_req_info */
@@ -1712,7 +1712,7 @@ uns32 mds_subtn_res_tbl_change_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_remove_active
 *********************************************************/
-uns32 mds_subtn_res_tbl_remove_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id)
+uint32_t mds_subtn_res_tbl_remove_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, MDS_VDEST_ID vdest_id)
 {
 	/* This will be called only when vdest is N-Way */
 
@@ -1774,7 +1774,7 @@ uns32 mds_subtn_res_tbl_remove_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_add_active
 *********************************************************/
-uns32 mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				   MDS_VDEST_ID vdest_id,
 				   NCS_VDEST_TYPE vdest_policy,
 				   MDS_SUBSCRIPTION_RESULTS_INFO *active_result,
@@ -1839,7 +1839,7 @@ uns32 mds_subtn_res_tbl_add_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_change_role
 *********************************************************/
-uns32 mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				    MDS_VDEST_ID vdest_id, MDS_DEST adest, V_DEST_RL role)
 {
 
@@ -1878,11 +1878,11 @@ uns32 mds_subtn_res_tbl_change_role(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_get
 *********************************************************/
-uns32 mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 			    MDS_VDEST_ID vdest_id, MDS_DEST *adest, NCS_BOOL *tmr_running,
 			    MDS_SUBSCRIPTION_RESULTS_INFO **result, NCS_BOOL call_ref_val)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info;
 	MDS_SUBSCRIPTION_RESULTS_INFO *active_subtn_res_info;
 	MDS_SUBSCRIPTION_RESULTS_INFO *next_active_result_info;
@@ -1944,7 +1944,7 @@ uns32 mds_subtn_res_tbl_get(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_get_by_adest
 *********************************************************/
-uns32 mds_subtn_res_tbl_get_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_get_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				     MDS_VDEST_ID vdest_id, MDS_DEST adest, V_DEST_RL *o_role,
 				     MDS_SUBSCRIPTION_RESULTS_INFO **result)
 {
@@ -1980,7 +1980,7 @@ uns32 mds_subtn_res_tbl_get_by_adest(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_getnext_active
 *********************************************************/
-uns32 mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				       MDS_SUBSCRIPTION_RESULTS_INFO **result)
 {				/* use for bcast */
 
@@ -2023,7 +2023,7 @@ uns32 mds_subtn_res_tbl_getnext_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_getnext_any
 *********************************************************/
-uns32 mds_subtn_res_tbl_getnext_any(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
+uint32_t mds_subtn_res_tbl_getnext_any(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 				    MDS_SUBSCRIPTION_RESULTS_INFO **result)
 {				/* use for bcast */
 
@@ -2059,7 +2059,7 @@ uns32 mds_subtn_res_tbl_getnext_any(MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
 /*used for giving down to all svc on adest going down*/
 
-uns32 mds_subtn_res_tbl_getnext_by_adest(MDS_DEST adest, MDS_SUBSCRIPTION_RESULTS_KEY *key,
+uint32_t mds_subtn_res_tbl_getnext_by_adest(MDS_DEST adest, MDS_SUBSCRIPTION_RESULTS_KEY *key,
 					 MDS_SUBSCRIPTION_RESULTS_INFO **ret_result)
 {
 
@@ -2093,7 +2093,7 @@ uns32 mds_subtn_res_tbl_getnext_by_adest(MDS_DEST adest, MDS_SUBSCRIPTION_RESULT
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_query_next_active
 *********************************************************/
-uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
+uint32_t mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
 					  MDS_VDEST_ID vdest_id,
 					  MDS_SUBSCRIPTION_RESULTS_INFO *current_active_result,
 					  MDS_SUBSCRIPTION_RESULTS_INFO **next_active_result)
@@ -2156,7 +2156,7 @@ uns32 mds_subtn_res_tbl_query_next_active(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_sv
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_del_all
 *********************************************************/
-uns32 mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
+uint32_t mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info;
 	MDS_SUBSCRIPTION_RESULTS_KEY subtn_res_key;
@@ -2177,7 +2177,7 @@ uns32 mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 				if (subtn_res_info->info.active_vdest.active_route_info->tmr_running == TRUE) {
 					/* Destroy Handle */
 					ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-							  (uns32)subtn_res_info->info.active_vdest.active_route_info->
+							  (uint32_t)subtn_res_info->info.active_vdest.active_route_info->
 							  tmr_req_info_hdl);
 					/* Stop Timer */
 					m_NCS_TMR_STOP
@@ -2225,7 +2225,7 @@ uns32 mds_subtn_res_tbl_del_all(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 /*********************************************************
   Function NAME: mds_subtn_res_tbl_cleanup
 *********************************************************/
-uns32 mds_subtn_res_tbl_cleanup(void)
+uint32_t mds_subtn_res_tbl_cleanup(void)
 {
 
 	MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info;
@@ -2247,7 +2247,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
 				m_NCS_TMR_STOP(subtn_res_info->info.active_vdest.active_route_info->await_active_tmr);
 				/* Destroy Handle */
 				ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON,
-						  (uns32)subtn_res_info->info.active_vdest.active_route_info->
+						  (uint32_t)subtn_res_info->info.active_vdest.active_route_info->
 						  tmr_req_info_hdl);
 				/* Free tmr_req_info */
 				m_MMGR_FREE_TMR_INFO(subtn_res_info->info.active_vdest.active_route_info->tmr_req_info);
@@ -2283,7 +2283,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
 /*********************************************************
   Function NAME: mds_mcm_cleanup
 *********************************************************/
-uns32 mds_mcm_cleanup(void)
+uint32_t mds_mcm_cleanup(void)
 {
 	/* Call Patricia tree specific cleanup function */
 	mds_subtn_res_tbl_cleanup();

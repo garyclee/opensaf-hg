@@ -195,15 +195,15 @@ struct ncs_sar_ctrl_info_tag;
     - short     (C-type)
     - int       (C-type)
     - long      (C-type)
-    - double    (C-type. Can be made uns32 if not supported by compiler)
+    - double    (C-type. Can be made uint32_t if not supported by compiler)
     - float     (C-type)
     - ncs_bool  (NCS-type, unsigned int.)
     - uint8_t      (NCS-type. unsigned char.)
     - uint16_t     (NCS-type. unsigned short.)
-    - uns32     (NCS-type. unsigned int.)
+    - uint32_t     (NCS-type. unsigned int.)
     - int8_t      (NCS-type. signed char.)
     - int16_t     (NCS-type. signed short.)
-    - int32     (NCS-type. signed long.)
+    - int32_t     (NCS-type. signed long.)
     - ncsfloat  (C/NCS-type. float.)
     - octet     (C/NCS-type, uint8_t *)
  */
@@ -234,7 +234,7 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_UNS16  m_NCS_MEM_ALLOC(sizeof(uint16_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-#define m_MMGR_ALLOC_EDP_UNS32  m_NCS_MEM_ALLOC(sizeof(uns32),\
+#define m_MMGR_ALLOC_EDP_UNS32  m_NCS_MEM_ALLOC(sizeof(uint32_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #define m_MMGR_ALLOC_EDP_INT8   m_NCS_MEM_ALLOC(sizeof(int8_t),\
@@ -243,7 +243,7 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_INT16  m_NCS_MEM_ALLOC(sizeof(int16_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-#define m_MMGR_ALLOC_EDP_INT32  m_NCS_MEM_ALLOC(sizeof(int32),\
+#define m_MMGR_ALLOC_EDP_INT32  m_NCS_MEM_ALLOC(sizeof(int32_t),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
 #define m_MMGR_ALLOC_EDP_NCSFLOAT32 m_NCS_MEM_ALLOC(sizeof(float),\
@@ -267,8 +267,8 @@ struct ncs_sar_ctrl_info_tag;
 #define NCSFAIL_MEM_REC_CORRUPTED 6
 #define NCSFAIL_OWNER_CONFLICT    7
 
-uns32 leap_failure(uns32 l, char *f, uns32 e, uns32 ret);
+uint32_t leap_failure(uint32_t l, char *f, uint32_t e, uint32_t ret);
 
-#define m_LEAP_FAILURE(e,r) leap_failure(__LINE__,__FILE__,(uns32)e,(uns32)r)
+#define m_LEAP_FAILURE(e,r) leap_failure(__LINE__,__FILE__,(uint32_t)e,(uint32_t)r)
 
 #endif

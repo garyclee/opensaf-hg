@@ -60,16 +60,16 @@
 
 #define m_MQSV_REVERSE_ENDIAN_L(p8, endianness) (        \
    (!endianness ? (                            \
-      ((uns32)((uint8_t*)(p8))[0] <<24) |        \
-      ((uns32)((uint8_t*)(p8))[1] <<16) |        \
-      ((uns32)((uint8_t*)(p8))[2] <<8 ) |        \
-      ((uns32)((uint8_t*)(p8))[3]     )          \
+      ((uint32_t)((uint8_t*)(p8))[0] <<24) |        \
+      ((uint32_t)((uint8_t*)(p8))[1] <<16) |        \
+      ((uint32_t)((uint8_t*)(p8))[2] <<8 ) |        \
+      ((uint32_t)((uint8_t*)(p8))[3]     )          \
      )                                        \
     :(                                        \
-      ((uns32)((uint8_t*)(p8))[3] <<24) |        \
-      ((uns32)((uint8_t*)(p8))[2] <<16) |        \
-      ((uns32)((uint8_t*)(p8))[1] <<8 ) |        \
-      ((uns32)((uint8_t*)(p8))[0]     )          \
+      ((uint32_t)((uint8_t*)(p8))[3] <<24) |        \
+      ((uint32_t)((uint8_t*)(p8))[2] <<16) |        \
+      ((uint32_t)((uint8_t*)(p8))[1] <<8 ) |        \
+      ((uint32_t)((uint8_t*)(p8))[0]     )          \
      )                                        \
    ))
 
@@ -84,8 +84,8 @@
      )                                        \
    ))
 
-uns32 machineEndianness(void);
-uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerhandle);
+uint32_t machineEndianness(void);
+uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerhandle);
 NCS_PHY_SLOT_ID mqsv_get_phy_slot_id(MDS_DEST dest);
 typedef unsigned int MSG_FRMT_VER;
 

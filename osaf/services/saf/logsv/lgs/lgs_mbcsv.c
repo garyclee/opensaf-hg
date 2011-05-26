@@ -32,60 +32,60 @@ LGSV_CKPT_COLD_SYNC_MSG
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-static uns32 edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-static uns32 edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-static uns32 edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			    NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-static uns32 edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+static uint32_t edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 				   EDU_ERR *o_err);
 
-static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-static uns32 edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+static uint32_t edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 static void enc_ckpt_header(uint8_t *pdata, lgsv_ckpt_header_t header);
-static uns32 dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header);
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
-static uns32 ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-static uns32 edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header);
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
+static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
-static uns32 ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static int32 ckpt_msg_test_type(NCSCONTEXT arg);
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
+static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+static int32_t ckpt_msg_test_type(NCSCONTEXT arg);
 
-static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba);
-static uns32 edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba);
-static uns32 process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba);
+static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba);
+static uint32_t process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 
 static LGS_CKPT_HDLR ckpt_data_handler[] = {
 	ckpt_proc_initialize_client,
@@ -114,9 +114,9 @@ static void free_edu_mem(char *ptr)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 lgs_mbcsv_init(lgs_cb_t *cb)
+uint32_t lgs_mbcsv_init(lgs_cb_t *cb)
 {
-	uns32 rc;
+	uint32_t rc;
 	NCS_MBCSV_ARG arg;
 
 	TRACE_ENTER();
@@ -137,7 +137,7 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 	/* Open a checkpoint */
 	arg.i_op = NCS_MBCSV_OP_OPEN;
 	arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	arg.info.open.i_client_hdl = 0;
 
 	if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
@@ -191,7 +191,7 @@ done:
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
+uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
@@ -224,7 +224,7 @@ uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
  * Notes         : This function should be ideally called only once, i.e.
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
-uns32 lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
+uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -250,9 +250,9 @@ uns32 lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  * Notes         : Based on the mbcsv message type, the corresponding mbcsv
  *                 message handler shall be invoked.
  *****************************************************************************/
-static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+static uint32_t mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	assert(arg != NULL);
 
@@ -308,9 +308,9 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t mbcsv_version;
 
 	assert(cbk_arg != NULL);
@@ -386,9 +386,9 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
 	uint8_t *async_upd_cnt = NULL;
 
@@ -412,7 +412,7 @@ static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		/* Log this error */
 		TRACE("  ncs_enc_reserve_space FAILED");
@@ -420,7 +420,7 @@ static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg
 	}
 
 	ncs_encode_32bit(&async_upd_cnt, lgs_cb->async_upd_cnt);
-	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == TRUE)
@@ -431,7 +431,7 @@ static uns32 ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg
 	return rc;
 }	/*End  ckpt_enc_cold_sync_data() */
 
-static uns32 ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open)
+static uint32_t ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_t *stream_open)
 {
 	memset(stream_open, 0, sizeof(lgs_ckpt_stream_open_t));
 	stream_open->clientId = -1;	/* not used in this message */
@@ -453,12 +453,12 @@ static uns32 ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
+static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 {
 	log_stream_t *log_stream_rec = NULL;
 	lgs_ckpt_stream_open_t *ckpt_stream_rec;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
@@ -522,12 +522,12 @@ static uns32 edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
  * Notes         : None.
  ***************************************************************************/
 
-static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
+static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 {
 	log_client_t *client = NULL;
 	lgs_ckpt_initialize_msg_t *ckpt_reg_rec;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
@@ -599,11 +599,11 @@ static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	lgsv_ckpt_msg_t *data = NULL;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	/* Set reo_hdl from callback arg to ckpt_rec */
 	data = (lgsv_ckpt_msg_t *)(long)cbk_arg->info.encode.io_reo_hdl;
@@ -644,9 +644,9 @@ static uns32 ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBC
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t msg_fmt_version;
 
 	assert(cbk_arg != NULL);
@@ -721,9 +721,9 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror;
 	lgsv_ckpt_msg_t msg;
 	lgsv_ckpt_msg_t *ckpt_msg = &msg;
@@ -875,16 +875,16 @@ static uns32 ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  *                        header->num_records times, 
  *****************************************************************************/
 
-static uns32 ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	lgsv_ckpt_msg_t msg;
 	lgsv_ckpt_msg_t *data = &msg;
-	uns32 num_rec = 0;
+	uint32_t num_rec = 0;
 	lgs_ckpt_initialize_msg_t *reg_rec = NULL;
 	lgs_ckpt_stream_open_t *stream_rec = NULL;
-	uns32 num_of_async_upd;
+	uint32_t num_of_async_upd;
 	uint8_t *ptr;
 	uint8_t data_cnt[16];
 	TRACE_ENTER();
@@ -967,7 +967,7 @@ static uns32 ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 	}			/*End while, stream records */
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uns32));
+	ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	cb->async_upd_cnt = num_of_async_upd;
 	ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
@@ -999,9 +999,9 @@ static uns32 ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((!cb) || (data == NULL)) {
 		TRACE("FAILED: (!cb) || (data == NULL)");
 		return (rc = NCSCC_RC_FAILURE);
@@ -1035,7 +1035,7 @@ static uns32 process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_initialize_msg_t *param = &data->ckpt_rec.initialize_client;
 	log_client_t *client;
@@ -1077,7 +1077,7 @@ static uns32 ckpt_proc_initialize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_write_log_t *param = &data->ckpt_rec.write_log;
 	log_stream_t *stream;
@@ -1114,7 +1114,7 @@ static uns32 ckpt_proc_log_write(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_stream_close_t *param = &data->ckpt_rec.stream_close;
 	log_stream_t *stream;
@@ -1154,7 +1154,7 @@ static uns32 ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_stream_open_t *param = &data->ckpt_rec.stream_open;
 	log_stream_t *stream;
@@ -1234,7 +1234,7 @@ uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_finalize_msg_t *param = &data->ckpt_rec.finalize_client;
 
@@ -1262,7 +1262,7 @@ static uns32 ckpt_proc_finalize_client(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None 
  ****************************************************************************/
 
-static uns32 ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	TRACE_ENTER();
 
@@ -1291,7 +1291,7 @@ static uns32 ckpt_proc_agent_down(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  * Notes         : None.
  ****************************************************************************/
 
-static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 {
 	lgs_ckpt_stream_cfg_t *param = &data->ckpt_rec.stream_cfg;
 	log_stream_t *stream;
@@ -1351,9 +1351,9 @@ static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uns32 action)
+uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
 	TRACE_ENTER();
 	/* Fill mbcsv specific data */
@@ -1393,7 +1393,7 @@ uns32 lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uns32 action)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
 	assert(arg != NULL);
@@ -1418,7 +1418,7 @@ static uns32 ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done */
 	return NCSCC_RC_SUCCESS;
@@ -1437,16 +1437,16 @@ static uns32 ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-static uns32 ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done. */
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			 NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_stream_list_t *ckpt_stream_list_msg_ptr = NULL, **ckpt_stream_list_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_stream_list_ed_rules[] = {
@@ -1498,10 +1498,10 @@ uns32 edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			    NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_initialize_msg_t *ckpt_reg_msg_ptr = NULL, **ckpt_reg_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_reg_rec_ed_rules[] = {
@@ -1553,10 +1553,10 @@ static uns32 edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_write_log_t *ckpt_write_msg_ptr = NULL, **ckpt_write_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_write_rec_ed_rules[] = {
@@ -1607,11 +1607,11 @@ static uns32 edp_ed_write_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_stream_open_t *ckpt_open_stream_msg_ptr = NULL, **ckpt_open_stream_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_open_stream_rec_ed_rules[] = {
@@ -1673,11 +1673,11 @@ static uns32 edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_stream_close_t *ckpt_close_stream_msg_ptr = NULL, **ckpt_close_stream_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_close_stream_rec_ed_rules[] = {
@@ -1726,11 +1726,11 @@ static uns32 edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_finalize_msg_t *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_final_rec_ed_rules[] = {
@@ -1777,11 +1777,11 @@ static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_stream_cfg_t *ckpt_stream_cfg_msg_ptr = NULL, **ckpt_stream_cfg_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_stream_cfg_rec_ed_rules[] = {
@@ -1840,11 +1840,11 @@ static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgsv_ckpt_header_t *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
 
 	EDU_INST_SET ckpt_header_rec_ed_rules[] = {
@@ -1895,7 +1895,7 @@ static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-static int32 ckpt_msg_test_type(NCSCONTEXT arg)
+static int32_t ckpt_msg_test_type(NCSCONTEXT arg)
 {
 	typedef enum {
 		LCL_TEST_JUMP_OFFSET_LGS_CKPT_REG = 1,
@@ -1958,10 +1958,10 @@ static int32 ckpt_msg_test_type(NCSCONTEXT arg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgsv_ckpt_msg_t *ckpt_msg_ptr = NULL, **ckpt_msg_dec_ptr;
 
 	EDU_INST_SET ckpt_msg_ed_rules[] = {
@@ -2057,7 +2057,7 @@ static void enc_ckpt_header(uint8_t *pdata, lgsv_ckpt_header_t header)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header)
+static uint32_t dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header)
 {
 	uint8_t *p8;
 	uint8_t local_data[256];

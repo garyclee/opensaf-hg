@@ -74,7 +74,7 @@ typedef enum nid_platconf_pars {
 
 struct nid_resetinfo {
 	char faild_serv_name[NID_MAXSNAME];
-	uns32 count;
+	uint32_t count;
 };
 
 /******************************************************************
@@ -99,8 +99,8 @@ typedef enum nid_recovery_opt {
 
 typedef struct nid_spawn_info NID_SPAWN_INFO;
 
-typedef uns32 (*NID_FUNC) (NID_SPAWN_INFO *, char *);
-typedef int32 (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *);
+typedef uint32_t (*NID_FUNC) (NID_SPAWN_INFO *, char *);
+typedef int32_t (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *);
 
 /******************************************************************
  *       Structures Used by opensafd to store the parsed info     *
@@ -108,18 +108,18 @@ typedef int32 (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *);
  *       spawning                                                 *
  *****************************************************************/
 typedef struct nid_recovery_list {
-	uns32 retry_count;	/* Retry count against each action */
+	uint32_t retry_count;	/* Retry count against each action */
 	NID_FUNC action;	/* Recovery action to be taken */
 } NID_RECOVERY_LIST;
 
 struct nid_spawn_info {
-	uns32 pid;
+	uint32_t pid;
 	char serv_name[NID_MAXSNAME];	/* Service name to be spawned */
 	NID_APP_TYPE app_type;
 	char s_name[NID_MAXSFILE];	/* Service name to be spawned */
 	char cleanup_file[NID_MAXSFILE];	/* Cleanup for the service spawned */
-	uns32 time_out;		/* Timeout for spawned service */
-	int32 priority;		/* Process priority& */
+	uint32_t time_out;		/* Timeout for spawned service */
+	int32_t priority;		/* Process priority& */
 	NID_RECOVERY_LIST recovery_matrix[NID_MAXREC];	/* recovery action list */
 	char s_parameters[NID_MAXPARMS];	/* Parameters for spawned service */
 	char *serv_args[NID_MAXARGS];	/* pointers to '\0' seperated arguments in s_parameters */
@@ -131,7 +131,7 @@ struct nid_spawn_info {
 typedef struct nid_child_list {
 	NID_SPAWN_INFO *head;	/* Head of the spawn list */
 	NID_SPAWN_INFO *tail;	/* Tail of the spawn list */
-	uns32 count;		/* Total nodes in the list */
+	uint32_t count;		/* Total nodes in the list */
 } NID_CHILD_LIST;
 
 /*********************************************************************

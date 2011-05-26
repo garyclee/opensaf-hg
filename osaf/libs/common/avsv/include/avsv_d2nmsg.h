@@ -91,7 +91,7 @@ typedef enum {
 
 typedef struct avsv_hlt_key_tag {
 	SaNameT comp_name;
-	uns32 key_len; 	                /* healthCheckKey length */
+	uint32_t key_len; 	                /* healthCheckKey length */
 	SaAmfHealthcheckKeyT name;	/* name of the health check key.
 					 * This field should be
 					 * immediatly after key_len */
@@ -107,11 +107,11 @@ typedef struct avsv_hlt_info_msg {
 
 typedef struct avsv_su_info_msg {
 	SaNameT name;
-	uns32 num_of_comp;
+	uint32_t num_of_comp;
 	SaTimeT comp_restart_prob;
-	uns32 comp_restart_max;
+	uint32_t comp_restart_max;
 	SaTimeT su_restart_prob;
-	uns32 su_restart_max;
+	uint32_t su_restart_max;
 	SaBoolT is_ncs;
 	NCS_BOOL su_is_external;	/*indicates if this SU is external */
 	struct avsv_su_info_msg *next;
@@ -132,7 +132,7 @@ typedef struct avsv_comp_info_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	uns32 init_len;		/* length of the component initiation
+	uint32_t init_len;		/* length of the component initiation
 				 *information 
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -149,7 +149,7 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 term_len;		/* length of the component termination
+	uint32_t term_len;		/* length of the component termination
 				 * information 
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -166,7 +166,7 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 clean_len;	/* length of the component cleanup
+	uint32_t clean_len;	/* length of the component cleanup
 				 * information 
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -183,7 +183,7 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 amstart_len;	/* length of the AM start
+	uint32_t amstart_len;	/* length of the AM start
 				 * command String information
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -201,7 +201,7 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 amstop_len;	/* length of the AM stop
+	uint32_t amstop_len;	/* length of the AM stop
 				 * command String information 
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -250,21 +250,21 @@ typedef struct avsv_comp_info_tag {
 				 * acts as a trigger for start
 				 *  /stop EAM.
 				 * Checkpointing - Sent as a one time update.*/
-	uns32 max_num_amstart;	/* The maximum number of times
+	uint32_t max_num_amstart;	/* The maximum number of times
 				   AMF tries to start EAM for 
 				   for the comp. */
-	uns32 max_num_amstop;	/* the maximum number of times
+	uint32_t max_num_amstop;	/* the maximum number of times
 				 * AMF tries to AM start command
 				 * for the component. 
 				 * Checkpointing - Sent as a one time update.*/
-	uns32 inst_level;	/* The components instantiation
+	uint32_t inst_level;	/* The components instantiation
 				 * level in the SU.*/
 
 	SaAmfRecommendedRecoveryT def_recvr;	/* the default component recovery
 						 * Checkpointing - Sent as a one time update.
 						 */
 
-	uns32 max_num_inst;	/* the maximum number of times
+	uint32_t max_num_inst;	/* the maximum number of times
 				 * AMF tries to instantiate
 				 * the component.
 				 * Checkpointing - Sent as a one time update.
@@ -288,8 +288,8 @@ typedef struct avsv_susi_asgn {
 	SaNameT comp_name;
 	SaNameT csi_name;
 	SaNameT active_comp_name;
-	uns32 csi_rank;		/* The rank of the CSI in the SI */
-	uns32 stdby_rank;
+	uint32_t csi_rank;		/* The rank of the CSI in the SI */
+	uint32_t stdby_rank;
 	SaAmfCSITransitionDescriptorT active_comp_dsc;
 	AVSV_CSI_ATTRS attrs;	/* Inside the struct there is a 
 					 * array of param vals.*/
@@ -302,12 +302,12 @@ typedef enum {
 } AVSV_OBJ_OPR_ACT;
 
 typedef struct avsv_param_info {
-	uns32 class_id; /* value from enum AVSV_AMF_CLASS_ID */
-	uns32 attr_id;
+	uint32_t class_id; /* value from enum AVSV_AMF_CLASS_ID */
+	uint32_t attr_id;
 	SaNameT name;	/* The length field is in network order */
 	SaNameT name_sec;
 	AVSV_OBJ_OPR_ACT act;
-	uns32 value_len;
+	uint32_t value_len;
 	char value[AVSV_MISC_STR_MAX_SIZE];
 } AVSV_PARAM_INFO;
 
@@ -331,13 +331,13 @@ typedef enum {
 } AVSV_AVND_CARD;
 
 typedef struct avsv_n2d_node_up_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	MDS_DEST adest_address;
 } AVSV_N2D_NODE_UP_MSG_INFO;
 
 typedef struct avsv_n2d_comp_validation_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT comp_name;	/* comp name */
 
@@ -356,24 +356,24 @@ typedef struct avsv_n2d_comp_validation_msg_info_tag {
 } AVSV_N2D_COMP_VALIDATION_INFO;
 
 typedef struct avsv_n2d_reg_su_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT su_name;
-	uns32 error;
+	uint32_t error;
 } AVSV_N2D_REG_SU_MSG_INFO;
 
 typedef struct avsv_n2d_reg_comp_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT comp_name;
-	uns32 error;
+	uint32_t error;
 } AVSV_N2D_REG_COMP_MSG_INFO;
 
 typedef struct avsv_n2d_operation_state_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -383,18 +383,18 @@ typedef struct avsv_n2d_operation_state_msg_info_tag {
 } AVSV_N2D_OPERATION_STATE_MSG_INFO;
 
 typedef struct avsv_n2d_info_su_si_assign_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_SUSI_ACT msg_act;
 	SaNameT su_name;
 	SaNameT si_name;
 	SaAmfHAStateT ha_state;
-	uns32 error;
+	uint32_t error;
 	NCS_BOOL single_csi; /* To differentiate single csi add/rem in SI assignment from SU-SI assngmt.*/
 } AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO;
 
 typedef struct avsv_n2d_pg_track_act_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	NCS_BOOL msg_on_fover;	/* If TRUE indicates that message is sent on 
 				 * fail-over. So AVD should process it in
@@ -404,20 +404,20 @@ typedef struct avsv_n2d_pg_track_act_msg_info_tag {
 } AVSV_N2D_PG_TRACK_ACT_MSG_INFO;
 
 typedef struct avsv_n2d_operation_request_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_PARAM_INFO param_info;
-	uns32 error;
+	uint32_t error;
 } AVSV_N2D_OPERATION_REQUEST_MSG_INFO;
 
 typedef struct avsv_n2d_data_request_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_PARAM_INFO param_info;
 } AVSV_N2D_DATA_REQUEST_MSG_INFO;
 
 typedef struct avsv_n2d_verify_ack_nack_msg_info {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	NCS_BOOL ack;
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
@@ -426,38 +426,38 @@ typedef struct avsv_d2n_node_up_msg_info_tag {
 	SaClmNodeIdT node_id;
 	AVSV_AVND_CARD node_type;
 	SaTimeT su_failover_prob;
-	uns32 su_failover_max;
+	uint32_t su_failover_max;
 } AVSV_D2N_NODE_UP_MSG_INFO;
 
 typedef struct avsv_d2n_reboot_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 } AVSV_D2N_REBOOT_MSG_INFO;
 
 typedef struct avsv_d2n_reg_su_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 
 	SaClmNodeIdT nodeid;
-	uns32 num_su;
+	uint32_t num_su;
 	AVSV_SU_INFO_MSG *su_list;
 } AVSV_D2N_REG_SU_MSG_INFO;
 
 typedef struct avsv_d2n_reg_comp_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 
 	SaClmNodeIdT node_id;
-	uns32 num_comp;
+	uint32_t num_comp;
 	AVSV_COMP_INFO_MSG *list;
 } AVSV_D2N_REG_COMP_MSG_INFO;
 
 typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_SUSI_ACT msg_act;
 	SaNameT su_name;
@@ -467,12 +467,12 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 				 * is filled. */
 	SaAmfHAStateT ha_state;
 	NCS_BOOL single_csi; /* To differentiate single csi assignment from SI assignment.*/
-	uns32 num_assigns;
+	uint32_t num_assigns;
 	AVSV_SUSI_ASGN *list;
 } AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO;
 
 typedef struct avsv_d2n_pg_track_act_rsp_msg_info_tag {
-	uns32 msg_id_ack;
+	uint32_t msg_id_ack;
 	SaClmNodeIdT node_id;
 	NCS_BOOL msg_on_fover;	/* If 1 indicates that message is sent on 
 				 * fail-over. So AVND should process it in
@@ -491,68 +491,68 @@ typedef struct avsv_d2n_pg_upd_msg_info_tag {
 } AVSV_D2N_PG_UPD_MSG_INFO;
 
 typedef struct avsv_d2n_operation_request_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_PARAM_INFO param_info;
 } AVSV_D2N_OPERATION_REQUEST_MSG_INFO;
 
 typedef struct avsv_d2n_presence_su_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT su_name;
 	NCS_BOOL term_state;
 } AVSV_D2N_PRESENCE_SU_MSG_INFO;
 
 typedef struct avsv_d2n_data_verify_msg_info {
-	uns32 snd_id_cnt;
-	uns32 rcv_id_cnt;
+	uint32_t snd_id_cnt;
+	uint32_t rcv_id_cnt;
 	SaClmNodeIdT node_id;
 	SaTimeT su_failover_prob;
-	uns32 su_failover_max;
+	uint32_t su_failover_max;
 } AVSV_D2N_DATA_VERIFY_MSG_INFO;
 
 /*
  * Message for sending Ack to all the messages received from the ND.
  */
 typedef struct avsv_d2n_ack_msg {
-	uns32 msg_id_ack;	/* Message ID for which Ack is being sent */
+	uint32_t msg_id_ack;	/* Message ID for which Ack is being sent */
 	SaClmNodeIdT node_id;
 } AVSV_D2N_ACK_MSG;
 
 typedef struct avsv_dnd_shutdown_app_su_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;	/* strictly we dont need this too msg_type
 				   is enough */
 } AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO, AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO;
 
 typedef struct avsv_d2n_set_leds_msg_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;	/* strictly we dont need this too msg_type
 				   is enough */
 } AVSV_D2N_SET_LEDS_MSG_INFO;
 
 typedef struct avsv_d2n_admin_op_req_msg_info_tag {
-	uns32         msg_id;
+	uint32_t         msg_id;
 	SaNameT       dn;
-	uns32         class_id; /* value from enum AVSV_AMF_CLASS_ID */
+	uint32_t         class_id; /* value from enum AVSV_AMF_CLASS_ID */
 	SaAmfAdminOperationIdT oper_id;
 } AVSV_D2N_ADMIN_OP_REQ_MSG_INFO;
 
 typedef struct avsv_d2n_hb_msg_tag {
-	uns32 seq_id;
+	uint32_t seq_id;
 } AVSV_D2N_HB_MSG_INFO;
 
 typedef struct avsv_d2n_comp_validation_resp_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
 	SaNameT comp_name;
 	AVSV_COMP_VALIDATION_RESULT_TYPE result;
 } AVSV_D2N_COMP_VALIDATION_RESP_INFO;
 
 typedef struct avsv_d2n_role_change_info_tag {
-	uns32 msg_id;
+	uint32_t msg_id;
 	SaClmNodeIdT node_id;
-	uns32 role;
+	uint32_t role;
 } AVSV_D2N_ROLE_CHANGE_INFO;
 
 typedef struct avsv_dnd_msg {
@@ -610,25 +610,25 @@ typedef struct avsv_dnd_msg {
            ( AVSV_N2D_DATA_REQUEST_MSG == (avd)->msg_type)
 
 typedef void (*AVSV_FREE_DND_MSG_INFO) (AVSV_DND_MSG *);
-typedef uns32 (*AVSV_COPY_DND_MSG) (AVSV_DND_MSG *, AVSV_DND_MSG *);
+typedef uint32_t (*AVSV_COPY_DND_MSG) (AVSV_DND_MSG *, AVSV_DND_MSG *);
 
 /* Extern Fuction Prototypes */
 
 void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg);
-uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
+uint32_t avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
 void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg);
-uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
+uint32_t avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg);
 void avsv_free_d2n_su_msg_info(AVSV_DND_MSG *su_msg);
-uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg);
+uint32_t avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg);
 void avsv_free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg);
-uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg);
+uint32_t avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg);
 void avsv_free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg);
-uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
+uint32_t avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
 void avsv_free_d2n_pg_msg_info(AVSV_DND_MSG *susi_msg);
-uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
+uint32_t avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg);
 
 void avsv_dnd_msg_free(AVSV_DND_MSG *);
 
-uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *, AVSV_DND_MSG *);
+uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *, AVSV_DND_MSG *);
 
 #endif   /* !AVSV_D2NMSG_H */

@@ -48,11 +48,11 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_am_start(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_comp_am_start(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
 	AVND_ERR_INFO err;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* check if its instantiated state, else exit */
 	if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
@@ -88,9 +88,9 @@ uns32 avnd_comp_am_start(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
+uint32_t avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (TRUE == comp->is_am_en)
 		rc = avnd_comp_am_start(cb, comp);
@@ -117,9 +117,9 @@ uns32 avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
+uint32_t avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* reset the cmd exec context params */
 	comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;
@@ -150,10 +150,10 @@ uns32 avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PRO
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_amstop_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
+uint32_t avnd_comp_amstop_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
 {
 	AVND_ERR_INFO err;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&err, '\0', sizeof(AVND_ERR_INFO));
 

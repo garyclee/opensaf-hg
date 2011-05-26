@@ -866,7 +866,7 @@ smf_system(std::string i_cmd)
 // updateSaflog()
 //------------------------------------------------------------------------------
 void
-updateSaflog(const std::string& i_dn, const uns32& i_stateId, const uns32& i_newState, const uns32& i_oldState)
+updateSaflog(const std::string& i_dn, const uint32_t& i_stateId, const uint32_t& i_newState, const uint32_t& i_oldState)
 {
 	const std::string newStateStr = smfStateToString(i_stateId, i_newState);
 	const std::string oldStateStr = smfStateToString(i_stateId, i_oldState);
@@ -877,7 +877,7 @@ updateSaflog(const std::string& i_dn, const uns32& i_stateId, const uns32& i_new
 // smfStateToString()
 //------------------------------------------------------------------------------
 const std::string 
-smfStateToString(const uns32& i_stateId, const uns32& i_state)
+smfStateToString(const uint32_t& i_stateId, const uint32_t& i_state)
 {
 	if (i_stateId == SA_SMF_STEP_STATE) {
 		switch (i_state) {

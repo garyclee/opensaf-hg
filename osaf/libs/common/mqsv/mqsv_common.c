@@ -44,9 +44,9 @@
 
   RETURNS: ENDIAN_TYPE
 *****************************************************************************/
-uns32 machineEndianness()
+uint32_t machineEndianness()
 {
-	uns32 i = 1;
+	uint32_t i = 1;
 	char *p = (char *)&i;
 
 	if (p[0] == 1)		/* Lowest address contains the least significant byte */
@@ -60,11 +60,11 @@ uns32 machineEndianness()
  * Purpose: Used to Send the 1-byte message to listener queue
  * Return Value:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  ****************************************************************************/
-uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
+uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 {
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	NCS_OS_MQ_MSG mq_msg;
-	uns32 actual_qsize = 0, actual_qused = 0;
+	uint32_t actual_qsize = 0, actual_qused = 0;
 	/* No listener queue present, return */
 	if (!listenerHandle)
 		return NCSCC_RC_SUCCESS;

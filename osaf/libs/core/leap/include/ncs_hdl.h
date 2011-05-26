@@ -150,10 +150,10 @@
  ***************************************************************************/
 
 typedef struct hm_hdl {
-	uns32 seq_id:4;		/* Sequence ID that must match  'cell' value */
-	uns32 idx1:8;		/* Navigational marker for first array */
-	uns32 idx2:8;		/* Navigational marker for second array */
-	uns32 idx3:12;		/* Navigational marker for third array */
+	uint32_t seq_id:4;		/* Sequence ID that must match  'cell' value */
+	uint32_t idx1:8;		/* Navigational marker for first array */
+	uint32_t idx2:8;		/* Navigational marker for second array */
+	uint32_t idx3:12;		/* Navigational marker for third array */
 
 } HM_HDL;
 
@@ -164,10 +164,10 @@ typedef struct hm_hdl {
 typedef struct hm_cell {
 	NCSCONTEXT data;	/* This is the stored data thing */
 
-	uns32 seq_id:4;		/* sequence ID must match for valid key find */
-	uns32 svc_id:12;	/* Service ID of owning subsystem */
-	uns32 busy:1;		/* sub-type of datat stored in context */
-	uns32 use_ct:11;	/* Use Count; Multiple readers, once created */
+	uint32_t seq_id:4;		/* sequence ID must match for valid key find */
+	uint32_t svc_id:12;	/* Service ID of owning subsystem */
+	uint32_t busy:1;		/* sub-type of datat stored in context */
+	uint32_t use_ct:11;	/* Use Count; Multiple readers, once created */
 
 } HM_CELL;
 
@@ -221,8 +221,8 @@ typedef struct hm_unit {
 #define HM_POOL_CNT  9
 
 typedef struct hm_pool {
-	int32 min;		/* min name-sapce unit inclusive */
-	int32 max;		/* max name-space unit inclusive */
+	int32_t min;		/* min name-sapce unit inclusive */
+	int32_t max;		/* max name-space unit inclusive */
 
 } HM_POOL;
 
@@ -232,10 +232,10 @@ typedef struct hm_pool {
 
 typedef struct hm_pmgr {
 	HM_FREE *free_pool;	/* the free ones go here */
-	uns32 in_q;		/* current handles in this queue */
-	uns32 in_use;		/* current handles in world from this pool */
-	uns32 curr;		/* current unit-id we are working on */
-	uns32 max;		/* max unit-id that this pool owns */
+	uint32_t in_q;		/* current handles in this queue */
+	uint32_t in_use;		/* current handles in world from this pool */
+	uint32_t curr;		/* current unit-id we are working on */
+	uint32_t max;		/* max unit-id that this pool owns */
 
 } HM_PMGR;
 
@@ -250,7 +250,7 @@ typedef struct hm_core {
 	HM_UNIT *unit[HM_UNIT_CNT];	/* Name space units */
 	HM_PMGR pool[HM_POOL_CNT];	/* pools of name space units */
 
-	uns32 woulda_crashed;	/* # times destroy thread blocked */
+	uint32_t woulda_crashed;	/* # times destroy thread blocked */
 
 } HM_CORE;
 
@@ -313,9 +313,9 @@ typedef struct hm_core {
  *
  ***************************************************************************/
 
-uns32 hm_pool_id(uint8_t unit);
+uint32_t hm_pool_id(uint8_t unit);
 
-uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
+uint32_t hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
 
 HM_FREE *hm_alloc_cell(uint8_t id);
 
@@ -325,7 +325,7 @@ HM_FREE *hm_target_cell(HM_HDL *hdl);
 
 void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
 
-uns32 hm_make_free_cells(HM_PMGR *pmgr);
+uint32_t hm_make_free_cells(HM_PMGR *pmgr);
 
 void hm_block_me(HM_CELL *cell, uint8_t pool_id);
 

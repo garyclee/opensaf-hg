@@ -67,7 +67,7 @@ extern "C" {
  **     c - a character value.
  **     v - a generic pointer (void *).
  **     b - a boolean bit value (1 or 0).
- **     m - a 32-bit number (uns32)
+ **     m - a 32-bit number (uint32_t)
  **     i - a pool identifier, as per target system; default 0
  **     pr - some notion of priority, as per target system; default 0
  **/
@@ -117,11 +117,11 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	 void *sysf_leap_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void *sysf_leap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri);
 	 void sysf_leap_free(void *data, uint8_t pool_id);
-	 void *sysf_heap_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void *sysf_heap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri);
 	 void sysf_heap_free(void *data, uint8_t pool_id);
-	 void *sysf_stub_alloc(uns32 b, uint8_t pool_id, uint8_t pri);
+	 void *sysf_stub_alloc(uint32_t b, uint8_t pool_id, uint8_t pri);
 	 void sysf_stub_free(void *data, uint8_t pool_id);
 
 /* free the user frame data info */
@@ -538,18 +538,18 @@ extern "C" {
 	void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
 	USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
 
-	uns32 sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uns32 buff_len);
+	uint32_t sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uint32_t buff_len);
 	USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length);
 
 /** Computational routines **/
-	uns32 sysf_get_chain_len(const USRBUF *);
+	uint32_t sysf_get_chain_len(const USRBUF *);
 	void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uint16_t *const);
 
 	void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 
-	uns32 sysf_str_hexdump(uint8_t *data, uns32 size, char *fname);
+	uint32_t sysf_str_hexdump(uint8_t *data, uint32_t size, char *fname);
 
-	uns32 sysf_pick_output(char *str, char *fname);
+	uint32_t sysf_pick_output(char *str, char *fname);
 
 #ifdef  __cplusplus
 }

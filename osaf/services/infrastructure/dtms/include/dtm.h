@@ -32,7 +32,7 @@
 extern DTM_INTERNODE_CB *dtms_gl_cb;
 extern uint8_t initial_discovery_phase;
 
-#define BMCAST_MSG_LEN ( sizeof(uint16_t) + sizeof(uns32) + sizeof(uns32) + sizeof(uint16_t)
+#define BMCAST_MSG_LEN ( sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t)
 
 #define m_NODE_DISCOVERY_TASKNAME       "NODE_DISCOVERY"
 #define m_NODE_DISCOVERY_TASK_PRIORITY   NCS_TASK_PRIORITY_4
@@ -56,7 +56,7 @@ typedef struct dtm_rcv_msg_elem {
 		struct {
 			uint16_t len;
 			uint8_t *buffer;
-			uns32 dst_pid;
+			uint32_t dst_pid;
 		} data;
 
 		struct {
@@ -86,9 +86,9 @@ typedef struct dtm_snd_msg_elem {
 	uint8_t pri;
 	union {
 		struct {
-			uns32 server_type;
-			uns32 server_inst;
-			uns32 pid;
+			uint32_t server_type;
+			uint32_t server_inst;
+			uint32_t pid;
 		} svc_event;
 		struct {
 			NODE_ID dst_nodeid;
@@ -99,17 +99,17 @@ typedef struct dtm_snd_msg_elem {
 } DTM_SND_MSG_ELEM;
 
 extern void node_discovery_process(void *arg);
-extern uns32 dtm_cb_init(DTM_INTERNODE_CB * dtms_cb);
-extern DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid);
-extern DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id);
-extern DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket);
-extern DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket);
+extern uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb);
+extern DTM_NODE_DB *dtm_node_get_by_id(uint32_t nodeid);
+extern DTM_NODE_DB *dtm_node_getnext_by_id(uint32_t node_id);
+extern DTM_NODE_DB *dtm_node_get_by_comm_socket(uint32_t comm_socket);
+extern DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uint32_t comm_socket);
 extern DTM_NODE_DB *dtm_node_get_by_node_ip(uint8_t *node_ip);
 extern DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uint8_t *node_ip);
-extern uns32 dtm_node_add(DTM_NODE_DB * node, int i);
-extern uns32 dtm_node_delete(DTM_NODE_DB * nnode, int i);
+extern uint32_t dtm_node_add(DTM_NODE_DB * node, int i);
+extern uint32_t dtm_node_delete(DTM_NODE_DB * nnode, int i);
 extern DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node);
 extern int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file);
-uns32 dtm_service_discovery_init(void);
+uint32_t dtm_service_discovery_init(void);
 
 #endif

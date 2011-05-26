@@ -49,7 +49,7 @@
  * @return AVD_AVND*
  */
 AVD_AVND *avd_msg_sanity_chk(AVD_EVT* evt, SaClmNodeIdT node_id, AVSV_DND_MSG_TYPE msg_typ,
-	uns32 msg_id)
+	uint32_t msg_id)
 {
 	AVD_AVND *node;
 
@@ -568,7 +568,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *node;
 	AVD_COMP *comp;
 	AVD_SU *su;
-	uns32 l_val = 0;
+	uint32_t l_val = 0;
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_data_req.node_id);
 
@@ -615,10 +615,10 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			switch (n2d_msg->msg_info.n2d_data_req.param_info.attr_id) {
 			case saAmfCompOperState_ID:
 				TRACE("comp oper state");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
 					SaAmfReadinessStateT saAmfCompReadinessState;
 
-					l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+					l_val = *((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
 					avd_comp_oper_state_set(comp, ntohl(l_val));
 
 					/* We need to update saAmfCompReadinessState */
@@ -640,8 +640,8 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				break;
 			case saAmfCompPresenceState_ID:
 				TRACE("comp pres state");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
+					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
 					/* Now check whether this presence state change was due to 
 					   adminstrative operation invocation on the component */
 					if (comp->admin_pend_cbk.invocation != 0)
@@ -655,8 +655,8 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				break;
 			case saAmfCompRestartCount_ID:
 				TRACE("comp restart count");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
+					l_val = *((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
 					comp->saAmfCompRestartCount = ntohl(l_val);
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_RESTART_COUNT);
 					avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
@@ -690,8 +690,8 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				break;
 			case saAmfCompProxyStatus_ID:
 				TRACE("comp proxy status");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
+					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
 					avd_comp_proxy_status_change(comp, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
@@ -719,15 +719,15 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			switch (n2d_msg->msg_info.n2d_data_req.param_info.attr_id) {
 			case saAmfSUOperState_ID:
 				TRACE("oper pres state");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
+					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
 					avd_su_oper_state_set(su, l_val);
 				}
 				break;
 			case saAmfSUPresenceState_ID:
 				TRACE("su pres state");
-				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
+					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
 					avd_su_pres_state_set(su, l_val);
 
 					/* Send response to any admin callbacks delivered by IMM if not sent already. */
@@ -785,7 +785,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_COMP *comp_ptr = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
 	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = NULL;
 

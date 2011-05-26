@@ -44,7 +44,7 @@
                      data - Miscellineousdata
 *****************************************************************************/
 
-void eds_log(uint8_t id, uns32 category, uint8_t sev, long rc, char *fname, uns32 fno, uns32 data)
+void eds_log(uint8_t id, uint32_t category, uint8_t sev, long rc, char *fname, uint32_t fno, uint32_t data)
 {
 
 	/* Log New type logs */
@@ -69,7 +69,7 @@ void eds_log(uint8_t id, uns32 category, uint8_t sev, long rc, char *fname, uns3
                      dest - uns64 mdsdest
 *****************************************************************************/
 
-void eds_log_f(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 dest)
+void eds_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uns64 dest)
 {
 
 	/* Log New type logs */
@@ -85,7 +85,7 @@ void eds_log_f(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, u
   DESCRIPTION:       Log event header info.
 
 *****************************************************************************/
-void eds_log_event(uint8_t id, int8_t *pub_name, uns32 evt_id, uns32 pubtime, uns32 pri, uns32 rettime)
+void eds_log_event(uint8_t id, int8_t *pub_name, uint32_t evt_id, uint32_t pubtime, uint32_t pri, uint32_t rettime)
 {
 	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
 		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL, id, pub_name, evt_id, pubtime, pri, rettime);
@@ -98,7 +98,7 @@ void eds_log_event(uint8_t id, int8_t *pub_name, uns32 evt_id, uns32 pubtime, un
   DESCRIPTION:       Log event header info.
 
 *****************************************************************************/
-void eds_log_lost_event(uint8_t id, int8_t *pub_name, uns32 evt_id, uns32 pubtime, uns32 pri)
+void eds_log_lost_event(uint8_t id, int8_t *pub_name, uint32_t evt_id, uint32_t pubtime, uint32_t pri)
 {
 	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
 		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL, id, pub_name, evt_id, pubtime, pri);

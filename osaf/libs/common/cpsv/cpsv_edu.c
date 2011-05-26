@@ -389,7 +389,7 @@ FUNC_DECLARATION(DS)
    Events encode decode routines,evts are initiated by ND */
 
 /* temp_place
-     {EDU_EXEC, , 0, 0, 0, (uns32)&((DS*)0)->, 0, NULL},
+     {EDU_EXEC, , 0, 0, 0, (uint32_t)&((DS*)0)->, 0, NULL},
 
 */
 
@@ -475,7 +475,7 @@ FUNC_DECLARATION(DS)
 
 		{
 		EDU_START, FUNC_NAME(CPSV_ND2A_READ_DATA), 0, 0, 0, sizeof(DS), 0, NULL},
-		    /* {EDU_EXEC,ncs_edp_uns32, EDQ_POINTER , 0, 0, (uns32)&((DS*)0)->data, 0, NULL}, */
+		    /* {EDU_EXEC,ncs_edp_uns32, EDQ_POINTER , 0, 0, (uint32_t)&((DS*)0)->data, 0, NULL}, */
 		{
 		EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS *) 0)->read_size, 0, NULL}, {
 		EDU_EXEC, ncs_edp_uns8, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
@@ -521,7 +521,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(SaUint32T *)arg;
 
@@ -539,9 +539,9 @@ TEST_FUNC_DECLARATION(DS)
 		return LCL_TEST_JUMP_OFFSET_CPSV_DATA_ACCESS_OVWRITE_RSP;
 
 	default:
-		return (uns32)EDU_FAIL;
+		return (uint32_t)EDU_FAIL;
 	}
-	return (uns32)EDU_FAIL;
+	return (uint32_t)EDU_FAIL;
 }
 
 FUNC_DECLARATION(DS)
@@ -1282,7 +1282,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(SaUint32T *)arg;
 
@@ -1521,7 +1521,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(SaUint32T *)arg;
 
@@ -1627,7 +1627,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(SaUint32T *)arg;
 
@@ -1741,7 +1741,7 @@ TEST_FUNC_DECLARATION(DS)
 	} LCL_TEST_JUMP_OFFSET;
 
 	if (arg == NULL)
-		return (uns32)EDU_EXIT;
+		return (uint32_t)EDU_EXIT;
 
 	addr = *(CPSV_EVT_TYPE *)arg;
 

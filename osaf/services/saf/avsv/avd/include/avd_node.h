@@ -105,7 +105,7 @@ typedef struct avd_avnd_tag {
 
 	AVD_ADMIN_OPER_CBK admin_node_pend_cbk;	/*to store any pending admin op
 						   callbacks on this node */
-	uns32 su_cnt_admin_oper;	/* count to keep track SUs on this node 
+	uint32_t su_cnt_admin_oper;	/* count to keep track SUs on this node 
 					   undergoing node admin op */
 
    /************ AMF B.04 **************************************************/
@@ -128,11 +128,11 @@ typedef struct avd_avnd_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 rcv_msg_id;	/* The receive message id counter 
+	uint32_t rcv_msg_id;	/* The receive message id counter 
 				 * Checkpointing - Sent independent update 
 				 */
 
-	uns32 snd_msg_id;	/* The send message id counter 
+	uint32_t snd_msg_id;	/* The send message id counter 
 				 * Checkpointing - Sent independent update 
 				 */
 
@@ -147,7 +147,7 @@ typedef struct avd_ng_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be AMF  node group name */
 	SaNameT ng_name;
-	uns32 number_nodes;	/* number of element in saAmfNGNodeList */
+	uint32_t number_nodes;	/* number of element in saAmfNGNodeList */
 	SaNameT *saAmfNGNodeList;	/* array of node names in group */
 
 	struct avd_ng_tag *cluster_list_ng_next;
@@ -188,7 +188,7 @@ extern void avd_node_delete(AVD_AVND *avnd);
 extern void avd_node_db_add(AVD_AVND *node);
 extern AVD_AVND *avd_node_get(const SaNameT *node_name);
 extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
-extern uns32 avd_node_add_nodeid(AVD_AVND *avnd);
+extern uint32_t avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
 extern AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
 extern AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
@@ -199,8 +199,8 @@ extern void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state);
 extern void avd_node_constructor(void);
 extern void avd_node_add_su(struct avd_su_tag *su);
 extern void avd_node_remove_su(struct avd_su_tag *su);
-extern uns32 avd_node_admin_lock_instantiation(AVD_AVND *node);
-extern uns32 node_admin_unlock_instantiation(AVD_AVND *node);
+extern uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node);
+extern uint32_t node_admin_unlock_instantiation(AVD_AVND *node);
 extern void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 			    SaInvocationT invocation, SaAmfAdminOperationIdT operationId);
 /* AMF Node group */

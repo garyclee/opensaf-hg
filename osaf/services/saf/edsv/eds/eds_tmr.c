@@ -50,9 +50,9 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uns32 uarg)
+uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	uns32 tmr_period = (uns32)(period / EDSV_NANOSEC_TO_LEAPTM);
+	uint32_t tmr_period = (uint32_t)(period / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (EDS_TMR_MAX <= tmr->type) {
 		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
@@ -62,7 +62,7 @@ uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period,
 
 	if (tmr->tmr_id == TMR_T_NULL) {
 		tmr->type = type;
-		m_NCS_TMR_CREATE(tmr->tmr_id, (uns32)tmr_period, eds_tmr_exp, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
 	}
 
 	if (tmr->is_active == TRUE) {
@@ -72,7 +72,7 @@ uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period,
 
 	tmr->opq_hdl = uarg;
 	tmr->cb_hdl = cb->my_hdl;
-	m_NCS_TMR_START(tmr->tmr_id, (uns32)tmr_period, eds_tmr_exp, (void *)tmr);
+	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
 
 	tmr->is_active = TRUE;
 
@@ -157,7 +157,7 @@ void eds_tmr_exp(void *uarg)
 	EDS_CB *eds_cb = 0;
 	EDS_TMR *tmr = (EDS_TMR *)uarg;
 	EDSV_EDS_EVT *evt = 0;
-	uns32 temp_tmr_hdl;
+	uint32_t temp_tmr_hdl;
 
 	temp_tmr_hdl = tmr->cb_hdl;
 

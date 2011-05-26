@@ -128,10 +128,10 @@ AVD_SU *avd_su_getnext(const SaNameT *dn)
  *
  * @return returns current assignment cnt
  */
-uns32 avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state)
+uint32_t avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state)
 {
 	AVD_SU_SI_REL *curr_susi;
-	uns32 curr_assignment_cnt = 0;
+	uint32_t curr_assignment_cnt = 0;
 
 	for (curr_susi = su->list_of_susi;curr_susi != NULL;curr_susi = curr_susi->su_next) {
 		if (curr_susi->state == ha_state)

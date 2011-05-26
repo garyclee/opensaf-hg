@@ -30,7 +30,7 @@ static void clma_destroy(void);
  * 
  * @return unsigned int
  */
-uns32 clma_validate_version(SaVersionT *version)
+uint32_t clma_validate_version(SaVersionT *version)
 {
 	TRACE_ENTER();
 	if (version->releaseCode == 'B' && version->majorVersion == 1 && version->minorVersion == 1) {
@@ -175,7 +175,7 @@ static void clma_destroy(void)
  
   Notes         : None
 ******************************************************************************/
-clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t * clma_cb, uns32 client_id)
+clma_client_hdl_rec_t *clma_find_hdl_rec_by_client_id(clma_cb_t * clma_cb, uint32_t client_id)
 {
 	clma_client_hdl_rec_t *clma_hdl_rec;
 
@@ -227,7 +227,7 @@ static NCS_BOOL clma_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
   Notes         : None
 ******************************************************************************/
 clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *reg_cbks_1,
-					const SaClmCallbacksT_4 * reg_cbks_4, SaVersionT *version, uns32 client_id)
+					const SaClmCallbacksT_4 * reg_cbks_4, SaVersionT *version, uint32_t client_id)
 {
 	clma_client_hdl_rec_t *rec = calloc(1, sizeof(clma_client_hdl_rec_t));
 
@@ -323,9 +323,9 @@ clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *r
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-uns32 clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t * rm_node)
+uint32_t clma_hdl_rec_del(clma_client_hdl_rec_t ** list_head, clma_client_hdl_rec_t * rm_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	clma_client_hdl_rec_t *list_iter = *list_head;
 
 	TRACE_ENTER();
@@ -517,10 +517,10 @@ static SaAisErrorT clma_hdl_cbk_dispatch_one(clma_cb_t * cb, clma_client_hdl_rec
  
   Notes         : None
 ******************************************************************************/
-static uns32 clma_hdl_cbk_dispatch_all(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec)
+static uint32_t clma_hdl_cbk_dispatch_all(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec)
 {
 	CLMSV_MSG *cbk_msg = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* Recv all the cbk notifications from the queue & process them */
@@ -558,10 +558,10 @@ static uns32 clma_hdl_cbk_dispatch_all(clma_cb_t * cb, clma_client_hdl_rec_t * h
  
   Notes         : None
 ******************************************************************************/
-static uns32 clma_hdl_cbk_dispatch_block(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec)
+static uint32_t clma_hdl_cbk_dispatch_block(clma_cb_t * cb, clma_client_hdl_rec_t * hdl_rec)
 {
 	CLMSV_MSG *cbk_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	for (;;) {
 		if (NULL != (cbk_msg = (CLMSV_MSG *)

@@ -29,23 +29,23 @@
 
 ******************************************************************************/
 #include "glnd.h"
-uns32 glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
-uns32 glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
+uint32_t glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
+uint32_t glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
-uns32 glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt);
-uns32 glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
+uint32_t glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt);
+uint32_t glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 					    SaLckResourceIdT res_id, SaLckHandleT app_handle_id, uint8_t to_which_list);
 
-uns32 glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
+uint32_t glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 						SaLckResourceIdT res_id, SaLckHandleT app_handle_id,
 						uint8_t to_which_list);
 
-uns32 glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_info,
-				      uns32 offset);
+uint32_t glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_info,
+				      uint32_t offset);
 
-uns32 glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_resource_info, uns32 offset);
+uint32_t glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_resource_info, uint32_t offset);
 
-uns32 glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *restart_backup_evt, uns32 offset);
+uint32_t glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *restart_backup_evt, uint32_t offset);
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_restart_resource_info_ckpt_write()
@@ -59,12 +59,12 @@ uns32 glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_I
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RESTART_RES_INFO restart_resource_info;
 	NCS_OS_POSIX_SHM_REQ_INFO res_info_write;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 shm_index = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t shm_index = 0;
 
 	/* Fill restart_resource_info */
 	memset(&restart_resource_info, '\0', sizeof(GLND_RESTART_RES_INFO));
@@ -114,10 +114,10 @@ uns32 glnd_restart_resource_info_ckpt_write(GLND_CB *glnd_cb, GLND_RESOURCE_INFO
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt)
+uint32_t glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO restart_backup_evt)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO evt_info_write;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Fill the POSIX shared memory req info */
 	memset(&evt_info_write, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -150,12 +150,12 @@ uns32 glnd_restart_lock_event_info_ckpt_write(GLND_CB *glnd_cb, GLSV_RESTART_BAC
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
+uint32_t glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RESTART_RES_INFO restart_resource_info;
 	GLND_RESTART_RES_INFO *glnd_res_shm_base_addr = NULL;
 	NCS_OS_POSIX_SHM_REQ_INFO res_info_write;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	glnd_res_shm_base_addr = glnd_cb->glnd_res_shm_base_addr;
 
@@ -207,13 +207,13 @@ uns32 glnd_restart_resource_info_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RESOURCE_
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
+uint32_t glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 					    SaLckResourceIdT res_id, SaLckHandleT app_handle_id, uint8_t to_which_list)
 {
 	GLND_RESTART_RES_LOCK_LIST_INFO restart_res_lock_list_info;
 	NCS_OS_POSIX_SHM_REQ_INFO lck_list_info_write;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 shm_index;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t shm_index;
 
 	memset(&restart_res_lock_list_info, 0, sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
 
@@ -266,13 +266,13 @@ uns32 glnd_restart_res_lock_list_ckpt_write(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
+uint32_t glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_LIST_INFO *res_lock_list,
 						SaLckResourceIdT res_id, SaLckHandleT app_handle_id, uint8_t to_which_list)
 {
 	GLND_RESTART_RES_LOCK_LIST_INFO restart_res_lock_list_info;
 	NCS_OS_POSIX_SHM_REQ_INFO lck_list_info_write;
 	GLND_RESTART_RES_LOCK_LIST_INFO *shm_base_addr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	shm_base_addr = glnd_cb->glnd_lck_shm_base_addr;
 
@@ -322,8 +322,8 @@ uns32 glnd_restart_res_lock_list_ckpt_overwrite(GLND_CB *glnd_cb, GLND_RES_LOCK_
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_info,
-				      uns32 offset)
+uint32_t glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_info,
+				      uint32_t offset)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
@@ -356,10 +356,10 @@ uns32 glnd_restart_res_lock_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_LI
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_resource_info, uns32 offset)
+uint32_t glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_resource_info, uint32_t offset)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	/*Use read option of shared memory to fill ckpt_queue_info */
 	memset(&read_req, '\0', sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
@@ -389,7 +389,7 @@ uns32 glnd_restart_resource_ckpt_read(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *r
 
   NOTES          : None
 *****************************************************************************/
-uns32 glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *restart_backup_evt, uns32 offset)
+uint32_t glnd_restart_backup_event_read(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *restart_backup_evt, uint32_t offset)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;

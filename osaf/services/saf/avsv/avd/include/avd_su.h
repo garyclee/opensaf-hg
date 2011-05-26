@@ -61,7 +61,7 @@ typedef struct avd_su_tag {
 
 	SaNameT name;
 	SaNameT saAmfSUType;
-	uns32 saAmfSURank;
+	uint32_t saAmfSURank;
 	SaNameT saAmfSUHostNodeOrNodeGroup;
 	SaBoolT saAmfSUFailover;
 	SaNameT saAmfSUMaintenanceCampaign;
@@ -82,22 +82,22 @@ typedef struct avd_su_tag {
 					 * when no admin operation is going on.
 					 */
 
-	uns32 num_of_comp;	/* The number of components
+	uint32_t num_of_comp;	/* The number of components
 				 * that will make up this SU
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 curr_num_comp;	/* The current number of components
+	uint32_t curr_num_comp;	/* The current number of components
 				 * configured.
 				 * Checkpointing - Calculated at Standby.
 				 */
 
-	uns32 si_max_active;	/* The maximum number of active instance of
+	uint32_t si_max_active;	/* The maximum number of active instance of
 				 * Sis that can be assigned to this SU.
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns32 si_max_standby;	/* The maximum number of standby instance of
+	uint32_t si_max_standby;	/* The maximum number of standby instance of
 				 * Sis that can be assigned to this SU.
 				 * Checkpointing - Sent as a one time update.
 				 */
@@ -258,6 +258,6 @@ extern void avd_su_inc_curr_act_si(AVD_SU *su);
 extern void avd_su_dec_curr_act_si(AVD_SU *su);
 extern void avd_su_inc_curr_stdby_si(AVD_SU *su);
 extern void avd_su_dec_curr_stdby_si(AVD_SU *su);
-extern uns32 avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state);
+extern uint32_t avd_su_get_current_no_of_assignments(AVD_SU *su, SaAmfHAStateT ha_state);
 
 #endif

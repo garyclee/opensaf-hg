@@ -71,7 +71,7 @@ typedef struct avd_comp_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	uns32 max_num_inst_delay;	/* the maximum number of times
+	uint32_t max_num_inst_delay;	/* the maximum number of times
 					 * AMF tries to instantiate
 					 * the component with delay.
 					 * Checkpointing - Sent as a one time update.
@@ -156,7 +156,7 @@ typedef struct avd_comp_cs_type_tag {
 	SaUint32T saAmfCompNumMaxStandbyCSIs;
 	SaUint32T saAmfCompNumCurrActiveCSIs;
 	SaUint32T saAmfCompNumCurrStandbyCSIs;
-	uns32   number_comp;     /* number of element in saAmfCompAssignedCsi */
+	uint32_t   number_comp;     /* number of element in saAmfCompAssignedCsi */
 	SaNameT *saAmfCompAssignedCsi;
 	AVD_COMP *comp;
 } AVD_COMPCS_TYPE;

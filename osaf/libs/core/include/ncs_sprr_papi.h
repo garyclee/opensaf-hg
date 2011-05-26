@@ -82,7 +82,7 @@ extern "C" {
 	} NCS_SPLR_REQ_INFO;
 
 /**** SPLR API ****/
-	uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info);
+	uint32_t ncs_splr_api(NCS_SPLR_REQ_INFO *info);
 
 /*****************************************************************\
  ******************** SPIR API request types *********************
@@ -119,7 +119,7 @@ extern "C" {
 
 	typedef struct {
 		SaAmfCSIAttributeListT i_inst_attrs;	/* Attributes of the instance-name */
-		uns32 i_handle;
+		uint32_t i_handle;
 		void *i_arg;	/* Cookie */
 	} NCS_SPIR_REQ_ADD_INST_INFO;
 
@@ -133,7 +133,7 @@ extern "C" {
 
 		/* Key to next instance */
 		SaNameT o_next_instance_name;
-		uns32 o_next_environment_id;
+		uint32_t o_next_environment_id;
 
 		/* Date on the next instance */
 		void *o_user_se_api;
@@ -159,30 +159,30 @@ extern "C" {
 		/* SPIR entry key */
 		char *i_sp_abstract_name;	/* Name will be copied(so, pointer can be on-stack) */
 		SaNameT i_instance_name;
-		uns32 i_environment_id;
+		uint32_t i_environment_id;
 
 		/* SPIR entry attribute info */
 		union {
 			/* The following two are invoked by the service-provider to 
 			   populate his handles before actual "demand" */
 			NCS_SPIR_REQ_ADD_INST_INFO add_inst;
-			uns32 rmv_inst;	/* dummy */
+			uint32_t rmv_inst;	/* dummy */
 
 			/* The following two are invoked by the service-provider to 
 			   populate his handles on actual "demand" */
 			NCS_SPIR_REQ_LOOKUP_INST_INFO lookup_inst;
 			NCS_SPIR_REQ_LOOKUP_NEXT_INST_INFO lookup_next_inst;
 			NCS_SPIR_REQ_LOOKUP_CREATE_INST_INFO lookup_create_inst;
-			uns32 rel_inst;	/*dummy */
+			uint32_t rel_inst;	/*dummy */
 		} info;
 	} NCS_SPIR_REQ_INFO;
 
 /**** SPIR API ****/
-	uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info);
+	uint32_t ncs_spir_api(NCS_SPIR_REQ_INFO *info);
 
 /** Function to setup NCS infrastructure elements for an environement **/
-	uns32 ncs_environment_setup(uns32 env_id);
-	uns32 ncs_environment_clear(uns32 env_id);
+	uint32_t ncs_environment_setup(uint32_t env_id);
+	uint32_t ncs_environment_clear(uint32_t env_id);
 
 #ifdef  __cplusplus
 }

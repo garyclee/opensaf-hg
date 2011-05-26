@@ -48,7 +48,7 @@ static void dts_saf_CSI_rem_callback(SaInvocationT invocation,
 
 static void dts_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-static uns32 dts_healthcheck_start(DTS_CB *cb);
+static uint32_t dts_healthcheck_start(DTS_CB *cb);
 
 /****************************************************************************
  * Name          : dts_amf_init
@@ -63,7 +63,7 @@ static uns32 dts_healthcheck_start(DTS_CB *cb);
  * Notes         : Changed the function to do intialize of callbacks & selection 
  *                 objects. Called from dts_amf_register. 
  *****************************************************************************/
-uns32 dts_amf_init(DTS_CB *dts_cb_inst)
+uint32_t dts_amf_init(DTS_CB *dts_cb_inst)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
@@ -107,7 +107,7 @@ uns32 dts_amf_init(DTS_CB *dts_cb_inst)
  *  NOTE: 
  \*****************************************************************************/
 /* Unregistration and Finalization with AMF Library */
-uns32 dts_amf_finalize(DTS_CB *dts_cb_inst)
+uint32_t dts_amf_finalize(DTS_CB *dts_cb_inst)
 {
 	SaAisErrorT status = SA_AIS_OK;
 
@@ -157,7 +157,7 @@ uns32 dts_amf_finalize(DTS_CB *dts_cb_inst)
          setting the environment varaiable in our own context.
          Proceed to register with AMF, since it has come up. 
 \**************************************************************************/
-uns32 dts_amf_register(DTS_CB *inst)
+uint32_t dts_amf_register(DTS_CB *inst)
 {
 	SaAisErrorT error;
 	char comp_name[256] = { 0 };
@@ -476,7 +476,7 @@ static void dts_saf_comp_terminate_callback(SaInvocationT invocation, const SaNa
  *                 NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \******************************************************************************/
-static uns32 dts_healthcheck_start(DTS_CB *cb)
+static uint32_t dts_healthcheck_start(DTS_CB *cb)
 {
 	SaAisErrorT saf_status = SA_AIS_OK;
 

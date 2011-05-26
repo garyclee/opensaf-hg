@@ -46,7 +46,7 @@ extern "C" {
  */
 typedef struct smfd_smfnd_adest_invid_map{
         SaInvocationT                           inv_id;
-        uns32                                   no_of_cbks;
+        uint32_t                                   no_of_cbks;
 	SYSF_MBX				*cbk_mbx;
         struct smfd_smfnd_adest_invid_map       *next_invid;
 }SMFD_SMFND_ADEST_INVID_MAP;
@@ -56,11 +56,11 @@ typedef struct smfd_smfnd_adest_invid_map{
  * ========================================================================
  */
 
-	uns32 smfnd_up(SaClmNodeIdT node_id, MDS_DEST smfnd_dest);
-	uns32 smfnd_down(SaClmNodeIdT node_id);
+	uint32_t smfnd_up(SaClmNodeIdT node_id, MDS_DEST smfnd_dest);
+	uint32_t smfnd_down(SaClmNodeIdT node_id);
 	MDS_DEST smfnd_dest_for_name(const char *nodeName);
 	int smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest,
-			     uns32 i_timeout);
+			     uint32_t i_timeout);
 
 #ifdef __cplusplus
 }

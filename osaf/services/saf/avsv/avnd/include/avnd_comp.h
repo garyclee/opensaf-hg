@@ -54,7 +54,7 @@ struct avnd_srm_req_tag;
 #define AVND_COMP_INST_EXIT_CODE_NO_RETRY   200
 
 /* clc event handler declaration */
-typedef uns32 (*AVND_COMP_CLC_FSM_FN) (struct avnd_cb_tag *, struct avnd_comp_tag *);
+typedef uint32_t (*AVND_COMP_CLC_FSM_FN) (struct avnd_cb_tag *, struct avnd_comp_tag *);
 
 /* clc fsm events */
 typedef enum avnd_comp_clc_pres_fsm_ev {
@@ -86,7 +86,7 @@ typedef enum avnd_comp_clc_cmd_type {
 typedef struct avnd_comp_clc_param {
 	char cmd[SAAMF_CLC_LEN];	/* cmd ascii string */
 	SaTimeT timeout;	/* cmd timeout value */
-	uns32 len;		/* cmd len */
+	uint32_t len;		/* cmd len */
 } AVND_COMP_CLC_CMD_PARAM;
 
 /* clc info definition (top level wrapper structure) */
@@ -95,29 +95,29 @@ typedef struct avnd_comp_clc_info {
 	/* clc commands (indexed by cmd type) */
 	AVND_COMP_CLC_CMD_PARAM cmds[AVND_COMP_CLC_CMD_TYPE_MAX - 1];
 
-	uns32 inst_retry_max;	/* configured no of instantiate retry attempts */
-	uns32 inst_retry_cnt;	/* curr no of instantiate retry attempts */
+	uint32_t inst_retry_max;	/* configured no of instantiate retry attempts */
+	uint32_t inst_retry_cnt;	/* curr no of instantiate retry attempts */
 
-	uns32 am_start_retry_max;	/* configured no of AM_START retry attempts */
-	uns32 am_start_retry_cnt;	/* curr no of AM_START retry attempts */
+	uint32_t am_start_retry_max;	/* configured no of AM_START retry attempts */
+	uint32_t am_start_retry_cnt;	/* curr no of AM_START retry attempts */
 
-	uns32 saAmfCompNumMaxAmStopAttempts;
+	uint32_t saAmfCompNumMaxAmStopAttempts;
 
 	/* 
 	 * current command execution info (note that a comp has only 
 	 * one outstanding command in execution other than AM related)
 	 */
 	AVND_COMP_CLC_CMD_TYPE exec_cmd;	/* command in execution */
-	uns32 cmd_exec_ctxt;	/* command execution context */
+	uint32_t cmd_exec_ctxt;	/* command execution context */
 
 	AVND_COMP_CLC_CMD_TYPE am_exec_cmd;	/* command in execution */
-	uns32 am_cmd_exec_ctxt;	/* command execution context */
+	uint32_t am_cmd_exec_ctxt;	/* command execution context */
 
 	/* comp reg tmr info */
 	SaTimeT inst_cmd_ts;	/* instantiate cmd start timestamp */
 	AVND_TMR clc_reg_tmr;	/* comp reg tmr */
 
-	uns32 inst_code_rcvd;	/* Store the error value 
+	uint32_t inst_code_rcvd;	/* Store the error value 
 				   received from the instantiate script */
 
 } AVND_COMP_CLC_INFO;
@@ -128,11 +128,11 @@ typedef struct avnd_comp_clc_info {
 
 /* callbk list node definition */
 typedef struct avnd_cbk_tag {
-	uns32 opq_hdl;		/* hdl returned by hdl-mngr */
-	uns32 orig_opq_hdl;	/* Original hdl to be stored for proxing it at AvND */
+	uint32_t opq_hdl;		/* hdl returned by hdl-mngr */
+	uint32_t orig_opq_hdl;	/* Original hdl to be stored for proxing it at AvND */
 	/* Redundant AvND hdl, generated at STDBY AvND. If red_opq_hdl is non-zero, then
 	   don't destroy opq_hdl, rather destroy red_opq_hdl during avnd_comp_cbq_rec_del() */
-	uns32 red_opq_hdl;
+	uint32_t red_opq_hdl;
 	MDS_DEST dest;		/* mds dest of the prc where the callback is destined */
 	SaTimeT timeout;	/* resp timeout value */
 	AVND_TMR resp_tmr;	/* timer for callback response */
@@ -167,12 +167,12 @@ typedef struct avnd_comp_csi_rec {
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-csi dll */
 	SaNameT name;	/* csi name */
 	SaNameT saAmfCSType; /* cs type name */
-	uns32 rank;		/* csi rank */
+	uint32_t rank;		/* csi rank */
 
 	/* state info */
 	SaNameT act_comp_name;	/* active comp name */
 	SaAmfCSITransitionDescriptorT trans_desc;	/* transition descriptor */
-	uns32 standby_rank;	/* standby rank */
+	uint32_t standby_rank;	/* standby rank */
 	AVSV_CSI_ATTRS attrs;	/* list of attributes */
 	AVND_COMP_CSI_ASSIGN_STATE curr_assign_state;	/* csi assignment state 
 							   wrt current ha state */
@@ -219,7 +219,7 @@ typedef struct avnd_hc_rec_tag {
 	SaAmfHealthcheckKeyT key;	/* health check key (index) */
 	SaAmfHealthcheckInvocationT inv;	/* invocation type */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -233,7 +233,7 @@ typedef struct avnd_hc_rec_tag {
 	SaTimeT max_dur;	/* hold timeout interval */
 
 	AVND_TMR tmr;		/* healthcheck timer */
-	uns32 opq_hdl;		/* hdl returned by hdl-mngr (used during tmr expiry) */
+	uint32_t opq_hdl;		/* hdl returned by hdl-mngr (used during tmr expiry) */
 	AVND_COMP_HC_STATUS status;	/* indicates status of hc rec */
 
 	struct avnd_comp_tag *comp;	/* back ptr to the comp */
@@ -245,14 +245,14 @@ typedef struct avnd_hc_rec_tag {
 typedef struct avnd_pm_rec {
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-pm dll  */
 	SaUint64T pid;		/* pid of the prc that is being monitored (index) */
-	uns32 rsrc_hdl;		/* hdl returned by srmsv for this request */
+	uint32_t rsrc_hdl;		/* hdl returned by srmsv for this request */
 	SaAmfHandleT req_hdl;	/* AMF handle value */
 
 	/* pm info */
 	SaInt32T desc_tree_depth;	/* descendent tree depth */
 	SaAmfPmErrorsT err;	/* error that is monitored */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -287,14 +287,14 @@ typedef struct avnd_comp_tag {
 
 	SaNameT name;	/* comp name */
 	SaNameT saAmfCompType;
-	uns32 numOfCompCmdEnv;	    /* number of comp command environment variables */
+	uint32_t numOfCompCmdEnv;	    /* number of comp command environment variables */
 	SaStringT *saAmfCompCmdEnv; /* comp command environment variables */
-	uns32 inst_level;	    /* comp instantiation level */
+	uint32_t inst_level;	    /* comp instantiation level */
 
-	uns32 comp_hdl;		/* hdl returned by hdl-mngr */
+	uint32_t comp_hdl;		/* hdl returned by hdl-mngr */
 
 	/* component attributes */
-	uns32 flag;		/* comp attributes */
+	uint32_t flag;		/* comp attributes */
 	NCS_BOOL is_restart_en;	/* flag to indicate if comp-restart is allowed */
 	SaAmfCompCapabilityModelT cap;	/* comp capability model */
 	NCS_BOOL is_am_en;
@@ -334,7 +334,7 @@ typedef struct avnd_comp_tag {
 
 	AVND_CERR_INFO err_info;	/* comp error information */
 
-	uns32 curr_proxied_cnt;	/* proxied comp count (if any) 
+	uint32_t curr_proxied_cnt;	/* proxied comp count (if any) 
 				   ## not used, to be deleted */
 
 	NCS_DB_LINK_LIST csi_list;	/* csi list */
@@ -349,7 +349,7 @@ typedef struct avnd_comp_tag {
 
 	NCS_DB_LINK_LIST pxied_list;	/* list of proxied comp in this proxy */
 	NODE_ID node_id;	/* It will used for internode proxy-proxied components. */
-	uns32 comp_type;	/* Whether the component is LOCAL, INTERNODE or EXT */
+	uint32_t comp_type;	/* Whether the component is LOCAL, INTERNODE or EXT */
 	MDS_SYNC_SND_CTXT mds_ctxt;
 	NCS_BOOL reg_resp_pending;	/* If the reg resp is pending from 
 					   proxied comp AvND, it TRUE. */
@@ -610,8 +610,8 @@ typedef struct avnd_comp_tag {
    param.attr_id = saAmfCompOperState_ID; \
    param.name = (comp)->name; \
    param.act = AVSV_OBJ_OPR_MOD; \
-   *((uns32 *)param.value) = m_NCS_OS_HTONL((comp)->oper); \
-   param.value_len = sizeof(uns32); \
+   *((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->oper); \
+   param.value_len = sizeof(uint32_t); \
    (o_rc) = avnd_di_object_upd_send((cb), &param); \
 };
 
@@ -653,8 +653,8 @@ typedef struct avnd_comp_tag {
    param.attr_id = saAmfCompProxyStatus_ID; \
    param.name = (comp)->name; \
    param.act = AVSV_OBJ_OPR_MOD; \
-   *((uns32 *)param.value) = m_NCS_OS_HTONL((comp)->proxy_status); \
-   param.value_len = sizeof(uns32); \
+   *((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->proxy_status); \
+   param.value_len = sizeof(uint32_t); \
    (o_rc) = avnd_di_object_upd_send((cb), &param); \
 };
 
@@ -779,37 +779,37 @@ typedef struct avnd_comp_tag {
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
 
-extern uns32 avnd_comp_clc_fsm_run(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_PRES_FSM_EV);
+extern uint32_t avnd_comp_clc_fsm_run(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_PRES_FSM_EV);
 
-extern uns32 avnd_comp_clc_fsm_trigger(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_PRES_FSM_EV);
+extern uint32_t avnd_comp_clc_fsm_trigger(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_PRES_FSM_EV);
 
-extern uns32 avnd_comp_cbk_send(struct avnd_cb_tag *, AVND_COMP *,
+extern uint32_t avnd_comp_cbk_send(struct avnd_cb_tag *, AVND_COMP *,
 				  AVSV_AMF_CBK_TYPE, AVND_COMP_HC_REC *, AVND_COMP_CSI_REC *);
-extern uns32 avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, struct avnd_comp_tag *, enum avnd_comp_clc_cmd_type);
+extern uint32_t avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, struct avnd_comp_tag *, enum avnd_comp_clc_cmd_type);
 
-extern AVND_COMP_HC_REC *avnd_comp_hc_get(AVND_COMP *, uns32, uns32);
-extern uns32 avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2);
+extern AVND_COMP_HC_REC *avnd_comp_hc_get(AVND_COMP *, uint32_t, uint32_t);
+extern uint32_t avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2);
 extern void avnd_comp_hc_rec_del_all(struct avnd_cb_tag *, AVND_COMP *);
 
 extern void avnd_comp_cbq_del(struct avnd_cb_tag *, AVND_COMP *, NCS_BOOL);
 extern void avnd_comp_cbq_rec_pop_and_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL);
 extern AVND_COMP_CBK *avnd_comp_cbq_rec_add(struct avnd_cb_tag *, AVND_COMP *,
 					      AVSV_AMF_CBK_INFO *, MDS_DEST *, SaTimeT);
-extern uns32 avnd_comp_cbq_send(struct avnd_cb_tag *, AVND_COMP *, MDS_DEST *,
+extern uint32_t avnd_comp_cbq_send(struct avnd_cb_tag *, AVND_COMP *, MDS_DEST *,
 				  SaAmfHandleT, AVSV_AMF_CBK_INFO *, SaTimeT);
 
 extern void avnd_comp_cbq_rec_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *);
 
-extern uns32 avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL);
+extern uint32_t avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL);
 
-extern uns32 avnd_compdb_init(struct avnd_cb_tag *);
-extern uns32 avnd_compdb_destroy(struct avnd_cb_tag *);
-extern AVND_COMP *avnd_compdb_rec_add(struct avnd_cb_tag *, AVND_COMP_PARAM *, uns32 *);
-extern uns32 avnd_compdb_rec_del(struct avnd_cb_tag *, SaNameT *);
+extern uint32_t avnd_compdb_init(struct avnd_cb_tag *);
+extern uint32_t avnd_compdb_destroy(struct avnd_cb_tag *);
+extern AVND_COMP *avnd_compdb_rec_add(struct avnd_cb_tag *, AVND_COMP_PARAM *, uint32_t *);
+extern uint32_t avnd_compdb_rec_del(struct avnd_cb_tag *, SaNameT *);
 extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
 extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(struct avnd_cb_tag *, SaNameT *, SaNameT *);
 
-extern uns32 avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
+extern uint32_t avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
 				  SaAisErrorT, uint8_t *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, NCS_BOOL);
 
 extern void avnd_comp_hc_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
@@ -817,67 +817,67 @@ extern void avnd_comp_cbq_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandl
 
 extern void avnd_comp_cbq_csi_rec_del(struct avnd_cb_tag *, AVND_COMP *, SaNameT *);
 
-extern uns32 avnd_comp_csi_remove(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
+extern uint32_t avnd_comp_csi_remove(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
-extern uns32 avnd_comp_csi_assign(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
+extern uint32_t avnd_comp_csi_assign(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
-extern uns32 avnd_comp_csi_reassign(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_csi_reassign(struct avnd_cb_tag *, AVND_COMP *);
 
-extern uns32 avnd_comp_csi_assign_done(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
+extern uint32_t avnd_comp_csi_assign_done(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
-extern uns32 avnd_comp_csi_remove_done(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
+extern uint32_t avnd_comp_csi_remove_done(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
-extern uns32 avnd_comp_csi_qscd_assign_fail_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
+extern uint32_t avnd_comp_csi_qscd_assign_fail_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
-extern uns32 avnd_comp_curr_info_del(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_curr_info_del(struct avnd_cb_tag *, AVND_COMP *);
 
 
-extern uns32 avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_CMD_TYPE);
+extern uint32_t avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_CMD_TYPE);
 
-extern uns32 avnd_srm_req_list_init(struct avnd_cb_tag *);
-extern uns32 avnd_srm_req_list_destroy(struct avnd_cb_tag *);
-extern struct avnd_srm_req_tag *avnd_srm_req_add(struct avnd_cb_tag *, uns32, struct avnd_pm_rec *);
-extern uns32 avnd_srm_req_del(struct avnd_cb_tag *, uns32);
-extern struct avnd_srm_req_tag *avnd_srm_req_get(struct avnd_cb_tag *, uns32);
-extern uns32 avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *);
+extern uint32_t avnd_srm_req_list_init(struct avnd_cb_tag *);
+extern uint32_t avnd_srm_req_list_destroy(struct avnd_cb_tag *);
+extern struct avnd_srm_req_tag *avnd_srm_req_add(struct avnd_cb_tag *, uint32_t, struct avnd_pm_rec *);
+extern uint32_t avnd_srm_req_del(struct avnd_cb_tag *, uint32_t);
+extern struct avnd_srm_req_tag *avnd_srm_req_get(struct avnd_cb_tag *, uint32_t);
+extern uint32_t avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *);
 
 extern void avnd_pm_list_init(AVND_COMP *);
-extern uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *);
-extern uns32 avnd_comp_pm_rec_add(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_PM_REC *);
+extern uint32_t avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *);
+extern uint32_t avnd_comp_pm_rec_add(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_PM_REC *);
 extern void avnd_comp_pm_rec_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_PM_REC *);
 extern void avnd_comp_pm_rec_del_all(struct avnd_cb_tag *, AVND_COMP *);
-extern uns32 avnd_comp_pm_stop_process(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_STOP_PARAM *, SaAisErrorT *);
-extern uns32 avnd_comp_pm_start_process(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_START_PARAM *, SaAisErrorT *);
-extern uns32 avnd_comp_pmstart_modify(struct avnd_cb_tag *, AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *,
+extern uint32_t avnd_comp_pm_stop_process(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_STOP_PARAM *, SaAisErrorT *);
+extern uint32_t avnd_comp_pm_start_process(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_START_PARAM *, SaAisErrorT *);
+extern uint32_t avnd_comp_pmstart_modify(struct avnd_cb_tag *, AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *,
 					SaAisErrorT *);
 extern AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(struct avnd_cb_tag *, AVND_COMP *, AVSV_AMF_PM_START_PARAM *,
 						  SaAisErrorT *);
 extern NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *, AVND_COMP_PM_REC *);
-extern uns32 avnd_evt_ava_pm_start_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
-extern uns32 avnd_evt_ava_pm_stop_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+extern uint32_t avnd_evt_ava_pm_start_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
+extern uint32_t avnd_evt_ava_pm_stop_evh(struct avnd_cb_tag *, struct avnd_evt_tag *);
 extern void avnd_comp_pm_param_val(struct avnd_cb_tag *, AVSV_AMF_API_TYPE, uint8_t *, AVND_COMP **, AVND_COMP_PM_REC **,
 				     SaAisErrorT *);
 extern void avnd_comp_pm_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT);
 
-extern uns32 avnd_comp_am_start(struct avnd_cb_tag *, AVND_COMP *);
-extern uns32 avnd_comp_am_stop(struct avnd_cb_tag *, AVND_COMP *);
-extern uns32 avnd_comp_am_oper_req_process(struct avnd_cb_tag *, AVND_COMP *);
-extern uns32 avnd_comp_amstop_clc_res_process(struct avnd_cb_tag *, AVND_COMP *, NCS_OS_PROC_EXEC_STATUS);
-extern uns32 avnd_comp_amstart_clc_res_process(struct avnd_cb_tag *, AVND_COMP *, NCS_OS_PROC_EXEC_STATUS);
+extern uint32_t avnd_comp_am_start(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_am_stop(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_am_oper_req_process(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_amstop_clc_res_process(struct avnd_cb_tag *, AVND_COMP *, NCS_OS_PROC_EXEC_STATUS);
+extern uint32_t avnd_comp_amstart_clc_res_process(struct avnd_cb_tag *, AVND_COMP *, NCS_OS_PROC_EXEC_STATUS);
 extern void avnd_pxied_list_init(AVND_COMP *);
-extern uns32 avnd_comp_proxy_unreg(struct avnd_cb_tag *, AVND_COMP *);
+extern uint32_t avnd_comp_proxy_unreg(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_unreg_cbk_process(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_cmplete_all_assignment(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_cmplete_all_csi_rec(struct avnd_cb_tag *, AVND_COMP *);
-extern uns32 avnd_comp_hc_rec_start(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_HC_REC *);
-extern uns32 avnd_comp_unreg_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP *);
-extern uns32 avnd_mbcsv_comp_hc_rec_tmr_exp(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
+extern uint32_t avnd_comp_hc_rec_start(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_HC_REC *);
+extern uint32_t avnd_comp_unreg_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP *);
+extern uint32_t avnd_mbcsv_comp_hc_rec_tmr_exp(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 extern AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,
 						      AVND_COMP *comp,
 						      AVSV_AMF_HC_START_PARAM *hc_start, MDS_DEST *dest);
 extern void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 
-extern uns32 avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
+extern uint32_t avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 extern int avnd_comp_config_reinit(AVND_COMP *comp);
 extern void avnd_comp_delete(AVND_COMP *comp);

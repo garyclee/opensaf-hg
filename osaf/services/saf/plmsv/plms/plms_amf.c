@@ -208,7 +208,7 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
 	NCS_BOOL role_change = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -481,7 +481,7 @@ plms_amf_csi_rmv_callback(SaInvocationT invocation,
  *                 NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \******************************************************************************/
-static uns32 plms_healthcheck_start()
+static uint32_t plms_healthcheck_start()
 {
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT Healthy;
@@ -534,7 +534,7 @@ SaUint32T plms_amf_init()
 	PLMS_CB * cb = plms_cb;
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -600,7 +600,7 @@ SaUint32T plms_amf_register()
 {
 
 	SaAisErrorT error;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CB * cb = plms_cb;
 
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);

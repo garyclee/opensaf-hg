@@ -26,9 +26,9 @@
 
 extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
 
-static uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
-static uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
-static uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
+static uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
+static uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
+static uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
 /******************************************************************************
   Name          : avnd_evt_avnd_avnd_msg
  
@@ -41,9 +41,9 @@ static uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt);
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_avnd_msg = evt->info.avnd;
 	AVSV_ND2ND_AVA_MSG *msg = NULL;
 
@@ -107,9 +107,9 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	AVND_EVT_TYPE evt_type;
 	TRACE_ENTER();
 
@@ -177,9 +177,9 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = evt->info.avnd;
 	AVND_COMP *o_comp = NULL;
 	AVSV_AMF_API_RESP_INFO *resp_info = &avnd_msg->info.msg->info.api_resp_info;
@@ -285,9 +285,9 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = 0;
+	uint32_t rc = 0;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = evt->info.avnd;
 	AVND_COMP *comp = NULL;
 	AVSV_AMF_CBK_INFO *cbk_info = avnd_msg->info.msg->info.cbk_info;
@@ -352,7 +352,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
 		/* pop & delete */
-		uns32 found;
+		uint32_t found;
 
 		m_AVND_COMP_CBQ_REC_POP(comp, rec, found);
 		rec->cbk_info = 0;
@@ -383,7 +383,7 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_evt_avd_reboot_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_reboot_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_REBOOT_MSG_INFO *info;
 

@@ -42,10 +42,10 @@ static MDS_CLIENT_MSG_FORMAT_VER
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_init_param_t *param = &msg->info.api_info.param.init;
 	uint8_t local_data[3];
 
@@ -73,10 +73,10 @@ static uns32 clms_dec_initialize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_finalize_param_t *param = &msg->info.api_info.param.finalize;
 	uint8_t local_data[4];
 
@@ -102,10 +102,10 @@ static uns32 clms_dec_finalize_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_track_start_param_t *param = &msg->info.api_info.param.track_start;
 	uint8_t local_data[9];
 	TRACE_ENTER();
@@ -134,10 +134,10 @@ static uns32 clms_dec_track_start_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_track_stop_param_t *param = &msg->info.api_info.param.track_stop;
 	uint8_t local_data[4];
 
@@ -162,10 +162,10 @@ static uns32 clms_dec_track_stop_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_node_get_param_t *param = &msg->info.api_info.param.node_get;
 	uint8_t local_data[8];
 
@@ -191,10 +191,10 @@ static uns32 clms_dec_node_get_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	clmsv_node_get_async_param_t *param = &msg->info.api_info.param.node_get_async;
 	uint8_t local_data[16];
 
@@ -221,12 +221,12 @@ static uns32 clms_dec_node_get_async_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
 	SaUint32T inv1 = 0;
 	SaUint32T inv2 = 0;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	clmsv_clm_response_param_t *param = &msg->info.api_info.param.clm_resp;
 	uint8_t local_data[100];
@@ -263,10 +263,10 @@ static uns32 clms_dec_response_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaUint32T *client_id = &msg->info.api_resp_info.param.client_id;
 	/* client_id */
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -284,10 +284,10 @@ static uns32 clms_enc_initialize_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 	return total_bytes;
 }
 
-uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
+uint32_t encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 {
 	uint8_t *p8 = NULL;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
@@ -309,15 +309,15 @@ uns32 encodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
 	ncs_encode_16bit(&p8, nodeAddress->length);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
-	ncs_encode_n_octets_in_uba(uba, nodeAddress->value, (uns32)nodeAddress->length);
-	total_bytes += (uns32)nodeAddress->length;
+	ncs_encode_n_octets_in_uba(uba, nodeAddress->value, (uint32_t)nodeAddress->length);
+	total_bytes += (uint32_t)nodeAddress->length;
 	return total_bytes;
 }
 
-static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
+static uint32_t clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	SaClmClusterNodeT_4 *param = msg;
 
 	p8 = ncs_enc_reserve_space(uba, 4);
@@ -376,15 +376,15 @@ static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_node_get_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	return clms_enc_node_get_msg(uba, &msg->info.api_resp_info.param.node_get);
 }
 
-static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 * notify_info)
+static uint32_t clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificationBufferT_4 * notify_info)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0, i;
+	uint32_t total_bytes = 0, i;
 	SaClmClusterNotificationBufferT_4 *param = notify_info;
 	TRACE_ENTER();
 
@@ -434,10 +434,10 @@ static uns32 clms_enc_cluster_ntf_buf_msg(NCS_UBAID *uba, SaClmClusterNotificati
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	CLMSV_TRACK_INFO *track = &msg->info.api_resp_info.param.track;
 	TRACE_ENTER();
 
@@ -477,10 +477,10 @@ static uns32 clms_enc_track_current_rsp_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	CLMSV_NODE_GET_ASYNC_CBK_INFO *node_get = &msg->info.cbk_info.param.node_get;
 	TRACE_ENTER();
 
@@ -523,10 +523,10 @@ static uns32 clms_enc_node_async_get_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	CLMSV_TRACK_CBK_INFO *track = &msg->info.cbk_info.param.track;
 	TRACE_ENTER();
 
@@ -606,7 +606,7 @@ static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_cpy(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_cpy(struct ncsmds_callback_info *info)
 {
 	/* TODO; */
 	return NCSCC_RC_FAILURE;
@@ -624,12 +624,12 @@ static uns32 clms_mds_cpy(struct ncsmds_callback_info *info)
 
   Notes         : None.
 ******************************************************************************/
-uns32 clms_mds_enc(struct ncsmds_callback_info *info)
+uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 {
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
 	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
@@ -762,10 +762,10 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 /**
 * Decode the nodeup msg
 **/
-static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
+static uint32_t clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
 {
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	uint8_t local_data[4];
 	TRACE_ENTER();
 
@@ -793,13 +793,13 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG * msg)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_dec(struct ncsmds_callback_info *info)
+uint32_t clms_mds_dec(struct ncsmds_callback_info *info)
 {
 	uint8_t *p8;
 	CLMSV_CLMS_EVT *evt = NULL;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[20];
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -896,9 +896,9 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_enc_flat(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_enc_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	/* Retrieve info from the enc_flat */
 	MDS_CALLBACK_ENC_INFO enc = info->info.enc_flat;
@@ -924,9 +924,9 @@ static uns32 clms_mds_enc_flat(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_dec_flat(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the dec_flat */
 	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
 	/* Modify the MDS_INFO to populate dec */
@@ -950,9 +950,9 @@ static uns32 clms_mds_dec_flat(struct ncsmds_callback_info *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 clms_mds_node_event(struct ncsmds_callback_info *mds_info)
+static uint32_t clms_mds_node_event(struct ncsmds_callback_info *mds_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMSV_CLMS_EVT *clmsv_evt = NULL;
 	TRACE_ENTER();
 
@@ -997,14 +997,14 @@ static uns32 clms_mds_node_event(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_rcv(struct ncsmds_callback_info *mds_info)
+static uint32_t clms_mds_rcv(struct ncsmds_callback_info *mds_info)
 {
 	CLMSV_CLMS_EVT *clmsv_evt = (CLMSV_CLMS_EVT *) mds_info->info.receive.i_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Event type  %u", clmsv_evt->type);
 
 	clmsv_evt->type = CLMSV_CLMS_CLMSV_MSG;
-	clmsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
+	clmsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 	clmsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
 	clmsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
 	clmsv_evt->rcvd_prio = mds_info->info.receive.i_priority;
@@ -1031,7 +1031,7 @@ static uns32 clms_mds_rcv(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
+static uint32_t clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
 	CLMSV_CLMS_EVT *clmsv_evt;
 
@@ -1046,7 +1046,7 @@ static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 	/** Initialize the Event here **/
 	clmsv_evt->type = CLSMV_CLMS_QUIESCED_ACK;
-	clmsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
+	clmsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
 	/* Push the event and we are done */
 	if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&clms_cb->mbx, clmsv_evt, NCS_IPC_PRIORITY_NORMAL)) {
@@ -1073,10 +1073,10 @@ static uns32 clms_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_svc_event(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_svc_event(struct ncsmds_callback_info *info)
 {
 	CLMSV_CLMS_EVT *evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1137,14 +1137,14 @@ static uns32 clms_mds_svc_event(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_sys_event(struct ncsmds_callback_info *mds_info)
+static uint32_t clms_mds_sys_event(struct ncsmds_callback_info *mds_info)
 {
 	/* Not supported now */
 	TRACE("FAILED");
 	return NCSCC_RC_FAILURE;
 }
 
-static uns32 clms_mds_dummy(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_dummy(struct ncsmds_callback_info *info)
 {
 
 	/* Not supported now */
@@ -1163,9 +1163,9 @@ static uns32 clms_mds_dummy(struct ncsmds_callback_info *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 clms_mds_callback(struct ncsmds_callback_info *info)
+static uint32_t clms_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		clms_mds_cpy,	/* MDS_CALLBACK_COPY      */
 		clms_mds_enc,	/* MDS_CALLBACK_ENC       */
@@ -1201,10 +1201,10 @@ static uns32 clms_mds_callback(struct ncsmds_callback_info *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_create(CLMS_CB * clms_cb)
+static uint32_t mds_vdest_create(CLMS_CB * clms_cb)
 {
 	NCSVDA_INFO vda_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&vda_info, 0, sizeof(NCSVDA_INFO));
 	clms_cb->vaddr = CLMS_VDEST_ID;
@@ -1238,10 +1238,10 @@ static uns32 mds_vdest_create(CLMS_CB * clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_init(CLMS_CB * cb)
+uint32_t clms_mds_init(CLMS_CB * cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMA, NCSMDS_SVC_ID_CLMNA };
 
 	TRACE_ENTER();
@@ -1322,7 +1322,7 @@ uns32 clms_mds_init(CLMS_CB * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_change_role(CLMS_CB * cb)
+uint32_t clms_mds_change_role(CLMS_CB * cb)
 {
 	NCSVDA_INFO arg;
 
@@ -1346,10 +1346,10 @@ uns32 clms_mds_change_role(CLMS_CB * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mds_vdest_destroy(CLMS_CB * clms_cb)
+static uint32_t mds_vdest_destroy(CLMS_CB * clms_cb)
 {
 	NCSVDA_INFO vda_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&vda_info, 0, sizeof(NCSVDA_INFO));
 	vda_info.req = NCSVDA_VDEST_DESTROY;
@@ -1374,10 +1374,10 @@ static uns32 mds_vdest_destroy(CLMS_CB * clms_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 clms_mds_finalize(CLMS_CB * cb)
+uint32_t clms_mds_finalize(CLMS_CB * cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	/* Un-install CLMS service from MDS */
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -1414,13 +1414,13 @@ uns32 clms_mds_finalize(CLMS_CB * cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 clms_mds_msg_send(CLMS_CB * cb,
+uint32_t clms_mds_msg_send(CLMS_CB * cb,
 			CLMSV_MSG * msg,
 			MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* populate the mds params */

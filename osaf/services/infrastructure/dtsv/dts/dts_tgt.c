@@ -42,7 +42,7 @@
    
   ARGUMENTS:
 
-  uns32   l             line # in file
+  uint32_t   l             line # in file
   char*   f             file name where macro invoked
   code    code          Error code value.. Usually FAILURE
 
@@ -54,7 +54,7 @@
 
 #if ((DTS_DEBUG == 1) || (DTS_LOG == 1))
 
-uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
+uint32_t dts_dbg_sink(uint32_t l, char *f, uint32_t code, char *str)
 {
 #if (DTS_DEBUG == 1)
 	TRACE("IN DTS_DBG_SINK: line %d, file %s\n", l, f);
@@ -73,7 +73,7 @@ uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 	return code;
 }
 
-uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
+uint32_t dts_dbg_sink_svc(uint32_t l, char *f, uint32_t code, char *str, uint32_t svc)
 {
 #if (DTS_DEBUG == 1)
 	TRACE("IN DTS_DBG_SINK: SVC = %d, line %d, file %s\n", svc, l, f);
@@ -93,7 +93,7 @@ uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
 	return code;
 }
 
-uns32 dts_dbg_sink_svc_name(uns32 l, char *f, uns32 code, char *str, char *svc)
+uint32_t dts_dbg_sink_svc_name(uint32_t l, char *f, uint32_t code, char *str, char *svc)
 {
 #if (DTS_DEBUG == 1)
 	TRACE("IN DTS_DBG_SINK: SVC = %s, line %d, file %s\n", svc, l, f);
@@ -131,7 +131,7 @@ uns32 dts_dbg_sink_svc_name(uns32 l, char *f, uns32 code, char *str, char *svc)
 
 /* For DTS validation */
 
-void *sysf_dts_validate(uns32 k)
+void *sysf_dts_validate(uint32_t k)
 {
 	return (void *)ncshm_take_hdl(NCS_SERVICE_ID_DTSV, k);
 }

@@ -35,7 +35,7 @@
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no)
+void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_HDLN, GLND_FC_HDLN,
 		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TICL, hdln_id, file_name, line_no);
@@ -48,7 +48,7 @@ void glnd_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 parm1)
+void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t parm1)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_HDLN_TIL, GLND_FC_HDLN_TIL,
 		   NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSFL_TYPE_TICLL, hdln_id, file_name, line_no, parm1);
@@ -61,7 +61,7 @@ void glnd_log_headline_TIL(uint8_t hdln_id, char *file_name, uns32 line_no, uns3
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 parm1, uns32 parm2)
+void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t parm1, uint32_t parm2)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_HDLN_TILL, GLND_FC_HDLN_TILL,
 		   NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLL, hdln_id, file_name, line_no, parm1, parm2);
@@ -74,7 +74,7 @@ void glnd_log_headline_TILL(uint8_t hdln_id, char *file_name, uns32 line_no, uns
   DESCRIPTION:       Headline logging info
 
 *****************************************************************************/
-void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uns32 line_no, uns32 parm1, uns32 parm2, uns32 parm3)
+void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uint32_t line_no, uint32_t parm1, uint32_t parm2, uint32_t parm3)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_HDLN_TILLL, GLND_FC_HDLN_TILLL,
 		   NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL,
@@ -88,7 +88,7 @@ void glnd_log_headline_TILLL(uint8_t hdln_id, char *file_name, uns32 line_no, un
   DESCRIPTION:       memory failure logging info
 
 *****************************************************************************/
-void glnd_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no)
+void glnd_log_memfail(uint8_t mf_id, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_MEMFAIL, GLND_FC_MEMFAIL,
 		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TICL, mf_id, file_name, line_no);
@@ -101,7 +101,7 @@ void glnd_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no)
   DESCRIPTION:       API logging info
 
 *****************************************************************************/
-void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no)
+void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_API, GLND_FC_API,
 		   NCSFL_LC_API, sev, NCSFL_TYPE_TICL, api_id, file_name, line_no);
@@ -114,7 +114,7 @@ void glnd_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no)
   DESCRIPTION:       Event logging info
 
 *****************************************************************************/
-void glnd_log_evt(uint8_t evt_id, char *file_name, uns32 line_no, uns32 type, uns32 node, uns32 hdl, uns32 rsc, uns32 lck)
+void glnd_log_evt(uint8_t evt_id, char *file_name, uint32_t line_no, uint32_t type, uint32_t node, uint32_t hdl, uint32_t rsc, uint32_t lck)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_EVT, GLND_FC_EVT,
 		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLLLL,
@@ -128,7 +128,7 @@ void glnd_log_evt(uint8_t evt_id, char *file_name, uns32 line_no, uns32 type, un
   DESCRIPTION:       MDS send logging info
 
 *****************************************************************************/
-void glnd_log_data_send(uint8_t id, char *file_name, uns32 line_no, uns32 node, uns32 evt_id)
+void glnd_log_data_send(uint8_t id, char *file_name, uint32_t line_no, uint32_t node, uint32_t evt_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_DATA_SEND, GLND_FC_DATA_SEND,
 		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLLL, id, file_name, line_no, node, evt_id);
@@ -141,7 +141,7 @@ void glnd_log_data_send(uint8_t id, char *file_name, uns32 line_no, uns32 node, 
   DESCRIPTION:       Timer stast/stop/exp logging info
 
 *****************************************************************************/
-void glnd_log_timer(uint8_t id, uns32 type, char *file_name, uns32 line_no)
+void glnd_log_timer(uint8_t id, uint32_t type, char *file_name, uint32_t line_no)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_TIMER, GLND_FC_TIMER,
 		   NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSFL_TYPE_TICLL, id, file_name, line_no, type);
@@ -214,7 +214,7 @@ void glnd_flx_log_dereg()
  *
  * Notes         : None.
  *****************************************************************************/
-void glnd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *file_name, uns32 line_no, SaUint64T handle_id,
+void glnd_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *file_name, uint32_t line_no, SaUint64T handle_id,
 	      SaUint32T res_id, SaUint64T lock_id)
 {
 	ncs_logmsg(NCS_SERVICE_ID_GLND, GLND_LID_LOG, GLND_FC_LOG,

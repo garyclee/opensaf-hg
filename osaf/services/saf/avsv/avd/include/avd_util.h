@@ -69,7 +69,7 @@ typedef struct avd_d2d_msg {
 		} d2d_chg_role_req;
 		struct {
 			SaAmfHAStateT role;
-			uns32 status ; 
+			uint32_t status ; 
 		} d2d_chg_role_rsp;
 	} msg_info;
 } AVD_D2D_MSG;
@@ -92,38 +92,38 @@ struct avd_comp_tag;
 struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
-uns32 avd_d2n_msg_dequeue(struct cl_cb_tag *cb);
-uns32 avd_d2n_msg_snd(struct cl_cb_tag *cb, struct avd_avnd_tag *nd_node, AVD_DND_MSG *snd_msg);
-uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt_ver);
-uns32 avd_d2n_msg_bcast(struct cl_cb_tag *cb, AVD_DND_MSG *bcast_msg);
+uint32_t avd_d2n_msg_dequeue(struct cl_cb_tag *cb);
+uint32_t avd_d2n_msg_snd(struct cl_cb_tag *cb, struct avd_avnd_tag *nd_node, AVD_DND_MSG *snd_msg);
+uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt_ver);
+uint32_t avd_d2n_msg_bcast(struct cl_cb_tag *cb, AVD_DND_MSG *bcast_msg);
 
-uns32 avd_snd_node_ack_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uns32 msg_id);
-uns32 avd_snd_node_data_verify_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
-uns32 avd_snd_node_info_on_fover_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
-uns32 avd_snd_node_update_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
-uns32 avd_snd_node_up_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uns32 msg_id_ack);
-uns32 avd_snd_presence_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, NCS_BOOL term_state);
-uns32 avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uns32 msg_id_ack);
-uns32 avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
-uns32 avd_snd_su_comp_msg(struct cl_cb_tag *cb,
+uint32_t avd_snd_node_ack_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id);
+uint32_t avd_snd_node_data_verify_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
+uint32_t avd_snd_node_info_on_fover_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
+uint32_t avd_snd_node_update_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
+uint32_t avd_snd_node_up_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id_ack);
+uint32_t avd_snd_presence_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, NCS_BOOL term_state);
+uint32_t avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, uint32_t msg_id_ack);
+uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
+uint32_t avd_snd_su_comp_msg(struct cl_cb_tag *cb,
 				   struct avd_avnd_tag *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over);
-uns32 avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
-uns32 avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
-uns32 avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
+uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
+uint32_t avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
+uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
 				AVSV_SUSI_ACT actn, bool single_csi, struct avd_comp_csi_rel_tag*);
-uns32 avd_snd_shutdown_app_su_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
+uint32_t avd_snd_shutdown_app_su_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 
-uns32 avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
+uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 
-uns32 avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_csi_tag *,
+uint32_t avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_csi_tag *,
 				   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *);
-uns32 avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_comp_csi_rel_tag *,
+uint32_t avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_comp_csi_rel_tag *,
 				  SaAmfProtectionGroupChangesT, SaNameT *);
-uns32 avd_snd_hb_msg(struct cl_cb_tag *);
-uns32 avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
+uint32_t avd_snd_hb_msg(struct cl_cb_tag *);
+uint32_t avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
 					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
 void avsv_d2d_msg_free(AVD_D2D_MSG *);
-uns32 avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
+uint32_t avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
 extern int avd_admin_state_is_valid(SaAmfAdminStateT state);
 extern SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name);
 
@@ -153,13 +153,13 @@ extern int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 	SaAmfAdminOperationIdT opId, struct avd_avnd_tag *node);
 extern const char* avd_getparent(const char* dn);
 extern void amfd_switch(AVD_CL_CB *cb);
-extern uns32 avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role);
-extern uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role);
-extern uns32 avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHAStateT role);
+extern uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role);
+extern uint32_t avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uint32_t status, SaAmfHAStateT role);
+extern uint32_t avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHAStateT role);
 
-extern uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb);
-extern uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb);
-extern uns32 amfd_switch_qsd_actv(AVD_CL_CB *cb);
-extern uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb);
+extern uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb);
+extern uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb);
+extern uint32_t amfd_switch_qsd_actv(AVD_CL_CB *cb);
+extern uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb);
 
 #endif

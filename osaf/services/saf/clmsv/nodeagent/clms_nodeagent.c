@@ -64,21 +64,21 @@ NCS_SEL_OBJ clms_sync_sel;
 MDS_HDL mds_hdl;
 MDS_DEST clms_mds_dest;		/* CLMS absolute/virtual address */
 
-static uns32 clmna_mds_enc(struct ncsmds_callback_info *info);
-static uns32 clmna_mds_callback(struct ncsmds_callback_info *info);
+static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info);
+static uint32_t clmna_mds_callback(struct ncsmds_callback_info *info);
 
-static uns32 clmna_mds_cpy(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_cpy(struct ncsmds_callback_info *info)
 {
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_dec(struct ncsmds_callback_info *info)
 {
 	uint8_t *p8;
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 	uint8_t local_data[20];
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 	TRACE_ENTER();
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
@@ -134,9 +134,9 @@ static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_dec_flat(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the dec_flat */
 	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
 	/* Modify the MDS_INFO to populate dec */
@@ -149,12 +149,12 @@ static uns32 clmna_mds_dec_flat(struct ncsmds_callback_info *info)
 	return rc;
 }
 
-static uns32 clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
+static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
 	TRACE_ENTER2("%d", mds_cb_info->info.svc_evt.i_change);
 
@@ -178,7 +178,7 @@ static uns32 clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_enc_flat(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_enc_flat(struct ncsmds_callback_info *info)
 {
 	/* Modify the MDS_INFO to populate enc */
 	info->info.enc = info->info.enc_flat;
@@ -186,12 +186,12 @@ static uns32 clmna_mds_enc_flat(struct ncsmds_callback_info *info)
 	return clmna_mds_enc(info);
 }
 
-static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info)
 {
 	CLMSV_MSG *msg;
 	NCS_UBAID *uba;
 	uint8_t *p8;
-	uns32 total_bytes = 0;
+	uint32_t total_bytes = 0;
 
 	TRACE_ENTER();
 
@@ -263,9 +263,9 @@ static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_callback(struct ncsmds_callback_info *info)
+static uint32_t clmna_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		clmna_mds_cpy,	/* MDS_CALLBACK_COPY      0 */
@@ -288,11 +288,11 @@ static uns32 clmna_mds_callback(struct ncsmds_callback_info *info)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 clmna_mds_init(void)
+static uint32_t clmna_mds_init(void)
 {
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_SVC_ID svc = NCSMDS_SVC_ID_CLMS;
 
 	TRACE_ENTER();
@@ -386,10 +386,10 @@ static int get_node_info(NODE_INFO *node)
 	return 0;
 }
 
-static uns32 clmna_mds_msg_sync_send(CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uns32 timeout)
+static uint32_t clmna_mds_msg_sync_send(CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uint32_t timeout)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
@@ -420,7 +420,7 @@ static uns32 clmna_mds_msg_sync_send(CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uns3
 
 int main(int argc, char *argv[])
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CLMSV_MSG msg, *o_msg = NULL;;
 	struct pollfd fds[1];
 	int ret;

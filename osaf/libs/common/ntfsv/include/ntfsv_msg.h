@@ -115,7 +115,7 @@ extern "C" {
 		/* only used for server --> lib */
 		SaNtfSubscriptionIdT subscriptionId;
 
-		uns32 client_id;
+		uint32_t client_id;
 		v_data variable_data;
 	};
 	typedef struct ntfsv_send_not_req ntfsv_send_not_req_t;
@@ -125,23 +125,23 @@ extern "C" {
 	} ntfsv_initialize_req_t;
 
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 	} ntfsv_finalize_req_t;
 
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 		SaNtfSearchCriteriaT searchCriteria;
 	} ntfsv_reader_init_req_t;
 
 	typedef struct {
-		uns32 client_id;
-		uns32 readerId;
+		uint32_t client_id;
+		uint32_t readerId;
 	} ntfsv_reader_finalize_req_t;
 
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 		SaNtfSearchDirectionT searchDirection;
-		uns32 readerId;
+		uint32_t readerId;
 	} ntfsv_read_next_req_t;
 
 	/*** Callback Parameter definitions ***/
@@ -152,14 +152,14 @@ extern "C" {
 	} ntfsv_discarded_info_t;
 	
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 		SaNtfSubscriptionIdT subscriptionId;
 		ntfsv_filter_ptrs_t f_rec;
 		ntfsv_discarded_info_t d_info;
 	} ntfsv_subscribe_req_t;
 
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 		SaNtfSubscriptionIdT subscriptionId;
 	} ntfsv_unsubscribe_req_t;
 
@@ -181,7 +181,7 @@ extern "C" {
 /* wrapper structure for all the callbacks */
 	typedef struct {
 		ntfsv_cbk_msg_type_t type;	/* callback type */
-		uns32 ntfs_client_id;	/* ntfs client_id */
+		uint32_t ntfs_client_id;	/* ntfs client_id */
 		SaNtfSubscriptionIdT subscriptionId;
 		MDS_SEND_PRIORITY_TYPE mds_send_priority;
 		union {
@@ -192,15 +192,15 @@ extern "C" {
 
 /* API Response parameter definitions */
 	typedef struct {
-		uns32 client_id;
+		uint32_t client_id;
 	} ntfsv_initialize_rsp_t;
 
 	typedef struct {
-		uns32 readerId;
+		uint32_t readerId;
 	} ntfsv_reader_init_rsp_t;
 
 	typedef struct {
-		uns32 reader_id;
+		uint32_t reader_id;
 	} ntfsv_reader_finalize_rsp_t;
 
 	typedef struct {

@@ -33,7 +33,7 @@ typedef enum cpa_tmr_type {
 typedef struct cpa_tmr {
 	CPA_TMR_TYPE type;
 	tmr_t tmr_id;
-	uns32 uarg;
+	uint32_t uarg;
 	NCS_BOOL is_active;
 	union {
 		struct {
@@ -42,12 +42,12 @@ typedef struct cpa_tmr {
 			SaInvocationT invocation;
 		} ckpt;
 		struct {
-			uns32 dummy;
+			uint32_t dummy;
 		} cpnd;
 	} info;
 } CPA_TMR;
 
-uns32 cpa_tmr_start(CPA_TMR *tmr, uns32 duration);
+uint32_t cpa_tmr_start(CPA_TMR *tmr, uint32_t duration);
 void cpa_tmr_stop(CPA_TMR *tmr);
 void cpa_cb_dump(void);
 void cpa_timer_expiry(NCSCONTEXT uarg);

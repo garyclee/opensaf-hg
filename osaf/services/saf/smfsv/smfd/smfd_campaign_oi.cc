@@ -427,7 +427,7 @@ static const SaImmOiCallbacksT_2 callbacks = {
 /**
  * Find and create all campaign objects
  */
-uns32 create_campaign_objects(smfd_cb_t * cb)
+uint32_t create_campaign_objects(smfd_cb_t * cb)
 {
 	SaImmHandleT omHandle;
 	SaImmAccessorHandleT accessorHandle;
@@ -497,7 +497,7 @@ uns32 create_campaign_objects(smfd_cb_t * cb)
 /**
  * Updates a runtime attribute in the IMM
  */
-uns32 updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value)
+uint32_t updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value)
 {
 	(void)immutil_update_one_rattr(smfd_cb->campaignOiHandle, dn, attributeName, attrValueType, value);
 
@@ -510,7 +510,7 @@ uns32 updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueType
  * IMM-OM interface and initialize the corresponding information
  * in the Campaign list.
  */
-uns32 campaign_oi_activate(smfd_cb_t * cb)
+uint32_t campaign_oi_activate(smfd_cb_t * cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
@@ -546,7 +546,7 @@ uns32 campaign_oi_activate(smfd_cb_t * cb)
  * Deactivate implementer for Campaign class.
  * @param cb
  */
-uns32 campaign_oi_deactivate(smfd_cb_t * cb)
+uint32_t campaign_oi_deactivate(smfd_cb_t * cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
@@ -584,7 +584,7 @@ uns32 campaign_oi_deactivate(smfd_cb_t * cb)
  * init implementer for Campaign class.
  * @param cb
  */
-uns32 campaign_oi_init(smfd_cb_t * cb)
+uint32_t campaign_oi_init(smfd_cb_t * cb)
 {
 	SaAisErrorT rc;
 	SmfImmUtils immutil;
@@ -603,7 +603,7 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 	}
 
 	/* Read SMF configuration data and set cb data structure */
-	uns32 ret = read_config_and_set_control_block(cb);
+	uint32_t ret = read_config_and_set_control_block(cb);
 	TRACE_LEAVE();
 	return ret;
 }
@@ -612,7 +612,7 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
  * read SMF configuration object and set control block data accordingly.
  * @param cb
  */
-uns32 read_config_and_set_control_block(smfd_cb_t * cb)
+uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 {
 	TRACE_ENTER();
 	SmfImmUtils immutil;

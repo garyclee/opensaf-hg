@@ -21,7 +21,7 @@
 #include <daemon.h>
 
 #include "mqnd.h"
-extern void mqnd_main_process(uns32 hdl);
+extern void mqnd_main_process(uint32_t hdl);
 static int __init_mqnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
@@ -47,7 +47,7 @@ static int __init_mqnd(void)
 
 int main(int argc, char *argv[])
 {
-	uns32 mqnd_hdl;
+	uint32_t mqnd_hdl;
 	daemonize(argc, argv);
 
 	if (__init_mqnd() != NCSCC_RC_SUCCESS) {

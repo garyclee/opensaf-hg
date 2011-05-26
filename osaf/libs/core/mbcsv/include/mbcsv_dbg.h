@@ -47,13 +47,13 @@
 
 #if (MBCSV_LOG == 1)
 
-uns32 mbcsv_dbg_sink(uns32, char *, long, char *);
-uns32 mbcsv_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
+uint32_t mbcsv_dbg_sink(uint32_t, char *, long, char *);
+uint32_t mbcsv_dbg_sink_svc(uint32_t, char *, uint32_t, char *, uint32_t);
 
 /* m_MBCSV_DBG_VOID() used to keep compiler happy @ void return functions */
 
 #define m_MBCSV_DBG_SINK(r, s)  mbcsv_dbg_sink(__LINE__,__FILE__,(long)r, (char*)s)
-#define m_MBCSV_DBG_SINK_SVC(r, s, sid)  mbcsv_dbg_sink_svc(__LINE__,__FILE__,(uns32)r, (char*)s, (uns32)sid)
+#define m_MBCSV_DBG_SINK_SVC(r, s, sid)  mbcsv_dbg_sink_svc(__LINE__,__FILE__,(uint32_t)r, (char*)s, (uint32_t)sid)
 #else
 
 #define m_MBCSV_DBG_SINK(r, s)  r

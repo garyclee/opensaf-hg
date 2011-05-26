@@ -28,14 +28,14 @@ typedef enum cpd_tmr_type {
 typedef struct cpd_tmr {
 	CPD_TMR_TYPE type;
 	tmr_t tmr_id;
-	uns32 uarg;
+	uint32_t uarg;
 	NCS_BOOL is_active;
 	union {
 		MDS_DEST cpnd_dest;
 	} info;
 } CPD_TMR;
 
-uns32 cpd_tmr_start(CPD_TMR *tmr, uns32 duration);
+uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration);
 void cpd_timer_expiry(NCSCONTEXT uarg);
 void cpd_tmr_stop(CPD_TMR *tmr);
 

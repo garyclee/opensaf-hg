@@ -30,10 +30,10 @@
 static PLMA_CB _plma_cb;
 PLMA_CB   *plma_ctrlblk;
 
-uns32 plma_use_count = 0;
+uint32_t plma_use_count = 0;
 void plma_sync_with_plms(void);
 /** PLMA Agent creation specific LOCK */
-static uns32 plm_agent_lock_create = 0;
+static uint32_t plm_agent_lock_create = 0;
 NCS_LOCK plm_agent_lock;
 
 #define m_PLM_AGENT_LOCK                       	     \
@@ -52,7 +52,7 @@ NCS_LOCK plm_agent_lock;
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_client_tree_init()
+uint32_t plma_client_tree_init()
 {
 	NCS_PATRICIA_PARAMS param;
 	PLMA_CB *cb = plma_ctrlblk;
@@ -76,7 +76,7 @@ uns32 plma_client_tree_init()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.	
 ***************************************************************************/
-uns32 plma_group_tree_init()
+uint32_t plma_group_tree_init()
 {
 	NCS_PATRICIA_PARAMS param;
 	PLMA_CB *cb = plma_ctrlblk;
@@ -99,14 +99,14 @@ uns32 plma_group_tree_init()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_client_tree_destroy()
+uint32_t plma_client_tree_destroy()
 {
 	/** cleanup the client tree */
 	PLMA_CLIENT_INFO *client_node;
 	PLMA_CB *cb = plma_ctrlblk;
 	SaPlmHandleT *temp_ptr = 0;
 	SaPlmHandleT temp_hdl = 0;
-	uns32    rc = NCSCC_RC_SUCCESS;
+	uint32_t    rc = NCSCC_RC_SUCCESS;
 
 
 	TRACE_ENTER();	
@@ -143,14 +143,14 @@ uns32 plma_client_tree_destroy()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_group_tree_destroy()
+uint32_t plma_group_tree_destroy()
 {
 	/* cleanup the client tree */
 	PLMA_CB *cb = plma_ctrlblk;
 	PLMA_ENTITY_GROUP_INFO *grp_info_node;
 	SaPlmEntityGroupHandleT *temp_ptr = 0;
 	SaPlmEntityGroupHandleT temp_hdl = 0;
-	uns32    rc = NCSCC_RC_SUCCESS;
+	uint32_t    rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();	
 	/* scan the entire handle db & delete each record */
@@ -186,11 +186,11 @@ uns32 plma_group_tree_destroy()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_create(NCS_LIB_CREATE *create_info)
+uint32_t plma_create(NCS_LIB_CREATE *create_info)
 {
 	
 	PLMA_CB *plma_cb;
-	uns32    rc = NCSCC_RC_SUCCESS;
+	uint32_t    rc = NCSCC_RC_SUCCESS;
 	if(!plma_ctrlblk){
 		plma_ctrlblk = &_plma_cb;
 	}
@@ -277,7 +277,7 @@ end:
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_destroy(NCS_LIB_DESTROY *destroy_info)
+uint32_t plma_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	PLMA_CB *plma_cb = plma_ctrlblk;
 	
@@ -313,9 +313,9 @@ uns32 plma_destroy(NCS_LIB_DESTROY *destroy_info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 plma_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t plma_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -344,7 +344,7 @@ uns32 plma_lib_req(NCS_LIB_REQ_INFO *req_info)
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 ncs_plma_startup()
+uint32_t ncs_plma_startup()
 {
 	NCS_LIB_REQ_INFO lib_create;
 		
@@ -380,10 +380,10 @@ uns32 ncs_plma_startup()
 *
 * @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 ***************************************************************************/
-uns32 ncs_plma_shutdown()
+uint32_t ncs_plma_shutdown()
 {
 	NCS_LIB_REQ_INFO lib_destroy;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	
 	m_PLM_AGENT_LOCK;

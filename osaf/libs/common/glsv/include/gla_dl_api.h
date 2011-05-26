@@ -18,7 +18,7 @@
 #ifndef GLA_DL_API_H
 #define GLA_DL_API_H
 
- uns32 gla_lib_req(NCS_LIB_REQ_INFO *req_info);
+ uint32_t gla_lib_req(NCS_LIB_REQ_INFO *req_info);
 unsigned int ncs_gla_startup(void);
 unsigned int ncs_gla_shutdown(void);
 

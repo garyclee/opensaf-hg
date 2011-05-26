@@ -41,7 +41,7 @@
 
   ARGUMENTS:
 
-  uns32   l             line # in file
+  uint32_t   l             line # in file
   char*   f             file name where macro invoked
   code    code          Error code value.. Usually FAILURE
   char*   str           Error string which tell the reason of this debug sink.
@@ -51,7 +51,7 @@
   code    - just echo'ed back 
 
 *****************************************************************************/
-uns32 mbcsv_dbg_sink(uns32 l, char *f, long code, char *str)
+uint32_t mbcsv_dbg_sink(uint32_t l, char *f, long code, char *str)
 {
 
 	m_LOG_MBCSV_DBG_SNK(str, f, l);
@@ -59,7 +59,7 @@ uns32 mbcsv_dbg_sink(uns32 l, char *f, long code, char *str)
 	return code;
 }
 
-uns32 mbcsv_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc_id)
+uint32_t mbcsv_dbg_sink_svc(uint32_t l, char *f, uint32_t code, char *str, uint32_t svc_id)
 {
 
 	m_LOG_MBCSV_DBG_SNK_SVC(str, svc_id, f, l);

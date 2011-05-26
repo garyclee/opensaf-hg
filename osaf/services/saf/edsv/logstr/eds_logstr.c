@@ -193,7 +193,7 @@ NCSFL_ASCII_SPEC eds_ascii_spec = {
                      with the DTS.
 
 *****************************************************************************/
-uns32 eds_flx_log_ascii_set_reg(void)
+uint32_t eds_flx_log_ascii_set_reg(void)
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -213,7 +213,7 @@ uns32 eds_flx_log_ascii_set_reg(void)
                      with the DTS.
 
 *****************************************************************************/
-uns32 eds_flx_log_ascii_set_dereg(void)
+uint32_t eds_flx_log_ascii_set_dereg(void)
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -240,9 +240,9 @@ uns32 eds_flx_log_ascii_set_dereg(void)
   NOTES         : None.
  *****************************************************************************/
 
-uns32 eds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t eds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
 		res = eds_flx_log_ascii_set_reg();
@@ -272,9 +272,9 @@ uns32 eds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 
   NOTES         : None.
 *****************************************************************************/
-uns32 edsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t edsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	res = eda_log_str_lib_req(req_info);
 	res = eds_log_str_lib_req(req_info);

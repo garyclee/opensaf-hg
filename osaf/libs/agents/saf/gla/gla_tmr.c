@@ -45,12 +45,12 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 gla_start_tmr(GLA_TMR *tmr)
+uint32_t gla_start_tmr(GLA_TMR *tmr)
 {
-	uns32 period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
+	uint32_t period = (uint32_t)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
 
 	if (tmr->tmr_id == TMR_T_NULL) {
-		m_NCS_TMR_CREATE(tmr->tmr_id, (uns32)period, gla_tmr_exp, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)period, gla_tmr_exp, (void *)tmr);
 	}
 
 	if (tmr->is_active == TRUE) {
@@ -58,7 +58,7 @@ uns32 gla_start_tmr(GLA_TMR *tmr)
 		tmr->is_active = FALSE;
 	}
 
-	m_NCS_TMR_START(tmr->tmr_id, (uns32)period, gla_tmr_exp, (void *)tmr);
+	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)period, gla_tmr_exp, (void *)tmr);
 
 	if (TMR_T_NULL == tmr->tmr_id) {
 		return NCSCC_RC_FAILURE;

@@ -83,7 +83,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	EDA_CLIENT_HDL_REC *eda_hdl_rec;
 	EDSV_MSG i_msg, *o_msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 reg_id = 0;
+	uint32_t reg_id = 0;
 	EDSV_EDA_INITIALIZE_RSP *init_rsp = NULL;
 	SaVersionT client_version;
 
@@ -389,7 +389,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 	EDA_CLIENT_HDL_REC *hdl_rec = 0;
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 reg_id;
+	uint32_t reg_id;
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
@@ -521,8 +521,8 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec = 0;
 	EDSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 chan_id, timeOut;
-	uns32 chan_open_id;
+	uint32_t chan_id, timeOut;
+	uint32_t chan_open_id;
 
 	if ((NULL == channelName) || (0 == channelName->length) || (SA_MAX_NAME_LENGTH < channelName->length)
 		|| (NULL == o_chanHdl) || (strncmp((char *)channelName->value, "safChnl=", 8))) {
@@ -570,7 +570,7 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	m_EDA_EDSV_CHAN_OPEN_SYNC_MSG_FILL(msg, hdl_rec->eds_reg_id, channelOpenFlags, *channelName);
 
 	/* Normalize the timeOut value */
-	timeOut = (uns32)(timeout / EDSV_NANOSEC_TO_LEAPTM);
+	timeOut = (uint32_t)(timeout / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (timeOut < NCS_SAF_MIN_ACCEPT_TIME) {
 		rc = SA_AIS_ERR_TIMEOUT;
@@ -595,7 +595,7 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
    /** Send a sync MDS message to obtain a channel id and an instance 
     ** open id.
     **/
-	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, (uns32)timeOut))) {
+	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, (uint32_t)timeOut))) {
 		m_LOG_EDSV_AF(EDA_OPEN_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      evtHandle);
 		rc = SA_AIS_ERR_TRY_AGAIN;
@@ -817,7 +817,7 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
 	EDSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 chan_id;
+	uint32_t chan_id;
 
 	/* retrieve EDA CB */
 	if (NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl))) {
@@ -1994,7 +1994,7 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *eventData, Sa
     **/
 	if (evt_hdl_rec->event_data_size) {
 		if (evt_hdl_rec->evt_data != NULL) {
-			memcpy((void *)eventData, (void *)evt_hdl_rec->evt_data, (uns32)evt_hdl_rec->event_data_size);
+			memcpy((void *)eventData, (void *)evt_hdl_rec->evt_data, (uint32_t)evt_hdl_rec->event_data_size);
 
 		}
 	}
@@ -2211,7 +2211,7 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
      /** Allocate and copy data 
       **/
 		if (NULL == (evt_hdl_rec->evt_data = (uint8_t *)
-			     m_MMGR_ALLOC_EDSV_EVENT_DATA((uns32)eventDataSize))) {
+			     m_MMGR_ALLOC_EDSV_EVENT_DATA((uint32_t)eventDataSize))) {
 			m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 			ncshm_give_hdl(eventHandle);
 			ncshm_give_hdl(chan_hdl_rec->channel_hdl);
@@ -2224,7 +2224,7 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 		}
 
 		if (eventData != NULL) {
-			memcpy((void *)evt_hdl_rec->evt_data, (void *)eventData, (uns32)evt_hdl_rec->event_data_size);
+			memcpy((void *)evt_hdl_rec->evt_data, (void *)eventData, (uint32_t)evt_hdl_rec->event_data_size);
 		}
 	}
 
@@ -2246,7 +2246,7 @@ saEvtEventPublish(SaEvtEventHandleT eventHandle, const void *eventData, SaSizeT 
 				    evt_hdl_rec->retention_time,
 				    evt_hdl_rec->publisher_name,
 				    evt_hdl_rec->pub_evt_id,
-				    (uns32)evt_hdl_rec->event_data_size, evt_hdl_rec->evt_data);
+				    (uint32_t)evt_hdl_rec->event_data_size, evt_hdl_rec->evt_data);
 
   /** Send the message out to the EDS
    **/
@@ -2733,7 +2733,7 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle, cons
 	m_EDA_EDSV_CHAN_RETENTION_TIME_CLR_MSG_FILL(msg,
 						    eda_hdl_rec->eds_reg_id,
 						    channel_hdl_rec->eds_chan_id,
-						    channel_hdl_rec->eds_chan_open_id, (uns32)eventId);
+						    channel_hdl_rec->eds_chan_open_id, (uint32_t)eventId);
 
   /** Send the message out to the EDS to 
    ** clear the retention timer.

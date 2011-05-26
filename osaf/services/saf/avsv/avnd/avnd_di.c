@@ -60,9 +60,9 @@
    } else (o_rec) = 0; \
 }
 
-static uns32 avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+static uint32_t avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", param->name.value);
 
@@ -74,8 +74,8 @@ static uns32 avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			cb->su_failover_prob = m_NCS_OS_NTOHLL_P(param->value);
 			break;
 		case saAmfNodeSuFailoverMax_ID:
-			assert(sizeof(uns32) == param->value_len);
-			cb->su_failover_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+			assert(sizeof(uint32_t) == param->value_len);
+			cb->su_failover_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			break;
 		default:
 			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
@@ -101,10 +101,10 @@ done:
  * @param cb
  * @param evt
  */
-static uns32 avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
+static uint32_t avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
 
@@ -122,9 +122,9 @@ static uns32 avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	return rc;   
 }
 
-static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+static uint32_t avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", param->name.value);
 
@@ -146,8 +146,8 @@ static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				AVND_CKPT_SU_COMP_RESTART_PROB);
 			break;
 		case saAmfSGCompRestartMax_ID:
-			assert(sizeof(uns32) == param->value_len);
-			su->comp_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+			assert(sizeof(uint32_t) == param->value_len);
+			su->comp_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
 			break;
 		case saAmfSGSuRestartProb_ID:
@@ -156,8 +156,8 @@ static uns32 avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
 			break;
 		case saAmfSGSuRestartMax_ID:
-			assert(sizeof(uns32) == param->value_len);
-			su->su_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+			assert(sizeof(uint32_t) == param->value_len);
+			su->su_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
 			break;
 		default:
@@ -193,12 +193,12 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_OPERATION_REQUEST_MSG_INFO *info;
 	AVSV_PARAM_INFO *param;
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	info = &evt->info.avd->msg_info.d2n_op_req;
 	param = &info->param_info;
@@ -278,9 +278,9 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_ack_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_ack_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -310,11 +310,11 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_rcv_msg_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_rcv_msg_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVND_TMR_EVT *tmr = &evt->info.tmr;
 	AVND_DND_MSG_LIST *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -335,7 +335,7 @@ void avnd_send_node_up_msg(void)
 {
 	AVND_CB *cb = avnd_cb;
 	AVND_MSG msg = {0};
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -384,7 +384,7 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER2("%" PRIx64, evt->info.mds.mds_dest);
 	
@@ -432,9 +432,9 @@ done:
  
   Notes         : What should be done? TBD.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
 			"MDS down received for AVD");
@@ -456,10 +456,10 @@ uns32 avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
+uint32_t avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uint32_t rcvr)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 	TRACE_ENTER2("SU '%p', recv '%u'", su, rcvr);
@@ -512,11 +512,11 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
 	AVND_SU_SI_REC *curr_si = 0;
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -593,10 +593,10 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
+uint32_t avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", param->name.value);
 
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -623,14 +623,14 @@ uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 }
 
 /**
- * Send update message for an uns32 value
+ * Send update message for an uint32_t value
  * @param class_id - as specified in avsv_def.h
  * @param attr_id - as specified in avsv_def.h
  * @param dn - dn of object to update
- * @param value - ptr to uns32 value to be sent
+ * @param value - ptr to uint32_t value to be sent
  * 
  */
-void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 value)
+void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uint32_t value)
 {
 	AVSV_PARAM_INFO param = {0};
 
@@ -638,8 +638,8 @@ void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 
 	param.attr_id = attr_id;
 	param.name = *dn;
 	param.act = AVSV_OBJ_OPR_MOD;
-	*((uns32 *)param.value) = m_NCS_OS_HTONL(value);
-	param.value_len = sizeof(uns32);
+	*((uint32_t *)param.value) = m_NCS_OS_HTONL(value);
+	param.value_len = sizeof(uint32_t);
 
 	if (avnd_di_object_upd_send(avnd_cb, &param) != NCSCC_RC_SUCCESS)
 		LOG_WA("Could not send update msg for '%s'", dn->value);
@@ -659,10 +659,10 @@ void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uns32 
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn, NCS_BOOL fover)
+uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn, NCS_BOOL fover)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -701,10 +701,10 @@ uns32 avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
+uint32_t avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 {
 	AVND_DND_MSG_LIST *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Msg type '%u'", msg->info.avd->msg_type);
 
 	/* nothing to send */
@@ -755,10 +755,10 @@ uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
+uint32_t avnd_di_ack_nack_msg_send(AVND_CB *cb, uint32_t rcv_id, uint32_t view_num)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Receive id = %u",rcv_id);
 
    /*** send the response to AvD ***/
@@ -802,10 +802,10 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uns32 ret_code)
+uint32_t avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uint32_t ret_code)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
@@ -841,10 +841,10 @@ uns32 avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uns32 ret_code)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uns32 ret_code)
+uint32_t avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uint32_t ret_code)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
@@ -882,7 +882,7 @@ uns32 avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uns32 ret_code)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_di_msg_ack_process(AVND_CB *cb, uns32 mid)
+void avnd_di_msg_ack_process(AVND_CB *cb, uint32_t mid)
 {
 	AVND_DND_MSG_LIST *rec = 0;
 
@@ -1012,10 +1012,10 @@ void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
+uint32_t avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -1052,9 +1052,9 @@ uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_shutdown_app_su_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
 	NCS_BOOL empty_sulist = TRUE;
 	AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO *info = &evt->info.avd->msg_info.d2n_shutdown_app_su;
@@ -1185,7 +1185,7 @@ void avnd_dnd_list_destroy(AVND_CB *cb)
 void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 	msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
@@ -1217,9 +1217,9 @@ void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
  * 
  * @return uns32
  */
-uns32 avnd_evt_avd_admin_op_req_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_admin_op_req_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
 
 	TRACE_ENTER2("%u", info->class_id);
@@ -1250,7 +1250,7 @@ uns32 avnd_evt_avd_admin_op_req_evh(AVND_CB *cb, AVND_EVT *evt)
  * 
  * @return uns32
  */
-uns32 avnd_evt_avd_hb_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_hb_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER2("%u", evt->info.avd->msg_info.d2n_hb_info.seq_id);
 	avnd_stop_tmr(cb, &cb->hb_duration_tmr);
@@ -1265,7 +1265,7 @@ uns32 avnd_evt_avd_hb_evh(AVND_CB *cb, AVND_EVT *evt)
  * 
  * @return uns32
  */
-uns32 avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	TRACE_ENTER();
 	opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,

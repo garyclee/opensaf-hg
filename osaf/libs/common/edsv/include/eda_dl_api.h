@@ -20,6 +20,6 @@
 #ifndef EDA_DL_API_H
 #define EDA_DL_API_H
 
-uns32 ncs_eda_lib_req (NCS_LIB_REQ_INFO *);
+uint32_t ncs_eda_lib_req (NCS_LIB_REQ_INFO *);
 
 #endif   /* !EDA_DL_API_H */

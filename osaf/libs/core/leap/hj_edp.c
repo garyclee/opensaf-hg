@@ -49,8 +49,8 @@ extern char gl_log_string[];
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		       uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		       uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	NCS_BOOL u32 = 0;
@@ -162,14 +162,14 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	uint8_t u8 = 0x00;
 	uint16_t len = 0;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
-	uns32 i = 0;
+	uint32_t i = 0;
 #endif
 
 	switch (op) {
@@ -346,8 +346,8 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	uint16_t u16, len = 1, byte_cnt = 0;
@@ -416,7 +416,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_log_msg(gl_log_string);
 #endif
 			} else {
-				uns32 uns16_cnt = 0;
+				uint32_t uns16_cnt = 0;
 
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns16_cnt = ncs_decode_tlv_n_16bit(&p8, uptr);
@@ -461,7 +461,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				sprintf(gl_log_string, "PP uns16: 0x%x\n", u16);
 				ncs_edu_log_msg(gl_log_string);
 			} else {
-				uns32 uns16_cnt = 0;
+				uint32_t uns16_cnt = 0;
 
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns16_cnt = ncs_decode_tlv_n_16bit(&p8, uptr);
@@ -501,16 +501,16 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	uns32 u32 = 0x00000000;
+	uint32_t u32 = 0x00000000;
 	uint16_t len = sizeof(uint8_t);
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
-		u32 = *(uns32 *)ptr;
+		u32 = *(uint32_t *)ptr;
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 4);
 			ncs_encode_32bit(&p8, u32);
@@ -521,12 +521,12 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			ncs_edu_log_msg(gl_log_string);
 #endif
 		} else {
-			uns32 byte_cnt = 0;
+			uint32_t byte_cnt = 0;
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 			if (*ptr_data_len <= 1) {
 				*ptr_data_len = 1;
 			}
-			byte_cnt = ncs_encode_tlv_n_32bit(&p8, (uns32 *)ptr, (uint16_t)(*ptr_data_len));
+			byte_cnt = ncs_encode_tlv_n_32bit(&p8, (uint32_t *)ptr, (uint16_t)(*ptr_data_len));
 			ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -537,7 +537,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		break;
 	case EDP_OP_TYPE_DEC:
 		{
-			uns32 *uptr = NULL;
+			uint32_t *uptr = NULL;
 
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the "uns32" first. */
@@ -547,10 +547,10 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				len |= (uint16_t)*(p8)++;
 			}
 
-			if (*(uns32 **)ptr == NULL) {
+			if (*(uint32_t **)ptr == NULL) {
 				/* Since "ncs_edp_uns32" is the responsibility of LEAP, LEAP
 				   is supposed to malloc this memory. */
-				(*(uns32 **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(4 * len);
+				(*(uint32_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_UNS8(4 * len);
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
@@ -558,7 +558,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				}
 				memset(uptr, '\0', 4 * len);
 			} else {
-				uptr = *((uns32 **)ptr);
+				uptr = *((uint32_t **)ptr);
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
@@ -571,7 +571,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_log_msg(gl_log_string);
 #endif
 			} else {
-				uns32 uns32_cnt = 0;
+				uint32_t uns32_cnt = 0;
 
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns32_cnt = ncs_decode_tlv_n_32bit(&p8, uptr);
@@ -587,7 +587,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	case EDP_OP_TYPE_PP:
 		{
-			uns32 *uptr = NULL;
+			uint32_t *uptr = NULL;
 
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the "uns32" first. */
@@ -612,7 +612,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				sprintf(gl_log_string, "PP uns32: 0x%x \n", u32);
 				ncs_edu_log_msg(gl_log_string);
 			} else {
-				uns32 uns32_cnt = 0;
+				uint32_t uns32_cnt = 0;
 
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
 				uns32_cnt = ncs_decode_tlv_n_32bit(&p8, uptr);
@@ -622,9 +622,9 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				ncs_edu_log_msg(gl_log_string);
 			}
 			if (ptr != NULL) {
-				(*(uns32 **)ptr) = uptr;
+				(*(uint32_t **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				sprintf(gl_log_string, "Populated uns32 in PPDB: 0x%x \n", (*uptr));
+				sprintf(gl_log_string, "Populated uint32_t in PPDB: 0x%x \n", (*uptr));
 				ncs_edu_log_msg(gl_log_string);
 			} else {
 				m_NCS_MEM_FREE(uptr, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0);
@@ -650,8 +650,8 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 
@@ -772,8 +772,8 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		     uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		     uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8, *src_p8;
 	uint16_t len = 0, byte_cnt = 0;
@@ -857,7 +857,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				}
 			} else {
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
-				ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uns32)len);
+				ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uint32_t)len);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 			}
 
@@ -916,7 +916,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 					}
 				} else {
 					p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
-					ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uns32)len);
+					ncs_decode_tlv_n_octets(p8, (uint8_t *)uptr, (uint32_t)len);
 					ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + len);
 				}
 
@@ -954,8 +954,8 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	short u16;
@@ -1070,15 +1070,15 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		  uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	uns32 u32 = 0x00000000;
+	uint32_t u32 = 0x00000000;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
-		u32 = (uns32)*(int *)ptr;	/* Typecast int to uns32 */
+		u32 = (uint32_t)*(int *)ptr;	/* Typecast int to uint32_t */
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 4);
 			ncs_encode_32bit(&p8, u32);
@@ -1121,7 +1121,7 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				u32 = ncs_decode_tlv_32bit(&p8);
 				ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE + 4);
 			}
-			*uptr = (int)u32;	/* Typecast uns32 to int */
+			*uptr = (int)u32;	/* Typecast uint32_t to int */
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 			sprintf(gl_log_string, "Decoded int: %d \n", u32);
@@ -1157,7 +1157,7 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			}
 
 			if (uptr != NULL) {
-				*uptr = (int)u32;	/* Typecast uns32 to int */
+				*uptr = (int)u32;	/* Typecast uint32_t to int */
 				(*(int **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
 				sprintf(gl_log_string, "Populated int in PPDB: %d \n", u32);
@@ -1187,8 +1187,8 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	int8_t u8 = 0x00;
@@ -1300,8 +1300,8 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	int16_t u16;
@@ -1414,15 +1414,15 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	int32 u32 = 0x00000000;
+	int32_t u32 = 0x00000000;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
-		u32 = *(int32 *)ptr;
+		u32 = *(int32_t *)ptr;
 		if (buf_env->is_ubaid) {
 			p8 = ncs_enc_reserve_space(buf_env->info.uba, 4);
 			ncs_encode_32bit(&p8, u32);
@@ -1440,18 +1440,18 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		break;
 	case EDP_OP_TYPE_DEC:
 		{
-			int32 *uptr = NULL;
+			int32_t *uptr = NULL;
 
-			if (*(int32 **)ptr == NULL) {
-				(*(int32 **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT32;
+			if (*(int32_t **)ptr == NULL) {
+				(*(int32_t **)ptr) = uptr = m_MMGR_ALLOC_EDP_INT32;
 				if (uptr == NULL) {
 					/* Memory failure. */
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(int32));
+				memset(uptr, '\0', sizeof(int32_t));
 			} else {
-				uptr = *((int32 **)ptr);
+				uptr = *((int32_t **)ptr);
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
@@ -1473,7 +1473,7 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	case EDP_OP_TYPE_PP:
 		{
-			int32 *uptr = NULL;
+			int32_t *uptr = NULL;
 
 			if (ptr != NULL) {
 				/* We need populate the pointer here, so that it can
@@ -1485,7 +1485,7 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 					*o_err = EDU_ERR_MEM_FAIL;
 					return NCSCC_RC_FAILURE;
 				}
-				memset(uptr, '\0', sizeof(int32));
+				memset(uptr, '\0', sizeof(int32_t));
 			}
 			if (buf_env->is_ubaid) {
 				p8 = ncs_dec_flatten_space(buf_env->info.uba, (uint8_t *)&u32, 4);
@@ -1498,9 +1498,9 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			}
 			if (uptr != NULL) {
 				*uptr = u32;
-				(*(int32 **)ptr) = uptr;
+				(*(int32_t **)ptr) = uptr;
 				memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-				sprintf(gl_log_string, "Populated int32 in PPDB: 0x%x \n", (int)u32);
+				sprintf(gl_log_string, "Populated int32_t in PPDB: 0x%x \n", (int)u32);
 				ncs_edu_log_msg(gl_log_string);
 			}
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -1527,10 +1527,10 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-		      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+		      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_KEY *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET ncs_key_rules[] = {
@@ -1616,14 +1616,14 @@ int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	uns64 *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uint8_t *src_p8;
-	uns32 cnt = 0;
+	uint32_t cnt = 0;
 #endif
 
 	/* Note :- TLV-encoding/decoding support not put up for this data type, 
@@ -1768,14 +1768,14 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-		    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
 	int64 *uptr = NULL;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uint8_t *src_p8;
-	uns32 cnt = 0;
+	uint32_t cnt = 0;
 #endif
 
 	/* Note :- TLV-encoding/decoding support not put up for this data type, 

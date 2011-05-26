@@ -27,7 +27,7 @@
 #include "gld.h"
 #include "gld_imm.h"
 #include <poll.h>
-uns32 gl_gld_hdl;
+uint32_t gl_gld_hdl;
 
 void gld_main_process(SYSF_MBX *mbx);
 
@@ -53,9 +53,9 @@ static nfds_t nfds = 4;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t gld_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -97,11 +97,11 @@ uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
+uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	GLSV_GLD_CB *gld_cb;
 	SaAisErrorT amf_error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT Healthy;
 	int8_t *health_key;
 
@@ -245,7 +245,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
+uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 {
 	GLSV_GLD_CB *gld_cb;
 
@@ -282,14 +282,14 @@ uns32 gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
+uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 {
 	NCS_PATRICIA_PARAMS params;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	/* Intialize all the patrica trees */
-	params.key_size = sizeof(uns32);
+	params.key_size = sizeof(uint32_t);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params))
 	    != NCSCC_RC_SUCCESS) {
@@ -298,7 +298,7 @@ uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
 	}
 	gld_cb->glnd_details_tree_up = TRUE;
 
-	params.key_size = sizeof(uns32);
+	params.key_size = sizeof(uint32_t);
 	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->rsc_info_id, &params))
 	    != NCSCC_RC_SUCCESS) {
@@ -333,7 +333,7 @@ uns32 gld_cb_init(GLSV_GLD_CB *gld_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_cb_destroy(GLSV_GLD_CB *gld_cb)
+uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 {
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_RSC_INFO *rsc_info;
@@ -574,7 +574,7 @@ void gld_dump_cb()
 	MDS_DEST mds_dest_id;
 	GLSV_GLD_RSC_INFO *rsc_info;
 	SaLckResourceIdT rsc_id = 0;
-	uns32 node_id = 0;
+	uint32_t node_id = 0;
 
 	gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
 	if (!gld_cb) {
@@ -599,8 +599,8 @@ void gld_dump_cb()
 	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uint8_t *)&rsc_id))) {
 		GLSV_NODE_LIST *list;
 		rsc_id = rsc_info->rsc_id;
-		TRACE("Resource Id - : %d  Resource Name - %.10s ", (uns32)rsc_info->rsc_id, rsc_info->lck_name.value);
-		TRACE("Can Orphan - %d Mode - %d ", rsc_info->can_orphan, (uns32)rsc_info->orphan_lck_mode);
+		TRACE("Resource Id - : %d  Resource Name - %.10s ", (uint32_t)rsc_info->rsc_id, rsc_info->lck_name.value);
+		TRACE("Can Orphan - %d Mode - %d ", rsc_info->can_orphan, (uint32_t)rsc_info->orphan_lck_mode);
 		list = rsc_info->node_list;
 		TRACE("List of Nodes :");
 		while (list != NULL) {

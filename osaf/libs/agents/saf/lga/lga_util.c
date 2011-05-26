@@ -207,10 +207,10 @@ static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb, lga_client_hdl_rec_t *
  
   Notes         : None
 ******************************************************************************/
-static uns32 lga_hdl_cbk_dispatch_all(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
+static uint32_t lga_hdl_cbk_dispatch_all(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
 	lgsv_msg_t *cbk_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* Recv all the cbk notifications from the queue & process them */
 	do {
@@ -243,10 +243,10 @@ static uns32 lga_hdl_cbk_dispatch_all(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_re
  
   Notes         : None
 ******************************************************************************/
-static uns32 lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
+static uint32_t lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
 	lgsv_msg_t *cbk_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	for (;;) {
 		if (NULL != (cbk_msg = (lgsv_msg_t *)
@@ -361,7 +361,7 @@ void lga_msg_destroy(lgsv_msg_t *msg)
  
   Notes         : None
 ******************************************************************************/
-lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_id)
+lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t client_id)
 {
 	lga_client_hdl_rec_t *lga_hdl_rec;
 
@@ -415,7 +415,7 @@ void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_log_stream_hdl_rec_t *rm_node)
+uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_log_stream_hdl_rec_t *rm_node)
 {
 	/* Find the channel hdl record in the list of records */
 	lga_log_stream_hdl_rec_t *list_iter = *list_head;
@@ -466,9 +466,9 @@ uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_log_s
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-uns32 lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t *rm_node)
+uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t *rm_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	lga_client_hdl_rec_t *list_iter = *list_head;
 
 	TRACE_ENTER();
@@ -532,9 +532,9 @@ uns32 lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t *rm
                   of handles in the client hdl record.
  
   Arguments     : LGA_CLIENT_HDL_REC *hdl_rec
-                  uns32               lstr_id
-                  uns32               lstr_open_id
-                  uns32               log_stream_open_flags
+                  uint32_t               lstr_id
+                  uint32_t               lstr_open_id
+                  uint32_t               log_stream_open_flags
                   SaNameT             *logStreamName
  
   Return Values : ptr to the channel handle record
@@ -542,9 +542,9 @@ uns32 lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t *rm
   Notes         : None
 ******************************************************************************/
 lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_rec,
-						     uns32 lstr_id,
-						     uns32 log_stream_open_flags,
-						     const SaNameT *logStreamName, uns32 log_header_type)
+						     uint32_t lstr_id,
+						     uint32_t log_stream_open_flags,
+						     const SaNameT *logStreamName, uint32_t log_header_type)
 {
 	lga_log_stream_hdl_rec_t *rec = calloc(1, sizeof(lga_log_stream_hdl_rec_t));
 
@@ -594,7 +594,7 @@ lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_
  
   Notes         : None
 ******************************************************************************/
-lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, const SaLogCallbacksT *reg_cbks, uns32 client_id)
+lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, const SaLogCallbacksT *reg_cbks, uint32_t client_id)
 {
 	lga_client_hdl_rec_t *rec = calloc(1, sizeof(lga_client_hdl_rec_t));
 

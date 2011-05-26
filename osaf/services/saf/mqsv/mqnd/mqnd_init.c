@@ -31,7 +31,7 @@
 #include "mqnd_imm.h"
 #include <poll.h>
 #define MQND_SAF_ACCEPT_TIME 1000
-uns32 gl_mqnd_cb_hdl = 0;
+uint32_t gl_mqnd_cb_hdl = 0;
 
 #define FD_AMF 0
 #define FD_CLM 1
@@ -40,18 +40,18 @@ uns32 gl_mqnd_cb_hdl = 0;
 static struct pollfd fds[4];
 static nfds_t nfds = 4;
 /* Static Function Declerations */
-static uns32 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info);
-static uns32 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info);
-static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info);
-static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info);
-static uns32 mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key);
-static uns32 mqnd_cb_db_init(MQND_CB *cb);
-static uns32 mqnd_cb_db_destroy(MQND_CB *cb);
-static uns32 mqnd_cb_namedb_destroy(MQND_CB *cb);
-static uns32 mqnd_cb_qevt_node_db_destroy(MQND_CB *cb);
+static uint32_t mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info);
+static uint32_t mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info);
+static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info);
+static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info);
+static uint32_t mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key);
+static uint32_t mqnd_cb_db_init(MQND_CB *cb);
+static uint32_t mqnd_cb_db_destroy(MQND_CB *cb);
+static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb);
+static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb);
 static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-static uns32 mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist);
-void mqnd_main_process(uns32 hdl);
+static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist);
+void mqnd_main_process(uint32_t hdl);
 static void mqnd_asapi_bind(MQND_CB *cb);
 static void mqnd_asapi_unbind(void);
 
@@ -68,9 +68,9 @@ static void mqnd_asapi_unbind(void);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	MQSV_CREATE_INFO create_info;
 	MQSV_DESTROY_INFO destroy_info;
 
@@ -108,7 +108,7 @@ uns32 mqnd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info)
+static uint32_t mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(MQSV_CREATE_INFO));
@@ -132,7 +132,7 @@ static uns32 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info)
+static uint32_t mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(MQSV_DESTROY_INFO));
@@ -159,10 +159,10 @@ static uns32 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
+static uint32_t mqnd_lib_init(MQSV_CREATE_INFO *info)
 {
 	MQND_CB *cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT healthy;
 	char *health_key = NULL;
 	SaAisErrorT amf_error;
@@ -195,7 +195,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
 	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uns32);
+	file_read.info.read.i_buf_size = sizeof(uint32_t);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
 	cb->gl_msg_max_msg_size = atoi(str_vector);
@@ -209,7 +209,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
 	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uns32);
+	file_read.info.read.i_buf_size = sizeof(uint32_t);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
 	cb->gl_msg_max_no_of_q = atoi(str_vector);
@@ -223,7 +223,7 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	file_read.info.read.i_file_handle = file.info.open.o_file_handle;
 	file_read.info.read.i_buffer = (uint8_t *)str_vector;
-	file_read.info.read.i_buf_size = sizeof(uns32);
+	file_read.info.read.i_buf_size = sizeof(uint32_t);
 	m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
 
 	cb->gl_msg_max_q_size = atoi(str_vector);
@@ -407,11 +407,11 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
+static uint32_t mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 {
 	MQND_CB *cb;
-	uns32 mqnd_hdl;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t mqnd_hdl;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr;
 
 	mqnd_hdl = m_MQND_GET_HDL();
@@ -470,10 +470,10 @@ static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_cb_db_init(MQND_CB *cb)
+static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* initialze the queue handle tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
@@ -518,10 +518,10 @@ static uns32 mqnd_cb_db_init(MQND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_cb_db_destroy(MQND_CB *cb)
+static uint32_t mqnd_cb_db_destroy(MQND_CB *cb)
 {
 	MQND_QUEUE_NODE *qnode;
-	uns32 qhdl = 0;
+	uint32_t qhdl = 0;
 	ASAPi_OPR_INFO opr;
 	/* Delete all the members in the qhdl_tree */
 	mqnd_queue_node_getnext(cb, qhdl, &qnode);
@@ -590,7 +590,7 @@ static uns32 mqnd_cb_db_destroy(MQND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_cb_namedb_destroy(MQND_CB *cb)
+static uint32_t mqnd_cb_namedb_destroy(MQND_CB *cb)
 {
 	MQND_QNAME_NODE *qnode = 0;
 	SaNameT qname;
@@ -623,7 +623,7 @@ static uns32 mqnd_cb_namedb_destroy(MQND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
+static uint32_t mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
 {
 	SaMsgQueueHandleT qhdl = 0;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
@@ -655,10 +655,10 @@ static uns32 mqnd_cb_qevt_node_db_destroy(MQND_CB *cb)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key)
+static uint32_t mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key)
 {
 	MDS_DEST *dbVal, *inVal;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	dbVal = (MDS_DEST *)valInDb;
 	inVal = (MDS_DEST *)key;
 	if (m_NCS_MDS_DEST_EQUAL(dbVal, inVal) == 1)
@@ -678,9 +678,9 @@ static uns32 mqnd_compare_mqa_dest(uint8_t *valInDb, uint8_t *key)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
+static uint32_t mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	mqalist->order = NCS_DBLIST_ANY_ORDER;
 	mqalist->cmp_cookie = mqnd_compare_mqa_dest;
 	return rc;
@@ -720,7 +720,7 @@ static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_main_process(uns32 hdl)
+void mqnd_main_process(uint32_t hdl)
 {
 	MQND_CB *cb = 0;
 	NCS_SEL_OBJ mbx_fd;

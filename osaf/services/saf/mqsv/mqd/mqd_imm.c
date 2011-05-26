@@ -142,7 +142,7 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 	SaImmAttrValueT attr1[QUEUE_MEMS];
 	SaImmAttrModificationT_2 attr_output[1];
 	const SaImmAttrModificationT_2 *attrMods[2];
-	uns32 count = pObjNode->oinfo.ilist.count;
+	uint32_t count = pObjNode->oinfo.ilist.count;
 	int i = 0, attrCnt = 0;
 	NCS_QELEM *Queue = pObjNode->oinfo.ilist.head;
 

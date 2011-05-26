@@ -72,12 +72,12 @@ typedef struct tag_ncs_ipc {
 	/* element 1 for queueing NORMAL priority IPC messages */
 	/* element 2 for queueing LOW priority IPC messages */
 
-	uns32 no_of_msgs[NCS_IPC_PRIO_LEVELS];	/* (priority level message count, used to compare 
+	uint32_t no_of_msgs[NCS_IPC_PRIO_LEVELS];	/* (priority level message count, used to compare 
 						   with the corresponding threshold value) */
 
-	uns32 max_no_of_msgs[NCS_IPC_PRIO_LEVELS];	/* (threshold value configured through 
+	uint32_t max_no_of_msgs[NCS_IPC_PRIO_LEVELS];	/* (threshold value configured through 
 							   m_NCS_IPC_CONFIG_MAX_MSGS otherwise initialized to zero) */
-	uns32 *usr_counters[NCS_IPC_PRIO_LEVELS];	/* user given 32bit counters are accessed through these pointers */
+	uint32_t *usr_counters[NCS_IPC_PRIO_LEVELS];	/* user given 32bit counters are accessed through these pointers */
 
 	unsigned int active_queue;	/* the next queue to check for an IPC message */
 
@@ -92,13 +92,13 @@ typedef struct tag_ncs_ipc {
 	   message. An indication is raised only per "burst of 
 	   messages"
 	 */
-	uns32 msg_count;
+	uint32_t msg_count;
 
 	/* If "sel_obj" is put to use, the "sem_handle" member will be removed. 
 	   For now it stays */
 	void *sem_handle;	/* for blocking/waking IPC msg receiver */
 	NCS_BOOL releasing;	/* flag from ncs_ipc_release to ncs_ipc_recv */
-	uns32 ref_count;	/* reference count - number of instances attached
+	uint32_t ref_count;	/* reference count - number of instances attached
 				 * to this IPC */
 	char *name;		/* mbx task name */
 } NCS_IPC;

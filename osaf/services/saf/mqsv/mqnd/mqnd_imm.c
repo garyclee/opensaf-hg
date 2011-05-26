@@ -75,9 +75,9 @@ static SaAisErrorT mqnd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	MQND_QUEUE_NODE *qNode = NULL;
 	MQND_QNAME_NODE *pNode = NULL;
 	MQND_QUEUE_CKPT_INFO *shmBaseAddr = NULL;
-	uns32 offset;
+	uint32_t offset;
 
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
 
 	if (!mqnd_cb) {
@@ -277,7 +277,7 @@ SaAisErrorT mqnd_create_runtime_MsgQobject(SaStringT rname, SaTimeT create_time,
 	char *dndup = strdup(rname);
 	char *parent_name = strchr(rname, ',');
 	char *rdnstr;
-	uns32 open = 0;
+	uint32_t open = 0;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1], arr5[1], arr6[1];
 	SaImmAttrValuesT_2 attr_mqrsc, attr_mqIspersistent, attr_mqRetTime, attr_mqSize;
 	SaImmAttrValuesT_2 attr_mqCreationTimeStamp, attr_mqIsOpen;

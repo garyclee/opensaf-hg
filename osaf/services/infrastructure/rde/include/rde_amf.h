@@ -60,6 +60,6 @@ typedef struct {
 
 } RDE_AMF_CB;
 
-extern uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb);
+extern uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb);
 
 #endif

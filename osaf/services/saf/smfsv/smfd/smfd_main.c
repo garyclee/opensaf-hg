@@ -97,7 +97,7 @@ static void usr1_sig_handler(int sig)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 smfd_cb_init(smfd_cb_t * smfd_cb)
+uint32_t smfd_cb_init(smfd_cb_t * smfd_cb)
 {
 	TRACE_ENTER();
 
@@ -127,9 +127,9 @@ uns32 smfd_cb_init(smfd_cb_t * smfd_cb)
  * 
  * @return uns32
  */
-static uns32 initialize_smfd(void)
+static uint32_t initialize_smfd(void)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
@@ -208,7 +208,7 @@ static nfds_t nfds =  SMFD_MAX_FD;
 /**
  * Restore USR1 signal handling.
  */
-uns32 smfd_amf_disconnected(smfd_cb_t * cb)
+uint32_t smfd_amf_disconnected(smfd_cb_t * cb)
 {
 	fds[SMFD_AMF_FD].fd = cb->usr1_sel_obj.rmv_obj;
 	cb->amf_hdl = 0;

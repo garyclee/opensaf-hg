@@ -230,7 +230,7 @@ void mqd_flx_log_reg(void);
 void mqd_flx_log_dereg(void);
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqd_log(uint8_t, uns32, uint8_t, uns32, char *, uns32);
+void mqd_log(uint8_t, uint32_t, uint8_t, uint32_t, char *, uint32_t);
 #define m_LOG_MQSV_D(id,category,sev,rc,fname,fno)  mqd_log(id,category,sev,rc,fname,fno)
 #else
 #define m_LOG_MQSV_D(id,category,sev,rc,fname,fno)

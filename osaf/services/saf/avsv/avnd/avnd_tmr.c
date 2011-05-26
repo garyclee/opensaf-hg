@@ -67,7 +67,7 @@ static const char *tmr_type[] =
 
   NOTES         : None
 *****************************************************************************/
-uns32 avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT period, uns32 uarg)
+uint32_t avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
 	m_INIT_CRITICAL;
 
@@ -85,7 +85,7 @@ uns32 avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT per
 		tmr->is_active = FALSE;
 	}
 	tmr->opq_hdl = uarg;
-	m_NCS_TMR_START(tmr->tmr_id, (uns32)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, (void *)tmr);
+	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, (void *)tmr);
 	tmr->is_active = TRUE;
 	m_END_CRITICAL;
 
@@ -156,7 +156,7 @@ void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 void avnd_tmr_exp(void *uarg)
 {
 	AVND_EVT_TYPE type = AVND_EVT_INVALID;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_CB *cb = avnd_cb;
 	AVND_TMR *tmr = (AVND_TMR *)uarg;
 	AVND_EVT *evt = 0;

@@ -90,8 +90,8 @@
 typedef struct sysf_tmr_leak {
 	uint16_t isa;		/* validation marker for SYSF_TMR instances */
 	char *file;		/* File name of CREATE or START operation   */
-	uns32 line;		/* File line of CREATE or START operation   */
-	uns32 stamp;		/* Marks loop count to help determine age   */
+	uint32_t line;		/* File line of CREATE or START operation   */
+	uint32_t stamp;		/* Marks loop count to help determine age   */
 
 } TMR_DBG_LEAK;
 
@@ -105,11 +105,11 @@ typedef struct sysf_tmr_leak {
 
 #if ENABLE_SYSLOG_TMR_STATS
 typedef struct tmr_stats {
-	uns32 cnt;
-	uns32 ring_hwm;
+	uint32_t cnt;
+	uint32_t ring_hwm;
 } TMR_STATS;
 #else
-#define TMR_STATS  uns32
+#define TMR_STATS  uint32_t
 #endif
 
 #define TMR_SET_CNT(s)
@@ -156,7 +156,7 @@ typedef struct tmr_safe {
 
 /* SYSF_TMR_CB the master structure for the timer service */
 typedef struct sysf_tmr_cb {
-	uns32 tick;		/* Times TmrExpiry has been called     */
+	uint32_t tick;		/* Times TmrExpiry has been called     */
 
 	NCSLPG_OBJ persist;	/* guard against fleeting destruction */
 	TMR_SAFE safe;		/* critical region stuff              */
@@ -164,7 +164,7 @@ typedef struct sysf_tmr_cb {
 	TMR_STATS stats;
 	void *p_tsk_hdl;	/* expiry task handle storage         */
 	NCS_SEL_OBJ sel_obj;
-	uns32 msg_count;
+	uint32_t msg_count;
 
 } SYSF_TMR_CB;
 
@@ -175,7 +175,7 @@ static NCS_BOOL tmr_destroying = FALSE;
 static NCS_SEL_OBJ tmr_destroy_syn_obj;
 static struct timespec ts_start;
 
-static uns32 ncs_tmr_add_pat_node(SYSF_TMR *tmr)
+static uint32_t ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 {
 	SYSF_TMR_PAT_NODE *temp_tmr_pat_node = NULL;
 
@@ -305,7 +305,7 @@ static NCS_BOOL sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 	return FALSE;
 }
 
-static uns32 ncs_tmr_select_intr_process(struct timeval *tv, struct
+static uint32_t ncs_tmr_select_intr_process(struct timeval *tv, struct
 					 timespec *ts_current, uns64 next_delay)
 {
 	uns64 tmr_restart = 0;
@@ -336,7 +336,7 @@ static uns32 ncs_tmr_select_intr_process(struct timeval *tv, struct
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
+static uint32_t ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
 {
 	uns64 next_expiry = 0;
 	uns64 ticks_elapsed = 0;
@@ -346,7 +346,7 @@ static uns32 ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
 	/* To measure avg. timer expiry gap */
 	struct timespec tmr_exp_prev_finish = { 0, 0 };
 	struct timespec tmr_exp_curr_start = { 0, 0 };
-	uns32 tot_tmr_exp = 0;
+	uint32_t tot_tmr_exp = 0;
 	uns64 sum_of_tmr_exp_gaps = 0;	/* Avg = sum_of_tmr_exp_gaps/tot_tmr_exp */
 #endif
 
@@ -413,7 +413,7 @@ static uns32 ncs_tmr_engine(struct timeval *tv, uns64 *next_delay)
  *          function any more. This should eliminate timer drift.
  *
  ****************************************************************************/
-static uns32 ncs_tmr_wait(void)
+static uint32_t ncs_tmr_wait(void)
 {
 
 	int rc = 0;
@@ -516,7 +516,7 @@ static NCS_BOOL ncs_tmr_create_done = FALSE;
 NCS_BOOL sysfTmrCreate(void)
 {
 	NCS_PATRICIA_PARAMS pat_param;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (ncs_tmr_create_done == FALSE)
 		ncs_tmr_create_done = TRUE;
@@ -581,7 +581,7 @@ NCS_BOOL sysfTmrDestroy(void)
 {
 	SYSF_TMR *tmr;
 	SYSF_TMR *free_tmr;
-	uns32 timeout = 2000;	/* 20seconds */
+	uint32_t timeout = 2000;	/* 20seconds */
 	SYSF_TMR_PAT_NODE *tmp = NULL;
 
 	/* There is only ever one timer per instance */
@@ -657,7 +657,7 @@ NCS_BOOL sysfTmrDestroy(void)
  * Purpose: Either fetch an existing Tmr block or get one off the HEAP
  *
  ****************************************************************************/
-tmr_t ncs_tmr_alloc(char *file, uns32 line)
+tmr_t ncs_tmr_alloc(char *file, uint32_t line)
 {
 	SYSF_TMR *tmr;
 	SYSF_TMR *back;
@@ -715,14 +715,14 @@ tmr_t ncs_tmr_alloc(char *file, uns32 line)
  * Purpose: Take the passed Timer traits and engage/register with TmrSvc
  *
  ****************************************************************************/
-tmr_t ncs_tmr_start(tmr_t tid, uns32 tmrDelay,	/* timer period in number of 10ms units */
-		    TMR_CALLBACK tmrCB, void *tmrUarg, char *file, uns32 line)
+tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 10ms units */
+		    TMR_CALLBACK tmrCB, void *tmrUarg, char *file, uint32_t line)
 {
 	SYSF_TMR *tmr;
 	SYSF_TMR *new_tmr;
 	uns64 scaled;
 	uns64 temp_key_value;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (((tmr = (SYSF_TMR *)tid) == NULL) || (tmr_destroying == TRUE))	/* NULL tmrs are no good! */
 		return NULL;
@@ -826,7 +826,7 @@ tmr_t ncs_tmr_start(tmr_t tid, uns32 tmrDelay,	/* timer period in number of 10ms
  *     NCSCC_RC_TMR_STOPPED:    If the timer is already in DORMANT state 
  *
  ****************************************************************************/
-uns32 ncs_tmr_stop_v2(tmr_t tmrID, void **o_tmr_arg)
+uint32_t ncs_tmr_stop_v2(tmr_t tmrID, void **o_tmr_arg)
 {
 	SYSF_TMR *tmr;
 
@@ -927,12 +927,12 @@ void ncs_tmr_free(tmr_t tmrID)
  *            particular timer.
  *
  ****************************************************************************/
-uns32 ncs_tmr_remaining(tmr_t tmrID, uns32 *p_tleft)
+uint32_t ncs_tmr_remaining(tmr_t tmrID, uint32_t *p_tleft)
 {
 	SYSF_TMR *tmr;
-	uns32 total_ticks_left;
-	uns32 ticks_elapsed;
-	uns32 ticks_to_expiry;
+	uint32_t total_ticks_left;
+	uint32_t ticks_elapsed;
+	uint32_t ticks_to_expiry;
 
 	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == TRUE) || (p_tleft == NULL))
 		return NCSCC_RC_FAILURE;
@@ -980,10 +980,10 @@ static char *gl_tmr_states[] = { "illegal",
 	"DESTROY"
 };
 
-uns32 ncs_tmr_whatsout(void)
+uint32_t ncs_tmr_whatsout(void)
 {
 	SYSF_TMR *free;
-	uns32 cnt = 1;
+	uint32_t cnt = 1;
 	char pBuf[100];
 
 	printf("|---+----+-----+-----------+-----------------------------|\n");
@@ -1025,7 +1025,7 @@ uns32 ncs_tmr_whatsout(void)
  * NOTE: This is quick output scheme. Needs to be fit into sysmon model.
  ****************************************************************************/
 
-uns32 ncs_tmr_getstats(void)
+uint32_t ncs_tmr_getstats(void)
 {
 	return NCSCC_RC_SUCCESS;
 }

@@ -304,7 +304,7 @@ NCSFL_ASCII_SPEC mbcsv_ascii_spec = {
 
 *****************************************************************************/
 
-uns32 mbcsv_reg_strings()
+uint32_t mbcsv_reg_strings()
 {
 	NCS_DTSV_REG_CANNED_STR arg;
 
@@ -328,9 +328,9 @@ uns32 mbcsv_reg_strings()
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -355,7 +355,7 @@ uns32 mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 *****************************************************************************/
 
-uns32 mbcsv_dereg_strings()
+uint32_t mbcsv_dereg_strings()
 {
 	NCS_DTSV_REG_CANNED_STR arg;
 
@@ -378,7 +378,7 @@ uns32 mbcsv_dereg_strings()
 
 *****************************************************************************/
 
-uns32 mbcsv_reg_strings(char *fname)
+uint32_t mbcsv_reg_strings(char *fname)
 {
 	return NCSCC_RC_SUCCESS;
 }

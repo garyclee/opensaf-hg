@@ -43,12 +43,12 @@
 
 #include "ncssysf_tsk.h"
 
-uns32
+uint32_t
 ncs_task_create(NCS_OS_CB entry_pt,
 		void *arg, char *name, unsigned int priority, unsigned int stack_size_in_bytes, void **task_handle)
 {
 	NCS_OS_TASK task;
-	uns32 rc;
+	uint32_t rc;
 
 	task.info.create.i_entry_point = entry_pt;
 	task.info.create.i_name = name;
@@ -64,7 +64,7 @@ ncs_task_create(NCS_OS_CB entry_pt,
 	return rc;
 }
 
-uns32 ncs_task_release(void *task_handle)
+uint32_t ncs_task_release(void *task_handle)
 {
 	NCS_OS_TASK task;
 
@@ -76,7 +76,7 @@ uns32 ncs_task_release(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_RELEASE);
 }
 
-uns32 ncs_task_join(void *task_handle)
+uint32_t ncs_task_join(void *task_handle)
 {
 	NCS_OS_TASK task;
 
@@ -88,7 +88,7 @@ uns32 ncs_task_join(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_JOIN);
 }
 
-uns32 ncs_task_detach(void *task_handle)
+uint32_t ncs_task_detach(void *task_handle)
 {
 	NCS_OS_TASK task;
 
@@ -100,7 +100,7 @@ uns32 ncs_task_detach(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_DETACH);
 }
 
-uns32 ncs_task_start(void *task_handle)
+uint32_t ncs_task_start(void *task_handle)
 {
 	NCS_OS_TASK task;
 
@@ -112,7 +112,7 @@ uns32 ncs_task_start(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_START);
 }
 
-uns32 ncs_task_stop(void *task_handle)
+uint32_t ncs_task_stop(void *task_handle)
 {
 	NCS_OS_TASK task;
 
@@ -124,7 +124,7 @@ uns32 ncs_task_stop(void *task_handle)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_STOP);
 }
 
-uns32 ncs_task_sleep(unsigned int delay_in_ms)
+uint32_t ncs_task_sleep(unsigned int delay_in_ms)
 {
 	NCS_OS_TASK task;
 
@@ -133,10 +133,10 @@ uns32 ncs_task_sleep(unsigned int delay_in_ms)
 	return m_NCS_OS_TASK(&task, NCS_OS_TASK_SLEEP);
 }
 
-uns32 ncs_task_current(void **task_handle)
+uint32_t ncs_task_current(void **task_handle)
 {
 	NCS_OS_TASK task;
-	uns32 rc;
+	uint32_t rc;
 
 	rc = m_NCS_OS_TASK(&task, NCS_OS_TASK_CURRENT_HANDLE);
 

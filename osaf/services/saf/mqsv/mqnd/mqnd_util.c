@@ -35,10 +35,10 @@
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
+uint32_t mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 			MDS_DEST *rcvr_mqa, SaMsgQueueHandleT *qhdl, MQP_TRANSFERQ_RSP *transfer_rsp, SaAisErrorT *err)
 {
-	uns32 rc = NCSCC_RC_FAILURE, index;
+	uint32_t rc = NCSCC_RC_FAILURE, index;
 	MQND_QUEUE_NODE *qnode = NULL;
 	uint8_t i = 0;
 	MQND_QNAME_NODE *pnode = NULL;
@@ -215,7 +215,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
  *****************************************************************************/
 NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca, SaMsgQueueCreationAttributesT *curr_ca)
 {
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	if (open_ca->creationFlags != curr_ca->creationFlags)
 		return FALSE;
@@ -241,9 +241,9 @@ NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca, SaMsgQ
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen)
+uint32_t mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err, NCS_BOOL is_q_reopen)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_OPR_INFO opr;
 
 	/* Request the ASAPi (at MQD) for queue REG */

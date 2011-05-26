@@ -104,7 +104,7 @@ SmfndNodeT *get_smfnd(SaClmNodeIdT i_node_id)
  * @param i_node_id Clm node id
  * @param i_smfnd_dest Destination to Clm node
  */
-uns32 smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest)
+uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest)
 {
 	SaAisErrorT rc;
 	SaClmHandleT clmHandle;
@@ -169,7 +169,7 @@ uns32 smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest)
  * smfnd_down
  * @param i_node_id Clm node id
  */
-uns32 smfnd_down(SaClmNodeIdT i_node_id)
+uint32_t smfnd_down(SaClmNodeIdT i_node_id)
 {
 	SmfndNodeT *smfnd = firstSmfnd;
 	SmfndNodeT *previous = firstSmfnd;
@@ -207,11 +207,11 @@ uns32 smfnd_down(SaClmNodeIdT i_node_id)
  *                     the command
  * @param i_timeout Max time the command may take
  */
-int smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest, uns32 i_timeout)
+int smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest, uint32_t i_timeout)
 {
 	SMFSV_EVT cmd_req;
 	SMFSV_EVT *cmd_rsp;
-	uns32 rc;
+	uint32_t rc;
 
 	cmd_req.type = SMFSV_EVT_TYPE_SMFND;
 	cmd_req.info.smfnd.type = SMFND_EVT_CMD_REQ;

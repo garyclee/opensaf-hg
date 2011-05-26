@@ -273,11 +273,11 @@ typedef enum mbcsv_log_ids {
 #define MBCSV_LOG_VERSION 2
 
 #if (MBCSV_LOG == 1)
-uns32 mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-uns32 mbcsv_reg_strings(void);
-uns32 mbcsv_dereg_strings(void);
-uns32 mbcsv_log_bind(void);
-uns32 mbcsv_log_unbind(void);
+uint32_t mbcsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t mbcsv_reg_strings(void);
+uint32_t mbcsv_dereg_strings(void);
+uint32_t mbcsv_log_bind(void);
+uint32_t mbcsv_log_unbind(void);
 
 #define m_LOG_MBCSV_HEADLINE(hdln_id) \
 ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_HDLN, MBCSV_FC_HDLN, \
@@ -301,7 +301,7 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_GL_LOCKS, MBCSV_FC_LOCKS, NCSFL_LC_LO
    */
 #define m_LOG_MBCSV_SVC_LOCK(lck_id, svc, lck)  \
 ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_SVC_LOCKS, MBCSV_FC_LOCKS, NCSFL_LC_LOCKS, \
-         NCSFL_SEV_DEBUG, "TILL", lck_id, svc, (uns32)(long)lck)
+         NCSFL_SEV_DEBUG, "TILL", lck_id, svc, (uint32_t)(long)lck)
 
 #define m_LOG_MBCSV_MEMFAIL(ha_state, mf_id)  \
 ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_MEMFAIL, MBCSV_FC_MEMFAIL, NCSFL_LC_MEMORY, \

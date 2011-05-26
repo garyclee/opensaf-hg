@@ -76,9 +76,9 @@ static void sigusr1_handler(int sig)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 immnd_cb_db_init(IMMND_CB *cb)
+static uint32_t immnd_cb_db_init(IMMND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = immnd_client_node_tree_init(cb);
 
@@ -103,9 +103,9 @@ static uns32 immnd_cb_db_init(IMMND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 immnd_initialize(char *progname)
+static uint32_t immnd_initialize(char *progname)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	char *envVar = NULL;
 
 	TRACE_ENTER();
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error;
-	uns32 timeout = 100;	/* ABT For server maintenance.
+	uint32_t timeout = 100;	/* ABT For server maintenance.
 				   Using a period of 0.1s during startup. */
 	int eventCount = 0;	/* Used to regulate progress of background 
 				   server task when we are very bussy. */
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 		/* Watch out for performance bug. Possibly change from event-count
 		   to recalculated timer. */
 		/* ABT 13/07 2009 actually using both event-count and recalculated timer now. */
-		uns32 passed_time = start_time ? (m_NCS_GET_TIME_MS - start_time) : 0;
+		uint32_t passed_time = start_time ? (m_NCS_GET_TIME_MS - start_time) : 0;
 
 		maxEvt = (timeout == 100) ? 50 : 100;
 
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 				/* Make some progress on background task, 
 				   even when we are very busy. */
 				TRACE_2("FORCE a proc_server job after %u events", eventCount);
-				uns32 rc = immnd_proc_server(&timeout);
+				uint32_t rc = immnd_proc_server(&timeout);
 				if (rc != NCSCC_RC_SUCCESS) {
 					LOG_ER("IMMND - Periodic server job failed");
 					break;
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 		} else {
 			/* Timeout */
 			/*TRACE_2("PERIODIC proc_server eventcout: %u", eventCount); */
-			uns32 rc = immnd_proc_server(&timeout);
+			uint32_t rc = immnd_proc_server(&timeout);
 			if (rc != NCSCC_RC_SUCCESS) {
 				LOG_ER("IMMND - Periodic server job failed");
 				break;

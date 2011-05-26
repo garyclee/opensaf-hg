@@ -33,9 +33,9 @@
 
 #include "ava.h"
 
-static uns32 ava_hdl_cbk_dispatch_one(AVA_CB **, AVA_HDL_REC **);
-static uns32 ava_hdl_cbk_dispatch_all(AVA_CB **, AVA_HDL_REC **);
-static uns32 ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
+static uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **, AVA_HDL_REC **);
+static uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **, AVA_HDL_REC **);
+static uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
 
 static void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
 
@@ -53,16 +53,16 @@ static NCS_BOOL ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
  
   Notes         : None
 ******************************************************************************/
-uns32 ava_hdl_init(AVA_HDL_DB *hdl_db)
+uint32_t ava_hdl_init(AVA_HDL_DB *hdl_db)
 {
 	NCS_PATRICIA_PARAMS param;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	/* init the hdl db tree */
-	param.key_size = sizeof(uns32);
+	param.key_size = sizeof(uint32_t);
 	param.info_size = 0;
 
 	rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
@@ -126,7 +126,7 @@ void ava_hdl_del(AVA_CB *cb)
 ******************************************************************************/
 void ava_hdl_rec_del(AVA_CB *cb, AVA_HDL_DB *hdl_db, AVA_HDL_REC *hdl_rec)
 {
-	uns32 hdl = hdl_rec->hdl;
+	uint32_t hdl = hdl_rec->hdl;
 	TRACE_ENTER();
 
 	/* pop the hdl rec */
@@ -277,10 +277,10 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
   Notes         : This routine reuses the callback info ptr that is received 
                   from MDS thus avoiding an extra copy.
 ******************************************************************************/
-uns32 ava_hdl_cbk_param_add(AVA_CB *cb, AVA_HDL_REC *hdl_rec, AVSV_AMF_CBK_INFO *cbk_info)
+uint32_t ava_hdl_cbk_param_add(AVA_CB *cb, AVA_HDL_REC *hdl_rec, AVSV_AMF_CBK_INFO *cbk_info)
 {
 	AVA_PEND_CBK_REC *rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* allocate the callbk rec */
@@ -317,9 +317,9 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 ava_hdl_cbk_dispatch(AVA_CB **cb, AVA_HDL_REC **hdl_rec, SaDispatchFlagsT flags)
+uint32_t ava_hdl_cbk_dispatch(AVA_CB **cb, AVA_HDL_REC **hdl_rec, SaDispatchFlagsT flags)
 {
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	switch (flags) {
@@ -355,13 +355,13 @@ uns32 ava_hdl_cbk_dispatch(AVA_CB **cb, AVA_HDL_REC **hdl_rec, SaDispatchFlagsT 
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
+uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
-	uns32 hdl = (*hdl_rec)->hdl;
+	uint32_t hdl = (*hdl_rec)->hdl;
 	SaAmfCallbacksT reg_cbk;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
@@ -425,13 +425,13 @@ uns32 ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
  
   Notes         : Refer to the notes in ava_hdl_cbk_dispatch_one().
 ******************************************************************************/
-uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
+uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
-	uns32 hdl = (*hdl_rec)->hdl;
+	uint32_t hdl = (*hdl_rec)->hdl;
 	SaAmfCallbacksT reg_cbk;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
@@ -496,13 +496,13 @@ uns32 ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
+uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
-	uns32 hdl = (*hdl_rec)->hdl;
+	uint32_t hdl = (*hdl_rec)->hdl;
 	AVA_PEND_CBK_REC *rec = 0;
 	SaAmfCallbacksT reg_cbk;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
@@ -683,7 +683,7 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 		{
 			AVSV_AMF_PG_TRACK_PARAM *pg_track = &info->param.pg_track;
 			SaAmfProtectionGroupNotificationBufferT buf;
-			uns32 i = 0;
+			uint32_t i = 0;
 
 			if (reg_cbk->saAmfProtectionGroupTrackCallback) {
 				pg_track->csi_name.length = pg_track->csi_name.length;
@@ -903,11 +903,11 @@ void ava_hdl_pend_resp_list_del(AVA_CB *cb, AVA_PEND_RESP *list)
  * Initializes the client mailbox to process pending callbacks
  * @param hdl_rec
  *
- * @returns uns32 
+ * @returns uint32_t 
  */
-uns32 ava_callback_ipc_init(AVA_HDL_REC *hdl_rec)
+uint32_t ava_callback_ipc_init(AVA_HDL_REC *hdl_rec)
 {       
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((rc = m_NCS_IPC_CREATE(&hdl_rec->callbk_mbx)) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&hdl_rec->callbk_mbx) == NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_SUCCESS;

@@ -26,15 +26,15 @@
 
      /* This is the function prototype for event handling */
 
-typedef uns32 (*CPDS_EVT_HANDLER) (CPD_CB *cb, CPD_MBCSV_MSG *msg);
-uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_arep_set(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_rd_set(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg);
-static uns32 cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+typedef uint32_t (*CPDS_EVT_HANDLER) (CPD_CB *cb, CPD_MBCSV_MSG *msg);
+uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_arep_set(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_rd_set(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg);
+static uint32_t cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg);
 
 const CPDS_EVT_HANDLER cpds_evt_dispatch_tbl[CPD_A2S_MSG_MAX_EVT - CPD_A2S_MSG_BASE] = {
 	cpd_sb_proc_ckpt_create,
@@ -58,9 +58,9 @@ const CPDS_EVT_HANDLER cpds_evt_dispatch_tbl[CPD_A2S_MSG_MAX_EVT - CPD_A2S_MSG_B
 
 * Notes : This function will be called from the MBCSv dispatch and also while receiving Async Updates
 *********************************************************************************************/
-uns32 cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if ((msg->type >= CPD_A2S_MSG_BASE) && (msg->type < CPD_A2S_MSG_MAX_EVT)) {
 		rc = cpds_evt_dispatch_tbl[(msg->type) - 1] (cb, msg);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -84,16 +84,16 @@ uns32 cpd_process_sb_msg(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 
  * Notes   : This routine will update the 3 databases at the Standby, and is called at the time of Cold Sync and Async Update of Checkpoint Open API
 *****************************************************************************************************************/
-uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
-	uns32 rc, proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc, proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL add_flag = TRUE;
-	uns32 count, dest_cnt;
+	uint32_t count, dest_cnt;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
 	CPD_CKPT_REPLOC_INFO *reploc_info = NULL;
@@ -282,14 +282,14 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 *          ND has deleted the ckpt, -> if it is the only ckpt on the node then delete the ckpt & node from cpd_cpnd
 *          --> delete the node ref info from ckpt_node  
 *********************************************************************************/
-uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaNameT ckpt_name, node_name;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
@@ -383,13 +383,13 @@ uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 
 *  Notes : None
 ******************************************************************************/
-uns32 cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	SaNameT *ckpt_name = &msg->info.ckpt_ulink.ckpt_name;
-	uns32 proc_rc = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = SA_AIS_OK;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	proc_rc = cpd_proc_unlink_set(cb, &ckpt_node, map_info, ckpt_name);
 	if (proc_rc != SA_AIS_OK) {
@@ -413,11 +413,11 @@ uns32 cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 *  Notes : None
 
 **********************************************************************************/
-uns32 cpd_sb_proc_ckpt_arep_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_arep_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	uns32 rc = SA_AIS_OK;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = SA_AIS_OK;
 
 	rc = cpd_proc_active_set(cb, msg->info.arep_set.ckpt_id, msg->info.arep_set.mds_dest, &ckpt_node);
 	if (rc != SA_AIS_OK) {
@@ -440,11 +440,11 @@ uns32 cpd_sb_proc_ckpt_arep_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
  
 *  Notes  : None
 ****************************************************************************************/
-uns32 cpd_sb_proc_ckpt_rd_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_rd_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
-	uns32 proc_rc = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = SA_AIS_OK;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	proc_rc = cpd_proc_retention_set(cb, msg->info.rd_set.ckpt_id, msg->info.rd_set.reten_time, &ckpt_node);
 	if (proc_rc != SA_AIS_OK) {
@@ -471,10 +471,10 @@ uns32 cpd_sb_proc_ckpt_rd_set(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 *           2. add the node info to the cpd_ckpt database 
 *********************************************************************************/
 
-uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
@@ -585,7 +585,7 @@ uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 *  Notes : None
                                                                                                                              
 **********************************************************************************/
-uns32 cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 
@@ -619,7 +619,7 @@ uns32 cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg)
                                                                                                                              
 **********************************************************************************/
 
-uns32 cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg)
+uint32_t cpd_sb_proc_ckpt_dest_down(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CPND_INFO_NODE *cpnd_info = NULL;
 	TRACE("THIS IS IN DEST DOWN OF NODE 1");

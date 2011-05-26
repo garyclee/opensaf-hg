@@ -33,23 +33,23 @@
 #ifndef DTS_DL_API_H
 #define DTS_DL_API_H
 
-uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t dts_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-uns32 dts_apps_ascii_spec_load(uint8_t *file_name, uns32 what_to_do);
+uint32_t dts_apps_ascii_spec_load(uint8_t *file_name, uint32_t what_to_do);
 
 NCSCONTEXT dts_ascii_spec_load(char *svc_name, uint16_t version, DTS_SPEC_ACTION action);
 
-uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info);
+uint32_t dts_lib_init(NCS_LIB_REQ_INFO *req_info);
 
-uns32 dts_lib_destroy(void);
+uint32_t dts_lib_destroy(void);
 
 /* Extern declarations for console printing functions */
 void dts_cons_init(void);
-int32 dts_cons_open(uns32 mode);
+int32_t dts_cons_open(uint32_t mode);
 
 /* Declaration for signal handler function */
 typedef void (*SIG_HANDLR) (int);
-int32 dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
+int32_t dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
 
 /* Defines for Console printing */
 #define DTS_CNSL "/dev/console"

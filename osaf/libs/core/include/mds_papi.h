@@ -62,7 +62,7 @@ extern "C" {
 #define MDS_MINOR_VERSION 1
 
 	typedef NCS_NODE_ID NODE_ID;	/* Node ID to distinguish among blades */
-	typedef uns32 MDS_SVC_ID;	/* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
+	typedef uint32_t MDS_SVC_ID;	/* MDS Service ID replaces SS_SVC_ID(an uint8_t) */
 	typedef uint16_t PW_ENV_ID;	/* Private World Environment ID        */
 
 /* MDS-DEST is defined globally in "ncsgl_defs.h" */
@@ -70,7 +70,7 @@ extern "C" {
 	typedef uint16_t MDS_VDEST_ID;
 
 /* Typedefs for the 64-BIT Changes */
-	typedef uns32 MDS_HDL;
+	typedef uint32_t MDS_HDL;
 	typedef uns64 MDS_CLIENT_HDL;
 
 /* Added for the version/in-service changes */
@@ -138,7 +138,7 @@ extern "C" {
 	} NCS_VDEST_TYPE;
 
 #define  NCSMDS_SYS_EV_REMOTE_NODE_FLTR  (EVT_FLTR)0x00001000
-	typedef uns32 EVT_FLTR;
+	typedef uint32_t EVT_FLTR;
 
 /**************************************************************************
  * SVC_ID  Service Identifier: A well known name that a service goes by
@@ -242,7 +242,7 @@ extern "C" {
 
 	typedef struct mds_sendtype_sndrsp_info {
 		MDS_DEST i_to_dest;	/* A virtual or absolute destination */
-		uns32 i_time_to_wait;	/* Timeout duration in 10ms units */
+		uint32_t i_time_to_wait;	/* Timeout duration in 10ms units */
 		NCSCONTEXT o_rsp;	/* Place for the response for normal message   */
 		MDS_DIRECT_BUFF buff;	/* For response of type direct send */
 		uint16_t len;
@@ -251,13 +251,13 @@ extern "C" {
 
 	typedef struct mds_sendtype_sndrspack_info {	/* Wait for an ack to the response */
 		MDS_DEST i_sender_dest;	/* Sender's the one who gets this response */
-		uns32 i_time_to_wait;	/* Timeout duration in 10ms units */
+		uint32_t i_time_to_wait;	/* Timeout duration in 10ms units */
 		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* MDS supplied data to identify request */
 	} MDS_SENDTYPE_SNDRSPACK_INFO;
 
 	typedef struct mds_sendtype_sndack_info {
 		MDS_DEST i_to_dest;	/* A virtual or absolute destination */
-		uns32 i_time_to_wait;	/* Timeout duration in 10ms units */
+		uint32_t i_time_to_wait;	/* Timeout duration in 10ms units */
 	} MDS_SENDTYPE_SNDACK_INFO;
 
 	typedef struct mds_sendtype_rsp_info {
@@ -273,7 +273,7 @@ extern "C" {
 	typedef struct mds_sendtype_redrsp_info {
 		MDS_DEST i_to_vdest;	/* A virtual destination             */
 		V_DEST_QA i_to_anc;	/* Anchor within virtual destination */
-		uns32 i_time_to_wait;	/* in 10ms units                  */
+		uint32_t i_time_to_wait;	/* in 10ms units                  */
 		NCSCONTEXT o_rsp;	/* Place for the message context  */
 		MDS_DIRECT_BUFF buff;	/* For response of type direct send */
 		uint16_t len;
@@ -283,14 +283,14 @@ extern "C" {
 	typedef struct mds_sendtype_redrspack_info {	/* Wait for an ack to the response */
 		MDS_DEST i_to_vdest;	/* A virtual destination             */
 		V_DEST_QA i_to_anc;	/* Anchor within virtual destination */
-		uns32 i_time_to_wait;	/* in 10ms units                  */
+		uint32_t i_time_to_wait;	/* in 10ms units                  */
 		MDS_SYNC_SND_CTXT i_msg_ctxt;	/* MDS supplied data to identify request */
 	} MDS_SENDTYPE_REDRSPACK_INFO;
 
 	typedef struct mds_sendtype_redack_info {
 		MDS_DEST i_to_vdest;	/* A virtual destination             */
 		V_DEST_QA i_to_anc;	/* Anchor within virtual destination */
-		uns32 i_time_to_wait;	/* in 10ms units                */
+		uint32_t i_time_to_wait;	/* in 10ms units                */
 	} MDS_SENDTYPE_REDACK_INFO;
 
 	typedef struct mds_sendtype_rrsp_info {
@@ -336,7 +336,7 @@ extern "C" {
 /* Prototype for callback registed by an MDS client. It is a single-entry
    API for all MDS callbacks including, encode/decode/receive, etc. */
 	struct ncsmds_callback_info;
-	typedef uns32 (*NCSMDS_CALLBACK_API) (struct ncsmds_callback_info * info);
+	typedef uint32_t (*NCSMDS_CALLBACK_API) (struct ncsmds_callback_info * info);
 
 /************************************************************************
     2) SVC APIs into MDS   (requests into MDS by Services(clients) )
@@ -559,14 +559,14 @@ extern "C" {
 /* MDS_SUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
 */
 	typedef struct mds_subscribe_node_info {
-		uns32 i_dummy;	/* Unused */
+		uint32_t i_dummy;	/* Unused */
 
 	} MDS_SUBSCRIBE_NODE_INFO;
 
 /* MDS_UNSUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
 */
 	typedef struct mds_unsubscribe_node_info {
-		uns32 i_dummy;	/* Unused */
+		uint32_t i_dummy;	/* Unused */
 
 	} MDS_UNSUBSCRIBE_NODE_INFO;
 
@@ -607,8 +607,8 @@ extern "C" {
    NCSCC_RC_FAILURE     : The API call failed.
    NCSCC_RC_REQ_TIMEOUT : The API call timed out
 */
-	typedef uns32 (*NCSMDS_API) (NCSMDS_INFO *svc_to_mds_info);
-	uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
+	typedef uint32_t (*NCSMDS_API) (NCSMDS_INFO *svc_to_mds_info);
+	uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
 
 /************************************************************************
     3) SVC APIs out of MDS (indications out of MDS to Services(clients) )
@@ -802,7 +802,7 @@ unpack individual structure members. */
 		   quiesced. Beyond this point MDS-Client will cease to receive
 		   messages sent addressed to active VDESTs
 		 */
-		uns32 i_dummy;	/* Unused */
+		uint32_t i_dummy;	/* Unused */
 	} MDS_CALLBACK_QUIESCED_ACK_INFO;
 
 	typedef struct mds_callback_node_event_info {
@@ -851,8 +851,8 @@ unpack individual structure members. */
 #define m_MDS_INST_NAME_TO_FIXED_VDEST(i_name, o_vdest_id)   \
         mds_inst_name_to_fixed_vdest(i_name, o_vdest_id)
 
-	void mds_fixed_vdest_to_inst_name(uns32 vdest_id, SaNameT *o_name);
-	uns32 mds_inst_name_to_fixed_vdest(SaNameT *i_name, uns32 *o_vdest_id);
+	void mds_fixed_vdest_to_inst_name(uint32_t vdest_id, SaNameT *o_name);
+	uint32_t mds_inst_name_to_fixed_vdest(SaNameT *i_name, uint32_t *o_vdest_id);
 
 /* Single-entry API  to be used by service-users of MDS is  :"ncsmds_api()" */
 

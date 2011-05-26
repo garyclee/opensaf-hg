@@ -61,9 +61,9 @@ static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t dts_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -94,12 +94,12 @@ uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
+uint32_t dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	NCSCONTEXT task_handle=0;
 	DTS_CB *inst = &dts_cb;
 	PCS_RDA_REQ pcs_rda_req;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(inst, 0, sizeof(DTS_CB));
 
@@ -247,7 +247,7 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 dts_lib_destroy(void)
+uint32_t dts_lib_destroy(void)
 {
 
 /*#if (DTS_SIM_TEST_ENV == 1)
@@ -308,22 +308,22 @@ static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg)
 *  Description:   To load/unload the Application specific ASCII Spec table in DTS *  
 *                                                                            *
 *  Arguments:     uint8_t* - Name of the Configuration File                     *
-*                 uns32 - what_to_do                                         *
+*                 uint32_t - what_to_do                                         *
 *                          1 - REGISTER the ASCII Spec table                 *
 *                          0 - UNREGISTER the ASCII spec table               *
 *                                                                            * 
 *  Returns:       NCSCC_RC_SUCCESS   - everything is OK                      *
 *                 NCSCC_RC_FAILURE   -  failure                              *
 \****************************************************************************/
-uns32 dts_apps_ascii_spec_load(uint8_t *file_name, uns32 what_to_do)
+uint32_t dts_apps_ascii_spec_load(uint8_t *file_name, uint32_t what_to_do)
 {
 	/* get the instruments ready */
 	FILE *fp = NULL;
 	char lib_name[DTS_MAX_LIBNAME] = { 0 };
 	char func_name[DTS_MAX_FUNCNAME] = { 0 };
-	int32 nargs = 0;
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 (*reg_unreg_routine) () = NULL;
+	int32_t nargs = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t (*reg_unreg_routine) () = NULL;
 	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
 	ASCII_SPEC_LIB *lib_entry;
@@ -452,9 +452,9 @@ uns32 dts_apps_ascii_spec_load(uint8_t *file_name, uns32 what_to_do)
 void dts_cons_init(void)
 {
 	DTS_CB *inst = &dts_cb;
-	int32 fd;
-	uns32 tried_devcons = 0;
-	uns32 tried_vtmaster = 0;
+	int32_t fd;
+	uint32_t tried_devcons = 0;
+	uint32_t tried_vtmaster = 0;
 	char *s;
 
 	if ((s = getenv("CONSOLE")) != NULL)
@@ -498,11 +498,11 @@ void dts_cons_init(void)
  *                                                                          *
  * Notes         : None.                                                    *
 \****************************************************************************/
-int32 dts_cons_open(uns32 mode)
+int32_t dts_cons_open(uint32_t mode)
 {
 	DTS_CB *inst = &dts_cb;
-	int32 f, fd = -1;
-	uns32 m;
+	int32_t f, fd = -1;
+	uint32_t m;
 
 	dts_cons_init();
 
@@ -535,7 +535,7 @@ int32 dts_cons_open(uns32 mode)
  *  NOTE:                                                                     *
 \*****************************************************************************/
 /* install the signal handler */
-int32 dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
+int32_t dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
 {
 	struct sigaction sig_act;
 

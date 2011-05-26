@@ -38,11 +38,11 @@
 #define SHM_QUEUE_INFO_INVALID 0
 #define SHM_NAME "NCS_MQND_QUEUE_CKPT_INFO"
 
-uns32 mqnd_shm_create(MQND_CB *cb);
-uns32 mqnd_shm_destroy(MQND_CB *cb);
-uns32 mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index);
-uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority);
-uns32 mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
-void mqnd_reset_queue_stats(MQND_CB *cb, uns32 index);
+uint32_t mqnd_shm_create(MQND_CB *cb);
+uint32_t mqnd_shm_destroy(MQND_CB *cb);
+uint32_t mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uint32_t *index);
+uint32_t mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority);
+uint32_t mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
+void mqnd_reset_queue_stats(MQND_CB *cb, uint32_t index);
 
 #endif

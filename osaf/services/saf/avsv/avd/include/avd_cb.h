@@ -172,11 +172,11 @@ typedef struct cl_cb_tag {
 	 * MBCSv related variables.
 	 */
 	NCS_MBCSV_HDL mbcsv_hdl;
-	uns32 ckpt_hdl;
+	uint32_t ckpt_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;
 	AVD_STBY_SYNC_STATE stby_sync_state;
 
-	uns32 synced_reo_type;	/* Count till which sync is done */
+	uint32_t synced_reo_type;	/* Count till which sync is done */
 	AVSV_ASYNC_UPDT_CNT async_updt_cnt;	/* Update counts for different async updates */
 	NCS_BOOL sync_required;	/* if TRUE, we need to send SYNC send to the standby 
 				   after mailbox processing */
@@ -203,7 +203,7 @@ typedef struct cl_cb_tag {
 	AVD_TMR heartbeat_tmr;	/* The timer for sending heart beats to nd. */
 	SaTimeT heartbeat_tmr_period;
 
-	uns32 nodes_exit_cnt;	/* The counter to identifies the number
+	uint32_t nodes_exit_cnt;	/* The counter to identifies the number
 				   of nodes that have exited the membership
 				   since the cluster boot time */
 

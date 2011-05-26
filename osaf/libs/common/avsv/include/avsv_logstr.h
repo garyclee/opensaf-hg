@@ -35,7 +35,7 @@
 #define AVSV_LOGSTR_H
 
 #if (NCS_DTS == 1)
-uns32 avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 const NCSFL_STR avsv_seapi_set[];
 const NCSFL_STR avsv_mds_set[];
 const NCSFL_STR avsv_srm_set[];

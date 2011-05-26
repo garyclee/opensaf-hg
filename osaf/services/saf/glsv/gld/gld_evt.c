@@ -25,20 +25,20 @@
   FUNCTIONS INCLUDED in this module:
   
 ******************************************************************************/
-static uns32 gld_rsc_open(GLSV_GLD_EVT *evt);
-static uns32 gld_rsc_close(GLSV_GLD_EVT *evt);
-static uns32 gld_rsc_set_orphan(GLSV_GLD_EVT *evt);
-static uns32 gld_glnd_operational(GLSV_GLD_EVT *evt);
-static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, MDS_DEST dest_id);
-static uns32 gld_mds_glnd_down(GLSV_GLD_EVT *evt);
-static uns32 gld_debug_dump_cb(GLSV_GLD_EVT *evt);
+static uint32_t gld_rsc_open(GLSV_GLD_EVT *evt);
+static uint32_t gld_rsc_close(GLSV_GLD_EVT *evt);
+static uint32_t gld_rsc_set_orphan(GLSV_GLD_EVT *evt);
+static uint32_t gld_glnd_operational(GLSV_GLD_EVT *evt);
+static uint32_t gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, MDS_DEST dest_id);
+static uint32_t gld_mds_glnd_down(GLSV_GLD_EVT *evt);
+static uint32_t gld_debug_dump_cb(GLSV_GLD_EVT *evt);
 GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_dest);
-static uns32 gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt);
-static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt);
-static uns32 gld_quisced_process(GLSV_GLD_EVT *evt);
-static uns32 gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, uns32 status);
-static uns32 gld_process_send_non_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_RSC_REF *glnd_rsc,
-					      GLSV_GLD_GLND_DETAILS *node_details, uns32 status);
+static uint32_t gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt);
+static uint32_t gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt);
+static uint32_t gld_quisced_process(GLSV_GLD_EVT *evt);
+static uint32_t gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, uint32_t status);
+static uint32_t gld_process_send_non_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_RSC_REF *glnd_rsc,
+					      GLSV_GLD_GLND_DETAILS *node_details, uint32_t status);
 
 /* GLD dispatch table */
 static const
@@ -66,7 +66,7 @@ GLSV_GLD_EVT_HANDLER gld_evt_dispatch_tbl[GLSV_GLD_EVT_MAX - GLSV_GLD_EVT_BASE] 
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_process_evt(GLSV_GLD_EVT *evt)
+uint32_t gld_process_evt(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 
@@ -122,7 +122,7 @@ void gld_evt_destroy(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_rsc_open(GLSV_GLD_EVT *evt)
+static uint32_t gld_rsc_open(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_RSC_INFO *rsc_info;
@@ -130,9 +130,9 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT *evt)
 	GLSV_NODE_LIST *node_list, **tmp_node_list;
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
-	uns32 res;
+	uint32_t res;
 	SaAisErrorT error;
-	uns32 node_id;
+	uint32_t node_id;
 	NCS_BOOL node_first_rsc_open = FALSE;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	NCS_BOOL orphan_flag = FALSE;
@@ -271,13 +271,13 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_rsc_close(GLSV_GLD_EVT *evt)
+static uint32_t gld_rsc_close(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 	NCS_BOOL orphan_flag;
-	uns32 node_id;
+	uint32_t node_id;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
 
@@ -328,11 +328,11 @@ static uns32 gld_rsc_close(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_rsc_set_orphan(GLSV_GLD_EVT *evt)
+static uint32_t gld_rsc_set_orphan(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
-	uns32 node_id;
+	uint32_t node_id;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
 
@@ -370,7 +370,7 @@ static uns32 gld_rsc_set_orphan(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
+uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
 			     SaLckLockModeT lck_mode)
 {
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc_ref;
@@ -402,12 +402,12 @@ uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceI
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_glnd_operational(GLSV_GLD_EVT *evt)
+static uint32_t gld_glnd_operational(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
-	uns32 node_id;
+	uint32_t node_id;
 	GLSV_NODE_LIST *node_list = NULL;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
@@ -459,14 +459,14 @@ static uns32 gld_glnd_operational(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, MDS_DEST dest_id)
+static uint32_t gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, MDS_DEST dest_id)
 {
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	GLSV_GLD_GLND_DETAILS *master_node_details = NULL;
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
-	uns32 index = 0;
-	uns32 no_of_glnd_res = 0;
+	uint32_t index = 0;
+	uint32_t no_of_glnd_res = 0;
 	GLSV_NODE_LIST *temp_node_list = NULL;
 	GLSV_GLD_GLND_DETAILS *non_master_node_details = NULL;
 
@@ -578,13 +578,13 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_mds_glnd_down(GLSV_GLD_EVT *evt)
+static uint32_t gld_mds_glnd_down(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	NCS_BOOL orphan_flag;
 	GLSV_GLD_RSC_INFO *rsc_info;
-	uns32 node_id;
+	uint32_t node_id;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.glnd_mds_info.mds_dest_id);
 
@@ -641,11 +641,11 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_quisced_process(GLSV_GLD_EVT *evt)
+static uint32_t gld_quisced_process(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	SaAisErrorT saErr = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((evt == GLSV_GLD_EVT_NULL) || (gld_cb == NULL))
 		return NCSCC_RC_FAILURE;
@@ -679,7 +679,7 @@ static uns32 gld_quisced_process(GLSV_GLD_EVT *evt)
 GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_dest)
 {
 	GLSV_GLD_GLND_DETAILS *node_details;
-	NCS_PATRICIA_PARAMS params = { sizeof(uns32) };
+	NCS_PATRICIA_PARAMS params = { sizeof(uint32_t) };
 
 	/* Need to add the node details */
 	node_details = m_MMGR_ALLOC_GLSV_GLD_GLND_DETAILS;
@@ -724,10 +724,10 @@ GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_
 
   NOTES         : None
 *****************************************************************************/
-static uns32 gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt)
+static uint32_t gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
-	uns32 res_id = (uns32)evt->info.tmr.resource_id;
+	uint32_t res_id = (uint32_t)evt->info.tmr.resource_id;
 	GLSV_GLD_RSC_INFO *res_node;
 
 	res_node = gld_find_rsc_by_id(gld_cb, res_id);
@@ -748,13 +748,13 @@ static uns32 gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
+static uint32_t gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = evt->gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 	SaLckResourceIdT rsc_id;
-	uns32 node_id;
+	uint32_t node_id;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.tmr.mdest_id);
 	m_LOG_GLD_HEADLINE(GLD_ND_RESTART_WAIT_TMR_EXP, NCSFL_SEV_NOTICE, __FILE__, __LINE__, node_id);
@@ -816,13 +816,13 @@ static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, uns32 status)
+static uint32_t gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_details, uint32_t status)
 {
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	SaLckResourceIdT rsc_id;
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
-	uns32 res;
+	uint32_t res;
 
 	glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0);
 	while (glnd_rsc) {
@@ -868,7 +868,7 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_GL
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 gld_debug_dump_cb(GLSV_GLD_EVT *evt)
+static uint32_t gld_debug_dump_cb(GLSV_GLD_EVT *evt)
 {
 	GLSV_GLD_CB *gld_cb = NULL;
 	gld_cb = evt->gld_cb;
@@ -891,12 +891,12 @@ static uns32 gld_debug_dump_cb(GLSV_GLD_EVT *evt)
         
   NOTES         : None
 *****************************************************************************/
-static uns32 gld_process_send_non_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_RSC_REF *glnd_rsc,
-					      GLSV_GLD_GLND_DETAILS *node_details, uns32 status)
+static uint32_t gld_process_send_non_master_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_RSC_REF *glnd_rsc,
+					      GLSV_GLD_GLND_DETAILS *node_details, uint32_t status)
 {
 	GLSV_GLND_EVT glnd_evt;
 	NCSMDS_INFO snd_mds;
-	uns32 res;
+	uint32_t res;
 
 	if (glnd_rsc->rsc_info->node_list->node_id != node_details->node_id) {
 		memset(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));

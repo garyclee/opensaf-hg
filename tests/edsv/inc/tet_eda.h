@@ -104,7 +104,7 @@ void tet_saEvtEventRetentionTimeClear(SaEvtChannelHandleT *,SaEvtEventIdT *);
 
 void result(char *,SaAisErrorT);
 void resultSuccess(char *,SaAisErrorT);
-uns32 tet_create_task(NCS_OS_CB);
+uint32_t tet_create_task(NCS_OS_CB);
 
 void tet_run_edsv_app(void);
 void gl_defs(void);

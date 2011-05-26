@@ -41,12 +41,12 @@ static void log_mds(const char *str);
 #define MAX_MDS_FNAME_LEN  256
 static char mds_log_fname[MAX_MDS_FNAME_LEN];
 
-uns32 mds_log_init(char *log_file_name, char *line_prefix)
+uint32_t mds_log_init(char *log_file_name, char *line_prefix)
 {
 	FILE *fh;
-	uns32 process_id = 0;
+	uint32_t process_id = 0;
 
-	process_id = (uns32)getpid();
+	process_id = (uint32_t)getpid();
 
 	/* Copy the log-line-prefix */
 	strncpy(log_line_prefix, line_prefix, sizeof(log_line_prefix) - 1);

@@ -119,7 +119,7 @@ typedef struct avsv_amf_pm_start_param_tag {
 	SaInt32T desc_tree_depth;	/* descendent tree depth */
 	SaAmfPmErrorsT pm_err;	/* pm errors */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -142,7 +142,7 @@ typedef struct avsv_amf_hc_start_param_tag {
 	SaAmfHealthcheckKeyT hc_key;	/* healthcheck key */
 	SaAmfHealthcheckInvocationT inv_type;	/* invocation type */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;
@@ -208,7 +208,7 @@ typedef struct avsv_amf_err_rep_param_tag {
 	SaNameT err_comp;	/* erroneous comp */
 	SaTimeT detect_time;	/* error detect time */
 	union {
-		uns32 raw;
+		uint32_t raw;
 		AVSV_ERR_RCVR avsv_ext;
 		SaAmfRecommendedRecoveryT saf_amf;
 	} rec_rcvr;

@@ -55,7 +55,7 @@ extern "C" {
 		/* Creation parameters, if any, are provided to libraries in a 
 		 ** command-line arguments style 
 		 */
-		uns32 argc;
+		uint32_t argc;
 		char **argv;
 	} NCS_LIB_CREATE;
 
@@ -64,13 +64,13 @@ extern "C" {
 		SaNameT i_inst_name;
 
 		/* Environment to which the instance belongs */
-		uns32 i_env_id;
+		uint32_t i_env_id;
 
 		/* Additionaly parameters (if any) passed to an SPRR lookup+creation request */
 		SaAmfCSIAttributeListT i_inst_attrs;	/* Attributes of the instance-name */
 
 		/* Handle to the instance */
-		uns32 o_inst_hdl;
+		uint32_t o_inst_hdl;
 
 		/* Opaque to the instance */
 		void *o_arg;
@@ -82,17 +82,17 @@ extern "C" {
 		SaNameT i_inst_name;
 
 		/* Environment to which the instance belongs */
-		uns32 i_env_id;
+		uint32_t i_env_id;
 
 		/* Handle to the instance */
-		uns32 i_inst_hdl;
+		uint32_t i_inst_hdl;
 
 		/* Opaque to the instance */
 		void *i_arg;
 	} NCS_LIB_UNINSTANTIATE;
 
 	typedef struct ncs_lib_destroy {
-		uns32 dummy;	/* Not used as of now */
+		uint32_t dummy;	/* Not used as of now */
 	} NCS_LIB_DESTROY;
 
 	typedef struct ncs_lib_req_info {
@@ -105,7 +105,7 @@ extern "C" {
 		} info;
 	} NCS_LIB_REQ_INFO;
 
-	typedef uns32 (*NCS_LIB_REQUEST) (NCS_LIB_REQ_INFO *req_info);
+	typedef uint32_t (*NCS_LIB_REQUEST) (NCS_LIB_REQ_INFO *req_info);
 
 #ifdef  __cplusplus
 }

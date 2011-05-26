@@ -42,7 +42,7 @@ static void proc_cmd_req(smfnd_cb_t * cb, SMFSV_EVT * evt)
 {
 	int cmd_result;
 	SMFSV_EVT result_evt;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
@@ -85,10 +85,10 @@ static void proc_cmd_req(smfnd_cb_t * cb, SMFSV_EVT * evt)
 		   scope - Scope of sent.
  * Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS. 
  *****************************************************************************/
-uns32 smfvs_mds_msg_bcast(uns32 mds_hdl,uns32 from_svc, uns32 to_svc, NCSCONTEXT evt, uns32 priority,uns32 scope)
+uint32_t smfvs_mds_msg_bcast(uint32_t mds_hdl,uint32_t from_svc, uint32_t to_svc, NCSCONTEXT evt, uint32_t priority,uint32_t scope)
 {
 	NCSMDS_INFO   info;
-	uns32 rc;
+	uint32_t rc;
 	TRACE_ENTER();
 
 	memset(&info, 0, sizeof(info));
@@ -118,11 +118,11 @@ uns32 smfvs_mds_msg_bcast(uns32 mds_hdl,uns32 from_svc, uns32 to_svc, NCSCONTEXT
  		   evt - Received from SMFD.
  * Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS. 
  *****************************************************************************/
-uns32 smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
+uint32_t smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
 {
 	SMFND_SMFA_ADEST_INVID_MAP *inv_node;
 	SMFSV_EVT cbk_resp_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* If there are no agents in this node, then resp OK to SMFD now.*/
@@ -182,11 +182,11 @@ uns32 smfnd_cbk_req_proc(smfnd_cb_t * cb, SMFSV_EVT *evt)
  		   inv_id - invocation id.
  * Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS. 
  *****************************************************************************/
-uns32 smfnd_cbk_resp_err_proc(smfnd_cb_t *cb, SaInvocationT inv_id)
+uint32_t smfnd_cbk_resp_err_proc(smfnd_cb_t *cb, SaInvocationT inv_id)
 {
 	SMFND_SMFA_ADEST_INVID_MAP *inv_node = cb->cbk_list;
 	SMFND_SMFA_ADEST_INVID_MAP *prev_inv = inv_node;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SMFSV_EVT resp_evt;
 
 	TRACE_ENTER2("SMFND: Received ERR resp for the inv_id: %llu.",inv_id);
@@ -229,11 +229,11 @@ uns32 smfnd_cbk_resp_err_proc(smfnd_cb_t *cb, SaInvocationT inv_id)
 		   resp - resp sent by agent.
  * Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS. 
  *****************************************************************************/
-uns32 smfnd_cbk_resp_ok_proc(smfnd_cb_t *cb, SaInvocationT inv_id, uns32 resp)
+uint32_t smfnd_cbk_resp_ok_proc(smfnd_cb_t *cb, SaInvocationT inv_id, uint32_t resp)
 {
 	SMFND_SMFA_ADEST_INVID_MAP *inv_node = cb->cbk_list;
 	SMFND_SMFA_ADEST_INVID_MAP *prev_inv = inv_node;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SMFSV_EVT resp_evt;
 	
 	TRACE_ENTER2("SMFND: Received OK resp for the ind_id: %llu.",inv_id);
@@ -280,9 +280,9 @@ uns32 smfnd_cbk_resp_ok_proc(smfnd_cb_t *cb, SaInvocationT inv_id, uns32 resp)
  *                 evt - The CBK_RESP event received from agent. 
  * Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS. 
  *****************************************************************************/
-uns32 smfnd_cbk_resp_proc(smfnd_cb_t *cb, SMFSV_EVT *evt)
+uint32_t smfnd_cbk_resp_proc(smfnd_cb_t *cb, SMFSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	TRACE_ENTER();
 
 	if (SA_AIS_ERR_FAILED_OPERATION == evt->info.smfnd.event.cbk_req_rsp.evt.resp_evt.err){

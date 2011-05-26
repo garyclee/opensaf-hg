@@ -113,7 +113,7 @@ Description:
              characters comprising the chassis-type string followed by a  
              newline character.)
 \***********************************************************************/
-	uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type);
+	uint32_t ncs_get_chassis_type(uint32_t i_max_len, char *o_chassis_type);
 
 /* Excluding null character byte for string termination */
 #define NCS_MAX_CHASSIS_TYPE_LEN  (40)

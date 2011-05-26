@@ -30,7 +30,7 @@
 #include "plmc_lib_internal.h"
 #include "plmc.h"
 
-static int32  plms_plmc_tcp_cbk(tcp_msg *);
+static int32_t  plms_plmc_tcp_cbk(tcp_msg *);
 static SaUint32T plms_ee_verify(PLMS_ENTITY *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_os_info_parse(SaInt8T *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *, PLMS_TRACK_INFO *,PLMS_GROUP_ENTITY *,SaUint32T);
@@ -1100,7 +1100,7 @@ SaUint32T plms_plmc_ee_id_response(PLMS_ENTITY *ent,
 @return		: 0 for success.
 		  1 for failure.
 ******************************************************************************/
-int32 plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
+int32_t plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 {
 	PLMS_EVT *evt;
 	SaUint8T *tmp;
@@ -1158,7 +1158,7 @@ int32 plms_plmc_connect_cbk(SaInt8T *ee_id,SaInt8T *msg)
 @return		: 0 for success.
 		  1 for failure.
 ******************************************************************************/
-int32 plms_plmc_udp_cbk(udp_msg *msg)
+int32_t plms_plmc_udp_cbk(udp_msg *msg)
 {
 	PLMS_EVT *evt;
 	SaInt8T *os_info;
@@ -1241,7 +1241,7 @@ int32 plms_plmc_udp_cbk(udp_msg *msg)
 @return		: 0 for success.
 		  1 for failure.
 ******************************************************************************/
-static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
+static int32_t plms_plmc_tcp_cbk(tcp_msg *msg)
 {
 	PLMS_EVT *evt;
 	SaInt8T *os_info;
@@ -1423,7 +1423,7 @@ static int32 plms_plmc_tcp_cbk(tcp_msg *msg)
 		events in PLMS MBX context. If situation arises for any other errors,
 		it will be taken care then.
 ******************************************************************************/
-int32 plms_plmc_error_cbk(plmc_lib_error *msg)
+int32_t plms_plmc_error_cbk(plmc_lib_error *msg)
 {
 	PLMS_EVT *evt;
 	PLMS_CB *cb = plms_cb;

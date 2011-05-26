@@ -40,19 +40,19 @@
 #include <logtrace.h>
 #include "avd.h"
 
-static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
-static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb);
-static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb);
-static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb);
-static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb);
-static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb);
-static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type);
+static uint32_t avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg);
+static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t avsv_mbcsv_initialize(AVD_CL_CB *cb);
+static uint32_t avsv_mbcsv_open_ckpt(AVD_CL_CB *cb);
+static uint32_t avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb);
+static uint32_t avsv_mbcsv_close_ckpt(AVD_CL_CB *cb);
+static uint32_t avsv_mbcsv_finalize(AVD_CL_CB *cb);
+static uint32_t avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uint32_t reo_type);
 
 extern const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
 
@@ -71,9 +71,9 @@ extern const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CK
  *
  * 
 \**************************************************************************/
-uns32 avsv_mbcsv_register(AVD_CL_CB *cb)
+uint32_t avsv_mbcsv_register(AVD_CL_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/*
 	 * Send Async Update count to zero.
@@ -126,9 +126,9 @@ done:
  *
  * 
 \**************************************************************************/
-uns32 avsv_mbcsv_deregister(AVD_CL_CB *cb)
+uint32_t avsv_mbcsv_deregister(AVD_CL_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/*
 	 * First close and then finalize.
@@ -156,9 +156,9 @@ done:
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status;
+	uint32_t status;
 
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
@@ -203,9 +203,9 @@ static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	switch (arg->info.encode.io_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -300,9 +300,9 @@ static uns32 avsv_mbcsv_process_enc_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	switch (arg->info.decode.i_msg_type) {
 	case NCS_MBCSV_MSG_ASYNC_UPDATE:
@@ -493,7 +493,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	/* Used to refer while sending checkpoint msg to its peer AVD */
 	cb->avd_peer_ver = arg->info.peer.i_peer_version;
@@ -514,7 +514,7 @@ static uns32 avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *ar
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	LOG_ER("%s:%u", __FUNCTION__, __LINE__);
 	return NCSCC_RC_SUCCESS;
@@ -533,7 +533,7 @@ static uns32 avsv_mbcsv_process_notify(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
+static uint32_t avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
@@ -590,7 +590,7 @@ static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
+static uint32_t avsv_mbcsv_initialize(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -622,7 +622,7 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
+static uint32_t avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -654,10 +654,10 @@ static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
+uint32_t avsv_set_ckpt_role(AVD_CL_CB *cb, uint32_t role)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -689,7 +689,7 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB *cb, uns32 role)
  *
  *
 \**************************************************************************/
-uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
+uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role)
 {
 	AVD_DND_MSG *d2n_msg = NULL;
 	AVD_AVND *node = NULL;
@@ -747,7 +747,7 @@ done:
  *
  * 
 \**************************************************************************/
-static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
+static uint32_t avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -778,10 +778,10 @@ static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
+uint32_t avsv_mbcsv_dispatch(AVD_CL_CB *cb, uint32_t flag)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
@@ -814,7 +814,7 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB *cb, uns32 flag)
  *
  * 
 \**************************************************************************/
-uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns32 reo_type, uns32 send_type)
+uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_hdl, uint32_t reo_type, uint32_t send_type)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -955,7 +955,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
+static uint32_t avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -984,7 +984,7 @@ static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb)
+static uint32_t avsv_mbcsv_finalize(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -1012,7 +1012,7 @@ static uns32 avsv_mbcsv_finalize(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-uns32 avsv_mbcsv_obj_set(AVD_CL_CB *cb, uns32 obj, uns32 val)
+uint32_t avsv_mbcsv_obj_set(AVD_CL_CB *cb, uint32_t obj, uint32_t val)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 
@@ -1044,7 +1044,7 @@ uns32 avsv_mbcsv_obj_set(AVD_CL_CB *cb, uns32 obj, uns32 val)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uint32_t avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
@@ -1085,9 +1085,9 @@ static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
  *
  * 
 \**************************************************************************/
-uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
+uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVSV_ASYNC_UPDT_MSG_QUEUE *updt_msg;
 
 	TRACE_ENTER2("%u", pr_or_fr);
@@ -1127,7 +1127,7 @@ uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
  *
  * 
 \**************************************************************************/
-uns32 avsv_send_data_req(AVD_CL_CB *cb)
+uint32_t avsv_send_data_req(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {0};
 	NCS_UBAID *uba = NULL;
@@ -1165,9 +1165,9 @@ uns32 avsv_send_data_req(AVD_CL_CB *cb)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
+static uint32_t avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uint32_t reo_type)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 
 	switch (reo_type) {
 	case AVSV_CKPT_AVD_CB_CONFIG:

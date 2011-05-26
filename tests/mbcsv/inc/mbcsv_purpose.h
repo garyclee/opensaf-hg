@@ -54,21 +54,21 @@ typedef enum mbcstm_cb_test {
 } MBCSTM_CB_TEST;
 
 typedef struct ssn_perf_data {
-  uns32 length;
-  uns32 crc;
+  uint32_t length;
+  uint32_t crc;
   char *msg;
 } SSN_PERF_DATA;
 
 /* some gloable varialbes */
-uns32 case_num, cases_passed, cases_failed;
+uint32_t case_num, cases_passed, cases_failed;
 
 /* test  purpose declarations */
-uns32 mbcstm_startup(void);
-uns32 mbcstm_final_results(void);
-uns32 mbcstm_test_print(uns32 case_num,char * case_name, char *disc,
+uint32_t mbcstm_startup(void);
+uint32_t mbcstm_final_results(void);
+uint32_t mbcstm_test_print(uint32_t case_num,char * case_name, char *disc,
                      TET_MBCSV_RESULT exp_res, TET_MBCSV_RESULT final_res);
-uns32 mbcstm_test_pupose_model(void);
-uns32 mbcstm_wait_to_end(void);
+uint32_t mbcstm_test_pupose_model(void);
+uint32_t mbcstm_wait_to_end(void);
 
 
 /* session discovery related cases */
@@ -150,15 +150,15 @@ void mbcstm_peer_discover_performance(void);
 /* General cases */
 void mbcstm_open_up_down(void);
 
-uns32 mbcstm_sync_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys, 
-                           MBCSTM_CB_TEST sync,uns32 warm,uns32 wait);
-uns32 mbcstm_data_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                           uns32 wait, MBCSTM_CB_TEST sync);
-uns32 mbcstm_notify_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                             uns32 isys, MBCSTM_CB_TEST sync, 
+uint32_t mbcstm_sync_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys, 
+                           MBCSTM_CB_TEST sync,uint32_t warm,uint32_t wait);
+uint32_t mbcstm_data_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                           uint32_t wait, MBCSTM_CB_TEST sync);
+uint32_t mbcstm_notify_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                             uint32_t isys, MBCSTM_CB_TEST sync, 
                              NCS_MBCSV_NTFY_MSG_DEST msg_dest,char *str, 
-                             uns32 len);
-uns32 mbcstm_cb_test_cases(NCS_MBCSV_CB_ARG *arg);
+                             uint32_t len);
+uint32_t mbcstm_cb_test_cases(NCS_MBCSV_CB_ARG *arg);
 void mbcstm_coldsync_standby_encode_fail(void);
 void mbcstm_coldsync_coldrequest_noresponse(void);
 void mbcstm_coldsync_stdby_decode_fail(void); 
@@ -175,11 +175,11 @@ void mbcstm_notify_send_to_active(void);
 void mbcstm_notify_send_to_standby(void);
 void mbcstm_notify_send_active_to_active(void);
 void mbcstm_notify_send_active_to_multiactive(void);
-uns32 mbcstm_create_data_point(uns32 svc_index, uns32 ssn_index);
-uns32 mbcstm_print_data_points(uns32 svc_index, uns32 ssn_index);
-uns32 mbcstm_destroy_data_point(uns32 svc_index, uns32 ssn_index);
-uns32 mbcstm_ckpt_send_purpose(uns32 svc_index, uns32 ssn_index,uns32 asys,
-                               uns32 send_index, uns32 send_count,
+uint32_t mbcstm_create_data_point(uint32_t svc_index, uint32_t ssn_index);
+uint32_t mbcstm_print_data_points(uint32_t svc_index, uint32_t ssn_index);
+uint32_t mbcstm_destroy_data_point(uint32_t svc_index, uint32_t ssn_index);
+uint32_t mbcstm_ckpt_send_purpose(uint32_t svc_index, uint32_t ssn_index,uint32_t asys,
+                               uint32_t send_index, uint32_t send_count,
                                NCS_MBCSV_ACT_TYPE action, 
                                NCS_MBCSV_MSG_TYPE send_type,
                                MBCSTM_CB_TEST sync);
@@ -188,7 +188,7 @@ void mbcstm_ckpt_standby_sendsync(void);
 void mbcstm_ckpt_idle_sendsync(void);
 void mbcstm_ckpt_send_usrasync(void);
 void mbcstm_ckpt_send_mbcasync(void);
-uns32 mbcstm_close(void);
-//uns32 tet_mbcsv_startup(void);
+uint32_t mbcstm_close(void);
+//uint32_t tet_mbcsv_startup(void);
 
 #endif

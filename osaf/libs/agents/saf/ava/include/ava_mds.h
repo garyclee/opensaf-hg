@@ -268,12 +268,12 @@
 
 /*** Extern function declarations ***/
 struct ava_cb_tag;
-uns32 ava_mds_reg(struct ava_cb_tag *);
+uint32_t ava_mds_reg(struct ava_cb_tag *);
 
-uns32 ava_mds_unreg(struct ava_cb_tag *);
+uint32_t ava_mds_unreg(struct ava_cb_tag *);
 
-uns32 ava_mds_cbk(NCSMDS_CALLBACK_INFO *);
+uint32_t ava_mds_cbk(NCSMDS_CALLBACK_INFO *);
 
-uns32 ava_mds_send(struct ava_cb_tag *, AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG **);
+uint32_t ava_mds_send(struct ava_cb_tag *, AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG **);
 
 #endif   /* !AVA_MDS_H */

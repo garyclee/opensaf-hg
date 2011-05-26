@@ -148,12 +148,12 @@ static void immnd_saf_csi_set_cb(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immnd_amf_init(IMMND_CB *cb)
+uint32_t immnd_amf_init(IMMND_CB *cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 	SaClmClusterNodeT cluster_node;
 	const char *health_key;
 	SaAmfHealthcheckKeyT healthy;

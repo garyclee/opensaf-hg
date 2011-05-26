@@ -35,7 +35,7 @@
 #include "mqd.h"
 #include "mqd_imm.h"
 extern MQDLIB_INFO gl_mqdinfo;
-static uns32 mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState);
+static uint32_t mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState);
 /****************************************************************************
  PROCEDURE NAME : mqd_saf_hlth_chk_cb
 
@@ -59,7 +59,7 @@ static uns32 mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, S
 void mqd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
 	MQD_CB *pMqd = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 	/* Get the COntrol Block Pointer */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
@@ -117,7 +117,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 	MQD_CB *pMqd = 0;
 	MQSV_EVT *pEvt = 0;
 	MQD_ND_DB_NODE *pNdNode = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 	V_DEST_RL mds_role;
 	NCSVDA_INFO vda_info;
@@ -235,9 +235,9 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 	return;
 }	/* End of mqd_saf_csi_set_cb() */
 
-static uns32 mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState)
+static uint32_t mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	V_DEST_RL mds_role;
 	NCSVDA_INFO vda_info;
 
@@ -268,7 +268,7 @@ void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 {
 	MQD_CB *pMqd = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (pMqd) {
@@ -289,7 +289,7 @@ void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
 			      const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
 	MQD_CB *pMqd = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 	V_DEST_RL mds_role;
 	NCSVDA_INFO vda_info;

@@ -104,7 +104,7 @@
 
 *****************************************************************************/
 
-int32 ncs_enc_init_space(NCS_UBAID *uba)
+int32_t ncs_enc_init_space(NCS_UBAID *uba)
 {
 	if ((uba->start = m_MMGR_ALLOC_BUFR(sizeof(USRBUF))) == BNULL)
 		return NCSCC_RC_FAILURE;
@@ -140,7 +140,7 @@ int32 ncs_enc_init_space(NCS_UBAID *uba)
 
 *****************************************************************************/
 
-int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uint8_t pool_id, uint8_t priority)
+int32_t ncs_enc_init_space_pp(NCS_UBAID *uba, uint8_t pool_id, uint8_t priority)
 {
 	if ((uba->start = m_MMGR_ALLOC_POOLBUFR(pool_id, priority)) == BNULL)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -224,7 +224,7 @@ void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub)
 
 *****************************************************************************/
 
-uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
+uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32_t res)
 {
 	if (res > PAYLOAD_BUF_SIZE) {	/* can never reserve > min payload of USRBUF */
 		res = PAYLOAD_BUF_SIZE;
@@ -237,7 +237,7 @@ uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
 	 ** As a patch, we post an out-of-memory message so that 
 	 ** there is some indication as to where the crash came from.
 	 */
-	uba->bufp = m_MMGR_RESERVE_AT_END(&(uba->ub), (uns32)res, uint8_t *);
+	uba->bufp = m_MMGR_RESERVE_AT_END(&(uba->ub), (uint32_t)res, uint8_t *);
 
 #ifdef _DEBUG
 	if (uba->bufp == NULL)
@@ -265,12 +265,12 @@ uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
 
 *****************************************************************************/
 
-void ncs_enc_claim_space(NCS_UBAID *uba, int32 used)
+void ncs_enc_claim_space(NCS_UBAID *uba, int32_t used)
 {
-	uba->ttl = (uba->ttl + used);  /* keep our grand total as uns32 */
+	uba->ttl = (uba->ttl + used);  /* keep our grand total as uint32_t */
 
 	/* Free up unused portion which was reserved  */
-	m_MMGR_REMOVE_FROM_END(uba->ub, (uns32)(uba->res - used));
+	m_MMGR_REMOVE_FROM_END(uba->ub, (uint32_t)(uba->res - used));
 
 	uba->res = 0;		/* wipe out notion that space was reserved... */
 }
@@ -327,14 +327,14 @@ void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub)
 
 *****************************************************************************/
 
-uint8_t *ncs_dec_flatten_space(NCS_UBAID *uba, uint8_t *os, int32 count)
+uint8_t *ncs_dec_flatten_space(NCS_UBAID *uba, uint8_t *os, int32_t count)
 {
 	if (uba->ub == BNULL) {
 		m_LEAP_DBG_SINK(NULL);
 		return NULL;
 	}
 
-	return (uint8_t *)m_MMGR_DATA_AT_START(uba->ub, (uns32)count, (char *)os);
+	return (uint8_t *)m_MMGR_DATA_AT_START(uba->ub, (uint32_t)count, (char *)os);
 }
 
 /*****************************************************************************
@@ -355,9 +355,9 @@ uint8_t *ncs_dec_flatten_space(NCS_UBAID *uba, uint8_t *os, int32 count)
 
 *****************************************************************************/
 
-void ncs_dec_skip_space(NCS_UBAID *uba, int32 count)
+void ncs_dec_skip_space(NCS_UBAID *uba, int32_t count)
 {
-	m_MMGR_REMOVE_FROM_START(&uba->ub, (uns32)count);
+	m_MMGR_REMOVE_FROM_START(&uba->ub, (uint32_t)count);
 	uba->ttl = uba->ttl + count;
 }
 
@@ -381,7 +381,7 @@ void ncs_dec_skip_space(NCS_UBAID *uba, int32 count)
 
 *****************************************************************************/
 
-void ncs_set_max(NCS_UBAID *uba, int32 max)
+void ncs_set_max(NCS_UBAID *uba, int32_t max)
 {
 	uba->max = max;
 }
@@ -416,7 +416,7 @@ void ncs_set_max(NCS_UBAID *uba, int32 max)
 
 *****************************************************************************/
 
-NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32 to_put)
+NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32_t to_put)
 {
 	if ((uba->ttl + to_put) <= uba->max)
 		return (TRUE);
@@ -451,7 +451,7 @@ NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32 to_put)
 
 *****************************************************************************/
 
-NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32 to_get)
+NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32_t to_get)
 {
 	if ((uba->ttl + to_get) <= uba->max)
 		return (TRUE);
@@ -533,7 +533,7 @@ USRBUF *mds_decode_mds_dest(USRBUF *i_ub, MDS_DEST *o_mds_dest)
                                or NCSCC_RC_FAILURE.
 
 \***************************************************************/
-uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
+uint32_t mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
 {
 	uint8_t *p;
 
@@ -543,7 +543,7 @@ uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
+uint32_t mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
 {
 	uint8_t buff[8];
 	uint8_t *s;
@@ -555,7 +555,7 @@ uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mds_st_encode_mds_dest(uint8_t **stream, MDS_DEST *idest)
+uint32_t mds_st_encode_mds_dest(uint8_t **stream, MDS_DEST *idest)
 {
 	if ((stream == NULL) || (*stream == NULL) || (idest == NULL))
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -564,7 +564,7 @@ uns32 mds_st_encode_mds_dest(uint8_t **stream, MDS_DEST *idest)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest)
+uint32_t mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest)
 {
 	if ((stream == NULL) || (*stream == NULL) || (odest == NULL))
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -590,9 +590,9 @@ USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 	uint16_t p_len;
 
 	p_len = sizeof(NCSCONTEXT);
-	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32)(p_len + sizeof(uint8_t)), uint8_t *)) != (uint8_t *)0) {
+	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32_t)(p_len + sizeof(uint8_t)), uint8_t *)) != (uint8_t *)0) {
 		ncs_encode_8bit(&p, p_len);
-		if (p_len == sizeof(uns32))
+		if (p_len == sizeof(uint32_t))
 			ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
 		else
 			ncs_encode_64bit(&p, NCS_PTR_TO_UNS64_CAST(i_pointer));
@@ -609,14 +609,14 @@ USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size
 	*o_recvd_ptr = 0;
 	*o_ptr_size_in_bytes = 0;
 
-	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32)(sizeof(uint8_t)), (char *)o_ptr_size_in_bytes);
+	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32_t)(sizeof(uint8_t)), (char *)o_ptr_size_in_bytes);
 	p_len = ncs_decode_8bit(&s);
 	*o_ptr_size_in_bytes = p_len;
 	m_MMGR_REMOVE_FROM_START(&i_ub, sizeof(uint8_t));
 
-	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32)p_len, (char *)o_recvd_ptr);
+	s = (uint8_t *)m_MMGR_DATA_AT_START(i_ub, (int32_t)p_len, (char *)o_recvd_ptr);
 
-	if (p_len == sizeof(uns32))
+	if (p_len == sizeof(uint32_t))
 		*o_recvd_ptr = ncs_decode_32bit(&s);
 	else {
 		if (p_len != sizeof(NCSCONTEXT))
@@ -639,38 +639,38 @@ USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uint8_t *o_ptr_size
                                or NCSCC_RC_FAILURE.
  
 \***************************************************************/
-uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
+uint32_t ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
 {
 	uint8_t *p;
 	uint8_t p_len;
 
 	p_len = sizeof(NCSCONTEXT);
-	p = ncs_enc_reserve_space(uba, (int32)(p_len + sizeof(uint8_t)));
+	p = ncs_enc_reserve_space(uba, (int32_t)(p_len + sizeof(uint8_t)));
 
 	ncs_encode_8bit(&p, p_len);
-	if (p_len == sizeof(uns32))
+	if (p_len == sizeof(uint32_t))
 		ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
 	else
 		ncs_encode_64bit(&p, NCS_PTR_TO_UNS64_CAST(i_pointer));
 
-	ncs_enc_claim_space(uba, (int32)(p_len + sizeof(uint8_t)));
+	ncs_enc_claim_space(uba, (int32_t)(p_len + sizeof(uint8_t)));
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
+uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes)
 {
 	uint8_t *s;
 	uint8_t p_len;
 
 	*o_recvd_ptr = 0;
 	*o_ptr_size_in_bytes = 0;
-	s = ncs_dec_flatten_space(uba, (uint8_t *)o_ptr_size_in_bytes, (int32)(sizeof(uint8_t)));
+	s = ncs_dec_flatten_space(uba, (uint8_t *)o_ptr_size_in_bytes, (int32_t)(sizeof(uint8_t)));
 	p_len = ncs_decode_8bit(&s);
-	ncs_dec_skip_space(uba, (int32)(sizeof(uint8_t)));
+	ncs_dec_skip_space(uba, (int32_t)(sizeof(uint8_t)));
 
 	*o_ptr_size_in_bytes = p_len;
-	s = ncs_dec_flatten_space(uba, (uint8_t *)o_recvd_ptr, (int32)p_len);
-	if (p_len == sizeof(uns32))
+	s = ncs_dec_flatten_space(uba, (uint8_t *)o_recvd_ptr, (int32_t)p_len);
+	if (p_len == sizeof(uint32_t))
 		*o_recvd_ptr = ncs_decode_32bit(&s);
 	else {
 		if (p_len != sizeof(NCSCONTEXT))
@@ -679,7 +679,7 @@ uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_
 		*o_recvd_ptr = ncs_decode_64bit(&s);
 	}
 
-	ncs_dec_skip_space(uba, (int32)(p_len));
+	ncs_dec_skip_space(uba, (int32_t)(p_len));
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -704,11 +704,11 @@ uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uint8_t *o_ptr_
   NOTES:
 
 *****************************************************************************/
-uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
+uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
 {
 	uint8_t *p;
-	uns32 remaining;
-	uns32 try_put;
+	uint32_t remaining;
+	uint32_t try_put;
 
 	if (uba->ub == NULL) {
 		/* Operation fail */
@@ -773,7 +773,7 @@ uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count
   NOTES:
 
 *****************************************************************************/
-uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
+uint32_t ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
 {
 	uint8_t *p8;
 

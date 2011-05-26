@@ -7,15 +7,15 @@
 #include <sys/sem.h>
 #define KEY (1492)
 /*Declarations and Global variables*/
-uns32 tet_mbcsv_config();
+uint32_t tet_mbcsv_config();
 NCSVDA_INFO    vda_info;
-uns32 tet_mbcsv_dest_close(void);
-uns32 create_vdest(MDS_DEST vdest);
-uns32 destroy_vdest(MDS_DEST vdest);
-uns32 tet_mbcsv_dest_start(void);
-uns32 initsemaphore();
-uns32 V_operation();
-uns32 P_operation();
+uint32_t tet_mbcsv_dest_close(void);
+uint32_t create_vdest(MDS_DEST vdest);
+uint32_t destroy_vdest(MDS_DEST vdest);
+uint32_t tet_mbcsv_dest_start(void);
+uint32_t initsemaphore();
+uint32_t V_operation();
+uint32_t P_operation();
 int fill_syncparameters(int vote);
 /*---------------  TEST CASES --------------------------------*/
 void tet_mbcsv_op(int choice)
@@ -267,7 +267,7 @@ void tet_mbcsv_change_role(int choice)
 {
   int FAIL=0;
   NCS_MBCSV_HDL temp_hdl;
-  uns32 temp_ckpt_hdl;
+  uint32_t temp_ckpt_hdl;
 
   printf("\n---------- tet_mbcsv_change_role: Case %d -------------\n",choice);
   mbcstm_input();
@@ -403,13 +403,13 @@ void tet_mbcsv_Notify(int choice)
 {
   int FAIL=0;
 
-  uns32 temp_ckpt_hdl;
+  uint32_t temp_ckpt_hdl;
   char str[]="Yes My Dear Peer";
   int len=strlen(str)+1;
   char BIG[1200];
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32 mbcstm_svc_send_notify(uns32, uns32, NCS_MBCSV_NTFY_MSG_DEST, char *,
-                               uns32 );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t mbcstm_svc_send_notify(uint32_t, uint32_t, NCS_MBCSV_NTFY_MSG_DEST, char *,
+                               uint32_t );
     
   printf("\n----------- tet_mbcsv_Notify: Case %d -------------\n",choice);
   mbcstm_input();
@@ -859,7 +859,7 @@ void tet_mbcsv_cold_sync(choice)
     MBCSTM_PEERS_DATA peers;
     int i=0;
   */
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
 
   
   printf("\n----------- tet_mbcsv_cold_sync: Case %d -------------\n",choice);
@@ -1086,7 +1086,7 @@ void tet_mbcsv_warm_sync(int choice)
     MBCSTM_PEERS_DATA peers;
     int i=0;
   */
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
 
   
   printf("\n----------- tet_mbcsv_warm_sync: Case %d -------------\n",choice);
@@ -1352,7 +1352,7 @@ void tet_get_set_warm_sync(int choice)
     MBCSTM_PEERS_DATA peers;
     int i=0;
   */
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
 
   
   printf("\n-----------tet_get_set_warm_sync: Case %d -------------\n",choice);
@@ -1701,10 +1701,10 @@ void tet_mbcsv_data_request(int choice)
   MBCSTM_SVC      *svc;
   MBCSTM_SSN      *ssn;
   char            fun_name[] = "mbcstm_svc_data_request";
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32 mbcstm_create_data_point(uns32 , uns32 );
-  uns32 mbcstm_print_data_points(uns32,uns32);
-  uns32 mbcstm_destroy_data_point(uns32 , uns32 );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t mbcstm_create_data_point(uint32_t , uint32_t );
+  uint32_t mbcstm_print_data_points(uint32_t,uint32_t);
+  uint32_t mbcstm_destroy_data_point(uint32_t , uint32_t );
   
   printf("\n----------- tet_mbcsv_data_request: Case %d -------------\n",choice);
   mbcstm_input();
@@ -1899,7 +1899,7 @@ void tet_mbcsv_data_request(int choice)
                   FAIL=1;
                 }
               
-              data = ncs_enc_reserve_space(uba, 2*sizeof(uns32));
+              data = ncs_enc_reserve_space(uba, 2*sizeof(uint32_t));
               if(data == NULL)
                 {
                   tet_printf("\n fake_encode_elem: DATA NULL");
@@ -1907,7 +1907,7 @@ void tet_mbcsv_data_request(int choice)
                 }
               ncs_encode_32bit(&data, ssn->data_req);
               ncs_encode_32bit(&data, ssn->data_req_count);
-              ncs_enc_claim_space(uba, 2*sizeof(uns32));
+              ncs_enc_claim_space(uba, 2*sizeof(uint32_t));
               mbcsv_arg.info.send_data_req.i_ckpt_hdl = ssn->ckpt_hdl;
               if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
                 {
@@ -1987,7 +1987,7 @@ void tet_mbcsv_data_request(int choice)
                   FAIL=1;
                 }
               
-              data = ncs_enc_reserve_space(uba, 2*sizeof(uns32));
+              data = ncs_enc_reserve_space(uba, 2*sizeof(uint32_t));
               if(data == NULL)
                 {
                   tet_printf("\n fake_encode_elem: DATA NULL");
@@ -1995,7 +1995,7 @@ void tet_mbcsv_data_request(int choice)
                 }
               ncs_encode_32bit(&data, ssn->data_req);
               ncs_encode_32bit(&data, ssn->data_req_count);
-              ncs_enc_claim_space(uba, 2*sizeof(uns32));
+              ncs_enc_claim_space(uba, 2*sizeof(uint32_t));
               mbcsv_arg.info.send_data_req.i_ckpt_hdl =(NCS_MBCSV_HDL)(long)NULL;/*Wrong Value*/
               if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
                 {
@@ -2068,10 +2068,10 @@ void tet_mbcsv_send_checkpoint(int choice)
   /*  MBCSTM_PEERS_DATA peers;
       int i=0;
   */
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32 mbcstm_create_data_point(uns32 , uns32 );
-  uns32 mbcstm_print_data_points(uns32,uns32);
-  uns32 mbcstm_destroy_data_point(uns32 , uns32 );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t mbcstm_create_data_point(uint32_t , uint32_t );
+  uint32_t mbcstm_print_data_points(uint32_t,uint32_t);
+  uint32_t mbcstm_destroy_data_point(uint32_t , uint32_t );
 
   printf("\n--------- tet_mbcsv_send_checkpoint: Case %d ---------\n",choice);
   mbcstm_input();
@@ -3118,10 +3118,10 @@ void tet_mbcsv_test()
     int i=0;
     MBCSTM_PEERS_DATA peers;
   */
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32 mbcstm_svc_send_notify(uns32, uns32, NCS_MBCSV_NTFY_MSG_DEST, char *,
-                               uns32 );
-  uns32 mbcstm_create_data_point(uns32 , uns32 );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t mbcstm_svc_send_notify(uint32_t, uint32_t, NCS_MBCSV_NTFY_MSG_DEST, char *,
+                               uint32_t );
+  uint32_t mbcstm_create_data_point(uint32_t , uint32_t );
 
   printf("\n----------- tet_mbcsv_test: Case %d -------------\n",choice);
   mbcstm_input();
@@ -3375,7 +3375,7 @@ void tet_mbcsv_test()
 /*-----------  END TEST CASES ----------------------------------*/
 /*utility */
 
-uns32 create_vdest(MDS_DEST vdest)
+uint32_t create_vdest(MDS_DEST vdest)
 {
   memset(&vda_info,'\0', sizeof(vda_info)); 
 
@@ -3402,7 +3402,7 @@ count  = %d\n", vdest,mbcstm_cb.svc_count,mbcstm_cb.vdest_count);
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 destroy_vdest(MDS_DEST vdest)
+uint32_t destroy_vdest(MDS_DEST vdest)
 {
   memset(&vda_info,'\0', sizeof(vda_info)); 
 
@@ -3422,10 +3422,10 @@ uns32 destroy_vdest(MDS_DEST vdest)
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 tet_mbcsv_dest_start(void)
+uint32_t tet_mbcsv_dest_start(void)
 {
   MDS_DEST    dest;
-  uns32 svc_count, ssn_index, ssn_count;
+  uint32_t svc_count, ssn_index, ssn_count;
   
   memset(&dest , 0, sizeof(dest));
   ssn_count = mbcstm_cb.vdest_count;
@@ -3444,10 +3444,10 @@ uns32 tet_mbcsv_dest_start(void)
   
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mbcsv_dest_close(void)
+uint32_t tet_mbcsv_dest_close(void)
 {
   MDS_DEST        dest;
-  uns32 ssn_count,ssn_index,svc_index;
+  uint32_t ssn_count,ssn_index,svc_index;
   
   memset(&dest , 0, sizeof(dest));
   ssn_count = mbcstm_cb.vdest_count;
@@ -3469,7 +3469,7 @@ uns32 tet_mbcsv_dest_close(void)
   return NCSCC_RC_SUCCESS;
 }
 #if 0
-uns32 initsemaphore()
+uint32_t initsemaphore()
 {
   int sem_id; 
   union semun {
@@ -3498,7 +3498,7 @@ uns32 initsemaphore()
       return NCSCC_RC_SUCCESS;
     }
 }
-uns32 V_operation(int noprocess)
+uint32_t V_operation(int noprocess)
 {
   int sem_id;
   struct sembuf operations[1];
@@ -3523,7 +3523,7 @@ uns32 V_operation(int noprocess)
     }    
   return NCSCC_RC_SUCCESS;
 }
-uns32 P_operation(int sys)
+uint32_t P_operation(int sys)
 {
   int sem_id;
   struct sembuf operations[1];
@@ -3553,13 +3553,13 @@ void tet_mbcsv_Notify(int choice)
 {
   int FAIL=0;
 
-  uns32 temp_ckpt_hdl;
+  uint32_t temp_ckpt_hdl;
   char str[]="Yes My Dear Peer";
   int len=strlen(str)+1;
   char BIG[1200];
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32 mbcstm_svc_send_notify(uns32, uns32, NCS_MBCSV_NTFY_MSG_DEST, char *,
-                               uns32 );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t mbcstm_svc_send_notify(uint32_t, uint32_t, NCS_MBCSV_NTFY_MSG_DEST, char *,
+                               uint32_t );
     
   printf("\n----------- tet_mbcsv_Notify: Case %d -------------\n",choice);
   mbcstm_input();

@@ -237,7 +237,7 @@ typedef struct ncs_dtsv_reg_canned_str {
 /***************************************************************************
  * DTSV public API's for registering ASCII strings
  ***************************************************************************/
-uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg);
-uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg);
+uint32_t dts_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* DTS_PAPI_H */

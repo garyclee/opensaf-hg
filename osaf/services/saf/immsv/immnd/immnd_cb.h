@@ -88,7 +88,7 @@ typedef struct immnd_fevs_msg_node {
 typedef struct immnd_cb_tag {
 	SYSF_MBX immnd_mbx;	/* mailbox */
 	SaNameT comp_name;
-	uns32 immnd_mds_hdl;
+	uint32_t immnd_mds_hdl;
 	MDS_DEST immnd_mdest_id;
 	NCS_NODE_ID node_id;
 
@@ -131,11 +131,11 @@ typedef struct immnd_cb_tag {
 	SaClmNodeIdT clm_node_id;
 	SaAmfHandleT amf_hdl;	// AMF handle, obtained thru AMF init
 
-	int32 loaderPid;
-	int32 syncPid;
-	int32 pbePid;   //Persistent back end (PBE) is running if pbePid > 0
+	int32_t loaderPid;
+	int32_t syncPid;
+	int32_t pbePid;   //Persistent back end (PBE) is running if pbePid > 0
 	IMMND_SERVER_STATE mState;
-	uns32 mStep;		//Measures progress in immnd_proc_server
+	uint32_t mStep;		//Measures progress in immnd_proc_server
 	time_t mJobStart;       //Start time for major server tasks like start, load, sync.
 	char *mProgName;	//The full path name of the immnd executable.
 	const char *mDir;	//The directory where imm.xml & pbe files reside
@@ -160,19 +160,19 @@ typedef struct immnd_cb_tag {
 } IMMND_CB;
 
 /* CB prototypes */
-IMMND_CB *immnd_cb_create(uns32 pool_id);
+IMMND_CB *immnd_cb_create(uint32_t pool_id);
 NCS_BOOL immnd_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
-uns32 immnd_cb_destroy(IMMND_CB *immnd_cb);
+uint32_t immnd_cb_destroy(IMMND_CB *immnd_cb);
 void immnd_dump_cb(IMMND_CB *immnd_cb);
 
-uns32 immnd_client_extract_bits(uns32 bitmap_value, uns32 *bit_position);
+uint32_t immnd_client_extract_bits(uint32_t bitmap_value, uint32_t *bit_position);
 
 void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
 void immnd_client_node_getnext(IMMND_CB *cb,
 					SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
-uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
-uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
-uns32 immnd_client_node_tree_init(IMMND_CB *cb);
+uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uint32_t immnd_client_node_tree_init(IMMND_CB *cb);
 void immnd_client_node_tree_cleanup(IMMND_CB *cb);
 void immnd_client_node_tree_destroy(IMMND_CB *cb);
 

@@ -40,10 +40,10 @@
  
   Notes         : None
 ******************************************************************************/
-int32 eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const SaNameT *channelName)
+int32_t eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec, const SaNameT *channelName)
 {
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
-	int32 chan_count_marked = 0;
+	int32_t chan_count_marked = 0;
 
 	for (chan_hdl_rec = eda_hdl_rec->chan_list; chan_hdl_rec != NULL; chan_hdl_rec = chan_hdl_rec->next) {
 
@@ -101,7 +101,7 @@ NCS_BOOL eda_validate_eda_client_hdl(EDA_CB *eda_cb, EDA_CLIENT_HDL_REC *find_hd
  
   Notes         : None
 ******************************************************************************/
-EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *chan_hdl_anc, uns32 sub_id)
+EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *chan_hdl_anc, uint32_t sub_id)
 {
 	EDA_SUBSC_REC *subsc_rec;
 
@@ -126,7 +126,7 @@ EDA_SUBSC_REC *eda_find_subsc_by_subsc_id(EDA_CHANNEL_HDL_REC *chan_hdl_anc, uns
  
   Notes         : None
 ******************************************************************************/
-EDA_CLIENT_HDL_REC *eda_find_hdl_rec_by_regid(EDA_CB *eda_cb, uns32 reg_id)
+EDA_CLIENT_HDL_REC *eda_find_hdl_rec_by_regid(EDA_CB *eda_cb, uint32_t reg_id)
 {
 	EDA_CLIENT_HDL_REC *eda_hdl_rec;
 
@@ -152,7 +152,7 @@ EDA_CLIENT_HDL_REC *eda_find_hdl_rec_by_regid(EDA_CB *eda_cb, uns32 reg_id)
   Notes         : None
 ******************************************************************************/
 EDA_CHANNEL_HDL_REC *eda_find_chan_hdl_rec_by_chan_id(EDA_CLIENT_HDL_REC *eda_hdl_rec,
-						      uns32 chan_id, uns32 chan_open_id)
+						      uint32_t chan_id, uint32_t chan_open_id)
 {
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec;
 

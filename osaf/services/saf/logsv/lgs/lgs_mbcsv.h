@@ -45,46 +45,46 @@ typedef enum {
 
 /* Initialize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-	uns32 client_id;	/* Client Id at Active */
+	uint32_t client_id;	/* Client Id at Active */
 	MDS_DEST mds_dest;	/* Handy when an LGA instance goes away */
 	lgs_stream_list_t *stream_list;
 } lgs_ckpt_initialize_msg_t;
 
 /* Finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-	uns32 client_id;	/* Client Id at Active */
+	uint32_t client_id;	/* Client Id at Active */
 } lgs_ckpt_finalize_msg_t;
 
 typedef struct {
-	uns32 streamId;
-	uns32 recordId;
-	uns32 curFileSize;
+	uint32_t streamId;
+	uint32_t recordId;
+	uint32_t curFileSize;
 	char *logFileCurrent;
 } lgs_ckpt_write_log_t;
 
 typedef struct {
-	uns32 streamId;
-	uns32 clientId;
+	uint32_t streamId;
+	uint32_t clientId;
 	/* correspond to SaLogFileCreateAttributes */
 	char *logFile;		/* logfile name */
 	char *logPath;		/* logfile path */
 	uns64 maxFileSize;	/* max file size configurable */
-	int32 maxLogRecordSize;	/* constant size of the records */
-	int32 logFileFullAction;
-	int32 maxFilesRotated;	/* max number of rotation files configurable */
+	int32_t maxLogRecordSize;	/* constant size of the records */
+	int32_t logFileFullAction;
+	int32_t maxFilesRotated;	/* max number of rotation files configurable */
 	char *fileFmt;
 	/* end correspond to SaLogFileCreateAttributes */
 	char *logStreamName;
 	uns64 creationTimeStamp;
-	uns32 numOpeners;
+	uint32_t numOpeners;
 	char *logFileCurrent;
 	logStreamTypeT streamType;
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
 } lgs_ckpt_stream_open_t;
 
 typedef struct {
-	uns32 streamId;
-	uns32 clientId;
+	uint32_t streamId;
+	uint32_t clientId;
 } lgs_ckpt_stream_close_t;
 
 /* Checkpoint message containing lgs data of a particular type.
@@ -92,8 +92,8 @@ typedef struct {
  */
 typedef struct {
 	lgsv_ckpt_msg_type_t ckpt_rec_type;	/* Type of lgs data carried in this checkpoint */
-	uns32 num_ckpt_records;	/* =1 for async updates,>=1 for cold sync */
-	uns32 data_len;		/* Total length of encoded checkpoint data of this type */
+	uint32_t num_ckpt_records;	/* =1 for async updates,>=1 for cold sync */
+	uint32_t data_len;		/* Total length of encoded checkpoint data of this type */
 } lgsv_ckpt_header_t;
 
 typedef struct {
@@ -124,10 +124,10 @@ typedef struct {
 	} ckpt_rec;
 } lgsv_ckpt_msg_t;
 
-typedef uns32 (*LGS_CKPT_HDLR) (lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
-uns32 lgs_mbcsv_init(lgs_cb_t *lgs_cb);
-uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
-uns32 lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
-uns32 lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uns32 action);
+typedef uint32_t (*LGS_CKPT_HDLR) (lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
+uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
+uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
+uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, lgsv_ckpt_msg_t *ckpt_rec, uint32_t action);
 
 #endif   /* !LGSV_CKPT_H */

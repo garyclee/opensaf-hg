@@ -70,7 +70,7 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckRes
  *
  * None            : None
 ****************************************************************************/
-void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uns32 evt_type)
+void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint32_t evt_type)
 {
 	GLSV_GLD_A2S_CKPT_EVT a2s_evt;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -99,7 +99,7 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uns3
  * None            : None
 ****************************************************************************/
 void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_type,
-				   GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uns32 lcl_ref_cnt)
+				   GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uint32_t lcl_ref_cnt)
 {
 	GLSV_GLD_A2S_CKPT_EVT a2s_evt;
 	SaAisErrorT rc = SA_AIS_OK;

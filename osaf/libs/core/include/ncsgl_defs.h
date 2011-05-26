@@ -43,25 +43,23 @@ extern "C" {
 
  ****************************************************************************/
 
-	typedef uint32_t uns32;	/* 32-bit */
 	typedef uint64_t uns64;	/* 64-bit */
 
-	typedef int32_t int32;
 	typedef int64_t int64;
 
 	typedef bool NCS_BOOL;	/* move to this solves BOOLEAN problem */
 
 	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
 
-#define NCS_PTR_TO_INT32_CAST(x)   ((int32)(long)(x))
+#define NCS_PTR_TO_INT32_CAST(x)   ((int32_t)(long)(x))
 #define NCS_PTR_TO_UNS64_CAST(x)   ((uns64)(long)(x))
-#define NCS_PTR_TO_UNS32_CAST(x)   ((uns32)(long)(x))
+#define NCS_PTR_TO_UNS32_CAST(x)   ((uint32_t)(long)(x))
 #define NCS_INT32_TO_PTR_CAST(x)   ((void*)(long)(x))
 #define NCS_INT64_TO_PTR_CAST(x)   ((void*)(long)(x))
 #define NCS_UNS32_TO_PTR_CAST(x)   ((void*)(long)(x))
 
 	/* Last surviving bits of NCS IP related crap, for now ... */
-	typedef uns32 NCS_IPV4_ADDR;
+	typedef uint32_t NCS_IPV4_ADDR;
 
 	typedef enum ncs_ip_addr_type {
 		NCS_IP_ADDR_TYPE_NONE,
@@ -127,7 +125,7 @@ extern "C" {
 #define NCS_MAX_SLOTS ((NCS_SLOT_MAX *  NCS_SUB_SLOT_MAX) + NCS_SLOT_MAX)
 
 	typedef uns64 MDS_DEST;
-	typedef uns32 NCS_NODE_ID;
+	typedef uint32_t NCS_NODE_ID;
 	typedef uint8_t NCS_CHASSIS_ID;
 	typedef uint8_t NCS_PHY_SLOT_ID;
 	typedef uint8_t NCS_SUB_SLOT_ID;
@@ -137,7 +135,7 @@ extern "C" {
                                 if the MDS_DEST provided is a virtual
                                 destination.
 */
-#define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uns32) (((uns64)(mdsdest))>>32))
+#define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uint32_t) (((uns64)(mdsdest))>>32))
 
 #ifdef  __cplusplus
 }

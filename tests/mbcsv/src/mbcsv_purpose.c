@@ -14,21 +14,21 @@ void tet_get_set_warm_sync(int);
 void tet_mbcsv_send_checkpoint(int);
 void tet_mbcsv_data_request(int);
 void tet_mbcsv_test();
-uns32 initsemaphore();
+uint32_t initsemaphore();
 
 
-uns32 mbcstm_close()
+uint32_t mbcstm_close()
 {
-  uns32 mbcsv_lib_destroy (void);
+  uint32_t mbcsv_lib_destroy (void);
     
   mbcsv_lib_destroy();
   /*change*/
   return 0;
 }
                                                                                                                        
-uns32 mbcstm_wait_to_end()
+uint32_t mbcstm_wait_to_end()
 {
-  uns32 n;
+  uint32_t n;
   printf("\n Enter Input to End Testing");
   scanf("%d",&n);
   tet_result(TET_PASS);
@@ -36,7 +36,7 @@ uns32 mbcstm_wait_to_end()
   return 0;
 }
 
-uns32 mbcstm_final_results()
+uint32_t mbcstm_final_results()
 {
   printf("\n \n");
   printf("*************** FINAL ANALYSIS OF RESULTS *****************");
@@ -48,7 +48,7 @@ uns32 mbcstm_final_results()
   return 0;
 }
 
-uns32 mbcstm_test_print(uns32 case_num,char * case_name, char *disc,
+uint32_t mbcstm_test_print(uint32_t case_num,char * case_name, char *disc,
                         TET_MBCSV_RESULT exp_res, TET_MBCSV_RESULT final_res)
 {
   char exp_str[15], final_str[15];

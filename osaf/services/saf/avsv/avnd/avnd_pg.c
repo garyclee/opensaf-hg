@@ -35,17 +35,17 @@
 #include "avnd.h"
 
 /* static function declarations */
-static uns32 avnd_pg_cbk_send(AVND_CB *, AVND_PG *, AVND_PG_TRK *, AVND_PG_MEM *);
+static uint32_t avnd_pg_cbk_send(AVND_CB *, AVND_PG *, AVND_PG_TRK *, AVND_PG_MEM *);
 
-static uns32 avnd_pg_cbk_msg_send(AVND_CB *, AVND_PG_TRK *, AVSV_AMF_CBK_INFO *);
+static uint32_t avnd_pg_cbk_msg_send(AVND_CB *, AVND_PG_TRK *, AVSV_AMF_CBK_INFO *);
 
-static uns32 avnd_pg_track_stop(AVND_CB *, AVND_PG *);
+static uint32_t avnd_pg_track_stop(AVND_CB *, AVND_PG *);
 
-static uns32 avnd_pg_track_start(AVND_CB *, AVND_PG *, AVND_PG_TRK *);
+static uint32_t avnd_pg_track_start(AVND_CB *, AVND_PG *, AVND_PG_TRK *);
 
 static void avnd_pg_trk_rmv(AVND_CB *, AVND_PG *, AVND_PG_TRK_KEY *);
 
-static uns32 avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info);
+static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info);
 
 /****************************************************************************
   Name          : avnd_pg_start_rsp_prc
@@ -60,10 +60,10 @@ static uns32 avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_A
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info)
+static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info)
 {
 	AVND_PG_TRK *curr = 0, *prv = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
 
 	if (TRUE == info->is_csi_exist) {	/* => +ve resp */
 		/* set the exist flag to true */
@@ -134,7 +134,7 @@ static uns32 avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_A
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PG_START_PARAM *pg_start = &api_info->param.pg_start;
@@ -142,7 +142,7 @@ uns32 avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *pg_trk = 0;
 	NCS_BOOL is_fresh_pg = FALSE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -222,7 +222,7 @@ uns32 avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_PG_STOP_PARAM *pg_stop = &api_info->param.pg_stop;
@@ -230,7 +230,7 @@ uns32 avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *pg_trk = 0;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -275,11 +275,11 @@ uns32 avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *pg,
+static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *pg,
 						      AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info)
 {
 	AVND_PG_TRK *curr = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
 	AVND_PG_MEM *pg_mem = 0, *mem_curr = 0, *mem_prv = 0;
 	SaAmfProtectionGroupNotificationT *mem_info;
 
@@ -372,11 +372,11 @@ static uns32 avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *pg,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_track_act_rsp;
 	AVND_PG *pg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -443,13 +443,13 @@ uns32 avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
+uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PG_UPD_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_upd;
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *curr = 0;
 	AVND_PG_MEM *chg_mem = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("is_csi_del=%u", info->is_csi_del);
 
@@ -626,9 +626,9 @@ void avnd_pg_trk_rmv(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
+uint32_t avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* send the response to the application */
 	if (FALSE == pg_trk->info.is_syn) {
@@ -665,9 +665,9 @@ uns32 avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
+uint32_t avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("%s",  pg->csi_name.value);
 
 	/* send pg-stop req to avd */
@@ -700,13 +700,13 @@ uns32 avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_MEM *chg_mem)
+uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_MEM *chg_mem)
 {
 	AVND_PG_MEM *curr_mem = 0;
 	AVSV_AMF_CBK_INFO *cbk_info = 0;
 	AVSV_AMF_PG_TRACK_PARAM *pg_param = 0;
-	uns32 i = 0, rc = NCSCC_RC_SUCCESS;
-	uns32 number_of_items = 0;
+	uint32_t i = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t number_of_items = 0;
 
 	/* allocate cbk-info */
 	if ((0 == (cbk_info = calloc(1, sizeof(AVSV_AMF_CBK_INFO))))) {
@@ -807,10 +807,10 @@ uns32 avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_MEM *
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *cbk_info)
+uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *cbk_info)
 {
 	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 

@@ -33,9 +33,9 @@
 
 #include "eda.h"
 
-static uns32 eda_hdl_cbk_dispatch_one(EDA_CB *, EDA_CLIENT_HDL_REC *);
-static uns32 eda_hdl_cbk_dispatch_all(EDA_CB *, EDA_CLIENT_HDL_REC *);
-static uns32 eda_hdl_cbk_dispatch_block(EDA_CB *, EDA_CLIENT_HDL_REC *);
+static uint32_t eda_hdl_cbk_dispatch_one(EDA_CB *, EDA_CLIENT_HDL_REC *);
+static uint32_t eda_hdl_cbk_dispatch_all(EDA_CB *, EDA_CLIENT_HDL_REC *);
+static uint32_t eda_hdl_cbk_dispatch_block(EDA_CB *, EDA_CLIENT_HDL_REC *);
 
 /****************************************************************************
  * Name          : eda_clear_mbx
@@ -190,7 +190,7 @@ void eda_hdl_list_del(EDA_CLIENT_HDL_REC **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32 eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node)
+uint32_t eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node)
 {
 	/* Find the event hdl record in the list of records */
 	EDA_EVENT_HDL_REC *list_iter = *list_head;
@@ -258,7 +258,7 @@ uns32 eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm
  
   Notes         : 
 ******************************************************************************/
-uns32 eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
+uint32_t eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
 {
 	/* Find the channel hdl record in the list of records */
 	EDA_SUBSC_REC *list_iter = *list_head;
@@ -303,7 +303,7 @@ uns32 eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
  
   Notes         : 
 ******************************************************************************/
-uns32 eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_REC *rm_node)
+uint32_t eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_REC *rm_node)
 {
 	/* Find the channel hdl record in the list of records */
 	EDA_CHANNEL_HDL_REC *list_iter = *list_head;
@@ -372,7 +372,7 @@ uns32 eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_R
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-uns32 eda_hdl_rec_del(EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
+uint32_t eda_hdl_rec_del(EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
 {
 	/* Find the client hdl record in the list of records */
 	EDA_CLIENT_HDL_REC *list_iter = *list_head;
@@ -480,9 +480,9 @@ EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
                   of handles in the client hdl record.
  
   Arguments     : EDA_CLIENT_HDL_REC *hdl_rec
-                  uns32               chan_id
-                  uns32               chan_open_id
-                  uns32               channel_open_flags
+                  uint32_t               chan_id
+                  uint32_t               chan_open_id
+                  uint32_t               channel_open_flags
                   SaNameT             *channelName
  
   Return Values : ptr to the channel handle record
@@ -490,8 +490,8 @@ EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
   Notes         : None
 ******************************************************************************/
 EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
-					     uns32 chan_id,
-					     uns32 chan_open_id, uns32 channel_open_flags, const SaNameT *channelName)
+					     uint32_t chan_id,
+					     uint32_t chan_open_id, uint32_t channel_open_flags, const SaNameT *channelName)
 {
 	EDA_CHANNEL_HDL_REC *rec = 0;
 
@@ -547,7 +547,7 @@ EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
  
   Notes         : None
 ******************************************************************************/
-EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_cbks, uns32 reg_id, SaVersionT version)
+EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_cbks, uint32_t reg_id, SaVersionT version)
 {
 	EDA_CLIENT_HDL_REC *rec = 0;
 
@@ -628,9 +628,9 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_
  
   Notes         : None
 ******************************************************************************/
-uns32 eda_hdl_cbk_dispatch(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec, SaDispatchFlagsT flags)
+uint32_t eda_hdl_cbk_dispatch(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec, SaDispatchFlagsT flags)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (flags) {
 	case SA_DISPATCH_ONE:
@@ -712,7 +712,7 @@ static void eda_hdl_cbk_rec_prc(EDA_CB *cb, EDSV_MSG *msg, SaEvtCallbacksT *reg_
  
   Notes         : None
 ******************************************************************************/
-static uns32 eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG *cbk_msg)
+static uint32_t eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG *cbk_msg)
 {
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec = NULL;
 	EDA_EVENT_HDL_REC *evt_hdl_rec = NULL;
@@ -782,10 +782,10 @@ static uns32 eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG *cbk_msg)
  
   Notes         : None
 ******************************************************************************/
-static uns32 eda_hdl_cbk_dispatch_one(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uint32_t eda_hdl_cbk_dispatch_one(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
 	EDSV_MSG *cbk_msg = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* Nonblk receive to obtain the message from priority queue */
 	while (NULL != (cbk_msg = (EDSV_MSG *)
@@ -820,10 +820,10 @@ static uns32 eda_hdl_cbk_dispatch_one(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-static uns32 eda_hdl_cbk_dispatch_all(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uint32_t eda_hdl_cbk_dispatch_all(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
 	EDSV_MSG *cbk_msg = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* Recv all the cbk notifications from the queue & process them */
 	do {
@@ -859,10 +859,10 @@ static uns32 eda_hdl_cbk_dispatch_all(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-static uns32 eda_hdl_cbk_dispatch_block(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uint32_t eda_hdl_cbk_dispatch_block(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
 	EDSV_MSG *cbk_msg = NULL;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	for (;;) {
 		if (NULL != (cbk_msg = (EDSV_MSG *)
@@ -906,7 +906,7 @@ static uns32 eda_hdl_cbk_dispatch_block(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 SaAisErrorT
 eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array, SaEvtEventPatternArrayT **to_pattern_array)
 {
-	uns32 n = 0;
+	uint32_t n = 0;
 	SaEvtEventPatternT *from_pattern, *to_pattern;
 	SaAisErrorT error = SA_AIS_OK;
 
@@ -938,7 +938,7 @@ eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array, SaEv
 			m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
 		} else {
 			memcpy((void *)to_pattern->pattern,
-			       (void *)from_pattern->pattern, (uns32)from_pattern->patternSize);
+			       (void *)from_pattern->pattern, (uint32_t)from_pattern->patternSize);
 		}
 		/* pattern size should be set in all cases.'B' spec */
 		if (to_pattern != NULL)
@@ -953,7 +953,7 @@ SaAisErrorT
 eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
 					    SaEvtEventPatternArrayT **to_pattern_array)
 {
-	uns32 n = 0;
+	uint32_t n = 0;
 	SaEvtEventPatternT *from_pattern, *to_pattern;
 	SaAisErrorT error = SA_AIS_OK;
 
@@ -978,7 +978,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
 				to_pattern->patternSize = from_pattern->patternSize;
 		/** Allocate memory for the individual pattern **/
 				if (NULL == (to_pattern->pattern = (SaUint8T *)
-					     malloc(((uns32)from_pattern->patternSize) * sizeof(SaUint8T)))) {
+					     malloc(((uint32_t)from_pattern->patternSize) * sizeof(SaUint8T)))) {
 					error = SA_AIS_ERR_NO_MEMORY;
 					m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
 						     __LINE__, 0);
@@ -987,9 +987,9 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
 					return error;
 				}
 		/** Clear memory for the allocated pattern **/
-				memset(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
+				memset(to_pattern->pattern, '\0', (uint32_t)to_pattern->patternSize);
 				memcpy((void *)to_pattern->pattern,
-				       (void *)from_pattern->pattern, (uns32)from_pattern->patternSize);
+				       (void *)from_pattern->pattern, (uint32_t)from_pattern->patternSize);
 			}
 		}		/*end for */
 	}			/* End if from_pattern_array->patternsNumber != 0 */

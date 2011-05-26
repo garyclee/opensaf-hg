@@ -114,11 +114,11 @@ extern "C" {
 
 	void delete_reader_res_lib(SaAisErrorT error, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
 
-	int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST mds_dest);
+	int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uint32_t client_id, MDS_DEST mds_dest);
 
 	void sendLoggedConfirm(SaNtfIdentifierT notificationId);
 
-	int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uns32 c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest);
+	int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uint32_t c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest);
 
 	void setStartSyncTimer();
 	void setSyncWaitTimer();
@@ -139,9 +139,9 @@ extern "C" {
 	void sendLoggedConfirmUpdate(SaNtfIdentifierT notificationId);
 	void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
 		SaNtfIdentifierT notificationId, int discarded);
-	int sendNoOfNotifications(uns32 num_rec, NCS_UBAID *uba);
-	int sendNoOfSubscriptions(uns32 num_rec, NCS_UBAID *uba);
-	int sendNoOfClients(uns32 num_rec, NCS_UBAID *uba);
+	int sendNoOfNotifications(uint32_t num_rec, NCS_UBAID *uba);
+	int sendNoOfSubscriptions(uint32_t num_rec, NCS_UBAID *uba);
+	int sendNoOfClients(uint32_t num_rec, NCS_UBAID *uba);
 
 /* Calls from c --> c++ layer */
 	void logEvent();

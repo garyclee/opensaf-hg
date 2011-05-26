@@ -75,7 +75,7 @@ typedef struct avd_su_si_rel_tag {
 typedef struct avd_sus_per_si_rank_index_tag {
 
 	SaNameT si_name;
-	uns32 su_rank;	/* The rank of the SU */
+	uint32_t su_rank;	/* The rank of the SU */
 
 } AVD_SUS_PER_SI_RANK_INDX;
 
@@ -142,13 +142,13 @@ extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
 AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name);
-uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt);
+uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt);
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su);
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
 extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
 extern void avd_sirankedsu_constructor(void);
 extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
-uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
+uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
 
 #endif

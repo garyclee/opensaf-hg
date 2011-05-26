@@ -34,6 +34,6 @@ typedef enum dtm_lib_types {
 } MDTM_LIB_TYPES;
 
 
-uns32 mds_mdtm_send_tcp(MDTM_SEND_REQ *req);
+uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req);
 
 #endif

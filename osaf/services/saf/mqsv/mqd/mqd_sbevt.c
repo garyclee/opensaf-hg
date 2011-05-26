@@ -42,15 +42,15 @@
 
 #include <mqd.h>
 
-typedef uns32 (*MQD_PROCESS_A2S_EVENT_FUNC_PTR) (MQD_CB *pMqd, MQD_A2S_MSG msg);
+typedef uint32_t (*MQD_PROCESS_A2S_EVENT_FUNC_PTR) (MQD_CB *pMqd, MQD_A2S_MSG msg);
 
-static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uint32_t mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg);
 
 static const MQD_PROCESS_A2S_EVENT_FUNC_PTR mqd_process_a2s_event_handler[MQD_A2S_MSG_TYPE_MAX -
 									  MQD_A2S_MSG_TYPE_BASE] = {
@@ -86,9 +86,9 @@ static const MQD_PROCESS_A2S_EVENT_FUNC_PTR mqd_process_a2s_event_handler[MQD_A2
 *
 *****************************************************************************/
 
-uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
+uint32_t mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (msg->type < MQD_A2S_MSG_TYPE_BASE || msg->type >= MQD_A2S_MSG_TYPE_MAX) {
 		rc = NCSCC_RC_FAILURE;
@@ -117,10 +117,10 @@ uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	return rc;
 
@@ -139,10 +139,10 @@ static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = 0;
 	ASAPi_OBJECT_OPR opr = 0;
 
@@ -173,10 +173,10 @@ static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO mesg;
 
 	memset(&mesg, 0, sizeof(mesg));
@@ -205,10 +205,10 @@ static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = 0;
 	MQSV_SEND_INFO info;
 
@@ -246,10 +246,10 @@ static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = mqd_user_evt_track_delete(pMqd, &msg.info.user_evt.dest);
 
@@ -273,10 +273,10 @@ static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_ND_DB_NODE *pNdNode = 0;
 	/*Update the node info structure and start the expiry timer for MQND */
 	TRACE("mqd_process_a2s_mqnd_status_req ");
@@ -312,9 +312,9 @@ static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *
 *****************************************************************************/
 
-static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uint32_t mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_ND_DB_NODE *pNdNode = 0;
 
 	/* At standby if the timer expires do nothing */

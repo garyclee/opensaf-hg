@@ -72,35 +72,35 @@ typedef enum {
 
 /*** CAMPAIGN event definitions ***/
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_terminate;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_execute;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_execute_init;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_execute_proc;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_execute_wrapup;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_suspend;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_commit;
 
 typedef struct {
-	uns32 dummy;
+	uint32_t dummy;
 } campaign_evt_rollback;
 
 typedef struct {
@@ -172,8 +172,8 @@ class SmfCampaignThread {
 /// @param   newState The new state (SaSmfProcStateT).
 /// @return  An interger returning 0 on success.
 ///
-	int sendStateNotification(const std::string & dn, uns32 classId, SaNtfSourceIndicatorT sourceInd, uns32 stateId,
-				  uns32 newState, uns32 oldState);
+	int sendStateNotification(const std::string & dn, uint32_t classId, SaNtfSourceIndicatorT sourceInd, uint32_t stateId,
+				  uint32_t newState, uint32_t oldState);
 
 	SaImmOiHandleT getImmHandle();
 	SYSF_MBX & getCbkMbx();

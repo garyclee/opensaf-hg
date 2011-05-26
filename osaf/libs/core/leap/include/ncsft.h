@@ -41,8 +41,8 @@
 #ifndef NCSFT_H
 #define NCSFT_H
 
-typedef uns32
- (*TRIGGER_CALLBACK) (uint16_t svc_id, uns32 signal, void *entity_handle, void *api_ctxt);
+typedef uint32_t
+ (*TRIGGER_CALLBACK) (uint16_t svc_id, uint32_t signal, void *entity_handle, void *api_ctxt);
 
 /*
  ***********************

@@ -53,7 +53,7 @@ static NCS_PATRICIA_TREE hctypedb;	/* healthcheck type db */
 void avnd_hcdb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
@@ -76,10 +76,10 @@ void avnd_hcdb_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_hcdb_destroy(AVND_CB *cb)
+uint32_t avnd_hcdb_destroy(AVND_CB *cb)
 {
 	AVND_HC *hc = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each healthcheck record */
 	while (0 != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uint8_t *)0))) {
@@ -140,7 +140,7 @@ AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealt
  
   Notes         : None.
 ******************************************************************************/
-AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
+AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uint32_t *rc)
 {
 	AVND_HC *hc = 0;
 
@@ -198,10 +198,10 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
+uint32_t avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 {
 	AVND_HC *hc = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* get the healthcheck record */
 	hc = avnd_hcdb_rec_get(cb, hc_key);
@@ -375,9 +375,9 @@ SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
 	return error;
 }
 
-uns32 avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", param->name.value);
 	

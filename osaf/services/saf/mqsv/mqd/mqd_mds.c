@@ -41,15 +41,15 @@
  */
 #include "mqd.h"
 
-static uns32 mqd_mds_vdest_create(MQD_CB *);
-static uns32 mqd_mds_vdest_destroy(MQD_CB *);
-static uns32 mqd_mds_callback(NCSMDS_CALLBACK_INFO *);
-static uns32 mqd_mds_cpy(MQD_CB *, MDS_CALLBACK_COPY_INFO *);
-static uns32 mqd_mds_enc(MQD_CB *, MDS_CALLBACK_ENC_INFO *);
-static uns32 mqd_mds_dec(MQD_CB *, MDS_CALLBACK_DEC_INFO *);
-static uns32 mqd_mds_rcv(MQD_CB *, MDS_CALLBACK_RECEIVE_INFO *);
+static uint32_t mqd_mds_vdest_create(MQD_CB *);
+static uint32_t mqd_mds_vdest_destroy(MQD_CB *);
+static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *);
+static uint32_t mqd_mds_cpy(MQD_CB *, MDS_CALLBACK_COPY_INFO *);
+static uint32_t mqd_mds_enc(MQD_CB *, MDS_CALLBACK_ENC_INFO *);
+static uint32_t mqd_mds_dec(MQD_CB *, MDS_CALLBACK_DEC_INFO *);
+static uint32_t mqd_mds_rcv(MQD_CB *, MDS_CALLBACK_RECEIVE_INFO *);
 static void mqd_mds_svc_evt(MQD_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
-static uns32 mqd_mds_quiesced_process(MQD_CB *pMqd);
+static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd);
 
 MSG_FRMT_VER mqd_mqa_msg_fmt_table[MQD_WRT_MQA_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
 MSG_FRMT_VER mqd_mqnd_msg_fmt_table[MQD_WRT_MQND_SUBPART_VER_RANGE] = { 0, 2 };	/*With version 1 it is not backward compatible */
@@ -65,9 +65,9 @@ MSG_FRMT_VER mqd_mqnd_msg_fmt_table[MQD_WRT_MQND_SUBPART_VER_RANGE] = { 0, 2 };	
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 ******************************************************************************/
-static uns32 mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
+static uint32_t mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, mqd_hdl = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, mqd_hdl = 0;
 	MQD_CB *pMqd = 0;
 
 	if (!callbk) {
@@ -75,7 +75,7 @@ static uns32 mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
-	mqd_hdl = (uns32)callbk->i_yr_svc_hdl;
+	mqd_hdl = (uint32_t)callbk->i_yr_svc_hdl;
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, mqd_hdl);
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -134,11 +134,11 @@ static uns32 mqd_mds_callback(NCSMDS_CALLBACK_INFO *callbk)
 
  RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 *****************************************************************************/
-uns32 mqd_mds_init(MQD_CB *pMqd)
+uint32_t mqd_mds_init(MQD_CB *pMqd)
 {
 	NCSMDS_INFO arg;
 	MDS_SVC_ID svc_id[] = { NCSMDS_SVC_ID_MQND, NCSMDS_SVC_ID_MQA };
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -199,10 +199,10 @@ uns32 mqd_mds_init(MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 \*****************************************************************************/
-static uns32 mqd_mds_vdest_create(MQD_CB *pMqd)
+static uint32_t mqd_mds_vdest_create(MQD_CB *pMqd)
 {
 	NCSVDA_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -240,10 +240,10 @@ static uns32 mqd_mds_vdest_create(MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 *****************************************************************************/
-uns32 mqd_mds_shut(MQD_CB *pMqd)
+uint32_t mqd_mds_shut(MQD_CB *pMqd)
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -276,10 +276,10 @@ uns32 mqd_mds_shut(MQD_CB *pMqd)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 \*****************************************************************************/
-static uns32 mqd_mds_vdest_destroy(MQD_CB *pMqd)
+static uint32_t mqd_mds_vdest_destroy(MQD_CB *pMqd)
 {
 	NCSVDA_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -315,10 +315,10 @@ static uns32 mqd_mds_vdest_destroy(MQD_CB *pMqd)
                   for the compatibility we have written this callback 
                   function.
 \*****************************************************************************/
-static uns32 mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
+static uint32_t mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 {
 	MQSV_EVT *pEvt = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
 		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -352,11 +352,11 @@ static uns32 mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
 
   RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
-static uns32 mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
+static uint32_t mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
 {
 	MQSV_EVT *pEvt = 0;
 	EDU_ERR err = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!pMqd) {
 		rc = NCSCC_RC_FAILURE;
@@ -407,11 +407,11 @@ static uns32 mqd_mds_enc(MQD_CB *pMqd, MDS_CALLBACK_ENC_INFO *enc)
 
   RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
-static uns32 mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
+static uint32_t mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 {
 	MQSV_EVT *pEvt = 0;
 	EDU_ERR err = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (!pMqd) {
@@ -475,9 +475,9 @@ static uns32 mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
 
  RETURNS        : NCSCC_RC_SUCCESS/Error Code.
 \*****************************************************************************/
-static uns32 mqd_mds_rcv(MQD_CB *pMqd, MDS_CALLBACK_RECEIVE_INFO *rcv)
+static uint32_t mqd_mds_rcv(MQD_CB *pMqd, MDS_CALLBACK_RECEIVE_INFO *rcv)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQSV_EVT *pEvt = (MQSV_EVT *)rcv->i_msg;
 
 	pEvt->sinfo.ctxt = rcv->i_msg_ctxt;
@@ -513,7 +513,7 @@ static uns32 mqd_mds_rcv(MQD_CB *pMqd, MDS_CALLBACK_RECEIVE_INFO *rcv)
 static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 {
 	MQSV_EVT *pNdEvent = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (svc->i_change) {
 	case NCSMDS_DOWN:
@@ -627,10 +627,10 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
-static uns32 mqd_mds_quiesced_process(MQD_CB *pMqd)
+static uint32_t mqd_mds_quiesced_process(MQD_CB *pMqd)
 {
 	MQSV_EVT *pEvt = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (pMqd->is_quisced_set) {
 		pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
@@ -668,10 +668,10 @@ static uns32 mqd_mds_quiesced_process(MQD_CB *pMqd)
  * Notes         :
  *****************************************************************************/
 
-uns32 mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
+uint32_t mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->my_mds_hdl;

@@ -65,7 +65,7 @@
 typedef struct ncs_se_filter_id {
 	NCS_SE se;		/* All NCS_STACK Stack Elements start with this */
 
-	uns32 fltr_id;		/* Filter ID */
+	uint32_t fltr_id;		/* Filter ID */
 
 } NCS_SE_FILTER_ID;
 

@@ -248,7 +248,7 @@ void tet_saf_initialize (int sub_test_arg)
 void tet_saf_comp_register(int sub_test_arg)
 {
     SaAisErrorT error;
-    /* uns32    Comp_type;  */
+    /* uint32_t    Comp_type;  */
     SaNameT  SaCompName;
     SaAmfCallbacksT amfCallbacks;
     SaVersionT      amf_version;
@@ -1788,7 +1788,7 @@ void tet_saf_pm_start(int sub_test_arg)
 {
    SaNameT  SaCompName;
    /*SaNameT dummyName;
-   uns32 pid;*/
+   uint32_t pid;*/
    SaAisErrorT error;
    int dummy;
                                                                                
@@ -2003,7 +2003,7 @@ void tet_saf_pm_stop(int sub_test_arg)
 {
 
    SaNameT  SaCompName;
-   /*uns32 pid;*/
+   /*uint32_t pid;*/
 
                                
                                                                                 

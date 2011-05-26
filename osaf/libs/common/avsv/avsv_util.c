@@ -49,7 +49,7 @@
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
+uint32_t avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
 {
 	char *tmp = NULL;
 
@@ -94,7 +94,7 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
+uint32_t avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
 {
 	char *tmp = NULL;
 
@@ -154,7 +154,7 @@ NCS_BOOL avsv_is_external_DN(SaNameT *dn_name)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
+uint32_t avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
 {
 	char *tmp = NULL;
 
@@ -180,7 +180,7 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
 /****************************************************************************
   Name          : avsv_dblist_uns32_cmp
  
-  Description   : This routine compares the uns32 keys. It is used by DLL 
+  Description   : This routine compares the uint32_t keys. It is used by DLL 
                   library.
  
   Arguments     : key1 - ptr to the 1st key
@@ -192,12 +192,12 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
 {
-	uns32 val1, val2;
+	uint32_t val1, val2;
 
-	val1 = *((uns32 *)key1);
-	val2 = *((uns32 *)key2);
+	val1 = *((uint32_t *)key1);
+	val2 = *((uint32_t *)key2);
 
 	return ((val1 == val2) ? 0 : ((val1 > val2) ? 1 : 2));
 }
@@ -217,7 +217,7 @@ uns32 avsv_dblist_uns32_cmp(uint8_t *key1, uint8_t *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_uns64_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avsv_dblist_uns64_cmp(uint8_t *key1, uint8_t *key2)
 {
 	uns64 val1, val2;
 
@@ -242,7 +242,7 @@ uns32 avsv_dblist_uns64_cmp(uint8_t *key1, uint8_t *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_saname_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avsv_dblist_saname_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	SaNameT name1_net, name2_net;
@@ -270,7 +270,7 @@ uns32 avsv_dblist_saname_cmp(uint8_t *key1, uint8_t *key2)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_dblist_sahckey_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avsv_dblist_sahckey_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 	SaAmfHealthcheckKeyT hc_key1, hc_key2;

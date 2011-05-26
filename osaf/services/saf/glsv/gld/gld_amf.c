@@ -252,12 +252,12 @@ gld_amf_csi_rmv_callback(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_amf_init(GLSV_GLD_CB *gld_cb)
+uint32_t gld_amf_init(GLSV_GLD_CB *gld_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 

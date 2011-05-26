@@ -47,7 +47,7 @@
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
+uint32_t mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
 {
 	if (m_NCS_IPC_CREATE(&mbc_reg->mbx) == NCSCC_RC_SUCCESS) {
 		if (m_NCS_IPC_ATTACH(&mbc_reg->mbx) == NCSCC_RC_SUCCESS) {

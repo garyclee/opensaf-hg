@@ -31,11 +31,11 @@
 #include "mqa.h"
 
 /* global cb handle */
-uns32 gl_mqa_hdl = 0;
+uint32_t gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
-static uns32 mqa_use_count = 0;
+static uint32_t mqa_use_count = 0;
 /* MQA Agent creation specific LOCK */
-static uns32 mqa_agent_lock_create = 0;
+static uint32_t mqa_agent_lock_create = 0;
 NCS_LOCK mqa_agent_lock;
 
 #define m_MQA_AGENT_LOCK                        \
@@ -55,11 +55,11 @@ static void mqa_client_tree_destroy(MQA_CB *mqa_cb);
 static void mqa_client_tree_cleanup(MQA_CB *mqa_cb);
 static void mqa_queue_tree_destroy(MQA_CB *mqa_cb);
 static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb);
-static uns32 mqa_create(NCS_LIB_CREATE *create_info);
-static uns32 mqa_destroy(NCS_LIB_DESTROY *destroy_info);
-static uns32 mqa_asapi_register(MQA_CB *cb);
-static uns32 mqa_client_tree_init(MQA_CB *cb);
-static uns32 mqa_queue_tree_init(MQA_CB *cb);
+static uint32_t mqa_create(NCS_LIB_CREATE *create_info);
+static uint32_t mqa_destroy(NCS_LIB_DESTROY *destroy_info);
+static uint32_t mqa_asapi_register(MQA_CB *cb);
+static uint32_t mqa_client_tree_init(MQA_CB *cb);
+static uint32_t mqa_queue_tree_init(MQA_CB *cb);
 
 /****************************************************************************
   Name          : mqa_lib_req
@@ -73,9 +73,9 @@ static uns32 mqa_queue_tree_init(MQA_CB *cb);
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t mqa_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -115,7 +115,7 @@ uns32 mqa_lib_req(NCS_LIB_REQ_INFO *req_info)
 static void mqa_sync_with_mqd(MQA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 
 	m_NCS_LOCK(&cb->mqd_sync_lock, NCS_LOCK_WRITE);
 
@@ -154,7 +154,7 @@ static void mqa_sync_with_mqd(MQA_CB *cb)
 static void mqa_sync_with_mqnd(MQA_CB *cb)
 {
 	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
+	uint32_t timeout = 3000;
 
 	m_NCS_LOCK(&cb->mqnd_sync_lock, NCS_LOCK_WRITE);
 
@@ -195,11 +195,11 @@ static void mqa_sync_with_mqnd(MQA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-static uns32 mqa_create(NCS_LIB_CREATE *create_info)
+static uint32_t mqa_create(NCS_LIB_CREATE *create_info)
 {
 	MQA_CB *cb = &mqa_cb;
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* validate create info */
 	if (create_info == NULL)
 		return NCSCC_RC_FAILURE;
@@ -324,7 +324,7 @@ static uns32 mqa_create(NCS_LIB_CREATE *create_info)
  
   Notes         : None
 ******************************************************************************/
-static uns32 mqa_destroy(NCS_LIB_DESTROY *destroy_info)
+static uint32_t mqa_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	MQA_CB *cb = 0;
 
@@ -384,10 +384,10 @@ static uns32 mqa_destroy(NCS_LIB_DESTROY *destroy_info)
  
   Notes         : None
 ******************************************************************************/
-static uns32 mqa_asapi_register(MQA_CB *cb)
+static uint32_t mqa_asapi_register(MQA_CB *cb)
 {
 	ASAPi_OPR_INFO asapi_or;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Register with ASAPi library */
 
@@ -419,7 +419,7 @@ static uns32 mqa_asapi_register(MQA_CB *cb)
 static void mqa_asapi_unregister(MQA_CB *cb)
 {
 	ASAPi_OPR_INFO asapi_or;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Register with ASAPi library */
 
 	asapi_or.type = ASAPi_OPR_UNBIND;
@@ -442,7 +442,7 @@ static void mqa_asapi_unregister(MQA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-static uns32 mqa_client_tree_init(MQA_CB *cb)
+static uint32_t mqa_client_tree_init(MQA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -466,7 +466,7 @@ static uns32 mqa_client_tree_init(MQA_CB *cb)
 ******************************************************************************/
 static void mqa_client_tree_destroy(MQA_CB *mqa_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* take the cb lock */
 	if ((rc = m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_A(MQA_CLIENT_TREE_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -563,13 +563,13 @@ NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info)
+uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info)
 {
 	MQA_TRACK_INFO *track_info;
 	SaNameT *temp_ptr = 0;
 	SaNameT temp_name;
 	uint8_t *value = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* scan the entire group track db & delete each record */
 	while ((track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_getnext(&client_info->mqa_track_tree, value))) {
 		/* delete the track info */
@@ -621,7 +621,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 {
 	MQA_CLIENT_INFO *client_info = NULL;
 	NCS_PATRICIA_PARAMS param;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	client_info = (MQA_CLIENT_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_client_tree, (uint8_t *)&hdl_id);
 
@@ -681,7 +681,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
 MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, NCS_BOOL flag)
 {
 	MQA_TRACK_INFO *track_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
@@ -731,7 +731,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaName
 NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group)
 {
 	MQA_TRACK_INFO *track_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	track_info = (MQA_TRACK_INFO *)ncs_patricia_tree_get(&client_info->mqa_track_tree, (uint8_t *)group->value);
 
@@ -764,10 +764,10 @@ NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *grou
  
   Notes         : None
 ******************************************************************************/
-static uns32 mqa_queue_tree_init(MQA_CB *cb)
+static uint32_t mqa_queue_tree_init(MQA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaMsgQueueHandleT);
 	if ((rc = ncs_patricia_tree_init(&cb->mqa_queue_tree, &param)) != NCSCC_RC_SUCCESS) {
@@ -789,7 +789,7 @@ static uns32 mqa_queue_tree_init(MQA_CB *cb)
 ******************************************************************************/
 static void mqa_queue_tree_destroy(MQA_CB *mqa_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* take the cb lock */
 	if ((rc = (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE))) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_A(MQA_QUEUE_TREE_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
@@ -825,7 +825,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
 	MQA_QUEUE_INFO *queue_info;
 	SaMsgQueueHandleT *temp_ptr = NULL;
 	SaMsgQueueHandleT temp_hdl;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan the entire handle db & delete each record */
 	while ((queue_info = (MQA_QUEUE_INFO *)
@@ -870,7 +870,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
 					    NCS_BOOL flag, MQA_CLIENT_INFO *client_info, SaMsgQueueOpenFlagsT openFlags)
 {
 	MQA_QUEUE_INFO *queue_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* read lock taken by the caller. */
 	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 
@@ -917,11 +917,11 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
+uint32_t mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
 {
 
 	MQA_QUEUE_INFO *queue_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	queue_info = (MQA_QUEUE_INFO *)ncs_patricia_tree_get(&mqa_cb->mqa_queue_tree, (uint8_t *)&hdl_id);
 	if (!queue_info) {
 
@@ -1003,7 +1003,7 @@ unsigned int ncs_mqa_startup(void)
 ******************************************************************************/
 unsigned int ncs_mqa_shutdown(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_MQA_AGENT_LOCK;
 	if (mqa_use_count > 1) {

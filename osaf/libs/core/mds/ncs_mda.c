@@ -60,7 +60,7 @@ const SaNameT glmds_vdest_inst_name_pref = { 20, "NCS_FIXED_VDEST_INST" };
 /***************************************************************************\
                          PUBLIC ADA/VDA FUNCTIONS
 \***************************************************************************/
-uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
+uint32_t mda_lib_req(NCS_LIB_REQ_INFO *req)
 {
 	NCS_SPLR_REQ_INFO splr_req;
 	NCS_SPIR_REQ_INFO spir_req;
@@ -183,7 +183,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 		/* Return the handle to the PWE */
-		req->info.inst.o_inst_hdl = (uns32)admop_info.info.pwe_create.o_mds_pwe_hdl;
+		req->info.inst.o_inst_hdl = (uint32_t)admop_info.info.pwe_create.o_mds_pwe_hdl;
 		req->info.inst.o_arg = NULL;
 
 		m_NCSMDA_TRACE_ARG1("MDA:LIB_INSTANTIATE:DONE\n");
@@ -233,7 +233,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
 	}
 }
 
-uns32 ncsada_api(NCSADA_INFO *ada_info)
+uint32_t ncsada_api(NCSADA_INFO *ada_info)
 {
 	NCS_SPIR_REQ_INFO spir_req;
 	NCSMDS_INFO svc_info;
@@ -344,7 +344,7 @@ MDA_INST_NAME_TYPE mda_get_inst_name_type(SaNameT *name)
 	return MDA_INST_NAME_TYPE_NAMED_VDEST;
 }
 
-void mds_fixed_vdest_to_inst_name(uns32 i_vdest_id, SaNameT *o_name)
+void mds_fixed_vdest_to_inst_name(uint32_t i_vdest_id, SaNameT *o_name)
 {
 	memset(o_name, 0, sizeof(o_name));
 	o_name->length = (unsigned short)(glmds_vdest_inst_name_pref.length + VDEST_ID_STR_LEN);
@@ -353,7 +353,7 @@ void mds_fixed_vdest_to_inst_name(uns32 i_vdest_id, SaNameT *o_name)
 	sprintf((char *)(o_name->value + glmds_vdest_inst_name_pref.length), VDEST_FMT_STR, i_vdest_id);
 }
 
-uns32 mds_inst_name_to_fixed_vdest(SaNameT *i_name, uns32 *o_vdest_id)
+uint32_t mds_inst_name_to_fixed_vdest(SaNameT *i_name, uint32_t *o_vdest_id)
 {
 	char *vdest_read_ptr;
 	if (mda_get_inst_name_type(i_name) != MDA_INST_NAME_TYPE_UNNAMED_VDEST)

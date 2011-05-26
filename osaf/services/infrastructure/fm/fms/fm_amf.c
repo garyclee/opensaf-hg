@@ -34,11 +34,11 @@
 ******************************************************************************/
 
 #include "fm.h"
-uns32 gl_fm_hdl;
+uint32_t gl_fm_hdl;
 
-uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb);
-static uns32 fm_amf_register(FM_AMF_CB *fm_amf_cb);
-static uns32 fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb);
+uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb);
+static uint32_t fm_amf_register(FM_AMF_CB *fm_amf_cb);
+static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb);
 static FM_AMF_CB *fm_amf_take_hdl(void);
 static void fm_amf_give_hdl(void);
 static char *ha_role_string[] = { "ACTIVE", "STANDBY", "QUIESCED",
@@ -257,13 +257,13 @@ void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *com
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb)
+uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT amf_error;
 	SaNameT sname;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	if (amf_comp_name_get_set_from_file("FM_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
@@ -327,10 +327,10 @@ uns32 fm_amf_init(FM_AMF_CB *fm_amf_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 fm_amf_register(FM_AMF_CB *fm_amf_cb)
+static uint32_t fm_amf_register(FM_AMF_CB *fm_amf_cb)
 {
 	SaAisErrorT amf_error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 	SaNameT sname;
 	
 	TRACE_ENTER();
@@ -360,7 +360,7 @@ static uns32 fm_amf_register(FM_AMF_CB *fm_amf_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
+static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
 {
 	SaAisErrorT amf_error;
 	SaAmfHealthcheckKeyT Healthy;

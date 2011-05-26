@@ -77,12 +77,12 @@ time_t ncs_time_stamp()
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns32 decode_32bitOS_inc(uint8_t **stream)
+uint32_t decode_32bitOS_inc(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 	val = m_NCS_OS_NTOHL_P(*stream);
-	*stream += sizeof(uns32);
+	*stream += sizeof(uint32_t);
 	return val;
 
 }
@@ -109,10 +109,10 @@ uns32 decode_32bitOS_inc(uint8_t **stream)
   increments the pointer to the datastore
 *****************************************************************************/
 
-uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val)
+uint32_t encode_32bitOS_inc(uint8_t **stream, uint32_t val)
 {
 	m_NCS_OS_HTONL_P(*stream, val);
-	*stream += sizeof(uns32);
+	*stream += sizeof(uint32_t);
 	return 4;
 }
 
@@ -139,7 +139,7 @@ uns32 encode_32bitOS_inc(uint8_t **stream, uns32 val)
 
 *****************************************************************************/
 
-uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val)
+uint32_t encode_16bitOS_inc(uint8_t **stream, uint32_t val)
 {
 	m_NCS_OS_HTONS_P(*stream, val);
 	*stream += sizeof(uint16_t);
@@ -171,7 +171,7 @@ uns32 encode_16bitOS_inc(uint8_t **stream, uns32 val)
 uint16_t decode_16bitOS_inc(uint8_t **stream)
 {
 
-	uns32 val = 0;		/* Accumulator */
+	uint32_t val = 0;		/* Accumulator */
 	val = m_NCS_OS_NTOHS_P(*stream);
 	*stream += sizeof(uint16_t);
 	return (uint16_t)(val & 0x0000FFFF);
@@ -192,10 +192,10 @@ uint16_t decode_16bitOS_inc(uint8_t **stream)
       
   ARGUMENTS:
 
-  uns32   l             line # in file
+  uint32_t   l             line # in file
   char*   f             file name where macro invoked
-  uns32   err           Error code value..
-  uns32   retval        return this to invoker, if we servive
+  uint32_t   err           Error code value..
+  uint32_t   retval        return this to invoker, if we servive
 
   RETURNS:
 
@@ -220,7 +220,7 @@ char *gl_fail_str[] = {
 
 /* The function that says it all */
 
-uns32 leap_failure(uns32 l, char *f, uns32 err, uns32 retval)
+uint32_t leap_failure(uint32_t l, char *f, uint32_t err, uint32_t retval)
 {
 	switch (err) {
 	case NCSFAIL_DOUBLE_DELETE:
@@ -264,9 +264,9 @@ uns32 leap_failure(uns32 l, char *f, uns32 err, uns32 retval)
 
 *****************************************************************************/
 
-static uns32 leap_env_init_count = 0;
+static uint32_t leap_env_init_count = 0;
 
-uns32 leap_env_init()
+uint32_t leap_env_init()
 {
 
 	if (leap_env_init_count++ != 0) {
@@ -340,7 +340,7 @@ uns32 leap_env_init()
 
 *****************************************************************************/
 
-uns32 leap_env_destroy()
+uint32_t leap_env_destroy()
 {
 
 	if (--leap_env_init_count != 0) {

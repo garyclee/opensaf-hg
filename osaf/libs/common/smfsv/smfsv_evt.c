@@ -61,9 +61,9 @@ void smfsv_evt_destroy(SMFSV_EVT *evt)
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfd_enc_cmd_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfd_enc_cmd_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -98,9 +98,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfd_dec_cmd_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfd_dec_cmd_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[20];
 
@@ -120,9 +120,9 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smf_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smf_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, sizeof(SMF_RESP_EVT));
@@ -151,9 +151,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfd_enc_cbk_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfd_enc_cbk_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -177,9 +177,9 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smf_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
+uint32_t smf_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[256];
 
@@ -211,9 +211,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfd_dec_cbk_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfd_dec_cbk_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[256];
 
@@ -244,9 +244,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -303,9 +303,9 @@ err:
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32     rc = NCSCC_RC_SUCCESS;
+    uint32_t     rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
 
@@ -355,9 +355,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfnd_enc_cmd_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfnd_enc_cmd_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -395,9 +395,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfnd_dec_cmd_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[20];
 
@@ -437,9 +437,9 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, 8);
@@ -512,17 +512,17 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smfnd_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfnd_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
 
     rc = smf_enc_cbk_req(i_evt, o_ub);
     return rc;
 }
 
-uns32 smfnd_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfnd_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
 
     if (o_ub == NULL || i_evt == NULL)
     {
@@ -546,9 +546,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfnd_enc_cbk_req_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfnd_enc_cbk_req_rsp(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -588,9 +588,9 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
+uint32_t smf_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[256];
 
@@ -660,17 +660,17 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smfnd_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
+uint32_t smfnd_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
 
     rc = smf_dec_cbk_req(i_ub, o_evt);
     return rc;
 }
 
-uns32 smfnd_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
+uint32_t smfnd_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
 
     if (i_ub == NULL || o_evt == NULL)
     {
@@ -694,9 +694,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfnd_dec_cbk_req_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfnd_dec_cbk_req_rsp(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
     uint8_t       local_data[20];
 
@@ -740,9 +740,9 @@ err:
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -798,9 +798,9 @@ err:
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32     rc = NCSCC_RC_SUCCESS;
+    uint32_t     rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
 
@@ -839,9 +839,9 @@ err:
   SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA SMFA
 *****************************************************************************/
 
-uns32 smfa_enc_cbk_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfa_enc_cbk_req(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     p8 = ncs_enc_reserve_space(o_ub, 4);
@@ -859,9 +859,9 @@ err:
     return NCSCC_RC_FAILURE;
 }
 
-uns32 smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
 
@@ -886,9 +886,9 @@ uns32 smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfa_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfa_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     /** encode the type of SMFA event **/
@@ -933,9 +933,9 @@ err:
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfa_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfa_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32     rc = NCSCC_RC_SUCCESS;
+    uint32_t     rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
 
@@ -986,9 +986,9 @@ err:
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfsv_evt_enc_flat(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfsv_evt_enc_flat(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32     size;
+    uint32_t     size;
    
     size = sizeof(SMFSV_EVT);
 
@@ -1012,9 +1012,9 @@ uns32 smfsv_evt_enc_flat(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfsv_evt_dec_flat(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfsv_evt_dec_flat(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32     size;
+    uint32_t     size;
    
     size = sizeof(SMFSV_EVT);
    
@@ -1035,9 +1035,9 @@ uns32 smfsv_evt_dec_flat(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 smfsv_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t smfsv_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uns32      rc = NCSCC_RC_SUCCESS;
+    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
 
     if (o_ub == NULL || i_evt == NULL)
@@ -1098,9 +1098,9 @@ err:
 
  NOTES          : 
 \*****************************************************************************/
-uns32 smfsv_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
+uint32_t smfsv_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uns32     rc = NCSCC_RC_SUCCESS;
+    uint32_t     rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
 
@@ -1151,16 +1151,16 @@ err:
  *
  * Notes         :
  *****************************************************************************/
-uns32 smfsv_mds_send_rsp(uns32             mds_handle, 
+uint32_t smfsv_mds_send_rsp(uint32_t             mds_handle, 
                          MDS_SYNC_SND_CTXT mds_ctxt,
-                         uns32             to_svc, 
+                         uint32_t             to_svc, 
                          MDS_DEST          to_dest, 
-                         uns32             fr_svc, 
+                         uint32_t             fr_svc, 
                          MDS_DEST          fr_dest, 
                          SMFSV_EVT         *evt)
 {
    NCSMDS_INFO    mds_info;
-   uns32          rc;
+   uint32_t          rc;
 
    memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mds_handle;
@@ -1200,17 +1200,17 @@ uns32 smfsv_mds_send_rsp(uns32             mds_handle,
  
   Notes         : None.
 ******************************************************************************/
-uns32 smfsv_mds_msg_sync_send (uns32       mds_handle, 
-                               uns32       to_svc, 
+uint32_t smfsv_mds_msg_sync_send (uint32_t       mds_handle, 
+                               uint32_t       to_svc, 
                                MDS_DEST    to_dest, 
-                               uns32       fr_svc, 
+                               uint32_t       fr_svc, 
                                SMFSV_EVT   *i_evt, 
                                SMFSV_EVT   **o_evt,
-                               uns32       timeout)
+                               uint32_t       timeout)
 {
 
    NCSMDS_INFO                mds_info;
-   uns32                      rc;
+   uint32_t                      rc;
 
    if(!i_evt)
       return NCSCC_RC_FAILURE;
@@ -1255,14 +1255,14 @@ uns32 smfsv_mds_msg_sync_send (uns32       mds_handle,
  
   Notes         : None.
 ******************************************************************************/
-uns32 smfsv_mds_msg_send (uns32        mds_handle, 
-                          uns32        to_svc, 
+uint32_t smfsv_mds_msg_send (uint32_t        mds_handle, 
+                          uint32_t        to_svc, 
                           MDS_DEST     to_dest, 
-                          uns32        from_svc, 
+                          uint32_t        from_svc, 
                           SMFSV_EVT    *evt)
 {
    NCSMDS_INFO     mds_info;
-   uns32           rc;
+   uint32_t           rc;
 
    if(!evt)
       return NCSCC_RC_FAILURE;

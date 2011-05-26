@@ -87,7 +87,7 @@ SmfProcedureThread::~SmfProcedureThread()
 int
 SmfProcedureThread::start(void)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE("Starting procedure thread %s", m_procedure->getDn().c_str());
 
@@ -142,7 +142,7 @@ SmfProcedureThread::stop(void)
 int 
 SmfProcedureThread::init(void)
 {
-	uns32 rc;
+	uint32_t rc;
 	SaAisErrorT result = SA_AIS_OK;
 
 	/* Create the mailbox used for communication with this thread */
@@ -201,7 +201,7 @@ SmfProcedureThread::init(void)
 int 
 SmfProcedureThread::send(PROCEDURE_EVT * evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE("Procedure thread send event type %d", evt->type);
 	rc = m_NCS_IPC_SEND(&m_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
@@ -275,17 +275,17 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 	SmfCampaign *campaign = SmfCampaignThread::instance()->campaign();
 
 	const char *safSmfProcedure = procedure->getProcName().c_str();
-	uns32 saSmfProcExecLevel = procedure->getExecLevel();
+	uint32_t saSmfProcExecLevel = procedure->getExecLevel();
 	SaNameT saSmfProcMustKeepSIs = { 0 };
 	SaNameT saSmfProcAcceptSIOutage = { 0 };
-	uns32 saSmfProcMaxNumSIsOutage = 0;
-	uns32 saSmfProcUpgrMethod = 0;
+	uint32_t saSmfProcMaxNumSIsOutage = 0;
+	uint32_t saSmfProcUpgrMethod = 0;
 
 //TODO: Parse and read the saSmfProcDisableSimultanExec attribute from the campaign.xml
 //      Handle the the content i.e. do not execute in parallel 
-	uns32 saSmfProcDisableSimultanExec = 1;
+	uint32_t saSmfProcDisableSimultanExec = 1;
 	SaTimeT saSmfProcPeriod = 0;
-	uns32 saSmfProcState = SA_SMF_PROC_INITIAL;
+	uint32_t saSmfProcState = SA_SMF_PROC_INITIAL;
 	char *saSmfProcError = (char*)"";
 
 	TRACE_ENTER();

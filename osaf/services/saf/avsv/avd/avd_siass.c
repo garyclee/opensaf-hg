@@ -164,7 +164,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	AVD_SU *curr_su = 0;
 	AVD_SUS_PER_SI_RANK_INDX i_idx;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0, *i_su_rank_rec = 0;
-	uns32 rank1, rank2;
+	uint32_t rank1, rank2;
 
 	TRACE_ENTER2("%s %s state=%u", su->name.value, si->name.value, state);
 
@@ -443,7 +443,7 @@ AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_nam
  * 
  **************************************************************************/
 
-uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
+uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 {
 	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
 	AVD_AVND *avnd = NULL;
@@ -549,9 +549,9 @@ void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
  * changes and ntf but introducing avd_susi_ha_state_set and removing 
  * avd_gen_su_ha_state_changed_ntf (155 occurrences!) have big impact on the code.
  * */
-uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
+uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s' assigned to '%s' HA state UNKNOWN => %s", susi->si->name.value, 
 			susi->su->name.value, avd_ha_state[susi->state]);

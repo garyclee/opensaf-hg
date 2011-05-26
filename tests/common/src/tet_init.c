@@ -94,12 +94,12 @@ int tet_remotesync(SyncParameters *syncparam);
 void fill_std_config (char **t_argv)
 {
 
-    uns32 slot_id = 0 ;
-    uns32 shelf_id = 0;
-    uns32 node_id  =  0 ;
-    uns32 cluster_id = 0;
-    uns32 mds_ifindex = 0;
-/*  uns32 tmp_ctr=6;   warning removal */
+    uint32_t slot_id = 0 ;
+    uint32_t shelf_id = 0;
+    uint32_t node_id  =  0 ;
+    uint32_t cluster_id = 0;
+    uint32_t mds_ifindex = 0;
+/*  uint32_t tmp_ctr=6;   warning removal */
     char *tmp_ptr = NULL;
     FILE *f_pid;
     int  rc;
@@ -311,7 +311,7 @@ void tet_svcs_startup()
 
 void tet_saf_agents_startup(void)
 {
-    uns32 status=NCSCC_RC_SUCCESS;
+    uint32_t status=NCSCC_RC_SUCCESS;
 
 
 #if 0 

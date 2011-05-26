@@ -95,7 +95,7 @@ typedef struct {
  * attribute name value pairs .
  */
 typedef struct {
-	uns32 number;
+	uint32_t number;
 	AVSV_ATTR_NAME_VAL *list;
 } AVSV_CSI_ATTRS;
 

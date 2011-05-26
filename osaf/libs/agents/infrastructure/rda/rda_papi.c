@@ -42,12 +42,12 @@ static void *pcs_rda_callback_cb = NULL;
 /*
 ** Static functions
 */
-static uns32 rda_read_msg(int sockfd, char *msg, int size);
-static uns32 rda_write_msg(int sockfd, char *msg);
-static uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value);
-static uns32 rda_connect(int *sockfd);
-static uns32 rda_disconnect(int sockfd);
-static uns32 rda_callback_req(int sockfd);
+static uint32_t rda_read_msg(int sockfd, char *msg, int size);
+static uint32_t rda_write_msg(int sockfd, char *msg);
+static uint32_t rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value);
+static uint32_t rda_connect(int *sockfd);
+static uint32_t rda_disconnect(int sockfd);
+static uint32_t rda_callback_req(int sockfd);
 
 /*****************************************************************************
 
@@ -65,10 +65,10 @@ static uns32 rda_callback_req(int sockfd);
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
+static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 {
 	char msg[64] = { 0 };
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int value = -1;
 	int retry_count = 0;
 	NCS_BOOL conn_lost = FALSE;
@@ -167,9 +167,9 @@ static uns32 rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
  *
  * Notes         : None
  *****************************************************************************/
-static int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void **task_cb)
+static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void **task_cb)
 {
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int sockfd = -1;
 	NCS_BOOL is_task_spawned = FALSE;
 	RDA_CALLBACK_CB *rda_callback_cb = NULL;
@@ -274,7 +274,7 @@ static int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void
  *****************************************************************************/
 static int pcs_rda_unreg_callback(void *task_cb)
 {
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	RDA_CALLBACK_CB *rda_callback_cb = NULL;
 
 	if (!task_cb)
@@ -328,7 +328,7 @@ static int pcs_rda_unreg_callback(void *task_cb)
  *****************************************************************************/
 static int pcs_rda_set_role(PCS_RDA_ROLE role)
 {
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int sockfd;
 	char msg[64] = { 0 };
 	int value = -1;
@@ -393,7 +393,7 @@ static int pcs_rda_set_role(PCS_RDA_ROLE role)
  *****************************************************************************/
 static int pcs_rda_get_role(PCS_RDA_ROLE *role)
 {
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int sockfd;
 	char msg[64] = { 0 };
 	int value = -1;
@@ -494,7 +494,7 @@ static RDA_CONTROL_BLOCK *rda_get_control_block(void)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_connect(int *sockfd)
+static uint32_t rda_connect(int *sockfd)
 {
 	RDA_CONTROL_BLOCK *rda_cb = rda_get_control_block();
 	/*
@@ -532,7 +532,7 @@ static uns32 rda_connect(int *sockfd)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_disconnect(int sockfd)
+static uint32_t rda_disconnect(int sockfd)
 {
 	char msg[64] = { 0 };
 
@@ -568,10 +568,10 @@ static uns32 rda_disconnect(int sockfd)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_callback_req(int sockfd)
+static uint32_t rda_callback_req(int sockfd)
 {
 	char msg[64] = { 0 };
-	uns32 rc = PCSRDA_RC_SUCCESS;
+	uint32_t rc = PCSRDA_RC_SUCCESS;
 	int value = -1;
 	RDE_RDA_CMD_TYPE cmd_type = 0;
 
@@ -615,7 +615,7 @@ static uns32 rda_callback_req(int sockfd)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_write_msg(int sockfd, char *msg)
+static uint32_t rda_write_msg(int sockfd, char *msg)
 {
 	int msg_size = 0;
 
@@ -646,7 +646,7 @@ static uns32 rda_write_msg(int sockfd, char *msg)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_read_msg(int sockfd, char *msg, int size)
+static uint32_t rda_read_msg(int sockfd, char *msg, int size)
 {
 	int rc = PCSRDA_RC_SUCCESS;
 	int msg_size = 0;
@@ -724,7 +724,7 @@ static uns32 rda_read_msg(int sockfd, char *msg, int size)
   NOTES:
 
 *****************************************************************************/
-static uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value)
+static uint32_t rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value)
 {
 	char msg[64] = { 0 };
 	char *ptr;
@@ -749,9 +749,9 @@ static uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *va
 	return PCSRDA_RC_SUCCESS;
 }
 
-uns32 rda_get_role(SaAmfHAStateT *ha_state)
+uint32_t rda_get_role(SaAmfHAStateT *ha_state)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PCS_RDA_ROLE role;
 
 	if (pcs_rda_get_role(&role) != PCSRDA_RC_SUCCESS) {
@@ -774,7 +774,7 @@ done:
 	return rc;
 }
 
-uns32 rda_register_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr)
+uint32_t rda_register_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr)
 {
 	if (pcs_rda_reg_callback(cb_handle, rda_cb_ptr, &pcs_rda_callback_cb) == PCSRDA_RC_SUCCESS)
 		return NCSCC_RC_SUCCESS;

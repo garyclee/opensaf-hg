@@ -26,13 +26,13 @@
 #include "imma.h"
 #include "ncs_util.h"
 
-static uns32 imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 imma_mds_get_handle(IMMA_CB *cb);
-static uns32 imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *info);
-static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t imma_mds_get_handle(IMMA_CB *cb);
+static uint32_t imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *info);
+static uint32_t imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *info);
 
 /* Message Format Verion Tables */
 MDS_CLIENT_MSG_FORMAT_VER imma_immnd_msg_fmt_table[IMMA_WRT_IMMND_SUBPART_VER_RANGE] = { 1 };
@@ -51,10 +51,10 @@ MDS_CLIENT_MSG_FORMAT_VER imma_immd_msg_fmt_table[IMMA_WRT_IMMD_SUBPART_VER_RANG
  * Notes         : None.
  *****************************************************************************/
 
-uns32 imma_mds_get_handle(IMMA_CB *cb)
+uint32_t imma_mds_get_handle(IMMA_CB *cb)
 {
 	NCSADA_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 	arg.req = NCSADA_GET_HDLS;
@@ -80,11 +80,11 @@ uns32 imma_mds_get_handle(IMMA_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 imma_mds_register(IMMA_CB *cb)
+uint32_t imma_mds_register(IMMA_CB *cb)
 {
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID subs_id[1] = { NCSMDS_SVC_ID_IMMND };
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* STEP1: Get the MDS Handle */
 	if (imma_mds_get_handle(cb) != NCSCC_RC_SUCCESS)
@@ -149,7 +149,7 @@ uns32 imma_mds_register(IMMA_CB *cb)
 void imma_mds_unregister(IMMA_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
@@ -178,10 +178,10 @@ void imma_mds_unregister(IMMA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 imma_mds_callback(struct ncsmds_callback_info *info)
+uint32_t imma_mds_callback(struct ncsmds_callback_info *info)
 {
 	IMMA_CB *cb = &imma_cb;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
@@ -251,11 +251,11 @@ uns32 imma_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
 		info->o_msg_fmt_ver =
@@ -295,11 +295,11 @@ static uns32 imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 #if 0				/*NOTE ABT DOES NOT WORK */
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMND) {
@@ -353,7 +353,7 @@ static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	IMMSV_EVT *evt = (IMMSV_EVT *)rcv_info->i_msg;
 
@@ -385,7 +385,7 @@ static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	NCS_BOOL locked = FALSE;
 	switch (svc_evt->i_change) {
@@ -462,7 +462,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = enc_info->io_uba;
@@ -497,11 +497,11 @@ static uns32 imma_mds_enc(IMMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
   Notes         : None.
 ******************************************************************************/
-static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	IMMSV_EVT *evt;
 	NCS_UBAID *uba = dec_info->io_uba;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 #if 0				/*ABT DOES NOT WORK */
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_IMMND) {
@@ -543,7 +543,7 @@ static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
   Description   : This routine sends the IMMA message to IMMND.
  
   Arguments     :
-                  uns32 imma_mds_hdl Handle of IMMA
+                  uint32_t imma_mds_hdl Handle of IMMA
                   MDS_DEST  *destination - destintion to send to
                   IMMSV_EVT   *i_evt - IMMSV_EVT pointer
                   IMMSV_EVT   **o_evt - IMMSV_EVT pointer to result data
@@ -553,12 +553,12 @@ static uns32 imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 imma_mds_msg_sync_send(uns32 imma_mds_hdl,
-			     MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uns32 timeout)
+uint32_t imma_mds_msg_sync_send(uint32_t imma_mds_hdl,
+			     MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout)
 {
 	IMMA_CB *cb = &imma_cb;
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;
@@ -594,7 +594,7 @@ uns32 imma_mds_msg_sync_send(uns32 imma_mds_hdl,
  
   Description   : This routine sends the IMMA message to IMMND.
  
-  Arguments     : uns32 imma_mds_hdl Handle of IMMA
+  Arguments     : uint32_t imma_mds_hdl Handle of IMMA
                   MDS_DEST  *destination - destintion to send to
                   IMMSV_EVT   *i_evt - IMMSV_EVT pointer
                   
@@ -602,11 +602,11 @@ uns32 imma_mds_msg_sync_send(uns32 imma_mds_hdl,
  
   Notes         : None.
 ******************************************************************************/
-uns32 imma_mds_msg_send(uns32 imma_mds_hdl, MDS_DEST *destination, IMMSV_EVT *i_evt, uns32 to_svc)
+uint32_t imma_mds_msg_send(uint32_t imma_mds_hdl, MDS_DEST *destination, IMMSV_EVT *i_evt, uint32_t to_svc)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 	IMMA_CB *cb = &imma_cb;
 
 	if (!i_evt)

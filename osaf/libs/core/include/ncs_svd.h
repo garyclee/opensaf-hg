@@ -150,7 +150,7 @@ extern "C" {
 		uint8_t fmat;	/* value format NUM|HDL|STR|OCT   */
 
 		union {
-			uns32 num;
+			uint32_t num;
 			NCSCONTEXT hdl;
 			NCS_OCTSTR oct;
 			uint8_t str[SYSF_MAX_KEY_LEN];	/* null terminated string       */
@@ -180,7 +180,7 @@ extern "C" {
 #define m_SET_NUM_KEY(k,s,t,v)     { k.svc=s;k.type=t; \
                                      k.fmat=NCS_FMT_NUM;k.val.num=v; }
 #define m_GET_NUM_KEY(k,n)         { m_KEY_CHK_FMT(k,NCS_FMT_NUM); \
-                                     n = (uns32)k.val.num; }
+                                     n = (uint32_t)k.val.num; }
 
 /* Handle (NCSCONTEXT) */
 
@@ -236,8 +236,8 @@ NOTE: is designed to be small (32 bits). Don't mess with this!!!
 
 	typedef struct ncs_lock_desc {
 		NCS_SERVICE_ID subsystem_id;	/* Subsystem specific owner of this lock */
-		uns32 lock_id;	/* maps to a subsys specific lock identifier */
-		uns32 lock_type;	/* This is one of NCS_LOCK_READ or NCS_LOCK_WRITE */
+		uint32_t lock_id;	/* maps to a subsys specific lock identifier */
+		uint32_t lock_type;	/* This is one of NCS_LOCK_READ or NCS_LOCK_WRITE */
 	} NCS_LOCK_DESC;
 
 #ifdef  __cplusplus

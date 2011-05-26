@@ -212,15 +212,15 @@ typedef enum gld_log_ids {
 void gld_flx_log_reg();
 void gld_flx_log_dereg();
 
-void gld_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uns32 line_no, SaUint32T node_id);
-void gld_log_memfail(uint8_t mf_id, char *file_name, uns32 line_no);
-void gld_log_api(uint8_t api_id, uint8_t sev, char *file_name, uns32 line_no);
-void gld_log_evt(uint8_t evt_id, uint8_t sev, char *file_name, uns32 line_no, uns32 rsc_id, uns32 node_id);
-void gld_log_svc_prvdr(uint8_t sp_id, uint8_t sev, char *file_name, uns32 line_no);
-void gld_log_lck_oper(uint8_t lck_id, uint8_t sev, char *file_name, uns32 line_no,
-			       char *rsc_name, uns32 rsc_id, uns32 node_id);
-void gld_mbcsv_log(uint8_t id, uint8_t sev, char *file_name, uns32 line_no);
-void gld_log_timer(uint8_t id, uns32 type, char *file_name, uns32 line_no);
+void gld_log_headline(uint8_t hdln_id, uint8_t sev, char *file_name, uint32_t line_no, SaUint32T node_id);
+void gld_log_memfail(uint8_t mf_id, char *file_name, uint32_t line_no);
+void gld_log_api(uint8_t api_id, uint8_t sev, char *file_name, uint32_t line_no);
+void gld_log_evt(uint8_t evt_id, uint8_t sev, char *file_name, uint32_t line_no, uint32_t rsc_id, uint32_t node_id);
+void gld_log_svc_prvdr(uint8_t sp_id, uint8_t sev, char *file_name, uint32_t line_no);
+void gld_log_lck_oper(uint8_t lck_id, uint8_t sev, char *file_name, uint32_t line_no,
+			       char *rsc_name, uint32_t rsc_id, uint32_t node_id);
+void gld_mbcsv_log(uint8_t id, uint8_t sev, char *file_name, uint32_t line_no);
+void gld_log_timer(uint8_t id, uint32_t type, char *file_name, uint32_t line_no);
 
 void gld_flx_log_reg(void);
 

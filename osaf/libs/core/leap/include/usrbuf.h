@@ -38,16 +38,16 @@
 /***************************************************************************
  * NCSUB_POOL holds all info associated with a particular USRBUF pool
  ***************************************************************************/
-uns32 ncs_lbp_create(void);
-uns32 ncs_lbp_destroy(void);
+uint32_t ncs_lbp_create(void);
+uint32_t ncs_lbp_destroy(void);
 
 typedef struct ncsub_pool {
 	NCS_BOOL busy;
 	uint8_t pool_id;
 	NCS_POOL_MALLOC mem_alloc;
 	NCS_POOL_MFREE mem_free;
-	uns32 hdr_reserve;
-	uns32 trlr_reserve;
+	uint32_t hdr_reserve;
+	uint32_t trlr_reserve;
 } NCSUB_POOL;
 
 /***************************************************************************
@@ -150,7 +150,7 @@ typedef struct ncsmmgr_ub_lm_arg {
 
  ***************************************************************************/
 
-uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
+uint32_t ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
 NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id);
 
 #define m_NCSMMGR_UB_LM(a)           ncsmmgr_ub_lm(a)

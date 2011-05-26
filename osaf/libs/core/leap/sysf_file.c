@@ -36,7 +36,7 @@
 #include "ncs_osprm.h"
 #include "sysf_file.h"
 
-uns32 ncs_file_op(NCS_OS_FILE *file, NCS_OS_FILE_REQUEST file_request)
+uint32_t ncs_file_op(NCS_OS_FILE *file, NCS_OS_FILE_REQUEST file_request)
 {
 	return m_NCS_OS_FILE(file, file_request);
 }

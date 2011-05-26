@@ -45,7 +45,7 @@
 #include "mds_log.h"
 #include "ncssysf_mem.h"
 
-uns32 mds_mcm_global_exchange_id = 0;
+uint32_t mds_mcm_global_exchange_id = 0;
 
 #define SUCCESS 0
 #define FAILURE 1
@@ -102,256 +102,256 @@ typedef struct send_msg {
 } SEND_MSG;
 
 /* Functions for bcast list add, search and free all the list */
-static uns32 mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum, USRBUF *usr_buf,
+static uint32_t mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum, USRBUF *usr_buf,
 				    MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
 				    MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word);
 
-static uns32 mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
+static uint32_t mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 				       MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver,
 				       MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word, MDS_BCAST_BUFF_LIST **mds_mcm_bcast_ptr,
 				       NCS_BOOL flag);
 
-static uns32 mds_mcm_del_all_bcast_list(SEND_MSG *msg);
+static uint32_t mds_mcm_del_all_bcast_list(SEND_MSG *msg);
 
 #define MDS_MSG_SENT 3
 
-uns32 mds_send(NCSMDS_INFO *info);
+uint32_t mds_send(NCSMDS_INFO *info);
 
-static uns32 mds_mcm_free_msg_memory(MDS_ENCODED_MSG msg);
+static uint32_t mds_mcm_free_msg_memory(MDS_ENCODED_MSG msg);
 
-static uns32 mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_pvt_red_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				 NCSCONTEXT msg, MDS_DEST to_dest,
 				 V_DEST_QA anchor,
 				 MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				       NCSCONTEXT msg, MDS_DEST to_dest,
 				       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				       NCSCONTEXT msg, MDS_DEST to_dest,
 				       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					NCSCONTEXT msg, MDS_DEST to_dest,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_normal_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					NCSCONTEXT msg, MDS_DEST to_dest,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    V_DEST_QA anchor,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				     NCSCONTEXT msg, MDS_DEST to_dest,
 				     V_DEST_QA anchor,
 				     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    V_DEST_QA anchor,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
-static uns32 mcm_pvt_red_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				     NCSCONTEXT msg, MDS_DEST to_dest,
 				     V_DEST_QA anchor,
 				     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_pvt_normal_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				      NCSCONTEXT msg,
 				      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 				      NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				   NCSCONTEXT msg,
 				   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 				   NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri);
 
 /* Direct Send*/
-static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					V_DEST_QA anchor,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
-static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					     MDS_DIRECT_BUFF buff, uint16_t len,
 					     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					     NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					     MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					  MDS_DIRECT_BUFF buff, uint16_t len,
 					  MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					  NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					  MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-uns32 mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv);
-static uns32 mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mds_mcm_process_recv_sndrack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mds_mcm_process_recv_sndack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mds_mcm_process_recv_ack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_normal_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
-static uns32 mcm_recv_red_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+uint32_t mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_process_recv_sndrack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_process_recv_sndack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_process_recv_ack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_normal_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
+static uint32_t mcm_recv_red_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
 
-static uns32 mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv, MDS_SEND_PRIORITY_TYPE pri);
+static uint32_t mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLBACK_INFO *cbinfo, MDS_DATA_RECV *recv_msg,
+static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLBACK_INFO *cbinfo, MDS_DATA_RECV *recv_msg,
 					    NCSCONTEXT orig_msg);
-static uns32 mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t flag, MDS_SEND_PRIORITY_TYPE pri);
+static uint32_t mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t flag, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mds_mcm_direct_send(NCSMDS_INFO *info);
+static uint32_t mds_mcm_direct_send(NCSMDS_INFO *info);
 
-static uns32 mds_mcm_send(NCSMDS_INFO *info);
+static uint32_t mds_mcm_send(NCSMDS_INFO *info);
 
-static uns32 mcm_query_for_node_dest(MDS_DEST adest, uint8_t *to);
+static uint32_t mcm_query_for_node_dest(MDS_DEST adest, uint8_t *to);
 
-static uns32 mcm_query_for_node_dest_on_archword(MDS_DEST adest, uint8_t *to, MDS_SVC_ARCHWORD_TYPE arch_word);
+static uint32_t mcm_query_for_node_dest_on_archword(MDS_DEST adest, uint8_t *to, MDS_SVC_ARCHWORD_TYPE arch_word);
 
-static uns32 mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       SEND_MSG msg, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
-					       MDS_SEND_PRIORITY_TYPE pri, uns32 xch_id);
+					       MDS_SEND_PRIORITY_TYPE pri, uint32_t xch_id);
 
-static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
+static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 					       MDS_DEST i_dest, MDS_SEND_INFO *req, MDS_DEST *o_dest,
 					       NCS_BOOL *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl);
 
-static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RESULTS_INFO *send_hdl,
+static uint32_t mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RESULTS_INFO *send_hdl,
 				      MDS_SVC_ID to_svc_id, SEND_MSG *msg, MDS_VDEST_ID to_vdest,
-				      uns32 snd_type, uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri);
+				      uint32_t snd_type, uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff,
+static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff,
 				      MDS_SVC_ID to_svc_id, MDS_SVC_INFO *svc_cb,
-				      MDS_DEST adest, MDS_VDEST_ID to_vdest, uns32 snd_type,
-				      uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
+				      MDS_DEST adest, MDS_VDEST_ID to_vdest, uint32_t snd_type,
+				      uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
-static uns32 mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_msg,
+static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_msg,
 						  MDS_SVC_ID to_svc_id, MDS_SVC_INFO *svc_cb,
-						  MDS_DEST adest, MDS_VDEST_ID to_vdest, uns32 snd_type,
-						  uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri);
+						  MDS_DEST adest, MDS_VDEST_ID to_vdest, uint32_t snd_type,
+						  uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_SEND_INFO *req,
+static uint32_t mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_SEND_INFO *req,
 					  MDS_VDEST_ID dest_vdest_id, MDS_DEST dest,
 					  MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id);
 
-static uns32 mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    SEND_MSG msg, MDS_DEST to_dest,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
-					    MDS_SEND_PRIORITY_TYPE pri, uns32 xch_id, V_DEST_QA anchor);
+					    MDS_SEND_PRIORITY_TYPE pri, uint32_t xch_id, V_DEST_QA anchor);
 
-static uns32 mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
+static uint32_t mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 							 MDS_VDEST_ID dest_vdest_id, V_DEST_QA anchor,
 							 MDS_SEND_INFO *req);
 
-static uns32 mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_SENDTYPES snd, uns32 xch_id,
+static uint32_t mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+					    MDS_SENDTYPES snd, uint32_t xch_id,
 					    MDS_MCM_SYNC_SEND_QUEUE **sync_queue, NCSCONTEXT sent_msg);
 
-static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    SEND_MSG msg, MDS_DEST to_dest,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, V_DEST_QA anchor);
 
-static uns32 mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uns32 time);
+static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uint32_t time);
 
-static uns32 mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv,
+static uint32_t mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv,
 					 MDS_MCM_SYNC_SEND_QUEUE **sync_queue);
-static uns32 mcm_pvt_del_sync_send_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uns32 xch_id,
+static uint32_t mcm_pvt_del_sync_send_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uint32_t xch_id,
 					 MDS_SENDTYPES snd_type, MDS_DEST adest);
 
-static uns32 mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv);
+static uint32_t mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv);
 
-uns32 mds_retrieve(NCSMDS_INFO *info);
+uint32_t mds_retrieve(NCSMDS_INFO *info);
 
-static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      SEND_MSG to_msg,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
 					      uint8_t flag /* For normal=0, red=1 */ );
 
-static uns32 mds_mcm_check_intranode(MDS_DEST adest);
+static uint32_t mds_mcm_check_intranode(MDS_DEST adest);
 
 #define MDS_GET_NODE_ID(p) m_MDS_GET_NODE_ID_FROM_ADEST(p)
 
 /* New added functions after PL changes*/
-static uns32 mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
+static uint32_t mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
 				  MDS_SVC_ID to_svc_id, MDS_VDEST_ID dest_vdest_id,
-				  MDS_SEND_INFO *req, uns32 xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri);
+				  MDS_SEND_INFO *req, uint32_t xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri);
 
-static uns32 mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
+static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
 			      MDS_SVC_ID to_svc_id, MDS_VDEST_ID dest_vdest_id,
-			      MDS_SEND_INFO *req, uns32 xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri);
+			      MDS_SEND_INFO *req, uint32_t xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri);
 
-uns32 mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_REQ req);
-uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
-uns32 mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
+uint32_t mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_REQ req);
+uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue);
+uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *queue, MDS_DEST adest);
 
 /* For deleting a single node entry in await active, when timeout occurs before the noactive timer expires*/
-static uns32 mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uns32 xch_id,
+static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uint32_t xch_id,
 					    MDS_SVC_ID to_svc_id, MDS_VDEST_ID vdest, MDS_SENDTYPES snd_type);
 
-static uns32 mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_SEL_OBJ obj);
+static uint32_t mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_SEL_OBJ obj);
 
-static uns32 mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
+static uint32_t mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
 					 MDS_SVC_ID fr_svc_id, MDS_SVC_ID to_svc_id);
 
-static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id);
+static uint32_t mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id);
 
 /* Move to header file*/
 
@@ -371,11 +371,11 @@ static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_
  *
  ****************************************************************************/
 
-uns32 mds_send(NCSMDS_INFO *info)
+uint32_t mds_send(NCSMDS_INFO *info)
 {
 
 	/* Extract the type of send first either send or direct send */
-	uns32 snd_type_major = 0;
+	uint32_t snd_type_major = 0;
 	snd_type_major = info->i_op;
 
 	switch (snd_type_major) {
@@ -405,10 +405,10 @@ uns32 mds_send(NCSMDS_INFO *info)
  *
  ****************************************************************************/
 
-static uns32 mds_mcm_direct_send(NCSMDS_INFO *info)
+static uint32_t mds_mcm_direct_send(NCSMDS_INFO *info)
 {
 	MDS_SEND_INFO req;
-	uns32 status;
+	uint32_t status;
 
 	memset(&req, 0, sizeof(req));
 	if ((info->info.svc_direct_send.i_priority < MDS_SEND_PRIORITY_LOW) ||
@@ -645,13 +645,13 @@ static uns32 mds_mcm_direct_send(NCSMDS_INFO *info)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_send(NCSMDS_INFO *info)
+static uint32_t mds_mcm_send(NCSMDS_INFO *info)
 {
 	/*
 	   STEP 1: Extract the SEND_TYPE
 	   Each individual send function is called from this function based on the send_type
 	 */
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	MDS_SEND_INFO req;
 
 	memset(&req, 0, sizeof(req));
@@ -874,11 +874,11 @@ static uns32 mds_mcm_send(NCSMDS_INFO *info)
     *
 *****************************************************************************/
 
-static uns32 mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
-	uns32 xch_id = 0, status = 0;
+	uint32_t xch_id = 0, status = 0;
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
 	send_msg.msg_type = MSG_NCSCONTEXT;
@@ -911,10 +911,10 @@ static uns32 mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       SEND_MSG to_msg, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
-					       MDS_SEND_PRIORITY_TYPE pri, uns32 xch_id)
+					       MDS_SEND_PRIORITY_TYPE pri, uint32_t xch_id)
 {
 	PW_ENV_ID dest_pwe_id;
 	MDS_SVC_ID dest_svc_id, src_svc_id;
@@ -928,7 +928,7 @@ static uns32 mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
 	MDS_SVC_INFO *svc_cb = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *tx_send_hdl = NULL;	/* Subscription Result */
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role_ret = 0;	/* Used only to get the subscription result ptr */
@@ -1047,9 +1047,9 @@ static uns32 mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
+static uint32_t mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
 				  MDS_SVC_ID to_svc_id, MDS_VDEST_ID dest_vdest_id,
-				  MDS_SEND_INFO *req, uns32 xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri)
+				  MDS_SEND_INFO *req, uint32_t xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri)
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role = 0;
@@ -1099,9 +1099,9 @@ static uns32 mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
+static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
 			      MDS_SVC_ID to_svc_id, MDS_VDEST_ID dest_vdest_id,
-			      MDS_SEND_INFO *i_req, uns32 xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri)
+			      MDS_SEND_INFO *i_req, uint32_t xch_id, MDS_DEST dest, MDS_SEND_PRIORITY_TYPE pri)
 {
 	NCSMDS_CALLBACK_INFO cbinfo;
 	NCSCONTEXT cpy = NULL;
@@ -1277,10 +1277,10 @@ static uns32 mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_info,
+static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_info,
 				      MDS_SVC_ID to_svc_id, MDS_SVC_INFO *svc_cb,
 				      MDS_DEST adest, MDS_VDEST_ID dest_vdest_id,
-				      uns32 snd_type, uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri,
+				      uint32_t snd_type, uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri,
 				      MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
 	MDTM_SEND_REQ req;
@@ -1325,13 +1325,13 @@ static uns32 mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_info
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_msg,
+static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_msg,
 						  MDS_SVC_ID to_svc_id, MDS_SVC_INFO *svc_cb,
 						  MDS_DEST adest, MDS_VDEST_ID dest_vdest_id,
-						  uns32 snd_type, uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri)
+						  uint32_t snd_type, uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri)
 {
 	NCSMDS_CALLBACK_INFO cbinfo;
-	uns32 status;
+	uint32_t status;
 
 	MDTM_SEND_REQ msg_send;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
@@ -1493,7 +1493,7 @@ static uns32 mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_msg,
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv)
 {
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 
@@ -1522,7 +1522,7 @@ static uns32 mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DATA_
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv,
+static uint32_t mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv,
 					 MDS_MCM_SYNC_SEND_QUEUE **sync_queue)
 {
 	MDS_MCM_SYNC_SEND_QUEUE *queue = NULL;
@@ -1584,7 +1584,7 @@ static uns32 mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *re
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
+static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 					       MDS_DEST i_dest, MDS_SEND_INFO *req, MDS_DEST *o_dest,
 					       NCS_BOOL *timer_running, MDS_SUBSCRIPTION_RESULTS_INFO **tx_send_hdl)
 {
@@ -1592,7 +1592,7 @@ static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID 
 	MDS_SUBSCRIPTION_INFO *sub_info = NULL;
 	MDS_DEST dest;
 	V_DEST_QA anchor;
-	uns32 disc_rc;
+	uint32_t disc_rc;
 	MDS_HDL env_hdl;
 
 	MDS_SUBSCRIPTION_RESULTS_INFO *t_send_hdl = NULL;	/* Subscription Result */
@@ -1713,13 +1713,13 @@ static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID 
  * QUESTIONS: "sub_info" is a secure pointer? Doesn't it need MDS-lock? 
  *
  ***************************************************************************/
-static uns32 mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_SEND_INFO *req,
+static uint32_t mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_SEND_INFO *req,
 					  MDS_VDEST_ID dest_vdest_id, MDS_DEST dest, MDS_HDL env_hdl,
 					  MDS_SVC_ID fr_svc_id)
 {
 	NCS_SEL_OBJ sel_obj;
 	MDS_AWAIT_DISC_QUEUE *add_ptr = NULL, *mov_ptr = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, status = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, status = 0;
 
 	mov_ptr = sub_info->await_disc_queue;
 	add_ptr = m_MMGR_ALLOC_DISC_QUEUE;
@@ -1868,7 +1868,7 @@ static uns32 mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_S
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_SEL_OBJ obj)
+static uint32_t mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_SEL_OBJ obj)
 {
 	MDS_AWAIT_DISC_QUEUE *del_ptr = NULL, *q_ptr = NULL;
 	q_ptr = sub_info->await_disc_queue;
@@ -1928,13 +1928,13 @@ static uns32 mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_S
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
 
-static uns32 mcm_query_for_node_dest(MDS_DEST adest, uint8_t *to)
+static uint32_t mcm_query_for_node_dest(MDS_DEST adest, uint8_t *to)
 {
 	/* Check whether the destination is offnode or on node or on same process */
 	{
 		/* Route present to send the message */
-		uns32 dest_node_id = 0, src_node_id = 0;
-		uns32 dest_process_id = 0, src_process_id = 0;
+		uint32_t dest_node_id = 0, src_node_id = 0;
+		uint32_t dest_process_id = 0, src_process_id = 0;
 
 		dest_process_id = m_MDS_GET_PROCESS_ID_FROM_ADEST(adest);
 		dest_node_id = m_MDS_GET_NODE_ID_FROM_ADEST(adest);
@@ -1964,9 +1964,9 @@ static uns32 mcm_query_for_node_dest(MDS_DEST adest, uint8_t *to)
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RESULTS_INFO *send_hdl,
+static uint32_t mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RESULTS_INFO *send_hdl,
 				      MDS_SVC_ID to_svc_id, SEND_MSG *to_msg,
-				      MDS_VDEST_ID to_vdest, uns32 snd_type, uns32 xch_id, MDS_SEND_PRIORITY_TYPE pri)
+				      MDS_VDEST_ID to_vdest, uint32_t snd_type, uint32_t xch_id, MDS_SEND_PRIORITY_TYPE pri)
 {
 	/* Await timer running enqueue
 
@@ -2010,7 +2010,7 @@ static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RES
 			req.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
 			req.msg_arch_word = MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED;
 		} else {
-			uns32 status = 0;
+			uint32_t status = 0;
 			memset(&cbinfo, 0, sizeof(cbinfo));
 			cbinfo.i_yr_svc_hdl = svc_cb->yr_svc_hdl;
 			cbinfo.i_yr_svc_id = svc_cb->svc_id;
@@ -2119,11 +2119,11 @@ static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RES
         return SUCESS;
  ****************************************************************************/
 
-static uns32 mcm_pvt_red_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				 NCSCONTEXT msg, MDS_DEST to_dest,
 				 V_DEST_QA anchor, MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
-	uns32 xch_id = 0, status = 0;
+	uint32_t xch_id = 0, status = 0;
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
 	send_msg.msg_type = MSG_NCSCONTEXT;
@@ -2155,10 +2155,10 @@ static uns32 mcm_pvt_red_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    SEND_MSG to_msg, MDS_DEST to_dest,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
-					    MDS_SEND_PRIORITY_TYPE pri, uns32 xch_id, V_DEST_QA anchor)
+					    MDS_SEND_PRIORITY_TYPE pri, uint32_t xch_id, V_DEST_QA anchor)
 {
 	PW_ENV_ID dest_pwe_id;
 	MDS_SVC_ID dest_svc_id, src_svc_id;
@@ -2170,7 +2170,7 @@ static uns32 mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
 	MDS_PWE_HDL pwe_hdl = (MDS_PWE_HDL)env_hdl;
 	MDS_SVC_INFO *svc_cb = NULL;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role_ret = 0;	/* Not used, only passed to get the subscription result ptr */
@@ -2255,13 +2255,13 @@ static uns32 mcm_pvt_red_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ****************************************************************************/
-static uns32 mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
+static uint32_t mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, MDS_SVC_ID dest_svc_id,
 							 MDS_VDEST_ID dest_vdest_id, V_DEST_QA anchor,
 							 MDS_SEND_INFO *req)
 {
 
 	MDS_SUBSCRIPTION_INFO *sub_info = NULL;
-	uns32 disc_rc;
+	uint32_t disc_rc;
 
 	MDS_HDL env_hdl;
 
@@ -2378,7 +2378,7 @@ static uns32 mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, M
           else
             return SUCCESS (with response data)
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				       NCSCONTEXT msg, MDS_DEST to_dest,
 				       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
@@ -2387,7 +2387,7 @@ static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	xch_id = ++mds_mcm_global_exchange_id;
 
@@ -2464,7 +2464,7 @@ static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uns32 xch_id,
+static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uint32_t xch_id,
 					    MDS_SVC_ID to_svc_id, MDS_VDEST_ID vdest, MDS_SENDTYPES snd_type)
 {
 
@@ -2529,10 +2529,10 @@ static uns32 mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_s
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
 
-static uns32 mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uns32 time_val)
+static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uint32_t time_val)
 {
 	/* Now wait for the response to come */
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	if (time_val == 0) {
 		count = m_NCS_SEL_OBJ_POLL_SINGLE_OBJ(sel_obj, NULL);
@@ -2559,7 +2559,7 @@ static uns32 mds_mcm_time_wait(NCS_SEL_OBJ sel_obj, uns32 time_val)
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_pvt_del_sync_send_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uns32 xch_id,
+static uint32_t mcm_pvt_del_sync_send_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_id, uint32_t xch_id,
 					 MDS_SENDTYPES snd_type, MDS_DEST adest)
 {
 	NCSCONTEXT hdl;
@@ -2615,11 +2615,11 @@ static uns32 mcm_pvt_del_sync_send_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_svc_
  *                NCSCC_RC_FAILURE
  *                NCSCC_RC_OUT_OF_MEM
  ***************************************************************************/
-static uns32 mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
-					    MDS_SENDTYPES snd, uns32 xch_id,
+static uint32_t mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+					    MDS_SENDTYPES snd, uint32_t xch_id,
 					    MDS_MCM_SYNC_SEND_QUEUE **sync_queue, NCSCONTEXT sent_msg)
 {
-	uns32 status = 0;
+	uint32_t status = 0;
 	NCS_SEL_OBJ sel_obj;
 	MDS_SVC_INFO *svc_cb = NULL;
 	NCSCONTEXT hdl;
@@ -2678,7 +2678,7 @@ static uns32 mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					NCSCONTEXT msg, MDS_DEST to_dest,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
@@ -2732,14 +2732,14 @@ static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 	   return SUCESS;
 	 */
 	uint8_t *data;
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 	uns64 msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
@@ -2825,12 +2825,12 @@ static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  * Return Value:  NCSCC_RC_SUCCESS
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
-static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    SEND_MSG to_msg, MDS_DEST to_dest,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, V_DEST_QA anchor)
 {
-	uns32 xch_id = 0, status = 0;
+	uint32_t xch_id = 0, status = 0;
 	MDS_DEST dest = 0;
 	uint8_t *data = NULL;
 	uint8_t to;
@@ -2931,7 +2931,7 @@ static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				       NCSCONTEXT msg, MDS_DEST to_dest,
 				       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
@@ -2997,7 +2997,7 @@ static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	xch_id = ++mds_mcm_global_exchange_id;
 
@@ -3107,11 +3107,11 @@ static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
         }
         return SUCESS;
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					NCSCONTEXT msg, MDS_DEST to_dest,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
-	uns32 xch_id, status = 0;
+	uint32_t xch_id, status = 0;
 	MDS_DEST adest = 0;
 	uint8_t *data;
 	uint8_t len_sync_ctxt = 0;
@@ -3204,7 +3204,7 @@ static uns32 mcm_pvt_normal_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
           else
             return SUCCESS (with response data)
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    V_DEST_QA anchor,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
@@ -3214,7 +3214,7 @@ static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	xch_id = ++mds_mcm_global_exchange_id;
 
@@ -3292,7 +3292,7 @@ static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				     NCSCONTEXT msg, MDS_DEST to_dest,
 				     V_DEST_QA anchor,
 				     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
@@ -3348,14 +3348,14 @@ static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 	   return SUCESS;
 	 */
 	uint8_t *data;
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 	uns64 msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
@@ -3439,7 +3439,7 @@ static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				    NCSCONTEXT msg, MDS_DEST to_dest,
 				    V_DEST_QA anchor,
 				    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
@@ -3499,7 +3499,7 @@ static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 
 	NCS_SEL_OBJ sel_obj;
 
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
@@ -3612,12 +3612,12 @@ static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
         }
         return SUCESS;
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				     NCSCONTEXT msg, MDS_DEST to_dest,
 				     V_DEST_QA anchor,
 				     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req, MDS_SEND_PRIORITY_TYPE pri)
 {
-	uns32 xch_id, status = 0;
+	uint32_t xch_id, status = 0;
 	MDS_DEST anchor_1 = 0;
 	uint8_t *data;
 	uint8_t len_sync_ctxt = 0;
@@ -3664,7 +3664,7 @@ static uns32 mcm_pvt_red_svc_snd_rsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				      NCSCONTEXT msg,
 				      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 				      NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri)
@@ -3744,7 +3744,7 @@ static uns32 mcm_pvt_normal_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      SEND_MSG to_msg,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
@@ -3890,7 +3890,7 @@ static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_check_intranode(MDS_DEST adest)
+static uint32_t mds_mcm_check_intranode(MDS_DEST adest)
 {
 	if (MDS_GET_NODE_ID(adest) == MDS_GET_NODE_ID(m_MDS_GET_ADEST))
 		return NCSCC_RC_SUCCESS;
@@ -3910,7 +3910,7 @@ static uns32 mds_mcm_check_intranode(MDS_DEST adest)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				   NCSCONTEXT msg,
 				   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 				   NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri)
@@ -3979,7 +3979,7 @@ static uns32 mcm_pvt_red_svc_bcast(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv)
+uint32_t mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: From the SVC_HDL in the structure recd, get the Pointer to SVCCB.
@@ -3994,7 +3994,7 @@ uns32 mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv)
 	MDS_PWE_HDL pwe_hdl;
 	MDS_SVC_ID svc_id;
 	NCSCONTEXT hdl;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	pwe_hdl = m_MDS_GET_PWE_HDL_FROM_SVC_HDL(recv->dest_svc_hdl);
 	svc_id = m_MDS_GET_SVC_ID_FROM_SVC_HDL(recv->dest_svc_hdl);
@@ -4164,7 +4164,7 @@ uns32 mds_mcm_ll_data_rcv(MDS_DATA_RECV *recv)
  *                
  *
 ****************************************************************************/
-static uns32 mds_mcm_free_msg_memory(MDS_ENCODED_MSG msg)
+static uint32_t mds_mcm_free_msg_memory(MDS_ENCODED_MSG msg)
 {
 	switch (msg.encoding) {
 	case MDS_ENC_TYPE_CPY:
@@ -4213,9 +4213,9 @@ static uns32 mds_mcm_free_msg_memory(MDS_ENCODED_MSG msg)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
-	uns32 rc = 0;
+	uint32_t rc = 0;
 
 	m_MDS_LOG_DBG("MDS_SND_RCV : Entering  mds_mcm_process_recv_snd_msg_common\n");
 
@@ -4355,7 +4355,7 @@ static uns32 mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_R
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/* Message arrived means either role is quiesced or active */
 
@@ -4375,7 +4375,7 @@ static uns32 mcm_recv_normal_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   Functionality is same as normal receive
@@ -4397,7 +4397,7 @@ static uns32 mcm_recv_red_snd(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/* Functionality is same as normal receive
 
@@ -4426,7 +4426,7 @@ static uns32 mcm_recv_normal_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   Functionality is same as normal receive
@@ -4448,7 +4448,7 @@ static uns32 mcm_recv_red_bcast(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: Check the role of the destination, (all ready done)
@@ -4477,7 +4477,7 @@ static uns32 mcm_recv_normal_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: store the exchange-id, src-mdsdest( ADEST /<VDEST,ANCH> ) PWE_ID
@@ -4499,7 +4499,7 @@ static uns32 mcm_recv_red_sndrsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_process_recv_sndrack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_process_recv_sndrack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	MDS_DATA_RECV rcv1;
 	memset(&rcv1, 0, sizeof(rcv1));
@@ -4521,7 +4521,7 @@ static uns32 mds_mcm_process_recv_sndrack_common(MDS_SVC_INFO *svccb, MDS_DATA_R
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4550,7 +4550,7 @@ static uns32 mcm_recv_normal_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4578,7 +4578,7 @@ static uns32 mcm_recv_red_sndrack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_process_recv_sndack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_process_recv_sndack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	if (mds_mcm_process_recv_snd_msg_common(svccb, recv) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDS_SND_RCV: recv sndack failed\n");
@@ -4597,7 +4597,7 @@ static uns32 mds_mcm_process_recv_sndack_common(MDS_SVC_INFO *svccb, MDS_DATA_RE
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: Check the role of the destination
@@ -4627,7 +4627,7 @@ static uns32 mcm_recv_normal_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/* Role is quiesced or active or standby
 	   STEP 1: Decode the UB depending upon the ENCODE Type in Message
@@ -4647,7 +4647,7 @@ static uns32 mcm_recv_red_sndack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	MDS_MCM_SYNC_SEND_QUEUE *result = NULL;
 
@@ -4658,7 +4658,7 @@ static uns32 mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RE
 	}
 
 	/* Exchange_id exists, Now decode the message based on the msg type recd and raise selection object */
-	uns32 rc = 0;
+	uint32_t rc = 0;
 
 	NCSMDS_CALLBACK_INFO cbinfo;
 	memset(&cbinfo, 0, sizeof(cbinfo));
@@ -4710,7 +4710,7 @@ static uns32 mds_mcm_process_rcv_snd_rsp_common(MDS_SVC_INFO *svccb, MDS_DATA_RE
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4737,7 +4737,7 @@ static uns32 mcm_recv_normal_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4764,7 +4764,7 @@ static uns32 mcm_recv_red_snd_rsp(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_process_recv_ack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mds_mcm_process_recv_ack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	return mds_mcm_raise_selection_obj_for_ack(svccb, recv);
 }
@@ -4779,7 +4779,7 @@ static uns32 mds_mcm_process_recv_ack_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV 
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_normal_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_normal_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: Check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4804,7 +4804,7 @@ static uns32 mcm_recv_normal_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_recv_red_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
+static uint32_t mcm_recv_red_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
 {
 	/*
 	   STEP 1: Check whether there is entry in the SYNC_SEND_TBL matching the exchangeid
@@ -4829,7 +4829,7 @@ static uns32 mcm_recv_red_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv, MDS_SEND_PRIORITY_TYPE pri)
+static uint32_t mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv, MDS_SEND_PRIORITY_TYPE pri)
 {
 	/* Post a message */
 	MDS_MCM_MSG_ELEM *msgelem;
@@ -4868,10 +4868,10 @@ static uns32 mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLBACK_INFO *cbinfo, MDS_DATA_RECV *recv_msg,
+static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLBACK_INFO *cbinfo, MDS_DATA_RECV *recv_msg,
 					    NCSCONTEXT orig_msg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_DBG("MDS_SND_RCV : Entering  mds_mcm_do_decode_full_or_flat\n");
 	/* Distinguish between intra-node and inter-node communication */
@@ -4927,7 +4927,7 @@ static uns32 mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLBACK
  *
  ****************************************************************************/
 
-static uns32 mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t flag, MDS_SEND_PRIORITY_TYPE pri)
+static uint32_t mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t flag, MDS_SEND_PRIORITY_TYPE pri)
 {
 	MDTM_SEND_REQ req;
 
@@ -4980,12 +4980,12 @@ static uns32 mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uint8_t 
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					   MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
 
@@ -5007,13 +5007,13 @@ static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					V_DEST_QA anchor,
 					MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 	SEND_MSG send_msg;
 	memset(&send_msg, 0, sizeof(send_msg));
 
@@ -5036,14 +5036,14 @@ static uns32 mcm_pvt_red_svc_snd_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
 	MDS_SYNC_TXN_ID xch_id = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue = NULL;
-	uns32 ret_status = 0;
+	uint32_t ret_status = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
@@ -5128,7 +5128,7 @@ static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					      MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					      MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					      MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
@@ -5136,7 +5136,7 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
 	MDS_SYNC_TXN_ID xch_id = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue = NULL;
 
-	uns32 ret_status = 0;
+	uint32_t ret_status = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
@@ -5215,13 +5215,13 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
 	uint8_t *data;
-	uns32 xch_id = 0, ret_status = 0;
+	uint32_t xch_id = 0, ret_status = 0;
 	uns64 msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 	uint8_t len_sync_ctxt = 0;
@@ -5315,12 +5315,12 @@ static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					       MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					       MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					       MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 	MDS_DEST adest = 0;
 	uint8_t *data;
 	uint8_t len_sync_ctxt = 0;
@@ -5358,7 +5358,7 @@ static uns32 mcm_pvt_normal_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
@@ -5367,7 +5367,7 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
 	MDS_SYNC_TXN_ID xch_id;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue = NULL;
 
-	uns32 ret_status = 0;
+	uint32_t ret_status = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
@@ -5452,14 +5452,14 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
 	uint8_t *data;
-	uns32 xch_id = 0, ret_status = 0;
+	uint32_t xch_id = 0, ret_status = 0;
 	uns64 msg_dest_adest = 0;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 
@@ -5553,7 +5553,7 @@ static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					   MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					   V_DEST_QA anchor,
 					   MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
@@ -5562,7 +5562,7 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
 	MDS_SYNC_TXN_ID xch_id;
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue = NULL;
 
-	uns32 ret_status = 0;
+	uint32_t ret_status = 0;
 
 	NCS_SEL_OBJ sel_obj;
 
@@ -5641,13 +5641,13 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					    MDS_DIRECT_BUFF buff, uint16_t len, MDS_DEST to_dest,
 					    V_DEST_QA anchor,
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver)
 {
-	uns32 xch_id;
+	uint32_t xch_id;
 	MDS_DEST anchor_1 = 0;
 	uint8_t *data;
 	uint8_t len_sync_ctxt = 0;
@@ -5685,7 +5685,7 @@ static uns32 mcm_pvt_red_svc_snd_rsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					     MDS_DIRECT_BUFF buff, uint16_t len,
 					     MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					     NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
@@ -5713,7 +5713,7 @@ static uns32 mcm_pvt_normal_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
+static uint32_t mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 					  MDS_DIRECT_BUFF buff, uint16_t len,
 					  MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					  NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri,
@@ -5741,9 +5741,9 @@ static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb);
+static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb);
 
-uns32 mds_retrieve(NCSMDS_INFO *info)
+uint32_t mds_retrieve(NCSMDS_INFO *info)
 {
 	MDS_SVC_ID svc_id = info->i_svc_id;
 	SYSF_MBX local_mbx = 0;
@@ -5811,7 +5811,7 @@ uns32 mds_retrieve(NCSMDS_INFO *info)
 			}
 		}
 	} else if (info->info.retrieve_msg.i_dispatchFlags == SA_DISPATCH_ONE) {
-		uns32 status = NCSCC_RC_SUCCESS;
+		uint32_t status = NCSCC_RC_SUCCESS;
 		msgelem = (MDS_MCM_MSG_ELEM *)m_NCS_IPC_NON_BLK_RECEIVE(&local_mbx, msgelem);
 		if (msgelem == NULL) {
 			return NCSCC_RC_FAILURE;
@@ -5848,11 +5848,11 @@ uns32 mds_retrieve(NCSMDS_INFO *info)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb)
+static uint32_t mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	NCSMDS_CALLBACK_INFO cbinfo;
-	uns32 svc_id = svc_cb->svc_id;
+	uint32_t svc_id = svc_cb->svc_id;
 	MDS_SVC_HDL svc_hdl = svc_cb->svc_hdl;
 	NCSMDS_CALLBACK_API local_cb_ptr = NULL;
 
@@ -6092,7 +6092,7 @@ static uns32 mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id)
+static uint32_t mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id)
 {
 	MDS_SVC_INFO *local_svc_cb = NULL;
 	NCSCONTEXT hdl;
@@ -6125,7 +6125,7 @@ static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, MDS_DEST adest)
+uint32_t mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, MDS_DEST adest)
 {
 	MDS_AWAIT_ACTIVE_QUEUE *queue, *mov_ptr = NULL;
 	MDTM_SEND_REQ req;
@@ -6163,7 +6163,7 @@ uns32 mds_await_active_tbl_send(MDS_AWAIT_ACTIVE_QUEUE *hdr, MDS_DEST adest)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_REQ req)
+uint32_t mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_REQ req)
 {
 	MDS_AWAIT_ACTIVE_QUEUE *hdr = NULL, *add_ptr;
 	hdr = info->info.active_vdest.active_route_info->await_active_queue;
@@ -6213,7 +6213,7 @@ uns32 mds_await_active_tbl_add(MDS_SUBSCRIPTION_RESULTS_INFO *info, MDTM_SEND_RE
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
+uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 {
 	MDS_AWAIT_ACTIVE_QUEUE *mov_ptr, *del_ptr;
 	mov_ptr = queue;
@@ -6244,7 +6244,7 @@ uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 /*********************************************************
   Function NAME: mds_mcm_free_msg_memory
 *********************************************************/
-uns32 mds_mcm_free_msg_uba_start(MDS_ENCODED_MSG msg)
+uint32_t mds_mcm_free_msg_uba_start(MDS_ENCODED_MSG msg)
 {
 	switch (msg.encoding) {
 	case MDS_ENC_TYPE_CPY:
@@ -6287,7 +6287,7 @@ uns32 mds_mcm_free_msg_uba_start(MDS_ENCODED_MSG msg)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
+static uint32_t mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
 					 MDS_SVC_ID fr_svc_id, MDS_SVC_ID to_svc_id)
 {
 	MDS_SVC_INFO *svc_cb = NULL;
@@ -6315,13 +6315,13 @@ static uns32 mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum, USRBUF *usr_buf,
+static uint32_t mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum, USRBUF *usr_buf,
 				    MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
 				    MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word)
 {
 	MDS_BCAST_BUFF_LIST *tmp_bcast_hdr = NULL, *add_ptr = NULL;
 
-	uns32 status;
+	uint32_t status;
 
 	status = mds_mcm_search_bcast_list(msg, bcast_enum, rem_svc_sub_ver, rem_svc_arch_word, &tmp_bcast_hdr, 0);
 
@@ -6380,7 +6380,7 @@ static uns32 mds_mcm_add_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum, US
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
+static uint32_t mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
 				       MDS_SVC_PVT_SUB_PART_VER rem_svc_sub_ver,
 				       MDS_SVC_ARCHWORD_TYPE rem_svc_arch_word, MDS_BCAST_BUFF_LIST **mds_mcm_bcast_ptr,
 				       NCS_BOOL flag)
@@ -6417,7 +6417,7 @@ static uns32 mds_mcm_search_bcast_list(SEND_MSG *msg, MDS_BCAST_ENUM bcast_enum,
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mds_mcm_del_all_bcast_list(SEND_MSG *msg)
+static uint32_t mds_mcm_del_all_bcast_list(SEND_MSG *msg)
 {
 	MDS_BCAST_BUFF_LIST *tmp_bcast_ptr = NULL, *mov_ptr = NULL;
 	mov_ptr = msg->mds_bcast_list_hdr;
@@ -6447,7 +6447,7 @@ static uns32 mds_mcm_del_all_bcast_list(SEND_MSG *msg)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-static uns32 mcm_query_for_node_dest_on_archword(MDS_DEST adest, uint8_t *to, MDS_SVC_ARCHWORD_TYPE arch_word)
+static uint32_t mcm_query_for_node_dest_on_archword(MDS_DEST adest, uint8_t *to, MDS_SVC_ARCHWORD_TYPE arch_word)
 {
 	/* Route present to send the message */
 	if (m_MDS_GET_ADEST == adest) {

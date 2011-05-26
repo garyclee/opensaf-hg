@@ -46,7 +46,7 @@
 
 *****************************************************************************/
 
-uns32 dts_log_bind(void)
+uint32_t dts_log_bind(void)
 {
 	NCS_DTSV_RQ reg;
 
@@ -71,7 +71,7 @@ uns32 dts_log_bind(void)
 
 *****************************************************************************/
 
-uns32 dts_log_unbind(void)
+uint32_t dts_log_unbind(void)
 {
 	NCS_DTSV_RQ dereg;
 
@@ -157,7 +157,7 @@ void log_dts_api(uint8_t api_id)
 
 *****************************************************************************/
 
-void log_dts_evt(uint8_t evt_id, SS_SVC_ID svc_id, uns32 node, uns32 adest)
+void log_dts_evt(uint8_t evt_id, SS_SVC_ID svc_id, uint32_t node, uint32_t adest)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT,
 		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, "TILLL", evt_id, svc_id, node, adest);
@@ -183,7 +183,7 @@ void log_dts_chkp_evt(uint8_t id)
 
 *****************************************************************************/
 
-void log_dts_cbop(uint8_t op_id, SS_SVC_ID svc_id, uns32 node)
+void log_dts_cbop(uint8_t op_id, SS_SVC_ID svc_id, uint32_t node)
 {
 	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_CB_LOG, DTS_FC_CIRBUFF,
 		   NCSFL_LC_MISC, NCSFL_SEV_INFO, "TILL", op_id, svc_id, node);
@@ -217,7 +217,7 @@ void log_dts_dbg(uint8_t id, char *str, NODE_ID node, SS_SVC_ID svc)
 
 *****************************************************************************/
 
-void log_dts_dbg_name(uint8_t id, char *str, uns32 svc_id, char *svc)
+void log_dts_dbg_name(uint8_t id, char *str, uint32_t svc_id, char *svc)
 {
 	if (id == DTS_SERVICE) {
 		char tstr[200];

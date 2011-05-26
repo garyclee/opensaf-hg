@@ -197,10 +197,10 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_compdb_init(AVND_CB *cb)
+uint32_t avnd_compdb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -231,10 +231,10 @@ uns32 avnd_compdb_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_compdb_destroy(AVND_CB *cb)
+uint32_t avnd_compdb_destroy(AVND_CB *cb)
 {
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* scan & delete each comp */
@@ -279,7 +279,7 @@ uns32 avnd_compdb_destroy(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
+AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
 {
 	AVND_COMP *comp = 0;
 	AVND_SU *su = 0;
@@ -540,12 +540,12 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
  
   Notes         : This routine expects a NULL comp-csi list.
 ******************************************************************************/
-uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
+uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 {
 	AVND_COMP *comp;
 	AVND_SU *su = 0;
 	SaNameT su_name;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", name->value);
 
@@ -699,9 +699,9 @@ AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(AVND_CB *cb, SaNameT *comp_name,
 	return csi;
 }
 
-uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
 
@@ -804,16 +804,16 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				break;
 
 			case saAmfCompRecoveryOnError_ID:
-				assert(sizeof(uns32) == param->value_len);
-				comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+				assert(sizeof(uint32_t) == param->value_len);
+				comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_DEFAULT_RECVR);
 				break;
 
 			case saAmfCompNumMaxInstantiate_ID:
-				assert(sizeof(uns32) == param->value_len);
+				assert(sizeof(uint32_t) == param->value_len);
 				comp->clc_info.inst_retry_max =
-				    m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+				    m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
 								 AVND_CKPT_COMP_INST_RETRY_MAX);
 				break;

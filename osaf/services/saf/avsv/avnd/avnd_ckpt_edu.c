@@ -50,11 +50,11 @@
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_hlt_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avnd_edp_ckpt_msg_hlt_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_HC *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_hlt_rules[] = {
@@ -108,10 +108,10 @@ uns32 avnd_edp_ckpt_msg_hlt_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avnd_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_su_rules[] = {
@@ -186,10 +186,10 @@ uns32 avnd_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_su_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avnd_edp_ckpt_msg_su_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU_SI_REC *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_su_si_rules[] = {
@@ -245,10 +245,10 @@ uns32 avnd_edp_ckpt_msg_su_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                     support Active Monitoring.
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avnd_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_comp_rules[] = {
@@ -389,11 +389,11 @@ uns32 avnd_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_csi_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avnd_edp_ckpt_msg_csi_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_csi_rules[] = {
@@ -457,10 +457,10 @@ uns32 avnd_edp_ckpt_msg_csi_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_siq(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avnd_edp_ckpt_msg_siq(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			    NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU_SI_PARAM *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_siq_rules[] = {
@@ -517,11 +517,11 @@ uns32 avnd_edp_ckpt_msg_siq(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_comp_hc(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avnd_edp_ckpt_msg_comp_hc(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_HC_REC *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_comp_hc_rules[] = {
@@ -587,11 +587,11 @@ uns32 avnd_edp_ckpt_msg_comp_hc(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_comp_cbk_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avnd_edp_ckpt_msg_comp_cbk_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_comp_cbk_rules[] = {
@@ -650,11 +650,11 @@ uns32 avnd_edp_ckpt_msg_comp_cbk_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avnd_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t avnd_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_ASYNC_UPDT_CNT *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avnd_ckpt_msg_async_updt_cnt_rules[] = {

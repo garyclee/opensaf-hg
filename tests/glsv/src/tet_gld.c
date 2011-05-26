@@ -2,7 +2,7 @@
 
 #include "tet_glsv.h"
 
-extern uns32 gl_gld_hdl;
+extern uint32_t gl_gld_hdl;
 
 void tet_run_gld() {
 
@@ -92,7 +92,7 @@ void print_rsc_cb_info() {
    GLSV_GLD_CB       *gld_cb;
    GLSV_GLD_RSC_INFO *gld_rsc;
    GLSV_NODE_LIST    *temp_node;
-   uns32 res = NCSCC_RC_SUCCESS;
+   uint32_t res = NCSCC_RC_SUCCESS;
    uint8_t *key=NULL;
 
    printf("print_rsc_cb_info  %x\n",gld_rsc);
@@ -128,7 +128,7 @@ void print_glnd_cb_info() {
    GLSV_GLD_CB       *gld_cb;
    GLSV_GLD_GLND_DETAILS *node_details=NULL;
    GLSV_GLD_GLND_RSC_REF *glnd_rsc=NULL;
-   uns32 res = NCSCC_RC_SUCCESS;
+   uint32_t res = NCSCC_RC_SUCCESS;
    uint8_t *key=NULL;
    
    gld_cb =   (GLSV_GLD_CB*)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);

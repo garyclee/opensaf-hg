@@ -192,7 +192,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	AVD_COMP *comp, *i_comp;
 	AVSV_PARAM_INFO param;
 	AVD_AVND *avnd;
-	uns32 min_si = 0;
+	uint32_t min_si = 0;
 	NCS_BOOL isPre;
 	AVD_AVND *su_node_ptr = NULL;
 
@@ -1004,19 +1004,19 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
-			uns32 num_inst = *((SaUint32T *)value);
+			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				LOG_ER("Modification of saAmfCompInstantiationLevel Fail, Zero InstantiationLevel");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
-			uns32 num_inst = *((SaUint32T *)value);
+			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				LOG_ER("Modification of saAmfCompNumMaxInstantiateWithoutDelay Fail, Zero withoutDelay");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
-			uns32 num_inst = *((SaUint32T *)value);
+			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				LOG_ER("Modification of saAmfCompNumMaxInstantiateWithDelay Fail, Zero withDelay");
 				goto done;
@@ -1076,7 +1076,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
-			uns32 num_am_start = *((SaUint32T *)value);
+			uint32_t num_am_start = *((SaUint32T *)value);
 			if (TRUE == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompNumMaxAmStartAttempt Fail, Comp su_is_external");
 				goto done;
@@ -1107,7 +1107,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}		
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {	
-			uns32 num_am_stop = *((SaUint32T *)value);
+			uint32_t num_am_stop = *((SaUint32T *)value);
 			if (TRUE == comp->su->su_is_external) {
 				LOG_ER("Modification of saAmfCompNumMaxAmStopAttempt Fail, Comp su_is_external");
 				goto done;
@@ -1138,7 +1138,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
-			uns32 recovery = *((SaUint32T *)value);
+			uint32_t recovery = *((SaUint32T *)value);
 			if ((recovery < SA_AMF_NO_RECOMMENDATION) || (recovery > SA_AMF_CONTAINER_RESTART )) {
 				LOG_ER("Modification of saAmfCompRecoveryOnError Fail, Invalid recovery =%d",recovery);
 				goto done;
@@ -1311,20 +1311,20 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			comp->comp_info.inst_level = *((SaUint32T *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
 
-			uns32 num_inst;
+			uint32_t num_inst;
 			num_inst = *((SaUint32T *)value);
 			param.attr_id = saAmfCompNumMaxInstantiate_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
 			comp->comp_info.max_num_inst = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
 
-			uns32 num_inst;
+			uint32_t num_inst;
 			num_inst = *((SaUint32T *)value);
 			param.attr_id = saAmfCompNumMaxInstantiateWithDelay_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
 			comp->max_num_inst_delay = *((SaUint32T *)value);
@@ -1440,7 +1440,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
 
-			uns32 num_am_start;
+			uint32_t num_am_start;
 			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
@@ -1448,7 +1448,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			num_am_start = *((SaUint32T *)value);
 			param.attr_id = saAmfCompNumMaxAmStartAttempts_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			num_am_start = htonl(num_am_start);
 			memcpy(&param.value[0], &num_am_start, param.value_len);
 			comp->comp_info.max_num_amstart = *((SaUint32T *)value);
@@ -1497,7 +1497,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {
 
-			uns32 num_am_stop;
+			uint32_t num_am_stop;
 			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
@@ -1505,7 +1505,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			num_am_stop = *((SaUint32T *)value);
 			param.attr_id = saAmfCompNumMaxAmStopAttempts_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			num_am_stop = htonl(num_am_stop);
 			memcpy(&param.value[0], &num_am_stop, param.value_len);
 			comp->comp_info.max_num_amstop = *((SaUint32T *)value);
@@ -1546,10 +1546,10 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
 			comp->comp_info.quiescing_complete_timeout = *((SaTimeT *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
-			uns32 recovery;
+			uint32_t recovery;
 			recovery = *((SaUint32T *)value);
 			param.attr_id = saAmfCompRecoveryOnError_ID;
-			param.value_len = sizeof(uns32);
+			param.value_len = sizeof(uint32_t);
 			recovery = htonl(recovery);
 			memcpy(&param.value[0], &recovery, param.value_len);
 			comp->comp_info.def_recvr = *((SaUint32T *)value);
@@ -1576,7 +1576,7 @@ done:
 static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
 	AVD_COMP *comp = NULL, *i_comp = NULL;
-	uns32 min_si = 0;
+	uint32_t min_si = 0;
 	NCS_BOOL isPre;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;

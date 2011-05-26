@@ -39,7 +39,7 @@ typedef struct mdtm_tcp_cb {
 
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;
-	uns32 node_id;
+	uint32_t node_id;
 	uint16_t mdtm_tcp_unsent_counter;
 	/* Added for message reception */
 	uint16_t bytes_tb_read;
@@ -69,7 +69,7 @@ typedef enum mds_mdtm_dtm_msg_types {
 
 typedef struct mds_mdtm_processid_msg {
 	NODE_ID node_id;
-	uns32 process_id;
+	uint32_t process_id;
 } MDS_MDTM_PROCESSID_MSG;
 
 
@@ -77,7 +77,7 @@ typedef struct mds_mdtm_processid_msg {
 typedef struct mds_mdtm_dtm_msg {
 
 	uint16_t size;
-	uns32 mds_indentifire;
+	uint32_t mds_indentifire;
 	uint8_t mds_version;
 	MDS_MDTM_DTM_MSG_TYPE type;
 	
@@ -95,8 +95,8 @@ typedef struct mds_mdtm_dtm_msg {
 
 
 
-uns32 mds_mdtm_init_tcp(NODE_ID nodeid, uns32 *mds_tipc_ref);
-uns32 mds_mdtm_destroy_tcp(void);
-uns32 mds_mdtm_unsent_queue_add_send(uint8_t *tcp_buffer, uns32 bufflen); 
+uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tipc_ref);
+uint32_t mds_mdtm_destroy_tcp(void);
+uint32_t mds_mdtm_unsent_queue_add_send(uint8_t *tcp_buffer, uint32_t bufflen); 
 
 #endif

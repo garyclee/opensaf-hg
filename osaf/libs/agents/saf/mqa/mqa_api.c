@@ -36,11 +36,11 @@ static SaAisErrorT mqa_queue_name_to_destination(const SaNameT *queueName, SaMsg
 
 static SaAisErrorT mqa_send_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 					   MQSV_DSEND_EVT *qsend_evt, SaMsgAckFlagsT ackFlags,
-					   SaTimeT timeout, uns32 length);
+					   SaTimeT timeout, uint32_t length);
 static SaAisErrorT mqa_send_to_destination_async(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-						 MQSV_DSEND_EVT *qsend_evt, uns32 length);
-static uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT *qsend_evt,
-			       SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uns32 length);
+						 MQSV_DSEND_EVT *qsend_evt, uint32_t length);
+static uint32_t mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT *qsend_evt,
+			       SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uint32_t length);
 static SaAisErrorT mqa_send_message(SaMsgHandleT msgHandle,
 				    const SaNameT *destination,
 				    const SaMsgMessageT *message,
@@ -50,13 +50,13 @@ static SaAisErrorT mqa_receive_message(SaMsgQueueHandleT queueHandle,
 				       SaTimeT *sendTime, SaMsgSenderIdT *senderId, SaTimeT timeout);
 static SaAisErrorT mqa_send_receive(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 				    MQSV_DSEND_EVT *qsend_evt, MQSV_DSEND_EVT **qreply_evt,
-				    SaTimeT timeout, uns32 length);
+				    SaTimeT timeout, uint32_t length);
 static NCS_BOOL mqa_match_senderid(void *key, void *qelem);
 static SaAisErrorT mqa_reply_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 					    MQSV_DSEND_EVT *qsend_evt, SaMsgAckFlagsT ackFlags,
-					    SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uns32 length);
+					    SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uint32_t length);
 static SaAisErrorT mqa_reply_to_destination_async(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-						  MQSV_DSEND_EVT *qsend_evt, MDS_SYNC_SND_CTXT *context, uns32 length);
+						  MQSV_DSEND_EVT *qsend_evt, MDS_SYNC_SND_CTXT *context, uint32_t length);
 static SaAisErrorT mqa_reply_message(SaMsgHandleT msgHandle,
 				     const SaMsgMessageT *message,
 				     SaMsgSenderIdT *senderId,
@@ -130,7 +130,7 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 	MQSV_EVT initialize_evt;
 	MQSV_EVT *out_evt = NULL;
 	MQA_CLIENT_INFO *client_info = NULL;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE(" saMsgInitialize Called ");
 
@@ -511,7 +511,7 @@ SaAisErrorT saMsgFinalize(SaMsgHandleT msgHandle)
 	MQSV_EVT *out_evt = NULL;
 	MQA_CLIENT_INFO *client_info;
 	MQA_QUEUE_INFO *queue_info;
-	uns32 mds_rc, flag = 0;
+	uint32_t mds_rc, flag = 0;
 	SaMsgQueueHandleT *temp_ptr = NULL;
 	SaMsgQueueHandleT temp_hdl;
 
@@ -681,7 +681,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 	MQSV_EVT qopen_evt;
 	MQSV_EVT *out_evt = NULL;
 	SaAisErrorT rc;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 	NCSCONTEXT thread_handle;
 	SaTimeT timeout1;
 
@@ -818,7 +818,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 	/* send the event */
 	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest),
-				       &qopen_evt, &out_evt, (uns32)timeout);
+				       &qopen_evt, &out_evt, (uint32_t)timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1172,7 +1172,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	MQA_QUEUE_INFO *queue_node = NULL;
 	int64 mqa_timeout;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE(" saMsgQueueClose Called with Handle %llu ", queueHandle);
 
@@ -1229,7 +1229,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 
 	/* send the event */
 	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest), &qclose_evt,
-				       &out_evt, (uns32)mqa_timeout);
+				       &out_evt, (uint32_t)mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1319,7 +1319,7 @@ SaAisErrorT saMsgQueueStatusGet(SaMsgHandleT msgHandle, const SaNameT *queueName
 	MQSV_EVT *out_evt = 0;
 	int64 mqa_timeout;
 	SaMsgQueueHandleT queueHandle;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE(" saMsgQueueStatusGet Called with Handle %llu and Name %s ", msgHandle, queueName->value);
 
@@ -1398,7 +1398,7 @@ SaAisErrorT saMsgQueueStatusGet(SaMsgHandleT msgHandle, const SaNameT *queueName
 
 	mqa_timeout = MQSV_WAIT_TIME;
 
-	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qstatus_evt, &out_evt, (uns32)mqa_timeout);
+	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qstatus_evt, &out_evt, (uint32_t)mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1477,7 +1477,7 @@ SaAisErrorT saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *r
 	SaAisErrorT rc = SA_AIS_ERR_LIBRARY;
 	MQA_QUEUE_INFO *queue_node = NULL;
 	int64 mqa_timeout;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE(" SaMsgQueueHandleT Called with Handle %llu ", queueHandle);
 
@@ -1540,7 +1540,7 @@ SaAisErrorT saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *r
 	/* send the event */
 	mds_rc =
 	    mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest), &qret_time_evt, &out_evt,
-				  (uns32)mqa_timeout);
+				  (uint32_t)mqa_timeout);
 
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
@@ -1607,7 +1607,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 	MQSV_EVT qunlink_evt;
 	MQSV_EVT *out_evt = NULL;
 	SaMsgQueueHandleT queueHandle;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 	int64 mqa_timeout;
 
 	TRACE(" saMsgQueueUnlink Called with Handle %llu and Name %s ", msgHandle, queueName->value);
@@ -1691,7 +1691,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 
 	mqa_timeout = MQSV_WAIT_TIME;
 
-	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qunlink_evt, &out_evt, (uns32)mqa_timeout);
+	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qunlink_evt, &out_evt, (uint32_t)mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1764,18 +1764,18 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 ******************************************************************************/
 
 SaAisErrorT mqa_send_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-				    MQSV_DSEND_EVT *qsend_evt, SaMsgAckFlagsT ackFlags, SaTimeT timeout, uns32 length)
+				    MQSV_DSEND_EVT *qsend_evt, SaMsgAckFlagsT ackFlags, SaTimeT timeout, uint32_t length)
 {
 	int64 mqa_timeout;
 	SaAisErrorT rc = SA_AIS_OK;
 	MQSV_DSEND_EVT *out_evt = NULL;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	/* convert the timeout to 10 ms value and add it to the sync send timeout */
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_send_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					      &out_evt, (uns32)mqa_timeout, length);
+					      &out_evt, (uint32_t)mqa_timeout, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1826,7 +1826,7 @@ SaAisErrorT mqa_send_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 ******************************************************************************/
 
 SaAisErrorT mqa_send_to_destination_async(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-					  MQSV_DSEND_EVT *qsend_evt, uns32 length)
+					  MQSV_DSEND_EVT *qsend_evt, uint32_t length)
 {
 
 	if (mqa_mds_msg_async_send_direct((mqa_cb->mqa_mds_hdl), mqnd_mds_dest, qsend_evt,
@@ -1852,11 +1852,11 @@ SaAisErrorT mqa_send_to_destination_async(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_des
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT *qsend_evt,
-			SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uns32 length)
+uint32_t mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO *asapi_or, MQSV_DSEND_EVT *qsend_evt,
+			SaMsgAckFlagsT ackFlags, MQA_SEND_MESSAGE_PARAM *param, uint32_t length)
 {
 
-	uns32 num_queues, status, to_dest_ver, o_msg_fmt_ver = 0;
+	uint32_t num_queues, status, to_dest_ver, o_msg_fmt_ver = 0;
 	MDS_DEST destination_mqnd;
 	uint8_t unicast = 0;
 	SaAisErrorT rc = SA_AIS_ERR_NO_RESOURCES;
@@ -2069,7 +2069,7 @@ SaAisErrorT mqa_send_message(SaMsgHandleT msgHandle,
 	MDS_DEST destination_mqnd;
 	SaNameT sender;
 	NCS_BOOL lock_taken = FALSE;
-	uns32 length, o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION, to_dest_ver;
+	uint32_t length, o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION, to_dest_ver;
 
 	sender.length = 0;
 	sender.value[0] = '\0';
@@ -2539,7 +2539,7 @@ SaAisErrorT mqa_receive_message(SaMsgQueueHandleT queueHandle,
 	MQA_SENDERID_INFO *sender_info = NULL;
 	static int first = 1;
 	MQSV_DSEND_EVT *stats = NULL, *statsrsp = NULL;
-	uns32 mds_rc, to_dest_ver, o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION;
+	uint32_t mds_rc, to_dest_ver, o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION;
 	tmr_t tmr_id = NULL;
 	MQP_CANCEL_REQ *timer_arg = NULL;
 	NCS_BOOL is_timer_present = FALSE;
@@ -2836,7 +2836,7 @@ SaAisErrorT mqa_receive_message(SaMsgQueueHandleT queueHandle,
 	/* This memory allocated has to be freed by the application */
 	if (!message->data) {
 		if (mqsv_message->info.msg.message.size != 0) {
-			message->data = (void *)malloc((uns32)mqsv_message->info.msg.message.size);
+			message->data = (void *)malloc((uint32_t)mqsv_message->info.msg.message.size);
 			if (!message->data) {
 				rc = SA_AIS_ERR_NO_MEMORY;
 				m_LOG_MQSV_A(MQA_MEMORY_ALLOC_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, rc,
@@ -2925,7 +2925,7 @@ SaAisErrorT mqa_receive_message(SaMsgQueueHandleT queueHandle,
 
 	/* send the request to the MQND */
 	mds_rc = mqa_mds_msg_sync_send_direct(mqa_cb->mqa_mds_hdl, &mqa_cb->mqnd_mds_dest, stats,
-					      &statsrsp, (uns32)MQSV_WAIT_TIME, sizeof(MQSV_DSEND_EVT));
+					      &statsrsp, (uint32_t)MQSV_WAIT_TIME, sizeof(MQSV_DSEND_EVT));
 
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
@@ -3142,10 +3142,10 @@ SaAisErrorT saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
 	NCS_OS_MQ_MSG mq_msg;
 	MQA_QUEUE_INFO *queue_node;
 	MQA_CB *mqa_cb;
-	uns32 cancel_message_count;
+	uint32_t cancel_message_count;
 	uint8_t i;
 
-	TRACE(" saMsgMessageCancel Called with Handle %d ", (uns32)queueHandle);
+	TRACE(" saMsgMessageCancel Called with Handle %d ", (uint32_t)queueHandle);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -3253,18 +3253,18 @@ SaAisErrorT saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
 ******************************************************************************/
 
 SaAisErrorT mqa_send_receive(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-			     MQSV_DSEND_EVT *qsend_evt, MQSV_DSEND_EVT **qreply_evt, SaTimeT timeout, uns32 length)
+			     MQSV_DSEND_EVT *qsend_evt, MQSV_DSEND_EVT **qreply_evt, SaTimeT timeout, uint32_t length)
 {
 
 	int64 mqa_timeout;
 	SaAisErrorT rc;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	/* convert the timeout to 10 ms value and add it to the sync send timeout */
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_send_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					      qreply_evt, (uns32)mqa_timeout, length);
+					      qreply_evt, (uint32_t)mqa_timeout, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		rc = SA_AIS_OK;
@@ -3335,15 +3335,15 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
 	MQSV_EVT msg_dlvr_ack;
 	uint8_t unicast = 0;
 	SaNameT sender;
-	uns32 num_queues;
+	uint32_t num_queues;
 	uns64 reply_msgsize;
 	NCS_BOOL is_svc_allocated = FALSE;
-	uns32 length, to_dest_ver, o_msg_fmt_ver;
+	uint32_t length, to_dest_ver, o_msg_fmt_ver;
 
 	sender.length = 0;
 	sender.value[0] = '\0';
 
-	TRACE(" saMsgMessageSendReceive Called with message Handle %d ", (uns32)msgHandle);
+	TRACE(" saMsgMessageSendReceive Called with message Handle %d ", (uint32_t)msgHandle);
 
 	if ((!destination) || (!sendMessage) || (!receiveMessage)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -3586,7 +3586,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
 	/* Store the message to the reply buffer */
 	if (!receiveMessage->data) {
 		if (reply_msgsize != 0) {
-			receiveMessage->data = (void *)malloc((uns32)reply_msgsize);
+			receiveMessage->data = (void *)malloc((uint32_t)reply_msgsize);
 			if (!receiveMessage->data) {
 				rc = SA_AIS_ERR_NO_MEMORY;
 				m_LOG_MQSV_A(MQA_MEMORY_ALLOC_FAILED, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, rc,
@@ -3748,18 +3748,18 @@ NCS_BOOL mqa_match_senderid(void *key, void *qelem)
 
 SaAisErrorT mqa_reply_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 				     MQSV_DSEND_EVT *qsend_evt, SaMsgAckFlagsT ackFlags,
-				     SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uns32 length)
+				     SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uint32_t length)
 {
 	int64 mqa_timeout;
 	SaAisErrorT rc = SA_AIS_OK;
 	MQSV_DSEND_EVT *out_evt = NULL;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	/* convert the timeout to 10 ms value and add it to the sync send timeout */
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_reply_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					       (uns32)mqa_timeout, context, length);
+					       (uint32_t)mqa_timeout, context, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -3804,7 +3804,7 @@ SaAisErrorT mqa_reply_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 ******************************************************************************/
 
 SaAisErrorT mqa_reply_to_destination_async(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
-					   MQSV_DSEND_EVT *qsend_evt, MDS_SYNC_SND_CTXT *context, uns32 length)
+					   MQSV_DSEND_EVT *qsend_evt, MDS_SYNC_SND_CTXT *context, uint32_t length)
 {
 	if (mqa_mds_msg_async_reply_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt, context, length) !=
 	    NCSCC_RC_SUCCESS) {
@@ -3853,7 +3853,7 @@ SaAisErrorT mqa_reply_message(SaMsgHandleT msgHandle,
 	QUEUE_MESSAGE_INFO reply_info;
 	SaSizeT dest_rcv_buff_size;
 	time_t tmp_time;
-	uns32 length, destination_mqa_ver, o_msg_fmt_ver;
+	uint32_t length, destination_mqa_ver, o_msg_fmt_ver;
 
 	if (!message || !senderId || !(*senderId)) {
 		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_SEND_RCV, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
@@ -4051,7 +4051,7 @@ saMsgMessageReply(SaMsgHandleT msgHandle,
 	SaMsgAckFlagsT ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
 	MQA_CLIENT_INFO *client_info = NULL;
 
-	TRACE(" saMsgQueueReply Called with Handle %d ", (uns32)msgHandle);
+	TRACE(" saMsgQueueReply Called with Handle %d ", (uint32_t)msgHandle);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -4154,7 +4154,7 @@ saMsgMessageReplyAsync(SaMsgHandleT msgHandle,
 	MQP_ASYNC_RSP_MSG mqp_async_rsp;
 	MQA_CLIENT_INFO *client_info = NULL;
 
-	TRACE(" saMsgQueueReply Called with Handle %d ", (uns32)msgHandle);
+	TRACE(" saMsgQueueReply Called with Handle %d ", (uint32_t)msgHandle);
 
 	/* retrieve MQA CB */
 	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -4830,7 +4830,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 	MQA_CLIENT_INFO *client_info;
 	MQA_TRACK_INFO *track_info;
 	SaAisErrorT rc;
-	uns32 num_queues;
+	uint32_t num_queues;
 	SaMsgQueueGroupNotificationBufferT temp_notificationBuffer;
 
 	if (!queueGroupName) {
@@ -4961,7 +4961,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 	memset(&temp_notificationBuffer, 0, sizeof(SaMsgQueueGroupNotificationBufferT));
 
 	if (num_queues != 0) {
-		temp_notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)num_queues);
+		temp_notificationBuffer.notification = m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)num_queues);
 
 		if (!temp_notificationBuffer.notification) {
 			m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR,
@@ -5011,7 +5011,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 			    temp_notificationBuffer.numberOfItems;
 			if (num_queues != 0) {
 				track_current_callback->params.qGrpTrack.notificationBuffer.notification =
-				    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uns32)num_queues);
+				    m_MMGR_ALLOC_MQA_TRACK_BUFFER_INFO((uint32_t)num_queues);
 
 				if (!track_current_callback->params.qGrpTrack.notificationBuffer.notification) {
 					m_LOG_MQSV_A(MQA_TRACK_BUFFER_INFO_ALLOC_FAILED, NCSFL_LC_MQSV_QGRP_MGMT,
@@ -5047,7 +5047,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
 				if (num_queues != 0) {
 					/* Allocate & Copy the notification */
 					notificationBuffer->notification =
-					    (SaMsgQueueGroupNotificationT *)malloc((uns32)num_queues *
+					    (SaMsgQueueGroupNotificationT *)malloc((uint32_t)num_queues *
 										   sizeof
 										   (SaMsgQueueGroupNotificationT));
 
@@ -5408,7 +5408,7 @@ static void msgget_timer_expired(void *arg)
 	MQSV_MESSAGE *mqsv_message;
 	NCS_OS_POSIX_MQ_REQ_INFO mq_req;
 	NCS_OS_MQ_MSG mq_msg;
-	uns32 rc;
+	uint32_t rc;
 	MQP_CANCEL_REQ **cancel_req = (MQP_CANCEL_REQ **)arg;
 
 	mqsv_message = (MQSV_MESSAGE *)mq_msg.data;

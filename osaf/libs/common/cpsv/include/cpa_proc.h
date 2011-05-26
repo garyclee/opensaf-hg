@@ -38,36 +38,36 @@ typedef struct cpa_callback_info {
 	SaAisErrorT sa_err;
 } CPA_CALLBACK_INFO;
 
-uns32 cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
-uns32 cpa_version_validate(SaVersionT *version);
-uns32 cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
+uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
+uint32_t cpa_version_validate(SaVersionT *version);
+uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 				      *checkpointCreationAttributes,
 				      SaCkptCheckpointOpenFlagsT checkpointOpenFlags, const SaNameT *checkpointName);
 
-uns32 cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info);
+uint32_t cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info);
 void cpa_callback_ipc_destroy(CPA_CLIENT_NODE *client_info);
-uns32 cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node);
-uns32 cpa_proc_shm_open(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node,
+uint32_t cpa_ckpt_finalize_proc(CPA_CB *cb, CPA_CLIENT_NODE *cl_node);
+uint32_t cpa_proc_shm_open(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node,
 				 const SaNameT *ckpt_name, SaSizeT ckpt_size);
-uns32 cpa_proc_shm_close(CPA_GLOBAL_CKPT_NODE *gc_node);
+uint32_t cpa_proc_shm_close(CPA_GLOBAL_CKPT_NODE *gc_node);
 
-uns32 cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
-					      uns32 numberOfElements, uns32 data_access_type,
+uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
+					      uint32_t numberOfElements, uint32_t data_access_type,
 					      SaSizeT maxSectionSize, SaUint32T *errflag, CPSV_CKPT_DATA **ckpt_data);
 
 void cpa_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
 void cpa_proc_free_arrival_ntfy_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data);
 
-uns32 cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node,
-				       const SaCkptIOVectorElementT *iovector, uns32 num_of_elmts, uns32 *errflag);
+uint32_t cpa_proc_check_iovector(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node,
+				       const SaCkptIOVectorElementT *iovector, uint32_t num_of_elmts, uint32_t *errflag);
 
-uns32 cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
+uint32_t cpa_proc_replica_read(CPA_CB *cb, SaUint32T numberOfElements,
 				     SaCkptCheckpointHandleT gbl_ckpt_hdl,
 				     SaCkptIOVectorElementT **ioVector, CPSV_ND2A_READ_MAP *read_map,
 				     SaUint32T **erroneousVectorIndex);
 
-uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
+uint32_t cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
 					 SaCkptIOVectorElementT *ioVector, CPSV_ND2A_READ_DATA *read_data,
 					 SaUint32T **erroneousVectorIndex, SaVersionT *version);
 
@@ -75,13 +75,13 @@ void cpa_proc_free_read_data(CPSV_ND2A_DATA_ACCESS_RSP *rmt_read_rsp);
 
 void cpa_cb_dump(void);
 
-uns32 cpa_open_name_validate(const SaNameT *checkpointName);
+uint32_t cpa_open_name_validate(const SaNameT *checkpointName);
 
 /* callback prototypes */
 CPA_CALLBACK_INFO *cpa_callback_ipc_rcv(CPA_CLIENT_NODE *cl_node);
-uns32 cpa_hdl_callbk_dispatch_one(CPA_CB *cb, SaCkptHandleT ckptHandle);
-uns32 cpa_hdl_callbk_dispatch_all(CPA_CB *cb, SaCkptHandleT ckptHandle);
-uns32 cpa_hdl_callbk_dispatch_block(CPA_CB *cb, SaCkptHandleT ckptHandle);
+uint32_t cpa_hdl_callbk_dispatch_one(CPA_CB *cb, SaCkptHandleT ckptHandle);
+uint32_t cpa_hdl_callbk_dispatch_all(CPA_CB *cb, SaCkptHandleT ckptHandle);
+uint32_t cpa_hdl_callbk_dispatch_block(CPA_CB *cb, SaCkptHandleT ckptHandle);
 void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node);
 
 #endif

@@ -85,7 +85,7 @@ struct cpsv_testcase_data
   SaCkptCheckpointDescriptorT status;
   SaSizeT memLeft;
   SaUint32T ind;
-  uns32 nodeId;
+  uint32_t nodeId;
   RED_FLAG redFlag;
   int inst_num;
   char overdata[100];

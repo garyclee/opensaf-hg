@@ -3,14 +3,14 @@
 #include "tet_api.h"
 
 pthread_mutex_t  mutex_cb =  PTHREAD_MUTEX_INITIALIZER;
-uns32 mbcstm_sync_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys, 
-                           MBCSTM_CB_TEST sync,uns32 warm,uns32 wait)
+uint32_t mbcstm_sync_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys, 
+                           MBCSTM_CB_TEST sync,uint32_t warm,uint32_t wait)
 {
   /*change*/
-  uns32 mbcstm_create_data_point(uns32 , uns32 );
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_create_data_point(uint32_t , uint32_t );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
   
-  uns32 test_result;
+  uint32_t test_result;
   MBCSTM_PEERS_DATA peers;
   
   
@@ -81,14 +81,14 @@ uns32 mbcstm_sync_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
 }
 
 
-uns32 mbcstm_data_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                           uns32 wait, MBCSTM_CB_TEST sync)
+uint32_t mbcstm_data_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                           uint32_t wait, MBCSTM_CB_TEST sync)
 {
   /*change*/
-  uns32 mbcstm_create_data_point(uns32 , uns32 );
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_create_data_point(uint32_t , uint32_t );
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
   
-  uns32 test_result = NCSCC_RC_FAILURE;
+  uint32_t test_result = NCSCC_RC_FAILURE;
   MBCSTM_PEERS_DATA peers;
   int PASS=0;
   
@@ -170,19 +170,19 @@ uns32 mbcstm_data_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
   return(test_result);
 }
 
-uns32 mbcstm_notify_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                             uns32 isys, MBCSTM_CB_TEST sync, 
+uint32_t mbcstm_notify_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                             uint32_t isys, MBCSTM_CB_TEST sync, 
                              NCS_MBCSV_NTFY_MSG_DEST msg_dest,char *str, 
-                             uns32 len)
+                             uint32_t len)
 {    
-  uns32 test_result=NCSCC_RC_FAILURE;
+  uint32_t test_result=NCSCC_RC_FAILURE;
   MBCSTM_PEERS_DATA peers;
   int PASS=0;
   /*change*/
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
-  uns32   mbcstm_svc_send_notify(uns32 svc_index, uns32 ssn_index,
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
+  uint32_t   mbcstm_svc_send_notify(uint32_t svc_index, uint32_t ssn_index,
                                  NCS_MBCSV_NTFY_MSG_DEST msg_dest,char *str, 
-                                 uns32 len);
+                                 uint32_t len);
     
   if(mbcstm_cb.sys == asys)
     {
@@ -238,11 +238,11 @@ uns32 mbcstm_notify_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
 }
 
 
-uns32 mbcstm_cb_test_cases(NCS_MBCSV_CB_ARG *arg)
+uint32_t mbcstm_cb_test_cases(NCS_MBCSV_CB_ARG *arg)
 {
   MBCSTM_SSN *ssn = (MBCSTM_SSN *)((long)arg->i_client_hdl);
   /*change*/
-  /*    uns32  svc_index = ssn->svc_index;*/
+  /*    uint32_t  svc_index = ssn->svc_index;*/
   
   switch(ssn->cb_test)
     {
@@ -572,7 +572,7 @@ COLD_SYNC_RESP_COMPLETE");
 
 void mbcstm_coldsync_standby_encode_fail() 
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_standby_encode_fail";
   char case_disc[] = "";
@@ -600,7 +600,7 @@ void mbcstm_coldsync_standby_encode_fail()
 
 void mbcstm_coldsync_coldrequest_noresponse() 
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_coldrequest_noresponse";
   char case_disc[] = "";
@@ -628,7 +628,7 @@ void mbcstm_coldsync_coldrequest_noresponse()
 
 void mbcstm_coldsync_stdby_decode_fail() 
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_stdby_decode_fail";
   char case_disc[] = "";
@@ -656,7 +656,7 @@ void mbcstm_coldsync_stdby_decode_fail()
 
 void mbcstm_coldsync_active_encode_fail() 
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_active_encode_fail";
   char case_disc[] = "";
@@ -684,7 +684,7 @@ void mbcstm_coldsync_active_encode_fail()
 
 void mbcstm_coldsync_timer() 
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_timer";
   char case_disc[] = "";
@@ -712,7 +712,7 @@ void mbcstm_coldsync_timer()
 
 void mbcstm_coldsync_cmp_timer()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_coldsync_cmp_timer";
   char case_disc[] = "";
@@ -741,7 +741,7 @@ void mbcstm_coldsync_cmp_timer()
 
 void mbcstm_warmsync_timer()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_warmsync_timer";
   char case_disc[] = "";
@@ -769,7 +769,7 @@ void mbcstm_warmsync_timer()
 
 void mbcstm_warmsync_cmp_timer()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   
   char case_name[] = "mbcstm_warmsync_cmp_timer";
   char case_disc[] = "";
@@ -802,7 +802,7 @@ void mbcstm_warmsync_cmp_timer()
 
 void mbcstm_warmsync_complete()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys;
+  uint32_t svc_index = 1, ssn_index = 1, asys;
   
   char case_name[] = "mbcstm_warmsync_complete";
   char case_disc[] = "";
@@ -833,7 +833,7 @@ void mbcstm_warmsync_complete()
 /*change:changed the if condition*/
 void mbcstm_data_request_idle()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys;
+  uint32_t svc_index = 1, ssn_index = 1, asys;
   
   char case_name[] = "mbcstm_data_request_idle";
   char case_disc[] = "";
@@ -867,7 +867,7 @@ void mbcstm_data_request_idle()
 void mbcstm_send_notify_idle()
 {
   
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_idle";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res =  TET_MBCSV_FAIL;
@@ -898,7 +898,7 @@ void mbcstm_send_notify_idle()
 /* NEW */
 void mbcstm_notify_send_all()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_send_all";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res =  TET_MBCSV_FAIL;
@@ -929,7 +929,7 @@ void mbcstm_notify_send_all()
 
 void mbcstm_notify_send_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_send_to_active";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res =  TET_MBCSV_FAIL;
@@ -959,7 +959,7 @@ void mbcstm_notify_send_to_active()
 
 void mbcstm_notify_send_to_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_send_to_standby";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res =  TET_MBCSV_FAIL;
@@ -990,7 +990,7 @@ void mbcstm_notify_send_to_standby()
 /* NEW */
 void mbcstm_notify_send_active_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_active_to_active";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_FAIL, final_res =  TET_MBCSV_FAIL;
@@ -1021,7 +1021,7 @@ void mbcstm_notify_send_active_to_active()
 /* NEW */
 void mbcstm_notify_send_active_to_multiactive()
 {
-  uns32 svc_index = 1, ssn_index = 1, asys, isys, len; 
+  uint32_t svc_index = 1, ssn_index = 1, asys, isys, len; 
   char case_name[] = "mbcstm_notify_active_to_multiactive";
   char case_disc[] = "This is notify test_message";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_FAIL, final_res =  TET_MBCSV_FAIL;

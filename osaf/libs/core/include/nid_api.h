@@ -52,19 +52,19 @@
  *       for communicating initialization status.               *
  ****************************************************************/
 typedef struct nid_fifo_msg {
-	uns32 nid_magic_no;	/* Magic number */
+	uint32_t nid_magic_no;	/* Magic number */
 	char nid_serv_name[NID_MAXSNAME];	/* Identifies the spawned service uniquely */
-	uns32 nid_stat_code;	/* Identifies the initialization status */
+	uint32_t nid_stat_code;	/* Identifies the initialization status */
 } NID_FIFO_MSG;
 
 /**********************************************************************
  *    Exported finctions by NID_API                                    *
  **********************************************************************/
-uns32 nid_notify(char *, uns32, uns32 *);
-uns32 nis_notify(char *, uns32 *);
-uns32 nid_create_ipc(char *);
-uns32 nid_open_ipc(int32 *fd, char *);
+uint32_t nid_notify(char *, uint32_t, uint32_t *);
+uint32_t nis_notify(char *, uint32_t *);
+uint32_t nid_create_ipc(char *);
+uint32_t nid_open_ipc(int32_t *fd, char *);
 void nid_close_ipc(void);
-uns32 nid_is_ipcopen(void);
+uint32_t nid_is_ipcopen(void);
 
 #endif   /*NID_API_H */

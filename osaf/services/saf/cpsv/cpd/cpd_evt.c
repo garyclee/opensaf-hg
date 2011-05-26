@@ -28,22 +28,22 @@
 #include "cpd_log.h"
 #include "immutil.h"
 
-uns32 cpd_evt_proc_cb_dump(CPD_CB *cb);
-static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-/*static uns32 cpd_evt_proc_ckpt_sync_info(CPD_CB *cb,CPD_EVT *evt,CPSV_SEND_INFO *sinfo);*/
-static uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-static uns32 cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-static uns32 cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+uint32_t cpd_evt_proc_cb_dump(CPD_CB *cb);
+static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+/*static uint32_t cpd_evt_proc_ckpt_sync_info(CPD_CB *cb,CPD_EVT *evt,CPSV_SEND_INFO *sinfo);*/
+static uint32_t cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 
-static uns32 cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 
-static uns32 cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-static uns32 cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
-static uns32 cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt);
-static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt);
+static uint32_t cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt);
+static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt);
 
-static uns32 cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 
 #if ( CPSV_DEBUG == 1)
 static char *cpd_evt_str[] = {
@@ -81,8 +81,8 @@ static char *cpd_evt_str[] = {
 void cpd_process_evt(CPSV_EVT *evt)
 {
 	CPD_CB *cb;
-	uns32 cb_hdl = m_CPD_GET_CB_HDL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t cb_hdl = m_CPD_GET_CB_HDL;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (evt->type != CPSV_EVT_TYPE_CPD) {
 		/*TBD Log the error BAD EVENT */
@@ -167,11 +167,11 @@ void cpd_process_evt(CPSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPSV_EVT send_evt;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPD_CKPT_INFO_NODE *ckpt_node = 0;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPSV_ND2D_CKPT_CREATE *ckpt_create = &evt->info.ckpt_create;
@@ -315,7 +315,7 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
 
 		if (ckpt_node->dest_cnt) {
 			CPD_NODE_REF_INFO *node_list = ckpt_node->node_list;
-			uns32 i = 0;
+			uint32_t i = 0;
 
 			send_evt.info.cpnd.info.ckpt_info.dest_cnt = ckpt_node->dest_cnt;
 			send_evt.info.cpnd.info.ckpt_info.dest_list =
@@ -384,11 +384,11 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
  *
  * Return Values :
 ***************************************************************************/
-static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node;
 	CPSV_EVT send_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = cpd_ckpt_node_get(&cb->ckpt_tree, &evt->info.ckpt_usr_info.ckpt_id, &ckpt_node);
 	if (ckpt_node == 0) {
@@ -416,10 +416,10 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 				if (evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_OPEN_FIRST) {
 					if (!ckpt_node->ckpt_on_scxb1)
 						ckpt_node->ckpt_on_scxb1 =
-						    (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
+						    (uint32_t)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
 					else
 						ckpt_node->ckpt_on_scxb2 =
-						    (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
+						    (uint32_t)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
 
 				}
 			}
@@ -427,10 +427,10 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 				if (evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_OPEN_FIRST) {
 					if (!ckpt_node->ckpt_on_scxb1)
 						ckpt_node->ckpt_on_scxb1 =
-						    (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
+						    (uint32_t)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
 					else
 						ckpt_node->ckpt_on_scxb2 =
-						    (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
+						    (uint32_t)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
 				}
 			}
 		}
@@ -478,10 +478,10 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
  *
  * Description  : To get the number of sections 
  **************************************************************************/
-uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+uint32_t cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	cpd_ckpt_node_get(&cb->ckpt_tree, &evt->info.ckpt_sec_info.ckpt_id, &ckpt_node);
 	if (ckpt_node == 0) {
@@ -511,7 +511,7 @@ uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *s
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
@@ -570,12 +570,12 @@ static uns32 cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	rc = cpd_proc_retention_set(cb, evt->info.rd_set.ckpt_id, evt->info.rd_set.reten_time, &ckpt_node);
 	if (rc != SA_AIS_OK)
@@ -620,12 +620,12 @@ static uns32 cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *s
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	rc = cpd_proc_active_set(cb, evt->info.arep_set.ckpt_id, evt->info.arep_set.mds_dest, &ckpt_node);
 	if (rc != SA_AIS_OK)
@@ -678,10 +678,10 @@ static uns32 cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *s
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPSV_EVT send_evt;
 	NCS_BOOL o_ckpt_node_deleted = FALSE;
 	NCS_BOOL o_is_active_changed = FALSE;
@@ -772,13 +772,13 @@ static uns32 cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO 
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	SaNameT *ckpt_name = &evt->info.ckpt_destroy_byname.ckpt_name;
 	CPD_EVT destroy_evt;
 	CPSV_EVT send_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_name, &map_info);
 
@@ -814,7 +814,7 @@ static uns32 cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEN
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_evt_proc_cb_dump(CPD_CB *cb)
+uint32_t cpd_evt_proc_cb_dump(CPD_CB *cb)
 {
 
 	cpd_cb_dump();
@@ -833,9 +833,9 @@ uns32 cpd_evt_proc_cb_dump(CPD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt)
+static uint32_t cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 
 	CPD_TMR_INFO *tmr_info = &evt->info.tmr_info;
@@ -877,11 +877,11 @@ static uns32 cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt)
  *         3. If that ND does not contain Active Replica, send REP_DEL event to other NDs                
  *
  ***************************************************************************/
-static uns32 cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INFO_NODE *cpnd_info)
+static uint32_t cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INFO_NODE *cpnd_info)
 {
 	CPD_CKPT_REF_INFO *cref_info;
 	CPSV_EVT send_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
 	cpnd_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
@@ -931,11 +931,11 @@ static uns32 cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INF
  * Return Values: Success / Error
  *
 ********************************************************************************/
-static uns32 cpd_cpnd_dest_replace(CPD_CB *cb, CPD_CKPT_REF_INFO *cref_info, CPSV_MDS_INFO *mds_info)
+static uint32_t cpd_cpnd_dest_replace(CPD_CB *cb, CPD_CKPT_REF_INFO *cref_info, CPSV_MDS_INFO *mds_info)
 {
 	CPD_CKPT_INFO_NODE *cp_node = NULL;
 	CPD_NODE_REF_INFO *nref_info = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while (cref_info) {
 		cp_node = cref_info->ckpt_node;
@@ -970,12 +970,12 @@ static uns32 cpd_cpnd_dest_replace(CPD_CB *cb, CPD_CKPT_REF_INFO *cref_info, CPS
  * Notes :  1. Send the Restart Done event to other ND's if ND having Active replica is up
             2. Send a REP_ADD event if ND not having Active Replica is up
  *****************************************************************************/
-static uns32 cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INFO_NODE *cpnd_info)
+static uint32_t cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INFO_NODE *cpnd_info)
 {
 	CPD_CKPT_REF_INFO *cref_info = NULL, *cpd_ckpt_info = NULL;
 	CPSV_EVT send_evt;
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	uns32 i = 0;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	uint32_t i = 0;
 
 	cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
 	cpnd_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
@@ -1084,9 +1084,9 @@ static uns32 cpnd_up_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_INFO_
 	return proc_rc;
 }
 
-static uns32 cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT saErr = SA_AIS_OK;
 	cpd_mbcsv_chgrole(cb);
 	saAmfResponse(cb->amf_hdl, cb->amf_invocation, saErr);
@@ -1105,7 +1105,7 @@ static uns32 cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_IN
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
+static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 {
 	CPSV_MDS_INFO *mds_info;
 	CPD_CPND_INFO_NODE *node_info = NULL;
@@ -1116,13 +1116,13 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 	SaCkptCheckpointHandleT prev_ckpt_hdl;
 	NCS_BOOL flag = FALSE;
 	SaNameT ckpt_name;
-	uns32 phy_slot_sub_slot;
+	uint32_t phy_slot_sub_slot;
 	NCS_BOOL add_flag = TRUE;
 
 	memset(&ckpt_name, 0, sizeof(SaNameT));
 	mds_info = &evt->info.mds_info;
 
-	memset(&phy_slot_sub_slot, 0, sizeof(uns32));
+	memset(&phy_slot_sub_slot, 0, sizeof(uint32_t));
 
 	switch (mds_info->change) {
 

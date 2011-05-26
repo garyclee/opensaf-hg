@@ -44,9 +44,9 @@
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dts_compile_ckpt_edp(DTS_CB *cb)
+uint32_t dts_compile_ckpt_edp(DTS_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err = EDU_NORMAL;
 
 	/* Initialize the EDU handle */
@@ -99,11 +99,11 @@ uns32 dts_compile_ckpt_edp(DTS_CB *cb)
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						 NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						 NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTS_LOG_CKPT_DATA *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET dtsv_ckpt_msg_dts_log_ckpt_data_rules[] = {
@@ -150,11 +150,11 @@ uns32 dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTS_LL_FILE *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET dtsv_ckpt_msg_dts_ll_file_rules[] = {
@@ -200,11 +200,11 @@ uns32 dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTS_FILE_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET dtsv_ckpt_msg_dts_file_list_rules[] = {
@@ -247,11 +247,11 @@ uns32 dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/*Smik - Implementation needed - making changes */
 	DTS_SVC_REG_TBL *struct_ptr = NULL, **d_ptr = NULL;
 
@@ -284,7 +284,7 @@ uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((DTS_SVC_REG_TBL *)0)->svc_policy.severity_bit_map, 0, NULL},
 		/* Log file name would be checkpointed by another msg */
 		/*{EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0,
-		   (uns32)&((DTS_SVC_REG_TBL*)0)->device.log_file, 250, NULL}, */
+		   (uint32_t)&((DTS_SVC_REG_TBL*)0)->device.log_file, 250, NULL}, */
 		/* Smik - Omitting encoding for FILE* for recreating later */
 		{EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
 		 (long)&((DTS_SVC_REG_TBL *)0)->device.file_open, 0, NULL},
@@ -333,11 +333,11 @@ uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTA_DEST_LIST *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET dtsv_ckpt_msg_dta_dest_list_rules[] = {
@@ -346,7 +346,7 @@ uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		/* Fill here DTA_DEST_LIST data structure encoding rules */
 		/*{EDU_TEST_LL_PTR, dtsv_edp_ckpt_msg_dta_dest_list_config, 0, 0, 0,
-		   (uns32)&((DTA_DEST_LIST*)0)->qel, 0, NULL}, */
+		   (uint32_t)&((DTA_DEST_LIST*)0)->qel, 0, NULL}, */
 		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
 		 (long)&((DTA_DEST_LIST *)0)->dta_addr, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -355,7 +355,7 @@ uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((DTA_DEST_LIST *)0)->updt_req, 0, NULL},
 		/* Smik - Need to add rule for NCS_QUEUE svc_list */
 		/*{EDU_EXEC, dtsv_edp_ckpt_msg_dta_dest_list_config, 0, 0, 0,
-		   (uns32)&((DTA_DEST_LIST*)0)->svc_list.head, 0, NULL}, */
+		   (uint32_t)&((DTA_DEST_LIST*)0)->svc_list.head, 0, NULL}, */
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -390,11 +390,11 @@ uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uint32_t *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Smik - implementation needed */
 	GLOBAL_POLICY *struct_ptr = NULL, **d_ptr = NULL;
 
@@ -423,7 +423,7 @@ uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((GLOBAL_POLICY *)0)->g_policy.severity_bit_map, 0, NULL},
 		/* Log file name would be ckpted by another msg */
 		/*{EDU_EXEC, ncs_edp_char, EDQ_ARRAY, 0, 0,
-		   (uns32)&((GLOBAL_POLICY*)0)->device.log_file, 250, NULL}, */
+		   (uint32_t)&((GLOBAL_POLICY*)0)->device.log_file, 250, NULL}, */
 		/* Smik - Omitting encoding for FILE* for recreating later */
 		{EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
 		 (long)&((GLOBAL_POLICY *)0)->device.file_open, 0, NULL},
@@ -480,11 +480,11 @@ uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dtsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t dtsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTSV_ASYNC_UPDT_CNT *struct_ptr = NULL, **d_ptr = NULL;
 	/* Smik - implementation needed here */
 	EDU_INST_SET dtsv_ckpt_msg_async_updt_cnt_rules[] = {

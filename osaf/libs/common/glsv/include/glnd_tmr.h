@@ -47,8 +47,8 @@ typedef enum glnd_tmr_type {
 typedef struct glnd_tmr {
 	tmr_t tmr_id;
 	GLND_TMR_TYPE type;	/* timer type */
-	uns32 cb_hdl;		/* cb hdl to retrieve the GLND cb ptr */
-	uns32 opq_hdl;		/* hdl to retrive the timer context */
+	uint32_t cb_hdl;		/* cb hdl to retrieve the GLND cb ptr */
+	uint32_t opq_hdl;		/* hdl to retrive the timer context */
 	NCS_BOOL is_active;
 } GLND_TMR;
 
@@ -56,7 +56,7 @@ typedef struct glnd_tmr {
 
 void glnd_tmr_exp(void *);
 
-uns32 glnd_start_tmr(struct glnd_cb_tag *, GLND_TMR *, GLND_TMR_TYPE, SaTimeT, uns32);
+uint32_t glnd_start_tmr(struct glnd_cb_tag *, GLND_TMR *, GLND_TMR_TYPE, SaTimeT, uint32_t);
 
 void glnd_stop_tmr(GLND_TMR *);
 

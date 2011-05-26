@@ -37,7 +37,7 @@ typedef struct immd_mbcsv_msg {
 	union {
 		/* Messages for replication to IMMD stby  */
 		IMMSV_FEVS fevsReq;
-		uns32 count;
+		uint32_t count;
 		IMMSV_D2ND_CONTROL ctrl;
 	} info;
 } IMMD_MBCSV_MSG;

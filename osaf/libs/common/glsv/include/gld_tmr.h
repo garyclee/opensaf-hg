@@ -50,8 +50,8 @@ typedef enum gld_tmr_type {
 typedef struct gld_tmr {
 	tmr_t tmr_id;
 	GLD_TMR_TYPE type;	/* timer type */
-	uns32 cb_hdl;		/* cb hdl to retrieve the GLD cb ptr */
-	uns32 opq_hdl;		/* hdl to retrive the timer context */
+	uint32_t cb_hdl;		/* cb hdl to retrieve the GLD cb ptr */
+	uint32_t opq_hdl;		/* hdl to retrive the timer context */
 	NCS_BOOL is_active;
 	MDS_DEST mdest_id;
 	SaLckResourceIdT resource_id;
@@ -61,7 +61,7 @@ typedef struct gld_tmr {
 
 void gld_tmr_exp(void *);
 
-uns32 gld_start_tmr(struct glsv_gld_cb_tag *, GLD_TMR *, GLD_TMR_TYPE, SaTimeT, uns32);
+uint32_t gld_start_tmr(struct glsv_gld_cb_tag *, GLD_TMR *, GLD_TMR_TYPE, SaTimeT, uint32_t);
 
 void gld_stop_tmr(GLD_TMR *);
 

@@ -73,9 +73,9 @@ EDS_CKPT_HDLR eds_ckpt_data_handler[EDS_CKPT_MSG_MAX - EDS_CKPT_MSG_BASE] = {
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_mbcsv_init(EDS_CB *eds_cb)
+uint32_t eds_mbcsv_init(EDS_CB *eds_cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG init_arg, sel_obj_arg;
 	SaAisErrorT error = SA_AIS_OK;
 
@@ -131,17 +131,17 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_mbcsv_open_ckpt(EDS_CB *cb)
+uint32_t eds_mbcsv_open_ckpt(EDS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	/* Set the checkpoint open arguments */
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	mbcsv_arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
 	mbcsv_arg.info.open.i_client_hdl = gl_eds_hdl;	/* Can i take like this ? */
 
 	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
@@ -170,10 +170,10 @@ uns32 eds_mbcsv_open_ckpt(EDS_CB *cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uns32 eds_mbcsv_change_HA_state(EDS_CB *cb)
+uint32_t eds_mbcsv_change_HA_state(EDS_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	/* Set the mbcsv args */
@@ -204,10 +204,10 @@ uns32 eds_mbcsv_change_HA_state(EDS_CB *cb)
  * Notes         : This function should be ideally called only once, i.e.
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
-uns32 eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
+uint32_t eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	/* Set the mbcsv args */
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 	mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
@@ -236,9 +236,9 @@ uns32 eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  * Notes         : Based on the mbcsv message type, the corresponding mbcsv
  *                 message handler shall be invoked.
  *****************************************************************************/
-uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
+uint32_t eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (arg == NULL)
 		return NCSCC_RC_FAILURE;
@@ -299,9 +299,9 @@ uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CB *cb = NULL;
 	uint16_t mbcsv_version;
 
@@ -406,10 +406,10 @@ uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
+uint32_t eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* asynsc Update Count */
 	uint8_t *async_upd_cnt = NULL;
 
@@ -455,7 +455,7 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
 
 	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	if (async_upd_cnt == NULL) {
 		/* Log this error */
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -463,7 +463,7 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
 	}
 
 	ncs_encode_32bit(&async_upd_cnt, eds_cb->async_upd_cnt);
-	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 
 	/* Set response mbcsv msg type to complete */
 	if (data_req == TRUE)
@@ -490,12 +490,12 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
  * Notes         : None.
  ***************************************************************************/
 
-uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
 {
 	EDA_REG_REC *reg_rec = NULL;
 	EDS_CKPT_REG_MSG *ckpt_reg_rec = NULL;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 
@@ -564,10 +564,10 @@ uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
  *                 and channel-open instances on that channel.
  ***************************************************************************/
 
-uns32 eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba)
 {
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
@@ -635,12 +635,12 @@ uns32 eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba)
  * Notes         : None.
  ***************************************************************************/
 
-uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 {
 	CHAN_OPEN_REC *copen_rec = NULL;
 	EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_rec = NULL;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_WORKLIST *wp = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
@@ -714,12 +714,12 @@ uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
  * Notes         : None.
  ***************************************************************************/
 
-uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
 {
 	SUBSC_REC *sub_rec = NULL;
 	CHAN_OPEN_REC *copen_rec = NULL;
 	EDS_CKPT_SUBSCRIBE_MSG *ckpt_srec = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
 	EDS_WORKLIST *wp = NULL;
@@ -795,14 +795,14 @@ uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
  * Notes         : None.
  ***************************************************************************/
 
-uns32 eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
 {
 	EDS_RETAINED_EVT_REC *ret_rec = NULL;
 	EDS_CKPT_RETAIN_EVT_MSG *ckpt_reten_rec = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
-	uns32 remaining_time = 0;
+	uint32_t remaining_time = 0;
 	SaUint8T list_iter;
 	EDS_WORKLIST *wp = NULL;
 
@@ -873,11 +873,11 @@ uns32 eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_encode_async_update(EDS_CB *eds_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	EDS_CKPT_DATA *data = NULL;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Set reo_hdl from callback arg to ckpt_rec */
 	data = (EDS_CKPT_DATA *)(long)cbk_arg->info.encode.io_reo_hdl;
@@ -957,9 +957,9 @@ uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CB *cb = NULL;
 	uint16_t msg_fmt_version;
 
@@ -1064,9 +1064,9 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	EDS_CKPT_DATA *ckpt_msg = NULL;
 	EDS_CKPT_HEADER *hdr = NULL;
@@ -1268,18 +1268,18 @@ uns32 eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  *                        header->num_records times, 
  *****************************************************************************/
 
-uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 	EDS_CKPT_DATA *data = NULL;
 /*  NCS_UBAID *uba=NULL; */
-	uns32 num_rec = 0;
+	uint32_t num_rec = 0;
 	long msg_hdl = 0;
 	EDS_CKPT_REG_MSG *reg_rec = NULL;
 	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
 	EDS_CKPT_CHAN_OPEN_MSG *copen_rec = NULL;
-	uns32 num_of_async_upd;
+	uint32_t num_of_async_upd;
 	uint8_t *ptr;
 	uint8_t data_cnt[16];
 
@@ -1504,7 +1504,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 		}
 
 		/* Get the async update count */
-		ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uns32));
+		ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uint32_t));
 		num_of_async_upd = ncs_decode_32bit(&ptr);
 		cb->async_upd_cnt = num_of_async_upd;
 		ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
@@ -1540,9 +1540,9 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((!cb) || (data == NULL))
 		return (rc = NCSCC_RC_FAILURE);
@@ -1578,9 +1578,9 @@ uns32 eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_REG_MSG *param = &data->ckpt_rec.reg_rec;
 	if (!param->reg_id) {
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -1608,9 +1608,9 @@ uns32 eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_FINALIZE_MSG *param = &data->ckpt_rec.finalize_rec;
 
 	if (!param->reg_id) {
@@ -1639,11 +1639,11 @@ uns32 eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_chan_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_MSG *param = &data->ckpt_rec.chan_rec;
-	uns32 reg_id = 0;	/* It is not used */
+	uint32_t reg_id = 0;	/* It is not used */
 	MDS_DEST chan_opener_dest = 0;	/* Not used */
 
 	if ((param->cname_len == 0) || (param->cname_len > SA_MAX_NAME_LENGTH)) {
@@ -1684,9 +1684,9 @@ uns32 eds_ckpt_proc_chan_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_open_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_chan_open_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaTimeT chan_create_time = 0;
 	EDS_CKPT_CHAN_OPEN_MSG *param = &data->ckpt_rec.chan_open_rec;
 
@@ -1717,9 +1717,9 @@ uns32 eds_ckpt_proc_chan_open_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_CLOSE_MSG *param = &data->ckpt_rec.chan_close_rec;
 
 	if (!param) {
@@ -1748,9 +1748,9 @@ uns32 eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_chan_unlink_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_UNLINK_MSG *param = &(data->ckpt_rec).chan_unlink_rec;
 
 	rc = eds_channel_unlink(cb, param->chan_name.length, param->chan_name.value);
@@ -1779,11 +1779,11 @@ uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  *                 since the time, this event was published .
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 copen_id_Net;
-	uns32 retd_evt_chan_open_id = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t copen_id_Net;
+	uint32_t retd_evt_chan_open_id = 0;
 	SaTimeT publish_time = 0;
 	EDS_WORKLIST *wp;
 	CHAN_OPEN_REC *co;
@@ -1847,9 +1847,9 @@ uns32 eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_subscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_subscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *reglst;
 	SUBSC_REC *subrec = NULL;
 	EDSV_EDA_SUBSCRIBE_PARAM *param = &(data->ckpt_rec.subscribe_rec).data;
@@ -1911,9 +1911,9 @@ uns32 eds_ckpt_proc_subscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_unsubscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_UNSUBSCRIBE_PARAM *param = &(data->ckpt_rec.unsubscribe_rec).data;
 
 	/* Remove subscription from our lists */
@@ -1940,9 +1940,9 @@ uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(data->ckpt_rec.reten_time_clr_rec).data;
 
 	/* Lock the EDS_CB */
@@ -1972,7 +1972,7 @@ uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
+uint32_t eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
 	/*Remove the EDA DOWN REC from the EDA_DOWN_LIST */
 	/* Search for matching EDA in the EDA_DOWN_LIST  */
@@ -2004,11 +2004,11 @@ uns32 eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None  
  ****************************************************************************/
 
-uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
+uint32_t eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
 {
 
 /*warm sync encode routine used before */
-	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
+	uint32_t num_of_async_upd, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG mbcsv_arg;
 
@@ -2016,7 +2016,7 @@ uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
 
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-	ptr = ncs_dec_flatten_space(uba, data, sizeof(int32));
+	ptr = ncs_dec_flatten_space(uba, data, sizeof(int32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(uba, 4);
 
@@ -2055,16 +2055,16 @@ uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
+uint32_t eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 
 /*warm sync encode routine used before */
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr = NULL;
 
 	/* Reserve space to send the async update counter */
-	wsync_ptr = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	wsync_ptr = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	if (wsync_ptr == NULL) {
 		/* Log this Error */
 		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
@@ -2073,7 +2073,7 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 	/* SEND THE ASYNC UPDATE COUNTER */
 	ncs_encode_32bit(&wsync_ptr, cb->async_upd_cnt);
-	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uint32_t));
 	/* Done. Return status */
 	cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
 	return rc;
@@ -2101,9 +2101,9 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action)
+uint32_t send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uint32_t action)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_MBCSV_ARG mbcsv_arg;
 
 	/* Fill mbcsv specific data */
@@ -2141,7 +2141,7 @@ uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action)
  *
  * Notes         : None.
  ***************************************************************************/
-uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+uint32_t eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	uint16_t peer_version;
 
@@ -2169,7 +2169,7 @@ uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-uns32 eds_ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+uint32_t eds_ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 
 	/* Currently nothing to be done */
@@ -2190,7 +2190,7 @@ uns32 eds_ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-uns32 eds_ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+uint32_t eds_ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done. */
 	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
@@ -2216,10 +2216,10 @@ uns32 eds_ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			 NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_REG_MSG *ckpt_reg_msg_ptr = NULL, **ckpt_reg_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_reg_rec_ed_rules[] = {
@@ -2268,10 +2268,10 @@ uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_MSG *ckpt_chan_msg_ptr = NULL, **ckpt_chan_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_chan_rec_ed_rules[] = {
@@ -2326,11 +2326,11 @@ uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_msg_ptr = NULL, **ckpt_copen_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_copen_rec_ed_rules[] = {
@@ -2384,11 +2384,11 @@ uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_CLOSE_MSG *ckpt_cclose_msg_ptr = NULL, **ckpt_cclose_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_cclose_rec_ed_rules[] = {
@@ -2437,11 +2437,11 @@ uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-				NCSCONTEXT ptr, uns32 *ptr_data_len,
+uint32_t eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_CHAN_UNLINK_MSG *ckpt_culink_msg_ptr = NULL, **ckpt_culink_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_culink_rec_ed_rules[] = {
@@ -2489,10 +2489,10 @@ uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_RETENTION_TIME_CLEAR_MSG *ckpt_ret_clr_msg_ptr = NULL, **ckpt_ret_clr_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_ret_clr_rec_ed_rules[] = {
@@ -2544,10 +2544,10 @@ uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA_CHECKSUM *ckpt_csum_msg_ptr = NULL, **ckpt_csum_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_csum_rec_ed_rules[] = {
@@ -2596,10 +2596,10 @@ uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			    NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_UNSUBSCRIBE_MSG *ckpt_usubsc_msg_ptr = NULL, **ckpt_usubsc_msg_dec_ptr;
 	EDU_INST_SET eds_ckpt_usubsc_rec_ed_rules[] = {
 		{EDU_START, eds_edp_ed_usubsc_rec, 0, 0, 0, sizeof(EDS_CKPT_UNSUBSCRIBE_MSG), 0, NULL},
@@ -2649,10 +2649,10 @@ uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_FINALIZE_MSG *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_final_rec_ed_rules[] = {
@@ -2699,10 +2699,10 @@ uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			    NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_HEADER *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_header_rec_ed_rules[] = {
@@ -2753,7 +2753,7 @@ uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-int32 eds_ckpt_msg_test_type(NCSCONTEXT arg)
+int32_t eds_ckpt_msg_test_type(NCSCONTEXT arg)
 {
 	typedef enum {
 		LCL_TEST_JUMP_OFFSET_EDS_CKPT_REG = 1,
@@ -2827,10 +2827,10 @@ int32 eds_ckpt_msg_test_type(NCSCONTEXT arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+			  NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA *ckpt_msg_ptr = NULL, **ckpt_msg_dec_ptr;
 
 	EDU_INST_SET eds_ckpt_msg_ed_rules[] = {
@@ -2939,7 +2939,7 @@ void eds_enc_ckpt_header(uint8_t *pdata, EDS_CKPT_HEADER header)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
+uint32_t eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
 {
 	uint8_t *p8;
 	uint8_t local_data[256];
@@ -2977,11 +2977,11 @@ uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
+uint32_t eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 {
 	uint8_t *p8 = NULL;
-	uns32 total_bytes = 0;
-	uns32 x = 0;
+	uint32_t total_bytes = 0;
+	uint32_t x = 0;
 	SaEvtEventPatternT *pattern_ptr;
 	EDSV_EDA_PUBLISH_PARAM *param = &msg->data;
 
@@ -3005,7 +3005,7 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 
 	/* Encode the patterns */
 	pattern_ptr = param->pattern_array->patterns;
-	for (x = 0; x < (uns32)param->pattern_array->patternsNumber; x++) {
+	for (x = 0; x < (uint32_t)param->pattern_array->patternsNumber; x++) {
 		/* Save room for the patternSize field (8 bytes) */
 		p8 = ncs_enc_reserve_space(uba, 8);
 		if (!p8) {
@@ -3028,8 +3028,8 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 			ncs_enc_claim_space(uba, 4);
 			total_bytes += 4;
 		} else {
-			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uns32)pattern_ptr->patternSize);
-			total_bytes += (uns32)pattern_ptr->patternSize;
+			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uint32_t)pattern_ptr->patternSize);
+			total_bytes += (uint32_t)pattern_ptr->patternSize;
 		}
 		pattern_ptr++;
 	}
@@ -3044,8 +3044,8 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 	ncs_enc_claim_space(uba, 11);
 	total_bytes += 11;
 
-	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uns32)param->publisher_name.length);
-	total_bytes += (uns32)param->publisher_name.length;
+	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uint32_t)param->publisher_name.length);
+	total_bytes += (uint32_t)param->publisher_name.length;
 
 	p8 = ncs_enc_reserve_space(uba, 12);
 	if (!p8) {
@@ -3056,8 +3056,8 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 	ncs_enc_claim_space(uba, 12);
 	total_bytes += 12;
 
-	ncs_encode_n_octets_in_uba(uba, param->data, (uns32)param->data_len);
-	total_bytes += (uns32)param->data_len;
+	ncs_encode_n_octets_in_uba(uba, param->data, (uint32_t)param->data_len);
+	total_bytes += (uint32_t)param->data_len;
 
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
@@ -3084,11 +3084,11 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
+uint32_t eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 {
 	uint8_t *p8 = NULL;
-	uns32 x = 0;
-	uns32 total_bytes = 0;
+	uint32_t x = 0;
+	uint32_t total_bytes = 0;
 	SaEvtEventFilterT *filter_ptr;
 	EDSV_EDA_SUBSCRIBE_PARAM *param = &msg->data;
 
@@ -3111,7 +3111,7 @@ uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 
 	/* Encode the filters */
 	filter_ptr = param->filter_array->filters;
-	for (x = 0; x < (uns32)param->filter_array->filtersNumber; x++) {
+	for (x = 0; x < (uint32_t)param->filter_array->filtersNumber; x++) {
 		/* Save room for the filterType(4 bytes), patternSize(8 bytes)
 		 */
 		p8 = ncs_enc_reserve_space(uba, 12);
@@ -3124,7 +3124,7 @@ uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 		total_bytes = 12;
 
 		/* For zero length filters, fake encode zero */
-		if ((uns32)filter_ptr->filter.patternSize == 0) {
+		if ((uint32_t)filter_ptr->filter.patternSize == 0) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
@@ -3135,8 +3135,8 @@ uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 			total_bytes += 4;
 		} else {
 			ncs_encode_n_octets_in_uba(uba, filter_ptr->filter.pattern,
-						   (uns32)filter_ptr->filter.patternSize);
-			total_bytes += (uns32)filter_ptr->filter.patternSize;
+						   (uint32_t)filter_ptr->filter.patternSize);
+			total_bytes += (uint32_t)filter_ptr->filter.patternSize;
 		}
 		filter_ptr++;
 	}

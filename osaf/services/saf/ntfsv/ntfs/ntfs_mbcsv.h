@@ -53,13 +53,13 @@ typedef enum ntfsv_discarded_rec_type {
 
 /* Registrationlist checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-	uns32 client_id;	/* Registration Id at Active */
+	uint32_t client_id;	/* Registration Id at Active */
 	MDS_DEST mds_dest;	/* Handy when an NTFA instance goes away */
 } ntfs_ckpt_reg_msg_t;
 
 /* finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-	uns32 client_id;	/* Registration Id at Active */
+	uint32_t client_id;	/* Registration Id at Active */
 } ntfsv_ckpt_finalize_msg_t;
 
 typedef struct {
@@ -79,7 +79,7 @@ typedef struct {
 } ntfs_ckpt_not_log_confirm_t;
 
 typedef struct {
-	uns32 clientId;
+	uint32_t clientId;
 	SaNtfSubscriptionIdT subscriptionId;
 	SaNtfIdentifierT notificationId;
 	ntfsv_discarded_type_t discarded;
@@ -90,8 +90,8 @@ typedef struct {
  */
 typedef struct {
 	ntfsv_ckpt_msg_type_t ckpt_rec_type;	/* Type of ntfs data carried in this checkpoint */
-	uns32 num_ckpt_records;	/* =1 for async updates,>=1 for cold sync */
-	uns32 data_len;		/* Total length of encoded checkpoint data of this type */
+	uint32_t num_ckpt_records;	/* =1 for async updates,>=1 for cold sync */
+	uint32_t data_len;		/* Total length of encoded checkpoint data of this type */
 } ntfsv_ckpt_header_t;
 
 typedef struct {
@@ -108,13 +108,13 @@ typedef struct {
 	} ckpt_rec;
 } ntfsv_ckpt_msg_t;
 
-typedef uns32 (*NTFS_CKPT_HDLR) (ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-uns32 ntfs_mbcsv_init(ntfs_cb_t *ntfs_cb);
-uns32 ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb);
-uns32 ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
-uns32 ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uns32 action);
-void update_standby(ntfsv_ckpt_msg_t *ckpt, uns32 action);
-uns32 enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uns32 num_rec, uns32 len);
-uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
+typedef uint32_t (*NTFS_CKPT_HDLR) (ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+uint32_t ntfs_mbcsv_init(ntfs_cb_t *ntfs_cb);
+uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb);
+uint32_t ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
+uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint32_t action);
+void update_standby(ntfsv_ckpt_msg_t *ckpt, uint32_t action);
+uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uint32_t num_rec, uint32_t len);
+uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
 
 #endif   /* !NTFSV_CKPT_H */

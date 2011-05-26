@@ -32,11 +32,11 @@
 #include "ncssysf_mem.h"
 
 /* global cb handle */
-uns32 gl_eda_hdl = 0;
-static uns32 eda_use_count = 0;
+uint32_t gl_eda_hdl = 0;
+static uint32_t eda_use_count = 0;
 
 /* EDA Agent creation specific LOCK */
-static uns32 eda_agent_lock_create = 0;
+static uint32_t eda_agent_lock_create = 0;
 NCS_LOCK eda_agent_lock;
 
 #define m_EDA_AGENT_LOCK                        \
@@ -61,9 +61,9 @@ NCS_LOCK eda_agent_lock;
  
   Notes         : None
 ******************************************************************************/
-uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -92,10 +92,10 @@ uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 eda_create(NCS_LIB_CREATE *create_info)
+uint32_t eda_create(NCS_LIB_CREATE *create_info)
 {
 	EDA_CB *cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (NULL == create_info)
 		return NCSCC_RC_FAILURE;
@@ -265,7 +265,7 @@ unsigned int ncs_eda_startup(void)
 ******************************************************************************/
 unsigned int ncs_eda_shutdown(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_EDA_AGENT_LOCK;
 	if (eda_use_count > 1) {

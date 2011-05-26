@@ -47,7 +47,7 @@ void glnd_main_process(SYSF_MBX *mbx);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_se_lib_create(uint8_t pool_id)
+uint32_t glnd_se_lib_create(uint8_t pool_id)
 {
 
 	GLND_CB *glnd_cb;
@@ -75,7 +75,7 @@ uns32 glnd_se_lib_create(uint8_t pool_id)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_se_lib_destroy()
+uint32_t glnd_se_lib_destroy()
 {
 	GLND_CB *glnd_cb;
 
@@ -108,9 +108,9 @@ uns32 glnd_se_lib_destroy()
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t glnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
@@ -202,7 +202,7 @@ void glnd_main_process(SYSF_MBX *mbx)
 		m_LOG_GLND_HEADLINE(GLND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
-	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
+	m_SET_FD_IN_SEL_OBJ((uint32_t)amf_sel_obj, amf_ncs_sel_obj);
 	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
 
 	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, mbx_fd);

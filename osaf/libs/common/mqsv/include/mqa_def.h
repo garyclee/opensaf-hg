@@ -65,62 +65,62 @@ typedef struct ncs_mqsv_mq_msg {
 
 /* function prototypes for client handling*/
 MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_id, NCS_BOOL flag);
-uns32 mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info);
+uint32_t mqa_client_tree_delete_node(MQA_CB *mqa_cb, MQA_CLIENT_INFO *client_info);
 void mqa_queue_reader(NCSCONTEXT context);
 
 MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id,
 						     NCS_BOOL flag, MQA_CLIENT_INFO *client_info,
 						     SaMsgQueueOpenFlagsT openFlags);
-uns32 mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id);
+uint32_t mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id);
 MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info, SaNameT *group, NCS_BOOL flag);
 
 /* function prototypes for mds registration and registration */
-uns32 mqa_mds_register(MQA_CB *mqa_cb);
+uint32_t mqa_mds_register(MQA_CB *mqa_cb);
 void mqa_mds_unregister(MQA_CB *mqa_cb);
 
 /* function prototypes for timeout table creation and destruction */
 
 void mqa_timer_table_destroy(MQA_CB *mqa_cb);
-uns32 mqa_timer_table_init(MQA_CB *mqa_cb);
-uns32 mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info);
-uns32 mqa_stop_and_delete_timer_by_invocation(void *key);
-uns32 mqa_create_and_start_senderid_timer(void);
-uns32 mqa_destroy_senderid_timers(MQA_CB *mqa_cb);
-uns32 mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocationT invocation);
+uint32_t mqa_timer_table_init(MQA_CB *mqa_cb);
+uint32_t mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info);
+uint32_t mqa_stop_and_delete_timer_by_invocation(void *key);
+uint32_t mqa_create_and_start_senderid_timer(void);
+uint32_t mqa_destroy_senderid_timers(MQA_CB *mqa_cb);
+uint32_t mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocationT invocation);
 /* queue prototypes */
 
 void mqsv_mqa_callback_queue_destroy(struct mqa_client_info *client_info);
-uns32 mqsv_mqa_callback_queue_init(struct mqa_client_info *client_info);
-uns32 mqsv_mqa_callback_queue_write(struct mqa_cb *mqa_cb, SaMsgHandleT handle, MQP_ASYNC_RSP_MSG *clbk_info);
+uint32_t mqsv_mqa_callback_queue_init(struct mqa_client_info *client_info);
+uint32_t mqsv_mqa_callback_queue_write(struct mqa_cb *mqa_cb, SaMsgHandleT handle, MQP_ASYNC_RSP_MSG *clbk_info);
 
 /* callback prototypes */
-uns32 mqa_hdl_callbk_dispatch_one(struct mqa_cb *cb, SaMsgHandleT msgHandle);
-uns32 mqa_hdl_callbk_dispatch_all(struct mqa_cb *cb, SaMsgHandleT msgHandle);
-uns32 mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle);
-uns32 mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg);
+uint32_t mqa_hdl_callbk_dispatch_one(struct mqa_cb *cb, SaMsgHandleT msgHandle);
+uint32_t mqa_hdl_callbk_dispatch_all(struct mqa_cb *cb, SaMsgHandleT msgHandle);
+uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle);
+uint32_t mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg);
 
-uns32 mqa_mds_msg_sync_send(uns32 mqa_mds_hdl,
-				     MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uns32 timeout);
+uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl,
+				     MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout);
 
-uns32 mqa_mds_msg_async_send(uns32 mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, uns32 to_svc);
+uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, uint32_t to_svc);
 
-uns32 mqa_mds_msg_sync_send_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 					    MDS_DEST *destination,
-					    MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uns32 timeout, uns32 length);
+					    MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uint32_t timeout, uint32_t length);
 
-uns32 mqa_mds_msg_sync_reply_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 					     MDS_DEST *destination,
 					     MQSV_DSEND_EVT *i_evt,
-					     uns32 timeout, MDS_SYNC_SND_CTXT *context, uns32 length);
+					     uint32_t timeout, MDS_SYNC_SND_CTXT *context, uint32_t length);
 
-uns32 mqa_mds_msg_async_send_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 					     MDS_DEST *destination,
 					     MQSV_DSEND_EVT *i_evt,
-					     uns32 to_svc, MDS_SEND_PRIORITY_TYPE priority, uns32 length);
+					     uint32_t to_svc, MDS_SEND_PRIORITY_TYPE priority, uint32_t length);
 
-uns32 mqa_mds_msg_async_reply_direct(uns32 mqa_mds_hdl,
+uint32_t mqa_mds_msg_async_reply_direct(uint32_t mqa_mds_hdl,
 					      MDS_DEST *destination,
-					      MQSV_DSEND_EVT *i_evt, MDS_SYNC_SND_CTXT *context, uns32 length);
+					      MQSV_DSEND_EVT *i_evt, MDS_SYNC_SND_CTXT *context, uint32_t length);
 
 void mqa_flx_log_reg();
 void mqa_flx_log_dereg();

@@ -43,7 +43,7 @@ static int nfds = 0;
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
+static uint32_t dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
 {
 	/* Add the FRAG HDR to the Buffer */
 	uint8_t *data;
@@ -52,7 +52,7 @@ static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *bu
 	*pack_size = NODE_INFO_HDR_SIZE + strlen(dtms_cb->node_name);
 
 	ncs_encode_16bit(&data, (uint16_t)(*pack_size - 2));	/*pkt_type  */
-	ncs_encode_32bit(&data, (uns32)(DTM_INTERNODE_SND_MSG_IDENTIFIER));
+	ncs_encode_32bit(&data, (uint32_t)(DTM_INTERNODE_SND_MSG_IDENTIFIER));
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTERNODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_CONN_DETAILS_MSG_TYPE);
 	ncs_encode_32bit(&data, dtms_cb->node_id);
@@ -72,12 +72,12 @@ static uns32 dtm_construct_node_info_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *bu
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint8_t *buffer, uint8_t *node_info_hrd,
+uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint8_t *buffer, uint8_t *node_info_hrd,
 			    int buffer_len)
 {
-	uns32 node_id;
+	uint32_t node_id;
 	DTM_NODE_DB *node;
-	uns32 nodename_len;
+	uint32_t nodename_len;
 	char nodename[MAX_NAME_LENGTH];
 	int rc = 0;
 	uint8_t *data = buffer;
@@ -149,10 +149,10 @@ uns32 dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint8_t
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
+uint32_t add_self_node(DTM_INTERNODE_CB * dtms_cb)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTM_NODE_DB tmp_node;
 	DTM_NODE_DB *node;
 
@@ -224,7 +224,7 @@ uns32 add_self_node(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-void datagram_buff_dump(uint8_t *buff, uns32 len, uns32 max)
+void datagram_buff_dump(uint8_t *buff, uint32_t len, uint32_t max)
 {
 	/* TBD */
 }
@@ -238,7 +238,7 @@ void datagram_buff_dump(uint8_t *buff, uns32 len, uns32 max)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status)
+uint32_t dtm_process_node_up_down(NODE_ID node_id, char *node_name, uint8_t comm_status)
 {
 	if (TRUE == comm_status) {
 		dtm_node_up(node_id, node_name, 0);
@@ -261,7 +261,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uint16_t loca
 					       uint16_t node_info_buffer_len, int fd, int *close_conn)
 {
 	DTM_MSG_TYPES pkt_type = 0;
-	uns32 identifier = 0;
+	uint32_t identifier = 0;
 	uint8_t version = 0;
 	uint8_t *data = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -306,7 +306,7 @@ void dtm_internode_process_poll_rcv_msg_common(DTM_NODE_DB * node, uint16_t loca
 		dtm_internode_process_rcv_down_msg(alloc_buffer, (local_len_buf - 6), node->node_id);
 	} else if (pkt_type == DTM_MESSAGE_MSG_TYPE) {
 		NODE_ID dst_nodeid = 0;
-		uns32 dst_processid = 0;
+		uint32_t dst_processid = 0;
 		dst_nodeid = ncs_decode_32bit(&data);
 		dst_processid = ncs_decode_32bit(&data);
 		dtm_internode_process_rcv_data_msg(node->buffer, dst_processid, (local_len_buf + 2));
@@ -669,7 +669,7 @@ void node_discovery_process(void *arg)
 				} else if (fds[i].fd == dtms_cb->stream_sock) {
 
 					int new_sd = -1;
-					uns32 local_rc = NCSCC_RC_SUCCESS;
+					uint32_t local_rc = NCSCC_RC_SUCCESS;
 					fd_check++;
 				/*******************************************************/
 					/* Listening descriptor is readable. */
@@ -844,7 +844,7 @@ void node_discovery_process(void *arg)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_set_poll_fdlist(int fd, uint16_t events)
+uint32_t dtm_internode_set_poll_fdlist(int fd, uint16_t events)
 {
 	int i = 0;
 
@@ -868,7 +868,7 @@ uns32 dtm_internode_set_poll_fdlist(int fd, uint16_t events)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_internode_reset_poll_fdlist(int fd)
+uint32_t dtm_internode_reset_poll_fdlist(int fd)
 {
 	int i = 0;
 	for (i = 0; i < nfds; i++) {

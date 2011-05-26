@@ -162,7 +162,7 @@ SmfCampaignThread::~SmfCampaignThread()
 int
  SmfCampaignThread::start(void)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE("Starting campaign thread %s", m_campaign->getDn().c_str());
 
@@ -225,7 +225,7 @@ SmfCampaign *SmfCampaignThread::campaign(void)
 int SmfCampaignThread::init(void)
 {
 	TRACE_ENTER();
-	uns32 rc;
+	uint32_t rc;
 
 	/* Create the mailbox used for communication with this thread */
 	if ((rc = m_NCS_IPC_CREATE(&m_mbx)) != NCSCC_RC_SUCCESS) {
@@ -299,7 +299,7 @@ int SmfCampaignThread::initNtf(void)
  */
 int SmfCampaignThread::send(CAMPAIGN_EVT * evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE("Campaign thread send event type %d", evt->type);
 	rc = m_NCS_IPC_SEND(&m_mbx, (NCSCONTEXT) evt, NCS_IPC_PRIORITY_HIGH);
@@ -420,8 +420,8 @@ SmfCampaignThread::getCbkMbx()
  * SmfCampaignThread::sendStateNotification
  * send state change notification to NTF.
  */
-int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 classId, SaNtfSourceIndicatorT sourceInd,
-					     uns32 stateId, uns32 newState, uns32 oldState)
+int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t classId, SaNtfSourceIndicatorT sourceInd,
+					     uint32_t stateId, uint32_t newState, uint32_t oldState)
 {
 	SaAisErrorT rc;
 	int result = 0;
@@ -641,7 +641,7 @@ void SmfCampaignThread::main(void)
 {
 	TRACE_ENTER();
 	if (this->init() == 0) {
-		uns32 rc = NCSCC_RC_SUCCESS; 
+		uint32_t rc = NCSCC_RC_SUCCESS; 
 		unsigned int numOfTries = SMF_RDA_RETRY_COUNT; 
 		SaAmfHAStateT smfd_rda_role = SA_AMF_HA_STANDBY;
 

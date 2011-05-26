@@ -138,12 +138,12 @@ void glnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *c
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_amf_init(GLND_CB *glnd_cb)
+uint32_t glnd_amf_init(GLND_CB *glnd_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -193,7 +193,7 @@ void glnd_amf_CSI_set_callback(SaInvocationT invocation,
 {
 	GLND_CB *glnd_cb = NULL;
 	SaAisErrorT saErr = SA_AIS_OK;
-	uns32 cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL;
+	uint32_t cb_hdl = m_GLND_RETRIEVE_GLND_CB_HDL;
 
 	/* Get the CB from the handle */
 	glnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_GLND, cb_hdl);
@@ -272,7 +272,7 @@ void glnd_amf_de_init(GLND_CB *glnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_amf_register(GLND_CB *glnd_cb)
+uint32_t glnd_amf_register(GLND_CB *glnd_cb)
 {
 	if (saAmfComponentRegister(glnd_cb->amf_hdl, &glnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
@@ -291,7 +291,7 @@ uns32 glnd_amf_register(GLND_CB *glnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_amf_deregister(GLND_CB *glnd_cb)
+uint32_t glnd_amf_deregister(GLND_CB *glnd_cb)
 {
 	if (saAmfComponentUnregister(glnd_cb->amf_hdl, &glnd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;

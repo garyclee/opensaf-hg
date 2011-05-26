@@ -52,10 +52,10 @@ static void mds_mdtm_enc_node_unsubscribe(MDS_MDTM_DTM_MSG * node_unsubscribe, u
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				 MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
-	uns32 server_type = 0, status = 0;
+	uint32_t server_type = 0, status = 0;
 	MDS_MDTM_DTM_MSG subscr;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE];
 
@@ -115,7 +115,7 @@ uns32 mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_svc_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_svc_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 
 	MDS_MDTM_DTM_MSG unsubscr;
@@ -159,11 +159,11 @@ uns32 mds_mdtm_svc_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 			       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
 			       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
-	uns32 server_type = 0, server_inst = 0;
+	uint32_t server_type = 0, server_inst = 0;
 	MDS_MDTM_DTM_MSG svc_install;
 	NCS_VDEST_TYPE policy = 0;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE];
@@ -175,8 +175,8 @@ uns32 mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE);
 
 	server_type = server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uns32)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper  4  bits */
-	server_inst |= (uns32)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8  Bits */
+	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper  4  bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8  Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -186,16 +186,16 @@ uns32 mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE
 		policy = 1 & 0x1;
 	}
 
-	server_inst |= (uns32)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uns32)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
 	install_scope = install_scope - 1;
-	server_inst |= (uns32)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
 	server_inst |= vdest_id;
 
 	svc_install.size = MDS_MDTM_DTM_SVC_INSTALL_SIZE;
@@ -232,11 +232,11 @@ uns32 mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
 				 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
-	uns32 server_inst = 0, server_type = 0;
+	uint32_t server_inst = 0, server_type = 0;
 	MDS_MDTM_DTM_MSG svc_uninstall;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE];
 	NCS_VDEST_TYPE policy = 0;
@@ -248,8 +248,8 @@ uns32 mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 	memset(&tcp_buffer, 0, MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE);
 
 	server_type = server_type | MDS_TCP_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uns32)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
-	server_inst |= (uns32)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8 Bits */
+	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8 Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -257,17 +257,17 @@ uns32 mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
 		policy = 1;
 	}
 
-	server_inst |= (uns32)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uns32)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
 
 	install_scope = install_scope - 1;
-	server_inst |= (uns32)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
 
 	server_inst |= vdest_id;
 
@@ -304,11 +304,11 @@ uns32 mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCO
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id)
+uint32_t mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id)
 {
 
 	MDS_MDTM_DTM_MSG server_addr;
-	uns32 server_type = 0, server_inst = 0;
+	uint32_t server_type = 0, server_inst = 0;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SVC_INSTALL_BUFFER_SIZE];
 
 	server_type = server_type | MDS_TCP_PREFIX | MDS_VDEST_INST_TYPE;
@@ -347,9 +347,9 @@ uns32 mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
+uint32_t mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
 {
-	uns32 server_inst = 0, server_type = 0;
+	uint32_t server_inst = 0, server_type = 0;
 	MDS_MDTM_DTM_MSG server_addr;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SVC_UNINSTALL_BUFFER_SIZE];
 
@@ -389,9 +389,9 @@ uns32 mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
-	uns32 inst = 0, server_type = 0;
+	uint32_t inst = 0, server_type = 0;
 	MDS_MDTM_DTM_MSG subscr;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE];
 
@@ -444,7 +444,7 @@ uns32 mds_mdtm_vdest_subscribe_tcp(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *sub
  * @return NCSCC_RC_SUCCESS
  *
  */
-uns32 mds_mdtm_vdest_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_vdest_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -457,7 +457,7 @@ uns32 mds_mdtm_vdest_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
  * @return NCSCC_RC_SUCCESS
  *
  */
-uns32 mds_mdtm_tx_hdl_register_tcp(MDS_DEST adest)
+uint32_t mds_mdtm_tx_hdl_register_tcp(MDS_DEST adest)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -470,7 +470,7 @@ uns32 mds_mdtm_tx_hdl_register_tcp(MDS_DEST adest)
  * @return NCSCC_RC_SUCCESS
  *
  */
-uns32 mds_mdtm_tx_hdl_unregister_tcp(MDS_DEST adest)
+uint32_t mds_mdtm_tx_hdl_unregister_tcp(MDS_DEST adest)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -485,10 +485,10 @@ uns32 mds_mdtm_tx_hdl_unregister_tcp(MDS_DEST adest)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	MDS_MDTM_DTM_MSG node_subscr;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_NODE_SUBSCRIBE_BUFFER_SIZE];
 
 	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_subscribe_tcp\n");
@@ -527,7 +527,7 @@ uns32 mds_mdtm_node_subscribe_tcp(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 mds_mdtm_node_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_node_unsubscribe_tcp(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	MDS_MDTM_DTM_MSG node_unsubscr;
 	uint8_t tcp_buffer[MDS_MDTM_DTM_NODE_UNSUBSCRIBE_BUFFER_SIZE];

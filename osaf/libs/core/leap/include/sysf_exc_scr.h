@@ -54,7 +54,7 @@ typedef enum sysf_exec_info_type {
 
 typedef struct sysf_pid_list {
 	NCS_PATRICIA_NODE pat_node;
-	uns32 pid;
+	uint32_t pid;
 
 	NCS_EXEC_USR_HDL usr_hdl;
 	NCS_OS_PROC_EXECUTE_CB exec_cb;
@@ -62,7 +62,7 @@ typedef struct sysf_pid_list {
 
 	/* Timer Params */
 	tmr_t tmr_id;
-	uns32 timeout_in_ms;
+	uint32_t timeout_in_ms;
 	int exec_info_type;
 
 } SYSF_PID_LIST;
@@ -100,10 +100,10 @@ extern void ncs_exc_mdl_stop_timer(SYSF_PID_LIST *exec_pid);
 extern void ncs_exec_module_signal_hdlr(int signal);
 extern void ncs_exec_module_timer_hdlr(void *uarg);
 extern void ncs_exec_mod_hdlr(void);
-extern uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid);
-extern uns32 init_exec_mod_cb(void);
-extern uns32 start_exec_mod_cb(void);
-extern uns32 exec_mod_cb_destroy(void);
-extern void give_exec_mod_cb(int pid, uns32 stat, int type);
+extern uint32_t add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uint32_t pid);
+extern uint32_t init_exec_mod_cb(void);
+extern uint32_t start_exec_mod_cb(void);
+extern uint32_t exec_mod_cb_destroy(void);
+extern void give_exec_mod_cb(int pid, uint32_t stat, int type);
 
 #endif   /* SYSF_EXC_SCR_H */

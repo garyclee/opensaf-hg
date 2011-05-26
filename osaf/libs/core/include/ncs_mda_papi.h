@@ -203,7 +203,7 @@ extern "C" {
 		/* o_result: This will indicate the result of this operation 
 		   (NCSCC_RC_SUCCESS or NCSCC_RC_FAILURE). This will the same the
 		   value returned by the ncsvda_api. */
-		uns32 o_result;
+		uint32_t o_result;
 
 		union {
 			NCSVDA_VDEST_CREATE_INFO vdest_create;
@@ -215,8 +215,8 @@ extern "C" {
 		} info;
 	} NCSVDA_INFO;
 
-	typedef uns32 (*NCSVDA_API) (NCSVDA_INFO *vda_info);
-	uns32 ncsvda_api(NCSVDA_INFO *vda_info);
+	typedef uint32_t (*NCSVDA_API) (NCSVDA_INFO *vda_info);
+	uint32_t ncsvda_api(NCSVDA_INFO *vda_info);
 
 /*************************************************************************
     Absolute-destination-library APIs (requests into LEAP by services)
@@ -287,8 +287,8 @@ extern "C" {
 		} info;
 	} NCSADA_INFO;
 
-	typedef uns32 (*NCSADA_API) (NCSADA_INFO *ada_info);
-	uns32 ncsada_api(NCSADA_INFO *ada_info);
+	typedef uint32_t (*NCSADA_API) (NCSADA_INFO *ada_info);
+	uint32_t ncsada_api(NCSADA_INFO *ada_info);
 
 #ifdef  __cplusplus
 }

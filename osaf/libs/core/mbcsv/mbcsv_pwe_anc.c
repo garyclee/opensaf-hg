@@ -37,7 +37,7 @@
  * for brodcasting the message to all the peers.
  */
 typedef struct {
-	uns32 pwe_hdl;		/* Handle supplied by application with OPEN call */
+	uint32_t pwe_hdl;		/* Handle supplied by application with OPEN call */
 	MBCSV_ANCHOR anchor;
 } MBCSV_PEER_KEY;
 
@@ -56,11 +56,11 @@ typedef struct mbcsv_peer_list {
 *                     FAILURE - fail to add new entry.
 *
 *****************************************************************************/
-uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_add_new_pwe_anc(uint32_t pwe_hdl, MBCSV_ANCHOR anchor)
 {
 	MBCSV_PEER_KEY key;
 	MBCSV_PEER_LIST *new_entry;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
@@ -110,11 +110,11 @@ uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 *                     FAILURE - fail to add new entry.
 *
 *****************************************************************************/
-uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_rmv_pwe_anc_entry(uint32_t pwe_hdl, MBCSV_ANCHOR anchor)
 {
 	MBCSV_PEER_KEY key;
 	MBCSV_PEER_LIST *tree_entry;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
@@ -148,10 +148,10 @@ uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 *  RETURNS:           SUCCESS - All went well
 *
 *****************************************************************************/
-uns32 mbcsv_initialize_peer_list(void)
+uint32_t mbcsv_initialize_peer_list(void)
 {
 	NCS_PATRICIA_PARAMS pt_params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* 
 	 * Create patricia tree for the peer list 
@@ -179,7 +179,7 @@ uns32 mbcsv_initialize_peer_list(void)
 *  RETURNS:           SUCCESS - All went well
 *
 *****************************************************************************/
-uns32 mbcsv_destroy_peer_list(void)
+uint32_t mbcsv_destroy_peer_list(void)
 {
 	MBCSV_PEER_KEY key;
 	MBCSV_PEER_LIST *tree_entry;
@@ -216,11 +216,11 @@ uns32 mbcsv_destroy_peer_list(void)
 *                     FAILURE - fail to get entry.
 *
 *****************************************************************************/
-uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor)
+uint32_t mbcsv_get_next_anchor_for_pwe(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor)
 {
 	MBCSV_PEER_KEY key;
 	MBCSV_PEER_LIST *tree_entry;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
@@ -256,7 +256,7 @@ uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor)
 *                     FAILURE - fail to get entry.
 *
 *****************************************************************************/
-uns32 mbcsv_send_brodcast_msg(uns32 pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt)
+uint32_t mbcsv_send_brodcast_msg(uint32_t pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
 	MBCSV_ANCHOR anchor = 0;
 
@@ -281,12 +281,12 @@ uns32 mbcsv_send_brodcast_msg(uns32 pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt)
 *                     FAILURE - fail to get entry.
 *
 *****************************************************************************/
-uns32 mbcsv_rmv_ancs_for_pwe(uns32 pwe_hdl)
+uint32_t mbcsv_rmv_ancs_for_pwe(uint32_t pwe_hdl)
 {
 	MBCSV_ANCHOR anchor = 0;
 	MBCSV_PEER_LIST *tree_entry;
 	MBCSV_PEER_KEY key;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 

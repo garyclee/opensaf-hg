@@ -156,9 +156,9 @@ CLMS_CLUSTER_NODE *clms_node_getnext_by_id(SaUint32T node_id)
 * @param[in] i    Integer that specifies which tree to add
 * @return NCSCC_RC_SUCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i)
+uint32_t clms_node_add(CLMS_CLUSTER_NODE * node, int i)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	TRACE("value of i %d", i);
 	switch (i) {
@@ -215,9 +215,9 @@ uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i)
 * 	       2 ==> delete from node_db tree
 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_node_delete(CLMS_CLUSTER_NODE * nd, int i)
+uint32_t clms_node_delete(CLMS_CLUSTER_NODE * nd, int i)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("value of i %d", i);
 
 	assert(nd != NULL);
@@ -269,7 +269,7 @@ SaTimeT clms_get_SaTime(void)
 * @param[in] DN 
 * @return NCSCC_RC_SUCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_node_dn_chk(SaNameT *objName)
+uint32_t clms_node_dn_chk(SaNameT *objName)
 {
 	char *tmpstr;
 	TRACE_ENTER();
@@ -298,7 +298,7 @@ uns32 clms_node_dn_chk(SaNameT *objName)
 * @param[in] DN 
 * @return NCSCC_RC_SUCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_cluster_dn_chk(SaNameT *objName)
+uint32_t clms_cluster_dn_chk(SaNameT *objName)
 {
 	TRACE_ENTER();
 
@@ -319,11 +319,11 @@ uns32 clms_cluster_dn_chk(SaNameT *objName)
 * @return uns32
 */
 /* This might not be needed ,crosscheck*/
-uns32 clms_nodedb_lookup(int i)
+uint32_t clms_nodedb_lookup(int i)
 {
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaUint32T nodeid = 0;
-	uns32 num_nd_changes = 0;
+	uint32_t num_nd_changes = 0;
 	TRACE_ENTER();
 
 	TRACE("patricia tree size %d", ncs_patricia_tree_size(&clms_cb->id_lookup));
@@ -361,7 +361,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes_only(SaClmChangeStepT step)
 {
 	SaClmClusterNotificationT_4 *notify = NULL;
 	CLMS_CLUSTER_NODE *node = NULL;
-	uns32 num = 0, i = 0;
+	uint32_t num = 0, i = 0;
 	SaUint32T nodeid = 0;
 
 	TRACE_ENTER();
@@ -430,7 +430,7 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes(SaClmChangeStepT step)
 	SaClmClusterNotificationT_4 *notify = NULL;
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaUint32T nodeid = 0;
-	uns32 num = 0, i = 0;
+	uint32_t num = 0, i = 0;
 	TRACE_ENTER();
 
 	/* number of nodes for SA_TRACK_CHANGES */
@@ -492,13 +492,13 @@ SaClmClusterNotificationT_4 *clms_notbuffer_changes(SaClmChangeStepT step)
 * @param[in] client_id
 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_client_del_trackresp(SaUint32T client_id)
+uint32_t clms_client_del_trackresp(SaUint32T client_id)
 {
 	CLMS_CLUSTER_NODE *node = NULL;
 	SaUint32T nodeid = 0;
 	CLMS_TRACK_INFO *trkrsp_rec = NULL;
 	SaInvocationT inv_id = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while (NULL != (node = clms_node_getnext_by_id(nodeid))) {
 		nodeid = node->node_id;
@@ -541,11 +541,11 @@ done:
 * @param[in] op_node node on which the trackresponse list exists
 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 */
-uns32 clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
+uint32_t clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node)
 {
 	CLMS_TRACK_INFO *trkrec = NULL;
 	SaInvocationT inv_id = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	trkrec = (CLMS_TRACK_INFO *) ncs_patricia_tree_getnext(&op_node->trackresp, (uint8_t *)0);
@@ -625,9 +625,9 @@ void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 * @param[in]  node  node for which the clmresp was received
 * @param[in]  cb    CLMS CB 
 */
-uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_INFO * trk)
+uint32_t clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_INFO * trk)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -711,9 +711,9 @@ uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_I
 * @param[in]  node  node for which the clmresp was received
 * @param[in]  cb    CLMS CB 
 */
-uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
+uint32_t clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -817,9 +817,9 @@ void clms_reboot_remote_node(CLMS_CLUSTER_NODE * op_node, char *str)
 * @param[in]  node  node for which the clmresp was received
 * @param[in]  cb    CLMS CB 
 */
-uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO * trkrec)
+uint32_t clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO * trkrec)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -926,7 +926,7 @@ done:
 void ckpt_node_down_rec(CLMS_CLUSTER_NODE * node)
 {
 	CLMS_CKPT_REC ckpt;
-	uns32 async_rc;
+	uint32_t async_rc;
 	TRACE_ENTER();
 
 	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -950,7 +950,7 @@ void ckpt_node_down_rec(CLMS_CLUSTER_NODE * node)
 void ckpt_node_rec(CLMS_CLUSTER_NODE * node)
 {
 	CLMS_CKPT_REC ckpt;
-	uns32 async_rc;
+	uint32_t async_rc;
 	TRACE_ENTER();
 
 	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -986,7 +986,7 @@ void ckpt_node_rec(CLMS_CLUSTER_NODE * node)
 void ckpt_cluster_rec(void)
 {
 	CLMS_CKPT_REC ckpt;
-	uns32 async_rc;
+	uint32_t async_rc;
 	TRACE_ENTER();
 
 	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -1046,13 +1046,13 @@ void clms_adminop_pending(void)
 
 }
 
-uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
+uint32_t clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 {
 	CLMS_CLIENT_INFO *rec = NULL;
 	SaClmClusterNotificationT_4 *notify_changes = NULL;
 	SaClmClusterNotificationT_4 *notify_changes_only = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 client_id = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t client_id = 0;
 	SaClmChangeStepT step = SA_CLM_CHANGE_COMPLETED;
 	SaUint32T node_id;
 
@@ -1121,12 +1121,12 @@ uns32 clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node)
 /*walk though client list, from client mds_dest extract node_id,
 if node is match send mds msg to that client*/
 
-uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured)
+uint32_t clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured)
 {
 	CLMS_CLIENT_INFO *client = NULL;
 	CLMSV_MSG msg;
 	SaClmNodeIdT local_node_id;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
 	
@@ -1156,7 +1156,7 @@ uns32 clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT memb
 }
 
 /*Walk through the node db to know the number of member nodes*/
-uns32 clms_num_mem_node(void)
+uint32_t clms_num_mem_node(void)
 {
 	SaUint32T node_id = 0;
 	SaUint32T i = 0;

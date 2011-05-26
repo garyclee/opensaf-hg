@@ -44,7 +44,7 @@ typedef struct ncsdta_create {
  ***************************************************************************/
 
 typedef struct ncsdta_destroy {
-	uns32 i_dta_key;
+	uint32_t i_dta_key;
 	void *i_meaningless;	/* place holder struct; do nothing */
 
 } NCSDTA_DESTROY;
@@ -77,14 +77,14 @@ typedef struct ncsdta_arg {
  * Global Instance of Layer Management
  ***************************************************************************/
 
-uns32 dta_lm(DTA_LM_ARG *arg);
+uint32_t dta_lm(DTA_LM_ARG *arg);
 
 /***************************************************************************
  * Global Instance of DTA mailbox
  ***************************************************************************/
 SYSF_MBX gl_dta_mbx;
 
-uns32 dta_cleanup_seq(void);
+uint32_t dta_cleanup_seq(void);
 
 #define DTA_CONGESTION_LOG_LIMIT 50
 #define DTA_UNCONGESTED_LOG_LIMIT 100

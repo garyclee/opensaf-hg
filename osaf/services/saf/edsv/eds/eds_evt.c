@@ -31,26 +31,26 @@ This include file contains evt processing subroutines
 #include "eds_ckpt.h"
 #include "logtrace.h"
 
-static uns32 eds_proc_eda_api_msg(EDSV_EDS_EVT *);
-static uns32 eds_proc_eda_misc_msg(EDSV_EDS_EVT *);
-static uns32 eds_proc_invalid_msg(EDSV_EDS_EVT *);
-static uns32 eds_proc_init_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_unexpected_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_finalize_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_chan_open_sync_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_chan_open_async_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_chan_close_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_chan_unlink_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_publish_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_subscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_unsubscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_retention_time_clr_msg(EDS_CB *, EDSV_EDS_EVT *);
-static uns32 eds_proc_limit_get_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_eda_api_msg(EDSV_EDS_EVT *);
+static uint32_t eds_proc_eda_misc_msg(EDSV_EDS_EVT *);
+static uint32_t eds_proc_invalid_msg(EDSV_EDS_EVT *);
+static uint32_t eds_proc_init_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_unexpected_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_finalize_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_chan_open_sync_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_chan_open_async_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_chan_close_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_chan_unlink_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_publish_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_subscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_unsubscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_retention_time_clr_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uint32_t eds_proc_limit_get_msg(EDS_CB *, EDSV_EDS_EVT *);
 
-static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt);
-static uns32 eds_process_api_evt(EDSV_EDS_EVT *evt);
-static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt);
-static uns32 eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt);
+static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt);
+static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt);
+static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt);
+static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt);
 
 #if (NCS_EDSV_LOG == 1)
 static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publish_param, SaTimeT publish_time);
@@ -120,11 +120,11 @@ SaEvtEventPatternT gl_lost_evt_pattern[1] = {
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = SA_AIS_OK;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
-	uns32 loop_count = 0;
+	uint32_t rc = SA_AIS_OK;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
+	uint32_t loop_count = 0;
 	SaVersionT *version = NULL;
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
@@ -233,10 +233,10 @@ static uns32 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDS_CKPT_DATA ckpt;
 
 	/* This call will ensure all open subscriptions, channels, and any other
@@ -273,11 +273,11 @@ static uns32 eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	EDSV_MSG msg;
 	time_t time_of_day;
 	SaTimeT chan_create_time = 0;
@@ -339,11 +339,11 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
-	uns32 chan_id;
-	uns32 chan_open_id;
+	uint32_t rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
+	uint32_t chan_id;
+	uint32_t chan_open_id;
 	EDSV_MSG msg;
 	time_t time_of_day;
 	SaTimeT chan_create_time = 0;
@@ -408,9 +408,9 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_CHAN_CLOSE_PARAM *close_param;
 	EDS_CKPT_DATA ckpt;
 
@@ -447,9 +447,9 @@ static uns32 eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS, async_rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_CHAN_UNLINK_PARAM *unlink_param;
 	EDSV_MSG msg;
 	EDS_CKPT_DATA ckpt;
@@ -494,11 +494,11 @@ static uns32 eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
-	uns32 copen_id_Net;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
+	uint32_t copen_id_Net;
 	SaTimeT publish_time = 0;	/* placeholder for now */
 	MDS_SEND_PRIORITY_TYPE prio;
 	EDS_WORKLIST *wp;
@@ -507,7 +507,7 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	EDSV_MSG msg;
 	time_t time_of_day;
 	EDSV_EDA_PUBLISH_PARAM *publish_param;
-	uns32 retd_evt_chan_open_id = 0;
+	uint32_t retd_evt_chan_open_id = 0;
 	EDS_CKPT_DATA ckpt;
 	publish_param = &(evt->info.msg.info.api_info.param).publish;
 
@@ -633,10 +633,10 @@ static uns32 eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDA_REG_REC *reglst;
 	SUBSC_REC *subrec;
 	EDSV_EDA_SUBSCRIBE_PARAM *subscribe_param;
@@ -758,10 +758,10 @@ static uns32 eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDSV_EDA_UNSUBSCRIBE_PARAM *unsubscribe_param;
 	EDS_CKPT_DATA ckpt;
 
@@ -803,10 +803,10 @@ static uns32 eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, rs = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	EDSV_MSG msg;
 
 	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(evt->info.msg.info.api_info.param.rettimeclr);
@@ -857,9 +857,9 @@ static uns32 eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	EDSV_MSG msg;
 
 	TRACE("LIMIT GET EVENT ...");
@@ -885,9 +885,9 @@ static uns32 eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_unexpected_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_unexpected_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	m_LOG_EDSV_SF(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0,
 		      evt->fr_dest);
 
@@ -907,9 +907,9 @@ static uns32 eds_proc_unexpected_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_invalid_msg(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_invalid_msg(EDSV_EDS_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	m_LOG_EDSV_SF(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__, 0,
 		      evt->fr_dest);
 
@@ -930,7 +930,7 @@ static uns32 eds_proc_invalid_msg(EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_eda_misc_msg(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_eda_misc_msg(EDSV_EDS_EVT *evt)
 {
    /** 
     ** Currently there are no messages of this 
@@ -952,11 +952,11 @@ static uns32 eds_proc_eda_misc_msg(EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
 {
 	EDS_RETAINED_EVT_REC *ret_evt;
-	uns32 store_chan_id;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t store_chan_id;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDS_CB *eds_cb;
 
 	/* retrieve retained evt */
@@ -1015,12 +1015,12 @@ static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb = NULL;
 	EDS_CKPT_DATA ckpt;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 async_rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t async_rc = NCSCC_RC_SUCCESS;
 	/* Retreive the cb handle */
 	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
 		m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
@@ -1097,7 +1097,7 @@ static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
 
@@ -1139,7 +1139,7 @@ static uns32 eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_process_api_evt(EDSV_EDS_EVT *evt)
+static uint32_t eds_process_api_evt(EDSV_EDS_EVT *evt)
 {
 	if (evt->evt_type == EDSV_EDS_EDSV_MSG) {
 		if ((evt->info.msg.type >= EDSV_BASE_MSG) && (evt->info.msg.type < EDSV_MSG_MAX)) {
@@ -1163,7 +1163,7 @@ static uns32 eds_process_api_evt(EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
+static uint32_t eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
 	/* Retrieve the cb handle */
@@ -1203,7 +1203,7 @@ static uns32 eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 eds_process_evt(EDSV_EDS_EVT *evt)
+uint32_t eds_process_evt(EDSV_EDS_EVT *evt)
 {
 	EDS_CB *cb;
 
@@ -1296,8 +1296,8 @@ void eds_evt_destroy(EDSV_EDS_EVT *evt)
  *****************************************************************************/
 static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publish_param, SaTimeT publish_time)
 {
-	uns32 x;
-	uns32 is_ascii;
+	uint32_t x;
+	uint32_t is_ascii;
 	char *ptr;
 	char str[524] = { 0 };
 
@@ -1350,8 +1350,8 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 
 	m_LOG_EDS_EVENT(EDS_EVENT_HDR_LOG,
 			(int8_t *)str,
-			(uns32)publish_param->event_id,
-			(uns32)publish_time, (uns32)publish_param->priority, (uns32)publish_param->retention_time);
+			(uint32_t)publish_param->event_id,
+			(uint32_t)publish_time, (uint32_t)publish_param->priority, (uint32_t)publish_param->retention_time);
 }
 #endif
 

@@ -32,7 +32,7 @@
  * Description   : Function to get the client node from client db Tree.
  *
  * Arguments     : IMMND_CB *cb, - IMMND Control Block
- *               : uns32 imm_client_hdl - Client Handle.
+ *               : uint32_t imm_client_hdl - Client Handle.
  *                 
  * Return Values : IMMND_IMM_CLIENT_NODE** imm_client_node
  *
@@ -51,7 +51,7 @@ void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_
  * Description   : Function to get next clinet node from client db Tree.
  *
  * Arguments     : IMMND_CB *cb, - IMMND Control Block
- *                 uns32 imm_client_hdl - Client handle
+ *                 uint32_t imm_client_hdl - Client handle
  *                 
  * Return Values : IMMND_IMM_CLIENT_NODE** imm_client_node 
  *
@@ -79,9 +79,9 @@ void immnd_client_node_getnext(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
+uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	cl_node->patnode.key_info = (uint8_t *)&cl_node->imm_app_hdl;
 
@@ -101,9 +101,9 @@ uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node)
+uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	rc = ncs_patricia_tree_del(&cb->client_info_db, (NCS_PATRICIA_NODE *)&imm_client_node->patnode);
 	return rc;
@@ -120,7 +120,7 @@ uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immnd_client_node_tree_init(IMMND_CB *cb)
+uint32_t immnd_client_node_tree_init(IMMND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));

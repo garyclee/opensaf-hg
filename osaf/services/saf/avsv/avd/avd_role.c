@@ -44,9 +44,9 @@
 #include <avd_clm.h>
 #include <rda_papi.h>
 
-static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role);
-static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
-static uns32 avd_rde_set_role(SaAmfHAStateT role);
+static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role);
+static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
+static uint32_t avd_rde_set_role(SaAmfHAStateT role);
 
 /****************************************************************************\
  * Function: avd_role_change
@@ -63,7 +63,7 @@ static uns32 avd_rde_set_role(SaAmfHAStateT role);
 \**************************************************************************/
 void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_D2D_MSG *msg = evt->info.avd_msg;
 	AVD_ROLE_CHG_CAUSE_T cause = msg->msg_info.d2d_chg_role_req.cause;
 	SaAmfHAStateT role = msg->msg_info.d2d_chg_role_req.role;
@@ -164,9 +164,9 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
  *
  * 
 \**************************************************************************/
-uns32 avd_active_role_initialization(AVD_CL_CB *cb, SaAmfHAStateT role)
+uint32_t avd_active_role_initialization(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
 
@@ -209,9 +209,9 @@ done:
  *
  * 
 \**************************************************************************/
-static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
+static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	AVD_AVND *my_node, *failed_node;
 
 	TRACE_ENTER();
@@ -327,9 +327,9 @@ done:
  *
  * 
 \**************************************************************************/
-static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
+static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd = NULL;
 	AVD_AVND *avnd_other = NULL;
 	AVD_EVT *evt = AVD_EVT_NULL;
@@ -537,8 +537,8 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -626,9 +626,9 @@ void amfd_switch(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-uns32 avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
+uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_EVT *evt;
 
 	evt = malloc(sizeof(AVD_EVT));
@@ -658,7 +658,7 @@ uns32 avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
  * 
  **************************************************************************/
 
-uns32 avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHAStateT role)
+uint32_t avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHAStateT role)
 {
 	AVD_D2D_MSG d2d_msg;
 	TRACE_ENTER();
@@ -699,7 +699,7 @@ uns32 avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHASta
  * 
  **************************************************************************/
 
-uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role)
+uint32_t avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uint32_t status, SaAmfHAStateT role)
 {
 	AVD_D2D_MSG d2d_msg;
 
@@ -740,11 +740,11 @@ uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role)
  * 
  **************************************************************************/
 
-uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
+uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 {
 	AVD_AVND *avnd = NULL;
 	AVD_AVND *avnd_other = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	LOG_NO("ROLE SWITCH Active --> Quiesced");
@@ -829,11 +829,11 @@ uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb)
+uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 {
 	AVD_AVND *avnd = NULL;
-	uns32 node_id = 0;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t node_id = 0;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	LOG_NO("Switching Quiesced --> StandBy");
@@ -893,9 +893,9 @@ uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
+uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 	
 	TRACE_ENTER();
 
@@ -1002,7 +1002,7 @@ uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-uns32 amfd_switch_qsd_actv (AVD_CL_CB *cb)
+uint32_t amfd_switch_qsd_actv (AVD_CL_CB *cb)
 {
 	LOG_NO("ROLE SWITCH Quiesced --> Active");
 	cb->swap_switch = SA_FALSE;
@@ -1027,9 +1027,9 @@ uns32 amfd_switch_qsd_actv (AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-uns32 avd_rde_set_role (SaAmfHAStateT role)
+uint32_t avd_rde_set_role (SaAmfHAStateT role)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PCS_RDA_REQ pcs_rda_req;
 
 	pcs_rda_req.req_type = PCS_RDA_SET_ROLE;

@@ -194,7 +194,7 @@ void immsv_evt_dec_inline_string(NCS_UBAID *i_ub, IMMSV_OCTET_STRING *os)
 static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmValueTypeT t)
 {
 	uint8_t *p8;
-	uns32 helper32;
+	uint32_t helper32;
 	uns64 helper64;
 	void* anonymous;
 	IMMSV_OCTET_STRING *os = NULL;
@@ -238,9 +238,9 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 		ncs_enc_claim_space(o_ub, 8);
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
-		//helper32 = *((uns32 *)&(v->val.safloat));
+		//helper32 = *((uint32_t *)&(v->val.safloat));
 		anonymous = &(v->val.safloat);
-		helper32 = *((uns32*) anonymous);
+		helper32 = *((uint32_t*) anonymous);
 		IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 		ncs_encode_32bit(&p8, helper32);
 		ncs_enc_claim_space(o_ub, 4);
@@ -263,7 +263,7 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmValueTypeT t)
 {
 	uint8_t *p8;
-	uns32 helper32;
+	uint32_t helper32;
 	uns64 helper64;
 	uint8_t local_data[8];
 	void* anonymous;
@@ -400,7 +400,7 @@ static void immsv_evt_enc_attr_mod(NCS_UBAID *o_ub, IMMSV_ATTR_MODS_LIST *p)
 	if (!p)
 		return;
 	uint8_t *p8;
-	uns32 attrValuesNumber = p->attrValue.attrValuesNumber;
+	uint32_t attrValuesNumber = p->attrValue.attrValuesNumber;
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, p->attrModType);
@@ -443,7 +443,7 @@ static void immsv_evt_enc_attribute(NCS_UBAID *o_ub, IMMSV_ATTR_VALUES_LIST *p)
 	if (!p)
 		return;
 	uint8_t *p8;
-	uns32 attrValuesNumber = p->n.attrValuesNumber;
+	uint32_t attrValuesNumber = p->n.attrValuesNumber;
 
 	/*TRACE_2("attribute:%s values:%u", p->n.attrName.buf, attrValuesNumber); */
 
@@ -559,7 +559,7 @@ static void immsv_evt_dec_attrmods(NCS_UBAID *i_ub, IMMSV_ATTR_MODS_LIST **p)
 		(*p)->attrValue.attrValuesNumber = ncs_decode_32bit(&p8);
 		ncs_dec_skip_space(i_ub, 4);
 
-		uns32 attrValuesNumber = (*p)->attrValue.attrValuesNumber;
+		uint32_t attrValuesNumber = (*p)->attrValue.attrValuesNumber;
 
 		if (attrValuesNumber) {
 			immsv_evt_dec_att_val(i_ub, &((*p)->attrValue.attrValue), (*p)->attrValue.attrValueType);
@@ -618,7 +618,7 @@ static void immsv_evt_dec_attributes(NCS_UBAID *i_ub, IMMSV_ATTR_VALUES_LIST **p
 		(*p)->n.attrValuesNumber = ncs_decode_32bit(&p8);
 		ncs_dec_skip_space(i_ub, 4);
 
-		uns32 attrValuesNumber = (*p)->n.attrValuesNumber;
+		uint32_t attrValuesNumber = (*p)->n.attrValuesNumber;
 
 		if (attrValuesNumber) {
 			immsv_evt_dec_att_val(i_ub, &((*p)->n.attrValue), (*p)->n.attrValueType);
@@ -651,7 +651,7 @@ static void immsv_evt_dec_attributes(NCS_UBAID *i_ub, IMMSV_ATTR_VALUES_LIST **p
 	}
 }
 
-static uns32 immsv_evt_enc_name_list(NCS_UBAID *o_ub, IMMSV_OBJ_NAME_LIST *p)
+static uint32_t immsv_evt_enc_name_list(NCS_UBAID *o_ub, IMMSV_OBJ_NAME_LIST *p)
 {
 	uint8_t *p8;
 	uint16_t objs = 0;
@@ -681,7 +681,7 @@ static uns32 immsv_evt_enc_name_list(NCS_UBAID *o_ub, IMMSV_OBJ_NAME_LIST *p)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 immsv_evt_dec_name_list(NCS_UBAID *i_ub, IMMSV_OBJ_NAME_LIST **p)
+static uint32_t immsv_evt_dec_name_list(NCS_UBAID *i_ub, IMMSV_OBJ_NAME_LIST **p)
 {
 	int depth = 1;
 	uint8_t *p8;
@@ -758,7 +758,7 @@ static void immsv_evt_enc_class(NCS_UBAID *o_ub, IMMSV_CLASS_LIST *r)
 	ncs_enc_claim_space(o_ub, 1);
 }
 
-static uns32 immsv_evt_dec_class(NCS_UBAID *i_ub, IMMSV_CLASS_LIST **r)
+static uint32_t immsv_evt_dec_class(NCS_UBAID *i_ub, IMMSV_CLASS_LIST **r)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -856,7 +856,7 @@ static void immsv_evt_enc_impl(NCS_UBAID *o_ub, IMMSV_IMPL_LIST *q)
 	ncs_enc_claim_space(o_ub, 1);
 }
 
-static uns32 immsv_evt_dec_impl(NCS_UBAID *i_ub, IMMSV_IMPL_LIST **q)
+static uint32_t immsv_evt_dec_impl(NCS_UBAID *i_ub, IMMSV_IMPL_LIST **q)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -914,12 +914,12 @@ void immsv_evt_free_impl(IMMSV_IMPL_LIST *q)
 	}
 }
 
-static uns32 immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
+static uint32_t immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
 {
 	if (!p)
 		return NCSCC_RC_SUCCESS;
 	uint8_t *p8;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 	ncs_encode_32bit(&p8, p->id);
@@ -948,7 +948,7 @@ static uns32 immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
 	return rc;
 }
 
-static uns32 immsv_evt_dec_admo(NCS_UBAID *i_ub, IMMSV_ADMO_LIST **p)
+static uint32_t immsv_evt_dec_admo(NCS_UBAID *i_ub, IMMSV_ADMO_LIST **p)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -1038,7 +1038,7 @@ static void immsv_evt_enc_attrName(NCS_UBAID *o_ub, IMMSV_ATTR_NAME_LIST *p)
 	ncs_enc_claim_space(o_ub, 1);
 }
 
-static uns32 immsv_evt_dec_attrNames(NCS_UBAID *i_ub, IMMSV_ATTR_NAME_LIST **p)
+static uint32_t immsv_evt_dec_attrNames(NCS_UBAID *i_ub, IMMSV_ATTR_NAME_LIST **p)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -1124,7 +1124,7 @@ void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST *adp)
 	}
 }
 
-static uns32 immsv_evt_dec_attr_def(NCS_UBAID *i_ub, IMMSV_ATTR_DEF_LIST **adp)
+static uint32_t immsv_evt_dec_attr_def(NCS_UBAID *i_ub, IMMSV_ATTR_DEF_LIST **adp)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -1177,7 +1177,7 @@ static uns32 immsv_evt_dec_attr_def(NCS_UBAID *i_ub, IMMSV_ATTR_DEF_LIST **adp)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 immsv_evt_dec_admop_param(NCS_UBAID *i_ub, IMMSV_ADMIN_OPERATION_PARAM **opp)
+static uint32_t immsv_evt_dec_admop_param(NCS_UBAID *i_ub, IMMSV_ADMIN_OPERATION_PARAM **opp)
 {
 	int depth = 1;
 	uint8_t c8;
@@ -1230,7 +1230,7 @@ static uns32 immsv_evt_dec_admop_param(NCS_UBAID *i_ub, IMMSV_ADMIN_OPERATION_PA
 
  NOTES          : 
 \*****************************************************************************/
-static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
+static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
 	/* Encode the internal Pointers always using byte-order correction. */
 	if (i_evt->type == IMMSV_EVT_TYPE_IMMA) {
@@ -1771,7 +1771,7 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
  NOTES          : 
 \*****************************************************************************/
-static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
+static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 {
 	/* Decode the internal pointers */
 	if (o_evt->type == IMMSV_EVT_TYPE_IMMA) {
@@ -2184,9 +2184,9 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
  NOTES          : 
 \*****************************************************************************/
-uns32 immsv_evt_enc_flat(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t immsv_evt_enc_flat(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-	uns32 size;
+	uint32_t size;
 
 	size = sizeof(IMMSV_EVT);
 
@@ -2211,9 +2211,9 @@ uns32 immsv_evt_enc_flat(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
  NOTES          : 
 \*****************************************************************************/
-uns32 immsv_evt_dec_flat(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
+uint32_t immsv_evt_dec_flat(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 {
-	uns32 size;
+	uint32_t size;
 
 	size = sizeof(IMMSV_EVT);
 
@@ -2227,9 +2227,9 @@ uns32 immsv_evt_dec_flat(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 	return immsv_evt_dec_sublevels(i_ub, o_evt);
 }
 
-static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
+static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *p8;
 	/*TRACE_ENTER(); */
 
@@ -3409,9 +3409,9 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 	return rc;
 }
 
-static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
+static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *p8;
 	uint8_t local_data[8];
 	/*TRACE_ENTER(); */
@@ -4672,9 +4672,9 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
  RETURNS        : None
 \*****************************************************************************/
-uns32 immsv_evt_enc(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
+uint32_t immsv_evt_enc(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	rc = immsv_evt_enc_toplevel(i_evt, o_ub);
 	if (rc == NCSCC_RC_SUCCESS) {
@@ -4697,9 +4697,9 @@ uns32 immsv_evt_enc(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
  NOTES          : 
 \*****************************************************************************/
-uns32 immsv_evt_dec(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
+uint32_t immsv_evt_dec(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	rc = immsv_evt_dec_toplevel(i_ub, o_evt);
 	if (rc == NCSCC_RC_SUCCESS) {

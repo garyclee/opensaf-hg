@@ -23,10 +23,10 @@
 
 static SYSF_MBX mdtm_mbx_common;
 static MDTM_TX_TYPE mdtm_transport;
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type);
-static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST id);
-static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST id);
-static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id);
+static uint32_t mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type);
+static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uint32_t seq_num, MDS_DEST id);
+static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uint32_t seq_num, MDS_DEST id);
+static uint32_t mdtm_del_reassemble_queue(uint32_t seq_num, MDS_DEST id);
 /****************************************************************************
  *
  * Function Name: mdtm_process_reassem_timer_event
@@ -37,9 +37,9 @@ static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id);
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mdtm_process_reassem_timer_event(uns32 seq_num, MDS_DEST id)
+uint32_t mdtm_process_reassem_timer_event(uint32_t seq_num, MDS_DEST id)
 {
-	uns32 status = 0;
+	uint32_t status = 0;
 	status = mdtm_del_reassemble_queue(seq_num, id);
 	return status;
 }
@@ -56,7 +56,7 @@ uns32 mdtm_process_reassem_timer_event(uns32 seq_num, MDS_DEST id)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref)
+uint32_t mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref)
 {
 	MDTM_REF_HDL_LIST *ref_ptr = NULL, *mov_ptr = NULL;
 	mov_ptr = mdtm_ref_hdl_list_hdr;
@@ -96,7 +96,7 @@ uns32 mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref_val, MDS_SVC_HDL *svc_hdl)
+uint32_t mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref_val, MDS_SVC_HDL *svc_hdl)
 {
 	MDTM_REF_HDL_LIST *mov_ptr = NULL;
 	mov_ptr = mdtm_ref_hdl_list_hdr;
@@ -128,7 +128,7 @@ uns32 mdtm_get_from_ref_tbl(MDS_SUBTN_REF_VAL ref_val, MDS_SVC_HDL *svc_hdl)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
+uint32_t mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
 {
 	MDTM_REF_HDL_LIST *back, *mov_ptr;
 
@@ -168,28 +168,28 @@ uns32 mdtm_del_from_ref_tbl(MDS_SUBTN_REF_VAL ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t len, uns64 transport_adest, uns32 seq_num_check,
-				       uns32 *buff_dump)
+uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t len, uns64 transport_adest, uint32_t seq_num_check,
+				       uint32_t *buff_dump)
 {
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
 	MDS_PWE_HDL pwe_hdl;
 	MDS_SVC_HDL dest_svc_hdl = 0;
-	uns32 seq_num = 0;
+	uint32_t seq_num = 0;
 	uint16_t dest_svc_id = 0, src_svc_id = 0;
 	uint16_t pwe_id = 0;
 	uint16_t dest_vdest_id = 0, src_vdest_id = 0;
 	uint8_t msg_snd_type, enc_type;
 
-	uns32 node_status = 0;
+	uint32_t node_status = 0;
 	MDS_DEST adest = 0;
 
 	if (MDTM_TX_TYPE_TIPC == mdtm_transport) {
-		node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE((uns32)(transport_adest >> 32));
+		node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE((uint32_t)(transport_adest >> 32));
 
 		if (NCSCC_RC_SUCCESS == node_status) {
 			adest =
 			    ((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID((NODE_ID)(transport_adest >> 32)))) << 32) |
-			     (uns32)(transport_adest));
+			     (uint32_t)(transport_adest));
 		} else {
 			m_MDS_LOG_ERR
 			    ("MDTM: Dropping  the recd message, as the TIPC NODEid is not in the prescribed range=0x%08x",
@@ -204,12 +204,12 @@ uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t l
 	}
 
 	if (MDTM_DIRECT == flag) {
-		uns32 xch_id = 0;
+		uint32_t xch_id = 0;
 		uint8_t prot_ver = 0;
 
 		/* We receive buffer pointer starting from MDS HDR only */
 		uint8_t *data = NULL;
-		uns32 svc_seq_num = 0;
+		uint32_t svc_seq_num = 0;
 		uint16_t len_mds_hdr = 0;
 
 		data = buffer;
@@ -414,11 +414,11 @@ uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t l
 		   Fragment Number(15-bit) | Fragment Size(16-bit)
 		 */
 
-		uns32 xch_id = 0;
+		uint32_t xch_id = 0;
 		uint8_t prot_ver = 0;
 
 		uint8_t *data = NULL;
-		uns32 svc_seq_num = 0;
+		uint32_t svc_seq_num = 0;
 		uint16_t len_mds_hdr = 0;
 		MDS_TMR_REQ_INFO *tmr_req_info = NULL;
 
@@ -621,13 +621,13 @@ uns32 mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_t l
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mdtm_attach_mbx(SYSF_MBX mbx)
+uint32_t mdtm_attach_mbx(SYSF_MBX mbx)
 {
 	mdtm_mbx_common = mbx;
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mdtm_set_transport(MDTM_TX_TYPE transport)
+uint32_t mdtm_set_transport(MDTM_TX_TYPE transport)
 {
 	mdtm_transport = transport;
 	return NCSCC_RC_SUCCESS;
@@ -643,7 +643,7 @@ uns32 mdtm_set_transport(MDTM_TX_TYPE transport)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_tmr_callback(NCSCONTEXT tmr_info_hdl)
+uint32_t mds_tmr_callback(NCSCONTEXT tmr_info_hdl)
 {
 	/* Now Queue the message in the Mailbox */
 	MDS_MBX_EVT_INFO *mbx_tmr_info = NULL;
@@ -652,7 +652,7 @@ uns32 mds_tmr_callback(NCSCONTEXT tmr_info_hdl)
 	memset(mbx_tmr_info, 0, sizeof(MDS_MBX_EVT_INFO));
 
 	mbx_tmr_info->type = MDS_MBX_EVT_TIMER_EXPIRY;
-	mbx_tmr_info->info.tmr_info_hdl = (uns32)((long)tmr_info_hdl);
+	mbx_tmr_info->info.tmr_info_hdl = (uint32_t)((long)tmr_info_hdl);
 
 	if ((m_NCS_IPC_SEND(&mdtm_mbx_common, mbx_tmr_info, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed, free the msg. In TDS they are relaseing the task
@@ -678,11 +678,11 @@ uns32 mds_tmr_callback(NCSCONTEXT tmr_info_hdl)
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-uns32 mds_tmr_mailbox_processing(void)
+uint32_t mds_tmr_mailbox_processing(void)
 {
 	MDS_MBX_EVT_INFO *mbx_evt_info;
 	MDS_TMR_REQ_INFO *tmr_req_info = NULL;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* Now Parse thru the mailbox and send all the messages */
 	mbx_evt_info = (MDS_MBX_EVT_INFO *)(m_NCS_IPC_NON_BLK_RECEIVE(&mdtm_mbx_common, NULL));
@@ -692,7 +692,7 @@ uns32 mds_tmr_mailbox_processing(void)
 		return NCSCC_RC_FAILURE;
 	} else if (mbx_evt_info->type == MDS_MBX_EVT_TIMER_EXPIRY) {
 		tmr_req_info =
-		    (MDS_TMR_REQ_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_COMMON, (uns32)(mbx_evt_info->info.tmr_info_hdl));
+		    (MDS_TMR_REQ_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)(mbx_evt_info->info.tmr_info_hdl));
 		if (tmr_req_info == NULL) {
 			m_MDS_LOG_NOTIFY("MDTM: Tmr Mailbox Processing:Handle invalid (=0x%08x)",
 					 mbx_evt_info->info.tmr_info_hdl);
@@ -732,8 +732,8 @@ uns32 mds_tmr_mailbox_processing(void)
 				break;
 			}
 			/* Give Handle and Destroy Handle */
-			ncshm_give_hdl((uns32)mbx_evt_info->info.tmr_info_hdl);
-			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uns32)mbx_evt_info->info.tmr_info_hdl);
+			ncshm_give_hdl((uint32_t)mbx_evt_info->info.tmr_info_hdl);
+			ncshm_destroy_hdl(NCS_SERVICE_ID_COMMON, (uint32_t)mbx_evt_info->info.tmr_info_hdl);
 
 			/* Free timer req info */
 			m_MMGR_FREE_TMR_INFO(tmr_req_info);
@@ -767,7 +767,7 @@ uns32 mds_tmr_mailbox_processing(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_adest, uns32 *buff_dump)
+uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_adest, uint32_t *buff_dump)
 {
 	/*
 	   Get the MDS Header from the data received
@@ -792,7 +792,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_ades
 	uint8_t *data;
 
 	/* Added for seq number check */
-	uns32 temp_frag_seq_num = 0;
+	uint32_t temp_frag_seq_num = 0;
 
 	data = &buffer[MDTM_PKT_TYPE_OFFSET];
 
@@ -811,7 +811,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_ades
 		/* Check in reasssebly queue whether any pkts are present */
 		uint16_t more_frag = 0;
 		uint16_t frag_num = 0;
-		uns32 seq_num = 0;
+		uint32_t seq_num = 0;
 		MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
 
 		more_frag = ((pkt_type & MDTM_CHECK_MORE_FRAG) >> 15) & 0x1;
@@ -824,7 +824,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_ades
 		seq_num = ncs_decode_32bit(&data);
 
 		m_MDS_LOG_DBG("MDTM: Recd message with Fragment Seqnum=%d, frag_num=%d, from src_Tipc_id=<0x%08x:%u>",
-			      seq_num, frag_num, (uns32)(transport_adest >> 32), (uns32)(transport_adest));
+			      seq_num, frag_num, (uint32_t)(transport_adest >> 32), (uint32_t)(transport_adest));
 
 		/* Checking in reassembly queue */
 		reassem_queue = mdtm_check_reassem_queue(seq_num, transport_adest);
@@ -1024,7 +1024,7 @@ uns32 mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uns64 transport_ades
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type)
+static uint32_t mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffer, uint16_t len, uint8_t enc_type)
 {
 	m_MDS_LOG_INFO("MDTM: User Recd msg len=%d", len);
 	switch (enc_type) {
@@ -1078,7 +1078,7 @@ static uns32 mdtm_fill_data(MDTM_REASSEMBLY_QUEUE *reassem_queue, uint8_t *buffe
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST id)
+static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uint32_t seq_num, MDS_DEST id)
 {
 	/*
 	   STEP 1: Check whether an entry is present with the seq_num and id,
@@ -1098,7 +1098,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST i
 
 	if (reassem_queue == NULL) {
 		m_MDS_LOG_DBG("MDS_DT_COMMON : reassembly queue doesnt exist seq_num=%d, transport_adest=<0x%08x,%u",
-			      seq_num, (uns32)(id >> 32), (uns32)(id));
+			      seq_num, (uint32_t)(id >> 32), (uint32_t)(id));
 		return reassem_queue;
 	}
 	return reassem_queue;
@@ -1116,7 +1116,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, MDS_DEST i
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST id)
+static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uint32_t seq_num, MDS_DEST id)
 {
 	/*
 	   STEP 1: create an entry in the reassemble queue with parameters as seq_num and id,
@@ -1151,7 +1151,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, MDS_DEST 
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id)
+static uint32_t mdtm_del_reassemble_queue(uint32_t seq_num, MDS_DEST id)
 {
 	/*
 	   STEP 1: Check whether an entry is present with the seq_num and id,
@@ -1188,7 +1188,7 @@ static uns32 mdtm_del_reassemble_queue(uns32 seq_num, MDS_DEST id)
 	return NCSCC_RC_SUCCESS;
 }
 
-void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max)
+void mds_buff_dump(uint8_t *buff, uint32_t len, uint32_t max)
 {
 	int offset;
 	uint8_t last_line[8];
@@ -1205,7 +1205,7 @@ void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max)
 	for (offset = 0; (len - offset) > 8; offset += 8) {
 		m_MDS_LOG_ERR
 		    ("DUMP:buff=0x%08x:offset=%3d to %3d:Bytes = 0x%02x 0x%02x 0x%02x 0x%02x : 0x%02x 0x%02x 0x%02x 0x%02x",
-		     (uns32)(long)buff, offset, offset + 7, buff[offset], buff[offset + 1], buff[offset + 2],
+		     (uint32_t)(long)buff, offset, offset + 7, buff[offset], buff[offset + 1], buff[offset + 2],
 		     buff[offset + 3], buff[offset + 4], buff[offset + 5], buff[offset + 6], buff[offset + 7]);
 	}
 
@@ -1217,7 +1217,7 @@ void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max)
 
 	m_MDS_LOG_ERR
 	    ("DUMP:buff=0x%08x:offset=%3d to %3d:Bytes = 0x%02x 0x%02x 0x%02x 0x%02x : 0x%02x 0x%02x 0x%02x 0x%02x",
-	     (uns32)(long)buff, offset, len - 1, last_line[0], last_line[0 + 1], last_line[0 + 2], last_line[0 + 3],
+	     (uint32_t)(long)buff, offset, len - 1, last_line[0], last_line[0 + 1], last_line[0 + 2], last_line[0 + 3],
 	     last_line[0 + 4], last_line[0 + 5], last_line[0 + 6], last_line[0 + 7]);
 }
 
@@ -1233,7 +1233,7 @@ void mds_buff_dump(uint8_t *buff, uns32 len, uns32 max)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg)
+uint32_t mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg)
 {
 	switch (msg->encoding) {
 	case MDS_ENC_TYPE_CPY:
@@ -1267,12 +1267,12 @@ uns32 mdtm_free_reassem_msg_mem(MDS_ENCODED_MSG *msg)
 	return NCSCC_RC_SUCCESS;
 }
 
-uint16_t mds_checksum(uns32 length, uint8_t buff[])
+uint16_t mds_checksum(uint32_t length, uint8_t buff[])
 {
 	uint16_t word16 = 0;
-	uns32 sum = 0;
-	uns32 i;
-	uns32 loop_count;
+	uint32_t sum = 0;
+	uint32_t i;
+	uint32_t loop_count;
 
 	/* make 16 bit words out of every two adjacent 8 bit words and
 	   calculate the sum of all 16 bit words */
@@ -1280,16 +1280,16 @@ uint16_t mds_checksum(uns32 length, uint8_t buff[])
 		loop_count = length;
 		for (i = 0; i < loop_count; i = i + 2) {
 			word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)buff[i + 1]));
-			sum = sum + (uns32)word16;
+			sum = sum + (uint32_t)word16;
 		}
 	} else {
 		loop_count = length - 2;
 		for (i = 0; i < loop_count; i = i + 2) {
 			word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)buff[i + 1]));
-			sum = sum + (uns32)word16;
+			sum = sum + (uint32_t)word16;
 		}
 		word16 = (((uint16_t)buff[i] << 8) + ((uint16_t)0));
-		sum = sum + (uns32)word16;
+		sum = sum + (uint32_t)word16;
 
 	}
 	sum = sum + length;
@@ -1315,7 +1315,7 @@ uint16_t mds_checksum(uns32 length, uint8_t buff[])
  *                NCSCC_RC_FAILURE
  *              
  ****************************************************************************/
-uns32 mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
+uint32_t mds_destroy_event(NCS_SEL_OBJ destroy_ack_obj)
 {
 	/* Now Queue the message in the Mailbox */
 	MDS_MBX_EVT_INFO *mbx_evt_info = NULL;

@@ -8,7 +8,7 @@
 void tet_create_cpd();
 void tet_cpd_dump_cb();
 
-extern uns32 gl_cpd_hdl;
+extern uint32_t gl_cpd_hdl;
 
 
 void tet_run_cpd() {
@@ -79,7 +79,7 @@ void tet_create_cpd()
 void tet_cpd_dump_cb()
 {
    CPD_CB           *cb;
-   uns32              cb_hdl=m_CPD_GET_CB_HDL;
+   uint32_t              cb_hdl=m_CPD_GET_CB_HDL;
    CPSV_EVT          *cpsv_evt;
 
    cpsv_evt=m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);

@@ -26,7 +26,7 @@
 static MDS_DEST peer_dest;
 static MDS_HDL mds_hdl;
 
-static uns32 msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	struct rde_msg *msg;
 	NCS_UBAID *uba;
@@ -36,18 +36,18 @@ static uns32 msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 	uba = enc_info->io_uba;
 	msg = (struct rde_msg *)enc_info->i_msg;
 
-	data = ncs_enc_reserve_space(uba, sizeof(uns32));
+	data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 	assert(data);
 	ncs_encode_32bit(&data, msg->type);
-	ncs_enc_claim_space(uba, sizeof(uns32));
+	ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 	switch (msg->type) {
 	case RDE_MSG_PEER_INFO_REQ:
 	case RDE_MSG_PEER_INFO_RESP:
-		data = ncs_enc_reserve_space(uba, sizeof(uns32));
+		data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 		assert(data);
 		ncs_encode_32bit(&data, msg->info.peer_info.ha_role);
-		ncs_enc_claim_space(uba, sizeof(uns32));
+		ncs_enc_claim_space(uba, sizeof(uint32_t));
 		break;
 
 	default:
@@ -58,9 +58,9 @@ static uns32 msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	struct rde_msg *msg;
 	NCS_UBAID *uba;
 	uint8_t *data;
@@ -82,18 +82,18 @@ static uns32 msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 	dec_info->o_msg = msg;
 	uba = dec_info->io_uba;
 
-	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 	assert(data);
 	msg->type = ncs_decode_32bit(&data);
-	ncs_dec_skip_space(uba, sizeof(uns32));
+	ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 	switch (msg->type) {
 	case RDE_MSG_PEER_INFO_REQ:
 	case RDE_MSG_PEER_INFO_RESP:
-		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 		assert(data);
 		msg->info.peer_info.ha_role = ncs_decode_32bit(&data);
-		ncs_dec_skip_space(uba, sizeof(uns32));
+		ncs_dec_skip_space(uba, sizeof(uint32_t));
 		break;
 
 	default:
@@ -107,7 +107,7 @@ done:
 
 static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	struct rde_msg *msg = calloc(1, sizeof(struct rde_msg));
 	RDE_CONTROL_BLOCK *cb = rde_get_control_block();
 
@@ -124,10 +124,10 @@ static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
 	return rc;
 }
 
-static uns32 mds_callback(struct ncsmds_callback_info *info)
+static uint32_t mds_callback(struct ncsmds_callback_info *info)
 {
 	struct rde_msg *msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	RDE_CONTROL_BLOCK *cb = rde_get_control_block();
 
 	switch (info->i_op) {
@@ -192,7 +192,7 @@ done:
 	return rc;
 }
 
-uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb)
+uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb)
 {
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO svc_info;
@@ -243,10 +243,10 @@ uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest)
+uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest)
 {
 	NCSMDS_INFO info;
-	uns32 rc;
+	uint32_t rc;
 
 	TRACE("Sending %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
 	memset(&info, 0, sizeof(info));

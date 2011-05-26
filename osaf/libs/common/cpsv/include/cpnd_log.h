@@ -253,7 +253,7 @@ typedef enum cpnd_log_ids {
 
 void cpnd_flx_log_reg();
 void cpnd_flx_log_dereg();
-uns32 cpnd_log_ascii_reg(void);
+uint32_t cpnd_log_ascii_reg(void);
 void cpnd_log_ascii_dereg(void);
 
 #define NCSFL_TYPE_TIFFFCL "TIFFFCL"

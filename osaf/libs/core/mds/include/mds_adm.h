@@ -100,9 +100,9 @@ typedef struct ncsmds_admop_info {
 	} info;
 } NCSMDS_ADMOP_INFO;
 
-typedef uns32 (*NCSMDS_ADM_API) (NCSMDS_ADMOP_INFO *mds_adm);
-uns32 ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm);
+typedef uint32_t (*NCSMDS_ADM_API) (NCSMDS_ADMOP_INFO *mds_adm);
+uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm);
 
-uns32 mds_adm_get_adest_hdl(void);
+uint32_t mds_adm_get_adest_hdl(void);
 
 #endif

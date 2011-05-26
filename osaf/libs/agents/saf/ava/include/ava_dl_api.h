@@ -18,7 +18,7 @@
 #ifndef AVA_DL_API_H
 #define AVA_DL_API_H
 
-uns32 ava_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t ava_lib_req(NCS_LIB_REQ_INFO *);
 unsigned int ncs_ava_startup(void);
 unsigned int ncs_ava_shutdown(void);
 

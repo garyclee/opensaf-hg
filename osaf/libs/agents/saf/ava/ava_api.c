@@ -293,8 +293,8 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT hdl, SaDispatchFlagsT flags)
 	AVA_CB *cb = 0;
 	AVA_HDL_REC *hdl_rec = 0;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 pend_fin = 0;
-	uns32 pend_dis = 0;
+	uint32_t pend_fin = 0;
+	uint32_t pend_dis = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* verify CB-hdl & input hdl  */
@@ -1304,7 +1304,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 	AVSV_NDA_AVA_MSG *msg_rsp = 0;
 	NCS_BOOL is_syn = FALSE, create_memory = FALSE;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 i = 0;
+	uint32_t i = 0;
 	TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
 	/* initialize the msg */

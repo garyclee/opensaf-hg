@@ -677,7 +677,7 @@ void thread_creation(SaEvtHandleT *ptrEvtHandle)
         }
     }
 }
-uns32 tet_create_task(NCS_OS_CB task_startup)
+uint32_t tet_create_task(NCS_OS_CB task_startup)
 {
   char taskname[]="My Task";
   if ( m_NCS_TASK_CREATE(task_startup,

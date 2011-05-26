@@ -31,7 +31,7 @@ typedef enum lgsv_lgs_evt_type {
 } LGSV_LGS_EVT_TYPE;
 
 typedef struct lgsv_lgs_mds_info {
-	uns32 node_id;
+	uint32_t node_id;
 	MDS_DEST mds_dest_id;
 } lgsv_lgs_mds_info_t;
 
@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct lgsv_lgs_evt {
 	struct lgsv_lgs_evt *next;
-	uns32 cb_hdl;
+	uint32_t cb_hdl;
 	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
 					 * in a synchronous fashion.
 					 */
@@ -57,17 +57,17 @@ typedef struct lgsv_lgs_evt {
 } lgsv_lgs_evt_t;
 
 /* These are the function prototypes for event handling */
-typedef uns32 (*LGSV_LGS_LGA_API_MSG_HANDLER) (lgs_cb_t *, lgsv_lgs_evt_t *evt);
-typedef uns32 (*LGSV_LGS_EVT_HANDLER) (lgsv_lgs_evt_t *evt);
+typedef uint32_t (*LGSV_LGS_LGA_API_MSG_HANDLER) (lgs_cb_t *, lgsv_lgs_evt_t *evt);
+typedef uint32_t (*LGSV_LGS_EVT_HANDLER) (lgsv_lgs_evt_t *evt);
 
-extern int lgs_client_stream_add(uns32 client_id, uns32 stream_id);
-extern int lgs_client_stream_rmv(uns32 client_id, uns32 stream_id);
-extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id, lgs_stream_list_t *stream_list);
-extern log_client_t *lgs_client_get_by_id(uns32 client_id);
-extern int lgs_client_add_stream(log_client_t *client, uns32 stream_id);
-extern int lgs_client_delete(uns32 client_id);
+extern int lgs_client_stream_add(uint32_t client_id, uint32_t stream_id);
+extern int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id);
+extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_list_t *stream_list);
+extern log_client_t *lgs_client_get_by_id(uint32_t client_id);
+extern int lgs_client_add_stream(log_client_t *client, uint32_t stream_id);
+extern int lgs_client_delete(uint32_t client_id);
 extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest);
 extern NCS_BOOL lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest);
-extern uns32 lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
+extern uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
 
 #endif   /*!LGS_EVT_H */

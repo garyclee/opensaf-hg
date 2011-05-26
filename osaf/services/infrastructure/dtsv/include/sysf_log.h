@@ -67,14 +67,14 @@
   
 *************************************************************************/
 
-uns32 dts_log_init(void);
+uint32_t dts_log_init(void);
 
-uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec);
+uint32_t dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec);
 
-uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version);
+uint32_t dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version);
 
-uns32 dts_log_msg_to_str(DTA_LOG_MSG *msg, char *str,
-				  NODE_ID node, uns32 proc_id, uns32 *len, NCSFL_ASCII_SPEC *spec);
+uint32_t dts_log_msg_to_str(DTA_LOG_MSG *msg, char *str,
+				  NODE_ID node, uint32_t proc_id, uint32_t *len, NCSFL_ASCII_SPEC *spec);
 
 void dts_to_lowercase(char *str);
 
@@ -131,7 +131,7 @@ typedef struct sysf_ascii_specs {
 	/*SS_SVC_ID          svc_id; svc_id will now be in network order */
 	ASCII_SPEC_INDEX key;	/* New key to index into the patricia tree */
 	NCSFL_ASCII_SPEC *ss_spec;
-	uns32 use_count;	/* use count to monitor no. of DTAs registering with the particular this particular ASCII_SPEC table */
+	uint32_t use_count;	/* use count to monitor no. of DTAs registering with the particular this particular ASCII_SPEC table */
 } SYSF_ASCII_SPECS;
 
 typedef enum dts_spec_action {

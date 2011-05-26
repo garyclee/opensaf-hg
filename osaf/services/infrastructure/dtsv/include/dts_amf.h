@@ -22,10 +22,10 @@ DESCRIPTION: Function prototypes used for DTS used in AMF.
 #ifndef DTS_AMF_H
 #define DTS_AMF_H
 /*** Macro used to get the AMF version used ****/
-uns32 dts_amf_init(struct dts_cb *dts_cb_inst);
-uns32 dts_amf_finalize(struct dts_cb *dts_cb_inst);
+uint32_t dts_amf_init(struct dts_cb *dts_cb_inst);
+uint32_t dts_amf_finalize(struct dts_cb *dts_cb_inst);
 void dts_amf_sigusr1_handler(int i_sig_num);
-uns32 dts_amf_register(DTS_CB *inst);
+uint32_t dts_amf_register(DTS_CB *inst);
 
 #define m_DTS_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 

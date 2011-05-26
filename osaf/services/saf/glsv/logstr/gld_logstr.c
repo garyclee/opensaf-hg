@@ -241,7 +241,7 @@ NCSFL_ASCII_SPEC gld_ascii_spec = {
   DESCRIPTION: Function is used for registering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 gld_reg_strings()
+uint32_t gld_reg_strings()
 {
 	NCS_DTSV_REG_CANNED_STR arg;
 
@@ -260,7 +260,7 @@ uns32 gld_reg_strings()
   DESCRIPTION:       Function is used for deregistering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 gld_unreg_strings()
+uint32_t gld_unreg_strings()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -285,9 +285,9 @@ uns32 gld_unreg_strings()
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t glsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:

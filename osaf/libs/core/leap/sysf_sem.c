@@ -39,10 +39,10 @@
 #include "ncs_osprm.h"
 #include "ncssysf_sem.h"
 
-uns32 ncs_sem_create(void **s_handle)
+uint32_t ncs_sem_create(void **s_handle)
 {
 	NCS_OS_SEM sem;
-	uns32 rc;
+	uint32_t rc;
 
 	rc = m_NCS_OS_SEM(&sem, NCS_OS_SEM_CREATE);
 
@@ -52,7 +52,7 @@ uns32 ncs_sem_create(void **s_handle)
 	return rc;
 }
 
-uns32 ncs_sem_release(void *s_handle)
+uint32_t ncs_sem_release(void *s_handle)
 {
 	NCS_OS_SEM sem;
 
@@ -61,7 +61,7 @@ uns32 ncs_sem_release(void *s_handle)
 	return m_NCS_OS_SEM(&sem, NCS_OS_SEM_RELEASE);
 }
 
-uns32 ncs_sem_give(void *s_handle)
+uint32_t ncs_sem_give(void *s_handle)
 {
 	NCS_OS_SEM sem;
 
@@ -70,7 +70,7 @@ uns32 ncs_sem_give(void *s_handle)
 	return m_NCS_OS_SEM(&sem, NCS_OS_SEM_GIVE);
 }
 
-uns32 ncs_sem_take(void *s_handle)
+uint32_t ncs_sem_take(void *s_handle)
 {
 	NCS_OS_SEM sem;
 

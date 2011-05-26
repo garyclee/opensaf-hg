@@ -42,7 +42,7 @@
                      fno  - filenumber
 *****************************************************************************/
 
-void mqnd_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno)
+void mqnd_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno)
 {
 
 	/* Log New type logs */

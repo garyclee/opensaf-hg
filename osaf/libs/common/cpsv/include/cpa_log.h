@@ -208,15 +208,15 @@ typedef enum cpa_log_ids {
 
 void cpa_flx_log_reg(void);
 void cpa_flx_log_dereg(void);
-uns32 cpa_reg_strings();
+uint32_t cpa_reg_strings();
 
-uns32 cpa_log_ascii_reg(void);
+uint32_t cpa_log_ascii_reg(void);
 void cpa_log_ascii_dereg(void);
 
 void cpa_log_headline(uint8_t hdln_id, uint8_t sev);
 void cpa_log_memfail(uint8_t mf_id);
 void cpa_log_api(uint8_t api_id, uint8_t sev);
-void cpa_log_data_send(uint8_t id, uns32 node, uns32 evt_id);
+void cpa_log_data_send(uint8_t id, uint32_t node, uint32_t evt_id);
 void cpa_log_db(uint8_t id, uint8_t sev);
 
 #define m_LOG_CPA_HEADLINE(id, sev)       cpa_log_headline(id,sev)

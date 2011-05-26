@@ -38,13 +38,13 @@
 
 /* static function declarations */
 
-static uns32 avnd_su_si_csi_rec_modify(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *, AVND_COMP_CSI_PARAM *);
+static uint32_t avnd_su_si_csi_rec_modify(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *, AVND_COMP_CSI_PARAM *);
 
-static uns32 avnd_su_si_csi_all_modify(AVND_CB *, AVND_SU *, AVND_COMP_CSI_PARAM *);
+static uint32_t avnd_su_si_csi_all_modify(AVND_CB *, AVND_SU *, AVND_COMP_CSI_PARAM *);
 
-static uns32 avnd_su_si_csi_rec_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *, AVND_COMP_CSI_REC *);
+static uint32_t avnd_su_si_csi_rec_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *, AVND_COMP_CSI_REC *);
 
-static uns32 avnd_su_si_csi_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *);
+static uint32_t avnd_su_si_csi_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *);
 
 /* macro to add a csi-record to the si-csi list */
 #define m_AVND_SU_SI_CSI_REC_ADD(si, csi, rc) \
@@ -78,7 +78,7 @@ static uns32 avnd_su_si_csi_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *);
  
   Notes         : None
 ******************************************************************************/
-AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc)
+AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uint32_t *rc)
 {
 	AVND_SU_SI_REC *si_rec = 0;
 	AVND_COMP_CSI_PARAM *csi_param = 0;
@@ -175,7 +175,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
   Notes         : None
 ******************************************************************************/
 AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
-					  AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uns32 *rc)
+					  AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc)
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
 	AVND_COMP *comp = 0;
@@ -323,7 +323,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
  
   Notes         : None
 ******************************************************************************/
-AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc)
+AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uint32_t *rc)
 {
 	AVND_SU_SI_REC *si_rec = 0;
 
@@ -376,11 +376,11 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param)
+uint32_t avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param)
 {
 	AVND_COMP_CSI_PARAM *curr_param = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to the si & modify them */
@@ -434,10 +434,10 @@ uns32 avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
+uint32_t avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
 {
 	AVND_SU_SI_REC *curr_si = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2();
 	/* modify all the si records */
@@ -476,13 +476,13 @@ uns32 avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM *param)
+uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM *param)
 {
 	AVND_COMP_CSI_PARAM *curr_param = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVND_SU_SI_REC *curr_si = 0;
 	AVND_COMP *curr_comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to all the sis & modify them */
@@ -559,11 +559,11 @@ uns32 avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM *p
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
+uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 {
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s' : '%s'", su_name->value, si_name->value);
 
 	/* get the su record */
@@ -619,12 +619,12 @@ uns32 avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
+uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 {
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
 	SaNameT lsu_name;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s'", su_name->value);
 
 	/* get the su record */
@@ -680,10 +680,10 @@ uns32 avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
+uint32_t avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s' : '%s'", su->name.value, si_rec->name.value);
 
 	/* scan & delete each csi record */
@@ -715,9 +715,9 @@ uns32 avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
+uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s' : '%s' : '%s'", su->name.value, si_rec->name.value, csi_rec->name.value);
 
 	/* remove from the comp-csi list */
@@ -809,7 +809,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, SaNameT *su_name, SaNameT *si_na
  
   Notes         : None
 ******************************************************************************/
-AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc)
+AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uint32_t *rc)
 {
 	AVND_SU_SIQ_REC *siq = 0;
 
@@ -896,7 +896,7 @@ void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_mbcsv_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
+uint32_t avnd_mbcsv_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
 {
 	return (avnd_su_si_csi_rec_del(cb, su, si_rec, csi_rec));
 }
@@ -918,7 +918,7 @@ uns32 avnd_mbcsv_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_
 ******************************************************************************/
 AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(AVND_CB *cb,
 						AVND_SU *su,
-						AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uns32 *rc)
+						AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc)
 {
 	return (avnd_su_si_csi_rec_add(cb, su, si_rec, param, rc));
 }

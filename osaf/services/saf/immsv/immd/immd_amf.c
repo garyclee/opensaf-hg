@@ -182,7 +182,7 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_ha_state;
 	NCS_BOOL role_change = TRUE;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMD_CB *cb = immd_cb;
 
 	TRACE_ENTER();
@@ -326,12 +326,12 @@ static void immd_amf_csi_rmv_callback(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immd_amf_init(IMMD_CB *immd_cb)
+uint32_t immd_amf_init(IMMD_CB *immd_cb)
 {
 	static SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_FAILURE;
+	uint32_t res = NCSCC_RC_FAILURE;
 	SaAmfHealthcheckKeyT healthy;
 	char *health_key;
 

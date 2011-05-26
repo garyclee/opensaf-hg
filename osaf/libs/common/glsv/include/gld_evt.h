@@ -52,7 +52,7 @@ typedef struct glsv_rsc_details {
 	SaLckResourceIdT rsc_id;
 	NCS_BOOL orphan;
 	SaLckLockModeT lck_mode;
-	uns32 lcl_ref_cnt;
+	uint32_t lcl_ref_cnt;
 } GLSV_RSC_DETAILS;
 
 typedef struct glsv_gld_glnd_mds_info_tag {
@@ -63,7 +63,7 @@ typedef struct glsv_gld_glnd_mds_info_tag {
 typedef struct gld_evt_tmr_tag {
 	MDS_DEST mdest_id;
 	SaLckResourceIdT resource_id;
-	uns32 opq_hdl;
+	uint32_t opq_hdl;
 } GLD_EVT_TMR;
 
 /*****************************************************************************
@@ -85,9 +85,9 @@ typedef struct glsv_gld_evt_tag {
 #define GLSV_GLD_EVT_NULL (GLSV_GLD_EVT *)NULL
 
 /* This is the function prototype for event handling */
-typedef uns32 (*GLSV_GLD_EVT_HANDLER) (struct glsv_gld_evt_tag * evt);
+typedef uint32_t (*GLSV_GLD_EVT_HANDLER) (struct glsv_gld_evt_tag * evt);
 
 void gld_evt_destroy(GLSV_GLD_EVT *evt);
-uns32 gld_process_evt(GLSV_GLD_EVT *evt);
+uint32_t gld_process_evt(GLSV_GLD_EVT *evt);
 
 #endif

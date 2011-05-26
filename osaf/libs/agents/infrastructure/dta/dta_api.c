@@ -43,7 +43,7 @@
 #include "ncssysf_mem.h"
 
 DTA_CB dta_cb;
-uns32 dta_hdl;
+uint32_t dta_hdl;
 
 /*****************************************************************************
 
@@ -64,7 +64,7 @@ uns32 dta_hdl;
 
 *****************************************************************************/
 
-uns32 dta_lm(DTA_LM_ARG *arg)
+uint32_t dta_lm(DTA_LM_ARG *arg)
 {
 	if (arg == NULL)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lm: NULL pointer passed");
@@ -101,7 +101,7 @@ uns32 dta_lm(DTA_LM_ARG *arg)
 *                               for details.
 *
 \*****************************************************************************/
-uns32 dta_svc_create(NCSDTA_CREATE *create)
+uint32_t dta_svc_create(NCSDTA_CREATE *create)
 {
 	/* Create a new structure and initialize all its fields */
 	DTA_CB *inst = &dta_cb;
@@ -169,10 +169,10 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 *                               for details.
 *
 *****************************************************************************/
-uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
+uint32_t dta_svc_destroy(NCSDTA_DESTROY *destroy)
 {
 	DTA_CB *inst = &dta_cb;
-	uns32 retval = NCSCC_RC_SUCCESS;
+	uint32_t retval = NCSCC_RC_SUCCESS;
 	REG_TBL_ENTRY *svc;
 
 	if (inst->created == FALSE)
@@ -193,7 +193,7 @@ uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
 	{
 		DTA_LOG_BUFFER *list = &dta_cb.log_buffer;
 		DTA_BUFFERED_LOG *buf;
-		uns32 i, count;
+		uint32_t i, count;
 		DTSV_MSG *msg;
 
 		if ((list == NULL) || (list->num_of_logs == 0)) {
@@ -245,7 +245,7 @@ uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
 *                     NCSCC_RC_FAILURE
 *
 \*****************************************************************************/
-uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg)
+uint32_t ncs_dtsv_su_req(NCS_DTSV_RQ *arg)
 {
 	if (arg == NULL)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_su_req: NULL pointer passed");
@@ -274,7 +274,7 @@ uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg)
 
 *****************************************************************************/
 
-uns32 dta_log_msg(NCSFL_NORMAL *lmsg)
+uint32_t dta_log_msg(NCSFL_NORMAL *lmsg)
 {
 
 	return NCSCC_RC_SUCCESS;
@@ -291,12 +291,12 @@ uns32 dta_log_msg(NCSFL_NORMAL *lmsg)
 
 *****************************************************************************/
 
-uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
+uint32_t dta_reg_svc(NCS_BIND_SVC *bind_svc)
 {
 	DTA_CB *inst = &dta_cb;
 	DTSV_MSG msg;
 	REG_TBL_ENTRY *svc;
-	/*uns32          send_pri; */
+	/*uint32_t          send_pri; */
 	SS_SVC_ID svc_id = bind_svc->svc_id;
 
 	if (inst->created == FALSE) {
@@ -381,12 +381,12 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 
 *****************************************************************************/
 
-uns32 dta_dereg_svc(SS_SVC_ID svc_id)
+uint32_t dta_dereg_svc(SS_SVC_ID svc_id)
 {
 	DTA_CB *inst = &dta_cb;
 	REG_TBL_ENTRY *rmv_svc;
 	DTSV_MSG *msg;
-	uns32 send_pri;
+	uint32_t send_pri;
 
 	if (inst->created == FALSE) {
 		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -472,7 +472,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
  *          is enabled. If both these conditions satisfies then return success.
  *
  ****************************************************************************/
-uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
+uint32_t dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
 {
 	if ((svc->enable_log == FALSE) ||
 	    ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
@@ -515,7 +515,7 @@ NCS_BOOL dta_match_service(void *key, void *qelem)
                      NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name, uint8_t operation)
+uint32_t dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, const char *svc_name, uint8_t operation)
 {
 	msg->msg_type = operation;
 
@@ -560,10 +560,10 @@ uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uint16_t version, 
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
-		    uns32 inst_id, uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...)
+uint32_t ncs_logmsg_v2(SS_SVC_ID svc_id,
+		    uint32_t inst_id, uint8_t fmat_id, uint8_t str_table_id, uint32_t category, uint8_t severity, char *fmat_type, ...)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	va_list argp;
 	va_start(argp, fmat_type);
 
@@ -589,9 +589,9 @@ uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg(SS_SVC_ID svc_id, uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, ...)
+uint32_t ncs_logmsg(SS_SVC_ID svc_id, uint8_t fmat_id, uint8_t str_table_id, uint32_t category, uint8_t severity, char *fmat_type, ...)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	va_list argp;
 	va_start(argp, fmat_type);
 
@@ -617,26 +617,26 @@ uns32 ncs_logmsg(SS_SVC_ID svc_id, uint8_t fmat_id, uint8_t str_table_id, uns32 
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
-		     uns32 inst_id,
-		     uint8_t fmat_id, uint8_t str_table_id, uns32 category, uint8_t severity, char *fmat_type, va_list argp)
+uint32_t ncs_logmsg_int(SS_SVC_ID svc_id,
+		     uint32_t inst_id,
+		     uint8_t fmat_id, uint8_t str_table_id, uint32_t category, uint8_t severity, char *fmat_type, va_list argp)
 {
-	uns32 i = 0, length = 0;
+	uint32_t i = 0, length = 0;
 	DTA_CB *inst = &dta_cb;
 	DTSV_MSG *msg;
 	NCSFL_HDR *hdr;
 	REG_TBL_ENTRY *svc;
 	NCS_UBAID *uba = NULL;
 	uint8_t *data;
-	uns32 send_pri;
+	uint32_t send_pri;
 	int warning_rmval = 0;
 
     /*************************************************************************\
     * As different fields of the log-message are encoded, the minimum DTS     
     * required to understand the message may change.
     \*************************************************************************/
-	uns32 act_dts_ver;	/* Active dts's version. */
-	uns32 min_dts_ver;	/* Minimum DTS version that understands message */
+	uint32_t act_dts_ver;	/* Active dts's version. */
+	uint32_t min_dts_ver;	/* Minimum DTS version that understands message */
 
 	DTA_LOG_BUFFER *list = &inst->log_buffer;
 	DTA_BUFFERED_LOG *buf = NULL;
@@ -761,22 +761,22 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 			}
 		case 'I':
 			{
-				uns32 idx;
-				idx = m_NCSFL_MAKE_IDX((uns32)str_table_id, (uns32)va_arg(argp, uns32));
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				uint32_t idx;
+				idx = m_NCSFL_MAKE_IDX((uint32_t)str_table_id, (uint32_t)va_arg(argp, uint32_t));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, idx);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 				break;
 			}
 		case 'L':
 			{
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
-				ncs_encode_32bit(&data, va_arg(argp, uns32));
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_encode_32bit(&data, va_arg(argp, uint32_t));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 				break;
 			}
 
@@ -806,11 +806,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 								  svc_id);
 				}
 
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, length);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 
@@ -821,7 +821,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				data = ncs_enc_reserve_space(uba, sizeof(uint16_t));
 				if (data == NULL)
 					goto reserve_error;
-				ncs_encode_16bit(&data, (uint16_t)va_arg(argp, uns32));
+				ncs_encode_16bit(&data, (uint16_t)va_arg(argp, uint32_t));
 				ncs_enc_claim_space(uba, sizeof(uint16_t));
 				break;
 			}
@@ -854,7 +854,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					if (min_dts_ver < 1)
 						min_dts_ver = 1;
 
-					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
+					data = ncs_enc_reserve_space(uba, (sizeof(uint16_t) + sizeof(uint32_t)));
 					if (data == NULL)
 						goto reserve_error;
 					ncs_encode_16bit(&data, mem_d.len);
@@ -863,12 +863,12 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 						/* Attempt to print 64-bit address on 32-bit DTS. 
 						 * Print pre-defined bit pattern to indicate error. 
 						 */
-						ncs_encode_32bit(&data, (uns32)0x6464);
+						ncs_encode_32bit(&data, (uint32_t)0x6464);
 					} else if (sizeof(inst) == 4) {
 						/* Do it the old way */
 						ncs_encode_32bit(&data, NCS_PTR_TO_UNS32_CAST(mem_d.addr));
 					}
-					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
+					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uint32_t)));
 				}
 				/* Act DTS on version 2 or higher , then encode all 64-bits */
 				else {
@@ -884,7 +884,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					ncs_enc_claim_space(uba, (sizeof(uint16_t) + sizeof(uns64)));
 				}
 
-				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mem_d.dump, (uns32)mem_d.len);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)mem_d.dump, (uint32_t)mem_d.len);
 
 				break;
 			}
@@ -901,7 +901,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				ncs_encode_16bit(&data, pdu.len);
 				ncs_enc_claim_space(uba, sizeof(uint16_t));
 
-				ncs_encode_n_octets_in_uba(uba, (uint8_t *)pdu.dump, (uns32)pdu.len);
+				ncs_encode_n_octets_in_uba(uba, (uint8_t *)pdu.dump, (uint32_t)pdu.len);
 
 				break;
 			}
@@ -915,7 +915,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				data = ncs_enc_reserve_space(uba, sizeof(uint8_t));
 				if (data == NULL)
 					goto reserve_error;
-				ncs_encode_8bit(&data, (uint8_t)va_arg(argp, uns32));
+				ncs_encode_8bit(&data, (uint8_t)va_arg(argp, uint32_t));
 				ncs_enc_claim_space(uba, sizeof(uint8_t));
 
 				break;
@@ -932,11 +932,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 					goto reserve_error;
 				}
 				length = strlen(str) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, length);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
@@ -967,11 +967,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				}
 
 				length = strlen(str) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, length);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
@@ -1001,11 +1001,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				}
 
 				length = strlen(str) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, length);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
@@ -1036,11 +1036,11 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 				}
 
 				length = strlen(str) + 1;
-				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uint32_t));
 				if (data == NULL)
 					goto reserve_error;
 				ncs_encode_32bit(&data, length);
-				ncs_enc_claim_space(uba, sizeof(uns32));
+				ncs_enc_claim_space(uba, sizeof(uint32_t));
 
 				ncs_encode_n_octets_in_uba(uba, (uint8_t *)str, length);
 				break;
@@ -1139,7 +1139,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 *****************************************************************************/
 void dta_do_evts(SYSF_MBX *mbx)
 {
-	uns32 status;
+	uint32_t status;
 	NCS_IPC_MSG *msg;
 	int warning_rmval = 0;
 
@@ -1166,12 +1166,12 @@ void dta_do_evts(SYSF_MBX *mbx)
 static void send_buffered_logs(void)
 {
 	DTA_CB *inst = &dta_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SS_SVC_ID svc_id;
 	DTA_LOG_BUFFER *list = &dta_cb.log_buffer;
 	DTA_BUFFERED_LOG *buf = NULL;
 	DTSV_MSG *bmsg = NULL;
-	uns32 i, count;
+	uint32_t i, count;
 	int warning_rmval = 0;
 
 	count = list->num_of_logs;
@@ -1208,10 +1208,10 @@ static void send_buffered_logs(void)
 /*****************************************************************************
    dta_do_evt
 *****************************************************************************/
-uns32 dta_do_evt(DTSV_MSG *msg)
+uint32_t dta_do_evt(DTSV_MSG *msg)
 {
 	DTA_CB *inst = &dta_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SS_SVC_ID svc_id;
 	int warning_rmval = 0;
 

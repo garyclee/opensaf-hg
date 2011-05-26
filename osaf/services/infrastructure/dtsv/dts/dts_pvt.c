@@ -64,7 +64,7 @@ static nfds_t nfds =  FD_IMM + 1;
 #define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "/dts_comp_name"
 
 static struct pollfd fds[4];
-static uns32 dts_stby_initialize(DTS_CB *cb);
+static uint32_t dts_stby_initialize(DTS_CB *cb);
 
 /*****************************************************************************
 
@@ -88,7 +88,7 @@ static uns32 dts_stby_initialize(DTS_CB *cb);
 *****************************************************************************/
 void dts_do_evts(SYSF_MBX *mbx)
 {
-	uns32 status;
+	uint32_t status;
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT saf_status = SA_AIS_OK;
 
@@ -180,10 +180,10 @@ void dts_do_evts(SYSF_MBX *mbx)
    dts_do_evt
 *****************************************************************************/
 
-uns32 dts_do_evt(DTSV_MSG *msg)
+uint32_t dts_do_evt(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (SA_AMF_HA_ACTIVE == inst->ha_state)
 		/*if ((SA_AMF_HA_ACTIVE == inst->ha_state) ||
@@ -265,12 +265,12 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 
 		case DTS_CONGESTION_HIT:
 			ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_FLOW_UP, 0, NCSFL_LC_HEADLINE, NCSFL_SEV_WARNING, "TLL",
-				   m_NCS_NODE_ID_FROM_MDS_DEST(msg->dest_addr), (uns32)msg->dest_addr);
+				   m_NCS_NODE_ID_FROM_MDS_DEST(msg->dest_addr), (uint32_t)msg->dest_addr);
 			break;
 
 		case DTS_CONGESTION_CLEAR:
 			ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_FLOW_DOWN, 0, NCSFL_LC_HEADLINE, NCSFL_SEV_WARNING,
-				   "TLL", m_NCS_NODE_ID_FROM_MDS_DEST(msg->dest_addr), (uns32)msg->dest_addr);
+				   "TLL", m_NCS_NODE_ID_FROM_MDS_DEST(msg->dest_addr), (uint32_t)msg->dest_addr);
 			break;
 #endif
 
@@ -308,7 +308,7 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_handle_dta_event(DTSV_MSG *msg)
+uint32_t dts_handle_dta_event(DTSV_MSG *msg)
 {
 
 	DTS_CB *inst = &dts_cb;
@@ -320,12 +320,12 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 
 	switch (msg->data.data.evt.change) {	/* Review change type */
 	case NCSMDS_DOWN:
-		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA down event for :", msg->node, (uns32)msg->dest_addr);
+		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA down event for :", msg->node, (uint32_t)msg->dest_addr);
 		dts_set_dta_up_down(msg->node, msg->dest_addr, FALSE);
 		break;
 
 	case NCSMDS_UP:
-		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA up event for :", msg->node, (uns32)msg->dest_addr);
+		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received DTA up event for :", msg->node, (uint32_t)msg->dest_addr);
 		dts_set_dta_up_down(msg->node, msg->dest_addr, TRUE);
 		break;
 
@@ -375,7 +375,7 @@ void dts_reg_with_imm(DTS_CB *inst)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_register_service(DTSV_MSG *msg)
+uint32_t dts_register_service(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
@@ -397,7 +397,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 	m_DTS_LK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
 
-	m_LOG_DTS_EVT(DTS_EV_SVC_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uns32)msg->dest_addr);
+	m_LOG_DTS_EVT(DTS_EV_SVC_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uint32_t)msg->dest_addr);
 
 	/*
 	 * Check whether the Node exist in the node registration table.
@@ -425,8 +425,8 @@ uns32 dts_register_service(DTSV_MSG *msg)
 
 		dts_default_node_policy_set(&node_reg->svc_policy, &node_reg->device, key.node);
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node_reg) != NCSCC_RC_SUCCESS) {
-			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
-			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 
 			if (NULL != node_reg)
 				m_MMGR_FREE_SVC_REG_TBL(node_reg);
@@ -461,7 +461,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		if (dts_find_dta(svc, &dta_key) != NULL) {
 			m_DTS_UNLK(&inst->lock);
 			m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
-			m_LOG_DTS_EVT(DTS_EV_SVC_ALREADY_REG, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_ALREADY_REG, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dts_register_service: Service is already registered with DTS");
 		}
@@ -484,8 +484,8 @@ uns32 dts_register_service(DTSV_MSG *msg)
 			/* Smik - Add the new DTA_DEST_LIST to the patricia tree */
 			if (ncs_patricia_tree_add(&inst->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) !=
 			    NCSCC_RC_SUCCESS) {
-				m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_FAIL, 0, key.node, (uns32)to_reg->dta_addr);
-				m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+				m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_FAIL, 0, key.node, (uint32_t)to_reg->dta_addr);
+				m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 				if (NULL != to_reg)
 					m_MMGR_FREE_VCARD_TBL(to_reg);
 
@@ -494,7 +494,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_register_service: Failed to add DTA list in Patricia tree");
 			}
-			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, 0, key.node, (uns32)to_reg->dta_addr);
+			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, 0, key.node, (uint32_t)to_reg->dta_addr);
 		}
 
 		/*end of dta_present == false */
@@ -504,7 +504,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		to_reg->updt_req = FALSE;
 		/*Add this DTS_SVC_REG_TBL to the list of services for specific DTA */
 		dts_add_svc_to_dta(to_reg, svc);
-		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 		/* Add the node pointer to svc's my_node if not already filled */
 		if (svc->my_node == NULL)
@@ -546,8 +546,8 @@ uns32 dts_register_service(DTSV_MSG *msg)
 			if (ncs_patricia_tree_add(&inst->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) !=
 			    NCSCC_RC_SUCCESS) {
 				m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_FAIL, key.ss_svc_id, key.node,
-					      (uns32)to_reg->dta_addr);
-				m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+					      (uint32_t)to_reg->dta_addr);
+				m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 				if (NULL != to_reg)
 					m_MMGR_FREE_VCARD_TBL(to_reg);
 
@@ -559,14 +559,14 @@ uns32 dts_register_service(DTSV_MSG *msg)
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "dts_register_service: Failed to add DTA list in Patricia tree");
 			}
-			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_ADD_SUCC, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 		}
 		/* end of if dta_present==FALSE */
 		to_reg->dta_up = TRUE;
 		to_reg->updt_req = FALSE;
 		/* Add the DTA to svc->v_cd_list */
 		dts_add_svc_to_dta(to_reg, svc);
-		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 		/* newly created service, set all the policies to default 
 		 * then add new entry to the patricia tree */
@@ -574,8 +574,8 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		/*svc->num_svcs         = 0; */
 		dts_default_svc_policy_set(svc);
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
-			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
-			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 
 			if (dts_del_svc_frm_dta(to_reg, svc) == NULL)
 				m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -605,7 +605,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 
 	/*Enqueue dta entry in svc's v_cd_list */
 	dts_enqueue_dta(svc, to_reg);
-	m_LOG_DTS_EVT(DTS_EV_SVC_DTA_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+	m_LOG_DTS_EVT(DTS_EV_SVC_DTA_ADD, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 	/* Versioning Support: Update DTS CB with ASCII_SPEC to be loaded 
 	 * The following data is necessary for STBY DTS to load ASCII_SPEC and
@@ -688,7 +688,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		m_LOG_DTS_SVC_PRVDR(DTS_SP_MDS_SND_MSG_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: DTS: MDS send failed");
 	}
-	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)dta_key);
+	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uint32_t)dta_key);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -705,7 +705,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_unregister_service(DTSV_MSG *msg)
+uint32_t dts_unregister_service(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
@@ -723,12 +723,12 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 	m_DTS_LK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
 
-	m_LOG_DTS_EVT(DTS_EV_SVC_DE_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uns32)msg->dest_addr);
+	m_LOG_DTS_EVT(DTS_EV_SVC_DE_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uint32_t)msg->dest_addr);
 
 	if (((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uint8_t *)&nt_key)) == NULL)
 	    || (node->dta_count == 0)) {
 		m_LOG_DTS_HEADLINE(DTS_HDLN_NULL_INST);
-		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 		m_DTS_UNLK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -742,7 +742,7 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 	 *        tree */
 	if ((to_reg = (DTA_DEST_LIST *)dts_find_dta(node, &vkey)) == NULL) {
 		m_LOG_DTS_HEADLINE(DTS_HDLN_NULL_INST);
-		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)msg->dest_addr);
 		m_DTS_UNLK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -751,14 +751,14 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
 	/* Remove the svc_reg entry from DTA's queue */
 	if ((svc = (DTS_SVC_REG_TBL *)dts_del_svc_frm_dta(to_reg, node)) == NULL) {
-		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV_FAIL, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
-		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)vkey);
+		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV_FAIL, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)vkey);
 		m_DTS_UNLK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dts_unregister_service: Unable to remove svc reg entry from dta's list");
 	}
-	m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+	m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 	/* Before deleting DTA from Service's v_cd_list update the DTS_CB's 
 	 * svc_rmv_mds_dest for svc unregister's async update to stby
@@ -767,18 +767,18 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
 	/* Now remove the DTA adest from the list */
 	if ((to_reg = (DTA_DEST_LIST *)dts_dequeue_dta(node, to_reg)) == NULL) {
-		m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV_FAIL, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
-		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)vkey);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV_FAIL, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)vkey);
 		memset(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
 		m_DTS_UNLK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_unregister_service: Unable to remove adest entry");
 	}
-	m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
+	m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, key.ss_svc_id, key.node, (uint32_t)to_reg->dta_addr);
 
 	/* Remove spec entry corresponding to the DTA from svc's spec_list */
 	if (dts_del_spec_frm_svc(node, vkey, NULL) != NCSCC_RC_SUCCESS) {
-		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)vkey);
+		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)vkey);
 		memset(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
 		m_DTS_UNLK(&inst->lock);
 		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
@@ -807,14 +807,14 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 	 *     DTA entry from the patricia tree */
 	if (to_reg->svc_list == NULL) {
 		if (ncs_patricia_tree_del(&inst->dta_list, (NCS_PATRICIA_NODE *)&to_reg->node) != NCSCC_RC_SUCCESS) {
-			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_FAIL, 0, key.node, (uns32)to_reg->dta_addr);
-			m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)vkey);
+			m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_FAIL, 0, key.node, (uint32_t)to_reg->dta_addr);
+			m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uint32_t)vkey);
 			m_DTS_UNLK(&inst->lock);
 			m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dts_unregister_service: Unable to remove DTA entry frm patricia tree");
 		}
-		m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0, key.node, (uns32)to_reg->dta_addr);
+		m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0, key.node, (uint32_t)to_reg->dta_addr);
 
 		if (NULL != to_reg)
 			m_MMGR_FREE_VCARD_TBL(to_reg);
@@ -838,7 +838,7 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 		if ((TRUE == node->device.file_open) && (node->device.svc_fh != NULL))
 			fclose(node->device.svc_fh);
 		ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node);
-		m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, node->my_key.ss_svc_id, node->my_key.node, (uns32)vkey);
+		m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, node->my_key.ss_svc_id, node->my_key.node, (uint32_t)vkey);
 		if (NULL != node)
 			m_MMGR_FREE_SVC_REG_TBL(node);
 	}
@@ -846,7 +846,7 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 	m_DTS_UNLK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
 
-	m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)vkey);
+	m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_SUCCESSFUL, key.ss_svc_id, key.node, (uint32_t)vkey);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -863,10 +863,10 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_handle_fail_over(void)
+uint32_t dts_handle_fail_over(void)
 {
 	DTS_CB *inst = &dts_cb;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_DTS_LK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
@@ -890,12 +890,12 @@ uns32 dts_handle_fail_over(void)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
+uint32_t dts_fail_over_enc_msg(DTSV_MSG *mm)
 {
 	DTA_DEST_LIST *dta_ptr;
 	NCS_UBAID *uba;
 	uint8_t *data;
-	uns32 count;
+	uint32_t count;
 	SVC_ENTRY *svc_entry;
 
 	uba = &mm->data.data.msg.log_msg.uba;
@@ -908,7 +908,7 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
 	count = dta_ptr->dta_num_svcs;
 
 	/* Smik - Allocate space for all encoding all services corr to DTA */
-	data = ncs_enc_reserve_space(uba, (count * DTSV_REG_CONF_MSG_SIZE) + sizeof(uns32));
+	data = ncs_enc_reserve_space(uba, (count * DTSV_REG_CONF_MSG_SIZE) + sizeof(uint32_t));
 
 	if (data == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_fail_over_enc_msg: ncs_enc_reserve_space returns NULL");
@@ -928,7 +928,7 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
 		svc_entry = svc_entry->next_in_dta_entry;
 	}
 
-	ncs_enc_claim_space(uba, (count * DTSV_REG_CONF_MSG_SIZE) + sizeof(uns32));
+	ncs_enc_claim_space(uba, (count * DTSV_REG_CONF_MSG_SIZE) + sizeof(uint32_t));
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -944,10 +944,10 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_log_my_data(DTSV_MSG *msg)
+uint32_t dts_log_my_data(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_DTS_LK(&inst->lock);
 
@@ -975,11 +975,11 @@ uns32 dts_log_my_data(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_log_data(DTSV_MSG *msg)
+uint32_t dts_log_data(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
 	DTS_SVC_REG_TBL *node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SVC_KEY nt_key;
 	MDS_DEST dta_key = msg->dest_addr;
 	NCSFL_ASCII_SPEC *spec = NULL;
@@ -1007,7 +1007,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 		/* Print an error message */
 		ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT,
 			   NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLL", DTS_EV_LOG_SVC_KEY_WRONG,
-			   msg->data.data.msg.log_msg.hdr.ss_id, msg->node, (uns32)msg->dest_addr);
+			   msg->data.data.msg.log_msg.hdr.ss_id, msg->node, (uint32_t)msg->dest_addr);
 		m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1064,18 +1064,18 @@ uns32 dts_log_data(DTSV_MSG *msg)
 
  Notes:  
 \**************************************************************************/
-uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t file_type, NCSFL_ASCII_SPEC *spec)
+uint32_t dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uint8_t file_type, NCSFL_ASCII_SPEC *spec)
 {
 	char *str = dts_cb.log_str;
 	SVC_KEY key;
-	uns32 len = 0;
+	uint32_t len = 0;
 	DTS_LOG_CKPT_DATA data;
 	DTS_CONS_LIST *cons_dev;
 
 	cons_dev = device->cons_list_ptr;
 
 	if (dts_log_msg_to_str(&msg->data.data.msg, str,
-			       (uns32)msg->node, (uns32)msg->dest_addr, &len, spec) != NCSCC_RC_SUCCESS) {
+			       (uint32_t)msg->node, (uint32_t)msg->dest_addr, &len, spec) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1221,7 +1221,7 @@ NCS_BOOL dts_find_reg(void *key, void *qelem)
 
  Notes:  
 \**************************************************************************/
-uns32 gl_severity_filter = GLOBAL_SEVERITY_FILTER;
+uint32_t gl_severity_filter = GLOBAL_SEVERITY_FILTER;
 void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy)
 {
 	/* Set Default Node Policies */
@@ -1314,10 +1314,10 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 
  Notes:  
 \**************************************************************************/
-void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_id)
+void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uint32_t node_id)
 {
 	uint8_t global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
-	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
+	uint32_t global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
 	/* Enable flag should inherit from global policy */
 	npolicy->enable = dts_cb.g_policy.g_policy.enable;
@@ -1370,7 +1370,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 	POLICY *spolicy = &service->svc_policy;
 	OP_DEVICE *device = &service->device;
 	uint8_t global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
-	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
+	uint32_t global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
 	/* Service filter policy would take from node filter if node */
 	if (service->my_node != NULL) {
@@ -1421,13 +1421,13 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uint8_t file_type)
+uint32_t dts_new_log_file_create(char *file, SVC_KEY *svc, uint8_t file_type)
 {
 	time_t tod;
 	char asc_dtime[70];
 	char name[20] = "", tfile[100];
 	FILE *fh;
-	uns32 count = 0;
+	uint32_t count = 0;
 
 	char *logging_type[] = { "Global File", "Node File", "Service per Node File" };
 
@@ -1509,7 +1509,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uint8_t file_type)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
+uint32_t dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 {
 	DTSV_MSG msg;
 	if (dta == NULL)
@@ -1549,10 +1549,10 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LI
 
  Notes: Changes for enabling pty logging.  
 \**************************************************************************/
-int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str)
+int32_t dts_open_conf_cons(DTS_CB *cb, uint32_t mode, char *str)
 {
-	int32 f, fd = -1, fd_init;
-	uns32 m;
+	int32_t f, fd = -1, fd_init;
+	uint32_t m;
 
 	/*Init console device */
 	if ((fd_init = open(str, O_RDONLY | O_NONBLOCK)) < 0)
@@ -1603,7 +1603,7 @@ int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_close_opened_files(void)
+uint32_t dts_close_opened_files(void)
 {
 	SVC_KEY nt_key;
 	DTS_CB *inst = &dts_cb;
@@ -1659,7 +1659,7 @@ uns32 dts_close_opened_files(void)
 
  Notes:
 \**************************************************************************/
-uns32 dts_close_files_quiesced(void)
+uint32_t dts_close_files_quiesced(void)
 {
 	SVC_KEY nt_key;
 	DTS_CB *inst = &dts_cb;
@@ -1708,7 +1708,7 @@ uns32 dts_close_files_quiesced(void)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uint8_t log_level)
+uint32_t dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uint32_t node_id, SS_SVC_ID svc_id, uint8_t log_level)
 {
 	DTS_SVC_REG_TBL *parent_node;
 	SVC_KEY nt_key;
@@ -1780,7 +1780,7 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 
  Notes:  
 \**************************************************************************/
-static uns32 dts_stby_initialize(DTS_CB *cb)
+static uint32_t dts_stby_initialize(DTS_CB *cb)
 {
 	/* Check for message sequencing enabled or not */
 	if (cb->g_policy.g_enable_seq == TRUE) {
@@ -1806,13 +1806,13 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
 
  Notes:
 \**************************************************************************/
-uns32 dts_stby_update_dta_config()
+uint32_t dts_stby_update_dta_config()
 {
 	DTS_CB *inst = &dts_cb;
 	DTSV_MSG *msg = NULL;
 	DTA_DEST_LIST *dta_reg = NULL;
 	MDS_DEST dta_key;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_DTS_LK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
@@ -1884,7 +1884,7 @@ uns32 dts_stby_update_dta_config()
 
  Notes:  
 \**************************************************************************/
-uns32 dts_chk_file_size(char *file)
+uint32_t dts_chk_file_size(char *file)
 {
 	struct stat file_stat;
 
@@ -2091,7 +2091,7 @@ NCSCONTEXT dts_del_svc_frm_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc)
 
  Notes:    None.
 \**************************************************************************/
-uns32 dts_del_spec_frm_svc(DTS_SVC_REG_TBL *svc, MDS_DEST dta_addr, SPEC_CKPT *ver)
+uint32_t dts_del_spec_frm_svc(DTS_SVC_REG_TBL *svc, MDS_DEST dta_addr, SPEC_CKPT *ver)
 {
 	SPEC_ENTRY *spec_entry = NULL, *prev = NULL;
 
@@ -2346,7 +2346,7 @@ NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE *node, SVC_KEY *key)
 
 *****************************************************************************/
 
-uns32 dts_free_msg_content(NCSFL_NORMAL *msg)
+uint32_t dts_free_msg_content(NCSFL_NORMAL *msg)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -2360,7 +2360,7 @@ uns32 dts_free_msg_content(NCSFL_NORMAL *msg)
   RETURNS:        NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   NOTES:          Configuration data is printed to $DTSV_ROOT_DIRECTORY
 *****************************************************************************/
-uns32 dts_print_current_config(DTS_CB *cb)
+uint32_t dts_print_current_config(DTS_CB *cb)
 {
 	time_t tod;
 	char asc_dtime[70] = "", file[250] = "";
@@ -2409,7 +2409,7 @@ void dts_print_dta_dest_pat(void)
 		dta_dest = (DTA_DEST_LIST *)((long)dta_dest - DTA_DEST_LIST_OFFSET);
 		printf
 		    ("\nDta entry : dta_addr={with node_id=%d, dta_key=%d}, dta_up=%d, updt_req=%d, dta_num_svcs=%d}\n",
-		     m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest->dta_addr), (uns32)dta_dest->dta_addr, dta_dest->dta_up,
+		     m_NCS_NODE_ID_FROM_MDS_DEST(dta_dest->dta_addr), (uint32_t)dta_dest->dta_addr, dta_dest->dta_up,
 		     dta_dest->updt_req, dta_dest->dta_num_svcs);
 
 		printf("Services registered with this dta are:");
@@ -2439,7 +2439,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 	DTA_ENTRY *dta_entry;
 	DTS_LL_FILE *file_node;
 	/*OP_DEVICE          *device; */
-	uns32 count = 0;
+	uint32_t count = 0;
 	DTS_CONS_LIST *cons_ptr;
 	SPEC_ENTRY *spec_entry = NULL;
 
@@ -2478,7 +2478,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 		while (dta_entry != NULL) {
 			fprintf(fp, "\n\tDTA Info:\n\t------------");
 			fprintf(fp, "\n\tdta_addr:{node_id= %d, dta_key= %d}",
-				m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uns32)dta_entry->dta->dta_addr);
+				m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uint32_t)dta_entry->dta->dta_addr);
 			dta_entry = dta_entry->next_in_svc_entry;
 		}
 
@@ -2527,7 +2527,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 void dts_print_cb(DTS_CB *cb, FILE *fp)
 {
 	DTS_LL_FILE *file_node;
-	uns32 count = 0;
+	uint32_t count = 0;
 	DTS_CONS_LIST *cons_ptr;
 	ASCII_SPEC_LIB *lib_entry;
 	SYSF_ASCII_SPECS *spec_struct = NULL;
@@ -2619,7 +2619,7 @@ void dts_print_reg_tbl_dbg(void)
 	SVC_KEY nt_key;
 	DTA_ENTRY *dta_entry;
 	DTS_LL_FILE *file_node;
-	uns32 count = 0;
+	uint32_t count = 0;
 	DTS_CONS_LIST *cons_ptr;
 	SPEC_ENTRY *spec_entry = NULL;
 
@@ -2656,7 +2656,7 @@ void dts_print_reg_tbl_dbg(void)
 		while (dta_entry != NULL) {
 			printf("\n\tDTA Info:\n\t------------");
 			printf("\n\tdta_addr:{node_id= %d, dta_key= %d}",
-			       m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uns32)dta_entry->dta->dta_addr);
+			       m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uint32_t)dta_entry->dta->dta_addr);
 			dta_entry = dta_entry->next_in_svc_entry;
 		}
 
@@ -2701,7 +2701,7 @@ void dts_print_cb_dbg(void)
 {
 	DTS_CB *cb = &dts_cb;
 	DTS_LL_FILE *file_node;
-	uns32 count = 0;
+	uint32_t count = 0;
 	DTS_CONS_LIST *cons_ptr;
 	ASCII_SPEC_LIB *lib_entry;
 	SYSF_ASCII_SPECS *spec_struct = NULL;
@@ -2779,7 +2779,7 @@ void dts_print_cb_dbg(void)
 	return;
 }
 
-void dts_printall_svc_per_node(uns32 node_id)
+void dts_printall_svc_per_node(uint32_t node_id)
 {
 	DTS_CB *cb = &dts_cb;
 	DTS_SVC_REG_TBL *svc;
@@ -2787,7 +2787,7 @@ void dts_printall_svc_per_node(uns32 node_id)
 	DTA_ENTRY *dta_entry;
 	DTS_LL_FILE *file_node;
 	OP_DEVICE *device;
-	uns32 count = 0;
+	uint32_t count = 0;
 	DTS_CONS_LIST *cons_ptr;
 
 	nt_key.node = m_NCS_OS_HTONL(node_id);
@@ -2824,7 +2824,7 @@ void dts_printall_svc_per_node(uns32 node_id)
 		while (dta_entry != NULL) {
 			printf("\n\tDTA Info:\n\t------------");
 			printf("\n\tdta_addr:{node_id= %d, dta_key= %d}",
-			       m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uns32)dta_entry->dta->dta_addr);
+			       m_NCS_NODE_ID_FROM_MDS_DEST(dta_entry->dta->dta_addr), (uint32_t)dta_entry->dta->dta_addr);
 			dta_entry = dta_entry->next_in_svc_entry;
 		}
 
@@ -2868,7 +2868,7 @@ void dts_printall_svc_per_node(uns32 node_id)
 
  Notes:  
 \**************************************************************************/
-uns32 dts_handle_immnd_event(DTSV_MSG *msg)
+uint32_t dts_handle_immnd_event(DTSV_MSG *msg)
 {
 	DTS_CB *inst = &dts_cb;
 
@@ -2881,7 +2881,7 @@ uns32 dts_handle_immnd_event(DTSV_MSG *msg)
 	case NCSMDS_DOWN:
 		break;
 	case NCSMDS_UP:
-		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received IMMND up event for :", msg->node, (uns32)msg->dest_addr);
+		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received IMMND up event for :", msg->node, (uint32_t)msg->dest_addr);
 		if (inst->imm_init_done == FALSE) {
 			if (dts_imm_initialize(inst) != SA_AIS_OK) {
 				LOG_ER("imm initialize failed, exiting");

@@ -70,47 +70,47 @@
 /******************************************************************************/
 
 /* This is the function prototype for event handling */
-typedef uns32 (*GLND_EVT_HANDLER) (GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+typedef uint32_t (*GLND_EVT_HANDLER) (GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 
 /* Event Processing Prototypes */
-static uns32 glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 
-static uns32 glnd_process_gld_resource_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLND_NEW_MAST_INFO *new_master_info);
-static uns32 glnd_process_tmr_resource_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_tmr_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_tmr_nm_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_tmr_nm_resource_unlock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_tmr_agent_info_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_glnd_cb_dump(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-static uns32 glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_node,
+static uint32_t glnd_process_gld_resource_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLND_NEW_MAST_INFO *new_master_info);
+static uint32_t glnd_process_tmr_resource_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_tmr_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_tmr_nm_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_tmr_nm_resource_unlock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_tmr_agent_info_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_glnd_cb_dump(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
+static uint32_t glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_node,
 						    GLND_RES_LOCK_LIST_INFO *lock_list_info,
 						    GLND_EVT_GLND_NON_MASTER_STATUS *node_status);
-static uns32 glnd_process_check_master_and_non_master_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
+static uint32_t glnd_process_check_master_and_non_master_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info);
 
 /* GLND event dispatch table */
 const GLSV_GLND_EVT_HANDLER glsv_glnd_evt_dispatch_tbl[GLSV_GLND_EVT_MAX - GLSV_GLND_EVT_BASE] = {
@@ -233,7 +233,7 @@ void glnd_evt_destroy(GLSV_GLND_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 static void glnd_retrieve_info_from_evt(GLSV_GLND_EVT *evt,
-					uns32 *node,
+					uint32_t *node,
 					SaLckHandleT *hdl_id, SaLckResourceIdT *rsc_id, SaLckLockIdT *lck_id)
 {
 	/* initialize the values */
@@ -337,18 +337,18 @@ static void glnd_retrieve_info_from_evt(GLSV_GLND_EVT *evt,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt)
+uint32_t glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt)
 {
 	GLND_EVT_HANDLER glnd_evt_hdl = NULL;
 	SaLckHandleT hdl_id = 0;
 	SaLckResourceIdT rsc_id = 0;
 	SaLckLockIdT lck_id = 0;
-	uns32 node_id = 0;
+	uint32_t node_id = 0;
 	GLND_CB *glnd_cb = (GLND_CB *)cb;
 
 	glnd_retrieve_info_from_evt(evt, &node_id, &hdl_id, &rsc_id, &lck_id);
-	m_LOG_GLND_EVT(GLND_EVT_RECIEVED, __FILE__, __LINE__, evt->type, (uns32)node_id, (uns32)hdl_id, (uns32)rsc_id,
-		       (uns32)lck_id);
+	m_LOG_GLND_EVT(GLND_EVT_RECIEVED, __FILE__, __LINE__, evt->type, (uint32_t)node_id, (uint32_t)hdl_id, (uint32_t)rsc_id,
+		       (uint32_t)lck_id);
 	glnd_evt_hdl = glsv_glnd_evt_dispatch_tbl[evt->type - (GLSV_GLND_EVT_BASE + 1)];
 	if (glnd_evt_hdl != NULL) {
 		if (glnd_evt_hdl(glnd_cb, evt) != NCSCC_RC_SUCCESS) {
@@ -372,7 +372,7 @@ uns32 glnd_process_evt(NCSCONTEXT cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_AGENT_INFO *agent_info;
 
@@ -395,7 +395,7 @@ static uns32 glnd_process_gla_register_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_AGENT_INFO *agent_info;
 	GLND_AGENT_INFO *del_node;
@@ -426,7 +426,7 @@ static uns32 glnd_process_gla_unreg_agent(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_CLIENT_INFO *client_info;
 	GLND_CLIENT_INFO *add_node;
@@ -499,7 +499,7 @@ static uns32 glnd_process_gla_client_initialize(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_FINALIZE_INFO *finalize_info;
 	GLND_CLIENT_INFO *del_node;
@@ -557,7 +557,7 @@ static uns32 glnd_process_gla_client_finalize(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_INFO *rsc_info;
 	GLND_RESOURCE_INFO *resource_node;
@@ -692,7 +692,7 @@ static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
   RETURNS       : 
 
 *****************************************************************************/
-static uns32 glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLND_CLIENT_INFO *add_node;
 	GLND_RESOURCE_INFO *res_node;
@@ -741,7 +741,7 @@ static uns32 glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_INFO *rsc_info;
 	GLND_RESOURCE_INFO *res_node;
@@ -843,7 +843,7 @@ static uns32 glnd_process_gla_resource_close(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_check_master_and_non_master_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
+static uint32_t glnd_process_check_master_and_non_master_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_info)
 {
 	GLND_RES_LOCK_LIST_INFO *lock_list_info = NULL;
 
@@ -872,7 +872,7 @@ static uns32 glnd_process_check_master_and_non_master_status(GLND_CB *glnd_cb, G
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_LOCK_INFO *rsc_lock_info;
 	GLND_RESOURCE_INFO *res_node;
@@ -881,7 +881,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 	GLND_CLIENT_INFO *client_info;
 	GLSV_GLA_EVT gla_evt;
 	SaAisErrorT error = SA_AIS_ERR_LIBRARY;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&gla_evt, 0, sizeof(GLSV_GLA_EVT));
 	memset(&lck_info, 0, sizeof(GLSV_LOCK_REQ_INFO));
@@ -939,7 +939,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 
 	if (res_node->status == GLND_RESOURCE_NOT_INITIALISED) {
 		/* sleep for relection time and resend the event */
-		uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
+		uint32_t tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
 		GLSV_GLND_EVT *resend_evt = m_MMGR_ALLOC_GLND_EVT;
 
 		memcpy(resend_evt, evt, sizeof(GLSV_GLND_EVT));
@@ -1098,7 +1098,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_UNLOCK_INFO *rsc_unlock_info;
 	GLND_RESOURCE_INFO *res_node;
@@ -1160,7 +1160,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 
 	if (res_node->status == GLND_RESOURCE_NOT_INITIALISED) {
 		/* sleep for relection time and resend the event */
-		uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
+		uint32_t tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
 		GLSV_GLND_EVT *resend_evt = m_MMGR_ALLOC_GLND_EVT;
 
 		memcpy(resend_evt, evt, sizeof(GLSV_GLND_EVT));
@@ -1323,7 +1323,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_INFO *rsc_info;
 	GLND_RESOURCE_INFO *res_node = NULL;
@@ -1411,14 +1411,14 @@ static uns32 glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 
   NOTES         : got a lock request from a non-master glnd 
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_req;
 	GLND_RESOURCE_INFO *res_node;
 	GLSV_LOCK_REQ_INFO lck_info;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
 	GLSV_GLND_EVT glnd_evt;
-	uns32 rc;
+	uint32_t rc;
 
 	lck_req = (GLSV_EVT_GLND_LCK_INFO *)&evt->info.node_lck_info;
 	memset(&lck_info, 0, sizeof(GLSV_LOCK_REQ_INFO));
@@ -1446,7 +1446,7 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
 	if (res_node->status == GLND_RESOURCE_NOT_INITIALISED) {
 		/* sleep for relection time and resend the event */
-		uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
+		uint32_t tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
 		GLSV_GLND_EVT *resend_evt = m_MMGR_ALLOC_GLND_EVT;
 
 		memcpy(resend_evt, evt, sizeof(GLSV_GLND_EVT));
@@ -1536,7 +1536,7 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_req;
 	GLND_RESOURCE_INFO *res_node;
@@ -1558,7 +1558,7 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
 	if (res_node->status == GLND_RESOURCE_NOT_INITIALISED) {
 		/* sleep for relection time and resend the event */
-		uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
+		uint32_t tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME / 10000000;
 		GLSV_GLND_EVT *resend_evt = m_MMGR_ALLOC_GLND_EVT;
 
 		memcpy(resend_evt, evt, sizeof(GLSV_GLND_EVT));
@@ -1656,7 +1656,7 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : Got the response for the lock request sent
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_rsp;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
@@ -1794,7 +1794,7 @@ static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_rsp;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
@@ -1877,7 +1877,7 @@ static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_req_cancel;
 	GLND_RESOURCE_INFO *res_node;
@@ -1920,7 +1920,7 @@ static uns32 glnd_process_glnd_lck_req_cancel(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *lck_req_orphan;
 	GLND_RESOURCE_INFO *res_node;
@@ -1971,7 +1971,7 @@ static uns32 glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_LCK_INFO *waiter_clbk;
 	GLND_RESOURCE_INFO *res_node;
@@ -2029,7 +2029,7 @@ static uns32 glnd_process_glnd_lck_waiter_clbk(GLND_CB *glnd_cb, GLSV_GLND_EVT *
 
   NOTES         : Evt from the non-master to the master node for resource purge
 *****************************************************************************/
-static uns32 glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_RSC_INFO *rsc_info;
 	GLND_RESOURCE_INFO *res_node;
@@ -2061,7 +2061,7 @@ static uns32 glnd_process_glnd_lck_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
   NOTES         : Got the lock req from non-masters cause of the new master selection.
 *****************************************************************************/
-static uns32 glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_RSC_INFO *rsc_info;
 	GLND_LOCK_LIST_INFO *lock_list;
@@ -2097,7 +2097,7 @@ static uns32 glnd_process_glnd_send_rsc_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *ev
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_DD_PROBE_INFO *dd_probe = &evt->info.dd_probe_info;
 	GLND_RESOURCE_INFO *rsc_info = NULL;
@@ -2250,7 +2250,7 @@ static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_DD_PROBE_INFO *dd_probe;
 	NCS_BOOL granted = FALSE;
@@ -2432,7 +2432,7 @@ static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
   NOTES         : Director has sent the resource details for the resource open
                   request.
 *****************************************************************************/
-static uns32 glnd_process_gld_resource_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gld_resource_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_RSC_GLD_INFO *rsc_gld_info;
 	GLND_RESOURCE_REQ_LIST *res_list_node;
@@ -2551,7 +2551,7 @@ static uns32 glnd_process_gld_resource_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_NEW_MAST_INFO *new_master_info;
 	GLND_RESOURCE_INFO *res_node;
@@ -2599,12 +2599,12 @@ static uns32 glnd_process_gld_resource_master_state(GLND_CB *glnd_cb, GLSV_GLND_
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_EVT_GLND_RSC_MASTER_INFO *res_master_info;
 	GLND_RESOURCE_INFO *res_node = NULL;
 	GLSV_GLND_RSC_MASTER_INFO_LIST *rsc_master_list = NULL;
-	uns32 index = 0;
+	uint32_t index = 0;
 
 	res_master_info = (GLSV_EVT_GLND_RSC_MASTER_INFO *)&evt->info.rsc_master_info;
 	rsc_master_list = res_master_info->rsc_master_list;
@@ -2642,7 +2642,7 @@ static uns32 glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLN
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLND_NEW_MAST_INFO *new_master_info)
+static uint32_t glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLND_NEW_MAST_INFO *new_master_info)
 {
 	GLND_RESOURCE_INFO *res_node;
 
@@ -2656,9 +2656,9 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 	if (m_GLND_IS_LOCAL_NODE(&glnd_cb->glnd_mdest_id, &new_master_info->master_dest_id) == 0) {
 		if (new_master_info->status == GLND_RESOURCE_ELECTION_IN_PROGESS) {
 			if (res_node->status == GLND_RESOURCE_ACTIVE_NON_MASTER) {
-				TRACE("GLND becoming MASTER for res %d", (uns32)res_node->resource_id);
+				TRACE("GLND becoming MASTER for res %d", (uint32_t)res_node->resource_id);
 				m_LOG_GLND_HEADLINE_TI(GLND_NEW_MASTER_RSC, __FILE__, __LINE__,
-						       (uns32)res_node->resource_id);
+						       (uint32_t)res_node->resource_id);
 
 				/* convert the non master info to the master info */
 				glnd_resource_convert_nonmaster_to_master(glnd_cb, res_node);
@@ -2688,11 +2688,11 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 			res_node->status = GLND_RESOURCE_ELECTION_IN_PROGESS;
 
 			TRACE("GLND electing new MASTER for res %d as Node %d",
-			      (uns32)res_node->resource_id,
-			      (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
+			      (uint32_t)res_node->resource_id,
+			      (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
 			m_LOG_GLND_HEADLINE_TIL(GLND_MASTER_ELECTION_RSC, __FILE__, __LINE__,
-						(uns32)res_node->resource_id,
-						(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
+						(uint32_t)res_node->resource_id,
+						(uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(res_node->master_mds_dest));
 
 			/* set the master */
 			res_node->master_mds_dest = new_master_info->master_dest_id;
@@ -2723,9 +2723,9 @@ static uns32 glnd_process_gld_resource_new_master(GLND_CB *glnd_cb, GLSV_EVT_GLN
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_tmr_resource_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_tmr_resource_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
-	uns32 res_req_hdl = (uns32)evt->info.tmr.opq_hdl;
+	uint32_t res_req_hdl = (uint32_t)evt->info.tmr.opq_hdl;
 	GLSV_GLA_EVT gla_evt;
 	GLND_RESOURCE_REQ_LIST *res_req_info;
 
@@ -2778,10 +2778,10 @@ static uns32 glnd_process_tmr_resource_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_E
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_tmr_agent_info_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_tmr_agent_info_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLSV_GLD_EVT gld_evt;
-	uns32 ret;
+	uint32_t ret;
 
 	/* change the glnd status to */
 	glnd_cb->node_state = GLND_RESTART_STATE;
@@ -2813,9 +2813,9 @@ static uns32 glnd_process_tmr_agent_info_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_tmr_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_tmr_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
-	uns32 res_lock_req_hdl = (uns32)evt->info.tmr.opq_hdl;
+	uint32_t res_lock_req_hdl = (uint32_t)evt->info.tmr.opq_hdl;
 	GLSV_GLA_EVT gla_evt;
 	GLND_CLIENT_INFO *client_info = NULL;
 	GLND_RES_LOCK_LIST_INFO *m_info = NULL;
@@ -2868,9 +2868,9 @@ static uns32 glnd_process_tmr_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_G
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_tmr_nm_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_tmr_nm_resource_lock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
-	uns32 res_lock_req_hdl = (uns32)evt->info.tmr.opq_hdl;
+	uint32_t res_lock_req_hdl = (uint32_t)evt->info.tmr.opq_hdl;
 	GLSV_GLA_EVT gla_evt;
 	GLND_CLIENT_INFO *client_info;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
@@ -2952,9 +2952,9 @@ static uns32 glnd_process_tmr_nm_resource_lock_req_timeout(GLND_CB *glnd_cb, GLS
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_tmr_nm_resource_unlock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_tmr_nm_resource_unlock_req_timeout(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
-	uns32 res_lock_req_hdl = (uns32)evt->info.tmr.opq_hdl;
+	uint32_t res_lock_req_hdl = (uint32_t)evt->info.tmr.opq_hdl;
 	GLSV_GLA_EVT gla_evt;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info;
 
@@ -3001,13 +3001,13 @@ static uns32 glnd_process_tmr_nm_resource_unlock_req_timeout(GLND_CB *glnd_cb, G
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	GLND_EVT_GLND_NON_MASTER_STATUS *node_status = (GLND_EVT_GLND_NON_MASTER_STATUS *)&evt->info.non_master_info;
 	GLND_RESOURCE_INFO *res_node = NULL;
 	SaLckResourceIdT res_id = 0;
 	GLND_RES_LOCK_LIST_INFO *lock_info = NULL, *temp_info = NULL;
-	uns32 node_id;
+	uint32_t node_id;
 	GLSV_GLND_EVT glnd_evt;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(node_status->dest_id);
@@ -3089,7 +3089,7 @@ static uns32 glnd_process_gld_non_master_status(GLND_CB *glnd_cb, GLSV_GLND_EVT 
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_node,
+static uint32_t glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOURCE_INFO *res_node,
 						    GLND_RES_LOCK_LIST_INFO *lock_list_info,
 						    GLND_EVT_GLND_NON_MASTER_STATUS *node_status)
 {
@@ -3126,7 +3126,7 @@ static uns32 glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOU
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_process_glnd_cb_dump(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
+static uint32_t glnd_process_glnd_cb_dump(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 {
 	glnd_dump_cb();
 	return NCSCC_RC_SUCCESS;

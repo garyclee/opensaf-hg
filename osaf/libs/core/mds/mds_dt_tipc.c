@@ -56,46 +56,46 @@ NCS_BOOL mds_use_network_order = 0;
 #define NTOHL(x) (mds_use_network_order?ntohl(x):x)
 #define HTONL(x) (mds_use_network_order?htonl(x):x)
 
-static uns32 mdtm_tipc_check_for_endianness(void);
+static uint32_t mdtm_tipc_check_for_endianness(void);
 
-uns32 mdtm_tipc_init(NODE_ID node_id, uns32 *mds_tipc_ref);
-uns32 mdtm_tipc_destroy(void);
+uint32_t mdtm_tipc_init(NODE_ID node_id, uint32_t *mds_tipc_ref);
+uint32_t mdtm_tipc_destroy(void);
 
-static uns32 mdtm_create_rcv_task(int mdtm_hdle);
-static uns32 mdtm_destroy_rcv_task(void);
+static uint32_t mdtm_create_rcv_task(int mdtm_hdle);
+static uint32_t mdtm_destroy_rcv_task(void);
 
-static uns32 mdtm_process_recv_events(void);
-static uns32 mdtm_process_discovery_events(uns32 flag, struct tipc_event event);
+static uint32_t mdtm_process_recv_events(void);
+static uint32_t mdtm_process_discovery_events(uint32_t flag, struct tipc_event event);
 
-uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
 				MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
-uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				  V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
 				  MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
-uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				  MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
-uns32 mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
-uns32 mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id);
-uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id);
-uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
-uns32 mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
-uns32 mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest);
-uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
+uint32_t mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id);
+uint32_t mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id);
+uint32_t mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uint32_t mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest);
+uint32_t mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 
-uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
+uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
 /* Tipc actual send, can be made as Macro even*/
-static uns32 mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid tipc_id);
+static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid tipc_id);
 
-uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id);
+uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id);
 
-static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req);
+static uint32_t mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req);
 
-uint16_t mds_checksum(uns32 length, uint8_t buff[]);
+uint16_t mds_checksum(uint32_t length, uint8_t buff[]);
 
-uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
-uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+uint32_t mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uint32_t mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
 
 typedef struct mdtm_tipc_cb {
 	int Dsock;
@@ -107,13 +107,13 @@ typedef struct mdtm_tipc_cb {
 
 	SYSF_MBX tmr_mbx;
 	int tmr_fd;
-	uns32 node_id;
+	uint32_t node_id;
 
 } MDTM_TIPC_CB;
 
 MDTM_TIPC_CB tipc_cb;
 
-static uns32 mdtm_tipc_own_node(int fd);
+static uint32_t mdtm_tipc_own_node(int fd);
 
 struct sockaddr_tipc topsrv;
 
@@ -122,7 +122,7 @@ struct sockaddr_tipc topsrv;
 static MDS_SUBTN_REF_VAL handle;
 static uint16_t num_subscriptions;
 
-uns32 mdtm_global_frag_num;
+uint32_t mdtm_global_frag_num;
 /*********************************************************
 
   Function NAME: mdtm_tipc_init
@@ -136,9 +136,9 @@ uns32 mdtm_global_frag_num;
 
 *********************************************************/
 
-uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
+uint32_t mdtm_tipc_init(NODE_ID nodeid, uint32_t *mds_tipc_ref)
 {
-	uns32 tipc_node_id = 0;
+	uint32_t tipc_node_id = 0;
 	int flags;
 
 	NCS_PATRICIA_PARAMS pat_tree_params;
@@ -305,7 +305,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid, uns32 *mds_tipc_ref)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_tipc_check_for_endianness(void)
+static uint32_t mdtm_tipc_check_for_endianness(void)
 {
 	struct sockaddr_tipc srv;
 	int d_fd;
@@ -364,7 +364,7 @@ static uns32 mdtm_tipc_check_for_endianness(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mdtm_tipc_destroy(void)
+uint32_t mdtm_tipc_destroy(void)
 {
 	MDTM_REF_HDL_LIST *temp_ref_hdl_list_entry = NULL;
 	MDTM_REASSEMBLY_QUEUE *reassem_queue = NULL;
@@ -441,7 +441,7 @@ uns32 mdtm_tipc_destroy(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_tipc_own_node(int fd)
+static uint32_t mdtm_tipc_own_node(int fd)
 {
 	struct sockaddr_tipc addr;
 	socklen_t sz = sizeof(addr);
@@ -467,7 +467,7 @@ static uns32 mdtm_tipc_own_node(int fd)
 
 *********************************************************/
 
-static uns32 mdtm_create_rcv_task(int mdtm_hdle)
+static uint32_t mdtm_create_rcv_task(int mdtm_hdle)
 {
 	/*
 	   STEP 1: Create a recv task which will recv data and
@@ -506,7 +506,7 @@ static uns32 mdtm_create_rcv_task(int mdtm_hdle)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_destroy_rcv_task(void)
+static uint32_t mdtm_destroy_rcv_task(void)
 {
 	if (m_NCS_TASK_STOP(tipc_cb.mdtm_hdle_task) != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDTM: Stop of the Created Task-failed:\n");
@@ -532,7 +532,7 @@ static uns32 mdtm_destroy_rcv_task(void)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-static uns32 mdtm_process_recv_events(void)
+static uint32_t mdtm_process_recv_events(void)
 {
 	/*
 	   STEP 1: Poll on the BSRsock and Dsock to get the events
@@ -638,7 +638,7 @@ static uns32 mdtm_process_recv_events(void)
 						      client_addr.addr.id.node, client_addr.addr.id.ref, errno);
 				} else if (recd_buf_len == recd_bytes) {
 					uns64 tipc_id = 0;
-					uns32 buff_dump = 0;
+					uint32_t buff_dump = 0;
 					tipc_id = ((uns64)client_addr.addr.id.node) << 32;	/* TIPC_ID=<NODE,REF> */
 					tipc_id |= client_addr.addr.id.ref;
 
@@ -724,7 +724,7 @@ static uns32 mdtm_process_recv_events(void)
 
 *********************************************************/
 
-static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_event event)
+static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct tipc_event event)
 {
 	/*
 	   STEP 1: Extract the type of  event name such as VDEST, SVC, PCON, NODE or Process.
@@ -780,7 +780,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 	   }
 	   }
 	 */
-	uns32 inst_type = 0, type = 0, lower = 0, node = 0, ref = 0;
+	uint32_t inst_type = 0, type = 0, lower = 0, node = 0, ref = 0;
 
 	MDS_DEST adest = 0;
 	MDS_SUBTN_REF_VAL subtn_ref_val;
@@ -807,7 +807,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 			MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver;
 			MDS_SVC_ARCHWORD_TYPE archword_type;
 
-			uns32 node_status = 0;
+			uint32_t node_status = 0;
 
 			svc_id = (uint16_t)(type & MDS_EVENT_MASK_FOR_SVCID);
 			vdest = (MDS_VDEST_ID)(lower);
@@ -909,7 +909,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 	case MDS_VDEST_INST_TYPE:
 		{
 			MDS_VDEST_ID vdest_id;
-			uns32 node_status = 0;
+			uint32_t node_status = 0;
 
 			vdest_id = (uint16_t)lower;
 
@@ -952,7 +952,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 	case MDS_NODE_INST_TYPE:
 		{
 			MDS_SVC_HDL svc_hdl;
-			uns32 node_status = 0;
+			uint32_t node_status = 0;
 			NODE_ID node_id = 0;
 
 			m_MDS_LOG_INFO("MDTM: Received NODE event");
@@ -1256,7 +1256,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
 				MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
@@ -1269,7 +1269,7 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
 	   <pwe,scope,ROLE=role ,vdest>
 	 */
 	struct sockaddr_tipc server_addr;
-	uns32 server_type = 0, server_inst = 0;
+	uint32_t server_type = 0, server_inst = 0;
 	MDS_SVC_ARCHWORD_TYPE archword = MDS_SELF_ARCHWORD;
 	pwe_id = pwe_id << MDS_EVENT_SHIFT_FOR_PWE;
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
@@ -1291,8 +1291,8 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
 	server_addr.addrtype = TIPC_ADDR_NAMESEQ;
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uns32)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper  4  bits */
-	server_inst |= (uns32)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8  Bits */
+	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper  4  bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8  Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -1302,14 +1302,14 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
 		policy = 1 & 0x1;
 	}
 
-	server_inst |= (uns32)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uns32)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
 
 	if (install_scope == NCSMDS_SCOPE_NONE) {
 		server_addr.scope = TIPC_CLUSTER_SCOPE;
@@ -1322,7 +1322,7 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
 		install_scope = 3;
 	}
 
-	server_inst |= (uns32)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
 	server_inst |= vdest_id;
 
 	server_addr.addr.nameseq.type = server_type;
@@ -1352,7 +1352,7 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
 
 *********************************************************/
 
-uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				  V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
 				  MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
@@ -1371,7 +1371,7 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	   <pwe,scope,NEWROLE,vdest>
 
 	 */
-	uns32 server_inst = 0, server_type = 0;
+	uint32_t server_inst = 0, server_type = 0;
 	MDS_SVC_ARCHWORD_TYPE archword = MDS_SELF_ARCHWORD;
 	pwe_id = pwe_id << MDS_EVENT_SHIFT_FOR_PWE;
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
@@ -1380,8 +1380,8 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	memset(&server_addr, 0, sizeof(server_addr));
 
 	server_type = server_type | MDS_TIPC_PREFIX | MDS_SVC_INST_TYPE | pwe_id | svc_id;
-	server_inst |= (uns32)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
-	server_inst |= (uns32)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8 Bits */
+	server_inst |= (uint32_t)((archword) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN));	/* Upper 4 Bits */
+	server_inst |= (uint32_t)((mds_svc_pvt_ver) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN));	/* next 8 Bits */
 
 	if (policy == NCS_VDEST_TYPE_MxN) {
 		policy = 0;
@@ -1389,14 +1389,14 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 		policy = 1;
 	}
 
-	server_inst |= (uns32)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((policy & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN));	/* Next 1 bit */
 
 	if (role == V_DEST_RL_ACTIVE) {
 		role = 0;
 	} else
 		role = 1;
 
-	server_inst |= (uns32)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
+	server_inst |= (uint32_t)((role & 0x1) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN));	/* Next 1 bit */
 
 	if (install_scope == NCSMDS_SCOPE_NONE) {
 		install_scope = 0;
@@ -1409,7 +1409,7 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 		server_addr.scope = -TIPC_CLUSTER_SCOPE;
 	}
 
-	server_inst |= (uns32)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
+	server_inst |= (uint32_t)((install_scope & 0x3) << (LEN_4_BYTES - MDS_ARCHWORD_BITS_LEN - MDS_VER_BITS_LEN - VDEST_POLICY_LEN - ACT_STBY_LEN - MDS_SCOPE_LEN));	/* Next 2  bit */
 
 	server_inst |= vdest_id;
 
@@ -1442,7 +1442,7 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 *********************************************************/
 
-uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
+uint32_t mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
 				  MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	/*
@@ -1456,7 +1456,7 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	   STEP 2: Fill the ref val
 
 	 */
-	uns32 server_type = 0, status = 0;
+	uint32_t server_type = 0, status = 0;
 	struct tipc_subscr subscr;
 	pwe_id = pwe_id << MDS_EVENT_SHIFT_FOR_PWE;
 	svc_id = svc_id & MDS_EVENT_MASK_FOR_SVCID;
@@ -1509,10 +1509,10 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 *********************************************************/
 
-uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	struct tipc_subscr net_subscr;
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_subscribe_tipc\n");
 	memset(&net_subscr, 0, sizeof(net_subscr));
@@ -1550,7 +1550,7 @@ uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_unsubscribe_tipc\n");
 	/* Presently TIPC doesnt supports the unsubscribe */
@@ -1621,7 +1621,7 @@ uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uns32 mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	/*
 	   STEP 1: Get ref_val and call the TIPC unsubscribe with the ref_val
@@ -1648,7 +1648,7 @@ uns32 mds_mdtm_svc_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 
 *********************************************************/
 
-uns32 mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id)
+uint32_t mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id)
 {
 	/*
 	   STEP 1: Bind to socket BSRSock with Tipc name sequence
@@ -1659,7 +1659,7 @@ uns32 mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id)
 	   <0,ROLE=0,POLICY=0,VDEST_ID >
 	 */
 	struct sockaddr_tipc server_addr;
-	uns32 server_type = 0, server_inst = 0;
+	uint32_t server_type = 0, server_inst = 0;
 
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.family = AF_TIPC;
@@ -1696,7 +1696,7 @@ uns32 mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id)
 
 *********************************************************/
 
-uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
+uint32_t mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
 {
 	/*
 	   STEP 1: Unbind to socket BSRSock with Tipc name sequence
@@ -1707,7 +1707,7 @@ uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
 	   <0,ROLE=0,POLICY=0,VDEST_ID >
 	 */
 
-	uns32 server_inst = 0, server_type = 0;
+	uint32_t server_inst = 0, server_type = 0;
 	struct sockaddr_tipc server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
 
@@ -1742,7 +1742,7 @@ uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
 
 *********************************************************/
 
-uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
+uint32_t mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 	/*
 	   STEP 1: Subscribe to socket DSock with Tipc name sequence
@@ -1753,7 +1753,7 @@ uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *su
 	   <0,ROLE=0,POLICY=0,VDEST_ID >
 	 */
 
-	uns32 inst = 0, server_type = 0;
+	uint32_t inst = 0, server_type = 0;
 	struct tipc_subscr subscr;
 
 	if (num_subscriptions > MAX_SUBSCRIPTIONS) {
@@ -1802,7 +1802,7 @@ uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *su
 
 *********************************************************/
 
-uns32 mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
+uint32_t mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 	/*
 	   STEP 1: Get ref_val and call the TIPC unsubscribe with the ref_val
@@ -1827,7 +1827,7 @@ uns32 mds_mdtm_vdest_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
 
 *********************************************************/
 /* Tx Register (For incrementing the use count) */
-uns32 mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest)
+uint32_t mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest)
 {
 	/*
 	   STEP 1: Check whether there is any TIPC_ID corresponding
@@ -1853,7 +1853,7 @@ uns32 mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest)
 
 *********************************************************/
 /* Tx Unregister (For decrementing the use count) */
-uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest)
+uint32_t mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest)
 {
 	/*
 	   STEP 1: Check whether there is any TIPC_ID corresponding to the passed ADEST in the
@@ -1884,7 +1884,7 @@ uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest)
 
 /* Send messages to the destination */
 
-uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
+uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 {
 	/*
 	   STEP 1: Get the TIPC_ID from the ADEST present in the recd structure
@@ -1895,7 +1895,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 	   convert the msg into flat buffer
 	   send message
 	 */
-	uns32 status = 0;
+	uint32_t status = 0;
 
 	if (req->to == DESTINATION_SAME_PROCESS) {
 		MDS_DATA_RECV recv;
@@ -1934,14 +1934,14 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 		struct tipc_portid tipc_id;
 		USRBUF *usrbuf;
 
-		uns32 frag_seq_num = 0, node_status = 0;
+		uint32_t frag_seq_num = 0, node_status = 0;
 
 		node_status = m_MDS_CHECK_NCS_NODE_ID_RANGE(m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
 
 		if (NCSCC_RC_SUCCESS == node_status) {
 			tipc_id.node =
 			    m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(m_MDS_GET_NODE_ID_FROM_ADEST(req->adest));
-			tipc_id.ref = (uns32)(req->adest);
+			tipc_id.ref = (uint32_t)(req->adest);
 		} else {
 			if (req->snd_type != MDS_SENDTYPE_ACK) {	/* This check is becoz in ack cases we are only sending the hdr and no data part is being send, so no message free , fix me */
 				mdtm_free_reassem_msg_mem(&req->msg);
@@ -1988,7 +1988,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 		case MDS_ENC_TYPE_FLAT:
 		case MDS_ENC_TYPE_FULL:
 			{
-				uns32 len = 0;
+				uint32_t len = 0;
 				len = m_MMGR_LINK_DATA_LEN(usrbuf);	/* Getting total len */
 
 				m_MDS_LOG_INFO("MDTM: User Sending Data lenght=%d Fr_svc=%d to_svc=%d\n", len,
@@ -2119,10 +2119,10 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 #define MDTM_FRAG_HDR_PLUS_LEN_2   10
 #endif
 
-uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id)
+uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id)
 {
 	USRBUF *usrbuf;
-	uns32 len = 0;
+	uint32_t len = 0;
 	uint16_t len_buf = 0;
 	uint8_t *p8;
 	uint16_t i = 1;
@@ -2236,7 +2236,7 @@ uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid i
 
 *********************************************************/
 
-uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uns32 seq_num, uint16_t frag_byte)
+uint32_t mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uint32_t seq_num, uint16_t frag_byte)
 {
 	/* Add the FRAG HDR to the Buffer */
 	uint8_t *data;
@@ -2269,7 +2269,7 @@ uns32 mdtm_add_frag_hdr(uint8_t *buf_ptr, uint16_t len, uns32 seq_num, uint16_t 
 
 *********************************************************/
 
-static uns32 mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid id)
+static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid id)
 {
 	/* Can be made as macro even */
 	struct sockaddr_tipc server_addr;
@@ -2317,7 +2317,7 @@ static uns32 mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid 
  *
  ****************************************************************************/
 
-static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
+static uint32_t mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
 {
 	uint8_t prot_ver = 0, enc_snd_type = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
@@ -2325,9 +2325,9 @@ static uns32 mdtm_add_mds_hdr(uint8_t *buffer, MDTM_SEND_REQ *req)
 #endif
 
 	uint16_t zero_16 = 0;
-	uns32 zero_32 = 0;
+	uint32_t zero_32 = 0;
 
-	uns32 xch_id = 0;
+	uint32_t xch_id = 0;
 
 	uint8_t *ptr;
 	ptr = buffer;

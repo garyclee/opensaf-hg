@@ -105,38 +105,38 @@ extern "C" {
 	USRBUF *ncs_encode_n_octets(USRBUF *, uint8_t *, unsigned int);
 	USRBUF *ncs_encode_uns8(USRBUF *u, uint8_t val8);
 	USRBUF *ncs_encode_uns16(USRBUF *u, uint16_t val16);
-	USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32);
+	USRBUF *ncs_encode_uns32(USRBUF *u, uint32_t val32);
 	USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64);
 	USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uint8_t *os, unsigned int);
 	USRBUF *ncs_prepend_uns16(USRBUF *u, uint16_t);
-	USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
+	USRBUF *ncs_prepend_uns32(USRBUF *u, uint32_t);
 	USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
 	USRBUF *ncs_encode_float(USRBUF *u, float obj_val);
 
 	uns64 ncs_encode_64bit(uint8_t **stream, uns64);
-	uns32 ncs_encode_32bit(uint8_t **stream, uns32);
-	uns32 ncs_encode_24bit(uint8_t **stream, uns32);
-	uns32 ncs_encode_16bit(uint8_t **stream, uns32);
-	uns32 ncs_encode_8bit(uint8_t **stream, uns32);
-	uns32 ncs_encode_key(uint8_t **stream, NCS_KEY *key);
+	uint32_t ncs_encode_32bit(uint8_t **stream, uint32_t);
+	uint32_t ncs_encode_24bit(uint8_t **stream, uint32_t);
+	uint32_t ncs_encode_16bit(uint8_t **stream, uint32_t);
+	uint32_t ncs_encode_8bit(uint8_t **stream, uint32_t);
+	uint32_t ncs_encode_key(uint8_t **stream, NCS_KEY *key);
 
-	uns32 ncs_encode_octets(uint8_t **stream, uint8_t *val, uns32 count);
+	uint32_t ncs_encode_octets(uint8_t **stream, uint8_t *val, uint32_t count);
 
 /*
  * NCS_DEC decode functions
  */
-	USRBUF *ncs_decode_n_octets(USRBUF *, uint8_t *, uns32);
+	USRBUF *ncs_decode_n_octets(USRBUF *, uint8_t *, uint32_t);
 
-	USRBUF *ncs_skip_n_octets(USRBUF *, uns32);
-	uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uns32 count);
+	USRBUF *ncs_skip_n_octets(USRBUF *, uint32_t);
+	uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count);
 
-	uns32 ncs_decode_short(uint8_t **stream);
-	uns32 ncs_decode_24bit(uint8_t **stream);
-	uns32 ncs_decode_32bit(uint8_t **stream);
+	uint32_t ncs_decode_short(uint8_t **stream);
+	uint32_t ncs_decode_24bit(uint8_t **stream);
+	uint32_t ncs_decode_32bit(uint8_t **stream);
 	uint16_t ncs_decode_16bit(uint8_t **stream);
 	uns64 ncs_decode_64bit(uint8_t **stream);
 	uint8_t ncs_decode_8bit(uint8_t **stream);
-	uns32 ncs_decode_key(uint8_t **stream, NCS_KEY *key);
+	uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key);
 
 	float ncs_decode_float(uint8_t **stream);
 
@@ -162,22 +162,22 @@ extern "C" {
 /* encode float */
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
-          *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
+          *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); \
          }
 #else
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
-          *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
+          *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); \
          }
 #endif
 
 /* decode float */
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_DECODE_FLOAT(n, dec) {\
-          *((uns32 *) (dec)) = (n); \
+          *((uint32_t *) (dec)) = (n); \
          }
 #else
 #define m_NCS_DECODE_FLOAT(n, dec) {\
-          *((uns32 *) (dec)) = (n); \
+          *((uint32_t *) (dec)) = (n); \
          }
 #endif
 

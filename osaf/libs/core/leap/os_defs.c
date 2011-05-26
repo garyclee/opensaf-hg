@@ -86,7 +86,7 @@ NCS_OS_LOCK *get_cloexec_lock()
 	return &ncs_fd_cloexec_lock;
 }
 
-void get_msec_time(uns32 *seconds, uns32 *millisec)
+void get_msec_time(uint32_t *seconds, uint32_t *millisec)
 {
 	struct timeval time_now;
 
@@ -116,7 +116,7 @@ void get_msec_time(uns32 *seconds, uns32 *millisec)
  *
  *
  ****************************************************************************/
-uns32 ncs_get_uptime(uns64 *o_uptime)
+uint32_t ncs_get_uptime(uns64 *o_uptime)
 {
 	int result = 0;
 	double i_uptime = 0;
@@ -731,7 +731,7 @@ void ncs_os_atomic_inc(void *p_uns32)
 {
 	assert(gl_ncs_atomic_mtx_initialise);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-	((*(uns32 *)p_uns32)++);
+	((*(uint32_t *)p_uns32)++);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 }
 
@@ -739,7 +739,7 @@ void ncs_os_atomic_dec(void *p_uns32)
 {
 	assert(gl_ncs_atomic_mtx_initialise);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-	((*(uns32 *)p_uns32)--);
+	((*(uint32_t *)p_uns32)--);
 	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 
 }
@@ -823,7 +823,7 @@ unsigned int ncs_os_lock(NCS_OS_LOCK * lock, NCS_OS_LOCK_REQUEST request, unsign
 
 /***************************************************************************
  *
- * uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req)
+ * uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req)
  * 
  *
  * Description:
@@ -842,7 +842,7 @@ unsigned int ncs_os_lock(NCS_OS_LOCK * lock, NCS_OS_LOCK_REQUEST request, unsign
  ****************************************************************************/
 #define NCS_OS_MQ_MSG_DATA_OFFSET ( (long)(((NCS_OS_MQ_MSG*)(0))->data) )
 
-uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
+uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 {
 #define NCS_OS_MQ_PROTECTION_FLAGS (0644)	/* Note: Octal form of number !! */
 	switch (info->req) {
@@ -850,7 +850,7 @@ uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 	case NCS_OS_MQ_REQ_MSG_SEND_ASYNC:
 		{
 			struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
-			uns32 flags;
+			uint32_t flags;
 
 			buf->mtype = info->info.send.i_mtype;	/* Fits into the "LL_HDR" of NCS_OS_MQ_MSG struct */
 
@@ -870,9 +870,9 @@ uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 	case NCS_OS_MQ_REQ_MSG_RECV_ASYNC:
 		{
 			struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
-			uns32 flags;
-			uns32 max_recv = info->info.recv.i_max_recv + NCS_OS_MQ_MSG_DATA_OFFSET;
-			int32 i_mtype = info->info.recv.i_mtype;
+			uint32_t flags;
+			uint32_t max_recv = info->info.recv.i_max_recv + NCS_OS_MQ_MSG_DATA_OFFSET;
+			int32_t i_mtype = info->info.recv.i_mtype;
 
 			if (max_recv > sizeof(NCS_OS_MQ_MSG))
 				return NCSCC_RC_FAILURE;
@@ -953,7 +953,7 @@ uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 
 /***************************************************************************
  *
- * uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
+ * uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
  * 
  *
  * Description:
@@ -971,7 +971,7 @@ uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
  *
  ****************************************************************************/
 
-uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
+uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 {
 
 	switch (req->req) {
@@ -1036,7 +1036,7 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 			NCS_OS_MQ_KEY key;
 			NCS_OS_FILE file;
 			char filename[264];
-			uns32 rc;
+			uint32_t rc;
 			struct msqid_ds buf;
 			void *file_handle;
 
@@ -1135,7 +1135,7 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 
 /***************************************************************************
  *
- * uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
+ * uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
  * 
  *
  * Description:
@@ -1152,9 +1152,9 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
  * Notes:
  *
  ****************************************************************************/
-static int32 ncs_shm_prot_flags(uns32 flags);
+static int32_t ncs_shm_prot_flags(uint32_t flags);
 
-static int32 ncs_shm_prot_flags(uns32 flags)
+static int32_t ncs_shm_prot_flags(uint32_t flags)
 {
 
 	int prot_flag = PROT_NONE;
@@ -1178,10 +1178,10 @@ static int32 ncs_shm_prot_flags(uns32 flags)
 	return prot_flag;
 }
 
-uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
+uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 {
-	uns32 prot_flag;
-	int32 ret_flag;
+	uint32_t prot_flag;
+	int32_t ret_flag;
 	long shm_size;
 	char shm_name[PATH_MAX];
 
@@ -1909,7 +1909,7 @@ void ncs_stty_reset(void)
  *
  ****************************************************************************/
 
-void *ncs_os_udef_alloc(uns32 size, uint8_t pool_id, uint8_t pri)
+void *ncs_os_udef_alloc(uint32_t size, uint8_t pool_id, uint8_t pri)
 {
 	return m_NCS_OS_MEMALLOC(size, NULL);
 }
@@ -1944,7 +1944,7 @@ void ncs_os_udef_free(void *ptr, uint8_t pool_id)
 
 /***************************************************************************
  *
- * uns32
+ * uint32_t
  * ncs_cpu_mon_init(void)
  *
  * Description:
@@ -1958,14 +1958,14 @@ void ncs_os_udef_free(void *ptr, uint8_t pool_id)
  *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
  *
  ****************************************************************************/
-uns32 ncs_cpu_mon_init(void)
+uint32_t ncs_cpu_mon_init(void)
 {
 	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************
  *
- * uns32
+ * uint32_t
  * ncs_cpu_mon_shutdown(void)
  *
  * Description:
@@ -1979,7 +1979,7 @@ uns32 ncs_cpu_mon_init(void)
  *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
  *
  ****************************************************************************/
-uns32 ncs_cpu_mon_shutdown(void)
+uint32_t ncs_cpu_mon_shutdown(void)
 {
 	return NCSCC_RC_SUCCESS;
 }
@@ -2188,7 +2188,7 @@ unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON
  * Notes:
  *
  **************************************************************************/
-uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
+uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 {
 	int count;
 	int pid;
@@ -2377,7 +2377,7 @@ sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 #define DIAG2(x, y, z)
 #endif
 
-uns32 ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
+uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
 {
 	int s_pair[2];
 	int flags = 0;
@@ -2413,7 +2413,7 @@ uns32 ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ i_ind_obj)
+uint32_t ncs_sel_obj_destroy(NCS_SEL_OBJ i_ind_obj)
 {
 	shutdown(i_ind_obj.raise_obj, SHUT_RDWR);
 	close(i_ind_obj.raise_obj);
@@ -2422,7 +2422,7 @@ uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ i_ind_obj)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
+uint32_t ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
 	if (i_ind_obj == NULL)
 		return NCSCC_RC_FAILURE;
@@ -2439,7 +2439,7 @@ uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 }
 
 /* This function will make select unblock */
-uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_ind_obj)
+uint32_t ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
 	if (i_ind_obj == NULL)
 		return NCSCC_RC_FAILURE;
@@ -2455,7 +2455,7 @@ uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_sel_obj_ind(NCS_SEL_OBJ i_ind_obj)
+uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ i_ind_obj)
 {
 	/* The following call can block, in such a case a failure is returned */
 	if (write(i_ind_obj.raise_obj, "A", 1) != 1)
@@ -2580,12 +2580,12 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, NCS_BOOL nonblock, NCS_BOOL one_a
 }
 
 int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
-		       NCS_SEL_OBJ_SET *rfds, NCS_SEL_OBJ_SET *wfds, NCS_SEL_OBJ_SET *efds, uns32 *timeout_in_10ms)
+		       NCS_SEL_OBJ_SET *rfds, NCS_SEL_OBJ_SET *wfds, NCS_SEL_OBJ_SET *efds, uint32_t *timeout_in_10ms)
 {
 	struct timeval tmout_in_tv = { 0, 0 };
 	struct timeval *p_tmout_in_tv;
 	int rc;
-	uns32 rem10ms = 0, old_rem10ms = 0;
+	uint32_t rem10ms = 0, old_rem10ms = 0;
 	NCS_SEL_OBJ_SET save_rfds, save_wfds, save_efds;
 
 	FD_ZERO(&save_rfds);
@@ -2648,7 +2648,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 	return rc;
 }
 
-int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *timeout_in_10ms)
+int32_t ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uint32_t *timeout_in_10ms)
 {
 	struct pollfd pfd;	/* Poll struct for user's fd      */
 	int poll_wait_time_in_ms;	/* Total wait time req. by caller */

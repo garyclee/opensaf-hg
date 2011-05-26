@@ -2,26 +2,26 @@
 #include "mbcsv_api.h"
 #include "tet_api.h"
 
-uns32 mbcstm_event_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                            uns32 bsys, MBCSTM_TEST_ACTION action,
-                            uns32 act_on_sys,uns32 act_val,
-                            MBCSTM_CB_TEST cb_check,uns32 wait,
-                            uns32 peer_count,uns64 peer_anchor, 
+uint32_t mbcstm_event_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                            uint32_t bsys, MBCSTM_TEST_ACTION action,
+                            uint32_t act_on_sys,uint32_t act_val,
+                            MBCSTM_CB_TEST cb_check,uint32_t wait,
+                            uint32_t peer_count,uns64 peer_anchor, 
                             MBCSTM_FSM_STATES state_check);
 
 
-uns32 mbcstm_event_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
-                            uns32 bsys, MBCSTM_TEST_ACTION action,
-                            uns32 act_on_sys,uns32 act_val,
-                            MBCSTM_CB_TEST cb_check,uns32 wait,
-                            uns32 peer_count,uns64 peer_anchor, 
+uint32_t mbcstm_event_purposes(uint32_t svc_index, uint32_t ssn_index, uint32_t asys,
+                            uint32_t bsys, MBCSTM_TEST_ACTION action,
+                            uint32_t act_on_sys,uint32_t act_val,
+                            MBCSTM_CB_TEST cb_check,uint32_t wait,
+                            uint32_t peer_count,uns64 peer_anchor, 
                             MBCSTM_FSM_STATES state_check)
 {
-  uns32 test_result = NCSCC_RC_FAILURE;
+  uint32_t test_result = NCSCC_RC_FAILURE;
   MBCSTM_PEERS_DATA peers;
   MBCSTM_PEER_INST       *pr;
   /*change*/
-  uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
+  uint32_t mbcstm_check_inv(MBCSTM_CHECK , uint32_t , uint32_t , void *);
   
   memset(&peers, '\0', sizeof(MBCSTM_PEERS_DATA));
   
@@ -98,7 +98,7 @@ uns32 mbcstm_event_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
   sleep(wait + 1);
   if (mbcstm_cb.sys == MBCSTM_SVC_INS1)
     {
-      uns32 index;
+      uint32_t index;
       mbcstm_check_inv(MBCSTM_CHECK_PEER_LIST, svc_index, ssn_index, &peers);
       /* check number peers is ok or not */
       if(peers.peer_count !=  peer_count)
@@ -151,7 +151,7 @@ uns32 mbcstm_event_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
 
 void mbcstm_peerup_event_newactive_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_peerup_event_newactive_to_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -181,7 +181,7 @@ void mbcstm_peerup_event_newactive_to_active()
 
 void mbcstm_peerup_event_newactive_to_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;  
+  uint32_t svc_index = 1, ssn_index = 1;  
   char case_name[] = "mbcstm_peerup_event_newactive_to_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -214,7 +214,7 @@ void mbcstm_peerup_event_newactive_to_standby()
 
 void mbcstm_peerup_event_newstandby_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_peerup_event_newstandby_to_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -247,7 +247,7 @@ void mbcstm_peerup_event_newstandby_to_active()
 
 void mbcstm_peerup_event_newstandby_to_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_peerup_event_newstandby_to_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -278,7 +278,7 @@ void mbcstm_peerup_event_newstandby_to_standby()
 
 void mbcstm_peerdown_event_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_peerdown_event_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -307,7 +307,7 @@ void mbcstm_peerdown_event_active()
 
 void mbcstm_peerdown_event_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_peerdown_event_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -336,7 +336,7 @@ void mbcstm_peerdown_event_standby()
 
 void mbcstm_cngrole_event_newactive_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_cngrole_event_newactive_to_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -366,7 +366,7 @@ void mbcstm_cngrole_event_newactive_to_active()
 
 void mbcstm_cngrole_event_newactive_to_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_cngrole_event_newactive_to_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -398,7 +398,7 @@ void mbcstm_cngrole_event_newactive_to_standby()
 
 void mbcstm_cngrole_event_newstandby_to_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_cngrole_event_newstandby_to_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -433,7 +433,7 @@ void mbcstm_cngrole_event_newstandby_to_active()
 }
 void mbcstm_cngrole_event_newstandby_to_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_cngrole_event_newstandby_to_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -470,7 +470,7 @@ void mbcstm_cngrole_event_newstandby_to_standby()
 
 void mbcstm_active_multiactive_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_active_multiactive_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -509,7 +509,7 @@ void mbcstm_active_multiactive_standby()
 /* NEW */
 void mbcstm_standby_active_quiesced()
 {
-  uns32 svc_index = 1, ssn_index = 1;                                        
+  uint32_t svc_index = 1, ssn_index = 1;                                        
   char case_name[] = "mbcstm_standby_active_quiesced";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -541,7 +541,7 @@ void mbcstm_standby_active_quiesced()
 /* Note: Below two cases are not added in to the arry because behaviour is undefined at present */
 void mbcstm_multi_multi_active()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_multi_multi_active";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;
@@ -578,7 +578,7 @@ void mbcstm_multi_multi_active()
 
 void mbcstm_multi_multi_active_standby()
 {
-  uns32 svc_index = 1, ssn_index = 1;
+  uint32_t svc_index = 1, ssn_index = 1;
   char case_name[] = "mbcstm_multi_multi_active_standby";
   char case_disc[] = "";
   TET_MBCSV_RESULT exp_res = TET_MBCSV_PASS, final_res = TET_MBCSV_FAIL;

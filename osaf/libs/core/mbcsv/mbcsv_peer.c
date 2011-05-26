@@ -147,9 +147,9 @@ PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_shutdown_peer(PEER_INST *peer_ptr)
+uint32_t mbcsv_shutdown_peer(PEER_INST *peer_ptr)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ncs_mbcsv_stop_all_timers(peer_ptr);
 
 	/* 
@@ -196,7 +196,7 @@ uns32 mbcsv_shutdown_peer(PEER_INST *peer_ptr)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_rmv_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_rmv_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 {
 	PEER_INST *last_ptr = NULL, *this_ptr = ckpt->peer_list;
 
@@ -229,7 +229,7 @@ uns32 mbcsv_rmv_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
 * Notes:  
 *
 \**************************************************************************/
-uns32 mbcsv_empty_peers_list(CKPT_INST *ckpt)
+uint32_t mbcsv_empty_peers_list(CKPT_INST *ckpt)
 {
 	PEER_INST *this_ptr = NULL, *next_ptr = ckpt->peer_list;
 
@@ -257,7 +257,7 @@ uns32 mbcsv_empty_peers_list(CKPT_INST *ckpt)
 *                     FAILURE - fail to process PEER_UP.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg)
+uint32_t mbcsv_process_peer_discovery_message(MBCSV_EVT *msg, MBCSV_REG *mbc_reg)
 {
 	CKPT_INST *ckpt;
 
@@ -603,7 +603,7 @@ void mbcsv_set_peer_state(CKPT_INST *ckpt, PEER_INST *peer, NCS_BOOL peer_up)
 *                     FAILURE - fail to process PEER_UP.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t peer_up)
+uint32_t mbcsv_process_peer_up_info(MBCSV_EVT *msg, CKPT_INST *ckpt, uint8_t peer_up)
 {
 	PEER_INST *peer;
 
@@ -701,7 +701,7 @@ void mbcsv_update_peer_info(MBCSV_EVT *msg, CKPT_INST *ckpt, PEER_INST *peer)
 *                     FAILURE - fail to process PEER_UP.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt)
+uint32_t mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
 	PEER_INST *peer, *peer_ptr;
 	NCS_BOOL act_peer = FALSE;
@@ -771,7 +771,7 @@ uns32 mbcsv_process_peer_down(MBCSV_EVT *msg, CKPT_INST *ckpt)
 *                     FAILURE - fail to process PEER_INFO_RSP.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt)
+uint32_t mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
 	PEER_INST *peer;
 
@@ -807,7 +807,7 @@ uns32 mbcsv_process_peer_info_rsp(MBCSV_EVT *msg, CKPT_INST *ckpt)
 *                     FAILURE - fail to process PEER_CHG_ROLE.
 *
 *****************************************************************************/
-uns32 mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt)
+uint32_t mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
 	PEER_INST *peer;
 
@@ -835,8 +835,8 @@ uns32 mbcsv_process_peer_chg_role(MBCSV_EVT *msg, CKPT_INST *ckpt)
 *                     FAILURE - fail to process PEER_UP.
 *
 \*****************************************************************************/
-uns32 mbcsv_send_peer_disc_msg(uns32 type, MBCSV_REG *mbc, CKPT_INST *ckpt,
-			       PEER_INST *peer, uns32 mds_send_type, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_send_peer_disc_msg(uint32_t type, MBCSV_REG *mbc, CKPT_INST *ckpt,
+			       PEER_INST *peer, uint32_t mds_send_type, MBCSV_ANCHOR anchor)
 {
 	MBCSV_EVT evt;
 

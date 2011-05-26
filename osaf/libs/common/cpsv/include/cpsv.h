@@ -94,17 +94,17 @@
 #define TEST_FUNC(DS) \
        cpsv_edp_##DS##_fnc
 
-#define FUNC_DECLARATION(DS)   uns32 \
+#define FUNC_DECLARATION(DS)   uint32_t \
                    FUNC_NAME(DS)(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, \
-                   NCSCONTEXT ptr, uns32 *ptr_data_len, \
+                   NCSCONTEXT ptr, uint32_t *ptr_data_len, \
                    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, \
                    EDU_ERR *o_err)
 
-#define TEST_FUNC_DECLARATION(DS) uns32 \
+#define TEST_FUNC_DECLARATION(DS) uint32_t \
                          TEST_FUNC(DS)(NCSCONTEXT arg)
 
 #define NCS_ENC_DEC_DECLARATION(DS) \
-                 uns32 rc = NCSCC_RC_SUCCESS; \
+                 uint32_t rc = NCSCC_RC_SUCCESS; \
                  DS   *struct_ptr = NULL, **d_ptr = NULL
 
 #define NCS_ENC_DEC_ARRAY(DS) \

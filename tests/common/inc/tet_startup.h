@@ -22,12 +22,12 @@ typedef struct sys_cfg_info {
 
 /* MDS Information  .............*/
 
-   uns32                cluster_id;
-   uns32                node_id;
+   uint32_t                cluster_id;
+   uint32_t                node_id;
    NCS_BOOL             hub_flag;
-   uns32                pcon_id;
-   uns32                mds_ip_addr;
-   uns32                mds_ifindex;
+   uint32_t                pcon_id;
+   uint32_t                mds_ip_addr;
+   uint32_t                mds_ifindex;
 
 /* FLAGS     .......................*/
 

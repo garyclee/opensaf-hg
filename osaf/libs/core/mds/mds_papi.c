@@ -48,9 +48,9 @@
  *
  ****************************************************************************/
 
-uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
+uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (svc_to_mds_info == NULL) {
 		m_MDS_LOG_ERR("MDS_PAPI : Input svc_to_mds_info = NULL in ncsmds_api()");
@@ -145,9 +145,9 @@ uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
  *
  ****************************************************************************/
 
-uns32 ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
+uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (mds_adm == NULL) {
 		m_MDS_LOG_ERR("MDS_PAPI : Invalid Input mds_adm = NULL in ncsmds_adm_api()");

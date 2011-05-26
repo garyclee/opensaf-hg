@@ -22,8 +22,8 @@
 #include"dtm_intra_trans.h"
 
 
-static uns32 dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len);
-static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int fd);
+static uint32_t dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len);
+static uint32_t dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int fd);
 
 
 /**
@@ -35,7 +35,7 @@ static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_process_rcv_internode_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_t len)
+uint32_t dtm_process_rcv_internode_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len)
 {
 	return dtm_intranode_process_rcv_data_msg(buffer, dst_pid, len);
 }
@@ -49,7 +49,7 @@ uns32 dtm_process_rcv_internode_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_t len)
+uint32_t dtm_intranode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	pid_node = dtm_intranode_get_pid_info_using_pid(dst_pid);
@@ -74,11 +74,11 @@ uns32 dtm_intranode_process_rcv_data_msg(uint8_t *buffer, uns32 dst_pid, uint16_
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len)
+static uint32_t dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len)
 {
 	uint8_t *data = buffer;
 	ncs_encode_16bit(&data, (uint16_t)(len));
-	ncs_encode_32bit(&data, (uns32)DTM_INTRANODE_SND_MSG_IDENTIFIER);
+	ncs_encode_32bit(&data, (uint32_t)DTM_INTRANODE_SND_MSG_IDENTIFIER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_INTRANODE_SND_MSG_VER);
 	ncs_encode_8bit(&data, (uint8_t)DTM_LIB_MESSAGE_TYPE);
 	/* Remaining data already in buffer */
@@ -94,7 +94,7 @@ static uns32 dtm_lib_prepare_data_msg(uint8_t *buffer, uint16_t len)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID_INFO * pid_node)
+uint32_t dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID_INFO * pid_node)
 {
 	DTM_INTRANODE_UNSENT_MSGS *add_ptr = NULL, *hdr = pid_node->msgs_hdr, *tail = pid_node->msgs_tail;
 	TRACE_ENTER();
@@ -149,7 +149,7 @@ uns32 dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID_IN
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_intranode_process_pollout(int fd)
+uint32_t dtm_intranode_process_pollout(int fd)
 {
 	DTM_INTRANODE_PID_INFO *pid_node = NULL;
 	pid_node = dtm_intranode_get_pid_info_using_fd(fd);
@@ -181,7 +181,7 @@ uns32 dtm_intranode_process_pollout(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int fd)
+static uint32_t dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int fd)
 {
 	DTM_INTRANODE_UNSENT_MSGS *hdr = pid_node->msgs_hdr, *unsent_msg = pid_node->msgs_hdr;
 	int snd_count = 0;
@@ -245,7 +245,7 @@ static uns32 dtm_intranode_snd_unsent_msg(DTM_INTRANODE_PID_INFO * pid_node, int
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_pid(uns32 pid)
+DTM_INTRANODE_PID_INFO *dtm_intranode_get_pid_info_using_pid(uint32_t pid)
 {
 	DTM_INTRANODE_PID_INFO *node = NULL;
 	node =

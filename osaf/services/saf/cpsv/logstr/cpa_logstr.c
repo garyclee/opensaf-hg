@@ -212,10 +212,10 @@ NCSFL_ASCII_SPEC cpa_ascii_spec = {
   RETURNS        : SUCCESS - All went well
                    FAILURE - internal processing didn't like something.
 \*****************************************************************************/
-uns32 cpa_log_ascii_reg(void)
+uint32_t cpa_log_ascii_reg(void)
 {
 	NCS_DTSV_REG_CANNED_STR arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, 0, sizeof(arg));
 

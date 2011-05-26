@@ -31,11 +31,11 @@ typedef struct mqnd_tmr {
 	MQND_TMR_TYPE type;
 	tmr_t tmr_id;
 	SaMsgQueueHandleT qhdl;
-	uns32 uarg;
+	uint32_t uarg;
 	NCS_BOOL is_active;
 } MQND_TMR;
 
-uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);
+uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);
 void mqnd_tmr_stop(MQND_TMR *tmr);
 
 #endif

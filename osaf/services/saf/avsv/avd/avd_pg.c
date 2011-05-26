@@ -125,10 +125,10 @@ done:
  *
  * NOTES: None
  **************************************************************************/
-uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
+uint32_t avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
 {
 	AVD_COMP_CSI_REL *comp_csi = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* scan the comp-csi rel list & generate pg upd for each track req */
@@ -156,10 +156,10 @@ uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
  *
  * NOTES: None
  **************************************************************************/
-uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL is_rmv)
+uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL is_rmv)
 {
 	AVD_PG_CSI_NODE *csi_node = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* generate pg upd for each track req */
 	for (csi_node =
@@ -187,7 +187,7 @@ uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL
  *
  * NOTES: None.
  **************************************************************************/
-uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
+uint32_t avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 {
 	AVD_PG_CSI_NODE *pg_csi_node = 0;
 	AVD_PG_NODE_CSI *pg_node_csi = 0;

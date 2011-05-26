@@ -39,7 +39,7 @@ extern IMMND_CB *immnd_cb;
 /* file : -  immnd_proc.c */
 
 void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id);
-uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
 void immnd_proc_imma_discard_stales(IMMND_CB *cb);
 
 void immnd_cb_dump(void);
@@ -48,15 +48,15 @@ void immnd_proc_immd_down(IMMND_CB *cb);
 void immnd_proc_imma_up(IMMND_CB *cb, MDS_DEST dest);
 void immnd_proc_app_status(IMMND_CB *cb);
 void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment);
-uns32 immnd_introduceMe(IMMND_CB *cb);
+uint32_t immnd_introduceMe(IMMND_CB *cb);
 void immnd_announceDump(IMMND_CB *cb);
-uns32 immnd_is_immd_up(IMMND_CB *cb);
+uint32_t immnd_is_immd_up(IMMND_CB *cb);
 IMMSV_ADMIN_OPERATION_PARAM * immnd_getOsafImmPbeAdmopParam(
 	    SaImmAdminOperationIdT operationId, 
 	    void* evt,
 	    IMMSV_ADMIN_OPERATION_PARAM * param);
 void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint32T reqConn);
-void immnd_ackToNid(uns32 rc);
+void immnd_ackToNid(uint32_t rc);
 SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
 
 void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId);
@@ -360,7 +360,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-/* End ImmModel.cc *//* File : ---  immnd_amf.c */ uns32 immnd_amf_init(IMMND_CB *immnd_cb);
+/* End ImmModel.cc *//* File : ---  immnd_amf.c */ uint32_t immnd_amf_init(IMMND_CB *immnd_cb);
 
 /* End immnd_amf.c */
 
@@ -368,8 +368,8 @@ extern "C" {
 
 void immnd_client_node_get(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
 void immnd_client_node_getnext(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_IMM_CLIENT_NODE **imm_client_node);
-uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_node);
-uns32 immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node);
+uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_node);
+uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node);
 
 IMMSV_OCTET_STRING *immnd_dequeue_incoming_fevs_msg(IMMSV_OCTET_STRING *msg,
 	IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT *clnt_hdl,
@@ -391,22 +391,22 @@ void dequeue_outgoing(IMMND_CB *cb);
 /* End  File : immnd_db.c */
 
 /* File : --- immnd_mds.c */
-uns32 immnd_mds_send_rsp(IMMND_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt);
-uns32 immnd_mds_msg_sync_send(IMMND_CB *cb, uns32 to_svc, MDS_DEST to_dest,
-			      IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uns32 timeout);
-uns32 immnd_mds_msg_send(IMMND_CB *cb, uns32 to_svc, MDS_DEST to_dest, IMMSV_EVT *evt);
-uns32 immnd_mds_register(IMMND_CB *cb);
+uint32_t immnd_mds_send_rsp(IMMND_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt);
+uint32_t immnd_mds_msg_sync_send(IMMND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
+			      IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout);
+uint32_t immnd_mds_msg_send(IMMND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMMSV_EVT *evt);
+uint32_t immnd_mds_register(IMMND_CB *cb);
 void immnd_mds_unregister(IMMND_CB *cb);
-uns32 immnd_mds_get_handle(IMMND_CB *cb);
+uint32_t immnd_mds_get_handle(IMMND_CB *cb);
 /* End : --- immnd_mds.c */
 
 /* File : ----  immnd_evt.c */
 void immnd_process_evt(void);
-uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line);
+uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line);
 /* End : ----  immnd_evt.c  */
 
 /* File : ----  immnd_proc.c */
-uns32 immnd_proc_server(uns32 *timeout);
+uint32_t immnd_proc_server(uint32_t *timeout);
 /* End : ----  immnd_proc.c  */
 
 #endif

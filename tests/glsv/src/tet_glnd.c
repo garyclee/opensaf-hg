@@ -2,7 +2,7 @@
 
 #include "tet_glsv.h"
 
-extern uns32 gl_glnd_hdl;
+extern uint32_t gl_glnd_hdl;
 
 void tet_run_glnd() {
 
@@ -88,7 +88,7 @@ void print_resource_cb_info() {
 
    GLND_CB       *glnd_cb;
    GLND_RESOURCE_INFO *glnd_rsc;
-   uns32 res = NCSCC_RC_SUCCESS;
+   uint32_t res = NCSCC_RC_SUCCESS;
    uint8_t *key=NULL;
 
    printf("print_resource_cb_info  %x\n",glnd_rsc);
@@ -145,11 +145,11 @@ void tet_glnd_testcase_2 ()
 
 }
 
-uns32 tet_glnd_testcase_3(SaNameT rscName)
+uint32_t tet_glnd_testcase_3(SaNameT rscName)
 {
 
   GLSV_GLD_EVT            gld_evt;
-  uns32                   ret;
+  uint32_t                   ret;
   GLND_CB       *glnd_cb=0;
   
   glnd_cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND,gl_glnd_hdl);

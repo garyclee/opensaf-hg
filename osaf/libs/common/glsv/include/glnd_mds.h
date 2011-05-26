@@ -59,23 +59,23 @@
 /********************************************************************/
 /*** Extern function declarations ***/
 
-uns32 glnd_mds_register(struct glnd_cb_tag *cb);
+uint32_t glnd_mds_register(struct glnd_cb_tag *cb);
 
 void glnd_mds_unregister(struct glnd_cb_tag *cb);
 
-uns32 glnd_mds_msg_send_gla(struct glnd_cb_tag *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest);
+uint32_t glnd_mds_msg_send_gla(struct glnd_cb_tag *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest);
 
-uns32 glnd_mds_msg_send_rsp_gla(struct glnd_cb_tag *cb,
+uint32_t glnd_mds_msg_send_rsp_gla(struct glnd_cb_tag *cb,
 				GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest, MDS_SYNC_SND_CTXT *mds_ctxt);
 
-uns32 glnd_mds_msg_send_glnd(struct glnd_cb_tag *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_dest);
+uint32_t glnd_mds_msg_send_glnd(struct glnd_cb_tag *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_dest);
 
-uns32 glnd_mds_msg_send_gld(struct glnd_cb_tag *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_dest);
+uint32_t glnd_mds_msg_send_gld(struct glnd_cb_tag *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_dest);
 
-uns32 glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uns32 priority);
+uint32_t glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uint32_t priority);
 
 /* prototype for event handler */
-typedef uns32 (*GLSV_GLND_EVT_HANDLER) (struct glnd_cb_tag *, GLSV_GLND_EVT *);
+typedef uint32_t (*GLSV_GLND_EVT_HANDLER) (struct glnd_cb_tag *, GLSV_GLND_EVT *);
 
 /*  macros to fill up the events */
 

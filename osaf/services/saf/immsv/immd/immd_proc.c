@@ -27,7 +27,7 @@ void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
 {
 	IMMSV_EVT send_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
-	uns32 proc_rc;
+	uint32_t proc_rc;
 	TRACE_ENTER();
 
 	if (active) {
@@ -312,7 +312,7 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS_BOOL active)
+uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS_BOOL active)
 {
 	IMMSV_EVT send_evt;
 	NCS_UBAID uba;
@@ -406,7 +406,7 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS
 			assert(ncs_enc_init_space(&uba) == NCSCC_RC_SUCCESS);
 			assert(immsv_evt_enc(&send_evt, &uba) == NCSCC_RC_SUCCESS);
 
-			int32 size = uba.ttl;
+			int32_t size = uba.ttl;
 			tmpData = malloc(size);
 			assert(tmpData);
 			char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
@@ -449,7 +449,7 @@ void immd_cb_dump(void)
 	IMMD_CB *cb = immd_cb;
 
 	TRACE_5("*****************Printing IMMD CB Dump****************");
-	TRACE_5("  MDS Handle:             %x", (uns32)cb->mds_handle);
+	TRACE_5("  MDS Handle:             %x", (uint32_t)cb->mds_handle);
 	TRACE_5("  IMMD State:  %d IMMND-coord-Id: %x", cb->ha_state, cb->immnd_coord);
 	TRACE_5("  Sync update count %u", cb->immd_sync_cnt);
 	TRACE_5("  Fevs send count %llu", cb->fevsSendCount);

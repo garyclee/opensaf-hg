@@ -30,16 +30,16 @@
 #include "cpd.h"
 #define FUNC_NAME(DS) cpsv_edp_##DS##_info
 
-uns32 FUNC_NAME(CPSV_EVT) ();
+uint32_t FUNC_NAME(CPSV_EVT) ();
 
-uns32 cpd_mds_callback(struct ncsmds_callback_info *info);
-static uns32 cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *info);
-static uns32 cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *info);
-static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
-static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb);
+uint32_t cpd_mds_callback(struct ncsmds_callback_info *info);
+static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *info);
+static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *info);
+static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
+static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb);
 
 /* Message Format Verion Tables at CPND */
 
@@ -61,10 +61,10 @@ MDS_CLIENT_MSG_FORMAT_VER cpd_cpa_msg_fmt_table[CPD_WRT_CPA_SUBPART_VER_RANGE] =
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 \*****************************************************************************/
 
-uns32 cpd_mds_vdest_create(CPD_CB *cb)
+uint32_t cpd_mds_vdest_create(CPD_CB *cb)
 {
 	NCSVDA_INFO arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 /*   SaNameT     name = {4,"CPD"}; */
 
 	memset(&arg, 0, sizeof(arg));
@@ -106,13 +106,13 @@ uns32 cpd_mds_vdest_create(CPD_CB *cb)
   Notes         : None.
 ******************************************************************************/
 
-uns32 cpd_mds_register(CPD_CB *cb)
+uint32_t cpd_mds_register(CPD_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_CPND };
 	MDS_SVC_ID cpd_id[1] = { NCSMDS_SVC_ID_CPD };
-	uns32 phy_slot_sub_slot;
+	uint32_t phy_slot_sub_slot;
 
 	/* Create the virtual Destination for  CPD */
 	rc = cpd_mds_vdest_create(cb);
@@ -233,15 +233,15 @@ void cpd_mds_unregister(CPD_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpd_mds_callback(struct ncsmds_callback_info *info)
+uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 {
 	CPD_CB *cb = NULL;
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 
 	if (info == NULL)
 		return rc;
 
-	cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uns32)info->i_yr_svc_hdl);
+	cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uint32_t)info->i_yr_svc_hdl);
 	if (!cb) {
 		m_LOG_CPD_HEADLINE(CPD_CB_HDL_TAKE_FAILED, NCSFL_SEV_INFO);
 		return rc;
@@ -280,7 +280,7 @@ uns32 cpd_mds_callback(struct ncsmds_callback_info *info)
 		break;
 	}
 
-	ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
+	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
 	return rc;
 }
 
@@ -296,7 +296,7 @@ uns32 cpd_mds_callback(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	CPSV_EVT *msg_ptr = NULL;
 	EDU_ERR ederror = 0;
@@ -338,12 +338,12 @@ static uns32 cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 
 	CPSV_EVT *msg_ptr;
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
@@ -384,10 +384,10 @@ static uns32 cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
+static uint32_t cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
 	CPSV_EVT *evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -439,10 +439,10 @@ static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
+static uint32_t cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
 	CPSV_EVT *evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
 
@@ -491,9 +491,9 @@ static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+static uint32_t cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_EVT *pEvt = (CPSV_EVT *)rcv_info->i_msg;
 
 	pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
@@ -526,10 +526,10 @@ static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	CPSV_EVT *evt = NULL;
-	uns32 rc;
+	uint32_t rc;
 
 	if (svc_evt->i_svc_id == NCSMDS_SVC_ID_CPA)
 		return NCSCC_RC_SUCCESS;
@@ -571,10 +571,10 @@ static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
  *
 *************************************************************************************/
 
-uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb)
+uint32_t cpd_mds_quiesced_ack_process(CPD_CB *cb)
 {
 	CPSV_EVT *evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (cb->is_quiesced_set) {
 		cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
@@ -611,10 +611,10 @@ uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb)
  *
  * Notes         :
  *****************************************************************************/
-uns32 cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
+uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_handle;
@@ -653,12 +653,12 @@ uns32 cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpd_mds_msg_sync_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest,
-			    CPSV_EVT *i_evt, CPSV_EVT **o_evt, uns32 timeout)
+uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
+			    CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout)
 {
 
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!i_evt)
 		return NCSCC_RC_FAILURE;
@@ -703,10 +703,10 @@ uns32 cpd_mds_msg_sync_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest,
  
   Notes         : None.
 ******************************************************************************/
-uns32 cpd_mds_msg_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest, CPSV_EVT *evt)
+uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc;
+	uint32_t rc;
 
 	if (!evt)
 		return NCSCC_RC_FAILURE;
@@ -748,11 +748,11 @@ uns32 cpd_mds_msg_send(CPD_CB *cb, uns32 to_svc, MDS_DEST to_dest, CPSV_EVT *evt
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
+uint32_t cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 {
 
 	NCSMDS_INFO info;
-	uns32 res;
+	uint32_t res;
 
 	memset(&info, 0, sizeof(info));
 

@@ -61,7 +61,7 @@ SaUint32T plms_mds_vdest_create()
 {
 	PLMS_CB *cb = plms_cb;
         NCSVDA_INFO arg;
-        uns32 rc = NCSCC_RC_SUCCESS;
+        uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -127,7 +127,7 @@ SaUint32T plms_mds_change_role()
 ****************************************************************************/
 SaUint32T plms_mds_register()
 {
-        uns32 rc = NCSCC_RC_SUCCESS;
+        uint32_t rc = NCSCC_RC_SUCCESS;
         NCSMDS_INFO svc_info;
         MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_PLMA };
         MDS_SVC_ID plms_id[1] = { NCSMDS_SVC_ID_PLMS };
@@ -283,7 +283,7 @@ Notes         : None.
 *****************************************************************************/
 SaUint32T plms_mds_callback(struct ncsmds_callback_info *info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_CB *cb = plms_cb;
 
 	assert(info != NULL);
@@ -350,7 +350,7 @@ SaUint32T plms_mds_callback(struct ncsmds_callback_info *info)
 static SaUint32T plms_mds_rcv(MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	PLMS_CB * cb = plms_cb;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	PLMS_EVT *pEvt = (PLMS_EVT *)rcv_info->i_msg;
 
 	pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
@@ -389,7 +389,7 @@ static SaUint32T plms_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	PLMS_EVT *evt = NULL;
 	PLMS_CB *cb = plms_cb;
-	uns32 rc;
+	uint32_t rc;
 
 	evt = (PLMS_EVT *)calloc(1, sizeof(PLMS_EVT));
 	if (!evt) {
@@ -431,7 +431,7 @@ static SaUint32T plms_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 void plms_mds_unregister()
 {
 	NCSMDS_INFO arg;
-	uns32 rc;
+	uint32_t rc;
 	PLMS_CB * cb = plms_cb;
 	
 	/* NCSVDA_INFO    vda_info; */

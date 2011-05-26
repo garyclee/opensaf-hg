@@ -28,7 +28,7 @@
 ******************************************************************************/
 
 #include "cpnd.h"
-extern uns32 gl_read_lck;
+extern uint32_t gl_read_lck;
 static void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node);
 static void cpnd_dump_client_info(CPND_CKPT_CLIENT_NODE *cl_node);
 static void cpnd_dump_replica_info(CPND_CKPT_REPLICA_INFO *ckpt_replica_node);
@@ -46,9 +46,9 @@ static void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
+uint32_t cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_CLLIST_NODE *clist_node;
 	CPND_CKPT_CLLIST_NODE *ptr_cl_node = cp_node->clist;
 
@@ -88,10 +88,10 @@ uns32 cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_no
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_client_find(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
+uint32_t cpnd_ckpt_client_find(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
 {
 	CPND_CKPT_CLLIST_NODE *ptr_cl_node = cp_node->clist;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while (ptr_cl_node != NULL) {
 		if (ptr_cl_node->cnode == cl_node)
@@ -111,7 +111,7 @@ uns32 cpnd_ckpt_client_find(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_n
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_client_del(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
+uint32_t cpnd_ckpt_client_del(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node)
 {
 
 	CPND_CKPT_CLLIST_NODE *ptr_cl_node = cp_node->clist;
@@ -154,9 +154,9 @@ uns32 cpnd_ckpt_client_del(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_no
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	CPND_CKPT_CKPT_LIST_NODE *cplist = NULL;
 	CPND_CKPT_CKPT_LIST_NODE *ptr_cp_node = cl_node->ckpt_list;
@@ -185,7 +185,7 @@ uns32 cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_ckpt_info_del(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_client_ckpt_info_del(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
 {
 
 	CPND_CKPT_CKPT_LIST_NODE *ptr_cp_node = cl_node->ckpt_list;
@@ -219,7 +219,7 @@ uns32 cpnd_client_ckpt_info_del(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_client_ckpt_info_delete(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_client_ckpt_info_delete(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node)
 {
 
 	CPND_CKPT_CKPT_LIST_NODE *ptr_cp_node = cl_node->ckpt_list;
@@ -251,13 +251,13 @@ uns32 cpnd_client_ckpt_info_delete(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NOD
  * Description  :
  *
  *************************************************************************/
-uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *in_evt,
+uint32_t cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *in_evt,
 				       CPSV_SEND_INFO *sinfo)
 {
 	CPND_CKPT_CLLIST_NODE *ptr_cl_node = cp_node->clist;
 	CPSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	while (ptr_cl_node != NULL) {
 		if (ptr_cl_node->cnode->arrival_cb_flag == TRUE) {
@@ -277,11 +277,11 @@ uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPS
 	return rc;
 }
 
-uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
+uint32_t cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
 {
 	CPSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	cb->is_joined_cl = FALSE;
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
@@ -289,11 +289,11 @@ uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
 	return rc;
 }
 
-uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
+uint32_t cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
 {
 	CPSV_EVT send_evt;
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	cb->is_joined_cl = TRUE;
 	send_evt.type = CPSV_EVT_TYPE_CPA;
 	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
@@ -312,11 +312,11 @@ uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
+uint32_t cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
 {
 	NCS_OS_POSIX_SHM_REQ_INFO shm_info;
 	CPSV_EVT evt, *out_evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CPD_DEFERRED_REQ_NODE *node = NULL;
 
 	if (cp_node->cpnd_rep_create) {
@@ -419,13 +419,13 @@ uns32 cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisError
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	char *buf;
 	uint8_t size = 0, total_length;
-	int32 sec_cnt = 0;
+	int32_t sec_cnt = 0;
 
 	/* Return Error no resource */
 	if (!(cb->num_rep < CPND_MAX_REPLICAS)) {
@@ -439,7 +439,7 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	memset(buf, '\0', total_length);
 	strncpy(buf, (char *)cp_node->ckpt_name.value, size);
 
-	sprintf(buf + size - 1, "_%d_%llu", (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id), cp_node->ckpt_id);
+	sprintf(buf + size - 1, "_%d_%llu", (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id), cp_node->ckpt_id);
 	/* size of chkpt */
 	memset(&cp_node->replica_info.open, '\0', sizeof(cp_node->replica_info.open));
 
@@ -473,7 +473,7 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 		cb->num_rep++;
 
 	cp_node->replica_info.shm_sec_mapping =
-	    (uns32 *)m_MMGR_ALLOC_CPND_DEFAULT(sizeof(uns32) * cp_node->create_attrib.maxSections);
+	    (uint32_t *)m_MMGR_ALLOC_CPND_DEFAULT(sizeof(uint32_t) * cp_node->create_attrib.maxSections);
 
 	for (; sec_cnt < cp_node->create_attrib.maxSections; sec_cnt++)
 		cp_node->replica_info.shm_sec_mapping[sec_cnt] = 1;
@@ -492,10 +492,10 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
+uint32_t cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_CPND_DEST_INFO *cpnd_mdest;
 	CPSV_CPND_DEST_INFO *ptr_cpnd_mdest = cp_node->cpnd_dest_list;
 	CPSV_CPND_DEST_INFO *cpnd_mdest_trav = cp_node->cpnd_dest_list;
@@ -531,7 +531,7 @@ uns32 cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
+uint32_t cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
 {
 
 	CPSV_CPND_DEST_INFO *ptr_cpnd_mdest = cp_node->cpnd_dest_list;
@@ -573,9 +573,9 @@ uns32 cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info)
  *
  * Notes         : None.
  *****************************************************************************/
-int32 cpnd_ckpt_get_lck_sec_id(CPND_CKPT_NODE *cp_node)
+int32_t cpnd_ckpt_get_lck_sec_id(CPND_CKPT_NODE *cp_node)
 {
-	uns32 i = 0;
+	uint32_t i = 0;
 
 	for (; i < cp_node->create_attrib.maxSections; i++)
 		if (cp_node->replica_info.shm_sec_mapping[i] == 1) {
@@ -601,10 +601,10 @@ int32 cpnd_ckpt_get_lck_sec_id(CPND_CKPT_NODE *cp_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
-			  *sec_info, const void *data, uns32 size, uns32 offset, uns32 type)
+uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
+			  *sec_info, const void *data, uint32_t size, uint32_t offset, uint32_t type)
 {				/* for sync type=2 */
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO write_req;
 
 	/* checking to write,whether it is possible to write or not */
@@ -671,11 +671,11 @@ uns32 cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_sec_read(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
-			 *sec_info, void *data, uns32 size, uns32 offset)
+uint32_t cpnd_ckpt_sec_read(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
+			 *sec_info, void *data, uint32_t size, uint32_t offset)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
 	read_req.type = NCS_OS_POSIX_SHM_REQ_READ;
@@ -731,7 +731,7 @@ void cpnd_proc_cpa_down(CPND_CB *cb, MDS_DEST dest)
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaCkptHandleT prev_ckpt_hdl;
 	SaAisErrorT error;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* go through the client tree ,need to check tmr list ,for close stuff */
 	cpnd_client_node_getnext(cb, 0, &cl_node);
@@ -830,7 +830,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
 	CPND_CKPT_CLIENT_NODE *cl_node = NULL;
 	SaCkptHandleT prev_ckpt_hdl;
 	CPSV_EVT send_evt, *evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	cpnd_client_node_getnext(cb, 0, &cl_node);
 
@@ -870,11 +870,11 @@ void cpnd_proc_app_status(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
-			       CPSV_CKPT_ACCESS *write_data, uns32 type, uns32 *err_type, uns32 *errflag)
+uint32_t cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
+			       CPSV_CKPT_ACCESS *write_data, uint32_t type, uint32_t *err_type, uint32_t *errflag)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 i = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t i = 0;
 	CPSV_CKPT_DATA *data;
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 
@@ -927,11 +927,11 @@ uns32 cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_ckpt_read_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *read_data, CPSV_EVT *evt)
+uint32_t cpnd_ckpt_read_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *read_data, CPSV_EVT *evt)
 {
 
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 i = 0, read_size = 0, j = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t i = 0, read_size = 0, j = 0;
 	CPSV_CKPT_DATA *data;
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 	CPSV_ND2A_READ_DATA *ptr_read_data;
@@ -1047,7 +1047,7 @@ CPSV_CKPT_DATA *cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node)
 
 	CPSV_CKPT_DATA *tmp_sec_data = NULL, *sec_data = NULL;
 	CPND_CKPT_SECTION_INFO *tmp_sec_info = NULL;
-	uns32 i;
+	uint32_t i;
 
 	tmp_sec_info = cp_node->replica_info.section_info;
 
@@ -1111,7 +1111,7 @@ void cpnd_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *data)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_allrepl_write_evt_node_free(CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
+uint32_t cpnd_allrepl_write_evt_node_free(CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 {
 	CPSV_CPND_UPDATE_DEST *free_tmp = evt_node->cpnd_update_dest_list, *tmp = NULL;
 
@@ -1146,7 +1146,7 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
 	CPND_CKPT_SECTION_INFO *sec_info = NULL;
 	CPSV_CKPT_DATA *sec_data = NULL;
 	int iter;
-	uns32 read_size = 0;
+	uint32_t read_size = 0;
 
 	evt->type = CPSV_EVT_TYPE_CPA;
 	evt->info.cpa.type = CPA_EVT_ND2A_CKPT_DATA_RSP;
@@ -1213,15 +1213,15 @@ void cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *ckpt_read,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32
+uint32_t
 cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 			CPSV_EVT *out_evt, CPSV_SEND_INFO *sinfo)
 {
 	CPSV_EVT send_evt;
 	CPSV_CPND_ALL_REPL_EVT_NODE *all_repl_evt = NULL;
 	CPSV_CPND_UPDATE_DEST *new = NULL, *head = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	uns32 timeout = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t timeout = 0;
 	SaSizeT datasize = 0;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
@@ -1366,9 +1366,9 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
  * Return Values : NCSCC_RC_SUCCESS/Error.
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_proc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
+uint32_t cpnd_proc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaAisErrorT error;
 
@@ -1405,9 +1405,9 @@ uns32 cpnd_proc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
  * Return Values : NCSCC_RC_SUCCESS/Error.
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
+uint32_t cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaAisErrorT error;
 
@@ -1443,13 +1443,13 @@ uns32 cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_i
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_proc_sec_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
+uint32_t cpnd_proc_sec_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 {
 
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPND_CKPT_SECTION_INFO *pSec_info = NULL;
 	CPSV_EVT send_evt, *out_evt = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
@@ -1514,9 +1514,9 @@ uns32 cpnd_proc_sec_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_open_active_sync_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
+uint32_t cpnd_open_active_sync_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPSV_EVT des_evt, *out_evt = NULL;
 	CPSV_EVT send_evt;
 	memset(&des_evt, '\0', sizeof(CPSV_EVT));
@@ -1544,9 +1544,9 @@ uns32 cpnd_open_active_sync_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
+uint32_t cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	CPND_CKPT_NODE *cp_node = NULL;
 	CPSV_CPND_ALL_REPL_EVT_NODE *evt_node = NULL;
 	CPSV_EVT rsp_evt;
@@ -1586,7 +1586,7 @@ uns32 cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 	return rc;
 }
 
-uns32 cpnd_proc_fill_sec_desc(CPND_CKPT_SECTION_INFO *pTmpSecPtr, SaCkptSectionDescriptorT *sec_des)
+uint32_t cpnd_proc_fill_sec_desc(CPND_CKPT_SECTION_INFO *pTmpSecPtr, SaCkptSectionDescriptorT *sec_des)
 {
 
 	sec_des->sectionId = pTmpSecPtr->sec_id;
@@ -1599,9 +1599,9 @@ uns32 cpnd_proc_fill_sec_desc(CPND_CKPT_SECTION_INFO *pTmpSecPtr, SaCkptSectionD
 
 }
 
-uns32
+uint32_t
 cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
-			  CPSV_A2ND_SECT_ITER_GETNEXT *get_next, SaCkptSectionDescriptorT *sec_des, uns32 *n_secs_trav)
+			  CPSV_A2ND_SECT_ITER_GETNEXT *get_next, SaCkptSectionDescriptorT *sec_des, uint32_t *n_secs_trav)
 {
 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL, *pTmpSecPtr = NULL;
@@ -1722,10 +1722,10 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
  * Return Values : Success / Error
 ****************************************************************************/
 
-uns32 cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
 {
 	CPSV_CKPT_HDR ckpt_hdr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO write_req;
 
 	memset(&write_req, '\0', sizeof(write_req));
@@ -1765,10 +1765,10 @@ uns32 cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
  * Return Values : Success / Error
 ***********************************************************************************/
 
-uns32 cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *cp_node)
 {
 	CPSV_SECT_HDR sec_hdr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_OS_POSIX_SHM_REQ_INFO write_req;
 	memset(&write_req, '\0', sizeof(write_req));
 	memset(&sec_hdr, '\0', sizeof(CPSV_SECT_HDR));
@@ -1806,7 +1806,7 @@ void cpnd_cb_dump(void)
 {
 	CPND_CB *cb = NULL;
 
-	uns32 cb_hdl = m_CPND_GET_CB_HDL;
+	uint32_t cb_hdl = m_CPND_GET_CB_HDL;
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, cb_hdl);
@@ -1911,11 +1911,11 @@ void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node)
 		break;
 	}
 
-	TRACE("Ckpt Size %d  retnetion time %d(scale of 100ms) ", (uns32)(cp_node->create_attrib.checkpointSize),
-	       (uns32)(cp_node->create_attrib.retentionDuration));
-	TRACE("Ckpt Max Sections %d Ckpt Max Section Size %d", (uns32)(cp_node->create_attrib.maxSections),
-	       (uns32)(cp_node->create_attrib.maxSectionSize));
-	TRACE("Ckpt Section Max Size %d ", (uns32)(cp_node->create_attrib.maxSectionIdSize));
+	TRACE("Ckpt Size %d  retnetion time %d(scale of 100ms) ", (uint32_t)(cp_node->create_attrib.checkpointSize),
+	       (uint32_t)(cp_node->create_attrib.retentionDuration));
+	TRACE("Ckpt Max Sections %d Ckpt Max Section Size %d", (uint32_t)(cp_node->create_attrib.maxSections),
+	       (uint32_t)(cp_node->create_attrib.maxSectionSize));
+	TRACE("Ckpt Section Max Size %d ", (uint32_t)(cp_node->create_attrib.maxSectionIdSize));
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
 
 }
@@ -1938,7 +1938,7 @@ void cpnd_dump_shm_info(NCS_OS_POSIX_SHM_REQ_INFO *open)
 
 	TRACE("Shm File Name %s ", open->info.open.i_name);
 	TRACE("Shm Starting Address %p", open->info.open.o_addr);
-	TRACE("Shm File Descriptor %d ", (uns32)open->info.open.o_fd);
+	TRACE("Shm File Descriptor %d ", (uint32_t)open->info.open.o_fd);
 
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
@@ -1973,8 +1973,8 @@ void cpnd_dump_section_info(CPND_CKPT_SECTION_INFO *sec_info)
 			}
 		}
 		TRACE("Section Size %d  - Section state %d ",
-		       (uns32)sec_info->sec_size, (uns32)sec_info->sec_state);
-		TRACE("Expiration Time %d ", (uns32)sec_info->exp_tmr);
+		       (uint32_t)sec_info->sec_size, (uint32_t)sec_info->sec_state);
+		TRACE("Expiration Time %d ", (uint32_t)sec_info->exp_tmr);
 		TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
 
 	}
@@ -2022,7 +2022,7 @@ void cpnd_dump_client_info(CPND_CKPT_CLIENT_NODE *cl_node)
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
 	TRACE("Client_hdl  %d MDS DEST %d ",
-	       (uns32)(cl_node->ckpt_app_hdl), (uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cl_node->agent_mds_dest));
+	       (uint32_t)(cl_node->ckpt_app_hdl), (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(cl_node->agent_mds_dest));
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
 
@@ -2033,7 +2033,7 @@ void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node)
 	CPSV_CPND_DEST_INFO *cpnd_dest_list = NULL;
 
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
-	TRACE("Ckpt_id - %d  Ckpt Name - %.10s ", (uns32)ckpt_node->ckpt_id, ckpt_node->ckpt_name.value);
+	TRACE("Ckpt_id - %d  Ckpt Name - %.10s ", (uint32_t)ckpt_node->ckpt_id, ckpt_node->ckpt_name.value);
 	if (ckpt_node->is_unlink)
 		TRACE("Ckpt Unlinked - ");
 	if (ckpt_node->is_close)
@@ -2146,11 +2146,11 @@ NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT
  * 
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *****************************************************************************************/
-uns32 cpnd_send_ckpt_usr_info_to_cpd(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
+uint32_t cpnd_send_ckpt_usr_info_to_cpd(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 				     SaCkptCheckpointOpenFlagsT ckpt_open_flags, CPSV_USR_INFO_CKPT_TYPE usrinfoType)
 {
 	CPSV_EVT send_evt;
-	uns32 rc;
+	uint32_t rc;
 
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
@@ -2188,10 +2188,10 @@ uns32 cpnd_send_ckpt_usr_info_to_cpd(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *****************************************************************************************/
 
-uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
+uint32_t cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
 {
 	SaTimeT presentTime;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (cp_node->ckpt_lcl_ref_cnt == 0) {
 
@@ -2245,10 +2245,10 @@ uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT 
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *****************************************************************************************/
 
-uns32 cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
+uint32_t cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
 {
 	SaTimeT presentTime;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (cp_node->ckpt_lcl_ref_cnt == 0) {
 
@@ -2289,7 +2289,7 @@ uns32 cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node
 
 void cpnd_proc_free_read_data(CPSV_EVT *evt)
 {
-	uns32 iter = 0;
+	uint32_t iter = 0;
 	CPSV_ND2A_READ_DATA *ptr_read_data;
 	ptr_read_data = evt->info.cpa.info.sec_data_rsp.info.read_data;
 

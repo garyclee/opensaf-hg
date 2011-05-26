@@ -228,7 +228,7 @@ void tware_clm_cluster_track_stop()
 void tware_clm_succ_init()
 {
 
-uns32 rc = NCSCC_RC_SUCCESS ; 
+uint32_t rc = NCSCC_RC_SUCCESS ; 
 
         rc = m_NCS_IPC_CREATE(&g_tware_clm_mbx); 
         

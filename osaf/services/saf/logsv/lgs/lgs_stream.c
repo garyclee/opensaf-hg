@@ -121,9 +121,9 @@ static int rotate_if_needed(log_stream_t *stream)
 	return rc;
 }
 
-static uns32 log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
+static uint32_t log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	node->key_info = (uint8_t *)key;
 
@@ -140,9 +140,9 @@ static uns32 log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
 	return rc;
 }
 
-static uns32 log_stream_remove(const char *key)
+static uint32_t log_stream_remove(const char *key)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	log_stream_t *stream;
 
 	stream = (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)key);
@@ -899,7 +899,7 @@ int log_stream_write(log_stream_t *stream, const char *buf, size_t count)
  * 
  * @return log_stream_t*
  */
-log_stream_t *log_stream_get_by_id(uns32 id)
+log_stream_t *log_stream_get_by_id(uint32_t id)
 {
 	log_stream_t *stream = NULL;
 
@@ -1009,7 +1009,7 @@ void log_stream_id_print(void)
 	}
 }
 
-uns32 log_stream_init(void)
+uint32_t log_stream_init(void)
 {
 	NCS_PATRICIA_PARAMS param;
 	char *stream_array_size_str;

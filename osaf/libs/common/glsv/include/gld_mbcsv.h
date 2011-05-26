@@ -32,8 +32,8 @@
 
 typedef struct glsv_a2s_node_list_tag {
 	MDS_DEST dest_id;
-	uns32 node_id;
-	uns32 status;
+	uint32_t node_id;
+	uint32_t status;
 	struct glsv_a2s_node_list_tag *next;
 } GLSV_A2S_NODE_LIST;
 
@@ -57,7 +57,7 @@ typedef struct glsv_a2s_rsc_details {
 	NCS_BOOL orphan;
 	SaLckLockModeT lck_mode;
 	MDS_DEST mdest_id;
-	uns32 lcl_ref_cnt;
+	uint32_t lcl_ref_cnt;
 } GLSV_A2S_RSC_DETAILS;
 
 typedef struct glsv_a2s_glnd_mds_info_tag {
@@ -75,20 +75,20 @@ typedef struct glsv_gld_a2s_ckpt_evt_tag {
 } GLSV_GLD_A2S_CKPT_EVT;
 
 /* This is the function prototype for event handling */
-typedef uns32 (*GLSV_GLD_A2S_EVT_HANDLER) (struct glsv_gld_a2s_ckpt_evt_tag * evt);
+typedef uint32_t (*GLSV_GLD_A2S_EVT_HANDLER) (struct glsv_gld_a2s_ckpt_evt_tag * evt);
 
-uns32 gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt);
+uint32_t gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt);
 
-uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_details);
+uint32_t gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_details);
 
 GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_dest);
 void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id,
 					 MDS_DEST mdest_id, SaTimeT creation_time);
 
-void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uns32 evt_type);
+void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint32_t evt_type);
 void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_type,
-					    GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uns32 lcl_ref_cnt);
-uns32 glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2s_evt);
-uns32 glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb);
+					    GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uint32_t lcl_ref_cnt);
+uint32_t glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2s_evt);
+uint32_t glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb);
 
 #endif

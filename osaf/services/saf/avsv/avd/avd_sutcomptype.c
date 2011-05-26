@@ -59,7 +59,7 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 static void sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	rc = ncs_patricia_tree_del(&sutcomptype_db, &sutcomptype->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);

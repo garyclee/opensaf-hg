@@ -71,13 +71,13 @@ extern "C" {
 
 		/* P R I V A T E fields should not be referenced by client            */
 
-		uns32 max_len;	/* start len of passed buffer (HEAP or STACK)       */
+		uint32_t max_len;	/* start len of passed buffer (HEAP or STACK)       */
 		uint8_t *cur_ptr;	/* current place for getting memory                 */
 		uint8_t *bgn_ptr;	/* original buffer ptr; if from HEAP, use to free   */
 
 		/* P U B L I C   inspectable by client; set by NCSMEM_AID member funcs */
 
-		uns32 status;	/* If any alloc fails, mark it                      */
+		uint32_t status;	/* If any alloc fails, mark it                      */
 
 	} NCSMEM_AID;
 
@@ -85,11 +85,11 @@ extern "C" {
  * NCSMEM_AID  public member function prototypes
  ***************************************************************************/
 
-	void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uns32 len);
+	void ncsmem_aid_init(NCSMEM_AID *ma, uint8_t *space, uint32_t len);
 
-	uint8_t *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
+	uint8_t *ncsmem_aid_alloc(NCSMEM_AID *ma, uint32_t size);
 
-	uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uns32 len);
+	uint8_t *ncsmem_aid_cpy(NCSMEM_AID *ma, const uint8_t *ref, uint32_t len);
 
 /***************************************************************************
  ***************************************************************************
@@ -142,12 +142,12 @@ extern "C" {
 	NCS_SE *ncsstack_push(NCS_STACK *st, uint16_t type, uint16_t size);
 
 	NCS_SE *ncsstack_pop(NCS_STACK *st);
-	uns32 ncsstack_get_utilization(NCS_STACK *st);
-	uns32 ncsstack_get_element_count(NCS_STACK *st);
+	uint32_t ncsstack_get_utilization(NCS_STACK *st);
+	uint32_t ncsstack_get_element_count(NCS_STACK *st);
 
-	uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba);
+	uint32_t ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba);
 
-	uns32 ncsstack_decode(NCS_STACK *st, struct ncs_ubaid *uba);
+	uint32_t ncsstack_decode(NCS_STACK *st, struct ncs_ubaid *uba);
 
 #ifdef  __cplusplus
 }

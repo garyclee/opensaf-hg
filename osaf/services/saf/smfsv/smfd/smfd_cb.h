@@ -30,7 +30,7 @@
 typedef struct smfd_cb {
 	SYSF_MBX mbx;		                    /* SMFD mailbox                           */
 	V_DEST_RL mds_role;      	            /* Current MDS role - ACTIVE/STANDBY      */
-	uns32 mds_handle;
+	uint32_t mds_handle;
 	MDS_DEST mds_dest;	                    /* My destination in MDS                  */
 	SaVersionT smf_version;	                    /* The version currently supported        */
 	SaNameT comp_name;	                    /* Components's name SMFD                 */
@@ -43,7 +43,7 @@ typedef struct smfd_cb {
 	SaAmfHAStateT ha_state;	                    /* present AMF HA state of the component            */
 	NCS_SEL_OBJ usr1_sel_obj;                   /* Selection object for USR1 signal events          */
 	MDS_DEST smfnd_dests[NCS_MAX_SLOTS];        /* destinations for all smfnd   */
-	uns32 nid_started;	                    /* Started by NID or AMF        */
+	uint32_t nid_started;	                    /* Started by NID or AMF        */
 	char *backupCreateCmd;	                    /* Backup create cmd string     */
 	char *bundleCheckCmd;	                    /* Bundle check cmd string      */
 	char *nodeCheckCmd;	                    /* Node check cmd string        */
@@ -60,7 +60,7 @@ typedef struct smfd_cb {
 	char *smfNodeRebootCmd;	                    /* Command for node reboot */
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
-	uns32 no_of_smfnd;
+	uint32_t no_of_smfnd;
 
 } smfd_cb_t;
 
@@ -68,7 +68,7 @@ typedef struct smfd_cb {
 extern "C" {
 #endif
 
-	extern uns32 smfd_cb_init(smfd_cb_t *);
+	extern uint32_t smfd_cb_init(smfd_cb_t *);
 
 #ifdef __cplusplus
 }

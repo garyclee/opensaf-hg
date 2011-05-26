@@ -22,7 +22,7 @@
 
 #include "mqd.h"
 
-extern void mqd_main_process(uns32);
+extern void mqd_main_process(uint32_t);
 extern MQDLIB_INFO gl_mqdinfo;
 static int __init_mqd(void)
 {

@@ -36,8 +36,8 @@
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
 
-uns32 dta_lib_req(NCS_LIB_REQ_INFO *req_info);
-uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info);
-uns32 dta_lib_destroy(void);
+uint32_t dta_lib_req(NCS_LIB_REQ_INFO *req_info);
+uint32_t dta_lib_init(NCS_LIB_REQ_INFO *req_info);
+uint32_t dta_lib_destroy(void);
 
 #endif   /* DTA_DL_API_H */

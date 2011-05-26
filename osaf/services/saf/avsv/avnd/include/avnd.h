@@ -71,7 +71,7 @@
 #include "avnd_ckpt_updt.h"
 #include "avnd_ckpt_msg.h"
 
-extern uns32 avnd_create(void);
+extern uint32_t avnd_create(void);
 extern void avnd_sigterm_handler(void);
 
 #endif

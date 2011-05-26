@@ -26,7 +26,7 @@
   This file consists of constats, enums and data structs used by cpd_init.c
 ******************************************************************************/
 
-uns32 gl_cpd_cb_hdl;
+uint32_t gl_cpd_cb_hdl;
 
 /* Macro to get the component name for the component type */
 #define m_CPD_TASKNAME "CPD"
@@ -42,7 +42,7 @@ uns32 gl_cpd_cb_hdl;
 
 #define m_CPD_RETRIEVE_CB(cb)                                                  \
 {                                                                              \
-   uns32 hdl = m_CPD_GET_CB_HDL;                                               \
+   uint32_t hdl = m_CPD_GET_CB_HDL;                                               \
    cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, hdl);                     \
    if(!cb)                                                                     \
       m_LOG_CPD_HEADLINE(CPD_CB_RETRIEVAL_FAILED ,NCSFL_SEV_ERROR);            \
@@ -60,5 +60,5 @@ typedef struct cpd_create_info {
  * structure which holds the destroy information.
  *****************************************************************************/
 typedef struct cpd_destroy_info {
-	uns32 dummy;
+	uint32_t dummy;
 } CPD_DESTROY_INFO;

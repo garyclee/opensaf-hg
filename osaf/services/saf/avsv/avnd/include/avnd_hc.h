@@ -53,12 +53,12 @@ typedef struct avnd_hctype_tag {
 /* Extern function declarations */
 extern AVND_HC *avnd_hcdb_rec_get(struct avnd_cb_tag *cb, AVSV_HLT_KEY *hc_key);
 extern void avnd_hcdb_init(struct avnd_cb_tag *);
-extern uns32 avnd_hcdb_destroy(struct avnd_cb_tag *);
-extern AVND_HC *avnd_hcdb_rec_add(struct avnd_cb_tag *, AVND_HC_PARAM *, uns32 *);
-extern uns32 avnd_hcdb_rec_del(struct avnd_cb_tag *, AVSV_HLT_KEY *);
+extern uint32_t avnd_hcdb_destroy(struct avnd_cb_tag *);
+extern AVND_HC *avnd_hcdb_rec_add(struct avnd_cb_tag *, AVND_HC_PARAM *, uint32_t *);
+extern uint32_t avnd_hcdb_rec_del(struct avnd_cb_tag *, AVSV_HLT_KEY *);
 extern SaAisErrorT avnd_hc_config_get(struct avnd_comp_tag *comp);
 extern SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn);
 extern AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealthcheckKeyT *key);
-extern uns32 avnd_hc_oper_req(struct avnd_cb_tag *, AVSV_PARAM_INFO *param);
+extern uint32_t avnd_hc_oper_req(struct avnd_cb_tag *, AVSV_PARAM_INFO *param);
 
 #endif   /* !AVND_HC_H */

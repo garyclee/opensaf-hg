@@ -87,9 +87,9 @@ static NCS_SEL_OBJ usr1_sel_obj;
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
 {
-	uns32 rc;
+	uint32_t rc;
 	CLMSV_CLMS_EVT *evt = NULL;
 
 	TRACE_ENTER();
@@ -128,9 +128,9 @@ static void sigusr1_handler(int sig)
 /**
 * Get the Self node info
 */
-static uns32 clms_self_node_info(void)
+static uint32_t clms_self_node_info(void)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	FILE *fp;
 	SaNameT node_name_dn = { 0 };
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -199,7 +199,7 @@ static uns32 clms_self_node_info(void)
  *
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
-uns32 clms_cb_init(CLMS_CB * clms_cb)
+uint32_t clms_cb_init(CLMS_CB * clms_cb)
 {
 	NCS_PATRICIA_PARAMS client_param;
 	NCS_PATRICIA_PARAMS id_param;
@@ -213,8 +213,8 @@ uns32 clms_cb_init(CLMS_CB * clms_cb)
 	memset(&eename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&nodename_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-	client_param.key_size = sizeof(uns32);
-	id_param.key_size = sizeof(uns32);
+	client_param.key_size = sizeof(uint32_t);
+	id_param.key_size = sizeof(uint32_t);
 	eename_param.key_size = sizeof(SaNameT);
 	nodename_param.key_size = sizeof(SaNameT);
 
@@ -257,9 +257,9 @@ uns32 clms_cb_init(CLMS_CB * clms_cb)
  * 
  * @return uns32
  */
-static uns32 clms_init(void)
+static uint32_t clms_init(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
-	uns32 rc;
+	uint32_t rc;
 	osaf_cluster = NULL;
 
 	daemonize(argc, argv);
@@ -508,7 +508,7 @@ void clms_cb_dump(void)
 {
 	CLMS_CLUSTER_NODE *node = NULL;
 	CLMS_CLIENT_INFO *client = NULL;
-	uns32 client_id = 0;
+	uint32_t client_id = 0;
 	SaNameT nodename;
 
 	TRACE("\n***************************************************************************************");

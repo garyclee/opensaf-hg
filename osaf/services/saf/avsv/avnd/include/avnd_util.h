@@ -36,6 +36,6 @@ enum avnd_comp_clc_cmd_type;
 
 void avnd_msg_content_free(struct avnd_cb_tag *, AVND_MSG *);
 
-uns32 avnd_msg_copy(struct avnd_cb_tag *, AVND_MSG *, AVND_MSG *);
+uint32_t avnd_msg_copy(struct avnd_cb_tag *, AVND_MSG *, AVND_MSG *);
 
 #endif   /* !AVND_UTIL_H */

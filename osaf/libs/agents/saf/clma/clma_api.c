@@ -256,7 +256,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CLMSV_MSG *o_msg = NULL;
-	uns32 mds_rc = NCSCC_RC_SUCCESS;
+	uint32_t mds_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -361,7 +361,7 @@ static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hd
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CLMSV_MSG *o_msg = NULL;
-	uns32 mds_rc = NCSCC_RC_SUCCESS;
+	uint32_t mds_rc = NCSCC_RC_SUCCESS;
 
 	if (flags & SA_TRACK_CURRENT) {
 
@@ -584,7 +584,7 @@ static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT
 	clma_client_hdl_rec_t *clma_hdl_rec;
 	CLMSV_MSG i_msg, *o_msg = NULL;
 	SaAisErrorT ais_rc = SA_AIS_OK;
-	uns32 client_id, rc;
+	uint32_t client_id, rc;
 
 	TRACE_ENTER();
 
@@ -792,7 +792,7 @@ SaAisErrorT saClmFinalize(SaClmHandleT clmHandle)
 	clma_client_hdl_rec_t *hdl_rec;
 	CLMSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 
@@ -1039,7 +1039,7 @@ SaAisErrorT saClmClusterTrackStop(SaClmHandleT clmHandle)
 	SaAisErrorT rc = SA_AIS_OK;
 	CLMSV_MSG *cbk_msg;
 	CLMSV_MSG *async_cbk_msg = NULL, *process = NULL;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 
@@ -1231,7 +1231,7 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 	clma_client_hdl_rec_t *hdl_rec;
 	CLMSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 ncs_rc = NCSCC_RC_SUCCESS;
+	uint32_t ncs_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -1355,7 +1355,7 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
 	clma_client_hdl_rec_t *hdl_rec;
 	CLMSV_MSG msg;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 
@@ -1514,7 +1514,7 @@ SaAisErrorT saClmResponse_4(SaClmHandleT clmHandle, SaInvocationT invocation, Sa
 	clma_client_hdl_rec_t *hdl_rec;
 	CLMSV_MSG i_msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uns32 mds_rc;
+	uint32_t mds_rc;
 
 	TRACE_ENTER();
 

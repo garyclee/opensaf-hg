@@ -152,7 +152,7 @@ NCSFL_ASCII_SPEC gla_ascii_spec = {
   DESCRIPTION:       Function is used for registering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 gla_reg_strings()
+uint32_t gla_reg_strings()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;
@@ -170,7 +170,7 @@ uns32 gla_reg_strings()
   DESCRIPTION:       Function is used for deregistering the canned strings with the DTS.
 
 *****************************************************************************/
-uns32 gla_unreg_strings()
+uint32_t gla_unreg_strings()
 {
 
 	NCS_DTSV_REG_CANNED_STR arg;

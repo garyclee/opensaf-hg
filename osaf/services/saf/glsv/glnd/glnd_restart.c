@@ -37,18 +37,18 @@
 /*
  * Function Prototypes
  */
-static uns32 glnd_restart_build_resource_tree(GLND_CB *glnd_cb);
+static uint32_t glnd_restart_build_resource_tree(GLND_CB *glnd_cb);
 
-static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb);
+static uint32_t glnd_restart_build_res_lock_list(GLND_CB *glnd_cb);
 
-static uns32 glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb);
+static uint32_t glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb);
 
-static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
+static uint32_t glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 							GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_list_info);
 
-static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info);
+static uint32_t glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info);
 
-static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *evt_info);
+static uint32_t glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *evt_info);
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_restart_build_database()
@@ -61,9 +61,9 @@ static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_IN
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_restart_build_database(GLND_CB *glnd_cb)
+uint32_t glnd_restart_build_database(GLND_CB *glnd_cb)
 {
-	uns32 ret_val;
+	uint32_t ret_val;
 
 	/* Build resource tree of glnd_cb */
 	ret_val = glnd_restart_build_resource_tree(glnd_cb);
@@ -101,12 +101,12 @@ uns32 glnd_restart_build_database(GLND_CB *glnd_cb)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
+static uint32_t glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 {
 	SaAisErrorT rc = NCSCC_RC_SUCCESS;
 	GLND_RESTART_RES_INFO *shm_base_addr = NULL;
 	GLND_RESTART_RES_INFO restart_res_info;
-	uns32 i;
+	uint32_t i;
 
 	shm_base_addr = glnd_cb->glnd_res_shm_base_addr;
 	for (i = 0; i < GLND_RESOURCE_INFO_CKPT_MAX_SECTIONS; i++) {
@@ -141,12 +141,12 @@ static uns32 glnd_restart_build_resource_tree(GLND_CB *glnd_cb)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
+static uint32_t glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
 {
 	GLND_RESTART_RES_LOCK_LIST_INFO restart_res_lock_list_info;
 	GLND_RESTART_RES_LOCK_LIST_INFO *shm_base_addr = NULL;
 	SaAisErrorT rc;
-	uns32 i;
+	uint32_t i;
 
 	shm_base_addr = glnd_cb->glnd_lck_shm_base_addr;
 	for (i = 0; i < GLND_RES_LOCK_INFO_CKPT_MAX_SECTIONS; i++) {
@@ -184,13 +184,13 @@ static uns32 glnd_restart_build_res_lock_list(GLND_CB *glnd_cb)
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
+static uint32_t glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 							GLND_RESTART_RES_LOCK_LIST_INFO *restart_res_lock_list_info)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info = NULL;
 	GLND_CLIENT_INFO *client_info = NULL;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (restart_res_lock_list_info == NULL)
 		return NCSCC_RC_FAILURE;
@@ -254,7 +254,7 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 						glnd_start_tmr(glnd_cb, &lck_list_info->timeout_tmr,
 							       GLND_TMR_RES_LOCK_REQ_TIMEOUT,
 							       lck_list_info->lock_info.timeout,
-							       (uns32)lck_list_info->lck_info_hdl_id);
+							       (uint32_t)lck_list_info->lck_info_hdl_id);
 					}
 
 				}
@@ -277,7 +277,7 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 						glnd_start_tmr(glnd_cb, &lck_list_info->timeout_tmr,
 							       GLND_TMR_RES_LOCK_REQ_TIMEOUT,
 							       lck_list_info->lock_info.timeout,
-							       (uns32)lck_list_info->lck_info_hdl_id);
+							       (uint32_t)lck_list_info->lck_info_hdl_id);
 					}
 
 				}
@@ -306,11 +306,11 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree(GLND_CB *glnd_cb,
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info)
+static uint32_t glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_INFO *restart_res_info)
 {
 	GLND_RESOURCE_INFO *res_info = NULL;
 	int new_node = 0;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (restart_res_info == NULL)
 		return NCSCC_RC_FAILURE;
@@ -356,9 +356,9 @@ static uns32 glnd_restart_resource_node_add(GLND_CB *glnd_cb, GLND_RESTART_RES_I
 			m_MMGR_FREE_GLND_RESOURCE_INFO(res_info);
 			return NCSCC_RC_FAILURE;
 		}
-		TRACE("GLND_RESOURCE_NODE_ADD - %d", (uns32)res_info->resource_id);
+		TRACE("GLND_RESOURCE_NODE_ADD - %d", (uint32_t)res_info->resource_id);
 		/* log the Resource Add */
-		m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uns32)res_info->resource_id);
+		m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uint32_t)res_info->resource_id);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -403,7 +403,7 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB *glnd_cb, SaLc
 		return NULL;
 	}
 	/* log the Resource Add */
-	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uns32)res_info->resource_id);
+	m_LOG_GLND_HEADLINE_TI(GLND_RSC_NODE_ADD_SUCCESS, __FILE__, __LINE__, (uint32_t)res_info->resource_id);
 	return res_info;
 }
 
@@ -419,7 +419,7 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB *glnd_cb, SaLc
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *evt_info)
+static uint32_t glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_INFO *evt_info)
 {
 	GLSV_GLND_EVT glnd_evt;
 	GLND_RES_LOCK_LIST_INFO *lck_list_info = NULL;
@@ -476,12 +476,12 @@ static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_IN
 
   NOTES         : None
 *****************************************************************************/
-static uns32 glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb)
+static uint32_t glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb)
 {
 	GLSV_RESTART_BACKUP_EVT_INFO glnd_restart_backup_evt;
 	GLSV_RESTART_BACKUP_EVT_INFO *shm_base_address = NULL;;
 	SaAisErrorT rc;
-	uns32 i;
+	uint32_t i;
 
 	shm_base_address = glnd_cb->glnd_evt_shm_base_addr;
 	for (i = 0; i < GLND_BACKUP_EVT_CKPT_MAX_SECTIONS; i++) {

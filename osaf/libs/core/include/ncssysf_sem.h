@@ -120,10 +120,10 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	uns32 ncs_sem_create(void **);
-	uns32 ncs_sem_release(void *);
-	uns32 ncs_sem_give(void *);
-	uns32 ncs_sem_take(void *);
+	uint32_t ncs_sem_create(void **);
+	uint32_t ncs_sem_release(void *);
+	uint32_t ncs_sem_give(void *);
+	uint32_t ncs_sem_take(void *);
 
 #ifdef  __cplusplus
 }

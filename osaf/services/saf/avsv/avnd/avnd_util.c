@@ -93,9 +93,9 @@ void avnd_msg_content_free(AVND_CB *cb, AVND_MSG *msg)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
+uint32_t avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (!dmsg || !smsg) {
 		rc = NCSCC_RC_FAILURE;

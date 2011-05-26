@@ -35,23 +35,23 @@
 
 /* static function declarations */
 
-static uns32 ava_mds_rcv(AVA_CB *, MDS_CALLBACK_RECEIVE_INFO *);
+static uint32_t ava_mds_rcv(AVA_CB *, MDS_CALLBACK_RECEIVE_INFO *);
 
-static uns32 ava_mds_svc_evt(AVA_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
+static uint32_t ava_mds_svc_evt(AVA_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
 
-static uns32 ava_mds_flat_enc(AVA_CB *, MDS_CALLBACK_ENC_FLAT_INFO *);
+static uint32_t ava_mds_flat_enc(AVA_CB *, MDS_CALLBACK_ENC_FLAT_INFO *);
 
-static uns32 ava_mds_flat_dec(AVA_CB *, MDS_CALLBACK_DEC_FLAT_INFO *);
+static uint32_t ava_mds_flat_dec(AVA_CB *, MDS_CALLBACK_DEC_FLAT_INFO *);
 
-static uns32 ava_mds_param_get(AVA_CB *);
+static uint32_t ava_mds_param_get(AVA_CB *);
 
-static uns32 ava_mds_msg_async_send(AVA_CB *, NCSMDS_INFO *, AVSV_NDA_AVA_MSG *);
+static uint32_t ava_mds_msg_async_send(AVA_CB *, NCSMDS_INFO *, AVSV_NDA_AVA_MSG *);
 
-static uns32 ava_mds_msg_syn_send(AVA_CB *, NCSMDS_INFO *, AVSV_NDA_AVA_MSG *);
+static uint32_t ava_mds_msg_syn_send(AVA_CB *, NCSMDS_INFO *, AVSV_NDA_AVA_MSG *);
 
-static uns32 ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
+static uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
 
-static uns32 ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
+static uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
 
 static const MDS_CLIENT_MSG_FORMAT_VER ava_avnd_msg_fmt_map_table[AVA_AVND_SUBPART_VER_MAX] =
     { AVSV_AVND_AVA_MSG_FMT_VER_1 };
@@ -77,11 +77,11 @@ static void (*amf_down_cb) (void);
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_reg(AVA_CB *cb)
+uint32_t ava_mds_reg(AVA_CB *cb)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SVC_ID svc_id;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* get the mds-hdl & ava mds address */
@@ -141,10 +141,10 @@ uns32 ava_mds_reg(AVA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_unreg(AVA_CB *cb)
+uint32_t ava_mds_unreg(AVA_CB *cb)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -172,17 +172,17 @@ uns32 ava_mds_unreg(AVA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
+uint32_t ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 {
 	AVA_CB *cb = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	if (!info)
 		goto done;
 
 	/* retrieve ava cb */
-	if (0 == (cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, (uns32)info->i_yr_svc_hdl))) {
+	if (0 == (cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, (uint32_t)info->i_yr_svc_hdl))) {
 		LOG_ER("Unable to retrieve control block handle");
 		rc = NCSCC_RC_SUCCESS;
 		goto done;
@@ -311,7 +311,7 @@ uns32 ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
  done:
 	/* return ava cb */
 	if (cb)
-		ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
+		ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
 
 	TRACE_LEAVE();
 	return rc;
@@ -332,10 +332,10 @@ uns32 ava_mds_cbk(NCSMDS_CALLBACK_INFO *info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_send(AVA_CB *cb, AVSV_NDA_AVA_MSG *i_msg, AVSV_NDA_AVA_MSG **o_msg)
+uint32_t ava_mds_send(AVA_CB *cb, AVSV_NDA_AVA_MSG *i_msg, AVSV_NDA_AVA_MSG **o_msg)
 {
 	NCSMDS_INFO mds_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	if (!i_msg || !m_AVA_FLAG_IS_AVND_UP(cb)) {
@@ -383,10 +383,10 @@ uns32 ava_mds_send(AVA_CB *cb, AVSV_NDA_AVA_MSG *i_msg, AVSV_NDA_AVA_MSG **o_msg
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_rcv(AVA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
+uint32_t ava_mds_rcv(AVA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	AVSV_NDA_AVA_MSG *msg = (AVSV_NDA_AVA_MSG *)rcv_info->i_msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	if (!msg) {
@@ -418,9 +418,9 @@ uns32 ava_mds_rcv(AVA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
+uint32_t ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("EventType = %d, service id = %d",evt_info->i_change, evt_info->i_svc_id);	
 
 	/* assign mds-dest values for AVD, AVND & AVA as per the MDS event */
@@ -486,10 +486,10 @@ uns32 ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_flat_enc(AVA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
+uint32_t ava_mds_flat_enc(AVA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
 {
 	AVSV_NDA_AVA_MSG *msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* get the message ptr */
@@ -523,10 +523,10 @@ uns32 ava_mds_flat_enc(AVA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
+uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 {
 	AVSV_NDA_AVA_MSG *msg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* allocate the msg */
@@ -669,11 +669,11 @@ uns32 ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_msg_async_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG *i_msg)
+uint32_t ava_mds_msg_async_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG *i_msg)
 {
 	MDS_SEND_INFO *send_info = &mds_info->info.svc_send;
 	MDS_SENDTYPE_SND_INFO *send = &send_info->info.snd;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* populate the send info */
@@ -717,11 +717,11 @@ uns32 ava_mds_msg_async_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_msg_syn_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG *i_msg)
+uint32_t ava_mds_msg_syn_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG *i_msg)
 {
 	MDS_SEND_INFO *send_info = &mds_info->info.svc_send;
 	MDS_SENDTYPE_SNDRSP_INFO *send = &send_info->info.sndrsp;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* populate the send info */
@@ -763,10 +763,10 @@ uns32 ava_mds_msg_syn_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MSG *
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 ava_mds_param_get(AVA_CB *cb)
+uint32_t ava_mds_param_get(AVA_CB *cb)
 {
 	NCSADA_INFO ada_info;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	memset(&ada_info, 0, sizeof(ada_info));
@@ -801,10 +801,10 @@ uns32 ava_mds_param_get(AVA_CB *cb)
 
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
+uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	EDU_ERR ederror = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	switch (dec_info->i_fr_svc_id) {
@@ -846,11 +846,11 @@ uns32 ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
   Notes         : None.
 ******************************************************************************/
-uns32 ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
+uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	EDU_ERR ederror = 0;
 	AVSV_NDA_AVA_MSG *msg = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	msg = (AVSV_NDA_AVA_MSG *)enc_info->i_msg;

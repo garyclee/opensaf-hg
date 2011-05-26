@@ -61,7 +61,7 @@ DTM_NODE_DB *dtm_node_new(DTM_NODE_DB * new_node)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
+uint32_t dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
 {
 	NCS_PATRICIA_PARAMS nodeid_param;
 	NCS_PATRICIA_PARAMS comm_socket_param;
@@ -73,8 +73,8 @@ uns32 dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
 	memset(&comm_socket_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	memset(&ipaddr_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-	nodeid_param.key_size = sizeof(uns32);
-	comm_socket_param.key_size = sizeof(uns32);
+	nodeid_param.key_size = sizeof(uint32_t);
+	comm_socket_param.key_size = sizeof(uint32_t);
 	ipaddr_param.key_size = IPV6_ADDR_UNS8_CNT;
 
 	/* Initialize patricia tree for nodeid list */
@@ -128,7 +128,7 @@ uns32 dtm_cb_init(DTM_INTERNODE_CB * dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid)
+DTM_NODE_DB *dtm_node_get_by_id(uint32_t nodeid)
 {
 	DTM_NODE_DB *node = NULL;
 	TRACE_ENTER();
@@ -155,7 +155,7 @@ DTM_NODE_DB *dtm_node_get_by_id(uns32 nodeid)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id)
+DTM_NODE_DB *dtm_node_getnext_by_id(uint32_t node_id)
 {
 	DTM_NODE_DB *node = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -188,7 +188,7 @@ DTM_NODE_DB *dtm_node_getnext_by_id(uns32 node_id)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket)
+DTM_NODE_DB *dtm_node_get_by_comm_socket(uint32_t comm_socket)
 {
 	DTM_NODE_DB *node = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -216,7 +216,7 @@ DTM_NODE_DB *dtm_node_get_by_comm_socket(uns32 comm_socket)
  * @return NCSCC_RC_FAILURE
  *
  */
-DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uns32 comm_socket)
+DTM_NODE_DB *dtm_node_getnext_by_comm_socket(uint32_t comm_socket)
 {
 	DTM_NODE_DB *node = NULL;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
@@ -310,9 +310,9 @@ DTM_NODE_DB *dtm_node_getnext_by_nodeaddr(uint8_t *node_ip)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_node_add(DTM_NODE_DB * node, int i)
+uint32_t dtm_node_add(DTM_NODE_DB * node, int i)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER();
 	TRACE("DTM:value of i %d", i);
@@ -373,9 +373,9 @@ uns32 dtm_node_add(DTM_NODE_DB * node, int i)
  * @return NCSCC_RC_FAILURE
  *
  */
-uns32 dtm_node_delete(DTM_NODE_DB * node, int i)
+uint32_t dtm_node_delete(DTM_NODE_DB * node, int i)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 	TRACE_ENTER2("DTM:value of i %d", i);
 

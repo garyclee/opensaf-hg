@@ -35,9 +35,9 @@
 #include "ncs_log.h"
 #include "dts.h"
 
-static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time, NCS_UBAID *uba,
+static uint32_t dts_get_and_return_val(char *t_str, char *ch, char *time, NCS_UBAID *uba,
 				    NCSFL_ASCII_SPEC *spec, NCSFL_SET *set, long *arg_list,
-				    uns32 *log_msg_len, uint8_t msg_fmat_ver);
+				    uint32_t *log_msg_len, uint8_t msg_fmat_ver);
 
 /*****************************************************************************
 
@@ -50,7 +50,7 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time, NCS_UBAID
 
 *****************************************************************************/
 
-uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
+uint32_t dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
 {
 	uint16_t i, j;
 	NCSFL_SET *set = spec->str_set;
@@ -199,7 +199,7 @@ uns32 dts_ascii_spec_register(NCSFL_ASCII_SPEC *spec)
                      count goes to 0.
 *****************************************************************************/
 
-uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version)
+uint32_t dts_ascii_spec_deregister(SS_SVC_ID ss_id, uint16_t version)
 {
 	SYSF_ASCII_SPECS *spec_entry;
 	ASCII_SPEC_INDEX spec_key;
@@ -263,13 +263,13 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uint16_t version, DTS_SPEC_ACTION
 {
 	char lib_name[DTS_MAX_LIBNAME] = { 0 };
 	char func_name[DTS_MAX_FUNCNAME] = { 0 };
-	uns32 (*reg_unreg_routine) () = NULL;
+	uint32_t (*reg_unreg_routine) () = NULL;
 	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
 	void *lib_hdl = NULL;
 	ASCII_SPEC_LIB *lib_entry = NULL;
 	char dbg_str[DTS_MAX_LIB_DBG];
-	uns32 status = NCSCC_RC_SUCCESS;
+	uint32_t status = NCSCC_RC_SUCCESS;
 
 	/* first form the libname and fucntion names */
 	/* Note: Version is given as per SAF versioning standards, so release code
@@ -395,7 +395,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uint16_t version, DTS_SPEC_ACTION
 
 *****************************************************************************/
 
-uns32 dts_log_msg_to_str(DTA_LOG_MSG *logmsg, char *str, NODE_ID node, uns32 proc_id, uns32 *len,
+uint32_t dts_log_msg_to_str(DTA_LOG_MSG *logmsg, char *str, NODE_ID node, uint32_t proc_id, uint32_t *len,
 			 NCSFL_ASCII_SPEC *spec)
 {
 	char *temp_str = dts_cb.t_log_str;
@@ -405,7 +405,7 @@ uns32 dts_log_msg_to_str(DTA_LOG_MSG *logmsg, char *str, NODE_ID node, uns32 pro
 	char asc_tod[32];
 	char *sev;
 	long args[30];
-	uns32 log_msg_len = 0;
+	uint32_t log_msg_len = 0;
 	NCSFL_NORMAL *msg = &logmsg->log_msg;
 
 	asc_tod[0] = 0;
@@ -533,13 +533,13 @@ uns32 dts_log_msg_to_str(DTA_LOG_MSG *logmsg, char *str, NODE_ID node, uns32 pro
 	return NCSCC_RC_SUCCESS;
 }
 
-static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
+static uint32_t dts_get_and_return_val(char *t_str, char *ch, char *time,
 				    NCS_UBAID *uba, NCSFL_ASCII_SPEC *spec,
-				    NCSFL_SET *set, long *arg_list, uns32 *log_msg_len, uint8_t msg_fmat_ver)
+				    NCSFL_SET *set, long *arg_list, uint32_t *log_msg_len, uint8_t msg_fmat_ver)
 {
 	uint8_t *data = NULL;
 	uint8_t data_buff[DTS_MAX_SIZE_DATA];
-	uns32 cnt = 0;
+	uint32_t cnt = 0;
 
 	while (*ch != '\0') {
 
@@ -552,13 +552,13 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'I':
 			{
-				uns32 idx;
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				uint32_t idx;
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				idx = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 				if (m_S_SET(idx) >= spec->str_set_cnt) {
 					ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_LOG_ERR1, DTS_FC_EVT, NCSFL_LC_EVENT,
 						   NCSFL_SEV_NOTICE, "TILLLC", DTS_LOG_SETIDX_ERR, m_S_SET(idx),
@@ -579,14 +579,14 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'L':
 			{
-				uns32 lval;
+				uint32_t lval;
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				lval = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				arg_list[cnt] = (long)lval;
 				*log_msg_len += 10;
@@ -630,13 +630,13 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 
 				/* Support for DTA version 1 */
 				if (msg_fmat_ver == 1) {
-					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uns32)));
+					data = ncs_dec_flatten_space(uba, data_buff, (sizeof(uint16_t) + sizeof(uint32_t)));
 					if (data == NULL)
 						return NCSCC_RC_FAILURE;
 
 					mem_d.len = ncs_decode_16bit(&data);
 					mem_addr = ncs_decode_32bit(&data);
-					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uns32)));
+					ncs_dec_skip_space(uba, (sizeof(uint16_t) + sizeof(uint32_t)));
 				}
 				/* Versioning changes : New code for 64-bit support */
 				else {
@@ -713,16 +713,16 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'C':
 			{
-				uns32 length;
+				uint32_t length;
 				uint8_t *data;
 				uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				length = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 
@@ -734,16 +734,16 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			/* Added code for handling float values */
 		case 'F':
 			{
-				uns32 length;
+				uint32_t length;
 				uint8_t *data;
 				uint8_t data_buff[DTS_MAX_SIZE_DATA];
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				length = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
@@ -753,16 +753,16 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'N':
 			{
-				uns32 length;
+				uint32_t length;
 				uint8_t *data;
 				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				length = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
@@ -772,16 +772,16 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'U':
 			{
-				uns32 length;
+				uint32_t length;
 				uint8_t *data;
 				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				length = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
@@ -791,16 +791,16 @@ static uns32 dts_get_and_return_val(char *t_str, char *ch, char *time,
 			}
 		case 'X':
 			{
-				uns32 length;
+				uint32_t length;
 				uint8_t *data;
 				uint8_t data_buff[DTS_MAX_DBL_DIGITS];
 
-				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uns32));
+				data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 				if (data == NULL)
 					return NCSCC_RC_FAILURE;
 
 				length = ncs_decode_32bit(&data);
-				ncs_dec_skip_space(uba, sizeof(uns32));
+				ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 				ncs_decode_n_octets_from_uba(uba, (uint8_t *)t_str, length);
 				arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);

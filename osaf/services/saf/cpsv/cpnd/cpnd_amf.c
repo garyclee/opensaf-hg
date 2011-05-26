@@ -62,7 +62,7 @@ cpnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 {
 	CPND_CB *cpnd_cb = NULL;
 	SaAisErrorT error = SA_AIS_OK;
-	uns32 cb_hdl = m_CPND_GET_CB_HDL;
+	uint32_t cb_hdl = m_CPND_GET_CB_HDL;
 
 	/* Get the CB from the handle */
 	cpnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, cb_hdl);
@@ -95,12 +95,12 @@ cpnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_amf_init(CPND_CB *cpnd_cb)
+uint32_t cpnd_amf_init(CPND_CB *cpnd_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = (SaAmfHealthcheckCallbackT)cpnd_saf_health_chk_callback;
@@ -147,7 +147,7 @@ void cpnd_amf_de_init(CPND_CB *cpnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_amf_register(CPND_CB *cpnd_cb)
+uint32_t cpnd_amf_register(CPND_CB *cpnd_cb)
 {
 
 	SaAisErrorT error;
@@ -180,7 +180,7 @@ uns32 cpnd_amf_register(CPND_CB *cpnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_amf_deregister(CPND_CB *cpnd_cb)
+uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb)
 {
 	SaNameT comp_name;
 	SaAisErrorT error;

@@ -32,7 +32,7 @@ typedef struct cpsv_ckpt_hdr {
 	SaNameT ckpt_name;
 	SaCkptCheckpointCreationAttributesT create_attrib;
 	SaCkptCheckpointOpenFlagsT open_flags;
-	uns32 ckpt_lcl_ref_cnt;
+	uint32_t ckpt_lcl_ref_cnt;
 	NCS_BOOL is_unlink;
 	NCS_BOOL is_close;
 	SaUint32T n_secs;
@@ -40,12 +40,12 @@ typedef struct cpsv_ckpt_hdr {
 	NCS_BOOL cpnd_rep_create;
 	NCS_BOOL is_active_exist;
 	MDS_DEST active_mds_dest;
-	uns32 cpnd_lcl_wr;
-	uns32 cpnd_oth_state;
+	uint32_t cpnd_lcl_wr;
+	uint32_t cpnd_oth_state;
 } CPSV_CKPT_HDR;
 
 typedef struct cpsv_sect_hdr {
-	uns32 lcl_sec_id;
+	uint32_t lcl_sec_id;
 	uint16_t idLen;
 	uint8_t id[MAX_SIZE];
 	SaCkptSectionStateT sec_state;
@@ -57,19 +57,19 @@ typedef struct cpsv_sect_hdr {
 typedef struct ckpt_info {
 	SaNameT ckpt_name;
 	SaCkptCheckpointHandleT ckpt_id;
-	uns32 maxSections;
+	uint32_t maxSections;
 	SaSizeT maxSecSize;
 	NODE_ID node_id;
-	int32 offset;
-	uns32 client_bitmap;
-	int32 is_valid;
-	uns32 bm_offset;
+	int32_t offset;
+	uint32_t client_bitmap;
+	int32_t is_valid;
+	uint32_t bm_offset;
 	NCS_BOOL is_unlink;
 	NCS_BOOL is_close;
 	NCS_BOOL cpnd_rep_create;
 	NCS_BOOL is_first;
 	SaTimeT close_time;
-	int32 next;
+	int32_t next;
 } CKPT_INFO;
 
 typedef struct client_info {
@@ -78,7 +78,7 @@ typedef struct client_info {
 	SaVersionT version;
 	uint16_t cbk_reg_info;
 	NCS_BOOL is_valid;
-	uns32 offset;
+	uint32_t offset;
 	NCS_BOOL arr_flag;
 } CLIENT_INFO;
 
@@ -86,8 +86,8 @@ typedef struct gbl_shm_ptr {
 	void *base_addr;
 	void *cli_addr;
 	void *ckpt_addr;
-	int32 n_clients;
-	int32 n_ckpts;
+	int32_t n_clients;
+	int32_t n_ckpts;
 } GBL_SHM_PTR;
 
 typedef struct cpnd_shm_version {
@@ -98,11 +98,11 @@ typedef struct cpnd_shm_version {
 } CPND_SHM_VERSION;
 
 typedef struct client_hdr {
-	int32 num_clients;
+	int32_t num_clients;
 } CLIENT_HDR;
 
 typedef struct ckpt_hdr {
-	int32 num_ckpts;
+	int32_t num_ckpts;
 } CKPT_HDR;
 
 typedef enum cpnd_type_info {

@@ -38,11 +38,11 @@
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
+uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 {
 	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
 	NODE_ID node_id = 0;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
@@ -92,11 +92,11 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
+uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 {
 	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
 	NODE_ID node_id = 0;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
@@ -157,10 +157,10 @@ MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
+uint32_t avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
@@ -186,10 +186,10 @@ uns32 avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
+uint32_t avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
 {
 	AVND_NODEID_TO_MDSDEST_MAP *mapping = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each su */
 	while (0 != (mapping =
@@ -224,10 +224,10 @@ uns32 avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_internode_avail_comp_db_init(AVND_CB *cb)
+uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
@@ -253,10 +253,10 @@ uns32 avnd_internode_avail_comp_db_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
+uint32_t avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
 {
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each su */
 	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uint8_t *)0))) {
@@ -300,7 +300,7 @@ uns32 avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
   Notes         : None
 ******************************************************************************/
 AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
-				   NODE_ID node_id, uns32 *rc, NCS_BOOL pxy_for_ext_comp, NCS_BOOL comp_is_proxy)
+				   NODE_ID node_id, uint32_t *rc, NCS_BOOL pxy_for_ext_comp, NCS_BOOL comp_is_proxy)
 {
 	AVND_COMP *comp = 0;
 
@@ -387,10 +387,10 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name)
+uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name)
 {
 	AVND_COMP *comp = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *cbk_rec = NULL, *temp_cbk_ptr = NULL;
 
 	/* get the comp */

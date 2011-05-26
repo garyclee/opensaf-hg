@@ -43,12 +43,12 @@
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nid_notify(char *service, uns32 status, uns32 *error)
+uint32_t nid_notify(char *service, uint32_t status, uint32_t *error)
 {
-	uns32 scode;
+	uint32_t scode;
 	char msg[250];
-	int32 fd = -1;
-	uns32 retry = 3;
+	int32_t fd = -1;
+	uint32_t retry = 3;
 	char strbuff[256];
 
 	scode = status;
@@ -106,10 +106,10 @@ uns32 nid_notify(char *service, uns32 status, uns32 *error)
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nis_notify(char *status, uns32 *error)
+uint32_t nis_notify(char *status, uint32_t *error)
 {
-	int32 fd = -1;
-	uns32 retry = 3;
+	int32_t fd = -1;
+	uint32_t retry = 3;
 	char strbuff[256];
 
 	if (status == NULL) {

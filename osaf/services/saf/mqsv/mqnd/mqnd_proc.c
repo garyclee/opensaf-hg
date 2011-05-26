@@ -28,23 +28,23 @@
 
 extern NCS_OS_MQ_MSG transfer_mq_msg;	/* used in queue owner ship */
 
-static uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ *open,
-				      ASAPi_NRESOLVE_RESP_INFO *qinfo, SaAisErrorT *err, uns32 *existing_msg_count);
+static uint32_t mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ *open,
+				      ASAPi_NRESOLVE_RESP_INFO *qinfo, SaAisErrorT *err, uint32_t *existing_msg_count);
 
-static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
+static uint32_t mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 					  MQSV_SEND_INFO *rcvr_mqa_sinfo, MDS_DEST *old_owner,
 					  SaMsgQueueHandleT old_hdl, MQP_REQ_TYPE openType);
 void mqnd_proc_ckpt_clm_node_left(MQND_CB *cb);
 void mqnd_proc_ckpt_clm_node_joined(MQND_CB *cb);
 
-uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
+uint32_t mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 {
 	SaMsgQueueHandleT qhdl;
 	NCS_OS_MQ_REQ_INFO info;
 	MQND_QUEUE_NODE *qnode = NULL;
 	MQND_QNAME_NODE *pnode = NULL;
 	ASAPi_OPR_INFO opr;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaNameT qname;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	SaAisErrorT error;
@@ -195,22 +195,22 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 	}
 }
 
-uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
+uint32_t mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 {
 	MQSV_EVT transfer_rsp;
 	SaMsgQueueHandleT qhdl;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT err = SA_AIS_OK;
-	uns32 num_messages;
+	uint32_t num_messages;
 	MQND_QUEUE_NODE *qnode = NULL;
 	char *mqsv_message = NULL;
 	char *mqsv_message_cpy = NULL;
 	MQSV_MESSAGE *tmp_msg;
 	ASAPi_OPR_INFO opr;
-	uns32 msg_count = 0;
-	uns32 offset = 0;
-	uns32 size = 0;
-	uns32 i;
+	uint32_t msg_count = 0;
+	uint32_t offset = 0;
+	uint32_t size = 0;
+	uint32_t i;
 	NCS_OS_POSIX_MQ_REQ_INFO qreq;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 
@@ -283,7 +283,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 			continue;
 		}
 
-		size = (uns32)(sizeof(MQSV_MESSAGE) + tmp_msg->info.msg.message.size);
+		size = (uint32_t)(sizeof(MQSV_MESSAGE) + tmp_msg->info.msg.message.size);
 		memcpy(mqsv_message, tmp_msg, size);
 
 		offset += size;
@@ -302,10 +302,10 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 
 		tmp_msg = (MQSV_MESSAGE *)&transfer_rsp.msg.mqp_rsp.info.transferRsp.mqsv_message[offset];
 
-		size = (uns32)(sizeof(MQSV_MESSAGE) + tmp_msg->info.msg.message.size);
+		size = (uint32_t)(sizeof(MQSV_MESSAGE) + tmp_msg->info.msg.message.size);
 		offset += size;
 
-		rc = mqnd_mq_msg_send(qhdl, tmp_msg, (uns32)size);
+		rc = mqnd_mq_msg_send(qhdl, tmp_msg, (uint32_t)size);
 		if (rc != NCSCC_RC_SUCCESS) {
 			err = SA_AIS_ERR_NO_RESOURCES;
 			m_LOG_MQSV_ND(MQND_SEND_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err, __FILE__, __LINE__);
@@ -437,13 +437,13 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	return rc;
 }
 
-static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
+static uint32_t mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 					  MQSV_SEND_INFO *rcvr_mqa_sinfo, MDS_DEST *old_owner,
 					  SaMsgQueueHandleT old_hdl, MQP_REQ_TYPE openType)
 {
 	MQSV_EVT transfer_req;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_OPEN_REQ *open = NULL;
 	SaTimeT timeout = 0;
 
@@ -529,13 +529,13 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 	return rc;
 }
 
-uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt)
+uint32_t mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MQSV_EVT transfer_complete;
 	MQP_TRANSFERQ_RSP *transfer_rsp = NULL;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = NULL;
 	SaMsgQueueHandleT qhdl = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT err = SA_AIS_OK;
 	MQP_REQ_MSG mqp_req;
 
@@ -609,12 +609,12 @@ uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt)
 	return rc;
 }
 
-uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode, MQP_TRANSFERQ_RSP *transfer_rsp)
+uint32_t mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode, MQP_TRANSFERQ_RSP *transfer_rsp)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
 	MQSV_MESSAGE *mqsv_message;
-	uns32 offset = 0;
-	uns32 size = 0;
+	uint32_t offset = 0;
+	uint32_t size = 0;
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	if ((transfer_rsp->openReq.openFlags & SA_MSG_QUEUE_EMPTY) || (transfer_rsp->msg_count == 0)) {
 		mqnd_reset_queue_stats(cb, qnode->qinfo.shm_queue_index);
@@ -644,14 +644,14 @@ uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode
 
 		m_MQND_NTOH_MQSV_MESSAGE(mqsv_message);
 
-		size = (uns32)(sizeof(MQSV_MESSAGE) + mqsv_message->info.msg.message.size);
+		size = (uint32_t)(sizeof(MQSV_MESSAGE) + mqsv_message->info.msg.message.size);
 		offset += size;
 
 		/* Update the stats */
 		mqnd_send_msg_update_stats_shm(cb, qnode, mqsv_message->info.msg.message.size,
 					       mqsv_message->info.msg.message.priority);
 
-		rc = mqnd_mq_msg_send(qnode->qinfo.queueHandle, mqsv_message, (uns32)size);
+		rc = mqnd_mq_msg_send(qnode->qinfo.queueHandle, mqsv_message, (uint32_t)size);
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_ND(MQND_SEND_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
@@ -662,13 +662,13 @@ uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ *open,
-			       ASAPi_NRESOLVE_RESP_INFO *qinfo, SaAisErrorT *err, uns32 *existing_msg_count)
+uint32_t mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ *open,
+			       ASAPi_NRESOLVE_RESP_INFO *qinfo, SaAisErrorT *err, uint32_t *existing_msg_count)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	MQND_QUEUE_NODE tmpnode, *qnode = NULL;
-	uns32 priority = 0, offset;
+	uint32_t priority = 0, offset;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	NCS_BOOL is_q_reopen = TRUE;
 
@@ -771,15 +771,15 @@ uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ 
 	return rc;
 }
 
-uns32 mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *sinfo, ASAPi_NRESOLVE_RESP_INFO *qinfo)
+uint32_t mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *sinfo, ASAPi_NRESOLVE_RESP_INFO *qinfo)
 {
-	uns32 rc;
+	uint32_t rc;
 	SaMsgQueueCreationAttributesT cre_attr;
 	SaMsgQueueHandleT qhdl = 0;
 	NCS_BOOL is_qexists = TRUE;
 	MQP_OPEN_REQ *open = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
-	uns32 existing_msg_count = 0;
+	uint32_t existing_msg_count = 0;
 	SaAisErrorT err = SA_AIS_OK;
 
 	if (mqp_req->type == MQP_EVT_OPEN_REQ)
@@ -886,11 +886,11 @@ uns32 mqnd_proc_queue_open(MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *si
 	return NCSCC_RC_SUCCESS;
 }
 
-uns32 mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
-			     MQP_REQ_MSG *mqp_req, SaAisErrorT err, uns32 qhdl, uns32 existing_msg_count)
+uint32_t mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
+			     MQP_REQ_MSG *mqp_req, SaAisErrorT err, uint32_t qhdl, uint32_t existing_msg_count)
 {
 	MQSV_EVT rsp_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_OPEN_REQ *open_req;
 	MQND_QUEUE_NODE *qnode = 0;
 
@@ -943,9 +943,9 @@ uns32 mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
 	return rc;
 }
 
-uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err)
+uint32_t mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_OPR_INFO opr;
 	SaTimeT timeout;
 	MQND_QNAME_NODE *pnode = 0;
@@ -1167,10 +1167,10 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 	return rc;
 }
 
-uns32 mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl)
+uint32_t mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uint32_t qhdl)
 {
 	MQSV_EVT rsp_evt;
-	uns32 rc;
+	uint32_t rc;
 
 	/*Send the resp to MQA */
 	memset(&rsp_evt, 0, sizeof(MQSV_EVT));
@@ -1187,10 +1187,10 @@ uns32 mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT er
 	return rc;
 }
 
-uns32 mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, MQP_UNLINK_REQ *ulink_req)
+uint32_t mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, MQP_UNLINK_REQ *ulink_req)
 {
 	MQSV_EVT rsp_evt;
-	uns32 rc;
+	uint32_t rc;
 
 	/*Send the resp to MQA */
 	memset(&rsp_evt, 0, sizeof(MQSV_EVT));
@@ -1218,8 +1218,8 @@ void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificat
 				SaUint32T numberOfMembers, SaAisErrorT error)
 {
 	MQND_CB *cb;
-	uns32 counter = 0;
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t counter = 0;
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);

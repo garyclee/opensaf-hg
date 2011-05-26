@@ -31,7 +31,7 @@
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_client_tree_init(IMMA_CB *cb)
+uint32_t imma_client_tree_init(IMMA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -63,9 +63,9 @@ void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node)
+uint32_t imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	/* Store the client_info pointer as msghandle. */
 	cl_node->patnode.key_info = (uint8_t *)&cl_node->handle;
 
@@ -87,9 +87,9 @@ int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
   Return Values : None
   Notes         : None
 ******************************************************************************/
-uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
+uint32_t imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (cl_node == NULL)
 		return NCSCC_RC_FAILURE;
@@ -570,7 +570,7 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_admin_owner_tree_init(IMMA_CB *cb)
+uint32_t imma_admin_owner_tree_init(IMMA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -590,7 +590,7 @@ uns32 imma_admin_owner_tree_init(IMMA_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
+uint32_t imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
 	              SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node)
 {
 	*adm_node = (IMMA_ADMIN_OWNER_NODE *)
@@ -629,7 +629,7 @@ void imma_admin_owner_node_getnext(IMMA_CB *cb, SaImmAdminOwnerHandleT *adm_hdl,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node)
+uint32_t imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node)
 {
 	adm_node->patnode.key_info = (uint8_t *)&adm_node->admin_owner_hdl;
 
@@ -732,7 +732,7 @@ void imma_admin_owner_tree_destroy(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_ccb_tree_init(IMMA_CB *cb)
+uint32_t imma_ccb_tree_init(IMMA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -787,7 +787,7 @@ void imma_ccb_node_getnext(IMMA_CB *cb, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 ******************************************************************************/
-uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node)
+uint32_t imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node)
 {
 	ccb_node->patnode.key_info = (uint8_t *)&ccb_node->ccb_hdl;
 
@@ -805,9 +805,9 @@ uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node)
                 : IMMA_CC_BNODE *ccb_node - Ccb Node.
   Notes         : None
 ******************************************************************************/
-uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
+uint32_t imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (ccb_node == NULL)
 		return NCSCC_RC_FAILURE;
@@ -875,7 +875,7 @@ void imma_ccb_tree_destroy(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_search_tree_init(IMMA_CB *cb)
+uint32_t imma_search_tree_init(IMMA_CB *cb)
 {
 	NCS_PATRICIA_PARAMS param;
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -895,7 +895,7 @@ uns32 imma_search_tree_init(IMMA_CB *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function 
 ******************************************************************************/
-uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
+uint32_t imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
 			   SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node)
 {
 	*search_node = (IMMA_SEARCH_NODE *)
@@ -934,7 +934,7 @@ void imma_search_node_getnext(IMMA_CB *cb, SaImmSearchHandleT *search_hdl, IMMA_
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 ******************************************************************************/
-uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *search_node)
+uint32_t imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *search_node)
 {
 	search_node->patnode.key_info = (uint8_t *)&search_node->search_hdl;
 
@@ -952,9 +952,9 @@ uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *sea
                 : IMMA_SEARCH_NODE *search_node - Search Node.
   Notes         : None
 ******************************************************************************/
-uns32 imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
+uint32_t imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (search_node == NULL)
 		return NCSCC_RC_FAILURE;
@@ -1022,9 +1022,9 @@ void imma_search_tree_destroy(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_error
   Notes         : None
 ******************************************************************************/
-uns32 imma_db_init(IMMA_CB *cb)
+uint32_t imma_db_init(IMMA_CB *cb)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	rc = imma_client_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -1060,7 +1060,7 @@ uns32 imma_db_init(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS
   Notes         : None
 ******************************************************************************/
-uns32 imma_db_destroy(IMMA_CB *cb)
+uint32_t imma_db_destroy(IMMA_CB *cb)
 {
 	TRACE_ENTER();
 

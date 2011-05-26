@@ -37,21 +37,21 @@
 * Input: *tmr_cb  -  timer CB
 *        tmr_id   -  timer ID
 *  
-* Returns:  uns32 - timer difference
+* Returns:  uint32_t - timer difference
 *
 * Notes:  
 **************************************************************************/
-uns32 ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
+uint32_t ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
 	NCS_RP_TMR_INFO *tmr_info;
 	time_t now;
-	uns32 tmr_left = 0;
+	uint32_t tmr_left = 0;
 
 	tmr_info = (NCS_RP_TMR_INFO *)tmr_id;
 	if (tmr_info == NULL)
 		return (0);
 	m_GET_TIME_STAMP(now);
-	tmr_left = (uns32)difftime(now, tmr_info->tmr_trig_at);
+	tmr_left = (uint32_t)difftime(now, tmr_info->tmr_trig_at);
 	if (tmr_left < tmr_info->tmr_value)
 		tmr_left = (tmr_info->tmr_value - tmr_left);
 	else
@@ -70,17 +70,17 @@ uns32 ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 *                      which needs to get the difference with the present 
 *                      timer.
 *  
-* Returns:  uns32 - timer difference
+* Returns:  uint32_t - timer difference
 *
 * Notes:  
 **************************************************************************/
-uns32 rp_tmr_time_left_in_sec(time_t tmr_trig_at, uns32 tmr_value)
+uint32_t rp_tmr_time_left_in_sec(time_t tmr_trig_at, uint32_t tmr_value)
 {
-	uns32 tmr_left = 0;
+	uint32_t tmr_left = 0;
 	time_t now;
 
 	m_GET_TIME_STAMP(now);
-	tmr_left = (uns32)difftime(now, tmr_trig_at);
+	tmr_left = (uint32_t)difftime(now, tmr_trig_at);
 	if (tmr_left < tmr_value)
 		tmr_left = (tmr_value - tmr_left);
 	else
@@ -135,7 +135,7 @@ NCS_RP_TMR_CB *ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info)
 *
 * Input: *tmr_cb - This is the RP timer CB.
 *  
-* Returns:  uns32  - timer Id, which needs to be refered further to access 
+* Returns:  uint32_t  - timer Id, which needs to be refered further to access 
 *                    that timer.
 *
 * Notes: It is all up to the RP to prevent redudenet timer start.
@@ -170,13 +170,13 @@ NCS_RP_TMR_HDL ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb)
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uns32 ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uns32 period, RP_TMR_CALLBACK callbk, void *arg)
+uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t period, RP_TMR_CALLBACK callbk, void *arg)
 {
 	NCS_RP_TMR_INFO *tmr_info;
 	NCS_RP_TMR_INFO *tmr_list;
 	NCS_RP_TMR_INFO *prev_info;
-	uns32 left_sec = 0;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t left_sec = 0;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 
@@ -327,11 +327,11 @@ uns32 ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uns32 perio
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uns32 ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
+uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
 	NCS_RP_TMR_INFO *tmr_info;
-	uns32 period = 0;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t period = 0;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 	do {
@@ -388,10 +388,10 @@ uns32 ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uns32 ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
+uint32_t ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
 	NCS_RP_TMR_INFO *tmr_info;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 	do {
@@ -423,7 +423,7 @@ uns32 ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uns32 ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
+uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 {
 	NCS_RP_TMR_INFO *tmr_info;
 	NCS_RP_TMR_INFO *pres_tmr_info;
@@ -469,14 +469,14 @@ uns32 ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uns32 ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
+uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 {
 	NCS_RP_TMR_INFO *tmr_list;
 	NCS_RP_TMR_INFO *prev_tmr_info;
 	RP_TMR_CALLBACK call_back;
 	void *arg;
-	uns32 tmr_diff = 0;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t tmr_diff = 0;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 	do {

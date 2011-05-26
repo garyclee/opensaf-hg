@@ -30,7 +30,7 @@
 #ifndef MQA_DB_H
 #define MQA_DB_H
 
-extern  uns32 gl_mqa_hdl;
+extern  uint32_t gl_mqa_hdl;
 
 /*Maximum Nodes in the cluster */
 #define MQA_MAX_NODES NCS_MAX_SLOTS
@@ -77,8 +77,8 @@ typedef struct mqa_track_info {
 	SaNameT queueGroupName;	/* Index for the tree */
 	SaUint8T trackFlags;
 	SaMsgQueueGroupNotificationBufferT notificationBuffer;
-	uns32 track_index;
-	uns32 first;
+	uint32_t track_index;
+	uint32_t first;
 } MQA_TRACK_INFO;
 
 /* Patricia trie of MQA client info structures. */
@@ -120,10 +120,10 @@ typedef struct mqa_tmr_node {
 typedef struct mqa_cb {
 
 	/* Identification Information about the MQA */
-	uns32 process_id;
-	uns32 agent_handle_id;
+	uint32_t process_id;
+	uint32_t agent_handle_id;
 	uint8_t pool_id;
-	uns32 mqa_mds_hdl;
+	uint32_t mqa_mds_hdl;
 	MDS_DEST mqa_mds_dest;
 	NCS_LOCK cb_lock;
 	EDU_HDL edu_hdl;
@@ -170,7 +170,7 @@ typedef struct mqa_cb {
 
 	/*To store versions of MQND across cluster */
 	SVC_SUBPART_VER ver_mqnd[MQA_MAX_NODES];
-	uns32 clm_node_joined;
+	uint32_t clm_node_joined;
 } MQA_CB;
 
 NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info, SaNameT *group);

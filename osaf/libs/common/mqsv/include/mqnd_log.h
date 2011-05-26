@@ -216,11 +216,11 @@ typedef enum mqnd_log_ids {
 	MQND_LID_EVT
 } MQND_LOG_IDS;
 
-uns32 mqnd_log_ascii_reg(void);
+uint32_t mqnd_log_ascii_reg(void);
 void mqnd_log_ascii_dereg(void);
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-void mqnd_log(uint8_t, uns32, uint8_t, uns32, char *, uns32);
+void mqnd_log(uint8_t, uint32_t, uint8_t, uint32_t, char *, uint32_t);
 #define m_LOG_MQSV_ND(id,category,sev,rc,fname,fno)  mqnd_log(id,category,sev,rc,fname,fno)
 #else
 #define m_LOG_MQSV_ND(id,category,sev,rc,fname,fno)

@@ -31,7 +31,7 @@ typedef enum {
 
 typedef struct glsv_node_list_tag {
 	MDS_DEST dest_id;
-	uns32 node_id;
+	uint32_t node_id;
 	struct glsv_node_list_tag *next;
 } GLSV_NODE_LIST;
 
@@ -43,13 +43,13 @@ typedef struct glsv_gld_rsc_info_tag {
 	NCS_BOOL can_orphan;	/* is this resource allocated in orphan mode */
 	SaLckLockModeT orphan_lck_mode;	/* related to orphan mode                    */
 	GLD_TMR reelection_timer;
-	uns32 status;
+	uint32_t status;
 	struct glsv_gld_rsc_info_tag *next;	/* List of resources                         */
 	struct glsv_gld_rsc_info_tag *prev;
 
 	SaTimeT saf_rsc_creation_time;
-	uns32 saf_rsc_no_of_users;
-	uns32 saf_rsc_stripped_cnt;
+	uint32_t saf_rsc_no_of_users;
+	uint32_t saf_rsc_stripped_cnt;
 } GLSV_GLD_RSC_INFO;
 
 typedef struct glsv_glnd_rsc_ref_tag {
@@ -61,8 +61,8 @@ typedef struct glsv_glnd_rsc_ref_tag {
 typedef struct glsv_gld_glnd_details_tag {
 	NCS_PATRICIA_NODE pat_node;
 	MDS_DEST dest_id;	/* Vcard id as given by MDS                  */
-	uns32 node_id;		/* Node id of the Node Director              */
-	uns32 status;
+	uint32_t node_id;		/* Node id of the Node Director              */
+	uint32_t status;
 	GLD_TMR restart_timer;
 	NCS_PATRICIA_TREE rsc_info_tree;	/* List of resources ref by this node        */
 } GLSV_GLD_GLND_DETAILS;
@@ -79,12 +79,12 @@ typedef struct glsv_gld_cb_tag {
 	MDS_HDL mds_handle;	/* PWE handle used for interacting with NDs  */
 	uint8_t hm_poolid;		/* For use with handle manager               */
 	NCSCONTEXT task_hdl;
-	uns32 my_hdl;		/* Handle manager handle                     */
-	uns32 clm_hdl;		/* Handle manager handle                     */
+	uint32_t my_hdl;		/* Handle manager handle                     */
+	uint32_t clm_hdl;		/* Handle manager handle                     */
 	NCS_MBCSV_HDL mbcsv_handle;
 	NCS_MBCSV_CKPT_HDL o_ckpt_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;
-	uns32 gld_async_cnt;
+	uint32_t gld_async_cnt;
 	V_DEST_QA my_anc;
 	MDS_VDEST_ID my_dest_id;	/* My identification in MDS                  */
 
@@ -104,7 +104,7 @@ typedef struct glsv_gld_cb_tag {
 	EDU_HDL edu_hdl;	/* EDU Handle for encode decodes             */
 
 	SaInvocationT invocation;
-	uns32 is_quiasced;
+	uint32_t is_quiasced;
 
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
@@ -115,11 +115,11 @@ typedef struct glsv_gld_cb_tag {
 
 /* Function Declarations */
 
-uns32 gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info);
-void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uns32 status);
+uint32_t gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info);
+void gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, uint32_t status);
 GLSV_GLD_RSC_INFO *gld_find_rsc_by_id(GLSV_GLD_CB *gld_cb, SaLckResourceIdT rsc_id);
-uns32 glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb);
-uns32 glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb);
+uint32_t glsv_gld_mbcsv_register(GLSV_GLD_CB *gld_cb);
+uint32_t glsv_gld_mbcsv_unregister(GLSV_GLD_CB *gld_cb);
 void gld_dump_cb(void);
 
 GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
@@ -138,10 +138,10 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_GLND_DETAILS *node_detai
 #define m_GLSV_GLD_GIVEUP_GLD_CB    ncshm_give_hdl(gl_gld_hdl)
 
 #define GLD_RESOURCE_INFO_NODE_NULL ((GLSV_GLD_RSC_INFO *)0)
-uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
+uint32_t gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLckResourceIdT rsc_id, NCS_BOOL orphan,
 				      SaLckLockModeT lck_mode);
 GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id,
 					     SaAisErrorT *error);
-uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb);
+uint32_t gld_process_node_down_evts(GLSV_GLD_CB *gld_cb);
 
 #endif

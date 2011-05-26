@@ -73,8 +73,8 @@ mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
 {
 	MQND_CB *mqnd_cb;
 	SaAisErrorT error = SA_AIS_OK;
-	uns32 cb_hdl = m_MQND_GET_HDL();
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t cb_hdl = m_MQND_GET_HDL();
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Get the CB from the handle */
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
@@ -103,12 +103,12 @@ mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, 
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_amf_init(MQND_CB *mqnd_cb)
+uint32_t mqnd_amf_init(MQND_CB *mqnd_cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
 	SaAisErrorT error;
-	uns32 res = NCSCC_RC_SUCCESS;
+	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
@@ -150,7 +150,7 @@ uns32 mqnd_amf_init(MQND_CB *mqnd_cb)
  *****************************************************************************/
 void mqnd_amf_de_init(MQND_CB *mqnd_cb)
 {
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 	if ((rc = saAmfFinalize(mqnd_cb->amf_hdl)) != SA_AIS_OK)
 		m_LOG_MQSV_ND(MQND_AMF_DESTROY_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 }
@@ -166,7 +166,7 @@ void mqnd_amf_de_init(MQND_CB *mqnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_amf_register(MQND_CB *mqnd_cb)
+uint32_t mqnd_amf_register(MQND_CB *mqnd_cb)
 {
 	SaAisErrorT error;
 
@@ -200,7 +200,7 @@ uns32 mqnd_amf_register(MQND_CB *mqnd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_amf_deregister(MQND_CB *mqnd_cb)
+uint32_t mqnd_amf_deregister(MQND_CB *mqnd_cb)
 {
 	SaAisErrorT error;
 	if ((error = saAmfComponentUnregister(mqnd_cb->amf_hdl, &mqnd_cb->comp_name, (SaNameT *)NULL)) == SA_AIS_OK) {
@@ -219,7 +219,7 @@ static void mqnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
 
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 
 	/* Get the CB from the handle */
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
@@ -248,7 +248,7 @@ static void mqnd_amf_CSI_set_callback(SaInvocationT invocation,
 	MQND_CB *mqnd_cb;
 	SaAisErrorT saErr = SA_AIS_OK;
 
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 
 	/* Get the CB from the handle */
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
@@ -293,7 +293,7 @@ mqnd_amf_csi_rmv_callback(SaInvocationT invocation,
 	MQND_CB *mqnd_cb = 0;
 	SaAisErrorT saErr = SA_AIS_OK;
 
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 
 	/* Get the CB from the handle */
 	mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);

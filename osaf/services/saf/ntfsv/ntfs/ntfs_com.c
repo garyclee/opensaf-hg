@@ -40,7 +40,7 @@ int activeController()
 
 void client_added_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc;
+	uint32_t rc;
 	ntfsv_msg_t msg;
 	ntfsv_ckpt_msg_t ckpt;
 	TRACE_ENTER2("clientId: %u, rv: %u", clientId, error);
@@ -68,7 +68,7 @@ void client_added_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mds
 
 void client_removed_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc;
+	uint32_t rc;
 	ntfsv_msg_t msg;
 	ntfsv_ckpt_msg_t ckpt;
 	TRACE_ENTER2("clientId: %u, rv: %u", clientId, error);
@@ -102,7 +102,7 @@ void client_removed_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST m
  */
 void subscribe_res_lib(SaAisErrorT error, SaNtfSubscriptionIdT subId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -129,7 +129,7 @@ void subscribe_res_lib(SaAisErrorT error, SaNtfSubscriptionIdT subId, MDS_DEST m
  */
 void unsubscribe_res_lib(SaAisErrorT error, SaNtfSubscriptionIdT subId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -159,7 +159,7 @@ void unsubscribe_res_lib(SaAisErrorT error, SaNtfSubscriptionIdT subId, MDS_DEST
 void notfication_result_lib(SaAisErrorT error,
 			    SaNtfIdentifierT notificationId, MDS_SYNC_SND_CTXT *mdsCtxt, MDS_DEST frDest)
 {
-	uns32 rc;
+	uint32_t rc;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -187,7 +187,7 @@ void notfication_result_lib(SaAisErrorT error,
  */
 void new_reader_res_lib(SaAisErrorT error, unsigned int readerId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -214,7 +214,7 @@ void new_reader_res_lib(SaAisErrorT error, unsigned int readerId, MDS_DEST mdsDe
 void read_next_res_lib(SaAisErrorT error,
 		       ntfsv_send_not_req_t *notification, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -244,7 +244,7 @@ void read_next_res_lib(SaAisErrorT error,
  */
 void delete_reader_res_lib(SaAisErrorT error, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 
@@ -272,9 +272,9 @@ void delete_reader_res_lib(SaAisErrorT error, MDS_DEST mdsDest, MDS_SYNC_SND_CTX
  *
  *   @return return value == NCSCC_RC_SUCCESS if ok
  */
-int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST mds_dest)
+int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uint32_t client_id, MDS_DEST mds_dest)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	SaNtfNotificationHeaderT *header;
 	int discarded = 0;
@@ -327,9 +327,9 @@ void sendLoggedConfirm(SaNtfIdentifierT notificationId)
  *
  *   @return          return value = 1 if ok -1 if failed
  */
-int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uns32 c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest)
+int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uint32_t c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
 	TRACE_ENTER();
 #if DISCARDED_TEST
@@ -381,7 +381,7 @@ int sendNewNotification(unsigned int connId, ntfsv_send_not_req_t *notificationI
 	return 1;
 };
 
-int sendNoOfClients(uns32 num_rec, NCS_UBAID *uba)
+int sendNoOfClients(uint32_t num_rec, NCS_UBAID *uba)
 {
 	TRACE_2("num_rec: %u", num_rec);
 	return enc_ckpt_reserv_header(uba, NTFS_CKPT_INITIALIZE_REC, num_rec, 0);
@@ -398,13 +398,13 @@ int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, NCS_UBAID *uba)
 	return 1;
 };
 
-int sendNoOfNotifications(uns32 num_rec, NCS_UBAID *uba)
+int sendNoOfNotifications(uint32_t num_rec, NCS_UBAID *uba)
 {
 	TRACE_2("num_rec: %u", num_rec);
 	return enc_ckpt_reserv_header(uba, NTFS_CKPT_NOTIFICATION, num_rec, 0);
 }
 
-int sendNoOfSubscriptions(uns32 num_rec, NCS_UBAID *uba)
+int sendNoOfSubscriptions(uint32_t num_rec, NCS_UBAID *uba)
 {
 	TRACE_2("num_rec: %u", num_rec);
 	return enc_ckpt_reserv_header(uba, NTFS_CKPT_SUBSCRIBE, num_rec, 0);

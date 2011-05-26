@@ -50,9 +50,9 @@ void fm_saf_CSI_rem_callback(SaInvocationT invocation,
 
 void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-uns32 fm_amf_open(FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_close(FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_process_msg(FM_AMF_CB *fm_amf_cb);
+uint32_t fm_amf_open(FM_AMF_CB *fm_amf_cb);
+uint32_t fm_amf_close(FM_AMF_CB *fm_amf_cb);
+uint32_t fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb);
+uint32_t fm_amf_process_msg(FM_AMF_CB *fm_amf_cb);
 
 #endif

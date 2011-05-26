@@ -35,7 +35,7 @@
 #include "avnd.h"
 
 /* static function declarations */
-static uns32 avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2);
+static uint32_t avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2);
 
 /****************************************************************************
   Name          : avnd_pgdb_init
@@ -48,10 +48,10 @@ static uns32 avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2);
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_init(AVND_CB *cb)
+uint32_t avnd_pgdb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
@@ -76,10 +76,10 @@ uns32 avnd_pgdb_init(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_destroy(AVND_CB *cb)
+uint32_t avnd_pgdb_destroy(AVND_CB *cb)
 {
 	AVND_PG *pg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* scan & delete each pg rec */
 	while (0 != (pg = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0))) {
@@ -116,7 +116,7 @@ uns32 avnd_pgdb_destroy(AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uns32 *rc)
+AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 {
 	AVND_PG *pg = 0;
 
@@ -181,10 +181,10 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uns32 *rc)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
+uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 {
 	AVND_PG *pg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* get the pg record */
 	pg = m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name);
@@ -479,7 +479,7 @@ void avnd_pgdb_mem_rec_del_all(AVND_CB *cb, AVND_PG *pg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2)
+uint32_t avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2)
 {
 	int i = 0;
 

@@ -208,8 +208,8 @@ SaAisErrorT saSmfCallbackScopeRegister( SaSmfHandleT smfHandle,
 	SMFA_CB *cb = &_smfa_cb;
 	SMFA_CLIENT_INFO *client_info;
 	SMFA_SCOPE_INFO *scope_info;
-	uns32 no_of_filters = 0;
-	uns32 size_of_label = 0;
+	uint32_t no_of_filters = 0;
+	uint32_t size_of_label = 0;
 
 	TRACE_ENTER2("SMFA:Handle %llu, scopeId: %u",smfHandle,scopeId);
 	if (NULL == scopeOfInterest){

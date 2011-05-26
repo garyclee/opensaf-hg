@@ -30,7 +30,7 @@
 
 /* Logging utility functions  - Phani */
 
-extern uns32 gl_mds_log_level;
+extern uint32_t gl_mds_log_level;
 
 #define NCSMDS_LC_CRITICAL       1
 #define NCSMDS_LC_ERR            2

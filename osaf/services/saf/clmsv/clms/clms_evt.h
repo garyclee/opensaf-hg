@@ -74,18 +74,18 @@ typedef SaUint32T (*CLMSV_CLMS_EVT_HANDLER) (CLMSV_CLMS_EVT * evt);
 #define  m_CLMSV_INV_UNPACK_INVID(inv) ((inv) >> 32)
 #define  m_CLMSV_INV_UNPACK_NODEID(inv) ((inv) & 0x00000000ffffffff)
 
-extern CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uns32 client_id);
-extern CLMS_CLIENT_INFO *clms_client_get_by_id(uns32 client_id);
-extern CLMS_CLIENT_INFO *clms_client_getnext_by_id(uns32 client_id);
-extern uns32 clms_client_delete_by_mds_dest(MDS_DEST mds_dest);
-extern uns32 clms_client_delete(uns32 client_id);
+extern CLMS_CLIENT_INFO *clms_client_new(MDS_DEST mds_dest, uint32_t client_id);
+extern CLMS_CLIENT_INFO *clms_client_get_by_id(uint32_t client_id);
+extern CLMS_CLIENT_INFO *clms_client_getnext_by_id(uint32_t client_id);
+extern uint32_t clms_client_delete_by_mds_dest(MDS_DEST mds_dest);
+extern uint32_t clms_client_delete(uint32_t client_id);
 extern CLMS_CLUSTER_NODE *clms_node_getnext_by_id(SaUint32T node_id);
-extern uns32 clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
-extern uns32 clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_INFO * trkrec);
-extern uns32 clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO * trkrec);
-extern uns32 clms_remove_clma_down_rec(CLMS_CB * cb, MDS_DEST mds_dest);
+extern uint32_t clms_clmresp_error(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
+extern uint32_t clms_clmresp_rejected(CLMS_CB * cb, CLMS_CLUSTER_NODE * node, CLMS_TRACK_INFO * trkrec);
+extern uint32_t clms_clmresp_ok(CLMS_CB * cb, CLMS_CLUSTER_NODE * op_node, CLMS_TRACK_INFO * trkrec);
+extern uint32_t clms_remove_clma_down_rec(CLMS_CB * cb, MDS_DEST mds_dest);
 extern void clms_remove_node_down_rec(SaClmNodeIdT node_id);
-extern uns32 clms_node_add(CLMS_CLUSTER_NODE * node, int i);
+extern uint32_t clms_node_add(CLMS_CLUSTER_NODE * node, int i);
 extern void clms_clmresp_error_timeout(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
 extern NCS_BOOL clms_clma_entry_valid(CLMS_CB * cb, MDS_DEST mds_dest);
 extern void clms_process_mbx(SYSF_MBX *mbx);

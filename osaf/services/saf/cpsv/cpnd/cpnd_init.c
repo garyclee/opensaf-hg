@@ -30,20 +30,20 @@
 #include "cpnd.h"
 
 #define NCS_SAF_ACCEPT_TIME 1000
-uns32 gl_cpnd_cb_hdl = 0;
+uint32_t gl_cpnd_cb_hdl = 0;
 
 /* Static Function Declerations */
-static uns32 cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info);
+static uint32_t cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info);
 
-static uns32 cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info);
+static uint32_t cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info);
 
-static uns32 cpnd_lib_init(CPND_CREATE_INFO *info);
+static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info);
 
-static uns32 cpnd_lib_destroy(CPND_DESTROY_INFO *info);
+static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info);
 
-static uns32 cpnd_cb_db_init(CPND_CB *cb);
+static uint32_t cpnd_cb_db_init(CPND_CB *cb);
 
-static uns32 cpnd_cb_db_destroy(CPND_CB *cb);
+static uint32_t cpnd_cb_db_destroy(CPND_CB *cb);
 
 static NCS_BOOL cpnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
@@ -62,9 +62,9 @@ void cpnd_main_process(CPND_CB *cb);
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpnd_lib_req(NCS_LIB_REQ_INFO *req_info)
+uint32_t cpnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	CPND_CREATE_INFO create_info;
 	CPND_DESTROY_INFO destroy_info;
 
@@ -102,7 +102,7 @@ uns32 cpnd_lib_req(NCS_LIB_REQ_INFO *req_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info)
+static uint32_t cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info)
 {
 
 	memset(create_info, 0, sizeof(CPND_CREATE_INFO));
@@ -126,7 +126,7 @@ static uns32 cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info)
+static uint32_t cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info)
 {
 
 	memset(destroy_info, 0, sizeof(CPND_DESTROY_INFO));
@@ -152,10 +152,10 @@ static uns32 cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
+static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 {
 	CPND_CB *cb = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAmfHealthcheckKeyT healthy;
 	uint8_t *health_key;
 	SaAisErrorT amf_error;
@@ -342,10 +342,10 @@ static uns32 cpnd_lib_init(CPND_CREATE_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_lib_destroy(CPND_DESTROY_INFO *info)
+static uint32_t cpnd_lib_destroy(CPND_DESTROY_INFO *info)
 {
 	CPND_CB *cb = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	m_CPND_RETRIEVE_CB(cb);
 	if (cb == NULL) {
@@ -392,9 +392,9 @@ static uns32 cpnd_lib_destroy(CPND_DESTROY_INFO *info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_cb_db_init(CPND_CB *cb)
+static uint32_t cpnd_cb_db_init(CPND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	rc = cpnd_ckpt_node_tree_init(cb);
 	if (rc == NCSCC_RC_FAILURE) {
@@ -431,7 +431,7 @@ static uns32 cpnd_cb_db_init(CPND_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 cpnd_cb_db_destroy(CPND_CB *cb)
+static uint32_t cpnd_cb_db_destroy(CPND_CB *cb)
 {
 
 	cpnd_ckpt_node_tree_destroy(cb);
@@ -506,12 +506,12 @@ void cpnd_main_process(CPND_CB *cb)
 		m_LOG_CPND_CL(CPND_AMF_GET_SEL_OBJ_FAILURE, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		return;
 	}
-	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
+	m_SET_FD_IN_SEL_OBJ((uint32_t)amf_sel_obj, amf_ncs_sel_obj);
 	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
 
 	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, mbx_fd);
 
-	m_SET_FD_IN_SEL_OBJ((uns32)cb->clm_sel_obj, clm_ncs_sel_obj);
+	m_SET_FD_IN_SEL_OBJ((uint32_t)cb->clm_sel_obj, clm_ncs_sel_obj);
 	m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
 	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(clm_ncs_sel_obj, highest_sel_obj);
 	while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj, &all_sel_obj, 0, 0, 0) != -1) {

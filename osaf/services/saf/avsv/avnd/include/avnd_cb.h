@@ -64,7 +64,7 @@ typedef struct avnd_cb_tag {
 	/* node states */
 	SaAmfAdminStateT admin_state;	/* node admin state */
 	SaAmfOperationalStateT oper_state;	/* node oper state  */
-	uns32 flag;		/* cb flag */
+	uint32_t flag;		/* cb flag */
 
 	/* timeout interval values */
 	SaTimeT cbk_resp_intv;	/* callback response interval */
@@ -76,8 +76,8 @@ typedef struct avnd_cb_tag {
 	/* error recovery escalation params */
 	AVND_ERR_ESC_LEVEL node_err_esc_level;	/* curr escalation level of this node */
 	SaTimeT su_failover_prob;	/* su failover probation period (config) */
-	uns32 su_failover_max;	/* max SU failovers (config) */
-	uns32 su_failover_cnt;	/* su failover cnt within a probation period */
+	uint32_t su_failover_max;	/* max SU failovers (config) */
+	uint32_t su_failover_cnt;	/* su failover cnt within a probation period */
 	AVND_TMR node_err_esc_tmr;	/* node err esc tmr */
         AVSV_AVND_CARD type;    /* node type (scxb or payload) */
 	SaNameT amf_nodeName;
@@ -96,9 +96,9 @@ typedef struct avnd_cb_tag {
 	NCS_DB_LINK_LIST srm_req_list;
 
 	MDS_DEST active_avd_adest;
-	uns32 rcv_msg_id;	/* Message ID of the last message received */
+	uint32_t rcv_msg_id;	/* Message ID of the last message received */
 	/* AvD messaging params (retransmit list etc.) */
-	uns32 snd_msg_id;	/* send msg id */
+	uint32_t snd_msg_id;	/* send msg id */
 	AVND_DND_LIST dnd_list;	/* list of messages sent to AvD */
 
 	AVND_TERM_STATE term_state;
@@ -117,9 +117,9 @@ typedef struct avnd_cb_tag {
 	MDS_DEST avnd_mbcsv_vaddr;	/* vcard address of the this AvD                                                 */
 	AVND_ASYNC_UPDT_CNT avnd_async_updt_cnt;
 	AVND_STBY_SYNC_STATE stby_sync_state;
-	uns32 synced_reo_type;	/* Count till which sync is done */
+	uint32_t synced_reo_type;	/* Count till which sync is done */
 	NCS_MBCSV_HDL avnd_mbcsv_hdl;
-	uns32 avnd_mbcsv_ckpt_hdl;
+	uint32_t avnd_mbcsv_ckpt_hdl;
 	SaSelectionObjectT avnd_mbcsv_sel_obj;
 	SaAmfHAStateT avail_state_avnd;
 	/* Queue for keeping async update messages  on Standby */
@@ -161,6 +161,6 @@ extern AVND_CB *avnd_cb;
 
 void avnd_dnd_list_destroy(AVND_CB *);
 
-uns32 avnd_cb_destroy(AVND_CB *);
+uint32_t avnd_cb_destroy(AVND_CB *);
 
 #endif

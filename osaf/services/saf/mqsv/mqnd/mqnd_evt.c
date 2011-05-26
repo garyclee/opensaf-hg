@@ -27,28 +27,28 @@
 #include <immutil.h>
 #include "mqnd.h"
 
-static uns32 mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt);
-static uns32 mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt);
-static uns32 mqnd_evt_proc_cb_dump(void);
-static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt);
-static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, uns32 offset);
+static uint32_t mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt);
+static uint32_t mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt);
+static uint32_t mqnd_evt_proc_cb_dump(void);
+static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt);
+static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, uint32_t offset);
 static void mqnd_dump_timer_info(MQND_TMR tmr);
 void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
 void mqnd_process_evt(MQSV_EVT *evt);
-static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt);
-static uns32 mqnd_proc_deferred_mqa_rsp(MQND_CB *cb);
-static uns32 mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl);
-static uns32 mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
+static uint32_t mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt);
+static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb);
+static uint32_t mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uint32_t qhdl);
+static uint32_t mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
 					   MQP_UNLINK_REQ *ulink_req);
 extern MSG_FRMT_VER mqnd_mqa_msg_fmt_table[];
 /*******************************************************************************/
@@ -56,7 +56,7 @@ extern MSG_FRMT_VER mqnd_mqa_msg_fmt_table[];
 void mqnd_process_evt(MQSV_EVT *evt)
 {
 	MQND_CB *cb;
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
@@ -98,7 +98,7 @@ void mqnd_process_evt(MQSV_EVT *evt)
 void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt)
 {
 	MQND_CB *cb;
-	uns32 cb_hdl = m_MQND_GET_HDL(), rc = NCSCC_RC_SUCCESS;
+	uint32_t cb_hdl = m_MQND_GET_HDL(), rc = NCSCC_RC_SUCCESS;
 
 	/* Get the CB from the handle */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
@@ -137,9 +137,9 @@ void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt)
 	return;
 }
 
-static uns32 mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	switch (evt->msg.mqp_req.type) {
 	case MQP_EVT_INIT_REQ:
@@ -186,9 +186,9 @@ static uns32 mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
 	return rc;
 }
 
-static uns32 mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 
 	switch (evt->msg.mqp_rsp.type) {
 	case MQP_EVT_TRANSFER_QUEUE_RSP:
@@ -202,9 +202,9 @@ static uns32 mqnd_proc_mqp_rsp_msg(MQND_CB *cb, MQSV_EVT *evt)
 	return rc;
 }
 
-static uns32 mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc;
+	uint32_t rc;
 	m_LOG_MQSV_ND(MQND_CTRL_EVT_RECEIVED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, evt->msg.mqnd_ctrl.type, __FILE__,
 		      __LINE__);
 	switch (evt->msg.mqnd_ctrl.type) {
@@ -248,11 +248,11 @@ static uns32 mqnd_proc_mqnd_ctrl_msg(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa)
+uint32_t mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa)
 {
 	MQND_QUEUE_NODE *qnode;
-	uns32 qhdl;
-	uns32 err = SA_AIS_OK;
+	uint32_t qhdl;
+	uint32_t err = SA_AIS_OK;
 
 	m_LOG_MQSV_ND(MQND_MQA_DOWN, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, m_NCS_NODE_ID_FROM_MDS_DEST(*mqa), __FILE__,
 		      __LINE__);
@@ -288,13 +288,13 @@ uns32 mqnd_proc_mqa_down(MQND_CB *cb, MDS_DEST *mqa)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MQP_FINALIZE_REQ *final;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQND_QUEUE_NODE *qnode;
-	uns32 qhdl;
-	uns32 err = SA_AIS_OK;
+	uint32_t qhdl;
+	uint32_t err = SA_AIS_OK;
 	MQSV_EVT send_evt;
 
 	final = &evt->msg.mqp_req.info.finalReq;
@@ -354,10 +354,10 @@ static uns32 mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MQSV_EVT send_evt;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&send_evt, 0, sizeof(MQSV_EVT));
 
@@ -399,9 +399,9 @@ static uns32 mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_MSG_INFO *asapi_rsp = NULL;
 	MQP_REQ_MSG *mqp_req = NULL;
 	MQP_OPEN_REQ *open = NULL;
@@ -501,9 +501,9 @@ static uns32 mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_CLOSE_REQ *close = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
@@ -569,9 +569,9 @@ static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_UNLINK_REQ *ulink_req = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
@@ -797,14 +797,14 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQP_QUEUE_STATUS_REQ *sts_req = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
-	uns32 offset, i;
+	uint32_t offset, i;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
 	sts_req = &evt->msg.mqp_req.info.statusReq;
@@ -874,12 +874,12 @@ static uns32 mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
+static uint32_t mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 {
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQP_UPDATE_STATS *statsReq;
-	uns32 offset, rc = NCSCC_RC_SUCCESS, msg_fmt_ver;
+	uint32_t offset, rc = NCSCC_RC_SUCCESS, msg_fmt_ver;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQSV_DSEND_EVT *direct_rsp_evt = NULL;
 	NCS_BOOL is_valid_msg_fmt = FALSE;
@@ -986,16 +986,16 @@ static uns32 mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
+static uint32_t mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, msg_fmt_ver;
+	uint32_t rc = NCSCC_RC_SUCCESS, msg_fmt_ver;
 	MQP_SEND_MSG *snd_msg = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
 	MQSV_DSEND_EVT *direct_rsp_evt = NULL;
 	MQSV_MESSAGE *mqsv_msg = NULL;
-	uns32 size, qsize = 0, qused = 0, actual_qsize = 0, actual_qused = 0, offset;
+	uint32_t size, qsize = 0, qused = 0, actual_qsize = 0, actual_qused = 0, offset;
 	NCS_OS_POSIX_MQ_REQ_INFO info;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
@@ -1121,7 +1121,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 	}
 
 	/* Allocate the memory (size of MQSV_MESSAGE + size of received data) */
-	size = (uns32)(sizeof(MQSV_MESSAGE) + snd_msg->message.size);
+	size = (uint32_t)(sizeof(MQSV_MESSAGE) + snd_msg->message.size);
 	mqsv_msg = (MQSV_MESSAGE *)m_MMGR_ALLOC_MQND_DEFAULT(size);
 
 	if (!mqsv_msg) {
@@ -1147,14 +1147,14 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 		    snd_msg->messageInfo.sender.sender_context.reply_buffer_size;
 	}
 
-	memcpy(mqsv_msg->info.msg.message.data, snd_msg->message.data, (uns32)snd_msg->message.size);
+	memcpy(mqsv_msg->info.msg.message.data, snd_msg->message.data, (uint32_t)snd_msg->message.size);
 	mqsv_msg->info.msg.message.priority = snd_msg->message.priority;
 	mqsv_msg->info.msg.message.size = snd_msg->message.size;
 	mqsv_msg->info.msg.message.type = snd_msg->message.type;
 	mqsv_msg->info.msg.message.version = snd_msg->message.version;
 	mqsv_msg->info.msg.message.senderName = snd_msg->message.senderName;
 
-	rc = mqnd_mq_msg_send(qnode->qinfo.queueHandle, mqsv_msg, (uns32)size);
+	rc = mqnd_mq_msg_send(qnode->qinfo.queueHandle, mqsv_msg, (uint32_t)size);
 
 	/* Free the message */
 	if (mqsv_msg)
@@ -1246,9 +1246,9 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
+uint32_t mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaMsgQueueHandleT qhdl;
 	MQND_QUEUE_NODE *qnode = NULL;
 	MQND_QNAME_NODE *pnode = NULL;
@@ -1446,14 +1446,14 @@ uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQND_QATTR_REQ *qattr_req = NULL;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
-	uns32 i;
+	uint32_t i;
 
 	qattr_req = &evt->msg.mqnd_ctrl.info.qattr_get;
 
@@ -1507,9 +1507,9 @@ static uns32 mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQND_QUEUE_NODE *qnode = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	MQSV_EVT rsp_evt;
@@ -1578,15 +1578,15 @@ static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 mqnd_evt_proc_cb_dump(void)
+static uint32_t mqnd_evt_proc_cb_dump(void)
 {
 	MQND_QUEUE_NODE *qnode = 0;
 	MQND_QNAME_NODE *pnode = 0;
 	MQND_QTRANSFER_EVT_NODE *qevt_node = 0;
-	uns32 i = 0, offset;
+	uint32_t i = 0, offset;
 	SaNameT qname;
 	MQND_CB *cb = NULL;
-	uns32 cb_hdl = m_MQND_GET_HDL();
+	uint32_t cb_hdl = m_MQND_GET_HDL();
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
 	/* Get the CB from the handle */
@@ -1708,9 +1708,9 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 	return NCSCC_RC_SUCCESS;
 }
 
-static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, uns32 offset)
+static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, uint32_t offset)
 {
-	uns32 i;
+	uint32_t i;
 	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
 	TRACE("~~~~~~~~~~ Queue Status Parameters ~~~~~~~~~~");
@@ -1748,10 +1748,10 @@ static void mqnd_dump_timer_info(MQND_TMR tmr)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
+static uint32_t mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
 {
 	MDS_DEST i_dest = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	i_dest = evt->msg.mqnd_ctrl.info.mqa_up_info.mqa_up_dest;
 
@@ -1787,11 +1787,11 @@ static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb, MQSV_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
+static uint32_t mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 {
 	MQA_RSP_CNTXT *mqa_rsp_cntx = cb->mqa_dfrd_evt_rsp_list_head;
 	MQA_RSP_CNTXT *temp = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if (mqa_rsp_cntx == NULL) {
 		TRACE(" Deferred mqa event list head NULL");
@@ -1840,10 +1840,10 @@ static uns32 mqnd_proc_deferred_mqa_rsp(MQND_CB *cb)
 	return rc;
 }
 
-static uns32 mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uns32 qhdl)
+static uint32_t mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err, uint32_t qhdl)
 {
 	MQA_RSP_CNTXT *mqa_rsp = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
 	if (mqa_rsp == NULL)
@@ -1871,11 +1871,11 @@ static uns32 mqnd_enqueue_evt_cntxt_close(MQND_CB *cb, MQSV_SEND_INFO *sinfo, Sa
 	return rc;
 }
 
-static uns32 mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
+static uint32_t mqnd_enqueue_evt_cntxt_unlink(MQND_CB *cb, MQSV_SEND_INFO *sinfo, SaAisErrorT err,
 					   MQP_UNLINK_REQ *ulink_req)
 {
 	MQA_RSP_CNTXT *mqa_rsp = NULL;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	mqa_rsp = (MQA_RSP_CNTXT *) malloc(sizeof(MQA_RSP_CNTXT));
 	if (mqa_rsp == NULL)

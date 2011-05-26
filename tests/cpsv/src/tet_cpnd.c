@@ -3,7 +3,7 @@
 #include "cpnd.h"
 #include "tet_api.h"
 
-extern uns32 gl_cpnd_hdl;
+extern uint32_t gl_cpnd_hdl;
 void tet_create_cpnd();
 void tet_cpnd_show();
 
@@ -80,7 +80,7 @@ void tet_create_cpnd()
 void print_cpnd_cb() {
 
    CPND_CB           *cb;
-   uns32              cb_hdl=m_CPND_GET_CB_HDL;
+   uint32_t              cb_hdl=m_CPND_GET_CB_HDL;
    CPSV_EVT          *cpsv_evt;
 
    cpsv_evt=m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);

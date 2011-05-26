@@ -2,10 +2,10 @@
 
 #include "mbcsv_api.h"
 
-uns32 mbcstm_input()
+uint32_t mbcstm_input()
 {
   char     *input_ptr;
-  uns32    sys_id;
+  uint32_t    sys_id;
   
   input_ptr = (char *) getenv("MBCSTM_SYS_ID");
   sys_id = atoi(input_ptr);
@@ -53,12 +53,12 @@ MDS_DEST get_vdest_anchor()
       return NCSCC_RC_FAILURE;
     }
 }
-uns32 mbcstm_config()
+uint32_t mbcstm_config()
 {
-  uns32    svc_count, ssn_count, ssn_index;
+  uint32_t    svc_count, ssn_count, ssn_index;
   uns64    anc_index;
-  uns32    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
-  uns32    svc_id =  MBCSTM_SVC_ID1;
+  uint32_t    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
+  uint32_t    svc_id =  MBCSTM_SVC_ID1;
   
   switch(mbcstm_cb.sys)
     {
@@ -138,12 +138,12 @@ uns32 mbcstm_config()
   mbcstm_config_print();
   return NCSCC_RC_SUCCESS;
 }
-uns32 tet_mbcsv_config()
+uint32_t tet_mbcsv_config()
 {
-  uns32    svc_count, ssn_count, ssn_index;
+  uint32_t    svc_count, ssn_count, ssn_index;
   uns64    anc_index;
-  uns32    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
-  uns32    svc_id =  MBCSTM_SVC_ID1;
+  uint32_t    vdest_id = NCSVDA_EXTERNAL_UNNAMED_MIN;
+  uint32_t    svc_id =  MBCSTM_SVC_ID1;
   
   switch(mbcstm_cb.sys)
     {

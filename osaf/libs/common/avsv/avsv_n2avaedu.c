@@ -45,12 +45,12 @@
 #include "avsv_n2avaedu.h"
 #include "avsv_eduutil.h"
 
-static uns32 avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+static uint32_t avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			       NCSCONTEXT ptr, uint32_t *ptr_data_len,
 			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static int avsv_nda_msg_test_type_fnc(NCSCONTEXT arg);
@@ -74,10 +74,10 @@ static int avsv_ha_test_type_fnc(NCSCONTEXT arg);
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_AMF_CBK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_edp_cbq_info_rules[] = {
@@ -190,10 +190,10 @@ uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_AMF_API_RESP_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_api_resp_info_rules[] = {
@@ -249,10 +249,10 @@ uns32 avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_AMF_API_INFO *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_edp_api_info_rules[] = {
@@ -428,10 +428,10 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-		       NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+		       NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_NDA_AVA_MSG *struct_ptr = NULL, **d_ptr = NULL;
 
 	EDU_INST_SET avsv_nda_msg_rules[] = {

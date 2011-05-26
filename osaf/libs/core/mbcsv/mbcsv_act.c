@@ -359,10 +359,10 @@ void ncs_mbcsv_send_warm_sync(PEER_INST *peer, MBCSV_EVT *evt)
 
 *****************************************************************************/
 
-uns32 ncs_mbscv_rcv_decode(PEER_INST *peer, MBCSV_EVT *evt)
+uint32_t ncs_mbscv_rcv_decode(PEER_INST *peer, MBCSV_EVT *evt)
 {
 	NCS_MBCSV_CB_ARG parg;
-	uns32 status = NCSCC_RC_FAILURE;
+	uint32_t status = NCSCC_RC_FAILURE;
 	MBCSV_REG *mbc_inst = peer->my_ckpt_inst->my_mbcsv_inst;
 
 	parg.i_client_hdl = peer->my_ckpt_inst->client_hdl;

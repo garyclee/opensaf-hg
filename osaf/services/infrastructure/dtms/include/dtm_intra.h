@@ -44,7 +44,7 @@ typedef enum dtm_lib_types {
 	DTM_LIB_MESSAGE_TYPE = 5,
 } DTM_LIB_TYPES;
 
-extern uns32 dtm_intranode_add_self_node_to_node_db(NODE_ID node_id);
-uns32 dtm_intranode_reset_poll_fdlist(int fd);
+extern uint32_t dtm_intranode_add_self_node_to_node_db(NODE_ID node_id);
+uint32_t dtm_intranode_reset_poll_fdlist(int fd);
 
 #endif

@@ -417,10 +417,10 @@ static SaAisErrorT ntfa_hdl_cbk_dispatch_one(ntfa_cb_t *cb, ntfa_client_hdl_rec_
  
   Notes         : None
 ******************************************************************************/
-static uns32 ntfa_hdl_cbk_dispatch_all(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
+static uint32_t ntfa_hdl_cbk_dispatch_all(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
 {
 	ntfsv_msg_t *cbk_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	/* Recv all the cbk notifications from the queue & process them */
 	do {
@@ -448,10 +448,10 @@ static uns32 ntfa_hdl_cbk_dispatch_all(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl
  
   Notes         : None
 ******************************************************************************/
-static uns32 ntfa_hdl_cbk_dispatch_block(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
+static uint32_t ntfa_hdl_cbk_dispatch_block(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
 {
 	ntfsv_msg_t *cbk_msg;
-	uns32 rc = SA_AIS_OK;
+	uint32_t rc = SA_AIS_OK;
 
 	for (;;) {
 		if (NULL != (cbk_msg = (ntfsv_msg_t *)
@@ -582,7 +582,7 @@ void ntfa_msg_destroy(ntfsv_msg_t *msg)
  
   Notes         : None
 ******************************************************************************/
-ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uns32 client_id)
+ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uint32_t client_id)
 {
 	ntfa_client_hdl_rec_t *ntfa_hdl_rec;
 
@@ -636,7 +636,7 @@ void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head, ntfa_notification_hdl_rec_t *rm_node)
+uint32_t ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head, ntfa_notification_hdl_rec_t *rm_node)
 {
 	/* Find the channel hdl record in the list of records */
 	ntfa_notification_hdl_rec_t *list_iter = *list_head;
@@ -685,7 +685,7 @@ uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head, ntf
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl_rec_t *rm_node)
+uint32_t ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl_rec_t *rm_node)
 {
 	/* Find the filter hdl record in the list of records */
 	ntfa_filter_hdl_rec_t *list_iter = *list_head;
@@ -734,9 +734,9 @@ uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t *rm_node)
+uint32_t ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t *rm_node)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
+	uint32_t rc = NCSCC_RC_FAILURE;
 	ntfa_client_hdl_rec_t *list_iter = *list_head;
 
 	TRACE_ENTER();
@@ -900,7 +900,7 @@ ntfa_filter_hdl_rec_t *ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, const SaNtfCallbacksT *reg_cbks, uns32 client_id)
+ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, const SaNtfCallbacksT *reg_cbks, uint32_t client_id)
 {
 	ntfa_client_hdl_rec_t *rec = calloc(1, sizeof(ntfa_client_hdl_rec_t));
 
@@ -1145,7 +1145,7 @@ ntfa_reader_hdl_rec_t *ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_hdl_rec_t *rm_node)
+uint32_t ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_hdl_rec_t *rm_node)
 {
 	/* Find the channel hdl record in the list of records */
 	ntfa_reader_hdl_rec_t *list_iter = *list_head;

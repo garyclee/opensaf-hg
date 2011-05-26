@@ -117,7 +117,7 @@ typedef enum eda_log_ids {
 
 void eda_flx_log_reg(void);
 void eda_flx_log_dereg(void);
-void eda_log(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno, uns32 dataa);
-void eda_log_f(uint8_t id, uns32 category, uint8_t sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 handle);
+void eda_log(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa);
+void eda_log_f(uint8_t id, uint32_t category, uint8_t sev, uint32_t rc, char *fname, uint32_t fno, uint32_t dataa, uns64 handle);
 
 #endif

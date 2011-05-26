@@ -45,12 +45,12 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
+uint32_t ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
 {
 	AVA_HDL_REC *hdl_rec = 0;
 	AVSV_AMF_CBK_INFO *cbk_info = 0;
-	uns32 hdl = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t hdl = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* 

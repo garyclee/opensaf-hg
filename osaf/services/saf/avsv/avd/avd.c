@@ -71,7 +71,7 @@ AVD_CL_CB *avd_cb = &_avd_cb;
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
 {
 	(void) notused;
 
@@ -81,7 +81,7 @@ static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE e
 	     (avd_cb->avail_state_avd == SA_AMF_HA_QUIESCED)) &&
 	    (cb_info->info.io_role == PCS_RDA_ACTIVE)) {
 
-		uns32 rc;
+		uint32_t rc;
 		AVD_EVT *evt;
 
 		evt = malloc(sizeof(AVD_EVT));
@@ -110,9 +110,9 @@ static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE e
 /**
  * Initialize everything...
  * 
- * @return uns32 NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ * @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  */
-uns32 avd_initialize(void)
+uint32_t avd_initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	NCS_PATRICIA_PARAMS patricia_params = {0};

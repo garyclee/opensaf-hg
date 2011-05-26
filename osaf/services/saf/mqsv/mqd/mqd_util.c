@@ -54,7 +54,7 @@ static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem);
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
+uint32_t mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
 	/*m_HTON_SANAMET_LEN(pNode->oinfo.name.length); */
 	pNode->node.key_info = (uint8_t *)&pNode->oinfo.name;
@@ -106,7 +106,7 @@ void mqd_db_node_del(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-uns32 mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
+uint32_t mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 {
 	MQD_OBJ_NODE *pNode = 0;
 
@@ -182,10 +182,10 @@ void mqd_qparam_fill(MQD_QUEUE_PARAM *pParam, ASAPi_QUEUE_PARAM *pQparam)
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-uns32 mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
+uint32_t mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 {
 	MQD_TRACK_OBJ *pObj = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Check whether the destination object already exist */
 	pObj = ncs_find_item(list, dest, mqd_track_obj_cmp);
@@ -216,10 +216,10 @@ uns32 mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
                      FAILURE - internal processing didn't like something.
                      <ERR_CODE> Specific errors
 \****************************************************************************/
-uns32 mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
+uint32_t mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
 {
 	MQD_TRACK_OBJ *pObj = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Check whether the destination object already exist */
 	pObj = ncs_remove_item(list, dest, mqd_track_obj_cmp);

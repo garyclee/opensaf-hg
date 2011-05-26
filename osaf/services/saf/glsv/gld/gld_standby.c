@@ -24,11 +24,11 @@
   FUNCTIONS INCLUDED in this module:
 
 ******************************************************************************/
-static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *evt);
-static uns32 glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *evt);
-static uns32 glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *evt);
-static uns32 glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *evt);
-static uns32 glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_evt);
+static uint32_t glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *evt);
+static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *evt);
+static uint32_t glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *evt);
+static uint32_t glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *evt);
+static uint32_t glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_evt);
 static void gld_a2s_evt_destroy(GLSV_GLD_A2S_CKPT_EVT *evt);
 /* GLD dispatch table */
 static const
@@ -52,7 +52,7 @@ GLSV_GLD_A2S_EVT_HANDLER gld_a2s_evt_dispatch_tbl[5] = {
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt)
+uint32_t gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt)
 {
 	if (gld_a2s_evt_dispatch_tbl[evt->evt_type] (evt) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_HEADLINE(GLD_A2S_EVT_PROC_FAILED, NCSFL_SEV_ERROR, __FILE__, __LINE__, 0);
@@ -92,14 +92,14 @@ static void gld_a2s_evt_destroy(GLSV_GLD_A2S_CKPT_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
+static uint32_t glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 {
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_RSC_INFO *rsc_info;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_NODE_LIST *node_list, **tmp_node_list;
 	SaAisErrorT error;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (async_evt == NULL)
 		return NCSCC_RC_FAILURE;
@@ -178,13 +178,13 @@ static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT *async_evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
+static uint32_t glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 {
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc;
 	NCS_BOOL orphan_flag;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (async_evt == NULL)
 		return NCSCC_RC_FAILURE;
@@ -240,11 +240,11 @@ static uns32 glsv_gld_standby_rsc_close(GLSV_GLD_A2S_CKPT_EVT *async_evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *async_evt)
+static uint32_t glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 {
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (async_evt == NULL)
 		return NCSCC_RC_FAILURE;
@@ -292,14 +292,14 @@ static uns32 glsv_gld_standby_rsc_set_orphan(GLSV_GLD_A2S_CKPT_EVT *async_evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
+static uint32_t glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 {
 	GLSV_GLD_CB *gld_cb;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_GLND_RSC_REF *glnd_rsc = NULL;
 	NCS_BOOL orphan_flag;
 	SaLckResourceIdT rsc_id;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (async_evt == NULL)
 		return NCSCC_RC_FAILURE;
@@ -360,14 +360,14 @@ static uns32 glsv_gld_standby_mds_glnd_down(GLSV_GLD_A2S_CKPT_EVT *async_evt)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_evt)
+static uint32_t glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_evt)
 {
 	GLSV_GLD_CB *gld_cb = NULL;
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
 	GLSV_NODE_LIST *node_list = NULL;
 	NCS_BOOL orphan_flag;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (async_evt == NULL)
 		return NCSCC_RC_FAILURE;
@@ -421,7 +421,7 @@ static uns32 glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT *async_evt)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_details)
+uint32_t gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_details)
 {
 	GLSV_A2S_NODE_LIST *node_list = NULL;
 	GLSV_NODE_LIST *tmp1_node_list = NULL;
@@ -429,7 +429,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_de
 	GLSV_GLD_GLND_DETAILS *node_details = NULL;
 	GLSV_GLD_RSC_INFO *rsc_info = NULL;
 	SaAisErrorT ret_error;
-	uns32 node_id;
+	uint32_t node_id;
 
 	if (rsc_details) {
 		rsc_info =
