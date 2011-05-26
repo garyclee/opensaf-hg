@@ -66,12 +66,12 @@ extern "C" {
 
 	typedef unsigned char uns8;	/*  8-bit */
 	typedef unsigned short uns16;	/* 16-bit */
-	typedef unsigned int uns32;	/* 32-bit */
+	typedef uint32_t uns32;	/* 32-bit */
 	typedef uint64_t uns64;	/* 64-bit */
 
 	typedef signed char int8;
 	typedef signed short int16;
-	typedef signed int int32;
+	typedef int32_t int32;
 	typedef int64_t int64;
 
 	typedef float ncsfloat32;
