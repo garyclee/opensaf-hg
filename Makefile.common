@@ -2,9 +2,7 @@
 # Define a common string for core CPP defines
 #
 CORE_CPP_DEFINES = \
-    -DNCS_MDS=1 \
-    -DDTS_SIM_TEST_ENV=1 \
-    -DDTA_FLOW=1
+    -DNCS_MDS=1
 
 CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/saf/include \

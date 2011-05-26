@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libdta.la
 
 libdta_la_CPPFLAGS = \
+	-DDTA_FLOW=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
