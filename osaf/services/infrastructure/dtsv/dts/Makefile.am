@@ -23,7 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = osafdtd
 
 osafdtd_CPPFLAGS = \
-	-DNCS_DTS=1 -DDTS_LOG=1 -DNCS_DTA=1 -DDTS_FLOW=1 \
+	-DNCS_DTS=1 -DDTS_LOG=1 -DNCS_DTA=1 -DDTS_FLOW=1 -DDTA_FLOW=1 -DDTS_SIM_TEST_ENV=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
