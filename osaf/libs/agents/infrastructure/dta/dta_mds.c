@@ -686,8 +686,6 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 	if (data == NULL)
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_enc: ncs_enc_reserve_space returns NULL");
 
-	ncs_encode_16bit(&data, mm->vrid);
-
 	ncs_encode_8bit(&data, mm->msg_type);
 
 	ncs_enc_claim_space(uba, DTSV_DTA_DTS_HDR_SIZE);
@@ -855,7 +853,6 @@ uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_dec :ncs_dec_flatten_space returns NULL");
 	}
 
-	mm->vrid = ncs_decode_16bit(&data);
 	mm->msg_type = ncs_decode_8bit(&data);
 
 	ncs_dec_skip_space(uba, DTSV_DTS_DTA_MSG_HDR_SIZE);
@@ -1075,7 +1072,6 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL *logmsg, NCS_UBAID *uba)
 	ncs_encode_32bit(&data, logmsg->hdr.time.seconds);
 	ncs_encode_32bit(&data, logmsg->hdr.time.millisecs);
 
-	ncs_encode_16bit(&data, logmsg->hdr.vr_id);
 	ncs_encode_32bit(&data, logmsg->hdr.ss_id);
 	ncs_encode_32bit(&data, logmsg->hdr.inst_id);
 	ncs_encode_8bit(&data, logmsg->hdr.severity);

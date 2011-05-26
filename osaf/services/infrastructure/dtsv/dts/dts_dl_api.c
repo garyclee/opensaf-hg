@@ -200,7 +200,6 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 		arg.i_op = DTS_LM_OP_CREATE;
 		arg.info.create.i_hmpool_id = NCS_HM_POOL_ID_COMMON;
-		arg.info.create.i_vrid = 1;
 		arg.info.create.task_handle = task_handle;
 
 		/* Now create and initialize DTS control block */

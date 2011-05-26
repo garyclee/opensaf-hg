@@ -673,7 +673,6 @@ uns32 dts_register_service(DTSV_MSG *msg)
 	}
 
 	/* Now configure the service which is just registered with DTS */
-	msg->vrid = inst->vrid;
 	msg->msg_type = DTS_SVC_REG_CONF;
 
 	msg->data.data.reg_conf.msg_fltr.svc_id = key.ss_svc_id;
@@ -1522,7 +1521,6 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LI
 	}
 
 	memset(&msg, 0, sizeof(DTSV_MSG));
-	msg.vrid = inst->vrid;
 	msg.node = svc->my_key.node;
 	msg.msg_type = DTS_SVC_MSG_FLTR;
 
@@ -1836,7 +1834,6 @@ uns32 dts_stby_update_dta_config()
 			}
 			memset(msg, '\0', sizeof(DTSV_MSG));
 
-			msg->vrid = inst->vrid;
 			msg->msg_type = DTS_FAIL_OVER;
 			/* Fill the data, select destination and send to MDS */
 			msg->data.data.dta_ptr = (long)dta_reg;
